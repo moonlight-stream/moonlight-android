@@ -34,6 +34,12 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
     public static final class drawable {
         public static final int ic_launcher=0x7f020000;
     }
+    public static final class id {
+        public static final int editText1=0x7f080002;
+        public static final int hostTextView=0x7f080000;
+        public static final int statusButton=0x7f080001;
+        public static final int videoView=0x7f080003;
+    }
     public static final class layout {
         public static final int activity_connection=0x7f030000;
         public static final int activity_game=0x7f030001;

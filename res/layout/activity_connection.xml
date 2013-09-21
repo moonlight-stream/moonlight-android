@@ -8,4 +8,28 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".Connection" >
 
+    <EditText
+        android:id="@+id/hostTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="60dp"
+        android:ems="10"
+        android:hint="255.255.255.255"
+        android:textSize="100dp" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/statusButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/editText1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="131dp"
+        android:text="Start Streaming Steam!"
+        android:textSize="50dp" />
+
 </RelativeLayout>

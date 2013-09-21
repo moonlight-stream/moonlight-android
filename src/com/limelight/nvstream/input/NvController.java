@@ -1,4 +1,4 @@
-package com.limelight.nvstream;
+package com.limelight.nvstream.input;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+
 
 public class NvController {
 	

@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import com.limelight.nvstream.input.NvController;
+
 public class NvConnection {
 	private String host;
 	

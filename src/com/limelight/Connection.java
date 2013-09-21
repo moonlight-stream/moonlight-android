@@ -16,22 +16,7 @@ public class Connection extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_connection);
 		
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					new NvConnection("141.213.191.238").doShit();
-				} catch (XmlPullParserException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			
-		}).start();
+		
 	}
 
 }

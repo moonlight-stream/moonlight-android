@@ -1,4 +1,4 @@
-package com.limelight.nvstream;
+package com.limelight.nvstream.input;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.xmlpull.v1.XmlPullParserException;
 
 import android.app.Activity;
+import android.view.Surface;
 import android.widget.Toast;
 
 import com.limelight.Game;
@@ -21,13 +22,15 @@ public class NvConnection {
 	
 	private NvControl controlStream;
 	private NvController inputStream;
+	private Surface video;
 	
 	private ThreadPoolExecutor threadPool;
 	
-	public NvConnection(String host, Activity activity)
+	public NvConnection(String host, Activity activity, Surface video)
 	{
 		this.host = host;
 		this.activity = activity;
+		this.video = video;
 		this.threadPool = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
 	}
 
@@ -47,14 +50,10 @@ public class NvConnection {
 				try {
 					startSteamBigPicture();
 					performHandshake();
+					startVideo(video);
 					beginControlStream();
-					startController();
-					
-					//new NvAudioStream().start();
-					new NvVideoStream().start(host);
-					
 					controlStream.startJitterPackets();
-					
+					startController();
 				} catch (XmlPullParserException e) {
 					e.printStackTrace();
 					displayToast(e.getMessage());
@@ -64,6 +63,11 @@ public class NvConnection {
 				}
 			}
 		}).start();
+	}
+	
+	public void startVideo(Surface surface)
+	{
+		new NvVideoStream().startVideoStream(host, surface);
 	}
 	
 	public void sendControllerInput(final short buttonFlags,

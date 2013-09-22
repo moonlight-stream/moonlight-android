@@ -1,0 +1,22 @@
+<html>
+<body>
+<p>The jlibrtp package contains the core classes of jlibrtp. Most of these classes
+ are protected or private, developers looking to use jlibrtp should only concern
+ themselves with</p>
+ <ul>
+ <li>RTPSession - the main session object
+ <li>Participant - participant objects
+ <li>DataFrame - the containers in which data is returned
+ <li>RTPAppIntf - the mininum callback interface
+ <li>RTPCAppIntf - optional interface for receing RTCP packets
+ <li>RTCPAVPFIntf - optional interface for RTP with feedback
+ <li>DebugAppIntf - optional interface for debugging
+ </ul>
+ <p>
+ DebugAppIntf is great for checking network problems and keeping track of packets. 
+ If you need extensive debugging you should statically change the debug values in RTPSession.java
+ and pay attention to the standard output.
+ </p>
+ 
+</body>
+</html>

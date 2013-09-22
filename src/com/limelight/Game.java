@@ -3,6 +3,8 @@ package com.limelight;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -11,12 +13,21 @@ import com.limelight.nvstream.input.NvController;
 import com.limelight.nvstream.input.NvInputPacket;
 
 import tv.ouya.console.api.OuyaController;
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.media.AudioManager;
+import android.media.MediaCodec;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.SurfaceView;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.MediaController;
 import android.widget.VideoView;
 
@@ -35,11 +46,16 @@ public class Game extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		
 		setContentView(R.layout.activity_game);
 		
 		OuyaController.init(this);
 		
-		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this);
+		SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
+		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this, sv.getHolder().getSurface());
 		conn.start();
 	}
 	

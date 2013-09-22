@@ -5,9 +5,9 @@
     android:background="#0099cc"
     tools:context=".Game" >
 
-    <!--VideoView
-        android:id="@+id/videoView"
+    <SurfaceView
+        android:id="@+id/surfaceView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" /> -->
+        android:layout_height="match_parent" />
 
 </FrameLayout>

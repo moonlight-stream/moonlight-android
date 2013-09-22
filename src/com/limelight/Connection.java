@@ -15,7 +15,7 @@ public class Connection extends Activity {
 	private SharedPreferences prefs;
 	
 	private static final String DEFAULT_HOST = "141.213.191.238";
-	public static final String HOST_KEY = "hostKey";
+	public static final String HOST_KEY = "hostText";
 	
 
 	@Override
@@ -27,7 +27,7 @@ public class Connection extends Activity {
 	public void onPause() {
 		SharedPreferences.Editor editor = prefs.edit();
 		
-		editor.putString(Connection.HOST_KEY, this.hostText.toString());
+		editor.putString(Connection.HOST_KEY, this.hostText.getText().toString());
 		editor.apply();
 		
 		super.onPause();

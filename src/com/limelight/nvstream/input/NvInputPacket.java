@@ -28,31 +28,31 @@ public class NvInputPacket {
 				0x00
 			};
 		
-		public static final short A_FLAG = 0x1000;
-		public static final short B_FLAG = 0x2000;
-		public static final short X_FLAG = 0x4000;
-		public static final short Y_FLAG = (short)0x8000;
-		public static final short UP_FLAG = 0x0001;
-		public static final short DOWN_FLAG = 0x0002;
-		public static final short LEFT_FLAG = 0x0004;
-		public static final short RIGHT_FLAG = 0x0008;
-		public static final short RB_FLAG = 0x0100;
-		public static final short LB_FLAG = 0x0200;
-		public static final short LS_CLK_FLAG = 0x0004;
-		public static final short RS_CLK_FLAG = 0x0008;
-		public static final short PLAY_FLAG = 0x0001;
-		public static final short BACK_FLAG = 0x0002;
+		public static final short A_FLAG = 0x0010;
+		public static final short B_FLAG = 0x0020;
+		public static final short X_FLAG = 0x0040;
+		public static final short Y_FLAG = 0x0080;
+		public static final short UP_FLAG = 0x0100;
+		public static final short DOWN_FLAG = 0x0200;
+		public static final short LEFT_FLAG = 0x0400;
+		public static final short RIGHT_FLAG = 0x0800;
+		public static final short RB_FLAG = 0x0001;
+		public static final short LB_FLAG = 0x0002;
+		public static final short LS_CLK_FLAG = 0x0400;
+		public static final short RS_CLK_FLAG = 0x0800;
+		public static final short PLAY_FLAG = 0x0100;
+		public static final short BACK_FLAG = 0x0200;
 		
 		public static final short PACKET_LENGTH = 28;
 		
 		private short buttonFlags;
 		private byte leftTrigger;
 		private byte rightTrigger;
-		private short leftStick;
-		private short rightStick;
+		private int leftStick;
+		private int rightStick;
 		
 		public NvInputPacket(short buttonFlags, byte leftTrigger, byte rightTrigger,
-				 short leftStick, short rightStick)
+				 int leftStick, int rightStick)
 		{
 			this.buttonFlags = buttonFlags;
 			this.leftTrigger = leftTrigger;
@@ -63,14 +63,14 @@ public class NvInputPacket {
 		
 		public byte[] toWire()
 		{
-			ByteBuffer bb = ByteBuffer.allocate(PACKET_LENGTH).order(ByteOrder.LITTLE_ENDIAN);
+			ByteBuffer bb = ByteBuffer.allocate(PACKET_LENGTH);
 			
 			bb.put(HEADER);
 			bb.putShort(buttonFlags);
 			bb.put(leftTrigger);
 			bb.put(rightTrigger);
-			bb.putShort(leftStick);
-			bb.putShort(rightStick);
+			bb.putInt(leftStick);
+			bb.putInt(rightStick);
 			bb.put(TAIL);
 			
 			return bb.array();

@@ -62,8 +62,11 @@ public class NvConnection {
 	
 	public void sendControllerInput(final short buttonFlags,
 			final byte leftTrigger, final byte rightTrigger,
-			final short leftStick, final short rightStick)
+			final int leftStick, final int rightStick)
 	{
+		if (inputStream == null)
+			return;
+		
 		threadPool.execute(new Runnable() {
 			@Override
 			public void run() {

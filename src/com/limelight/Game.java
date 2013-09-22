@@ -14,13 +14,19 @@ import tv.ouya.console.api.OuyaController;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.widget.MediaController;
 import android.widget.VideoView;
 
 
 public class Game extends Activity {
 	private short inputMap = 0x0000;
+	private byte leftTrigger = 0x0000;
+	private byte rightTrigger = 0x0000;
+	private int rightStick = 0x00000000;
+	private int leftStick = 0x00000000;
 	
 	private NvConnection conn;
 	
@@ -163,7 +169,54 @@ public class Game extends Activity {
 		return true;	
 	}
 	
-	private void sendInputPacket() {
-		conn.sendControllerInput(inputMap, (byte)0, (byte)0, (byte)0, (byte)0);
+	@Override
+	public boolean onGenericMotionEvent(MotionEvent event) {
+	    if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
+			//Get all the axis for the event
+		    float LS_X = event.getAxisValue(OuyaController.AXIS_LS_X);
+		    float LS_Y = event.getAxisValue(OuyaController.AXIS_LS_Y);
+		    float RS_X = event.getAxisValue(OuyaController.AXIS_RS_X);
+		    float RS_Y = event.getAxisValue(OuyaController.AXIS_RS_Y);
+	    	
+		    if (LS_X * LS_X + LS_Y * LS_Y < OuyaController.STICK_DEADZONE * OuyaController.STICK_DEADZONE) {
+		    	LS_X = LS_Y = 0.0f;
+		    }
+		    
+		    if (RS_X * RS_X + RS_Y * RS_Y < OuyaController.STICK_DEADZONE * OuyaController.STICK_DEADZONE) {
+		    	RS_X = RS_Y = 0.0f;
+		    }
+		    
+		    System.out.println("LS_X: " + LS_X + "\t" +
+		    			"LS_Y: " + LS_Y + "\t" +
+		    			"RS_X: " + RS_X + "\t" +
+		    			"RS_Y: " + RS_Y + "\t");
+		    
+		    leftStick = ((int)Math.round(LS_X * 0x7FFF) << 16) & 0xFFFF0000;
+		    leftStick |= (int)Math.round(-LS_Y * 0x7FFF) & 0xFFFF;
+		    
+		    rightStick = ((int)Math.round(RS_X * 0x7FFF) << 16) & 0xFFFF0000;
+		    rightStick |= (int)Math.round(-RS_Y * 0x7FFF) & 0xFFFF;
+		    
+		    
+		    System.out.printf("0x%x 0x%x\n", leftStick, rightStick);
+	    }
+		
+	    float L2 = event.getAxisValue(OuyaController.AXIS_L2);
+	    float R2 = event.getAxisValue(OuyaController.AXIS_R2);
+	    
+	    System.out.println("L2: " + L2 + "\t" + " R2: " + R2 + "\t");
+	    
+	    leftTrigger = (byte)Math.round(L2 * 0xFF);
+	    rightTrigger = (byte)Math.round(R2 * 0xFF);
+	    
+	    sendInputPacket();
+	    
+	    return true;
 	}
+	
+	
+	private void sendInputPacket() {
+		conn.sendControllerInput(inputMap, leftTrigger, rightTrigger, leftStick, rightStick);
+	}
+	
 }

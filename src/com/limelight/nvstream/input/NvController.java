@@ -15,10 +15,11 @@ public class NvController {
 	public NvController(String host) throws UnknownHostException, IOException
 	{
 		s = new Socket(host, PORT);
+		s.setTcpNoDelay(true);
 		out = s.getOutputStream();
 	}
 	
-	public void sendControllerInput(short buttonFlags, byte leftTrigger, byte rightTrigger, short leftStick, short rightStick) throws IOException
+	public void sendControllerInput(short buttonFlags, byte leftTrigger, byte rightTrigger, int leftStick, int rightStick) throws IOException
 	{
 		out.write(new NvInputPacket(buttonFlags, leftTrigger, rightTrigger, leftStick, rightStick).toWire());
 		out.flush();

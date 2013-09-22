@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -27,10 +28,18 @@ public class NvVideoStream {
 				try {
 					System.out.println("VID: Waiting for first frame");
 					InputStream firstFrameStream = getFirstFrame(host);
-					firstFrameStream.read();
-					System.out.println("VID: First frame: "+firstFrameStream.available()+1);
-					firstFrameStream.close();
-					System.out.println("VID: Got first frame");
+					
+					System.out.println(firstFrameStream.available());
+					int i;
+					for (i = 0; i < 98; i++)
+					{
+						if (firstFrameStream.read() == -1)
+						{
+							System.out.println("EOF on FF");
+							break;
+						}
+					}
+					System.out.println("VID: First frame read "+i);
 				} catch (UnknownHostException e2) {
 					// TODO Auto-generated catch block
 					e2.printStackTrace();
@@ -41,7 +50,7 @@ public class NvVideoStream {
 					return;
 				}
 				
-				DatagramSocket ds;
+				final DatagramSocket ds;
 				try {
 					ds = new DatagramSocket(PORT);
 				} catch (SocketException e1) {
@@ -49,6 +58,32 @@ public class NvVideoStream {
 					e1.printStackTrace();
 					return;
 				}
+				
+				// Ping thread
+				/*new Thread(new Runnable() {
+					@Override
+					public void run() {
+						byte[] ping = new byte[]{0x50, 0x49, 0x4e, 0x47};
+						for (;;)
+						{
+							DatagramPacket dgp = new DatagramPacket(ping, 0, ping.length);
+							dgp.setSocketAddress(new InetSocketAddress(host, PORT));
+							try {
+								ds.send(dgp);
+							} catch (IOException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+								break;
+							}
+							
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e) {
+								break;
+							}
+						}
+					}
+				}).start();*/
 
 				for (;;)
 				{

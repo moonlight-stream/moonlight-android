@@ -49,6 +49,12 @@ public class NvConnection {
 					performHandshake();
 					beginControlStream();
 					startController();
+					
+					//new NvAudioStream().start();
+					new NvVideoStream().start(host);
+					
+					controlStream.startJitterPackets();
+					
 				} catch (XmlPullParserException e) {
 					e.printStackTrace();
 					displayToast(e.getMessage());
@@ -130,11 +136,5 @@ public class NvConnection {
 	{
 		System.out.println("Starting input");
 		inputStream = new NvController(host);
-	}
-	
-	public void doShit() throws XmlPullParserException, IOException
-	{
-		new NvAudioStream().start();
-		new NvVideoStream().start(host);
 	}
 }

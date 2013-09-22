@@ -3,6 +3,7 @@ package com.limelight.nvstream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 import android.net.rtp.AudioGroup;
 import android.net.rtp.AudioStream;
@@ -32,13 +33,13 @@ public class NvAudioStream {
 		System.out.println("Joined");
 	}*/
 	
-	public void start()
+	public void start(final String host)
 	{		
 		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
-				DatagramSocket ds;
+				final DatagramSocket ds;
 				try {
 					ds = new DatagramSocket(PORT);
 				} catch (SocketException e1) {
@@ -46,6 +47,31 @@ public class NvAudioStream {
 					e1.printStackTrace();
 					return;
 				}
+				
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						byte[] ping = new byte[]{0x50, 0x49, 0x4e, 0x47};
+						for (;;)
+						{
+							DatagramPacket dgp = new DatagramPacket(ping, 0, ping.length);
+							dgp.setSocketAddress(new InetSocketAddress(host, PORT));
+							try {
+								ds.send(dgp);
+							} catch (IOException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+								break;
+							}
+							
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e) {
+								break;
+							}
+						}
+					}
+				}).start();
 
 				for (;;)
 				{

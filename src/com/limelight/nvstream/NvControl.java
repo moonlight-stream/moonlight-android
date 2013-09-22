@@ -12,9 +12,9 @@ public class NvControl {
 	
 	public static final int PORT = 47995;
 	
-	public static final short PTYPE_1 = 0x1204;
-	public static final short PPAYLEN_1 = 0x0004;
-	public static final byte[] PPAYLOAD_1 =
+	public static final short PTYPE_HELLO = 0x1204;
+	public static final short PPAYLEN_HELLO = 0x0004;
+	public static final byte[] PPAYLOAD_HELLO =
 		{
 		(byte)0x00,
 		(byte)0x05,
@@ -97,7 +97,7 @@ public class NvControl {
 		402653184,
 		134218770,
 		419430400,
-		167773203,
+		167773202,
 		436207616,
 		855638290,
 		266779,
@@ -150,12 +150,12 @@ public class NvControl {
 		34746368,
 		(int)0xFE000000
 		};
+
 	
-	public static final short PTYPE_HELLO = 0x1204;
-	public static final short PPAYLEN_HELLO = 0x0004;
-	public static final byte[] PPAYLOAD_HELLO = new byte[] {
-		0x04, 0x00, 0x00, 0x05
-		};
+	public static final short PTYPE_JITTER = 0x140c;
+	public static final short PPAYLEN_JITTER = 0x10;
+	
+	private int seqNum;
 	
 	private Socket s;
 	private InputStream in;
@@ -173,10 +173,23 @@ public class NvControl {
 		out.write(packet.toWire());
 		out.flush();
 	}
+	
 	public NvControl.NvCtlResponse sendAndGetReply(NvCtlPacket packet) throws IOException
 	{
 		sendPacket(packet);
 		return new NvCtlResponse(in);
+	}
+	
+	private void sendJitter() throws IOException
+	{
+		ByteBuffer bb = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
+		
+		bb.putInt(0);
+		bb.putInt(77);
+		bb.putInt(888);
+		bb.putInt(seqNum += 2);
+
+		sendPacket(new NvCtlPacket(PTYPE_JITTER, PPAYLEN_JITTER, bb.array()));
 	}
 	
 	public void beginControl() throws IOException
@@ -207,6 +220,30 @@ public class NvControl {
 					
 					try {
 						Thread.sleep(3000);
+					} catch (InterruptedException e) {
+						break;
+					}
+				}
+			}
+		}).start();
+	}
+	
+	public void startJitterPackets()
+	{
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				for (;;)
+				{
+					try {
+						sendJitter();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+						break;
+					}
+					
+					try {
+						Thread.sleep(100);
 					} catch (InterruptedException e) {
 						break;
 					}

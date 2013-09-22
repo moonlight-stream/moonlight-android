@@ -1,79 +1,133 @@
 package com.limelight.nvstream;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import android.app.Activity;
+import android.widget.Toast;
+
+import com.limelight.Game;
 import com.limelight.nvstream.input.NvController;
 
 public class NvConnection {
 	private String host;
+	private Activity activity;
 	
-	public NvConnection(String host)
+	private NvControl controlStream;
+	private NvController inputStream;
+	
+	private ThreadPoolExecutor threadPool;
+	
+	public NvConnection(String host, Activity activity)
 	{
 		this.host = host;
+		this.activity = activity;
+		this.threadPool = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
+	}
+
+	public void start()
+	{	
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					host = InetAddress.getByName(host).toString().substring(1);
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+					displayToast(e.getMessage());
+					return;
+				}
+				
+				try {
+					startSteamBigPicture();
+					performHandshake();
+					beginControlStream();
+					startController();
+				} catch (XmlPullParserException e) {
+					e.printStackTrace();
+					displayToast(e.getMessage());
+				} catch (IOException e) {
+					e.printStackTrace();
+					displayToast(e.getMessage());
+				}
+			}
+		}).start();
 	}
 	
-	private void delay(int ms)
+	public void sendControllerInput(final short buttonFlags,
+			final byte leftTrigger, final byte rightTrigger,
+			final short leftStick, final short rightStick)
 	{
-		try {
-			Thread.sleep(ms);
-		} catch (InterruptedException e) {
+		threadPool.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					inputStream.sendControllerInput(buttonFlags, leftTrigger, rightTrigger, leftStick, rightStick);
+				} catch (IOException e) {
+					e.printStackTrace();
+					displayToast(e.getMessage());
+				}
+			}
+		});
+	}
+	
+	private void displayToast(final String message)
+	{
+		activity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
+			}
+		});
+	}
+	
+	private void startSteamBigPicture() throws XmlPullParserException, IOException
+	{
+		NvHttp h = new NvHttp(host, "b0:ee:45:57:5d:5f");
+		
+		if (!h.getPairState())
+		{
+			displayToast("Device not paired with computer");
 			return;
 		}
+		
+		int sessionId = h.getSessionId();
+		int appId = h.getSteamAppId(sessionId);
+		
+		System.out.println("Starting game session");
+		int gameSession = h.launchApp(sessionId, appId);
+		System.out.println("Started game session: "+gameSession);
+	}
+	
+	private void performHandshake() throws UnknownHostException, IOException
+	{
+		System.out.println("Starting handshake");
+		NvHandshake.performHandshake(host);
+		System.out.println("Handshake complete");
+	}
+	
+	private void beginControlStream() throws UnknownHostException, IOException
+	{
+		controlStream = new NvControl(host);
+		
+		System.out.println("Starting control");
+		controlStream.beginControl();
+	}
+	
+	private void startController() throws UnknownHostException, IOException
+	{
+		System.out.println("Starting input");
+		inputStream = new NvController(host);
 	}
 	
 	public void doShit() throws XmlPullParserException, IOException
 	{
-		NvHttp h = new NvHttp(host, "b0:ee:45:57:5d:5f");
-		
-		System.out.println("Begin Shield Action"); 
-		System.out.println(h.getAppVersion());
-		System.out.println(h.getPairState());
-		
-		int sessionId = h.getSessionId();
-		System.out.println("Session ID: "+sessionId);
-		int appId = h.getSteamAppId(sessionId);
-		System.out.println("Steam app ID: "+appId);
-		int gameSession = h.launchApp(sessionId, appId);
-		System.out.println("Started game session: "+gameSession);
-		
-		System.out.println("Starting handshake");
-		NvHandshake.performHandshake(host);
-		System.out.println("Handshake complete");
-		
-		NvControl nvC = new NvControl(host);
-		
-		System.out.println("Starting control");
-		nvC.beginControl();
-		
-		System.out.println("Startup controller");
-		NvController controller = new NvController(host);
-		
-		// Wait 3 seconds to start input
-		delay(3000);
-		
-		System.out.println("Beginning controller input");
-		controller.sendLeftButton();
-		delay(100);
-		controller.clearButtons();
-		delay(250);
-		controller.sendRightButton();
-		delay(100);
-		controller.clearButtons();
-		delay(250);
-		controller.sendRightButton();
-		delay(100);
-		controller.clearButtons();
-		delay(250);
-		controller.sendRightButton();
-		delay(100);
-		controller.clearButtons();
-		delay(250);
-		controller.sendLeftButton();
-		delay(100);
-		controller.clearButtons();
-		
 		new NvAudioStream().start();
 		new NvVideoStream().start(host);
 	}

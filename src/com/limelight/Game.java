@@ -1,6 +1,8 @@
 package com.limelight;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -18,44 +20,19 @@ import android.widget.VideoView;
 
 
 public class Game extends Activity {
-	private VideoView vv;
-	private MediaController mc;
 	private short inputMap = 0x0000;
+	
+	private NvConnection conn;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_game);
+		
 		OuyaController.init(this);
 		
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					new NvConnection("141.213.191.238").doShit();
-				} catch (XmlPullParserException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			
-		}).start();
-		
-		setContentView(R.layout.activity_game);
-
-		/*vv = (VideoView) findViewById(R.id.videoView);
-		
-		mc = new MediaController(this);
-		mc.setAnchorView(vv);
-		
-		Uri video = Uri.parse("rtsp://141.213.191.236:47902/nvstream");
-		vv.setMediaController(mc);
-		vv.setVideoURI(video);
-		
-		vv.start();*/
+		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this);
+		conn.start();
 	}
 	
 	@Override
@@ -187,7 +164,6 @@ public class Game extends Activity {
 	}
 	
 	private void sendInputPacket() {
-		NvInputPacket inputPacket = new NvInputPacket(inputMap, (byte)0, (byte)0, (byte)0, (byte)0);
-		
+		conn.sendControllerInput(inputMap, (byte)0, (byte)0, (byte)0, (byte)0);
 	}
 }

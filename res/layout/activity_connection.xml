@@ -17,7 +17,7 @@
         android:layout_marginTop="60dp"
         android:ems="10"
         android:hint="255.255.255.255"
-        android:textSize="100dp" >
+        android:textSize="50dp" >
 
         <requestFocus />
     </EditText>

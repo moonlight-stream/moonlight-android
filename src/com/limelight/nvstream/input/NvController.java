@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 
 public class NvController {
 	
@@ -21,21 +18,9 @@ public class NvController {
 		out = s.getOutputStream();
 	}
 	
-	// Example
-	public void sendLeftButton() throws IOException
+	public void sendControllerInput(short buttonFlags, byte leftTrigger, byte rightTrigger, short leftStick, short rightStick) throws IOException
 	{
-		out.write(new NvInputPacket(NvInputPacket.LEFT_FLAG, (byte)0, (byte)0, (short)0, (short)0).toWire());
-	}
-	
-	// Example
-	public void sendRightButton() throws IOException
-	{
-		out.write(new NvInputPacket(NvInputPacket.RIGHT_FLAG, (byte)0, (byte)0, (short)0, (short)0).toWire());
-	}
-	
-	// Example
-	public void clearButtons() throws IOException
-	{
-		out.write(new NvInputPacket((short)0, (byte)0, (byte)0, (short)0, (short)0).toWire());
+		out.write(new NvInputPacket(buttonFlags, leftTrigger, rightTrigger, leftStick, rightStick).toWire());
+		out.flush();
 	}
 }

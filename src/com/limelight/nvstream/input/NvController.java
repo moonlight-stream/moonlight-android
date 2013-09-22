@@ -19,9 +19,12 @@ public class NvController {
 		out = s.getOutputStream();
 	}
 	
-	public void sendControllerInput(short buttonFlags, byte leftTrigger, byte rightTrigger, int leftStick, int rightStick) throws IOException
+	public void sendControllerInput(short buttonFlags, byte leftTrigger, byte rightTrigger,
+			short leftStickX, short leftStickY, short rightStickX, short rightStickY) throws IOException
 	{
-		out.write(new NvInputPacket(buttonFlags, leftTrigger, rightTrigger, leftStick, rightStick).toWire());
+		out.write(new NvInputPacket(buttonFlags, leftTrigger,
+				rightTrigger, leftStickX, leftStickY,
+				rightStickX, rightStickY).toWire());
 		out.flush();
 	}
 }

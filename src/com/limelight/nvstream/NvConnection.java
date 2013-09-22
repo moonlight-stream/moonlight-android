@@ -62,7 +62,8 @@ public class NvConnection {
 	
 	public void sendControllerInput(final short buttonFlags,
 			final byte leftTrigger, final byte rightTrigger,
-			final int leftStick, final int rightStick)
+			final short leftStickX, final short leftStickY,
+			final short rightStickX, final short rightStickY)
 	{
 		if (inputStream == null)
 			return;
@@ -71,7 +72,9 @@ public class NvConnection {
 			@Override
 			public void run() {
 				try {
-					inputStream.sendControllerInput(buttonFlags, leftTrigger, rightTrigger, leftStick, rightStick);
+					inputStream.sendControllerInput(buttonFlags, leftTrigger,
+							rightTrigger, leftStickX, leftStickY,
+							rightStickX, rightStickY);
 				} catch (IOException e) {
 					e.printStackTrace();
 					displayToast(e.getMessage());

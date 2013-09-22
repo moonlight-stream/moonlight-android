@@ -23,10 +23,12 @@ import android.widget.VideoView;
 
 public class Game extends Activity {
 	private short inputMap = 0x0000;
-	private byte leftTrigger = 0x0000;
-	private byte rightTrigger = 0x0000;
-	private int rightStick = 0x00000000;
-	private int leftStick = 0x00000000;
+	private byte leftTrigger = 0x00;
+	private byte rightTrigger = 0x00;
+	private short rightStickX = 0x0000;
+	private short rightStickY = 0x0000;
+	private short leftStickX = 0x0000;
+	private short leftStickY = 0x0000;
 	
 	private NvConnection conn;
 	
@@ -191,14 +193,13 @@ public class Game extends Activity {
 		    			"RS_X: " + RS_X + "\t" +
 		    			"RS_Y: " + RS_Y + "\t");
 		    
-		    leftStick = ((int)Math.round(LS_X * 0x7FFF) << 16) & 0xFFFF0000;
-		    leftStick |= (int)Math.round(-LS_Y * 0x7FFF) & 0xFFFF;
+		    leftStickX = (short)Math.round(LS_X * 0x7FFF);
+		    leftStickY = (short)Math.round(-LS_Y * 0x7FFF);
 		    
-		    rightStick = ((int)Math.round(RS_X * 0x7FFF) << 16) & 0xFFFF0000;
-		    rightStick |= (int)Math.round(-RS_Y * 0x7FFF) & 0xFFFF;
+		    rightStickX = (short)Math.round(RS_X * 0x7FFF);
+		    rightStickY = (short)Math.round(-RS_Y * 0x7FFF);
 		    
-		    
-		    System.out.printf("0x%x 0x%x\n", leftStick, rightStick);
+		    System.out.printf("(0x%x 0x%x) (0x%x 0x%x)\n", leftStickX, leftStickY, rightStickX, rightStickY);
 	    }
 		
 	    float L2 = event.getAxisValue(OuyaController.AXIS_L2);
@@ -216,7 +217,8 @@ public class Game extends Activity {
 	
 	
 	private void sendInputPacket() {
-		conn.sendControllerInput(inputMap, leftTrigger, rightTrigger, leftStick, rightStick);
+		conn.sendControllerInput(inputMap, leftTrigger, rightTrigger,
+				leftStickX, leftStickY, rightStickX, rightStickY);
 	}
 	
 }

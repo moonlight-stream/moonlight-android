@@ -14,7 +14,7 @@ public class Connection extends Activity {
 	private TextView hostText;
 	private SharedPreferences prefs;
 	
-	private static final String DEFAULT_HOST = "141.213.191.238";
+	private static final String DEFAULT_HOST = "35.0.113.120";
 	public static final String HOST_KEY = "hostText";
 	
 

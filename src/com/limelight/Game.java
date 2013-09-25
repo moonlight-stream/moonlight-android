@@ -46,7 +46,6 @@ public class Game extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
@@ -64,7 +63,7 @@ public class Game extends Activity {
 		
 		switch (keyCode) {
 		case OuyaController.BUTTON_MENU:
-			inputMap |= NvInputPacket.BACK_FLAG;
+			inputMap |= NvInputPacket.PLAY_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_LEFT:
 			inputMap |= NvInputPacket.LEFT_FLAG;
@@ -113,7 +112,7 @@ public class Game extends Activity {
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		switch (keyCode) {
 		case OuyaController.BUTTON_MENU:
-			inputMap &= ~NvInputPacket.BACK_FLAG;
+			inputMap &= ~NvInputPacket.PLAY_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_LEFT:
 			inputMap &= ~NvInputPacket.LEFT_FLAG;

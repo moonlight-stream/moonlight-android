@@ -1,5 +1,9 @@
 package com.limelight.nvstream;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.DatagramSocket;
@@ -23,12 +27,22 @@ public class NvVideoStream implements RTPAppIntf {
 	public static final int RTCP_PORT = 47999;
 	public static final int FIRST_FRAME_PORT = 47996;
 	
-	private MediaCodec codec;
+	private static final int FRAME_RATE = 60;
+	private ByteBuffer[] decoderInputBuffers = null;
+	private MediaCodec decoder;
+	private BufferedOutputStream output;
+	
+	private int frameIndex = 0;
 	
 	private InputStream getFirstFrame(String host) throws UnknownHostException, IOException
 	{
 		Socket s = new Socket(host, FIRST_FRAME_PORT);
 		return s.getInputStream();
+	}
+	
+	private void openFile(String file) throws FileNotFoundException
+	{
+		output = new BufferedOutputStream(new FileOutputStream(new File(file)));
 	}
 	
 	public void startVideoStream(final String host, final Surface surface)
@@ -69,24 +83,26 @@ public class NvVideoStream implements RTPAppIntf {
 					return;
 				}
 
-				codec = MediaCodec.createDecoderByType("video/avc");
+				decoder = MediaCodec.createDecoderByType("video/avc");
 				MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", 1280, 720);
-				codec.configure(mediaFormat, surface, null, 0);
-				codec.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-				codec.start();
 		
+				decoder.configure(mediaFormat, surface, null, 0);
+				decoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+				decoder.start();
+				decoderInputBuffers = decoder.getInputBuffers();
 
-				int inputIndex = codec.dequeueInputBuffer(-1);
+				int inputIndex = decoder.dequeueInputBuffer(-1);
 				if (inputIndex >= 0)
 				{
-					ByteBuffer buf = codec.getInputBuffers()[inputIndex];
+					ByteBuffer buf = decoderInputBuffers[inputIndex];
 					
 					buf.clear();
 					buf.put(firstFrame);
 					
-					codec.queueInputBuffer(inputIndex,
+					decoder.queueInputBuffer(inputIndex,
 							0, firstFrame.length,
-							100, MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
+							0, 0);
+					frameIndex++;
 				}
 				
 				RTPSession session = new RTPSession(rtp, rtcp);
@@ -95,25 +111,32 @@ public class NvVideoStream implements RTPAppIntf {
 				
 				for (;;)
 				{
+					System.out.println("in background infinite loop");
 					BufferInfo info = new BufferInfo();
-					int outIndex = codec.dequeueOutputBuffer(info, -1);
+					System.out.println("dequeuing outputbuffer");
+					int outIndex = decoder.dequeueOutputBuffer(info, -1);
+					System.out.println("done dequeuing output buffer");
 				    switch (outIndex) {
 				    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
 				    	System.out.println("Output buffers changed");
 					    break;
 				    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
 				    	System.out.println("Output format changed");
+				    	//decoderOutputFormat = decoder.getOutputFormat();
+				    	System.out.println("New output Format: " + decoder.getOutputFormat());
 				    	break;
 				    case MediaCodec.INFO_TRY_AGAIN_LATER:
 				    	System.out.println("Try again later");
 				    	break;
 				    default:
-				    	if (outIndex >= 0)
-				    	{
-				    		codec.releaseOutputBuffer(outIndex, true);
-				    	}
 				      break;
 				    }
+				    if (outIndex >= 0) {
+				    	System.out.println("releasing output buffer");
+				    	decoder.releaseOutputBuffer(outIndex, true);
+				    	System.out.println("output buffer released");
+				    }
+			    	
 				}
 			}
 		}).start();
@@ -121,15 +144,14 @@ public class NvVideoStream implements RTPAppIntf {
 
 	@Override
 	public void receiveData(DataFrame frame, Participant participant) {
-		
-		ByteBuffer[] codecInputBuffers = codec.getInputBuffers();
-
-		int inputIndex = codec.dequeueInputBuffer(-1);
+		System.out.println("in receiveData");
+		int inputIndex = decoder.dequeueInputBuffer(-1);
 		if (inputIndex >= 0)
 		{
-			ByteBuffer buf = codecInputBuffers[inputIndex];
+			ByteBuffer buf = decoderInputBuffers[inputIndex];
 			
 			buf.clear();
+			
 			buf.put(frame.getConcatenatedData());
 			
 			if (buf.position() != 1024)
@@ -137,10 +159,28 @@ public class NvVideoStream implements RTPAppIntf {
 				System.out.println("Data length: "+buf.position());
 				System.out.println(buf.get()+" "+buf.get()+" "+buf.get());
 			}
-
-			codec.queueInputBuffer(inputIndex,
-					0, buf.position(),
-					10000000, 0);
+			
+			byte[] nvHeader = new byte[32];
+			byte[] oldBuffer = buf.array();
+			byte[] newBuffer = new byte[oldBuffer.length - nvHeader.length];
+			System.out.println("removing crap from buffer");
+			for (int i = 0; i < oldBuffer.length; i++) {
+				if (i < nvHeader.length) {
+					nvHeader[i] = oldBuffer[i];
+				} else {
+					newBuffer[i - nvHeader.length] = oldBuffer[i];
+				}
+			}
+			System.out.println("nvHeader: " + nvHeader.length + "oldBuffer: " + oldBuffer.length +
+					"newBuffer: " + newBuffer.length);
+			buf.clear();
+			buf.put(newBuffer);
+			if (oldBuffer.length == 0xc803) {
+				decoder.queueInputBuffer(inputIndex,
+						0, buf.position(),
+						0, 0);
+				frameIndex++;
+			}
 		}
 	}
 
@@ -152,4 +192,11 @@ public class NvVideoStream implements RTPAppIntf {
 	public int frameSize(int payloadType) {
 		return 1;
 	}
+	
+    /**
+     * Generates the presentation time for frame N, in microseconds.
+     */
+    private static long computePresentationTime(int frameIndex) {
+        return 132 + frameIndex * 1000000 / FRAME_RATE;
+    }
 }

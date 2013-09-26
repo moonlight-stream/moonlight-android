@@ -6,11 +6,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import jlibrtp.DataFrame;
 import jlibrtp.Participant;
@@ -30,7 +32,6 @@ public class NvVideoStream implements RTPAppIntf {
 	private static final int FRAME_RATE = 60;
 	private ByteBuffer[] decoderInputBuffers = null;
 	private MediaCodec decoder;
-	private BufferedOutputStream output;
 	
 	private int frameIndex = 0;
 	
@@ -39,12 +40,7 @@ public class NvVideoStream implements RTPAppIntf {
 		Socket s = new Socket(host, FIRST_FRAME_PORT);
 		return s.getInputStream();
 	}
-	
-	private void openFile(String file) throws FileNotFoundException
-	{
-		output = new BufferedOutputStream(new FileOutputStream(new File(file)));
-	}
-	
+
 	public void startVideoStream(final String host, final Surface surface)
 	{		
 		new Thread(new Runnable() {
@@ -105,13 +101,80 @@ public class NvVideoStream implements RTPAppIntf {
 					frameIndex++;
 				}
 				
-				RTPSession session = new RTPSession(rtp, rtcp);
+				final RTPSession session = new RTPSession(rtp, rtcp);
 				session.addParticipant(new Participant(host, RTP_PORT, RTCP_PORT));
-				session.RTPSessionRegister(NvVideoStream.this, null, null);
+				//session.RTPSessionRegister(NvVideoStream.this, null, null);
+				
+				// Ping thread
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						// PING in ASCII
+						final byte[] pingPacket = new byte[] {0x50, 0x49, 0x4E, 0x47};
+						
+						// RTP payload type is 127 (dynamic)
+						session.payloadType(127);
+						
+						// Send PING every 100 ms
+						for (;;)
+						{
+							session.sendData(pingPacket);
+							
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException e) {
+								break;
+							}
+						}
+					}
+				}).start();
+				
+				// Receive thread
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						byte[] packet = new byte[1500];
+						
+						// Send PING every 100 ms
+						for (;;)
+						{
+							DatagramPacket dp = new DatagramPacket(packet, 0, packet.length);
+							
+							try {
+								rtp.receive(dp);
+							} catch (IOException e) {
+								e.printStackTrace();
+								break;
+							}
+							
+							System.out.println("in receiveData");
+							int inputIndex = decoder.dequeueInputBuffer(-1);
+							if (inputIndex >= 0)
+							{
+								ByteBuffer buf = decoderInputBuffers[inputIndex];
+								NvVideoPacket nvVideo = new NvVideoPacket(dp.getData());
+								
+								buf.clear();
+								buf.put(nvVideo.data);
+							
+								System.out.println(nvVideo);
+								if (nvVideo.length == 0xc803) {
+									decoder.queueInputBuffer(inputIndex,
+											0, nvVideo.length,
+											0, 0);
+									frameIndex++;
+								} else {
+									decoder.queueInputBuffer(inputIndex,
+											0, 0,
+											0, 0);
+								}
+							}
+						}
+					}
+				}).start();
 				
 				for (;;)
 				{
-					System.out.println("in background infinite loop");
 					BufferInfo info = new BufferInfo();
 					System.out.println("dequeuing outputbuffer");
 					int outIndex = decoder.dequeueOutputBuffer(info, -1);
@@ -144,44 +207,6 @@ public class NvVideoStream implements RTPAppIntf {
 
 	@Override
 	public void receiveData(DataFrame frame, Participant participant) {
-		System.out.println("in receiveData");
-		int inputIndex = decoder.dequeueInputBuffer(-1);
-		if (inputIndex >= 0)
-		{
-			ByteBuffer buf = decoderInputBuffers[inputIndex];
-			
-			buf.clear();
-			
-			buf.put(frame.getConcatenatedData());
-			
-			if (buf.position() != 1024)
-			{
-				System.out.println("Data length: "+buf.position());
-				System.out.println(buf.get()+" "+buf.get()+" "+buf.get());
-			}
-			
-			byte[] nvHeader = new byte[32];
-			byte[] oldBuffer = buf.array();
-			byte[] newBuffer = new byte[oldBuffer.length - nvHeader.length];
-			System.out.println("removing crap from buffer");
-			for (int i = 0; i < oldBuffer.length; i++) {
-				if (i < nvHeader.length) {
-					nvHeader[i] = oldBuffer[i];
-				} else {
-					newBuffer[i - nvHeader.length] = oldBuffer[i];
-				}
-			}
-			System.out.println("nvHeader: " + nvHeader.length + "oldBuffer: " + oldBuffer.length +
-					"newBuffer: " + newBuffer.length);
-			buf.clear();
-			buf.put(newBuffer);
-			if (oldBuffer.length == 0xc803) {
-				decoder.queueInputBuffer(inputIndex,
-						0, buf.position(),
-						0, 0);
-				frameIndex++;
-			}
-		}
 	}
 
 	@Override
@@ -198,5 +223,34 @@ public class NvVideoStream implements RTPAppIntf {
      */
     private static long computePresentationTime(int frameIndex) {
         return 132 + frameIndex * 1000000 / FRAME_RATE;
+    }
+    
+    class NvVideoPacket {
+    	byte[] preamble;
+    	short length;
+    	byte[] extra;
+    	byte[] data;
+    	
+    	public NvVideoPacket(byte[] payload)
+    	{
+    		ByteBuffer bb = ByteBuffer.wrap(payload).order(ByteOrder.LITTLE_ENDIAN);
+    		
+    		preamble = new byte[12+16];
+    		extra = new byte[38];
+    		
+    		bb.get(preamble);
+    		length = bb.getShort();
+    		bb.get(extra);
+    		data = new byte[length];
+    		
+    		if (bb.remaining() + length <= payload.length)
+    			bb.get(data);
+    	}
+    	
+    	public String toString()
+    	{
+    		return "";//String.format("Length: %d | %02x %02x %02x %02x %02x %02x %02x %02x",
+    				//length, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
+    	}
     }
 }

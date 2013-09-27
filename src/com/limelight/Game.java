@@ -59,11 +59,19 @@ public class Game extends Activity {
 	}
 	
 	@Override
+	public void onPause() {
+		super.onPause();
+		
+		System.exit(0);
+	}
+	
+	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		
 		switch (keyCode) {
 		case OuyaController.BUTTON_MENU:
-			inputMap |= NvInputPacket.PLAY_FLAG;
+			System.out.println("Menu Pressed");
+			inputMap |= NvInputPacket.BACK_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_LEFT:
 			inputMap |= NvInputPacket.LEFT_FLAG;
@@ -112,7 +120,7 @@ public class Game extends Activity {
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		switch (keyCode) {
 		case OuyaController.BUTTON_MENU:
-			inputMap &= ~NvInputPacket.PLAY_FLAG;
+			inputMap &= ~NvInputPacket.BACK_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_LEFT:
 			inputMap &= ~NvInputPacket.LEFT_FLAG;

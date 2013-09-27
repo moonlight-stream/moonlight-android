@@ -150,6 +150,26 @@ public class Game extends Activity {
 	}
 	
 	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
+		{
+			switch (event.getActionMasked())
+			{
+			case MotionEvent.ACTION_DOWN:
+				conn.sendMouseButtonDown();
+				break;
+			case MotionEvent.ACTION_UP:
+				conn.sendMouseButtonUp();
+				break;
+			default:
+				return super.onTouchEvent(event);
+			}
+			return true;
+		}
+		return super.onTouchEvent(event);
+	}
+	
+	@Override
 	public boolean onGenericMotionEvent(MotionEvent event) {
 	    if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
 			//Get all the axis for the event
@@ -188,10 +208,6 @@ public class Game extends Activity {
 			
 			// Send a mouse move update (if neccessary)
 			updateMousePosition(eventX, eventY);
-			
-			// Update pointer location for delta calculation next time
-			lastMouseX = eventX;
-			lastMouseY = eventY;
 			return true;
 		}
 	    
@@ -205,11 +221,13 @@ public class Game extends Activity {
 			lastMouseY != Integer.MIN_VALUE &&
 			!(lastMouseX == eventX && lastMouseY == eventY))
 		{
-			System.out.printf("Delta X: 0x%x Delta Y: 0x%x\n",
-					(short)(eventX - lastMouseX), (short)(eventY - lastMouseY));
 			conn.sendMouseMove((short)(eventX - lastMouseX),
 					(short)(eventY - lastMouseY));
 		}
+		
+		// Update pointer location for delta calculation next time
+		lastMouseX = eventX;
+		lastMouseY = eventY;
 	}
 	
 	private void sendControllerInputPacket() {

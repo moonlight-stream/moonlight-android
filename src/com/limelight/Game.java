@@ -1,26 +1,10 @@
 package com.limelight;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-
-import org.xmlpull.v1.XmlPullParserException;
-
 import com.limelight.nvstream.NvConnection;
-import com.limelight.nvstream.input.NvController;
-import com.limelight.nvstream.input.NvInputPacket;
+import com.limelight.nvstream.input.NvControllerPacket;
 
 import tv.ouya.console.api.OuyaController;
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.media.AudioManager;
-import android.media.MediaCodec;
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -28,8 +12,6 @@ import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.MediaController;
-import android.widget.VideoView;
 
 
 public class Game extends Activity {
@@ -40,6 +22,8 @@ public class Game extends Activity {
 	private short rightStickY = 0x0000;
 	private short leftStickX = 0x0000;
 	private short leftStickY = 0x0000;
+	private int lastMouseX = Integer.MIN_VALUE;
+	private int lastMouseY = Integer.MIN_VALUE;
 	
 	private NvConnection conn;
 	
@@ -71,48 +55,48 @@ public class Game extends Activity {
 		switch (keyCode) {
 		case OuyaController.BUTTON_MENU:
 			System.out.println("Menu Pressed");
-			inputMap |= NvInputPacket.BACK_FLAG;
+			inputMap |= NvControllerPacket.BACK_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_LEFT:
-			inputMap |= NvInputPacket.LEFT_FLAG;
+			inputMap |= NvControllerPacket.LEFT_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_RIGHT:
-			inputMap |= NvInputPacket.RIGHT_FLAG;
+			inputMap |= NvControllerPacket.RIGHT_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_UP:
-			inputMap |= NvInputPacket.UP_FLAG;
+			inputMap |= NvControllerPacket.UP_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_DOWN:
-			inputMap |= NvInputPacket.DOWN_FLAG;
+			inputMap |= NvControllerPacket.DOWN_FLAG;
 			break;
 		case OuyaController.BUTTON_A:
-			inputMap |= NvInputPacket.B_FLAG;
+			inputMap |= NvControllerPacket.B_FLAG;
 			break;
 		case OuyaController.BUTTON_O:
-			inputMap |= NvInputPacket.A_FLAG;
+			inputMap |= NvControllerPacket.A_FLAG;
 			break;
 		case OuyaController.BUTTON_U:
-			inputMap |= NvInputPacket.X_FLAG;
+			inputMap |= NvControllerPacket.X_FLAG;
 			break;
 		case OuyaController.BUTTON_Y:
-			inputMap |= NvInputPacket.Y_FLAG;
+			inputMap |= NvControllerPacket.Y_FLAG;
 			break;
 		case OuyaController.BUTTON_L1:
-			inputMap |= NvInputPacket.LB_FLAG;
+			inputMap |= NvControllerPacket.LB_FLAG;
 			break;
 		case OuyaController.BUTTON_R1:
-			inputMap |= NvInputPacket.RB_FLAG;
+			inputMap |= NvControllerPacket.RB_FLAG;
 			break;
 		case OuyaController.BUTTON_L3:
-			inputMap |= NvInputPacket.LS_CLK_FLAG;
+			inputMap |= NvControllerPacket.LS_CLK_FLAG;
 			break;
 		case OuyaController.BUTTON_R3:
-			inputMap |= NvInputPacket.RS_CLK_FLAG;
+			inputMap |= NvControllerPacket.RS_CLK_FLAG;
 			break;
 		default:
 			return super.onKeyDown(keyCode, event);
 		}
-		sendInputPacket();
+		sendControllerInputPacket();
 		return true;
 	}
 	
@@ -120,48 +104,48 @@ public class Game extends Activity {
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		switch (keyCode) {
 		case OuyaController.BUTTON_MENU:
-			inputMap &= ~NvInputPacket.BACK_FLAG;
+			inputMap &= ~NvControllerPacket.BACK_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_LEFT:
-			inputMap &= ~NvInputPacket.LEFT_FLAG;
+			inputMap &= ~NvControllerPacket.LEFT_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_RIGHT:
-			inputMap &= ~NvInputPacket.RIGHT_FLAG;
+			inputMap &= ~NvControllerPacket.RIGHT_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_UP:
-			inputMap &= ~NvInputPacket.UP_FLAG;
+			inputMap &= ~NvControllerPacket.UP_FLAG;
 			break;
 		case OuyaController.BUTTON_DPAD_DOWN:
-			inputMap &= ~NvInputPacket.DOWN_FLAG;
+			inputMap &= ~NvControllerPacket.DOWN_FLAG;
 			break;
 		case OuyaController.BUTTON_A:
-			inputMap &= ~NvInputPacket.B_FLAG;
+			inputMap &= ~NvControllerPacket.B_FLAG;
 			break;
 		case OuyaController.BUTTON_O:
-			inputMap &= ~NvInputPacket.A_FLAG;
+			inputMap &= ~NvControllerPacket.A_FLAG;
 			break;
 		case OuyaController.BUTTON_U:
-			inputMap &= ~NvInputPacket.X_FLAG;
+			inputMap &= ~NvControllerPacket.X_FLAG;
 			break;
 		case OuyaController.BUTTON_Y:
-			inputMap &= ~NvInputPacket.Y_FLAG;
+			inputMap &= ~NvControllerPacket.Y_FLAG;
 			break;
 		case OuyaController.BUTTON_L1:
-			inputMap &= ~NvInputPacket.LB_FLAG;
+			inputMap &= ~NvControllerPacket.LB_FLAG;
 			break;
 		case OuyaController.BUTTON_R1:
-			inputMap &= ~NvInputPacket.RB_FLAG;
+			inputMap &= ~NvControllerPacket.RB_FLAG;
 			break;
 		case OuyaController.BUTTON_L3:
-			inputMap &= ~NvInputPacket.LS_CLK_FLAG;
+			inputMap &= ~NvControllerPacket.LS_CLK_FLAG;
 			break;
 		case OuyaController.BUTTON_R3:
-			inputMap &= ~NvInputPacket.RS_CLK_FLAG;
+			inputMap &= ~NvControllerPacket.RS_CLK_FLAG;
 			break;
 		default:
 			return super.onKeyUp(keyCode, event);
 		}
-		sendInputPacket();
+		sendControllerInputPacket();
 		return true;	
 	}
 	
@@ -187,21 +171,48 @@ public class Game extends Activity {
 		    
 		    rightStickX = (short)Math.round(RS_X * 0x7FFF);
 		    rightStickY = (short)Math.round(-RS_Y * 0x7FFF);
+		    
+		    float L2 = event.getAxisValue(OuyaController.AXIS_L2);
+		    float R2 = event.getAxisValue(OuyaController.AXIS_R2);
+		    
+		    leftTrigger = (byte)Math.round(L2 * 0xFF);
+		    rightTrigger = (byte)Math.round(R2 * 0xFF);
+		    
+		    sendControllerInputPacket();
+		    return true;
 		}
-		
-	    float L2 = event.getAxisValue(OuyaController.AXIS_L2);
-	    float R2 = event.getAxisValue(OuyaController.AXIS_R2);
+	    else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
+		{
+			int eventX = (int)event.getX();
+			int eventY = (int)event.getY();
+			
+			// Send a mouse move update (if neccessary)
+			updateMousePosition(eventX, eventY);
+			
+			// Update pointer location for delta calculation next time
+			lastMouseX = eventX;
+			lastMouseY = eventY;
+			return true;
+		}
 	    
-	    leftTrigger = (byte)Math.round(L2 * 0xFF);
-	    rightTrigger = (byte)Math.round(R2 * 0xFF);
-	    
-	    sendInputPacket();
-	    
-	    return true;
+	    return super.onGenericMotionEvent(event);
 	}
 	
+	private void updateMousePosition(int eventX, int eventY) {
+		// Send a mouse move if we already have a mouse location
+		// and the mouse coordinates change
+		if (lastMouseX != Integer.MIN_VALUE &&
+			lastMouseY != Integer.MIN_VALUE &&
+			!(lastMouseX == eventX && lastMouseY == eventY))
+		{
+			System.out.printf("Delta X: 0x%x Delta Y: 0x%x\n",
+					(short)(eventX - lastMouseX), (short)(eventY - lastMouseY));
+			conn.sendMouseMove((short)(eventX - lastMouseX),
+					(short)(eventY - lastMouseY));
+		}
+	}
 	
-	private void sendInputPacket() {
+	private void sendControllerInputPacket() {
 		conn.sendControllerInput(inputMap, leftTrigger, rightTrigger,
 				leftStickX, leftStickY, rightStickX, rightStickY);
 	}

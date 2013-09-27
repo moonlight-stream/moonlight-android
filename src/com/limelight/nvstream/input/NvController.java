@@ -22,9 +22,27 @@ public class NvController {
 	public void sendControllerInput(short buttonFlags, byte leftTrigger, byte rightTrigger,
 			short leftStickX, short leftStickY, short rightStickX, short rightStickY) throws IOException
 	{
-		out.write(new NvInputPacket(buttonFlags, leftTrigger,
+		out.write(new NvControllerPacket(buttonFlags, leftTrigger,
 				rightTrigger, leftStickX, leftStickY,
 				rightStickX, rightStickY).toWire());
+		out.flush();
+	}
+	
+	public void sendMouseButtonDown() throws IOException
+	{
+		out.write(new NvMouseButtonPacket(true).toWire());
+		out.flush();
+	}
+	
+	public void sendMouseButtonUp() throws IOException
+	{
+		out.write(new NvMouseButtonPacket(false).toWire());
+		out.flush();
+	}
+	
+	public void sendMouseMove(short deltaX, short deltaY) throws IOException
+	{
+		out.write(new NvMouseMovePacket(deltaX, deltaY).toWire());
 		out.flush();
 	}
 }

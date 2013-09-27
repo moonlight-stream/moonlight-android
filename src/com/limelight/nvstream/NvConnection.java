@@ -40,7 +40,7 @@ public class NvConnection {
 			@Override
 			public void run() {
 				try {
-					host = InetAddress.getByName(host).toString().substring(1);
+					host = InetAddress.getByName(host).getHostAddress();
 				} catch (UnknownHostException e) {
 					e.printStackTrace();
 					displayToast(e.getMessage());
@@ -68,6 +68,60 @@ public class NvConnection {
 	public void startVideo(Surface surface)
 	{
 		new NvVideoStream().startVideoStream(host, surface);
+	}
+	
+	public void sendMouseMove(final short deltaX, final short deltaY)
+	{
+		if (inputStream == null)
+			return;
+		
+		threadPool.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					inputStream.sendMouseMove(deltaX, deltaY);
+				} catch (IOException e) {
+					e.printStackTrace();
+					displayToast(e.getMessage());
+				}
+			}
+		});
+	}
+	
+	public void sendMouseButtonDown()
+	{
+		if (inputStream == null)
+			return;
+		
+		threadPool.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					inputStream.sendMouseButtonDown();
+				} catch (IOException e) {
+					e.printStackTrace();
+					displayToast(e.getMessage());
+				}
+			}
+		});
+	}
+	
+	public void sendMouseButtonUp()
+	{
+		if (inputStream == null)
+			return;
+		
+		threadPool.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					inputStream.sendMouseButtonUp();
+				} catch (IOException e) {
+					e.printStackTrace();
+					displayToast(e.getMessage());
+				}
+			}
+		});
 	}
 	
 	public void sendControllerInput(final short buttonFlags,

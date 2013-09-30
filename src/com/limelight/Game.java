@@ -3,7 +3,6 @@ package com.limelight;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.NvControllerPacket;
 
-import tv.ouya.console.api.OuyaController;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.InputDevice;
@@ -34,9 +33,7 @@ public class Game extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
 		setContentView(R.layout.activity_game);
-		
-		OuyaController.init(this);
-		
+				
 		SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this, sv.getHolder().getSurface());
 		conn.start();
@@ -53,44 +50,47 @@ public class Game extends Activity {
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		
 		switch (keyCode) {
-		case OuyaController.BUTTON_MENU:
-			System.out.println("Menu Pressed");
+		case KeyEvent.KEYCODE_BUTTON_START:
+		case KeyEvent.KEYCODE_MENU:
+			inputMap |= NvControllerPacket.PLAY_FLAG;
+			break;
+		case KeyEvent.KEYCODE_BUTTON_SELECT:
 			inputMap |= NvControllerPacket.BACK_FLAG;
 			break;
-		case OuyaController.BUTTON_DPAD_LEFT:
+		case KeyEvent.KEYCODE_DPAD_LEFT:
 			inputMap |= NvControllerPacket.LEFT_FLAG;
 			break;
-		case OuyaController.BUTTON_DPAD_RIGHT:
+		case KeyEvent.KEYCODE_DPAD_RIGHT:
 			inputMap |= NvControllerPacket.RIGHT_FLAG;
 			break;
-		case OuyaController.BUTTON_DPAD_UP:
+		case KeyEvent.KEYCODE_DPAD_UP:
 			inputMap |= NvControllerPacket.UP_FLAG;
 			break;
-		case OuyaController.BUTTON_DPAD_DOWN:
+		case KeyEvent.KEYCODE_DPAD_DOWN:
 			inputMap |= NvControllerPacket.DOWN_FLAG;
 			break;
-		case OuyaController.BUTTON_A:
+		case KeyEvent.KEYCODE_BUTTON_B:
 			inputMap |= NvControllerPacket.B_FLAG;
 			break;
-		case OuyaController.BUTTON_O:
+		case KeyEvent.KEYCODE_BUTTON_A:
 			inputMap |= NvControllerPacket.A_FLAG;
 			break;
-		case OuyaController.BUTTON_U:
+		case KeyEvent.KEYCODE_BUTTON_X:
 			inputMap |= NvControllerPacket.X_FLAG;
 			break;
-		case OuyaController.BUTTON_Y:
+		case KeyEvent.KEYCODE_BUTTON_Y:
 			inputMap |= NvControllerPacket.Y_FLAG;
 			break;
-		case OuyaController.BUTTON_L1:
+		case KeyEvent.KEYCODE_BUTTON_L1:
 			inputMap |= NvControllerPacket.LB_FLAG;
 			break;
-		case OuyaController.BUTTON_R1:
+		case KeyEvent.KEYCODE_BUTTON_R1:
 			inputMap |= NvControllerPacket.RB_FLAG;
 			break;
-		case OuyaController.BUTTON_L3:
+		case KeyEvent.KEYCODE_BUTTON_THUMBL:
 			inputMap |= NvControllerPacket.LS_CLK_FLAG;
 			break;
-		case OuyaController.BUTTON_R3:
+		case KeyEvent.KEYCODE_BUTTON_THUMBR:
 			inputMap |= NvControllerPacket.RS_CLK_FLAG;
 			break;
 		default:
@@ -103,50 +103,54 @@ public class Game extends Activity {
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		switch (keyCode) {
-		case OuyaController.BUTTON_MENU:
+		case KeyEvent.KEYCODE_BUTTON_START:
+		case KeyEvent.KEYCODE_MENU:
+			inputMap &= ~NvControllerPacket.PLAY_FLAG;
+			break;
+		case KeyEvent.KEYCODE_BUTTON_SELECT:
 			inputMap &= ~NvControllerPacket.BACK_FLAG;
 			break;
-		case OuyaController.BUTTON_DPAD_LEFT:
+		case KeyEvent.KEYCODE_DPAD_LEFT:
 			inputMap &= ~NvControllerPacket.LEFT_FLAG;
 			break;
-		case OuyaController.BUTTON_DPAD_RIGHT:
+		case KeyEvent.KEYCODE_DPAD_RIGHT:
 			inputMap &= ~NvControllerPacket.RIGHT_FLAG;
 			break;
-		case OuyaController.BUTTON_DPAD_UP:
+		case KeyEvent.KEYCODE_DPAD_UP:
 			inputMap &= ~NvControllerPacket.UP_FLAG;
 			break;
-		case OuyaController.BUTTON_DPAD_DOWN:
+		case KeyEvent.KEYCODE_DPAD_DOWN:
 			inputMap &= ~NvControllerPacket.DOWN_FLAG;
 			break;
-		case OuyaController.BUTTON_A:
+		case KeyEvent.KEYCODE_BUTTON_B:
 			inputMap &= ~NvControllerPacket.B_FLAG;
 			break;
-		case OuyaController.BUTTON_O:
+		case KeyEvent.KEYCODE_BUTTON_A:
 			inputMap &= ~NvControllerPacket.A_FLAG;
 			break;
-		case OuyaController.BUTTON_U:
+		case KeyEvent.KEYCODE_BUTTON_X:
 			inputMap &= ~NvControllerPacket.X_FLAG;
 			break;
-		case OuyaController.BUTTON_Y:
+		case KeyEvent.KEYCODE_BUTTON_Y:
 			inputMap &= ~NvControllerPacket.Y_FLAG;
 			break;
-		case OuyaController.BUTTON_L1:
+		case KeyEvent.KEYCODE_BUTTON_L1:
 			inputMap &= ~NvControllerPacket.LB_FLAG;
 			break;
-		case OuyaController.BUTTON_R1:
+		case KeyEvent.KEYCODE_BUTTON_R1:
 			inputMap &= ~NvControllerPacket.RB_FLAG;
 			break;
-		case OuyaController.BUTTON_L3:
+		case KeyEvent.KEYCODE_BUTTON_THUMBL:
 			inputMap &= ~NvControllerPacket.LS_CLK_FLAG;
 			break;
-		case OuyaController.BUTTON_R3:
+		case KeyEvent.KEYCODE_BUTTON_THUMBR:
 			inputMap &= ~NvControllerPacket.RS_CLK_FLAG;
 			break;
 		default:
 			return super.onKeyUp(keyCode, event);
 		}
 		sendControllerInputPacket();
-		return true;	
+		return true;
 	}
 	
 	@Override
@@ -171,18 +175,24 @@ public class Game extends Activity {
 	
 	@Override
 	public boolean onGenericMotionEvent(MotionEvent event) {
+		InputDevice dev = event.getDevice();
+		
 	    if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
 			//Get all the axis for the event
-		    float LS_X = event.getAxisValue(OuyaController.AXIS_LS_X);
-		    float LS_Y = event.getAxisValue(OuyaController.AXIS_LS_Y);
-		    float RS_X = event.getAxisValue(OuyaController.AXIS_RS_X);
-		    float RS_Y = event.getAxisValue(OuyaController.AXIS_RS_Y);
+		    float LS_X = event.getAxisValue(MotionEvent.AXIS_X);
+		    float LS_Y = event.getAxisValue(MotionEvent.AXIS_Y);
+		    float RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
+		    float RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
 	    	
-		    if (LS_X * LS_X + LS_Y * LS_Y < OuyaController.STICK_DEADZONE * OuyaController.STICK_DEADZONE) {
+		    float LS_X_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_X).getFlat();
+		    float LS_Y_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_Y).getFlat();
+		    if (LS_X * LS_X + LS_Y * LS_Y < LS_X_DEADZONE * LS_Y_DEADZONE) {
 		    	LS_X = LS_Y = 0.0f;
 		    }
 		    
-		    if (RS_X * RS_X + RS_Y * RS_Y < OuyaController.STICK_DEADZONE * OuyaController.STICK_DEADZONE) {
+		    float RS_X_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_Z).getFlat();
+		    float RS_Y_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_RZ).getFlat();
+		    if (RS_X * RS_X + RS_Y * RS_Y < RS_X_DEADZONE * RS_Y_DEADZONE) {
 		    	RS_X = RS_Y = 0.0f;
 		    }
 		    
@@ -192,8 +202,19 @@ public class Game extends Activity {
 		    rightStickX = (short)Math.round(RS_X * 0x7FFF);
 		    rightStickY = (short)Math.round(-RS_Y * 0x7FFF);
 		    
-		    float L2 = event.getAxisValue(OuyaController.AXIS_L2);
-		    float R2 = event.getAxisValue(OuyaController.AXIS_R2);
+		    float L2 = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
+		    float L2_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_LTRIGGER).getFlat();
+		    
+		    if (L2 < L2_DEADZONE) {
+		    	L2 = 0.0f;
+		    }
+
+		    float R2 = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+		    float R2_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_RTRIGGER).getFlat();
+		    
+		    if (R2 < R2_DEADZONE) {
+		    	R2 = 0.0f;
+		    }
 		    
 		    leftTrigger = (byte)Math.round(L2 * 0xFF);
 		    rightTrigger = (byte)Math.round(R2 * 0xFF);

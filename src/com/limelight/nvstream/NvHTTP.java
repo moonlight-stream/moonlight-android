@@ -10,13 +10,13 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-public class NvHttp {
+public class NvHTTP {
 	private String host;
 	private String macAddress;
 	
 	public static final int PORT = 47989;
 	
-	public NvHttp(String host, String macAddress)
+	public NvHTTP(String host, String macAddress)
 	{
 		this.host = host;
 		this.macAddress = macAddress;

@@ -159,7 +159,7 @@ public class NvConnection {
 	
 	private void startSteamBigPicture() throws XmlPullParserException, IOException
 	{
-		NvHttp h = new NvHttp(host, "b0:ee:45:57:5d:5f");
+		NvHTTP h = new NvHTTP(host, "b0:ee:45:57:5d:5f");
 		
 		if (!h.getPairState())
 		{

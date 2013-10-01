@@ -188,8 +188,18 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	{
 		if (!hasMoved)
 		{
-			// We haven't move so send a click
+			// We haven't moved so send a click
+
+			// Lower the mouse button
 			conn.sendMouseButtonDown();
+			
+			// We need to sleep a bit here because some games
+			// do input detection by polling
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {}
+			
+			// Raise the mouse button
 			conn.sendMouseButtonUp();
 		}
 	}
@@ -199,8 +209,8 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		if (eventX != lastTouchX || eventY != lastTouchY)
 		{
 			hasMoved = true;
-			conn.sendMouseMove((short)(lastTouchX - eventX),
-					(short)(lastTouchY - eventY));
+			conn.sendMouseMove((short)(eventX - lastTouchX),
+					(short)(eventY - lastTouchY));
 			
 			lastTouchX = eventX;
 			lastTouchY = eventY;

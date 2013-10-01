@@ -1,6 +1,13 @@
 package com.limelight;
 
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
+import com.limelight.nvstream.NvmDNS;
+
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -21,6 +28,10 @@ public class Connection extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
+		
+		
+
+		
 	}
 	
 	@Override
@@ -41,6 +52,19 @@ public class Connection extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		Log.v("NvmDNS", "onCreate");
+		
+		try {
+			
+			NvmDNS dns = new NvmDNS();
+			dns.sendQueryAndWait();
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
+		
 		setContentView(R.layout.activity_connection);
 		
 		

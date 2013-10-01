@@ -177,44 +177,41 @@ public class Game extends Activity {
 	public boolean onGenericMotionEvent(MotionEvent event) {
 		InputDevice dev = event.getDevice();
 		
+		if (dev == null) {
+			System.err.println("Unknown device");
+			return false;
+		}
+		
 	    if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
-			//Get all the axis for the event
 		    float LS_X = event.getAxisValue(MotionEvent.AXIS_X);
 		    float LS_Y = event.getAxisValue(MotionEvent.AXIS_Y);
-		    float RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
-		    float RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
+		    
+		    float RS_X, RS_Y, L2, R2;
+		    
+		    InputDevice.MotionRange l2Range = dev.getMotionRange(MotionEvent.AXIS_LTRIGGER);
+		    InputDevice.MotionRange r2Range = dev.getMotionRange(MotionEvent.AXIS_RTRIGGER);
+		    if (l2Range != null && r2Range != null)
+		    {
+		    	// Ouya controller
+		    	RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
+		    	RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
+		    	L2 = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
+		    	R2 = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+		    }
+		    else
+		    {
+		    	// Xbox controller
+		    	RS_X = event.getAxisValue(MotionEvent.AXIS_RX);
+		    	RS_Y = event.getAxisValue(MotionEvent.AXIS_RY);
+		    	L2 = (event.getAxisValue(MotionEvent.AXIS_Z) + 1) / 2;
+		    	R2 = (event.getAxisValue(MotionEvent.AXIS_RZ) + 1) / 2;
+		    }
 	    	
-		    float LS_X_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_X).getFlat();
-		    float LS_Y_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_Y).getFlat();
-		    if (LS_X * LS_X + LS_Y * LS_Y < LS_X_DEADZONE * LS_Y_DEADZONE) {
-		    	LS_X = LS_Y = 0.0f;
-		    }
-		    
-		    float RS_X_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_Z).getFlat();
-		    float RS_Y_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_RZ).getFlat();
-		    if (RS_X * RS_X + RS_Y * RS_Y < RS_X_DEADZONE * RS_Y_DEADZONE) {
-		    	RS_X = RS_Y = 0.0f;
-		    }
-		    
 		    leftStickX = (short)Math.round(LS_X * 0x7FFF);
 		    leftStickY = (short)Math.round(-LS_Y * 0x7FFF);
 		    
 		    rightStickX = (short)Math.round(RS_X * 0x7FFF);
 		    rightStickY = (short)Math.round(-RS_Y * 0x7FFF);
-		    
-		    float L2 = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
-		    float L2_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_LTRIGGER).getFlat();
-		    
-		    if (L2 < L2_DEADZONE) {
-		    	L2 = 0.0f;
-		    }
-
-		    float R2 = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
-		    float R2_DEADZONE = dev.getMotionRange(MotionEvent.AXIS_RTRIGGER).getFlat();
-		    
-		    if (R2 < R2_DEADZONE) {
-		    	R2 = 0.0f;
-		    }
 		    
 		    leftTrigger = (byte)Math.round(L2 * 0xFF);
 		    rightTrigger = (byte)Math.round(R2 * 0xFF);

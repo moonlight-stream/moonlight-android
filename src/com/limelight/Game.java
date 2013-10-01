@@ -9,11 +9,14 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.View.OnGenericMotionListener;
+import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
 
 
-public class Game extends Activity {
+public class Game extends Activity implements OnGenericMotionListener, OnTouchListener {
 	private short inputMap = 0x0000;
 	private byte leftTrigger = 0x00;
 	private byte rightTrigger = 0x00;
@@ -23,18 +26,38 @@ public class Game extends Activity {
 	private short leftStickY = 0x0000;
 	private int lastMouseX = Integer.MIN_VALUE;
 	private int lastMouseY = Integer.MIN_VALUE;
+	private int lastTouchX = 0;
+	private int lastTouchY = 0;
+	private boolean hasMoved = false;
 	
 	private NvConnection conn;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		
+		// Full-screen and don't let the display go off
+		getWindow().setFlags(
+				WindowManager.LayoutParams.FLAG_FULLSCREEN |
+				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN |
+				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		
+		// We don't want a title bar
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
+		// Make the UI "low profile"
+		getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
+		
+		// Inflate the content
 		setContentView(R.layout.activity_game);
-				
+
+		// Listen for events on the game surface
 		SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
+		sv.setOnGenericMotionListener(this);
+		sv.setOnTouchListener(this);
+
+		// Start the connection
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this, sv.getHolder().getSurface());
 		conn.start();
 	}
@@ -102,6 +125,7 @@ public class Game extends Activity {
 	
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
+
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BUTTON_START:
 		case KeyEvent.KEYCODE_MENU:
@@ -153,23 +177,85 @@ public class Game extends Activity {
 		return true;
 	}
 	
+	public void touchDownEvent(int eventX, int eventY)
+	{
+		lastTouchX = eventX;
+		lastTouchY = eventY;
+		hasMoved = false;
+	}
+	
+	public void touchUpEvent(int eventX, int eventY)
+	{
+		if (!hasMoved)
+		{
+			// We haven't move so send a click
+			conn.sendMouseButtonDown();
+			conn.sendMouseButtonUp();
+		}
+	}
+	
+	public void touchMoveEvent(int eventX, int eventY)
+	{
+		if (eventX != lastTouchX || eventY != lastTouchY)
+		{
+			hasMoved = true;
+			conn.sendMouseMove((short)(lastTouchX - eventX),
+					(short)(lastTouchY - eventY));
+			
+			lastTouchX = eventX;
+			lastTouchY = eventY;
+		}
+	}
+	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
 		{
-			switch (event.getActionMasked())
+			// This case is for touch-based input devices
+			if (event.getSource() == InputDevice.SOURCE_TOUCHSCREEN ||
+				event.getSource() == InputDevice.SOURCE_STYLUS)
 			{
-			case MotionEvent.ACTION_DOWN:
-				conn.sendMouseButtonDown();
-				break;
-			case MotionEvent.ACTION_UP:
-				conn.sendMouseButtonUp();
-				break;
-			default:
+				int eventX = (int)event.getX();
+				int eventY = (int)event.getY();
+				
+				switch (event.getActionMasked())
+				{
+				case MotionEvent.ACTION_DOWN:
+					touchDownEvent(eventX, eventY);
+					break;
+				case MotionEvent.ACTION_UP:
+					touchUpEvent(eventX, eventY);
+					break;
+				case MotionEvent.ACTION_MOVE:
+					touchMoveEvent(eventX, eventY);
+					break;
+				default:
+					return super.onTouchEvent(event);
+				}
+			}
+			// This case is for mice
+			else if (event.getSource() == InputDevice.SOURCE_MOUSE)
+			{
+				switch (event.getActionMasked())
+				{
+				case MotionEvent.ACTION_DOWN:
+					conn.sendMouseButtonDown();
+					break;
+				case MotionEvent.ACTION_UP:
+					conn.sendMouseButtonUp();
+					break;
+				default:
+					return super.onTouchEvent(event);
+				}
+			}
+			else
+			{
 				return super.onTouchEvent(event);
 			}
+
 			return true;
 		}
+		
 		return super.onTouchEvent(event);
 	}
 	
@@ -220,12 +306,9 @@ public class Game extends Activity {
 		    return true;
 		}
 	    else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
-		{
-			int eventX = (int)event.getX();
-			int eventY = (int)event.getY();
-			
+		{	
 			// Send a mouse move update (if neccessary)
-			updateMousePosition(eventX, eventY);
+			updateMousePosition((int)event.getX(), (int)event.getY());
 			return true;
 		}
 	    
@@ -252,5 +335,16 @@ public class Game extends Activity {
 		conn.sendControllerInput(inputMap, leftTrigger, rightTrigger,
 				leftStickX, leftStickY, rightStickX, rightStickY);
 	}
-	
+
+	@Override
+	public boolean onGenericMotion(View v, MotionEvent event) {
+		// Send it to the activity's motion event handler
+		return onGenericMotionEvent(event);
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		// Send it to the activity's touch event handler
+		return onTouchEvent(event);
+	}
 }

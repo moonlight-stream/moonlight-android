@@ -11,4 +11,11 @@ public class AvBufferDescriptor {
 		this.offset = offset;
 		this.length = length;
 	}
+	
+	public AvBufferDescriptor(AvBufferDescriptor desc)
+	{
+		this.data = desc.data;
+		this.offset = desc.offset;
+		this.length = desc.length;
+	}
 }

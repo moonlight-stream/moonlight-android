@@ -5,7 +5,7 @@ public class AvPacket {
 	
 	public AvPacket(AvBufferDescriptor rtpPayload)
 	{
-		buffer = new AvBufferDescriptor(rtpPayload.data, rtpPayload.offset, rtpPayload.length);
+		buffer = new AvBufferDescriptor(rtpPayload);
 	}
 	
 	public AvBufferDescriptor getNewPayloadDescriptor()

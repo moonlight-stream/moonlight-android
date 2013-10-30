@@ -25,6 +25,6 @@ public class AvBufferPool {
 	
 	public synchronized void free(byte[] buffer)
 	{
-		bufferList.addFirst(buffer);
+		//bufferList.addFirst(buffer);
 	}
 }

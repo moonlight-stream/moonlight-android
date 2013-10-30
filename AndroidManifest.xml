@@ -27,6 +27,7 @@
         </activity>
         <activity
             android:name="com.limelight.Game"
+            android:screenOrientation="landscape"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_game"
             android:parentActivityName="com.limelight.Connection"

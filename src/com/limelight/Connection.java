@@ -21,18 +21,8 @@ public class Connection extends Activity {
 	private TextView hostText;
 	private SharedPreferences prefs;
 	
-	private static final String DEFAULT_HOST = "35.0.113.120";
+	private static final String DEFAULT_HOST = "192.168.1.240";
 	public static final String HOST_KEY = "hostText";
-	
-
-	@Override
-	public void onResume() {
-		super.onResume();
-		
-		
-
-		
-	}
 	
 	@Override
 	public void onPause() {

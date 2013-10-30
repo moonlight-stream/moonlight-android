@@ -8,11 +8,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+
+import com.limelight.nvstream.av.AvBufferDescriptor;
+import com.limelight.nvstream.av.AvDecodeUnit;
+import com.limelight.nvstream.av.AvPacket;
+import com.limelight.nvstream.av.AvParser;
 
 import jlibrtp.DataFrame;
 import jlibrtp.Participant;
@@ -24,16 +30,16 @@ import android.media.MediaCodec.BufferInfo;
 import android.media.MediaFormat;
 import android.view.Surface;
 
-public class NvVideoStream implements RTPAppIntf {
+public class NvVideoStream {
 	public static final int RTP_PORT = 47998;
 	public static final int RTCP_PORT = 47999;
 	public static final int FIRST_FRAME_PORT = 47996;
 	
 	private static final int FRAME_RATE = 60;
-	private ByteBuffer[] decoderInputBuffers = null;
-	private MediaCodec decoder;
+	private ByteBuffer[] videoDecoderInputBuffers = null;
+	private MediaCodec videoDecoder;
 	
-	private int frameIndex = 0;
+	private AvParser parser = new AvParser();
 	
 	private InputStream getFirstFrame(String host) throws UnknownHostException, IOException
 	{
@@ -79,31 +85,16 @@ public class NvVideoStream implements RTPAppIntf {
 					return;
 				}
 
-				decoder = MediaCodec.createDecoderByType("video/avc");
-				MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", 1280, 720);
+				videoDecoder = MediaCodec.createDecoderByType("video/avc");
+				MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", 1280, 720);
 		
-				decoder.configure(mediaFormat, surface, null, 0);
-				decoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-				decoder.start();
-				decoderInputBuffers = decoder.getInputBuffers();
-
-				int inputIndex = decoder.dequeueInputBuffer(-1);
-				if (inputIndex >= 0)
-				{
-					ByteBuffer buf = decoderInputBuffers[inputIndex];
-					
-					buf.clear();
-					buf.put(firstFrame);
-					
-					decoder.queueInputBuffer(inputIndex,
-							0, firstFrame.length,
-							0, 0);
-					frameIndex++;
-				}
+				videoDecoder.configure(videoFormat, surface, null, 0);
+				videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+				videoDecoder.start();
+				videoDecoderInputBuffers = videoDecoder.getInputBuffers();
 				
 				final RTPSession session = new RTPSession(rtp, rtcp);
 				session.addParticipant(new Participant(host, RTP_PORT, RTCP_PORT));
-				//session.RTPSessionRegister(NvVideoStream.this, null, null);
 				
 				// Ping thread
 				new Thread(new Runnable() {
@@ -129,64 +120,103 @@ public class NvVideoStream implements RTPAppIntf {
 					}
 				}).start();
 				
-				// Receive thread
+				// Decoder thread
 				new Thread(new Runnable() {
 					@Override
 					public void run() {
-						byte[] packet = new byte[1500];
-						
-						// Send PING every 100 ms
+						// Read the decode units generated from the RTP stream
 						for (;;)
 						{
-							DatagramPacket dp = new DatagramPacket(packet, 0, packet.length);
-							
+							AvDecodeUnit du;
 							try {
-								rtp.receive(dp);
-							} catch (IOException e) {
+								du = parser.getNextDecodeUnit();
+							} catch (InterruptedException e) {
 								e.printStackTrace();
-								break;
+								return;
 							}
 							
-							System.out.println("in receiveData");
-							int inputIndex = decoder.dequeueInputBuffer(-1);
-							if (inputIndex >= 0)
+							switch (du.getType())
 							{
-								ByteBuffer buf = decoderInputBuffers[inputIndex];
-								NvVideoPacket nvVideo = new NvVideoPacket(dp.getData());
-								
-								buf.clear();
-								buf.put(nvVideo.data);
-							
-								System.out.println(nvVideo);
-								if (nvVideo.length == 0xc803) {
-									decoder.queueInputBuffer(inputIndex,
-											0, nvVideo.length,
-											0, 0);
-									frameIndex++;
-								} else {
-									decoder.queueInputBuffer(inputIndex,
-											0, 0,
-											0, 0);
+								case AvDecodeUnit.TYPE_H264:
+								{
+									int inputIndex = videoDecoder.dequeueInputBuffer(-1);
+									if (inputIndex >= 0)
+									{
+										ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
+										
+										// Clear old input data
+										buf.clear();
+										
+										// Copy data from our buffer list into the input buffer
+										for (AvBufferDescriptor desc : du.getBufferList())
+										{
+											buf.put(desc.data, desc.offset, desc.length);
+										}
+									
+										videoDecoder.queueInputBuffer(inputIndex,
+													0, du.getDataLength(),
+													0, 0);
+									}
 								}
+								break;
+							
+								default:
+								{
+									System.out.println("Unknown decode unit type");
+								}
+								break;
 							}
 						}
 					}
 				}).start();
 				
+				// Receive thread
+				new Thread(new Runnable() {
+
+					@Override
+					public void run() {
+						byte[] buffer = new byte[1500];
+						AvBufferDescriptor desc = new AvBufferDescriptor(null, 0, 0);
+						
+						for (;;)
+						{
+							DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+							
+							try {
+								rtp.receive(packet);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+								return;
+							}
+							
+							desc.length = packet.getLength();
+							desc.offset = packet.getOffset();
+							desc.data = packet.getData();
+							
+							// Skip the RTP header
+							desc.offset += 12;
+							desc.length -= 12;
+							
+							// Give the data to the AV parser
+							parser.addInputData(new AvPacket(desc));
+							
+						}
+					}
+					
+				}).start();
+				
 				for (;;)
 				{
 					BufferInfo info = new BufferInfo();
-					System.out.println("dequeuing outputbuffer");
-					int outIndex = decoder.dequeueOutputBuffer(info, -1);
-					System.out.println("done dequeuing output buffer");
+					int outIndex = videoDecoder.dequeueOutputBuffer(info, -1);
 				    switch (outIndex) {
 				    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
 				    	System.out.println("Output buffers changed");
 					    break;
 				    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
 				    	System.out.println("Output format changed");
-				    	//decoderOutputFormat = decoder.getOutputFormat();
-				    	System.out.println("New output Format: " + decoder.getOutputFormat());
+				    	System.out.println("New output Format: " + videoDecoder.getOutputFormat());
 				    	break;
 				    case MediaCodec.INFO_TRY_AGAIN_LATER:
 				    	System.out.println("Try again later");
@@ -195,27 +225,12 @@ public class NvVideoStream implements RTPAppIntf {
 				      break;
 				    }
 				    if (outIndex >= 0) {
-				    	System.out.println("releasing output buffer");
-				    	decoder.releaseOutputBuffer(outIndex, true);
-				    	System.out.println("output buffer released");
+				    	videoDecoder.releaseOutputBuffer(outIndex, true);
 				    }
 			    	
 				}
 			}
 		}).start();
-	}
-
-	@Override
-	public void receiveData(DataFrame frame, Participant participant) {
-	}
-
-	@Override
-	public void userEvent(int type, Participant[] participant) {
-	}
-
-	@Override
-	public int frameSize(int payloadType) {
-		return 1;
 	}
 	
     /**
@@ -223,34 +238,5 @@ public class NvVideoStream implements RTPAppIntf {
      */
     private static long computePresentationTime(int frameIndex) {
         return 132 + frameIndex * 1000000 / FRAME_RATE;
-    }
-    
-    class NvVideoPacket {
-    	byte[] preamble;
-    	short length;
-    	byte[] extra;
-    	byte[] data;
-    	
-    	public NvVideoPacket(byte[] payload)
-    	{
-    		ByteBuffer bb = ByteBuffer.wrap(payload).order(ByteOrder.LITTLE_ENDIAN);
-    		
-    		preamble = new byte[12+16];
-    		extra = new byte[38];
-    		
-    		bb.get(preamble);
-    		length = bb.getShort();
-    		bb.get(extra);
-    		data = new byte[length];
-    		
-    		if (bb.remaining() + length <= payload.length)
-    			bb.get(data);
-    	}
-    	
-    	public String toString()
-    	{
-    		return "";//String.format("Length: %d | %02x %02x %02x %02x %02x %02x %02x %02x",
-    				//length, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
-    	}
     }
 }

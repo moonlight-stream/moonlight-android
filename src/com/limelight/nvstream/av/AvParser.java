@@ -1,7 +1,6 @@
 package com.limelight.nvstream.av;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class AvParser {
@@ -16,7 +15,7 @@ public class AvParser {
 	{
 		// This is the start of a new NAL
 		if (nalDataChain != null && nalDataLength != 0)
-		{
+		{	
 			// Construct the H264 decode unit
 			AvDecodeUnit du = new AvDecodeUnit(AvDecodeUnit.TYPE_H264, nalDataChain, nalDataLength);
 			decodedUnits.add(du);
@@ -28,9 +27,10 @@ public class AvParser {
 	}
 	
 	public void addInputData(AvPacket packet)
-	{
-		AvBufferDescriptor payload = packet.getPayload();
-		AvBufferDescriptor location = new AvBufferDescriptor(payload.data, payload.offset, payload.length);
+	{		
+		// This payload buffer descriptor belongs to us
+		AvBufferDescriptor location = packet.getNewPayloadDescriptor();
+		int payloadLength = location.length;
 		
 		while (location.length != 0)
 		{
@@ -47,9 +47,9 @@ public class AvParser {
 				nalDataChain = new LinkedList<AvBufferDescriptor>();
 				nalDataLength = 0;
 				
-				// Skip the start sequence and the type byte
-				location.length -= 5;
-				location.offset += 5;
+				// Skip the start sequence
+				location.length -= 4;
+				location.offset += 4;
 			}
 			
 			// If there's a NAL assembly in progress, add the current data
@@ -58,7 +58,7 @@ public class AvParser {
 				// FIXME: This is a hack to make parsing full packets
 				// take less time. We assume if they don't start with
 				// a NAL start sequence, they're full of NAL data
-				if (payload.length == 968)
+				if (payloadLength == 968)
 				{
 					location.offset += location.length;
 					location.length = 0;

@@ -5,14 +5,11 @@ public class AvPacket {
 	
 	public AvPacket(AvBufferDescriptor rtpPayload)
 	{
-		byte[] data = new byte[rtpPayload.length];
-		System.arraycopy(rtpPayload.data, rtpPayload.offset, data, 0, rtpPayload.length);
-		buffer = new AvBufferDescriptor(data, 0, data.length);
+		buffer = new AvBufferDescriptor(rtpPayload.data, rtpPayload.offset, rtpPayload.length);
 	}
 	
-	public AvBufferDescriptor getPayload()
+	public AvBufferDescriptor getNewPayloadDescriptor()
 	{
-		int payloadOffset = buffer.offset+56;
-		return new AvBufferDescriptor(buffer.data, payloadOffset, buffer.length-payloadOffset);
+		return new AvBufferDescriptor(buffer.data, buffer.offset+56, buffer.length-56);
 	}
 }

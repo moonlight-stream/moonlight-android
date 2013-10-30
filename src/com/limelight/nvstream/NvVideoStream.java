@@ -16,6 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import com.limelight.nvstream.av.AvBufferDescriptor;
+import com.limelight.nvstream.av.AvBufferPool;
 import com.limelight.nvstream.av.AvDecodeUnit;
 import com.limelight.nvstream.av.AvPacket;
 import com.limelight.nvstream.av.AvParser;
@@ -35,9 +36,10 @@ public class NvVideoStream {
 	public static final int RTCP_PORT = 47999;
 	public static final int FIRST_FRAME_PORT = 47996;
 	
-	private static final int FRAME_RATE = 60;
 	private ByteBuffer[] videoDecoderInputBuffers = null;
 	private MediaCodec videoDecoder;
+	
+	private AvBufferPool pool = new AvBufferPool(1500);
 	
 	private AvParser parser = new AvParser();
 	
@@ -151,6 +153,9 @@ public class NvVideoStream {
 										for (AvBufferDescriptor desc : du.getBufferList())
 										{
 											buf.put(desc.data, desc.offset, desc.length);
+											
+											// Release the buffer back to the buffer pool
+											pool.free(desc.data);
 										}
 									
 										videoDecoder.queueInputBuffer(inputIndex,
@@ -175,13 +180,11 @@ public class NvVideoStream {
 
 					@Override
 					public void run() {
-						byte[] buffer = new byte[1500];
+						DatagramPacket packet = new DatagramPacket(pool.allocate(), 1500);
 						AvBufferDescriptor desc = new AvBufferDescriptor(null, 0, 0);
 						
 						for (;;)
-						{
-							DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-							
+						{	
 							try {
 								rtp.receive(packet);
 							} catch (IOException e) {
@@ -198,12 +201,13 @@ public class NvVideoStream {
 							desc.offset += 12;
 							desc.length -= 12;
 							
-							// Give the data to the AV parser
+							// !!! We no longer own the data buffer at this point !!!
 							parser.addInputData(new AvPacket(desc));
 							
+							// Get a new buffer from the buffer pool
+							packet.setData(pool.allocate(), 0, 1500);
 						}
 					}
-					
 				}).start();
 				
 				for (;;)
@@ -232,11 +236,4 @@ public class NvVideoStream {
 			}
 		}).start();
 	}
-	
-    /**
-     * Generates the presentation time for frame N, in microseconds.
-     */
-    private static long computePresentationTime(int frameIndex) {
-        return 132 + frameIndex * 1000000 / FRAME_RATE;
-    }
 }

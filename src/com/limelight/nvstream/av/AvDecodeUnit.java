@@ -9,17 +9,24 @@ public class AvDecodeUnit {
 	private int type;
 	private List<AvBufferDescriptor> bufferList;
 	private int dataLength;
+	private int flags;
 	
-	public AvDecodeUnit(int type, List<AvBufferDescriptor> bufferList, int dataLength)
+	public AvDecodeUnit(int type, List<AvBufferDescriptor> bufferList, int dataLength, int flags)
 	{
 		this.type = type;
 		this.bufferList = bufferList;
 		this.dataLength = dataLength;
+		this.flags = flags;
 	}
 	
 	public int getType()
 	{
 		return type;
+	}
+	
+	public int getFlags()
+	{
+		return flags;
 	}
 	
 	public List<AvBufferDescriptor> getBufferList()

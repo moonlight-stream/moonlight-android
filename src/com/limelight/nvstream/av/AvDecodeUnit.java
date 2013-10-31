@@ -5,6 +5,7 @@ import java.util.List;
 public class AvDecodeUnit {
 	public static final int TYPE_UNKNOWN = 0;
 	public static final int TYPE_H264 = 1;
+	public static final int TYPE_AAC = 2;
 	
 	private int type;
 	private List<AvBufferDescriptor> bufferList;

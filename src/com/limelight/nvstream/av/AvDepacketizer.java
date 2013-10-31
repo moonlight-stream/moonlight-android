@@ -8,24 +8,49 @@ import android.media.MediaCodec;
 public class AvDepacketizer {
 	
 	// Current NAL state
-	private LinkedList<AvBufferDescriptor> nalDataChain = null;
-	private int nalDataLength = 0;
+	private LinkedList<AvBufferDescriptor> avcNalDataChain = null;
+	private int avcNalDataLength = 0;
+	private LinkedList<AvBufferDescriptor> aacNalDataChain = null;
+	private int aacNalDataLength = 0;
+	private int currentlyDecoding;
 	
 	// Sequencing state
 	private short lastSequenceNumber;
 	
 	private LinkedBlockingQueue<AvDecodeUnit> decodedUnits = new LinkedBlockingQueue<AvDecodeUnit>();
 	
-	private void reassembleNal()
+	private void reassembleAacNal()
+	{
+		// This is the start of a new AAC NAL
+		if (aacNalDataChain != null && aacNalDataLength != 0)
+		{
+			System.out.println("Assembling AAC NAL: "+aacNalDataLength);
+			
+			/*AvBufferDescriptor header = aacNalDataChain.getFirst();
+			for (int i = 0; i < header.length; i++)
+				System.out.printf("%02x ", header.data[header.offset+i]);
+			System.out.println();*/
+			
+			// Construct the AAC decode unit
+			AvDecodeUnit du = new AvDecodeUnit(AvDecodeUnit.TYPE_AAC, aacNalDataChain, aacNalDataLength, 0);
+			decodedUnits.add(du);
+			
+			// Clear old state
+			aacNalDataChain = null;
+			aacNalDataLength = 0;
+		}
+	}
+	
+	private void reassembleAvcNal()
 	{
 		// This is the start of a new NAL
-		if (nalDataChain != null && nalDataLength != 0)
+		if (avcNalDataChain != null && avcNalDataLength != 0)
 		{
 			int flags = 0;
 			
 			// Check if this is a special NAL unit
-			AvBufferDescriptor header = nalDataChain.getFirst();
-			AvBufferDescriptor specialSeq = H264NAL.getSpecialSequenceDescriptor(header);
+			AvBufferDescriptor header = avcNalDataChain.getFirst();
+			AvBufferDescriptor specialSeq = NAL.getSpecialSequenceDescriptor(header);
 			
 			if (specialSeq != null)
 			{
@@ -69,105 +94,98 @@ public class AvDepacketizer {
 			}
 
 			// Construct the H264 decode unit
-			AvDecodeUnit du = new AvDecodeUnit(AvDecodeUnit.TYPE_H264, nalDataChain, nalDataLength, flags);
+			AvDecodeUnit du = new AvDecodeUnit(AvDecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, flags);
 			decodedUnits.add(du);
 			
 			// Clear old state
-			nalDataChain = null;
-			nalDataLength = 0;
+			avcNalDataChain = null;
+			avcNalDataLength = 0;
 		}
 	}
 	
 	public void addInputData(AvPacket packet)
 	{
 		AvBufferDescriptor location = packet.getNewPayloadDescriptor();
-		int payloadLength = location.length;
-		boolean terminateNal = false;
 		
 		while (location.length != 0)
 		{
 			// Remember the start of the NAL data in this packet
 			int start = location.offset;
 			
-			// Check for the start sequence
-			AvBufferDescriptor specialSeq = H264NAL.getSpecialSequenceDescriptor(location);
-			if (specialSeq != null && H264NAL.isStartSequence(specialSeq))
+			// Check for a special sequence
+			AvBufferDescriptor specialSeq = NAL.getSpecialSequenceDescriptor(location);
+			if (specialSeq != null)
 			{
-				// Reassemble any pending NAL
-				reassembleNal();
-				
-				// Setup state for the new NAL
-				nalDataChain = new LinkedList<AvBufferDescriptor>();
-				nalDataLength = 0;
+				if (NAL.isAvcStartSequence(specialSeq))
+				{
+					// We're decoding H264 now
+					currentlyDecoding = AvDecodeUnit.TYPE_H264;
+					
+					// Check if it's the end of the last frame
+					if (NAL.isAvcFrameStart(specialSeq))
+					{
+						// Reassemble any pending AVC NAL
+						reassembleAvcNal();
+						
+						// Setup state for the new NAL
+						avcNalDataChain = new LinkedList<AvBufferDescriptor>();
+						avcNalDataLength = 0;
+					}
+				}
+				else if (NAL.isAacStartSequence(specialSeq))
+				{
+					// We're decoding AAC now
+					currentlyDecoding = AvDecodeUnit.TYPE_AAC;
+					
+					// Reassemble any pending AAC NAL
+					reassembleAacNal();
+					
+					// Setup state for the new NAL
+					aacNalDataChain = new LinkedList<AvBufferDescriptor>();
+					aacNalDataLength = 0;
+				}
+				else
+				{
+					// Not either sequence we want
+					//currentlyDecoding = AvDecodeUnit.TYPE_UNKNOWN;
+				}
 				
 				// Skip the start sequence
 				location.length -= specialSeq.length;
 				location.offset += specialSeq.length;
 			}
 			
-			// If there's a NAL assembly in progress, add the current data
-			if (nalDataChain != null)
+			// Move to the next special sequence
+			while (location.length != 0)
 			{
-				// FIXME: This is a hack to make parsing full packets
-				// take less time. We assume if they don't start with
-				// a NAL start sequence, they're full of NAL data
-				if (payloadLength == 968)
+				specialSeq = NAL.getSpecialSequenceDescriptor(location);
+				
+				// Check if this should end the current NAL
+				if (specialSeq != null)
 				{
-					location.offset += location.length;
-					location.length = 0;
+					break;
 				}
 				else
 				{
-					//System.out.println("Using slow parsing case");
-					while (location.length != 0)
-					{
-						specialSeq = H264NAL.getSpecialSequenceDescriptor(location);
-						
-						// Check if this should end the current NAL
-						//if (specialSeq != null)
-						if (specialSeq != null && H264NAL.isStartSequence(specialSeq))
-						{
-							//terminateNal = true;
-							break;
-						}
-						else
-						{
-							// This byte is part of the NAL data
-							location.offset++;
-							location.length--;
-						}
-					}
-				}
-				
-				int endSub;
-				
-				// If parsing was finished due to reaching new start sequence,
-				// remove the last byte from the NAL (since it's the first byte of the
-				// start of the next one)
-				if (location.length != 0)
-				{
-					endSub = 1;
-				}
-				else
-				{
-					endSub = 0;
-				}
-				
-				// Add a buffer descriptor describing the NAL data in this packet
-				nalDataChain.add(new AvBufferDescriptor(location.data, start, location.offset-start-endSub));
-				nalDataLength += location.offset-start-endSub;
-				
-				// Terminate the NAL if asked
-				if (terminateNal)
-				{
-					reassembleNal();
+					// This byte is part of the NAL data
+					location.offset++;
+					location.length--;
 				}
 			}
-			else
+			
+			AvBufferDescriptor data = new AvBufferDescriptor(location.data, start, location.offset-start);
+			
+			if (currentlyDecoding == AvDecodeUnit.TYPE_H264 && avcNalDataChain != null)
 			{
-				// Otherwise, skip the data
-				location.offset++;
-				location.length--;
+				// Add a buffer descriptor describing the NAL data in this packet
+				avcNalDataChain.add(data);
+				avcNalDataLength += location.offset-start;
+			}
+			else if (currentlyDecoding == AvDecodeUnit.TYPE_AAC && aacNalDataChain != null)
+			{
+				// Add a buffer descriptor describing the NAL data in this packet
+				aacNalDataChain.add(data);
+				aacNalDataLength += location.offset-start;
 			}
 		}
 	}
@@ -182,8 +200,13 @@ public class AvDepacketizer {
 			lastSequenceNumber + 1 != seq)
 		{
 			System.out.println("Received OOS data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
-			nalDataChain = null;
-			nalDataLength = 0;
+			
+			// Reset the depacketizer state
+			currentlyDecoding = AvDecodeUnit.TYPE_UNKNOWN;
+			avcNalDataChain = null;
+			avcNalDataLength = 0;
+			aacNalDataChain = null;
+			aacNalDataLength = 0;
 		}
 		
 		lastSequenceNumber = seq;
@@ -199,15 +222,35 @@ public class AvDepacketizer {
 	}
 }
 
-class H264NAL {
+class NAL {
 	
-	// This assume's that the buffer passed in is already a special sequence
-	public static boolean isStartSequence(AvBufferDescriptor specialSeq)
+	// This assumes that the buffer passed in is already a special sequence
+	public static boolean isAvcStartSequence(AvBufferDescriptor specialSeq)
 	{
-		if (/*specialSeq.length != 3 && */specialSeq.length != 4)
+		if (specialSeq.length != 3 && specialSeq.length != 4)
 			return false;
 		
 		// The start sequence is 00 00 01 or 00 00 00 01
+		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x01);
+	}
+	
+	// This assumes that the buffer passed in is already a special sequence
+	public static boolean isAacStartSequence(AvBufferDescriptor specialSeq)
+	{
+		if (specialSeq.length != 3)
+			return false;
+		
+		// The start sequence is 00 00 03
+		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x03);
+	}
+	
+	// This assumes that the buffer passed in is already a special sequence
+	public static boolean isAvcFrameStart(AvBufferDescriptor specialSeq)
+	{
+		if (specialSeq.length != 4)
+			return false;
+		
+		// The frame start sequence is 00 00 00 01
 		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x01);
 	}
 	

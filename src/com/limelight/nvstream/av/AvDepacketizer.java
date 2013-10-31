@@ -197,7 +197,7 @@ public class AvDepacketizer {
 		// Toss out the current NAL if we receive a packet that is
 		// out of sequence
 		if (lastSequenceNumber != 0 &&
-			lastSequenceNumber + 1 != seq)
+			(short)(lastSequenceNumber + 1) != seq)
 		{
 			System.out.println("Received OOS data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
 			

@@ -2,10 +2,12 @@ package com.limelight.nvstream;
 
 import java.net.InetAddress;
 import java.util.HashSet;
+import java.util.Locale;
 
 public class NvComputer {
 	private String mDNSResponse;
 	private InetAddress ipAddress;
+	private String ipAddressString;
 	private int state;
 	private int numOfApps;
 	private String gpuType;
@@ -18,9 +20,10 @@ public class NvComputer {
 	private boolean isBusy;
 	
 	
-	public NvComputer(String mDNSResponse, InetAddress ipAddress, int state, int numOfApps, String gpuType, String mac, String uniqueID) {
+	public NvComputer(String mDNSResponse, InetAddress ipAddress, String ipAddressString, int state, int numOfApps, String gpuType, String mac, String uniqueID) {
 		this.mDNSResponse = mDNSResponse;
 		this.ipAddress = ipAddress;
+		this.ipAddressString = ipAddressString;
 		this.state = state;
 		this.numOfApps = numOfApps;
 		this.gpuType = gpuType;
@@ -36,6 +39,10 @@ public class NvComputer {
 	
 	public InetAddress getIpAddress() {
 		return this.ipAddress;
+	}
+	
+	public String getIpAddressString() {
+		return this.ipAddressString;
 	}
 
 	public String getIPAddressString() {
@@ -93,27 +100,27 @@ public class NvComputer {
 		if (this.ipAddress == null) {
 			return -1;
 		} else {
-			return this.ipAddress.getCanonicalHostName().hashCode();
+			return this.ipAddressString.hashCode();
 		}
 	}
 	
 	public String toString() {
 		StringBuilder returnStringBuilder = new StringBuilder();
 		returnStringBuilder.append("NvComputer 0x");
-		returnStringBuilder.append(Integer.toHexString(this.hashCode()).toUpperCase());
-		returnStringBuilder.append("\n\tmDNS Hostname: ");
+		returnStringBuilder.append(Integer.toHexString(this.hashCode()).toUpperCase(Locale.getDefault()));
+		returnStringBuilder.append("\n|- mDNS Hostname: ");
 		returnStringBuilder.append(this.mDNSResponse);
-		returnStringBuilder.append("\n\tIP Address: ");
+		returnStringBuilder.append("\n|- IP Address: ");
 		returnStringBuilder.append(this.ipAddress.toString());
-		returnStringBuilder.append("\n\tComputer State: ");
+		returnStringBuilder.append("\n|- Computer State: ");
 		returnStringBuilder.append(this.state);
-		returnStringBuilder.append("\n\tNumber of Apps: ");
+		returnStringBuilder.append("\n|- Number of Apps: ");
 		returnStringBuilder.append(this.numOfApps);
-		returnStringBuilder.append("\n\tGPU: ");
+		returnStringBuilder.append("\n|- GPU: ");
 		returnStringBuilder.append(this.gpuType);
-		returnStringBuilder.append("\n\tMAC: ");
+		returnStringBuilder.append("\n|- MAC: ");
 		returnStringBuilder.append(this.mac);
-		returnStringBuilder.append("\n\tUniqueID: ");
+		returnStringBuilder.append("\n\\- UniqueID: ");
 		returnStringBuilder.append(this.uniqueID);
 		returnStringBuilder.append("\n");
 		return returnStringBuilder.toString();

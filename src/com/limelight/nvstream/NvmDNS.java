@@ -22,6 +22,7 @@ import android.net.nsd.NsdManager;
 import android.net.nsd.NsdManager.DiscoveryListener;
 import android.net.nsd.NsdManager.ResolveListener;
 import android.net.nsd.NsdServiceInfo;
+import android.os.AsyncTask;
 import android.util.Log;
 
 /**
@@ -29,7 +30,7 @@ import android.util.Log;
  * @author yetanothername
  *
  */
-public class NvmDNS implements Runnable  {
+public class NvmDNS extends AsyncTask<Void, Integer, Void> {
 
 	public static String NVSTREAM_MDNS_QUERY = "_nvstream._tcp.local.";
 	public static String NVSTREAM_MDNS_MULTICAST_GROUP = "224.0.0.251";
@@ -69,14 +70,32 @@ public class NvmDNS implements Runnable  {
 		this.nvstream_mdns_responses = new HashSet<NvComputer>();
 		Log.v("NvmDNS", "Constructor exited");
 	}
-
-	public void sendQueryAndWait() {
-		Thread socketThread = new Thread(this);
-		socketThread.start();
+	
+	private void makeFakeData() {
+		try {
+			this.nvstream_mdns_responses.add(new NvComputer("127.0.0.1", 
+												 			InetAddress.getByName("127.0.0.1"),
+															InetAddress.getByName("127.0.0.1").getCanonicalHostName(),
+												 			0,
+												 			4,
+												 			"Intel(R) Extreme Graphics 3",
+												 			"DE:AD:BE:EF:CA:FE",
+												 			"foo"));
+			this.nvstream_mdns_responses.add(new NvComputer("10.0.2.15", 
+															InetAddress.getByName("10.0.2.15"),
+															InetAddress.getByName("10.0.2.15").getCanonicalHostName(),
+												 			0,
+												 			5,
+												 			"Intel(R) Extreme Graphics 2",
+												 			"DE:AD:BE:EF:CA:FE",
+												 			"bar"));
+		} catch (Exception e) {
+			
+		}
 	}
 
-	@Override
-	public void run() {
+	public void sendQueryAndWait() {
+		this.makeFakeData();
 		try {
 			Log.v("NvmDNS UDP Loop", "mDNS Loop Started");
 
@@ -154,16 +173,56 @@ public class NvmDNS implements Runnable  {
 						}
 					}
 
-					NvComputer computer = new NvComputer(responses[0].getName().toString(), packet.getAddress(), state, numOfApps, gpuType, mac, uniqueID);
+					packet.getAddress().getCanonicalHostName();
+					
+					NvComputer computer = new NvComputer(responses[0].getName().toString(), packet.getAddress(), packet.getAddress().getCanonicalHostName(), state, numOfApps, gpuType, mac, uniqueID);
 					this.nvstream_mdns_responses.add(computer);
 					Log.v("NvmDNS NvComputer", computer.toString());
-
 				}
 			}				
-
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+	
+	
+	@Override
+	 protected Void doInBackground(Void... thisParameterIsUseless) {
+		Log.v("NvmDNS", "doInBackground init");
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				Log.v("NvmDNS 1000 mS Wait", "going to sleep");
+				try {
+					
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				Log.v("NvmDNS 1000 mS Wait", "waking from sleep");
+				NvmDNS.this.nvstream_socket.close();
+				NvmDNS.this.nvstream_socket = null;
+				Log.v("NvmDNS 1000 mS Wait", "socket closed");
+			}
+		}).start();
+		
+		
+		this.sendQueryAndWait();
+		Log.v("NvmDNS", "doInBackground return");
+		return null; 
+	 }
+	 
+	 @Override
+	 protected void onProgressUpdate(Integer... progress) {
+		 Log.v("NvmDNS", "onProgressUpdate ");
+     }
+
+	 @Override
+     protected void onPostExecute(Void moreUselessParameters) {
+    	 Log.v("NvmDNS", "onPostExecute");
+    	 for (NvComputer computer : this.nvstream_mdns_responses) {
+    		 Log.i("NvmDNS NvComputer Printout", computer.toString());
+    	 }
+         
+     }
 }

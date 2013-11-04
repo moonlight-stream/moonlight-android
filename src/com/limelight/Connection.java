@@ -2,6 +2,7 @@ package com.limelight;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.limelight.nvstream.NvmDNS;
@@ -28,10 +29,6 @@ public class Connection extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
-		
-		
-
-		
 	}
 	
 	@Override
@@ -58,7 +55,7 @@ public class Connection extends Activity {
 		try {
 			
 			NvmDNS dns = new NvmDNS();
-			dns.sendQueryAndWait();
+			dns.execute();
 		} catch (IOException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
@@ -68,20 +65,20 @@ public class Connection extends Activity {
 		setContentView(R.layout.activity_connection);
 		
 		
-		this.statusButton = (Button) findViewById(R.id.statusButton);
-		this.hostText = (TextView) findViewById(R.id.hostTextView);
+	//	this.statusButton = (Button) findViewById(R.id.statusButton);
+	//	this.hostText = (TextView) findViewById(R.id.hostTextView);
 		
-		prefs = getPreferences(0);
-		this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));
+		//prefs = getPreferences(0);
+		//this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));
 		
-		this.statusButton.setOnClickListener(new OnClickListener() {
+		/*this.statusButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
 				Intent intent = new Intent(Connection.this, Game.class);
 				intent.putExtra("host", Connection.this.hostText.getText().toString());
 				Connection.this.startActivity(intent);
 			}
-		});
+		});*/
 	}
 
 }

@@ -2,7 +2,11 @@ package com.limelight.nvstream;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +36,33 @@ public class NvConnection {
 		this.activity = activity;
 		this.video = video;
 		this.threadPool = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
+	}
+	
+	public static String getMacAddressString() throws SocketException {
+		Enumeration<NetworkInterface> ifaceList = NetworkInterface.getNetworkInterfaces();
+		
+		while (ifaceList.hasMoreElements()) {
+			NetworkInterface iface = ifaceList.nextElement();
+			
+			/* Look for the first non-loopback interface to use as the MAC address.
+			 * We don't require the interface to be up to avoid having to repair when
+			 * connecting over different interfaces */
+			if (!iface.isLoopback()) {
+				byte[] macAddress = iface.getHardwareAddress();
+				if (macAddress.length == 6) {
+					StringBuilder addrStr = new StringBuilder();
+					for (int i = 0; i < macAddress.length; i++) {
+						addrStr.append(String.format("%02x", macAddress[i]));
+						if (i != macAddress.length - 1) {
+							addrStr.append(':');
+						}
+					}
+					return addrStr.toString();
+				}
+			}
+		}
+		
+		return null;
 	}
 
 	public void start()
@@ -159,7 +190,7 @@ public class NvConnection {
 	
 	private void startSteamBigPicture() throws XmlPullParserException, IOException
 	{
-		NvHTTP h = new NvHTTP(host, "b0:ee:45:57:5d:5f");
+		NvHTTP h = new NvHTTP(host, getMacAddressString());
 		
 		if (!h.getPairState())
 		{

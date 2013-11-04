@@ -1,9 +1,5 @@
 package com.limelight.nvstream;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
@@ -12,11 +8,16 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.util.concurrent.LinkedBlockingQueue;
 
-import jlibrtp.DataFrame;
+import com.limelight.nvstream.av.AvBufferDescriptor;
+import com.limelight.nvstream.av.AvBufferPool;
+import com.limelight.nvstream.av.AvDecodeUnit;
+import com.limelight.nvstream.av.AvPacket;
+import com.limelight.nvstream.av.AvDepacketizer;
+import com.limelight.nvstream.av.AvRtpPacket;
+
 import jlibrtp.Participant;
-import jlibrtp.RTPAppIntf;
 import jlibrtp.RTPSession;
 
 import android.media.MediaCodec;
@@ -24,21 +25,88 @@ import android.media.MediaCodec.BufferInfo;
 import android.media.MediaFormat;
 import android.view.Surface;
 
-public class NvVideoStream implements RTPAppIntf {
+public class NvVideoStream {
 	public static final int RTP_PORT = 47998;
 	public static final int RTCP_PORT = 47999;
 	public static final int FIRST_FRAME_PORT = 47996;
 	
-	private static final int FRAME_RATE = 60;
-	private ByteBuffer[] decoderInputBuffers = null;
-	private MediaCodec decoder;
+	private ByteBuffer[] videoDecoderInputBuffers, audioDecoderInputBuffers;
+	private MediaCodec videoDecoder, audioDecoder;
 	
-	private int frameIndex = 0;
+	private LinkedBlockingQueue<AvRtpPacket> packets = new LinkedBlockingQueue<AvRtpPacket>();
 	
-	private InputStream getFirstFrame(String host) throws UnknownHostException, IOException
+	private RTPSession session;
+	private DatagramSocket rtp;
+	
+	private AvBufferPool pool = new AvBufferPool(1500);
+	
+	private AvDepacketizer depacketizer = new AvDepacketizer();
+	
+	private InputStream openFirstFrameInputStream(String host) throws UnknownHostException, IOException
 	{
 		Socket s = new Socket(host, FIRST_FRAME_PORT);
 		return s.getInputStream();
+	}
+	
+	private void readFirstFrame(String host) throws IOException
+	{
+		byte[] firstFrame = pool.allocate();
+		System.out.println("VID: Waiting for first frame");
+		InputStream firstFrameStream = openFirstFrameInputStream(host);
+		
+		int offset = 0;
+		for (;;)
+		{
+			int bytesRead = firstFrameStream.read(firstFrame, offset, firstFrame.length-offset);
+			
+			if (bytesRead == -1)
+				break;
+			
+			offset += bytesRead;
+		}
+		
+		System.out.println("VID: First frame read ("+offset+" bytes)");
+		
+		// FIXME: Investigate: putting these NALs into the data stream
+		// causes the picture to get messed up
+		//depacketizer.addInputData(new AvPacket(new AvBufferDescriptor(firstFrame, 0, offset)));
+	}
+	
+	public void setupRtpSession(String host) throws SocketException
+	{
+		DatagramSocket rtcp;
+
+		rtp = new DatagramSocket(RTP_PORT);
+		
+		rtp.setReceiveBufferSize(2097152);
+		System.out.println("RECV BUF: "+rtp.getReceiveBufferSize());
+		System.out.println("SEND BUF: "+rtp.getSendBufferSize());
+
+		
+		rtcp = new DatagramSocket(RTCP_PORT);
+		
+		session = new RTPSession(rtp, rtcp);
+		session.addParticipant(new Participant(host, RTP_PORT, RTCP_PORT));
+	}
+	
+	public void setupDecoders(Surface surface)
+	{
+		videoDecoder = MediaCodec.createDecoderByType("video/avc");
+		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", 1280, 720);
+
+		audioDecoder = MediaCodec.createDecoderByType("audio/mp4a-latm");
+		MediaFormat audioFormat = MediaFormat.createAudioFormat("audio/mp4a-latm", 48000, 2);
+
+		videoDecoder.configure(videoFormat, surface, null, 0);
+		audioDecoder.configure(audioFormat, null, null, 0);
+
+		videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+		
+		videoDecoder.start();
+		audioDecoder.start();
+
+		videoDecoderInputBuffers = videoDecoder.getInputBuffers();
+		audioDecoderInputBuffers = audioDecoder.getInputBuffers();
 	}
 
 	public void startVideoStream(final String host, final Surface surface)
@@ -47,146 +115,231 @@ public class NvVideoStream implements RTPAppIntf {
 
 			@Override
 			public void run() {
+				// Setup the decoder context
+				setupDecoders(surface);
 				
-				byte[] firstFrame = new byte[98];
+				// Open RTP sockets and start session
 				try {
-					System.out.println("VID: Waiting for first frame");
-					InputStream firstFrameStream = getFirstFrame(host);
-					
-					int offset = 0;
-					do
-					{
-						offset = firstFrameStream.read(firstFrame, offset, firstFrame.length-offset);
-					} while (offset != firstFrame.length);
-					System.out.println("VID: First frame read ");
-				} catch (UnknownHostException e2) {
-					// TODO Auto-generated catch block
-					e2.printStackTrace();
-					return;
-				} catch (IOException e2) {
-					// TODO Auto-generated catch block
-					e2.printStackTrace();
-					return;
-				}
-				
-				final DatagramSocket rtp, rtcp;
-				try {
-					rtp = new DatagramSocket(RTP_PORT);
-					rtcp = new DatagramSocket(RTCP_PORT);
+					setupRtpSession(host);
 				} catch (SocketException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 					return;
 				}
-
-				decoder = MediaCodec.createDecoderByType("video/avc");
-				MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", 1280, 720);
-		
-				decoder.configure(mediaFormat, surface, null, 0);
-				decoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-				decoder.start();
-				decoderInputBuffers = decoder.getInputBuffers();
-
-				int inputIndex = decoder.dequeueInputBuffer(-1);
-				if (inputIndex >= 0)
-				{
-					ByteBuffer buf = decoderInputBuffers[inputIndex];
-					
-					buf.clear();
-					buf.put(firstFrame);
-					
-					decoder.queueInputBuffer(inputIndex,
-							0, firstFrame.length,
-							0, 0);
-					frameIndex++;
+				
+				// Start the receive thread early to avoid missing
+				// early packets
+				startReceiveThread();
+				
+				// Start the keepalive ping to keep the stream going
+				startUdpPingThread();
+				
+				// Start the depacketizer thread to deal with the RTP data
+				startDepacketizerThread();
+				
+				// Start decoding the data we're receiving
+				startDecoderThread();
+				
+				// Start playing back audio data
+				startAudioPlaybackThread();
+				
+				// Read the first frame to start the UDP video stream
+				try {
+					readFirstFrame(host);
+				} catch (IOException e2) {
+					e2.printStackTrace();
+					return;
 				}
 				
-				final RTPSession session = new RTPSession(rtp, rtcp);
-				session.addParticipant(new Participant(host, RTP_PORT, RTCP_PORT));
-				//session.RTPSessionRegister(NvVideoStream.this, null, null);
-				
-				// Ping thread
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						// PING in ASCII
-						final byte[] pingPacket = new byte[] {0x50, 0x49, 0x4E, 0x47};
-						
-						// RTP payload type is 127 (dynamic)
-						session.payloadType(127);
-						
-						// Send PING every 100 ms
-						for (;;)
-						{
-							session.sendData(pingPacket);
-							
-							try {
-								Thread.sleep(100);
-							} catch (InterruptedException e) {
-								break;
-							}
-						}
+				// Render the frames that are coming out of the decoder
+				outputDisplayLoop();
+			}
+		}).start();
+	}
+	
+	private void startDecoderThread()
+	{
+		// Decoder thread
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// Read the decode units generated from the RTP stream
+				for (;;)
+				{
+					AvDecodeUnit du;
+					try {
+						du = depacketizer.getNextDecodeUnit();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+						return;
 					}
-				}).start();
-				
-				// Receive thread
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						byte[] packet = new byte[1500];
-						
-						// Send PING every 100 ms
-						for (;;)
+					
+					switch (du.getType())
+					{
+						case AvDecodeUnit.TYPE_H264:
 						{
-							DatagramPacket dp = new DatagramPacket(packet, 0, packet.length);
-							
-							try {
-								rtp.receive(dp);
-							} catch (IOException e) {
-								e.printStackTrace();
-								break;
-							}
-							
-							System.out.println("in receiveData");
-							int inputIndex = decoder.dequeueInputBuffer(-1);
+							int inputIndex = videoDecoder.dequeueInputBuffer(-1);
 							if (inputIndex >= 0)
 							{
-								ByteBuffer buf = decoderInputBuffers[inputIndex];
-								NvVideoPacket nvVideo = new NvVideoPacket(dp.getData());
+								ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
 								
+								// Clear old input data
 								buf.clear();
-								buf.put(nvVideo.data);
-							
-								System.out.println(nvVideo);
-								if (nvVideo.length == 0xc803) {
-									decoder.queueInputBuffer(inputIndex,
-											0, nvVideo.length,
-											0, 0);
-									frameIndex++;
-								} else {
-									decoder.queueInputBuffer(inputIndex,
-											0, 0,
-											0, 0);
+								
+								// Copy data from our buffer list into the input buffer
+								for (AvBufferDescriptor desc : du.getBufferList())
+								{
+									buf.put(desc.data, desc.offset, desc.length);
+									
+									// Release the buffer back to the buffer pool
+									pool.free(desc.data);
 								}
+
+								videoDecoder.queueInputBuffer(inputIndex,
+											0, du.getDataLength(),
+											0, du.getFlags());
 							}
 						}
+						break;
+						
+						case AvDecodeUnit.TYPE_AAC:
+						{
+							int inputIndex = audioDecoder.dequeueInputBuffer(0);
+							if (inputIndex == -4)
+							{
+								ByteBuffer buf = audioDecoderInputBuffers[inputIndex];
+								
+								// Clear old input data
+								buf.clear();
+								
+								// Copy data from our buffer list into the input buffer
+								for (AvBufferDescriptor desc : du.getBufferList())
+								{
+									buf.put(desc.data, desc.offset, desc.length);
+									
+									// Release the buffer back to the buffer pool
+									pool.free(desc.data);
+								}
+
+								audioDecoder.queueInputBuffer(inputIndex,
+											0, du.getDataLength(),
+											0, du.getFlags());
+							}
+						}
+						break;
+					
+						default:
+						{
+							System.out.println("Unknown decode unit type");
+						}
+						break;
 					}
-				}).start();
+				}
+			}
+		}).start();
+	}
+	
+	private void startDepacketizerThread()
+	{
+		// This thread lessens the work on the receive thread
+		// so it can spend more time waiting for data
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				for (;;)
+				{
+					AvRtpPacket packet;
+					
+					try {
+						packet = packets.take();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+						return;
+					}
+					
+					// !!! We no longer own the data buffer at this point !!!
+					depacketizer.addInputData(packet);
+				}
+			}
+		}).start();
+	}
+	
+	private void startReceiveThread()
+	{
+		// Receive thread
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				DatagramPacket packet = new DatagramPacket(pool.allocate(), 1500);
+				AvBufferDescriptor desc = new AvBufferDescriptor(null, 0, 0);
 				
 				for (;;)
 				{
+					try {
+						rtp.receive(packet);
+					} catch (IOException e) {
+						e.printStackTrace();
+						return;
+					}
+					
+					desc.length = packet.getLength();
+					desc.offset = packet.getOffset();
+					desc.data = packet.getData();
+					
+					// Give the packet to the depacketizer thread
+					packets.add(new AvRtpPacket(desc));
+					
+					// Get a new buffer from the buffer pool
+					packet.setData(pool.allocate(), 0, 1500);
+				}
+			}
+		}).start();
+	}
+	
+	private void startUdpPingThread()
+	{
+		// Ping thread
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// PING in ASCII
+				final byte[] pingPacket = new byte[] {0x50, 0x49, 0x4E, 0x47};
+				
+				// RTP payload type is 127 (dynamic)
+				session.payloadType(127);
+				
+				// Send PING every 100 ms
+				for (;;)
+				{
+					session.sendData(pingPacket);
+					
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						break;
+					}
+				}
+			}
+		}).start();
+	}
+	
+	private void startAudioPlaybackThread()
+	{
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				for (;;)
+				{
 					BufferInfo info = new BufferInfo();
-					System.out.println("dequeuing outputbuffer");
-					int outIndex = decoder.dequeueOutputBuffer(info, -1);
-					System.out.println("done dequeuing output buffer");
+					System.out.println("Waiting for audio");
+					int outIndex = audioDecoder.dequeueOutputBuffer(info, -1);
+					System.out.println("Got audio");
 				    switch (outIndex) {
 				    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
 				    	System.out.println("Output buffers changed");
 					    break;
 				    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
 				    	System.out.println("Output format changed");
-				    	//decoderOutputFormat = decoder.getOutputFormat();
-				    	System.out.println("New output Format: " + decoder.getOutputFormat());
+				    	System.out.println("New output Format: " + videoDecoder.getOutputFormat());
 				    	break;
 				    case MediaCodec.INFO_TRY_AGAIN_LATER:
 				    	System.out.println("Try again later");
@@ -195,62 +348,38 @@ public class NvVideoStream implements RTPAppIntf {
 				      break;
 				    }
 				    if (outIndex >= 0) {
-				    	System.out.println("releasing output buffer");
-				    	decoder.releaseOutputBuffer(outIndex, true);
-				    	System.out.println("output buffer released");
+				    	audioDecoder.releaseOutputBuffer(outIndex, true);
 				    }
 			    	
 				}
 			}
 		}).start();
 	}
-
-	@Override
-	public void receiveData(DataFrame frame, Participant participant) {
-	}
-
-	@Override
-	public void userEvent(int type, Participant[] participant) {
-	}
-
-	@Override
-	public int frameSize(int payloadType) {
-		return 1;
-	}
 	
-    /**
-     * Generates the presentation time for frame N, in microseconds.
-     */
-    private static long computePresentationTime(int frameIndex) {
-        return 132 + frameIndex * 1000000 / FRAME_RATE;
-    }
-    
-    class NvVideoPacket {
-    	byte[] preamble;
-    	short length;
-    	byte[] extra;
-    	byte[] data;
-    	
-    	public NvVideoPacket(byte[] payload)
-    	{
-    		ByteBuffer bb = ByteBuffer.wrap(payload).order(ByteOrder.LITTLE_ENDIAN);
-    		
-    		preamble = new byte[12+16];
-    		extra = new byte[38];
-    		
-    		bb.get(preamble);
-    		length = bb.getShort();
-    		bb.get(extra);
-    		data = new byte[length];
-    		
-    		if (bb.remaining() + length <= payload.length)
-    			bb.get(data);
-    	}
-    	
-    	public String toString()
-    	{
-    		return "";//String.format("Length: %d | %02x %02x %02x %02x %02x %02x %02x %02x",
-    				//length, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
-    	}
-    }
+	private void outputDisplayLoop()
+	{
+		for (;;)
+		{
+			BufferInfo info = new BufferInfo();
+			int outIndex = videoDecoder.dequeueOutputBuffer(info, -1);
+		    switch (outIndex) {
+		    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
+		    	System.out.println("Output buffers changed");
+			    break;
+		    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
+		    	System.out.println("Output format changed");
+		    	System.out.println("New output Format: " + videoDecoder.getOutputFormat());
+		    	break;
+		    case MediaCodec.INFO_TRY_AGAIN_LATER:
+		    	System.out.println("Try again later");
+		    	break;
+		    default:
+		      break;
+		    }
+		    if (outIndex >= 0) {
+		    	videoDecoder.releaseOutputBuffer(outIndex, true);
+		    }
+	    	
+		}
+	}
 }

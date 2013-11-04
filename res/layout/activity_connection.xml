@@ -16,7 +16,7 @@
         android:layout_centerHorizontal="true"
         android:text="Pair with PC"/>
 
-<<<<<<< HEAD
+
     <ListView
         android:id="@+id/mDNSResultView"
         android:layout_width="fill_parent"
@@ -24,7 +24,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true" >
     </ListView>
-=======
+
     <EditText
         android:id="@+id/hostTextView"
         android:layout_width="wrap_content"
@@ -42,6 +42,6 @@
         android:layout_below="@+id/hostTextView"
         android:layout_centerHorizontal="true"
         android:text="Start Streaming Steam!" />
->>>>>>> d7062ac2e0b306c42144c84690a3735c5878e11d
+
 
 </RelativeLayout>

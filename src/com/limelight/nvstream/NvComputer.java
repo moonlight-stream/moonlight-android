@@ -1,8 +1,8 @@
 package com.limelight.nvstream;
 
 import java.net.InetAddress;
-import java.util.HashSet;
 import java.util.Locale;
+import java.util.UUID;
 
 public class NvComputer {
 	private String mDNSResponse;
@@ -12,15 +12,14 @@ public class NvComputer {
 	private int numOfApps;
 	private String gpuType;
 	private String mac;
-	private String uniqueID;
+	private UUID uniqueID;
 	
-	private HashSet<NvComputerGame> games;
 	private int sessionID;
 	private boolean paired;
 	private boolean isBusy;
 	
 	
-	public NvComputer(String mDNSResponse, InetAddress ipAddress, String ipAddressString, int state, int numOfApps, String gpuType, String mac, String uniqueID) {
+	public NvComputer(String mDNSResponse, InetAddress ipAddress, String ipAddressString, int state, int numOfApps, String gpuType, String mac, UUID uniqueID) {
 		this.mDNSResponse = mDNSResponse;
 		this.ipAddress = ipAddress;
 		this.ipAddressString = ipAddressString;
@@ -29,8 +28,6 @@ public class NvComputer {
 		this.gpuType = gpuType;
 		this.mac = mac;
 		this.uniqueID = uniqueID;
-		
-		this.games = new HashSet<NvComputerGame>();
 	}
 	
 	public String getmDNSResponse() {
@@ -46,7 +43,7 @@ public class NvComputer {
 	}
 
 	public String getIPAddressString() {
-		return this.ipAddress.getCanonicalHostName().toLowerCase();
+		return this.ipAddress.getCanonicalHostName().toLowerCase(Locale.getDefault());
 	}
 	
 	public int getState() {
@@ -65,18 +62,10 @@ public class NvComputer {
 		return this.mac;
 	}
 
-	public String getUniqueID() {
+	public UUID getUniqueID() {
 		return this.uniqueID;
 	}
-	
-	public boolean addGame(NvComputerGame game) {
-		return this.games.add(game);
-	}
 		
-	public HashSet<NvComputerGame> getGames() {
-		return this.games;
-	}
-	
 	public void updateAfterPairQuery(int sessionID, boolean paired, boolean isBusy) {
 		
 		this.sessionID = sessionID;
@@ -127,53 +116,10 @@ public class NvComputer {
 	}
 	
 	public boolean equals(Object obj) {
-		NvComputer otherComputer = (NvComputer)obj;
-		if (this.ipAddress == null && otherComputer.getIpAddress() == null) {
-			return true;
-		} else if (this.ipAddress == null || otherComputer.getIpAddress() == null) {
-			return false;
+		if (obj instanceof UUID) {
+			return this.uniqueID.equals(obj);
 		} else {
-			return this.ipAddress.equals(otherComputer.getIpAddress());
-		}
-	}
-	
-	public class NvComputerGame {
-		private Integer ID;
-		private String appTitle;
-		private Boolean isRunning;
-		private Integer gameSession;
-		private Integer winLogon;
-		
-		public NvComputerGame(int ID, String appTitle, boolean isRunning) {
-			this.ID = ID;
-			this.appTitle = appTitle;
-			this.isRunning = isRunning;
-		}
-		
-		public void launchedGame(int gameSession, int winLogon) {
-			this.isRunning = true;
-			this.gameSession = gameSession;
-			this.winLogon = winLogon;
-		}
-		
-		public Integer getID() {
-			return this.ID;
-		}
-		
-		public String getAppTitle() {
-			return this.appTitle;
-		}
-		
-		public Boolean getIsRunning() {
-			return this.isRunning;
-		}
-		
-		public Integer getGameSession() {
-			return this.gameSession;
-		}
-		
-		public Integer winLogon() {
-			return this.winLogon;
+			return false;
 		}
 	}
 }

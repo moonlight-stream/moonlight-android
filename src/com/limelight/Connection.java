@@ -1,13 +1,8 @@
 package com.limelight;
 
 import java.io.IOException;
-<<<<<<< HEAD
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-=======
+
 import java.net.SocketException;
->>>>>>> d7062ac2e0b306c42144c84690a3735c5878e11d
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -34,15 +29,13 @@ public class Connection extends Activity {
 	private static final String DEFAULT_HOST = "192.168.1.240";
 	public static final String HOST_KEY = "hostText";
 	
-<<<<<<< HEAD
+
 
 	@Override
 	public void onResume() {
 		super.onResume();
 	}
 	
-=======
->>>>>>> d7062ac2e0b306c42144c84690a3735c5878e11d
 	@Override
 	public void onPause() {
 		SharedPreferences.Editor editor = prefs.edit();
@@ -64,41 +57,29 @@ public class Connection extends Activity {
 		
 		Log.v("NvmDNS", "onCreate");
 		
-		try {
 			
 			NvmDNS dns = new NvmDNS();
 			dns.execute();
-		} catch (IOException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
 		
 		
 		setContentView(R.layout.activity_connection);
 		
 		
-<<<<<<< HEAD
-	//	this.statusButton = (Button) findViewById(R.id.statusButton);
-	//	this.hostText = (TextView) findViewById(R.id.hostTextView);
-=======
 		this.statusButton = (Button) findViewById(R.id.statusButton);
 		this.pairButton = (Button) findViewById(R.id.pairButton);
 		this.hostText = (TextView) findViewById(R.id.hostTextView);
->>>>>>> d7062ac2e0b306c42144c84690a3735c5878e11d
+
 		
 		//prefs = getPreferences(0);
 		//this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));
 		
-		/*this.statusButton.setOnClickListener(new OnClickListener() {
+		this.statusButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
 				Intent intent = new Intent(Connection.this, Game.class);
 				intent.putExtra("host", Connection.this.hostText.getText().toString());
 				Connection.this.startActivity(intent);
 			}
-<<<<<<< HEAD
-		});*/
-=======
 		});
 		
 		this.pairButton.setOnClickListener(new OnClickListener() {
@@ -154,7 +135,7 @@ public class Connection extends Activity {
 				}).start();
 			}
 		});
->>>>>>> d7062ac2e0b306c42144c84690a3735c5878e11d
+
 	}
 
 }

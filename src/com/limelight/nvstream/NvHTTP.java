@@ -74,7 +74,10 @@ public class NvHTTP {
 	
 	public int getSessionId() throws IOException, XmlPullParserException
 	{
-		InputStream in = openHttpConnection("http://"+host+":"+PORT+"/pair?mac="+macAddress+"&devicename=ANDROID");
+		/* Pass the model (minus spaces) as the device name */
+		String deviceName = android.os.Build.MODEL;
+		deviceName = deviceName.replace(" ", "");
+		InputStream in = openHttpConnection("http://"+host+":"+PORT+"/pair?mac="+macAddress+"&devicename="+deviceName);
 		String sessionId = getXmlString(in, "sessionid");
 		return Integer.valueOf(sessionId);
 	}

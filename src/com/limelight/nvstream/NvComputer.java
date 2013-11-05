@@ -1,8 +1,14 @@
 package com.limelight.nvstream;
 
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.Locale;
 import java.util.UUID;
+
+import org.xmlpull.v1.XmlPullParserException;
+
+import android.util.Log;
 
 public class NvComputer {
 	private String hostname;
@@ -14,9 +20,11 @@ public class NvComputer {
 	private String mac;
 	private UUID uniqueID;
 	
+	private NvHTTP nvHTTP;
+	
 	
 	private int sessionID;
-	private boolean paired;
+	private boolean pairState;
 	private boolean isBusy;
 	
 	public NvComputer(String hostname, InetAddress ipAddress, int state, int numOfApps, String gpuType, String mac, UUID uniqueID) {
@@ -28,6 +36,15 @@ public class NvComputer {
 		this.gpuType = gpuType;
 		this.mac = mac;
 		this.uniqueID = uniqueID;
+		
+		try {
+			this.nvHTTP = new NvHTTP(this.ipAddressString, NvConnection.getMacAddressString());
+		} catch (SocketException e) {
+			Log.e("NvComputer Constructor", "Unable to get MAC Address " + e.getMessage());
+			this.nvHTTP = new NvHTTP(this.ipAddressString, "00:00:00:00:00:00");
+		}
+		
+		this.updatePairState();
 	}
 	
 	public String getHostname() {
@@ -63,9 +80,8 @@ public class NvComputer {
 	}
 		
 	public void updateAfterPairQuery(int sessionID, boolean paired, boolean isBusy) {
-		
 		this.sessionID = sessionID;
-		this.paired = paired;
+		this.pairState = paired;
 		this.isBusy = isBusy;
 	}
 	
@@ -73,8 +89,33 @@ public class NvComputer {
 		return this.sessionID;
 	}
 	
-	public boolean getPaired() {
-		return this.paired;
+	public void updatePairState() {
+		try {
+			this.pairState = this.nvHTTP.getPairState();
+		} catch (IOException e) {
+			Log.e("NvComputer UpdatePaired", "Unable to get Pair State " + e.getMessage());
+			this.pairState = false;
+		} catch (XmlPullParserException e) {
+			Log.e("NvComputer UpdatePaired", "Unable to get Pair State " + e.getMessage());
+			this.pairState = false;
+		}
+		
+		/*if (this.pairState == true) {
+			try {
+				this.sessionID = this.nvHTTP.getSessionId();
+			} catch (IOException e) {
+				Log.e("NvComputer UpdatePaired", "Unable to get Session ID " + e.getMessage());
+				this.sessionID = 0;
+			} catch (XmlPullParserException e) {
+				Log.e("NvComputer UpdatePaired", "Unable to get Session ID " + e.getMessage());
+				this.sessionID = 0;
+			}
+			
+		}*/
+	}
+	
+	public boolean getPairState() {
+		return this.pairState;
 	}
 	
 	public boolean getIsBusy() {
@@ -105,8 +146,10 @@ public class NvComputer {
 		returnStringBuilder.append(this.gpuType);
 		returnStringBuilder.append("\n|- MAC: ");
 		returnStringBuilder.append(this.mac);
-		returnStringBuilder.append("\n\\- UniqueID: ");
+		returnStringBuilder.append("\n|- UniqueID: ");
 		returnStringBuilder.append(this.uniqueID);
+		returnStringBuilder.append("\n\\- Pair State: ");
+		returnStringBuilder.append(this.pairState);
 		returnStringBuilder.append("\n");
 		return returnStringBuilder.toString();
 	}

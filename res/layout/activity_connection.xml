@@ -16,15 +16,6 @@
         android:layout_centerHorizontal="true"
         android:text="Pair with PC"/>
 
-
-    <ListView
-        android:id="@+id/mDNSResultView"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true" >
-    </ListView>
-
     <EditText
         android:id="@+id/hostTextView"
         android:layout_width="wrap_content"

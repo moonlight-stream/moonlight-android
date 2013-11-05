@@ -18,4 +18,22 @@ public class AvBufferDescriptor {
 		this.offset = desc.offset;
 		this.length = desc.length;
 	}
+	
+	public void print()
+	{
+		print(offset, length);
+	}
+	
+	public void print(int length)
+	{
+		print(this.offset, length);
+	}
+	
+	public void print(int offset, int length)
+	{
+		for (int i = offset; i < offset+length; i++) {
+			System.out.printf("%d: %02x \n", i, data[i]);
+		}
+		System.out.println();
+	}
 }

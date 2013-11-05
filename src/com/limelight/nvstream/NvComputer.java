@@ -5,7 +5,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 public class NvComputer {
-	private String mDNSResponse;
+	private String hostname;
 	private InetAddress ipAddress;
 	private String ipAddressString;
 	private int state;
@@ -14,15 +14,15 @@ public class NvComputer {
 	private String mac;
 	private UUID uniqueID;
 	
+	
 	private int sessionID;
 	private boolean paired;
 	private boolean isBusy;
 	
-	
-	public NvComputer(String mDNSResponse, InetAddress ipAddress, String ipAddressString, int state, int numOfApps, String gpuType, String mac, UUID uniqueID) {
-		this.mDNSResponse = mDNSResponse;
+	public NvComputer(String hostname, InetAddress ipAddress, int state, int numOfApps, String gpuType, String mac, UUID uniqueID) {
+		this.hostname = hostname;
 		this.ipAddress = ipAddress;
-		this.ipAddressString = ipAddressString;
+		this.ipAddressString = this.ipAddress.getHostAddress();
 		this.state = state;
 		this.numOfApps = numOfApps;
 		this.gpuType = gpuType;
@@ -30,8 +30,8 @@ public class NvComputer {
 		this.uniqueID = uniqueID;
 	}
 	
-	public String getmDNSResponse() {
-		return this.mDNSResponse;
+	public String getHostname() {
+		return this.hostname;
 	}
 	
 	public InetAddress getIpAddress() {
@@ -42,10 +42,6 @@ public class NvComputer {
 		return this.ipAddressString;
 	}
 
-	public String getIPAddressString() {
-		return this.ipAddress.getCanonicalHostName().toLowerCase(Locale.getDefault());
-	}
-	
 	public int getState() {
 		return this.state;
 	}
@@ -97,8 +93,8 @@ public class NvComputer {
 		StringBuilder returnStringBuilder = new StringBuilder();
 		returnStringBuilder.append("NvComputer 0x");
 		returnStringBuilder.append(Integer.toHexString(this.hashCode()).toUpperCase(Locale.getDefault()));
-		returnStringBuilder.append("\n|- mDNS Hostname: ");
-		returnStringBuilder.append(this.mDNSResponse);
+		returnStringBuilder.append("\n|- Hostname: ");
+		returnStringBuilder.append(this.hostname);
 		returnStringBuilder.append("\n|- IP Address: ");
 		returnStringBuilder.append(this.ipAddress.toString());
 		returnStringBuilder.append("\n|- Computer State: ");

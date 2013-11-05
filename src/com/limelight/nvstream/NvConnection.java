@@ -49,7 +49,7 @@ public class NvConnection {
 			 * connecting over different interfaces */
 			if (!iface.isLoopback()) {
 				byte[] macAddress = iface.getHardwareAddress();
-				if (macAddress.length == 6) {
+				if (macAddress != null && macAddress.length == 6) {
 					StringBuilder addrStr = new StringBuilder();
 					for (int i = 0; i < macAddress.length; i++) {
 						addrStr.append(String.format("%02x", macAddress[i]));

@@ -96,7 +96,7 @@ public class NvComputer {
 		returnStringBuilder.append("\n|- Hostname: ");
 		returnStringBuilder.append(this.hostname);
 		returnStringBuilder.append("\n|- IP Address: ");
-		returnStringBuilder.append(this.ipAddress.toString());
+		returnStringBuilder.append(this.ipAddressString);
 		returnStringBuilder.append("\n|- Computer State: ");
 		returnStringBuilder.append(this.state);
 		returnStringBuilder.append("\n|- Number of Apps: ");

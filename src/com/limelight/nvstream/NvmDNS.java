@@ -33,7 +33,7 @@ public class NvmDNS extends AsyncTask<Void, Integer, Void> {
 	public static InetAddress MDNS_MULTICAST_ADDRESS;
 	public static final short MDNS_PORT = 5353;
 
-	public static final int WAIT_MS = 100;
+	public static final int WAIT_MS = 1000;
 
 	private HashSet<NvComputer> responses;
 	private MulticastSocket socket;

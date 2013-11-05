@@ -28,8 +28,6 @@ public class Connection extends Activity {
 	
 	private static final String DEFAULT_HOST = "192.168.1.240";
 	public static final String HOST_KEY = "hostText";
-	
-
 
 	@Override
 	public void onResume() {
@@ -58,20 +56,18 @@ public class Connection extends Activity {
 		Log.v("NvmDNS", "onCreate");
 		
 			
-			NvmDNS dns = new NvmDNS();
-			dns.execute();
+		NvmDNS dns = new NvmDNS();
+		dns.execute();
 		
 		
 		setContentView(R.layout.activity_connection);
 		
-		
 		this.statusButton = (Button) findViewById(R.id.statusButton);
 		this.pairButton = (Button) findViewById(R.id.pairButton);
 		this.hostText = (TextView) findViewById(R.id.hostTextView);
-
 		
-		//prefs = getPreferences(0);
-		//this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));
+		prefs = getPreferences(0);
+		this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));
 		
 		this.statusButton.setOnClickListener(new OnClickListener() {
 			@Override

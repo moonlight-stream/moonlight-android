@@ -30,11 +30,6 @@ public class Connection extends Activity {
 	public static final String HOST_KEY = "hostText";
 
 	@Override
-	public void onResume() {
-		super.onResume();
-	}
-	
-	@Override
 	public void onPause() {
 		SharedPreferences.Editor editor = prefs.edit();
 		
@@ -42,11 +37,6 @@ public class Connection extends Activity {
 		editor.apply();
 		
 		super.onPause();
-	}
-	
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
 	}
 	
 	@Override

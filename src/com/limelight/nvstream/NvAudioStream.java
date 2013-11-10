@@ -53,7 +53,9 @@ public class NvAudioStream {
 		}
 		
 		// Close the socket to interrupt the receive thread
-		rtp.close();
+		if (rtp != null) {
+			rtp.close();
+		}
 		
 		// Wait for threads to terminate
 		for (Thread t : threads) {

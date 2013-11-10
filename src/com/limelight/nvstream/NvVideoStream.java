@@ -36,7 +36,7 @@ public class NvVideoStream {
 	private LinkedBlockingQueue<AvRtpPacket> packets = new LinkedBlockingQueue<AvRtpPacket>();
 	
 	private RTPSession session;
-	private DatagramSocket rtp;
+	private DatagramSocket rtp, rtcp;
 	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
 
@@ -58,7 +58,12 @@ public class NvVideoStream {
 		}
 		
 		// Close the socket to interrupt the receive thread
-		rtp.close();
+		if (rtp != null) {
+			rtp.close();
+		}
+		if (rtcp != null) {
+			rtcp.close();
+		}
 		
 		// Wait for threads to terminate
 		for (Thread t : threads) {
@@ -103,16 +108,12 @@ public class NvVideoStream {
 	
 	public void setupRtpSession(String host) throws SocketException
 	{
-		DatagramSocket rtcp;
-
 		rtp = new DatagramSocket(RTP_PORT);
+		rtcp = new DatagramSocket(RTCP_PORT);
 		
 		rtp.setReceiveBufferSize(2097152);
 		System.out.println("RECV BUF: "+rtp.getReceiveBufferSize());
 		System.out.println("SEND BUF: "+rtp.getSendBufferSize());
-
-		
-		rtcp = new DatagramSocket(RTCP_PORT);
 		
 		session = new RTPSession(rtp, rtcp);
 		session.addParticipant(new Participant(host, RTP_PORT, RTCP_PORT));

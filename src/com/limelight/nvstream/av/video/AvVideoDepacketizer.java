@@ -111,16 +111,20 @@ public class AvVideoDepacketizer {
 						avcNalDataChain = new LinkedList<AvByteBufferDescriptor>();
 						avcNalDataLength = 0;
 					}
+					
+					// Skip the start sequence
+					location.length -= specialSeq.length;
+					location.offset += specialSeq.length;
 				}
 				else
 				{
 					// Not either sequence we want
-					//currentlyDecoding = AvDecodeUnit.TYPE_UNKNOWN;
+					currentlyDecoding = AvDecodeUnit.TYPE_UNKNOWN;
+					
+					// Just skip this byte
+					location.length--;
+					location.offset++;
 				}
-				
-				// Skip the start sequence
-				location.length -= specialSeq.length;
-				location.offset += specialSeq.length;
 			}
 			
 			// Move to the next special sequence
@@ -140,9 +144,8 @@ public class AvVideoDepacketizer {
 					location.length--;
 				}
 			}
-			
+
 			AvByteBufferDescriptor data = new AvByteBufferDescriptor(location.data, start, location.offset-start);
-			
 			if (currentlyDecoding == AvDecodeUnit.TYPE_H264 && avcNalDataChain != null)
 			{
 				// Add a buffer descriptor describing the NAL data in this packet

@@ -100,10 +100,8 @@ public class NvVideoStream {
 		}
 		
 		System.out.println("VID: First frame read ("+offset+" bytes)");
-		
-		// FIXME: Investigate: putting these NALs into the data stream
-		// causes the picture to get messed up
-		//depacketizer.addInputData(new AvPacket(new AvBufferDescriptor(firstFrame, 0, offset)));
+
+		depacketizer.addInputData(new AvVideoPacket(new AvByteBufferDescriptor(firstFrame, 0, offset)));
 	}
 	
 	public void setupRtpSession(String host) throws SocketException

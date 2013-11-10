@@ -26,7 +26,7 @@ public class Connection extends Activity {
 	private TextView hostText;
 	private SharedPreferences prefs;
 	
-	private static final String DEFAULT_HOST = "192.168.1.240";
+	private static final String DEFAULT_HOST = "";
 	public static final String HOST_KEY = "hostText";
 
 	@Override

@@ -79,7 +79,6 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	public void onTrimMemory(int trimLevel) {
 		if (trimLevel >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW)
 		{
-			System.out.println("Trimming for level: "+trimLevel);
 			conn.trim();
 		}
 	}

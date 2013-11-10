@@ -11,6 +11,11 @@ public class AvShortBufferPool {
 		this.bufferSize = size;
 	}
 	
+	public synchronized void purge()
+	{
+		this.bufferList = new LinkedList<short[]>();
+	}
+	
 	public synchronized short[] allocate()
 	{
 		if (bufferList.isEmpty())

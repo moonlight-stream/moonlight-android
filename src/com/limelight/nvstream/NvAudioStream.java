@@ -105,6 +105,11 @@ public class NvAudioStream {
 		session.addParticipant(new Participant(host, RTP_PORT, 0));
 	}
 	
+	public void trim()
+	{
+		depacketizer.trim();
+	}
+	
 	private void setupAudio()
 	{
 		int channelConfig;

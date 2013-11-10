@@ -4,6 +4,7 @@ import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.NvControllerPacket;
 
 import android.app.Activity;
+import android.content.ComponentCallbacks2;
 import android.os.Bundle;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -68,9 +69,19 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		super.onPause();
 	}
 	
+	@Override
 	public void onDestroy() {
 		conn.stop();
 		super.onDestroy();
+	}
+	
+	@Override
+	public void onTrimMemory(int trimLevel) {
+		if (trimLevel >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW)
+		{
+			System.out.println("Trimming for level: "+trimLevel);
+			conn.trim();
+		}
 	}
 	
 	@Override

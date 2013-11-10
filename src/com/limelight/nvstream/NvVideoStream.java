@@ -20,6 +20,7 @@ import com.limelight.nvstream.av.video.AvVideoPacket;
 import jlibrtp.Participant;
 import jlibrtp.RTPSession;
 
+import android.content.ComponentCallbacks2;
 import android.media.MediaCodec;
 import android.media.MediaCodec.BufferInfo;
 import android.media.MediaFormat;
@@ -78,6 +79,11 @@ public class NvVideoStream {
 		threads.clear();
 	}
 	
+	public void trim()
+	{
+		depacketizer.trim();
+	}
+	
 	private InputStream openFirstFrameInputStream(String host) throws UnknownHostException, IOException
 	{
 		Socket s = new Socket(host, FIRST_FRAME_PORT);
@@ -122,7 +128,6 @@ public class NvVideoStream {
 	public void setupDecoders(Surface surface)
 	{
 		videoDecoder = MediaCodec.createDecoderByType("video/avc");
-		//videoDecoder = MediaCodec.createByCodecName("OMX.google.h264.decoder");
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", 1280, 720);
 
 		videoDecoder.configure(videoFormat, surface, null, 0);

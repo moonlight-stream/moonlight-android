@@ -11,6 +11,11 @@ public class AvByteBufferPool {
 		this.bufferSize = size;
 	}
 	
+	public synchronized void purge()
+	{
+		this.bufferList = new LinkedList<byte[]>();
+	}
+	
 	public synchronized byte[] allocate()
 	{
 		if (bufferList.isEmpty())

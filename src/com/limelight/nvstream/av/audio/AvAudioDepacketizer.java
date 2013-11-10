@@ -9,12 +9,17 @@ import com.limelight.nvstream.av.AvShortBufferPool;
 
 public class AvAudioDepacketizer {
 	private LinkedBlockingQueue<AvShortBufferDescriptor> decodedUnits =
-			new LinkedBlockingQueue<AvShortBufferDescriptor>();
+			new LinkedBlockingQueue<AvShortBufferDescriptor>(15);
 	
-	private AvShortBufferPool pool = new AvShortBufferPool(OpusDecoder.getMaxOutputShorts());
+	private AvShortBufferPool pool = new AvShortBufferPool(512);
 	
 	// Sequencing state
 	private short lastSequenceNumber;
+	
+	public void trim()
+	{
+		pool.purge();
+	}
 	
 	public void decodeInputData(AvRtpPacket packet)
 	{
@@ -50,9 +55,13 @@ public class AvAudioDepacketizer {
 			decodeLen *= OpusDecoder.getChannelCount();
 			
 			// Put it on the decoded queue
-			decodedUnits.add(new AvShortBufferDescriptor(pcmData, 0, decodeLen));
+			if (!decodedUnits.offer(new AvShortBufferDescriptor(pcmData, 0, decodeLen)))
+			{
+				pool.free(pcmData);
+			}
 		}
 		else {
+			System.out.println("decode failed: "+decodeLen);
 			pool.free(pcmData);
 		}
 	}

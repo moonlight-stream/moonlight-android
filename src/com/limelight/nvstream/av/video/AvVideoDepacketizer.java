@@ -29,6 +29,11 @@ public class AvVideoDepacketizer {
 		return pool.allocate();
 	}
 	
+	public void trim()
+	{
+		pool.purge();
+	}
+	
 	private void clearAvcNalState()
 	{
 		if (avcNalDataChain != null)
@@ -114,7 +119,10 @@ public class AvVideoDepacketizer {
 
 			// Construct the H264 decode unit
 			AvDecodeUnit du = new AvDecodeUnit(AvDecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, flags);
-			decodedUnits.add(du);
+			if (!decodedUnits.offer(du))
+			{
+				releaseDecodeUnit(du);
+			}
 			
 			// Clear old state
 			avcNalDataChain = null;
@@ -172,25 +180,33 @@ public class AvVideoDepacketizer {
 			// Move to the next special sequence
 			while (location.length != 0)
 			{
-				specialSeq = NAL.getSpecialSequenceDescriptor(location);
-				
-				// Check if this should end the current NAL
-				if (specialSeq != null)
+				// Catch the easy case first where byte 0 != 0x00
+				if (location.data[location.offset] == 0x00)
 				{
-					break;
+					specialSeq = NAL.getSpecialSequenceDescriptor(location);
+					
+					// Check if this should end the current NAL
+					if (specialSeq != null)
+					{
+						// Only stop if we're decoding something or this
+						// isn't padding
+						if (currentlyDecoding != AvDecodeUnit.TYPE_UNKNOWN ||
+							!NAL.isPadding(specialSeq))
+						{
+							break;
+						}
+					}
 				}
-				else
-				{
-					// This byte is part of the NAL data
-					location.offset++;
-					location.length--;
-				}
-			}
 
-			AvByteBufferDescriptor data = new AvByteBufferDescriptor(location.data, start, location.offset-start);
+				// This byte is part of the NAL data
+				location.offset++;
+				location.length--;
+			}
 			
 			if (currentlyDecoding == AvDecodeUnit.TYPE_H264 && avcNalDataChain != null)
 			{
+				AvByteBufferDescriptor data = new AvByteBufferDescriptor(location.data, start, location.offset-start);
+				
 				// Attach the current packet as the buffer context and increment the refcount
 				data.context = packet;
 				packet.addRef();

@@ -77,6 +77,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		case KeyEvent.KEYCODE_MENU:
 			inputMap |= NvControllerPacket.PLAY_FLAG;
 			break;
+		case KeyEvent.KEYCODE_BACK:
 		case KeyEvent.KEYCODE_BUTTON_SELECT:
 			inputMap |= NvControllerPacket.BACK_FLAG;
 			break;
@@ -131,6 +132,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		case KeyEvent.KEYCODE_MENU:
 			inputMap &= ~NvControllerPacket.PLAY_FLAG;
 			break;
+		case KeyEvent.KEYCODE_BACK:
 		case KeyEvent.KEYCODE_BUTTON_SELECT:
 			inputMap &= ~NvControllerPacket.BACK_FLAG;
 			break;

@@ -6,7 +6,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -82,18 +81,14 @@ public class NvVideoStream {
 	{
 		depacketizer.trim();
 	}
-	
-	private InputStream openFirstFrameInputStream(String host) throws UnknownHostException, IOException
-	{
-		Socket s = new Socket(host, FIRST_FRAME_PORT);
-		return s.getInputStream();
-	}
-	
+
 	private void readFirstFrame(String host) throws IOException
 	{
 		byte[] firstFrame = depacketizer.allocatePacketBuffer();
+		Socket s = new Socket(host, FIRST_FRAME_PORT);
+		
 		System.out.println("VID: Waiting for first frame");
-		InputStream firstFrameStream = openFirstFrameInputStream(host);
+		InputStream firstFrameStream = s.getInputStream();
 		
 		int offset = 0;
 		for (;;)
@@ -105,6 +100,8 @@ public class NvVideoStream {
 			
 			offset += bytesRead;
 		}
+		
+		s.close();
 		
 		System.out.println("VID: First frame read ("+offset+" bytes)");
 

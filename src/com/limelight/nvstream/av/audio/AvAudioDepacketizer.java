@@ -32,7 +32,7 @@ public class AvAudioDepacketizer {
 		{
 			System.out.println("Received OOS audio data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
 			
-			// Tell the decoder about this
+			// Tell the decoder about this packet loss
 			//OpusDecoder.decode(null, 0, 0, null);
 		}
 		
@@ -52,6 +52,11 @@ public class AvAudioDepacketizer {
 			// Put it on the decoded queue
 			decodedUnits.add(new AvShortBufferDescriptor(pcmData, 0, decodeLen));
 		}
+	}
+	
+	public void releaseBuffer(AvShortBufferDescriptor decodedData)
+	{
+		pool.free(decodedData.data);
 	}
 	
 	public AvShortBufferDescriptor getNextDecodedData() throws InterruptedException

@@ -150,6 +150,8 @@ public class NvAudioStream {
 					}
 					
 					track.write(samples.data, samples.offset, samples.length);
+					
+					depacketizer.releaseBuffer(samples);
 				}
 			}
 		}).start();

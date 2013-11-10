@@ -87,9 +87,9 @@ public class NvAudioStream {
 				
 				startDepacketizerThread();
 				
-				startUdpPingThread();
-				
 				startDecoderThread();
+				
+				startUdpPingThread();
 			}
 			
 		}).start();

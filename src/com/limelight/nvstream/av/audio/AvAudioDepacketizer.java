@@ -52,6 +52,9 @@ public class AvAudioDepacketizer {
 			// Put it on the decoded queue
 			decodedUnits.add(new AvShortBufferDescriptor(pcmData, 0, decodeLen));
 		}
+		else {
+			pool.free(pcmData);
+		}
 	}
 	
 	public void releaseBuffer(AvShortBufferDescriptor decodedData)

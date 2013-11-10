@@ -16,6 +16,7 @@ import com.limelight.nvstream.av.AvByteBufferPool;
 import com.limelight.nvstream.av.AvDecodeUnit;
 import com.limelight.nvstream.av.AvRtpPacket;
 import com.limelight.nvstream.av.video.AvVideoDepacketizer;
+import com.limelight.nvstream.av.video.AvVideoPacket;
 
 import jlibrtp.Participant;
 import jlibrtp.RTPSession;
@@ -153,19 +154,6 @@ public class NvVideoStream {
 					return;
 				}
 				
-				// Start the receive thread early to avoid missing
-				// early packets
-				startReceiveThread();
-				
-				// Start the keepalive ping to keep the stream going
-				startUdpPingThread();
-				
-				// Start the depacketizer thread to deal with the RTP data
-				startDepacketizerThread();
-				
-				// Start decoding the data we're receiving
-				startDecoderThread();
-				
 				// Read the first frame to start the UDP video stream
 				try {
 					readFirstFrame(host);
@@ -174,6 +162,19 @@ public class NvVideoStream {
 					abort();
 					return;
 				}
+				
+				// Start the receive thread early to avoid missing
+				// early packets
+				startReceiveThread();
+				
+				// Start the depacketizer thread to deal with the RTP data
+				startDepacketizerThread();
+				
+				// Start decoding the data we're receiving
+				startDecoderThread();
+				
+				// Start the keepalive ping to keep the stream going
+				startUdpPingThread();
 				
 				// Render the frames that are coming out of the decoder
 				outputDisplayLoop(this);

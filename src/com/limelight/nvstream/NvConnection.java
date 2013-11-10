@@ -76,6 +76,7 @@ public class NvConnection {
 		
 		if (inputStream != null) {
 			inputStream.close();
+			inputStream = null;
 		}
 	}
 

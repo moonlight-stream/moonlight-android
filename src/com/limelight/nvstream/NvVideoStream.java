@@ -12,7 +12,6 @@ import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
-import com.limelight.nvstream.av.AvByteBufferPool;
 import com.limelight.nvstream.av.AvDecodeUnit;
 import com.limelight.nvstream.av.AvRtpPacket;
 import com.limelight.nvstream.av.video.AvVideoDepacketizer;
@@ -40,9 +39,7 @@ public class NvVideoStream {
 	private DatagramSocket rtp;
 	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
-	
-	private AvByteBufferPool pool = new AvByteBufferPool(1500);
-	
+
 	private AvVideoDepacketizer depacketizer = new AvVideoDepacketizer();
 	
 	private boolean aborting = false;
@@ -84,7 +81,7 @@ public class NvVideoStream {
 	
 	private void readFirstFrame(String host) throws IOException
 	{
-		byte[] firstFrame = pool.allocate();
+		byte[] firstFrame = depacketizer.allocatePacketBuffer();
 		System.out.println("VID: Waiting for first frame");
 		InputStream firstFrameStream = openFirstFrameInputStream(host);
 		
@@ -124,6 +121,7 @@ public class NvVideoStream {
 	public void setupDecoders(Surface surface)
 	{
 		videoDecoder = MediaCodec.createDecoderByType("video/avc");
+		//videoDecoder = MediaCodec.createByCodecName("OMX.google.h264.decoder");
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", 1280, 720);
 
 		videoDecoder.configure(videoFormat, surface, null, 0);
@@ -218,10 +216,9 @@ public class NvVideoStream {
 									for (AvByteBufferDescriptor desc : du.getBufferList())
 									{
 										buf.put(desc.data, desc.offset, desc.length);
-										
-										// Release the buffer back to the buffer pool
-										pool.free(desc.data);
 									}
+									
+									depacketizer.releaseDecodeUnit(du);
 
 									videoDecoder.queueInputBuffer(inputIndex,
 												0, du.getDataLength(),
@@ -280,7 +277,7 @@ public class NvVideoStream {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				DatagramPacket packet = new DatagramPacket(pool.allocate(), 1500);
+				DatagramPacket packet = new DatagramPacket(depacketizer.allocatePacketBuffer(), 1500);
 				AvByteBufferDescriptor desc = new AvByteBufferDescriptor(null, 0, 0);
 				
 				while (!isInterrupted())
@@ -300,7 +297,7 @@ public class NvVideoStream {
 					packets.add(new AvRtpPacket(desc));
 					
 					// Get a new buffer from the buffer pool
-					packet.setData(pool.allocate(), 0, 1500);
+					packet.setData(depacketizer.allocatePacketBuffer(), 0, 1500);
 				}
 			}
 		};

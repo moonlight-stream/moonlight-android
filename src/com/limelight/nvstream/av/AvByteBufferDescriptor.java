@@ -4,6 +4,7 @@ public class AvByteBufferDescriptor {
 	public byte[] data;
 	public int offset;
 	public int length;
+	public Object context;
 	
 	public AvByteBufferDescriptor(byte[] data, int offset, int length)
 	{

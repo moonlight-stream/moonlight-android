@@ -155,6 +155,11 @@ public class NvVideoStream {
 					return;
 				}
 				
+				// Start pinging before reading the first frame
+				// so Shield Proxy knows we're here and sends us
+				// the reference frame
+				startUdpPingThread();
+				
 				// Read the first frame to start the UDP video stream
 				try {
 					readFirstFrame(host);
@@ -173,9 +178,6 @@ public class NvVideoStream {
 				
 				// Start decoding the data we're receiving
 				startDecoderThread();
-				
-				// Start the keepalive ping to keep the stream going
-				startUdpPingThread();
 				
 				// Render the frames that are coming out of the decoder
 				outputDisplayLoop(this);

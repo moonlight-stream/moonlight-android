@@ -12,15 +12,15 @@ import java.util.concurrent.TimeUnit;
 
 import org.xmlpull.v1.XmlPullParserException;
 
-import android.app.Activity;
 import android.view.Surface;
 import android.widget.Toast;
 
+import com.limelight.Game;
 import com.limelight.nvstream.input.NvController;
 
 public class NvConnection {
 	private String host;
-	private Activity activity;
+	private Game activity;
 	
 	private NvControl controlStream;
 	private NvController inputStream;
@@ -30,7 +30,7 @@ public class NvConnection {
 	
 	private ThreadPoolExecutor threadPool;
 	
-	public NvConnection(String host, Activity activity, Surface video)
+	public NvConnection(String host, Game activity, Surface video)
 	{
 		this.host = host;
 		this.activity = activity;
@@ -107,6 +107,7 @@ public class NvConnection {
 					beginControlStream();
 					controlStream.startJitterPackets();
 					startController();
+					activity.hideSystemUi();
 				} catch (XmlPullParserException e) {
 					e.printStackTrace();
 					displayToast(e.getMessage());

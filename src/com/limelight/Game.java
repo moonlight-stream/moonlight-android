@@ -47,9 +47,6 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		// We don't want a title bar
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
-		// Make the UI "low profile"
-		getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
-		
 		// Inflate the content
 		setContentView(R.layout.activity_game);
 
@@ -61,6 +58,29 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		// Start the connection
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this, sv.getHolder().getSurface());
 		conn.start();
+	}
+
+	public void hideSystemUi() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				// Use immersive mode on 4.4+ or standard low profile on previous builds
+				if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+					Game.this.getWindow().getDecorView().setSystemUiVisibility(
+							View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+							View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+							View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+							View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+							View.SYSTEM_UI_FLAG_FULLSCREEN |
+							View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+				}
+				else {
+					Game.this.getWindow().getDecorView().setSystemUiVisibility(
+							View.SYSTEM_UI_FLAG_FULLSCREEN |
+							View.SYSTEM_UI_FLAG_LOW_PROFILE);
+				}
+			}
+		});
 	}
 	
 	@Override

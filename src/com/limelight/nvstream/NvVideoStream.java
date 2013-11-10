@@ -20,7 +20,6 @@ import com.limelight.nvstream.av.video.AvVideoPacket;
 import jlibrtp.Participant;
 import jlibrtp.RTPSession;
 
-import android.content.ComponentCallbacks2;
 import android.media.MediaCodec;
 import android.media.MediaCodec.BufferInfo;
 import android.media.MediaFormat;

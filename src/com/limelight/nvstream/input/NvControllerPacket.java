@@ -40,6 +40,7 @@ public class NvControllerPacket extends NvInputPacket {
 		public static final short BACK_FLAG = 0x0020;
 		public static final short LS_CLK_FLAG = 0x0040;
 		public static final short RS_CLK_FLAG = 0x0080;
+		public static final short SPECIAL_BUTTON_FLAG = 0x0400;
 		
 		public static final short PAYLOAD_LENGTH = 24;
 		public static final short PACKET_LENGTH = PAYLOAD_LENGTH +

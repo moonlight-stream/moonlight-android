@@ -86,6 +86,10 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		
+		// Skip keyboard and virtual button events
+		if (event.getSource() == InputDevice.SOURCE_KEYBOARD)
+			return super.onKeyDown(keyCode, event);
+		
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BUTTON_START:
 		case KeyEvent.KEYCODE_MENU:
@@ -134,6 +138,15 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		default:
 			return super.onKeyDown(keyCode, event);
 		}
+		
+		// We detect back+start as the special button combo
+		if ((inputMap & NvControllerPacket.BACK_FLAG) != 0 &&
+			(inputMap & NvControllerPacket.PLAY_FLAG) != 0)
+		{
+			inputMap &= ~(NvControllerPacket.BACK_FLAG | NvControllerPacket.PLAY_FLAG);
+			inputMap |= NvControllerPacket.SPECIAL_BUTTON_FLAG;
+		}
+		
 		sendControllerInputPacket();
 		return true;
 	}
@@ -141,6 +154,10 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 
+		// Skip keyboard and virtual button events
+		if (event.getSource() == InputDevice.SOURCE_KEYBOARD)
+			return super.onKeyUp(keyCode, event);
+		
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BUTTON_START:
 		case KeyEvent.KEYCODE_MENU:
@@ -189,6 +206,14 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		default:
 			return super.onKeyUp(keyCode, event);
 		}
+		
+		// If one of the two is up, the special button comes up too
+		if ((inputMap & NvControllerPacket.BACK_FLAG) == 0 ||
+			(inputMap & NvControllerPacket.PLAY_FLAG) == 0)
+		{
+			inputMap &= ~NvControllerPacket.SPECIAL_BUTTON_FLAG;
+		}
+		
 		sendControllerInputPacket();
 		return true;
 	}

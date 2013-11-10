@@ -5,14 +5,102 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import jlibrtp.Participant;
+import jlibrtp.RTPSession;
+
+import com.limelight.nvstream.av.AvBufferDescriptor;
+import com.limelight.nvstream.av.AvBufferPool;
+import com.limelight.nvstream.av.AvRtpPacket;
+
+import android.media.MediaCodec;
+import android.media.MediaFormat;
 import android.net.rtp.AudioGroup;
 import android.net.rtp.AudioStream;
+import android.view.Surface;
 
 public class NvAudioStream {
-	private AudioGroup group;
-	private AudioStream stream;
+	public static final int RTP_PORT = 48000;
+	public static final int RTCP_PORT = 47999;
 	
-	public static final int PORT = 48000;
+	private LinkedBlockingQueue<AvRtpPacket> packets = new LinkedBlockingQueue<AvRtpPacket>();
+	
+	private RTPSession session;
+	private DatagramSocket rtp;
+	
+	private AvBufferPool pool = new AvBufferPool(1500);
+	
+	public void setupRtpSession(String host) throws SocketException
+	{
+		DatagramSocket rtcp;
+
+		rtp = new DatagramSocket(RTP_PORT);
+		rtcp = new DatagramSocket(RTCP_PORT);
+		
+		session = new RTPSession(rtp, rtcp);
+		session.addParticipant(new Participant(host, RTP_PORT, RTCP_PORT));
+	}
+	
+	private void startReceiveThread()
+	{
+		// Receive thread
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				DatagramPacket packet = new DatagramPacket(pool.allocate(), 1500);
+				AvBufferDescriptor desc = new AvBufferDescriptor(null, 0, 0);
+				
+				for (;;)
+				{
+					try {
+						rtp.receive(packet);
+					} catch (IOException e) {
+						e.printStackTrace();
+						return;
+					}
+					
+					desc.length = packet.getLength();
+					desc.offset = packet.getOffset();
+					desc.data = packet.getData();
+					
+					// Give the packet to the depacketizer thread
+					packets.add(new AvRtpPacket(desc));
+					
+					// Get a new buffer from the buffer pool
+					packet.setData(pool.allocate(), 0, 1500);
+				}
+			}
+		}).start();
+	}
+	
+	private void startUdpPingThread()
+	{
+		// Ping thread
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// PING in ASCII
+				final byte[] pingPacket = new byte[] {0x50, 0x49, 0x4E, 0x47};
+				
+				// RTP payload type is 127 (dynamic)
+				session.payloadType(127);
+				
+				// Send PING every 100 ms
+				for (;;)
+				{
+					session.sendData(pingPacket);
+					
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						break;
+					}
+				}
+			}
+		}).start();
+	}
 	
 	/*public void startStream(String host) throws SocketException, UnknownHostException
 	{
@@ -32,64 +120,5 @@ public class NvAudioStream {
 		
 		System.out.println("Joined");
 	}*/
-	
-	public void start(final String host)
-	{		
-		new Thread(new Runnable() {
 
-			@Override
-			public void run() {
-				final DatagramSocket ds;
-				try {
-					ds = new DatagramSocket(PORT);
-				} catch (SocketException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-					return;
-				}
-				
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						byte[] ping = new byte[]{0x50, 0x49, 0x4e, 0x47};
-						for (;;)
-						{
-							DatagramPacket dgp = new DatagramPacket(ping, 0, ping.length);
-							dgp.setSocketAddress(new InetSocketAddress(host, PORT));
-							try {
-								ds.send(dgp);
-							} catch (IOException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-								break;
-							}
-							
-							try {
-								Thread.sleep(1000);
-							} catch (InterruptedException e) {
-								break;
-							}
-						}
-					}
-				}).start();
-
-				for (;;)
-				{
-					
-					DatagramPacket dp = new DatagramPacket(new byte[1500], 1500);
-					
-					try {
-						ds.receive(dp);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						break;
-					}
-					
-					//System.out.println("Got UDP 48000: "+dp.getLength());
-				}
-			}
-			
-		}).start();
-	}
 }

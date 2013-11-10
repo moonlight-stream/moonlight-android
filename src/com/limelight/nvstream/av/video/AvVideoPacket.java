@@ -1,9 +1,11 @@
-package com.limelight.nvstream.av;
+package com.limelight.nvstream.av.video;
 
-public class AvPacket {
+import com.limelight.nvstream.av.AvBufferDescriptor;
+
+public class AvVideoPacket {
 	private AvBufferDescriptor buffer;
 	
-	public AvPacket(AvBufferDescriptor rtpPayload)
+	public AvVideoPacket(AvBufferDescriptor rtpPayload)
 	{
 		buffer = new AvBufferDescriptor(rtpPayload);
 	}

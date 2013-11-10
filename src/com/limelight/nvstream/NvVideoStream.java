@@ -13,9 +13,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.limelight.nvstream.av.AvBufferDescriptor;
 import com.limelight.nvstream.av.AvBufferPool;
 import com.limelight.nvstream.av.AvDecodeUnit;
-import com.limelight.nvstream.av.AvPacket;
-import com.limelight.nvstream.av.AvDepacketizer;
 import com.limelight.nvstream.av.AvRtpPacket;
+import com.limelight.nvstream.av.video.AvVideoDepacketizer;
 
 import jlibrtp.Participant;
 import jlibrtp.RTPSession;
@@ -30,8 +29,8 @@ public class NvVideoStream {
 	public static final int RTCP_PORT = 47999;
 	public static final int FIRST_FRAME_PORT = 47996;
 	
-	private ByteBuffer[] videoDecoderInputBuffers, audioDecoderInputBuffers;
-	private MediaCodec videoDecoder, audioDecoder;
+	private ByteBuffer[] videoDecoderInputBuffers;
+	private MediaCodec videoDecoder;
 	
 	private LinkedBlockingQueue<AvRtpPacket> packets = new LinkedBlockingQueue<AvRtpPacket>();
 	
@@ -40,7 +39,7 @@ public class NvVideoStream {
 	
 	private AvBufferPool pool = new AvBufferPool(1500);
 	
-	private AvDepacketizer depacketizer = new AvDepacketizer();
+	private AvVideoDepacketizer depacketizer = new AvVideoDepacketizer();
 	
 	private InputStream openFirstFrameInputStream(String host) throws UnknownHostException, IOException
 	{
@@ -94,19 +93,13 @@ public class NvVideoStream {
 		videoDecoder = MediaCodec.createDecoderByType("video/avc");
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", 1280, 720);
 
-		audioDecoder = MediaCodec.createDecoderByType("audio/mp4a-latm");
-		MediaFormat audioFormat = MediaFormat.createAudioFormat("audio/mp4a-latm", 48000, 2);
-
 		videoDecoder.configure(videoFormat, surface, null, 0);
-		audioDecoder.configure(audioFormat, null, null, 0);
 
 		videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 		
 		videoDecoder.start();
-		audioDecoder.start();
 
 		videoDecoderInputBuffers = videoDecoder.getInputBuffers();
-		audioDecoderInputBuffers = audioDecoder.getInputBuffers();
 	}
 
 	public void startVideoStream(final String host, final Surface surface)
@@ -138,9 +131,6 @@ public class NvVideoStream {
 				
 				// Start decoding the data we're receiving
 				startDecoderThread();
-				
-				// Start playing back audio data
-				startAudioPlaybackThread();
 				
 				// Read the first frame to start the UDP video stream
 				try {
@@ -195,32 +185,6 @@ public class NvVideoStream {
 								}
 
 								videoDecoder.queueInputBuffer(inputIndex,
-											0, du.getDataLength(),
-											0, du.getFlags());
-							}
-						}
-						break;
-						
-						case AvDecodeUnit.TYPE_AAC:
-						{
-							int inputIndex = audioDecoder.dequeueInputBuffer(0);
-							if (inputIndex == -4)
-							{
-								ByteBuffer buf = audioDecoderInputBuffers[inputIndex];
-								
-								// Clear old input data
-								buf.clear();
-								
-								// Copy data from our buffer list into the input buffer
-								for (AvBufferDescriptor desc : du.getBufferList())
-								{
-									buf.put(desc.data, desc.offset, desc.length);
-									
-									// Release the buffer back to the buffer pool
-									pool.free(desc.data);
-								}
-
-								audioDecoder.queueInputBuffer(inputIndex,
 											0, du.getDataLength(),
 											0, du.getFlags());
 							}
@@ -317,40 +281,6 @@ public class NvVideoStream {
 					} catch (InterruptedException e) {
 						break;
 					}
-				}
-			}
-		}).start();
-	}
-	
-	private void startAudioPlaybackThread()
-	{
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				for (;;)
-				{
-					BufferInfo info = new BufferInfo();
-					System.out.println("Waiting for audio");
-					int outIndex = audioDecoder.dequeueOutputBuffer(info, -1);
-					System.out.println("Got audio");
-				    switch (outIndex) {
-				    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-				    	System.out.println("Output buffers changed");
-					    break;
-				    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-				    	System.out.println("Output format changed");
-				    	System.out.println("New output Format: " + videoDecoder.getOutputFormat());
-				    	break;
-				    case MediaCodec.INFO_TRY_AGAIN_LATER:
-				    	System.out.println("Try again later");
-				    	break;
-				    default:
-				      break;
-				    }
-				    if (outIndex >= 0) {
-				    	audioDecoder.releaseOutputBuffer(outIndex, true);
-				    }
-			    	
 				}
 			}
 		}).start();

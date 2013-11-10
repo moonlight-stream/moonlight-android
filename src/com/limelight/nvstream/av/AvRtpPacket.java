@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 
 public class AvRtpPacket {
 	
+	private byte packetType;
 	private short seqNum;
 	private AvBufferDescriptor buffer;
 	
@@ -13,11 +14,19 @@ public class AvRtpPacket {
 		
 		ByteBuffer bb = ByteBuffer.wrap(buffer.data, buffer.offset, buffer.length);
 		
-		// Discard the first couple of bytes
-		bb.getShort();
+		// Discard the first byte
+		bb.position(bb.position()+1);
+		
+		// Get the packet type
+		packetType = bb.get();
 		
 		// Get the sequence number
 		seqNum = bb.getShort();
+	}
+	
+	public byte getPacketType()
+	{
+		return packetType;
 	}
 	
 	public short getSequenceNumber()

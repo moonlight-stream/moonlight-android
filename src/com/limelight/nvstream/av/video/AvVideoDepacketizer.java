@@ -1,45 +1,25 @@
-package com.limelight.nvstream.av;
+package com.limelight.nvstream.av.video;
 
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.limelight.nvstream.av.AvBufferDescriptor;
+import com.limelight.nvstream.av.AvDecodeUnit;
+import com.limelight.nvstream.av.AvRtpPacket;
+
 import android.media.MediaCodec;
 
-public class AvDepacketizer {
+public class AvVideoDepacketizer {
 	
 	// Current NAL state
 	private LinkedList<AvBufferDescriptor> avcNalDataChain = null;
 	private int avcNalDataLength = 0;
-	private LinkedList<AvBufferDescriptor> aacNalDataChain = null;
-	private int aacNalDataLength = 0;
 	private int currentlyDecoding;
 	
 	// Sequencing state
 	private short lastSequenceNumber;
 	
 	private LinkedBlockingQueue<AvDecodeUnit> decodedUnits = new LinkedBlockingQueue<AvDecodeUnit>();
-	
-	private void reassembleAacNal()
-	{
-		// This is the start of a new AAC NAL
-		if (aacNalDataChain != null && aacNalDataLength != 0)
-		{
-			System.out.println("Assembling AAC NAL: "+aacNalDataLength);
-			
-			/*AvBufferDescriptor header = aacNalDataChain.getFirst();
-			for (int i = 0; i < header.length; i++)
-				System.out.printf("%02x ", header.data[header.offset+i]);
-			System.out.println();*/
-			
-			// Construct the AAC decode unit
-			AvDecodeUnit du = new AvDecodeUnit(AvDecodeUnit.TYPE_AAC, aacNalDataChain, aacNalDataLength, 0);
-			decodedUnits.add(du);
-			
-			// Clear old state
-			aacNalDataChain = null;
-			aacNalDataLength = 0;
-		}
-	}
 	
 	private void reassembleAvcNal()
 	{
@@ -103,7 +83,7 @@ public class AvDepacketizer {
 		}
 	}
 	
-	public void addInputData(AvPacket packet)
+	public void addInputData(AvVideoPacket packet)
 	{
 		AvBufferDescriptor location = packet.getNewPayloadDescriptor();
 		
@@ -131,18 +111,6 @@ public class AvDepacketizer {
 						avcNalDataChain = new LinkedList<AvBufferDescriptor>();
 						avcNalDataLength = 0;
 					}
-				}
-				else if (NAL.isAacStartSequence(specialSeq))
-				{
-					// We're decoding AAC now
-					currentlyDecoding = AvDecodeUnit.TYPE_AAC;
-					
-					// Reassemble any pending AAC NAL
-					reassembleAacNal();
-					
-					// Setup state for the new NAL
-					aacNalDataChain = new LinkedList<AvBufferDescriptor>();
-					aacNalDataLength = 0;
 				}
 				else
 				{
@@ -181,12 +149,6 @@ public class AvDepacketizer {
 				avcNalDataChain.add(data);
 				avcNalDataLength += location.offset-start;
 			}
-			else if (currentlyDecoding == AvDecodeUnit.TYPE_AAC && aacNalDataChain != null)
-			{
-				// Add a buffer descriptor describing the NAL data in this packet
-				aacNalDataChain.add(data);
-				aacNalDataLength += location.offset-start;
-			}
 		}
 	}
 	
@@ -205,15 +167,13 @@ public class AvDepacketizer {
 			currentlyDecoding = AvDecodeUnit.TYPE_UNKNOWN;
 			avcNalDataChain = null;
 			avcNalDataLength = 0;
-			aacNalDataChain = null;
-			aacNalDataLength = 0;
 		}
 		
 		lastSequenceNumber = seq;
 		
 		// Pass the payload to the non-sequencing parser
 		AvBufferDescriptor rtpPayload = packet.getNewPayloadDescriptor();
-		addInputData(new AvPacket(rtpPayload));
+		addInputData(new AvVideoPacket(rtpPayload));
 	}
 	
 	public AvDecodeUnit getNextDecodeUnit() throws InterruptedException
@@ -235,7 +195,7 @@ class NAL {
 	}
 	
 	// This assumes that the buffer passed in is already a special sequence
-	public static boolean isAacStartSequence(AvBufferDescriptor specialSeq)
+	public static boolean isUnknownStartSequence(AvBufferDescriptor specialSeq)
 	{
 		if (specialSeq.length != 3)
 			return false;

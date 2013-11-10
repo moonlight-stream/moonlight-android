@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import jlibrtp.Participant;
@@ -33,7 +34,39 @@ public class NvAudioStream {
 	
 	private AvAudioDepacketizer depacketizer = new AvAudioDepacketizer();
 	
+	private LinkedList<Thread> threads = new LinkedList<Thread>();
+	
 	private AvByteBufferPool pool = new AvByteBufferPool(1500);
+	
+	private boolean aborting = false;
+	
+	public void abort()
+	{
+		if (aborting) {
+			return;
+		}
+		
+		aborting = true;
+		
+		for (Thread t : threads) {
+			t.interrupt();
+		}
+		
+		// Close the socket to interrupt the receive thread
+		rtp.close();
+		
+		// Wait for threads to terminate
+		for (Thread t : threads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) { }
+		}
+		
+		//session.endSession();
+		track.release();
+		
+		threads.clear();
+	}
 	
 	public void startAudioStream(final String host)
 	{		
@@ -96,7 +129,7 @@ public class NvAudioStream {
 			System.err.println("Unsupported channel count");
 			return;
 		}
-				
+
 		track = new AudioTrack(AudioManager.STREAM_MUSIC,
 				OpusDecoder.getSampleRate(),
 				channelConfig,
@@ -111,17 +144,17 @@ public class NvAudioStream {
 	{
 		// This thread lessens the work on the receive thread
 		// so it can spend more time waiting for data
-		new Thread(new Runnable() {
+		Thread t = new Thread() {
 			@Override
 			public void run() {
-				for (;;)
+				while (!isInterrupted())
 				{
 					AvRtpPacket packet;
 					
 					try {
 						packet = packets.take();
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						abort();
 						return;
 					}
 					
@@ -129,23 +162,25 @@ public class NvAudioStream {
 					depacketizer.decodeInputData(packet);
 				}
 			}
-		}).start();
+		};
+		threads.add(t);
+		t.start();
 	}
 	
 	private void startDecoderThread()
 	{
 		// Decoder thread
-		new Thread(new Runnable() {
+		Thread t = new Thread() {
 			@Override
 			public void run() {
-				for (;;)
+				while (!isInterrupted())
 				{
 					AvShortBufferDescriptor samples;
 					
 					try {
 						samples = depacketizer.getNextDecodedData();
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						abort();
 						return;
 					}
 					
@@ -154,24 +189,26 @@ public class NvAudioStream {
 					depacketizer.releaseBuffer(samples);
 				}
 			}
-		}).start();
+		};
+		threads.add(t);
+		t.start();
 	}
 	
 	private void startReceiveThread()
 	{
 		// Receive thread
-		new Thread(new Runnable() {
+		Thread t = new Thread() {
 			@Override
 			public void run() {
 				DatagramPacket packet = new DatagramPacket(pool.allocate(), 1500);
 				AvByteBufferDescriptor desc = new AvByteBufferDescriptor(null, 0, 0);
 				
-				for (;;)
+				while (!isInterrupted())
 				{
 					try {
 						rtp.receive(packet);
 					} catch (IOException e) {
-						e.printStackTrace();
+						abort();
 						return;
 					}
 					
@@ -186,13 +223,15 @@ public class NvAudioStream {
 					packet.setData(pool.allocate(), 0, 1500);
 				}
 			}
-		}).start();
+		};
+		threads.add(t);
+		t.start();
 	}
 	
 	private void startUdpPingThread()
 	{
 		// Ping thread
-		new Thread(new Runnable() {
+		Thread t = new Thread() {
 			@Override
 			public void run() {
 				// PING in ASCII
@@ -202,17 +241,20 @@ public class NvAudioStream {
 				session.payloadType(127);
 				
 				// Send PING every 100 ms
-				for (;;)
+				while (!isInterrupted())
 				{
 					session.sendData(pingPacket);
 					
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
-						break;
+						abort();
+						return;
 					}
 				}
 			}
-		}).start();
+		};
+		threads.add(t);
+		t.start();
 	}
 }

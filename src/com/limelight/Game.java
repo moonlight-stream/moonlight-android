@@ -64,9 +64,13 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	
 	@Override
 	public void onPause() {
+		finish();
 		super.onPause();
-		
-		System.exit(0);
+	}
+	
+	public void onDestroy() {
+		conn.stop();
+		super.onDestroy();
 	}
 	
 	@Override

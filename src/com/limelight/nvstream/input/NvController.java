@@ -19,6 +19,13 @@ public class NvController {
 		out = s.getOutputStream();
 	}
 	
+	public void close()
+	{
+		try {
+			s.close();
+		} catch (IOException e) {}
+	}
+	
 	public void sendControllerInput(short buttonFlags, byte leftTrigger, byte rightTrigger,
 			short leftStickX, short leftStickY, short rightStickX, short rightStickY) throws IOException
 	{

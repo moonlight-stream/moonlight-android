@@ -161,6 +161,10 @@ public class NvControl {
 	private InputStream in;
 	private OutputStream out;
 	
+	private Thread heartbeatThread;
+	private Thread jitterThread;
+	private boolean aborting = false;
+	
 	public NvControl(String host) throws UnknownHostException, IOException
 	{
 		s = new Socket(host, PORT);
@@ -192,7 +196,28 @@ public class NvControl {
 		sendPacket(new NvCtlPacket(PTYPE_JITTER, PPAYLEN_JITTER, bb.array()));
 	}
 	
-	public void beginControl() throws IOException
+	public void abort()
+	{
+		if (aborting) {
+			return;
+		}
+		
+		aborting = true;
+		
+		if (jitterThread != null) {
+			jitterThread.interrupt();
+		}
+		
+		if (heartbeatThread != null) {
+			heartbeatThread.interrupt();
+		}
+		
+		try {
+			s.close();
+		} catch (IOException e) {}
+	}
+	
+	public void start() throws IOException
 	{
 		System.out.println("CTL: Sending hello");
 		sendHello();
@@ -206,65 +231,59 @@ public class NvControl {
 		//send1404();
 		System.out.println("CTL: Launching heartbeat thread");
 		
-		new Thread(new Runnable() {
+		heartbeatThread = new Thread() {
 			@Override
 			public void run() {
-				for (;;)
+				while (!isInterrupted())
 				{
 					try {
 						sendHeartbeat();
 					} catch (IOException e1) {
-						e1.printStackTrace();
-						break;
+						abort();
+						return;
 					}
 					
 					try {
 						Thread.sleep(3000);
 					} catch (InterruptedException e) {
-						break;
+						abort();
+						return;
 					}
 				}
 			}
-		}).start();
+		};
+		heartbeatThread.start();
 	}
 	
 	public void startJitterPackets()
 	{
-		new Thread(new Runnable() {
+		jitterThread = new Thread() {
 			@Override
 			public void run() {
-				for (;;)
+				while (!isInterrupted())
 				{
 					try {
 						sendJitter();
 					} catch (IOException e1) {
-						e1.printStackTrace();
-						break;
+						abort();
+						return;
 					}
 					
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
-						break;
+						abort();
+						return;
 					}
 				}
 			}
-		}).start();
-	}
-	
-	public void endControl() throws IOException
-	{
-		s.close();
+		};
+		jitterThread.start();
 	}
 	
 	private NvControl.NvCtlResponse send1405AndGetResponse() throws IOException
 	{
 		return sendAndGetReply(new NvCtlPacket(PTYPE_1405, PPAYLEN_1405));
-	}
-	
-	private void send1404() throws IOException
-	{
-		sendPacket(new NvCtlPacket(PTYPE_1404, PPAYLEN_1404));
 	}
 	
 	private void sendHello() throws IOException

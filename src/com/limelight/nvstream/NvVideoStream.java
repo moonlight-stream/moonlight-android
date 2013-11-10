@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
@@ -37,9 +38,42 @@ public class NvVideoStream {
 	private RTPSession session;
 	private DatagramSocket rtp;
 	
+	private LinkedList<Thread> threads = new LinkedList<Thread>();
+	
 	private AvByteBufferPool pool = new AvByteBufferPool(1500);
 	
 	private AvVideoDepacketizer depacketizer = new AvVideoDepacketizer();
+	
+	private boolean aborting = false;
+	
+	public void abort()
+	{
+		if (aborting) {
+			return;
+		}
+		
+		aborting = true;
+		
+		// Interrupt threads
+		for (Thread t : threads) {
+			t.interrupt();
+		}
+		
+		// Close the socket to interrupt the receive thread
+		rtp.close();
+		
+		// Wait for threads to terminate
+		for (Thread t : threads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) { }
+		}
+		
+		//session.endSession();
+		videoDecoder.release();
+		
+		threads.clear();
+	}
 	
 	private InputStream openFirstFrameInputStream(String host) throws UnknownHostException, IOException
 	{
@@ -103,9 +137,9 @@ public class NvVideoStream {
 	}
 
 	public void startVideoStream(final String host, final Surface surface)
-	{		
-		new Thread(new Runnable() {
-
+	{
+		// This thread becomes the output display thread
+		Thread t = new Thread() {
 			@Override
 			public void run() {
 				// Setup the decoder context
@@ -137,29 +171,32 @@ public class NvVideoStream {
 					readFirstFrame(host);
 				} catch (IOException e2) {
 					e2.printStackTrace();
+					abort();
 					return;
 				}
 				
 				// Render the frames that are coming out of the decoder
-				outputDisplayLoop();
+				outputDisplayLoop(this);
 			}
-		}).start();
+		};
+		threads.add(t);
+		t.start();
 	}
 	
 	private void startDecoderThread()
 	{
 		// Decoder thread
-		new Thread(new Runnable() {
+		Thread t = new Thread() {
 			@Override
 			public void run() {
 				// Read the decode units generated from the RTP stream
-				for (;;)
+				while (!isInterrupted())
 				{
 					AvDecodeUnit du;
 					try {
 						du = depacketizer.getNextDecodeUnit();
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						abort();
 						return;
 					}
 					
@@ -167,56 +204,65 @@ public class NvVideoStream {
 					{
 						case AvDecodeUnit.TYPE_H264:
 						{
-							int inputIndex = videoDecoder.dequeueInputBuffer(-1);
-							if (inputIndex >= 0)
+							// Wait for an input buffer or thread termination
+							while (!isInterrupted())
 							{
-								ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
-								
-								// Clear old input data
-								buf.clear();
-								
-								// Copy data from our buffer list into the input buffer
-								for (AvByteBufferDescriptor desc : du.getBufferList())
+								int inputIndex = videoDecoder.dequeueInputBuffer(100);
+								if (inputIndex >= 0)
 								{
-									buf.put(desc.data, desc.offset, desc.length);
+									ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
 									
-									// Release the buffer back to the buffer pool
-									pool.free(desc.data);
-								}
+									// Clear old input data
+									buf.clear();
+									
+									// Copy data from our buffer list into the input buffer
+									for (AvByteBufferDescriptor desc : du.getBufferList())
+									{
+										buf.put(desc.data, desc.offset, desc.length);
+										
+										// Release the buffer back to the buffer pool
+										pool.free(desc.data);
+									}
 
-								videoDecoder.queueInputBuffer(inputIndex,
-											0, du.getDataLength(),
-											0, du.getFlags());
+									videoDecoder.queueInputBuffer(inputIndex,
+												0, du.getDataLength(),
+												0, du.getFlags());
+									
+									break;
+								}
 							}
 						}
 						break;
 					
 						default:
 						{
-							System.out.println("Unknown decode unit type");
+							System.err.println("Unknown decode unit type");
+							abort();
+							return;
 						}
-						break;
 					}
 				}
 			}
-		}).start();
+		};
+		threads.add(t);
+		t.start();
 	}
 	
 	private void startDepacketizerThread()
 	{
 		// This thread lessens the work on the receive thread
 		// so it can spend more time waiting for data
-		new Thread(new Runnable() {
+		Thread t = new Thread() {
 			@Override
 			public void run() {
-				for (;;)
+				while (!isInterrupted())
 				{
 					AvRtpPacket packet;
 					
 					try {
 						packet = packets.take();
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						abort();
 						return;
 					}
 					
@@ -224,24 +270,26 @@ public class NvVideoStream {
 					depacketizer.addInputData(packet);
 				}
 			}
-		}).start();
+		};
+		threads.add(t);
+		t.start();
 	}
 	
 	private void startReceiveThread()
 	{
 		// Receive thread
-		new Thread(new Runnable() {
+		Thread t = new Thread() {
 			@Override
 			public void run() {
 				DatagramPacket packet = new DatagramPacket(pool.allocate(), 1500);
 				AvByteBufferDescriptor desc = new AvByteBufferDescriptor(null, 0, 0);
 				
-				for (;;)
+				while (!isInterrupted())
 				{
 					try {
 						rtp.receive(packet);
 					} catch (IOException e) {
-						e.printStackTrace();
+						abort();
 						return;
 					}
 					
@@ -256,13 +304,15 @@ public class NvVideoStream {
 					packet.setData(pool.allocate(), 0, 1500);
 				}
 			}
-		}).start();
+		};
+		threads.add(t);
+		t.start();
 	}
 	
 	private void startUdpPingThread()
 	{
 		// Ping thread
-		new Thread(new Runnable() {
+		Thread t = new Thread() {
 			@Override
 			public void run() {
 				// PING in ASCII
@@ -272,26 +322,29 @@ public class NvVideoStream {
 				session.payloadType(127);
 				
 				// Send PING every 100 ms
-				for (;;)
+				while (!isInterrupted())
 				{
 					session.sendData(pingPacket);
 					
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
-						break;
+						abort();
+						return;
 					}
 				}
 			}
-		}).start();
+		};
+		threads.add(t);
+		t.start();
 	}
 	
-	private void outputDisplayLoop()
+	private void outputDisplayLoop(Thread t)
 	{
-		for (;;)
+		while (!t.isInterrupted())
 		{
 			BufferInfo info = new BufferInfo();
-			int outIndex = videoDecoder.dequeueOutputBuffer(info, -1);
+			int outIndex = videoDecoder.dequeueOutputBuffer(info, 100);
 		    switch (outIndex) {
 		    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
 		    	System.out.println("Output buffers changed");
@@ -300,16 +353,12 @@ public class NvVideoStream {
 		    	System.out.println("Output format changed");
 		    	System.out.println("New output Format: " + videoDecoder.getOutputFormat());
 		    	break;
-		    case MediaCodec.INFO_TRY_AGAIN_LATER:
-		    	System.out.println("Try again later");
-		    	break;
 		    default:
 		      break;
 		    }
 		    if (outIndex >= 0) {
 		    	videoDecoder.releaseOutputBuffer(outIndex, true);
 		    }
-	    	
 		}
 	}
 }

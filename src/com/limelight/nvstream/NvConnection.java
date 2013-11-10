@@ -2,7 +2,6 @@ package com.limelight.nvstream;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -17,7 +16,6 @@ import android.app.Activity;
 import android.view.Surface;
 import android.widget.Toast;
 
-import com.limelight.Game;
 import com.limelight.nvstream.input.NvController;
 
 public class NvConnection {
@@ -27,6 +25,8 @@ public class NvConnection {
 	private NvControl controlStream;
 	private NvController inputStream;
 	private Surface video;
+	private NvVideoStream videoStream = new NvVideoStream();
+	private NvAudioStream audioStream = new NvAudioStream();
 	
 	private ThreadPoolExecutor threadPool;
 	
@@ -64,6 +64,20 @@ public class NvConnection {
 		
 		return null;
 	}
+	
+	public void stop()
+	{
+		videoStream.abort();
+		audioStream.abort();
+		
+		if (controlStream != null) {
+			controlStream.abort();
+		}
+		
+		if (inputStream != null) {
+			inputStream.close();
+		}
+	}
 
 	public void start()
 	{	
@@ -81,8 +95,8 @@ public class NvConnection {
 				try {
 					startSteamBigPicture();
 					performHandshake();
-					startVideo(video);
-					startAudio();
+					videoStream.startVideoStream(host, video);
+					audioStream.startAudioStream(host);
 					beginControlStream();
 					controlStream.startJitterPackets();
 					startController();
@@ -95,16 +109,6 @@ public class NvConnection {
 				}
 			}
 		}).start();
-	}
-	
-	public void startVideo(Surface surface)
-	{
-		new NvVideoStream().startVideoStream(host, surface);
-	}
-	
-	public void startAudio()
-	{
-		new NvAudioStream().startAudioStream(host);
 	}
 	
 	public void sendMouseMove(final short deltaX, final short deltaY)
@@ -224,7 +228,7 @@ public class NvConnection {
 		controlStream = new NvControl(host);
 		
 		System.out.println("Starting control");
-		controlStream.beginControl();
+		controlStream.start();
 	}
 	
 	private void startController() throws UnknownHostException, IOException

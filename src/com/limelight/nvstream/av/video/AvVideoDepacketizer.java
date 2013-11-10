@@ -241,29 +241,20 @@ class NAL {
 	// This assumes that the buffer passed in is already a special sequence
 	public static boolean isAvcStartSequence(AvByteBufferDescriptor specialSeq)
 	{
-		if (specialSeq.length != 3 && specialSeq.length != 4)
-			return false;
-		
 		// The start sequence is 00 00 01 or 00 00 00 01
 		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x01);
 	}
 	
 	// This assumes that the buffer passed in is already a special sequence
-	public static boolean isUnknownStartSequence(AvByteBufferDescriptor specialSeq)
+	public static boolean isPadding(AvByteBufferDescriptor specialSeq)
 	{
-		if (specialSeq.length != 3)
-			return false;
-		
-		// The start sequence is 00 00 03
-		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x03);
+		// The padding sequence is 00 00 00
+		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x00);
 	}
 	
 	// This assumes that the buffer passed in is already a special sequence
 	public static boolean isAvcFrameStart(AvByteBufferDescriptor specialSeq)
 	{
-		if (specialSeq.length != 4)
-			return false;
-		
 		// The frame start sequence is 00 00 00 01
 		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x01);
 	}

@@ -10,8 +10,8 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.limelight.nvstream.av.AvBufferDescriptor;
-import com.limelight.nvstream.av.AvBufferPool;
+import com.limelight.nvstream.av.AvByteBufferDescriptor;
+import com.limelight.nvstream.av.AvByteBufferPool;
 import com.limelight.nvstream.av.AvDecodeUnit;
 import com.limelight.nvstream.av.AvRtpPacket;
 import com.limelight.nvstream.av.video.AvVideoDepacketizer;
@@ -37,7 +37,7 @@ public class NvVideoStream {
 	private RTPSession session;
 	private DatagramSocket rtp;
 	
-	private AvBufferPool pool = new AvBufferPool(1500);
+	private AvByteBufferPool pool = new AvByteBufferPool(1500);
 	
 	private AvVideoDepacketizer depacketizer = new AvVideoDepacketizer();
 	
@@ -176,7 +176,7 @@ public class NvVideoStream {
 								buf.clear();
 								
 								// Copy data from our buffer list into the input buffer
-								for (AvBufferDescriptor desc : du.getBufferList())
+								for (AvByteBufferDescriptor desc : du.getBufferList())
 								{
 									buf.put(desc.data, desc.offset, desc.length);
 									
@@ -234,7 +234,7 @@ public class NvVideoStream {
 			@Override
 			public void run() {
 				DatagramPacket packet = new DatagramPacket(pool.allocate(), 1500);
-				AvBufferDescriptor desc = new AvBufferDescriptor(null, 0, 0);
+				AvByteBufferDescriptor desc = new AvByteBufferDescriptor(null, 0, 0);
 				
 				for (;;)
 				{

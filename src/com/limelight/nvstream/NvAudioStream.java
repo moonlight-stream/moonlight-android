@@ -3,29 +3,22 @@ package com.limelight.nvstream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import jlibrtp.Participant;
 import jlibrtp.RTPSession;
 
-import com.limelight.nvstream.av.AvBufferDescriptor;
-import com.limelight.nvstream.av.AvBufferPool;
-import com.limelight.nvstream.av.AvDecodeUnit;
+import com.limelight.nvstream.av.AvByteBufferDescriptor;
+import com.limelight.nvstream.av.AvByteBufferPool;
 import com.limelight.nvstream.av.AvRtpPacket;
+import com.limelight.nvstream.av.AvShortBufferDescriptor;
 import com.limelight.nvstream.av.audio.AvAudioDepacketizer;
 import com.limelight.nvstream.av.audio.OpusDecoder;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.media.MediaCodec;
-import android.media.MediaFormat;
-import android.net.rtp.AudioGroup;
-import android.net.rtp.AudioStream;
-import android.view.Surface;
 
 public class NvAudioStream {
 	public static final int RTP_PORT = 48000;
@@ -40,7 +33,7 @@ public class NvAudioStream {
 	
 	private AvAudioDepacketizer depacketizer = new AvAudioDepacketizer();
 	
-	private AvBufferPool pool = new AvBufferPool(1500);
+	private AvByteBufferPool pool = new AvByteBufferPool(1500);
 	
 	public void startAudioStream(final String host)
 	{		
@@ -147,7 +140,8 @@ public class NvAudioStream {
 			public void run() {
 				for (;;)
 				{
-					short[] samples;
+					AvShortBufferDescriptor samples;
+					
 					try {
 						samples = depacketizer.getNextDecodedData();
 					} catch (InterruptedException e) {
@@ -155,7 +149,7 @@ public class NvAudioStream {
 						return;
 					}
 					
-					track.write(samples, 0, samples.length);
+					track.write(samples.data, samples.offset, samples.length);
 				}
 			}
 		}).start();
@@ -168,7 +162,7 @@ public class NvAudioStream {
 			@Override
 			public void run() {
 				DatagramPacket packet = new DatagramPacket(pool.allocate(), 1500);
-				AvBufferDescriptor desc = new AvBufferDescriptor(null, 0, 0);
+				AvByteBufferDescriptor desc = new AvByteBufferDescriptor(null, 0, 0);
 				
 				for (;;)
 				{

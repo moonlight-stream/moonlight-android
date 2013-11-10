@@ -2,11 +2,11 @@ package com.limelight.nvstream.av;
 
 import java.util.LinkedList;
 
-public class AvBufferPool {
+public class AvByteBufferPool {
 	private LinkedList<byte[]> bufferList = new LinkedList<byte[]>();
 	private int bufferSize;
 	
-	public AvBufferPool(int size)
+	public AvByteBufferPool(int size)
 	{
 		this.bufferSize = size;
 	}

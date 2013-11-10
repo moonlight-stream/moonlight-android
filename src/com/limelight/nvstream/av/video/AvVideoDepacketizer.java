@@ -3,7 +3,7 @@ package com.limelight.nvstream.av.video;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.limelight.nvstream.av.AvBufferDescriptor;
+import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvDecodeUnit;
 import com.limelight.nvstream.av.AvRtpPacket;
 
@@ -12,7 +12,7 @@ import android.media.MediaCodec;
 public class AvVideoDepacketizer {
 	
 	// Current NAL state
-	private LinkedList<AvBufferDescriptor> avcNalDataChain = null;
+	private LinkedList<AvByteBufferDescriptor> avcNalDataChain = null;
 	private int avcNalDataLength = 0;
 	private int currentlyDecoding;
 	
@@ -29,8 +29,8 @@ public class AvVideoDepacketizer {
 			int flags = 0;
 			
 			// Check if this is a special NAL unit
-			AvBufferDescriptor header = avcNalDataChain.getFirst();
-			AvBufferDescriptor specialSeq = NAL.getSpecialSequenceDescriptor(header);
+			AvByteBufferDescriptor header = avcNalDataChain.getFirst();
+			AvByteBufferDescriptor specialSeq = NAL.getSpecialSequenceDescriptor(header);
 			
 			if (specialSeq != null)
 			{
@@ -85,7 +85,7 @@ public class AvVideoDepacketizer {
 	
 	public void addInputData(AvVideoPacket packet)
 	{
-		AvBufferDescriptor location = packet.getNewPayloadDescriptor();
+		AvByteBufferDescriptor location = packet.getNewPayloadDescriptor();
 		
 		while (location.length != 0)
 		{
@@ -93,7 +93,7 @@ public class AvVideoDepacketizer {
 			int start = location.offset;
 			
 			// Check for a special sequence
-			AvBufferDescriptor specialSeq = NAL.getSpecialSequenceDescriptor(location);
+			AvByteBufferDescriptor specialSeq = NAL.getSpecialSequenceDescriptor(location);
 			if (specialSeq != null)
 			{
 				if (NAL.isAvcStartSequence(specialSeq))
@@ -108,7 +108,7 @@ public class AvVideoDepacketizer {
 						reassembleAvcNal();
 						
 						// Setup state for the new NAL
-						avcNalDataChain = new LinkedList<AvBufferDescriptor>();
+						avcNalDataChain = new LinkedList<AvByteBufferDescriptor>();
 						avcNalDataLength = 0;
 					}
 				}
@@ -141,7 +141,7 @@ public class AvVideoDepacketizer {
 				}
 			}
 			
-			AvBufferDescriptor data = new AvBufferDescriptor(location.data, start, location.offset-start);
+			AvByteBufferDescriptor data = new AvByteBufferDescriptor(location.data, start, location.offset-start);
 			
 			if (currentlyDecoding == AvDecodeUnit.TYPE_H264 && avcNalDataChain != null)
 			{
@@ -172,7 +172,7 @@ public class AvVideoDepacketizer {
 		lastSequenceNumber = seq;
 		
 		// Pass the payload to the non-sequencing parser
-		AvBufferDescriptor rtpPayload = packet.getNewPayloadDescriptor();
+		AvByteBufferDescriptor rtpPayload = packet.getNewPayloadDescriptor();
 		addInputData(new AvVideoPacket(rtpPayload));
 	}
 	
@@ -185,7 +185,7 @@ public class AvVideoDepacketizer {
 class NAL {
 	
 	// This assumes that the buffer passed in is already a special sequence
-	public static boolean isAvcStartSequence(AvBufferDescriptor specialSeq)
+	public static boolean isAvcStartSequence(AvByteBufferDescriptor specialSeq)
 	{
 		if (specialSeq.length != 3 && specialSeq.length != 4)
 			return false;
@@ -195,7 +195,7 @@ class NAL {
 	}
 	
 	// This assumes that the buffer passed in is already a special sequence
-	public static boolean isUnknownStartSequence(AvBufferDescriptor specialSeq)
+	public static boolean isUnknownStartSequence(AvByteBufferDescriptor specialSeq)
 	{
 		if (specialSeq.length != 3)
 			return false;
@@ -205,7 +205,7 @@ class NAL {
 	}
 	
 	// This assumes that the buffer passed in is already a special sequence
-	public static boolean isAvcFrameStart(AvBufferDescriptor specialSeq)
+	public static boolean isAvcFrameStart(AvByteBufferDescriptor specialSeq)
 	{
 		if (specialSeq.length != 4)
 			return false;
@@ -215,7 +215,7 @@ class NAL {
 	}
 	
 	// Returns a buffer descriptor describing the start sequence
-	public static AvBufferDescriptor getSpecialSequenceDescriptor(AvBufferDescriptor buffer)
+	public static AvByteBufferDescriptor getSpecialSequenceDescriptor(AvByteBufferDescriptor buffer)
 	{
 		// NAL start sequence is 00 00 00 01 or 00 00 01
 		if (buffer.length < 3)
@@ -233,19 +233,19 @@ class NAL {
 					buffer.data[buffer.offset+3] == 0x01)
 				{
 					// It's the AVC start sequence 00 00 00 01
-					return new AvBufferDescriptor(buffer.data, buffer.offset, 4);
+					return new AvByteBufferDescriptor(buffer.data, buffer.offset, 4);
 				}
 				else
 				{
 					// It's 00 00 00
-					return new AvBufferDescriptor(buffer.data, buffer.offset, 3);
+					return new AvByteBufferDescriptor(buffer.data, buffer.offset, 3);
 				}
 			}
 			else if (buffer.data[buffer.offset+2] == 0x01 ||
 					 buffer.data[buffer.offset+2] == 0x02)
 			{
 				// These are easy: 00 00 01 or 00 00 02
-				return new AvBufferDescriptor(buffer.data, buffer.offset, 3);
+				return new AvByteBufferDescriptor(buffer.data, buffer.offset, 3);
 			}
 			else if (buffer.data[buffer.offset+2] == 0x03)
 			{
@@ -267,7 +267,7 @@ class NAL {
 				else
 				{
 					// It's not a standard replacement so it's a special sequence
-					return new AvBufferDescriptor(buffer.data, buffer.offset, 3);
+					return new AvByteBufferDescriptor(buffer.data, buffer.offset, 3);
 				}
 			}
 		}

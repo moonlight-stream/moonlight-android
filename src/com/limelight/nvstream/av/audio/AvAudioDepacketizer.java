@@ -2,11 +2,16 @@ package com.limelight.nvstream.av.audio;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.limelight.nvstream.av.AvBufferDescriptor;
+import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvRtpPacket;
+import com.limelight.nvstream.av.AvShortBufferDescriptor;
+import com.limelight.nvstream.av.AvShortBufferPool;
 
 public class AvAudioDepacketizer {
-	private LinkedBlockingQueue<short[]> decodedUnits = new LinkedBlockingQueue<short[]>();
+	private LinkedBlockingQueue<AvShortBufferDescriptor> decodedUnits =
+			new LinkedBlockingQueue<AvShortBufferDescriptor>();
+	
+	private AvShortBufferPool pool = new AvShortBufferPool(OpusDecoder.getMaxOutputShorts());
 	
 	// Sequencing state
 	private short lastSequenceNumber;
@@ -34,25 +39,22 @@ public class AvAudioDepacketizer {
 		lastSequenceNumber = seq;		
 		
 		// This is all the depacketizing we need to do
-		AvBufferDescriptor rtpPayload = packet.getNewPayloadDescriptor();
+		AvByteBufferDescriptor rtpPayload = packet.getNewPayloadDescriptor();
 
 		// Submit this data to the decoder
-		short[] pcmData = new short[OpusDecoder.getMaxOutputShorts()];
-		
+		short[] pcmData = pool.allocate();
 		int decodeLen = OpusDecoder.decode(rtpPayload.data, rtpPayload.offset, rtpPayload.length, pcmData);
 		
-		// Return value of decode is frames decoded per channel
-		decodeLen *= OpusDecoder.getChannelCount();
-		
 		if (decodeLen > 0) {
-			// Jank!
-			short[] trimmedPcmData = new short[decodeLen];
-			System.arraycopy(pcmData, 0, trimmedPcmData, 0, decodeLen);
-			decodedUnits.add(trimmedPcmData);
+			// Return value of decode is frames decoded per channel
+			decodeLen *= OpusDecoder.getChannelCount();
+			
+			// Put it on the decoded queue
+			decodedUnits.add(new AvShortBufferDescriptor(pcmData, 0, decodeLen));
 		}
 	}
 	
-	public short[] getNextDecodedData() throws InterruptedException
+	public AvShortBufferDescriptor getNextDecodedData() throws InterruptedException
 	{
 		return decodedUnits.take();
 	}

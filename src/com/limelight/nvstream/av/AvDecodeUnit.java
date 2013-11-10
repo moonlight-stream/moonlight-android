@@ -8,11 +8,11 @@ public class AvDecodeUnit {
 	public static final int TYPE_OPUS = 2;
 	
 	private int type;
-	private List<AvBufferDescriptor> bufferList;
+	private List<AvByteBufferDescriptor> bufferList;
 	private int dataLength;
 	private int flags;
 	
-	public AvDecodeUnit(int type, List<AvBufferDescriptor> bufferList, int dataLength, int flags)
+	public AvDecodeUnit(int type, List<AvByteBufferDescriptor> bufferList, int dataLength, int flags)
 	{
 		this.type = type;
 		this.bufferList = bufferList;
@@ -30,7 +30,7 @@ public class AvDecodeUnit {
 		return flags;
 	}
 	
-	public List<AvBufferDescriptor> getBufferList()
+	public List<AvByteBufferDescriptor> getBufferList()
 	{
 		return bufferList;
 	}

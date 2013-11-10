@@ -6,11 +6,11 @@ public class AvRtpPacket {
 	
 	private byte packetType;
 	private short seqNum;
-	private AvBufferDescriptor buffer;
+	private AvByteBufferDescriptor buffer;
 	
-	public AvRtpPacket(AvBufferDescriptor buffer)
+	public AvRtpPacket(AvByteBufferDescriptor buffer)
 	{
-		this.buffer = new AvBufferDescriptor(buffer);
+		this.buffer = new AvByteBufferDescriptor(buffer);
 		
 		ByteBuffer bb = ByteBuffer.wrap(buffer.data, buffer.offset, buffer.length);
 		
@@ -34,8 +34,8 @@ public class AvRtpPacket {
 		return seqNum;
 	}
 	
-	public AvBufferDescriptor getNewPayloadDescriptor()
+	public AvByteBufferDescriptor getNewPayloadDescriptor()
 	{
-		return new AvBufferDescriptor(buffer.data, buffer.offset+12, buffer.length-12);
+		return new AvByteBufferDescriptor(buffer.data, buffer.offset+12, buffer.length-12);
 	}
 }

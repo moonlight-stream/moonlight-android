@@ -255,6 +255,9 @@ class NAL {
 	// This assumes that the buffer passed in is already a special sequence
 	public static boolean isAvcFrameStart(AvByteBufferDescriptor specialSeq)
 	{
+		if (specialSeq.length != 4)
+			return false;
+		
 		// The frame start sequence is 00 00 00 01
 		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x01);
 	}

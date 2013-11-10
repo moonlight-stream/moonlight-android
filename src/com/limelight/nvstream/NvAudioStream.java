@@ -13,8 +13,14 @@ import jlibrtp.RTPSession;
 
 import com.limelight.nvstream.av.AvBufferDescriptor;
 import com.limelight.nvstream.av.AvBufferPool;
+import com.limelight.nvstream.av.AvDecodeUnit;
 import com.limelight.nvstream.av.AvRtpPacket;
+import com.limelight.nvstream.av.audio.AvAudioDepacketizer;
+import com.limelight.nvstream.av.audio.OpusDecoder;
 
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.net.rtp.AudioGroup;
@@ -27,20 +33,132 @@ public class NvAudioStream {
 	
 	private LinkedBlockingQueue<AvRtpPacket> packets = new LinkedBlockingQueue<AvRtpPacket>();
 	
+	private AudioTrack track;
+	
 	private RTPSession session;
 	private DatagramSocket rtp;
 	
+	private AvAudioDepacketizer depacketizer = new AvAudioDepacketizer();
+	
 	private AvBufferPool pool = new AvBufferPool(1500);
 	
-	public void setupRtpSession(String host) throws SocketException
-	{
-		DatagramSocket rtcp;
+	public void startAudioStream(final String host)
+	{		
+		new Thread(new Runnable() {
 
+			@Override
+			public void run() {
+				try {
+					setupRtpSession(host);
+				} catch (SocketException e) {
+					e.printStackTrace();
+					return;
+				}
+				
+				setupAudio();
+				
+				startReceiveThread();
+				
+				startDepacketizerThread();
+				
+				startUdpPingThread();
+				
+				startDecoderThread();
+			}
+			
+		}).start();
+	}
+	
+	private void setupRtpSession(String host) throws SocketException
+	{
 		rtp = new DatagramSocket(RTP_PORT);
-		rtcp = new DatagramSocket(RTCP_PORT);
 		
-		session = new RTPSession(rtp, rtcp);
-		session.addParticipant(new Participant(host, RTP_PORT, RTCP_PORT));
+		session = new RTPSession(rtp, null);
+		session.addParticipant(new Participant(host, RTP_PORT, 0));
+	}
+	
+	private void setupAudio()
+	{
+		int channelConfig;
+		int err;
+		
+		err = OpusDecoder.init();
+		if (err == 0) {
+			System.out.println("Opus decoder initialized");
+		}
+		else {
+			System.err.println("Opus decoder init failed: "+err);
+			return;
+		}
+		
+		switch (OpusDecoder.getChannelCount())
+		{
+		case 1:
+			channelConfig = AudioFormat.CHANNEL_OUT_MONO;
+			break;
+		case 2:
+			channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
+			break;
+		default:
+			System.err.println("Unsupported channel count");
+			return;
+		}
+				
+		track = new AudioTrack(AudioManager.STREAM_MUSIC,
+				OpusDecoder.getSampleRate(),
+				channelConfig,
+				AudioFormat.ENCODING_PCM_16BIT,
+				1024, // 1KB buffer
+				AudioTrack.MODE_STREAM);
+		
+		track.play();
+	}
+	
+	private void startDepacketizerThread()
+	{
+		// This thread lessens the work on the receive thread
+		// so it can spend more time waiting for data
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				for (;;)
+				{
+					AvRtpPacket packet;
+					
+					try {
+						packet = packets.take();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+						return;
+					}
+					
+					// !!! We no longer own the data buffer at this point !!!
+					depacketizer.decodeInputData(packet);
+				}
+			}
+		}).start();
+	}
+	
+	private void startDecoderThread()
+	{
+		// Decoder thread
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				for (;;)
+				{
+					short[] samples;
+					try {
+						samples = depacketizer.getNextDecodedData();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+						return;
+					}
+					
+					track.write(samples, 0, samples.length);
+				}
+			}
+		}).start();
 	}
 	
 	private void startReceiveThread()
@@ -101,24 +219,4 @@ public class NvAudioStream {
 			}
 		}).start();
 	}
-	
-	/*public void startStream(String host) throws SocketException, UnknownHostException
-	{
-		System.out.println("Starting audio group");
-		group = new AudioGroup();
-		group.setMode(AudioGroup.MODE_NORMAL);
-		
-		System.out.println("Starting audio stream");
-		stream = new AudioStream(InetAddress.getByAddress(new byte[]{0,0,0,0}));
-		stream.setMode(AudioStream.MODE_NORMAL);
-		stream.associate(InetAddress.getByName(host), PORT);
-		stream.setCodec(AudioCodec.PCMA);
-		stream.join(group);
-		
-		for (AudioCodec c : AudioCodec.getCodecs())
-			System.out.println(c.type + " " + c.fmtp + " " + c.rtpmap);
-		
-		System.out.println("Joined");
-	}*/
-
 }

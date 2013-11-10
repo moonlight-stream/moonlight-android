@@ -161,7 +161,7 @@ public class AvVideoDepacketizer {
 		if (lastSequenceNumber != 0 &&
 			(short)(lastSequenceNumber + 1) != seq)
 		{
-			System.out.println("Received OOS data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
+			System.out.println("Received OOS video data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
 			
 			// Reset the depacketizer state
 			currentlyDecoding = AvDecodeUnit.TYPE_UNKNOWN;

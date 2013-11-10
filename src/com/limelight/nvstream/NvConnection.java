@@ -82,6 +82,7 @@ public class NvConnection {
 					startSteamBigPicture();
 					performHandshake();
 					startVideo(video);
+					startAudio();
 					beginControlStream();
 					controlStream.startJitterPackets();
 					startController();
@@ -99,6 +100,11 @@ public class NvConnection {
 	public void startVideo(Surface surface)
 	{
 		new NvVideoStream().startVideoStream(host, surface);
+	}
+	
+	public void startAudio()
+	{
+		new NvAudioStream().startAudioStream(host);
 	}
 	
 	public void sendMouseMove(final short deltaX, final short deltaY)

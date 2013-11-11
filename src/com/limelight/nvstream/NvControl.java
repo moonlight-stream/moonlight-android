@@ -327,8 +327,16 @@ public class NvControl {
 			int offset = 0;
 			do
 			{
-				offset = in.read(header, offset, header.length - offset);
+				int bytesRead = in.read(header, offset, header.length - offset);
+				if (bytesRead < 0) {
+					break;
+				}
+				offset += bytesRead;
 			} while (offset != header.length);
+			
+			if (offset != header.length) {
+				throw new IOException("Socket closed prematurely");
+			}
 			
 			ByteBuffer bb = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN);
 			
@@ -342,8 +350,16 @@ public class NvControl {
 				offset = 0;
 				do
 				{
-					offset = in.read(payload, offset, payload.length - offset);
+					int bytesRead = in.read(payload, offset, payload.length - offset);
+					if (bytesRead < 0) {
+						break;
+					}
+					offset += bytesRead;
 				} while (offset != payload.length);
+				
+				if (offset != payload.length) {
+					throw new IOException("Socket closed prematurely");
+				}
 			}
 		}
 		

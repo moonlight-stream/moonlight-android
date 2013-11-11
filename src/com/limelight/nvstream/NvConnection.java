@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
 import android.view.Surface;
 import android.widget.Toast;
 
@@ -39,27 +41,49 @@ public class NvConnection {
 	}
 	
 	public static String getMacAddressString() throws SocketException {
-		Enumeration<NetworkInterface> ifaceList = NetworkInterface.getNetworkInterfaces();
-		
-		while (ifaceList.hasMoreElements()) {
+		Enumeration<NetworkInterface> ifaceList;
+		NetworkInterface selectedIface = null;
+
+		// First look for a WLAN interface (since those generally aren't removable)
+		ifaceList = NetworkInterface.getNetworkInterfaces();
+		while (selectedIface == null && ifaceList.hasMoreElements()) {
 			NetworkInterface iface = ifaceList.nextElement();
-			
-			/* Look for the first non-loopback interface to use as the MAC address.
-			 * We don't require the interface to be up to avoid having to repair when
-			 * connecting over different interfaces */
-			if (!iface.isLoopback()) {
-				byte[] macAddress = iface.getHardwareAddress();
-				if (macAddress != null && macAddress.length == 6) {
-					StringBuilder addrStr = new StringBuilder();
-					for (int i = 0; i < macAddress.length; i++) {
-						addrStr.append(String.format("%02x", macAddress[i]));
-						if (i != macAddress.length - 1) {
-							addrStr.append(':');
-						}
-					}
-					return addrStr.toString();
+
+			if (iface.getName().startsWith("wlan")) {
+				selectedIface = iface;
+			}
+		}
+
+		// If we didn't find that, look for an Ethernet interface
+		ifaceList = NetworkInterface.getNetworkInterfaces();
+		while (selectedIface == null && ifaceList.hasMoreElements()) {
+			NetworkInterface iface = ifaceList.nextElement();
+
+			if (iface.getName().startsWith("eth")) {
+				selectedIface = iface;
+			}
+		}
+		
+		// Now just find something
+		ifaceList = NetworkInterface.getNetworkInterfaces();
+		if (ifaceList.hasMoreElements()) {
+			selectedIface = ifaceList.nextElement();
+		}
+		
+		if (selectedIface == null) {
+			return null;
+		}
+
+		byte[] macAddress = selectedIface.getHardwareAddress();
+		if (macAddress != null && macAddress.length == 6) {
+			StringBuilder addrStr = new StringBuilder();
+			for (int i = 0; i < macAddress.length; i++) {
+				addrStr.append(String.format("%02x", macAddress[i]));
+				if (i != macAddress.length - 1) {
+					addrStr.append(':');
 				}
 			}
+			return addrStr.toString();
 		}
 		
 		return null;
@@ -93,6 +117,8 @@ public class NvConnection {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
+				checkDataConnection();
+				
 				try {
 					host = InetAddress.getByName(host).getHostAddress();
 				} catch (UnknownHostException e) {
@@ -120,6 +146,14 @@ public class NvConnection {
 				}
 			}
 		}).start();
+	}
+	
+	private void checkDataConnection()
+	{
+		ConnectivityManager mgr = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+		if (mgr.isActiveNetworkMetered()) {
+			displayToast("Warning: Your active network connection is metered!");
+		}
 	}
 	
 	public void sendMouseMove(final short deltaX, final short deltaY)

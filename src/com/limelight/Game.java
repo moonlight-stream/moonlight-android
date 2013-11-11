@@ -363,6 +363,32 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		    	L2 = (event.getAxisValue(MotionEvent.AXIS_Z) + 1) / 2;
 		    	R2 = (event.getAxisValue(MotionEvent.AXIS_RZ) + 1) / 2;
 		    }
+		    
+		    InputDevice.MotionRange hatXRange = dev.getMotionRange(MotionEvent.AXIS_HAT_X);
+		    InputDevice.MotionRange hatYRange = dev.getMotionRange(MotionEvent.AXIS_HAT_Y);
+		    if (hatXRange != null && hatYRange != null)
+		    {
+		    	// Xbox controller D-pad
+		    	float hatX, hatY;
+		    	
+		    	hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X);
+		    	hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
+		    	
+		    	inputMap &= ~(NvControllerPacket.LEFT_FLAG | NvControllerPacket.RIGHT_FLAG);
+		    	inputMap &= ~(NvControllerPacket.UP_FLAG | NvControllerPacket.DOWN_FLAG);
+		    	if (hatX < -0.5) {
+		    		inputMap |= NvControllerPacket.LEFT_FLAG;
+		    	}
+		    	if (hatX > 0.5) {
+		    		inputMap |= NvControllerPacket.RIGHT_FLAG;
+		    	}
+		    	if (hatY < -0.5) {
+		    		inputMap |= NvControllerPacket.UP_FLAG;
+		    	}
+		    	if (hatY > 0.5) {
+		    		inputMap |= NvControllerPacket.DOWN_FLAG;
+		    	}
+		    }
 	    	
 		    leftStickX = (short)Math.round(LS_X * 0x7FFF);
 		    leftStickY = (short)Math.round(-LS_Y * 0x7FFF);

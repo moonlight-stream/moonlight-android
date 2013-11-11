@@ -64,8 +64,13 @@ public class NvAudioStream {
 			} catch (InterruptedException e) { }
 		}
 		
-		//session.endSession();
-		track.release();
+
+		if (session != null) {
+			//session.endSession();
+		}
+		if (track != null) {
+			track.release();
+		}
 		
 		threads.clear();
 	}

@@ -36,6 +36,8 @@ public class NvVideoStream {
 	
 	private RTPSession session;
 	private DatagramSocket rtp, rtcp;
+	private Socket firstFrameSocket;
+
 	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
 
@@ -63,6 +65,11 @@ public class NvVideoStream {
 		if (rtcp != null) {
 			rtcp.close();
 		}
+		if (firstFrameSocket != null) {
+			try {
+				firstFrameSocket.close();
+			} catch (IOException e) {}
+		}
 		
 		// Wait for threads to terminate
 		for (Thread t : threads) {
@@ -71,8 +78,12 @@ public class NvVideoStream {
 			} catch (InterruptedException e) { }
 		}
 		
-		//session.endSession();
-		videoDecoder.release();
+		if (session != null) {
+			//session.endSession();
+		}
+		if (videoDecoder != null) {
+			videoDecoder.release();
+		}
 		
 		threads.clear();
 	}
@@ -85,27 +96,30 @@ public class NvVideoStream {
 	private void readFirstFrame(String host) throws IOException
 	{
 		byte[] firstFrame = depacketizer.allocatePacketBuffer();
-		Socket s = new Socket(host, FIRST_FRAME_PORT);
 		
 		System.out.println("VID: Waiting for first frame");
-		InputStream firstFrameStream = s.getInputStream();
-		
-		int offset = 0;
-		for (;;)
-		{
-			int bytesRead = firstFrameStream.read(firstFrame, offset, firstFrame.length-offset);
-			
-			if (bytesRead == -1)
-				break;
-			
-			offset += bytesRead;
-		}
-		
-		s.close();
-		
-		System.out.println("VID: First frame read ("+offset+" bytes)");
+		firstFrameSocket = new Socket(host, FIRST_FRAME_PORT);
 
-		depacketizer.addInputData(new AvVideoPacket(new AvByteBufferDescriptor(firstFrame, 0, offset)));
+		try {
+			InputStream firstFrameStream = firstFrameSocket.getInputStream();
+			
+			int offset = 0;
+			for (;;)
+			{
+				int bytesRead = firstFrameStream.read(firstFrame, offset, firstFrame.length-offset);
+				
+				if (bytesRead == -1)
+					break;
+				
+				offset += bytesRead;
+			}
+			
+			System.out.println("VID: First frame read ("+offset+" bytes)");
+			depacketizer.addInputData(new AvVideoPacket(new AvByteBufferDescriptor(firstFrame, 0, offset)));
+		} finally {
+			firstFrameSocket.close();
+			firstFrameSocket = null;	
+		}
 	}
 	
 	public void setupRtpSession(String host) throws SocketException
@@ -161,7 +175,6 @@ public class NvVideoStream {
 				try {
 					readFirstFrame(host);
 				} catch (IOException e2) {
-					e2.printStackTrace();
 					abort();
 					return;
 				}

@@ -67,6 +67,8 @@ public class NvConnection {
 	
 	public void stop()
 	{
+		threadPool.shutdownNow();
+		
 		videoStream.abort();
 		audioStream.abort();
 		
@@ -111,9 +113,10 @@ public class NvConnection {
 				} catch (XmlPullParserException e) {
 					e.printStackTrace();
 					displayToast(e.getMessage());
+					stop();
 				} catch (IOException e) {
-					e.printStackTrace();
 					displayToast(e.getMessage());
+					stop();
 				}
 			}
 		}).start();
@@ -130,8 +133,8 @@ public class NvConnection {
 				try {
 					inputStream.sendMouseMove(deltaX, deltaY);
 				} catch (IOException e) {
-					e.printStackTrace();
 					displayToast(e.getMessage());
+					NvConnection.this.stop();
 				}
 			}
 		});
@@ -148,8 +151,8 @@ public class NvConnection {
 				try {
 					inputStream.sendMouseButtonDown();
 				} catch (IOException e) {
-					e.printStackTrace();
 					displayToast(e.getMessage());
+					NvConnection.this.stop();
 				}
 			}
 		});
@@ -166,8 +169,8 @@ public class NvConnection {
 				try {
 					inputStream.sendMouseButtonUp();
 				} catch (IOException e) {
-					e.printStackTrace();
 					displayToast(e.getMessage());
+					NvConnection.this.stop();
 				}
 			}
 		});
@@ -189,8 +192,8 @@ public class NvConnection {
 							rightTrigger, leftStickX, leftStickY,
 							rightStickX, rightStickY);
 				} catch (IOException e) {
-					e.printStackTrace();
 					displayToast(e.getMessage());
+					NvConnection.this.stop();
 				}
 			}
 		});

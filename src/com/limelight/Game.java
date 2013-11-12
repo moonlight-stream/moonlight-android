@@ -333,76 +333,90 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	@Override
 	public boolean onGenericMotionEvent(MotionEvent event) {
 		InputDevice dev = event.getDevice();
-		
+
 		if (dev == null) {
 			System.err.println("Unknown device");
 			return false;
 		}
-		
-	    if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
-		    float LS_X = event.getAxisValue(MotionEvent.AXIS_X);
-		    float LS_Y = event.getAxisValue(MotionEvent.AXIS_Y);
-		    
-		    float RS_X, RS_Y, L2, R2;
-		    
-		    InputDevice.MotionRange l2Range = dev.getMotionRange(MotionEvent.AXIS_LTRIGGER);
-		    InputDevice.MotionRange r2Range = dev.getMotionRange(MotionEvent.AXIS_RTRIGGER);
-		    if (l2Range != null && r2Range != null)
-		    {
-		    	// Ouya controller
-		    	RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
-		    	RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
-		    	L2 = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
-		    	R2 = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
-		    }
-		    else
-		    {
-		    	// Xbox controller
-		    	RS_X = event.getAxisValue(MotionEvent.AXIS_RX);
-		    	RS_Y = event.getAxisValue(MotionEvent.AXIS_RY);
-		    	L2 = (event.getAxisValue(MotionEvent.AXIS_Z) + 1) / 2;
-		    	R2 = (event.getAxisValue(MotionEvent.AXIS_RZ) + 1) / 2;
-		    }
-		    
-		    InputDevice.MotionRange hatXRange = dev.getMotionRange(MotionEvent.AXIS_HAT_X);
-		    InputDevice.MotionRange hatYRange = dev.getMotionRange(MotionEvent.AXIS_HAT_Y);
-		    if (hatXRange != null && hatYRange != null)
-		    {
-		    	// Xbox controller D-pad
-		    	float hatX, hatY;
-		    	
-		    	hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X);
-		    	hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
-		    	
-		    	inputMap &= ~(NvControllerPacket.LEFT_FLAG | NvControllerPacket.RIGHT_FLAG);
-		    	inputMap &= ~(NvControllerPacket.UP_FLAG | NvControllerPacket.DOWN_FLAG);
-		    	if (hatX < -0.5) {
-		    		inputMap |= NvControllerPacket.LEFT_FLAG;
-		    	}
-		    	if (hatX > 0.5) {
-		    		inputMap |= NvControllerPacket.RIGHT_FLAG;
-		    	}
-		    	if (hatY < -0.5) {
-		    		inputMap |= NvControllerPacket.UP_FLAG;
-		    	}
-		    	if (hatY > 0.5) {
-		    		inputMap |= NvControllerPacket.DOWN_FLAG;
-		    	}
-		    }
-	    	
-		    leftStickX = (short)Math.round(LS_X * 0x7FFF);
-		    leftStickY = (short)Math.round(-LS_Y * 0x7FFF);
-		    
-		    rightStickX = (short)Math.round(RS_X * 0x7FFF);
-		    rightStickY = (short)Math.round(-RS_Y * 0x7FFF);
-		    
-		    leftTrigger = (byte)Math.round(L2 * 0xFF);
-		    rightTrigger = (byte)Math.round(R2 * 0xFF);
-		    
-		    sendControllerInputPacket();
-		    return true;
+
+		if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
+			float LS_X = event.getAxisValue(MotionEvent.AXIS_X);
+			float LS_Y = event.getAxisValue(MotionEvent.AXIS_Y);
+
+			float RS_X, RS_Y, L2, R2;
+
+			InputDevice.MotionRange leftTriggerRange = dev.getMotionRange(MotionEvent.AXIS_LTRIGGER);
+			InputDevice.MotionRange rightTriggerRange = dev.getMotionRange(MotionEvent.AXIS_RTRIGGER);
+			if (leftTriggerRange != null && rightTriggerRange != null)
+			{
+				// Ouya controller
+				L2 = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
+				R2 = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+				RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
+				RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
+			}
+			else
+			{
+				InputDevice.MotionRange brakeRange = dev.getMotionRange(MotionEvent.AXIS_BRAKE);
+				InputDevice.MotionRange gasRange = dev.getMotionRange(MotionEvent.AXIS_GAS);
+				if (brakeRange != null && gasRange != null)
+				{
+					// Moga controller
+					RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
+					RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
+					L2 = event.getAxisValue(MotionEvent.AXIS_BRAKE);
+					R2 = event.getAxisValue(MotionEvent.AXIS_GAS);
+				}
+				else
+				{
+					// Xbox controller
+					RS_X = event.getAxisValue(MotionEvent.AXIS_RX);
+					RS_Y = event.getAxisValue(MotionEvent.AXIS_RY);
+					L2 = (event.getAxisValue(MotionEvent.AXIS_Z) + 1) / 2;
+					R2 = (event.getAxisValue(MotionEvent.AXIS_RZ) + 1) / 2;
+				}
+			}
+
+
+			InputDevice.MotionRange hatXRange = dev.getMotionRange(MotionEvent.AXIS_HAT_X);
+			InputDevice.MotionRange hatYRange = dev.getMotionRange(MotionEvent.AXIS_HAT_Y);
+			if (hatXRange != null && hatYRange != null)
+			{
+				// Xbox controller D-pad
+				float hatX, hatY;
+
+				hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X);
+				hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
+
+				inputMap &= ~(NvControllerPacket.LEFT_FLAG | NvControllerPacket.RIGHT_FLAG);
+				inputMap &= ~(NvControllerPacket.UP_FLAG | NvControllerPacket.DOWN_FLAG);
+				if (hatX < -0.5) {
+					inputMap |= NvControllerPacket.LEFT_FLAG;
+				}
+				if (hatX > 0.5) {
+					inputMap |= NvControllerPacket.RIGHT_FLAG;
+				}
+				if (hatY < -0.5) {
+					inputMap |= NvControllerPacket.UP_FLAG;
+				}
+				if (hatY > 0.5) {
+					inputMap |= NvControllerPacket.DOWN_FLAG;
+				}
+			}
+
+			leftStickX = (short)Math.round(LS_X * 0x7FFF);
+			leftStickY = (short)Math.round(-LS_Y * 0x7FFF);
+
+			rightStickX = (short)Math.round(RS_X * 0x7FFF);
+			rightStickY = (short)Math.round(-RS_Y * 0x7FFF);
+
+			leftTrigger = (byte)Math.round(L2 * 0xFF);
+			rightTrigger = (byte)Math.round(R2 * 0xFF);
+
+			sendControllerInputPacket();
+			return true;
 		}
-	    else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
+		else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
 		{	
 			// Send a mouse move update (if neccessary)
 			updateMousePosition((int)event.getX(), (int)event.getY());

@@ -1,5 +1,6 @@
 #include "nv_opus_dec.h"
 
+#include <stdlib.h>
 #include <jni.h>
 
 // This function must be called before
@@ -48,13 +49,19 @@ Java_com_limelight_nvstream_av_audio_OpusDecoder_decode(
 	jbyte* jni_input_data;
 	jshort* jni_pcm_data;
 
-	jni_input_data = (*env)->GetByteArrayElements(env, indata, 0);
-	jni_pcm_data = (*env)->GetShortArrayElements(env, outpcmdata, 0); 
+	jni_pcm_data = (*env)->GetShortArrayElements(env, outpcmdata, 0);
+	if (indata != NULL) {
+		jni_input_data = (*env)->GetByteArrayElements(env, indata, 0);
 
-	ret = nv_opus_decode(&jni_input_data[inoff], inlen, jni_pcm_data);
+		ret = nv_opus_decode(&jni_input_data[inoff], inlen, jni_pcm_data);
 
-	// The input data isn't changed so it can be safely aborted
-	(*env)->ReleaseByteArrayElements(env, indata, jni_input_data, JNI_ABORT);
+		// The input data isn't changed so it can be safely aborted
+		(*env)->ReleaseByteArrayElements(env, indata, jni_input_data, JNI_ABORT);
+	}
+	else {
+		ret = nv_opus_decode(NULL, 0, jni_pcm_data);
+	}
+
 	(*env)->ReleaseShortArrayElements(env, outpcmdata, jni_pcm_data, 0);
 
 	return ret;

@@ -30,7 +30,7 @@ int nv_opus_get_channel_count(void) {
 
 // This number assumes 2 channels at 48 KHz
 int nv_opus_get_max_out_shorts(void) {
-	return 5760*2;
+	return 512*nv_opus_get_channel_count();
 }
 
 // The Opus stream is 48 KHz
@@ -48,7 +48,7 @@ int nv_opus_decode(unsigned char* indata, int inlen, short* outpcmdata) {
 	// Decoding to 16-bit PCM with FEC off
 	// Maximum length assuming 48KHz sample rate
 	err = opus_decode(decoder, indata, inlen,
-		outpcmdata, 5760, 0);
+		outpcmdata, 512, 0);
 
 	return err;
 }

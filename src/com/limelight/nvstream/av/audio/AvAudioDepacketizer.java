@@ -11,7 +11,7 @@ public class AvAudioDepacketizer {
 	private LinkedBlockingQueue<AvShortBufferDescriptor> decodedUnits =
 			new LinkedBlockingQueue<AvShortBufferDescriptor>(15);
 	
-	private AvShortBufferPool pool = new AvShortBufferPool(512);
+	private AvShortBufferPool pool = new AvShortBufferPool(OpusDecoder.getMaxOutputShorts());
 	
 	// Sequencing state
 	private short lastSequenceNumber;
@@ -19,6 +19,28 @@ public class AvAudioDepacketizer {
 	public void trim()
 	{
 		pool.purge();
+	}
+	
+	private void decodeData(byte[] data, int off, int len)
+	{
+		// Submit this data to the decoder
+		short[] pcmData = pool.allocate();
+		int decodeLen = OpusDecoder.decode(data, off, len, pcmData);
+		
+		if (decodeLen > 0) {
+			// Return value of decode is frames decoded per channel
+			decodeLen *= OpusDecoder.getChannelCount();
+			
+			// Put it on the decoded queue
+			if (!decodedUnits.offer(new AvShortBufferDescriptor(pcmData, 0, decodeLen)))
+			{
+				pool.free(pcmData);
+			}
+		}
+		else {
+			System.out.println("decode failed: "+decodeLen);
+			pool.free(pcmData);
+		}
 	}
 	
 	public void decodeInputData(AvRtpPacket packet)
@@ -36,34 +58,14 @@ public class AvAudioDepacketizer {
 			(short)(lastSequenceNumber + 1) != seq)
 		{
 			System.out.println("Received OOS audio data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
-			
-			// Tell the decoder about this packet loss
-			//OpusDecoder.decode(null, 0, 0, null);
+			decodeData(null, 0, 0);
 		}
 		
-		lastSequenceNumber = seq;		
+		lastSequenceNumber = seq;
 		
 		// This is all the depacketizing we need to do
 		AvByteBufferDescriptor rtpPayload = packet.getNewPayloadDescriptor();
-
-		// Submit this data to the decoder
-		short[] pcmData = pool.allocate();
-		int decodeLen = OpusDecoder.decode(rtpPayload.data, rtpPayload.offset, rtpPayload.length, pcmData);
-		
-		if (decodeLen > 0) {
-			// Return value of decode is frames decoded per channel
-			decodeLen *= OpusDecoder.getChannelCount();
-			
-			// Put it on the decoded queue
-			if (!decodedUnits.offer(new AvShortBufferDescriptor(pcmData, 0, decodeLen)))
-			{
-				pool.free(pcmData);
-			}
-		}
-		else {
-			System.out.println("decode failed: "+decodeLen);
-			pool.free(pcmData);
-		}
+		decodeData(rtpPayload.data, rtpPayload.offset, rtpPayload.length);
 	}
 	
 	public void releaseBuffer(AvShortBufferDescriptor decodedData)

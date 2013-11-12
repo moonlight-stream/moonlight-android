@@ -170,8 +170,9 @@ public class NvAudioStream {
 						return;
 					}
 					
-					// !!! We no longer own the data buffer at this point !!!
 					depacketizer.decodeInputData(packet);
+					
+					pool.free(packet.getBackingBuffer());
 				}
 			}
 		};

@@ -34,6 +34,11 @@ public class AvRtpPacket {
 		return seqNum;
 	}
 	
+	public byte[] getBackingBuffer()
+	{
+		return buffer.data;
+	}
+	
 	public AvByteBufferDescriptor getNewPayloadDescriptor()
 	{
 		return new AvByteBufferDescriptor(buffer.data, buffer.offset+12, buffer.length-12);

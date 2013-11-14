@@ -49,7 +49,8 @@ public class NvConnection {
 		while (selectedIface == null && ifaceList.hasMoreElements()) {
 			NetworkInterface iface = ifaceList.nextElement();
 
-			if (iface.getName().startsWith("wlan")) {
+			if (iface.getName().startsWith("wlan") && 
+				iface.getHardwareAddress() != null) {
 				selectedIface = iface;
 			}
 		}
@@ -59,15 +60,21 @@ public class NvConnection {
 		while (selectedIface == null && ifaceList.hasMoreElements()) {
 			NetworkInterface iface = ifaceList.nextElement();
 
-			if (iface.getName().startsWith("eth")) {
+			if (iface.getName().startsWith("eth") &&
+				iface.getHardwareAddress() != null) {
 				selectedIface = iface;
 			}
 		}
 		
-		// Now just find something
+		// Now just find something with a MAC address
 		ifaceList = NetworkInterface.getNetworkInterfaces();
-		if (ifaceList.hasMoreElements()) {
+		while (selectedIface == null && ifaceList.hasMoreElements()) {
+			NetworkInterface iface = ifaceList.nextElement();
+
+			if (iface.getHardwareAddress() != null) {
 			selectedIface = ifaceList.nextElement();
+				break;
+			}
 		}
 		
 		if (selectedIface == null) {
@@ -75,7 +82,7 @@ public class NvConnection {
 		}
 
 		byte[] macAddress = selectedIface.getHardwareAddress();
-		if (macAddress != null && macAddress.length == 6) {
+		if (macAddress != null) {
 			StringBuilder addrStr = new StringBuilder();
 			for (int i = 0; i < macAddress.length; i++) {
 				addrStr.append(String.format("%02x", macAddress[i]));

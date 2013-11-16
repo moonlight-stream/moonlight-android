@@ -37,7 +37,7 @@ public class NvVideoStream {
 	private RTPSession session;
 	private DatagramSocket rtp, rtcp;
 	private Socket firstFrameSocket;
-
+	
 	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
 
@@ -118,7 +118,7 @@ public class NvVideoStream {
 			depacketizer.addInputData(new AvVideoPacket(new AvByteBufferDescriptor(firstFrame, 0, offset)));
 		} finally {
 			firstFrameSocket.close();
-			firstFrameSocket = null;	
+			firstFrameSocket = null;
 		}
 	}
 	
@@ -236,7 +236,7 @@ public class NvVideoStream {
 									}
 									
 									depacketizer.releaseDecodeUnit(du);
-
+									
 									videoDecoder.queueInputBuffer(inputIndex,
 												0, du.getDataLength(),
 												0, du.getFlags());
@@ -354,6 +354,7 @@ public class NvVideoStream {
 	
 	private void outputDisplayLoop(Thread t)
 	{
+		long nextFrameTimeUs = 0;
 		while (!t.isInterrupted())
 		{
 			BufferInfo info = new BufferInfo();
@@ -370,8 +371,23 @@ public class NvVideoStream {
 		      break;
 		    }
 		    if (outIndex >= 0) {
-		    	videoDecoder.releaseOutputBuffer(outIndex, true);
+		    	boolean render = false;
+		    	
+		    	if (currentTimeUs() >= nextFrameTimeUs) {
+		    		render = true;
+		    		nextFrameTimeUs = computePresentationTime(60);
+		    	}
+		    	
+		    	videoDecoder.releaseOutputBuffer(outIndex, render);
 		    }
 		}
+	}
+	
+	private static long currentTimeUs() {
+		return System.nanoTime() / 1000;
+	}
+
+	private long computePresentationTime(int frameRate) {
+		return currentTimeUs() + (1000000 / frameRate);
 	}
 }

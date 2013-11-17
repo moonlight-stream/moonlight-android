@@ -168,9 +168,16 @@ public class AvVideoDepacketizer {
 				}
 				else
 				{
-					// Not either sequence we want
+					// Check if this is padding after a full AVC frame
+					if (currentlyDecoding == AvDecodeUnit.TYPE_H264 &&
+						NAL.isPadding(specialSeq)) {
+						// The decode unit is complete
+						reassembleAvcNal();
+					}
+
+					// Not decoding AVC
 					currentlyDecoding = AvDecodeUnit.TYPE_UNKNOWN;
-					
+
 					// Just skip this byte
 					location.length--;
 					location.offset++;

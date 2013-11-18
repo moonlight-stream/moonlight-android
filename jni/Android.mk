@@ -1,20 +1,19 @@
-# Android.mk for Limelight's Opus decoder
+# Android.mk for Limelight's AV decoder
+MY_LOCAL_PATH := $(call my-dir)
 
-# This allows the the build system to find the source files
-LOCAL_PATH := $(call my-dir)
+include $(call all-subdir-makefiles)
 
-# This clears local variables for us
+LOCAL_PATH := $(MY_LOCAL_PATH)
+
 include $(CLEAR_VARS)
+LOCAL_MODULE    := nv_av_dec
+LOCAL_SRC_FILES := nv_opus_dec.c nv_opus_dec_jni.c \
+                   nv_avc_dec.c nv_avc_dec_jni.c
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/libopus/inc \
+                    $(LOCAL_PATH)/ffmpeg/$(TARGET_ARCH_ABI)/include
 
-# Declare our module name and source files
-LOCAL_MODULE    := nv_opus_dec
-LOCAL_SRC_FILES := nv_opus_dec.c nv_opus_dec_jni.c
+# Link to libopus and ffmpeg libraries
+LOCAL_STATIC_LIBRARIES := libopus
+LOCAL_SHARED_LIBRARIES := libavcodec libavformat libswscale libavutil libavfilter libwsresample
 
-# Set the local include path to the GMP directory for our architecture
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/libopus/inc
-
-# Link to libopus
-LOCAL_LDLIBS := -L$(LOCAL_PATH)/libopus/$(TARGET_ARCH_ABI) -lopus
-
-# Build a shared library
 include $(BUILD_SHARED_LIBRARY)

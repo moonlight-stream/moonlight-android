@@ -2,7 +2,7 @@ package com.limelight.nvstream.av.audio;
 
 public class OpusDecoder {
 	static {
-		System.loadLibrary("nv_opus_dec");
+		System.loadLibrary("nv_av_dec");
 	}
 	
 	public static native int init();

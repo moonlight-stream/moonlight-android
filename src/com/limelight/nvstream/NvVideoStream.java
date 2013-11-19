@@ -6,7 +6,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -15,13 +14,13 @@ import com.limelight.nvstream.av.AvDecodeUnit;
 import com.limelight.nvstream.av.AvRtpPacket;
 import com.limelight.nvstream.av.video.AvVideoDepacketizer;
 import com.limelight.nvstream.av.video.AvVideoPacket;
+import com.limelight.nvstream.av.video.CpuDecoderRenderer;
+import com.limelight.nvstream.av.video.DecoderRenderer;
+import com.limelight.nvstream.av.video.MediaCodecDecoderRenderer;
 
 import jlibrtp.Participant;
 import jlibrtp.RTPSession;
 
-import android.media.MediaCodec;
-import android.media.MediaCodec.BufferInfo;
-import android.media.MediaFormat;
 import android.view.Surface;
 
 public class NvVideoStream {
@@ -29,19 +28,17 @@ public class NvVideoStream {
 	public static final int RTCP_PORT = 47999;
 	public static final int FIRST_FRAME_PORT = 47996;
 	
-	private ByteBuffer[] videoDecoderInputBuffers;
-	private MediaCodec videoDecoder;
-	
 	private LinkedBlockingQueue<AvRtpPacket> packets = new LinkedBlockingQueue<AvRtpPacket>();
 	
 	private RTPSession session;
 	private DatagramSocket rtp, rtcp;
 	private Socket firstFrameSocket;
 	
-	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
 
 	private AvVideoDepacketizer depacketizer = new AvVideoDepacketizer();
+	
+	private DecoderRenderer decrend;
 	
 	private boolean aborting = false;
 	
@@ -81,8 +78,8 @@ public class NvVideoStream {
 		if (session != null) {
 			//session.endSession();
 		}
-		if (videoDecoder != null) {
-			videoDecoder.release();
+		if (decrend != null) {
+			decrend.release();
 		}
 		
 		threads.clear();
@@ -135,18 +132,23 @@ public class NvVideoStream {
 		session.addParticipant(new Participant(host, RTP_PORT, RTCP_PORT));
 	}
 	
-	public void setupDecoders(Surface surface)
-	{
-		videoDecoder = MediaCodec.createDecoderByType("video/avc");
-		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", 1280, 720);
-
-		videoDecoder.configure(videoFormat, surface, null, 0);
-
-		videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+	public void setupDecoderRenderer(Surface renderTarget) {
+		boolean requiresCpuDecoding = true;
 		
-		videoDecoder.start();
-
-		videoDecoderInputBuffers = videoDecoder.getInputBuffers();
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+			if (MediaCodecDecoderRenderer.hasWhitelistedDecoder()) {
+				requiresCpuDecoding = false;
+			}
+		}
+		
+		if (requiresCpuDecoding) {
+			decrend = new CpuDecoderRenderer();
+		}
+		else {
+			decrend = new MediaCodecDecoderRenderer();
+		}
+		
+		decrend.setup(1280, 720, renderTarget);
 	}
 
 	public void startVideoStream(final String host, final Surface surface)
@@ -155,8 +157,8 @@ public class NvVideoStream {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				// Setup the decoder context
-				setupDecoders(surface);
+				// Setup the decoder and renderer
+				setupDecoderRenderer(surface);
 				
 				// Open RTP sockets and start session
 				try {
@@ -189,8 +191,7 @@ public class NvVideoStream {
 				// Start decoding the data we're receiving
 				startDecoderThread();
 				
-				// Render the frames that are coming out of the decoder
-				outputDisplayLoop(this);
+				decrend.start();
 			}
 		};
 		threads.add(t);
@@ -199,7 +200,6 @@ public class NvVideoStream {
 	
 	private void startDecoderThread()
 	{
-		// Decoder thread
 		Thread t = new Thread() {
 			@Override
 			public void run() {
@@ -207,6 +207,7 @@ public class NvVideoStream {
 				while (!isInterrupted())
 				{
 					AvDecodeUnit du;
+					
 					try {
 						du = depacketizer.getNextDecodeUnit();
 					} catch (InterruptedException e) {
@@ -214,46 +215,9 @@ public class NvVideoStream {
 						return;
 					}
 					
-					switch (du.getType())
-					{
-						case AvDecodeUnit.TYPE_H264:
-						{
-							// Wait for an input buffer or thread termination
-							while (!isInterrupted())
-							{
-								int inputIndex = videoDecoder.dequeueInputBuffer(100);
-								if (inputIndex >= 0)
-								{
-									ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
-									
-									// Clear old input data
-									buf.clear();
-									
-									// Copy data from our buffer list into the input buffer
-									for (AvByteBufferDescriptor desc : du.getBufferList())
-									{
-										buf.put(desc.data, desc.offset, desc.length);
-									}
-									
-									depacketizer.releaseDecodeUnit(du);
-									
-									videoDecoder.queueInputBuffer(inputIndex,
-												0, du.getDataLength(),
-												0, du.getFlags());
-									
-									break;
-								}
-							}
-						}
-						break;
+					decrend.submitDecodeUnit(du);
 					
-						default:
-						{
-							System.err.println("Unknown decode unit type");
-							abort();
-							return;
-						}
-					}
+					depacketizer.releaseDecodeUnit(du);
 				}
 			}
 		};
@@ -350,44 +314,5 @@ public class NvVideoStream {
 		};
 		threads.add(t);
 		t.start();
-	}
-	
-	private void outputDisplayLoop(Thread t)
-	{
-		long nextFrameTimeUs = 0;
-		while (!t.isInterrupted())
-		{
-			BufferInfo info = new BufferInfo();
-			int outIndex = videoDecoder.dequeueOutputBuffer(info, 100);
-		    switch (outIndex) {
-		    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-		    	System.out.println("Output buffers changed");
-			    break;
-		    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-		    	System.out.println("Output format changed");
-		    	System.out.println("New output Format: " + videoDecoder.getOutputFormat());
-		    	break;
-		    default:
-		      break;
-		    }
-		    if (outIndex >= 0) {
-		    	boolean render = false;
-		    	
-		    	if (currentTimeUs() >= nextFrameTimeUs) {
-		    		render = true;
-		    		nextFrameTimeUs = computePresentationTime(60);
-		    	}
-		    	
-		    	videoDecoder.releaseOutputBuffer(outIndex, render);
-		    }
-		}
-	}
-	
-	private static long currentTimeUs() {
-		return System.nanoTime() / 1000;
-	}
-
-	private long computePresentationTime(int frameRate) {
-		return currentTimeUs() + (1000000 / frameRate);
 	}
 }

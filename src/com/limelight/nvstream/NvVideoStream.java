@@ -20,6 +20,7 @@ import com.limelight.nvstream.av.video.CpuDecoderRenderer;
 import com.limelight.nvstream.av.video.DecoderRenderer;
 import com.limelight.nvstream.av.video.MediaCodecDecoderRenderer;
 
+import android.os.Build;
 import android.view.Surface;
 
 public class NvVideoStream {
@@ -125,23 +126,23 @@ public class NvVideoStream {
 		System.out.println("SEND BUF: "+rtp.getSendBufferSize());
 	}
 	
-	public void setupDecoderRenderer(Surface renderTarget) {
-		boolean requiresCpuDecoding = true;
-		
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-			if (MediaCodecDecoderRenderer.hasWhitelistedDecoder()) {
-				requiresCpuDecoding = false;
-			}
+	public void setupDecoderRenderer(Surface renderTarget) {		
+		if (Build.HARDWARE.equals("goldfish")) {
+			// Emulator - don't render video (it's slow!)
+			decrend = null;
 		}
-		
-		if (requiresCpuDecoding) {
-			decrend = new CpuDecoderRenderer();
-		}
-		else {
+		else if (MediaCodecDecoderRenderer.hasWhitelistedDecoder()) {
+			// Hardware decoding
 			decrend = new MediaCodecDecoderRenderer();
 		}
+		else {
+			// Software decoding
+			decrend = new CpuDecoderRenderer();
+		}
 		
-		decrend.setup(1280, 720, renderTarget);
+		if (decrend != null) {
+			decrend.setup(1280, 720, renderTarget);
+		}
 	}
 
 	public void startVideoStream(final String host, final Surface surface)
@@ -180,19 +181,21 @@ public class NvVideoStream {
 					return;
 				}
 				
-				// Start the receive thread early to avoid missing
-				// early packets
-				startReceiveThread();
-				
-				// Start the depacketizer thread to deal with the RTP data
-				startDepacketizerThread();
-				
-				// Start decoding the data we're receiving
-				startDecoderThread();
-				
-				// Start the renderer
-				decrend.start();
-				startedRendering = true;
+				if (decrend != null) {
+					// Start the receive thread early to avoid missing
+					// early packets
+					startReceiveThread();
+					
+					// Start the depacketizer thread to deal with the RTP data
+					startDepacketizerThread();
+					
+					// Start decoding the data we're receiving
+					startDecoderThread();
+					
+					// Start the renderer
+					decrend.start();
+					startedRendering = true;
+				}
 			}
 		};
 		threads.add(t);

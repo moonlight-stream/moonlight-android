@@ -105,6 +105,10 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 	@Override
 	public void stop() {
 		rendererThread.interrupt();
+		
+		try {
+			rendererThread.join();
+		} catch (InterruptedException e) { }
 	}
 
 	@Override

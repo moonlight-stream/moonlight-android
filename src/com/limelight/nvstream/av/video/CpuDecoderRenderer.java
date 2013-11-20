@@ -2,7 +2,6 @@ package com.limelight.nvstream.av.video;
 
 import java.nio.ByteBuffer;
 
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.view.Surface;
 
@@ -66,6 +65,10 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 	@Override
 	public void stop() {
 		rendererThread.interrupt();
+		
+		try {
+			rendererThread.join();
+		} catch (InterruptedException e) { }
 	}
 
 	@Override

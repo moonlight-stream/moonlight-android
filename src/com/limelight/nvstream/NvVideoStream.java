@@ -37,6 +37,7 @@ public class NvVideoStream {
 	private AvVideoDepacketizer depacketizer = new AvVideoDepacketizer();
 	
 	private DecoderRenderer decrend;
+	private boolean startedRendering;
 	
 	private boolean aborting = false;
 	
@@ -68,6 +69,10 @@ public class NvVideoStream {
 			try {
 				t.join();
 			} catch (InterruptedException e) { }
+		}
+		
+		if (startedRendering) {
+			decrend.stop();
 		}
 		
 		if (decrend != null) {
@@ -187,6 +192,7 @@ public class NvVideoStream {
 				
 				// Start the renderer
 				decrend.start();
+				startedRendering = true;
 			}
 		};
 		threads.add(t);

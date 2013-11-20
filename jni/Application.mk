@@ -1,10 +1,10 @@
 # Application.mk for Limelight
 
-# Our minimum version is Android 3.0
-APP_PLATFORM := android-11
+# Our minimum version is Android 4.1
+APP_PLATFORM := android-16
 
-# We only build for ABIs that we have binaries for
-APP_ABI := armeabi-v7a armeabi x86
+# NOTE: our armeabi-v7a libraries require NEON support
+APP_ABI := armeabi-v7a x86
 
 # We want an optimized build
 APP_OPTIM := release

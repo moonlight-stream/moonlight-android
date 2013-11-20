@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -18,9 +20,6 @@ import com.limelight.nvstream.av.video.CpuDecoderRenderer;
 import com.limelight.nvstream.av.video.DecoderRenderer;
 import com.limelight.nvstream.av.video.MediaCodecDecoderRenderer;
 
-import jlibrtp.Participant;
-import jlibrtp.RTPSession;
-
 import android.view.Surface;
 
 public class NvVideoStream {
@@ -30,8 +29,7 @@ public class NvVideoStream {
 	
 	private LinkedBlockingQueue<AvRtpPacket> packets = new LinkedBlockingQueue<AvRtpPacket>();
 	
-	private RTPSession session;
-	private DatagramSocket rtp, rtcp;
+	private DatagramSocket rtp;
 	private Socket firstFrameSocket;
 	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
@@ -59,9 +57,6 @@ public class NvVideoStream {
 		if (rtp != null) {
 			rtp.close();
 		}
-		if (rtcp != null) {
-			rtcp.close();
-		}
 		if (firstFrameSocket != null) {
 			try {
 				firstFrameSocket.close();
@@ -75,9 +70,6 @@ public class NvVideoStream {
 			} catch (InterruptedException e) { }
 		}
 		
-		if (session != null) {
-			//session.endSession();
-		}
 		if (decrend != null) {
 			decrend.release();
 		}
@@ -119,17 +111,13 @@ public class NvVideoStream {
 		}
 	}
 	
-	public void setupRtpSession(String host) throws SocketException
+	public void setupRtpSession(String host) throws SocketException, UnknownHostException
 	{
 		rtp = new DatagramSocket(RTP_PORT);
-		rtcp = new DatagramSocket(RTCP_PORT);
-		
+		rtp.connect(InetAddress.getByName(host), RTP_PORT);
 		rtp.setReceiveBufferSize(2097152);
 		System.out.println("RECV BUF: "+rtp.getReceiveBufferSize());
 		System.out.println("SEND BUF: "+rtp.getSendBufferSize());
-		
-		session = new RTPSession(rtp, rtcp);
-		session.addParticipant(new Participant(host, RTP_PORT, RTCP_PORT));
 	}
 	
 	public void setupDecoderRenderer(Surface renderTarget) {
@@ -150,8 +138,19 @@ public class NvVideoStream {
 		
 		decrend.setup(1280, 720, renderTarget);
 	}
+	
+	public void startVideoStream(final String host)
+	{
+		// Read the first frame to start the UDP video stream
+		try {
+			readFirstFrame(host);
+		} catch (IOException e2) {
+			abort();
+			return;
+		}
+	}
 
-	public void startVideoStream(final String host, final Surface surface)
+	public void setupVideoStream(final String host, final Surface surface)
 	{
 		// This thread becomes the output display thread
 		Thread t = new Thread() {
@@ -163,8 +162,11 @@ public class NvVideoStream {
 				// Open RTP sockets and start session
 				try {
 					setupRtpSession(host);
-				} catch (SocketException e1) {
-					e1.printStackTrace();
+				} catch (SocketException e) {
+					e.printStackTrace();
+					return;
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
 					return;
 				}
 				
@@ -172,14 +174,6 @@ public class NvVideoStream {
 				// so Shield Proxy knows we're here and sends us
 				// the reference frame
 				startUdpPingThread();
-				
-				// Read the first frame to start the UDP video stream
-				try {
-					readFirstFrame(host);
-				} catch (IOException e2) {
-					abort();
-					return;
-				}
 				
 				// Start the receive thread early to avoid missing
 				// early packets
@@ -191,6 +185,7 @@ public class NvVideoStream {
 				// Start decoding the data we're receiving
 				startDecoderThread();
 				
+				// Start the renderer
 				decrend.start();
 			}
 		};
@@ -293,15 +288,18 @@ public class NvVideoStream {
 			@Override
 			public void run() {
 				// PING in ASCII
-				final byte[] pingPacket = new byte[] {0x50, 0x49, 0x4E, 0x47};
-				
-				// RTP payload type is 127 (dynamic)
-				session.payloadType(127);
+				final byte[] pingPacketData = new byte[] {0x50, 0x49, 0x4E, 0x47};
+				DatagramPacket pingPacket = new DatagramPacket(pingPacketData, pingPacketData.length);
 				
 				// Send PING every 100 ms
 				while (!isInterrupted())
 				{
-					session.sendData(pingPacket);
+					try {
+						rtp.send(pingPacket);
+					} catch (IOException e) {
+						abort();
+						return;
+					}
 					
 					try {
 						Thread.sleep(100);

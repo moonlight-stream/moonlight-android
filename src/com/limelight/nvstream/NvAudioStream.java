@@ -3,12 +3,11 @@ package com.limelight.nvstream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import jlibrtp.Participant;
-import jlibrtp.RTPSession;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvByteBufferPool;
@@ -29,7 +28,6 @@ public class NvAudioStream {
 	
 	private AudioTrack track;
 	
-	private RTPSession session;
 	private DatagramSocket rtp;
 	
 	private AvAudioDepacketizer depacketizer = new AvAudioDepacketizer();
@@ -63,11 +61,7 @@ public class NvAudioStream {
 				t.join();
 			} catch (InterruptedException e) { }
 		}
-		
 
-		if (session != null) {
-			//session.endSession();
-		}
 		if (track != null) {
 			track.release();
 		}
@@ -86,6 +80,9 @@ public class NvAudioStream {
 				} catch (SocketException e) {
 					e.printStackTrace();
 					return;
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+					return;
 				}
 				
 				setupAudio();
@@ -102,12 +99,10 @@ public class NvAudioStream {
 		}).start();
 	}
 	
-	private void setupRtpSession(String host) throws SocketException
+	private void setupRtpSession(String host) throws SocketException, UnknownHostException
 	{
 		rtp = new DatagramSocket(RTP_PORT);
-		
-		session = new RTPSession(rtp, null);
-		session.addParticipant(new Participant(host, RTP_PORT, 0));
+		rtp.connect(InetAddress.getByName(host), RTP_PORT);
 	}
 	
 	public void trim()
@@ -248,15 +243,18 @@ public class NvAudioStream {
 			@Override
 			public void run() {
 				// PING in ASCII
-				final byte[] pingPacket = new byte[] {0x50, 0x49, 0x4E, 0x47};
-				
-				// RTP payload type is 127 (dynamic)
-				session.payloadType(127);
+				final byte[] pingPacketData = new byte[] {0x50, 0x49, 0x4E, 0x47};
+				DatagramPacket pingPacket = new DatagramPacket(pingPacketData, pingPacketData.length);
 				
 				// Send PING every 100 ms
 				while (!isInterrupted())
 				{
-					session.sendData(pingPacket);
+					try {
+						rtp.send(pingPacket);
+					} catch (IOException e) {
+						abort();
+						return;
+					}
 					
 					try {
 						Thread.sleep(100);

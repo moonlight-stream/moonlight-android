@@ -137,12 +137,13 @@ public class NvConnection {
 				try {
 					startSteamBigPicture();
 					performHandshake();
-					videoStream.startVideoStream(host, video);
+					videoStream.setupVideoStream(host, video);
 					audioStream.startAudioStream(host);
 					beginControlStream();
 					controlStream.startJitterPackets();
 					startController();
 					activity.hideSystemUi();
+					videoStream.startVideoStream(host);
 				} catch (XmlPullParserException e) {
 					e.printStackTrace();
 					displayToast(e.getMessage());

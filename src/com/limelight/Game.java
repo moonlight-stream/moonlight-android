@@ -54,6 +54,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
 		sv.setOnGenericMotionListener(this);
 		sv.setOnTouchListener(this);
+		sv.getHolder().setFixedSize(1280, 720);
 
 		// Start the connection
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this, sv.getHolder().getSurface());

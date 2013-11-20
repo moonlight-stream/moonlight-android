@@ -41,11 +41,15 @@ int nv_avc_init(int width, int height) {
 		return -1;
 	}
 
-	// We're a latency-sensitive application
-	decoder_ctx->flags |= CODEC_FLAG_LOW_DELAY;
-
 	// Show frames even before a reference frame
 	decoder_ctx->flags2 |= CODEC_FLAG2_SHOW_ALL;
+
+	// Skip the loop filter for performance reasons
+	decoder_ctx->skip_loop_filter = AVDISCARD_ALL;
+
+	// Run 2 threads for decoding
+	decoder_ctx->thread_count = 2;
+	decoder_ctx->thread_type = FF_THREAD_FRAME;
 
 	decoder_ctx->width = width;
 	decoder_ctx->height = height;

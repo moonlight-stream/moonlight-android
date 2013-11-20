@@ -143,19 +143,8 @@ public class NvVideoStream {
 		
 		decrend.setup(1280, 720, renderTarget);
 	}
-	
-	public void startVideoStream(final String host)
-	{
-		// Read the first frame to start the UDP video stream
-		try {
-			readFirstFrame(host);
-		} catch (IOException e2) {
-			abort();
-			return;
-		}
-	}
 
-	public void setupVideoStream(final String host, final Surface surface)
+	public void startVideoStream(final String host, final Surface surface)
 	{
 		// This thread becomes the output display thread
 		Thread t = new Thread() {
@@ -179,6 +168,17 @@ public class NvVideoStream {
 				// so Shield Proxy knows we're here and sends us
 				// the reference frame
 				startUdpPingThread();
+				
+				// Read the first frame to start the UDP video stream
+				// This MUST be called before the normal UDP receive thread
+				// starts in order to avoid state corruption caused by two
+				// threads simultaneously adding input data.
+				try {
+					readFirstFrame(host);
+				} catch (IOException e2) {
+					abort();
+					return;
+				}
 				
 				// Start the receive thread early to avoid missing
 				// early packets

@@ -27,6 +27,8 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 		}
 		
 		decoderBuffer = ByteBuffer.allocate(128*1024);
+		
+		System.out.println("Using software decoding");
 	}
 	
 	private int getPerFrameDelayMs(int frameRate) {

@@ -50,6 +50,8 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 		videoDecoder.start();
 
 		videoDecoderInputBuffers = videoDecoder.getInputBuffers();
+		
+		System.out.println("Using hardware decoding");
 	}
 	
 	private void startRendererThread()

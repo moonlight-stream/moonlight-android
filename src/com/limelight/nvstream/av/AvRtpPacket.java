@@ -8,26 +8,9 @@ public class AvRtpPacket {
 	private short seqNum;
 	private AvByteBufferDescriptor buffer;
 	
-	private static AvObjectPool<AvRtpPacket> pool = new AvObjectPool<AvRtpPacket>();
-	
-	public static AvRtpPacket create(AvByteBufferDescriptor payload) {
-		return createNoCopy(AvByteBufferDescriptor.newDescriptor(payload));
-	}
-	
-	public static AvRtpPacket createNoCopy(AvByteBufferDescriptor payload) {
-		AvRtpPacket pkt = pool.tryAllocate();
-		if (pkt == null) {
-			pkt = new AvRtpPacket();
-		}
-		pkt.initialize(payload);
-		return pkt;
-	}
-	
-	private AvRtpPacket() { }
-	
-	private void initialize(AvByteBufferDescriptor buffer)
+	public AvRtpPacket(AvByteBufferDescriptor buffer)
 	{
-		this.buffer = buffer;
+		this.buffer = new AvByteBufferDescriptor(buffer);
 		
 		ByteBuffer bb = ByteBuffer.wrap(buffer.data, buffer.offset, buffer.length);
 		
@@ -56,14 +39,8 @@ public class AvRtpPacket {
 		return buffer.data;
 	}
 	
-	public void free()
-	{
-		buffer.free();
-		pool.free(this);
-	}
-	
 	public AvByteBufferDescriptor getNewPayloadDescriptor()
 	{
-		return AvByteBufferDescriptor.newDescriptor(buffer.data, buffer.offset+12, buffer.length-12);
+		return new AvByteBufferDescriptor(buffer.data, buffer.offset+12, buffer.length-12);
 	}
 }

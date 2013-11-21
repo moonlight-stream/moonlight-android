@@ -59,7 +59,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		sv.setOnTouchListener(this);
 		SurfaceHolder sh = sv.getHolder();
 		sh.setFixedSize(1280, 720);
-		sh.setFormat(PixelFormat.RGBA_8888);
+		sh.setFormat(PixelFormat.RGBX_8888);
 
 		// Start the connection
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this, sv.getHolder().getSurface());

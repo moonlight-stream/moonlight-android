@@ -12,12 +12,10 @@ AVCodec* decoder;
 AVCodecContext* decoder_ctx;
 AVFrame* yuv_frame;
 AVFrame* rgb_frame;
-AVFrame* rnd_frame;
 AVFrame* dec_frame;
 pthread_mutex_t mutex;
 char* rgb_frame_buf;
 struct SwsContext* scaler_ctx;
-int picture_new;
 
 #define RENDER_PIX_FMT AV_PIX_FMT_RGBA
 #define BYTES_PER_PIXEL 4
@@ -161,43 +159,31 @@ void nv_avc_destroy(void) {
 		av_free(rgb_frame_buf);
 		rgb_frame_buf = NULL;
 	}
-	if (rnd_frame) {
-		av_frame_free(&rnd_frame);
-		rnd_frame = NULL;
-	}
 	pthread_mutex_destroy(&mutex);
 }
 
 void nv_avc_redraw(JNIEnv *env, jobject surface) {
 	ANativeWindow* window;
 	ANativeWindow_Buffer buffer;
+	AVFrame *our_yuv_frame;
 	int err;
-
-	// Free the old decoded frame
-	if (rnd_frame) {
-		av_frame_free(&rnd_frame);
-	}
 
 	pthread_mutex_lock(&mutex);
 
 	// Check if there's a new frame
-	if (picture_new) {
-		// Clone the decoder's last frame
-		rnd_frame = av_frame_clone(yuv_frame);
+	if (yuv_frame) {
+		// We now own the decoder's frame and are
+		// responsible for freeing it when we're done
+		our_yuv_frame = yuv_frame;
+		yuv_frame = NULL;
 
 		// The remaining processing can be done without the mutex
 		pthread_mutex_unlock(&mutex);
 
-		if (rnd_frame == NULL) {
-			__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
-					"Cloning failed");
-			return;
-		}
-
 		// Convert the YUV image to RGB
 		err = sws_scale(scaler_ctx,
-			rnd_frame->data,
-			rnd_frame->linesize,
+			our_yuv_frame->data,
+			our_yuv_frame->linesize,
 			0,
 			decoder_ctx->height,
 			rgb_frame->data,
@@ -205,14 +191,14 @@ void nv_avc_redraw(JNIEnv *env, jobject surface) {
 		if (err != decoder_ctx->height) {
 			__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
 					"Scaling failed");
-			return;
+			goto free_frame_and_return;
 		}
 
 		window = ANativeWindow_fromSurface(env, surface);
 		if (window == NULL) {
 			__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
 					"Failed to get window from surface");
-			return;
+			goto free_frame_and_return;
 		}
 
 		// Lock down a render buffer
@@ -236,10 +222,12 @@ void nv_avc_redraw(JNIEnv *env, jobject surface) {
 		}
 
 		ANativeWindow_release(window);
+		
+	free_frame_and_return:
+		av_frame_free(&our_yuv_frame);
 	}
 	else {
 		pthread_mutex_unlock(&mutex);
-		rnd_frame = NULL;
 	}
 }
 
@@ -272,24 +260,17 @@ int nv_avc_decode(unsigned char* indata, int inlen) {
 		}
 
 		if (got_pic) {
-			// Update the frame if it's not being read
-			if (pthread_mutex_trylock(&mutex) == 0) {
-				// Free the old frame
-				if (yuv_frame) {
-					av_frame_free(&yuv_frame);
-				}
+			pthread_mutex_lock(&mutex);
 
+			// Only clone this frame if the last frame was taken.
+			// This saves on extra copies for frames that don't get
+			// rendered.
+			if (yuv_frame == NULL) {
 				// Clone a new frame
 				yuv_frame = av_frame_clone(dec_frame);
-				if (yuv_frame) {
-					picture_new = 1;
-				}
-				else {
-					picture_new = 0;
-				}
-
-				pthread_mutex_unlock(&mutex);
 			}
+
+			pthread_mutex_unlock(&mutex);
 		}
 
 		pkt.size -= err;

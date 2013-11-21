@@ -6,8 +6,6 @@ public class AvShortBufferPool {
 	private ConcurrentLinkedQueue<short[]> bufferList = new ConcurrentLinkedQueue<short[]>();
 	private int bufferSize;
 	
-	private static final boolean doubleFreeDebug = true;
-	
 	public AvShortBufferPool(int size)
 	{
 		this.bufferSize = size;
@@ -20,13 +18,7 @@ public class AvShortBufferPool {
 	
 	public short[] allocate()
 	{
-		short[] buff;
-		if (doubleFreeDebug) {
-			buff = null;
-		}
-		else {
-			buff = bufferList.poll();
-		}
+		short[] buff = bufferList.poll();
 		if (buff == null) {
 			buff = new short[bufferSize];
 		}
@@ -35,14 +27,6 @@ public class AvShortBufferPool {
 	
 	public void free(short[] buffer)
 	{
-		if (doubleFreeDebug) {
-			for (short[] buf : bufferList) {
-				if (buf == buffer) {
-					throw new IllegalStateException("Double free detected");
-				}
-			}
-		}
-		
 		bufferList.add(buffer);
 	}
 }

@@ -112,12 +112,6 @@ public class NvConnection {
 			inputStream = null;
 		}
 	}
-	
-	public void trim()
-	{
-		videoStream.trim();
-		audioStream.trim();
-	}
 
 	public void start()
 	{	

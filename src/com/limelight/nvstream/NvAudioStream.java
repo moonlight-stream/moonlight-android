@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
-import com.limelight.nvstream.av.AvByteBufferPool;
 import com.limelight.nvstream.av.AvRtpPacket;
 import com.limelight.nvstream.av.AvShortBufferDescriptor;
 import com.limelight.nvstream.av.audio.AvAudioDepacketizer;
@@ -33,8 +32,6 @@ public class NvAudioStream {
 	private AvAudioDepacketizer depacketizer = new AvAudioDepacketizer();
 	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
-	
-	private AvByteBufferPool pool = new AvByteBufferPool(1500);
 	
 	private boolean aborting = false;
 	
@@ -105,11 +102,6 @@ public class NvAudioStream {
 		rtp.connect(InetAddress.getByName(host), RTP_PORT);
 	}
 	
-	public void trim()
-	{
-		depacketizer.trim();
-	}
-	
 	private void setupAudio()
 	{
 		int channelConfig;
@@ -166,8 +158,6 @@ public class NvAudioStream {
 					}
 					
 					depacketizer.decodeInputData(packet);
-					
-					pool.free(packet.getBackingBuffer());
 				}
 			}
 		};
@@ -193,8 +183,6 @@ public class NvAudioStream {
 					}
 					
 					track.write(samples.data, samples.offset, samples.length);
-					
-					depacketizer.releaseBuffer(samples);
 				}
 			}
 		};
@@ -208,7 +196,7 @@ public class NvAudioStream {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				DatagramPacket packet = new DatagramPacket(pool.allocate(), 1500);
+				DatagramPacket packet = new DatagramPacket(new byte[1500], 1500);
 				AvByteBufferDescriptor desc = new AvByteBufferDescriptor(null, 0, 0);
 				
 				while (!isInterrupted())
@@ -228,7 +216,7 @@ public class NvAudioStream {
 					packets.add(new AvRtpPacket(desc));
 					
 					// Get a new buffer from the buffer pool
-					packet.setData(pool.allocate(), 0, 1500);
+					packet.setData(new byte[1500], 0, 1500);
 				}
 			}
 		};

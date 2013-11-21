@@ -4,7 +4,6 @@ import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
-import com.limelight.nvstream.av.AvByteBufferPool;
 import com.limelight.nvstream.av.AvDecodeUnit;
 import com.limelight.nvstream.av.AvRtpPacket;
 
@@ -22,49 +21,12 @@ public class AvVideoDepacketizer {
 	
 	private LinkedBlockingQueue<AvDecodeUnit> decodedUnits = new LinkedBlockingQueue<AvDecodeUnit>();
 	
-	private AvByteBufferPool pool = new AvByteBufferPool(1500);
-	
-	public byte[] allocatePacketBuffer()
-	{
-		return pool.allocate();
-	}
-	
-	public void trim()
-	{
-		pool.purge();
-	}
-	
 	private void clearAvcNalState()
 	{
-		if (avcNalDataChain != null)
-		{
-			for (AvByteBufferDescriptor avbb : avcNalDataChain)
-			{
-				AvVideoPacket packet = (AvVideoPacket) avbb.context;
-				
-				if (packet.release() == 0) {
-					pool.free(avbb.data);
-				}
-			}
-		}
-		
 		avcNalDataChain = null;
 		avcNalDataLength = 0;
 	}
-	
-	public void releaseDecodeUnit(AvDecodeUnit decodeUnit)
-	{
-		// Remove the reference from each AvVideoPacket (freeing if okay)
-		for (AvByteBufferDescriptor buff : decodeUnit.getBufferList())
-		{
-			AvVideoPacket packet = (AvVideoPacket) buff.context;
-			
-			if (packet.release() == 0) {
-				pool.free(buff.data);
-			}
-		}
-	}
-	
+
 	private void reassembleAvcNal()
 	{
 		// This is the start of a new NAL
@@ -119,10 +81,7 @@ public class AvVideoDepacketizer {
 
 			// Construct the H264 decode unit
 			AvDecodeUnit du = new AvDecodeUnit(AvDecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, flags);
-			if (!decodedUnits.offer(du))
-			{
-				releaseDecodeUnit(du);
-			}
+			decodedUnits.offer(du);
 			
 			// Clear old state
 			avcNalDataChain = null;
@@ -133,9 +92,6 @@ public class AvVideoDepacketizer {
 	public void addInputData(AvVideoPacket packet)
 	{
 		AvByteBufferDescriptor location = packet.getNewPayloadDescriptor();
-		
-		// Add an initial reference
-		packet.addRef();
 		
 		while (location.length != 0)
 		{
@@ -214,19 +170,10 @@ public class AvVideoDepacketizer {
 			{
 				AvByteBufferDescriptor data = new AvByteBufferDescriptor(location.data, start, location.offset-start);
 				
-				// Attach the current packet as the buffer context and increment the refcount
-				data.context = packet;
-				packet.addRef();
-				
 				// Add a buffer descriptor describing the NAL data in this packet
 				avcNalDataChain.add(data);
 				avcNalDataLength += location.offset-start;
 			}
-		}
-		
-		// If nothing useful came out of this, release the packet now
-		if (packet.release() == 0) {
-			pool.free(location.data);
 		}
 	}
 	

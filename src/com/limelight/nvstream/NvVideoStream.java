@@ -82,15 +82,10 @@ public class NvVideoStream {
 		
 		threads.clear();
 	}
-	
-	public void trim()
-	{
-		depacketizer.trim();
-	}
 
 	private void readFirstFrame(String host) throws IOException
 	{
-		byte[] firstFrame = depacketizer.allocatePacketBuffer();
+		byte[] firstFrame = new byte[1500];
 		
 		System.out.println("VID: Waiting for first frame");
 		firstFrameSocket = new Socket(host, FIRST_FRAME_PORT);
@@ -220,8 +215,6 @@ public class NvVideoStream {
 					}
 					
 					decrend.submitDecodeUnit(du);
-					
-					depacketizer.releaseDecodeUnit(du);
 				}
 			}
 		};
@@ -262,7 +255,7 @@ public class NvVideoStream {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				DatagramPacket packet = new DatagramPacket(depacketizer.allocatePacketBuffer(), 1500);
+				DatagramPacket packet = new DatagramPacket(new byte[1500], 1500);
 				AvByteBufferDescriptor desc = new AvByteBufferDescriptor(null, 0, 0);
 				
 				while (!isInterrupted())
@@ -282,7 +275,7 @@ public class NvVideoStream {
 					packets.add(new AvRtpPacket(desc));
 					
 					// Get a new buffer from the buffer pool
-					packet.setData(depacketizer.allocatePacketBuffer(), 0, 1500);
+					packet.setData(new byte[1500], 0, 1500);
 				}
 			}
 		};

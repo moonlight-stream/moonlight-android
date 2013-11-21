@@ -13,7 +13,7 @@ import android.media.MediaCodec;
 public class AvVideoDepacketizer {
 	
 	// Current NAL state
-	private LinkedList<AvByteBufferDescriptor> avcNalDataChain = null;
+	private LinkedList<AvByteBufferDescriptor> avcNalDataChain = new LinkedList<AvByteBufferDescriptor>();
 	private int avcNalDataLength = 0;
 	private int currentlyDecoding;
 	
@@ -22,33 +22,33 @@ public class AvVideoDepacketizer {
 	
 	private LinkedBlockingQueue<AvDecodeUnit> decodedUnits = new LinkedBlockingQueue<AvDecodeUnit>();
 	
-	private AvByteBufferPool pool = new AvByteBufferPool(1500);
+	private AvByteBufferPool bbPool = new AvByteBufferPool(1500);
 	
 	public byte[] allocatePacketBuffer()
 	{
-		return pool.allocate();
+		return bbPool.allocate();
 	}
 	
 	public void trim()
 	{
-		pool.purge();
+		bbPool.purge();
 	}
 	
 	private void clearAvcNalState()
 	{
-		if (avcNalDataChain != null)
+		for (AvByteBufferDescriptor avbb : avcNalDataChain)
 		{
-			for (AvByteBufferDescriptor avbb : avcNalDataChain)
-			{
-				AvVideoPacket packet = (AvVideoPacket) avbb.context;
-				
-				if (packet.release() == 0) {
-					pool.free(avbb.data);
-				}
+			AvVideoPacket packet = (AvVideoPacket) avbb.context;
+			
+			if (packet.release() == 0) {
+				bbPool.free(avbb.data);
+				packet.free();
 			}
+			
+			avbb.free();
 		}
 		
-		avcNalDataChain = null;
+		avcNalDataChain.clear();
 		avcNalDataLength = 0;
 	}
 	
@@ -60,15 +60,20 @@ public class AvVideoDepacketizer {
 			AvVideoPacket packet = (AvVideoPacket) buff.context;
 			
 			if (packet.release() == 0) {
-				pool.free(buff.data);
+				bbPool.free(buff.data);
+				packet.free();
 			}
+			
+			buff.free();
 		}
+		
+		decodeUnit.free();
 	}
 	
 	private void reassembleAvcNal()
 	{
 		// This is the start of a new NAL
-		if (avcNalDataChain != null && avcNalDataLength != 0)
+		if (!avcNalDataChain.isEmpty() && avcNalDataLength != 0)
 		{
 			int flags = 0;
 			
@@ -108,6 +113,8 @@ public class AvVideoDepacketizer {
 						header.data[header.offset+4]);
 					break;
 				}
+				
+				specialSeq.free();
 			}
 			else
 			{
@@ -118,14 +125,14 @@ public class AvVideoDepacketizer {
 			}
 
 			// Construct the H264 decode unit
-			AvDecodeUnit du = new AvDecodeUnit(AvDecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, flags);
+			AvDecodeUnit du = AvDecodeUnit.newDecodeUnit(AvDecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, flags);
 			if (!decodedUnits.offer(du))
 			{
 				releaseDecodeUnit(du);
 			}
 			
 			// Clear old state
-			avcNalDataChain = null;
+			avcNalDataChain.clear();
 			avcNalDataLength = 0;
 		}
 	}
@@ -158,7 +165,7 @@ public class AvVideoDepacketizer {
 						reassembleAvcNal();
 						
 						// Setup state for the new NAL
-						avcNalDataChain = new LinkedList<AvByteBufferDescriptor>();
+						avcNalDataChain.clear();
 						avcNalDataLength = 0;
 					}
 					
@@ -210,9 +217,10 @@ public class AvVideoDepacketizer {
 				location.length--;
 			}
 			
-			if (currentlyDecoding == AvDecodeUnit.TYPE_H264 && avcNalDataChain != null)
+			if (currentlyDecoding == AvDecodeUnit.TYPE_H264)
 			{
-				AvByteBufferDescriptor data = new AvByteBufferDescriptor(location.data, start, location.offset-start);
+				// This is release if the NAL is cleared or decoded
+				AvByteBufferDescriptor data = AvByteBufferDescriptor.newDescriptor(location.data, start, location.offset-start);
 				
 				// Attach the current packet as the buffer context and increment the refcount
 				data.context = packet;
@@ -226,8 +234,12 @@ public class AvVideoDepacketizer {
 		
 		// If nothing useful came out of this, release the packet now
 		if (packet.release() == 0) {
-			pool.free(location.data);
+			bbPool.free(location.data);
+			packet.free();
 		}
+		
+		// Done with the buffer descriptor
+		location.free();
 	}
 	
 	public void addInputData(AvRtpPacket packet)
@@ -248,9 +260,9 @@ public class AvVideoDepacketizer {
 		
 		lastSequenceNumber = seq;
 		
-		// Pass the payload to the non-sequencing parser
+		// Pass the payload to the non-sequencing parser. It now owns that descriptor.
 		AvByteBufferDescriptor rtpPayload = packet.getNewPayloadDescriptor();
-		addInputData(new AvVideoPacket(rtpPayload));
+		addInputData(AvVideoPacket.createNoCopy(rtpPayload));
 	}
 	
 	public AvDecodeUnit getNextDecodeUnit() throws InterruptedException
@@ -304,19 +316,19 @@ class NAL {
 					buffer.data[buffer.offset+3] == 0x01)
 				{
 					// It's the AVC start sequence 00 00 00 01
-					return new AvByteBufferDescriptor(buffer.data, buffer.offset, 4);
+					return AvByteBufferDescriptor.newDescriptor(buffer.data, buffer.offset, 4);
 				}
 				else
 				{
 					// It's 00 00 00
-					return new AvByteBufferDescriptor(buffer.data, buffer.offset, 3);
+					return AvByteBufferDescriptor.newDescriptor(buffer.data, buffer.offset, 3);
 				}
 			}
 			else if (buffer.data[buffer.offset+2] == 0x01 ||
 					 buffer.data[buffer.offset+2] == 0x02)
 			{
 				// These are easy: 00 00 01 or 00 00 02
-				return new AvByteBufferDescriptor(buffer.data, buffer.offset, 3);
+				return AvByteBufferDescriptor.newDescriptor(buffer.data, buffer.offset, 3);
 			}
 			else if (buffer.data[buffer.offset+2] == 0x03)
 			{
@@ -338,7 +350,7 @@ class NAL {
 				else
 				{
 					// It's not a standard replacement so it's a special sequence
-					return new AvByteBufferDescriptor(buffer.data, buffer.offset, 3);
+					return AvByteBufferDescriptor.newDescriptor(buffer.data, buffer.offset, 3);
 				}
 			}
 		}

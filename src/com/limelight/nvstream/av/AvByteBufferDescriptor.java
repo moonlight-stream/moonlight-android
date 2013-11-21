@@ -6,35 +6,42 @@ public class AvByteBufferDescriptor {
 	public int length;
 	public Object context;
 	
-	public AvByteBufferDescriptor(byte[] data, int offset, int length)
+	private static AvObjectPool<AvByteBufferDescriptor> pool = new AvObjectPool<AvByteBufferDescriptor>();
+	public static AvByteBufferDescriptor newDescriptor(byte[] data, int offset, int length) {
+		AvByteBufferDescriptor buffer = pool.tryAllocate();
+		if (buffer != null) {
+			buffer.data = data;
+			buffer.offset = offset;
+			buffer.length = length;
+			buffer.context = null;
+			return buffer;
+		}
+		else {
+			return new AvByteBufferDescriptor(data, offset, length);
+		}
+	}
+	
+	public static AvByteBufferDescriptor newDescriptor(AvByteBufferDescriptor buffer) {
+		return newDescriptor(buffer.data, buffer.offset, buffer.length);
+	}
+	
+	private AvByteBufferDescriptor(byte[] data, int offset, int length)
 	{
 		this.data = data;
 		this.offset = offset;
 		this.length = length;
+		this.context = null;
 	}
 	
-	public AvByteBufferDescriptor(AvByteBufferDescriptor desc)
+	private AvByteBufferDescriptor(AvByteBufferDescriptor desc)
 	{
 		this.data = desc.data;
 		this.offset = desc.offset;
 		this.length = desc.length;
+		this.context = null;
 	}
 	
-	public void print()
-	{
-		print(offset, length);
-	}
-	
-	public void print(int length)
-	{
-		print(this.offset, length);
-	}
-	
-	public void print(int offset, int length)
-	{
-		for (int i = offset; i < offset+length; i++) {
-			System.out.printf("%d: %02x \n", i, data[i]);
-		}
-		System.out.println();
+	public void free() {
+		pool.free(this);
 	}
 }

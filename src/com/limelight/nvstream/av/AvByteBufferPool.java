@@ -1,9 +1,9 @@
 package com.limelight.nvstream.av;
 
-import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class AvByteBufferPool {
-	private LinkedList<byte[]> bufferList = new LinkedList<byte[]>();
+	private ConcurrentLinkedQueue<byte[]> bufferList = new ConcurrentLinkedQueue<byte[]>();
 	private int bufferSize;
 	
 	public AvByteBufferPool(int size)
@@ -11,25 +11,22 @@ public class AvByteBufferPool {
 		this.bufferSize = size;
 	}
 	
-	public synchronized void purge()
+	public void purge()
 	{
-		this.bufferList = new LinkedList<byte[]>();
+		bufferList.clear();
 	}
 	
-	public synchronized byte[] allocate()
+	public byte[] allocate()
 	{
-		if (bufferList.isEmpty())
-		{
-			return new byte[bufferSize];
+		byte[] buff = bufferList.poll();
+		if (buff == null) {
+			buff = new byte[bufferSize];
 		}
-		else
-		{
-			return bufferList.removeFirst();
-		}
+		return buff;
 	}
 	
-	public synchronized void free(byte[] buffer)
+	public void free(byte[] buffer)
 	{
-		bufferList.addFirst(buffer);
+		bufferList.add(buffer);
 	}
 }

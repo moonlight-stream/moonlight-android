@@ -32,13 +32,13 @@ public class AvAudioDepacketizer {
 			decodeLen *= OpusDecoder.getChannelCount();
 			
 			// Put it on the decoded queue
-			if (!decodedUnits.offer(new AvShortBufferDescriptor(pcmData, 0, decodeLen)))
+			AvShortBufferDescriptor sbd = AvShortBufferDescriptor.newDescriptor(pcmData, 0, decodeLen);
+			if (!decodedUnits.offer(sbd))
 			{
-				pool.free(pcmData);
+				releaseBuffer(sbd);
 			}
 		}
 		else {
-			System.out.println("decode failed: "+decodeLen);
 			pool.free(pcmData);
 		}
 	}
@@ -66,11 +66,13 @@ public class AvAudioDepacketizer {
 		// This is all the depacketizing we need to do
 		AvByteBufferDescriptor rtpPayload = packet.getNewPayloadDescriptor();
 		decodeData(rtpPayload.data, rtpPayload.offset, rtpPayload.length);
+		rtpPayload.free();
 	}
 	
 	public void releaseBuffer(AvShortBufferDescriptor decodedData)
 	{
 		pool.free(decodedData.data);
+		decodedData.free();
 	}
 	
 	public AvShortBufferDescriptor getNextDecodedData() throws InterruptedException

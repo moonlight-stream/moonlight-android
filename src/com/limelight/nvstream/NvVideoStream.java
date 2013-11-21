@@ -110,7 +110,7 @@ public class NvVideoStream {
 			}
 			
 			System.out.println("VID: First frame read ("+offset+" bytes)");
-			depacketizer.addInputData(new AvVideoPacket(new AvByteBufferDescriptor(firstFrame, 0, offset)));
+			depacketizer.addInputData(AvVideoPacket.createNoCopy(AvByteBufferDescriptor.newDescriptor(firstFrame, 0, offset)));
 		} finally {
 			firstFrameSocket.close();
 			firstFrameSocket = null;
@@ -249,6 +249,8 @@ public class NvVideoStream {
 					
 					// !!! We no longer own the data buffer at this point !!!
 					depacketizer.addInputData(packet);
+					
+					packet.free();
 				}
 			}
 		};
@@ -263,7 +265,7 @@ public class NvVideoStream {
 			@Override
 			public void run() {
 				DatagramPacket packet = new DatagramPacket(depacketizer.allocatePacketBuffer(), 1500);
-				AvByteBufferDescriptor desc = new AvByteBufferDescriptor(null, 0, 0);
+				AvByteBufferDescriptor desc = AvByteBufferDescriptor.newDescriptor(null, 0, 0);
 				
 				while (!isInterrupted())
 				{
@@ -279,7 +281,7 @@ public class NvVideoStream {
 					desc.data = packet.getData();
 					
 					// Give the packet to the depacketizer thread
-					packets.add(new AvRtpPacket(desc));
+					packets.add(AvRtpPacket.create(desc));
 					
 					// Get a new buffer from the buffer pool
 					packet.setData(depacketizer.allocatePacketBuffer(), 0, 1500);

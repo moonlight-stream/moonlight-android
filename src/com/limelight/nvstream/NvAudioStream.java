@@ -168,6 +168,7 @@ public class NvAudioStream {
 					depacketizer.decodeInputData(packet);
 					
 					pool.free(packet.getBackingBuffer());
+					packet.free();
 				}
 			}
 		};
@@ -209,7 +210,7 @@ public class NvAudioStream {
 			@Override
 			public void run() {
 				DatagramPacket packet = new DatagramPacket(pool.allocate(), 1500);
-				AvByteBufferDescriptor desc = new AvByteBufferDescriptor(null, 0, 0);
+				AvByteBufferDescriptor desc = AvByteBufferDescriptor.newDescriptor(null, 0, 0);
 				
 				while (!isInterrupted())
 				{
@@ -225,7 +226,7 @@ public class NvAudioStream {
 					desc.data = packet.getData();
 					
 					// Give the packet to the depacketizer thread
-					packets.add(new AvRtpPacket(desc));
+					packets.add(AvRtpPacket.create(desc));
 					
 					// Get a new buffer from the buffer pool
 					packet.setData(pool.allocate(), 0, 1500);

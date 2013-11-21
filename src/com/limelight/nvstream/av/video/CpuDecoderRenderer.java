@@ -73,7 +73,7 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 		this.renderTarget = renderTarget;
 		this.perfLevel = findOptimalPerformanceLevel();
 		
-		int err = AvcDecoder.init(width, height, MED_PERF);
+		int err = AvcDecoder.init(width, height, perfLevel);
 		if (err != 0) {
 			throw new IllegalStateException("AVC decoder initialization failure: "+err);
 		}

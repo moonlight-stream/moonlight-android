@@ -125,7 +125,7 @@ public class AvVideoDepacketizer {
 			}
 
 			// Construct the H264 decode unit
-			AvDecodeUnit du = AvDecodeUnit.newDecodeUnit(AvDecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, flags);
+			AvDecodeUnit du = AvDecodeUnit.newDecodeUnit(AvDecodeUnit.TYPE_H264, new LinkedList<AvByteBufferDescriptor>(avcNalDataChain), avcNalDataLength, flags);
 			if (!decodedUnits.offer(du))
 			{
 				releaseDecodeUnit(du);

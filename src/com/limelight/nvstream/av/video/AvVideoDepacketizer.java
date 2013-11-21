@@ -189,6 +189,8 @@ public class AvVideoDepacketizer {
 					location.length--;
 					location.offset++;
 				}
+				
+				specialSeq.free();
 			}
 			
 			// Move to the next special sequence
@@ -207,7 +209,11 @@ public class AvVideoDepacketizer {
 						if (currentlyDecoding != AvDecodeUnit.TYPE_UNKNOWN ||
 							!NAL.isPadding(specialSeq))
 						{
+							specialSeq.free();
 							break;
+						}
+						else {
+							specialSeq.free();
 						}
 					}
 				}

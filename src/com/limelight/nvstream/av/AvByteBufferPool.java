@@ -6,7 +6,7 @@ public class AvByteBufferPool {
 	private ConcurrentLinkedQueue<byte[]> bufferList = new ConcurrentLinkedQueue<byte[]>();
 	private int bufferSize;
 	
-	private static final boolean doubleFreeDebug = false;
+	private static final boolean doubleFreeDebug = true;
 	
 	public AvByteBufferPool(int size)
 	{

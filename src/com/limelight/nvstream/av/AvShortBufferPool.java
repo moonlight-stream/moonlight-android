@@ -6,7 +6,7 @@ public class AvShortBufferPool {
 	private ConcurrentLinkedQueue<short[]> bufferList = new ConcurrentLinkedQueue<short[]>();
 	private int bufferSize;
 	
-	private static final boolean doubleFreeDebug = false;
+	private static final boolean doubleFreeDebug = true;
 	
 	public AvShortBufferPool(int size)
 	{

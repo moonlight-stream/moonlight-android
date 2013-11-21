@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class AvObjectPool<T> {
 	private ConcurrentLinkedQueue<T> objectList = new ConcurrentLinkedQueue<T>();
 	
-	private static final boolean doubleFreeDebug = false;
+	private static final boolean doubleFreeDebug = true;
 	
 	public void purge()
 	{

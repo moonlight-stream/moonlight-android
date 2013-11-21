@@ -1,5 +1,7 @@
 package com.limelight.nvstream.av.video;
 
+import android.view.Surface;
+
 public class AvcDecoder {
 	static {
 		// FFMPEG dependencies
@@ -13,9 +15,8 @@ public class AvcDecoder {
 		System.loadLibrary("nv_avc_dec");
 	}
 	
-	public static native int init(int width, int height);
+	public static native int init(int width, int height, int perflvl);
 	public static native void destroy();
-	public static native boolean getCurrentFrame(int[] rgbframe, int sizeints);
-	public static native int getFrameSize();
+	public static native void redraw(Surface surface);
 	public static native int decode(byte[] indata, int inoff, int inlen);
 }

@@ -1,5 +1,6 @@
-int nv_avc_init(int width, int height);
+#include <jni.h>
+
+int nv_avc_init(int width, int height, int perf_lvl);
 void nv_avc_destroy(void);
-int nv_avc_get_current_frame(char* yuvframe, int size);
-int nv_avc_get_frame_size(void);
+void nv_avc_redraw(JNIEnv *env, jobject surface);
 int nv_avc_decode(unsigned char* indata, int inlen);

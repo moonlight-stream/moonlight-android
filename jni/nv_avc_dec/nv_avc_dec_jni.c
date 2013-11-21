@@ -6,8 +6,10 @@
 // This function must be called before
 // any other decoding functions
 JNIEXPORT jint JNICALL
-Java_com_limelight_nvstream_av_video_AvcDecoder_init(JNIEnv *env, jobject this, jint width, jint height) {
-	return nv_avc_init(width, height);
+Java_com_limelight_nvstream_av_video_AvcDecoder_init(JNIEnv *env, jobject this, jint width,
+	jint height, jint perflvl)
+{
+	return nv_avc_init(width, height, perflvl);
 }
 
 // This function must be called after
@@ -17,27 +19,10 @@ Java_com_limelight_nvstream_av_video_AvcDecoder_destroy(JNIEnv *env, jobject thi
 	nv_avc_destroy();
 }
 
-// The decoded frame is ARGB
-// Returns 1 on success, 0 on failure
-JNIEXPORT jboolean JNICALL
-Java_com_limelight_nvstream_av_video_AvcDecoder_getCurrentFrame(JNIEnv *env, jobject this,
-	jintArray rgbframe, jint sizeints)
-{
-	jint* jni_rgbframe;
-	jboolean ret;
-
-	jni_rgbframe = (*env)->GetIntArrayElements(env, rgbframe, 0);
-
-	ret = (nv_avc_get_current_frame((char*)jni_rgbframe, sizeints*4) != 0) ? JNI_TRUE : JNI_FALSE;
-
-	(*env)->ReleaseIntArrayElements(env, rgbframe, jni_rgbframe, 0);
-
-	return ret;
-}
-
-JNIEXPORT jint JNICALL
-Java_com_limelight_nvstream_av_video_AvcDecoder_getFrameSize(JNIEnv *env, jobject this) {
-	return nv_avc_get_rgb_frame_size() / 4;
+// This function redraws the surface
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_av_video_AvcDecoder_redraw(JNIEnv *env, jobject this, jobject surface) {
+	nv_avc_redraw(env, surface);
 }
 
 // packets must be decoded in order

@@ -5,10 +5,13 @@ import com.limelight.nvstream.input.NvControllerPacket;
 
 import android.app.Activity;
 import android.content.ComponentCallbacks2;
+import android.graphics.ImageFormat;
+import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnGenericMotionListener;
@@ -54,7 +57,9 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
 		sv.setOnGenericMotionListener(this);
 		sv.setOnTouchListener(this);
-		sv.getHolder().setFixedSize(1280, 720);
+		SurfaceHolder sh = sv.getHolder();
+		sh.setFixedSize(1280, 720);
+		sh.setFormat(PixelFormat.RGBA_8888);
 
 		// Start the connection
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this, sv.getHolder().getSurface());

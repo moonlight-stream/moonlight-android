@@ -1,8 +1,10 @@
 package com.limelight.nvstream.av.video;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import android.graphics.Canvas;
 import android.view.Surface;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
@@ -13,26 +15,72 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 	private Surface renderTarget;
 	private ByteBuffer decoderBuffer;
 	private Thread rendererThread;
-	private int width, height;
+	private int perfLevel;
+	
+	private static final int LOW_PERF = 1;
+	private static final int MED_PERF = 2;
+	private static final int HIGH_PERF = 3;
+	
+	private int findOptimalPerformanceLevel() {
+		StringBuilder cpuInfo = new StringBuilder();
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(new File("/proc/cpuinfo")));
+			for (;;) {
+				int ch = br.read();
+				if (ch == -1)
+					break;
+				cpuInfo.append((char)ch);
+			}
+			
+			// Here we're doing very simple heuristics based on CPU model
+			String cpuInfoStr = cpuInfo.toString();
+
+			// We order them from greatest to least for proper detection
+			// of devices with multiple sets of cores (like Exynos 5 Octa)
+			// TODO Make this better
+			if (cpuInfoStr.contains("0xc0f")) {
+				// Cortex-A15
+				return MED_PERF;
+			}
+			else if (cpuInfoStr.contains("0xc09")) {
+				// Cortex-A9
+				return LOW_PERF;
+			}
+			else if (cpuInfoStr.contains("0xc07")) {
+				// Cortex-A7
+				return LOW_PERF;
+			}
+			else {
+				// Didn't have anything we're looking for
+				return MED_PERF;
+			}
+		} catch (IOException e) {
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {}
+			}
+		}
+		
+		// Couldn't read cpuinfo, so assume medium
+		return MED_PERF;
+	}
 	
 	@Override
 	public void setup(int width, int height, Surface renderTarget) {
 		this.renderTarget = renderTarget;
-		this.width = width;
-		this.height = height;
+		this.perfLevel = findOptimalPerformanceLevel();
 		
-		int err = AvcDecoder.init(width, height);
+		int err = AvcDecoder.init(width, height, perfLevel);
 		if (err != 0) {
 			throw new IllegalStateException("AVC decoder initialization failure: "+err);
 		}
 		
-		decoderBuffer = ByteBuffer.allocate(128*1024);
+		decoderBuffer = ByteBuffer.allocate(92*1024);
 		
-		System.out.println("Using software decoding");
-	}
-	
-	private int getPerFrameDelayMs(int frameRate) {
-		return 1000 / frameRate;
+		System.out.println("Using software decoding (performance level: "+perfLevel+")");
 	}
 
 	@Override
@@ -40,28 +88,45 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 		rendererThread = new Thread() {
 			@Override
 			public void run() {
-				int[] frameBuffer = new int[AvcDecoder.getFrameSize()];
+				int frameRateTarget;
+				long nextFrameTime = System.currentTimeMillis();
+				
+				switch (perfLevel) {
+				case HIGH_PERF:
+					frameRateTarget = 45;
+					break;
+				case MED_PERF:
+					frameRateTarget = 30;
+					break;
+				case LOW_PERF:
+				default:
+					frameRateTarget = 15;
+					break;
+				}
 				
 				while (!isInterrupted())
 				{
-					try {
-						// CPU decoding frame rate target is 30 fps
-						Thread.sleep(getPerFrameDelayMs(30));
-					} catch (InterruptedException e) {
-						return;
+					long diff = nextFrameTime - System.currentTimeMillis();
+					
+					if (diff > 0) {
+						// Sleep until the frame should be rendered
+						try {
+							Thread.sleep(diff);
+						} catch (InterruptedException e) {
+							return;
+						}
 					}
 					
-					if (!AvcDecoder.getCurrentFrame(frameBuffer, frameBuffer.length))
-						continue;
-					
-					// Draw the new bitmap to the canvas
-					Canvas c = renderTarget.lockCanvas(null);
-					c.drawBitmap(frameBuffer, 0, width, 0, 0, width, height, false, null);
-					renderTarget.unlockCanvasAndPost(c);
+					nextFrameTime = computePresentationTimeMs(frameRateTarget);
+					AvcDecoder.redraw(renderTarget);
 				}
 			}
 		};
 		rendererThread.start();
+	}
+	
+	private long computePresentationTimeMs(int frameRate) {
+		return System.currentTimeMillis() + (1000 / frameRate);
 	}
 
 	@Override

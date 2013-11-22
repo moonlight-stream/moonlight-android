@@ -145,12 +145,28 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 
 	@Override
 	public boolean submitDecodeUnit(AvDecodeUnit decodeUnit) {
-		decoderBuffer.clear();
+		byte[] data;
 		
-		for (AvByteBufferDescriptor bbd : decodeUnit.getBufferList()) {
-			decoderBuffer.put(bbd.data, bbd.offset, bbd.length);
+		// Use the reserved decoder buffer if this decode unit will fit
+		if (decodeUnit.getDataLength() <= decoderBuffer.limit()) {
+			decoderBuffer.clear();
+			
+			for (AvByteBufferDescriptor bbd : decodeUnit.getBufferList()) {
+				decoderBuffer.put(bbd.data, bbd.offset, bbd.length);
+			}
+			
+			data = decoderBuffer.array();
+		}
+		else {
+			data = new byte[decodeUnit.getDataLength()];
+			
+			int offset = 0;
+			for (AvByteBufferDescriptor bbd : decodeUnit.getBufferList()) {
+				System.arraycopy(bbd.data, bbd.offset, data, offset, bbd.length);
+				offset += bbd.length;
+			}
 		}
 		
-		return (AvcDecoder.decode(decoderBuffer.array(), 0, decodeUnit.getDataLength()) == 0);
+		return (AvcDecoder.decode(data, 0, decodeUnit.getDataLength()) == 0);
 	}
 }

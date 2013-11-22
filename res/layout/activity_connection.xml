@@ -24,6 +24,8 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:ems="10"
+        android:singleLine="true"
+        android:inputType="textNoSuggestions"
         android:hint="IP address of GeForce PC" />
 
     <Button
@@ -32,7 +34,11 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/hostTextView"
         android:layout_centerHorizontal="true"
-        android:text="Start Streaming Steam!" />
+        android:text="Start Streaming Steam!" >
+        
+        <requestFocus />
+        
+        </Button>
 
 
 </RelativeLayout>

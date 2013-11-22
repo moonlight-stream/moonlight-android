@@ -30,7 +30,8 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 				continue;
 			}
 			
-			if (codecInfo.getName().equalsIgnoreCase("omx.qcom.video.decoder.avc")) {
+			if (codecInfo.getName().equalsIgnoreCase("omx.qcom.video.decoder.avc") ||
+				codecInfo.getName().equalsIgnoreCase("OMX.Exynos.AVC.Decoder")) {
 				return true;
 			}
 		}

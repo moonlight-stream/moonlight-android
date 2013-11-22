@@ -14,6 +14,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvDecodeUnit;
 import com.limelight.nvstream.av.AvRtpPacket;
+import com.limelight.nvstream.av.ConnectionStatusListener;
 import com.limelight.nvstream.av.video.AvVideoDepacketizer;
 import com.limelight.nvstream.av.video.AvVideoPacket;
 import com.limelight.nvstream.av.video.CpuDecoderRenderer;
@@ -35,12 +36,19 @@ public class NvVideoStream {
 	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
 
-	private AvVideoDepacketizer depacketizer = new AvVideoDepacketizer();
+	private ConnectionStatusListener listener;
+	private AvVideoDepacketizer depacketizer;
 	
 	private DecoderRenderer decrend;
 	private boolean startedRendering;
 	
 	private boolean aborting = false;
+	
+	public NvVideoStream(ConnectionStatusListener listener)
+	{
+		this.listener = listener;
+		depacketizer = new AvVideoDepacketizer(listener);
+	}
 	
 	public void abort()
 	{

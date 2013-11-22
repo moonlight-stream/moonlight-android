@@ -27,7 +27,7 @@ public class NvConnection {
 	private NvControl controlStream;
 	private NvController inputStream;
 	private Surface video;
-	private NvVideoStream videoStream = new NvVideoStream();
+	private NvVideoStream videoStream;
 	private NvAudioStream audioStream = new NvAudioStream();
 	
 	private ThreadPoolExecutor threadPool;
@@ -100,8 +100,12 @@ public class NvConnection {
 	{
 		threadPool.shutdownNow();
 		
-		videoStream.abort();
-		audioStream.abort();
+		if (videoStream != null) {
+			videoStream.abort();
+		}
+		if (audioStream != null) {
+			audioStream.abort();
+		}
 		
 		if (controlStream != null) {
 			controlStream.abort();
@@ -131,9 +135,10 @@ public class NvConnection {
 				try {
 					startSteamBigPicture();
 					performHandshake();
+					beginControlStream();
+					videoStream = new NvVideoStream(controlStream);
 					videoStream.startVideoStream(host, video);
 					audioStream.startAudioStream(host);
-					beginControlStream();
 					controlStream.startJitterPackets();
 					startController();
 					activity.hideSystemUi();

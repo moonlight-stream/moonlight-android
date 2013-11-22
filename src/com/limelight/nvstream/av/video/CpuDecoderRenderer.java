@@ -144,13 +144,13 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 	}
 
 	@Override
-	public void submitDecodeUnit(AvDecodeUnit decodeUnit) {
+	public boolean submitDecodeUnit(AvDecodeUnit decodeUnit) {
 		decoderBuffer.clear();
 		
 		for (AvByteBufferDescriptor bbd : decodeUnit.getBufferList()) {
 			decoderBuffer.put(bbd.data, bbd.offset, bbd.length);
 		}
 		
-		AvcDecoder.decode(decoderBuffer.array(), 0, decodeUnit.getDataLength());
+		return (AvcDecoder.decode(decoderBuffer.array(), 0, decodeUnit.getDataLength()) == 0);
 	}
 }

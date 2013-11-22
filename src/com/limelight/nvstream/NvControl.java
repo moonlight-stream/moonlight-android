@@ -8,7 +8,9 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class NvControl {
+import com.limelight.nvstream.av.ConnectionStatusListener;
+
+public class NvControl implements ConnectionStatusListener {
 	
 	public static final int PORT = 47995;
 	
@@ -31,27 +33,8 @@ public class NvControl {
 	public static final short PTYPE_1405 = 0x1405;
 	public static final short PPAYLEN_1405 = 0x0000;
 	
-	public static final short PTYPE_1404 = 0x1404;
-	public static final short PPAYLEN_1404 = 0x0010;
-	public static final byte[] PPAYLOAD_1404 = new byte[]
-			{
-				0x02,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x02,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00
-			};
+	public static final short PTYPE_RESYNC = 0x1404;
+	public static final short PPAYLEN_RESYNC = 16;
 	
 	public static final short PTYPE_CONFIG = 0x1205;
 	public static final short PPAYLEN_CONFIG = 0x0004;
@@ -217,6 +200,12 @@ public class NvControl {
 		} catch (IOException e) {}
 	}
 	
+	public void requestResync() throws IOException
+	{
+		System.out.println("CTL: Requesting IDR frame");
+		sendResync();
+	}
+	
 	public void start() throws IOException
 	{
 		System.out.println("CTL: Sending hello");
@@ -227,8 +216,6 @@ public class NvControl {
 		pingPong();
 		System.out.println("CTL: Sending and waiting for 1405");
 		send1405AndGetResponse();
-		//System.out.println("CTL: Sending 1404");
-		//send1404();
 		System.out.println("CTL: Launching heartbeat thread");
 		
 		heartbeatThread = new Thread() {
@@ -242,6 +229,7 @@ public class NvControl {
 						abort();
 						return;
 					}
+					
 					
 					try {
 						Thread.sleep(3000);
@@ -289,6 +277,16 @@ public class NvControl {
 	private void sendHello() throws IOException
 	{
 		sendPacket(new NvCtlPacket(PTYPE_HELLO, PPAYLEN_HELLO, PPAYLOAD_HELLO));
+	}
+	
+	private void sendResync() throws IOException
+	{
+		ByteBuffer conf = ByteBuffer.wrap(new byte[PPAYLEN_RESYNC]).order(ByteOrder.LITTLE_ENDIAN);
+		
+		conf.putLong(0);
+		conf.putLong(0xFFFF);
+		
+		sendAndGetReply(new NvCtlPacket(PTYPE_RESYNC, PPAYLEN_RESYNC, conf.array()));
 	}
 	
 	private void sendConfig() throws IOException
@@ -452,5 +450,25 @@ public class NvControl {
 		{
 			return status;
 		}
+	}
+
+	@Override
+	public void connectionTerminated() {
+		abort();
+	}
+
+	@Override
+	public void connectionNeedsResync() {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					requestResync();
+				} catch (IOException e1) {
+					abort();
+					return;
+				}
+			}
+		}).start();
 	}
 }

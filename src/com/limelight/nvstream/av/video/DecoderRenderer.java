@@ -13,5 +13,5 @@ public interface DecoderRenderer {
 	
 	public void release();
 	
-	public void submitDecodeUnit(AvDecodeUnit decodeUnit);
+	public boolean submitDecodeUnit(AvDecodeUnit decodeUnit);
 }

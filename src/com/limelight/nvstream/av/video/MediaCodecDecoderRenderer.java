@@ -121,10 +121,10 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 	}
 
 	@Override
-	public void submitDecodeUnit(AvDecodeUnit decodeUnit) {
+	public boolean submitDecodeUnit(AvDecodeUnit decodeUnit) {
 		if (decodeUnit.getType() != AvDecodeUnit.TYPE_H264) {
 			System.err.println("Unknown decode unit type");
-			return;
+			return false;
 		}
 		
 		int inputIndex = videoDecoder.dequeueInputBuffer(-1);
@@ -145,5 +145,7 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 						0, decodeUnit.getDataLength(),
 						0, decodeUnit.getFlags());
 		}
+		
+		return true;
 	}
 }

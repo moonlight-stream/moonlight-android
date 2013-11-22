@@ -6,6 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvDecodeUnit;
 import com.limelight.nvstream.av.AvRtpPacket;
+import com.limelight.nvstream.av.ConnectionStatusListener;
 
 import android.media.MediaCodec;
 
@@ -19,7 +20,14 @@ public class AvVideoDepacketizer {
 	// Sequencing state
 	private short lastSequenceNumber;
 	
+	private ConnectionStatusListener controlListener;
+	
 	private LinkedBlockingQueue<AvDecodeUnit> decodedUnits = new LinkedBlockingQueue<AvDecodeUnit>();
+	
+	public AvVideoDepacketizer(ConnectionStatusListener controlListener)
+	{
+		this.controlListener = controlListener;
+	}
 	
 	private void clearAvcNalState()
 	{
@@ -191,6 +199,9 @@ public class AvVideoDepacketizer {
 			// Reset the depacketizer state
 			currentlyDecoding = AvDecodeUnit.TYPE_UNKNOWN;
 			clearAvcNalState();
+			
+			// Request an IDR frame
+			controlListener.connectionNeedsResync();
 		}
 		
 		lastSequenceNumber = seq;

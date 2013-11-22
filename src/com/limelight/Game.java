@@ -96,11 +96,6 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		
-		// Skip keyboard and virtual button events
-		if (event.getSource() == InputDevice.SOURCE_KEYBOARD)
-			return super.onKeyDown(keyCode, event);
-		
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BUTTON_START:
 		case KeyEvent.KEYCODE_MENU:
@@ -164,11 +159,6 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-
-		// Skip keyboard and virtual button events
-		if (event.getSource() == InputDevice.SOURCE_KEYBOARD)
-			return super.onKeyUp(keyCode, event);
-		
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BUTTON_START:
 		case KeyEvent.KEYCODE_MENU:

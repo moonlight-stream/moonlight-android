@@ -36,7 +36,6 @@ public class NvVideoStream {
 	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
 
-	private ConnectionStatusListener listener;
 	private AvVideoDepacketizer depacketizer;
 	
 	private DecoderRenderer decrend;
@@ -46,7 +45,6 @@ public class NvVideoStream {
 	
 	public NvVideoStream(ConnectionStatusListener listener)
 	{
-		this.listener = listener;
 		depacketizer = new AvVideoDepacketizer(listener);
 	}
 	

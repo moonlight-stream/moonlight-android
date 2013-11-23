@@ -127,7 +127,6 @@ public class NvVideoStream {
 	public void setupRtpSession() throws SocketException
 	{
 		rtp = new DatagramSocket(RTP_PORT);
-		rtp.connect(host, RTP_PORT);
 	}
 	
 	public void setupDecoderRenderer(Surface renderTarget) {		
@@ -280,6 +279,7 @@ public class NvVideoStream {
 				// PING in ASCII
 				final byte[] pingPacketData = new byte[] {0x50, 0x49, 0x4E, 0x47};
 				DatagramPacket pingPacket = new DatagramPacket(pingPacketData, pingPacketData.length);
+				pingPacket.setSocketAddress(new InetSocketAddress(host, RTP_PORT));
 				
 				// Send PING every 100 ms
 				while (!isInterrupted())

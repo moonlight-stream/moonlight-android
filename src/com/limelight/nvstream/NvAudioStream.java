@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -92,7 +93,6 @@ public class NvAudioStream {
 	private void setupRtpSession() throws SocketException
 	{
 		rtp = new DatagramSocket(RTP_PORT);
-		rtp.connect(host, RTP_PORT);
 	}
 	
 	private void setupAudio()
@@ -221,6 +221,7 @@ public class NvAudioStream {
 				// PING in ASCII
 				final byte[] pingPacketData = new byte[] {0x50, 0x49, 0x4E, 0x47};
 				DatagramPacket pingPacket = new DatagramPacket(pingPacketData, pingPacketData.length);
+				pingPacket.setSocketAddress(new InetSocketAddress(host, RTP_PORT));
 				
 				// Send PING every 100 ms
 				while (!isInterrupted())

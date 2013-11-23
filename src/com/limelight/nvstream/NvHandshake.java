@@ -10,7 +10,7 @@ import java.net.Socket;
 public class NvHandshake {
 	public static final int PORT = 47991;
 	
-	public static final int HANDSHAKE_TIMEOUT = 3000;
+	public static final int HANDSHAKE_TIMEOUT = 5000;
 	
 	public static final byte[] PLATFORM_HELLO =
 		{

@@ -29,7 +29,7 @@ public class NvVideoStream {
 	public static final int RTCP_PORT = 47999;
 	public static final int FIRST_FRAME_PORT = 47996;
 	
-	public static final int FIRST_FRAME_TIMEOUT = 3000;
+	public static final int FIRST_FRAME_TIMEOUT = 5000;
 	
 	private ArrayBlockingQueue<AvRtpPacket> packets = new ArrayBlockingQueue<AvRtpPacket>(100);
 	

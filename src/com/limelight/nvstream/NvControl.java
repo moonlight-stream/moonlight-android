@@ -15,7 +15,7 @@ public class NvControl implements ConnectionStatusListener {
 	
 	public static final int PORT = 47995;
 	
-	public static final int CONTROL_TIMEOUT = 3000;
+	public static final int CONTROL_TIMEOUT = 5000;
 	
 	public static final short PTYPE_HELLO = 0x1204;
 	public static final short PPAYLEN_HELLO = 0x0004;

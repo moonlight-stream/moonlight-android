@@ -18,8 +18,7 @@ public class NvHTTP {
 
 	public static final int PORT = 47989;
 	
-	public static final int CONNECTION_TIMEOUT = 3000;
-	public static final int REQUEST_TIMEOUT = 15000;
+	public static final int CONNECTION_TIMEOUT = 5000;
 
 	
 	public String baseUrl;
@@ -63,7 +62,6 @@ public class NvHTTP {
 		URLConnection conn = new URL(url).openConnection();
 		conn.setConnectTimeout(CONNECTION_TIMEOUT);
 		conn.setDefaultUseCaches(false);
-		conn.setReadTimeout(REQUEST_TIMEOUT);
 		conn.connect();
 		return conn.getInputStream();
 	}

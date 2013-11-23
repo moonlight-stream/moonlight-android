@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.LinkedList;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvDecodeUnit;
@@ -31,7 +31,7 @@ public class NvVideoStream {
 	
 	public static final int FIRST_FRAME_TIMEOUT = 3000;
 	
-	private LinkedBlockingQueue<AvRtpPacket> packets = new LinkedBlockingQueue<AvRtpPacket>();
+	private ArrayBlockingQueue<AvRtpPacket> packets = new ArrayBlockingQueue<AvRtpPacket>(100);
 	
 	private InetAddress host;
 	private DatagramSocket rtp;
@@ -135,7 +135,7 @@ public class NvVideoStream {
 			// Emulator - don't render video (it's slow!)
 			decrend = null;
 		}
-		else if (MediaCodecDecoderRenderer.hasWhitelistedDecoder()) {
+		else if (MediaCodecDecoderRenderer.findSafeDecoder() != null) {
 			// Hardware decoding
 			decrend = new MediaCodecDecoderRenderer();
 		}
@@ -260,10 +260,10 @@ public class NvVideoStream {
 					desc.data = packet.getData();
 					
 					// Give the packet to the depacketizer thread
-					packets.add(new AvRtpPacket(desc));
-					
-					// Get a new buffer from the buffer pool
-					packet.setData(new byte[1500], 0, 1500);
+					if (packets.offer(new AvRtpPacket(desc))) {
+						// Get a new buffer from the buffer pool
+						packet.setData(new byte[1500], 0, 1500);
+					}
 				}
 			}
 		};

@@ -1,6 +1,8 @@
 package com.limelight.nvstream.av.video;
 
 import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvDecodeUnit;
@@ -20,28 +22,57 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 	private ByteBuffer[] videoDecoderInputBuffers;
 	private MediaCodec videoDecoder;
 	private Thread rendererThread;
+	
+	public static final List<String> blacklistedDecoderPrefixes;
+	
+	static {
+		blacklistedDecoderPrefixes = new LinkedList<String>();
+		blacklistedDecoderPrefixes.add("omx.google");
+		blacklistedDecoderPrefixes.add("omx.nvidia");
+		blacklistedDecoderPrefixes.add("omx.TI");
+	}
 
-	public static boolean hasWhitelistedDecoder() {
+	public static MediaCodecInfo findSafeDecoder() {
+
 		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
 			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
+			boolean badCodec = false;
 			
 			// Skip encoders
 			if (codecInfo.isEncoder()) {
 				continue;
 			}
 			
-			if (codecInfo.getName().equalsIgnoreCase("omx.qcom.video.decoder.avc") ||
-				codecInfo.getName().equalsIgnoreCase("OMX.Exynos.AVC.Decoder")) {
-				return true;
+			for (String badPrefix : blacklistedDecoderPrefixes) {
+				String name = codecInfo.getName();
+				if (name.length() > badPrefix.length()) {
+					String prefix = name.substring(0, badPrefix.length());
+					if (prefix.equalsIgnoreCase(badPrefix)) {
+						badCodec = true;
+						break;
+					}
+				}
+			}
+			
+			if (badCodec) {
+				System.out.println("Blacklisted decoder: "+codecInfo.getName());
+				continue;
+			}
+			
+			for (String mime : codecInfo.getSupportedTypes()) {
+				if (mime.equalsIgnoreCase("video/avc")) {
+					System.out.println("Selected decoder: "+codecInfo.getName());
+					return codecInfo;
+				}
 			}
 		}
 		
-		return false;
+		return null;
 	}
 	
 	@Override
 	public void setup(int width, int height, Surface renderTarget) {
-		videoDecoder = MediaCodec.createDecoderByType("video/avc");
+		videoDecoder = MediaCodec.createByCodecName(findSafeDecoder().getName());
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
 
 		videoDecoder.configure(videoFormat, renderTarget, null, 0);

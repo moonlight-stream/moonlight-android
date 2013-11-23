@@ -1,14 +1,14 @@
 package com.limelight.nvstream.av.audio;
 
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvRtpPacket;
 import com.limelight.nvstream.av.AvShortBufferDescriptor;
 
 public class AvAudioDepacketizer {
-	private LinkedBlockingQueue<AvShortBufferDescriptor> decodedUnits =
-			new LinkedBlockingQueue<AvShortBufferDescriptor>(15);
+	private ArrayBlockingQueue<AvShortBufferDescriptor> decodedUnits =
+			new ArrayBlockingQueue<AvShortBufferDescriptor>(15);
 		
 	// Sequencing state
 	private short lastSequenceNumber;
@@ -24,7 +24,10 @@ public class AvAudioDepacketizer {
 			decodeLen *= OpusDecoder.getChannelCount();
 			
 			// Put it on the decoded queue
-			decodedUnits.offer(new AvShortBufferDescriptor(pcmData, 0, decodeLen));
+			if (!decodedUnits.offer(new AvShortBufferDescriptor(pcmData, 0, decodeLen))) {
+				// Clear out the queue
+				decodedUnits.clear();
+			}
 		}
 	}
 	

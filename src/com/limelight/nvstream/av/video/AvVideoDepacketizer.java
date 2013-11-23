@@ -1,7 +1,7 @@
 package com.limelight.nvstream.av.video;
 
 import java.util.LinkedList;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvDecodeUnit;
@@ -22,7 +22,8 @@ public class AvVideoDepacketizer {
 	
 	private ConnectionStatusListener controlListener;
 	
-	private LinkedBlockingQueue<AvDecodeUnit> decodedUnits = new LinkedBlockingQueue<AvDecodeUnit>();
+	private static final int DU_LIMIT = 30;
+	private ArrayBlockingQueue<AvDecodeUnit> decodedUnits = new ArrayBlockingQueue<AvDecodeUnit>(DU_LIMIT);
 	
 	public AvVideoDepacketizer(ConnectionStatusListener controlListener)
 	{
@@ -89,7 +90,11 @@ public class AvVideoDepacketizer {
 
 			// Construct the H264 decode unit
 			AvDecodeUnit du = new AvDecodeUnit(AvDecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, flags);
-			decodedUnits.offer(du);
+			if (!decodedUnits.offer(du)) {
+				// We need a new IDR frame since we're discarding data now
+				decodedUnits.clear();
+				controlListener.connectionNeedsResync();
+			}
 			
 			// Clear old state
 			avcNalDataChain = null;

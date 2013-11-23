@@ -6,7 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.LinkedList;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvRtpPacket;
@@ -22,7 +22,7 @@ public class NvAudioStream {
 	public static final int RTP_PORT = 48000;
 	public static final int RTCP_PORT = 47999;
 	
-	private LinkedBlockingQueue<AvRtpPacket> packets = new LinkedBlockingQueue<AvRtpPacket>();
+	private ArrayBlockingQueue<AvRtpPacket> packets = new ArrayBlockingQueue<AvRtpPacket>(100);
 	
 	private AudioTrack track;
 	
@@ -201,10 +201,10 @@ public class NvAudioStream {
 					desc.data = packet.getData();
 					
 					// Give the packet to the depacketizer thread
-					packets.add(new AvRtpPacket(desc));
-					
-					// Get a new buffer from the buffer pool
-					packet.setData(new byte[1500], 0, 1500);
+					if (packets.offer(new AvRtpPacket(desc))) {
+						// Get a new buffer from the buffer pool
+						packet.setData(new byte[1500], 0, 1500);
+					}
 				}
 			}
 		};

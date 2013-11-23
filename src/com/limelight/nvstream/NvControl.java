@@ -3,8 +3,9 @@ package com.limelight.nvstream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -13,6 +14,8 @@ import com.limelight.nvstream.av.ConnectionStatusListener;
 public class NvControl implements ConnectionStatusListener {
 	
 	public static final int PORT = 47995;
+	
+	public static final int CONTROL_TIMEOUT = 3000;
 	
 	public static final short PTYPE_HELLO = 0x1204;
 	public static final short PPAYLEN_HELLO = 0x0004;
@@ -140,6 +143,9 @@ public class NvControl implements ConnectionStatusListener {
 	
 	private int seqNum;
 	
+	private NvConnectionListener listener;
+	private InetAddress host;
+	
 	private Socket s;
 	private InputStream in;
 	private OutputStream out;
@@ -148,20 +154,28 @@ public class NvControl implements ConnectionStatusListener {
 	private Thread jitterThread;
 	private boolean aborting = false;
 	
-	public NvControl(String host) throws UnknownHostException, IOException
+	public NvControl(InetAddress host, NvConnectionListener listener)
 	{
-		s = new Socket(host, PORT);
+		this.listener = listener;
+		this.host = host;
+	}
+	
+	public void initialize() throws IOException
+	{
+		s = new Socket();
+		s.setSoTimeout(CONTROL_TIMEOUT);
+		s.connect(new InetSocketAddress(host, PORT), CONTROL_TIMEOUT);
 		in = s.getInputStream();
 		out = s.getOutputStream();
 	}
 	
-	public void sendPacket(NvCtlPacket packet) throws IOException
+	private void sendPacket(NvCtlPacket packet) throws IOException
 	{
 		out.write(packet.toWire());
 		out.flush();
 	}
 	
-	public NvControl.NvCtlResponse sendAndGetReply(NvCtlPacket packet) throws IOException
+	private NvControl.NvCtlResponse sendAndGetReply(NvCtlPacket packet) throws IOException
 	{
 		sendPacket(packet);
 		return new NvCtlResponse(in);
@@ -208,15 +222,10 @@ public class NvControl implements ConnectionStatusListener {
 	
 	public void start() throws IOException
 	{
-		System.out.println("CTL: Sending hello");
 		sendHello();
-		System.out.println("CTL: Sending config");
 		sendConfig();
-		System.out.println("CTL: Initial ping/pong");
 		pingPong();
-		System.out.println("CTL: Sending and waiting for 1405");
 		send1405AndGetResponse();
-		System.out.println("CTL: Launching heartbeat thread");
 		
 		heartbeatThread = new Thread() {
 			@Override
@@ -226,7 +235,7 @@ public class NvControl implements ConnectionStatusListener {
 					try {
 						sendHeartbeat();
 					} catch (IOException e1) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 					
@@ -234,7 +243,7 @@ public class NvControl implements ConnectionStatusListener {
 					try {
 						Thread.sleep(3000);
 					} catch (InterruptedException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 				}
@@ -253,14 +262,14 @@ public class NvControl implements ConnectionStatusListener {
 					try {
 						sendJitter();
 					} catch (IOException e1) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 					
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 				}

@@ -2,7 +2,9 @@ package com.limelight;
 
 import java.io.IOException;
 
+import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -88,26 +90,30 @@ public class Connection extends Activity {
 							return;
 						}
 						
-						NvHTTP httpConn = new NvHTTP(hostText.getText().toString(), macAddress);
-						
+						NvHTTP httpConn;
 						String message;
 						try {
-							if (httpConn.getPairState()) {
-								message = "Already paired";
-							}
-							else {
-								int session = httpConn.getSessionId();
-								if (session == 0) {
-									message = "Pairing was declined by the target";
+							httpConn = new NvHTTP(InetAddress.getByName(hostText.getText().toString()), macAddress);
+							try {
+								if (httpConn.getPairState()) {
+									message = "Already paired";
 								}
 								else {
-									message = "Pairing was successful";
+									int session = httpConn.getSessionId();
+									if (session == 0) {
+										message = "Pairing was declined by the target";
+									}
+									else {
+										message = "Pairing was successful";
+									}
 								}
+							} catch (IOException e) {
+								message = e.getMessage();
+							} catch (XmlPullParserException e) {
+								message = e.getMessage();
 							}
-						} catch (IOException e) {
-							message = e.getMessage();
-						} catch (XmlPullParserException e) {
-							message = e.getMessage();
+						} catch (UnknownHostException e1) {
+							message = "Failed to resolve host";
 						}
 						
 						final String toastMessage = message;

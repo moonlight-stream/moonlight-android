@@ -3,15 +3,23 @@ package com.limelight.nvstream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;;
 
 public class NvHandshake {
 	public static final int PORT = 47991;
 	
-	// android
+	public static final int HANDSHAKE_TIMEOUT = 3000;
+	
 	public static final byte[] PLATFORM_HELLO =
 		{
+			(byte)0x07,
+			(byte)0x00,
+			(byte)0x00,
+			(byte)0x00,
+			
+			// android in ASCII
 			(byte)0x61,
 			(byte)0x6e,
 			(byte)0x64,
@@ -19,6 +27,7 @@ public class NvHandshake {
 			(byte)0x6f,
 			(byte)0x69,
 			(byte)0x64,
+			
 			(byte)0x03,
 			(byte)0x01,
 			(byte)0x00,
@@ -56,46 +65,61 @@ public class NvHandshake {
 			(byte)0x00
 		};
 	
-	private static void waitAndDiscardResponse(InputStream in) throws IOException
+	private static boolean waitAndDiscardResponse(InputStream in)
 	{
 		// Wait for response and discard response
-		in.read();
-		
 		try {
-			Thread.sleep(250);
-		} catch (InterruptedException e) { }
-		
-		for (int i = 0; i < in.available(); i++)
 			in.read();
+			
+			// Wait for the full response to come in
+			Thread.sleep(250);
+			
+			for (int i = 0; i < in.available(); i++)
+				in.read();
+			
+		} catch (IOException e1) {
+			return false;
+		} catch (InterruptedException e) {
+			return false;
+		}
+		
+		return true;
 	}
-	
-	public static void performHandshake(String host) throws UnknownHostException, IOException
+
+	public static boolean performHandshake(InetAddress host) throws IOException
 	{
-		Socket s = new Socket(host, PORT);
+		Socket s = new Socket();
+		s.connect(new InetSocketAddress(host, PORT), HANDSHAKE_TIMEOUT);
+		s.setSoTimeout(HANDSHAKE_TIMEOUT);
 		OutputStream out = s.getOutputStream();
 		InputStream in = s.getInputStream();
 		
 		// First packet
-		out.write(new byte[]{0x07, 0x00, 0x00, 0x00});
 		out.write(PLATFORM_HELLO);
+		out.flush();
 		
-		System.out.println("HS: Waiting for hello response");
-		
-		waitAndDiscardResponse(in);
+		if (!waitAndDiscardResponse(in)) {
+			s.close();
+			return false;
+		}
 		
 		// Second packet
 		out.write(PACKET_2);
-		
-		System.out.println("HS: Waiting stage 2 response");
-		
-		waitAndDiscardResponse(in);
+		out.flush();
+				
+		if (!waitAndDiscardResponse(in)) {
+			s.close();
+			return false;
+		}
 		
 		// Third packet
 		out.write(PACKET_3);
+		out.flush();
 		
-		System.out.println("HS: Waiting for stage 3 response");
-		
-		waitAndDiscardResponse(in);
+		if (!waitAndDiscardResponse(in)) {
+			s.close();
+			return false;
+		}
 		
 		// Fourth packet
 		out.write(PACKET_4);
@@ -103,5 +127,7 @@ public class NvHandshake {
 		
 		// Done
 		s.close();
+		
+		return true;
 	}
 }

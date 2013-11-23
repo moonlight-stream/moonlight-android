@@ -1,7 +1,10 @@
 package com.limelight;
 
 import com.limelight.nvstream.NvConnection;
+import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.input.NvControllerPacket;
+import com.limelight.utils.Dialog;
+import com.limelight.utils.SpinnerDialog;
 
 import android.app.Activity;
 import android.graphics.PixelFormat;
@@ -18,7 +21,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 
-public class Game extends Activity implements OnGenericMotionListener, OnTouchListener {
+public class Game extends Activity implements OnGenericMotionListener, OnTouchListener, NvConnectionListener {
 	private short inputMap = 0x0000;
 	private byte leftTrigger = 0x00;
 	private byte rightTrigger = 0x00;
@@ -33,6 +36,8 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	private boolean hasMoved = false;
 	
 	private NvConnection conn;
+	private SpinnerDialog spinner;
+	private boolean displayedFailureDialog = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +64,9 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		sh.setFixedSize(1280, 720);
 		sh.setFormat(PixelFormat.RGBX_8888);
 
+		// Start the spinner
+		spinner = SpinnerDialog.displayDialog(this, "Establishing Connection", "Starting connection", true);
+		
 		// Start the connection
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this, sv.getHolder().getSurface());
 		conn.start();
@@ -92,6 +100,13 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		conn.stop();
 		finish();
 		super.onPause();
+	}
+	
+	@Override
+	protected void onDestroy() {
+		SpinnerDialog.closeDialogs();
+		Dialog.closeDialogs();
+		super.onDestroy();
 	}
 	
 	@Override
@@ -438,5 +453,43 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	public boolean onTouch(View v, MotionEvent event) {
 		// Send it to the activity's touch event handler
 		return onTouchEvent(event);
+	}
+
+	@Override
+	public void stageStarting(Stage stage) {
+		if (spinner != null) {
+			spinner.setMessage("Starting "+stage.getName());
+		}
+	}
+
+	@Override
+	public void stageComplete(Stage stage) {
+	}
+
+	@Override
+	public void stageFailed(Stage stage) {
+		spinner.dismiss();
+		spinner = null;
+
+		if (!displayedFailureDialog) {
+			displayedFailureDialog = true;
+			Dialog.displayDialog(this, "Connection Error", "Starting "+stage.getName()+" failed", true);
+			conn.stop();
+		}
+	}
+
+	@Override
+	public void connectionTerminated() {
+		if (!displayedFailureDialog) {
+			displayedFailureDialog = true;
+			Dialog.displayDialog(this, "Connection Terminated", "The connection failed unexpectedly", true);
+			conn.stop();
+		}
+	}
+
+	@Override
+	public void connectionStarted() {
+		spinner.dismiss();
+		spinner = null;
 	}
 }

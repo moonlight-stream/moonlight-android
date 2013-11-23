@@ -5,7 +5,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -34,6 +33,15 @@ public class NvAudioStream {
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
 	
 	private boolean aborting = false;
+	
+	private InetAddress host;
+	private NvConnectionListener listener;
+	
+	public NvAudioStream(InetAddress host, NvConnectionListener listener)
+	{
+		this.host = host;
+		this.listener = listener;
+	}
 	
 	public void abort()
 	{
@@ -66,40 +74,25 @@ public class NvAudioStream {
 		threads.clear();
 	}
 	
-	public void startAudioStream(final String host)
-	{		
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					setupRtpSession(host);
-				} catch (SocketException e) {
-					e.printStackTrace();
-					return;
-				} catch (UnknownHostException e) {
-					e.printStackTrace();
-					return;
-				}
-				
-				setupAudio();
-				
-				startReceiveThread();
-				
-				startDepacketizerThread();
-				
-				startDecoderThread();
-				
-				startUdpPingThread();
-			}
-			
-		}).start();
+	public void startAudioStream() throws SocketException
+	{
+		setupRtpSession();
+		
+		setupAudio();
+		
+		startReceiveThread();
+		
+		startDepacketizerThread();
+		
+		startDecoderThread();
+		
+		startUdpPingThread();
 	}
 	
-	private void setupRtpSession(String host) throws SocketException, UnknownHostException
+	private void setupRtpSession() throws SocketException
 	{
 		rtp = new DatagramSocket(RTP_PORT);
-		rtp.connect(InetAddress.getByName(host), RTP_PORT);
+		rtp.connect(host, RTP_PORT);
 	}
 	
 	private void setupAudio()
@@ -108,12 +101,8 @@ public class NvAudioStream {
 		int err;
 		
 		err = OpusDecoder.init();
-		if (err == 0) {
-			System.out.println("Opus decoder initialized");
-		}
-		else {
-			System.err.println("Opus decoder init failed: "+err);
-			return;
+		if (err != 0) {
+			throw new IllegalStateException("Opus decoder failed to initialize");
 		}
 		
 		switch (OpusDecoder.getChannelCount())
@@ -125,8 +114,7 @@ public class NvAudioStream {
 			channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
 			break;
 		default:
-			System.err.println("Unsupported channel count");
-			return;
+			throw new IllegalStateException("Opus decoder returned unhandled channel count");
 		}
 
 		track = new AudioTrack(AudioManager.STREAM_MUSIC,
@@ -153,7 +141,7 @@ public class NvAudioStream {
 					try {
 						packet = packets.take();
 					} catch (InterruptedException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 					
@@ -178,7 +166,7 @@ public class NvAudioStream {
 					try {
 						samples = depacketizer.getNextDecodedData();
 					} catch (InterruptedException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 					
@@ -204,7 +192,7 @@ public class NvAudioStream {
 					try {
 						rtp.receive(packet);
 					} catch (IOException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 					
@@ -240,14 +228,14 @@ public class NvAudioStream {
 					try {
 						rtp.send(pingPacket);
 					} catch (IOException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 					
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 				}

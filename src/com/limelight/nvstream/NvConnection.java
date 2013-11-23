@@ -23,18 +23,21 @@ import com.limelight.nvstream.input.NvController;
 public class NvConnection {
 	private String host;
 	private Game activity;
+	private NvConnectionListener listener;
 	
+	private InetAddress hostAddr;
 	private NvControl controlStream;
 	private NvController inputStream;
 	private Surface video;
 	private NvVideoStream videoStream;
-	private NvAudioStream audioStream = new NvAudioStream();
+	private NvAudioStream audioStream;
 	
 	private ThreadPoolExecutor threadPool;
 	
 	public NvConnection(String host, Game activity, Surface video)
 	{
 		this.host = host;
+		this.listener = activity;
 		this.activity = activity;
 		this.video = video;
 		this.threadPool = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
@@ -116,6 +119,106 @@ public class NvConnection {
 			inputStream = null;
 		}
 	}
+	
+	private boolean startSteamBigPicture() throws XmlPullParserException, IOException
+	{
+		NvHTTP h = new NvHTTP(hostAddr, getMacAddressString());
+		
+		if (!h.getPairState()) {
+			displayToast("Device not paired with computer");
+			return false;
+		}
+		
+		int sessionId = h.getSessionId();
+		int appId = h.getSteamAppId(sessionId);
+		
+		h.launchApp(sessionId, appId);
+		
+		return true;
+	}
+	
+	private boolean startControlStream() throws IOException
+	{
+		controlStream = new NvControl(hostAddr, listener);
+		controlStream.initialize();
+		controlStream.start();
+		return true;
+	}
+	
+	private boolean startVideoStream() throws IOException
+	{
+		videoStream = new NvVideoStream(hostAddr, listener, controlStream);
+		videoStream.startVideoStream(video);
+		return true;
+	}
+	
+	private boolean startAudioStream() throws IOException
+	{
+		audioStream = new NvAudioStream(hostAddr, listener);
+		audioStream.startAudioStream();
+		return true;
+	}
+	
+	private boolean startInputConnection() throws IOException
+	{
+		inputStream = new NvController(hostAddr);
+		inputStream.initialize();
+		return true;
+	}
+	
+	private void establishConnection() {
+		for (NvConnectionListener.Stage currentStage : NvConnectionListener.Stage.values())
+		{
+			boolean success = false;
+
+			listener.stageStarting(currentStage);
+			try {
+				switch (currentStage)
+				{
+				case LAUNCH_APP:
+					success = startSteamBigPicture();
+					break;
+
+				case HANDSHAKE:
+					success = NvHandshake.performHandshake(hostAddr);
+					break;
+					
+				case CONTROL_START:
+					success = startControlStream();
+					break;
+					
+				case VIDEO_START:
+					success = startVideoStream();
+					break;
+					
+				case AUDIO_START:
+					success = startAudioStream();
+					break;
+					
+				case CONTROL_START2:
+					controlStream.startJitterPackets();
+					success = true;
+					break;
+					
+				case INPUT_START:
+					success = startInputConnection();
+					break;
+				}
+			} catch (Exception e) {
+				success = false;
+			}
+			
+			if (success) {
+				listener.stageComplete(currentStage);
+			}
+			else {
+				listener.stageFailed(currentStage);
+				return;
+			}
+		}
+		
+		listener.connectionStarted();
+	}
 
 	public void start()
 	{	
@@ -125,31 +228,16 @@ public class NvConnection {
 				checkDataConnection();
 				
 				try {
-					host = InetAddress.getByName(host).getHostAddress();
+					hostAddr = InetAddress.getByName(host);
 				} catch (UnknownHostException e) {
-					e.printStackTrace();
 					displayToast(e.getMessage());
+					listener.connectionTerminated();
 					return;
 				}
 				
-				try {
-					startSteamBigPicture();
-					performHandshake();
-					beginControlStream();
-					videoStream = new NvVideoStream(controlStream);
-					videoStream.startVideoStream(host, video);
-					audioStream.startAudioStream(host);
-					controlStream.startJitterPackets();
-					startController();
-					activity.hideSystemUi();
-				} catch (XmlPullParserException e) {
-					e.printStackTrace();
-					displayToast(e.getMessage());
-					stop();
-				} catch (IOException e) {
-					displayToast(e.getMessage());
-					stop();
-				}
+				establishConnection();
+				
+				activity.hideSystemUi();
 			}
 		}).start();
 	}
@@ -173,8 +261,7 @@ public class NvConnection {
 				try {
 					inputStream.sendMouseMove(deltaX, deltaY);
 				} catch (IOException e) {
-					displayToast(e.getMessage());
-					NvConnection.this.stop();
+					listener.connectionTerminated();
 				}
 			}
 		});
@@ -191,8 +278,7 @@ public class NvConnection {
 				try {
 					inputStream.sendMouseButtonDown();
 				} catch (IOException e) {
-					displayToast(e.getMessage());
-					NvConnection.this.stop();
+					listener.connectionTerminated();
 				}
 			}
 		});
@@ -209,8 +295,7 @@ public class NvConnection {
 				try {
 					inputStream.sendMouseButtonUp();
 				} catch (IOException e) {
-					displayToast(e.getMessage());
-					NvConnection.this.stop();
+					listener.connectionTerminated();
 				}
 			}
 		});
@@ -232,8 +317,7 @@ public class NvConnection {
 							rightTrigger, leftStickX, leftStickY,
 							rightStickX, rightStickY);
 				} catch (IOException e) {
-					displayToast(e.getMessage());
-					NvConnection.this.stop();
+					listener.connectionTerminated();
 				}
 			}
 		});
@@ -247,44 +331,5 @@ public class NvConnection {
 				Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
 			}
 		});
-	}
-	
-	private void startSteamBigPicture() throws XmlPullParserException, IOException
-	{
-		NvHTTP h = new NvHTTP(host, getMacAddressString());
-		
-		if (!h.getPairState())
-		{
-			displayToast("Device not paired with computer");
-			return;
-		}
-		
-		int sessionId = h.getSessionId();
-		int appId = h.getSteamAppId(sessionId);
-		
-		System.out.println("Starting game session");
-		int gameSession = h.launchApp(sessionId, appId);
-		System.out.println("Started game session: "+gameSession);
-	}
-	
-	private void performHandshake() throws UnknownHostException, IOException
-	{
-		System.out.println("Starting handshake");
-		NvHandshake.performHandshake(host);
-		System.out.println("Handshake complete");
-	}
-	
-	private void beginControlStream() throws UnknownHostException, IOException
-	{
-		controlStream = new NvControl(host);
-		
-		System.out.println("Starting control");
-		controlStream.start();
-	}
-	
-	private void startController() throws UnknownHostException, IOException
-	{
-		System.out.println("Starting input");
-		inputStream = new NvController(host);
 	}
 }

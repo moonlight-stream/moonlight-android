@@ -38,10 +38,10 @@ public class NvComputer {
 		this.uniqueID = uniqueID;
 		
 		try {
-			this.nvHTTP = new NvHTTP(this.ipAddressString, NvConnection.getMacAddressString());
+			this.nvHTTP = new NvHTTP(this.ipAddress, NvConnection.getMacAddressString());
 		} catch (SocketException e) {
 			Log.e("NvComputer Constructor", "Unable to get MAC Address " + e.getMessage());
-			this.nvHTTP = new NvHTTP(this.ipAddressString, "00:00:00:00:00:00");
+			this.nvHTTP = new NvHTTP(this.ipAddress, "00:00:00:00:00:00");
 		}
 		
 		this.updatePairState();

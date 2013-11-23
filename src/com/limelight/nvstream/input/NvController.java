@@ -2,19 +2,29 @@ package com.limelight.nvstream.input;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class NvController {
 	
 	public final static int PORT = 35043;
 	
+	public final static int CONTROLLER_TIMEOUT = 3000;
+	
+	private InetAddress host;
 	private Socket s;
 	private OutputStream out;
 	
-	public NvController(String host) throws UnknownHostException, IOException
+	public NvController(InetAddress host)
 	{
-		s = new Socket(host, PORT);
+		this.host = host;
+	}
+	
+	public void initialize() throws IOException
+	{
+		s = new Socket();
+		s.connect(new InetSocketAddress(host, PORT), CONTROLLER_TIMEOUT);
 		s.setTcpNoDelay(true);
 		out = s.getOutputStream();
 	}

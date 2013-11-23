@@ -3,7 +3,9 @@ package com.limelight.nvstream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.Stack;
 
@@ -15,11 +17,16 @@ public class NvHTTP {
 	private String macAddress;
 
 	public static final int PORT = 47989;
+	
+	public static final int CONNECTION_TIMEOUT = 3000;
+	public static final int REQUEST_TIMEOUT = 15000;
+
+	
 	public String baseUrl;
 
-	public NvHTTP(String host, String macAddress) {
+	public NvHTTP(InetAddress host, String macAddress) {
 		this.macAddress = macAddress;
-		this.baseUrl = "http://" + host + ":" + PORT;
+		this.baseUrl = "http://" + host.getHostAddress() + ":" + PORT;
 	}
 
 	private String getXmlString(InputStream in, String tagname)
@@ -53,7 +60,12 @@ public class NvHTTP {
 	}
 
 	private InputStream openHttpConnection(String url) throws IOException {
-		return new URL(url).openConnection().getInputStream();
+		URLConnection conn = new URL(url).openConnection();
+		conn.setConnectTimeout(CONNECTION_TIMEOUT);
+		conn.setDefaultUseCaches(false);
+		conn.setReadTimeout(REQUEST_TIMEOUT);
+		conn.connect();
+		return conn.getInputStream();
 	}
 
 	public String getAppVersion() throws XmlPullParserException, IOException {

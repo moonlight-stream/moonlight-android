@@ -5,9 +5,9 @@ import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -29,13 +29,17 @@ public class NvVideoStream {
 	public static final int RTCP_PORT = 47999;
 	public static final int FIRST_FRAME_PORT = 47996;
 	
+	public static final int FIRST_FRAME_TIMEOUT = 3000;
+	
 	private LinkedBlockingQueue<AvRtpPacket> packets = new LinkedBlockingQueue<AvRtpPacket>();
 	
+	private InetAddress host;
 	private DatagramSocket rtp;
 	private Socket firstFrameSocket;
 	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
 
+	private NvConnectionListener listener;
 	private AvVideoDepacketizer depacketizer;
 	
 	private DecoderRenderer decrend;
@@ -43,9 +47,11 @@ public class NvVideoStream {
 	
 	private boolean aborting = false;
 	
-	public NvVideoStream(ConnectionStatusListener listener)
+	public NvVideoStream(InetAddress host, NvConnectionListener listener, ConnectionStatusListener avConnListener)
 	{
-		depacketizer = new AvVideoDepacketizer(listener);
+		this.host = host;
+		this.listener = listener;
+		this.depacketizer = new AvVideoDepacketizer(avConnListener);
 	}
 	
 	public void abort()
@@ -89,14 +95,15 @@ public class NvVideoStream {
 		threads.clear();
 	}
 
-	private void readFirstFrame(String host) throws IOException
+	private void readFirstFrame() throws IOException
 	{
 		byte[] firstFrame = new byte[1500];
 		
-		System.out.println("VID: Waiting for first frame");
-		firstFrameSocket = new Socket(host, FIRST_FRAME_PORT);
-
+		firstFrameSocket = new Socket();
+		firstFrameSocket.setSoTimeout(FIRST_FRAME_TIMEOUT);
+		
 		try {
+			firstFrameSocket.connect(new InetSocketAddress(host, FIRST_FRAME_PORT), FIRST_FRAME_TIMEOUT);
 			InputStream firstFrameStream = firstFrameSocket.getInputStream();
 			
 			int offset = 0;
@@ -110,7 +117,6 @@ public class NvVideoStream {
 				offset += bytesRead;
 			}
 			
-			System.out.println("VID: First frame read ("+offset+" bytes)");
 			depacketizer.addInputData(new AvVideoPacket(new AvByteBufferDescriptor(firstFrame, 0, offset)));
 		} finally {
 			firstFrameSocket.close();
@@ -118,13 +124,10 @@ public class NvVideoStream {
 		}
 	}
 	
-	public void setupRtpSession(String host) throws SocketException, UnknownHostException
+	public void setupRtpSession() throws SocketException
 	{
 		rtp = new DatagramSocket(RTP_PORT);
-		rtp.connect(InetAddress.getByName(host), RTP_PORT);
-		rtp.setReceiveBufferSize(2097152);
-		System.out.println("RECV BUF: "+rtp.getReceiveBufferSize());
-		System.out.println("SEND BUF: "+rtp.getSendBufferSize());
+		rtp.connect(host, RTP_PORT);
 	}
 	
 	public void setupDecoderRenderer(Surface renderTarget) {		
@@ -146,61 +149,40 @@ public class NvVideoStream {
 		}
 	}
 
-	public void startVideoStream(final String host, final Surface surface)
+	public void startVideoStream(final Surface surface) throws IOException
 	{
-		// This thread becomes the output display thread
-		Thread t = new Thread() {
-			@Override
-			public void run() {
-				// Setup the decoder and renderer
-				setupDecoderRenderer(surface);
-				
-				// Open RTP sockets and start session
-				try {
-					setupRtpSession(host);
-				} catch (SocketException e) {
-					e.printStackTrace();
-					return;
-				} catch (UnknownHostException e) {
-					e.printStackTrace();
-					return;
-				}
-				
-				// Start pinging before reading the first frame
-				// so Shield Proxy knows we're here and sends us
-				// the reference frame
-				startUdpPingThread();
-				
-				// Read the first frame to start the UDP video stream
-				// This MUST be called before the normal UDP receive thread
-				// starts in order to avoid state corruption caused by two
-				// threads simultaneously adding input data.
-				try {
-					readFirstFrame(host);
-				} catch (IOException e2) {
-					abort();
-					return;
-				}
-				
-				if (decrend != null) {
-					// Start the receive thread early to avoid missing
-					// early packets
-					startReceiveThread();
-					
-					// Start the depacketizer thread to deal with the RTP data
-					startDepacketizerThread();
-					
-					// Start decoding the data we're receiving
-					startDecoderThread();
-					
-					// Start the renderer
-					decrend.start();
-					startedRendering = true;
-				}
-			}
-		};
-		threads.add(t);
-		t.start();
+		// Setup the decoder and renderer
+		setupDecoderRenderer(surface);
+		
+		// Open RTP sockets and start session
+		setupRtpSession();
+		
+		// Start pinging before reading the first frame
+		// so Shield Proxy knows we're here and sends us
+		// the reference frame
+		startUdpPingThread();
+		
+		// Read the first frame to start the UDP video stream
+		// This MUST be called before the normal UDP receive thread
+		// starts in order to avoid state corruption caused by two
+		// threads simultaneously adding input data.
+		readFirstFrame();
+		
+		if (decrend != null) {
+			// Start the receive thread early to avoid missing
+			// early packets
+			startReceiveThread();
+			
+			// Start the depacketizer thread to deal with the RTP data
+			startDepacketizerThread();
+			
+			// Start decoding the data we're receiving
+			startDecoderThread();
+			
+			// Start the renderer
+			decrend.start();
+			startedRendering = true;
+		}
 	}
 	
 	private void startDecoderThread()
@@ -216,7 +198,7 @@ public class NvVideoStream {
 					try {
 						du = depacketizer.getNextDecodeUnit();
 					} catch (InterruptedException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 					
@@ -242,7 +224,7 @@ public class NvVideoStream {
 					try {
 						packet = packets.take();
 					} catch (InterruptedException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 					
@@ -269,7 +251,7 @@ public class NvVideoStream {
 					try {
 						rtp.receive(packet);
 					} catch (IOException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 					
@@ -305,14 +287,14 @@ public class NvVideoStream {
 					try {
 						rtp.send(pingPacket);
 					} catch (IOException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 					
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
-						abort();
+						listener.connectionTerminated();
 						return;
 					}
 				}

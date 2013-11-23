@@ -198,7 +198,7 @@ public class NvVideoStream {
 					try {
 						du = depacketizer.getNextDecodeUnit();
 					} catch (InterruptedException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 					
@@ -224,7 +224,7 @@ public class NvVideoStream {
 					try {
 						packet = packets.take();
 					} catch (InterruptedException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 					
@@ -251,7 +251,7 @@ public class NvVideoStream {
 					try {
 						rtp.receive(packet);
 					} catch (IOException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 					
@@ -287,14 +287,14 @@ public class NvVideoStream {
 					try {
 						rtp.send(pingPacket);
 					} catch (IOException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 					
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 				}

@@ -205,6 +205,7 @@ public class NvConnection {
 					break;
 				}
 			} catch (Exception e) {
+				e.printStackTrace();
 				success = false;
 			}
 			
@@ -231,7 +232,7 @@ public class NvConnection {
 					hostAddr = InetAddress.getByName(host);
 				} catch (UnknownHostException e) {
 					displayToast(e.getMessage());
-					listener.connectionTerminated();
+					listener.connectionTerminated(e);
 					return;
 				}
 				
@@ -261,7 +262,7 @@ public class NvConnection {
 				try {
 					inputStream.sendMouseMove(deltaX, deltaY);
 				} catch (IOException e) {
-					listener.connectionTerminated();
+					listener.connectionTerminated(e);
 				}
 			}
 		});
@@ -278,7 +279,7 @@ public class NvConnection {
 				try {
 					inputStream.sendMouseButtonDown();
 				} catch (IOException e) {
-					listener.connectionTerminated();
+					listener.connectionTerminated(e);
 				}
 			}
 		});
@@ -295,7 +296,7 @@ public class NvConnection {
 				try {
 					inputStream.sendMouseButtonUp();
 				} catch (IOException e) {
-					listener.connectionTerminated();
+					listener.connectionTerminated(e);
 				}
 			}
 		});
@@ -317,7 +318,7 @@ public class NvConnection {
 							rightTrigger, leftStickX, leftStickY,
 							rightStickX, rightStickY);
 				} catch (IOException e) {
-					listener.connectionTerminated();
+					listener.connectionTerminated(e);
 				}
 			}
 		});

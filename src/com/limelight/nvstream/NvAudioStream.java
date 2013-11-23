@@ -141,7 +141,7 @@ public class NvAudioStream {
 					try {
 						packet = packets.take();
 					} catch (InterruptedException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 					
@@ -166,7 +166,7 @@ public class NvAudioStream {
 					try {
 						samples = depacketizer.getNextDecodedData();
 					} catch (InterruptedException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 					
@@ -192,7 +192,7 @@ public class NvAudioStream {
 					try {
 						rtp.receive(packet);
 					} catch (IOException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 					
@@ -228,14 +228,14 @@ public class NvAudioStream {
 					try {
 						rtp.send(pingPacket);
 					} catch (IOException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 					
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 				}

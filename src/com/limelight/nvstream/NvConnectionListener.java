@@ -26,5 +26,5 @@ public interface NvConnectionListener {
 	public void stageFailed(Stage stage);
 	
 	public void connectionStarted();
-	public void connectionTerminated();
+	public void connectionTerminated(Exception e);
 }

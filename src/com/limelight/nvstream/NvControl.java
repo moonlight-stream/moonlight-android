@@ -234,8 +234,8 @@ public class NvControl implements ConnectionStatusListener {
 				{
 					try {
 						sendHeartbeat();
-					} catch (IOException e1) {
-						listener.connectionTerminated();
+					} catch (IOException e) {
+						listener.connectionTerminated(e);
 						return;
 					}
 					
@@ -243,7 +243,7 @@ public class NvControl implements ConnectionStatusListener {
 					try {
 						Thread.sleep(3000);
 					} catch (InterruptedException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 				}
@@ -261,15 +261,15 @@ public class NvControl implements ConnectionStatusListener {
 				{
 					try {
 						sendJitter();
-					} catch (IOException e1) {
-						listener.connectionTerminated();
+					} catch (IOException e) {
+						listener.connectionTerminated(e);
 						return;
 					}
 					
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
-						listener.connectionTerminated();
+						listener.connectionTerminated(e);
 						return;
 					}
 				}

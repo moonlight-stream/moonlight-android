@@ -479,9 +479,10 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	}
 
 	@Override
-	public void connectionTerminated() {
+	public void connectionTerminated(Exception e) {
 		if (!displayedFailureDialog) {
 			displayedFailureDialog = true;
+			e.printStackTrace();
 			Dialog.displayDialog(this, "Connection Terminated", "The connection failed unexpectedly", true);
 			conn.stop();
 		}

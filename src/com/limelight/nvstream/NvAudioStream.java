@@ -184,8 +184,8 @@ public class NvAudioStream {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				DatagramPacket packet = new DatagramPacket(new byte[1500], 1500);
-				AvByteBufferDescriptor desc = new AvByteBufferDescriptor(null, 0, 0);
+				AvByteBufferDescriptor desc = new AvByteBufferDescriptor(new byte[1500], 0, 1500);
+				DatagramPacket packet = new DatagramPacket(desc.data, desc.length);
 				
 				while (!isInterrupted())
 				{
@@ -195,15 +195,12 @@ public class NvAudioStream {
 						listener.connectionTerminated(e);
 						return;
 					}
-					
-					desc.length = packet.getLength();
-					desc.offset = packet.getOffset();
-					desc.data = packet.getData();
-					
+
 					// Give the packet to the depacketizer thread
+					desc.length = packet.getLength();
 					if (packets.offer(new AvRtpPacket(desc))) {
-						// Get a new buffer from the buffer pool
-						packet.setData(new byte[1500], 0, 1500);
+						desc.reinitialize(new byte[1500], 0, 1500);
+						packet.setData(desc.data, desc.offset, desc.length);
 					}
 				}
 			}

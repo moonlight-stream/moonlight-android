@@ -150,6 +150,7 @@ public class NvAudioStream {
 			}
 		};
 		threads.add(t);
+		t.setName("Audio - Depacketizer");
 		t.start();
 	}
 	
@@ -175,6 +176,7 @@ public class NvAudioStream {
 			}
 		};
 		threads.add(t);
+		t.setName("Audio - Player");
 		t.start();
 	}
 	
@@ -206,6 +208,7 @@ public class NvAudioStream {
 			}
 		};
 		threads.add(t);
+		t.setName("Audio - Receive");
 		t.start();
 	}
 	
@@ -240,6 +243,7 @@ public class NvAudioStream {
 			}
 		};
 		threads.add(t);
+		t.setName("Audio - Ping");
 		t.start();
 	}
 }

@@ -140,6 +140,7 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 				}
 			}
 		};
+		rendererThread.setName("Video - Renderer (CPU)");
 		rendererThread.start();
 	}
 	

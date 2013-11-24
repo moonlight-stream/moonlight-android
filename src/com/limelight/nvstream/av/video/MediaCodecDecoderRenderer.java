@@ -120,6 +120,7 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 				}
 			}
 		};
+		rendererThread.setName("Video - Renderer (MediaCodec)");
 		rendererThread.start();
 	}
 	

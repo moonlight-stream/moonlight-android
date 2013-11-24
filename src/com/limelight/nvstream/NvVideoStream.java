@@ -206,6 +206,7 @@ public class NvVideoStream {
 			}
 		};
 		threads.add(t);
+		t.setName("Video - Decoder");
 		t.start();
 	}
 	
@@ -233,6 +234,7 @@ public class NvVideoStream {
 			}
 		};
 		threads.add(t);
+		t.setName("Video - Depacketizer");
 		t.start();
 	}
 	
@@ -264,6 +266,7 @@ public class NvVideoStream {
 			}
 		};
 		threads.add(t);
+		t.setName("Video - Receive");
 		t.start();
 	}
 	
@@ -298,6 +301,7 @@ public class NvVideoStream {
 			}
 		};
 		threads.add(t);
+		t.setName("Video - Ping");
 		t.start();
 	}
 }

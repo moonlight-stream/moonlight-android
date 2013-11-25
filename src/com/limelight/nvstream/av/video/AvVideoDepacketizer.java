@@ -1,7 +1,7 @@
 package com.limelight.nvstream.av.video;
 
 import java.util.LinkedList;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvDecodeUnit;
@@ -26,8 +26,8 @@ public class AvVideoDepacketizer {
 	
 	private ConnectionStatusListener controlListener;
 	
-	private static final int DU_LIMIT = 30;
-	private ArrayBlockingQueue<AvDecodeUnit> decodedUnits = new ArrayBlockingQueue<AvDecodeUnit>(DU_LIMIT);
+	private static final int DU_LIMIT = 15;
+	private LinkedBlockingQueue<AvDecodeUnit> decodedUnits = new LinkedBlockingQueue<AvDecodeUnit>(DU_LIMIT);
 	
 	public AvVideoDepacketizer(ConnectionStatusListener controlListener)
 	{

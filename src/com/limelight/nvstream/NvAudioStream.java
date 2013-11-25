@@ -7,7 +7,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.LinkedList;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvRtpPacket;
@@ -23,7 +23,7 @@ public class NvAudioStream {
 	public static final int RTP_PORT = 48000;
 	public static final int RTCP_PORT = 47999;
 	
-	private ArrayBlockingQueue<AvRtpPacket> packets = new ArrayBlockingQueue<AvRtpPacket>(100);
+	private LinkedBlockingQueue<AvRtpPacket> packets = new LinkedBlockingQueue<AvRtpPacket>(100);
 	
 	private AudioTrack track;
 	
@@ -171,9 +171,9 @@ public class NvAudioStream {
 						return;
 					}
 					
-					track.write(samples.data, samples.offset, samples.length);
+						track.write(samples.data, samples.offset, samples.length);
+					}
 				}
-			}
 		};
 		threads.add(t);
 		t.setName("Audio - Player");
@@ -243,6 +243,7 @@ public class NvAudioStream {
 			}
 		};
 		threads.add(t);
+		t.setPriority(Thread.MIN_PRIORITY);
 		t.setName("Audio - Ping");
 		t.start();
 	}

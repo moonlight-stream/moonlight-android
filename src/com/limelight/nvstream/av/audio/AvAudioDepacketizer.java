@@ -1,14 +1,16 @@
 package com.limelight.nvstream.av.audio;
 
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvRtpPacket;
 import com.limelight.nvstream.av.AvShortBufferDescriptor;
 
 public class AvAudioDepacketizer {
-	private ArrayBlockingQueue<AvShortBufferDescriptor> decodedUnits =
-			new ArrayBlockingQueue<AvShortBufferDescriptor>(15);
+	
+	private static final int DU_LIMIT = 15;
+	private LinkedBlockingQueue<AvShortBufferDescriptor> decodedUnits =
+			new LinkedBlockingQueue<AvShortBufferDescriptor>(DU_LIMIT);
 		
 	// Sequencing state
 	private short lastSequenceNumber;

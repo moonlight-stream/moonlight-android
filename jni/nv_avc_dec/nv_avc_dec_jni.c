@@ -7,9 +7,9 @@
 // any other decoding functions
 JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_av_video_AvcDecoder_init(JNIEnv *env, jobject this, jint width,
-	jint height, jint perflvl)
+	jint height, jint perflvl, jint threadcount)
 {
-	return nv_avc_init(width, height, perflvl);
+	return nv_avc_init(width, height, perflvl, threadcount);
 }
 
 // This function must be called after

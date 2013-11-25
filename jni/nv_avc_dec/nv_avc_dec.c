@@ -20,15 +20,24 @@ struct SwsContext* scaler_ctx;
 #define RENDER_PIX_FMT AV_PIX_FMT_RGBA
 #define BYTES_PER_PIXEL 4
 
-#define VERY_LOW_PERF 0
-#define LOW_PERF 1
-#define MED_PERF 2
-#define HIGH_PERF 3
+// Disables the deblocking filter at the cost of image quality
+#define DISABLE_LOOP_FILTER         0x1
+// Uses the low latency decode flag (disables multithreading)
+#define LOW_LATENCY_DECODE      0x2
+// Threads process each slice, rather than each frame
+#define SLICE_THREADING             0x4
+// Uses nonstandard speedup tricks
+#define FAST_DECODE             0x8
+// Uses bilinear filtering instead of bicubic
+#define BILINEAR_FILTERING      0x10
+// Uses a faster bilinear filtering with lower image quality
+#define FAST_BILINEAR_FILTERING 0x20
 
 // This function must be called before
 // any other decoding functions
-int nv_avc_init(int width, int height, int perf_lvl) {
+int nv_avc_init(int width, int height, int perf_lvl, int thread_count) {
 	int err;
+	int filtering;
 
 	pthread_mutex_init(&mutex, NULL);
 
@@ -53,23 +62,24 @@ int nv_avc_init(int width, int height, int perf_lvl) {
 	// Show frames even before a reference frame
 	decoder_ctx->flags2 |= CODEC_FLAG2_SHOW_ALL;
 
-	if (perf_lvl <= LOW_PERF) {
+	if (perf_lvl & DISABLE_LOOP_FILTER) {
 		// Skip the loop filter for performance reasons
 		decoder_ctx->skip_loop_filter = AVDISCARD_ALL;
 	}
 
-	if (perf_lvl <= MED_PERF) {
-		// Run 2 threads for decoding
-		decoder_ctx->thread_count = 2;
-		decoder_ctx->thread_type = FF_THREAD_FRAME;
-
-		// Use some tricks to make things faster
-		decoder_ctx->flags2 |= CODEC_FLAG2_FAST;
-	}
-	else {
+	if (perf_lvl & LOW_LATENCY_DECODE) {
 		// Use low delay single threaded encoding
 		decoder_ctx->flags |= CODEC_FLAG_LOW_DELAY;
 	}
+
+	if (perf_lvl & SLICE_THREADING) {
+		decoder_ctx->thread_type = FF_THREAD_SLICE;
+	}
+	else {
+		decoder_ctx->thread_type = FF_THREAD_FRAME;
+	}
+
+	decoder_ctx->thread_count = thread_count;
 
 	decoder_ctx->width = width;
 	decoder_ctx->height = height;
@@ -114,13 +124,23 @@ int nv_avc_init(int width, int height, int perf_lvl) {
 		return err;
 	}
 
+	if (perf_lvl & FAST_BILINEAR_FILTERING) {
+		filtering = SWS_FAST_BILINEAR;
+	}
+	else if (perf_lvl & BILINEAR_FILTERING) {
+		filtering = SWS_BILINEAR;
+	}
+	else {
+		filtering = SWS_BICUBIC;
+	}
+
 	scaler_ctx = sws_getContext(decoder_ctx->width,
 		decoder_ctx->height,
 		decoder_ctx->pix_fmt,
 		decoder_ctx->width,
 		decoder_ctx->height,
 		RENDER_PIX_FMT,
-		SWS_BICUBIC,
+		filtering,
 		NULL, NULL, NULL);
 	if (scaler_ctx == NULL) {
 		__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",

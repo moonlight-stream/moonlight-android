@@ -73,7 +73,25 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 		this.renderTarget = renderTarget;
 		this.perfLevel = findOptimalPerformanceLevel();
 		
-		int err = AvcDecoder.init(width, height, perfLevel);
+		int flags = 0;
+		switch (perfLevel) {
+		case LOW_PERF:
+			flags = AvcDecoder.DISABLE_LOOP_FILTER |
+					AvcDecoder.FAST_BILINEAR_FILTERING |
+					AvcDecoder.FAST_DECODE |
+					AvcDecoder.LOW_LATENCY_DECODE;
+			break;
+		case MED_PERF:
+			flags = AvcDecoder.LOW_LATENCY_DECODE |
+					AvcDecoder.FAST_DECODE |
+					AvcDecoder.BILINEAR_FILTERING;
+			break;
+		case HIGH_PERF:
+			flags = AvcDecoder.LOW_LATENCY_DECODE;
+			break;
+		}
+		
+		int err = AvcDecoder.init(width, height, flags, 2);
 		if (err != 0) {
 			throw new IllegalStateException("AVC decoder initialization failure: "+err);
 		}

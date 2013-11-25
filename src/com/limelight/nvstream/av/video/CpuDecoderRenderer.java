@@ -137,6 +137,7 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 					
 					nextFrameTime = computePresentationTimeMs(frameRateTarget);
 					AvcDecoder.redraw(renderTarget);
+					System.gc();
 				}
 			}
 		};

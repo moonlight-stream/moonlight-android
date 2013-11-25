@@ -97,6 +97,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	
 	@Override
 	public void onPause() {
+		displayedFailureDialog = true;
 		conn.stop();
 		finish();
 		super.onPause();

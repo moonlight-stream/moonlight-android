@@ -19,6 +19,13 @@ public class AvByteBufferDescriptor {
 		this.length = desc.length;
 	}
 	
+	public void reinitialize(byte[] data, int offset, int length)
+	{
+		this.data = data;
+		this.offset = offset;
+		this.length = length;
+	}
+	
 	public void print()
 	{
 		print(offset, length);

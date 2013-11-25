@@ -79,12 +79,12 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 			flags = AvcDecoder.DISABLE_LOOP_FILTER |
 					AvcDecoder.FAST_BILINEAR_FILTERING |
 					AvcDecoder.FAST_DECODE |
-					AvcDecoder.LOW_LATENCY_DECODE;
+					AvcDecoder.SLICE_THREADING;
 			break;
 		case MED_PERF:
-			flags = AvcDecoder.LOW_LATENCY_DECODE |
+			flags = AvcDecoder.BILINEAR_FILTERING |
 					AvcDecoder.FAST_DECODE |
-					AvcDecoder.BILINEAR_FILTERING;
+					AvcDecoder.SLICE_THREADING;
 			break;
 		case HIGH_PERF:
 			flags = AvcDecoder.LOW_LATENCY_DECODE;

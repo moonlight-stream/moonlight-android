@@ -30,6 +30,8 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 		blacklistedDecoderPrefixes.add("omx.google");
 		blacklistedDecoderPrefixes.add("omx.nvidia");
 		blacklistedDecoderPrefixes.add("omx.TI");
+		blacklistedDecoderPrefixes.add("omx.RK");
+		blacklistedDecoderPrefixes.add("AVCDecoder");
 	}
 
 	public static MediaCodecInfo findSafeDecoder() {

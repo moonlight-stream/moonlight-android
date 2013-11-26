@@ -47,7 +47,7 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 			
 			for (String badPrefix : blacklistedDecoderPrefixes) {
 				String name = codecInfo.getName();
-				if (name.length() > badPrefix.length()) {
+				if (name.length() >= badPrefix.length()) {
 					String prefix = name.substring(0, badPrefix.length());
 					if (prefix.equalsIgnoreCase(badPrefix)) {
 						badCodec = true;

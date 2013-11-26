@@ -15,11 +15,16 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 	private Surface renderTarget;
 	private ByteBuffer decoderBuffer;
 	private Thread rendererThread;
-	private int perfLevel;
+	private int targetFps;
+	
+	// Only sleep if the difference is above this value
+	private static final int WAIT_CEILING_MS = 8;
 	
 	private static final int LOW_PERF = 1;
 	private static final int MED_PERF = 2;
 	private static final int HIGH_PERF = 3;
+	
+	private int cpuCount = Runtime.getRuntime().availableProcessors();
 	
 	private int findOptimalPerformanceLevel() {
 		StringBuilder cpuInfo = new StringBuilder();
@@ -71,27 +76,40 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 	@Override
 	public void setup(int width, int height, Surface renderTarget) {
 		this.renderTarget = renderTarget;
-		this.perfLevel = findOptimalPerformanceLevel();
+		this.targetFps = 30;
+		
+		int perfLevel = findOptimalPerformanceLevel();
+		int threadCount;
 		
 		int flags = 0;
 		switch (perfLevel) {
+		case HIGH_PERF:
+			// Single threaded low latency decode is ideal but hard to acheive
+			flags = AvcDecoder.LOW_LATENCY_DECODE;
+			threadCount = 1;
+			break;
+
 		case LOW_PERF:
+			// Disable the loop filter for performance reasons
 			flags = AvcDecoder.DISABLE_LOOP_FILTER |
 					AvcDecoder.FAST_BILINEAR_FILTERING |
-					AvcDecoder.FAST_DECODE |
-					AvcDecoder.SLICE_THREADING;
+					AvcDecoder.FAST_DECODE;
+			
+			// Use plenty of threads to try to utilize the CPU as best we can
+			threadCount = cpuCount - 1;
 			break;
+
+		default:
 		case MED_PERF:
 			flags = AvcDecoder.BILINEAR_FILTERING |
-					AvcDecoder.FAST_DECODE |
-					AvcDecoder.SLICE_THREADING;
-			break;
-		case HIGH_PERF:
-			flags = AvcDecoder.LOW_LATENCY_DECODE;
+					AvcDecoder.FAST_DECODE;
+			
+			// Only use 2 threads to minimize frame processing latency
+			threadCount = 2;
 			break;
 		}
 		
-		int err = AvcDecoder.init(width, height, flags, 2);
+		int err = AvcDecoder.init(width, height, flags, threadCount);
 		if (err != 0) {
 			throw new IllegalStateException("AVC decoder initialization failure: "+err);
 		}
@@ -106,38 +124,22 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 		rendererThread = new Thread() {
 			@Override
 			public void run() {
-				int frameRateTarget;
 				long nextFrameTime = System.currentTimeMillis();
-				
-				switch (perfLevel) {
-				case HIGH_PERF:
-					frameRateTarget = 45;
-					break;
-				case MED_PERF:
-					frameRateTarget = 30;
-					break;
-				case LOW_PERF:
-				default:
-					frameRateTarget = 15;
-					break;
-				}
 				
 				while (!isInterrupted())
 				{
 					long diff = nextFrameTime - System.currentTimeMillis();
-					
-					if (diff > 0) {
-						// Sleep until the frame should be rendered
+
+					if (diff > WAIT_CEILING_MS) {
 						try {
 							Thread.sleep(diff);
 						} catch (InterruptedException e) {
 							return;
 						}
 					}
-					
-					nextFrameTime = computePresentationTimeMs(frameRateTarget);
+
+					nextFrameTime = computePresentationTimeMs(targetFps);
 					AvcDecoder.redraw(renderTarget);
-					System.gc();
 				}
 			}
 		};

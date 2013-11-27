@@ -116,6 +116,9 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 			// Make sure the loop filter is enabled
 			avcFlags &= ~AvcDecoder.DISABLE_LOOP_FILTER;
 			
+			// Disable the non-compliant speed optimizations
+			avcFlags &= ~AvcDecoder.FAST_DECODE;
+			
 			System.out.println("Using high quality decoding");
 		}
 		

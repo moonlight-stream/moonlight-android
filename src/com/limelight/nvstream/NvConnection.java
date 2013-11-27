@@ -14,7 +14,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
-import android.view.Surface;
+import android.view.SurfaceHolder;
 import android.widget.Toast;
 
 import com.limelight.Game;
@@ -24,22 +24,24 @@ public class NvConnection {
 	private String host;
 	private Game activity;
 	private NvConnectionListener listener;
+	private int drFlags;
 	
 	private InetAddress hostAddr;
 	private NvControl controlStream;
 	private NvController inputStream;
-	private Surface video;
+	private SurfaceHolder video;
 	private NvVideoStream videoStream;
 	private NvAudioStream audioStream;
 	
 	private ThreadPoolExecutor threadPool;
 	
-	public NvConnection(String host, Game activity, Surface video)
+	public NvConnection(String host, Game activity, SurfaceHolder video, int drFlags)
 	{
 		this.host = host;
 		this.listener = activity;
 		this.activity = activity;
 		this.video = video;
+		this.drFlags = drFlags;
 		this.threadPool = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
 	}
 	
@@ -148,7 +150,7 @@ public class NvConnection {
 	private boolean startVideoStream() throws IOException
 	{
 		videoStream = new NvVideoStream(hostAddr, listener, controlStream);
-		videoStream.startVideoStream(video);
+		videoStream.startVideoStream(video, drFlags);
 		return true;
 	}
 	

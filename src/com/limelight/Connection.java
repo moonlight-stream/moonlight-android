@@ -17,9 +17,13 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
@@ -27,6 +31,7 @@ public class Connection extends Activity {
 	private Button statusButton, pairButton;
 	private TextView hostText;
 	private SharedPreferences prefs;
+	private CheckBox qualityCheckbox;
 	
 	private static final String DEFAULT_HOST = "";
 	public static final String HOST_KEY = "hostText";
@@ -57,9 +62,20 @@ public class Connection extends Activity {
 		this.statusButton = (Button) findViewById(R.id.statusButton);
 		this.pairButton = (Button) findViewById(R.id.pairButton);
 		this.hostText = (TextView) findViewById(R.id.hostTextView);
+		this.qualityCheckbox = (CheckBox) findViewById(R.id.imageQualityCheckbox);
 		
-		prefs = getPreferences(0);
+		prefs = getSharedPreferences(Game.PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
 		this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));
+		this.qualityCheckbox.setChecked(prefs.getBoolean(Game.QUALITY_PREF_STRING, false));
+		
+		this.qualityCheckbox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton checkbox, boolean isChecked) {
+				SharedPreferences.Editor editor = prefs.edit();
+				editor.putBoolean(Game.QUALITY_PREF_STRING, isChecked);
+				editor.commit();
+			}
+		});
 		
 		this.statusButton.setOnClickListener(new OnClickListener() {
 			@Override

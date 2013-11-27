@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
 import android.view.Surface;
+import android.view.SurfaceHolder;
 
 import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvDecodeUnit;
@@ -74,26 +76,26 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 	}
 	
 	@Override
-	public void setup(int width, int height, Surface renderTarget) {
-		this.renderTarget = renderTarget;
+	public void setup(int width, int height, SurfaceHolder renderTarget, int drFlags) {
+		this.renderTarget = renderTarget.getSurface();
 		this.targetFps = 30;
 		
 		int perfLevel = findOptimalPerformanceLevel();
 		int threadCount;
 		
-		int flags = 0;
+		int avcFlags = 0;
 		switch (perfLevel) {
 		case HIGH_PERF:
 			// Single threaded low latency decode is ideal but hard to acheive
-			flags = AvcDecoder.LOW_LATENCY_DECODE;
+			avcFlags = AvcDecoder.LOW_LATENCY_DECODE;
 			threadCount = 1;
 			break;
 
 		case LOW_PERF:
 			// Disable the loop filter for performance reasons
-			flags = AvcDecoder.DISABLE_LOOP_FILTER |
-					AvcDecoder.FAST_BILINEAR_FILTERING |
-					AvcDecoder.FAST_DECODE;
+			avcFlags = AvcDecoder.DISABLE_LOOP_FILTER |
+				AvcDecoder.FAST_BILINEAR_FILTERING |
+				AvcDecoder.FAST_DECODE;
 			
 			// Use plenty of threads to try to utilize the CPU as best we can
 			threadCount = cpuCount - 1;
@@ -101,15 +103,23 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 
 		default:
 		case MED_PERF:
-			flags = AvcDecoder.BILINEAR_FILTERING |
-					AvcDecoder.FAST_DECODE;
+			avcFlags = AvcDecoder.BILINEAR_FILTERING |
+				AvcDecoder.FAST_DECODE;
 			
 			// Only use 2 threads to minimize frame processing latency
 			threadCount = 2;
 			break;
 		}
 		
-		int err = AvcDecoder.init(width, height, flags, threadCount);
+		// If the user wants quality, we'll remove the low IQ flags
+		if ((drFlags & DecoderRenderer.FLAG_PREFER_QUALITY) != 0) {
+			// Make sure the loop filter is enabled
+			avcFlags &= ~AvcDecoder.DISABLE_LOOP_FILTER;
+			
+			System.out.println("Using high quality decoding");
+		}
+		
+		int err = AvcDecoder.init(width, height, avcFlags, threadCount);
 		if (err != 0) {
 			throw new IllegalStateException("AVC decoder initialization failure: "+err);
 		}

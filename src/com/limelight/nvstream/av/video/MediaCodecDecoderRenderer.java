@@ -14,7 +14,7 @@ import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaCodec.BufferInfo;
 import android.os.Build;
-import android.view.Surface;
+import android.view.SurfaceHolder;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class MediaCodecDecoderRenderer implements DecoderRenderer {
@@ -73,11 +73,11 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 	}
 	
 	@Override
-	public void setup(int width, int height, Surface renderTarget) {
+	public void setup(int width, int height, SurfaceHolder renderTarget, int drFlags) {
 		videoDecoder = MediaCodec.createByCodecName(findSafeDecoder().getName());
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
 
-		videoDecoder.configure(videoFormat, renderTarget, null, 0);
+		videoDecoder.configure(videoFormat, renderTarget.getSurface(), null, 0);
 
 		videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 		

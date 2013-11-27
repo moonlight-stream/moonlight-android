@@ -2,10 +2,12 @@ package com.limelight.nvstream.av.video;
 
 import com.limelight.nvstream.av.AvDecodeUnit;
 
-import android.view.Surface;
+import android.view.SurfaceHolder;
 
 public interface DecoderRenderer {
-	public void setup(int width, int height, Surface renderTarget);
+	public static int FLAG_PREFER_QUALITY = 0x1;
+	
+	public void setup(int width, int height, SurfaceHolder renderTarget, int drFlags);
 	
 	public void start();
 	

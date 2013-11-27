@@ -2,11 +2,14 @@ package com.limelight;
 
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
+import com.limelight.nvstream.av.video.DecoderRenderer;
 import com.limelight.nvstream.input.NvControllerPacket;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.view.InputDevice;
@@ -39,6 +42,9 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	private SpinnerDialog spinner;
 	private boolean displayedFailureDialog = false;
 	
+	public static final String PREFS_FILE_NAME = "gameprefs";
+	public static final String QUALITY_PREF_STRING = "Quality";
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -67,8 +73,15 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		// Start the spinner
 		spinner = SpinnerDialog.displayDialog(this, "Establishing Connection", "Starting connection", true);
 		
+		// Read the stream preferences
+		SharedPreferences prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
+		int drFlags = 0;
+		if (prefs.getBoolean(QUALITY_PREF_STRING, false)) {
+			drFlags |= DecoderRenderer.FLAG_PREFER_QUALITY;
+		}
+		
 		// Start the connection
-		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this, sv.getHolder().getSurface());
+		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this, sv.getHolder(), drFlags);
 		conn.start();
 	}
 

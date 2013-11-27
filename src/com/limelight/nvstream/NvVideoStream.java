@@ -22,7 +22,7 @@ import com.limelight.nvstream.av.video.DecoderRenderer;
 import com.limelight.nvstream.av.video.MediaCodecDecoderRenderer;
 
 import android.os.Build;
-import android.view.Surface;
+import android.view.SurfaceHolder;
 
 public class NvVideoStream {
 	public static final int RTP_PORT = 47998;
@@ -129,7 +129,7 @@ public class NvVideoStream {
 		rtp = new DatagramSocket(RTP_PORT);
 	}
 	
-	public void setupDecoderRenderer(Surface renderTarget) {		
+	public void setupDecoderRenderer(SurfaceHolder renderTarget, int drFlags) {		
 		if (Build.HARDWARE.equals("goldfish")) {
 			// Emulator - don't render video (it's slow!)
 			decrend = null;
@@ -144,14 +144,14 @@ public class NvVideoStream {
 		}
 		
 		if (decrend != null) {
-			decrend.setup(1280, 720, renderTarget);
+			decrend.setup(1280, 720, renderTarget, drFlags);
 		}
 	}
 
-	public void startVideoStream(final Surface surface) throws IOException
+	public void startVideoStream(final SurfaceHolder surface, int drFlags) throws IOException
 	{
 		// Setup the decoder and renderer
-		setupDecoderRenderer(surface);
+		setupDecoderRenderer(surface, drFlags);
 		
 		// Open RTP sockets and start session
 		setupRtpSession();

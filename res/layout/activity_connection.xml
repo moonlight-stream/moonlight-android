@@ -7,14 +7,6 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".Connection" >
-    
-    <Button
-        android:id="@+id/pairButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/statusButton"
-        android:layout_centerHorizontal="true"
-        android:text="Pair with PC"/>
 
     <EditText
         android:id="@+id/hostTextView"
@@ -40,5 +32,20 @@
         
         </Button>
 
+    <CheckBox
+        android:id="@+id/imageQualityCheckbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/hostTextView"
+        android:layout_below="@+id/pairButton"
+        android:text="Prefer image quality over performance" />
+
+    <Button
+        android:id="@+id/pairButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/statusButton"
+        android:layout_centerHorizontal="true"
+        android:text="Pair with PC" />
 
 </RelativeLayout>

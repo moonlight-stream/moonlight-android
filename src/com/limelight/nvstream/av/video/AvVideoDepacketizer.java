@@ -15,8 +15,7 @@ public class AvVideoDepacketizer {
 	// Current NAL state
 	private LinkedList<AvByteBufferDescriptor> avcNalDataChain = null;
 	private int avcNalDataLength = 0;
-	private int currentlyDecoding;
-	
+
 	// Cached buffer descriptor to save on allocations
 	// Only safe to use in decode thread!!!!
 	private AvByteBufferDescriptor cachedDesc;
@@ -35,13 +34,18 @@ public class AvVideoDepacketizer {
 		this.cachedDesc = new AvByteBufferDescriptor(null, 0, 0);
 	}
 	
-	private void clearAvcNalState()
+	private boolean clearAvcNalState()
 	{
-		avcNalDataChain = null;
-		avcNalDataLength = 0;
+		if (avcNalDataChain != null && avcNalDataLength != 0) {
+			avcNalDataChain = null;
+			avcNalDataLength = 0;
+			return true;
+		}
+		
+		return false;
 	}
 
-	private void reassembleAvcNal()
+	private boolean reassembleAvcNal()
 	{
 		// This is the start of a new NAL
 		if (avcNalDataChain != null && avcNalDataLength != 0)
@@ -103,90 +107,55 @@ public class AvVideoDepacketizer {
 			// Clear old state
 			avcNalDataChain = null;
 			avcNalDataLength = 0;
+			return true;
 		}
+		
+		return false;
 	}
 	
 	public void addInputData(AvVideoPacket packet)
 	{
 		AvByteBufferDescriptor location = packet.getNewPayloadDescriptor();
 		
-		while (location.length != 0)
-		{
-			// Remember the start of the NAL data in this packet
-			int start = location.offset;
+		// SPS and PPS packet doesn't have standard headers, so submit it as is
+		if (location.length < 968) {
+			avcNalDataChain = new LinkedList<AvByteBufferDescriptor>();
+			avcNalDataLength = 0;
 			
-			// Check for a special sequence
-			if (NAL.getSpecialSequenceDescriptor(location, cachedDesc))
-			{
-				if (NAL.isAvcStartSequence(cachedDesc))
-				{
-					// We're decoding H264 now
-					currentlyDecoding = AvDecodeUnit.TYPE_H264;
-					
-					// Check if it's the end of the last frame
-					if (NAL.isAvcFrameStart(cachedDesc))
-					{
-						// Reassemble any pending AVC NAL
-						reassembleAvcNal();
-						
-						// Setup state for the new NAL
-						avcNalDataChain = new LinkedList<AvByteBufferDescriptor>();
-						avcNalDataLength = 0;
-					}
-					
-					// Skip the start sequence
-					location.length -= cachedDesc.length;
-					location.offset += cachedDesc.length;
-				}
-				else
-				{
-					// Check if this is padding after a full AVC frame
-					if (currentlyDecoding == AvDecodeUnit.TYPE_H264 &&
-						NAL.isPadding(cachedDesc)) {
-						// The decode unit is complete
-						reassembleAvcNal();
-					}
+			avcNalDataChain.add(location);
+			avcNalDataLength += location.length;
+			
+			reassembleAvcNal();
+		}
+		else {
+			int packetIndex = packet.getPacketIndex();
+			int packetsInFrame = packet.getTotalPackets();
+			
+			// Check if this is the first packet for a frame
+			if (packetIndex == 0) {
+				// Setup state for the new frame
+				avcNalDataChain = new LinkedList<AvByteBufferDescriptor>();
+				avcNalDataLength = 0;
+			}
 
-					// Not decoding AVC
-					currentlyDecoding = AvDecodeUnit.TYPE_UNKNOWN;
+			// Check if this packet falls in the range of packets in frame
+			if (packetIndex >= packetsInFrame) {
+				// This isn't H264 frame data
+				return;
+			}
 
-					// Just skip this byte
-					location.length--;
-					location.offset++;
-				}
+			// Adjust the length to only contain valid data
+			location.length = packet.getPayloadLength();
+			
+			// Add the payload data to the chain
+			if (avcNalDataChain != null) {
+				avcNalDataChain.add(location);
+				avcNalDataLength += location.length;
 			}
 			
-			// Move to the next special sequence
-			while (location.length != 0)
-			{
-				// Catch the easy case first where byte 0 != 0x00
-				if (location.data[location.offset] == 0x00)
-				{
-					// Check if this should end the current NAL
-					if (NAL.getSpecialSequenceDescriptor(location, cachedDesc))
-					{
-						// Only stop if we're decoding something or this
-						// isn't padding
-						if (currentlyDecoding != AvDecodeUnit.TYPE_UNKNOWN ||
-							!NAL.isPadding(cachedDesc))
-						{
-							break;
-						}
-					}
-				}
-
-				// This byte is part of the NAL data
-				location.offset++;
-				location.length--;
-			}
-			
-			if (currentlyDecoding == AvDecodeUnit.TYPE_H264 && avcNalDataChain != null)
-			{
-				AvByteBufferDescriptor data = new AvByteBufferDescriptor(location.data, start, location.offset-start);
-				
-				// Add a buffer descriptor describing the NAL data in this packet
-				avcNalDataChain.add(data);
-				avcNalDataLength += location.offset-start;
+			// Reassemble the NALs if this was the last packet for this frame
+			if (packetIndex + 1 == packetsInFrame) {
+				reassembleAvcNal();
 			}
 		}
 	}
@@ -203,11 +172,10 @@ public class AvVideoDepacketizer {
 			System.out.println("Received OOS video data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
 			
 			// Reset the depacketizer state
-			currentlyDecoding = AvDecodeUnit.TYPE_UNKNOWN;
-			clearAvcNalState();
-			
-			// Request an IDR frame
-			controlListener.connectionNeedsResync();
+			if (clearAvcNalState()) {
+				// Request an IDR frame if we had to drop a NAL
+				controlListener.connectionNeedsResync();	
+			}
 		}
 		
 		lastSequenceNumber = seq;
@@ -230,13 +198,6 @@ class NAL {
 	{
 		// The start sequence is 00 00 01 or 00 00 00 01
 		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x01);
-	}
-	
-	// This assumes that the buffer passed in is already a special sequence
-	public static boolean isPadding(AvByteBufferDescriptor specialSeq)
-	{
-		// The padding sequence is 00 00 00
-		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x00);
 	}
 	
 	// This assumes that the buffer passed in is already a special sequence

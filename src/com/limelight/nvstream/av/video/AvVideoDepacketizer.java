@@ -8,17 +8,11 @@ import com.limelight.nvstream.av.AvDecodeUnit;
 import com.limelight.nvstream.av.AvRtpPacket;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 
-import android.media.MediaCodec;
-
 public class AvVideoDepacketizer {
 	
 	// Current NAL state
 	private LinkedList<AvByteBufferDescriptor> avcNalDataChain = null;
 	private int avcNalDataLength = 0;
-
-	// Cached buffer descriptor to save on allocations
-	// Only safe to use in decode thread!!!!
-	private AvByteBufferDescriptor cachedDesc;
 	
 	// Sequencing state
 	private short lastSequenceNumber;
@@ -31,73 +25,20 @@ public class AvVideoDepacketizer {
 	public AvVideoDepacketizer(ConnectionStatusListener controlListener)
 	{
 		this.controlListener = controlListener;
-		this.cachedDesc = new AvByteBufferDescriptor(null, 0, 0);
 	}
 	
-	private boolean clearAvcNalState()
+	private void clearAvcNalState()
 	{
-		if (avcNalDataChain != null && avcNalDataLength != 0) {
-			avcNalDataChain = null;
-			avcNalDataLength = 0;
-			return true;
-		}
-		
-		return false;
+		avcNalDataChain = null;
+		avcNalDataLength = 0;
 	}
 
-	private boolean reassembleAvcNal()
+	private void reassembleAvcNal()
 	{
 		// This is the start of a new NAL
-		if (avcNalDataChain != null && avcNalDataLength != 0)
-		{
-			int flags = 0;
-			
-			// Check if this is a special NAL unit
-			AvByteBufferDescriptor header = avcNalDataChain.getFirst();
-			
-			if (NAL.getSpecialSequenceDescriptor(header, cachedDesc))
-			{
-				// The next byte after the special sequence is the NAL header
-				byte nalHeader = cachedDesc.data[cachedDesc.offset+cachedDesc.length];
-				
-				switch (nalHeader)
-				{
-				// SPS and PPS
-				case 0x67:
-				case 0x68:
-					System.out.println("Codec config");
-					flags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-					break;
-					
-				// IDR
-				case 0x65:
-					System.out.println("Reference frame");
-					flags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
-					break;
-					
-				// non-IDR frame
-				case 0x61:
-					break;
-					
-				// Unknown type
-				default:
-					System.out.printf("Unknown NAL header: %02x %02x %02x %02x %02x\n",
-						header.data[header.offset], header.data[header.offset+1],
-						header.data[header.offset+2], header.data[header.offset+3],
-						header.data[header.offset+4]);
-					break;
-				}
-			}
-			else
-			{
-				System.out.printf("Invalid NAL: %02x %02x %02x %02x %02x\n",
-						header.data[header.offset], header.data[header.offset+1],
-						header.data[header.offset+2], header.data[header.offset+3],
-						header.data[header.offset+4]);
-			}
-
+		if (avcNalDataChain != null && avcNalDataLength != 0) {
 			// Construct the H264 decode unit
-			AvDecodeUnit du = new AvDecodeUnit(AvDecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, flags);
+			AvDecodeUnit du = new AvDecodeUnit(AvDecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, 0);
 			if (!decodedUnits.offer(du)) {
 				// We need a new IDR frame since we're discarding data now
 				decodedUnits.clear();
@@ -105,12 +46,8 @@ public class AvVideoDepacketizer {
 			}
 			
 			// Clear old state
-			avcNalDataChain = null;
-			avcNalDataLength = 0;
-			return true;
+			clearAvcNalState();
 		}
-		
-		return false;
 	}
 	
 	public void addInputData(AvVideoPacket packet)
@@ -121,7 +58,7 @@ public class AvVideoDepacketizer {
 		if (location.length < 968) {
 			avcNalDataChain = new LinkedList<AvByteBufferDescriptor>();
 			avcNalDataLength = 0;
-			
+
 			avcNalDataChain.add(location);
 			avcNalDataLength += location.length;
 			
@@ -172,10 +109,10 @@ public class AvVideoDepacketizer {
 			System.out.println("Received OOS video data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
 			
 			// Reset the depacketizer state
-			if (clearAvcNalState()) {
-				// Request an IDR frame if we had to drop a NAL
-				controlListener.connectionNeedsResync();	
-			}
+			clearAvcNalState();
+			
+			// Request an IDR frame
+			controlListener.connectionNeedsResync();
 		}
 		
 		lastSequenceNumber = seq;

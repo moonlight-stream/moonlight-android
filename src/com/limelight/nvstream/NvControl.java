@@ -152,6 +152,8 @@ public class NvControl implements ConnectionStatusListener {
 	
 	private Thread heartbeatThread;
 	private Thread jitterThread;
+	private Thread resyncThread;
+	private Object resyncNeeded = new Object();
 	private boolean aborting = false;
 	
 	public NvControl(InetAddress host, NvConnectionListener listener)
@@ -164,6 +166,7 @@ public class NvControl implements ConnectionStatusListener {
 	{
 		s = new Socket();
 		s.setSoTimeout(CONTROL_TIMEOUT);
+		s.setTcpNoDelay(true);
 		s.connect(new InetSocketAddress(host, PORT), CONTROL_TIMEOUT);
 		in = s.getInputStream();
 		out = s.getOutputStream();
@@ -250,6 +253,32 @@ public class NvControl implements ConnectionStatusListener {
 			}
 		};
 		heartbeatThread.start();
+		
+		resyncThread = new Thread() {
+			@Override
+			public void run() {
+				while (!isInterrupted())
+				{
+					try {
+						// Wait for notification of a resync needed
+						synchronized (resyncNeeded) {
+							resyncNeeded.wait();
+						}
+					} catch (InterruptedException e) {
+						listener.connectionTerminated(e);
+						return;
+					}
+					
+					try {
+						requestResync();
+					} catch (IOException e) {
+						listener.connectionTerminated(e);
+						return;
+					}
+				}
+			}
+		};
+		resyncThread.start();
 	}
 	
 	public void startJitterPackets()
@@ -468,16 +497,9 @@ public class NvControl implements ConnectionStatusListener {
 
 	@Override
 	public void connectionNeedsResync() {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					requestResync();
-				} catch (IOException e1) {
-					abort();
-					return;
-				}
-			}
-		}).start();
+		synchronized (resyncNeeded) {
+			// Wake up the resync thread
+			resyncNeeded.notify();
+		}
 	}
 }

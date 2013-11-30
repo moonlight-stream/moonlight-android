@@ -8,6 +8,7 @@ import com.limelight.nvstream.av.AvByteBufferDescriptor;
 import com.limelight.nvstream.av.AvDecodeUnit;
 
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
@@ -73,7 +74,7 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 	}
 	
 	@Override
-	public void setup(int width, int height, SurfaceHolder renderTarget, int drFlags) {
+	public void setup(Context context, int width, int height, SurfaceHolder renderTarget, int drFlags) {
 		videoDecoder = MediaCodec.createByCodecName(findSafeDecoder().getName());
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
 

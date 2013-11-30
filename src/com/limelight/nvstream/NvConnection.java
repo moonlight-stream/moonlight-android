@@ -150,7 +150,7 @@ public class NvConnection {
 	private boolean startVideoStream() throws IOException
 	{
 		videoStream = new NvVideoStream(hostAddr, listener, controlStream);
-		videoStream.startVideoStream(video, drFlags);
+		videoStream.startVideoStream(activity, video, drFlags);
 		return true;
 	}
 	

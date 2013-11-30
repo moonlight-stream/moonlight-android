@@ -1,4 +1,4 @@
-package com.limelight.nvstream.av.video;
+package com.limelight.nvstream.av.video.cpu;
 
 import android.view.Surface;
 
@@ -27,9 +27,20 @@ public class AvcDecoder {
 	public static final int BILINEAR_FILTERING = 0x10;
 	/** Uses a faster bilinear filtering with lower image quality */
 	public static final int FAST_BILINEAR_FILTERING = 0x20;
+	/** Disables color conversion (output is NV21) */
+	public static final int NO_COLOR_CONVERSION = 0x40;
 	
 	public static native int init(int width, int height, int perflvl, int threadcount);
 	public static native void destroy();
-	public static native void redraw(Surface surface);
+	
+	// Rendering API when NO_COLOR_CONVERSION == 0
+	public static native boolean setRenderTarget(Surface surface);
+	public static native boolean getRgbFrame(byte[] rgbFrame, int bufferSize);
+	public static native boolean redraw();
+
+	// Rendering API when NO_COLOR_CONVERSION == 1
+	public static native boolean getRawFrame(byte[] yuvFrame, int bufferSize);
+	
+	public static native int getInputPaddingSize();
 	public static native int decode(byte[] indata, int inoff, int inlen);
 }

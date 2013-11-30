@@ -8,14 +8,20 @@
 #include <jni.h>
 #include <android/native_window_jni.h>
 
+// General decoder and renderer state
+AVPacket pkt;
 AVCodec* decoder;
 AVCodecContext* decoder_ctx;
 AVFrame* yuv_frame;
-AVFrame* rgb_frame;
 AVFrame* dec_frame;
 pthread_mutex_t mutex;
+
+// Color conversion and rendering
+AVFrame* rgb_frame;
 char* rgb_frame_buf;
 struct SwsContext* scaler_ctx;
+ANativeWindow* window;
+
 
 #define RENDER_PIX_FMT AV_PIX_FMT_RGBA
 #define BYTES_PER_PIXEL 4
@@ -32,6 +38,8 @@ struct SwsContext* scaler_ctx;
 #define BILINEAR_FILTERING      0x10
 // Uses a faster bilinear filtering with lower image quality
 #define FAST_BILINEAR_FILTERING 0x20
+// Disables color conversion (output is NV21)
+#define NO_COLOR_CONVERSION     0x40
 
 // This function must be called before
 // any other decoding functions
@@ -44,6 +52,8 @@ int nv_avc_init(int width, int height, int perf_lvl, int thread_count) {
 	// Initialize the avcodec library and register codecs
 	av_log_set_level(AV_LOG_QUIET);
 	avcodec_register_all();
+	
+	av_init_packet(&pkt);
 
 	decoder = avcodec_find_decoder(AV_CODEC_ID_H264);
 	if (decoder == NULL) {
@@ -98,54 +108,56 @@ int nv_avc_init(int width, int height, int perf_lvl, int thread_count) {
 			"Couldn't allocate frame");
 		return -1;
 	}
+	
+	if (!(perf_lvl & NO_COLOR_CONVERSION)) {
+		rgb_frame = av_frame_alloc();
+		if (rgb_frame == NULL) {
+			__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
+				"Couldn't allocate frame");
+			return -1;
+		}
 
-	rgb_frame = av_frame_alloc();
-	if (rgb_frame == NULL) {
-		__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
-			"Couldn't allocate frame");
-		return -1;
-	}
+		rgb_frame_buf = (char*)av_malloc(width * height * BYTES_PER_PIXEL);
+		if (rgb_frame_buf == NULL) {
+			__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
+				"Couldn't allocate picture");
+			return -1;
+		}
 
-	rgb_frame_buf = (char*)av_malloc(width * height * BYTES_PER_PIXEL);
-	if (rgb_frame_buf == NULL) {
-		__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
-			"Couldn't allocate picture");
-		return -1;
-	}
+		err = avpicture_fill((AVPicture*)rgb_frame,
+			rgb_frame_buf,
+			RENDER_PIX_FMT,
+			decoder_ctx->width,
+			decoder_ctx->height);
+		if (err < 0) {
+			__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
+				"Couldn't fill picture");
+			return err;
+		}
 
-	err = avpicture_fill((AVPicture*)rgb_frame,
-		rgb_frame_buf,
-		RENDER_PIX_FMT,
-		decoder_ctx->width,
-		decoder_ctx->height);
-	if (err < 0) {
-		__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
-			"Couldn't fill picture");
-		return err;
-	}
+		if (perf_lvl & FAST_BILINEAR_FILTERING) {
+			filtering = SWS_FAST_BILINEAR;
+		}
+		else if (perf_lvl & BILINEAR_FILTERING) {
+			filtering = SWS_BILINEAR;
+		}
+		else {
+			filtering = SWS_BICUBIC;
+		}
 
-	if (perf_lvl & FAST_BILINEAR_FILTERING) {
-		filtering = SWS_FAST_BILINEAR;
-	}
-	else if (perf_lvl & BILINEAR_FILTERING) {
-		filtering = SWS_BILINEAR;
-	}
-	else {
-		filtering = SWS_BICUBIC;
-	}
-
-	scaler_ctx = sws_getContext(decoder_ctx->width,
-		decoder_ctx->height,
-		decoder_ctx->pix_fmt,
-		decoder_ctx->width,
-		decoder_ctx->height,
-		RENDER_PIX_FMT,
-		filtering,
-		NULL, NULL, NULL);
-	if (scaler_ctx == NULL) {
-		__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
-			"Couldn't get scaler context");
-		return -1;
+		scaler_ctx = sws_getContext(decoder_ctx->width,
+			decoder_ctx->height,
+			decoder_ctx->pix_fmt,
+			decoder_ctx->width,
+			decoder_ctx->height,
+			RENDER_PIX_FMT,
+			filtering,
+			NULL, NULL, NULL);
+		if (scaler_ctx == NULL) {
+			__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
+				"Couldn't get scaler context");
+			return -1;
+		}
 	}
 
 	return 0;
@@ -179,14 +191,15 @@ void nv_avc_destroy(void) {
 		av_free(rgb_frame_buf);
 		rgb_frame_buf = NULL;
 	}
+	if (window) {
+		ANativeWindow_release(window);
+		window = NULL;
+	}
 	pthread_mutex_destroy(&mutex);
 }
 
-void nv_avc_redraw(JNIEnv *env, jobject surface) {
-	ANativeWindow* window;
-	ANativeWindow_Buffer buffer;
-	AVFrame *our_yuv_frame;
-	int err;
+static AVFrame* dequeue_new_frame(void) {
+	AVFrame *our_yuv_frame = NULL;
 
 	pthread_mutex_lock(&mutex);
 
@@ -196,77 +209,149 @@ void nv_avc_redraw(JNIEnv *env, jobject surface) {
 		// responsible for freeing it when we're done
 		our_yuv_frame = yuv_frame;
 		yuv_frame = NULL;
+	}
 
-		// The remaining processing can be done without the mutex
-		pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&mutex);
 
-		// Convert the YUV image to RGB
-		err = sws_scale(scaler_ctx,
-			our_yuv_frame->data,
-			our_yuv_frame->linesize,
-			0,
-			decoder_ctx->height,
-			rgb_frame->data,
-			rgb_frame->linesize);
-		if (err != decoder_ctx->height) {
-			__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
-					"Scaling failed");
-			goto free_frame_and_return;
-		}
+	return our_yuv_frame;
+}
 
-		window = ANativeWindow_fromSurface(env, surface);
-		if (window == NULL) {
-			__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
-					"Failed to get window from surface");
-			goto free_frame_and_return;
-		}
+static int update_rgb_frame(void) {
+	AVFrame *our_yuv_frame;
+	int err;
 
+	our_yuv_frame = dequeue_new_frame();
+	if (our_yuv_frame == NULL) {
+		return 0;
+	}
+
+	// Convert the YUV image to RGB
+	err = sws_scale(scaler_ctx,
+		our_yuv_frame->data,
+		our_yuv_frame->linesize,
+		0,
+		decoder_ctx->height,
+		rgb_frame->data,
+		rgb_frame->linesize);
+
+	av_frame_free(&our_yuv_frame);
+
+	if (err != decoder_ctx->height) {
+		__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
+				"Scaling failed");
+		return 0;
+	}
+
+	return 1;
+}
+
+static int render_rgb_to_buffer(char* buffer, int size) {
+	int err;
+
+	// Draw the frame to the buffer
+	err = avpicture_layout((AVPicture*)rgb_frame,
+		RENDER_PIX_FMT,
+		decoder_ctx->width,
+		decoder_ctx->height,
+		buffer,
+		size);
+	if (err < 0) {
+		__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
+			"Picture fill failed");
+		return 0;
+	}
+
+	return 1;
+}
+
+int nv_avc_get_raw_frame(char* buffer, int size) {
+	AVFrame *our_yuv_frame;
+	int err;
+
+	our_yuv_frame = dequeue_new_frame();
+	if (our_yuv_frame == NULL) {
+		return 0;
+	}
+
+	err = avpicture_layout((AVPicture*)our_yuv_frame,
+		decoder_ctx->pix_fmt,
+		decoder_ctx->width,
+		decoder_ctx->height,
+		buffer,
+		size);
+
+	av_frame_free(&our_yuv_frame);
+
+	return (err >= 0);
+}
+
+int nv_avc_get_rgb_frame(char* buffer, int size) {
+	return (update_rgb_frame() && render_rgb_to_buffer(buffer, size));
+}
+
+int nv_avc_set_render_target(JNIEnv *env, jobject surface) {
+	// Release the old window
+	if (window) {
+		ANativeWindow_release(window);
+		window = NULL;
+	}
+
+	// If no new surface was supplied, we're done
+	if (surface == NULL) {
+		return 1;
+	}
+
+	// Get a window from the surface
+	window = ANativeWindow_fromSurface(env, surface);
+	if (window == NULL) {
+		__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
+				"Failed to get window from surface");
+		return 0;
+	}
+
+	return 1;
+}
+
+int nv_avc_redraw(void) {
+	ANativeWindow_Buffer buffer;
+	int ret = 0;
+
+	// Check if there's a new frame
+	if (update_rgb_frame()) {
 		// Lock down a render buffer
 		if (ANativeWindow_lock(window, &buffer, NULL) >= 0) {
 			// Draw the frame to the buffer
-			err = avpicture_layout((AVPicture*)rgb_frame,
-				RENDER_PIX_FMT,
-				decoder_ctx->width,
-				decoder_ctx->height,
-				buffer.bits,
+			if (render_rgb_to_buffer(buffer.bits, 
 				decoder_ctx->width *
 				decoder_ctx->height *
-				BYTES_PER_PIXEL);
-			if (err < 0) {
-				__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
-					"Picture fill failed");
+				BYTES_PER_PIXEL)) {
+				// A new frame will be drawn
+				ret = 1;
 			}
 
 			// Draw the frame to the surface
 			ANativeWindow_unlockAndPost(window);
 		}
+	}
+	
+	return ret;
+}
 
-		ANativeWindow_release(window);
-		
-	free_frame_and_return:
-		av_frame_free(&our_yuv_frame);
-	}
-	else {
-		pthread_mutex_unlock(&mutex);
-	}
+int nv_avc_get_input_padding_size(void) {
+	return FF_INPUT_BUFFER_PADDING_SIZE;
 }
 
 // packets must be decoded in order
+// indata must be inlen + FF_INPUT_BUFFER_PADDING_SIZE in length
 int nv_avc_decode(unsigned char* indata, int inlen) {
 	int err;
-	AVPacket pkt;
-	int got_pic;
+	int got_pic = 0;
 
-	err = av_new_packet(&pkt, inlen);
-	if (err < 0) {
-		__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
-			"Failed to allocate packet");
-		return err;
-	}
-
-	memcpy(pkt.data, indata, inlen);
+	pkt.data = indata;
+	pkt.size = inlen;
 
 	while (pkt.size > 0) {
+		got_pic = 0;
 		err = avcodec_decode_video2(
 			decoder_ctx,
 			dec_frame,
@@ -275,29 +360,28 @@ int nv_avc_decode(unsigned char* indata, int inlen) {
 		if (err < 0) {
 			__android_log_write(ANDROID_LOG_ERROR, "NVAVCDEC",
 				"Decode failed");
-			pthread_mutex_unlock(&mutex);
+			got_pic = 0;
 			break;
-		}
-
-		if (got_pic) {
-			pthread_mutex_lock(&mutex);
-
-			// Only clone this frame if the last frame was taken.
-			// This saves on extra copies for frames that don't get
-			// rendered.
-			if (yuv_frame == NULL) {
-				// Clone a new frame
-				yuv_frame = av_frame_clone(dec_frame);
-			}
-
-			pthread_mutex_unlock(&mutex);
 		}
 
 		pkt.size -= err;
 		pkt.data += err;
 	}
+	
+	// Only copy the picture at the end of decoding the packet
+	if (got_pic) {
+		pthread_mutex_lock(&mutex);
 
-	av_free_packet(&pkt);
+		// Only clone this frame if the last frame was taken.
+		// This saves on extra copies for frames that don't get
+		// rendered.
+		if (yuv_frame == NULL) {
+			// Clone a new frame
+			yuv_frame = av_frame_clone(dec_frame);
+		}
+
+		pthread_mutex_unlock(&mutex);
+	}
 
 	return err < 0 ? err : 0;
 }

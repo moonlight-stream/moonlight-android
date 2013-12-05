@@ -1,4 +1,4 @@
-package com.limelight.nvstream.av.video.cpu;
+package com.limelight.binding.video;
 
 import android.content.Context;
 import android.renderscript.Allocation;

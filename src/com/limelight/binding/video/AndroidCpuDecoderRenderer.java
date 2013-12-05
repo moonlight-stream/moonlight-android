@@ -1,4 +1,4 @@
-package com.limelight.nvstream.av.video.cpu;
+package com.limelight.binding.video;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,23 +6,20 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import android.content.Context;
 import android.view.SurfaceHolder;
 
-import com.limelight.nvstream.av.AvByteBufferDescriptor;
-import com.limelight.nvstream.av.AvDecodeUnit;
-import com.limelight.nvstream.av.video.DecoderRenderer;
+import com.limelight.nvstream.av.ByteBufferDescriptor;
+import com.limelight.nvstream.av.DecodeUnit;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.av.video.cpu.AvcDecoder;
 
-public class CpuDecoderRenderer implements DecoderRenderer {
+public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 
 	private Thread rendererThread;
 	private int targetFps;
 	
 	private static final int DECODER_BUFFER_SIZE = 92*1024;
 	private ByteBuffer decoderBuffer;
-	
-	private RsRenderer rsRenderer;
-	private byte[] frameBuffer;
 	
 	// Only sleep if the difference is above this value
 	private static final int WAIT_CEILING_MS = 8;
@@ -81,7 +78,7 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 	}
 	
 	@Override
-	public void setup(Context context, int width, int height, SurfaceHolder renderTarget, int drFlags) {
+	public void setup(int width, int height, Object renderTarget, int drFlags) {
 		this.targetFps = 30;
 		
 		int perfLevel = findOptimalPerformanceLevel();
@@ -115,14 +112,8 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 			break;
 		}
 		
-		// Create and initialize the RenderScript intrinsic we'll be using
-		rsRenderer = new RsRenderer(context, width, height, renderTarget.getSurface());
-		
-		// Allocate the frame buffer that the RGBA frame will be copied into
-		frameBuffer = new byte[width*height*4];
-		
 		// If the user wants quality, we'll remove the low IQ flags
-		if ((drFlags & DecoderRenderer.FLAG_PREFER_QUALITY) != 0) {
+		if ((drFlags & VideoDecoderRenderer.FLAG_PREFER_QUALITY) != 0) {
 			// Make sure the loop filter is enabled
 			avcFlags &= ~AvcDecoder.DISABLE_LOOP_FILTER;
 			
@@ -136,6 +127,8 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 		if (err != 0) {
 			throw new IllegalStateException("AVC decoder initialization failure: "+err);
 		}
+		
+		AvcDecoder.setRenderTarget(((SurfaceHolder)renderTarget).getSurface());
 		
 		decoderBuffer = ByteBuffer.allocate(DECODER_BUFFER_SIZE + AvcDecoder.getInputPaddingSize());
 		
@@ -162,9 +155,7 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 					}
 
 					nextFrameTime = computePresentationTimeMs(targetFps);
-					if (AvcDecoder.getRgbFrame(frameBuffer, frameBuffer.length)) {
-						rsRenderer.render(frameBuffer);
-					}
+					AvcDecoder.redraw();
 				}
 			}
 		};
@@ -187,22 +178,18 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 
 	@Override
 	public void release() {
-		if (rsRenderer != null) {
-			rsRenderer.release();
-		}
-		
 		AvcDecoder.destroy();
 	}
 
 	@Override
-	public boolean submitDecodeUnit(AvDecodeUnit decodeUnit) {
+	public boolean submitDecodeUnit(DecodeUnit decodeUnit) {
 		byte[] data;
 		
 		// Use the reserved decoder buffer if this decode unit will fit
 		if (decodeUnit.getDataLength() <= DECODER_BUFFER_SIZE) {
 			decoderBuffer.clear();
 			
-			for (AvByteBufferDescriptor bbd : decodeUnit.getBufferList()) {
+			for (ByteBufferDescriptor bbd : decodeUnit.getBufferList()) {
 				decoderBuffer.put(bbd.data, bbd.offset, bbd.length);
 			}
 			
@@ -212,7 +199,7 @@ public class CpuDecoderRenderer implements DecoderRenderer {
 			data = new byte[decodeUnit.getDataLength()+AvcDecoder.getInputPaddingSize()];
 			
 			int offset = 0;
-			for (AvByteBufferDescriptor bbd : decodeUnit.getBufferList()) {
+			for (ByteBufferDescriptor bbd : decodeUnit.getBufferList()) {
 				System.arraycopy(bbd.data, bbd.offset, data, offset, bbd.length);
 				offset += bbd.length;
 			}

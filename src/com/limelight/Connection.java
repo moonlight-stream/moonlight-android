@@ -8,12 +8,11 @@ import java.net.UnknownHostException;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import com.limelight.binding.PlatformBinding;
 import com.limelight.nvstream.NvConnection;
-import com.limelight.nvstream.NvHTTP;
-import com.limelight.nvstream.NvmDNS;
+import com.limelight.nvstream.http.NvHTTP;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -49,13 +48,6 @@ public class Connection extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		Log.v("NvmDNS", "onCreate");
-		
-			
-		NvmDNS dns = new NvmDNS();
-		dns.execute();
-		
 		
 		setContentView(R.layout.activity_connection);
 		
@@ -109,7 +101,8 @@ public class Connection extends Activity {
 						NvHTTP httpConn;
 						String message;
 						try {
-							httpConn = new NvHTTP(InetAddress.getByName(hostText.getText().toString()), macAddress);
+							httpConn = new NvHTTP(InetAddress.getByName(hostText.getText().toString()),
+									macAddress, PlatformBinding.getDeviceName());
 							try {
 								if (httpConn.getPairState()) {
 									message = "Already paired";

@@ -1,24 +1,21 @@
-package com.limelight.nvstream.av.video;
+package com.limelight.binding.video;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.limelight.nvstream.av.AvByteBufferDescriptor;
-import com.limelight.nvstream.av.AvDecodeUnit;
+import com.limelight.nvstream.av.ByteBufferDescriptor;
+import com.limelight.nvstream.av.DecodeUnit;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 
-import android.annotation.TargetApi;
-import android.content.Context;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaCodec.BufferInfo;
-import android.os.Build;
 import android.view.SurfaceHolder;
 
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class MediaCodecDecoderRenderer implements DecoderRenderer {
+public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 	private ByteBuffer[] videoDecoderInputBuffers;
 	private MediaCodec videoDecoder;
@@ -74,11 +71,11 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 	}
 	
 	@Override
-	public void setup(Context context, int width, int height, SurfaceHolder renderTarget, int drFlags) {
+	public void setup(int width, int height, Object renderTarget, int drFlags) {
 		videoDecoder = MediaCodec.createByCodecName(findSafeDecoder().getName());
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
 
-		videoDecoder.configure(videoFormat, renderTarget.getSurface(), null, 0);
+		videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
 
 		videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 		
@@ -157,8 +154,8 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 	}
 
 	@Override
-	public boolean submitDecodeUnit(AvDecodeUnit decodeUnit) {
-		if (decodeUnit.getType() != AvDecodeUnit.TYPE_H264) {
+	public boolean submitDecodeUnit(DecodeUnit decodeUnit) {
+		if (decodeUnit.getType() != DecodeUnit.TYPE_H264) {
 			System.err.println("Unknown decode unit type");
 			return false;
 		}
@@ -172,7 +169,7 @@ public class MediaCodecDecoderRenderer implements DecoderRenderer {
 			buf.clear();
 			
 			// Copy data from our buffer list into the input buffer
-			for (AvByteBufferDescriptor desc : decodeUnit.getBufferList())
+			for (ByteBufferDescriptor desc : decodeUnit.getBufferList())
 			{
 				buf.put(desc.data, desc.offset, desc.length);
 			}

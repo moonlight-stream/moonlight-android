@@ -14,10 +14,10 @@ public class PlatformBinding {
 			// Emulator - don't render video (it's slow!)
 			return null;
 		}
-		/*else if (MediaCodecDecoderRenderer.findSafeDecoder() != null) {
+		else if (MediaCodecDecoderRenderer.findSafeDecoder() != null) {
 			// Hardware decoding
 			return new MediaCodecDecoderRenderer();
-		}*/
+		}
 		else {
 			// Software decoding
 			return new AndroidCpuDecoderRenderer();

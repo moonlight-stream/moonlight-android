@@ -77,7 +77,7 @@ public class NvConnection {
 			NetworkInterface iface = ifaceList.nextElement();
 
 			if (iface.getHardwareAddress() != null) {
-			selectedIface = ifaceList.nextElement();
+				selectedIface = iface;
 				break;
 			}
 		}

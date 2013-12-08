@@ -65,7 +65,6 @@ public class NvController {
 	
 	public void sendKeyboardInput(short keyMap, byte keyDirection) throws IOException 
 	{
-		System.out.println("sending keyboard packet");
 		out.write(new KeyboardPacket(keyMap, keyDirection).toWire());
 		out.flush();
 	}

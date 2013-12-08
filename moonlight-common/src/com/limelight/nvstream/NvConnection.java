@@ -319,7 +319,7 @@ public class NvConnection {
 		});
 	}
 	
-	public void sendKeyboardInput(final short keyMap, final byte keyDirection) {
+	public void sendKeyboardInput(final short keyMap, final byte keyDirection, final byte modifier) {
 		if (inputStream == null)
 			return;
 		
@@ -327,7 +327,7 @@ public class NvConnection {
 			@Override
 			public void run() {
 				try {
-					inputStream.sendKeyboardInput(keyMap, keyDirection);
+					inputStream.sendKeyboardInput(keyMap, keyDirection, modifier);
 				} catch (IOException e) {
 					listener.displayMessage(e.getMessage());
 					NvConnection.this.stop();

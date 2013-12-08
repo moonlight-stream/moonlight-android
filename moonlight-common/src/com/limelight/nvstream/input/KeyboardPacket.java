@@ -10,13 +10,20 @@ public class KeyboardPacket extends InputPacket {
 	public static final byte KEY_DOWN = 0x03;
 	public static final byte KEY_UP = 0x04;
 
+	public static final byte MODIFIER_SHIFT = 0x01;
+	public static final byte MODIFIER_CTRL = 0x02;
+	public static final byte MODIFIER_ALT = 0x04;
+	
+	
 	private short keyCode;
 	private byte keyDirection;
+	private byte modifier;
 	
-	public KeyboardPacket(short keyCode, byte keyDirection) {
+	public KeyboardPacket(short keyCode, byte keyDirection, byte modifier) {
 		super(PACKET_TYPE);
 		this.keyCode = keyCode;
 		this.keyDirection = keyDirection;
+		this.modifier = modifier;
 	}
 
 	public byte[] toWireHeader()
@@ -37,7 +44,7 @@ public class KeyboardPacket extends InputPacket {
 		bb.putShort((short)0);
 		bb.putShort((short)0);
 		bb.putShort(keyCode);
-		bb.put((byte)0);
+		bb.put(modifier);
 		bb.put((byte)0);
 		bb.put((byte)0);
 		byte[] packet = bb.array();

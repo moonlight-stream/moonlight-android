@@ -10,11 +10,11 @@ public abstract class KeycodeTranslator {
 		this.conn = conn;
 	}
 	
-	public void sendKeyDown(short keyMap) {
-		conn.sendKeyboardInput(keyMap, KeyboardPacket.KEY_DOWN);
+	public void sendKeyDown(short keyMap, byte modifier) {
+		conn.sendKeyboardInput(keyMap, KeyboardPacket.KEY_DOWN, modifier);
 	}
 	
-	public void sendKeyUp(short keyMap) {
-		conn.sendKeyboardInput(keyMap, KeyboardPacket.KEY_UP);
+	public void sendKeyUp(short keyMap, byte modifier) {
+		conn.sendKeyboardInput(keyMap, KeyboardPacket.KEY_UP, modifier);
 	}
 }

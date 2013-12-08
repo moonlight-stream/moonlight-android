@@ -318,4 +318,21 @@ public class NvConnection {
 			}
 		});
 	}
+	
+	public void sendKeyboardInput(final short keyMap, final byte keyDirection) {
+		if (inputStream == null)
+			return;
+		
+		threadPool.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					inputStream.sendKeyboardInput(keyMap, keyDirection);
+				} catch (IOException e) {
+					listener.displayMessage(e.getMessage());
+					NvConnection.this.stop();
+				}
+			}
+		});
+	}
 }

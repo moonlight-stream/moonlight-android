@@ -62,4 +62,11 @@ public class NvController {
 		out.write(new MouseMovePacket(deltaX, deltaY).toWire());
 		out.flush();
 	}
+	
+	public void sendKeyboardInput(short keyMap, byte keyDirection) throws IOException 
+	{
+		System.out.println("sending keyboard packet");
+		out.write(new KeyboardPacket(keyMap, keyDirection).toWire());
+		out.flush();
+	}
 }

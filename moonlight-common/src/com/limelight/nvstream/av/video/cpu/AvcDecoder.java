@@ -33,6 +33,7 @@ public class AvcDecoder {
 	
 	// Rendering API when NO_COLOR_CONVERSION == 0
 	public static native boolean setRenderTarget(Object androidSurface);
+	public static native boolean getRgbFrameInt(int[] rgbFrame, int bufferSize);
 	public static native boolean getRgbFrame(byte[] rgbFrame, int bufferSize);
 	public static native boolean redraw();
 

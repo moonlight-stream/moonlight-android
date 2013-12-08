@@ -45,15 +45,15 @@ public class NvController {
 		out.flush();
 	}
 	
-	public void sendMouseButtonDown() throws IOException
+	public void sendMouseButtonDown(byte mouseButton) throws IOException
 	{
-		out.write(new MouseButtonPacket(true).toWire());
+		out.write(new MouseButtonPacket(true, mouseButton).toWire());
 		out.flush();
 	}
 	
-	public void sendMouseButtonUp() throws IOException
+	public void sendMouseButtonUp(byte mouseButton) throws IOException
 	{
-		out.write(new MouseButtonPacket(false).toWire());
+		out.write(new MouseButtonPacket(false, mouseButton).toWire());
 		out.flush();
 	}
 	

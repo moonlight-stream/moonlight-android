@@ -263,7 +263,7 @@ public class NvConnection {
 		});
 	}
 	
-	public void sendMouseButtonDown()
+	public void sendMouseButtonDown(final byte mouseButton)
 	{
 		if (inputStream == null)
 			return;
@@ -272,7 +272,7 @@ public class NvConnection {
 			@Override
 			public void run() {
 				try {
-					inputStream.sendMouseButtonDown();
+					inputStream.sendMouseButtonDown(mouseButton);
 				} catch (IOException e) {
 					listener.connectionTerminated(e);
 				}
@@ -280,7 +280,7 @@ public class NvConnection {
 		});
 	}
 	
-	public void sendMouseButtonUp()
+	public void sendMouseButtonUp(final byte mouseButton)
 	{
 		if (inputStream == null)
 			return;
@@ -289,7 +289,7 @@ public class NvConnection {
 			@Override
 			public void run() {
 				try {
-					inputStream.sendMouseButtonUp();
+					inputStream.sendMouseButtonUp(mouseButton);
 				} catch (IOException e) {
 					listener.connectionTerminated(e);
 				}

@@ -47,11 +47,7 @@ public class KeyboardPacket extends InputPacket {
 		bb.put(modifier);
 		bb.put((byte)0);
 		bb.put((byte)0);
-		byte[] packet = bb.array();
-		for (int i = 0; i < packet.length; i++) {
-			System.out.printf("%02x ", packet[i]);
-		}
-		System.out.println();
+
 		return bb.array();
 	}
 }

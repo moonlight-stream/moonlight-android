@@ -24,6 +24,7 @@ public class VideoStream {
 	public static final int FIRST_FRAME_PORT = 47996;
 	
 	public static final int FIRST_FRAME_TIMEOUT = 5000;
+	public static final int RTP_RECV_BUFFER = 128 * 1024;
 	
 	private LinkedBlockingQueue<RtpPacket> packets = new LinkedBlockingQueue<RtpPacket>(100);
 	
@@ -124,6 +125,7 @@ public class VideoStream {
 	{
 		rtp = new DatagramSocket(null);
 		rtp.setReuseAddress(true);
+		rtp.setReceiveBufferSize(RTP_RECV_BUFFER);
 		rtp.bind(new InetSocketAddress(RTP_PORT));
 	}
 	

@@ -18,6 +18,8 @@ public class AudioStream {
 	public static final int RTP_PORT = 48000;
 	public static final int RTCP_PORT = 47999;
 	
+	public static final int RTP_RECV_BUFFER = 64 * 1024;
+	
 	private LinkedBlockingQueue<RtpPacket> packets = new LinkedBlockingQueue<RtpPacket>(100);
 	
 	private DatagramSocket rtp;
@@ -87,6 +89,7 @@ public class AudioStream {
 	{
 		rtp = new DatagramSocket(null);
 		rtp.setReuseAddress(true);
+		rtp.setReceiveBufferSize(RTP_RECV_BUFFER);
 		rtp.bind(new InetSocketAddress(RTP_PORT));
 	}
 	

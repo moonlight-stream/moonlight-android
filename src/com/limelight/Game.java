@@ -3,6 +3,7 @@ package com.limelight;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
+import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.utils.Dialog;
@@ -46,7 +47,15 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	private boolean displayedFailureDialog = false;
 	
 	public static final String PREFS_FILE_NAME = "gameprefs";
+	
 	public static final String QUALITY_PREF_STRING = "Quality";
+	public static final String WIDTH_PREF_STRING = "Width";
+	public static final String HEIGHT_PREF_STRING = "Height";
+	public static final String REFRESH_RATE_PREF_STRING = "RefreshRate";
+	
+	public static final int DEFAULT_WIDTH = 1280;
+	public static final int DEFAULT_HEIGHT = 720;
+	public static final int DEFAULT_REFRESH_RATE = 30;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +78,8 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
 		sv.setOnGenericMotionListener(this);
 		sv.setOnTouchListener(this);
+
 		SurfaceHolder sh = sv.getHolder();
-		sh.setFixedSize(1280, 720);
 		sh.setFormat(PixelFormat.RGBX_8888);
 
 		// Start the spinner
@@ -82,12 +91,18 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		if (prefs.getBoolean(QUALITY_PREF_STRING, false)) {
 			drFlags |= VideoDecoderRenderer.FLAG_PREFER_QUALITY;
 		}
+		int width, height, refreshRate;
+		width = prefs.getInt(WIDTH_PREF_STRING, DEFAULT_WIDTH);
+		height = prefs.getInt(HEIGHT_PREF_STRING, DEFAULT_HEIGHT);
+		refreshRate = prefs.getInt(REFRESH_RATE_PREF_STRING, DEFAULT_REFRESH_RATE);
+		sh.setFixedSize(width, height);
         
 		// Warn the user if they're on a metered connection
         checkDataConnection();
 		
 		// Start the connection
-		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this);
+		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this,
+				new StreamConfiguration(width, height, refreshRate));
 		conn.start(PlatformBinding.getDeviceName(), sv.getHolder(), drFlags,
 				PlatformBinding.getAudioRenderer(), PlatformBinding.chooseDecoderRenderer());
 	}
@@ -277,7 +292,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			// We haven't moved so send a click
 
 			// Lower the mouse button
-			conn.sendMouseButtonDown();
+			conn.sendMouseButtonDown((byte) 0x01);
 			
 			// We need to sleep a bit here because some games
 			// do input detection by polling
@@ -286,7 +301,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			} catch (InterruptedException e) {}
 			
 			// Raise the mouse button
-			conn.sendMouseButtonUp();
+			conn.sendMouseButtonUp((byte) 0x01);
 		}
 	}
 	
@@ -335,10 +350,10 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 				switch (event.getActionMasked())
 				{
 				case MotionEvent.ACTION_DOWN:
-					conn.sendMouseButtonDown();
+					conn.sendMouseButtonDown((byte) 0x01);
 					break;
 				case MotionEvent.ACTION_UP:
-					conn.sendMouseButtonUp();
+					conn.sendMouseButtonUp((byte) 0x01);
 					break;
 				default:
 					return super.onTouchEvent(event);

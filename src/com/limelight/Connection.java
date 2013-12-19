@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.app.Activity;
@@ -31,6 +32,7 @@ public class Connection extends Activity {
 	private TextView hostText;
 	private SharedPreferences prefs;
 	private CheckBox qualityCheckbox;
+	private RadioButton rbutton720p, rbutton1080p, rbutton30fps, rbutton60fps;
 	
 	private static final String DEFAULT_HOST = "";
 	public static final String HOST_KEY = "hostText";
@@ -55,10 +57,62 @@ public class Connection extends Activity {
 		this.pairButton = (Button) findViewById(R.id.pairButton);
 		this.hostText = (TextView) findViewById(R.id.hostTextView);
 		this.qualityCheckbox = (CheckBox) findViewById(R.id.imageQualityCheckbox);
-		
+		this.rbutton720p = (RadioButton) findViewById(R.id.res720pSelected);
+		this.rbutton1080p = (RadioButton) findViewById(R.id.res1080pSelected);
+		this.rbutton30fps = (RadioButton) findViewById(R.id.rr30Selected);
+		this.rbutton60fps = (RadioButton) findViewById(R.id.rr60Selected);
+
 		prefs = getSharedPreferences(Game.PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
 		this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));
 		this.qualityCheckbox.setChecked(prefs.getBoolean(Game.QUALITY_PREF_STRING, false));
+		
+		if (prefs.getInt(Game.HEIGHT_PREF_STRING, Game.DEFAULT_HEIGHT) == 720) {
+			rbutton720p.setChecked(true);
+			rbutton1080p.setChecked(false);
+		}
+		else {
+			rbutton1080p.setChecked(true);
+			rbutton720p.setChecked(false);
+		}
+		
+		if (prefs.getInt(Game.REFRESH_RATE_PREF_STRING, Game.DEFAULT_REFRESH_RATE) == 30) {
+			rbutton30fps.setChecked(true);
+			rbutton60fps.setChecked(false);
+		}
+		else {
+			rbutton60fps.setChecked(true);
+			rbutton30fps.setChecked(false);
+		}
+		
+		OnCheckedChangeListener occl = new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView,
+					boolean isChecked) {
+				if (!isChecked) {
+					// Ignore non-checked buttons
+					return;
+				}
+				
+				if (buttonView == rbutton30fps) {
+					prefs.edit().putInt(Game.REFRESH_RATE_PREF_STRING, 30).commit();
+				}
+				else if (buttonView == rbutton60fps) {
+					prefs.edit().putInt(Game.REFRESH_RATE_PREF_STRING, 60).commit();
+				}
+				else if (buttonView == rbutton720p) {
+					prefs.edit().putInt(Game.WIDTH_PREF_STRING, 1280).
+						putInt(Game.HEIGHT_PREF_STRING, 720).commit();
+				}
+				else if (buttonView == rbutton1080p) {
+					prefs.edit().putInt(Game.WIDTH_PREF_STRING, 1920).
+						putInt(Game.HEIGHT_PREF_STRING, 1080).commit();
+				}
+			}
+		};
+		rbutton720p.setOnCheckedChangeListener(occl);
+		rbutton1080p.setOnCheckedChangeListener(occl);
+		rbutton30fps.setOnCheckedChangeListener(occl);
+		rbutton60fps.setOnCheckedChangeListener(occl);
 		
 		this.qualityCheckbox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override

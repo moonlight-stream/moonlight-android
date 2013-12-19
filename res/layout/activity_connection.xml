@@ -47,5 +47,37 @@
         android:layout_below="@+id/statusButton"
         android:layout_centerHorizontal="true"
         android:text="Pair with PC" />
+    
+    <RadioGroup android:id="@+id/resolutionGroup"
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:layout_centerHorizontal="true"
+    	android:layout_below="@+id/imageQualityCheckbox"
+    	android:orientation="horizontal">
+    	<RadioButton android:id="@+id/res720pSelected"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:text="720p"/>
+    	<RadioButton android:id="@+id/res1080pSelected"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:text="1080p (may increase lag)"/>
+	</RadioGroup>
+	
+    <RadioGroup
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:layout_centerHorizontal="true"
+    	android:layout_below="@+id/resolutionGroup"
+    	android:orientation="horizontal">
+    	<RadioButton android:id="@+id/rr30Selected"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:text="30 FPS"/>
+    	<RadioButton android:id="@+id/rr60Selected"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:text="60 FPS"/>
+	</RadioGroup>
 
 </RelativeLayout>

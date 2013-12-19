@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.NvConnectionListener;
+import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.RtpPacket;
@@ -34,17 +35,19 @@ public class VideoStream {
 
 	private NvConnectionListener listener;
 	private VideoDepacketizer depacketizer;
+	private StreamConfiguration streamConfig;
 	
 	private VideoDecoderRenderer decRend;
 	private boolean startedRendering;
 	
 	private boolean aborting = false;
 	
-	public VideoStream(InetAddress host, NvConnectionListener listener, ConnectionStatusListener avConnListener)
+	public VideoStream(InetAddress host, NvConnectionListener listener, ConnectionStatusListener avConnListener, StreamConfiguration streamConfig)
 	{
 		this.host = host;
 		this.listener = listener;
 		this.depacketizer = new VideoDepacketizer(avConnListener);
+		this.streamConfig = streamConfig;
 	}
 	
 	public void abort()
@@ -127,7 +130,7 @@ public class VideoStream {
 	public void setupDecoderRenderer(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) {
 		this.decRend = decRend;
 		if (decRend != null) {
-			decRend.setup(1280, 720, renderTarget, drFlags);
+			decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(), renderTarget, drFlags);
 		}
 	}
 

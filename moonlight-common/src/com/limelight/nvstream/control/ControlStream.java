@@ -1,4 +1,4 @@
-package com.limelight.nvstream;
+package com.limelight.nvstream.control;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +9,8 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import com.limelight.nvstream.NvConnectionListener;
+import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 
 public class ControlStream implements ConnectionStatusListener {
@@ -16,16 +18,6 @@ public class ControlStream implements ConnectionStatusListener {
 	public static final int PORT = 47995;
 	
 	public static final int CONTROL_TIMEOUT = 5000;
-	
-	public static final short PTYPE_HELLO = 0x1204;
-	public static final short PPAYLEN_HELLO = 0x0004;
-	public static final byte[] PPAYLOAD_HELLO =
-		{
-		(byte)0x00,
-		(byte)0x05,
-		(byte)0x00,
-		(byte)0x00
-		};
 	
 	public static final short PTYPE_KEEPALIVE = 0x13ff;
 	public static final short PPAYLEN_KEEPALIVE = 0x0000;
@@ -41,102 +33,7 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	public static final short PTYPE_CONFIG = 0x1205;
 	public static final short PPAYLEN_CONFIG = 0x0004;
-	public static final int[] PPAYLOAD_CONFIG =
-		{
-		720,
-		266758,
-		1,
-		266762,
-		30,
-		70151,
-		68291329,
-		1280,
-		68291584,
-		1280,
-		68291840,
-		15360,
-		68292096,
-		25600,
-		68292352,
-		2048,
-		68292608,
-		1024,
-		68289024,
-		262144,
-		17957632,
-		302055424,
-		134217729,
-		16777490,
-		70153,
-		68293120,
-		768000,
-		17961216,
-		303235072,
-		335609857,
-		838861842,
-		352321536,
-		1006634002,
-		369098752,
-		335545362,
-		385875968,
-		1042,
-		402653184,
-		134218770,
-		419430400,
-		167773202,
-		436207616,
-		855638290,
-		266779,
-		7000,
-		266780,
-		2000,
-		266781,
-		50,
-		266782,
-		3000,
-		266783,
-		2,
-		266794,
-		5000,
-		266795,
-		500,
-		266784,
-		75,
-		266785,
-		25,
-		266786,
-		10,
-		266787,
-		60,
-		266788,
-		30,
-		266789,
-		3,
-		266790,
-		1000,
-		266791,
-		5000,
-		266792,
-		5000,
-		266793,
-		5000,
-		70190,
-		68301063,
-		10240,
-		68301312,
-		6400,
-		68301568,
-		768000,
-		68299776,
-		768,
-		68300032,
-		2560,
-		68300544,
-		0,
-		34746368,
-		(int)0xFE000000
-		};
-
+	
 	
 	public static final short PTYPE_JITTER = 0x140c;
 	public static final short PPAYLEN_JITTER = 0x10;
@@ -145,6 +42,7 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	private NvConnectionListener listener;
 	private InetAddress host;
+	private Config config;
 	
 	private Socket s;
 	private InputStream in;
@@ -156,10 +54,11 @@ public class ControlStream implements ConnectionStatusListener {
 	private Object resyncNeeded = new Object();
 	private boolean aborting = false;
 	
-	public ControlStream(InetAddress host, NvConnectionListener listener)
+	public ControlStream(InetAddress host, NvConnectionListener listener, StreamConfiguration streamConfig)
 	{
 		this.listener = listener;
 		this.host = host;
+		this.config = new Config(streamConfig);
 	}
 	
 	public void initialize() throws IOException
@@ -225,7 +124,6 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	public void start() throws IOException
 	{
-		sendHello();
 		sendConfig();
 		pingPong();
 		send1405AndGetResponse();
@@ -312,11 +210,6 @@ public class ControlStream implements ConnectionStatusListener {
 		return sendAndGetReply(new NvCtlPacket(PTYPE_1405, PPAYLEN_1405));
 	}
 	
-	private void sendHello() throws IOException
-	{
-		sendPacket(new NvCtlPacket(PTYPE_HELLO, PPAYLEN_HELLO, PPAYLOAD_HELLO));
-	}
-	
 	private void sendResync() throws IOException
 	{
 		ByteBuffer conf = ByteBuffer.wrap(new byte[PPAYLEN_RESYNC]).order(ByteOrder.LITTLE_ENDIAN);
@@ -329,15 +222,8 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	private void sendConfig() throws IOException
 	{
-		ByteBuffer conf = ByteBuffer.wrap(new byte[PPAYLOAD_CONFIG.length * 4 + 3]).order(ByteOrder.LITTLE_ENDIAN);
-		
-		for (int i : PPAYLOAD_CONFIG)
-			conf.putInt(i);
-		
-		conf.putShort((short)0x0013);
-		conf.put((byte) 0x00);
-		
-		sendPacket(new NvCtlPacket(PTYPE_CONFIG, PPAYLEN_CONFIG, conf.array()));
+		out.write(config.toWire());
+		out.flush();
 	}
 	
 	private void sendHeartbeat() throws IOException

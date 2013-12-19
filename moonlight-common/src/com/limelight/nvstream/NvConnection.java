@@ -16,12 +16,15 @@ import com.limelight.nvstream.av.audio.AudioStream;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.av.video.VideoStream;
+import com.limelight.nvstream.control.ControlStream;
+import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.input.NvController;
 
 public class NvConnection {
 	private String host;
 	private NvConnectionListener listener;
+	private StreamConfiguration config;
 	
 	private InetAddress hostAddr;
 	private ControlStream controlStream;
@@ -38,10 +41,12 @@ public class NvConnection {
 	
 	private ThreadPoolExecutor threadPool;
 	
-	public NvConnection(String host, NvConnectionListener listener)
+	public NvConnection(String host, NvConnectionListener listener, StreamConfiguration config)
 	{
 		this.host = host;
 		this.listener = listener;
+		this.config = config;
+		
 		this.threadPool = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
 	}
 	
@@ -132,16 +137,42 @@ public class NvConnection {
 		}
 		
 		int sessionId = h.getSessionId();
-		int appId = h.getSteamAppId(sessionId);
+		if (sessionId == 0) {
+			listener.displayMessage("Invalid session ID");
+			return false;
+		}
 		
-		h.launchApp(sessionId, appId);
+		NvApp app = h.getSteamApp();
+		if (app == null) {
+			listener.displayMessage("Steam not found in GFE app list");
+			return false;
+		}
+		
+		// If there's a game running, resume it
+		if (h.getCurrentGame() != 0) {
+			if (!h.resumeApp()) {
+				listener.displayMessage("Failing to resume existing session");
+				return false;
+			}
+			System.out.println("Resumed existing game session");
+		}
+		else {
+			// Launch the app since it's not running
+			int gameSessionId = h.launchApp(app.getAppId(), config.getWidth(),
+					config.getHeight(), config.getRefreshRate());
+			if (gameSessionId == 0) {
+				listener.displayMessage("Failed to launch application");
+				return false;
+			}
+			System.out.println("Launched new game session");
+		}
 		
 		return true;
 	}
 	
 	private boolean startControlStream() throws IOException
 	{
-		controlStream = new ControlStream(hostAddr, listener);
+		controlStream = new ControlStream(hostAddr, listener, config);
 		controlStream.initialize();
 		controlStream.start();
 		return true;
@@ -149,7 +180,7 @@ public class NvConnection {
 	
 	private boolean startVideoStream() throws IOException
 	{
-		videoStream = new VideoStream(hostAddr, listener, controlStream);
+		videoStream = new VideoStream(hostAddr, listener, controlStream, config);
 		videoStream.startVideoStream(videoDecoderRenderer, videoRenderTarget, drFlags);
 		return true;
 	}

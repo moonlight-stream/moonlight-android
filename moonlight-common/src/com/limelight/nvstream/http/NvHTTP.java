@@ -15,7 +15,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 
 public class NvHTTP {
-	private String macAddress;
+	private String uniqueId;
 	private String deviceName;
 
 	public static final int PORT = 47989;
@@ -23,8 +23,8 @@ public class NvHTTP {
 
 	public String baseUrl;
 
-	public NvHTTP(InetAddress host, String macAddress, String deviceName) {
-		this.macAddress = macAddress;
+	public NvHTTP(InetAddress host, String uniqueId, String deviceName) {
+		this.uniqueId = uniqueId;
 		this.deviceName = deviceName;
 		this.baseUrl = "http://" + host.getHostAddress() + ":" + PORT;
 	}
@@ -73,31 +73,37 @@ public class NvHTTP {
 	}
 
 	public boolean getPairState() throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/pairstate?mac=" + macAddress);
+		InputStream in = openHttpConnection(baseUrl + "/pairstate?uniqueid=" + uniqueId);
 		String paired = getXmlString(in, "paired");
 		return Integer.valueOf(paired) != 0;
 	}
 
 	public int getSessionId() throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/pair?mac=" + macAddress
+		InputStream in = openHttpConnection(baseUrl + "/pair?uniqueid=" + uniqueId
 				+ "&devicename=" + deviceName);
 		String sessionId = getXmlString(in, "sessionid");
 		return Integer.parseInt(sessionId);
 	}
 
-	public int getSteamAppId(int sessionId) throws IOException,
-			XmlPullParserException {
-		LinkedList<NvApp> appList = getAppList(sessionId);
-		for (NvApp app : appList) {
-			if (app.getAppName().equals("Steam")) {
-				return app.getAppId();
-			}
-		}
-		return 0;
+	public int getCurrentGame() throws IOException, XmlPullParserException {
+		InputStream in = openHttpConnection(baseUrl + "/serverinfo?uniqueid=" + uniqueId);
+		String game = getXmlString(in, "currentgame");
+		return Integer.parseInt(game);
 	}
 	
-	public LinkedList<NvApp> getAppList(int sessionId) throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/applist?session=" + sessionId);
+	public NvApp getSteamApp() throws IOException,
+			XmlPullParserException {
+		LinkedList<NvApp> appList = getAppList();
+		for (NvApp app : appList) {
+			if (app.getAppName().equals("Steam")) {
+				return app;
+			}
+		}
+		return null;
+	}
+	
+	public LinkedList<NvApp> getAppList() throws IOException, XmlPullParserException {
+		InputStream in = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId);
 		XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 		factory.setNamespaceAware(true);
 		XmlPullParser xpp = factory.newPullParser();
@@ -135,11 +141,24 @@ public class NvHTTP {
 	}
 
 	// Returns gameSession XML attribute
-	public int launchApp(int sessionId, int appId) throws IOException,
-			XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/launch?session="
-			+ sessionId + "&appid=" + appId);
+	public int launchApp(int appId, int width, int height, int refreshRate) throws IOException, XmlPullParserException {
+		InputStream in = openHttpConnection(baseUrl +
+			"/launch?uniqueid=" + uniqueId +
+			"&appid=" + appId +
+			"&mode=" + width + "x" + height + "x" + refreshRate);
 		String gameSession = getXmlString(in, "gamesession");
 		return Integer.parseInt(gameSession);
+	}
+	
+	public boolean resumeApp() throws IOException, XmlPullParserException {
+		InputStream in = openHttpConnection(baseUrl + "/resume?uniqueid=" + uniqueId);
+		String resume = getXmlString(in, "resume");
+		return Integer.parseInt(resume) != 0;
+	}
+	
+	public boolean quitApp() throws IOException, XmlPullParserException {
+		InputStream in = openHttpConnection(baseUrl + "/cancel?uniqueid=" + uniqueId);
+		String cancel = getXmlString(in, "cancel");
+		return Integer.parseInt(cancel) != 0;
 	}
 }

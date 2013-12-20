@@ -194,8 +194,13 @@ public class NvConnection {
 	
 	private boolean startInputConnection() throws IOException
 	{
-		inputStream = new NvController(hostAddr);
-		inputStream.initialize();
+		// Because input events can be delivered at any time, we must only assign
+		// it to the instance variable once the object is properly initialized.
+		// This avoids the race where inputStream != null but inputStream.initialize()
+		// has not returned yet.
+		NvController tempController = new NvController(hostAddr);
+		tempController.initialize();
+		inputStream = tempController;
 		return true;
 	}
 	

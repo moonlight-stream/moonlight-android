@@ -47,7 +47,8 @@ public class NvConnection {
 		this.listener = listener;
 		this.config = config;
 		
-		this.threadPool = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
+		this.threadPool = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS,
+				new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
 	}
 	
 	public static String getMacAddressString() throws SocketException {

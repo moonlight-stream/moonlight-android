@@ -1,6 +1,7 @@
 package com.limelight;
 
 import com.limelight.binding.PlatformBinding;
+import com.limelight.binding.video.ConfigurableDecoderRenderer;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
@@ -52,10 +53,16 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	public static final String WIDTH_PREF_STRING = "Width";
 	public static final String HEIGHT_PREF_STRING = "Height";
 	public static final String REFRESH_RATE_PREF_STRING = "RefreshRate";
+	public static final String DECODER_PREF_STRING = "Decoder";
 	
 	public static final int DEFAULT_WIDTH = 1280;
 	public static final int DEFAULT_HEIGHT = 720;
 	public static final int DEFAULT_REFRESH_RATE = 30;
+	public static final int DEFAULT_DECODER = 0;
+	
+	public static final int FORCE_HARDWARE_DECODER = -1;
+	public static final int AUTOSELECT_DECODER = 0;
+	public static final int FORCE_SOFTWARE_DECODER = 1;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +98,17 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		if (prefs.getBoolean(QUALITY_PREF_STRING, false)) {
 			drFlags |= VideoDecoderRenderer.FLAG_PREFER_QUALITY;
 		}
+		switch (prefs.getInt(Game.DECODER_PREF_STRING, Game.DEFAULT_DECODER)) {
+		case Game.FORCE_SOFTWARE_DECODER:
+			drFlags |= VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING;
+			break;
+		case Game.AUTOSELECT_DECODER:
+			break;
+		case Game.FORCE_HARDWARE_DECODER:
+			drFlags |= VideoDecoderRenderer.FLAG_FORCE_HARDWARE_DECODING;
+			break;
+		}
+
 		int width, height, refreshRate;
 		width = prefs.getInt(WIDTH_PREF_STRING, DEFAULT_WIDTH);
 		height = prefs.getInt(HEIGHT_PREF_STRING, DEFAULT_HEIGHT);
@@ -104,7 +122,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this,
 				new StreamConfiguration(width, height, refreshRate));
 		conn.start(PlatformBinding.getDeviceName(), sv.getHolder(), drFlags,
-				PlatformBinding.getAudioRenderer(), PlatformBinding.chooseDecoderRenderer());
+				PlatformBinding.getAudioRenderer(), new ConfigurableDecoderRenderer());
 	}
 	
 	private void checkDataConnection()

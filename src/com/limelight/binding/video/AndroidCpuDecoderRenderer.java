@@ -78,8 +78,8 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 	}
 	
 	@Override
-	public void setup(int width, int height, Object renderTarget, int drFlags) {
-		this.targetFps = 30;
+	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
+		this.targetFps = redrawRate;
 		
 		int perfLevel = findOptimalPerformanceLevel();
 		int threadCount;

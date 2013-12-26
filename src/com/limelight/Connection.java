@@ -33,6 +33,7 @@ public class Connection extends Activity {
 	private SharedPreferences prefs;
 	private CheckBox qualityCheckbox;
 	private RadioButton rbutton720p, rbutton1080p, rbutton30fps, rbutton60fps;
+	private RadioButton forceSoftDec, autoDec, forceHardDec;
 	
 	private static final String DEFAULT_HOST = "";
 	public static final String HOST_KEY = "hostText";
@@ -61,6 +62,9 @@ public class Connection extends Activity {
 		this.rbutton1080p = (RadioButton) findViewById(R.id.res1080pSelected);
 		this.rbutton30fps = (RadioButton) findViewById(R.id.rr30Selected);
 		this.rbutton60fps = (RadioButton) findViewById(R.id.rr60Selected);
+		this.forceSoftDec = (RadioButton) findViewById(R.id.softwareDec);
+		this.autoDec = (RadioButton) findViewById(R.id.autoDec);
+		this.forceHardDec = (RadioButton) findViewById(R.id.hardwareDec);
 
 		prefs = getSharedPreferences(Game.PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
 		this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));
@@ -82,6 +86,24 @@ public class Connection extends Activity {
 		else {
 			rbutton60fps.setChecked(true);
 			rbutton30fps.setChecked(false);
+		}
+		
+		switch (prefs.getInt(Game.DECODER_PREF_STRING, Game.DEFAULT_DECODER)) {
+		case Game.FORCE_SOFTWARE_DECODER:
+			forceSoftDec.setChecked(true);
+			autoDec.setChecked(false);
+			forceHardDec.setChecked(false);
+			break;
+		case Game.AUTOSELECT_DECODER:
+			forceSoftDec.setChecked(false);
+			autoDec.setChecked(true);
+			forceHardDec.setChecked(false);
+			break;
+		case Game.FORCE_HARDWARE_DECODER:
+			forceSoftDec.setChecked(false);
+			autoDec.setChecked(false);
+			forceHardDec.setChecked(true);
+			break;
 		}
 		
 		OnCheckedChangeListener occl = new OnCheckedChangeListener() {
@@ -107,12 +129,24 @@ public class Connection extends Activity {
 					prefs.edit().putInt(Game.WIDTH_PREF_STRING, 1920).
 						putInt(Game.HEIGHT_PREF_STRING, 1080).commit();
 				}
+				else if (buttonView == forceSoftDec) {
+					prefs.edit().putInt(Game.DECODER_PREF_STRING, Game.FORCE_SOFTWARE_DECODER).commit();
+				}
+				else if (buttonView == forceHardDec) {
+					prefs.edit().putInt(Game.DECODER_PREF_STRING, Game.FORCE_HARDWARE_DECODER).commit();
+				}
+				else if (buttonView == autoDec) {
+					prefs.edit().putInt(Game.DECODER_PREF_STRING, Game.AUTOSELECT_DECODER).commit();
+				}
 			}
 		};
 		rbutton720p.setOnCheckedChangeListener(occl);
 		rbutton1080p.setOnCheckedChangeListener(occl);
 		rbutton30fps.setOnCheckedChangeListener(occl);
 		rbutton60fps.setOnCheckedChangeListener(occl);
+		forceSoftDec.setOnCheckedChangeListener(occl);
+		forceHardDec.setOnCheckedChangeListener(occl);
+		autoDec.setOnCheckedChangeListener(occl);
 		
 		this.qualityCheckbox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override

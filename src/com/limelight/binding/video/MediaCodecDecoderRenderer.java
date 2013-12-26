@@ -20,6 +20,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private ByteBuffer[] videoDecoderInputBuffers;
 	private MediaCodec videoDecoder;
 	private Thread rendererThread;
+	private int redrawRate;
 	
 	public static final List<String> blacklistedDecoderPrefixes;
 	
@@ -71,14 +72,20 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	}
 	
 	@Override
-	public void setup(int width, int height, Object renderTarget, int drFlags) {
-		videoDecoder = MediaCodec.createByCodecName(findSafeDecoder().getName());
-		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
-
-		videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
-
-		videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {	
+		this.redrawRate = redrawRate;
 		
+		MediaCodecInfo safeDecoder = findSafeDecoder();
+		if (safeDecoder != null) {
+			videoDecoder = MediaCodec.createByCodecName(safeDecoder.getName());
+		}
+		else {
+			videoDecoder = MediaCodec.createDecoderByType("video/avc");
+		}
+		
+		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
+		videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
+		videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 		videoDecoder.start();
 
 		videoDecoderInputBuffers = videoDecoder.getInputBuffers();
@@ -112,7 +119,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				    	
 				    	if (currentTimeUs() >= nextFrameTimeUs) {
 				    		render = true;
-				    		nextFrameTimeUs = computePresentationTime(60);
+				    		nextFrameTimeUs = computePresentationTime(redrawRate);
 				    	}
 				    	
 				    	videoDecoder.releaseOutputBuffer(outIndex, render);

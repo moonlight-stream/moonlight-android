@@ -132,7 +132,8 @@ public class VideoStream {
 	public void setupDecoderRenderer(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) {
 		this.decRend = decRend;
 		if (decRend != null) {
-			decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(), renderTarget, drFlags);
+			decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(),
+					streamConfig.getRefreshRate(), renderTarget, drFlags);
 		}
 	}
 

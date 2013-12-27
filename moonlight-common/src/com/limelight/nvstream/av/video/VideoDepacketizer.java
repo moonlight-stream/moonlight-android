@@ -13,9 +13,13 @@ public class VideoDepacketizer {
 	// Current NAL state
 	private LinkedList<ByteBufferDescriptor> avcNalDataChain = null;
 	private int avcNalDataLength = 0;
+	private int currentlyDecoding = DecodeUnit.TYPE_UNKNOWN;
 	
 	// Sequencing state
 	private short lastSequenceNumber;
+	
+	// Cached objects
+	private ByteBufferDescriptor cachedDesc = new ByteBufferDescriptor(null, 0, 0);
 	
 	private ConnectionStatusListener controlListener;
 	
@@ -41,16 +45,18 @@ public class VideoDepacketizer {
 			DecodeUnit du = new DecodeUnit(DecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, 0);
 			if (!decodedUnits.offer(du)) {
 				// We need a new IDR frame since we're discarding data now
+				System.out.println("Video decoder is too slow! Forced to drop decode units");
 				decodedUnits.clear();
 				controlListener.connectionNeedsResync();
 			}
-			
+
 			// Clear old state
 			clearAvcNalState();
 		}
 	}
 	
-	public void addInputData(VideoPacket packet)
+	/* Currently unused pending bugfixes */
+	public void addInputDataO1(VideoPacket packet)
 	{
 		ByteBufferDescriptor location = packet.getNewPayloadDescriptor();
 		
@@ -96,6 +102,92 @@ public class VideoDepacketizer {
 			}
 		}
 	}
+	
+	public void addInputData(VideoPacket packet)
+	{
+		ByteBufferDescriptor location = packet.getNewPayloadDescriptor();
+
+		while (location.length != 0)
+		{
+			// Remember the start of the NAL data in this packet
+			int start = location.offset;
+
+			// Check for a special sequence
+			if (NAL.getSpecialSequenceDescriptor(location, cachedDesc))
+			{
+				if (NAL.isAvcStartSequence(cachedDesc))
+				{
+					// We're decoding H264 now
+					currentlyDecoding = DecodeUnit.TYPE_H264;
+
+					// Check if it's the end of the last frame
+					if (NAL.isAvcFrameStart(cachedDesc))
+					{
+						// Reassemble any pending AVC NAL
+						reassembleAvcNal();
+
+						// Setup state for the new NAL
+						avcNalDataChain = new LinkedList<ByteBufferDescriptor>();
+						avcNalDataLength = 0;
+					}
+
+					// Skip the start sequence
+					location.length -= cachedDesc.length;
+					location.offset += cachedDesc.length;
+				}
+				else
+				{
+					// Check if this is padding after a full AVC frame
+					if (currentlyDecoding == DecodeUnit.TYPE_H264 &&
+						NAL.isPadding(cachedDesc)) {
+						// The decode unit is complete
+						reassembleAvcNal();
+					}
+
+					// Not decoding AVC
+					currentlyDecoding = DecodeUnit.TYPE_UNKNOWN;
+
+					// Just skip this byte
+					location.length--;
+					location.offset++;
+				}
+			}
+
+			// Move to the next special sequence
+			while (location.length != 0)
+			{
+				// Catch the easy case first where byte 0 != 0x00
+				if (location.data[location.offset] == 0x00)
+				{
+					// Check if this should end the current NAL
+					if (NAL.getSpecialSequenceDescriptor(location, cachedDesc))
+					{
+						// Only stop if we're decoding something or this
+						// isn't padding
+						if (currentlyDecoding != DecodeUnit.TYPE_UNKNOWN ||
+							!NAL.isPadding(cachedDesc))
+						{
+							break;
+						}
+					}
+				}
+
+				// This byte is part of the NAL data
+				location.offset++;
+				location.length--;
+			}
+
+			if (currentlyDecoding == DecodeUnit.TYPE_H264 && avcNalDataChain != null)
+			{
+				ByteBufferDescriptor data = new ByteBufferDescriptor(location.data, start, location.offset-start);
+
+				// Add a buffer descriptor describing the NAL data in this packet
+				avcNalDataChain.add(data);
+				avcNalDataLength += location.offset-start;
+			}
+		}
+	}
+
 	
 	public void addInputData(RtpPacket packet)
 	{
@@ -146,6 +238,13 @@ class NAL {
 		// The frame start sequence is 00 00 00 01
 		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x01);
 	}
+	
+	// This assumes that the buffer passed in is already a special sequence
+    public static boolean isPadding(ByteBufferDescriptor specialSeq)
+    {
+            // The padding sequence is 00 00 00
+            return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x00);
+    }
 	
 	// Returns a buffer descriptor describing the start sequence
 	public static boolean getSpecialSequenceDescriptor(ByteBufferDescriptor buffer, ByteBufferDescriptor outputDesc)

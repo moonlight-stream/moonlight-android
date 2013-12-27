@@ -1,23 +1,35 @@
 package com.limelight;
 
+import com.limelight.binding.PlatformBinding;
+import com.limelight.binding.video.ConfigurableDecoderRenderer;
 import com.limelight.nvstream.NvConnection;
-import com.limelight.nvstream.input.NvControllerPacket;
+import com.limelight.nvstream.NvConnectionListener;
+import com.limelight.nvstream.StreamConfiguration;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.input.ControllerPacket;
+import com.limelight.utils.Dialog;
+import com.limelight.utils.SpinnerDialog;
 
 import android.app.Activity;
-import android.content.ComponentCallbacks2;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.PixelFormat;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnGenericMotionListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 
-public class Game extends Activity implements OnGenericMotionListener, OnTouchListener {
+public class Game extends Activity implements OnGenericMotionListener, OnTouchListener, NvConnectionListener {
 	private short inputMap = 0x0000;
 	private byte leftTrigger = 0x00;
 	private byte rightTrigger = 0x00;
@@ -32,6 +44,25 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	private boolean hasMoved = false;
 	
 	private NvConnection conn;
+	private SpinnerDialog spinner;
+	private boolean displayedFailureDialog = false;
+	
+	public static final String PREFS_FILE_NAME = "gameprefs";
+	
+	public static final String QUALITY_PREF_STRING = "Quality";
+	public static final String WIDTH_PREF_STRING = "Width";
+	public static final String HEIGHT_PREF_STRING = "Height";
+	public static final String REFRESH_RATE_PREF_STRING = "RefreshRate";
+	public static final String DECODER_PREF_STRING = "Decoder";
+	
+	public static final int DEFAULT_WIDTH = 1280;
+	public static final int DEFAULT_HEIGHT = 720;
+	public static final int DEFAULT_REFRESH_RATE = 30;
+	public static final int DEFAULT_DECODER = 0;
+	
+	public static final int FORCE_HARDWARE_DECODER = -1;
+	public static final int AUTOSELECT_DECODER = 0;
+	public static final int FORCE_SOFTWARE_DECODER = 1;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,12 +86,54 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		sv.setOnGenericMotionListener(this);
 		sv.setOnTouchListener(this);
 
+		SurfaceHolder sh = sv.getHolder();
+		sh.setFormat(PixelFormat.RGBX_8888);
+
+		// Start the spinner
+		spinner = SpinnerDialog.displayDialog(this, "Establishing Connection", "Starting connection", true);
+		
+		// Read the stream preferences
+		SharedPreferences prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
+		int drFlags = 0;
+		if (prefs.getBoolean(QUALITY_PREF_STRING, false)) {
+			drFlags |= VideoDecoderRenderer.FLAG_PREFER_QUALITY;
+		}
+		switch (prefs.getInt(Game.DECODER_PREF_STRING, Game.DEFAULT_DECODER)) {
+		case Game.FORCE_SOFTWARE_DECODER:
+			drFlags |= VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING;
+			break;
+		case Game.AUTOSELECT_DECODER:
+			break;
+		case Game.FORCE_HARDWARE_DECODER:
+			drFlags |= VideoDecoderRenderer.FLAG_FORCE_HARDWARE_DECODING;
+			break;
+		}
+
+		int width, height, refreshRate;
+		width = prefs.getInt(WIDTH_PREF_STRING, DEFAULT_WIDTH);
+		height = prefs.getInt(HEIGHT_PREF_STRING, DEFAULT_HEIGHT);
+		refreshRate = prefs.getInt(REFRESH_RATE_PREF_STRING, DEFAULT_REFRESH_RATE);
+		sh.setFixedSize(width, height);
+        
+		// Warn the user if they're on a metered connection
+        checkDataConnection();
+		
 		// Start the connection
-		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this, sv.getHolder().getSurface());
-		conn.start();
+		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this,
+				new StreamConfiguration(width, height, refreshRate));
+		conn.start(PlatformBinding.getDeviceName(), sv.getHolder(), drFlags,
+				PlatformBinding.getAudioRenderer(), new ConfigurableDecoderRenderer());
+	}
+	
+	private void checkDataConnection()
+	{
+		ConnectivityManager mgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		if (mgr.isActiveNetworkMetered()) {
+			displayMessage("Warning: Your active network connection is metered!");
+		}
 	}
 
-	public void hideSystemUi() {
+	private void hideSystemUi() {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -85,86 +158,76 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	
 	@Override
 	public void onPause() {
+		displayedFailureDialog = true;
+		conn.stop();
 		finish();
 		super.onPause();
 	}
 	
 	@Override
-	public void onDestroy() {
-		conn.stop();
+	protected void onDestroy() {
+		SpinnerDialog.closeDialogs();
+		Dialog.closeDialogs();
 		super.onDestroy();
 	}
 	
 	@Override
-	public void onTrimMemory(int trimLevel) {
-		if (trimLevel >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW)
-		{
-			conn.trim();
-		}
-	}
-	
-	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		
-		// Skip keyboard and virtual button events
-		if (event.getSource() == InputDevice.SOURCE_KEYBOARD)
-			return super.onKeyDown(keyCode, event);
-		
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BUTTON_START:
 		case KeyEvent.KEYCODE_MENU:
-			inputMap |= NvControllerPacket.PLAY_FLAG;
+			inputMap |= ControllerPacket.PLAY_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BACK:
 		case KeyEvent.KEYCODE_BUTTON_SELECT:
-			inputMap |= NvControllerPacket.BACK_FLAG;
+			inputMap |= ControllerPacket.BACK_FLAG;
 			break;
 		case KeyEvent.KEYCODE_DPAD_LEFT:
-			inputMap |= NvControllerPacket.LEFT_FLAG;
+			inputMap |= ControllerPacket.LEFT_FLAG;
 			break;
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			inputMap |= NvControllerPacket.RIGHT_FLAG;
+			inputMap |= ControllerPacket.RIGHT_FLAG;
 			break;
 		case KeyEvent.KEYCODE_DPAD_UP:
-			inputMap |= NvControllerPacket.UP_FLAG;
+			inputMap |= ControllerPacket.UP_FLAG;
 			break;
 		case KeyEvent.KEYCODE_DPAD_DOWN:
-			inputMap |= NvControllerPacket.DOWN_FLAG;
+			inputMap |= ControllerPacket.DOWN_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_B:
-			inputMap |= NvControllerPacket.B_FLAG;
+			inputMap |= ControllerPacket.B_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_A:
-			inputMap |= NvControllerPacket.A_FLAG;
+			inputMap |= ControllerPacket.A_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_X:
-			inputMap |= NvControllerPacket.X_FLAG;
+			inputMap |= ControllerPacket.X_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_Y:
-			inputMap |= NvControllerPacket.Y_FLAG;
+			inputMap |= ControllerPacket.Y_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_L1:
-			inputMap |= NvControllerPacket.LB_FLAG;
+			inputMap |= ControllerPacket.LB_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_R1:
-			inputMap |= NvControllerPacket.RB_FLAG;
+			inputMap |= ControllerPacket.RB_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_THUMBL:
-			inputMap |= NvControllerPacket.LS_CLK_FLAG;
+			inputMap |= ControllerPacket.LS_CLK_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_THUMBR:
-			inputMap |= NvControllerPacket.RS_CLK_FLAG;
+			inputMap |= ControllerPacket.RS_CLK_FLAG;
 			break;
 		default:
 			return super.onKeyDown(keyCode, event);
 		}
 		
 		// We detect back+start as the special button combo
-		if ((inputMap & NvControllerPacket.BACK_FLAG) != 0 &&
-			(inputMap & NvControllerPacket.PLAY_FLAG) != 0)
+		if ((inputMap & ControllerPacket.BACK_FLAG) != 0 &&
+			(inputMap & ControllerPacket.PLAY_FLAG) != 0)
 		{
-			inputMap &= ~(NvControllerPacket.BACK_FLAG | NvControllerPacket.PLAY_FLAG);
-			inputMap |= NvControllerPacket.SPECIAL_BUTTON_FLAG;
+			inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG);
+			inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
 		}
 		
 		sendControllerInputPacket();
@@ -173,65 +236,60 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-
-		// Skip keyboard and virtual button events
-		if (event.getSource() == InputDevice.SOURCE_KEYBOARD)
-			return super.onKeyUp(keyCode, event);
-		
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BUTTON_START:
 		case KeyEvent.KEYCODE_MENU:
-			inputMap &= ~NvControllerPacket.PLAY_FLAG;
+			inputMap &= ~ControllerPacket.PLAY_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BACK:
 		case KeyEvent.KEYCODE_BUTTON_SELECT:
-			inputMap &= ~NvControllerPacket.BACK_FLAG;
+			inputMap &= ~ControllerPacket.BACK_FLAG;
 			break;
 		case KeyEvent.KEYCODE_DPAD_LEFT:
-			inputMap &= ~NvControllerPacket.LEFT_FLAG;
+			inputMap &= ~ControllerPacket.LEFT_FLAG;
 			break;
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			inputMap &= ~NvControllerPacket.RIGHT_FLAG;
+			inputMap &= ~ControllerPacket.RIGHT_FLAG;
 			break;
 		case KeyEvent.KEYCODE_DPAD_UP:
-			inputMap &= ~NvControllerPacket.UP_FLAG;
+			inputMap &= ~ControllerPacket.UP_FLAG;
 			break;
 		case KeyEvent.KEYCODE_DPAD_DOWN:
-			inputMap &= ~NvControllerPacket.DOWN_FLAG;
+			inputMap &= ~ControllerPacket.DOWN_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_B:
-			inputMap &= ~NvControllerPacket.B_FLAG;
+			inputMap &= ~ControllerPacket.B_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_A:
-			inputMap &= ~NvControllerPacket.A_FLAG;
+			inputMap &= ~ControllerPacket.A_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_X:
-			inputMap &= ~NvControllerPacket.X_FLAG;
+			inputMap &= ~ControllerPacket.X_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_Y:
-			inputMap &= ~NvControllerPacket.Y_FLAG;
+			inputMap &= ~ControllerPacket.Y_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_L1:
-			inputMap &= ~NvControllerPacket.LB_FLAG;
+			inputMap &= ~ControllerPacket.LB_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_R1:
-			inputMap &= ~NvControllerPacket.RB_FLAG;
+			inputMap &= ~ControllerPacket.RB_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_THUMBL:
-			inputMap &= ~NvControllerPacket.LS_CLK_FLAG;
+			inputMap &= ~ControllerPacket.LS_CLK_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BUTTON_THUMBR:
-			inputMap &= ~NvControllerPacket.RS_CLK_FLAG;
+			inputMap &= ~ControllerPacket.RS_CLK_FLAG;
 			break;
 		default:
 			return super.onKeyUp(keyCode, event);
 		}
 		
 		// If one of the two is up, the special button comes up too
-		if ((inputMap & NvControllerPacket.BACK_FLAG) == 0 ||
-			(inputMap & NvControllerPacket.PLAY_FLAG) == 0)
+		if ((inputMap & ControllerPacket.BACK_FLAG) == 0 ||
+			(inputMap & ControllerPacket.PLAY_FLAG) == 0)
 		{
-			inputMap &= ~NvControllerPacket.SPECIAL_BUTTON_FLAG;
+			inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
 		}
 		
 		sendControllerInputPacket();
@@ -252,7 +310,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			// We haven't moved so send a click
 
 			// Lower the mouse button
-			conn.sendMouseButtonDown();
+			conn.sendMouseButtonDown((byte) 0x01);
 			
 			// We need to sleep a bit here because some games
 			// do input detection by polling
@@ -261,7 +319,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			} catch (InterruptedException e) {}
 			
 			// Raise the mouse button
-			conn.sendMouseButtonUp();
+			conn.sendMouseButtonUp((byte) 0x01);
 		}
 	}
 	
@@ -310,10 +368,10 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 				switch (event.getActionMasked())
 				{
 				case MotionEvent.ACTION_DOWN:
-					conn.sendMouseButtonDown();
+					conn.sendMouseButtonDown((byte) 0x01);
 					break;
 				case MotionEvent.ACTION_UP:
-					conn.sendMouseButtonUp();
+					conn.sendMouseButtonUp((byte) 0x01);
 					break;
 				default:
 					return super.onTouchEvent(event);
@@ -388,19 +446,19 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 				hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X);
 				hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
 
-				inputMap &= ~(NvControllerPacket.LEFT_FLAG | NvControllerPacket.RIGHT_FLAG);
-				inputMap &= ~(NvControllerPacket.UP_FLAG | NvControllerPacket.DOWN_FLAG);
+				inputMap &= ~(ControllerPacket.LEFT_FLAG | ControllerPacket.RIGHT_FLAG);
+				inputMap &= ~(ControllerPacket.UP_FLAG | ControllerPacket.DOWN_FLAG);
 				if (hatX < -0.5) {
-					inputMap |= NvControllerPacket.LEFT_FLAG;
+					inputMap |= ControllerPacket.LEFT_FLAG;
 				}
 				if (hatX > 0.5) {
-					inputMap |= NvControllerPacket.RIGHT_FLAG;
+					inputMap |= ControllerPacket.RIGHT_FLAG;
 				}
 				if (hatY < -0.5) {
-					inputMap |= NvControllerPacket.UP_FLAG;
+					inputMap |= ControllerPacket.UP_FLAG;
 				}
 				if (hatY > 0.5) {
-					inputMap |= NvControllerPacket.DOWN_FLAG;
+					inputMap |= ControllerPacket.DOWN_FLAG;
 				}
 			}
 
@@ -457,5 +515,56 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	public boolean onTouch(View v, MotionEvent event) {
 		// Send it to the activity's touch event handler
 		return onTouchEvent(event);
+	}
+
+	@Override
+	public void stageStarting(Stage stage) {
+		if (spinner != null) {
+			spinner.setMessage("Starting "+stage.getName());
+		}
+	}
+
+	@Override
+	public void stageComplete(Stage stage) {
+	}
+
+	@Override
+	public void stageFailed(Stage stage) {
+		spinner.dismiss();
+		spinner = null;
+
+		if (!displayedFailureDialog) {
+			displayedFailureDialog = true;
+			Dialog.displayDialog(this, "Connection Error", "Starting "+stage.getName()+" failed", true);
+			conn.stop();
+		}
+	}
+
+	@Override
+	public void connectionTerminated(Exception e) {
+		if (!displayedFailureDialog) {
+			displayedFailureDialog = true;
+			e.printStackTrace();
+			Dialog.displayDialog(this, "Connection Terminated", "The connection failed unexpectedly", true);
+			conn.stop();
+		}
+	}
+
+	@Override
+	public void connectionStarted() {
+		spinner.dismiss();
+		spinner = null;
+		
+		hideSystemUi();
+	}
+
+	@Override
+	public void displayMessage(final String message) {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(Game.this, message, Toast.LENGTH_LONG).show();
+			}
+		});
 	}
 }

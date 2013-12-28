@@ -27,7 +27,7 @@ public class AudioDepacketizer {
 			
 			// Put it on the decoded queue
 			if (!decodedUnits.offer(new ShortBufferDescriptor(pcmData, 0, decodeLen))) {
-				System.out.print("Audio player too slow! Forced to drop decoded samples");
+				System.out.println("Audio player too slow! Forced to drop decoded samples");
 				// Clear out the queue
 				decodedUnits.clear();
 			}

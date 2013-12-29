@@ -366,8 +366,7 @@ public class NvConnection {
 				try {
 					inputStream.sendKeyboardInput(keyMap, keyDirection, modifier);
 				} catch (IOException e) {
-					listener.displayMessage(e.getMessage());
-					NvConnection.this.stop();
+					listener.connectionTerminated(e);
 				}
 			}
 		});

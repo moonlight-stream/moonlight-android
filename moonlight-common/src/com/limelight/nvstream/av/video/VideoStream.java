@@ -133,7 +133,7 @@ public class VideoStream {
 		this.decRend = decRend;
 		if (decRend != null) {
 			decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(),
-					streamConfig.getRefreshRate(), renderTarget, drFlags);
+					60, renderTarget, drFlags);
 		}
 	}
 

@@ -103,17 +103,33 @@ public class ControlStream implements ConnectionStatusListener {
 		
 		aborting = true;
 		
+		try {
+			s.close();
+		} catch (IOException e) {}
+		
 		if (jitterThread != null) {
 			jitterThread.interrupt();
+			
+			try {
+				jitterThread.join();
+			} catch (InterruptedException e) {}
 		}
 		
 		if (heartbeatThread != null) {
 			heartbeatThread.interrupt();
+			
+			try {
+				heartbeatThread.join();
+			} catch (InterruptedException e) {}
 		}
 		
-		try {
-			s.close();
-		} catch (IOException e) {}
+		if (resyncThread != null) {
+			resyncThread.interrupt();
+			
+			try {
+				resyncThread.join();
+			} catch (InterruptedException e) {}
+		}
 	}
 	
 	public void requestResync() throws IOException
@@ -150,6 +166,7 @@ public class ControlStream implements ConnectionStatusListener {
 				}
 			}
 		};
+		heartbeatThread.setName("Control - Heartbeat Thread");
 		heartbeatThread.start();
 		
 		resyncThread = new Thread() {
@@ -176,6 +193,7 @@ public class ControlStream implements ConnectionStatusListener {
 				}
 			}
 		};
+		resyncThread.setName("Control - Resync Thread");
 		resyncThread.start();
 	}
 	
@@ -202,6 +220,7 @@ public class ControlStream implements ConnectionStatusListener {
 				}
 			}
 		};
+		jitterThread.setName("Control - Jitter Thread");
 		jitterThread.start();
 	}
 	

@@ -10,5 +10,5 @@ public class OpusDecoder {
 	public static native int getChannelCount();
 	public static native int getMaxOutputShorts();
 	public static native int getSampleRate();
-	public static native int decode(byte[] indata, int inoff, int inlen, short[] outpcmdata);
+	public static native int decode(byte[] indata, int inoff, int inlen, byte[] outpcmdata);
 }

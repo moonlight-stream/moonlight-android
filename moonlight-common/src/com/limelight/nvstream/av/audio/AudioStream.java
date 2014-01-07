@@ -12,7 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.RtpPacket;
-import com.limelight.nvstream.av.ShortBufferDescriptor;
+import com.limelight.nvstream.av.ByteBufferDescriptor;
 
 public class AudioStream {
 	public static final int RTP_PORT = 48000;
@@ -140,7 +140,7 @@ public class AudioStream {
 			public void run() {
 				while (!isInterrupted())
 				{
-					ShortBufferDescriptor samples;
+					ByteBufferDescriptor samples;
 					
 					try {
 						samples = depacketizer.getNextDecodedData();

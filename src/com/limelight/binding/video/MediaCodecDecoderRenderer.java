@@ -27,9 +27,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	static {
 		blacklistedDecoderPrefixes = new LinkedList<String>();
 		blacklistedDecoderPrefixes.add("omx.google");
-		blacklistedDecoderPrefixes.add("omx.nvidia");
 		blacklistedDecoderPrefixes.add("omx.TI");
-		blacklistedDecoderPrefixes.add("omx.RK");
 		blacklistedDecoderPrefixes.add("AVCDecoder");
 	}
 

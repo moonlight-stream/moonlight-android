@@ -41,6 +41,44 @@ public class VideoDepacketizer {
 	{
 		// This is the start of a new NAL
 		if (avcNalDataChain != null && avcNalDataLength != 0) {
+			ByteBufferDescriptor header = avcNalDataChain.getFirst();
+			
+			// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
+			// or max_dec_frame_buffering which increases decoding latency on (at least) Tegra
+			// and Raspberry Pi. We manually modify the SPS here to speed-up decoding.
+			if (header.data[header.offset+4] == 0x67) {
+				// It's an SPS
+				ByteBufferDescriptor newSps;
+				switch (header.length) {
+				case 26:
+					System.out.println("Modifying SPS (26)");
+					newSps = new ByteBufferDescriptor(new byte[header.length+2], 0, header.length+2);
+					System.arraycopy(header.data, header.offset, newSps.data, 0, 24);
+					newSps.data[24] = 0x11;
+					newSps.data[25] = (byte)0xe3;
+					newSps.data[26] = 0x06;
+					newSps.data[27] = 0x50;
+					break;
+				case 27:
+					System.out.println("Modifying SPS (27)");
+					newSps = new ByteBufferDescriptor(new byte[header.length+2], 0, header.length+2);
+					System.arraycopy(header.data, header.offset, newSps.data, 0, 25);
+					newSps.data[25] = 0x04;
+					newSps.data[26] = 0x78;
+					newSps.data[27] = (byte) 0xc1;
+					newSps.data[28] = (byte) 0x94;
+					break;
+				default:
+					System.out.println("Unknown SPS of length "+header.length);
+					newSps = header;
+					break;
+				}
+				
+				avcNalDataChain.clear();
+				avcNalDataChain.add(newSps);
+				avcNalDataLength = newSps.length;
+			}
+			
 			// Construct the H264 decode unit
 			DecodeUnit du = new DecodeUnit(DecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, 0);
 			if (!decodedUnits.offer(du)) {

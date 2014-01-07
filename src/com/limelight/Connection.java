@@ -15,6 +15,7 @@ import com.limelight.nvstream.http.NvHTTP;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -65,6 +66,9 @@ public class Connection extends Activity {
 		this.forceSoftDec = (RadioButton) findViewById(R.id.softwareDec);
 		this.autoDec = (RadioButton) findViewById(R.id.autoDec);
 		this.forceHardDec = (RadioButton) findViewById(R.id.hardwareDec);
+		
+		//avoid keyboard popup on start
+		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
 		prefs = getSharedPreferences(Game.PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
 		this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));

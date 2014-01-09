@@ -4,9 +4,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.RtpPacket;
-import com.limelight.nvstream.av.ByteBufferDescriptor;
-import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
 
 public class AudioDepacketizer {
 	

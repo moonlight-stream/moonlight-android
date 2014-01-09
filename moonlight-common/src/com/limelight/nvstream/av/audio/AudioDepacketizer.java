@@ -4,13 +4,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.RtpPacket;
-import com.limelight.nvstream.av.ShortBufferDescriptor;
+import com.limelight.nvstream.av.ByteBufferDescriptor;
+import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 
 public class AudioDepacketizer {
 	
 	private static final int DU_LIMIT = 15;
-	private LinkedBlockingQueue<ShortBufferDescriptor> decodedUnits =
-			new LinkedBlockingQueue<ShortBufferDescriptor>(DU_LIMIT);
+	private LinkedBlockingQueue<ByteBufferDescriptor> decodedUnits =
+			new LinkedBlockingQueue<ByteBufferDescriptor>(DU_LIMIT);
 		
 	// Sequencing state
 	private short lastSequenceNumber;
@@ -18,15 +20,15 @@ public class AudioDepacketizer {
 	private void decodeData(byte[] data, int off, int len)
 	{
 		// Submit this data to the decoder
-		short[] pcmData = new short[OpusDecoder.getMaxOutputShorts()];
+		byte[] pcmData = new byte[OpusDecoder.getMaxOutputShorts()*2];
 		int decodeLen = OpusDecoder.decode(data, off, len, pcmData);
 		
 		if (decodeLen > 0) {
-			// Return value of decode is frames decoded per channel
-			decodeLen *= OpusDecoder.getChannelCount();
+			// Return value of decode is frames (shorts) decoded per channel
+			decodeLen *= 2*OpusDecoder.getChannelCount();
 			
 			// Put it on the decoded queue
-			if (!decodedUnits.offer(new ShortBufferDescriptor(pcmData, 0, decodeLen))) {
+			if (!decodedUnits.offer(new ByteBufferDescriptor(pcmData, 0, decodeLen))) {
 				System.out.println("Audio player too slow! Forced to drop decoded samples");
 				// Clear out the queue
 				decodedUnits.clear();
@@ -59,7 +61,7 @@ public class AudioDepacketizer {
 		decodeData(rtpPayload.data, rtpPayload.offset, rtpPayload.length);
 	}
 	
-	public ShortBufferDescriptor getNextDecodedData() throws InterruptedException
+	public ByteBufferDescriptor getNextDecodedData() throws InterruptedException
 	{
 		return decodedUnits.take();
 	}

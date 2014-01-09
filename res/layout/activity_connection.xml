@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView  xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -6,8 +6,13 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".Connection" >
+    tools:context=".Connection"    
+    >
 
+<RelativeLayout
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    
     <EditText
         android:id="@+id/hostTextView"
         android:layout_width="wrap_content"
@@ -30,7 +35,7 @@
         
         <requestFocus />
         
-        </Button>
+    </Button>
 
     <Button
         android:id="@+id/pairButton"
@@ -39,7 +44,61 @@
         android:layout_below="@+id/statusButton"
         android:layout_centerHorizontal="true"
         android:text="Pair with PC" />
+    
+    <CheckBox
+        android:id="@+id/imageQualityCheckbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/pairButton"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="Prefer image quality over performance" />    
+        
+    <RadioGroup
+        android:id="@+id/resolutionGroup"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/imageQualityCheckbox"
+        android:layout_below="@+id/imageQualityCheckbox"
+        android:layout_marginTop="17dp"
+        android:orientation="horizontal" >
 
+        <RadioButton
+            android:id="@+id/res720pSelected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="720p" />
+
+        <RadioButton
+            android:id="@+id/res1080pSelected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1080p (may increase lag)" />
+    </RadioGroup>    
+     
+    <RadioGroup
+        android:id="@+id/rrGroup"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/resolutionGroup"
+        android:layout_below="@+id/resolutionGroup"
+        android:layout_marginTop="15dp"
+        android:orientation="horizontal" >
+
+        <RadioButton
+            android:id="@+id/rr30Selected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="30 FPS" />
+
+        <RadioButton
+            android:id="@+id/rr60Selected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="60 FPS (may increase lag)" />
+        
+    </RadioGroup>
+    
     <RadioGroup
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -65,59 +124,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Force Hardware Decoding" />
-    </RadioGroup>
-
-    <RadioGroup
-        android:id="@+id/rrGroup"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/resolutionGroup"
-        android:layout_below="@+id/resolutionGroup"
-        android:layout_marginTop="15dp"
-        android:orientation="horizontal" >
-
-        <RadioButton
-            android:id="@+id/rr30Selected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="30 FPS" />
-
-        <RadioButton
-            android:id="@+id/rr60Selected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="60 FPS (may increase lag)" />
-    </RadioGroup>
-
-    <RadioGroup
-        android:id="@+id/resolutionGroup"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/imageQualityCheckbox"
-        android:layout_below="@+id/imageQualityCheckbox"
-        android:layout_marginTop="17dp"
-        android:orientation="horizontal" >
-
-        <RadioButton
-            android:id="@+id/res720pSelected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="720p" />
-
-        <RadioButton
-            android:id="@+id/res1080pSelected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="1080p (may increase lag)" />
-    </RadioGroup>
-
-    <CheckBox
-        android:id="@+id/imageQualityCheckbox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/pairButton"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:text="Prefer image quality over performance" />
-
+    </RadioGroup>    
+   
 </RelativeLayout>
+
+</ScrollView>

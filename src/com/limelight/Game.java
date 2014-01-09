@@ -77,6 +77,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	public static final int OUYA_CONTROLLER = 5;
 	public static final int SHIELD_CONTROLLER = 6;
 	public static final int MOGA_CONTROLLER = 7;
+	public static final int ARCHOS_GAMEPAD2_CONTROLLER = 8;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -214,7 +215,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 				controllerDevice = SHIELD_CONTROLLER;
 				desc = "Shield";
 				detected = true;
-			} else if (name.indexOf("ADC joystick") != -1) {
+			} else if (name.indexOf("ADC joystick") != -1 ) { //can't filter by Buil.model cos custom ROMs spoofing
 				setupDefaultControllerKeys();
 				controllerDevice = S7800_CONTROLLER;
 				desc = "JXD S7800";
@@ -235,7 +236,15 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 				desc = "Moga";
 				detected = true;
 				stop = true;
+			} else if (name.indexOf("joy_key")!=-1 && android.os.Build.MODEL.equals("ARCHOS GAMEPAD2")) {
+				setupDefaultControllerKeys();
+				controllerDevice = ARCHOS_GAMEPAD2_CONTROLLER;
+				controllerKeysMap[KeyEvent.KEYCODE_BUTTON_L2] = 1;
+				controllerKeysMap[KeyEvent.KEYCODE_BUTTON_R2] = 1;
+				desc = "Archos Gamepad2";
+				detected = true;
 			}
+			
 		}
 
 		if (detected) {
@@ -306,7 +315,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
                 h.postDelayed(mNavHider, 4000);               
             }
 		}
-		
+						
 		if (controllerKeysMap[keyCode] == -1)
 			return super.onKeyDown(keyCode, event);
 		else if (keyCode == KeyEvent.KEYCODE_BUTTON_L2)
@@ -330,7 +339,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		
+				
 		if (controllerKeysMap[keyCode] == -1)
 			return super.onKeyUp(keyCode, event);
 		else if (keyCode == KeyEvent.KEYCODE_BUTTON_L2)
@@ -456,19 +465,23 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			float LS_X = event.getAxisValue(MotionEvent.AXIS_X);
 			float LS_Y = event.getAxisValue(MotionEvent.AXIS_Y);
 
-			float RS_X, RS_Y, L2, R2;
+			float RS_X, RS_Y, L2 = 0, R2 = 0;
 			
-			boolean hasLR2 = true;
+			boolean hasAnalogLR2 = 	!(controllerKeysMap[KeyEvent.KEYCODE_BUTTON_L2] == 1 &&
+			                          controllerKeysMap[KeyEvent.KEYCODE_BUTTON_R2] == 1);
 
 			InputDevice.MotionRange leftTriggerRange = dev.getMotionRange(MotionEvent.AXIS_LTRIGGER);
 			InputDevice.MotionRange rightTriggerRange = dev.getMotionRange(MotionEvent.AXIS_RTRIGGER);
 			
-			if(controllerDevice == S7800_CONTROLLER)
+			if(controllerDevice == ARCHOS_GAMEPAD2_CONTROLLER)
+			{
+				RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
+				RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
+			}
+			else if(controllerDevice == S7800_CONTROLLER)
 			{
 				RS_X = event.getAxisValue(MotionEvent.AXIS_Z)  * 1.43f; //range is from 0 to 0.7 ...
 				RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ) * 1.43f;
-				L2 = R2 = -1;
-				hasLR2 = false;
 			}
 			else if (leftTriggerRange != null && rightTriggerRange != null) //old autodetect stuff, should be change to match fine tuning
 			{
@@ -533,7 +546,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			rightStickX = (short)Math.round(RS_X * 0x7FFF);
 			rightStickY = (short)Math.round(-RS_Y * 0x7FFF);
 
-			if(hasLR2)
+			if(hasAnalogLR2)
 			{
 			   leftTrigger = (byte)Math.round(L2 * 0xFF);
 			   rightTrigger = (byte)Math.round(R2 * 0xFF);

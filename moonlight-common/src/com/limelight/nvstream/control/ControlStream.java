@@ -64,7 +64,6 @@ public class ControlStream implements ConnectionStatusListener {
 	public void initialize() throws IOException
 	{
 		s = new Socket();
-		s.setSoTimeout(CONTROL_TIMEOUT);
 		s.setTcpNoDelay(true);
 		s.connect(new InetSocketAddress(host, PORT), CONTROL_TIMEOUT);
 		in = s.getInputStream();
@@ -140,9 +139,15 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	public void start() throws IOException
 	{
+		// Use a finite timeout during the handshake process
+		s.setSoTimeout(CONTROL_TIMEOUT);
+		
 		sendConfig();
 		pingPong();
 		send1405AndGetResponse();
+		
+		// Return to an infinte read timeout after the initial control handshake
+		s.setSoTimeout(0);
 		
 		heartbeatThread = new Thread() {
 			@Override

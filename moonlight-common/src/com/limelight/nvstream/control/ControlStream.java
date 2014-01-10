@@ -239,7 +239,7 @@ public class ControlStream implements ConnectionStatusListener {
 		ByteBuffer conf = ByteBuffer.wrap(new byte[PPAYLEN_RESYNC]).order(ByteOrder.LITTLE_ENDIAN);
 		
 		conf.putLong(0);
-		conf.putLong(0xFFFF);
+		conf.putLong(0xFFFFF);
 		
 		sendAndGetReply(new NvCtlPacket(PTYPE_RESYNC, PPAYLEN_RESYNC, conf.array()));
 	}

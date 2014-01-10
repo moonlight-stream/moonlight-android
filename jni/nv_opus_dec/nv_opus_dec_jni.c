@@ -43,26 +43,26 @@ JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_av_audio_OpusDecoder_decode(
 	JNIEnv *env, jobject this, // JNI parameters
 	jbyteArray indata, jint inoff, jint inlen, // Input parameters
-	jshortArray outpcmdata) // Output parameter
+	jbyteArray outpcmdata) // Output parameter
 {
 	jint ret;
 	jbyte* jni_input_data;
-	jshort* jni_pcm_data;
+	jbyte* jni_pcm_data;
 
-	jni_pcm_data = (*env)->GetShortArrayElements(env, outpcmdata, 0);
+	jni_pcm_data = (*env)->GetByteArrayElements(env, outpcmdata, 0);
 	if (indata != NULL) {
 		jni_input_data = (*env)->GetByteArrayElements(env, indata, 0);
 
-		ret = nv_opus_decode(&jni_input_data[inoff], inlen, jni_pcm_data);
+		ret = nv_opus_decode(&jni_input_data[inoff], inlen, (jshort*)jni_pcm_data);
 
 		// The input data isn't changed so it can be safely aborted
 		(*env)->ReleaseByteArrayElements(env, indata, jni_input_data, JNI_ABORT);
 	}
 	else {
-		ret = nv_opus_decode(NULL, 0, jni_pcm_data);
+		ret = nv_opus_decode(NULL, 0, (jshort*)jni_pcm_data);
 	}
 
-	(*env)->ReleaseShortArrayElements(env, outpcmdata, jni_pcm_data, 0);
+	(*env)->ReleaseByteArrayElements(env, outpcmdata, jni_pcm_data, 0);
 
 	return ret;
 }

@@ -245,6 +245,7 @@ public class NvConnection {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+				listener.displayMessage(e.getMessage());
 				success = false;
 			}
 			

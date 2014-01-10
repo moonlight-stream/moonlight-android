@@ -38,10 +38,13 @@ public class NvHTTP {
 		xpp.setInput(new InputStreamReader(in));
 		int eventType = xpp.getEventType();
 		Stack<String> currentTag = new Stack<String>();
-
+		
 		while (eventType != XmlPullParser.END_DOCUMENT) {
 			switch (eventType) {
 			case (XmlPullParser.START_TAG):
+				if (xpp.getName().equals("root")) {
+					verifyResponseStatus(xpp);
+				}
 				currentTag.push(xpp.getName());
 				break;
 			case (XmlPullParser.END_TAG):
@@ -57,6 +60,13 @@ public class NvHTTP {
 		}
 
 		return null;
+	}
+	
+	private void verifyResponseStatus(XmlPullParser xpp) throws GfeHttpResponseException {
+		int statusCode = Integer.parseInt(xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_code"));
+		if (statusCode != 200) {
+			throw new GfeHttpResponseException(statusCode, xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_message"));
+		}
 	}
 
 	private InputStream openHttpConnection(String url) throws IOException {
@@ -102,7 +112,7 @@ public class NvHTTP {
 		return null;
 	}
 	
-	public LinkedList<NvApp> getAppList() throws IOException, XmlPullParserException {
+	public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
 		InputStream in = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId);
 		XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 		factory.setNamespaceAware(true);
@@ -116,6 +126,9 @@ public class NvHTTP {
 		while (eventType != XmlPullParser.END_DOCUMENT) {
 			switch (eventType) {
 			case (XmlPullParser.START_TAG):
+				if (xpp.getName().equals("root")) {
+					verifyResponseStatus(xpp);
+				}
 				currentTag.push(xpp.getName());
 				if (xpp.getName().equals("App")) {
 					appList.addLast(new NvApp());

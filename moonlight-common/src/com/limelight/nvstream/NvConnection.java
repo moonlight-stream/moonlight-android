@@ -17,6 +17,7 @@ import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.av.video.VideoStream;
 import com.limelight.nvstream.control.ControlStream;
+import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.input.NvController;
@@ -151,9 +152,23 @@ public class NvConnection {
 		
 		// If there's a game running, resume it
 		if (h.getCurrentGame() != 0) {
-			if (!h.resumeApp()) {
-				listener.displayMessage("Failing to resume existing session");
-				return false;
+			try {
+				if (!h.resumeApp()) {
+					listener.displayMessage("Failed to resume existing session");
+					return false;
+				}
+			} catch (GfeHttpResponseException e) {
+				if (e.getErrorCode() == 470) {
+					// This is the error you get when you try to resume a session that's not yours.
+					// Because this is fairly common, we'll display a more detailed message.
+					listener.displayMessage("This session wasn't started by this device," +
+							" so it cannot be resumed. End streaming on the original " +
+							"device or the PC itself and try again. (Error code: "+e.getErrorCode()+")");
+					return false;
+				}
+				else {
+					throw e;
+				}
 			}
 			System.out.println("Resumed existing game session");
 		}

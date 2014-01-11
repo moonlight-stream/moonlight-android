@@ -13,6 +13,14 @@ public class GfeHttpResponseException extends IOException {
 		this.errorMsg = errorMsg;
 	}
 	
+	public int getErrorCode() {
+		return errorCode;
+	}
+	
+	public String getErrorMessage() {
+		return errorMsg;
+	}
+	
 	@Override
 	public String getMessage() {
 		return "GFE error: "+errorMsg+" (Error code: "+errorCode+")";

@@ -107,6 +107,15 @@ public class VideoDepacketizer {
 	{
 		ByteBufferDescriptor location = packet.getNewPayloadDescriptor();
 
+		if (location.length == 968) {
+			if (packet.getPacketIndex() < packet.getTotalPackets()) {
+				location.length = packet.getPayloadLength();
+			}
+			else {
+				return;
+			}
+		}
+		
 		while (location.length != 0)
 		{
 			// Remember the start of the NAL data in this packet

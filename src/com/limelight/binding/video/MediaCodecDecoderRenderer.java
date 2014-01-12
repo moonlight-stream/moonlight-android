@@ -21,14 +21,34 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private MediaCodec videoDecoder;
 	private Thread rendererThread;
 	private int redrawRate;
+	private boolean needsSpsFixup;
 	
 	public static final List<String> blacklistedDecoderPrefixes;
+	public static final List<String> spsFixupDecoderPrefixes;
 	
 	static {
 		blacklistedDecoderPrefixes = new LinkedList<String>();
 		blacklistedDecoderPrefixes.add("omx.google");
 		blacklistedDecoderPrefixes.add("omx.TI");
 		blacklistedDecoderPrefixes.add("AVCDecoder");
+	}
+	
+	static {
+		spsFixupDecoderPrefixes = new LinkedList<String>();
+		spsFixupDecoderPrefixes.add("omx.nvidia");
+	}
+	
+	private static boolean decoderNeedsSpsFixup(String decoderName) {
+		for (String badPrefix : spsFixupDecoderPrefixes) {
+			if (decoderName.length() >= badPrefix.length()) {
+				String prefix = decoderName.substring(0, badPrefix.length());
+				if (prefix.equalsIgnoreCase(badPrefix)) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
 	}
 
 	public static MediaCodecInfo findSafeDecoder() {
@@ -76,9 +96,14 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		MediaCodecInfo safeDecoder = findSafeDecoder();
 		if (safeDecoder != null) {
 			videoDecoder = MediaCodec.createByCodecName(safeDecoder.getName());
+			needsSpsFixup = decoderNeedsSpsFixup(safeDecoder.getName());
+			if (needsSpsFixup) {
+				System.out.println("Decoder "+safeDecoder.getName()+" needs SPS fixup");
+			}
 		}
 		else {
 			videoDecoder = MediaCodec.createDecoderByType("video/avc");
+			needsSpsFixup = false;
 		}
 		
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
@@ -169,19 +194,61 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		if (inputIndex >= 0)
 		{
 			ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
-			
+
 			// Clear old input data
 			buf.clear();
-			
+
+			// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
+			// or max_dec_frame_buffering which increases decoding latency on Tegra.
+			// We manually modify the SPS here to speed-up decoding if the decoder was flagged as needing it.
+			if (needsSpsFixup) {
+				ByteBufferDescriptor header = decodeUnit.getBufferList().get(0);
+				// Check for SPS NALU type
+				if (header.data[header.offset+4] == 0x67) {
+					int spsLength;
+
+					switch (header.length) {
+					case 26:
+						System.out.println("Modifying SPS (26)");
+						buf.put(header.data, header.offset, 24);
+						buf.put((byte) 0x11);
+						buf.put((byte) 0xe3);
+						buf.put((byte) 0x06);
+						buf.put((byte) 0x50);
+						spsLength = header.length + 2;
+						break;
+					case 27:
+						System.out.println("Modifying SPS (27)");
+						buf.put(header.data, header.offset, 25);
+						buf.put((byte) 0x04);
+						buf.put((byte) 0x78);
+						buf.put((byte) 0xc1);
+						buf.put((byte) 0x94);
+						spsLength = header.length + 2;
+						break;
+					default:
+						System.out.println("Unknown SPS of length "+header.length);
+						buf.put(header.data, header.offset, header.length);
+						spsLength = header.length;
+						break;
+					}
+
+					videoDecoder.queueInputBuffer(inputIndex,
+							0, spsLength,
+							0, decodeUnit.getFlags());
+					return true;
+				}
+			}
+
 			// Copy data from our buffer list into the input buffer
 			for (ByteBufferDescriptor desc : decodeUnit.getBufferList())
 			{
 				buf.put(desc.data, desc.offset, desc.length);
 			}
-			
+
 			videoDecoder.queueInputBuffer(inputIndex,
-						0, decodeUnit.getDataLength(),
-						0, decodeUnit.getFlags());
+					0, decodeUnit.getDataLength(),
+					0, decodeUnit.getFlags());
 		}
 		
 		return true;

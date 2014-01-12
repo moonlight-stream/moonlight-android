@@ -37,7 +37,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
 	}
 
 	@Override
-	public void playDecodedAudio(short[] audioData, int offset, int length) {
+	public void playDecodedAudio(byte[] audioData, int offset, int length) {
 		track.write(audioData, offset, length);
 	}
 

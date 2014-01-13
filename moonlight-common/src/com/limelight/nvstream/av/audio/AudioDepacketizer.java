@@ -2,6 +2,7 @@ package com.limelight.nvstream.av.audio;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.RtpPacket;
 
@@ -26,7 +27,7 @@ public class AudioDepacketizer {
 			
 			// Put it on the decoded queue
 			if (!decodedUnits.offer(new ByteBufferDescriptor(pcmData, 0, decodeLen))) {
-				System.out.println("Audio player too slow! Forced to drop decoded samples");
+				LimeLog.warning("Audio player too slow! Forced to drop decoded samples");
 				// Clear out the queue
 				decodedUnits.clear();
 			}
@@ -47,7 +48,7 @@ public class AudioDepacketizer {
 		if (lastSequenceNumber != 0 &&
 			(short)(lastSequenceNumber + 1) != seq)
 		{
-			System.out.println("Received OOS audio data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
+			LimeLog.warning("Received OOS audio data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
 			decodeData(null, 0, 0);
 		}
 		

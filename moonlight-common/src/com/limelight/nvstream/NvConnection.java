@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.av.audio.AudioStream;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
@@ -173,7 +174,7 @@ public class NvConnection {
 					throw e;
 				}
 			}
-			System.out.println("Resumed existing game session");
+			LimeLog.info("Resumed existing game session");
 		}
 		else {
 			// Launch the app since it's not running
@@ -183,7 +184,7 @@ public class NvConnection {
 				listener.displayMessage("Failed to launch application");
 				return false;
 			}
-			System.out.println("Launched new game session");
+			LimeLog.info("Launched new game session");
 		}
 		
 		return true;

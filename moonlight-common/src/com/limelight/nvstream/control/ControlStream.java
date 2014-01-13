@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.ConnectionStatusListener;
@@ -133,7 +134,7 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	public void requestResync() throws IOException
 	{
-		System.out.println("CTL: Requesting IDR frame");
+		LimeLog.info("CTL: Requesting IDR frame");
 		sendResync();
 	}
 	

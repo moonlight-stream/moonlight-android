@@ -3,6 +3,7 @@ package com.limelight.nvstream.av.video;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.RtpPacket;
@@ -45,7 +46,7 @@ public class VideoDepacketizer {
 			DecodeUnit du = new DecodeUnit(DecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, 0);
 			if (!decodedUnits.offer(du)) {
 				// We need a new IDR frame since we're discarding data now
-				System.out.println("Video decoder is too slow! Forced to drop decode units");
+				LimeLog.warning("Video decoder is too slow! Forced to drop decode units");
 				decodedUnits.clear();
 				controlListener.connectionNeedsResync();
 			}
@@ -207,7 +208,7 @@ public class VideoDepacketizer {
 		if (lastSequenceNumber != 0 &&
 			(short)(lastSequenceNumber + 1) != seq)
 		{
-			System.out.println("Received OOS video data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
+			LimeLog.warning("Received OOS video data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
 			
 			// Reset the depacketizer state
 			clearAvcNalState();

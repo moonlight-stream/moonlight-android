@@ -62,7 +62,8 @@ public class NvConnection {
 			NetworkInterface iface = ifaceList.nextElement();
 
 			if (iface.getName().startsWith("wlan") && 
-				iface.getHardwareAddress() != null) {
+				iface.getHardwareAddress() != null &&
+				iface.getHardwareAddress().length > 0) {
 				selectedIface = iface;
 			}
 		}
@@ -73,7 +74,8 @@ public class NvConnection {
 			NetworkInterface iface = ifaceList.nextElement();
 
 			if (iface.getName().startsWith("eth") &&
-				iface.getHardwareAddress() != null) {
+				iface.getHardwareAddress() != null &&
+				iface.getHardwareAddress().length > 0) {
 				selectedIface = iface;
 			}
 		}
@@ -83,7 +85,8 @@ public class NvConnection {
 		while (selectedIface == null && ifaceList.hasMoreElements()) {
 			NetworkInterface iface = ifaceList.nextElement();
 
-			if (iface.getHardwareAddress() != null) {
+			if (iface.getHardwareAddress() != null &&
+				iface.getHardwareAddress().length > 0) {
 				selectedIface = iface;
 				break;
 			}

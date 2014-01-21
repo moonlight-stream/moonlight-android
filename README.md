@@ -3,22 +3,21 @@
 Limelight is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield.
 We reverse engineered the Shield streaming software, and created a version that can be run on any Android device.
 
-Limelight will allow you to stream your full collection of Steam games from your
-Windows PC to your Android device on the same network.
+Limelight will allow you to stream your full collection of Steam games from your Windows PC to your Android device on the same network.
 
 Streaming can be done remotely using the [Shield Proxy](http://forum.xda-developers.com/showthread.php?t=2435481)
 application.
 
-[Limelight-pc](https://github.com/limelight-stream/limelight-pc) is also currently in development for Windows, OSX and Linux.
+[Limelight-pc](https://github.com/limelight-stream/limelight-pc) is also currently in development for Windows, OS X and Linux. Versions for [iOS](https://github.com/limelight-stream/limelight-ios) and [Windows Phone](https://github.com/limelight-stream/limelight-wp) are also in development.
 
 ##Features
 
 * Streams Steam and all of your games from your PC to your Android device
-* Full gamepad support for MOGA, XBOX 360, PS3, OUYA, and Shield
+* Full gamepad support for MOGA, Xbox 360, PS3, OUYA, and Shield
 
 ##Features in development
 
-* Use mDNS to scan for compatible GFE machines on the network
+* Use mDNS to scan for compatible GeForce Experience (GFE) machines on the network
 * Choose from the list of available games instead of just launching Steam
 * Keyboard input
 
@@ -37,8 +36,7 @@ application.
 
 ##Usage
 
-* Ensure your Android device and your PC are on the same network or you're
-  running [Shield Proxy](http://forum.xda-developers.com/showthread.php?t=2435481).
+* Ensure your Android device and your PC are on the same network or you're running [Shield Proxy](http://forum.xda-developers.com/showthread.php?t=2435481).
 * Turn on Shield Streaming in the GFE settings
 * In Limelight, enter your PC's IP or Hostname and click "Pair".
 * Accept the pairing confirmation on your PC
@@ -47,11 +45,13 @@ application.
 
 ##Contribute
 
-This project is being actively developed at [XDA](http://forum.xda-developers.com/showthread.php?t=2505510)
+This project is being actively developed at [XDA Developers](http://forum.xda-developers.com/showthread.php?t=2505510)
 
 1. Fork us
 2. Write code
 3. Send Pull Requests
+
+Check out our [website](http://limelight-stream.com) for project links and information.
 
 ##Authors
 

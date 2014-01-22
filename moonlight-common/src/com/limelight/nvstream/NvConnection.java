@@ -288,7 +288,6 @@ public class NvConnection {
 		this.videoDecoderRenderer = videoDecoderRenderer;
 		
 		new Thread(new Runnable() {
-			@Override
 			public void run() {
 				try {
 					hostAddr = InetAddress.getByName(host);
@@ -308,7 +307,6 @@ public class NvConnection {
 			return;
 		
 		threadPool.execute(new Runnable() {
-			@Override
 			public void run() {
 				try {
 					inputStream.sendMouseMove(deltaX, deltaY);
@@ -325,7 +323,6 @@ public class NvConnection {
 			return;
 		
 		threadPool.execute(new Runnable() {
-			@Override
 			public void run() {
 				try {
 					inputStream.sendMouseButtonDown(mouseButton);
@@ -342,7 +339,6 @@ public class NvConnection {
 			return;
 		
 		threadPool.execute(new Runnable() {
-			@Override
 			public void run() {
 				try {
 					inputStream.sendMouseButtonUp(mouseButton);
@@ -362,7 +358,6 @@ public class NvConnection {
 			return;
 		
 		threadPool.execute(new Runnable() {
-			@Override
 			public void run() {
 				try {
 					inputStream.sendControllerInput(buttonFlags, leftTrigger,
@@ -380,7 +375,6 @@ public class NvConnection {
 			return;
 		
 		threadPool.execute(new Runnable() {
-			@Override
 			public void run() {
 				try {
 					inputStream.sendKeyboardInput(keyMap, keyDirection, modifier);

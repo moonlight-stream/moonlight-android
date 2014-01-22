@@ -7,7 +7,7 @@ import com.limelight.nvstream.av.RtpPacket;
 
 public class AudioDepacketizer {
 	
-	private static final int DU_LIMIT = 15;
+	private static final int DU_LIMIT = 5;
 	private LinkedBlockingQueue<ByteBufferDescriptor> decodedUnits =
 			new LinkedBlockingQueue<ByteBufferDescriptor>(DU_LIMIT);
 		

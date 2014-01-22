@@ -16,7 +16,7 @@ public class AudioStream {
 	public static final int RTP_PORT = 48000;
 	public static final int RTCP_PORT = 47999;
 	
-	public static final int RTP_RECV_BUFFER = 64 * 1024;
+	public static final int RTP_RECV_BUFFER = 24 * 1024;
 	
 	private DatagramSocket rtp;
 	

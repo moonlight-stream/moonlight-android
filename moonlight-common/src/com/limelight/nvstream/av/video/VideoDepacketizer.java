@@ -23,7 +23,7 @@ public class VideoDepacketizer {
 	
 	private ConnectionStatusListener controlListener;
 	
-	private static final int DU_LIMIT = 5;
+	private static final int DU_LIMIT = 15;
 	private LinkedBlockingQueue<DecodeUnit> decodedUnits = new LinkedBlockingQueue<DecodeUnit>(DU_LIMIT);
 	
 	public VideoDepacketizer(ConnectionStatusListener controlListener)

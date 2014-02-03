@@ -9,7 +9,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.LinkedList;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
@@ -25,8 +24,6 @@ public class VideoStream {
 	
 	public static final int FIRST_FRAME_TIMEOUT = 5000;
 	public static final int RTP_RECV_BUFFER = 128 * 1024;
-	
-	private LinkedBlockingQueue<RtpPacket> packets = new LinkedBlockingQueue<RtpPacket>(100);
 	
 	private InetAddress host;
 	private DatagramSocket rtp;
@@ -161,9 +158,6 @@ public class VideoStream {
 			// early packets
 			startReceiveThread();
 			
-			// Start the depacketizer thread to deal with the RTP data
-			startDepacketizerThread();
-			
 			// Start decoding the data we're receiving
 			startDecoderThread();
 			
@@ -200,34 +194,6 @@ public class VideoStream {
 		t.start();
 	}
 	
-	private void startDepacketizerThread()
-	{
-		// This thread lessens the work on the receive thread
-		// so it can spend more time waiting for data
-		Thread t = new Thread() {
-			@Override
-			public void run() {
-				while (!isInterrupted())
-				{
-					RtpPacket packet;
-					
-					try {
-						packet = packets.take();
-					} catch (InterruptedException e) {
-						listener.connectionTerminated(e);
-						return;
-					}
-					
-					// !!! We no longer own the data buffer at this point !!!
-					depacketizer.addInputData(packet);
-				}
-			}
-		};
-		threads.add(t);
-		t.setName("Video - Depacketizer");
-		t.start();
-	}
-	
 	private void startReceiveThread()
 	{
 		// Receive thread
@@ -241,17 +207,15 @@ public class VideoStream {
 				{
 					try {
 						rtp.receive(packet);
+						desc.length = packet.getLength();
+						depacketizer.addInputData(new RtpPacket(desc));
+						desc.reinitialize(new byte[1500], 0, 1500);
+						packet.setData(desc.data, desc.offset, desc.length);
 					} catch (IOException e) {
 						listener.connectionTerminated(e);
 						return;
 					}
 					
-					// Give the packet to the depacketizer thread
-					desc.length = packet.getLength();
-					if (packets.offer(new RtpPacket(desc))) {
-						desc.reinitialize(new byte[1500], 0, 1500);
-						packet.setData(desc.data, desc.offset, desc.length);
-					}
 				}
 			}
 		};

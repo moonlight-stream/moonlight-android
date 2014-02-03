@@ -401,12 +401,10 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 	}
 
-	@Override
 	public void connectionTerminated() {
 		abort();
 	}
 
-	@Override
 	public void connectionNeedsResync() {
 		synchronized (resyncNeeded) {
 			// Wake up the resync thread

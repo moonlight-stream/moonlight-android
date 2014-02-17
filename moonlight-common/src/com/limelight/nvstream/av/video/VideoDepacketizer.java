@@ -56,7 +56,6 @@ public class VideoDepacketizer {
 		}
 	}
 	
-	/* Legacy depacketizer */
 	public void addInputDataSlow(VideoPacket packet, ByteBufferDescriptor location)
 	{
 		while (location.length != 0)
@@ -159,17 +158,9 @@ public class VideoDepacketizer {
 	{	
 		ByteBufferDescriptor location = packet.getNewPayloadDescriptor();
 		
-		// Runt packets can go directly to the decoder
-		if (location.length < 968)
-		{
-            avcNalDataChain = new LinkedList<ByteBufferDescriptor>();
-            avcNalDataLength = 0;
-
-            avcNalDataChain.add(location);
-            avcNalDataLength += location.length;
-
-            reassembleAvcNal();
-            
+		// Runt packets get decoded using the slow path
+		if (location.length < 968) {
+			addInputDataSlow(packet, location);
             return;
 		}
 		
@@ -189,6 +180,17 @@ public class VideoDepacketizer {
 		// Reset split frame state on next frame start
 		if (packetIndex == 0) {
 			splitFrame = false;
+		}
+		
+		if (firstPacket)
+		{	
+			if (NAL.getSpecialSequenceDescriptor(location, cachedDesc) && NAL.isAvcFrameStart(cachedDesc)
+				&& cachedDesc.data[cachedDesc.offset+cachedDesc.length] == 0x67)
+			{
+				// SPS and PPS prefix is padded between NALs, so we must decode it with the slow path
+				addInputDataSlow(packet, location);
+				return;
+			}
 		}
 
 		addInputDataFast(packet, location, firstPacket);

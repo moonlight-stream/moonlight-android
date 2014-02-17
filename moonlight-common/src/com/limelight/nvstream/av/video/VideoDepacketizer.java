@@ -14,7 +14,6 @@ public class VideoDepacketizer {
 	private LinkedList<ByteBufferDescriptor> avcNalDataChain = null;
 	private int avcNalDataLength = 0;
 	private int currentlyDecoding = DecodeUnit.TYPE_UNKNOWN;
-	private boolean splitFrame = false;
 	
 	// Sequencing state
 	private short lastSequenceNumber;
@@ -175,15 +174,9 @@ public class VideoDepacketizer {
 		// Remove extra padding
 		location.length = packet.getPayloadLength();
 		
-		boolean firstPacket = !splitFrame && packetIndex == 0;
-		
-		// Reset split frame state on next frame start
-		if (packetIndex == 0) {
-			splitFrame = false;
-		}
-		
+		boolean firstPacket = (packet.getFlags() & VideoPacket.FLAG_SOF) != 0;
 		if (firstPacket)
-		{	
+		{
 			if (NAL.getSpecialSequenceDescriptor(location, cachedDesc) && NAL.isAvcFrameStart(cachedDesc)
 				&& cachedDesc.data[cachedDesc.offset+cachedDesc.length] == 0x67)
 			{
@@ -195,12 +188,8 @@ public class VideoDepacketizer {
 
 		addInputDataFast(packet, location, firstPacket);
 		
-		if (!splitFrame && packetIndex + 1 == packetsInFrame) {
-	        // Reassemble the frame if this was the last packet and it's not a split frame
-			if (packet.getPayloadLength() == 968)
-				splitFrame = true;
-			else
-				reassembleAvcNal();
+		if ((packet.getFlags() & VideoPacket.FLAG_EOF) != 0) {
+	        reassembleAvcNal();
 		}
 	}
 	

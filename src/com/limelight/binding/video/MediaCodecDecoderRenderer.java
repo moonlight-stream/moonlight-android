@@ -122,9 +122,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			@Override
 			public void run() {
 				long nextFrameTimeUs = 0;
+				BufferInfo info = new BufferInfo();
 				while (!isInterrupted())
 				{
-					BufferInfo info = new BufferInfo();
 					int outIndex = videoDecoder.dequeueOutputBuffer(info, 100);
 				    switch (outIndex) {
 				    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:

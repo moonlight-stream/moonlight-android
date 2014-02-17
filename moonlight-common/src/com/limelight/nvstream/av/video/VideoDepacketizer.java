@@ -193,6 +193,10 @@ public class VideoDepacketizer {
 				// Add a buffer descriptor describing the NAL data in this packet
 				avcNalDataChain.add(data);
 				avcNalDataLength += location.offset-start;
+				
+				// Reassemble the NALs if this was the last packet for this frame
+				if (packet.getPacketIndex() + 1 == packet.getTotalPackets())
+					reassembleAvcNal();
 			}
 		}
 	}

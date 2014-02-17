@@ -14,6 +14,7 @@ public class VideoDepacketizer {
 	private LinkedList<ByteBufferDescriptor> avcNalDataChain = null;
 	private int avcNalDataLength = 0;
 	private int currentlyDecoding = DecodeUnit.TYPE_UNKNOWN;
+	private boolean splitFrame = false;
 	
 	// Sequencing state
 	private short lastSequenceNumber;
@@ -55,67 +56,9 @@ public class VideoDepacketizer {
 		}
 	}
 	
-	/* Currently unused pending bugfixes */
-	public void addInputDataO1(VideoPacket packet)
+	/* Legacy depacketizer */
+	public void addInputDataSlow(VideoPacket packet, ByteBufferDescriptor location)
 	{
-		ByteBufferDescriptor location = packet.getNewPayloadDescriptor();
-		
-		// SPS and PPS packet doesn't have standard headers, so submit it as is
-		if (location.length < 968) {
-			avcNalDataChain = new LinkedList<ByteBufferDescriptor>();
-			avcNalDataLength = 0;
-
-			avcNalDataChain.add(location);
-			avcNalDataLength += location.length;
-			
-			reassembleAvcNal();
-		}
-		else {
-			int packetIndex = packet.getPacketIndex();
-			int packetsInFrame = packet.getTotalPackets();
-			
-			// Check if this is the first packet for a frame
-			if (packetIndex == 0) {
-				// Setup state for the new frame
-				avcNalDataChain = new LinkedList<ByteBufferDescriptor>();
-				avcNalDataLength = 0;
-			}
-
-			// Check if this packet falls in the range of packets in frame
-			if (packetIndex >= packetsInFrame) {
-				// This isn't H264 frame data
-				return;
-			}
-
-			// Adjust the length to only contain valid data
-			location.length = packet.getPayloadLength();
-			
-			// Add the payload data to the chain
-			if (avcNalDataChain != null) {
-				avcNalDataChain.add(location);
-				avcNalDataLength += location.length;
-			}
-			
-			// Reassemble the NALs if this was the last packet for this frame
-			if (packetIndex + 1 == packetsInFrame) {
-				reassembleAvcNal();
-			}
-		}
-	}
-	
-	public void addInputData(VideoPacket packet)
-	{
-		ByteBufferDescriptor location = packet.getNewPayloadDescriptor();
-
-		if (location.length == 968) {
-			if (packet.getPacketIndex() < packet.getTotalPackets()) {
-				location.length = packet.getPayloadLength();
-			}
-			else {
-				return;
-			}
-		}
-		
 		while (location.length != 0)
 		{
 			// Remember the start of the NAL data in this packet
@@ -193,14 +136,71 @@ public class VideoDepacketizer {
 				// Add a buffer descriptor describing the NAL data in this packet
 				avcNalDataChain.add(data);
 				avcNalDataLength += location.offset-start;
-				
-				// Reassemble the NALs if this was the last packet for this frame
-				if (packet.getPacketIndex() + 1 == packet.getTotalPackets())
-					reassembleAvcNal();
 			}
 		}
 	}
+	
+	public void addInputDataFast(VideoPacket packet, ByteBufferDescriptor location, boolean firstPacket)
+	{
+		if (firstPacket) {
+			// Setup state for the new frame
+			avcNalDataChain = new LinkedList<ByteBufferDescriptor>();
+			avcNalDataLength = 0;
+		}
+		
+		// Add the payload data to the chain
+		if (avcNalDataChain != null) {
+			avcNalDataChain.add(location);
+			avcNalDataLength += location.length;
+		}
+	}
+	
+	public void addInputData(VideoPacket packet)
+	{	
+		ByteBufferDescriptor location = packet.getNewPayloadDescriptor();
+		
+		// Runt packets can go directly to the decoder
+		if (location.length < 968)
+		{
+            avcNalDataChain = new LinkedList<ByteBufferDescriptor>();
+            avcNalDataLength = 0;
 
+            avcNalDataChain.add(location);
+            avcNalDataLength += location.length;
+
+            reassembleAvcNal();
+            
+            return;
+		}
+		
+		int packetIndex = packet.getPacketIndex();
+		int packetsInFrame = packet.getTotalPackets();
+		
+		// Discard FEC data early
+		if (packetIndex >= packetsInFrame) {
+			return;
+		}
+		
+		// Remove extra padding
+		location.length = packet.getPayloadLength();
+		
+		boolean firstPacket = !splitFrame && packetIndex == 0;
+		
+		// Reset split frame state on next frame start
+		if (packetIndex == 0) {
+			splitFrame = false;
+		}
+
+		addInputDataFast(packet, location, firstPacket);
+		
+		if (!splitFrame && packetIndex + 1 == packetsInFrame) {
+	        // Reassemble the frame if this was the last packet and it's not a split frame
+			if (packet.getPayloadLength() == 968)
+				splitFrame = true;
+			else
+				reassembleAvcNal();
+		}
+	}
 	
 	public void addInputData(RtpPacket packet)
 	{

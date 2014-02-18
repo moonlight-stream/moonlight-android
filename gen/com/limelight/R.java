@@ -35,18 +35,18 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int autoDec=0x7f080005;
-        public static final int hardwareDec=0x7f080006;
+        public static final int autoDec=0x7f08000b;
+        public static final int hardwareDec=0x7f08000c;
         public static final int hostTextView=0x7f080000;
-        public static final int imageQualityCheckbox=0x7f08000a;
+        public static final int imageQualityCheckbox=0x7f080003;
         public static final int pairButton=0x7f080002;
-        public static final int res1080pSelected=0x7f08000c;
-        public static final int res720pSelected=0x7f08000b;
-        public static final int resolutionGroup=0x7f080007;
+        public static final int res1080pSelected=0x7f080006;
+        public static final int res720pSelected=0x7f080005;
+        public static final int resolutionGroup=0x7f080004;
         public static final int rr30Selected=0x7f080008;
         public static final int rr60Selected=0x7f080009;
-        public static final int rrGroup=0x7f080003;
-        public static final int softwareDec=0x7f080004;
+        public static final int rrGroup=0x7f080007;
+        public static final int softwareDec=0x7f08000a;
         public static final int statusButton=0x7f080001;
         public static final int surfaceView=0x7f08000d;
     }
@@ -121,7 +121,7 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
 
           <p>Must be a reference to another resource, in the form "<code>@[+][<i>package</i>:]<i>type</i>:<i>name</i></code>"
 or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>".
-          @attr name com.limelight:buttonBarButtonStyle
+          @attr name android:buttonBarButtonStyle
         */
         public static final int ButtonBarContainerTheme_buttonBarButtonStyle = 1;
         /**
@@ -131,7 +131,7 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
 
           <p>Must be a reference to another resource, in the form "<code>@[+][<i>package</i>:]<i>type</i>:<i>name</i></code>"
 or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>".
-          @attr name com.limelight:buttonBarStyle
+          @attr name android:buttonBarStyle
         */
         public static final int ButtonBarContainerTheme_buttonBarStyle = 0;
     };

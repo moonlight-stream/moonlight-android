@@ -16,6 +16,7 @@ import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -47,6 +48,11 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	private SpinnerDialog spinner;
 	private boolean displayedFailureDialog = false;
 	
+	private int controllerDevice = UNKNOWN_CONTROLLER; 
+	protected int []controllerKeysMap= new int[MAX_KEYS];
+	
+	static protected int MAX_KEYS = 250;
+	
 	public static final String PREFS_FILE_NAME = "gameprefs";
 	
 	public static final String QUALITY_PREF_STRING = "Quality";
@@ -63,6 +69,15 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	public static final int FORCE_HARDWARE_DECODER = -1;
 	public static final int AUTOSELECT_DECODER = 0;
 	public static final int FORCE_SOFTWARE_DECODER = 1;
+	
+	public static final int UNKNOWN_CONTROLLER = 1;
+	public static final int S7800_CONTROLLER = 2;
+	public static final int SIXAXIS_CONTROLLER = 3;
+	public static final int XBOX_CONTROLLER = 4;
+	public static final int OUYA_CONTROLLER = 5;
+	public static final int SHIELD_CONTROLLER = 6;
+	public static final int MOGA_CONTROLLER = 7;
+	public static final int ARCHOS_GAMEPAD2_CONTROLLER = 8;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -114,6 +129,8 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		height = prefs.getInt(HEIGHT_PREF_STRING, DEFAULT_HEIGHT);
 		refreshRate = prefs.getInt(REFRESH_RATE_PREF_STRING, DEFAULT_REFRESH_RATE);
 		sh.setFixedSize(width, height);
+		
+		detectInputDevice();
         
 		// Warn the user if they're on a metered connection
         checkDataConnection();
@@ -125,6 +142,120 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 				PlatformBinding.getAudioRenderer(), new ConfigurableDecoderRenderer());
 	}
 	
+	
+	private void setupDefaultControllerKeys() {
+
+		for (int i = 0; i < MAX_KEYS; i++)
+			controllerKeysMap[i] = -1;
+
+		controllerKeysMap[KeyEvent.KEYCODE_BUTTON_START] = ControllerPacket.PLAY_FLAG;
+		controllerKeysMap[KeyEvent.KEYCODE_MENU] = ControllerPacket.PLAY_FLAG;
+		controllerKeysMap[KeyEvent.KEYCODE_BACK] = ControllerPacket.BACK_FLAG;
+		controllerKeysMap[KeyEvent.KEYCODE_BUTTON_SELECT] = ControllerPacket.PLAY_FLAG;
+		// DPAD
+		controllerKeysMap[KeyEvent.KEYCODE_DPAD_LEFT] = ControllerPacket.LEFT_FLAG;
+		controllerKeysMap[KeyEvent.KEYCODE_DPAD_RIGHT] = ControllerPacket.RIGHT_FLAG;
+		controllerKeysMap[KeyEvent.KEYCODE_DPAD_UP] = ControllerPacket.UP_FLAG;
+		controllerKeysMap[KeyEvent.KEYCODE_DPAD_DOWN] = ControllerPacket.DOWN_FLAG;
+		// B,X,A,Y
+		controllerKeysMap[KeyEvent.KEYCODE_BUTTON_B] = ControllerPacket.B_FLAG;
+		controllerKeysMap[KeyEvent.KEYCODE_BUTTON_A] = ControllerPacket.A_FLAG;
+		controllerKeysMap[KeyEvent.KEYCODE_BUTTON_X] = ControllerPacket.X_FLAG;
+		controllerKeysMap[KeyEvent.KEYCODE_BUTTON_Y] = ControllerPacket.Y_FLAG;
+		// LB,RB
+		controllerKeysMap[KeyEvent.KEYCODE_BUTTON_L1] = ControllerPacket.LB_FLAG;
+		controllerKeysMap[KeyEvent.KEYCODE_BUTTON_R1] = ControllerPacket.RB_FLAG;
+		// THUMBS
+		controllerKeysMap[KeyEvent.KEYCODE_BUTTON_THUMBL] = ControllerPacket.LS_CLK_FLAG;
+		controllerKeysMap[KeyEvent.KEYCODE_BUTTON_THUMBR] = ControllerPacket.RS_CLK_FLAG;
+	}
+	
+	//try to find input device
+	private void detectInputDevice() {
+
+		boolean detected = false;
+		boolean stop = false;// stop search if a external controller is detected
+		int ids[] = InputDevice.getDeviceIds();
+		String desc = "Unknown";
+		controllerDevice = UNKNOWN_CONTROLLER;
+
+		for (int i = 0; i < ids.length && !stop; i++) {
+			InputDevice device = InputDevice.getDevice(ids[i]);
+
+			String name = device.getName();
+
+			// order is important. We can have a handheld with a PS3 controller
+			// attached
+			if (name.indexOf("PLAYSTATION(R)3") != -1
+					|| name.indexOf("Dualshock3") != -1
+					|| name.indexOf("Sixaxis") != -1
+					|| name.indexOf("Gasia,Co") != -1) {
+
+				setupDefaultControllerKeys();
+				controllerDevice = SIXAXIS_CONTROLLER;
+				desc = "Sixaxis";
+				detected = true;
+				stop = true;
+			} else if (name.indexOf("X-Box 360") != -1
+					|| name.indexOf("X-Box") != -1
+					|| name.indexOf("Xbox 360 Wireless Receiver") != -1) {
+				setupDefaultControllerKeys();
+				controllerDevice = XBOX_CONTROLLER;
+				desc = "XBox";
+				detected = true;
+				stop = true;
+			} else if (name.indexOf("OUYA Game Controller") != -1) {
+				setupDefaultControllerKeys();
+				controllerDevice = OUYA_CONTROLLER;
+				desc = "OUYA";
+				detected = true;
+			} else if (name.indexOf("nvidia_joypad") != -1
+					|| name.indexOf("NVIDIA Controller") != -1) {
+				setupDefaultControllerKeys();
+				controllerDevice = SHIELD_CONTROLLER;
+				desc = "Shield";
+				detected = true;
+			} else if (name.indexOf("ADC joystick") != -1 ) { //can't filter by Buil.model cos custom ROMs spoofing
+				setupDefaultControllerKeys();
+				controllerDevice = S7800_CONTROLLER;
+				desc = "JXD S7800";
+				// custom maps
+				controllerKeysMap[KeyEvent.KEYCODE_BUTTON_B] = ControllerPacket.A_FLAG;
+				controllerKeysMap[KeyEvent.KEYCODE_BUTTON_A] = ControllerPacket.B_FLAG;
+				controllerKeysMap[KeyEvent.KEYCODE_BUTTON_X] = ControllerPacket.Y_FLAG;
+				controllerKeysMap[KeyEvent.KEYCODE_BUTTON_Y] = ControllerPacket.X_FLAG;
+				controllerKeysMap[KeyEvent.KEYCODE_BACK] = ControllerPacket.LS_CLK_FLAG;
+				controllerKeysMap[KeyEvent.KEYCODE_MENU] = ControllerPacket.RS_CLK_FLAG;
+				controllerKeysMap[KeyEvent.KEYCODE_BUTTON_L2] = 1;
+				controllerKeysMap[KeyEvent.KEYCODE_BUTTON_R2] = 1;
+				detected = true;
+			} else if (name.indexOf("MOGA") != -1|| name.indexOf("Moga") != -1
+					) {
+				setupDefaultControllerKeys();
+				controllerDevice = MOGA_CONTROLLER;
+				desc = "Moga";
+				detected = true;
+				stop = true;
+			} else if (name.indexOf("joy_key")!=-1 && android.os.Build.MODEL.equals("ARCHOS GAMEPAD2")) {
+				setupDefaultControllerKeys();
+				controllerDevice = ARCHOS_GAMEPAD2_CONTROLLER;
+				controllerKeysMap[KeyEvent.KEYCODE_BUTTON_L2] = 1;
+				controllerKeysMap[KeyEvent.KEYCODE_BUTTON_R2] = 1;
+				desc = "Archos Gamepad2";
+				detected = true;
+			}
+			
+		}
+
+		if (detected) {
+			CharSequence text = "Detected " + desc + " controller";
+			int duration = Toast.LENGTH_LONG;
+
+			Toast toast = Toast.makeText(this, text, duration);
+			toast.show();
+		}
+	}
+	
 	private void checkDataConnection()
 	{
 		ConnectivityManager mgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -132,28 +263,30 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			displayMessage("Warning: Your active network connection is metered!");
 		}
 	}
-
-	private void hideSystemUi() {
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				// Use immersive mode on 4.4+ or standard low profile on previous builds
-				if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-					Game.this.getWindow().getDecorView().setSystemUiVisibility(
-							View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-							View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-							View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-							View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-							View.SYSTEM_UI_FLAG_FULLSCREEN |
-							View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-				}
-				else {
-					Game.this.getWindow().getDecorView().setSystemUiVisibility(
-							View.SYSTEM_UI_FLAG_FULLSCREEN |
-							View.SYSTEM_UI_FLAG_LOW_PROFILE);
-				}
+	
+    Runnable mNavHider = new Runnable() {
+		@Override
+		public void run() {
+			// Use immersive mode on 4.4+ or standard low profile on previous builds
+			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+				Game.this.getWindow().getDecorView().setSystemUiVisibility(
+						View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+						View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+						View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+						View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+						View.SYSTEM_UI_FLAG_FULLSCREEN |
+						View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 			}
-		});
+			else {
+				Game.this.getWindow().getDecorView().setSystemUiVisibility(
+						View.SYSTEM_UI_FLAG_FULLSCREEN |
+						View.SYSTEM_UI_FLAG_LOW_PROFILE);
+			}
+		}
+    };
+	
+	private void hideSystemUi() {
+		runOnUiThread(mNavHider);
 	}
 	
 	@Override
@@ -173,54 +306,24 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		switch (keyCode) {
-		case KeyEvent.KEYCODE_BUTTON_START:
-		case KeyEvent.KEYCODE_MENU:
-			inputMap |= ControllerPacket.PLAY_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BACK:
-		case KeyEvent.KEYCODE_BUTTON_SELECT:
-			inputMap |= ControllerPacket.BACK_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_LEFT:
-			inputMap |= ControllerPacket.LEFT_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			inputMap |= ControllerPacket.RIGHT_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_UP:
-			inputMap |= ControllerPacket.UP_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_DOWN:
-			inputMap |= ControllerPacket.DOWN_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_B:
-			inputMap |= ControllerPacket.B_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_A:
-			inputMap |= ControllerPacket.A_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_X:
-			inputMap |= ControllerPacket.X_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_Y:
-			inputMap |= ControllerPacket.Y_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_L1:
-			inputMap |= ControllerPacket.LB_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_R1:
-			inputMap |= ControllerPacket.RB_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_THUMBL:
-			inputMap |= ControllerPacket.LS_CLK_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_THUMBR:
-			inputMap |= ControllerPacket.RS_CLK_FLAG;
-			break;
-		default:
-			return super.onKeyDown(keyCode, event);
+		
+		if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN ||  keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+		{
+			Handler h = Game.this.getWindow().getDecorView().getHandler();
+            if (h != null) {
+                h.removeCallbacks(mNavHider);
+                h.postDelayed(mNavHider, 4000);               
+            }
 		}
+						
+		if (controllerKeysMap[keyCode] == -1)
+			return super.onKeyDown(keyCode, event);
+		else if (keyCode == KeyEvent.KEYCODE_BUTTON_L2)
+			leftTrigger = (byte) Math.round(1 * 0xFF);
+		else if (keyCode == KeyEvent.KEYCODE_BUTTON_R2)
+			rightTrigger = (byte) Math.round(1 * 0xFF);
+		else
+			inputMap |= controllerKeysMap[keyCode];
 		
 		// We detect back+start as the special button combo
 		if ((inputMap & ControllerPacket.BACK_FLAG) != 0 &&
@@ -236,54 +339,15 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		switch (keyCode) {
-		case KeyEvent.KEYCODE_BUTTON_START:
-		case KeyEvent.KEYCODE_MENU:
-			inputMap &= ~ControllerPacket.PLAY_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BACK:
-		case KeyEvent.KEYCODE_BUTTON_SELECT:
-			inputMap &= ~ControllerPacket.BACK_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_LEFT:
-			inputMap &= ~ControllerPacket.LEFT_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			inputMap &= ~ControllerPacket.RIGHT_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_UP:
-			inputMap &= ~ControllerPacket.UP_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_DOWN:
-			inputMap &= ~ControllerPacket.DOWN_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_B:
-			inputMap &= ~ControllerPacket.B_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_A:
-			inputMap &= ~ControllerPacket.A_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_X:
-			inputMap &= ~ControllerPacket.X_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_Y:
-			inputMap &= ~ControllerPacket.Y_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_L1:
-			inputMap &= ~ControllerPacket.LB_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_R1:
-			inputMap &= ~ControllerPacket.RB_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_THUMBL:
-			inputMap &= ~ControllerPacket.LS_CLK_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_THUMBR:
-			inputMap &= ~ControllerPacket.RS_CLK_FLAG;
-			break;
-		default:
+				
+		if (controllerKeysMap[keyCode] == -1)
 			return super.onKeyUp(keyCode, event);
-		}
+		else if (keyCode == KeyEvent.KEYCODE_BUTTON_L2)
+			leftTrigger = (byte) Math.round(0 * 0xFF);
+		else if (keyCode == KeyEvent.KEYCODE_BUTTON_R2)
+			rightTrigger = (byte) Math.round(0 * 0xFF);
+		else
+			inputMap &= ~ controllerKeysMap[keyCode];
 		
 		// If one of the two is up, the special button comes up too
 		if ((inputMap & ControllerPacket.BACK_FLAG) == 0 ||
@@ -401,11 +465,25 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			float LS_X = event.getAxisValue(MotionEvent.AXIS_X);
 			float LS_Y = event.getAxisValue(MotionEvent.AXIS_Y);
 
-			float RS_X, RS_Y, L2, R2;
+			float RS_X, RS_Y, L2 = 0, R2 = 0;
+			
+			boolean hasAnalogLR2 = 	!(controllerKeysMap[KeyEvent.KEYCODE_BUTTON_L2] == 1 &&
+			                          controllerKeysMap[KeyEvent.KEYCODE_BUTTON_R2] == 1);
 
 			InputDevice.MotionRange leftTriggerRange = dev.getMotionRange(MotionEvent.AXIS_LTRIGGER);
 			InputDevice.MotionRange rightTriggerRange = dev.getMotionRange(MotionEvent.AXIS_RTRIGGER);
-			if (leftTriggerRange != null && rightTriggerRange != null)
+			
+			if(controllerDevice == ARCHOS_GAMEPAD2_CONTROLLER)
+			{
+				RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
+				RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
+			}
+			else if(controllerDevice == S7800_CONTROLLER)
+			{
+				RS_X = event.getAxisValue(MotionEvent.AXIS_Z)  * 1.43f; //range is from 0 to 0.7 ...
+				RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ) * 1.43f;
+			}
+			else if (leftTriggerRange != null && rightTriggerRange != null) //old autodetect stuff, should be change to match fine tuning
 			{
 				// Ouya controller
 				L2 = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
@@ -468,9 +546,11 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			rightStickX = (short)Math.round(RS_X * 0x7FFF);
 			rightStickY = (short)Math.round(-RS_Y * 0x7FFF);
 
-			leftTrigger = (byte)Math.round(L2 * 0xFF);
-			rightTrigger = (byte)Math.round(R2 * 0xFF);
-
+			if(hasAnalogLR2)
+			{
+			   leftTrigger = (byte)Math.round(L2 * 0xFF);
+			   rightTrigger = (byte)Math.round(R2 * 0xFF);
+			}
 			sendControllerInputPacket();
 			return true;
 		}

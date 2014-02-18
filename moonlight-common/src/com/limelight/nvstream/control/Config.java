@@ -2,6 +2,7 @@ package com.limelight.nvstream.control;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import com.limelight.nvstream.StreamConfiguration;
@@ -10,7 +11,6 @@ public class Config {
 	
 	public static final ConfigTuple[] CONFIG_720_60 =
 		{
-		new IntConfigTuple((short)0x1206, 1),
 		new ByteConfigTuple((short)0x1207, (byte)1),
 		new IntConfigTuple((short)0x120b, 7),
 		new IntConfigTuple((short)0x120c, 7),
@@ -68,13 +68,13 @@ public class Config {
 		new IntConfigTuple((short)0x1233, 3000),
 		new IntConfigTuple((short)0x122c, 3),
 		new IntConfigTuple((short)0x122d, 10),
-		new IntConfigTuple((short)0x123b, 12),
+		/*new IntConfigTuple((short)0x123b, 12),
 		new IntConfigTuple((short)0x123c, 3),
 		new IntConfigTuple((short)0x1249, 0),
 		new IntConfigTuple((short)0x124a, 4000),
 		new IntConfigTuple((short)0x124b, 5000),
 		new IntConfigTuple((short)0x124c, 6000),
-		new IntConfigTuple((short)0x124d, 1000),
+		new IntConfigTuple((short)0x124d, 1000),*/
 		new IntConfigTuple((short)0x122f, 0),
 		new ShortConfigTuple((short)0x1230, (short)0),
 		new IntConfigTuple((short)0x1239, 0),
@@ -93,8 +93,8 @@ public class Config {
 		new IntConfigTuple((short)0x1245, 3000),
 		new IntConfigTuple((short)0x1246, 1280),
 		new IntConfigTuple((short)0x1247, 720),
-		new IntConfigTuple((short)0x124a, 5000),
-		new IntConfigTuple((short)0x124c, 7000),
+		/*new IntConfigTuple((short)0x124a, 5000),
+		new IntConfigTuple((short)0x124c, 7000),*/
 		};
 	
 	public static final ConfigTuple[] CONFIG_1080_60_DIFF =
@@ -107,8 +107,8 @@ public class Config {
 		new IntConfigTuple((short)0x1245, 3000),
 		new IntConfigTuple((short)0x1246, 1280),
 		new IntConfigTuple((short)0x1247, 720),
-		new IntConfigTuple((short)0x124a, 5000),
-		new IntConfigTuple((short)0x124c, 7000),
+		/*new IntConfigTuple((short)0x124a, 5000),
+		new IntConfigTuple((short)0x124c, 7000),*/
 		};
 		
 	private StreamConfiguration streamConfig;
@@ -117,18 +117,28 @@ public class Config {
 		this.streamConfig = streamConfig;
 	}
 	
-	private void updateSetWithConfig(HashSet<ConfigTuple> set, ConfigTuple[] config)
+	private void updateSetWithConfig(ArrayList<ConfigTuple> set, ConfigTuple[] config)
 	{
 		for (ConfigTuple tuple : config)
 		{
-			// Remove any existing tuple of this type
-			set.remove(tuple);
+			int i;
 			
-			set.add(tuple);
+			for (i = 0; i < set.size(); i++) {
+				ConfigTuple existingTuple = set.get(i);
+				if (existingTuple.packetType == tuple.packetType) {
+					set.remove(i);
+					set.add(i, tuple);
+					break;
+				}
+			}
+			
+			if (i == set.size()) {
+				set.add(tuple);
+			}
 		}
 	}
 	
-	private int getConfigOnWireSize(HashSet<ConfigTuple> tupleSet)
+	private int getConfigOnWireSize(ArrayList<ConfigTuple> tupleSet)
 	{
 		int size = 0;
 		
@@ -140,8 +150,13 @@ public class Config {
 		return size;
 	}
 	
-	private HashSet<ConfigTuple> generateTupleSet() {
-		HashSet<ConfigTuple> tupleSet = new HashSet<ConfigTuple>();
+	private ArrayList<ConfigTuple> generateTupleSet() {
+		ArrayList<ConfigTuple> tupleSet = new ArrayList<ConfigTuple>();
+		
+		tupleSet.add(new IntConfigTuple((short)0x1204, streamConfig.getWidth()));
+		tupleSet.add(new IntConfigTuple((short)0x1205, streamConfig.getHeight()));
+		tupleSet.add(new IntConfigTuple((short)0x1206, 1));
+		tupleSet.add(new IntConfigTuple((short)0x120A, streamConfig.getRefreshRate()));
 		
 		// Start with the initial config for 720p60
 		updateSetWithConfig(tupleSet, CONFIG_720_60);
@@ -161,15 +176,11 @@ public class Config {
 			}
 		}
 		
-		tupleSet.add(new IntConfigTuple((short)0x1204, streamConfig.getWidth()));
-		tupleSet.add(new IntConfigTuple((short)0x1205, streamConfig.getHeight()));
-		tupleSet.add(new IntConfigTuple((short)0x120A, streamConfig.getRefreshRate()));
-		
 		return tupleSet;
 	}
 	
 	public byte[] toWire() {
-		HashSet<ConfigTuple> tupleSet = generateTupleSet();
+		ArrayList<ConfigTuple> tupleSet = generateTupleSet();
 		ByteBuffer bb = ByteBuffer.allocate(getConfigOnWireSize(tupleSet) + 4).order(ByteOrder.LITTLE_ENDIAN);
 		
 		for (ConfigTuple t : tupleSet)

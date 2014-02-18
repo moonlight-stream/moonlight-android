@@ -3,7 +3,6 @@ package com.limelight.nvstream.control;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import com.limelight.nvstream.StreamConfiguration;
 

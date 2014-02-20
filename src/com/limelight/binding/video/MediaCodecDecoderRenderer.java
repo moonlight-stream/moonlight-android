@@ -21,9 +21,11 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private MediaCodec videoDecoder;
 	private Thread rendererThread;
 	private boolean needsSpsFixup;
+	private boolean fastInputQueueing;
 	
 	public static final List<String> blacklistedDecoderPrefixes;
 	public static final List<String> spsFixupDecoderPrefixes;
+	public static final List<String> fastInputQueueingPrefixes;
 	
 	static {
 		blacklistedDecoderPrefixes = new LinkedList<String>();
@@ -37,8 +39,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		spsFixupDecoderPrefixes.add("omx.nvidia");
 	}
 	
-	private static boolean decoderNeedsSpsFixup(String decoderName) {
-		for (String badPrefix : spsFixupDecoderPrefixes) {
+	static {
+		fastInputQueueingPrefixes = new LinkedList<String>();
+		fastInputQueueingPrefixes.add("omx.nvidia");
+	}
+		
+	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
+		for (String badPrefix : decoderList) {
 			if (decoderName.length() >= badPrefix.length()) {
 				String prefix = decoderName.substring(0, badPrefix.length());
 				if (prefix.equalsIgnoreCase(badPrefix)) {
@@ -93,14 +100,19 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		MediaCodecInfo safeDecoder = findSafeDecoder();
 		if (safeDecoder != null) {
 			videoDecoder = MediaCodec.createByCodecName(safeDecoder.getName());
-			needsSpsFixup = decoderNeedsSpsFixup(safeDecoder.getName());
+			needsSpsFixup = isDecoderInList(spsFixupDecoderPrefixes, safeDecoder.getName());
 			if (needsSpsFixup) {
 				System.out.println("Decoder "+safeDecoder.getName()+" needs SPS fixup");
+			}
+			fastInputQueueing = isDecoderInList(fastInputQueueingPrefixes, safeDecoder.getName());
+			if (fastInputQueueing) {
+				System.out.println("Decoder "+safeDecoder.getName()+" supports fast input queueing");
 			}
 		}
 		else {
 			videoDecoder = MediaCodec.createDecoderByType("video/avc");
 			needsSpsFixup = false;
+			fastInputQueueing = false;
 		}
 		
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
@@ -248,6 +260,6 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 	@Override
 	public int getCapabilities() {
-		return VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT;
+		return fastInputQueueing ? VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT : 0;
 	}
 }

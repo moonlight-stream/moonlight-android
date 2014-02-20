@@ -7,7 +7,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.LinkedList;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
@@ -18,8 +17,6 @@ public class AudioStream {
 	public static final int RTCP_PORT = 47999;
 	
 	public static final int RTP_RECV_BUFFER = 64 * 1024;
-	
-	private LinkedBlockingQueue<RtpPacket> packets = new LinkedBlockingQueue<RtpPacket>(100);
 	
 	private DatagramSocket rtp;
 	
@@ -77,8 +74,6 @@ public class AudioStream {
 		
 		startReceiveThread();
 		
-		startDepacketizerThread();
-		
 		if ((streamListener.getCapabilities() & AudioRenderer.CAPABILITY_DIRECT_SUBMIT) == 0) {
 			startDecoderThread();
 		}
@@ -113,39 +108,13 @@ public class AudioStream {
 		}
 	}
 	
-	private void startDepacketizerThread()
-	{
-		// This thread lessens the work on the receive thread
-		// so it can spend more time waiting for data
-		Thread t = new Thread() {
-			@Override
-			public void run() {
-				while (!isInterrupted())
-				{
-					RtpPacket packet;
-					
-					try {
-						packet = packets.take();
-					} catch (InterruptedException e) {
-						connListener.connectionTerminated(e);
-						return;
-					}
-					
-					depacketizer.decodeInputData(packet);
-				}
-			}
-		};
-		threads.add(t);
-		t.setName("Audio - Depacketizer");
-		t.start();
-	}
-	
 	private void startDecoderThread()
 	{
 		// Decoder thread
 		Thread t = new Thread() {
 			@Override
 			public void run() {
+				
 				while (!isInterrupted())
 				{
 					ByteBufferDescriptor samples;
@@ -158,6 +127,7 @@ public class AudioStream {
 					}
 					
 					streamListener.playDecodedAudio(samples.data, samples.offset, samples.length);
+					
 				}
 			}
 		};
@@ -179,16 +149,13 @@ public class AudioStream {
 				{
 					try {
 						rtp.receive(packet);
+						desc.length = packet.getLength();
+						depacketizer.decodeInputData(new RtpPacket(desc));
+						desc.reinitialize(new byte[1500], 0, 1500);
+						packet.setData(desc.data, desc.offset, desc.length);
 					} catch (IOException e) {
 						connListener.connectionTerminated(e);
 						return;
-					}
-
-					// Give the packet to the depacketizer thread
-					desc.length = packet.getLength();
-					if (packets.offer(new RtpPacket(desc))) {
-						desc.reinitialize(new byte[1500], 0, 1500);
-						packet.setData(desc.data, desc.offset, desc.length);
 					}
 				}
 			}

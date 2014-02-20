@@ -40,4 +40,9 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 		return decoderRenderer.submitDecodeUnit(du);
 	}
 
+	@Override
+	public int getCapabilities() {
+		return decoderRenderer.getCapabilities();
+	}
+
 }

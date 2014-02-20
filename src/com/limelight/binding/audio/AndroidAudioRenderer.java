@@ -47,4 +47,9 @@ public class AndroidAudioRenderer implements AudioRenderer {
 			track.release();
 		}
 	}
+
+	@Override
+	public int getCapabilities() {
+		return 0;
+	}
 }

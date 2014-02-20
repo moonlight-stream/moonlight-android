@@ -245,4 +245,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		
 		return true;
 	}
+
+	@Override
+	public int getCapabilities() {
+		return VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT;
+	}
 }

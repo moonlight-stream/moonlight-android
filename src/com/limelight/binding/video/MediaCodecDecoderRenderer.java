@@ -121,7 +121,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				BufferInfo info = new BufferInfo();
 				while (!isInterrupted())
 				{
-					int outIndex = videoDecoder.dequeueOutputBuffer(info, 100);
+					// Block for a maximum of 100 ms
+					int outIndex = videoDecoder.dequeueOutputBuffer(info, 100000);
 				    switch (outIndex) {
 				    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
 				    	System.out.println("Output buffers changed");

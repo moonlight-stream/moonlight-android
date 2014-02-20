@@ -10,6 +10,7 @@ import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -49,15 +50,14 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	
 	public static final String PREFS_FILE_NAME = "gameprefs";
 	
-	public static final String QUALITY_PREF_STRING = "Quality";
-	public static final String WIDTH_PREF_STRING = "Width";
-	public static final String HEIGHT_PREF_STRING = "Height";
-	public static final String REFRESH_RATE_PREF_STRING = "RefreshRate";
+	public static final String WIDTH_PREF_STRING = "ResH";
+	public static final String HEIGHT_PREF_STRING = "ResV";
+	public static final String REFRESH_RATE_PREF_STRING = "FPS";
 	public static final String DECODER_PREF_STRING = "Decoder";
 	
 	public static final int DEFAULT_WIDTH = 1280;
 	public static final int DEFAULT_HEIGHT = 720;
-	public static final int DEFAULT_REFRESH_RATE = 30;
+	public static final int DEFAULT_REFRESH_RATE = 60;
 	public static final int DEFAULT_DECODER = 0;
 	
 	public static final int FORCE_HARDWARE_DECODER = -1;
@@ -95,9 +95,6 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		// Read the stream preferences
 		SharedPreferences prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
 		int drFlags = 0;
-		if (prefs.getBoolean(QUALITY_PREF_STRING, false)) {
-			drFlags |= VideoDecoderRenderer.FLAG_PREFER_QUALITY;
-		}
 		switch (prefs.getInt(Game.DECODER_PREF_STRING, Game.DEFAULT_DECODER)) {
 		case Game.FORCE_SOFTWARE_DECODER:
 			drFlags |= VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING;
@@ -129,10 +126,11 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	{
 		ConnectivityManager mgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		if (mgr.isActiveNetworkMetered()) {
-			displayMessage("Warning: Your active network connection is metered!");
+			displayTransientMessage("Warning: Your active network connection is metered!");
 		}
 	}
 
+	@SuppressLint("InlinedApi")
 	private void hideSystemUi() {
 		runOnUiThread(new Runnable() {
 			@Override
@@ -560,6 +558,16 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 
 	@Override
 	public void displayMessage(final String message) {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(Game.this, message, Toast.LENGTH_LONG).show();
+			}
+		});
+	}
+
+	@Override
+	public void displayTransientMessage(final String message) {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {

@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -7,6 +7,10 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".Connection" >
+    
+    <RelativeLayout
+     android:layout_width="fill_parent"
+     android:layout_height="wrap_content">
 
     <EditText
         android:id="@+id/hostTextView"
@@ -43,8 +47,9 @@
     <RadioGroup
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/rrGroup"
-        android:layout_below="@+id/rrGroup"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/streamConfigGroup"
         android:layout_marginTop="25dp"
         android:orientation="vertical" >
 
@@ -58,7 +63,7 @@
             android:id="@+id/autoDec"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Auto-select Decoder" />
+            android:text="Auto-select Decoder (Recommended)" />
 
         <RadioButton
             android:id="@+id/hardwareDec"
@@ -68,56 +73,43 @@
     </RadioGroup>
 
     <RadioGroup
-        android:id="@+id/rrGroup"
+        android:id="@+id/streamConfigGroup"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/resolutionGroup"
-        android:layout_below="@+id/resolutionGroup"
-        android:layout_marginTop="15dp"
-        android:orientation="horizontal" >
-
-        <RadioButton
-            android:id="@+id/rr30Selected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="30 FPS" />
-
-        <RadioButton
-            android:id="@+id/rr60Selected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="60 FPS (may increase lag)" />
-    </RadioGroup>
-
-    <RadioGroup
-        android:id="@+id/resolutionGroup"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/imageQualityCheckbox"
-        android:layout_below="@+id/imageQualityCheckbox"
-        android:layout_marginTop="17dp"
-        android:orientation="horizontal" >
-
-        <RadioButton
-            android:id="@+id/res720pSelected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="720p" />
-
-        <RadioButton
-            android:id="@+id/res1080pSelected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="1080p (may increase lag)" />
-    </RadioGroup>
-
-    <CheckBox
-        android:id="@+id/imageQualityCheckbox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
         android:layout_below="@+id/pairButton"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:text="Prefer image quality over performance" />
+        android:layout_marginTop="25dp"
+        android:orientation="vertical" >
 
-</RelativeLayout>
+        <RadioButton
+            android:id="@+id/config720p30Selected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="720p 30 FPS (Only recommended for poor devices or networks)" />
+        
+        <RadioButton
+            android:id="@+id/config720p60Selected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="720p 60 FPS (Recommended for most devices and networks)" />
+
+        <RadioButton
+            android:id="@+id/config1080p30Selected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="1080p 30 FPS (Recommended for most devices if 1080p streaming is desired)" />
+
+        <RadioButton
+            android:id="@+id/config1080p60Selected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="1080p 60 FPS (Requires extremely fast device and network)" />
+    </RadioGroup>
+
+	</RelativeLayout>
+	
+</ScrollView>

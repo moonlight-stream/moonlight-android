@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.RadioButton;
@@ -31,8 +30,7 @@ public class Connection extends Activity {
 	private Button statusButton, pairButton;
 	private TextView hostText;
 	private SharedPreferences prefs;
-	private CheckBox qualityCheckbox;
-	private RadioButton rbutton720p, rbutton1080p, rbutton30fps, rbutton60fps;
+	private RadioButton rbutton720p30, rbutton720p60, rbutton1080p30, rbutton1080p60;
 	private RadioButton forceSoftDec, autoDec, forceHardDec;
 	
 	private static final String DEFAULT_HOST = "";
@@ -57,35 +55,39 @@ public class Connection extends Activity {
 		this.statusButton = (Button) findViewById(R.id.statusButton);
 		this.pairButton = (Button) findViewById(R.id.pairButton);
 		this.hostText = (TextView) findViewById(R.id.hostTextView);
-		this.qualityCheckbox = (CheckBox) findViewById(R.id.imageQualityCheckbox);
-		this.rbutton720p = (RadioButton) findViewById(R.id.res720pSelected);
-		this.rbutton1080p = (RadioButton) findViewById(R.id.res1080pSelected);
-		this.rbutton30fps = (RadioButton) findViewById(R.id.rr30Selected);
-		this.rbutton60fps = (RadioButton) findViewById(R.id.rr60Selected);
+		this.rbutton720p30 = (RadioButton) findViewById(R.id.config720p30Selected);
+		this.rbutton720p60 = (RadioButton) findViewById(R.id.config720p60Selected);
+		this.rbutton1080p30 = (RadioButton) findViewById(R.id.config1080p30Selected);
+		this.rbutton1080p60 = (RadioButton) findViewById(R.id.config1080p60Selected);
 		this.forceSoftDec = (RadioButton) findViewById(R.id.softwareDec);
 		this.autoDec = (RadioButton) findViewById(R.id.autoDec);
 		this.forceHardDec = (RadioButton) findViewById(R.id.hardwareDec);
 
 		prefs = getSharedPreferences(Game.PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
 		this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));
-		this.qualityCheckbox.setChecked(prefs.getBoolean(Game.QUALITY_PREF_STRING, false));
 		
-		if (prefs.getInt(Game.HEIGHT_PREF_STRING, Game.DEFAULT_HEIGHT) == 720) {
-			rbutton720p.setChecked(true);
-			rbutton1080p.setChecked(false);
+		boolean res720p = prefs.getInt(Game.HEIGHT_PREF_STRING, Game.DEFAULT_HEIGHT) == 720;
+		boolean fps30 = prefs.getInt(Game.REFRESH_RATE_PREF_STRING, Game.DEFAULT_REFRESH_RATE) == 30;
+
+		rbutton720p30.setChecked(false);
+		rbutton720p60.setChecked(false);
+		rbutton1080p30.setChecked(false);
+		rbutton1080p60.setChecked(false);
+		if (res720p) {
+			if (fps30) {
+				rbutton720p30.setChecked(true);
+			}
+			else {
+				rbutton720p60.setChecked(true);
+			}
 		}
 		else {
-			rbutton1080p.setChecked(true);
-			rbutton720p.setChecked(false);
-		}
-		
-		if (prefs.getInt(Game.REFRESH_RATE_PREF_STRING, Game.DEFAULT_REFRESH_RATE) == 30) {
-			rbutton30fps.setChecked(true);
-			rbutton60fps.setChecked(false);
-		}
-		else {
-			rbutton60fps.setChecked(true);
-			rbutton30fps.setChecked(false);
+			if (fps30) {
+				rbutton1080p30.setChecked(true);
+			}
+			else {
+				rbutton1080p60.setChecked(true);
+			}
 		}
 		
 		switch (prefs.getInt(Game.DECODER_PREF_STRING, Game.DEFAULT_DECODER)) {
@@ -115,19 +117,25 @@ public class Connection extends Activity {
 					return;
 				}
 				
-				if (buttonView == rbutton30fps) {
-					prefs.edit().putInt(Game.REFRESH_RATE_PREF_STRING, 30).commit();
-				}
-				else if (buttonView == rbutton60fps) {
-					prefs.edit().putInt(Game.REFRESH_RATE_PREF_STRING, 60).commit();
-				}
-				else if (buttonView == rbutton720p) {
+				if (buttonView == rbutton720p30) {
 					prefs.edit().putInt(Game.WIDTH_PREF_STRING, 1280).
-						putInt(Game.HEIGHT_PREF_STRING, 720).commit();
+					putInt(Game.HEIGHT_PREF_STRING, 720).
+					putInt(Game.REFRESH_RATE_PREF_STRING, 30).commit();
 				}
-				else if (buttonView == rbutton1080p) {
+				else if (buttonView == rbutton720p60) {
+					prefs.edit().putInt(Game.WIDTH_PREF_STRING, 1280).
+					putInt(Game.HEIGHT_PREF_STRING, 720).
+					putInt(Game.REFRESH_RATE_PREF_STRING, 60).commit();
+				}
+				else if (buttonView == rbutton1080p30) {
 					prefs.edit().putInt(Game.WIDTH_PREF_STRING, 1920).
-						putInt(Game.HEIGHT_PREF_STRING, 1080).commit();
+					putInt(Game.HEIGHT_PREF_STRING, 1080).
+					putInt(Game.REFRESH_RATE_PREF_STRING, 30).commit();
+				}
+				else if (buttonView == rbutton1080p60) {
+					prefs.edit().putInt(Game.WIDTH_PREF_STRING, 1920).
+					putInt(Game.HEIGHT_PREF_STRING, 1080).
+					putInt(Game.REFRESH_RATE_PREF_STRING, 60).commit();
 				}
 				else if (buttonView == forceSoftDec) {
 					prefs.edit().putInt(Game.DECODER_PREF_STRING, Game.FORCE_SOFTWARE_DECODER).commit();
@@ -140,22 +148,13 @@ public class Connection extends Activity {
 				}
 			}
 		};
-		rbutton720p.setOnCheckedChangeListener(occl);
-		rbutton1080p.setOnCheckedChangeListener(occl);
-		rbutton30fps.setOnCheckedChangeListener(occl);
-		rbutton60fps.setOnCheckedChangeListener(occl);
+		rbutton720p30.setOnCheckedChangeListener(occl);
+		rbutton720p60.setOnCheckedChangeListener(occl);
+		rbutton1080p30.setOnCheckedChangeListener(occl);
+		rbutton1080p60.setOnCheckedChangeListener(occl);
 		forceSoftDec.setOnCheckedChangeListener(occl);
 		forceHardDec.setOnCheckedChangeListener(occl);
 		autoDec.setOnCheckedChangeListener(occl);
-		
-		this.qualityCheckbox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton checkbox, boolean isChecked) {
-				SharedPreferences.Editor editor = prefs.edit();
-				editor.putBoolean(Game.QUALITY_PREF_STRING, isChecked);
-				editor.commit();
-			}
-		});
 		
 		this.statusButton.setOnClickListener(new OnClickListener() {
 			@Override

@@ -133,8 +133,18 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				    default:
 				      break;
 				    }
+				    
 				    if (outIndex >= 0) {
-				    	videoDecoder.releaseOutputBuffer(outIndex, true);
+					    int lastIndex = outIndex;
+					    
+					    // Get the last output buffer in the queue
+					    while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
+					    	videoDecoder.releaseOutputBuffer(lastIndex, false);
+					    	lastIndex = outIndex;
+					    }
+				    	
+					    // Render that buffer
+				    	videoDecoder.releaseOutputBuffer(lastIndex, true);
 				    }
 				}
 			}

@@ -23,7 +23,7 @@ public class VideoDepacketizer {
 	
 	private ConnectionStatusListener controlListener;
 	
-	private static final int DU_LIMIT = 15;
+	private static final int DU_LIMIT = 7;
 	private LinkedBlockingQueue<DecodeUnit> decodedUnits = new LinkedBlockingQueue<DecodeUnit>(DU_LIMIT);
 	
 	public VideoDepacketizer(ConnectionStatusListener controlListener)
@@ -47,7 +47,7 @@ public class VideoDepacketizer {
 				// We need a new IDR frame since we're discarding data now
 				System.out.println("Video decoder is too slow! Forced to drop decode units");
 				decodedUnits.clear();
-				controlListener.connectionNeedsResync();
+				controlListener.connectionSinkTooSlow();
 			}
 
 			// Clear old state
@@ -208,7 +208,7 @@ public class VideoDepacketizer {
 			clearAvcNalState();
 			
 			// Request an IDR frame
-			controlListener.connectionNeedsResync();
+			controlListener.connectionDetectedPacketLoss();
 		}
 		
 		lastSequenceNumber = seq;

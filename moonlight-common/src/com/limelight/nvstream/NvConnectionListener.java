@@ -29,4 +29,5 @@ public interface NvConnectionListener {
 	public void connectionTerminated(Exception e);
 	
 	public void displayMessage(String message);
+	public void displayTransientMessage(String message);
 }

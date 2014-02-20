@@ -44,6 +44,15 @@ public class ControlStream implements ConnectionStatusListener {
 	private InetAddress host;
 	private Config config;
 	
+	public static final int LOSS_PERIOD_MS = 5000;
+	public static final int MAX_LOSS_COUNT_IN_PERIOD = 5;
+	public static final int MAX_SLOW_SINK_COUNT = 3;
+	public static final int MESSAGE_DELAY_FACTOR = 5;
+	
+	private long lossTimestamp;
+	private int lossCount;
+	private int slowSinkCount;
+	
 	private Socket s;
 	private InputStream in;
 	private OutputStream out;
@@ -404,10 +413,35 @@ public class ControlStream implements ConnectionStatusListener {
 		abort();
 	}
 
-	public void connectionNeedsResync() {
+	private void resyncConnection() {
 		synchronized (resyncNeeded) {
 			// Wake up the resync thread
 			resyncNeeded.notify();
 		}
+	}
+
+	public void connectionDetectedPacketLoss() {
+		if (System.currentTimeMillis() > LOSS_PERIOD_MS + lossTimestamp) {
+			lossCount++;
+			lossTimestamp = System.currentTimeMillis();
+		}
+		else {
+			if (++lossCount == MAX_LOSS_COUNT_IN_PERIOD) {
+				listener.displayTransientMessage("Detected excessive A/V data loss. Try improving your network connection or lowering stream settings.");
+				lossCount = -MAX_LOSS_COUNT_IN_PERIOD * MESSAGE_DELAY_FACTOR;
+				lossTimestamp = 0;
+			}
+		}
+		
+		resyncConnection();
+	}
+
+	public void connectionSinkTooSlow() {
+		if (++slowSinkCount == MAX_SLOW_SINK_COUNT) {
+			listener.displayTransientMessage("Your device is processing the A/V data too slowly. Try lowering stream settings.");
+			slowSinkCount = -MAX_SLOW_SINK_COUNT * MESSAGE_DELAY_FACTOR;
+		}
+		
+		resyncConnection();
 	}
 }

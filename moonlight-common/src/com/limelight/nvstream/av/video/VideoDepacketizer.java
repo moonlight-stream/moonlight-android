@@ -22,12 +22,14 @@ public class VideoDepacketizer {
 	private ByteBufferDescriptor cachedDesc = new ByteBufferDescriptor(null, 0, 0);
 	
 	private ConnectionStatusListener controlListener;
+	private VideoDecoderRenderer directSubmitDr;
 	
-	private static final int DU_LIMIT = 7;
+	private static final int DU_LIMIT = 15;
 	private LinkedBlockingQueue<DecodeUnit> decodedUnits = new LinkedBlockingQueue<DecodeUnit>(DU_LIMIT);
 	
-	public VideoDepacketizer(ConnectionStatusListener controlListener)
+	public VideoDepacketizer(VideoDecoderRenderer directSubmitDr, ConnectionStatusListener controlListener)
 	{
+		this.directSubmitDr = directSubmitDr;
 		this.controlListener = controlListener;
 	}
 	
@@ -43,7 +45,11 @@ public class VideoDepacketizer {
 		if (avcNalDataChain != null && avcNalDataLength != 0) {
 			// Construct the H264 decode unit
 			DecodeUnit du = new DecodeUnit(DecodeUnit.TYPE_H264, avcNalDataChain, avcNalDataLength, 0);
-			if (!decodedUnits.offer(du)) {
+			if (directSubmitDr != null) {
+				// Submit directly to the decoder
+				directSubmitDr.submitDecodeUnit(du);
+			}
+			else if (!decodedUnits.offer(du)) {
 				// We need a new IDR frame since we're discarding data now
 				System.out.println("Video decoder is too slow! Forced to drop decode units");
 				decodedUnits.clear();

@@ -10,9 +10,16 @@ public class AudioDepacketizer {
 	private static final int DU_LIMIT = 15;
 	private LinkedBlockingQueue<ByteBufferDescriptor> decodedUnits =
 			new LinkedBlockingQueue<ByteBufferDescriptor>(DU_LIMIT);
-		
+	
+	private AudioRenderer directSubmitRenderer;
+	
 	// Sequencing state
 	private short lastSequenceNumber;
+	
+	public AudioDepacketizer(AudioRenderer directSubmitRenderer)
+	{
+		this.directSubmitRenderer = directSubmitRenderer;
+	}
 
 	private void decodeData(byte[] data, int off, int len)
 	{
@@ -24,8 +31,10 @@ public class AudioDepacketizer {
 			// Return value of decode is frames (shorts) decoded per channel
 			decodeLen *= 2*OpusDecoder.getChannelCount();
 			
-			// Put it on the decoded queue
-			if (!decodedUnits.offer(new ByteBufferDescriptor(pcmData, 0, decodeLen))) {
+			if (directSubmitRenderer != null) {
+				directSubmitRenderer.playDecodedAudio(pcmData, 0, decodeLen);
+			}
+			else if (!decodedUnits.offer(new ByteBufferDescriptor(pcmData, 0, decodeLen))) {
 				System.out.println("Audio player too slow! Forced to drop decoded samples");
 				// Clear out the queue
 				decodedUnits.clear();

@@ -35,6 +35,7 @@ public class VideoStream {
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
 
 	private NvConnectionListener listener;
+	private ConnectionStatusListener avConnListener;
 	private VideoDepacketizer depacketizer;
 	private StreamConfiguration streamConfig;
 	
@@ -47,7 +48,7 @@ public class VideoStream {
 	{
 		this.host = host;
 		this.listener = listener;
-		this.depacketizer = new VideoDepacketizer(avConnListener);
+		this.avConnListener = avConnListener;
 		this.streamConfig = streamConfig;
 	}
 	
@@ -134,6 +135,13 @@ public class VideoStream {
 		if (decRend != null) {
 			decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(),
 					60, renderTarget, drFlags);
+			
+			if ((decRend.getCapabilities() & VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT) != 0) {
+				depacketizer = new VideoDepacketizer(decRend, avConnListener);
+			}
+			else {
+				depacketizer = new VideoDepacketizer(null, avConnListener);
+			}
 		}
 	}
 
@@ -164,8 +172,10 @@ public class VideoStream {
 			// Start the depacketizer thread to deal with the RTP data
 			startDepacketizerThread();
 			
-			// Start decoding the data we're receiving
-			startDecoderThread();
+			// Start a decode thread if we're not doing direct submit
+			if ((decRend.getCapabilities() & VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT) == 0) {
+				startDecoderThread();
+			}
 			
 			// Start the renderer
 			decRend.start();

@@ -3,7 +3,7 @@ package com.limelight.nvstream.av;
 public interface ConnectionStatusListener {
 	public void connectionTerminated();
 	
-	public void connectionDetectedPacketLoss();
+	public void connectionDetectedFrameLoss(int firstLostFrame, int lastLostFrame);
 	
-	public void connectionSinkTooSlow();
+	public void connectionSinkTooSlow(int firstLostFrame, int lastLostFrame);
 }

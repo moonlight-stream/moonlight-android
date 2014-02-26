@@ -7,6 +7,9 @@ public class DecodeUnit {
 	public static final int TYPE_H264 = 1;
 	public static final int TYPE_OPUS = 2;
 	
+	public static final int DU_FLAG_CODEC_CONFIG = 0x1;
+	public static final int DU_FLAG_SYNC_FRAME = 0x2;
+	
 	private int type;
 	private List<ByteBufferDescriptor> bufferList;
 	private int dataLength;

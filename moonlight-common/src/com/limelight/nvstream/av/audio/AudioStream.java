@@ -20,7 +20,7 @@ public class AudioStream {
 	
 	private DatagramSocket rtp;
 	
-	private AudioDepacketizer depacketizer = new AudioDepacketizer();
+	private AudioDepacketizer depacketizer;
 	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
 	
@@ -74,7 +74,9 @@ public class AudioStream {
 		
 		startReceiveThread();
 		
-		startDecoderThread();
+		if ((streamListener.getCapabilities() & AudioRenderer.CAPABILITY_DIRECT_SUBMIT) == 0) {
+			startDecoderThread();
+		}
 		
 		startUdpPingThread();
 	}
@@ -97,6 +99,13 @@ public class AudioStream {
 		}
 		
 		streamListener.streamInitialized(OpusDecoder.getChannelCount(), OpusDecoder.getSampleRate());
+		
+		if ((streamListener.getCapabilities() & AudioRenderer.CAPABILITY_DIRECT_SUBMIT) != 0) {
+			depacketizer = new AudioDepacketizer(streamListener);
+		}
+		else {
+			depacketizer = new AudioDepacketizer(null);
+		}
 	}
 	
 	private void startDecoderThread()

@@ -12,6 +12,10 @@ public class VideoPacket {
 	private int packetIndex;
 	private int totalPackets;
 	private int payloadLength;
+	private int flags;
+	
+	public static final int FLAG_EOF = 0x2;
+	public static final int FLAG_SOF = 0x4;
 	
 	public VideoPacket(ByteBufferDescriptor rtpPayload)
 	{
@@ -23,10 +27,13 @@ public class VideoPacket {
 		frameIndex = bb.getInt();
 		packetIndex = bb.getInt();
 		totalPackets = bb.getInt();
-		
-		bb.position(bb.position()+4);
-		
+		flags = bb.getInt();
 		payloadLength = bb.getInt();
+	}
+	
+	public int getFlags()
+	{
+		return flags;
 	}
 	
 	public int getFrameIndex()

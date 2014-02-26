@@ -8,6 +8,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.LimeLog;
 import com.limelight.nvstream.NvConnectionListener;
@@ -45,6 +46,15 @@ public class ControlStream implements ConnectionStatusListener {
 	private InetAddress host;
 	private Config config;
 	
+	public static final int LOSS_PERIOD_MS = 15000;
+	public static final int MAX_LOSS_COUNT_IN_PERIOD = 3;
+	public static final int MAX_SLOW_SINK_COUNT = 3;
+	public static final int MESSAGE_DELAY_FACTOR = 5;
+	
+	private long lossTimestamp;
+	private int lossCount;
+	private int slowSinkCount;
+	
 	private Socket s;
 	private InputStream in;
 	private OutputStream out;
@@ -52,7 +62,7 @@ public class ControlStream implements ConnectionStatusListener {
 	private Thread heartbeatThread;
 	private Thread jitterThread;
 	private Thread resyncThread;
-	private Object resyncNeeded = new Object();
+	private LinkedBlockingQueue<int[]> invalidReferenceFrameTuples = new LinkedBlockingQueue<int[]>();
 	private boolean aborting = false;
 	
 	public ControlStream(InetAddress host, NvConnectionListener listener, StreamConfiguration streamConfig)
@@ -132,12 +142,6 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 	}
 	
-	public void requestResync() throws IOException
-	{
-		LimeLog.info("CTL: Requesting IDR frame");
-		sendResync();
-	}
-	
 	public void start() throws IOException
 	{
 		// Use a finite timeout during the handshake process
@@ -180,18 +184,39 @@ public class ControlStream implements ConnectionStatusListener {
 			public void run() {
 				while (!isInterrupted())
 				{
+					int[] tuple;
+					
+					// Wait for a tuple
 					try {
-						// Wait for notification of a resync needed
-						synchronized (resyncNeeded) {
-							resyncNeeded.wait();
-						}
+						tuple = invalidReferenceFrameTuples.take();
 					} catch (InterruptedException e) {
 						listener.connectionTerminated(e);
 						return;
 					}
 					
+					// Aggregate all lost frames into one range
+					int[] lastTuple = null;
+					for (;;) {
+						int[] nextTuple = lastTuple = invalidReferenceFrameTuples.poll();
+						if (nextTuple == null) {
+							break;
+						}
+						
+						lastTuple = nextTuple;
+					}
+					
+					// The server expects this to be the firstLostFrame + 1
+					tuple[0]++;
+					
+					// Update the end of the range to the latest tuple
+					if (lastTuple != null) {
+						tuple[1] = lastTuple[1];
+					}
+					
 					try {
-						requestResync();
+						LimeLog.warning("Invalidating reference frames from "+tuple[0]+" to "+tuple[1]);
+						ControlStream.this.sendResync(tuple[0], tuple[1]);
+						LimeLog.warning("Frames invalidated");
 					} catch (IOException e) {
 						listener.connectionTerminated(e);
 						return;
@@ -235,10 +260,12 @@ public class ControlStream implements ConnectionStatusListener {
 		return sendAndGetReply(new NvCtlPacket(PTYPE_1405, PPAYLEN_1405));
 	}
 	
-	private void sendResync() throws IOException
+	private void sendResync(int firstLostFrame, int nextSuccessfulFrame) throws IOException
 	{
 		ByteBuffer conf = ByteBuffer.wrap(new byte[PPAYLEN_RESYNC]).order(ByteOrder.LITTLE_ENDIAN);
 		
+		//conf.putLong(firstLostFrame);
+		//conf.putLong(nextSuccessfulFrame);
 		conf.putLong(0);
 		conf.putLong(0xFFFFF);
 		
@@ -405,10 +432,32 @@ public class ControlStream implements ConnectionStatusListener {
 		abort();
 	}
 
-	public void connectionNeedsResync() {
-		synchronized (resyncNeeded) {
-			// Wake up the resync thread
-			resyncNeeded.notify();
+	private void resyncConnection(int firstLostFrame, int nextSuccessfulFrame) {
+		invalidReferenceFrameTuples.add(new int[]{firstLostFrame, nextSuccessfulFrame});
+	}
+
+	public void connectionDetectedFrameLoss(int firstLostFrame, int nextSuccessfulFrame) {
+		if (System.currentTimeMillis() > LOSS_PERIOD_MS + lossTimestamp) {
+			lossCount++;
+			lossTimestamp = System.currentTimeMillis();
 		}
+		else {
+			if (++lossCount == MAX_LOSS_COUNT_IN_PERIOD) {
+				listener.displayTransientMessage("Detected excessive A/V data loss. Try improving your network connection or lowering stream settings.");
+				lossCount = -MAX_LOSS_COUNT_IN_PERIOD * MESSAGE_DELAY_FACTOR;
+				lossTimestamp = 0;
+			}
+		}
+		
+		resyncConnection(firstLostFrame, nextSuccessfulFrame);
+	}
+
+	public void connectionSinkTooSlow(int firstLostFrame, int nextSuccessfulFrame) {
+		if (++slowSinkCount == MAX_SLOW_SINK_COUNT) {
+			listener.displayTransientMessage("Your device is processing the A/V data too slowly. Try lowering stream settings.");
+			slowSinkCount = -MAX_SLOW_SINK_COUNT * MESSAGE_DELAY_FACTOR;
+		}
+		
+		resyncConnection(firstLostFrame, nextSuccessfulFrame);
 	}
 }

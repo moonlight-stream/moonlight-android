@@ -20,6 +20,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private ByteBuffer[] videoDecoderInputBuffers;
 	private MediaCodec videoDecoder;
 	private Thread rendererThread;
+	private int redrawRate;
 	private boolean needsSpsFixup;
 	private boolean fastInputQueueing;
 	
@@ -96,7 +97,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	}
 	
 	@Override
-	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
+	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {	
+		this.redrawRate = redrawRate;
+		
 		MediaCodecInfo safeDecoder = findSafeDecoder();
 		if (safeDecoder != null) {
 			videoDecoder = MediaCodec.createByCodecName(safeDecoder.getName());
@@ -130,6 +133,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		rendererThread = new Thread() {
 			@Override
 			public void run() {
+				long nextFrameTimeUs = 0;
 				BufferInfo info = new BufferInfo();
 				while (!isInterrupted())
 				{
@@ -149,6 +153,12 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				    
 				    if (outIndex >= 0) {
 					    int lastIndex = outIndex;
+				    	boolean render = false;
+					    
+				    	if (currentTimeUs() >= nextFrameTimeUs) {
+				    		render = true;
+				    		nextFrameTimeUs = computePresentationTime(redrawRate);
+				    	}
 					    
 					    // Get the last output buffer in the queue
 					    while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
@@ -156,14 +166,22 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					    	lastIndex = outIndex;
 					    }
 				    	
-					    // Render that buffer
-				    	videoDecoder.releaseOutputBuffer(lastIndex, true);
+					    // Render that buffer if it's time for the next frame
+				    	videoDecoder.releaseOutputBuffer(lastIndex, render);
 				    }
 				}
 			}
 		};
 		rendererThread.setName("Video - Renderer (MediaCodec)");
 		rendererThread.start();
+	}
+	
+	private static long currentTimeUs() {
+		return System.nanoTime() / 1000;
+	}
+
+	private long computePresentationTime(int frameRate) {
+		return currentTimeUs() + (1000000 / frameRate);
 	}
 
 	@Override

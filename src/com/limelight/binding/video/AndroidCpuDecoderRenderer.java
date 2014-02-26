@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 
 import android.view.SurfaceHolder;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
@@ -120,7 +121,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 			// Disable the non-compliant speed optimizations
 			avcFlags &= ~AvcDecoder.FAST_DECODE;
 			
-			System.out.println("Using high quality decoding");
+			LimeLog.info("Using high quality decoding");
 		}
 		
 		int err = AvcDecoder.init(width, height, avcFlags, threadCount);
@@ -132,7 +133,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 		
 		decoderBuffer = ByteBuffer.allocate(DECODER_BUFFER_SIZE + AvcDecoder.getInputPaddingSize());
 		
-		System.out.println("Using software decoding (performance level: "+perfLevel+")");
+		LimeLog.info("Using software decoding (performance level: "+perfLevel+")");
 	}
 
 	@Override

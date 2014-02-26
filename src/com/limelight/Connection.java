@@ -181,7 +181,7 @@ public class Connection extends Activity {
 						}
 						
 						if (macAddress == null) {
-							System.out.println("Couldn't find a MAC address");
+							LimeLog.severe("Couldn't find a MAC address");
 							return;
 						}
 						

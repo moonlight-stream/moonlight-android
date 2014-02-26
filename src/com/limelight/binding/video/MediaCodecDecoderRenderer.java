@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
@@ -81,13 +82,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			}
 			
 			if (badCodec) {
-				System.out.println("Blacklisted decoder: "+codecInfo.getName());
+				LimeLog.info("Blacklisted decoder: "+codecInfo.getName());
 				continue;
 			}
 			
 			for (String mime : codecInfo.getSupportedTypes()) {
 				if (mime.equalsIgnoreCase("video/avc")) {
-					System.out.println("Selected decoder: "+codecInfo.getName());
+					LimeLog.info("Selected decoder: "+codecInfo.getName());
 					return codecInfo;
 				}
 			}
@@ -105,11 +106,11 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			videoDecoder = MediaCodec.createByCodecName(safeDecoder.getName());
 			needsSpsFixup = isDecoderInList(spsFixupDecoderPrefixes, safeDecoder.getName());
 			if (needsSpsFixup) {
-				System.out.println("Decoder "+safeDecoder.getName()+" needs SPS fixup");
+				LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS fixup");
 			}
 			fastInputQueueing = isDecoderInList(fastInputQueueingPrefixes, safeDecoder.getName());
 			if (fastInputQueueing) {
-				System.out.println("Decoder "+safeDecoder.getName()+" supports fast input queueing");
+				LimeLog.info("Decoder "+safeDecoder.getName()+" supports fast input queueing");
 			}
 		}
 		else {
@@ -125,7 +126,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 		videoDecoderInputBuffers = videoDecoder.getInputBuffers();
 		
-		System.out.println("Using hardware decoding");
+		LimeLog.info("Using hardware decoding");
 	}
 	
 	private void startRendererThread()
@@ -141,11 +142,11 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					int outIndex = videoDecoder.dequeueOutputBuffer(info, 100000);
 				    switch (outIndex) {
 				    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-				    	System.out.println("Output buffers changed");
+				    	LimeLog.info("Output buffers changed");
 					    break;
 				    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-				    	System.out.println("Output format changed");
-				    	System.out.println("New output Format: " + videoDecoder.getOutputFormat());
+				    	LimeLog.info("Output format changed");
+				    	LimeLog.info("New output Format: " + videoDecoder.getOutputFormat());
 				    	break;
 				    default:
 				      break;
@@ -215,11 +216,11 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		int mcFlags = 0;
 		
 		if ((decodeUnit.getFlags() & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0) {
-			System.out.println("Codec config");
+			LimeLog.info("Codec config");
 			mcFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 		}
 		if ((decodeUnit.getFlags() & DecodeUnit.DU_FLAG_SYNC_FRAME) != 0) {
-			System.out.println("Sync frame");
+			LimeLog.info("Sync frame");
 			mcFlags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
 		}
 		
@@ -242,7 +243,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 					switch (header.length) {
 					case 26:
-						System.out.println("Modifying SPS (26)");
+						LimeLog.info("Modifying SPS (26)");
 						buf.put(header.data, header.offset, 24);
 						buf.put((byte) 0x11);
 						buf.put((byte) 0xe3);
@@ -251,7 +252,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 						spsLength = header.length + 2;
 						break;
 					case 27:
-						System.out.println("Modifying SPS (27)");
+						LimeLog.info("Modifying SPS (27)");
 						buf.put(header.data, header.offset, 25);
 						buf.put((byte) 0x04);
 						buf.put((byte) 0x78);
@@ -260,7 +261,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 						spsLength = header.length + 2;
 						break;
 					default:
-						System.out.println("Unknown SPS of length "+header.length);
+						LimeLog.warning("Unknown SPS of length "+header.length);
 						buf.put(header.data, header.offset, header.length);
 						spsLength = header.length;
 						break;

@@ -204,6 +204,9 @@ public class ControlStream implements ConnectionStatusListener {
 						lastTuple = nextTuple;
 					}
 					
+					// The server expects this to be the firstLostFrame + 1
+					tuple[0]++;
+					
 					// Update the end of the range to the latest tuple
 					if (lastTuple != null) {
 						tuple[1] = lastTuple[1];
@@ -256,14 +259,14 @@ public class ControlStream implements ConnectionStatusListener {
 		return sendAndGetReply(new NvCtlPacket(PTYPE_1405, PPAYLEN_1405));
 	}
 	
-	private void sendResync(int firstLostFrame, int lastLostFrame) throws IOException
+	private void sendResync(int firstLostFrame, int nextSuccessfulFrame) throws IOException
 	{
 		ByteBuffer conf = ByteBuffer.wrap(new byte[PPAYLEN_RESYNC]).order(ByteOrder.LITTLE_ENDIAN);
 		
+		//conf.putLong(firstLostFrame);
+		//conf.putLong(nextSuccessfulFrame);
 		conf.putLong(0);
 		conf.putLong(0xFFFFF);
-		//conf.putLong(firstLostFrame);
-		//conf.putLong(lastLostFrame);
 		
 		sendAndGetReply(new NvCtlPacket(PTYPE_RESYNC, PPAYLEN_RESYNC, conf.array()));
 	}
@@ -428,11 +431,11 @@ public class ControlStream implements ConnectionStatusListener {
 		abort();
 	}
 
-	private void resyncConnection(int firstLostFrame, int lastLostFrame) {
-		invalidReferenceFrameTuples.add(new int[]{firstLostFrame, lastLostFrame});
+	private void resyncConnection(int firstLostFrame, int nextSuccessfulFrame) {
+		invalidReferenceFrameTuples.add(new int[]{firstLostFrame, nextSuccessfulFrame});
 	}
 
-	public void connectionDetectedFrameLoss(int firstLostFrame, int lastLostFrame) {
+	public void connectionDetectedFrameLoss(int firstLostFrame, int nextSuccessfulFrame) {
 		if (System.currentTimeMillis() > LOSS_PERIOD_MS + lossTimestamp) {
 			lossCount++;
 			lossTimestamp = System.currentTimeMillis();
@@ -445,15 +448,15 @@ public class ControlStream implements ConnectionStatusListener {
 			}
 		}
 		
-		resyncConnection(firstLostFrame, lastLostFrame);
+		resyncConnection(firstLostFrame, nextSuccessfulFrame);
 	}
 
-	public void connectionSinkTooSlow(int firstLostFrame, int lastLostFrame) {
+	public void connectionSinkTooSlow(int firstLostFrame, int nextSuccessfulFrame) {
 		if (++slowSinkCount == MAX_SLOW_SINK_COUNT) {
 			listener.displayTransientMessage("Your device is processing the A/V data too slowly. Try lowering stream settings.");
 			slowSinkCount = -MAX_SLOW_SINK_COUNT * MESSAGE_DELAY_FACTOR;
 		}
 		
-		resyncConnection(firstLostFrame, lastLostFrame);
+		resyncConnection(firstLostFrame, nextSuccessfulFrame);
 	}
 }

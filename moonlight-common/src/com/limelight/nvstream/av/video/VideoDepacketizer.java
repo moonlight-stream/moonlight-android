@@ -19,7 +19,7 @@ public class VideoDepacketizer {
 	private int nextFrameNumber = 1;
 	private int nextPacketNumber;
 	private int startFrameNumber = 1;
-	private boolean waitingForFrameStart;
+	private boolean waitingForNextSuccessfulFrame;
 	
 	// Cached objects
 	private ByteBufferDescriptor cachedDesc = new ByteBufferDescriptor(null, 0, 0);
@@ -41,7 +41,7 @@ public class VideoDepacketizer {
 		avcFrameDataChain = null;
 		avcFrameDataLength = 0;
 	}
-
+	
 	private void reassembleAvcFrame(int frameNumber)
 	{
 		// This is the start of a new frame
@@ -71,9 +71,15 @@ public class VideoDepacketizer {
 			}
 			else if (!decodedUnits.offer(du)) {
 				System.out.println("Video decoder is too slow! Forced to drop decode units");
-				// Invalidate all frames from the start of the DU queue to this frame number
+				
+				// Invalidate all frames from the start of the DU queue
 				controlListener.connectionSinkTooSlow(decodedUnits.remove().getFrameNumber(), frameNumber);
+				
+				// Remove existing frames
 				decodedUnits.clear();
+				
+				// Add this frame
+				decodedUnits.add(du);
 			}
 
 			// Clear old state
@@ -201,39 +207,39 @@ public class VideoDepacketizer {
 			System.out.println("Using FEC for error correction");
 			nextPacketNumber = 1;
 		}
-		// Discard FEC data early
+		// Discard the rest of the FEC data until we know how to use it
 		else if (packetIndex >= packetsInFrame) {
 			return;
 		}
 		
 		// Check that this is the next frame
 		boolean firstPacket = (packet.getFlags() & VideoPacket.FLAG_SOF) != 0;
-		if (firstPacket && waitingForFrameStart) {
-			// This is the next frame after a loss event
-			controlListener.connectionDetectedFrameLoss(startFrameNumber, frameIndex - 1);
-			startFrameNumber = nextFrameNumber = frameIndex;
-			nextPacketNumber = 0;
-			waitingForFrameStart = false;
-			clearAvcFrameState();
-		}
-		else if (frameIndex > nextFrameNumber) {
+		if (frameIndex > nextFrameNumber) {
 			// Nope, but we can still work with it if it's
 			// the start of the next frame
 			if (firstPacket) {
 				System.out.println("Got start of frame "+frameIndex+
 						" when expecting packet "+nextPacketNumber+
 						" of frame "+nextFrameNumber);
-				controlListener.connectionDetectedFrameLoss(startFrameNumber, frameIndex - 1);
-				startFrameNumber = nextFrameNumber = frameIndex;
+				nextFrameNumber = frameIndex;
 				nextPacketNumber = 0;
 				clearAvcFrameState();
+				
+				// Tell the encoder when we're done decoding this frame
+				// that we lost some previous frames
+				waitingForNextSuccessfulFrame = true;
 			}
 			else {
 				System.out.println("Got packet "+packetIndex+" of frame "+frameIndex+
 						" when expecting packet "+nextPacketNumber+
 						" of frame "+nextFrameNumber);
-				// We dropped the start of this frame too, so pick up on the next frame
-				waitingForFrameStart = true;
+				// We dropped the start of this frame too
+				waitingForNextSuccessfulFrame = true;
+				
+				// Try to pickup on the next frame
+				nextFrameNumber = frameIndex + 1;
+				nextPacketNumber = 0;
+				clearAvcFrameState();
 				return;
 			}
 		}
@@ -247,7 +253,12 @@ public class VideoDepacketizer {
 		if (packetIndex != nextPacketNumber) {
 			System.out.println("Frame "+frameIndex+": expected packet "+nextPacketNumber+" but got "+packetIndex);
 			// At this point, we're guaranteed that it's not FEC data that we lost
-			waitingForFrameStart = true;
+			waitingForNextSuccessfulFrame = true;
+			
+			// Skip this frame
+			nextFrameNumber++;
+			nextPacketNumber = 0;
+			clearAvcFrameState();
 			return;
 		}
 		
@@ -279,6 +290,13 @@ public class VideoDepacketizer {
 		
 		if ((packet.getFlags() & VideoPacket.FLAG_EOF) != 0) {
 	        reassembleAvcFrame(packet.getFrameIndex());
+			
+			if (waitingForNextSuccessfulFrame) {
+				// This is the next successful frame after a loss event
+				controlListener.connectionDetectedFrameLoss(startFrameNumber, nextFrameNumber - 1);
+				waitingForNextSuccessfulFrame = false;
+			}
+			
 	        startFrameNumber = nextFrameNumber;
 		}
 	}

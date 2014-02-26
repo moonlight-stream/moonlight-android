@@ -194,6 +194,17 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			return false;
 		}
 		
+		int mcFlags = 0;
+		
+		if ((decodeUnit.getFlags() & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0) {
+			System.out.println("Codec config");
+			mcFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+		}
+		if ((decodeUnit.getFlags() & DecodeUnit.DU_FLAG_SYNC_FRAME) != 0) {
+			System.out.println("Sync frame");
+			mcFlags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
+		}
+		
 		int inputIndex = videoDecoder.dequeueInputBuffer(-1);
 		if (inputIndex >= 0)
 		{
@@ -239,7 +250,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 					videoDecoder.queueInputBuffer(inputIndex,
 							0, spsLength,
-							0, decodeUnit.getFlags());
+							0, mcFlags);
 					return true;
 				}
 			}
@@ -252,7 +263,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 			videoDecoder.queueInputBuffer(inputIndex,
 					0, decodeUnit.getDataLength(),
-					0, decodeUnit.getFlags());
+					0, mcFlags);
 		}
 		
 		return true;

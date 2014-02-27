@@ -47,9 +47,9 @@ public class ControlStream implements ConnectionStatusListener {
 	private Config config;
 	
 	public static final int LOSS_PERIOD_MS = 15000;
-	public static final int MAX_LOSS_COUNT_IN_PERIOD = 3;
-	public static final int MAX_SLOW_SINK_COUNT = 3;
-	public static final int MESSAGE_DELAY_FACTOR = 5;
+	public static final int MAX_LOSS_COUNT_IN_PERIOD = 2;
+	public static final int MAX_SLOW_SINK_COUNT = 2;
+	public static final int MESSAGE_DELAY_FACTOR = 3;
 	
 	private long lossTimestamp;
 	private int lossCount;

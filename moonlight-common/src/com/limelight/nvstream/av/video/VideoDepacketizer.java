@@ -179,9 +179,12 @@ public class VideoDepacketizer {
 			avcFrameDataLength = 0;
 		}
 		
-		// Add the payload data to the chain
-		avcFrameDataChain.add(location);
-		avcFrameDataLength += location.length;
+		// FIXME: This check shouldn't be needed
+		if (avcFrameDataChain != null) {
+			// Add the payload data to the chain
+			avcFrameDataChain.add(location);
+			avcFrameDataLength += location.length;
+		}
 	}
 	
 	public void addInputData(VideoPacket packet)

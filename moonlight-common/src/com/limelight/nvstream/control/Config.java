@@ -88,8 +88,12 @@ public class Config {
 		{
 		new IntConfigTuple((short)0x120b, 10), //averageBitrate
 		new IntConfigTuple((short)0x120c, 10), //peakBitrate
-		new IntConfigTuple((short)0x121c, 4000), //videoQoSBwMinimumBitrate
-		new IntConfigTuple((short)0x1245, 3000), 
+		
+		// HACK: Streaming 1080p30 without these options causes the encoder
+		// to step down to 720p which breaks the CPU decoder
+		new IntConfigTuple((short)0x121b, 25000), //videoQoSBwMaximumBitrate
+		new IntConfigTuple((short)0x121c, 25000), //videoQoSBwMinimumBitrate
+		
 		new IntConfigTuple((short)0x1246, 1280),
 		new IntConfigTuple((short)0x1247, 720),
 		/*new IntConfigTuple((short)0x124a, 5000),

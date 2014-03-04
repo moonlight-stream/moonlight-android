@@ -443,7 +443,7 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 		else {
 			if (++lossCount == MAX_LOSS_COUNT_IN_PERIOD) {
-				listener.displayTransientMessage("Detected excessive A/V data loss. Try improving your network connection or lowering stream settings.");
+				listener.displayTransientMessage("Detected excessive A/V data loss. Try improving your network connection or lowering stream resolution and/or frame rate.");
 				lossCount = -MAX_LOSS_COUNT_IN_PERIOD * MESSAGE_DELAY_FACTOR;
 				lossTimestamp = 0;
 			}
@@ -454,7 +454,7 @@ public class ControlStream implements ConnectionStatusListener {
 
 	public void connectionSinkTooSlow(int firstLostFrame, int nextSuccessfulFrame) {
 		if (++slowSinkCount == MAX_SLOW_SINK_COUNT) {
-			listener.displayTransientMessage("Your device is processing the A/V data too slowly. Try lowering stream settings.");
+			listener.displayTransientMessage("Your device is processing the A/V data too slowly. Try lowering stream resolution and/or frame rate.");
 			slowSinkCount = -MAX_SLOW_SINK_COUNT * MESSAGE_DELAY_FACTOR;
 		}
 		

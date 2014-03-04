@@ -8,7 +8,7 @@ public class LimeLog {
 	private static final Logger LOGGER = Logger.getLogger(LimeLog.class.getName());
 
 	public static void info(String msg) {
-		LOGGER.fine(msg);
+		LOGGER.info(msg);
 	}
 	
 	public static void warning(String msg) {

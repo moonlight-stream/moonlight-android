@@ -21,6 +21,7 @@ public class VideoDepacketizer {
 	private int nextPacketNumber;
 	private int startFrameNumber = 1;
 	private boolean waitingForNextSuccessfulFrame;
+	private boolean gotNextFrameStart;
 	
 	// Cached objects
 	private ByteBufferDescriptor cachedDesc = new ByteBufferDescriptor(null, 0, 0);
@@ -179,12 +180,9 @@ public class VideoDepacketizer {
 			avcFrameDataLength = 0;
 		}
 		
-		// FIXME: This check shouldn't be needed
-		if (avcFrameDataChain != null) {
-			// Add the payload data to the chain
-			avcFrameDataChain.add(location);
-			avcFrameDataLength += location.length;
-		}
+		// Add the payload data to the chain
+		avcFrameDataChain.add(location);
+		avcFrameDataLength += location.length;
 	}
 	
 	public void addInputData(VideoPacket packet)
@@ -232,6 +230,7 @@ public class VideoDepacketizer {
 				// Tell the encoder when we're done decoding this frame
 				// that we lost some previous frames
 				waitingForNextSuccessfulFrame = true;
+				gotNextFrameStart = false;
 			}
 			else {
 				LimeLog.warning("Got packet "+packetIndex+" of frame "+frameIndex+
@@ -239,6 +238,7 @@ public class VideoDepacketizer {
 						" of frame "+nextFrameNumber);
 				// We dropped the start of this frame too
 				waitingForNextSuccessfulFrame = true;
+				gotNextFrameStart = false;
 				
 				// Try to pickup on the next frame
 				nextFrameNumber = frameIndex + 1;
@@ -258,6 +258,7 @@ public class VideoDepacketizer {
 			LimeLog.warning("Frame "+frameIndex+": expected packet "+nextPacketNumber+" but got "+packetIndex);
 			// At this point, we're guaranteed that it's not FEC data that we lost
 			waitingForNextSuccessfulFrame = true;
+			gotNextFrameStart = false;
 			
 			// Skip this frame
 			nextFrameNumber++;
@@ -266,11 +267,29 @@ public class VideoDepacketizer {
 			return;
 		}
 		
+		if (waitingForNextSuccessfulFrame) {
+			if (!gotNextFrameStart) {
+				if (!firstPacket) {
+					// We're waiting for the next frame, but this one is a fragment of a frame
+					// so we must discard it and wait for the next one
+					LimeLog.warning("Expected start of frame "+frameIndex);
+					
+					nextFrameNumber = frameIndex + 1;
+					nextPacketNumber = 0;
+					clearAvcFrameState();
+					return;
+				}
+				else {
+					gotNextFrameStart = true;
+				}
+			}
+		}
+		
 		nextPacketNumber++;
 		
 		// Remove extra padding
 		location.length = packet.getPayloadLength();
-				
+		
 		if (firstPacket)
 		{
 			if (NAL.getSpecialSequenceDescriptor(location, cachedDesc) && NAL.isAvcFrameStart(cachedDesc)

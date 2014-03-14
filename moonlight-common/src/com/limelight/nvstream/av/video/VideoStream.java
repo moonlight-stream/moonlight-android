@@ -24,6 +24,7 @@ public class VideoStream {
 	
 	public static final int FIRST_FRAME_TIMEOUT = 5000;
 	public static final int RTP_RECV_BUFFER = 128 * 1024;
+	public static final int MAX_PACKET_SIZE = 1050;
 	
 	private InetAddress host;
 	private DatagramSocket rtp;
@@ -92,7 +93,7 @@ public class VideoStream {
 
 	private void readFirstFrame() throws IOException
 	{
-		byte[] firstFrame = new byte[1500];
+		byte[] firstFrame = new byte[MAX_PACKET_SIZE];
 		
 		firstFrameSocket = new Socket();
 		firstFrameSocket.setSoTimeout(FIRST_FRAME_TIMEOUT);
@@ -210,7 +211,7 @@ public class VideoStream {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				ByteBufferDescriptor desc = new ByteBufferDescriptor(new byte[1500], 0, 1500);
+				ByteBufferDescriptor desc = new ByteBufferDescriptor(new byte[MAX_PACKET_SIZE], 0, MAX_PACKET_SIZE);
 				DatagramPacket packet = new DatagramPacket(desc.data, desc.length);
 				
 				while (!isInterrupted())
@@ -219,7 +220,7 @@ public class VideoStream {
 						rtp.receive(packet);
 						desc.length = packet.getLength();
 						depacketizer.addInputData(new RtpPacket(desc));
-						desc.reinitialize(new byte[1500], 0, 1500);
+						desc.reinitialize(new byte[MAX_PACKET_SIZE], 0, MAX_PACKET_SIZE);
 						packet.setData(desc.data, desc.offset, desc.length);
 					} catch (IOException e) {
 						listener.connectionTerminated(e);

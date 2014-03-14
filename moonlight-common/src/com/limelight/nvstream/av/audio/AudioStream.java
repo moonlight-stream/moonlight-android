@@ -17,6 +17,7 @@ public class AudioStream {
 	public static final int RTCP_PORT = 47999;
 	
 	public static final int RTP_RECV_BUFFER = 64 * 1024;
+	public static final int MAX_PACKET_SIZE = 100;
 	
 	private DatagramSocket rtp;
 	
@@ -142,7 +143,7 @@ public class AudioStream {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				ByteBufferDescriptor desc = new ByteBufferDescriptor(new byte[1500], 0, 1500);
+				ByteBufferDescriptor desc = new ByteBufferDescriptor(new byte[MAX_PACKET_SIZE], 0, MAX_PACKET_SIZE);
 				DatagramPacket packet = new DatagramPacket(desc.data, desc.length);
 				
 				while (!isInterrupted())
@@ -150,9 +151,11 @@ public class AudioStream {
 					try {
 						rtp.receive(packet);
 						desc.length = packet.getLength();
+						
+						// DecodeInputData() doesn't hold onto the buffer so we are free to reuse it
 						depacketizer.decodeInputData(new RtpPacket(desc));
-						desc.reinitialize(new byte[1500], 0, 1500);
-						packet.setData(desc.data, desc.offset, desc.length);
+						
+						packet.setLength(MAX_PACKET_SIZE);
 					} catch (IOException e) {
 						connListener.connectionTerminated(e);
 						return;

@@ -13,6 +13,7 @@ public class AudioDepacketizer {
 			new LinkedBlockingQueue<ByteBufferDescriptor>(DU_LIMIT);
 	
 	private AudioRenderer directSubmitRenderer;
+	private byte[] directSubmitData;
 	
 	// Sequencing state
 	private short lastSequenceNumber;
@@ -20,20 +21,32 @@ public class AudioDepacketizer {
 	public AudioDepacketizer(AudioRenderer directSubmitRenderer)
 	{
 		this.directSubmitRenderer = directSubmitRenderer;
+		if (directSubmitRenderer != null) {
+			this.directSubmitData = new byte[OpusDecoder.getMaxOutputShorts()*2];
+		}
 	}
 
 	private void decodeData(byte[] data, int off, int len)
 	{
 		// Submit this data to the decoder
-		byte[] pcmData = new byte[OpusDecoder.getMaxOutputShorts()*2];
-		int decodeLen = OpusDecoder.decode(data, off, len, pcmData);
+		int decodeLen;
+		byte[] pcmData;
+		if (directSubmitData != null) {
+			pcmData = null;
+			decodeLen = OpusDecoder.decode(data, off, len, directSubmitData);
+		}
+		else {
+			pcmData = new byte[OpusDecoder.getMaxOutputShorts()*2];
+			decodeLen = OpusDecoder.decode(data, off, len, pcmData);
+		}
+		
 		
 		if (decodeLen > 0) {
 			// Return value of decode is frames (shorts) decoded per channel
 			decodeLen *= 2*OpusDecoder.getChannelCount();
 			
 			if (directSubmitRenderer != null) {
-				directSubmitRenderer.playDecodedAudio(pcmData, 0, decodeLen);
+				directSubmitRenderer.playDecodedAudio(directSubmitData, 0, decodeLen);
 			}
 			else if (!decodedUnits.offer(new ByteBufferDescriptor(pcmData, 0, decodeLen))) {
 				LimeLog.warning("Audio player too slow! Forced to drop decoded samples");

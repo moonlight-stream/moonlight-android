@@ -24,7 +24,13 @@ public class VideoStream {
 	
 	public static final int FIRST_FRAME_TIMEOUT = 5000;
 	public static final int RTP_RECV_BUFFER = 128 * 1024;
+	
 	public static final int MAX_PACKET_SIZE = 1050;
+	
+	// The ring size MUST be greater than or equal to
+	// the maximum number of packets in a fully
+	// presentable frame
+	public static final int VIDEO_RING_SIZE = 192;
 	
 	private InetAddress host;
 	private DatagramSocket rtp;
@@ -211,22 +217,36 @@ public class VideoStream {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				ByteBufferDescriptor desc = new ByteBufferDescriptor(new byte[MAX_PACKET_SIZE], 0, MAX_PACKET_SIZE);
-				DatagramPacket packet = new DatagramPacket(desc.data, desc.length);
+				ByteBufferDescriptor ring[] = new ByteBufferDescriptor[VIDEO_RING_SIZE];
+				int ringIndex = 0;
 				
+				// Preinitialize the ring buffer
+				for (int i = 0; i < VIDEO_RING_SIZE; i++) {
+					ring[i] = new ByteBufferDescriptor(new byte[MAX_PACKET_SIZE], 0, MAX_PACKET_SIZE);
+				}
+
+				ByteBufferDescriptor desc;
+				DatagramPacket packet = new DatagramPacket(new byte[1], 1); // Placeholder array
 				while (!isInterrupted())
 				{
 					try {
+						// Pull the next buffer in the ring and reset it
+						desc = ring[ringIndex];
+						desc.length = MAX_PACKET_SIZE;
+						desc.offset = 0;
+
+						// Read the video data off the network
+						packet.setData(desc.data, desc.offset, desc.length);
 						rtp.receive(packet);
+						
+						// Submit video data to the depacketizer
 						desc.length = packet.getLength();
 						depacketizer.addInputData(new RtpPacket(desc));
-						desc.reinitialize(new byte[MAX_PACKET_SIZE], 0, MAX_PACKET_SIZE);
-						packet.setData(desc.data, desc.offset, desc.length);
+						ringIndex = (ringIndex + 1) % VIDEO_RING_SIZE;
 					} catch (IOException e) {
 						listener.connectionTerminated(e);
 						return;
 					}
-					
 				}
 			}
 		};

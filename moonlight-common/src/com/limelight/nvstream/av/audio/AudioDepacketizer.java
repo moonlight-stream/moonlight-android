@@ -12,8 +12,13 @@ public class AudioDepacketizer {
 	private LinkedBlockingQueue<ByteBufferDescriptor> decodedUnits =
 			new LinkedBlockingQueue<ByteBufferDescriptor>(DU_LIMIT);
 	
+	// Direct submit state
 	private AudioRenderer directSubmitRenderer;
 	private byte[] directSubmitData;
+	
+	// Non-direct submit state
+	private byte[][] pcmRing;
+	private int ringIndex;
 	
 	// Sequencing state
 	private short lastSequenceNumber;
@@ -24,6 +29,9 @@ public class AudioDepacketizer {
 		if (directSubmitRenderer != null) {
 			this.directSubmitData = new byte[OpusDecoder.getMaxOutputShorts()*2];
 		}
+		else {
+			pcmRing = new byte[DU_LIMIT][OpusDecoder.getMaxOutputShorts()*2];
+ 		}
 	}
 
 	private void decodeData(byte[] data, int off, int len)
@@ -36,10 +44,10 @@ public class AudioDepacketizer {
 			decodeLen = OpusDecoder.decode(data, off, len, directSubmitData);
 		}
 		else {
-			pcmData = new byte[OpusDecoder.getMaxOutputShorts()*2];
+			pcmData = pcmRing[ringIndex];
 			decodeLen = OpusDecoder.decode(data, off, len, pcmData);
+			ringIndex = (ringIndex + 1) % DU_LIMIT;
 		}
-		
 		
 		if (decodeLen > 0) {
 			// Return value of decode is frames (shorts) decoded per channel

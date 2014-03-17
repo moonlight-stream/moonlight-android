@@ -4,15 +4,19 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 
 public class AndroidAudioRenderer implements AudioRenderer {
 
+	public static final int FRAME_SIZE = 960;
+	
 	private AudioTrack track;
 
 	@Override
 	public void streamInitialized(int channelCount, int sampleRate) {
 		int channelConfig;
+		int bufferSize;
 
 		switch (channelCount)
 		{
@@ -26,11 +30,20 @@ public class AndroidAudioRenderer implements AudioRenderer {
 			throw new IllegalArgumentException("Decoder returned unhandled channel count");
 		}
 
+		bufferSize = Math.max(AudioTrack.getMinBufferSize(sampleRate,
+				channelConfig,
+				AudioFormat.ENCODING_PCM_16BIT),
+				FRAME_SIZE * 2);
+		
+		// Round to next frame
+		bufferSize = (((bufferSize + (FRAME_SIZE - 1)) / FRAME_SIZE) * FRAME_SIZE);
+		
+		LimeLog.info("Audio track buffer size: "+bufferSize);
 		track = new AudioTrack(AudioManager.STREAM_MUSIC,
 				sampleRate,
 				channelConfig,
 				AudioFormat.ENCODING_PCM_16BIT,
-				1024, // 1KB buffer
+				bufferSize,
 				AudioTrack.MODE_STREAM);
 
 		track.play();

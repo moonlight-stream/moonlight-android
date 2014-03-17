@@ -91,7 +91,6 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		sv.setOnTouchListener(this);
 
 		SurfaceHolder sh = sv.getHolder();
-		sh.setFormat(PixelFormat.RGBX_8888);
 
 		// Start the spinner
 		spinner = SpinnerDialog.displayDialog(this, "Establishing Connection", "Starting connection", true);

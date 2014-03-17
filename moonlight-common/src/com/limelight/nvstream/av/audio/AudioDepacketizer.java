@@ -46,7 +46,6 @@ public class AudioDepacketizer {
 		else {
 			pcmData = pcmRing[ringIndex];
 			decodeLen = OpusDecoder.decode(data, off, len, pcmData);
-			ringIndex = (ringIndex + 1) % DU_LIMIT;
 		}
 		
 		if (decodeLen > 0) {
@@ -60,6 +59,10 @@ public class AudioDepacketizer {
 				LimeLog.warning("Audio player too slow! Forced to drop decoded samples");
 				// Clear out the queue
 				decodedUnits.clear();
+			}
+			else {
+				// Frame successfully submitted for playback
+				ringIndex = (ringIndex + 1) % DU_LIMIT;
 			}
 		}
 	}

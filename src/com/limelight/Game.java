@@ -15,6 +15,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
+import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.view.InputDevice;
@@ -77,6 +78,9 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		
 		// We don't want a title bar
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		
+		// Change volume button behavior
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
 		// Inflate the content
 		setContentView(R.layout.activity_game);

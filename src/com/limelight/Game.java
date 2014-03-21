@@ -157,18 +157,16 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	}
 	
 	@Override
-	public void onPause() {
-		displayedFailureDialog = true;
-		conn.stop();
-		finish();
-		super.onPause();
-	}
-	
-	@Override
-	protected void onDestroy() {
+	protected void onStop() {
+		super.onStop();
+		
 		SpinnerDialog.closeDialogs();
 		Dialog.closeDialogs();
-		super.onDestroy();
+		
+		displayedFailureDialog = true;
+		conn.stop();
+		
+		finish();
 	}
 	
 	@Override

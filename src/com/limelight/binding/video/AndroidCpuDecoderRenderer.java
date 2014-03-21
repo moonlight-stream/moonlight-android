@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import android.graphics.PixelFormat;
 import android.view.SurfaceHolder;
 
 import com.limelight.LimeLog;
@@ -124,12 +125,15 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 			LimeLog.info("Using high quality decoding");
 		}
 		
+		SurfaceHolder sh = (SurfaceHolder)renderTarget;
+		sh.setFormat(PixelFormat.RGBX_8888);
+		
 		int err = AvcDecoder.init(width, height, avcFlags, threadCount);
 		if (err != 0) {
 			throw new IllegalStateException("AVC decoder initialization failure: "+err);
 		}
 		
-		AvcDecoder.setRenderTarget(((SurfaceHolder)renderTarget).getSurface());
+		AvcDecoder.setRenderTarget(sh.getSurface());
 		
 		decoderBuffer = ByteBuffer.allocate(DECODER_BUFFER_SIZE + AvcDecoder.getInputPaddingSize());
 		

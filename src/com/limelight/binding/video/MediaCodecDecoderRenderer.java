@@ -102,7 +102,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				if (mime.equalsIgnoreCase("video/avc")) {
 					LimeLog.info("Examining decoder capabilities of "+codecInfo.getName());
 					
-					CodecCapabilities caps = codecInfo.getCapabilitiesForType("video/avc");
+					CodecCapabilities caps = codecInfo.getCapabilitiesForType(mime);
 					for (CodecProfileLevel profile : caps.profileLevels) {
 						if (profile.profile == CodecProfileLevel.AVCProfileHigh) {
 							LimeLog.info("Decoder "+codecInfo.getName()+" supports high profile");
@@ -110,6 +110,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 							return codecInfo;
 						}
 					}
+					
+					LimeLog.info("Decoder "+codecInfo.getName()+" does NOT support high profile");
 				}
 			}
 		}

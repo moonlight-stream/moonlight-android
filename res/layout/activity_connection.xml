@@ -10,7 +10,7 @@
     
     <RelativeLayout
      android:layout_width="fill_parent"
-     android:layout_height="wrap_content">
+     android:layout_height="wrap_content" >
 
     <EditText
         android:id="@+id/hostTextView"
@@ -30,11 +30,13 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/hostTextView"
         android:layout_centerHorizontal="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:text="Start Streaming Steam!" >
         
         <requestFocus />
         
-        </Button>
+    </Button>
 
     <Button
         android:id="@+id/pairButton"

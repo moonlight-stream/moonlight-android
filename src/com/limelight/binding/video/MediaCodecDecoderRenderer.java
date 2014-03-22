@@ -33,9 +33,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	
 	static {
 		blacklistedDecoderPrefixes = new LinkedList<String>();
-		blacklistedDecoderPrefixes.add("omx.google");
+		
+		// TI's decoder technically supports high profile but doesn't work for some reason
 		blacklistedDecoderPrefixes.add("omx.TI");
-		blacklistedDecoderPrefixes.add("AVCDecoder");
 	}
 	
 	static {
@@ -60,34 +60,44 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		
 		return false;
 	}
-
-	public static MediaCodecInfo findSafeDecoder() {
-
+	
+	public static void dumpDecoders() {
 		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
 			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
-			boolean badCodec = false;
 			
 			// Skip encoders
 			if (codecInfo.isEncoder()) {
 				continue;
 			}
 			
-			for (String badPrefix : blacklistedDecoderPrefixes) {
-				String name = codecInfo.getName();
-				if (name.length() >= badPrefix.length()) {
-					String prefix = name.substring(0, badPrefix.length());
-					if (prefix.equalsIgnoreCase(badPrefix)) {
-						badCodec = true;
-						break;
-					}
+			LimeLog.info("Decoder: "+codecInfo.getName());
+			for (String type : codecInfo.getSupportedTypes()) {
+				LimeLog.info("\t"+type);
+				CodecCapabilities caps = codecInfo.getCapabilitiesForType(type);
+				
+				for (CodecProfileLevel profile : caps.profileLevels) {
+					LimeLog.info("\t\t"+profile.profile+" "+profile.level);
 				}
 			}
-			
-			if (badCodec) {
-				LimeLog.info("Blacklisted decoder: "+codecInfo.getName());
+		}
+	}
+
+	public static MediaCodecInfo findSafeDecoder() {
+		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
+			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
+						
+			// Skip encoders
+			if (codecInfo.isEncoder()) {
 				continue;
 			}
 			
+			// Check for explicitly blacklisted decoders
+			if (isDecoderInList(blacklistedDecoderPrefixes, codecInfo.getName())) {
+				LimeLog.info("Skipping blacklisted decoder: "+codecInfo.getName());
+				continue;
+			}
+			
+			// Find a decoder that supports H.264 high profile
 			for (String mime : codecInfo.getSupportedTypes()) {
 				if (mime.equalsIgnoreCase("video/avc")) {
 					LimeLog.info("Examining decoder capabilities of "+codecInfo.getName());
@@ -96,10 +106,11 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					for (CodecProfileLevel profile : caps.profileLevels) {
 						if (profile.profile == CodecProfileLevel.AVCProfileHigh) {
 							LimeLog.info("Decoder "+codecInfo.getName()+" supports high profile");
-					return codecInfo;
+							LimeLog.info("Selected decoder: "+codecInfo.getName());
+							return codecInfo;
+						}
+					}
 				}
-			}
-		}
 			}
 		}
 		
@@ -109,6 +120,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	@Override
 	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {	
 		this.redrawRate = redrawRate;
+		
+		dumpDecoders();
 		
 		MediaCodecInfo safeDecoder = findSafeDecoder();
 		if (safeDecoder != null) {

@@ -11,6 +11,8 @@ import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
+import android.media.MediaCodecInfo.CodecCapabilities;
+import android.media.MediaCodecInfo.CodecProfileLevel;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaCodec.BufferInfo;
@@ -88,9 +90,16 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			
 			for (String mime : codecInfo.getSupportedTypes()) {
 				if (mime.equalsIgnoreCase("video/avc")) {
-					LimeLog.info("Selected decoder: "+codecInfo.getName());
+					LimeLog.info("Examining decoder capabilities of "+codecInfo.getName());
+					
+					CodecCapabilities caps = codecInfo.getCapabilitiesForType("video/avc");
+					for (CodecProfileLevel profile : caps.profileLevels) {
+						if (profile.profile == CodecProfileLevel.AVCProfileHigh) {
+							LimeLog.info("Decoder "+codecInfo.getName()+" supports high profile");
 					return codecInfo;
 				}
+			}
+		}
 			}
 		}
 		

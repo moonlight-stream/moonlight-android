@@ -15,6 +15,7 @@ import com.limelight.nvstream.http.NvHTTP;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -51,6 +52,9 @@ public class Connection extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.activity_connection);
+		
+		// Hide the keyboard by default
+		this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		
 		this.statusButton = (Button) findViewById(R.id.statusButton);
 		this.pairButton = (Button) findViewById(R.id.pairButton);

@@ -30,8 +30,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/hostTextView"
         android:layout_centerHorizontal="true"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
         android:text="Start Streaming Steam!" >
         
         <requestFocus />

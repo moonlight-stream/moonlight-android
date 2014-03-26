@@ -163,6 +163,11 @@ public class Connection extends Activity {
 		this.statusButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
+				if (Connection.this.hostText.getText().length() == 0) {
+					Toast.makeText(Connection.this, "Please enter the target PC's IP address in the text box at the top of the screen.", Toast.LENGTH_LONG).show();
+					return;
+				}
+				
 				Intent intent = new Intent(Connection.this, Game.class);
 				intent.putExtra("host", Connection.this.hostText.getText().toString());
 				Connection.this.startActivity(intent);

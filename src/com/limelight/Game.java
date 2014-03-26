@@ -7,6 +7,7 @@ import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.input.ControllerPacket;
+import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 
@@ -46,6 +47,8 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	private int lastTouchX = 0;
 	private int lastTouchY = 0;
 	private boolean hasMoved = false;
+	
+	private KeyboardTranslator keybTranslator;
 	
 	private int height;
 	private int width;
@@ -123,13 +126,14 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		
 		Display display = getWindowManager().getDefaultDisplay();
 		display.getSize(screenSize);
-        
+		        
 		// Warn the user if they're on a metered connection
         checkDataConnection();
 		
 		// Start the connection
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this,
 				new StreamConfiguration(width, height, refreshRate));
+		keybTranslator = new KeyboardTranslator(conn);
 		conn.start(PlatformBinding.getDeviceName(), sv.getHolder(), drFlags,
 				PlatformBinding.getAudioRenderer(), new ConfigurableDecoderRenderer());
 	}
@@ -179,128 +183,168 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		finish();
 	}
 	
+	private static byte getModifierState(KeyEvent event) {
+		byte modifier = 0;
+		if (event.isShiftPressed()) {
+			modifier |= KeyboardPacket.MODIFIER_SHIFT;
+		}
+		if (event.isCtrlPressed()) {
+			modifier |= KeyboardPacket.MODIFIER_CTRL;
+		}
+		if (event.isAltPressed()) {
+			modifier |= KeyboardPacket.MODIFIER_ALT;
+		}
+		return modifier;
+	}
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		switch (keyCode) {
-		case KeyEvent.KEYCODE_BUTTON_START:
-		case KeyEvent.KEYCODE_MENU:
-			inputMap |= ControllerPacket.PLAY_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BACK:
-		case KeyEvent.KEYCODE_BUTTON_SELECT:
-			inputMap |= ControllerPacket.BACK_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_LEFT:
-			inputMap |= ControllerPacket.LEFT_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			inputMap |= ControllerPacket.RIGHT_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_UP:
-			inputMap |= ControllerPacket.UP_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_DOWN:
-			inputMap |= ControllerPacket.DOWN_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_B:
-			inputMap |= ControllerPacket.B_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_A:
-			inputMap |= ControllerPacket.A_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_X:
-			inputMap |= ControllerPacket.X_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_Y:
-			inputMap |= ControllerPacket.Y_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_L1:
-			inputMap |= ControllerPacket.LB_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_R1:
-			inputMap |= ControllerPacket.RB_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_THUMBL:
-			inputMap |= ControllerPacket.LS_CLK_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_THUMBR:
-			inputMap |= ControllerPacket.RS_CLK_FLAG;
-			break;
-		default:
-			return super.onKeyDown(keyCode, event);
+		if (event.getDevice() != null &&
+			(event.getDevice().getSources() & InputDevice.SOURCE_KEYBOARD) != 0) {
+			short translated = keybTranslator.translate(event.getKeyCode());
+			if (translated == 0) {
+				return super.onKeyDown(keyCode, event);
+			}
+			
+			keybTranslator.sendKeyDown(translated,
+					getModifierState(event));
 		}
-		
-		// We detect back+start as the special button combo
-		if ((inputMap & ControllerPacket.BACK_FLAG) != 0 &&
-			(inputMap & ControllerPacket.PLAY_FLAG) != 0)
-		{
-			inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG);
-			inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+		else {
+			switch (keyCode) {
+			case KeyEvent.KEYCODE_BUTTON_START:
+			case KeyEvent.KEYCODE_MENU:
+				inputMap |= ControllerPacket.PLAY_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BACK:
+			case KeyEvent.KEYCODE_BUTTON_SELECT:
+				inputMap |= ControllerPacket.BACK_FLAG;
+				break;
+			case KeyEvent.KEYCODE_DPAD_LEFT:
+				inputMap |= ControllerPacket.LEFT_FLAG;
+				break;
+			case KeyEvent.KEYCODE_DPAD_RIGHT:
+				inputMap |= ControllerPacket.RIGHT_FLAG;
+				break;
+			case KeyEvent.KEYCODE_DPAD_UP:
+				inputMap |= ControllerPacket.UP_FLAG;
+				break;
+			case KeyEvent.KEYCODE_DPAD_DOWN:
+				inputMap |= ControllerPacket.DOWN_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_B:
+				inputMap |= ControllerPacket.B_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_A:
+				inputMap |= ControllerPacket.A_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_X:
+				inputMap |= ControllerPacket.X_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_Y:
+				inputMap |= ControllerPacket.Y_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_L1:
+				inputMap |= ControllerPacket.LB_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_R1:
+				inputMap |= ControllerPacket.RB_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_THUMBL:
+				inputMap |= ControllerPacket.LS_CLK_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_THUMBR:
+				inputMap |= ControllerPacket.RS_CLK_FLAG;
+				break;
+			default:
+				return super.onKeyDown(keyCode, event);
+			}
+			
+			// We detect back+start as the special button combo
+			if ((inputMap & ControllerPacket.BACK_FLAG) != 0 &&
+				(inputMap & ControllerPacket.PLAY_FLAG) != 0)
+			{
+				inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG);
+				inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+			}
+			
+			sendControllerInputPacket();
 		}
-		
-		sendControllerInputPacket();
+
 		return true;
 	}
 	
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		switch (keyCode) {
-		case KeyEvent.KEYCODE_BUTTON_START:
-		case KeyEvent.KEYCODE_MENU:
-			inputMap &= ~ControllerPacket.PLAY_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BACK:
-		case KeyEvent.KEYCODE_BUTTON_SELECT:
-			inputMap &= ~ControllerPacket.BACK_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_LEFT:
-			inputMap &= ~ControllerPacket.LEFT_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			inputMap &= ~ControllerPacket.RIGHT_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_UP:
-			inputMap &= ~ControllerPacket.UP_FLAG;
-			break;
-		case KeyEvent.KEYCODE_DPAD_DOWN:
-			inputMap &= ~ControllerPacket.DOWN_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_B:
-			inputMap &= ~ControllerPacket.B_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_A:
-			inputMap &= ~ControllerPacket.A_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_X:
-			inputMap &= ~ControllerPacket.X_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_Y:
-			inputMap &= ~ControllerPacket.Y_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_L1:
-			inputMap &= ~ControllerPacket.LB_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_R1:
-			inputMap &= ~ControllerPacket.RB_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_THUMBL:
-			inputMap &= ~ControllerPacket.LS_CLK_FLAG;
-			break;
-		case KeyEvent.KEYCODE_BUTTON_THUMBR:
-			inputMap &= ~ControllerPacket.RS_CLK_FLAG;
-			break;
-		default:
-			return super.onKeyUp(keyCode, event);
+		if (event.getDevice() != null &&
+			(event.getDevice().getSources() & InputDevice.SOURCE_KEYBOARD) != 0) {
+			short translated = keybTranslator.translate(event.getKeyCode());
+			if (translated == 0) {
+				return super.onKeyUp(keyCode, event);
+			}
+
+			keybTranslator.sendKeyUp(translated,
+					getModifierState(event));
+		}
+		else {
+			switch (keyCode) {
+			case KeyEvent.KEYCODE_BUTTON_START:
+			case KeyEvent.KEYCODE_MENU:
+				inputMap &= ~ControllerPacket.PLAY_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BACK:
+			case KeyEvent.KEYCODE_BUTTON_SELECT:
+				inputMap &= ~ControllerPacket.BACK_FLAG;
+				break;
+			case KeyEvent.KEYCODE_DPAD_LEFT:
+				inputMap &= ~ControllerPacket.LEFT_FLAG;
+				break;
+			case KeyEvent.KEYCODE_DPAD_RIGHT:
+				inputMap &= ~ControllerPacket.RIGHT_FLAG;
+				break;
+			case KeyEvent.KEYCODE_DPAD_UP:
+				inputMap &= ~ControllerPacket.UP_FLAG;
+				break;
+			case KeyEvent.KEYCODE_DPAD_DOWN:
+				inputMap &= ~ControllerPacket.DOWN_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_B:
+				inputMap &= ~ControllerPacket.B_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_A:
+				inputMap &= ~ControllerPacket.A_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_X:
+				inputMap &= ~ControllerPacket.X_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_Y:
+				inputMap &= ~ControllerPacket.Y_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_L1:
+				inputMap &= ~ControllerPacket.LB_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_R1:
+				inputMap &= ~ControllerPacket.RB_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_THUMBL:
+				inputMap &= ~ControllerPacket.LS_CLK_FLAG;
+				break;
+			case KeyEvent.KEYCODE_BUTTON_THUMBR:
+				inputMap &= ~ControllerPacket.RS_CLK_FLAG;
+				break;
+			default:
+				return super.onKeyUp(keyCode, event);
+			}
+			
+			// If one of the two is up, the special button comes up too
+			if ((inputMap & ControllerPacket.BACK_FLAG) == 0 ||
+				(inputMap & ControllerPacket.PLAY_FLAG) == 0)
+			{
+				inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
+			}
+			
+			sendControllerInputPacket();
 		}
 		
-		// If one of the two is up, the special button comes up too
-		if ((inputMap & ControllerPacket.BACK_FLAG) == 0 ||
-			(inputMap & ControllerPacket.PLAY_FLAG) == 0)
-		{
-			inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
-		}
-		
-		sendControllerInputPacket();
 		return true;
 	}
 	

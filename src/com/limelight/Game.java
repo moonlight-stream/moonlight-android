@@ -14,9 +14,11 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -44,6 +46,10 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	private int lastTouchX = 0;
 	private int lastTouchY = 0;
 	private boolean hasMoved = false;
+	
+	private int height;
+	private int width;
+	private Point screenSize = new Point(0, 0);
 	
 	private NvConnection conn;
 	private SpinnerDialog spinner;
@@ -109,11 +115,14 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			break;
 		}
 
-		int width, height, refreshRate;
+		int refreshRate;
 		width = prefs.getInt(WIDTH_PREF_STRING, DEFAULT_WIDTH);
 		height = prefs.getInt(HEIGHT_PREF_STRING, DEFAULT_HEIGHT);
 		refreshRate = prefs.getInt(REFRESH_RATE_PREF_STRING, DEFAULT_REFRESH_RATE);
 		sh.setFixedSize(width, height);
+		
+		Display display = getWindowManager().getDefaultDisplay();
+		display.getSize(screenSize);
         
 		// Warn the user if they're on a metered connection
         checkDataConnection();
@@ -509,8 +518,15 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			lastMouseY != Integer.MIN_VALUE &&
 			!(lastMouseX == eventX && lastMouseY == eventY))
 		{
-			conn.sendMouseMove((short)(eventX - lastMouseX),
-					(short)(eventY - lastMouseY));
+			int deltaX = eventX - lastMouseX;
+			int deltaY = eventY - lastMouseY;
+			
+			// Scale the deltas if the device resolution is different
+			// than the stream resolution
+			deltaX = (int)Math.round((double)deltaX * ((double)width / (double)screenSize.x));
+			deltaY = (int)Math.round((double)deltaY * ((double)height / (double)screenSize.y));
+			
+			conn.sendMouseMove((short)deltaX, (short)deltaY);
 		}
 		
 		// Update pointer location for delta calculation next time

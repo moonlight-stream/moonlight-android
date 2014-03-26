@@ -40,6 +40,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	private short leftStickY = 0x0000;
 	private int lastMouseX = Integer.MIN_VALUE;
 	private int lastMouseY = Integer.MIN_VALUE;
+	private int lastButtonState = 0;
 	private int lastTouchX = 0;
 	private int lastTouchY = 0;
 	private boolean hasMoved = false;
@@ -363,17 +364,36 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 			// This case is for mice
 			else if (event.getSource() == InputDevice.SOURCE_MOUSE)
 			{
-				switch (event.getActionMasked())
-				{
-				case MotionEvent.ACTION_DOWN:
-					conn.sendMouseButtonDown((byte) 0x01);
-					break;
-				case MotionEvent.ACTION_UP:
-					conn.sendMouseButtonUp((byte) 0x01);
-					break;
-				default:
-					return super.onTouchEvent(event);
+				int changedButtons = event.getButtonState() ^ lastButtonState;
+				
+				if ((changedButtons & MotionEvent.BUTTON_PRIMARY) != 0) {
+					if ((event.getButtonState() & MotionEvent.BUTTON_PRIMARY) != 0) {
+						conn.sendMouseButtonDown((byte) 0x01);
+					}
+					else {
+						conn.sendMouseButtonUp((byte) 0x01);
+					}
 				}
+				
+				if ((changedButtons & MotionEvent.BUTTON_SECONDARY) != 0) {
+					if ((event.getButtonState() & MotionEvent.BUTTON_SECONDARY) != 0) {
+						conn.sendMouseButtonDown((byte) 0x03);
+					}
+					else {
+						conn.sendMouseButtonUp((byte) 0x03);
+					}
+				}
+				
+				if ((changedButtons & MotionEvent.BUTTON_TERTIARY) != 0) {
+					if ((event.getButtonState() & MotionEvent.BUTTON_TERTIARY) != 0) {
+						conn.sendMouseButtonDown((byte) 0x02);
+					}
+					else {
+						conn.sendMouseButtonUp((byte) 0x02);
+					}
+				}
+				
+				lastButtonState = event.getButtonState();
 			}
 			else
 			{

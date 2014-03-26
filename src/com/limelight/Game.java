@@ -200,7 +200,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (event.getDevice() != null &&
-			(event.getDevice().getSources() & InputDevice.SOURCE_KEYBOARD) != 0) {
+			(event.getDevice().getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC)) {
 			short translated = keybTranslator.translate(event.getKeyCode());
 			if (translated == 0) {
 				return super.onKeyDown(keyCode, event);
@@ -276,7 +276,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		if (event.getDevice() != null &&
-			(event.getDevice().getSources() & InputDevice.SOURCE_KEYBOARD) != 0) {
+			(event.getDevice().getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC)) {
 			short translated = keybTranslator.translate(event.getKeyCode());
 			if (translated == 0) {
 				return super.onKeyUp(keyCode, event);

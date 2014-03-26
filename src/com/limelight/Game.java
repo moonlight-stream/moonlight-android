@@ -446,6 +446,8 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 					}
 				}
 				
+				updateMousePosition((int)event.getX(), (int)event.getY());
+				
 				lastButtonState = event.getButtonState();
 			}
 			else

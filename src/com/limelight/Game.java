@@ -1,6 +1,7 @@
 package com.limelight;
 
 import com.limelight.binding.PlatformBinding;
+import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.video.ConfigurableDecoderRenderer;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;

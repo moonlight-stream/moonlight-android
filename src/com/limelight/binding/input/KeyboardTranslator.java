@@ -1,4 +1,4 @@
-package com.limelight;
+package com.limelight.binding.input;
 
 import android.view.KeyEvent;
 

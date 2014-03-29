@@ -123,7 +123,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {	
 		this.redrawRate = redrawRate;
 		
-		dumpDecoders();
+		//dumpDecoders();
 		
 		MediaCodecInfo safeDecoder = findSafeDecoder();
 		if (safeDecoder != null) {

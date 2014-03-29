@@ -1,13 +1,13 @@
 package com.limelight;
 
 import com.limelight.binding.PlatformBinding;
+import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.video.ConfigurableDecoderRenderer;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
-import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
@@ -35,13 +35,6 @@ import android.widget.Toast;
 
 
 public class Game extends Activity implements OnGenericMotionListener, OnTouchListener, NvConnectionListener {
-	private short inputMap = 0x0000;
-	private byte leftTrigger = 0x00;
-	private byte rightTrigger = 0x00;
-	private short rightStickX = 0x0000;
-	private short rightStickY = 0x0000;
-	private short leftStickX = 0x0000;
-	private short leftStickY = 0x0000;
 	private int lastMouseX = Integer.MIN_VALUE;
 	private int lastMouseY = Integer.MIN_VALUE;
 	private int lastButtonState = 0;
@@ -49,6 +42,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	private int lastTouchY = 0;
 	private boolean hasMoved = false;
 	
+	private ControllerHandler controllerHandler;
 	private KeyboardTranslator keybTranslator;
 	
 	private int height;
@@ -135,6 +129,7 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this,
 				new StreamConfiguration(width, height, refreshRate));
 		keybTranslator = new KeyboardTranslator(conn);
+		controllerHandler = new ControllerHandler(conn);
 		conn.start(PlatformBinding.getDeviceName(), sv.getHolder(), drFlags,
 				PlatformBinding.getAudioRenderer(), new ConfigurableDecoderRenderer());
 	}
@@ -211,64 +206,9 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 					getModifierState(event));
 		}
 		else {
-			switch (keyCode) {
-			case KeyEvent.KEYCODE_BUTTON_START:
-			case KeyEvent.KEYCODE_MENU:
-				inputMap |= ControllerPacket.PLAY_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BACK:
-			case KeyEvent.KEYCODE_BUTTON_SELECT:
-				inputMap |= ControllerPacket.BACK_FLAG;
-				break;
-			case KeyEvent.KEYCODE_DPAD_LEFT:
-				inputMap |= ControllerPacket.LEFT_FLAG;
-				break;
-			case KeyEvent.KEYCODE_DPAD_RIGHT:
-				inputMap |= ControllerPacket.RIGHT_FLAG;
-				break;
-			case KeyEvent.KEYCODE_DPAD_UP:
-				inputMap |= ControllerPacket.UP_FLAG;
-				break;
-			case KeyEvent.KEYCODE_DPAD_DOWN:
-				inputMap |= ControllerPacket.DOWN_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_B:
-				inputMap |= ControllerPacket.B_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_A:
-				inputMap |= ControllerPacket.A_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_X:
-				inputMap |= ControllerPacket.X_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_Y:
-				inputMap |= ControllerPacket.Y_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_L1:
-				inputMap |= ControllerPacket.LB_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_R1:
-				inputMap |= ControllerPacket.RB_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_THUMBL:
-				inputMap |= ControllerPacket.LS_CLK_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_THUMBR:
-				inputMap |= ControllerPacket.RS_CLK_FLAG;
-				break;
-			default:
+			if (!controllerHandler.handleButtonDown(keyCode, event)) {
 				return super.onKeyDown(keyCode, event);
 			}
-			
-			// We detect back+start as the special button combo
-			if ((inputMap & ControllerPacket.BACK_FLAG) != 0 &&
-				(inputMap & ControllerPacket.PLAY_FLAG) != 0)
-			{
-				inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG);
-				inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
-			}
-			
-			sendControllerInputPacket();
 		}
 
 		return true;
@@ -287,63 +227,9 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 					getModifierState(event));
 		}
 		else {
-			switch (keyCode) {
-			case KeyEvent.KEYCODE_BUTTON_START:
-			case KeyEvent.KEYCODE_MENU:
-				inputMap &= ~ControllerPacket.PLAY_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BACK:
-			case KeyEvent.KEYCODE_BUTTON_SELECT:
-				inputMap &= ~ControllerPacket.BACK_FLAG;
-				break;
-			case KeyEvent.KEYCODE_DPAD_LEFT:
-				inputMap &= ~ControllerPacket.LEFT_FLAG;
-				break;
-			case KeyEvent.KEYCODE_DPAD_RIGHT:
-				inputMap &= ~ControllerPacket.RIGHT_FLAG;
-				break;
-			case KeyEvent.KEYCODE_DPAD_UP:
-				inputMap &= ~ControllerPacket.UP_FLAG;
-				break;
-			case KeyEvent.KEYCODE_DPAD_DOWN:
-				inputMap &= ~ControllerPacket.DOWN_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_B:
-				inputMap &= ~ControllerPacket.B_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_A:
-				inputMap &= ~ControllerPacket.A_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_X:
-				inputMap &= ~ControllerPacket.X_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_Y:
-				inputMap &= ~ControllerPacket.Y_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_L1:
-				inputMap &= ~ControllerPacket.LB_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_R1:
-				inputMap &= ~ControllerPacket.RB_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_THUMBL:
-				inputMap &= ~ControllerPacket.LS_CLK_FLAG;
-				break;
-			case KeyEvent.KEYCODE_BUTTON_THUMBR:
-				inputMap &= ~ControllerPacket.RS_CLK_FLAG;
-				break;
-			default:
+			if (!controllerHandler.handleButtonUp(keyCode, event)) {
 				return super.onKeyUp(keyCode, event);
 			}
-			
-			// If one of the two is up, the special button comes up too
-			if ((inputMap & ControllerPacket.BACK_FLAG) == 0 ||
-				(inputMap & ControllerPacket.PLAY_FLAG) == 0)
-			{
-				inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
-			}
-			
-			sendControllerInputPacket();
 		}
 		
 		return true;
@@ -461,92 +347,11 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		
 		return super.onTouchEvent(event);
 	}
-	
+
 	@Override
 	public boolean onGenericMotionEvent(MotionEvent event) {
-		InputDevice dev = event.getDevice();
-
-		if (dev == null) {
-			System.err.println("Unknown device");
-			return false;
-		}
-
 		if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
-			float LS_X = event.getAxisValue(MotionEvent.AXIS_X);
-			float LS_Y = event.getAxisValue(MotionEvent.AXIS_Y);
-
-			float RS_X, RS_Y, L2, R2;
-
-			InputDevice.MotionRange leftTriggerRange = dev.getMotionRange(MotionEvent.AXIS_LTRIGGER);
-			InputDevice.MotionRange rightTriggerRange = dev.getMotionRange(MotionEvent.AXIS_RTRIGGER);
-			if (leftTriggerRange != null && rightTriggerRange != null)
-			{
-				// Ouya controller
-				L2 = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
-				R2 = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
-				RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
-				RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
-			}
-			else
-			{
-				InputDevice.MotionRange brakeRange = dev.getMotionRange(MotionEvent.AXIS_BRAKE);
-				InputDevice.MotionRange gasRange = dev.getMotionRange(MotionEvent.AXIS_GAS);
-				if (brakeRange != null && gasRange != null)
-				{
-					// Moga controller
-					RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
-					RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
-					L2 = event.getAxisValue(MotionEvent.AXIS_BRAKE);
-					R2 = event.getAxisValue(MotionEvent.AXIS_GAS);
-				}
-				else
-				{
-					// Xbox controller
-					RS_X = event.getAxisValue(MotionEvent.AXIS_RX);
-					RS_Y = event.getAxisValue(MotionEvent.AXIS_RY);
-					L2 = (event.getAxisValue(MotionEvent.AXIS_Z) + 1) / 2;
-					R2 = (event.getAxisValue(MotionEvent.AXIS_RZ) + 1) / 2;
-				}
-			}
-
-
-			InputDevice.MotionRange hatXRange = dev.getMotionRange(MotionEvent.AXIS_HAT_X);
-			InputDevice.MotionRange hatYRange = dev.getMotionRange(MotionEvent.AXIS_HAT_Y);
-			if (hatXRange != null && hatYRange != null)
-			{
-				// Xbox controller D-pad
-				float hatX, hatY;
-
-				hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X);
-				hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
-
-				inputMap &= ~(ControllerPacket.LEFT_FLAG | ControllerPacket.RIGHT_FLAG);
-				inputMap &= ~(ControllerPacket.UP_FLAG | ControllerPacket.DOWN_FLAG);
-				if (hatX < -0.5) {
-					inputMap |= ControllerPacket.LEFT_FLAG;
-				}
-				if (hatX > 0.5) {
-					inputMap |= ControllerPacket.RIGHT_FLAG;
-				}
-				if (hatY < -0.5) {
-					inputMap |= ControllerPacket.UP_FLAG;
-				}
-				if (hatY > 0.5) {
-					inputMap |= ControllerPacket.DOWN_FLAG;
-				}
-			}
-
-			leftStickX = (short)Math.round(LS_X * 0x7FFF);
-			leftStickY = (short)Math.round(-LS_Y * 0x7FFF);
-
-			rightStickX = (short)Math.round(RS_X * 0x7FFF);
-			rightStickY = (short)Math.round(-RS_Y * 0x7FFF);
-
-			leftTrigger = (byte)Math.round(L2 * 0xFF);
-			rightTrigger = (byte)Math.round(R2 * 0xFF);
-
-			sendControllerInputPacket();
-			return true;
+			controllerHandler.handleMotionEvent(event);
 		}
 		else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
 		{	
@@ -579,11 +384,6 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		// Update pointer location for delta calculation next time
 		lastMouseX = eventX;
 		lastMouseY = eventY;
-	}
-	
-	private void sendControllerInputPacket() {
-		conn.sendControllerInput(inputMap, leftTrigger, rightTrigger,
-				leftStickX, leftStickY, rightStickX, rightStickY);
 	}
 
 	@Override

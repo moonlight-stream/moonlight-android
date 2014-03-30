@@ -29,7 +29,7 @@
         <activity
             android:name="com.limelight.Game"
             android:screenOrientation="sensorLandscape"
-            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:label="@string/title_activity_game"
             android:parentActivityName="com.limelight.Connection"
             android:theme="@style/FullscreenTheme" >

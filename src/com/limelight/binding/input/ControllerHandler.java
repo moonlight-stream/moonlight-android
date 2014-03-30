@@ -240,6 +240,12 @@ public class ControllerHandler {
 		case KeyEvent.KEYCODE_BUTTON_THUMBR:
 			inputMap &= ~ControllerPacket.RS_CLK_FLAG;
 			break;
+		case KeyEvent.KEYCODE_BUTTON_L2:
+			leftTrigger = 0;
+			break;
+		case KeyEvent.KEYCODE_BUTTON_R2:
+			rightTrigger = 0;
+			break;
 		default:
 			return false;
 		}
@@ -314,6 +320,12 @@ public class ControllerHandler {
 			break;
 		case KeyEvent.KEYCODE_BUTTON_THUMBR:
 			inputMap |= ControllerPacket.RS_CLK_FLAG;
+			break;
+		case KeyEvent.KEYCODE_BUTTON_L2:
+			leftTrigger = (byte)0xFF;
+			break;
+		case KeyEvent.KEYCODE_BUTTON_R2:
+			rightTrigger = (byte)0xFF;
 			break;
 		default:
 			return false;

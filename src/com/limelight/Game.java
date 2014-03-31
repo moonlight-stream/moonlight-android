@@ -351,7 +351,9 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	@Override
 	public boolean onGenericMotionEvent(MotionEvent event) {
 		if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
-			controllerHandler.handleMotionEvent(event);
+			if (controllerHandler.handleMotionEvent(event)) {
+				return true;
+			}		
 		}
 		else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
 		{	

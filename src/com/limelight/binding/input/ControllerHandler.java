@@ -1,5 +1,7 @@
 package com.limelight.binding.input;
 
+import java.util.HashMap;
+
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -16,10 +18,139 @@ public class ControllerHandler {
 	private short leftStickX = 0x0000;
 	private short leftStickY = 0x0000;
 	
+	private HashMap<String, ControllerMapping> mappings = new HashMap<String, ControllerMapping>();
+	
 	private NvConnection conn;
 	
 	public ControllerHandler(NvConnection conn) {
 		this.conn = conn;
+	}
+	
+	private ControllerMapping createMappingForDevice(InputDevice dev) {
+		ControllerMapping mapping = new ControllerMapping();
+		
+		mapping.leftStickXAxis = MotionEvent.AXIS_X;
+		mapping.leftStickYAxis = MotionEvent.AXIS_Y;
+		
+		InputDevice.MotionRange leftTriggerRange = dev.getMotionRange(MotionEvent.AXIS_LTRIGGER);
+		InputDevice.MotionRange rightTriggerRange = dev.getMotionRange(MotionEvent.AXIS_RTRIGGER);
+		InputDevice.MotionRange brakeRange = dev.getMotionRange(MotionEvent.AXIS_BRAKE);
+		InputDevice.MotionRange gasRange = dev.getMotionRange(MotionEvent.AXIS_GAS);
+		if (leftTriggerRange != null && rightTriggerRange != null)
+		{
+			// Some controllers use LTRIGGER and RTRIGGER (like Ouya)
+			mapping.leftTriggerAxis = MotionEvent.AXIS_LTRIGGER;
+			mapping.rightTriggerAxis = MotionEvent.AXIS_RTRIGGER;
+		}
+		else if (brakeRange != null && gasRange != null)
+		{
+			// Others use GAS and BRAKE (like Moga)
+			mapping.leftTriggerAxis = MotionEvent.AXIS_BRAKE;
+			mapping.rightTriggerAxis = MotionEvent.AXIS_GAS;
+		}
+		else
+		{
+			InputDevice.MotionRange rxRange = dev.getMotionRange(MotionEvent.AXIS_RX);
+			InputDevice.MotionRange ryRange = dev.getMotionRange(MotionEvent.AXIS_RY);
+			if (rxRange != null && ryRange != null) {
+				String devName = dev.getName();
+				if (devName.contains("Xbox") || devName.contains("XBox") || devName.contains("X-Box")) {
+					// Xbox controllers use RX and RY for right stick
+					mapping.rightStickXAxis = MotionEvent.AXIS_RX;
+					mapping.rightStickYAxis = MotionEvent.AXIS_RY;
+					
+					// Xbox controllers use Z and RZ for triggers
+					mapping.leftTriggerAxis = MotionEvent.AXIS_Z;
+					mapping.rightTriggerAxis = MotionEvent.AXIS_RZ;
+					mapping.triggersIdleNegative = true;
+				}
+				else {
+					// DS4 controller uses RX and RY for triggers
+					mapping.leftTriggerAxis = MotionEvent.AXIS_RX;
+					mapping.rightTriggerAxis = MotionEvent.AXIS_RY;
+					mapping.triggersIdleNegative = true;
+					
+					mapping.isDualShock4 = true;
+				}
+			}
+		}
+		
+		if (mapping.rightStickXAxis == -1 && mapping.rightStickYAxis == -1) {
+			InputDevice.MotionRange zRange = dev.getMotionRange(MotionEvent.AXIS_Z);
+			InputDevice.MotionRange rzRange = dev.getMotionRange(MotionEvent.AXIS_RZ);
+			
+			// Most other controllers use Z and RZ for the right stick
+			if (zRange != null && rzRange != null) {
+				mapping.rightStickXAxis = MotionEvent.AXIS_Z;
+				mapping.rightStickYAxis = MotionEvent.AXIS_RZ;
+			}
+			else {
+				InputDevice.MotionRange rxRange = dev.getMotionRange(MotionEvent.AXIS_RX);
+				InputDevice.MotionRange ryRange = dev.getMotionRange(MotionEvent.AXIS_RY);
+				
+				// Try RX and RY now
+				if (rxRange != null && ryRange != null) {
+					mapping.rightStickXAxis = MotionEvent.AXIS_RX;
+					mapping.rightStickYAxis = MotionEvent.AXIS_RY;
+				}
+			}
+		}
+		
+		// Some devices have "hats" for d-pads
+		InputDevice.MotionRange hatXRange = dev.getMotionRange(MotionEvent.AXIS_HAT_X);
+		InputDevice.MotionRange hatYRange = dev.getMotionRange(MotionEvent.AXIS_HAT_Y);
+		if (hatXRange != null && hatYRange != null) {
+			mapping.hatXAxis = MotionEvent.AXIS_HAT_X;
+			mapping.hatYAxis = MotionEvent.AXIS_HAT_Y;
+			
+			mapping.hatXDeadzone = hatXRange.getFlat();
+			mapping.hatYDeadzone = hatYRange.getFlat();
+		}
+		
+		if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
+			InputDevice.MotionRange lsXRange = dev.getMotionRange(mapping.leftStickXAxis);
+			InputDevice.MotionRange lsYRange = dev.getMotionRange(mapping.leftStickYAxis);
+			if (lsXRange != null) {
+				mapping.leftStickXAxisDeadzone = lsXRange.getFlat();
+			}
+			if (lsYRange != null) {
+				mapping.leftStickYAxisDeadzone = lsYRange.getFlat();
+			}
+		}
+		
+		if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
+			InputDevice.MotionRange rsXRange = dev.getMotionRange(mapping.rightStickXAxis);
+			InputDevice.MotionRange rsYRange = dev.getMotionRange(mapping.rightStickYAxis);
+			if (rsXRange != null) {
+				mapping.rightStickXAxisDeadzone = rsXRange.getFlat();
+			}
+			if (rsYRange != null) {
+				mapping.rightStickYAxisDeadzone = rsYRange.getFlat();
+			}
+		}
+		
+		return mapping;
+	}
+	
+	private ControllerMapping getMappingForDevice(InputDevice dev) {
+		// Unknown devices can't be handled
+		if (dev == null) {
+			return null;
+		}
+		
+		String descriptor = dev.getDescriptor();
+		
+		// Return the existing mapping if it exists
+		ControllerMapping mapping = mappings.get(descriptor);
+		if (mapping != null) {
+			return mapping;
+		}
+		
+		// Otherwise create a new mapping
+		mapping = createMappingForDevice(dev);
+		mappings.put(descriptor, mapping);
+		
+		return mapping;
 	}
 	
 	private void sendControllerInputPacket() {
@@ -27,17 +158,8 @@ public class ControllerHandler {
 				leftStickX, leftStickY, rightStickX, rightStickY);
 	}
 	
-	private static boolean isDualShock4(InputDevice dev) {
-		return (dev.getMotionRange(MotionEvent.AXIS_RX) != null &&
-				dev.getMotionRange(MotionEvent.AXIS_RY) != null &&
-				dev.getMotionRange(MotionEvent.AXIS_HAT_X) != null &&
-				dev.getMotionRange(MotionEvent.AXIS_HAT_Y) != null &&
-				dev.getMotionRange(MotionEvent.AXIS_RZ) != null &&
-				dev.getMotionRange(MotionEvent.AXIS_RY) != null);
-	}
-	
-	private int handleRemapping(InputDevice dev, int keyCode) {
-		if (isDualShock4(dev)) {
+	private int handleRemapping(ControllerMapping mapping, int keyCode) {
+		if (mapping.isDualShock4) {
 			switch (keyCode) {
 			case KeyEvent.KEYCODE_BUTTON_Y:
 				return KeyEvent.KEYCODE_BUTTON_L1;
@@ -73,8 +195,12 @@ public class ControllerHandler {
 			case KeyEvent.KEYCODE_BUTTON_R1:
 			case KeyEvent.KEYCODE_BUTTON_L1:
 				return 0;
-				
-			// These are duplicate dpad events
+			}
+		}
+		
+		if (mapping.hatXAxis != -1 && mapping.hatYAxis != -1) {
+			switch (keyCode) {
+			// These are duplicate dpad events for hat input
 			case KeyEvent.KEYCODE_DPAD_LEFT:
 			case KeyEvent.KEYCODE_DPAD_RIGHT:
 			case KeyEvent.KEYCODE_DPAD_CENTER:
@@ -88,106 +214,86 @@ public class ControllerHandler {
 	}
 	
 	public boolean handleMotionEvent(MotionEvent event) {
-		InputDevice dev = event.getDevice();
-		if (dev == null) {
-			System.err.println("Unknown device");
+		ControllerMapping mapping = getMappingForDevice(event.getDevice());
+		if (mapping == null) {
 			return false;
 		}
 		
-		float LS_X = event.getAxisValue(MotionEvent.AXIS_X);
-		float LS_Y = event.getAxisValue(MotionEvent.AXIS_Y);
-
-		float RS_X, RS_Y, L2, R2;
-
-		InputDevice.MotionRange leftTriggerRange = dev.getMotionRange(MotionEvent.AXIS_LTRIGGER);
-		InputDevice.MotionRange rightTriggerRange = dev.getMotionRange(MotionEvent.AXIS_RTRIGGER);
-		if (leftTriggerRange != null && rightTriggerRange != null)
-		{
-			// Ouya controller
-			L2 = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
-			R2 = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
-			RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
-			RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
+		// Handle left stick events outside of the deadzone
+		if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
+			float LS_X = event.getAxisValue(mapping.leftStickXAxis);
+			float LS_Y = event.getAxisValue(mapping.leftStickYAxis);
+			if (LS_X >= -mapping.leftStickXAxisDeadzone && LS_X <= mapping.leftStickXAxisDeadzone) {
+				LS_X = 0;
+			}
+			if (LS_Y >= -mapping.leftStickYAxisDeadzone && LS_Y <= mapping.leftStickYAxisDeadzone) {
+				LS_Y = 0;
+			}
+			leftStickX = (short)Math.round(LS_X * 0x7FFF);
+			leftStickY = (short)Math.round(-LS_Y * 0x7FFF);
 		}
-		else
-		{
-			InputDevice.MotionRange brakeRange = dev.getMotionRange(MotionEvent.AXIS_BRAKE);
-			InputDevice.MotionRange gasRange = dev.getMotionRange(MotionEvent.AXIS_GAS);
-			InputDevice.MotionRange rxRange = dev.getMotionRange(MotionEvent.AXIS_RX);
-			InputDevice.MotionRange ryRange = dev.getMotionRange(MotionEvent.AXIS_RY);
-			if (brakeRange != null && gasRange != null)
-			{
-				// Moga controller
-				RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
-				RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
-				L2 = event.getAxisValue(MotionEvent.AXIS_BRAKE);
-				R2 = event.getAxisValue(MotionEvent.AXIS_GAS);
+		
+		// Handle right stick events outside of the deadzone
+		if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
+			float RS_X = event.getAxisValue(mapping.rightStickXAxis);
+			float RS_Y = event.getAxisValue(mapping.rightStickYAxis);
+			if (RS_X >= -mapping.rightStickXAxisDeadzone && RS_X <= mapping.rightStickXAxisDeadzone) {
+				RS_X = 0;
 			}
-			else if (rxRange != null && ryRange != null)
-			{
-				// DS4 controller
-				RS_X = event.getAxisValue(MotionEvent.AXIS_Z);
-				RS_Y = event.getAxisValue(MotionEvent.AXIS_RZ);
-				L2 = (event.getAxisValue(MotionEvent.AXIS_RX) + 1) / 2;
-				R2 = (event.getAxisValue(MotionEvent.AXIS_RY) + 1) / 2;
+			if (RS_Y >= -mapping.rightStickYAxisDeadzone && RS_Y <= mapping.rightStickYAxisDeadzone) {
+				RS_Y = 0;
 			}
-			else
-			{
-				// Xbox controller
-				RS_X = event.getAxisValue(MotionEvent.AXIS_RX);
-				RS_Y = event.getAxisValue(MotionEvent.AXIS_RY);
-				L2 = (event.getAxisValue(MotionEvent.AXIS_Z) + 1) / 2;
-				R2 = (event.getAxisValue(MotionEvent.AXIS_RZ) + 1) / 2;
+			rightStickX = (short)Math.round(RS_X * 0x7FFF);
+			rightStickY = (short)Math.round(-RS_Y * 0x7FFF);	
+		}
+		
+		// Handle controllers with analog triggers
+		if (mapping.leftTriggerAxis != -1 && mapping.rightTriggerAxis != -1) {
+			float L2 = event.getAxisValue(mapping.leftTriggerAxis);
+			float R2 = event.getAxisValue(mapping.rightTriggerAxis);
+			
+			if (mapping.triggersIdleNegative) {
+				L2 = (L2 + 1) / 2;
+				R2 = (R2 + 1) / 2;
 			}
+			
+			leftTrigger = (byte)Math.round(L2 * 0xFF);
+			rightTrigger = (byte)Math.round(R2 * 0xFF);
 		}
 
-		InputDevice.MotionRange hatXRange = dev.getMotionRange(MotionEvent.AXIS_HAT_X);
-		InputDevice.MotionRange hatYRange = dev.getMotionRange(MotionEvent.AXIS_HAT_Y);
-		if (hatXRange != null && hatYRange != null)
-		{
-			// Xbox and DS4 D-pad
-			float hatX, hatY;
-
-			hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X);
-			hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
+		// Hats emulate d-pad events
+		if (mapping.hatXAxis != -1 && mapping.hatYAxis != -1) {
+			float hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X);
+			float hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
 
 			inputMap &= ~(ControllerPacket.LEFT_FLAG | ControllerPacket.RIGHT_FLAG);
-			inputMap &= ~(ControllerPacket.UP_FLAG | ControllerPacket.DOWN_FLAG);
-			if (hatX < -0.5) {
+			if (hatX < -(0.5 + mapping.hatXDeadzone)) {
 				inputMap |= ControllerPacket.LEFT_FLAG;
 			}
-			if (hatX > 0.5) {
+			else if (hatX > (0.5 + mapping.hatXDeadzone)) {
 				inputMap |= ControllerPacket.RIGHT_FLAG;
 			}
-			if (hatY < -0.5) {
+			
+			inputMap &= ~(ControllerPacket.UP_FLAG | ControllerPacket.DOWN_FLAG);
+			if (hatY < -(0.5 + mapping.hatYDeadzone)) {
 				inputMap |= ControllerPacket.UP_FLAG;
 			}
-			if (hatY > 0.5) {
+			else if (hatY > (0.5 + mapping.hatYDeadzone)) {
 				inputMap |= ControllerPacket.DOWN_FLAG;
 			}
 		}
-
-		leftStickX = (short)Math.round(LS_X * 0x7FFF);
-		leftStickY = (short)Math.round(-LS_Y * 0x7FFF);
-
-		rightStickX = (short)Math.round(RS_X * 0x7FFF);
-		rightStickY = (short)Math.round(-RS_Y * 0x7FFF);
-
-		leftTrigger = (byte)Math.round(L2 * 0xFF);
-		rightTrigger = (byte)Math.round(R2 * 0xFF);
 
 		sendControllerInputPacket();
 		return true;
 	}
 	
 	public boolean handleButtonUp(int keyCode, KeyEvent event) {
-		InputDevice dev = event.getDevice();
-		if (dev == null) {
-			System.err.println("Unknown device");
+		ControllerMapping mapping = getMappingForDevice(event.getDevice());
+		if (mapping == null) {
 			return false;
 		}
 		
-		keyCode = handleRemapping(dev, keyCode);
+		keyCode = handleRemapping(mapping, keyCode);
 		if (keyCode == 0) {
 			return true;
 		}
@@ -262,13 +368,12 @@ public class ControllerHandler {
 	}
 	
 	public boolean handleButtonDown(int keyCode, KeyEvent event) {
-		InputDevice dev = event.getDevice();
-		if (dev == null) {
-			System.err.println("Unknown device");
+		ControllerMapping mapping = getMappingForDevice(event.getDevice());
+		if (mapping == null) {
 			return false;
 		}
 		
-		keyCode = handleRemapping(dev, keyCode);
+		keyCode = handleRemapping(mapping, keyCode);
 		if (keyCode == 0) {
 			return true;
 		}
@@ -341,5 +446,30 @@ public class ControllerHandler {
 		
 		sendControllerInputPacket();
 		return true;
+	}
+	
+	class ControllerMapping {
+		public int leftStickXAxis = -1;
+		public float leftStickXAxisDeadzone;
+		
+		public int leftStickYAxis = -1;
+		public float leftStickYAxisDeadzone;
+
+		public int rightStickXAxis = -1;
+		public float rightStickXAxisDeadzone;
+
+		public int rightStickYAxis = -1;
+		public float rightStickYAxisDeadzone;
+		
+		public int leftTriggerAxis = -1;
+		public int rightTriggerAxis = -1;
+		public boolean triggersIdleNegative;
+		
+		public int hatXAxis = -1;
+		public int hatYAxis = -1;
+		public float hatXDeadzone;
+		public float hatYDeadzone;
+		
+		public boolean isDualShock4;
 	}
 }

@@ -25,15 +25,6 @@ public class KeyboardPacket extends InputPacket {
 		this.keyDirection = keyDirection;
 		this.modifier = modifier;
 	}
-
-	public byte[] toWireHeader()
-	{
-		ByteBuffer bb = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
-		
-		bb.putInt(packetType);
-		
-		return bb.array();
-	}
 	
 	@Override
 	public byte[] toWire() {

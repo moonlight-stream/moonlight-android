@@ -21,24 +21,31 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	public static final int CONTROL_TIMEOUT = 5000;
 	
+	public static final short PTYPE_HELLO = 0x1201;
+	public static final short PPAYLEN_HELLO = 1;
+	public static final byte[] PPAYLOAD_HELLO = new byte[]{0};
+	
 	public static final short PTYPE_KEEPALIVE = 0x13ff;
 	public static final short PPAYLEN_KEEPALIVE = 0x0000;
 	
 	public static final short PTYPE_HEARTBEAT = 0x1401;
 	public static final short PPAYLEN_HEARTBEAT = 0x0000;
 	
-	public static final short PTYPE_1405 = 0x1405;
-	public static final short PPAYLEN_1405 = 0x0000;
+	public static final short PTYPE_START_STREAM_A = 0x140b;
+	public static final short PPAYLEN_START_STREAM_A = 1;
+	public static final byte[] PPAYLOAD_START_STREAM_A = new byte[]{0};
+	
+	public static final short PTYPE_START_STREAM_B = 0x1405;
+	public static final short PPAYLEN_START_STREAM_B = 0;
+	
+	public static final short PTYPE_START_STREAM_C = 0x1410;
+	public static final short PPAYLEN_START_STREAM_C = 16;
 	
 	public static final short PTYPE_RESYNC = 0x1404;
 	public static final short PPAYLEN_RESYNC = 16;
 	
-	public static final short PTYPE_CONFIG = 0x1205;
-	public static final short PPAYLEN_CONFIG = 0x0004;
-	
-	
 	public static final short PTYPE_JITTER = 0x140c;
-	public static final short PPAYLEN_JITTER = 0x10;
+	public static final short PPAYLEN_JITTER = 16;
 	
 	private int seqNum;
 	
@@ -91,6 +98,11 @@ public class ControlStream implements ConnectionStatusListener {
 	{
 		sendPacket(packet);
 		return new NvCtlResponse(in);
+	}
+	
+	private void sendHello() throws IOException
+	{
+		sendPacket(new NvCtlPacket(PTYPE_HELLO, PPAYLEN_HELLO, PPAYLOAD_HELLO));
 	}
 	
 	private void sendJitter() throws IOException
@@ -147,9 +159,12 @@ public class ControlStream implements ConnectionStatusListener {
 		// Use a finite timeout during the handshake process
 		s.setSoTimeout(CONTROL_TIMEOUT);
 		
+		sendHello();
 		sendConfig();
 		pingPong();
-		send1405AndGetResponse();
+		doStartA();
+		doStartB();
+		doStartC();
 		
 		// Return to an infinte read timeout after the initial control handshake
 		s.setSoTimeout(0);
@@ -255,9 +270,27 @@ public class ControlStream implements ConnectionStatusListener {
 		jitterThread.start();
 	}
 	
-	private ControlStream.NvCtlResponse send1405AndGetResponse() throws IOException
+	private ControlStream.NvCtlResponse doStartA() throws IOException
 	{
-		return sendAndGetReply(new NvCtlPacket(PTYPE_1405, PPAYLEN_1405));
+		return sendAndGetReply(new NvCtlPacket(PTYPE_START_STREAM_A,
+				PPAYLEN_START_STREAM_A, PPAYLOAD_START_STREAM_A));
+	}
+
+	private void doStartB() throws IOException
+	{
+		sendPacket(new NvCtlPacket(PTYPE_START_STREAM_B, PPAYLEN_START_STREAM_B));
+	}
+	
+	private ControlStream.NvCtlResponse doStartC() throws IOException
+	{
+		ByteBuffer payload = ByteBuffer.wrap(new byte[PPAYLEN_START_STREAM_C]).order(ByteOrder.LITTLE_ENDIAN);
+		
+		payload.putInt(0);
+		payload.putInt(0);
+		payload.putInt(0);
+		payload.putInt(0xa);
+		
+		return sendAndGetReply(new NvCtlPacket(PTYPE_START_STREAM_C, PPAYLEN_START_STREAM_C, payload.array()));
 	}
 	
 	private void sendResync(int firstLostFrame, int nextSuccessfulFrame) throws IOException

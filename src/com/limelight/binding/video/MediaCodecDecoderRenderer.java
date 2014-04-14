@@ -24,24 +24,27 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private MediaCodec videoDecoder;
 	private Thread rendererThread;
 	private int redrawRate;
-	private boolean needsSpsFixup;
+	private boolean needsSpsBitstreamFixup;
+	private boolean needsSpsNumRefFixup;
 	private boolean fastInputQueueing;
 	
 	public static final List<String> blacklistedDecoderPrefixes;
-	public static final List<String> spsFixupDecoderPrefixes;
+	public static final List<String> spsFixupBitsreamFixupDecoderPrefixes;
+	public static final List<String> spsFixupNumRefFixupDecoderPrefixes;
 	public static final List<String> fastInputQueueingPrefixes;
 	
 	static {
 		blacklistedDecoderPrefixes = new LinkedList<String>();
 		
-		// TI's decoder technically supports high profile but doesn't work for some reason
-		blacklistedDecoderPrefixes.add("omx.TI");
+		// Nothing here right now :)
 	}
 	
-	private final static byte[] BITSTREAM_RESTRICTIONS = new byte[] {(byte) 0xF1, (byte) 0x83, 0x2A, 0x00};
 	static {
-		spsFixupDecoderPrefixes = new LinkedList<String>();
-		spsFixupDecoderPrefixes.add("omx.nvidia");
+		spsFixupBitsreamFixupDecoderPrefixes = new LinkedList<String>();
+		spsFixupBitsreamFixupDecoderPrefixes.add("omx.nvidia");
+		
+		spsFixupNumRefFixupDecoderPrefixes = new LinkedList<String>();
+		spsFixupNumRefFixupDecoderPrefixes.add("omx.TI");
 	}
 	
 	static {
@@ -129,9 +132,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		MediaCodecInfo safeDecoder = findSafeDecoder();
 		if (safeDecoder != null) {
 			videoDecoder = MediaCodec.createByCodecName(safeDecoder.getName());
-			needsSpsFixup = isDecoderInList(spsFixupDecoderPrefixes, safeDecoder.getName());
-			if (needsSpsFixup) {
-				LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS fixup");
+			needsSpsBitstreamFixup = isDecoderInList(spsFixupBitsreamFixupDecoderPrefixes, safeDecoder.getName());
+			needsSpsNumRefFixup = isDecoderInList(spsFixupNumRefFixupDecoderPrefixes, safeDecoder.getName());
+			if (needsSpsBitstreamFixup) {
+				LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS bitstream restrictions fixup");
+			}
+			if (needsSpsNumRefFixup) {
+				LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS ref num fixup");
 			}
 			fastInputQueueing = isDecoderInList(fastInputQueueingPrefixes, safeDecoder.getName());
 			if (fastInputQueueing) {
@@ -140,7 +147,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 		else {
 			videoDecoder = MediaCodec.createDecoderByType("video/avc");
-			needsSpsFixup = false;
+			needsSpsBitstreamFixup = false;
+			needsSpsNumRefFixup = false;
 			fastInputQueueing = false;
 		}
 		
@@ -257,20 +265,55 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			// Clear old input data
 			buf.clear();
 
-			// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
-			// or max_dec_frame_buffering which increases decoding latency on Tegra.
-			// We manually modify the SPS here to speed-up decoding if the decoder was flagged as needing it.
-			if (needsSpsFixup) {
+			if (needsSpsBitstreamFixup || needsSpsNumRefFixup) {
 				ByteBufferDescriptor header = decodeUnit.getBufferList().get(0);
 				if (header.data[header.offset+4] == 0x67) {
-					LimeLog.info("Fixing up SPS");
-					
-					//Set number of reference frames back to 1 as it's the minimum for bitstream restrictions
-					this.replace(header, 80, 9, new byte[] {0x40}, 3);
+					// TI OMAP4 requires a reference frame count of 1 to decode successfully
+					if (needsSpsNumRefFixup) {
+						LimeLog.info("Fixing up num ref frames");
+						this.replace(header, 80, 9, new byte[] {0x40}, 3);
+					}
 
-					//Set bitstream restrictions to only buffer single frame
-					byte last = header.data[header.length+header.offset-1];
-					this.replace(header, header.length*8+Integer.numberOfLeadingZeros(last & - last)%8-9, 2, BITSTREAM_RESTRICTIONS, 3*8);
+					// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
+					// or max_dec_frame_buffering which increases decoding latency on Tegra.
+					// We manually modify the SPS here to speed-up decoding if the decoder was flagged as needing it.
+					int spsLength;
+					if (needsSpsBitstreamFixup) {
+						switch (header.length) {
+						case 26:
+							LimeLog.info("Adding bitstream restrictions to SPS (26)");
+							buf.put(header.data, header.offset, 24);
+							buf.put((byte) 0x11);
+							buf.put((byte) 0xe3);
+							buf.put((byte) 0x06);
+							buf.put((byte) 0x50);
+							spsLength = header.length + 2;
+							break;
+						case 27:
+							LimeLog.info("Adding bitstream restrictions to SPS (27)");
+							buf.put(header.data, header.offset, 25);
+							buf.put((byte) 0x04);
+							buf.put((byte) 0x78);
+							buf.put((byte) 0xc1);
+							buf.put((byte) 0x94);
+							spsLength = header.length + 2;
+							break;
+						default:
+							LimeLog.warning("Unknown SPS of length "+header.length);
+							buf.put(header.data, header.offset, header.length);
+							spsLength = header.length;
+							break;
+						}
+					}
+					else {
+						buf.put(header.data, header.offset, header.length);
+						spsLength = header.length;
+					}
+
+					videoDecoder.queueInputBuffer(inputIndex,
+							0, spsLength,
+							0, mcFlags);
+					return true;
 				}
 			}
 

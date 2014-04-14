@@ -3,6 +3,7 @@ package com.limelight.nvstream.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
@@ -26,7 +27,17 @@ public class NvHTTP {
 	public NvHTTP(InetAddress host, String uniqueId, String deviceName) {
 		this.uniqueId = uniqueId;
 		this.deviceName = deviceName;
-		this.baseUrl = "http://" + host.getHostAddress() + ":" + PORT;
+		
+		String safeAddress;
+		if (host instanceof Inet6Address) {
+			// RFC2732-formatted IPv6 address for use in URL
+			safeAddress = "["+host.getHostAddress()+"]";
+		}
+		else {
+			safeAddress = host.getHostAddress();
+		}
+		
+		this.baseUrl = "http://" + safeAddress + ":" + PORT;
 	}
 
 	private String getXmlString(InputStream in, String tagname)

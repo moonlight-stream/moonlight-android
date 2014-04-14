@@ -34,7 +34,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 
-public class Game extends Activity implements OnGenericMotionListener, OnTouchListener, NvConnectionListener {
+public class Game extends Activity implements SurfaceHolder.Callback, OnGenericMotionListener, OnTouchListener, NvConnectionListener {
 	private int lastMouseX = Integer.MIN_VALUE;
 	private int lastMouseY = Integer.MIN_VALUE;
 	private int lastButtonState = 0;
@@ -52,6 +52,8 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 	private NvConnection conn;
 	private SpinnerDialog spinner;
 	private boolean displayedFailureDialog = false;
+	
+	private int drFlags = 0;
 	
 	public static final String PREFS_FILE_NAME = "gameprefs";
 	
@@ -101,7 +103,6 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 		
 		// Read the stream preferences
 		SharedPreferences prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
-		int drFlags = 0;
 		switch (prefs.getInt(Game.DECODER_PREF_STRING, Game.DEFAULT_DECODER)) {
 		case Game.FORCE_SOFTWARE_DECODER:
 			drFlags |= VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING;
@@ -130,8 +131,9 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 				new StreamConfiguration(width, height, refreshRate));
 		keybTranslator = new KeyboardTranslator(conn);
 		controllerHandler = new ControllerHandler(conn);
-		conn.start(PlatformBinding.getDeviceName(), sv.getHolder(), drFlags,
-				PlatformBinding.getAudioRenderer(), new ConfigurableDecoderRenderer());
+		
+		// The connection will be started when the surface gets created
+		sh.addCallback(this);
 	}
 	
 	private void checkDataConnection()
@@ -459,5 +461,20 @@ public class Game extends Activity implements OnGenericMotionListener, OnTouchLi
 				Toast.makeText(Game.this, message, Toast.LENGTH_LONG).show();
 			}
 		});
+	}
+
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+	}
+
+	@Override
+	public void surfaceCreated(SurfaceHolder holder) {
+		conn.start(PlatformBinding.getDeviceName(), holder, drFlags,
+				PlatformBinding.getAudioRenderer(), new ConfigurableDecoderRenderer());
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder holder) {
+		conn.stop();
 	}
 }

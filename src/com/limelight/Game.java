@@ -52,6 +52,8 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	private NvConnection conn;
 	private SpinnerDialog spinner;
 	private boolean displayedFailureDialog = false;
+	private boolean connecting = false;
+	private boolean connected = false;
 	
 	private int drFlags = 0;
 	
@@ -422,6 +424,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			displayedFailureDialog = true;
 			Dialog.displayDialog(this, "Connection Error", "Starting "+stage.getName()+" failed", true);
 			conn.stop();
+			connecting = false;
 		}
 	}
 
@@ -432,6 +435,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			e.printStackTrace();
 			Dialog.displayDialog(this, "Connection Terminated", "The connection failed unexpectedly", true);
 			conn.stop();
+			connected = false;
 		}
 	}
 
@@ -439,6 +443,9 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public void connectionStarted() {
 		spinner.dismiss();
 		spinner = null;
+		
+		connecting = false;
+		connected = true;
 		
 		hideSystemUi();
 	}
@@ -469,12 +476,18 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		conn.start(PlatformBinding.getDeviceName(), holder, drFlags,
-				PlatformBinding.getAudioRenderer(), new ConfigurableDecoderRenderer());
+		if (!connected && !connecting) {
+			connecting = true;
+			conn.start(PlatformBinding.getDeviceName(), holder, drFlags,
+					PlatformBinding.getAudioRenderer(), new ConfigurableDecoderRenderer());
+		}
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		conn.stop();
+		if (connected) {
+			conn.stop();
+			connected = false;
+		}
 	}
 }

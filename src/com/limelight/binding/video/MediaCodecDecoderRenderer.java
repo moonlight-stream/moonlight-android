@@ -38,6 +38,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		blacklistedDecoderPrefixes.add("omx.TI");
 	}
 	
+	private final static byte[] BITSTREAM_RESTRICTIONS = new byte[] {(byte) 0xF1, (byte) 0x83, 0x2A, 0x00};
 	static {
 		spsFixupDecoderPrefixes = new LinkedList<String>();
 		spsFixupDecoderPrefixes.add("omx.nvidia");
@@ -261,40 +262,15 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			// We manually modify the SPS here to speed-up decoding if the decoder was flagged as needing it.
 			if (needsSpsFixup) {
 				ByteBufferDescriptor header = decodeUnit.getBufferList().get(0);
-				// Check for SPS NALU type
 				if (header.data[header.offset+4] == 0x67) {
-					int spsLength;
+					LimeLog.info("Fixing up SPS");
+					
+					//Set number of reference frames back to 1 as it's the minimum for bitstream restrictions
+					this.replace(header, 80, 9, new byte[] {0x40}, 3);
 
-					switch (header.length) {
-					case 26:
-						LimeLog.info("Modifying SPS (26)");
-						buf.put(header.data, header.offset, 24);
-						buf.put((byte) 0x11);
-						buf.put((byte) 0xe3);
-						buf.put((byte) 0x06);
-						buf.put((byte) 0x50);
-						spsLength = header.length + 2;
-						break;
-					case 27:
-						LimeLog.info("Modifying SPS (27)");
-						buf.put(header.data, header.offset, 25);
-						buf.put((byte) 0x04);
-						buf.put((byte) 0x78);
-						buf.put((byte) 0xc1);
-						buf.put((byte) 0x94);
-						spsLength = header.length + 2;
-						break;
-					default:
-						LimeLog.warning("Unknown SPS of length "+header.length);
-						buf.put(header.data, header.offset, header.length);
-						spsLength = header.length;
-						break;
-					}
-
-					videoDecoder.queueInputBuffer(inputIndex,
-							0, spsLength,
-							0, mcFlags);
-					return true;
+					//Set bitstream restrictions to only buffer single frame
+					byte last = header.data[header.length+header.offset-1];
+					this.replace(header, header.length*8+Integer.numberOfLeadingZeros(last & - last)%8-9, 2, BITSTREAM_RESTRICTIONS, 3*8);
 				}
 			}
 
@@ -315,5 +291,84 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	@Override
 	public int getCapabilities() {
 		return fastInputQueueing ? VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT : 0;
+	}
+
+	/**
+	 * Replace bits in array 
+	 * @param source array in which bits should be replaced
+	 * @param srcOffset offset in bits where replacement should take place
+	 * @param srcLength length in bits of data that should be replaced
+	 * @param data data array with the the replacement data
+	 * @param dataLength length of replacement data in bits
+	 */
+	public void replace(ByteBufferDescriptor source, int srcOffset, int srcLength, byte[] data, int dataLength) {
+		//Add 7 to always round up
+		int length = (source.length*8-srcLength+dataLength+7)/8;
+
+		int bitOffset = srcOffset%8;
+		int byteOffset = srcOffset/8;
+
+		byte dest[] = null;
+		int offset = 0;
+		if (length>source.length) {
+			dest = new byte[length];
+
+			//Copy the first bytes
+			System.arraycopy(source.data, source.offset, dest, offset, byteOffset);
+		} else {
+			dest = source.data;
+			offset = source.offset;
+		}
+
+		int byteLength = (bitOffset+dataLength+7)/8;
+		int bitTrailing = 8 - (srcOffset+dataLength) % 8;
+		for (int i=0;i<byteLength;i++) {
+			byte result = 0;
+			if (i != 0)
+				result = (byte) (data[i-1] << 8-bitOffset);
+			else if (bitOffset > 0)
+				result = (byte) (source.data[byteOffset+source.offset] & (0xFF << 8-bitOffset));
+
+			if (i == 0 || i != byteLength-1) {
+				byte moved = (byte) ((data[i]&0xFF) >>> bitOffset);
+				result |= moved;
+			}
+
+			if (i == byteLength-1 && bitTrailing > 0) {
+				int sourceOffset = srcOffset+srcLength/8;
+				int bitMove = (dataLength-srcLength)%8;
+				if (bitMove<0) {
+					result |= (byte) (source.data[sourceOffset+source.offset] << -bitMove & (0xFF >>> bitTrailing));
+					result |= (byte) (source.data[sourceOffset+1+source.offset] << -bitMove & (0xFF >>> 8+bitMove));
+				} else {
+					byte moved = (byte) ((source.data[sourceOffset+source.offset]&0xFF) >>> bitOffset);
+					result |= moved;
+				}
+			}
+
+			dest[i+byteOffset+offset] = result;
+		}
+
+		//Source offset
+		byteOffset += srcLength/8;
+		bitOffset = (srcOffset+dataLength-srcLength)%8;
+
+		//Offset in destination
+		int destOffset = (srcOffset+dataLength)/8;
+
+		for (int i=1;i<source.length-byteOffset;i++) {
+			int diff = destOffset >= byteOffset-1?i:source.length-byteOffset-i;
+
+			byte result = 0;
+			result = (byte) (source.data[byteOffset+diff-1+source.offset] << 8-bitOffset);
+			byte moved = (byte) ((source.data[byteOffset+diff+source.offset]&0xFF) >>> bitOffset);
+			result ^= moved;
+
+			dest[diff+destOffset+offset] = result;
+		}
+
+		source.data = dest;
+		source.offset = offset;
+		source.length = length;
 	}
 }

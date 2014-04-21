@@ -325,6 +325,7 @@ public class ControllerHandler {
 		case KeyEvent.KEYCODE_BUTTON_B:
 			inputMap &= ~ControllerPacket.B_FLAG;
 			break;
+		case KeyEvent.KEYCODE_DPAD_CENTER:
 		case KeyEvent.KEYCODE_BUTTON_A:
 			inputMap &= ~ControllerPacket.A_FLAG;
 			break;
@@ -405,6 +406,7 @@ public class ControllerHandler {
 		case KeyEvent.KEYCODE_BUTTON_B:
 			inputMap |= ControllerPacket.B_FLAG;
 			break;
+		case KeyEvent.KEYCODE_DPAD_CENTER:
 		case KeyEvent.KEYCODE_BUTTON_A:
 			inputMap |= ControllerPacket.A_FLAG;
 			break;

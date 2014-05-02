@@ -3,10 +3,8 @@
 Limelight is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield.
 We reverse engineered the Shield streaming software, and created a version that can be run on any Android device.
 
-Limelight will allow you to stream your full collection of Steam games from your Windows PC to your Android device on the same network.
-
-Streaming can be done remotely using the [Shield Proxy](http://forum.xda-developers.com/showthread.php?t=2435481)
-application.
+Limelight will allow you to stream your full collection of Steam games from your Windows PC to your Android device,
+in your own home, or over the internet.
 
 [Limelight-pc](https://github.com/limelight-stream/limelight-pc) is also currently in development for Windows, OS X and Linux. Versions for [iOS](https://github.com/limelight-stream/limelight-ios) and [Windows Phone](https://github.com/limelight-stream/limelight-wp) are also in development.
 
@@ -36,9 +34,10 @@ application.
 
 ##Usage
 
-* Ensure your Android device and your PC are on the same network or you're running [Shield Proxy](http://forum.xda-developers.com/showthread.php?t=2435481).
 * Turn on Shield Streaming in the GFE settings
-* In Limelight, enter your PC's IP or Hostname and click "Pair".
+* If you are connecting from outside the same network, turn on internet
+  streaming
+* In Limelight, enter your PC's IP or Hostname and click "Pair"
 * Accept the pairing confirmation on your PC
 * In Limelight, click "Start Streaming"
 * Play games!

@@ -107,7 +107,7 @@ public class NvHTTP {
 	}
 
 	public int getCurrentGame() throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/serverinfo?uniqueid=" + uniqueId);
+		InputStream in = openHttpConnection(baseUrl + "/serverinfo");
 		String game = getXmlString(in, "currentgame");
 		return Integer.parseInt(game);
 	}

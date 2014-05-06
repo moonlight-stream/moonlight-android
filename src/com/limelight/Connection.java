@@ -177,6 +177,11 @@ public class Connection extends Activity {
 		this.pairButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
+				if (Connection.this.hostText.getText().length() == 0) {
+					Toast.makeText(Connection.this, "Please enter the target PC's IP address in the text box at the top of the screen.", Toast.LENGTH_LONG).show();
+					return;
+				}
+				
 				Toast.makeText(Connection.this, "Pairing...", Toast.LENGTH_LONG).show();
 				new Thread(new Runnable() {
 					@Override

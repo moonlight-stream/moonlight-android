@@ -3,5 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="libs/xpp3-1.1.4c.jar"/>
+	<classpathentry kind="lib" path="libs/tinyrtsp.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

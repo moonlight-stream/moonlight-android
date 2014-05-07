@@ -22,6 +22,7 @@ import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.input.NvController;
+import com.limelight.nvstream.rtsp.RtspConnection;
 
 public class NvConnection {
 	private String host;
@@ -190,9 +191,16 @@ public class NvConnection {
 		return true;
 	}
 	
+	private boolean doRtspHandshake() throws IOException
+	{
+		RtspConnection r = new RtspConnection(hostAddr);
+		r.doRtspHandshake(config);
+		return true;
+	}
+	
 	private boolean startControlStream() throws IOException
 	{
-		controlStream = new ControlStream(hostAddr, listener, config);
+		controlStream = new ControlStream(hostAddr, listener);
 		controlStream.initialize();
 		controlStream.start();
 		return true;
@@ -237,8 +245,8 @@ public class NvConnection {
 					success = startSteamBigPicture();
 					break;
 
-				case HANDSHAKE:
-					success = Handshake.performHandshake(hostAddr);
+				case RTSP_HANDSHAKE:
+					success = doRtspHandshake();
 					break;
 					
 				case CONTROL_START:

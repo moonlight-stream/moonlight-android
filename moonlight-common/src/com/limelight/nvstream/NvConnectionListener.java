@@ -4,7 +4,7 @@ public interface NvConnectionListener {
 	
 	public enum Stage {
 		LAUNCH_APP("app"),
-		HANDSHAKE("handshake"),
+		RTSP_HANDSHAKE("RTSP handshake"),
 		CONTROL_START("control connection"),
 		VIDEO_START("video stream"),
 		AUDIO_START("audio stream"),

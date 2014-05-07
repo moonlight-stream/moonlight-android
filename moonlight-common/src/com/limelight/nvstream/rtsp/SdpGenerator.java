@@ -118,14 +118,19 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].clientViewportWd", ""+sc.getWidth());
 		addSessionAttribute(config, "x-nv-video[0].clientViewportHt", ""+sc.getHeight());
 		addSessionAttribute(config, "x-nv-video[0].adapterNumber", "0");
-		addSessionAttribute(config, "x-nv-video[0].maxFPS", "30");
+		addSessionAttribute(config, "x-nv-video[0].maxFPS", ""+sc.getRefreshRate());
 		addSessionAttribute(config, "x-nv-video[0].iFrameOnDemand", "1");
-		
-		// FIXME: Handle other settings
 		addSessionAttributeInt(config, "x-nv-video[0].transferProtocol", 1);
-		addSessionAttributeInt(config, "x-nv-video[0].rateControlMode", 5);
-		addSessionAttribute(config, "x-nv-video[0].averageBitrate", "7");
-		addSessionAttribute(config, "x-nv-video[0].peakBitrate", "7");
+		if (sc.getHeight() >= 1080) {
+			addSessionAttributeInt(config, "x-nv-video[0].rateControlMode", 4);
+			addSessionAttribute(config, "x-nv-video[0].averageBitrate", "30");
+			addSessionAttribute(config, "x-nv-video[0].peakBitrate", "30");
+		}
+		else {
+			addSessionAttributeInt(config, "x-nv-video[0].rateControlMode", 5);
+			addSessionAttribute(config, "x-nv-video[0].averageBitrate", "7");
+			addSessionAttribute(config, "x-nv-video[0].peakBitrate", "7");
+		}
 
 		addSessionAttribute(config, "x-nv-video[0].gopLength", "60");
 		addSessionAttribute(config, "x-nv-video[0].vbvMultiplier", "100");
@@ -147,13 +152,24 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].consecutiveFrameLostThreshold", "0");
 		
 		addSessionAttribute(config, "x-nv-vqos[0].ts.enable", "0");
-		
-		// FIXME: Handle other settings
 		addSessionAttribute(config, "x-nv-vqos[0].ts.averageBitrate", "8");
 		addSessionAttribute(config, "x-nv-vqos[0].ts.maximumBitrate", "10");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "823");
-		addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", "10000");
-		addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "2000");
+		
+		// Effective bitrate ceiling
+		if (sc.getHeight() >= 1080) {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", "30000");
+			addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "25000");
+		}
+		else if (sc.getRefreshRate() >= 60) {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", "15000");
+			addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "13000");
+		}
+		else {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", "10000");
+			addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "2000");
+		}
+
 		addSessionAttribute(config, "x-nv-vqos[0].bw.statsTime", "50");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.zeroLossCount", "3000");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.lossThreshold", "2");
@@ -162,16 +178,12 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-vqos[0].bw.lossWaitTime", "75");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.rateDropMultiplier", "25");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.rateGainMultiplier", "10");
-		
-		// FIXME: Other settings?
 		addSessionAttribute(config, "x-nv-vqos[0].bw.maxFps", "60");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.minFps", "30");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.fpsThreshold", "3");
-		
 		addSessionAttribute(config, "x-nv-vqos[0].bw.jitterThreshold", "1000");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.jitterWaitTime", "5000");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.noJitterWaitTime", "5000");
-		
 		addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionEnableBitRatePercentThreshold", "110");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionEnableL1Threshold", "10");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionEnableL0Threshold", "6");
@@ -180,13 +192,27 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionDisableWaitPercent", "100");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionLowerBoundRate", "1000");
 		
-		addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionLowerBoundWidth", "720");
-		addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionLowerBoundHeight", "480");
+		if (sc.getHeight() >= 1080) {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionLowerBoundWidth", "1280");
+			addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionLowerBoundHeight", "720");
+		}
+		else {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionLowerBoundWidth", "720");
+			addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionLowerBoundHeight", "480");
+		}
 		
 		addSessionAttribute(config, "x-nv-vqos[0].bw.pf.enableFlags", "3");
-		addSessionAttribute(config, "x-nv-vqos[0].bw.pf.lowBitrate30FpsThreshold", "4000");
-		addSessionAttribute(config, "x-nv-vqos[0].bw.pf.lowBitrate60FpsThreshold", "5000");
-		addSessionAttribute(config, "x-nv-vqos[0].bw.pf.highBitrateThreshold", "6000");
+		
+		if (sc.getHeight() >= 1080) {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.pf.lowBitrate30FpsThreshold", "5000");
+			addSessionAttribute(config, "x-nv-vqos[0].bw.pf.lowBitrate60FpsThreshold", "5000");
+			addSessionAttribute(config, "x-nv-vqos[0].bw.pf.highBitrateThreshold", "7000");
+		}
+		else {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.pf.lowBitrate30FpsThreshold", "4000");
+			addSessionAttribute(config, "x-nv-vqos[0].bw.pf.lowBitrate60FpsThreshold", "5000");
+			addSessionAttribute(config, "x-nv-vqos[0].bw.pf.highBitrateThreshold", "6000");
+		}
 		addSessionAttribute(config, "x-nv-vqos[0].bw.pf.bitrateStepSize", "1000");
 		addSessionAttribute(config, "x-nv-vqos[0].bn.notifyUpBoundThreshold", "40");
 		addSessionAttribute(config, "x-nv-vqos[0].bn.notifyLowBoundThreshold", "25");

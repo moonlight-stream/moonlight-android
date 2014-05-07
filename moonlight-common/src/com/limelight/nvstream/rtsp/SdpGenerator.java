@@ -165,7 +165,7 @@ public class SdpGenerator {
 			addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "25000");
 		}
 		else if (sc.getRefreshRate() >= 60) {
-			addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", "15000");
+			addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", "13000");
 			addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "13000");
 		}
 		else {

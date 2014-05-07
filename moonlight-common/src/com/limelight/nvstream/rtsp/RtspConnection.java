@@ -23,15 +23,17 @@ public class RtspConnection {
 	private int sequenceNumber = 1;
 	private int sessionId = 0;
 	
-	private String host;
+	private InetAddress host;
+	private String hostStr;
 	
 	public RtspConnection(InetAddress host) {
+		this.host = host;
 		if (host instanceof Inet6Address) {
 			// RFC2732-formatted IPv6 address for use in URL
-			this.host = "["+host.getHostAddress()+"]";
+			this.hostStr = "["+host.getHostAddress()+"]";
 		}
 		else {
-			this.host = host.getHostAddress();
+			this.hostStr = host.getHostAddress();
 		}
 	}
 
@@ -61,12 +63,12 @@ public class RtspConnection {
 	}
 	
 	private RtspResponse requestOptions() throws IOException {
-		RtspRequest m = createRtspRequest("OPTIONS", "rtsp://"+host);
+		RtspRequest m = createRtspRequest("OPTIONS", "rtsp://"+hostStr);
 		return transactRtspMessage(m);
 	}
 	
 	private RtspResponse requestDescribe() throws IOException {
-		RtspRequest m = createRtspRequest("DESCRIBE", "rtsp://"+host);
+		RtspRequest m = createRtspRequest("DESCRIBE", "rtsp://"+hostStr);
 		m.setOption("Accept", "application/sdp");
 		m.setOption("If-Modified-Since", "Thu, 01 Jan 1970 00:00:00 GMT");
 		return transactRtspMessage(m);
@@ -92,8 +94,7 @@ public class RtspConnection {
 		RtspRequest m = createRtspRequest("ANNOUNCE", "streamid=video");
 		m.setOption("Session", ""+sessionId);
 		m.setOption("Content-type", "application/sdp");
-		// FIXME: IP jank
-		m.setPayload(SdpGenerator.generateSdpFromConfig(InetAddress.getByName(host), sc));
+		m.setPayload(SdpGenerator.generateSdpFromConfig(host, sc));
 		m.setOption("Content-length", ""+m.getPayload().length());
 		return transactRtspMessage(m);
 	}

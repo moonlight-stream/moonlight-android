@@ -138,6 +138,11 @@ public class NvConnection {
 	{
 		NvHTTP h = new NvHTTP(hostAddr, getMacAddressString(), localDeviceName);
 		
+		if (h.getAppVersion().startsWith("1.")) {
+			listener.displayMessage("Limelight now requires GeForce Experience 2.0.1 or later. Please upgrade GFE on your PC and try again.");
+			return false;
+		}
+		
 		if (!h.getPairState()) {
 			listener.displayMessage("Device not paired with computer");
 			return false;

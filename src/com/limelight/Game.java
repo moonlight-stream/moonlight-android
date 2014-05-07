@@ -63,11 +63,25 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final String HEIGHT_PREF_STRING = "ResV";
 	public static final String REFRESH_RATE_PREF_STRING = "FPS";
 	public static final String DECODER_PREF_STRING = "Decoder";
+	public static final String BITRATE_PREF_STRING = "Bitrate";
+	
+	public static final int BITRATE_FLOOR_720_30 = 4;
+	public static final int BITRATE_FLOOR_720_60 = 8;
+	public static final int BITRATE_FLOOR_1080_30 = 10;
+	public static final int BITRATE_FLOOR_1080_60 = 20;
+	
+	public static final int BITRATE_DEFAULT_720_30 = 7;
+	public static final int BITRATE_DEFAULT_720_60 = 10;
+	public static final int BITRATE_DEFAULT_1080_30 = 16;
+	public static final int BITRATE_DEFAULT_1080_60 = 30;
+	
+	public static final int BITRATE_CEILING = 50;
 	
 	public static final int DEFAULT_WIDTH = 1280;
 	public static final int DEFAULT_HEIGHT = 720;
 	public static final int DEFAULT_REFRESH_RATE = 60;
 	public static final int DEFAULT_DECODER = 0;
+	public static final int DEFAULT_BITRATE = BITRATE_DEFAULT_720_60;
 	
 	public static final int FORCE_HARDWARE_DECODER = -1;
 	public static final int AUTOSELECT_DECODER = 0;
@@ -116,10 +130,11 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			break;
 		}
 
-		int refreshRate;
+		int refreshRate, bitrate;
 		width = prefs.getInt(WIDTH_PREF_STRING, DEFAULT_WIDTH);
 		height = prefs.getInt(HEIGHT_PREF_STRING, DEFAULT_HEIGHT);
 		refreshRate = prefs.getInt(REFRESH_RATE_PREF_STRING, DEFAULT_REFRESH_RATE);
+		bitrate = prefs.getInt(BITRATE_PREF_STRING, DEFAULT_BITRATE);
 		sh.setFixedSize(width, height);
 		
 		Display display = getWindowManager().getDefaultDisplay();
@@ -130,7 +145,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		
 		// Start the connection
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this,
-				new StreamConfiguration(width, height, refreshRate));
+				new StreamConfiguration(width, height, refreshRate, bitrate * 1000));
 		keybTranslator = new KeyboardTranslator(conn);
 		controllerHandler = new ControllerHandler(conn);
 		

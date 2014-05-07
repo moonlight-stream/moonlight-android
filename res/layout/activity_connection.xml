@@ -45,12 +45,13 @@
         android:text="Pair with PC" />
 
     <RadioGroup
+        android:id="@+id/decoderConfigGroup"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/streamConfigGroup"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="15dp"
         android:orientation="vertical" >
 
         <RadioButton
@@ -79,7 +80,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/pairButton"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="10dp"
         android:orientation="vertical" >
 
         <RadioButton
@@ -110,6 +111,24 @@
             android:text="1080p 60 FPS (Requires extremely fast device and network)" />
     </RadioGroup>
 
+    <TextView
+        android:id="@+id/bitrateLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/decoderConfigGroup" />
+
+    <SeekBar
+        android:id="@+id/bitrateSeekBar"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/decoderConfigGroup"
+        android:layout_toLeftOf="@+id/bitrateLabel" />
+    
 	</RelativeLayout>
 	
 </ScrollView>

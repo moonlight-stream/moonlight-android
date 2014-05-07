@@ -20,6 +20,8 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.RadioButton;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.app.Activity;
@@ -33,6 +35,8 @@ public class Connection extends Activity {
 	private SharedPreferences prefs;
 	private RadioButton rbutton720p30, rbutton720p60, rbutton1080p30, rbutton1080p60;
 	private RadioButton forceSoftDec, autoDec, forceHardDec;
+	private SeekBar bitrateSlider;
+	private TextView bitrateLabel;
 	
 	private static final String DEFAULT_HOST = "";
 	public static final String HOST_KEY = "hostText";
@@ -42,6 +46,7 @@ public class Connection extends Activity {
 		SharedPreferences.Editor editor = prefs.edit();
 		
 		editor.putString(Connection.HOST_KEY, this.hostText.getText().toString());
+		editor.putInt(Game.BITRATE_PREF_STRING, bitrateSlider.getProgress());
 		editor.apply();
 		
 		super.onPause();
@@ -66,12 +71,18 @@ public class Connection extends Activity {
 		this.forceSoftDec = (RadioButton) findViewById(R.id.softwareDec);
 		this.autoDec = (RadioButton) findViewById(R.id.autoDec);
 		this.forceHardDec = (RadioButton) findViewById(R.id.hardwareDec);
+		this.bitrateLabel = (TextView) findViewById(R.id.bitrateLabel);
+		this.bitrateSlider = (SeekBar) findViewById(R.id.bitrateSeekBar);
 
 		prefs = getSharedPreferences(Game.PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
 		this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));
 		
 		boolean res720p = prefs.getInt(Game.HEIGHT_PREF_STRING, Game.DEFAULT_HEIGHT) == 720;
 		boolean fps30 = prefs.getInt(Game.REFRESH_RATE_PREF_STRING, Game.DEFAULT_REFRESH_RATE) == 30;
+		
+		bitrateSlider.setMax(Game.BITRATE_CEILING);
+		bitrateSlider.setProgress(prefs.getInt(Game.BITRATE_PREF_STRING, Game.DEFAULT_BITRATE));
+		updateBitrateLabel();
 
 		rbutton720p30.setChecked(false);
 		rbutton720p60.setChecked(false);
@@ -124,22 +135,30 @@ public class Connection extends Activity {
 				if (buttonView == rbutton720p30) {
 					prefs.edit().putInt(Game.WIDTH_PREF_STRING, 1280).
 					putInt(Game.HEIGHT_PREF_STRING, 720).
-					putInt(Game.REFRESH_RATE_PREF_STRING, 30).commit();
+					putInt(Game.REFRESH_RATE_PREF_STRING, 30).
+					putInt(Game.BITRATE_PREF_STRING, Game.BITRATE_DEFAULT_720_30).commit();
+					bitrateSlider.setProgress(Game.BITRATE_DEFAULT_720_30);
 				}
 				else if (buttonView == rbutton720p60) {
 					prefs.edit().putInt(Game.WIDTH_PREF_STRING, 1280).
 					putInt(Game.HEIGHT_PREF_STRING, 720).
-					putInt(Game.REFRESH_RATE_PREF_STRING, 60).commit();
+					putInt(Game.REFRESH_RATE_PREF_STRING, 60).
+					putInt(Game.BITRATE_PREF_STRING, Game.BITRATE_DEFAULT_720_60).commit();
+					bitrateSlider.setProgress(Game.BITRATE_DEFAULT_720_60);
 				}
 				else if (buttonView == rbutton1080p30) {
 					prefs.edit().putInt(Game.WIDTH_PREF_STRING, 1920).
 					putInt(Game.HEIGHT_PREF_STRING, 1080).
-					putInt(Game.REFRESH_RATE_PREF_STRING, 30).commit();
+					putInt(Game.REFRESH_RATE_PREF_STRING, 30).
+					putInt(Game.BITRATE_PREF_STRING, Game.BITRATE_DEFAULT_1080_30).commit();
+					bitrateSlider.setProgress(Game.BITRATE_DEFAULT_1080_30);
 				}
 				else if (buttonView == rbutton1080p60) {
 					prefs.edit().putInt(Game.WIDTH_PREF_STRING, 1920).
 					putInt(Game.HEIGHT_PREF_STRING, 1080).
-					putInt(Game.REFRESH_RATE_PREF_STRING, 60).commit();
+					putInt(Game.REFRESH_RATE_PREF_STRING, 60).
+					putInt(Game.BITRATE_PREF_STRING, Game.BITRATE_DEFAULT_1080_60).commit();
+					bitrateSlider.setProgress(Game.BITRATE_DEFAULT_1080_60);
 				}
 				else if (buttonView == forceSoftDec) {
 					prefs.edit().putInt(Game.DECODER_PREF_STRING, Game.FORCE_SOFTWARE_DECODER).commit();
@@ -159,6 +178,45 @@ public class Connection extends Activity {
 		forceSoftDec.setOnCheckedChangeListener(occl);
 		forceHardDec.setOnCheckedChangeListener(occl);
 		autoDec.setOnCheckedChangeListener(occl);
+		
+		this.bitrateSlider.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				
+				// Verify the user's selection
+				if (fromUser) {
+					int floor;
+					if (rbutton720p30.isChecked()) {
+						floor = Game.BITRATE_FLOOR_720_30;
+					}
+					else if (rbutton720p60.isChecked()){
+						floor = Game.BITRATE_FLOOR_720_60;
+					}
+					else if (rbutton1080p30.isChecked()){
+						floor = Game.BITRATE_FLOOR_1080_30;
+					}
+					else /*if (rbutton1080p60.isChecked())*/ {
+						floor = Game.BITRATE_FLOOR_1080_60;
+					}
+					
+					if (progress < floor) {
+						seekBar.setProgress(floor);
+						return;
+					}
+				}
+				
+				updateBitrateLabel();
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+			}
+		});
 		
 		this.statusButton.setOnClickListener(new OnClickListener() {
 			@Override
@@ -240,4 +298,7 @@ public class Connection extends Activity {
 
 	}
 
+	private void updateBitrateLabel() {
+		bitrateLabel.setText(bitrateSlider.getProgress()+" Mbps");
+	}
 }

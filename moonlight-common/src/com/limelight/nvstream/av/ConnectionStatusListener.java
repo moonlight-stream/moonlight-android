@@ -6,4 +6,6 @@ public interface ConnectionStatusListener {
 	public void connectionDetectedFrameLoss(int firstLostFrame, int lastLostFrame);
 	
 	public void connectionSinkTooSlow(int firstLostFrame, int lastLostFrame);
+	
+	public void connectionReceivedFrame(int frameIndex);
 }

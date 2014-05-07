@@ -83,6 +83,8 @@ public class VideoDepacketizer {
 				// Add this frame
 				decodedUnits.add(du);
 			}
+			
+			controlListener.connectionReceivedFrame(frameNumber);
 
 			// Clear old state
 			clearAvcFrameState();

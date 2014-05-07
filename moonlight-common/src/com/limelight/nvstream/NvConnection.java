@@ -261,11 +261,6 @@ public class NvConnection {
 					success = startAudioStream();
 					break;
 					
-				case CONTROL_START2:
-					controlStream.startJitterPackets();
-					success = true;
-					break;
-					
 				case INPUT_START:
 					success = startInputConnection();
 					break;

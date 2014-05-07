@@ -12,7 +12,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.LimeLog;
 import com.limelight.nvstream.NvConnectionListener;
-import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 
 public class ControlStream implements ConnectionStatusListener {
@@ -21,37 +20,27 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	public static final int CONTROL_TIMEOUT = 5000;
 	
-	public static final short PTYPE_HELLO = 0x1201;
-	public static final short PPAYLEN_HELLO = 1;
-	public static final byte[] PPAYLOAD_HELLO = new byte[]{0};
-	
-	public static final short PTYPE_KEEPALIVE = 0x13ff;
-	public static final short PPAYLEN_KEEPALIVE = 0x0000;
-	
-	public static final short PTYPE_HEARTBEAT = 0x1401;
-	public static final short PPAYLEN_HEARTBEAT = 0x0000;
-	
 	public static final short PTYPE_START_STREAM_A = 0x140b;
 	public static final short PPAYLEN_START_STREAM_A = 1;
 	public static final byte[] PPAYLOAD_START_STREAM_A = new byte[]{0};
 	
-	public static final short PTYPE_START_STREAM_B = 0x1405;
-	public static final short PPAYLEN_START_STREAM_B = 0;
-	
-	public static final short PTYPE_START_STREAM_C = 0x1410;
-	public static final short PPAYLEN_START_STREAM_C = 16;
+	public static final short PTYPE_START_STREAM_B = 0x1410;
+	public static final short PPAYLEN_START_STREAM_B = 16;
 	
 	public static final short PTYPE_RESYNC = 0x1404;
-	public static final short PPAYLEN_RESYNC = 16;
+	public static final short PPAYLEN_RESYNC = 24;
 	
-	public static final short PTYPE_JITTER = 0x140c;
-	public static final short PPAYLEN_JITTER = 16;
+	public static final short PTYPE_LOSS_STATS = 0x140c;
+	public static final short PPAYLEN_LOSS_STATS = 20;
 	
-	private int seqNum;
+	// Currently unused
+	public static final short PTYPE_FRAME_STATS = 0x1417;
+	public static final short PPAYLEN_FRAME_STATS = 64;
+	
+	private int currentFrame;
 	
 	private NvConnectionListener listener;
 	private InetAddress host;
-	private Config config;
 	
 	public static final int LOSS_PERIOD_MS = 15000;
 	public static final int MAX_LOSS_COUNT_IN_PERIOD = 2;
@@ -66,17 +55,15 @@ public class ControlStream implements ConnectionStatusListener {
 	private InputStream in;
 	private OutputStream out;
 	
-	private Thread heartbeatThread;
-	private Thread jitterThread;
+	private Thread lossStatsThread;
 	private Thread resyncThread;
 	private LinkedBlockingQueue<int[]> invalidReferenceFrameTuples = new LinkedBlockingQueue<int[]>();
 	private boolean aborting = false;
 	
-	public ControlStream(InetAddress host, NvConnectionListener listener, StreamConfiguration streamConfig)
+	public ControlStream(InetAddress host, NvConnectionListener listener)
 	{
 		this.listener = listener;
 		this.host = host;
-		this.config = new Config(streamConfig);
 	}
 	
 	public void initialize() throws IOException
@@ -100,21 +87,17 @@ public class ControlStream implements ConnectionStatusListener {
 		return new NvCtlResponse(in);
 	}
 	
-	private void sendHello() throws IOException
+	private void sendLossStats() throws IOException
 	{
-		sendPacket(new NvCtlPacket(PTYPE_HELLO, PPAYLEN_HELLO, PPAYLOAD_HELLO));
-	}
-	
-	private void sendJitter() throws IOException
-	{
-		ByteBuffer bb = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
+		ByteBuffer bb = ByteBuffer.allocate(PPAYLEN_LOSS_STATS).order(ByteOrder.LITTLE_ENDIAN);
 		
 		bb.putInt(0);
-		bb.putInt(77);
-		bb.putInt(888);
-		bb.putInt(seqNum += 2);
+		bb.putInt(30);
+		bb.putInt(1000);
+		bb.putInt(currentFrame);
+		bb.putInt(0);
 
-		sendPacket(new NvCtlPacket(PTYPE_JITTER, PPAYLEN_JITTER, bb.array()));
+		sendPacket(new NvCtlPacket(PTYPE_LOSS_STATS, PPAYLEN_LOSS_STATS, bb.array()));
 	}
 	
 	public void abort()
@@ -129,19 +112,11 @@ public class ControlStream implements ConnectionStatusListener {
 			s.close();
 		} catch (IOException e) {}
 		
-		if (jitterThread != null) {
-			jitterThread.interrupt();
+		if (lossStatsThread != null) {
+			lossStatsThread.interrupt();
 			
 			try {
-				jitterThread.join();
-			} catch (InterruptedException e) {}
-		}
-		
-		if (heartbeatThread != null) {
-			heartbeatThread.interrupt();
-			
-			try {
-				heartbeatThread.join();
+				lossStatsThread.join();
 			} catch (InterruptedException e) {}
 		}
 		
@@ -159,31 +134,26 @@ public class ControlStream implements ConnectionStatusListener {
 		// Use a finite timeout during the handshake process
 		s.setSoTimeout(CONTROL_TIMEOUT);
 		
-		sendHello();
-		sendConfig();
-		pingPong();
 		doStartA();
 		doStartB();
-		doStartC();
 		
 		// Return to an infinte read timeout after the initial control handshake
 		s.setSoTimeout(0);
 		
-		heartbeatThread = new Thread() {
+		lossStatsThread = new Thread() {
 			@Override
 			public void run() {
 				while (!isInterrupted())
 				{
 					try {
-						sendHeartbeat();
+						sendLossStats();
 					} catch (IOException e) {
 						listener.connectionTerminated(e);
 						return;
 					}
 					
-					
 					try {
-						Thread.sleep(3000);
+						Thread.sleep(100);
 					} catch (InterruptedException e) {
 						listener.connectionTerminated(e);
 						return;
@@ -191,8 +161,8 @@ public class ControlStream implements ConnectionStatusListener {
 				}
 			}
 		};
-		heartbeatThread.setName("Control - Heartbeat Thread");
-		heartbeatThread.start();
+		lossStatsThread.setName("Control - Loss Stats Thread");
+		lossStatsThread.start();
 		
 		resyncThread = new Thread() {
 			@Override
@@ -243,54 +213,22 @@ public class ControlStream implements ConnectionStatusListener {
 		resyncThread.start();
 	}
 	
-	public void startJitterPackets()
-	{
-		jitterThread = new Thread() {
-			@Override
-			public void run() {
-				while (!isInterrupted())
-				{
-					try {
-						sendJitter();
-					} catch (IOException e) {
-						listener.connectionTerminated(e);
-						return;
-					}
-					
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						listener.connectionTerminated(e);
-						return;
-					}
-				}
-			}
-		};
-		jitterThread.setName("Control - Jitter Thread");
-		jitterThread.start();
-	}
-	
 	private ControlStream.NvCtlResponse doStartA() throws IOException
 	{
 		return sendAndGetReply(new NvCtlPacket(PTYPE_START_STREAM_A,
 				PPAYLEN_START_STREAM_A, PPAYLOAD_START_STREAM_A));
 	}
-
-	private void doStartB() throws IOException
-	{
-		sendPacket(new NvCtlPacket(PTYPE_START_STREAM_B, PPAYLEN_START_STREAM_B));
-	}
 	
-	private ControlStream.NvCtlResponse doStartC() throws IOException
+	private ControlStream.NvCtlResponse doStartB() throws IOException
 	{
-		ByteBuffer payload = ByteBuffer.wrap(new byte[PPAYLEN_START_STREAM_C]).order(ByteOrder.LITTLE_ENDIAN);
+		ByteBuffer payload = ByteBuffer.wrap(new byte[PPAYLEN_START_STREAM_B]).order(ByteOrder.LITTLE_ENDIAN);
 		
 		payload.putInt(0);
 		payload.putInt(0);
 		payload.putInt(0);
 		payload.putInt(0xa);
 		
-		return sendAndGetReply(new NvCtlPacket(PTYPE_START_STREAM_C, PPAYLEN_START_STREAM_C, payload.array()));
+		return sendAndGetReply(new NvCtlPacket(PTYPE_START_STREAM_B, PPAYLEN_START_STREAM_B, payload.array()));
 	}
 	
 	private void sendResync(int firstLostFrame, int nextSuccessfulFrame) throws IOException
@@ -301,25 +239,9 @@ public class ControlStream implements ConnectionStatusListener {
 		//conf.putLong(nextSuccessfulFrame);
 		conf.putLong(0);
 		conf.putLong(0xFFFFF);
+		conf.putLong(0);
 		
 		sendAndGetReply(new NvCtlPacket(PTYPE_RESYNC, PPAYLEN_RESYNC, conf.array()));
-	}
-	
-	private void sendConfig() throws IOException
-	{
-		out.write(config.toWire());
-		out.flush();
-	}
-	
-	private void sendHeartbeat() throws IOException
-	{
-		sendPacket(new NvCtlPacket(PTYPE_HEARTBEAT, PPAYLEN_HEARTBEAT));
-	}
-	
-	private ControlStream.NvCtlResponse pingPong() throws IOException
-	{
-		sendPacket(new NvCtlPacket(PTYPE_KEEPALIVE, PPAYLEN_KEEPALIVE));
-		return new ControlStream.NvCtlResponse(in);
 	}
 	
 	class NvCtlPacket {
@@ -492,5 +414,9 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 		
 		resyncConnection(firstLostFrame, nextSuccessfulFrame);
+	}
+
+	public void connectionReceivedFrame(int frameIndex) {
+		currentFrame = frameIndex;
 	}
 }

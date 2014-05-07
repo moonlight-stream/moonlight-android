@@ -8,7 +8,6 @@ public interface NvConnectionListener {
 		CONTROL_START("control connection"),
 		VIDEO_START("video stream"),
 		AUDIO_START("audio stream"),
-		CONTROL_START2("control connection"),
 		INPUT_START("input connection");
 		
 		private String name;

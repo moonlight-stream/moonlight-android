@@ -1,6 +1,5 @@
 package com.limelight.nvstream.rtsp;
 
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.Inet6Address;
 import java.nio.ByteBuffer;
@@ -11,9 +10,13 @@ import com.limelight.nvstream.StreamConfiguration;
 
 public class SdpGenerator {
 	private static void addSessionAttributeBytes(StringBuilder config, String attribute, byte[] value) {
-		try {
-			addSessionAttribute(config, attribute, new String(value, "IBM437"));
-		} catch (UnsupportedEncodingException e) {}
+		char str[] = new char[value.length];
+		
+		for (int i = 0; i < value.length; i++) {
+			str[i] = (char)value[i];
+		}
+		
+		addSessionAttribute(config, attribute, new String(str));
 	}
 	
 	private static void addSessionAttributeInts(StringBuilder config, String attribute, int[] value) {

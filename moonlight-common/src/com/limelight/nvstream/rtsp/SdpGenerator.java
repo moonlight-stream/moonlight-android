@@ -160,25 +160,13 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "819"); // Bit 2 being set causes picture problems (should be 823)
 		
 		// Effective bitrate ceiling
-		if (sc.getHeight() >= 1080) {
-			if (sc.getRefreshRate() >= 60) {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "20000");
-			}
-			else {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "10000");
-			}
+		if (sc.getHeight() >= 1080 && sc.getRefreshRate() >= 60) {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());
+			addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "20000");
 		}
 		else {
-			if (sc.getRefreshRate() >= 60) {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "8000");
-			}
-			else {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "4000");
-			}
+			addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());
+			addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "2000");
 		}
 
 		addSessionAttribute(config, "x-nv-vqos[0].bw.statsTime", "50");

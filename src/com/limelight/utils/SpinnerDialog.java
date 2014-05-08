@@ -33,8 +33,11 @@ public class SpinnerDialog implements Runnable,OnCancelListener {
 	
 	public static void closeDialogs()
 	{
-		for (SpinnerDialog d : rundownDialogs)
-			d.progress.dismiss();
+		for (SpinnerDialog d : rundownDialogs) {
+			if (d.progress.isShowing()) {
+				d.progress.dismiss();
+			}
+		}
 		
 		rundownDialogs.clear();
 	}
@@ -86,7 +89,9 @@ public class SpinnerDialog implements Runnable,OnCancelListener {
 		}
 		else
 		{
-			progress.dismiss();
+			if (progress.isShowing()) {
+				progress.dismiss();
+			}
 		}
 	}
 

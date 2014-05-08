@@ -25,8 +25,11 @@ public class Dialog implements Runnable {
 	
 	public static void closeDialogs()
 	{
-		for (Dialog d : rundownDialogs)
-			d.alert.dismiss();
+		for (Dialog d : rundownDialogs) {
+			if (d.alert.isShowing()) {
+				d.alert.dismiss();
+			}
+		}
 		
 		rundownDialogs.clear();
 	}

@@ -226,6 +226,12 @@ public class Connection extends Activity {
 					return;
 				}
 				
+				// Ensure that the bitrate preference is up to date before
+				// starting the game activity
+				prefs.edit().
+				putInt(Game.BITRATE_PREF_STRING, bitrateSlider.getProgress()).
+				commit();
+				
 				Intent intent = new Intent(Connection.this, Game.class);
 				intent.putExtra("host", Connection.this.hostText.getText().toString());
 				Connection.this.startActivity(intent);

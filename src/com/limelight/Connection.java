@@ -305,6 +305,6 @@ public class Connection extends Activity {
 	}
 
 	private void updateBitrateLabel() {
-		bitrateLabel.setText(bitrateSlider.getProgress()+" Mbps");
+		bitrateLabel.setText("Max Bitrate: "+bitrateSlider.getProgress()+" Mbps");
 	}
 }

@@ -124,7 +124,7 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].maxFPS", ""+sc.getRefreshRate());
 		addSessionAttribute(config, "x-nv-video[0].iFrameOnDemand", "1");
 		addSessionAttributeInt(config, "x-nv-video[0].transferProtocol", 1);
-		if (sc.getHeight() >= 1080) {
+		if (sc.getHeight() >= 1080 && sc.getRefreshRate() >= 60) {
 			addSessionAttributeInt(config, "x-nv-video[0].rateControlMode", 4);
 			addSessionAttribute(config, "x-nv-video[0].averageBitrate", "30");
 			addSessionAttribute(config, "x-nv-video[0].peakBitrate", "30");
@@ -202,7 +202,7 @@ public class SdpGenerator {
 		
 		addSessionAttribute(config, "x-nv-vqos[0].bw.pf.enableFlags", "3");
 		
-		if (sc.getHeight() >= 1080) {
+		if (sc.getHeight() >= 1080 && sc.getRefreshRate() >= 60) {
 			addSessionAttribute(config, "x-nv-vqos[0].bw.pf.lowBitrate30FpsThreshold", "5000");
 			addSessionAttribute(config, "x-nv-vqos[0].bw.pf.lowBitrate60FpsThreshold", "5000");
 			addSessionAttribute(config, "x-nv-vqos[0].bw.pf.highBitrateThreshold", "7000");

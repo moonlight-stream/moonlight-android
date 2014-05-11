@@ -17,7 +17,6 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 public class NvHTTP {
 	private String uniqueId;
-	private String deviceName;
 
 	public static final int PORT = 47989;
 	public static final int CONNECTION_TIMEOUT = 5000;
@@ -26,7 +25,6 @@ public class NvHTTP {
 
 	public NvHTTP(InetAddress host, String uniqueId, String deviceName) {
 		this.uniqueId = uniqueId;
-		this.deviceName = deviceName;
 		
 		String safeAddress;
 		if (host instanceof Inet6Address) {

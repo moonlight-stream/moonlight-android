@@ -30,7 +30,7 @@ public class VideoStream {
 	// The ring size MUST be greater than or equal to
 	// the maximum number of packets in a fully
 	// presentable frame
-	public static final int VIDEO_RING_SIZE = 192;
+	public static final int VIDEO_RING_SIZE = 384;
 	
 	private InetAddress host;
 	private DatagramSocket rtp;

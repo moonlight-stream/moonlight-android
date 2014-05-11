@@ -23,7 +23,7 @@ public class VideoStream {
 	public static final int FIRST_FRAME_PORT = 47996;
 	
 	public static final int FIRST_FRAME_TIMEOUT = 5000;
-	public static final int RTP_RECV_BUFFER = 128 * 1024;
+	public static final int RTP_RECV_BUFFER = 256 * 1024;
 	
 	public static final int MAX_PACKET_SIZE = 1050;
 	

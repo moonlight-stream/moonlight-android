@@ -100,8 +100,7 @@ public class NvHTTP {
 	}
 
 	public int getSessionId() throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/pair?uniqueid=" + uniqueId
-				+ "&devicename=" + deviceName);
+		InputStream in = openHttpConnection(baseUrl + "/pair?uniqueid=" + uniqueId);
 		String sessionId = getXmlString(in, "sessionid");
 		return Integer.parseInt(sessionId);
 	}

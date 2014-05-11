@@ -17,6 +17,7 @@ public class VideoDepacketizer {
 	private int currentlyDecoding = DecodeUnit.TYPE_UNKNOWN;
 	
 	// Sequencing state
+	private int lastPacketInStream = 0;
 	private int nextFrameNumber = 1;
 	private int nextPacketNumber;
 	private int startFrameNumber = 1;
@@ -286,6 +287,13 @@ public class VideoDepacketizer {
 				}
 			}
 		}
+		
+		int streamPacketIndex = packet.getStreamPacketIndex();
+		if (streamPacketIndex != (int)(lastPacketInStream + 1)) {
+			// Packets were lost so report this to the server
+			controlListener.connectionLostPackets(lastPacketInStream, streamPacketIndex);
+		}
+		lastPacketInStream = streamPacketIndex;
 		
 		nextPacketNumber++;
 		

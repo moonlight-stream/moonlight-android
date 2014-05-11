@@ -37,7 +37,10 @@ public class ControlStream implements ConnectionStatusListener {
 	public static final short PTYPE_FRAME_STATS = 0x1417;
 	public static final short PPAYLEN_FRAME_STATS = 64;
 	
+	public static final int LOSS_REPORT_INTERVAL_MS = 50;
+	
 	private int currentFrame;
+	private int lossCountSinceLastReport;
 	
 	private NvConnectionListener listener;
 	private InetAddress host;
@@ -91,11 +94,10 @@ public class ControlStream implements ConnectionStatusListener {
 	{
 		ByteBuffer bb = ByteBuffer.allocate(PPAYLEN_LOSS_STATS).order(ByteOrder.LITTLE_ENDIAN);
 		
-		bb.putInt(0);
-		bb.putInt(30);
+		bb.putInt(lossCountSinceLastReport); // Packet loss count
+		bb.putInt(LOSS_REPORT_INTERVAL_MS); // Time since last report in milliseconds
 		bb.putInt(1000);
-		bb.putInt(currentFrame);
-		bb.putInt(0);
+		bb.putLong(currentFrame); // Last successfully received frame
 
 		sendPacket(new NvCtlPacket(PTYPE_LOSS_STATS, PPAYLEN_LOSS_STATS, bb.array()));
 	}
@@ -147,13 +149,14 @@ public class ControlStream implements ConnectionStatusListener {
 				{
 					try {
 						sendLossStats();
+						lossCountSinceLastReport = 0;
 					} catch (IOException e) {
 						listener.connectionTerminated(e);
 						return;
 					}
 					
 					try {
-						Thread.sleep(100);
+						Thread.sleep(LOSS_REPORT_INTERVAL_MS);
 					} catch (InterruptedException e) {
 						listener.connectionTerminated(e);
 						return;
@@ -418,5 +421,10 @@ public class ControlStream implements ConnectionStatusListener {
 
 	public void connectionReceivedFrame(int frameIndex) {
 		currentFrame = frameIndex;
+	}
+
+	public void connectionLostPackets(int lastReceivedPacket, int nextReceivedPacket) {
+		// Update the loss count for the next loss report
+		lossCountSinceLastReport += (nextReceivedPacket - lastReceivedPacket) - 1;
 	}
 }

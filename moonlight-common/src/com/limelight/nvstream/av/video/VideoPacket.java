@@ -13,6 +13,7 @@ public class VideoPacket {
 	private int totalPackets;
 	private int payloadLength;
 	private int flags;
+	private int streamPacketIndex;
 	
 	public static final int FLAG_EOF = 0x2;
 	public static final int FLAG_SOF = 0x4;
@@ -29,6 +30,7 @@ public class VideoPacket {
 		totalPackets = bb.getInt();
 		flags = bb.getInt();
 		payloadLength = bb.getInt();
+		streamPacketIndex = bb.getInt();
 	}
 	
 	public int getFlags()
@@ -54,6 +56,11 @@ public class VideoPacket {
 	public int getTotalPackets()
 	{
 		return totalPackets;
+	}
+	
+	public int getStreamPacketIndex()
+	{
+		return streamPacketIndex;
 	}
 	
 	public ByteBufferDescriptor getNewPayloadDescriptor()

@@ -66,10 +66,10 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final String DECODER_PREF_STRING = "Decoder";
 	public static final String BITRATE_PREF_STRING = "Bitrate";
 	
-	public static final int BITRATE_FLOOR_720_30 = 4;
-	public static final int BITRATE_FLOOR_720_60 = 8;
-	public static final int BITRATE_FLOOR_1080_30 = 8;
-	public static final int BITRATE_FLOOR_1080_60 = 20;
+	public static final int BITRATE_FLOOR_720_30 = 2;
+	public static final int BITRATE_FLOOR_720_60 = 4;
+	public static final int BITRATE_FLOOR_1080_30 = 4;
+	public static final int BITRATE_FLOOR_1080_60 = 10;
 	
 	public static final int BITRATE_DEFAULT_720_30 = 5;
 	public static final int BITRATE_DEFAULT_720_60 = 10;

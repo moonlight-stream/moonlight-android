@@ -401,7 +401,7 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 		else {
 			if (++lossCount == MAX_LOSS_COUNT_IN_PERIOD) {
-				listener.displayTransientMessage("Detected excessive A/V data loss. Try improving your network connection or lowering stream resolution and/or frame rate.");
+				listener.displayTransientMessage("Detected excessive A/V data loss. Try improving your network connection or lowering stream resolution, frame rate, and/or bitrate.");
 				lossCount = -MAX_LOSS_COUNT_IN_PERIOD * MESSAGE_DELAY_FACTOR;
 				lossTimestamp = 0;
 			}

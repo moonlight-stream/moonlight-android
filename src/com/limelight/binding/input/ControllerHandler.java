@@ -2,6 +2,7 @@ package com.limelight.binding.input;
 
 import java.util.HashMap;
 
+import android.os.SystemClock;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -17,6 +18,12 @@ public class ControllerHandler {
 	private short rightStickY = 0x0000;
 	private short leftStickX = 0x0000;
 	private short leftStickY = 0x0000;
+	private int emulatingButtonFlags = 0;
+	
+	private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 5;
+	
+	private static final int EMULATING_SPECIAL = 0x1;
+	private static final int EMULATING_SELECT = 0x2;
 	
 	private HashMap<String, ControllerMapping> mappings = new HashMap<String, ControllerMapping>();
 	
@@ -298,6 +305,18 @@ public class ControllerHandler {
 			return true;
 		}
 		
+		// If the button hasn't been down long enough, sleep for a bit before sending the up event
+		// This allows "instant" button presses (like OUYA's virtual menu button) to work. This
+		// path should not be triggered during normal usage.
+		if (SystemClock.uptimeMillis() - event.getDownTime() < ControllerHandler.MINIMUM_BUTTON_DOWN_TIME_MS)
+		{
+			// Since our sleep time is so short (5 ms), it shouldn't cause a problem doing this in the
+			// UI thread.
+			try {
+				Thread.sleep(ControllerHandler.MINIMUM_BUTTON_DOWN_TIME_MS);
+			} catch (InterruptedException e) {}
+		}
+		
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BUTTON_MODE:
 			inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
@@ -357,11 +376,30 @@ public class ControllerHandler {
 			return false;
 		}
 		
-		// If one of the two is up, the special button comes up too
-		if ((inputMap & ControllerPacket.BACK_FLAG) == 0 ||
-			(inputMap & ControllerPacket.PLAY_FLAG) == 0)
+		// Check if we're emulating the select button
+		if ((emulatingButtonFlags & ControllerHandler.EMULATING_SELECT) != 0)
 		{
-			inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
+			// If either start or LB is up, select comes up too
+			if ((inputMap & ControllerPacket.PLAY_FLAG) == 0 ||
+				(inputMap & ControllerPacket.LB_FLAG) == 0)
+			{
+				inputMap &= ~ControllerPacket.BACK_FLAG;
+				
+				emulatingButtonFlags &= ~ControllerHandler.EMULATING_SELECT;
+			}
+		}
+		
+		// Check if we're emulating the special button
+		if ((emulatingButtonFlags & ControllerHandler.EMULATING_SPECIAL) != 0)
+		{
+			// If either start or select is up, the special button comes up too
+			if ((inputMap & ControllerPacket.PLAY_FLAG) == 0 ||
+				(inputMap & ControllerPacket.BACK_FLAG) == 0)
+			{
+				inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
+				
+				emulatingButtonFlags &= ~ControllerHandler.EMULATING_SPECIAL;
+			}
 		}
 		
 		sendControllerInputPacket();
@@ -438,12 +476,30 @@ public class ControllerHandler {
 			return false;
 		}
 		
-		// We detect back+start as the special button combo
+		// Start+LB acts like select for controllers with one button
+		if ((inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
+			(inputMap & ControllerPacket.LB_FLAG) != 0)
+		{
+			inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG);
+			inputMap |= ControllerPacket.BACK_FLAG;
+			
+			// If RB is also pressed, keep the start button down
+			if ((inputMap & ControllerPacket.RB_FLAG) != 0)
+			{
+				inputMap |= ControllerPacket.PLAY_FLAG;
+			}
+			
+			emulatingButtonFlags |= ControllerHandler.EMULATING_SELECT;
+		}
+		
+		// We detect select+start as the special button combo
 		if ((inputMap & ControllerPacket.BACK_FLAG) != 0 &&
 			(inputMap & ControllerPacket.PLAY_FLAG) != 0)
 		{
 			inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG);
 			inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+			
+			emulatingButtonFlags |= ControllerHandler.EMULATING_SPECIAL;
 		}
 		
 		sendControllerInputPacket();

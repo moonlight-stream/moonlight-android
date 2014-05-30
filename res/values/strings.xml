@@ -3,5 +3,17 @@
 
     <string name="app_name">Limelight</string>
     <string name="title_activity_game">Game</string>
-
+    <string name="ip_address_of_geforce_pc">IP address of GeForce PC</string>
+    <string name="start_streaming">Start Streaming!</string>
+    <string name="pair_with_pc">Pair with PC</string>
+    <string name="force_software_decoding">Force Software Decoding</string>
+    <string name="auto_select_decoder">Auto-select Decoder (Recommended)</string>
+    <string name="force_hardware_decoding">Force Hardware Decoding</string>
+    <string name="_720p_30_fps">720p 30 FPS (Only recommended for poor devices or networks)</string>
+    <string name="_720p_60_fps">720p 60 FPS (Recommended for most devices and networks)</string>
+    <string name="_1080p_30_fps">1080p 30 FPS (Recommended for most devices if 1080p streaming is desired)</string>
+    <string name="_1080p_60_fps">1080p 60 FPS (Requires extremely fast device and network)</string>
+    <string name="current_app">Current game: %s</string>
+    <string name="no_app_selected">None</string>
+    
 </resources>

@@ -1,16 +1,7 @@
 package com.limelight;
 
-import com.limelight.binding.PlatformBinding;
-import com.limelight.binding.input.ControllerHandler;
-import com.limelight.binding.input.KeyboardTranslator;
-import com.limelight.binding.video.ConfigurableDecoderRenderer;
-import com.limelight.nvstream.NvConnection;
-import com.limelight.nvstream.NvConnectionListener;
-import com.limelight.nvstream.StreamConfiguration;
-import com.limelight.nvstream.av.video.VideoDecoderRenderer;
-import com.limelight.nvstream.input.KeyboardPacket;
-import com.limelight.utils.Dialog;
-import com.limelight.utils.SpinnerDialog;
+import java.util.Collections;
+import java.util.Set;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -34,6 +25,18 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.limelight.binding.PlatformBinding;
+import com.limelight.binding.input.ControllerHandler;
+import com.limelight.binding.input.KeyboardTranslator;
+import com.limelight.binding.video.ConfigurableDecoderRenderer;
+import com.limelight.nvstream.NvConnection;
+import com.limelight.nvstream.NvConnectionListener;
+import com.limelight.nvstream.StreamConfiguration;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.input.KeyboardPacket;
+import com.limelight.utils.Dialog;
+import com.limelight.utils.SpinnerDialog;
+
 
 public class Game extends Activity implements SurfaceHolder.Callback, OnGenericMotionListener, OnTouchListener, NvConnectionListener {
 	private int lastMouseX = Integer.MIN_VALUE;
@@ -45,6 +48,8 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	
 	private ControllerHandler controllerHandler;
 	private KeyboardTranslator keybTranslator;
+	
+	private String app;
 	
 	private int height;
 	private int width;
@@ -65,7 +70,10 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final String REFRESH_RATE_PREF_STRING = "FPS";
 	public static final String DECODER_PREF_STRING = "Decoder";
 	public static final String BITRATE_PREF_STRING = "Bitrate";
-	
+
+	public static final String APP_LIST = "AppList";
+	public static final String SELECTED_APP = "SelectedApp";
+
 	public static final int BITRATE_FLOOR_720_30 = 2;
 	public static final int BITRATE_FLOOR_720_60 = 4;
 	public static final int BITRATE_FLOOR_1080_30 = 4;
@@ -87,6 +95,9 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final int FORCE_HARDWARE_DECODER = -1;
 	public static final int AUTOSELECT_DECODER = 0;
 	public static final int FORCE_SOFTWARE_DECODER = 1;
+
+	public static final Set<String> DEFAULT_APP_LIST = Collections.emptySet();
+	public static final String DEFAULT_SELECTED_APP = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +152,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		}
 
 		int refreshRate, bitrate;
+		app = prefs.getString(SELECTED_APP, DEFAULT_SELECTED_APP);
 		width = prefs.getInt(WIDTH_PREF_STRING, DEFAULT_WIDTH);
 		height = prefs.getInt(HEIGHT_PREF_STRING, DEFAULT_HEIGHT);
 		refreshRate = prefs.getInt(REFRESH_RATE_PREF_STRING, DEFAULT_REFRESH_RATE);
@@ -155,7 +167,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		
 		// Start the connection
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this,
-				new StreamConfiguration(width, height, refreshRate, bitrate * 1000));
+				new StreamConfiguration(app, width, height, refreshRate, bitrate * 1000));
 		keybTranslator = new KeyboardTranslator(conn);
 		controllerHandler = new ControllerHandler(conn);
 		

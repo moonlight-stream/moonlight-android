@@ -134,7 +134,7 @@ public class NvConnection {
 		}
 	}
 	
-	private boolean startSteamBigPicture() throws XmlPullParserException, IOException
+	private boolean startApp() throws XmlPullParserException, IOException
 	{
 		NvHTTP h = new NvHTTP(hostAddr, getMacAddressString(), localDeviceName);
 		
@@ -154,18 +154,21 @@ public class NvConnection {
 			return false;
 		}
 		
-		NvApp app = h.getSteamApp();
+		NvApp app = h.getApp(config.getApp());
 		if (app == null) {
-			listener.displayMessage("Steam not found in GFE app list");
+			listener.displayMessage("The app " + config.getApp() + " is not in GFE app list");
 			return false;
 		}
 		
 		// If there's a game running, resume it
 		if (h.getCurrentGame() != 0) {
 			try {
-				if (!h.resumeApp()) {
+				if (h.getCurrentGame() == app.getAppId() && !h.resumeApp()) {
 					listener.displayMessage("Failed to resume existing session");
 					return false;
+				} else if (h.getCurrentGame() != app.getAppId()) {
+					listener.displayMessage("Another app was running. Quitting it");
+					return quitAndLaunch(h, app);
 				}
 			} catch (GfeHttpResponseException e) {
 				if (e.getErrorCode() == 470) {
@@ -176,22 +179,43 @@ public class NvConnection {
 							"device or the PC itself and try again. (Error code: "+e.getErrorCode()+")");
 					return false;
 				}
-				else {
+				else if (e.getErrorCode() == 525) {
+					listener.displayMessage("The application is minimized. Trying to quit it");
+					return quitAndLaunch(h, app);
+				} else {
 					throw e;
 				}
 			}
+			
 			LimeLog.info("Resumed existing game session");
+			return true;
 		}
 		else {
-			// Launch the app since it's not running
-			int gameSessionId = h.launchApp(app.getAppId(), config.getWidth(),
-					config.getHeight(), config.getRefreshRate());
-			if (gameSessionId == 0) {
-				listener.displayMessage("Failed to launch application");
-				return false;
-			}
-			LimeLog.info("Launched new game session");
+			return launchNotRunningApp(h, app);
 		}
+	}
+
+	protected boolean quitAndLaunch(NvHTTP h, NvApp app) throws IOException,
+			XmlPullParserException {
+		if (!h.quitApp()) {
+			listener.displayMessage("Failed to quit previous session! You must quit it manually");
+			return false;
+		} else {
+			return launchNotRunningApp(h, app);
+		}
+	}
+	
+	private boolean launchNotRunningApp(NvHTTP h, NvApp app) 
+			throws IOException, XmlPullParserException {
+		// Launch the app since it's not running
+		int gameSessionId = h.launchApp(app.getAppId(), config.getWidth(),
+				config.getHeight(), config.getRefreshRate());
+		if (gameSessionId == 0) {
+			listener.displayMessage("Failed to launch application");
+			return false;
+		}
+		
+		LimeLog.info("Launched new game session");
 		
 		return true;
 	}
@@ -247,7 +271,7 @@ public class NvConnection {
 				switch (currentStage)
 				{
 				case LAUNCH_APP:
-					success = startSteamBigPicture();
+					success = startApp();
 					break;
 
 				case RTSP_HANDSHAKE:

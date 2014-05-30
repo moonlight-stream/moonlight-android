@@ -109,12 +109,12 @@ public class NvHTTP {
 		return Integer.parseInt(game);
 	}
 	
-	public NvApp getSteamApp() throws IOException,
+	public NvApp getApp(String app) throws IOException,
 			XmlPullParserException {
 		LinkedList<NvApp> appList = getAppList();
-		for (NvApp app : appList) {
-			if (app.getAppName().equals("Steam")) {
-				return app;
+		for (NvApp appFromList : appList) {
+			if (appFromList.getAppName().equals(app)) {
+				return appFromList;
 			}
 		}
 		return null;

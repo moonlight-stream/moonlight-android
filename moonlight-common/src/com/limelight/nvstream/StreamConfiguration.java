@@ -1,11 +1,13 @@
 package com.limelight.nvstream;
 
 public class StreamConfiguration {
+	private String app;
 	private int width, height;
 	private int refreshRate;
 	private int bitrate;
 	
-	public StreamConfiguration(int width, int height, int refreshRate, int bitrate) {
+	public StreamConfiguration(String app, int width, int height, int refreshRate, int bitrate) {
+		this.app = app;
 		this.width = width;
 		this.height = height;
 		this.refreshRate = refreshRate;
@@ -26,5 +28,9 @@ public class StreamConfiguration {
 	
 	public int getBitrate() {
 		return bitrate;
+	}
+	
+	public String getApp() {
+		return app;
 	}
 }

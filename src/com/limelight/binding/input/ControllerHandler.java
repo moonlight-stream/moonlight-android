@@ -20,10 +20,22 @@ public class ControllerHandler {
 	private short leftStickY = 0x0000;
 	private int emulatingButtonFlags = 0;
 	
+	// Used for OUYA bumper state tracking since they force all buttons
+	// up when the OUYA button goes down. We watch the last time we get
+	// a bumper up and compare that to our maximum delay when we receive
+	// a Start button press to see if we should activate one of our 
+	// emulated button combos.
+	private long lastLbUpTime = 0;
+	private long lastRbUpTime = 0;
+	private static final int MAXIMUM_BUMPER_UP_DELAY_MS = 100;
+	
 	private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 5;
 	
 	private static final int EMULATING_SPECIAL = 0x1;
 	private static final int EMULATING_SELECT = 0x2;
+	
+	private static final int EMULATED_SPECIAL_UP_DELAY_MS = 100;
+	private static final int EMULATED_SELECT_UP_DELAY_MS = 30;
 	
 	private HashMap<String, ControllerMapping> mappings = new HashMap<String, ControllerMapping>();
 	
@@ -356,9 +368,11 @@ public class ControllerHandler {
 			break;
 		case KeyEvent.KEYCODE_BUTTON_L1:
 			inputMap &= ~ControllerPacket.LB_FLAG;
+			lastLbUpTime = SystemClock.uptimeMillis();
 			break;
 		case KeyEvent.KEYCODE_BUTTON_R1:
 			inputMap &= ~ControllerPacket.RB_FLAG;
+			lastRbUpTime = SystemClock.uptimeMillis();
 			break;
 		case KeyEvent.KEYCODE_BUTTON_THUMBL:
 			inputMap &= ~ControllerPacket.LS_CLK_FLAG;
@@ -386,19 +400,28 @@ public class ControllerHandler {
 				inputMap &= ~ControllerPacket.BACK_FLAG;
 				
 				emulatingButtonFlags &= ~ControllerHandler.EMULATING_SELECT;
+				
+				try {
+					Thread.sleep(EMULATED_SELECT_UP_DELAY_MS);
+				} catch (InterruptedException e) {}
 			}
 		}
 		
 		// Check if we're emulating the special button
 		if ((emulatingButtonFlags & ControllerHandler.EMULATING_SPECIAL) != 0)
 		{
-			// If either start or select is up, the special button comes up too
+			// If either start or select and RB is up, the special button comes up too
 			if ((inputMap & ControllerPacket.PLAY_FLAG) == 0 ||
-				(inputMap & ControllerPacket.BACK_FLAG) == 0)
+				((inputMap & ControllerPacket.BACK_FLAG) == 0 &&
+				 (inputMap & ControllerPacket.RB_FLAG) == 0))
 			{
 				inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
 				
 				emulatingButtonFlags &= ~ControllerHandler.EMULATING_SPECIAL;
+				
+				try {
+					Thread.sleep(EMULATED_SPECIAL_UP_DELAY_MS);
+				} catch (InterruptedException e) {}
 			}
 		}
 		
@@ -478,25 +501,22 @@ public class ControllerHandler {
 		
 		// Start+LB acts like select for controllers with one button
 		if ((inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
-			(inputMap & ControllerPacket.LB_FLAG) != 0)
+			((inputMap & ControllerPacket.LB_FLAG) != 0 ||
+			  SystemClock.uptimeMillis() - lastLbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
 		{
 			inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG);
 			inputMap |= ControllerPacket.BACK_FLAG;
 			
-			// If RB is also pressed, keep the start button down
-			if ((inputMap & ControllerPacket.RB_FLAG) != 0)
-			{
-				inputMap |= ControllerPacket.PLAY_FLAG;
-			}
-			
 			emulatingButtonFlags |= ControllerHandler.EMULATING_SELECT;
 		}
 		
-		// We detect select+start as the special button combo
-		if ((inputMap & ControllerPacket.BACK_FLAG) != 0 &&
+		// We detect select+start or start+RB as the special button combo
+		if (((inputMap & ControllerPacket.RB_FLAG) != 0 ||
+			 (SystemClock.uptimeMillis() - lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS) ||
+			 (inputMap & ControllerPacket.BACK_FLAG) != 0) &&
 			(inputMap & ControllerPacket.PLAY_FLAG) != 0)
 		{
-			inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG);
+			inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG);
 			inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
 			
 			emulatingButtonFlags |= ControllerHandler.EMULATING_SPECIAL;

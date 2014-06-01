@@ -29,7 +29,7 @@ public class ControllerHandler {
 	private long lastRbUpTime = 0;
 	private static final int MAXIMUM_BUMPER_UP_DELAY_MS = 100;
 	
-	private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 5;
+	private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 10;
 	
 	private static final int EMULATING_SPECIAL = 0x1;
 	private static final int EMULATING_SELECT = 0x2;
@@ -322,7 +322,7 @@ public class ControllerHandler {
 		// path should not be triggered during normal usage.
 		if (SystemClock.uptimeMillis() - event.getDownTime() < ControllerHandler.MINIMUM_BUTTON_DOWN_TIME_MS)
 		{
-			// Since our sleep time is so short (5 ms), it shouldn't cause a problem doing this in the
+			// Since our sleep time is so short (10 ms), it shouldn't cause a problem doing this in the
 			// UI thread.
 			try {
 				Thread.sleep(ControllerHandler.MINIMUM_BUTTON_DOWN_TIME_MS);

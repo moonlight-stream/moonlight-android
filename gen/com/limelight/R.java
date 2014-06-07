@@ -20,6 +20,8 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
     }
     public static final class color {
         public static final int black_overlay=0x7f040000;
+        public static final int default_color=0x7f040002;
+        public static final int pressed_color=0x7f040001;
     }
     public static final class dimen {
         /**  Default screen margins, per the Android Design guidelines. 
@@ -37,28 +39,43 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int ouya_icon=0x7f020002;
     }
     public static final class id {
-        public static final int autoDec=0x7f080006;
-        public static final int bitrateLabel=0x7f08000c;
-        public static final int bitrateSeekBar=0x7f08000d;
-        public static final int config1080p30Selected=0x7f08000a;
-        public static final int config1080p60Selected=0x7f08000b;
-        public static final int config720p30Selected=0x7f080008;
-        public static final int config720p60Selected=0x7f080009;
-        public static final int decoderConfigGroup=0x7f080003;
-        public static final int hardwareDec=0x7f080007;
+        public static final int autoDec=0x7f080008;
+        public static final int bitrateLabel=0x7f08000e;
+        public static final int bitrateSeekBar=0x7f08000f;
+        public static final int config1080p30Selected=0x7f08000c;
+        public static final int config1080p60Selected=0x7f08000d;
+        public static final int config720p30Selected=0x7f08000a;
+        public static final int config720p60Selected=0x7f08000b;
+        public static final int currentAppLabel=0x7f080003;
+        public static final int decoderConfigGroup=0x7f080005;
+        public static final int gamesListView=0x7f080004;
+        public static final int hardwareDec=0x7f080009;
         public static final int hostTextView=0x7f080000;
-        public static final int pairButton=0x7f080002;
-        public static final int softwareDec=0x7f080005;
-        public static final int statusButton=0x7f080001;
-        public static final int streamConfigGroup=0x7f080004;
-        public static final int surfaceView=0x7f08000e;
+        public static final int pairButton=0x7f080001;
+        public static final int softwareDec=0x7f080007;
+        public static final int startButton=0x7f080002;
+        public static final int streamConfigGroup=0x7f080006;
+        public static final int surfaceView=0x7f080010;
     }
     public static final class layout {
         public static final int activity_connection=0x7f030000;
         public static final int activity_game=0x7f030001;
+        public static final int app_layout=0x7f030002;
     }
     public static final class string {
+        public static final int _1080p_30_fps=0x7f06000a;
+        public static final int _1080p_60_fps=0x7f06000b;
+        public static final int _720p_30_fps=0x7f060008;
+        public static final int _720p_60_fps=0x7f060009;
         public static final int app_name=0x7f060000;
+        public static final int auto_select_decoder=0x7f060006;
+        public static final int current_app=0x7f06000c;
+        public static final int force_hardware_decoding=0x7f060007;
+        public static final int force_software_decoding=0x7f060005;
+        public static final int ip_address_of_geforce_pc=0x7f060002;
+        public static final int no_app_selected=0x7f06000d;
+        public static final int pair_with_pc=0x7f060004;
+        public static final int start_streaming=0x7f060003;
         public static final int title_activity_game=0x7f060001;
     }
     public static final class style {

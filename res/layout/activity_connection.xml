@@ -22,27 +22,38 @@
         android:ems="10"
         android:singleLine="true"
         android:inputType="textNoSuggestions"
-        android:hint="IP address of GeForce PC" />
-
-    <Button
-        android:id="@+id/statusButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/hostTextView"
-        android:layout_centerHorizontal="true"
-        android:text="Start Streaming Steam!" >
-        
-        <requestFocus />
-        
-    </Button>
+        android:hint="@string/ip_address_of_geforce_pc" />
 
     <Button
         android:id="@+id/pairButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/statusButton"
-        android:layout_centerHorizontal="true"
-        android:text="Pair with PC" />
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/startButton"
+        android:text="@string/pair_with_pc" />
+
+    <Button
+        android:id="@+id/startButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/hostTextView"
+        android:layout_alignParentLeft="true"
+        android:text="@string/start_streaming" />
+
+    <TextView
+        android:id="@+id/currentAppLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/startButton"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp" />
+
+    <ListView
+        android:id="@+id/gamesListView"
+        android:layout_width="wrap_content"
+        android:layout_height="120dip"
+        android:layout_below="@+id/currentAppLabel" >
+    </ListView>
 
     <RadioGroup
         android:id="@+id/decoderConfigGroup"
@@ -58,19 +69,19 @@
             android:id="@+id/softwareDec"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Force Software Decoding" />
+            android:text="@string/force_software_decoding" />
 
         <RadioButton
             android:id="@+id/autoDec"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Auto-select Decoder (Recommended)" />
+            android:text="@string/auto_select_decoder" />
 
         <RadioButton
             android:id="@+id/hardwareDec"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Force Hardware Decoding" />
+            android:text="@string/force_hardware_decoding" />
     </RadioGroup>
 
     <RadioGroup
@@ -79,7 +90,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/pairButton"
+        android:layout_below="@+id/gamesListView"
         android:layout_marginTop="10dp"
         android:orientation="vertical" >
 
@@ -87,28 +98,28 @@
             android:id="@+id/config720p30Selected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="720p 30 FPS (Only recommended for poor devices or networks)" />
+            android:text="@string/_720p_30_fps" />
         
         <RadioButton
             android:id="@+id/config720p60Selected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="7dp"
-            android:text="720p 60 FPS (Recommended for most devices and networks)" />
+            android:text="@string/_720p_60_fps" />
 
         <RadioButton
             android:id="@+id/config1080p30Selected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="7dp"
-            android:text="1080p 30 FPS (Recommended for most devices if 1080p streaming is desired)" />
+            android:text="@string/_1080p_30_fps" />
 
         <RadioButton
             android:id="@+id/config1080p60Selected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="7dp"
-            android:text="1080p 60 FPS (Requires extremely fast device and network)" />
+            android:text="@string/_1080p_60_fps" />
     </RadioGroup>
 
     <TextView

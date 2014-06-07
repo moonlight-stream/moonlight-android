@@ -1,42 +1,55 @@
 package com.limelight;
 
 import java.io.IOException;
-
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 
 import org.xmlpull.v1.XmlPullParserException;
 
-import com.limelight.binding.PlatformBinding;
-import com.limelight.nvstream.NvConnection;
-import com.limelight.nvstream.http.NvHTTP;
-
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+
+import com.limelight.binding.PlatformBinding;
+import com.limelight.nvstream.NvConnection;
+import com.limelight.nvstream.http.NvApp;
+import com.limelight.nvstream.http.NvHTTP;
 
 public class Connection extends Activity {
-	private Button statusButton, pairButton;
+	private Button startButton, pairButton;
 	private TextView hostText;
 	private SharedPreferences prefs;
 	private RadioButton rbutton720p30, rbutton720p60, rbutton1080p30, rbutton1080p60;
 	private RadioButton forceSoftDec, autoDec, forceHardDec;
 	private SeekBar bitrateSlider;
-	private TextView bitrateLabel;
+	private TextView bitrateLabel, currentAppLabel;
+	private ListView appsListView;
+	private List<String> supportedApps;
+	private ArrayAdapter<String> appsArrayAdapter;
 	
 	private static final String DEFAULT_HOST = "";
 	public static final String HOST_KEY = "hostText";
@@ -61,7 +74,7 @@ public class Connection extends Activity {
 		// Hide the keyboard by default
 		this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		
-		this.statusButton = (Button) findViewById(R.id.statusButton);
+		this.startButton = (Button) findViewById(R.id.startButton);
 		this.pairButton = (Button) findViewById(R.id.pairButton);
 		this.hostText = (TextView) findViewById(R.id.hostTextView);
 		this.rbutton720p30 = (RadioButton) findViewById(R.id.config720p30Selected);
@@ -73,6 +86,8 @@ public class Connection extends Activity {
 		this.forceHardDec = (RadioButton) findViewById(R.id.hardwareDec);
 		this.bitrateLabel = (TextView) findViewById(R.id.bitrateLabel);
 		this.bitrateSlider = (SeekBar) findViewById(R.id.bitrateSeekBar);
+		this.appsListView = (ListView) findViewById(R.id.gamesListView);
+		this.currentAppLabel = (TextView) findViewById(R.id.currentAppLabel);
 
 		prefs = getSharedPreferences(Game.PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
 		this.hostText.setText(prefs.getString(Connection.HOST_KEY, Connection.DEFAULT_HOST));
@@ -123,6 +138,40 @@ public class Connection extends Activity {
 			break;
 		}
 		
+		// loading the apps from preferences
+		supportedApps = new ArrayList<String>(prefs.getStringSet(Game.APP_LIST, Game.DEFAULT_APP_LIST));
+		Collections.sort(supportedApps);
+		
+		if (supportedApps.isEmpty()) {
+			appsListView.setVisibility(View.GONE);
+		}
+		
+	    updateCurrentAppLabel();
+		
+	    appsArrayAdapter = new ArrayAdapter<String>(this,
+	        R.layout.app_layout, supportedApps);
+	    appsListView.setAdapter(appsArrayAdapter);
+	    
+	    // taken from http://stackoverflow.com/questions/18367522/android-list-view-inside-a-scroll-view
+	    appsListView.setOnTouchListener(new OnTouchListener() {
+	        // Setting on Touch Listener for handling the touch inside ScrollView
+	        @Override
+	        public boolean onTouch(View v, MotionEvent event) {
+	        // Disallow the touch request for parent scroll on touch of child view
+	        v.getParent().requestDisallowInterceptTouchEvent(true);
+	        return false;
+	        }
+	    });
+	    
+	    appsListView.setOnItemClickListener(new OnItemClickListener() {
+	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+	        	prefs.edit().
+	        	putString(Game.SELECTED_APP, appsArrayAdapter.getItem(position)).
+	        	commit();
+	        	updateCurrentAppLabel();
+	        }
+	    });
+	    
 		OnCheckedChangeListener occl = new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView,
@@ -218,11 +267,14 @@ public class Connection extends Activity {
 			}
 		});
 		
-		this.statusButton.setOnClickListener(new OnClickListener() {
+		this.startButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
 				if (Connection.this.hostText.getText().length() == 0) {
 					Toast.makeText(Connection.this, "Please enter the target PC's IP address in the text box at the top of the screen.", Toast.LENGTH_LONG).show();
+					return;
+				} else if (getCurrentApp() == null) {
+					Toast.makeText(Connection.this, "Please choose an app to stream. The app list is showed after pairing with PC.", Toast.LENGTH_LONG).show();
 					return;
 				}
 				
@@ -271,6 +323,7 @@ public class Connection extends Activity {
 							try {
 								if (httpConn.getPairState()) {
 									message = "Already paired";
+									loadSupportedApps();
 								}
 								else {
 									int session = httpConn.getSessionId();
@@ -279,6 +332,7 @@ public class Connection extends Activity {
 									}
 									else {
 										message = "Pairing was successful";
+										loadSupportedApps();
 									}
 								}
 							} catch (IOException e) {
@@ -303,8 +357,64 @@ public class Connection extends Activity {
 		});
 
 	}
+	
+	private void loadSupportedApps() {
+		if (Connection.this.hostText.getText().length() != 0) {
+			String macAddress;
+			try {
+				macAddress = NvConnection.getMacAddressString();
+			} catch (SocketException e) {
+				e.printStackTrace();
+				return;
+			}
+			
+			if (macAddress == null) {
+				LimeLog.severe("Couldn't find a MAC address");
+				return;
+			}
+			
+			NvHTTP httpConn;
+			try {
+				httpConn = new NvHTTP(InetAddress.getByName(hostText.getText().toString()),
+						macAddress, PlatformBinding.getDeviceName());
+					if (httpConn.getPairState()) {
+						supportedApps.clear();
+						for (NvApp app : httpConn.getAppList()) {
+							supportedApps.add(app.getAppName());
+						}
+						
+						Collections.sort(supportedApps);
+						
+						prefs.edit().
+						putStringSet(Game.APP_LIST, new HashSet<String>(supportedApps)).
+						commit();
+						
+						runOnUiThread(new Runnable() {
+							public void run() {
+								appsArrayAdapter.notifyDataSetChanged();
+								appsListView.setVisibility(View.VISIBLE);
+							}
+						});
+						
+					}
+			} catch (Throwable t) {
+				//TODO
+				t.printStackTrace();
+			}
+		}
+	}
 
 	private void updateBitrateLabel() {
 		bitrateLabel.setText("Max Bitrate: "+bitrateSlider.getProgress()+" Mbps");
+	}
+
+	private void updateCurrentAppLabel() {
+		String selectedApp = getCurrentApp();
+		currentAppLabel.setText(String.format(getString(R.string.current_app), 
+				selectedApp != null ? selectedApp : getString(R.string.no_app_selected)));
+	}
+
+	private String getCurrentApp() {
+		return prefs.getString(Game.SELECTED_APP, Game.DEFAULT_SELECTED_APP);
 	}
 }

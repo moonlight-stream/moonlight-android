@@ -1,16 +1,14 @@
 package com.limelight;
 
-import java.io.IOException;
-
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-import org.xmlpull.v1.XmlPullParserException;
-
 import com.limelight.binding.PlatformBinding;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.http.NvHTTP;
+import com.limelight.nvstream.http.PairingManager;
+import com.limelight.utils.Dialog;
 
 import android.os.Bundle;
 import android.view.View;
@@ -50,6 +48,13 @@ public class Connection extends Activity {
 		editor.apply();
 		
 		super.onPause();
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		
+		Dialog.closeDialogs();
 	}
 	
 	@Override
@@ -267,28 +272,38 @@ public class Connection extends Activity {
 						String message;
 						try {
 							httpConn = new NvHTTP(InetAddress.getByName(hostText.getText().toString()),
-									macAddress, PlatformBinding.getDeviceName());
-							try {
-								if (httpConn.getPairState()) {
-									message = "Already paired";
+									macAddress, PlatformBinding.getDeviceName(),  PlatformBinding.getCryptoProvider(Connection.this));
+							if (httpConn.getPairState() == PairingManager.PairState.PAIRED) {
+								message = "Already paired";
+							}
+							else {
+								final String pinStr = PairingManager.generatePinString();
+								
+								// Spin the dialog off in a thread because it blocks
+								Dialog.displayDialog(Connection.this, "Pairing", "Please enter the following PIN on the target PC: "+pinStr, false);
+								
+								PairingManager.PairState pairState = httpConn.pair(pinStr);
+								if (pairState == PairingManager.PairState.PIN_WRONG) {
+									message = "Incorrect PIN";
+								}
+								else if (pairState == PairingManager.PairState.FAILED) {
+									message = "Pairing failed";
+								}
+								else if (pairState == PairingManager.PairState.PAIRED) {
+									message = "Paired successfully";
 								}
 								else {
-									int session = httpConn.getSessionId();
-									if (session == 0) {
-										message = "Pairing was declined by the target";
-									}
-									else {
-										message = "Pairing was successful";
-									}
+									// Should be no other values
+									message = null;
 								}
-							} catch (IOException e) {
-								message = e.getMessage();
-							} catch (XmlPullParserException e) {
-								message = e.getMessage();
 							}
 						} catch (UnknownHostException e1) {
 							message = "Failed to resolve host";
+						} catch (Exception e) {
+							message = e.getMessage();
 						}
+						
+						Dialog.closeDialogs();
 						
 						final String toastMessage = message;
 						runOnUiThread(new Runnable() {

@@ -155,7 +155,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		
 		// Start the connection
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this,
-				new StreamConfiguration(width, height, refreshRate, bitrate * 1000));
+				new StreamConfiguration(width, height, refreshRate, bitrate * 1000), PlatformBinding.getCryptoProvider(this));
 		keybTranslator = new KeyboardTranslator(conn);
 		controllerHandler = new ControllerHandler(conn);
 		

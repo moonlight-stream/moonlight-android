@@ -7,4 +7,5 @@ public interface LimelightCryptoProvider {
 	public X509Certificate getClientCertificate();
 	public RSAPrivateKey getClientPrivateKey();
 	public byte[] getPemEncodedClientCertificate();
+	public String encodeBase64String(byte[] data);
 }

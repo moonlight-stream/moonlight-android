@@ -16,7 +16,6 @@ import java.util.Stack;
 
 import javax.crypto.SecretKey;
 
-import org.apache.commons.codec.binary.Base64;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -25,6 +24,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 public class NvHTTP {
 	private String uniqueId;
 	private PairingManager pm;
+	private LimelightCryptoProvider cryptoProvider;
 
 	public static final int PORT = 47984;
 	public static final int CONNECTION_TIMEOUT = 5000;
@@ -35,6 +35,7 @@ public class NvHTTP {
 	
 	public NvHTTP(InetAddress host, String uniqueId, String deviceName, LimelightCryptoProvider cryptoProvider) {
 		this.uniqueId = uniqueId;
+		this.cryptoProvider = cryptoProvider;
 		
 		String safeAddress;
 		if (host instanceof Inet6Address) {
@@ -200,14 +201,14 @@ public class NvHTTP {
 			"/launch?uniqueid=" + uniqueId +
 			"&appid=" + appId +
 			"&mode=" + width + "x" + height + "x" + refreshRate +
-			"&additionalStates=1&sops=1&rikey="+Base64.encodeBase64String(inputKey.getEncoded()));
+			"&additionalStates=1&sops=1&rikey="+cryptoProvider.encodeBase64String(inputKey.getEncoded()));
 		String gameSession = getXmlString(in, "gamesession");
 		return Integer.parseInt(gameSession);
 	}
 	
 	public boolean resumeApp(SecretKey inputKey) throws IOException, XmlPullParserException {
 		InputStream in = openHttpConnection(baseUrl + "/resume?uniqueid=" + uniqueId +
-				"&rikey="+Base64.encodeBase64String(inputKey.getEncoded()));
+				"&rikey="+cryptoProvider.encodeBase64String(inputKey.getEncoded()));
 		String resume = getXmlString(in, "resume");
 		return Integer.parseInt(resume) != 0;
 	}

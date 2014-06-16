@@ -19,6 +19,7 @@ import java.net.Socket;
 import java.security.*;
 import java.security.cert.*;
 import java.util.Arrays;
+import java.util.Random;
 
 public class PairingManager {
 
@@ -27,9 +28,7 @@ public class PairingManager {
 	private PrivateKey pk;
 	private X509Certificate cert;
 	private SecretKey aesKey;
-	
-	byte[] privKeyBytes;
-	byte[] pubKeyBytes;
+	private byte[] pemCertBytes;
 	
 	public enum PairState {
 		NOT_PAIRED,
@@ -41,13 +40,14 @@ public class PairingManager {
 	public PairingManager(NvHTTP http, LimelightCryptoProvider cryptoProvider) {
 		this.http = http;
 		this.cert = cryptoProvider.getClientCertificate();
+		this.pemCertBytes = cryptoProvider.getPemEncodedClientCertificate();
 		this.pk = cryptoProvider.getClientPrivateKey();
 		
 		// Update the trust manager and key manager to use our certificate and PK
 	    installSslKeysAndTrust();
 	}
 	
-	public void installSslKeysAndTrust() {
+	private void installSslKeysAndTrust() {
 		// Create a trust manager that does not validate certificate chains
 		TrustManager[] trustAllCerts = new TrustManager[] { 
 				new X509TrustManager() {
@@ -99,7 +99,9 @@ public class PairingManager {
 			sc.init(ourKeyman, trustAllCerts, new SecureRandom());
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 			HttpsURLConnection.setDefaultHostnameVerifier(hv);
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	final private static char[] hexArray = "0123456789ABCDEF".toCharArray();
@@ -145,15 +147,16 @@ public class PairingManager {
 		return saltedPin;
 	}
 	
-	private static byte[] toSHA1Bytes(byte[] convertme) {
-	    MessageDigest md = null;
+	private static byte[] toSHA1Bytes(byte[] data) {
 	    try {
-	        md = MessageDigest.getInstance("SHA-1");
+	    	MessageDigest md = MessageDigest.getInstance("SHA-1");
+		    return md.digest(data);
 	    }
-	    catch(NoSuchAlgorithmException e) {
-	        e.printStackTrace();
+	    catch (NoSuchAlgorithmException e) {
+	        // Shouldn't ever happen
+	    	e.printStackTrace();
+	    	return null;
 	    } 
-	    return md.digest(convertme);
 	}
 	
 	private static boolean verifySignature(byte[] data, byte[] signature, Certificate cert) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
@@ -199,7 +202,6 @@ public class PairingManager {
 	
 	private static SecretKey generateAesKey(byte[] keyData) {
 		byte[] aesTruncated = Arrays.copyOf(toSHA1Bytes(keyData), 16);
-		System.out.println("AES key data: "+bytesToHex(aesTruncated));
 		return new SecretKeySpec(aesTruncated, "AES");
 	}
 	
@@ -208,6 +210,13 @@ public class PairingManager {
 		System.arraycopy(a, 0, c, 0, a.length);
 		System.arraycopy(b, 0, c, a.length, b.length);
 		return c;
+	}
+	
+	public static String generatePinString() {
+		Random r = new Random();
+		return String.format("%d%d%d%d",
+				r.nextInt(10), r.nextInt(10),
+				r.nextInt(10), r.nextInt(10));
 	}
 	
 	public PairState getPairState(String uniqueId) throws MalformedURLException, IOException, XmlPullParserException  {
@@ -228,7 +237,6 @@ public class PairingManager {
 	public PairState pair(String uniqueId, String pin) throws MalformedURLException, IOException, XmlPullParserException, CertificateException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, ShortBufferException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException {
 		// Generate a salt for hashing the PIN
 		byte[] salt = generateRandomBytes(16);
-		System.out.println("Using salt: "+bytesToHex(salt));
 
 		// Combine the salt and pin, then create an AES key from them
 		byte[] saltAndPin = saltPin(salt, pin);
@@ -236,46 +244,40 @@ public class PairingManager {
 		
 		// Send the salt and get the server cert
 		String getCert = http.openHttpConnectionToString(http.baseUrl +
-				"/pair?uniqueid="+uniqueId+"&devicename=roth&updateState=1&phrase=getservercert&salt="+bytesToHex(salt)+"&clientcert="+bytesToHex(pubKeyBytes));
+				"/pair?uniqueid="+uniqueId+"&devicename=roth&updateState=1&phrase=getservercert&salt="+bytesToHex(salt)+"&clientcert="+bytesToHex(pemCertBytes));
 		if (!NvHTTP.getXmlString(getCert, "paired").equals("1")) {
+			http.openHttpConnectionToString(http.baseUrl + "/unpair?uniqueid="+uniqueId);
 			return PairState.FAILED;
 		}
 		X509Certificate serverCert = extractPlainCert(getCert);
-		System.out.println(serverCert);
 		
 		// Generate a random challenge and encrypt it with our AES key
 		byte[] randomChallenge = generateRandomBytes(16);
-		System.out.println("Unencrypted challenge: "+bytesToHex(randomChallenge));
 		byte[] encryptedChallenge = encryptAes(randomChallenge, aesKey);
-		System.out.println("Encrypted challenge: "+bytesToHex(encryptedChallenge));
 		
 		// Send the encrypted challenge to the server
 		String challengeResp = http.openHttpConnectionToString(http.baseUrl + 
 				"/pair?uniqueid="+uniqueId+"&devicename=roth&updateState=1&clientchallenge="+bytesToHex(encryptedChallenge));
 		if (!NvHTTP.getXmlString(challengeResp, "paired").equals("1")) {
+			http.openHttpConnectionToString(http.baseUrl + "/unpair?uniqueid="+uniqueId);
 			return PairState.FAILED;
 		}
 		
 		// Decode the server's response and subsequent challenge
 		byte[] encServerChallengeResponse = hexToBytes(NvHTTP.getXmlString(challengeResp, "challengeresponse"));
-		System.out.println("Encrypted challenge response: "+bytesToHex(encServerChallengeResponse));
 		byte[] decServerChallengeResponse = decryptAes(encServerChallengeResponse, aesKey);
-		System.out.println("Decrypted challenge response: "+bytesToHex(decServerChallengeResponse));
 		
 		byte[] serverResponse = Arrays.copyOfRange(decServerChallengeResponse, 0, 20);
 		byte[] serverChallenge = Arrays.copyOfRange(decServerChallengeResponse, 20, 36);
-		System.out.println("Server response: "+bytesToHex(serverResponse));
-		System.out.println("Server challenge: "+bytesToHex(serverChallenge));
 		
 		// Using another 16 bytes secret, compute a challenge response hash using the secret, our cert sig, and the challenge
 		byte[] clientSecret = generateRandomBytes(16);
 		byte[] challengeRespHash = toSHA1Bytes(concatBytes(concatBytes(serverChallenge, cert.getSignature()), clientSecret));
-		System.out.println("Client challenge response hash: "+bytesToHex(challengeRespHash));
 		byte[] challengeRespEncrypted = encryptAes(challengeRespHash, aesKey);
-		System.out.println("Client challenge response encrypted: "+bytesToHex(challengeRespEncrypted));
 		String secretResp = http.openHttpConnectionToString(http.baseUrl +
 				"/pair?uniqueid="+uniqueId+"&devicename=roth&updateState=1&serverchallengeresp="+bytesToHex(challengeRespEncrypted));
 		if (!NvHTTP.getXmlString(secretResp, "paired").equals("1")) {
+			http.openHttpConnectionToString(http.baseUrl + "/unpair?uniqueid="+uniqueId);
 			return PairState.FAILED;
 		}
 		
@@ -295,8 +297,6 @@ public class PairingManager {
 		
 		// Ensure the server challenge matched what we expected (aka the PIN was correct)
 		byte[] serverChallengeRespHash = toSHA1Bytes(concatBytes(concatBytes(randomChallenge, serverCert.getSignature()), serverSecret));
-		System.out.println("Re-calculated server challenge response hash: "+bytesToHex(serverChallengeRespHash));
-		System.out.println("Original challenge response: "+bytesToHex(serverResponse));
 		if (!Arrays.equals(serverChallengeRespHash, serverResponse)) {
 			// Cancel the pairing process
 			http.openHttpConnectionToString(http.baseUrl + "/unpair?uniqueid="+uniqueId);
@@ -307,16 +307,17 @@ public class PairingManager {
 		
 		// Send the server our signed secret
 		byte[] clientPairingSecret = concatBytes(clientSecret, signData(clientSecret, pk));
-		System.out.println("Client pairing secret: "+bytesToHex(clientPairingSecret));
 		String clientSecretResp = http.openHttpConnectionToString(http.baseUrl + 
 				"/pair?uniqueid="+uniqueId+"&devicename=roth&updateState=1&clientpairingsecret="+bytesToHex(clientPairingSecret));
 		if (!NvHTTP.getXmlString(clientSecretResp, "paired").equals("1")) {
+			http.openHttpConnectionToString(http.baseUrl + "/unpair?uniqueid="+uniqueId);
 			return PairState.FAILED;
 		}
 		
 		// Do the initial challenge (seems neccessary for us to show as paired)
 		String pairChallenge = http.openHttpConnectionToString(http.baseUrl + "/pair?uniqueid="+uniqueId+"&devicename=roth&updateState=1&phrase=pairchallenge");
 		if (!NvHTTP.getXmlString(pairChallenge, "paired").equals("1")) {
+			http.openHttpConnectionToString(http.baseUrl + "/unpair?uniqueid="+uniqueId);
 			return PairState.FAILED;
 		}
 		

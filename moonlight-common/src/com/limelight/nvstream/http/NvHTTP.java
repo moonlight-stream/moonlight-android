@@ -28,6 +28,8 @@ public class NvHTTP {
 
 	public static final int PORT = 47984;
 	public static final int CONNECTION_TIMEOUT = 5000;
+	
+	private final boolean verbose = false;
 
 	public String baseUrl;
 	
@@ -96,7 +98,9 @@ public class NvHTTP {
 
 	private InputStream openHttpConnection(String url) throws IOException {
 		URLConnection conn = new URL(url).openConnection();
-		System.out.println(conn.getURL());
+		if (verbose) {
+			System.out.println(url);
+		}
 		conn.setConnectTimeout(CONNECTION_TIMEOUT);
 		conn.setUseCaches(false);
 		conn.connect();
@@ -112,7 +116,11 @@ public class NvHTTP {
 		}
 		
 		s.close();
-		System.out.println(str);
+		
+		if (verbose) {
+			System.out.println(str);
+		}
+		
 		return str;
 	}
 

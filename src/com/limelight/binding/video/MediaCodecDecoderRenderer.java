@@ -8,6 +8,7 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.av.video.VideoDepacketizer;
 
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
@@ -23,15 +24,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private ByteBuffer[] videoDecoderInputBuffers;
 	private MediaCodec videoDecoder;
 	private Thread rendererThread;
-	private int redrawRate;
 	private boolean needsSpsBitstreamFixup;
 	private boolean needsSpsNumRefFixup;
-	private boolean fastInputQueueing;
+	private VideoDepacketizer depacketizer;
 	
 	public static final List<String> blacklistedDecoderPrefixes;
 	public static final List<String> spsFixupBitsreamFixupDecoderPrefixes;
 	public static final List<String> spsFixupNumRefFixupDecoderPrefixes;
-	public static final List<String> fastInputQueueingPrefixes;
 	
 	static {
 		blacklistedDecoderPrefixes = new LinkedList<String>();
@@ -45,11 +44,6 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		
 		spsFixupNumRefFixupDecoderPrefixes = new LinkedList<String>();
 		spsFixupNumRefFixupDecoderPrefixes.add("omx.TI");
-	}
-	
-	static {
-		fastInputQueueingPrefixes = new LinkedList<String>();
-		fastInputQueueingPrefixes.add("omx.nvidia");
 	}
 		
 	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
@@ -124,9 +118,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	}
 	
 	@Override
-	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {	
-		this.redrawRate = redrawRate;
-		
+	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
 		//dumpDecoders();
 		
 		MediaCodecInfo safeDecoder = findSafeDecoder();
@@ -140,16 +132,11 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			if (needsSpsNumRefFixup) {
 				LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS ref num fixup");
 			}
-			fastInputQueueing = isDecoderInList(fastInputQueueingPrefixes, safeDecoder.getName());
-			if (fastInputQueueing) {
-				LimeLog.info("Decoder "+safeDecoder.getName()+" supports fast input queueing");
-			}
 		}
 		else {
 			videoDecoder = MediaCodec.createDecoderByType("video/avc");
 			needsSpsBitstreamFixup = false;
 			needsSpsNumRefFixup = false;
-			fastInputQueueing = false;
 		}
 		
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
@@ -167,59 +154,51 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		rendererThread = new Thread() {
 			@Override
 			public void run() {
-				long nextFrameTimeUs = 0;
 				BufferInfo info = new BufferInfo();
+				DecodeUnit du;
 				while (!isInterrupted())
 				{
-					// Block for a maximum of 100 ms
-					int outIndex = videoDecoder.dequeueOutputBuffer(info, 100000);
-				    switch (outIndex) {
-				    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-				    	LimeLog.info("Output buffers changed");
-					    break;
-				    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-				    	LimeLog.info("Output format changed");
-				    	LimeLog.info("New output Format: " + videoDecoder.getOutputFormat());
-				    	break;
-				    default:
-				      break;
-				    }
-				    
+					du = depacketizer.pollNextDecodeUnit();
+					if (du != null) {
+						submitDecodeUnit(du);
+					}
+					
+					int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
 				    if (outIndex >= 0) {
 					    int lastIndex = outIndex;
-				    	boolean render = false;
-					    
-				    	if (currentTimeUs() >= nextFrameTimeUs) {
-				    		render = true;
-				    		nextFrameTimeUs = computePresentationTime(redrawRate);
-				    	}
-					    
+
 					    // Get the last output buffer in the queue
 					    while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
 					    	videoDecoder.releaseOutputBuffer(lastIndex, false);
 					    	lastIndex = outIndex;
 					    }
-				    	
-					    // Render that buffer if it's time for the next frame
-				    	videoDecoder.releaseOutputBuffer(lastIndex, render);
+					    
+					    // Render the last buffer
+				    	videoDecoder.releaseOutputBuffer(lastIndex, true);
+				    } else {
+					    switch (outIndex) {
+					    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
+					    	LimeLog.info("Output buffers changed");
+						    break;
+					    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
+					    	LimeLog.info("Output format changed");
+					    	LimeLog.info("New output Format: " + videoDecoder.getOutputFormat());
+					    	break;
+					    default:
+					      break;
+					    }
 				    }
 				}
 			}
 		};
 		rendererThread.setName("Video - Renderer (MediaCodec)");
+		rendererThread.setPriority(Thread.MAX_PRIORITY);
 		rendererThread.start();
-	}
-	
-	private static long currentTimeUs() {
-		return System.nanoTime() / 1000;
-	}
-
-	private long computePresentationTime(int frameRate) {
-		return currentTimeUs() + (1000000 / frameRate);
 	}
 
 	@Override
-	public void start() {
+	public void start(VideoDepacketizer depacketizer) {
+		this.depacketizer = depacketizer;
 		startRendererThread();
 	}
 
@@ -239,24 +218,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 	}
 
-	@Override
-	public boolean submitDecodeUnit(DecodeUnit decodeUnit) {
-		if (decodeUnit.getType() != DecodeUnit.TYPE_H264) {
-			System.err.println("Unknown decode unit type");
-			return false;
-		}
-		
-		int mcFlags = 0;
-		
-		if ((decodeUnit.getFlags() & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0) {
-			LimeLog.info("Codec config");
-			mcFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-		}
-		if ((decodeUnit.getFlags() & DecodeUnit.DU_FLAG_SYNC_FRAME) != 0) {
-			LimeLog.info("Sync frame");
-			mcFlags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
-		}
-		
+	private boolean submitDecodeUnit(DecodeUnit decodeUnit) {
 		int inputIndex = videoDecoder.dequeueInputBuffer(-1);
 		if (inputIndex >= 0)
 		{
@@ -312,7 +274,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 					videoDecoder.queueInputBuffer(inputIndex,
 							0, spsLength,
-							0, mcFlags);
+							0, 0);
 					return true;
 				}
 			}
@@ -325,7 +287,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 			videoDecoder.queueInputBuffer(inputIndex,
 					0, decodeUnit.getDataLength(),
-					0, mcFlags);
+					0, 0);
 		}
 		
 		return true;
@@ -333,7 +295,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 	@Override
 	public int getCapabilities() {
-		return fastInputQueueing ? VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT : 0;
+		return 0;
 	}
 
 	/**

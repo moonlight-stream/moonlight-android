@@ -1,7 +1,7 @@
 package com.limelight.binding.video;
 
-import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.av.video.VideoDepacketizer;
 
 public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 
@@ -26,18 +26,13 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 	}
 
 	@Override
-	public void start() {
-		decoderRenderer.start();
+	public void start(VideoDepacketizer depacketizer) {
+		decoderRenderer.start(depacketizer);
 	}
 
 	@Override
 	public void stop() {
 		decoderRenderer.stop();
-	}
-
-	@Override
-	public boolean submitDecodeUnit(DecodeUnit du) {
-		return decoderRenderer.submitDecodeUnit(du);
 	}
 
 	@Override

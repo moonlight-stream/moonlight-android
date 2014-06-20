@@ -13,6 +13,7 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.av.video.VideoDepacketizer;
 import com.limelight.nvstream.av.video.cpu.AvcDecoder;
 
 public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
@@ -141,22 +142,23 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 	}
 
 	@Override
-	public void start() {
+	public void start(final VideoDepacketizer depacketizer) {
 		rendererThread = new Thread() {
 			@Override
 			public void run() {
 				long nextFrameTime = System.currentTimeMillis();
-				
+				DecodeUnit du;
 				while (!isInterrupted())
 				{
+					du = depacketizer.pollNextDecodeUnit(); 
+					if (du != null) {
+						submitDecodeUnit(du);
+					}
+					
 					long diff = nextFrameTime - System.currentTimeMillis();
 
 					if (diff > WAIT_CEILING_MS) {
-						try {
-							Thread.sleep(diff);
-						} catch (InterruptedException e) {
-							return;
-						}
+						continue;
 					}
 
 					nextFrameTime = computePresentationTimeMs(targetFps);
@@ -165,6 +167,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 			}
 		};
 		rendererThread.setName("Video - Renderer (CPU)");
+		rendererThread.setPriority(Thread.MAX_PRIORITY);
 		rendererThread.start();
 	}
 	
@@ -186,8 +189,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 		AvcDecoder.destroy();
 	}
 
-	@Override
-	public boolean submitDecodeUnit(DecodeUnit decodeUnit) {
+	private boolean submitDecodeUnit(DecodeUnit decodeUnit) {
 		byte[] data;
 		
 		// Use the reserved decoder buffer if this decode unit will fit

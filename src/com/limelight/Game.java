@@ -19,6 +19,7 @@ import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Display;
@@ -55,6 +56,8 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	private boolean displayedFailureDialog = false;
 	private boolean connecting = false;
 	private boolean connected = false;
+	
+	private WifiManager.WifiLock wifiLock;
 	
 	private int drFlags = 0;
 	
@@ -152,7 +155,13 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		        
 		// Warn the user if they're on a metered connection
         checkDataConnection();
-		
+        
+        // Make sure Wi-Fi is fully powered up
+		WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        wifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Limelight");
+		wifiLock.setReferenceCounted(false);
+		wifiLock.acquire();
+        
 		// Start the connection
 		conn = new NvConnection(Game.this.getIntent().getStringExtra("host"), Game.this,
 				new StreamConfiguration(width, height, refreshRate, bitrate * 1000), PlatformBinding.getCryptoProvider(this));
@@ -212,6 +221,13 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		conn.stop();
 		
 		finish();
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		
+		wifiLock.release();
 	}
 	
 	private static byte getModifierState(KeyEvent event) {

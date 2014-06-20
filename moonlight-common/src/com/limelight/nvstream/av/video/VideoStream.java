@@ -13,7 +13,6 @@ import java.util.LinkedList;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
-import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.RtpPacket;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 
@@ -140,12 +139,7 @@ public class VideoStream {
 			decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(),
 					60, renderTarget, drFlags);
 			
-			if ((decRend.getCapabilities() & VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT) != 0) {
-				depacketizer = new VideoDepacketizer(decRend, avConnListener);
-			}
-			else {
-				depacketizer = new VideoDepacketizer(null, avConnListener);
-			}
+			depacketizer = new VideoDepacketizer(avConnListener);
 		}
 	}
 
@@ -173,42 +167,10 @@ public class VideoStream {
 			// early packets
 			startReceiveThread();
 			
-			// Start a decode thread if we're not doing direct submit
-			if ((decRend.getCapabilities() & VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT) == 0) {
-				startDecoderThread();
-			}
-			
 			// Start the renderer
-			decRend.start();
+			decRend.start(depacketizer);
 			startedRendering = true;
 		}
-	}
-	
-	private void startDecoderThread()
-	{
-		Thread t = new Thread() {
-			@Override
-			public void run() {
-				// Read the decode units generated from the RTP stream
-				while (!isInterrupted())
-				{
-					DecodeUnit du;
-					
-					try {
-						du = depacketizer.getNextDecodeUnit();
-					} catch (InterruptedException e) {
-						listener.connectionTerminated(e);
-						return;
-					}
-					
-					decRend.submitDecodeUnit(du);
-				}
-			}
-		};
-		threads.add(t);
-		t.setName("Video - Decoder");
-		t.setPriority(Thread.MAX_PRIORITY);
-		t.start();
 	}
 	
 	private void startReceiveThread()

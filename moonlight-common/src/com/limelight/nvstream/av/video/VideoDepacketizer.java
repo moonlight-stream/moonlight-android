@@ -28,14 +28,12 @@ public class VideoDepacketizer {
 	private ByteBufferDescriptor cachedDesc = new ByteBufferDescriptor(null, 0, 0);
 	
 	private ConnectionStatusListener controlListener;
-	private VideoDecoderRenderer directSubmitDr;
 	
 	private static final int DU_LIMIT = 15;
 	private LinkedBlockingQueue<DecodeUnit> decodedUnits = new LinkedBlockingQueue<DecodeUnit>(DU_LIMIT);
 	
-	public VideoDepacketizer(VideoDecoderRenderer directSubmitDr, ConnectionStatusListener controlListener)
+	public VideoDepacketizer(ConnectionStatusListener controlListener)
 	{
-		this.directSubmitDr = directSubmitDr;
 		this.controlListener = controlListener;
 	}
 	
@@ -68,11 +66,7 @@ public class VideoDepacketizer {
 			
 			// Construct the H264 decode unit
 			DecodeUnit du = new DecodeUnit(DecodeUnit.TYPE_H264, avcFrameDataChain, avcFrameDataLength, flags, frameNumber);
-			if (directSubmitDr != null) {
-				// Submit directly to the decoder
-				directSubmitDr.submitDecodeUnit(du);
-			}
-			else if (!decodedUnits.offer(du)) {
+			if (!decodedUnits.offer(du)) {
 				LimeLog.warning("Video decoder is too slow! Forced to drop decode units");
 				
 				// Invalidate all frames from the start of the DU queue
@@ -92,7 +86,7 @@ public class VideoDepacketizer {
 		}
 	}
 	
-	public void addInputDataSlow(VideoPacket packet, ByteBufferDescriptor location)
+	private void addInputDataSlow(VideoPacket packet, ByteBufferDescriptor location)
 	{
 		while (location.length != 0)
 		{
@@ -175,7 +169,7 @@ public class VideoDepacketizer {
 		}
 	}
 	
-	public void addInputDataFast(VideoPacket packet, ByteBufferDescriptor location, boolean firstPacket)
+	private void addInputDataFast(VideoPacket packet, ByteBufferDescriptor location, boolean firstPacket)
 	{
 		if (firstPacket) {
 			// Setup state for the new frame
@@ -340,9 +334,14 @@ public class VideoDepacketizer {
 		addInputData(new VideoPacket(rtpPayload));
 	}
 	
-	public DecodeUnit getNextDecodeUnit() throws InterruptedException
+	public DecodeUnit takeNextDecodeUnit() throws InterruptedException
 	{
 		return decodedUnits.take();
+	}
+	
+	public DecodeUnit pollNextDecodeUnit()
+	{
+		return decodedUnits.poll();
 	}
 }
 

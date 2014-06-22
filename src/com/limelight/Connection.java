@@ -1,5 +1,6 @@
 package com.limelight;
 
+import java.io.FileNotFoundException;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -251,7 +252,7 @@ public class Connection extends Activity {
 					return;
 				}
 				
-				Toast.makeText(Connection.this, "Pairing...", Toast.LENGTH_LONG).show();
+				Toast.makeText(Connection.this, "Pairing...", Toast.LENGTH_SHORT).show();
 				new Thread(new Runnable() {
 					@Override
 					public void run() {
@@ -297,8 +298,11 @@ public class Connection extends Activity {
 									message = null;
 								}
 							}
-						} catch (UnknownHostException e1) {
+						} catch (UnknownHostException e) {
 							message = "Failed to resolve host";
+						} catch (FileNotFoundException e) {
+							message = "GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU. Using remote desktop software can also cause this error. "
+									+ "Try rebooting your machine or reinstalling GFE.";
 						} catch (Exception e) {
 							message = e.getMessage();
 						}

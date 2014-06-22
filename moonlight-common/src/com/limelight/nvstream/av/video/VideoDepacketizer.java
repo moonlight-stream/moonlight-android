@@ -6,7 +6,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
-import com.limelight.nvstream.av.RtpPacket;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 
 public class VideoDepacketizer {
@@ -26,7 +25,8 @@ public class VideoDepacketizer {
 	private long frameStartTime;
 	
 	// Cached objects
-	private ByteBufferDescriptor cachedDesc = new ByteBufferDescriptor(null, 0, 0);
+	private ByteBufferDescriptor cachedReassemblyDesc = new ByteBufferDescriptor(null, 0, 0);
+	private ByteBufferDescriptor cachedSpecialDesc = new ByteBufferDescriptor(null, 0, 0);
 	
 	private ConnectionStatusListener controlListener;
 	
@@ -78,15 +78,15 @@ public class VideoDepacketizer {
 			int start = location.offset;
 
 			// Check for a special sequence
-			if (NAL.getSpecialSequenceDescriptor(location, cachedDesc))
+			if (NAL.getSpecialSequenceDescriptor(location, cachedSpecialDesc))
 			{
-				if (NAL.isAvcStartSequence(cachedDesc))
+				if (NAL.isAvcStartSequence(cachedSpecialDesc))
 				{
 					// We're decoding H264 now
 					currentlyDecoding = DecodeUnit.TYPE_H264;
 
 					// Check if it's the end of the last frame
-					if (NAL.isAvcFrameStart(cachedDesc))
+					if (NAL.isAvcFrameStart(cachedSpecialDesc))
 					{
 						// Reassemble any pending AVC NAL
 						reassembleAvcFrame(packet.getFrameIndex());
@@ -97,14 +97,14 @@ public class VideoDepacketizer {
 					}
 
 					// Skip the start sequence
-					location.length -= cachedDesc.length;
-					location.offset += cachedDesc.length;
+					location.length -= cachedSpecialDesc.length;
+					location.offset += cachedSpecialDesc.length;
 				}
 				else
 				{
 					// Check if this is padding after a full AVC frame
 					if (currentlyDecoding == DecodeUnit.TYPE_H264 &&
-						NAL.isPadding(cachedDesc)) {
+						NAL.isPadding(cachedSpecialDesc)) {
 						// The decode unit is complete
 						reassembleAvcFrame(packet.getFrameIndex());
 					}
@@ -125,12 +125,12 @@ public class VideoDepacketizer {
 				if (location.data[location.offset] == 0x00)
 				{
 					// Check if this should end the current NAL
-					if (NAL.getSpecialSequenceDescriptor(location, cachedDesc))
+					if (NAL.getSpecialSequenceDescriptor(location, cachedSpecialDesc))
 					{
 						// Only stop if we're decoding something or this
 						// isn't padding
 						if (currentlyDecoding != DecodeUnit.TYPE_UNKNOWN ||
-							!NAL.isPadding(cachedDesc))
+							!NAL.isPadding(cachedSpecialDesc))
 						{
 							break;
 						}
@@ -163,19 +163,20 @@ public class VideoDepacketizer {
 		}
 		
 		// Add the payload data to the chain
-		avcFrameDataChain.add(location);
+		avcFrameDataChain.add(new ByteBufferDescriptor(location));
 		avcFrameDataLength += location.length;
 	}
 	
 	public void addInputData(VideoPacket packet)
-	{	
-		ByteBufferDescriptor location = packet.getNewPayloadDescriptor();
+	{
+		// Load our reassembly descriptor
+		packet.initializePayloadDescriptor(cachedReassemblyDesc);
 		
 		// Runt packets get decoded using the slow path
 		// These packets stand alone so there's no need to verify
 		// sequencing before submitting
-		if (location.length < 968) {
-			addInputDataSlow(packet, location);
+		if (cachedReassemblyDesc.length < 968) {
+			addInputDataSlow(packet, cachedReassemblyDesc);
             return;
 		}
 		
@@ -277,21 +278,22 @@ public class VideoDepacketizer {
 		nextPacketNumber++;
 		
 		// Remove extra padding
-		location.length = packet.getPayloadLength();
+		cachedReassemblyDesc.length = packet.getPayloadLength();
 		
 		if (firstPacket)
 		{
-			if (NAL.getSpecialSequenceDescriptor(location, cachedDesc) && NAL.isAvcFrameStart(cachedDesc)
-				&& cachedDesc.data[cachedDesc.offset+cachedDesc.length] == 0x67)
+			if (NAL.getSpecialSequenceDescriptor(cachedReassemblyDesc, cachedSpecialDesc)
+				&& NAL.isAvcFrameStart(cachedSpecialDesc)
+				&& cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x67)
 			{
 				// SPS and PPS prefix is padded between NALs, so we must decode it with the slow path
 				clearAvcFrameState();
-				addInputDataSlow(packet, location);
+				addInputDataSlow(packet, cachedReassemblyDesc);
 				return;
 			}
 		}
 
-		addInputDataFast(packet, location, firstPacket);
+		addInputDataFast(packet, cachedReassemblyDesc, firstPacket);
 		
 		// We can't use the EOF flag here because real frames can be split across
 		// multiple "frames" when packetized to fit under the bandwidth ceiling
@@ -311,12 +313,6 @@ public class VideoDepacketizer {
 			
 	        startFrameNumber = nextFrameNumber;
 		}
-	}
-	
-	public void addInputData(RtpPacket packet)
-	{
-		ByteBufferDescriptor rtpPayload = packet.getNewPayloadDescriptor();
-		addInputData(new VideoPacket(rtpPayload));
 	}
 	
 	public DecodeUnit takeNextDecodeUnit() throws InterruptedException

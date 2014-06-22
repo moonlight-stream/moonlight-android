@@ -8,6 +8,8 @@ public class RtpPacket {
 	private short seqNum;
 	private ByteBufferDescriptor buffer;
 	
+	public static final int HEADER_SIZE = 12;
+	
 	public RtpPacket(ByteBufferDescriptor buffer)
 	{
 		this.buffer = new ByteBufferDescriptor(buffer);
@@ -41,6 +43,6 @@ public class RtpPacket {
 	
 	public ByteBufferDescriptor getNewPayloadDescriptor()
 	{
-		return new ByteBufferDescriptor(buffer.data, buffer.offset+12, buffer.length-12);
+		return new ByteBufferDescriptor(buffer.data, buffer.offset+HEADER_SIZE, buffer.length-HEADER_SIZE);
 	}
 }

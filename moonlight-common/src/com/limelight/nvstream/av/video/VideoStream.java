@@ -12,8 +12,6 @@ import java.util.LinkedList;
 
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
-import com.limelight.nvstream.av.ByteBufferDescriptor;
-import com.limelight.nvstream.av.RtpPacket;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 
 public class VideoStream {
@@ -118,7 +116,9 @@ public class VideoStream {
 				offset += bytesRead;
 			}
 			
-			depacketizer.addInputData(new VideoPacket(new ByteBufferDescriptor(firstFrame, 0, offset)));
+			VideoPacket packet = new VideoPacket(firstFrame);
+			packet.initializeWithLengthNoRtpHeader(offset);
+			depacketizer.addInputData(packet);
 		} finally {
 			firstFrameSocket.close();
 			firstFrameSocket = null;
@@ -179,31 +179,29 @@ public class VideoStream {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				ByteBufferDescriptor ring[] = new ByteBufferDescriptor[VIDEO_RING_SIZE];
+				VideoPacket ring[] = new VideoPacket[VIDEO_RING_SIZE];
 				int ringIndex = 0;
 				
 				// Preinitialize the ring buffer
 				for (int i = 0; i < VIDEO_RING_SIZE; i++) {
-					ring[i] = new ByteBufferDescriptor(new byte[MAX_PACKET_SIZE], 0, MAX_PACKET_SIZE);
+					ring[i] = new VideoPacket(new byte[MAX_PACKET_SIZE]);
 				}
 
-				ByteBufferDescriptor desc;
+				byte[] buffer;
 				DatagramPacket packet = new DatagramPacket(new byte[1], 1); // Placeholder array
 				while (!isInterrupted())
 				{
 					try {
 						// Pull the next buffer in the ring and reset it
-						desc = ring[ringIndex];
-						desc.length = MAX_PACKET_SIZE;
-						desc.offset = 0;
+						buffer = ring[ringIndex].getBuffer();
 
 						// Read the video data off the network
-						packet.setData(desc.data, desc.offset, desc.length);
+						packet.setData(buffer, 0, buffer.length);
 						rtp.receive(packet);
 						
 						// Submit video data to the depacketizer
-						desc.length = packet.getLength();
-						depacketizer.addInputData(new RtpPacket(desc));
+						ring[ringIndex].initializeWithLength(packet.getLength());
+						depacketizer.addInputData(ring[ringIndex]);
 						ringIndex = (ringIndex + 1) % VIDEO_RING_SIZE;
 					} catch (IOException e) {
 						listener.connectionTerminated(e);

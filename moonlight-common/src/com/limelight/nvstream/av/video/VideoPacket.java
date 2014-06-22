@@ -4,9 +4,13 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import com.limelight.nvstream.av.ByteBufferDescriptor;
+import com.limelight.nvstream.av.RtpPacket;
 
 public class VideoPacket {
 	private ByteBufferDescriptor buffer;
+	private ByteBuffer byteBuffer;
+	
+	private int dataOffset;
 	
 	private int frameIndex;
 	private int packetIndex;
@@ -18,19 +22,47 @@ public class VideoPacket {
 	public static final int FLAG_EOF = 0x2;
 	public static final int FLAG_SOF = 0x4;
 	
-	public VideoPacket(ByteBufferDescriptor rtpPayload)
+	public VideoPacket(byte[] buffer)
 	{
-		buffer = new ByteBufferDescriptor(rtpPayload);
+		this.buffer = new ByteBufferDescriptor(buffer, 0, buffer.length);
+		this.byteBuffer = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+	}
+	
+	public void initializeWithLengthNoRtpHeader(int length)
+	{
+		// Read the video header fields
+		frameIndex = byteBuffer.getInt();
+		packetIndex = byteBuffer.getInt();
+		totalPackets = byteBuffer.getInt();
+		flags = byteBuffer.getInt();
+		payloadLength = byteBuffer.getInt();
+		streamPacketIndex = byteBuffer.getInt();
 		
-		ByteBuffer bb = ByteBuffer.wrap(buffer.data).order(ByteOrder.LITTLE_ENDIAN);
-		bb.position(buffer.offset);
+		// Data offset without the RTP header
+		dataOffset = 56;
 		
-		frameIndex = bb.getInt();
-		packetIndex = bb.getInt();
-		totalPackets = bb.getInt();
-		flags = bb.getInt();
-		payloadLength = bb.getInt();
-		streamPacketIndex = bb.getInt();
+		// Update descriptor length
+		buffer.length = length;
+	}
+	
+	public void initializeWithLength(int length)
+	{
+		// Skip the RTP header
+		byteBuffer.position(RtpPacket.HEADER_SIZE);
+		
+		// Read the video header fields
+		frameIndex = byteBuffer.getInt();
+		packetIndex = byteBuffer.getInt();
+		totalPackets = byteBuffer.getInt();
+		flags = byteBuffer.getInt();
+		payloadLength = byteBuffer.getInt();
+		streamPacketIndex = byteBuffer.getInt();
+		
+		// Data offset includes the RTP header
+		dataOffset = RtpPacket.HEADER_SIZE + 56;
+		
+		// Update descriptor length
+		buffer.length = length;
 	}
 	
 	public int getFlags()
@@ -63,8 +95,13 @@ public class VideoPacket {
 		return streamPacketIndex;
 	}
 	
-	public ByteBufferDescriptor getNewPayloadDescriptor()
+	public byte[] getBuffer()
 	{
-		return new ByteBufferDescriptor(buffer.data, buffer.offset+56, buffer.length-56);
+		return buffer.data;
+	}
+	
+	public void initializePayloadDescriptor(ByteBufferDescriptor bb)
+	{
+		bb.reinitialize(buffer.data, buffer.offset+dataOffset, buffer.length-dataOffset);
 	}
 }

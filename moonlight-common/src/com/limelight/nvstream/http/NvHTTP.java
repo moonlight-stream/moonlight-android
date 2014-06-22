@@ -3,12 +3,18 @@ package com.limelight.nvstream.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.LinkedList;
+import java.util.Scanner;
 import java.util.Stack;
+
+import javax.crypto.SecretKey;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -17,14 +23,19 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 public class NvHTTP {
 	private String uniqueId;
+	private PairingManager pm;
+	private LimelightCryptoProvider cryptoProvider;
 
-	public static final int PORT = 47989;
+	public static final int PORT = 47984;
 	public static final int CONNECTION_TIMEOUT = 5000;
+	
+	private final boolean verbose = false;
 
 	public String baseUrl;
-
-	public NvHTTP(InetAddress host, String uniqueId, String deviceName) {
+	
+	public NvHTTP(InetAddress host, String uniqueId, String deviceName, LimelightCryptoProvider cryptoProvider) {
 		this.uniqueId = uniqueId;
+		this.cryptoProvider = cryptoProvider;
 		
 		String safeAddress;
 		if (host instanceof Inet6Address) {
@@ -35,16 +46,16 @@ public class NvHTTP {
 			safeAddress = host.getHostAddress();
 		}
 		
-		this.baseUrl = "http://" + safeAddress + ":" + PORT;
+		this.baseUrl = "https://" + safeAddress + ":" + PORT;
+		this.pm = new PairingManager(this, cryptoProvider);
 	}
-
-	private String getXmlString(InputStream in, String tagname)
-			throws XmlPullParserException, IOException {
+	
+	static String getXmlString(Reader r, String tagname) throws XmlPullParserException, IOException {
 		XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 		factory.setNamespaceAware(true);
 		XmlPullParser xpp = factory.newPullParser();
 
-		xpp.setInput(new InputStreamReader(in));
+		xpp.setInput(r);
 		int eventType = xpp.getEventType();
 		Stack<String> currentTag = new Stack<String>();
 		
@@ -70,8 +81,16 @@ public class NvHTTP {
 
 		return null;
 	}
+
+	static String getXmlString(String str, String tagname) throws XmlPullParserException, IOException {
+		return getXmlString(new StringReader(str), tagname);
+	}
 	
-	private void verifyResponseStatus(XmlPullParser xpp) throws GfeHttpResponseException {
+	static String getXmlString(InputStream in, String tagname) throws XmlPullParserException, IOException {
+		return getXmlString(new InputStreamReader(in), tagname);
+	}
+	
+	private static void verifyResponseStatus(XmlPullParser xpp) throws GfeHttpResponseException {
 		int statusCode = Integer.parseInt(xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_code"));
 		if (statusCode != 200) {
 			throw new GfeHttpResponseException(statusCode, xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_message"));
@@ -80,31 +99,43 @@ public class NvHTTP {
 
 	private InputStream openHttpConnection(String url) throws IOException {
 		URLConnection conn = new URL(url).openConnection();
+		if (verbose) {
+			System.out.println(url);
+		}
 		conn.setConnectTimeout(CONNECTION_TIMEOUT);
-		conn.setDefaultUseCaches(false);
+		conn.setUseCaches(false);
 		conn.connect();
 		return conn.getInputStream();
 	}
+	
+	String openHttpConnectionToString(String url) throws MalformedURLException, IOException {
+		Scanner s = new Scanner(openHttpConnection(url));
+		
+		String str = "";
+		while (s.hasNext()) {
+			str += s.next() + " ";
+		}
+		
+		s.close();
+		
+		if (verbose) {
+			System.out.println(str);
+		}
+		
+		return str;
+	}
 
-	public String getAppVersion() throws XmlPullParserException, IOException {
-		InputStream in = openHttpConnection(baseUrl + "/appversion");
+	public String getServerVersion() throws XmlPullParserException, IOException {
+		InputStream in = openHttpConnection(baseUrl + "/serverinfo?uniqueid=" + uniqueId);
 		return getXmlString(in, "appversion");
 	}
 
-	public boolean getPairState() throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/pairstate?uniqueid=" + uniqueId);
-		String paired = getXmlString(in, "paired");
-		return Integer.valueOf(paired) != 0;
-	}
-
-	public int getSessionId() throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/pair?uniqueid=" + uniqueId);
-		String sessionId = getXmlString(in, "sessionid");
-		return Integer.parseInt(sessionId);
+	public PairingManager.PairState getPairState() throws IOException, XmlPullParserException {
+		return pm.getPairState(uniqueId);
 	}
 
 	public int getCurrentGame() throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/serverinfo");
+		InputStream in = openHttpConnection(baseUrl + "/serverinfo?uniqueid=" + uniqueId);
 		String game = getXmlString(in, "currentgame");
 		return Integer.parseInt(game);
 	}
@@ -118,6 +149,10 @@ public class NvHTTP {
 			}
 		}
 		return null;
+	}
+	
+	public PairingManager.PairState pair(String pin) throws Exception {
+		return pm.pair(uniqueId, pin);
 	}
 	
 	public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
@@ -161,18 +196,19 @@ public class NvHTTP {
 		return appList;
 	}
 
-	// Returns gameSession XML attribute
-	public int launchApp(int appId, int width, int height, int refreshRate) throws IOException, XmlPullParserException {
+	public int launchApp(int appId, int width, int height, int refreshRate, SecretKey inputKey) throws IOException, XmlPullParserException {
 		InputStream in = openHttpConnection(baseUrl +
 			"/launch?uniqueid=" + uniqueId +
 			"&appid=" + appId +
-			"&mode=" + width + "x" + height + "x" + refreshRate);
+			"&mode=" + width + "x" + height + "x" + refreshRate +
+			"&additionalStates=1&sops=1&rikey="+cryptoProvider.encodeBase64String(inputKey.getEncoded()));
 		String gameSession = getXmlString(in, "gamesession");
 		return Integer.parseInt(gameSession);
 	}
 	
-	public boolean resumeApp() throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/resume?uniqueid=" + uniqueId);
+	public boolean resumeApp(SecretKey inputKey) throws IOException, XmlPullParserException {
+		InputStream in = openHttpConnection(baseUrl + "/resume?uniqueid=" + uniqueId +
+				"&rikey="+cryptoProvider.encodeBase64String(inputKey.getEncoded()));
 		String resume = getXmlString(in, "resume");
 		return Integer.parseInt(resume) != 0;
 	}

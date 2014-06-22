@@ -5,10 +5,14 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -19,8 +23,10 @@ import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.av.video.VideoStream;
 import com.limelight.nvstream.control.ControlStream;
 import com.limelight.nvstream.http.GfeHttpResponseException;
+import com.limelight.nvstream.http.LimelightCryptoProvider;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
+import com.limelight.nvstream.http.PairingManager;
 import com.limelight.nvstream.input.NvController;
 import com.limelight.nvstream.rtsp.RtspConnection;
 
@@ -28,6 +34,7 @@ public class NvConnection {
 	private String host;
 	private NvConnectionListener listener;
 	private StreamConfiguration config;
+	private LimelightCryptoProvider cryptoProvider;
 	
 	private InetAddress hostAddr;
 	private ControlStream controlStream;
@@ -41,17 +48,36 @@ public class NvConnection {
 	private VideoDecoderRenderer videoDecoderRenderer;
 	private AudioRenderer audioRenderer;
 	private String localDeviceName;
+	private SecretKey riKey;
 	
 	private ThreadPoolExecutor threadPool;
 	
-	public NvConnection(String host, NvConnectionListener listener, StreamConfiguration config)
+	public NvConnection(String host, NvConnectionListener listener, StreamConfiguration config, LimelightCryptoProvider cryptoProvider)
 	{
 		this.host = host;
 		this.listener = listener;
 		this.config = config;
+		this.cryptoProvider = cryptoProvider;
+		
+		try {
+			// This is unique per connection
+			this.riKey = generateRiAesKey();
+		} catch (NoSuchAlgorithmException e) {
+			// Should never happen
+			e.printStackTrace();
+		}
 		
 		this.threadPool = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS,
 				new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
+	}
+	
+	private static SecretKey generateRiAesKey() throws NoSuchAlgorithmException {
+		KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+		
+		// RI keys are 128 bits
+		keyGen.init(128);
+		
+		return keyGen.generateKey();
 	}
 	
 	public static String getMacAddressString() throws SocketException {
@@ -136,24 +162,18 @@ public class NvConnection {
 	
 	private boolean startApp() throws XmlPullParserException, IOException
 	{
-		NvHTTP h = new NvHTTP(hostAddr, getMacAddressString(), localDeviceName);
+		NvHTTP h = new NvHTTP(hostAddr, getMacAddressString(), localDeviceName, cryptoProvider);
 		
-		if (h.getAppVersion().startsWith("1.")) {
+		if (h.getServerVersion().startsWith("1.")) {
 			listener.displayMessage("Limelight now requires GeForce Experience 2.0.1 or later. Please upgrade GFE on your PC and try again.");
 			return false;
 		}
 		
-		if (!h.getPairState()) {
+		if (h.getPairState() != PairingManager.PairState.PAIRED) {
 			listener.displayMessage("Device not paired with computer");
 			return false;
 		}
-		
-		int sessionId = h.getSessionId();
-		if (sessionId == 0) {
-			listener.displayMessage("Invalid session ID");
-			return false;
-		}
-		
+				
 		NvApp app = h.getApp(config.getApp());
 		if (app == null) {
 			listener.displayMessage("The app " + config.getApp() + " is not in GFE app list");
@@ -163,7 +183,7 @@ public class NvConnection {
 		// If there's a game running, resume it
 		if (h.getCurrentGame() != 0) {
 			try {
-				if (h.getCurrentGame() == app.getAppId() && !h.resumeApp()) {
+				if (h.getCurrentGame() == app.getAppId() && !h.resumeApp(riKey)) {
 					listener.displayMessage("Failed to resume existing session");
 					return false;
 				} else if (h.getCurrentGame() != app.getAppId()) {
@@ -209,7 +229,7 @@ public class NvConnection {
 			throws IOException, XmlPullParserException {
 		// Launch the app since it's not running
 		int gameSessionId = h.launchApp(app.getAppId(), config.getWidth(),
-				config.getHeight(), config.getRefreshRate());
+				config.getHeight(), config.getRefreshRate(), riKey);
 		if (gameSessionId == 0) {
 			listener.displayMessage("Failed to launch application");
 			return false;
@@ -255,7 +275,7 @@ public class NvConnection {
 		// it to the instance variable once the object is properly initialized.
 		// This avoids the race where inputStream != null but inputStream.initialize()
 		// has not returned yet.
-		NvController tempController = new NvController(hostAddr);
+		NvController tempController = new NvController(hostAddr, riKey);
 		tempController.initialize();
 		inputStream = tempController;
 		return true;

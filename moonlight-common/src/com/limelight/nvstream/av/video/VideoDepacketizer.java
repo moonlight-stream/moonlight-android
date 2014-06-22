@@ -23,19 +23,18 @@ public class VideoDepacketizer {
 	private int startFrameNumber = 1;
 	private boolean waitingForNextSuccessfulFrame;
 	private boolean gotNextFrameStart;
+	private long frameStartTime;
 	
 	// Cached objects
 	private ByteBufferDescriptor cachedDesc = new ByteBufferDescriptor(null, 0, 0);
 	
 	private ConnectionStatusListener controlListener;
-	private VideoDecoderRenderer directSubmitDr;
 	
 	private static final int DU_LIMIT = 15;
 	private LinkedBlockingQueue<DecodeUnit> decodedUnits = new LinkedBlockingQueue<DecodeUnit>(DU_LIMIT);
 	
-	public VideoDepacketizer(VideoDecoderRenderer directSubmitDr, ConnectionStatusListener controlListener)
+	public VideoDepacketizer(ConnectionStatusListener controlListener)
 	{
-		this.directSubmitDr = directSubmitDr;
 		this.controlListener = controlListener;
 	}
 	
@@ -49,30 +48,9 @@ public class VideoDepacketizer {
 	{
 		// This is the start of a new frame
 		if (avcFrameDataChain != null && avcFrameDataLength != 0) {
-			int flags = 0;
-			
-			ByteBufferDescriptor firstBuffer = avcFrameDataChain.getFirst();
-			
-			if (NAL.getSpecialSequenceDescriptor(firstBuffer, cachedDesc) && NAL.isAvcFrameStart(cachedDesc)) {
-				switch (cachedDesc.data[cachedDesc.offset+cachedDesc.length]) {
-				case 0x67:
-				case 0x68:
-					flags |= DecodeUnit.DU_FLAG_CODEC_CONFIG;
-					break;
-					
-				case 0x65:
-					flags |= DecodeUnit.DU_FLAG_SYNC_FRAME;
-					break;
-				}
-			}
-			
 			// Construct the H264 decode unit
-			DecodeUnit du = new DecodeUnit(DecodeUnit.TYPE_H264, avcFrameDataChain, avcFrameDataLength, flags, frameNumber);
-			if (directSubmitDr != null) {
-				// Submit directly to the decoder
-				directSubmitDr.submitDecodeUnit(du);
-			}
-			else if (!decodedUnits.offer(du)) {
+			DecodeUnit du = new DecodeUnit(DecodeUnit.TYPE_H264, avcFrameDataChain, avcFrameDataLength, frameNumber, frameStartTime);
+			if (!decodedUnits.offer(du)) {
 				LimeLog.warning("Video decoder is too slow! Forced to drop decode units");
 				
 				// Invalidate all frames from the start of the DU queue
@@ -92,7 +70,7 @@ public class VideoDepacketizer {
 		}
 	}
 	
-	public void addInputDataSlow(VideoPacket packet, ByteBufferDescriptor location)
+	private void addInputDataSlow(VideoPacket packet, ByteBufferDescriptor location)
 	{
 		while (location.length != 0)
 		{
@@ -175,10 +153,11 @@ public class VideoDepacketizer {
 		}
 	}
 	
-	public void addInputDataFast(VideoPacket packet, ByteBufferDescriptor location, boolean firstPacket)
+	private void addInputDataFast(VideoPacket packet, ByteBufferDescriptor location, boolean firstPacket)
 	{
 		if (firstPacket) {
 			// Setup state for the new frame
+			frameStartTime = System.currentTimeMillis();
 			avcFrameDataChain = new LinkedList<ByteBufferDescriptor>();
 			avcFrameDataLength = 0;
 		}
@@ -340,9 +319,14 @@ public class VideoDepacketizer {
 		addInputData(new VideoPacket(rtpPayload));
 	}
 	
-	public DecodeUnit getNextDecodeUnit() throws InterruptedException
+	public DecodeUnit takeNextDecodeUnit() throws InterruptedException
 	{
 		return decodedUnits.take();
+	}
+	
+	public DecodeUnit pollNextDecodeUnit()
+	{
+		return decodedUnits.poll();
 	}
 }
 

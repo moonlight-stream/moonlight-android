@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.ConnectionStatusListener;
+import com.limelight.nvstream.av.RtpPacket;
 
 public class VideoStream {
 	public static final int RTP_PORT = 47998;
@@ -21,8 +22,6 @@ public class VideoStream {
 	
 	public static final int FIRST_FRAME_TIMEOUT = 5000;
 	public static final int RTP_RECV_BUFFER = 256 * 1024;
-	
-	public static final int MAX_PACKET_SIZE = 1050;
 	
 	// The ring size MUST be greater than or equal to
 	// the maximum number of packets in a fully
@@ -96,7 +95,7 @@ public class VideoStream {
 
 	private void readFirstFrame() throws IOException
 	{
-		byte[] firstFrame = new byte[MAX_PACKET_SIZE];
+		byte[] firstFrame = new byte[streamConfig.getMaxPacketSize()];
 		
 		firstFrameSocket = new Socket();
 		firstFrameSocket.setSoTimeout(FIRST_FRAME_TIMEOUT);
@@ -139,7 +138,7 @@ public class VideoStream {
 			decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(),
 					60, renderTarget, drFlags);
 			
-			depacketizer = new VideoDepacketizer(avConnListener);
+			depacketizer = new VideoDepacketizer(avConnListener, streamConfig.getMaxPacketSize());
 		}
 	}
 
@@ -183,8 +182,9 @@ public class VideoStream {
 				int ringIndex = 0;
 				
 				// Preinitialize the ring buffer
+				int requiredBufferSize = streamConfig.getMaxPacketSize() + RtpPacket.HEADER_SIZE;
 				for (int i = 0; i < VIDEO_RING_SIZE; i++) {
-					ring[i] = new VideoPacket(new byte[MAX_PACKET_SIZE]);
+					ring[i] = new VideoPacket(new byte[requiredBufferSize]);
 				}
 
 				byte[] buffer;

@@ -139,7 +139,7 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].vbvMultiplier", "100");
 		addSessionAttribute(config, "x-nv-video[0].slicesPerFrame", "4");
 		addSessionAttribute(config, "x-nv-video[0].numTemporalLayers", "0");
-		addSessionAttribute(config, "x-nv-video[0].packetSize", "1024");
+		addSessionAttribute(config, "x-nv-video[0].packetSize", ""+sc.getMaxPacketSize());
 		addSessionAttribute(config, "x-nv-video[0].enableSubframeEncoding", "0");
 		addSessionAttribute(config, "x-nv-video[0].refPicInvalidation", "1");
 		addSessionAttribute(config, "x-nv-video[0].pingBackIntervalMs", "3000");

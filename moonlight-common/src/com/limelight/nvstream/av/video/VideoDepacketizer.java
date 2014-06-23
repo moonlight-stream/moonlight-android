@@ -29,13 +29,15 @@ public class VideoDepacketizer {
 	private ByteBufferDescriptor cachedSpecialDesc = new ByteBufferDescriptor(null, 0, 0);
 	
 	private ConnectionStatusListener controlListener;
+	private int nominalPacketSize;
 	
 	private static final int DU_LIMIT = 15;
 	private LinkedBlockingQueue<DecodeUnit> decodedUnits = new LinkedBlockingQueue<DecodeUnit>(DU_LIMIT);
 	
-	public VideoDepacketizer(ConnectionStatusListener controlListener)
+	public VideoDepacketizer(ConnectionStatusListener controlListener, int nominalPacketSize)
 	{
 		this.controlListener = controlListener;
+		this.nominalPacketSize = nominalPacketSize;
 	}
 	
 	private void clearAvcFrameState()
@@ -175,7 +177,7 @@ public class VideoDepacketizer {
 		// Runt packets get decoded using the slow path
 		// These packets stand alone so there's no need to verify
 		// sequencing before submitting
-		if (cachedReassemblyDesc.length < 968) {
+		if (cachedReassemblyDesc.length < nominalPacketSize - VideoPacket.HEADER_SIZE) {
 			addInputDataSlow(packet, cachedReassemblyDesc);
             return;
 		}

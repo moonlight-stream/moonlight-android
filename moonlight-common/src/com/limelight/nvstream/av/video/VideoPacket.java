@@ -22,6 +22,8 @@ public class VideoPacket {
 	public static final int FLAG_EOF = 0x2;
 	public static final int FLAG_SOF = 0x4;
 	
+	public static final int HEADER_SIZE = 56;
+	
 	public VideoPacket(byte[] buffer)
 	{
 		this.buffer = new ByteBufferDescriptor(buffer, 0, buffer.length);
@@ -39,7 +41,7 @@ public class VideoPacket {
 		streamPacketIndex = byteBuffer.getInt();
 		
 		// Data offset without the RTP header
-		dataOffset = 56;
+		dataOffset = HEADER_SIZE;
 		
 		// Update descriptor length
 		buffer.length = length;
@@ -59,7 +61,7 @@ public class VideoPacket {
 		streamPacketIndex = byteBuffer.getInt();
 		
 		// Data offset includes the RTP header
-		dataOffset = RtpPacket.HEADER_SIZE + 56;
+		dataOffset = RtpPacket.HEADER_SIZE + HEADER_SIZE;
 		
 		// Update descriptor length
 		buffer.length = length;

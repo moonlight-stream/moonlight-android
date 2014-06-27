@@ -29,7 +29,7 @@ public class ControllerHandler {
 	private long lastRbUpTime = 0;
 	private static final int MAXIMUM_BUMPER_UP_DELAY_MS = 100;
 	
-	private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 10;
+	private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 25;
 	
 	private static final int EMULATING_SPECIAL = 0x1;
 	private static final int EMULATING_SELECT = 0x2;

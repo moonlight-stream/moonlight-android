@@ -44,6 +44,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		
 		spsFixupNumRefFixupDecoderPrefixes = new LinkedList<String>();
 		spsFixupNumRefFixupDecoderPrefixes.add("omx.TI");
+		spsFixupNumRefFixupDecoderPrefixes.add("omx.qcom");
 	}
 		
 	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
@@ -166,7 +167,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
 				    if (outIndex >= 0) {
 					    int lastIndex = outIndex;
-
+					    
 					    // Get the last output buffer in the queue
 					    while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
 					    	videoDecoder.releaseOutputBuffer(lastIndex, false);
@@ -234,7 +235,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					if (needsSpsNumRefFixup) {
 						LimeLog.info("Fixing up num ref frames");
 						this.replace(header, 80, 9, new byte[] {0x40}, 3);
-					}
+					} 
 
 					// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
 					// or max_dec_frame_buffering which increases decoding latency on Tegra.

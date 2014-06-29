@@ -14,7 +14,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
 	private AudioTrack track;
 
 	@Override
-	public void streamInitialized(int channelCount, int sampleRate) {
+	public boolean streamInitialized(int channelCount, int sampleRate) {
 		int channelConfig;
 		int bufferSize;
 
@@ -27,7 +27,8 @@ public class AndroidAudioRenderer implements AudioRenderer {
 			channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
 			break;
 		default:
-			throw new IllegalArgumentException("Decoder returned unhandled channel count");
+			LimeLog.severe("Decoder returned unhandled channel count");
+			return false;
 		}
 
 		bufferSize = Math.max(AudioTrack.getMinBufferSize(sampleRate,
@@ -47,6 +48,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
 				AudioTrack.MODE_STREAM);
 
 		track.play();
+		return true;
 	}
 
 	@Override

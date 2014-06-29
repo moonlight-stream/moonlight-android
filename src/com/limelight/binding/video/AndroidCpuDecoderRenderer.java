@@ -81,7 +81,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 	}
 	
 	@Override
-	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
+	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
 		this.targetFps = redrawRate;
 		
 		int perfLevel = findOptimalPerformanceLevel();
@@ -139,10 +139,12 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 		decoderBuffer = ByteBuffer.allocate(DECODER_BUFFER_SIZE + AvcDecoder.getInputPaddingSize());
 		
 		LimeLog.info("Using software decoding (performance level: "+perfLevel+")");
+		
+		return true;
 	}
 
 	@Override
-	public void start(final VideoDepacketizer depacketizer) {
+	public boolean start(final VideoDepacketizer depacketizer) {
 		rendererThread = new Thread() {
 			@Override
 			public void run() {
@@ -169,6 +171,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 		rendererThread.setName("Video - Renderer (CPU)");
 		rendererThread.setPriority(Thread.MAX_PRIORITY);
 		rendererThread.start();
+		return true;
 	}
 	
 	private long computePresentationTimeMs(int frameRate) {

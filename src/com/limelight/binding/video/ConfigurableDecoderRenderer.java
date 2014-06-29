@@ -13,7 +13,7 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 	}
 
 	@Override
-	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
+	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
 		if ((drFlags & VideoDecoderRenderer.FLAG_FORCE_HARDWARE_DECODING) != 0 ||
 			((drFlags & VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING) == 0 &&
 			  MediaCodecDecoderRenderer.findSafeDecoder() != null)) {
@@ -22,12 +22,12 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 		else {
 			decoderRenderer = new AndroidCpuDecoderRenderer();
 		}
-		decoderRenderer.setup(width, height, redrawRate, renderTarget, drFlags);
+		return decoderRenderer.setup(width, height, redrawRate, renderTarget, drFlags);
 	}
 
 	@Override
-	public void start(VideoDepacketizer depacketizer) {
-		decoderRenderer.start(depacketizer);
+	public boolean start(VideoDepacketizer depacketizer) {
+		return decoderRenderer.start(depacketizer);
 	}
 
 	@Override

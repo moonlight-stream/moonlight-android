@@ -119,25 +119,32 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	}
 	
 	@Override
-	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
+	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
 		//dumpDecoders();
 		
-		MediaCodecInfo safeDecoder = findSafeDecoder();
-		if (safeDecoder != null) {
-			videoDecoder = MediaCodec.createByCodecName(safeDecoder.getName());
-			needsSpsBitstreamFixup = isDecoderInList(spsFixupBitsreamFixupDecoderPrefixes, safeDecoder.getName());
-			needsSpsNumRefFixup = isDecoderInList(spsFixupNumRefFixupDecoderPrefixes, safeDecoder.getName());
-			if (needsSpsBitstreamFixup) {
-				LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS bitstream restrictions fixup");
+		// It's nasty to put all this in a try-catch block,
+		// but codecs have been known to throw all sorts of crazy runtime exceptions
+		// due to implementation problems
+		try {
+			MediaCodecInfo safeDecoder = findSafeDecoder();
+			if (safeDecoder != null) {
+				videoDecoder = MediaCodec.createByCodecName(safeDecoder.getName());
+				needsSpsBitstreamFixup = isDecoderInList(spsFixupBitsreamFixupDecoderPrefixes, safeDecoder.getName());
+				needsSpsNumRefFixup = isDecoderInList(spsFixupNumRefFixupDecoderPrefixes, safeDecoder.getName());
+				if (needsSpsBitstreamFixup) {
+					LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS bitstream restrictions fixup");
+				}
+				if (needsSpsNumRefFixup) {
+					LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS ref num fixup");
+				}
 			}
-			if (needsSpsNumRefFixup) {
-				LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS ref num fixup");
+			else {
+				videoDecoder = MediaCodec.createDecoderByType("video/avc");
+				needsSpsBitstreamFixup = false;
+				needsSpsNumRefFixup = false;
 			}
-		}
-		else {
-			videoDecoder = MediaCodec.createDecoderByType("video/avc");
-			needsSpsBitstreamFixup = false;
-			needsSpsNumRefFixup = false;
+		} catch (Exception e) {
+			return false;
 		}
 		
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
@@ -148,6 +155,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		videoDecoderInputBuffers = videoDecoder.getInputBuffers();
 		
 		LimeLog.info("Using hardware decoding");
+		
+		return true;
 	}
 	
 	private void startRendererThread()
@@ -198,9 +207,10 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	}
 
 	@Override
-	public void start(VideoDepacketizer depacketizer) {
+	public boolean start(VideoDepacketizer depacketizer) {
 		this.depacketizer = depacketizer;
 		startRendererThread();
+		return true;
 	}
 
 	@Override

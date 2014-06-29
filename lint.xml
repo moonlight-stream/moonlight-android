@@ -6,6 +6,9 @@
     <issue id="IconLocation">
         <ignore path="res/drawable/app_icon.png" />
     </issue>
+    <issue id="InvalidPackage">
+        <ignore path="libs/bcprov-jdk15on-150.jar" />
+    </issue>
     <issue id="UnusedResources">
         <ignore path="res/drawable-xhdpi/ouya_icon.png" />
         <ignore path="res/drawable/app_icon.png" />

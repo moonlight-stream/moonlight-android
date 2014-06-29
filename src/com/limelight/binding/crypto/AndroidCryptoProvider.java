@@ -21,22 +21,26 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Calendar;
 import java.util.Date;
 
-import javax.security.auth.x500.X500Principal;
-
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMWriter;
-import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Base64;
 
 import com.limelight.LimeLog;
 import com.limelight.nvstream.http.LimelightCryptoProvider;
 
-@SuppressWarnings("deprecation")
 public class AndroidCryptoProvider implements LimelightCryptoProvider {
 
 	private File certFile;
@@ -112,11 +116,7 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 		return true;
 	}
 	
-	@SuppressLint("TrulyRandom")
 	private boolean generateCertKeyPair() {
-		X509V3CertificateGenerator certGenerator = new X509V3CertificateGenerator();
-		X500Principal principalName = new X500Principal("CN=NVIDIA GameStream Client");
-		
 		byte[] snBytes = new byte[8];
 		new SecureRandom().nextBytes(snBytes);
 		
@@ -136,21 +136,24 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 		}
 		
 		Date now = new Date();
-		Date expirationDate = new Date();
 		
 		// Expires in 20 years
-		expirationDate.setYear(expirationDate.getYear() + 20);
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(now);
+		calendar.add(Calendar.YEAR, 20);
+		Date expirationDate = calendar.getTime();
 		
-		certGenerator.setSerialNumber(new BigInteger(snBytes).abs());
-		certGenerator.setIssuerDN(principalName);
-		certGenerator.setNotBefore(now);
-		certGenerator.setNotAfter(expirationDate);
-		certGenerator.setSubjectDN(principalName);
-		certGenerator.setPublicKey(keyPair.getPublic());
-		certGenerator.setSignatureAlgorithm("SHA1withRSA");
+		BigInteger serial = new BigInteger(snBytes).abs();
 		
+		X500NameBuilder nameBuilder = new X500NameBuilder(BCStyle.INSTANCE);
+		nameBuilder.addRDN(BCStyle.CN, "NVIDIA GameStream Client");
+		X500Name name = nameBuilder.build();
+		
+		X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(name, serial, now, expirationDate, name, keyPair.getPublic());
+				
 		try {
-			cert = certGenerator.generate(keyPair.getPrivate(), "BC");
+			ContentSigner sigGen = new JcaContentSignerBuilder("SHA1withRSA").setProvider(BouncyCastleProvider.PROVIDER_NAME).build(keyPair.getPrivate());
+			cert = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(certBuilder.build(sigGen));
 			key = (RSAPrivateKey) keyPair.getPrivate();
 		} catch (Exception e) {
 			// Nothing should go wrong here

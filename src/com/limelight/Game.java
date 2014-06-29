@@ -565,6 +565,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		return onGenericMotionEvent(event);
 	}
 
+	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		// Send it to the activity's touch event handler

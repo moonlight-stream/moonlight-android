@@ -234,15 +234,13 @@ public class NvConnection {
 	private boolean startVideoStream() throws IOException
 	{
 		videoStream = new VideoStream(hostAddr, listener, controlStream, config);
-		videoStream.startVideoStream(videoDecoderRenderer, videoRenderTarget, drFlags);
-		return true;
+		return videoStream.startVideoStream(videoDecoderRenderer, videoRenderTarget, drFlags);
 	}
 	
 	private boolean startAudioStream() throws IOException
 	{
 		audioStream = new AudioStream(hostAddr, listener, audioRenderer);
-		audioStream.startAudioStream();
-		return true;
+		return audioStream.startAudioStream();
 	}
 	
 	private boolean startInputConnection() throws IOException

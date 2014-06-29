@@ -132,20 +132,27 @@ public class VideoStream {
 		rtp.bind(new InetSocketAddress(RTP_PORT));
 	}
 	
-	public void setupDecoderRenderer(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) {
+	public boolean setupDecoderRenderer(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) {
 		this.decRend = decRend;
 		if (decRend != null) {
-			decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(),
-					60, renderTarget, drFlags);
+			if (!decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(),
+					60, renderTarget, drFlags)) {
+				return false;
+			}
 			
 			depacketizer = new VideoDepacketizer(avConnListener, streamConfig.getMaxPacketSize());
 		}
+		
+		return true;
 	}
 
-	public void startVideoStream(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) throws IOException
+	public boolean startVideoStream(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) throws IOException
 	{
 		// Setup the decoder and renderer
-		setupDecoderRenderer(decRend, renderTarget, drFlags);
+		if (!setupDecoderRenderer(decRend, renderTarget, drFlags)) {
+			// Nothing to cleanup here
+			return false;
+		}
 		
 		// Open RTP sockets and start session
 		setupRtpSession();
@@ -167,9 +174,14 @@ public class VideoStream {
 			startReceiveThread();
 			
 			// Start the renderer
-			decRend.start(depacketizer);
+			if (!decRend.start(depacketizer)) {
+				abort();
+				return false;
+			}
 			startedRendering = true;
 		}
+		
+		return true;
 	}
 	
 	private void startReceiveThread()

@@ -7,9 +7,9 @@ public interface VideoDecoderRenderer {
 	
 	public int getCapabilities();
 
-	public void setup(int width, int height, int redrawRate, Object renderTarget, int drFlags);
+	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags);
 	
-	public void start(VideoDepacketizer depacketizer);
+	public boolean start(VideoDepacketizer depacketizer);
 	
 	public void stop();
 	

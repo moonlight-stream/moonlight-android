@@ -67,11 +67,14 @@ public class AudioStream {
 		threads.clear();
 	}
 	
-	public void startAudioStream() throws SocketException
+	public boolean startAudioStream() throws SocketException
 	{
 		setupRtpSession();
 		
-		setupAudio();
+		if (!setupAudio()) {
+			abort();
+			return false;
+		}
 		
 		startReceiveThread();
 		
@@ -80,6 +83,8 @@ public class AudioStream {
 		}
 		
 		startUdpPingThread();
+		
+		return true;
 	}
 	
 	private void setupRtpSession() throws SocketException
@@ -90,7 +95,7 @@ public class AudioStream {
 		rtp.bind(new InetSocketAddress(RTP_PORT));
 	}
 	
-	private void setupAudio()
+	private boolean setupAudio()
 	{
 		int err;
 		
@@ -99,7 +104,9 @@ public class AudioStream {
 			throw new IllegalStateException("Opus decoder failed to initialize");
 		}
 		
-		streamListener.streamInitialized(OpusDecoder.getChannelCount(), OpusDecoder.getSampleRate());
+		if (!streamListener.streamInitialized(OpusDecoder.getChannelCount(), OpusDecoder.getSampleRate())) {
+			return false;
+		}
 		
 		if ((streamListener.getCapabilities() & AudioRenderer.CAPABILITY_DIRECT_SUBMIT) != 0) {
 			depacketizer = new AudioDepacketizer(streamListener);
@@ -107,6 +114,8 @@ public class AudioStream {
 		else {
 			depacketizer = new AudioDepacketizer(null);
 		}
+		
+		return true;
 	}
 	
 	private void startDecoderThread()

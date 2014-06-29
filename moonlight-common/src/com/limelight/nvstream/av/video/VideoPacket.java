@@ -32,6 +32,9 @@ public class VideoPacket {
 	
 	public void initializeWithLengthNoRtpHeader(int length)
 	{
+		// Back to beginning
+		byteBuffer.rewind();
+		
 		// Read the video header fields
 		frameIndex = byteBuffer.getInt();
 		packetIndex = byteBuffer.getInt();

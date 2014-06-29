@@ -190,7 +190,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
         
 		// Start the connection
 		conn = new NvConnection(host, Game.this,
-				new StreamConfiguration(width, height, refreshRate, bitrate * 1000,
+				new StreamConfiguration("Steam", width, height, refreshRate, bitrate * 1000,
 						enableLargePackets ? 1460 : 1024), PlatformBinding.getCryptoProvider(this));
 		keybTranslator = new KeyboardTranslator(conn);
 		controllerHandler = new ControllerHandler(conn);

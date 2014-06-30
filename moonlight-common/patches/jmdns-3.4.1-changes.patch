@@ -1,0 +1,31 @@
+Index: build.xml
+===================================================================
+--- build.xml	(revision 353)
++++ build.xml	(working copy)
+@@ -58,7 +58,7 @@
+ 		</javac>
+ 	</target>
+ 
+-	<target name="jar" depends="build,tools" description="Jar the files">
++	<target name="jar" depends="build" description="Jar the files">
+ 		<mkdir dir="${buildlib}" />
+ 		<jar destfile="${buildlib}/jmdns.jar" manifest="${lib}/jmdns.manifest" basedir="${dest}">
+ 			<fileset dir="${dest}" defaultexcludes="yes">
+Index: src/main/java/javax/jmdns/impl/tasks/resolver/ServiceInfoResolver.java
+===================================================================
+--- src/main/java/javax/jmdns/impl/tasks/resolver/ServiceInfoResolver.java	(revision 353)
++++ src/main/java/javax/jmdns/impl/tasks/resolver/ServiceInfoResolver.java	(working copy)
+@@ -80,12 +80,7 @@
+     protected DNSOutgoing addQuestions(DNSOutgoing out) throws IOException {
+         DNSOutgoing newOut = out;
+         if (!_info.hasData()) {
+-            newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+-            newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+-            if (_info.getServer().length() > 0) {
+-                newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+-                newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+-            }
++            newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+         }
+         return newOut;
+     }

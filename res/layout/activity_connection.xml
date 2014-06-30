@@ -24,26 +24,6 @@
         android:inputType="textNoSuggestions"
         android:hint="IP address of GeForce PC" />
 
-    <Button
-        android:id="@+id/statusButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/hostTextView"
-        android:layout_centerHorizontal="true"
-        android:text="Start Streaming Steam!" >
-        
-        <requestFocus />
-        
-    </Button>
-
-    <Button
-        android:id="@+id/pairButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/statusButton"
-        android:layout_centerHorizontal="true"
-        android:text="Pair with PC" />
-
     <RadioGroup
         android:id="@+id/decoderConfigGroup"
         android:layout_width="fill_parent"
@@ -128,6 +108,35 @@
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/decoderConfigGroup"
         android:layout_toLeftOf="@+id/bitrateLabel" />
+
+    <Button
+        android:id="@+id/pairButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/statusButton"
+        android:layout_below="@+id/statusButton"
+        android:layout_marginRight="114dp"
+        android:text="Pair with PC" />
+
+    <Button
+        android:id="@+id/statusButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/hostTextView"
+        android:layout_centerHorizontal="true"
+        android:text="Start Streaming Steam!" >
+        
+        <requestFocus />
+    </Button>
+
+    <Button
+        android:id="@+id/quitButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/streamConfigGroup"
+        android:layout_alignLeft="@+id/statusButton"
+        android:layout_marginLeft="122dp"
+        android:text="Quit Steam" />
     
 	</RelativeLayout>
 	

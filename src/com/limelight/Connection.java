@@ -29,7 +29,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 
 public class Connection extends Activity {
-	private Button statusButton, pairButton;
+	private Button statusButton, pairButton, quitButton;
 	private TextView hostText;
 	private SharedPreferences prefs;
 	private RadioButton rbutton720p30, rbutton720p60, rbutton1080p30, rbutton1080p60;
@@ -69,6 +69,7 @@ public class Connection extends Activity {
 		
 		this.statusButton = (Button) findViewById(R.id.statusButton);
 		this.pairButton = (Button) findViewById(R.id.pairButton);
+		this.quitButton = (Button) findViewById(R.id.quitButton);
 		this.hostText = (TextView) findViewById(R.id.hostTextView);
 		this.rbutton720p30 = (RadioButton) findViewById(R.id.config720p30Selected);
 		this.rbutton720p60 = (RadioButton) findViewById(R.id.config720p60Selected);
@@ -241,6 +242,73 @@ public class Connection extends Activity {
 				Intent intent = new Intent(Connection.this, Game.class);
 				intent.putExtra("host", Connection.this.hostText.getText().toString());
 				Connection.this.startActivity(intent);
+			}
+		});
+		
+		this.quitButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (Connection.this.hostText.getText().length() == 0) {
+					Toast.makeText(Connection.this, "Please enter the target PC's IP address in the text box at the top of the screen.", Toast.LENGTH_LONG).show();
+					return;
+				}
+				
+				Toast.makeText(Connection.this, "Trying to quit Steam...", Toast.LENGTH_SHORT).show();
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						String macAddress;
+						try {
+							macAddress = NvConnection.getMacAddressString();
+						} catch (SocketException e) {
+							e.printStackTrace();
+							return;
+						}
+
+						if (macAddress == null) {
+							LimeLog.severe("Couldn't find a MAC address");
+							return;
+						}
+
+						NvHTTP httpConn;
+						String message;
+						try {
+							httpConn = new NvHTTP(InetAddress.getByName(hostText.getText().toString()),
+									macAddress, PlatformBinding.getDeviceName(),  PlatformBinding.getCryptoProvider(Connection.this));
+							if (httpConn.getPairState() == PairingManager.PairState.PAIRED) {
+								if (httpConn.getCurrentGame() != 0) {
+									if (httpConn.quitApp()) {
+										message = "Successfully closed Steam";
+									}
+									else {
+										message = "Failed to close Steam";
+									}
+								}
+								else {
+									message = "Steam is not running";
+								}
+							}
+							else {
+								message = "Device not paired with computer";
+							}
+						} catch (UnknownHostException e) {
+							message = "Failed to resolve host";
+						} catch (FileNotFoundException e) {
+							message = "GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU. Using remote desktop software can also cause this error. "
+									+ "Try rebooting your machine or reinstalling GFE.";
+						} catch (Exception e) {
+							message = e.getMessage();
+						}
+						
+						final String toastMessage = message;
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								Toast.makeText(Connection.this, toastMessage, Toast.LENGTH_LONG).show();
+							}
+						});
+					}
+				}).start();
 			}
 		});
 		

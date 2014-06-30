@@ -155,6 +155,11 @@ public class NvHTTP {
 		return pm.pair(uniqueId, pin);
 	}
 	
+	public InputStream getBoxArtPng(NvApp app) throws IOException {
+		return openHttpConnection(baseUrl + "/applist?uniqueid="+uniqueId+"&appid="+
+				app.getAppId()+"&AssetType=2&AssetIdx=0");
+	}
+	
 	public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
 		InputStream in = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId);
 		XmlPullParserFactory factory = XmlPullParserFactory.newInstance();

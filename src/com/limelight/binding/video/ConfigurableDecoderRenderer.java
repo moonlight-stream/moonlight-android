@@ -9,7 +9,9 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 	
 	@Override
 	public void release() {
-		decoderRenderer.release();
+		if (decoderRenderer != null) {
+			decoderRenderer.release();
+		}
 	}
 
 	@Override

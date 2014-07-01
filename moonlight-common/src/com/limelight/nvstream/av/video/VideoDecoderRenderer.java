@@ -6,6 +6,10 @@ public interface VideoDecoderRenderer {
 	public static final int FLAG_FORCE_SOFTWARE_DECODING = 0x4;
 	
 	public int getCapabilities();
+	
+	public int getAverageEndToEndLatency();
+	
+	public int getAverageDecoderLatency();
 
 	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags);
 	

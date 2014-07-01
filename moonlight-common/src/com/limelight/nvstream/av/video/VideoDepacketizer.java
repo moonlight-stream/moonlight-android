@@ -50,8 +50,24 @@ public class VideoDepacketizer {
 	{
 		// This is the start of a new frame
 		if (avcFrameDataChain != null && avcFrameDataLength != 0) {
+			ByteBufferDescriptor firstBuffer = avcFrameDataChain.getFirst();
+			
+			int flags = 0;
+			if (NAL.getSpecialSequenceDescriptor(firstBuffer, cachedSpecialDesc) && NAL.isAvcFrameStart(cachedSpecialDesc)) {
+				switch (cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length]) {
+				case 0x67:
+				case 0x68:
+					flags |= DecodeUnit.DU_FLAG_CODEC_CONFIG;
+					break;
+				case 0x65:
+					flags |= DecodeUnit.DU_FLAG_SYNC_FRAME;
+					break;
+				}
+			}
+			
 			// Construct the H264 decode unit
-			DecodeUnit du = new DecodeUnit(DecodeUnit.TYPE_H264, avcFrameDataChain, avcFrameDataLength, frameNumber, frameStartTime);
+			DecodeUnit du = new DecodeUnit(DecodeUnit.TYPE_H264, avcFrameDataChain,
+					avcFrameDataLength, frameNumber, frameStartTime, flags);
 			if (!decodedUnits.offer(du)) {
 				LimeLog.warning("Video decoder is too slow! Forced to drop decode units");
 				

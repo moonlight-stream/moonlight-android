@@ -15,14 +15,16 @@ public class DecodeUnit {
 	private int dataLength;
 	private int frameNumber;
 	private long receiveTimestamp;
+	private int flags;
 	
-	public DecodeUnit(int type, List<ByteBufferDescriptor> bufferList, int dataLength, int frameNumber, long receiveTimestamp)
+	public DecodeUnit(int type, List<ByteBufferDescriptor> bufferList, int dataLength, int frameNumber, long receiveTimestamp, int flags)
 	{
 		this.type = type;
 		this.bufferList = bufferList;
 		this.dataLength = dataLength;
 		this.frameNumber = frameNumber;
 		this.receiveTimestamp = receiveTimestamp;
+		this.flags = flags;
 	}
 	
 	public int getType()
@@ -48,5 +50,10 @@ public class DecodeUnit {
 	public int getFrameNumber()
 	{
 		return frameNumber;
+	}
+	
+	public int getFlags()
+	{
+		return flags;
 	}
 }

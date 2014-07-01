@@ -1,0 +1,10 @@
+This file serves to document some of the decoder errata when using MediaCodec hardware decoders on certain devices.
+
+1. num_ref_frames is set to 16 by NVENC which causes decoders to allocate 16+ buffers. This can cause an OOM error on some devices.
+	- Affected decoders: TI OMAP4, possibly some Qualcomm chips too (Galaxy S3 on 4.3+)
+	
+2. Some decoders have a huge per-frame latency with the unmodified SPS sent from NVENC. Setting max_dec_frame_buffering fixes this latency issue.
+	- Affected decoders: NVIDIA Tegra 3 and 4
+
+3. Some decoders strictly require that you pass BUFFER_FLAG_CODEC_CONFIG and crash upon the IDR frame if you don't
+	- Affected decoders: TI OMAP4

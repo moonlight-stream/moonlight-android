@@ -237,15 +237,25 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 			// Clear old input data
 			buf.clear();
-
-			if (needsSpsBitstreamFixup || needsSpsNumRefFixup) {
+			
+			int codecFlags = 0;
+			int decodeUnitFlags = decodeUnit.getFlags();
+			if ((decodeUnitFlags & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0) {
+				codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+			}
+			if ((decodeUnitFlags & DecodeUnit.DU_FLAG_SYNC_FRAME) != 0) {
+				codecFlags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
+			}
+			
+			if ((decodeUnitFlags & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0 &&
+				(needsSpsBitstreamFixup || needsSpsNumRefFixup)) {
 				ByteBufferDescriptor header = decodeUnit.getBufferList().get(0);
 				if (header.data[header.offset+4] == 0x67) {
 					// TI OMAP4 requires a reference frame count of 1 to decode successfully
 					if (needsSpsNumRefFixup) {
 						LimeLog.info("Fixing up num ref frames");
 						this.replace(header, 80, 9, new byte[] {0x40}, 3);
-					} 
+					}
 
 					// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
 					// or max_dec_frame_buffering which increases decoding latency on Tegra.
@@ -285,7 +295,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 					videoDecoder.queueInputBuffer(inputIndex,
 							0, spsLength,
-							0, 0);
+							0, codecFlags);
 					return true;
 				}
 			}
@@ -298,7 +308,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 			videoDecoder.queueInputBuffer(inputIndex,
 					0, decodeUnit.getDataLength(),
-					0, 0);
+					0, codecFlags);
 		}
 		
 		return true;

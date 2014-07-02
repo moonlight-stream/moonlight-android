@@ -28,6 +28,10 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private boolean needsSpsNumRefFixup;
 	private VideoDepacketizer depacketizer;
 	
+	private long totalTimeMs;
+	private long decoderTimeMs;
+	private int totalFrames;
+	
 	private final static byte[] BITSTREAM_RESTRICTIONS = new byte[] {(byte) 0xF1, (byte) 0x83, 0x2A, 0x00};
 	
 	public static final List<String> blacklistedDecoderPrefixes;
@@ -179,6 +183,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				    if (outIndex >= 0) {
 					    int lastIndex = outIndex;
 					    
+					    // Add delta time to the totals (excluding probable outliers)
+					    long delta = System.currentTimeMillis()-info.presentationTimeUs;
+					    if (delta > 5 && delta < 300) {
+					    	decoderTimeMs += delta;
+						    totalTimeMs += delta;
+					    }
+					    
 					    // Get the last output buffer in the queue
 					    while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
 					    	videoDecoder.releaseOutputBuffer(lastIndex, false);
@@ -236,6 +247,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		if (inputIndex >= 0)
 		{
 			ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
+
+			long currentTime = System.currentTimeMillis();
+			long delta = currentTime-decodeUnit.getReceiveTimestamp();
+			if (delta >= 0 && delta < 300) {
+			    totalTimeMs += currentTime-decodeUnit.getReceiveTimestamp();
+			    totalFrames++;
+			}
 			
 			// Clear old input data
 			buf.clear();
@@ -309,7 +327,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 					videoDecoder.queueInputBuffer(inputIndex,
 							0, spsLength,
-							0, codecFlags);
+							currentTime, codecFlags);
 					return true;
 				}
 			}
@@ -322,7 +340,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 			videoDecoder.queueInputBuffer(inputIndex,
 					0, decodeUnit.getDataLength(),
-					0, codecFlags);
+					currentTime, codecFlags);
 		}
 		
 		return true;
@@ -414,11 +432,11 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 	@Override
 	public int getAverageDecoderLatency() {
-		return 0;
+		return (int)(decoderTimeMs / totalFrames);
 	}
 
 	@Override
 	public int getAverageEndToEndLatency() {
-		return 0;
+		return (int)(totalTimeMs / totalFrames);
 	}
 }

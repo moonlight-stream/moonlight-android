@@ -184,7 +184,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					    int lastIndex = outIndex;
 					    
 					    // Add delta time to the totals (excluding probable outliers)
-					    long delta = System.currentTimeMillis()-info.presentationTimeUs;
+					    long delta = System.currentTimeMillis()-(info.presentationTimeUs/1000);
 					    if (delta > 5 && delta < 300) {
 					    	decoderTimeMs += delta;
 						    totalTimeMs += delta;
@@ -327,7 +327,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 					videoDecoder.queueInputBuffer(inputIndex,
 							0, spsLength,
-							currentTime, codecFlags);
+							currentTime * 1000, codecFlags);
 					return true;
 				}
 			}
@@ -340,7 +340,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 			videoDecoder.queueInputBuffer(inputIndex,
 					0, decodeUnit.getDataLength(),
-					currentTime, codecFlags);
+					currentTime * 1000, codecFlags);
 		}
 		
 		return true;
@@ -432,11 +432,17 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 	@Override
 	public int getAverageDecoderLatency() {
+		if (totalFrames == 0) {
+			return 0;
+		}
 		return (int)(decoderTimeMs / totalFrames);
 	}
 
 	@Override
 	public int getAverageEndToEndLatency() {
+		if (totalFrames == 0) {
+			return 0;
+		}
 		return (int)(totalTimeMs / totalFrames);
 	}
 }

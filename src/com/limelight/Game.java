@@ -337,13 +337,13 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		int averageDecoderLat = decoderRenderer.getAverageDecoderLatency();
 		String message = null;
 		if (averageEndToEndLat > 0) {
-			message = "Average frame latency from receive to display: "+averageEndToEndLat+" ms";
+			message = "Average total frame latency: "+averageEndToEndLat+" ms";
 			if (averageDecoderLat > 0) {
-				message += " (decoder latency: "+averageDecoderLat+" ms)";
+				message += " (hardware decoder latency: "+averageDecoderLat+" ms)";
 			}
 		}
 		else if (averageDecoderLat > 0) {
-			message = "Average decoder latency: "+averageDecoderLat+" ms";
+			message = "Average hardware decoder latency: "+averageDecoderLat+" ms";
 		}
 		
 		if (message != null) {

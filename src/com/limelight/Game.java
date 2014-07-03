@@ -65,6 +65,8 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	private boolean connecting = false;
 	private boolean connected = false;
 	
+	private ConfigurableDecoderRenderer decoderRenderer;
+	
 	private WifiManager.WifiLock wifiLock;
 	
 	private int drFlags = 0;
@@ -194,6 +196,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 						enableLargePackets ? 1460 : 1024), PlatformBinding.getCryptoProvider(this));
 		keybTranslator = new KeyboardTranslator(conn);
 		controllerHandler = new ControllerHandler(conn);
+		decoderRenderer = new ConfigurableDecoderRenderer();
 		
 		// The connection will be started when the surface gets created
 		sh.addCallback(this);
@@ -330,6 +333,23 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		displayedFailureDialog = true;
 		conn.stop();
 		
+		int averageEndToEndLat = decoderRenderer.getAverageEndToEndLatency();
+		int averageDecoderLat = decoderRenderer.getAverageDecoderLatency();
+		String message = null;
+		if (averageEndToEndLat > 0) {
+			message = "Average total frame latency: "+averageEndToEndLat+" ms";
+			if (averageDecoderLat > 0) {
+				message += " (hardware decoder latency: "+averageDecoderLat+" ms)";
+			}
+		}
+		else if (averageDecoderLat > 0) {
+			message = "Average hardware decoder latency: "+averageDecoderLat+" ms";
+		}
+		
+		if (message != null) {
+			Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+		}
+
 		finish();
 	}
 	
@@ -647,7 +667,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		if (!connected && !connecting) {
 			connecting = true;
 			conn.start(PlatformBinding.getDeviceName(), holder, drFlags,
-					PlatformBinding.getAudioRenderer(), new ConfigurableDecoderRenderer());
+					PlatformBinding.getAudioRenderer(), decoderRenderer);
 		}
 	}
 

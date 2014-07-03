@@ -9,7 +9,9 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 	
 	@Override
 	public void release() {
-		decoderRenderer.release();
+		if (decoderRenderer != null) {
+			decoderRenderer.release();
+		}
 	}
 
 	@Override
@@ -40,4 +42,23 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 		return decoderRenderer.getCapabilities();
 	}
 
+	@Override
+	public int getAverageDecoderLatency() {
+		if (decoderRenderer != null) {
+			return decoderRenderer.getAverageDecoderLatency();
+		}
+		else {
+			return 0;
+		}
+	}
+
+	@Override
+	public int getAverageEndToEndLatency() {
+		if (decoderRenderer != null) {
+			return decoderRenderer.getAverageEndToEndLatency();
+		}
+		else {
+			return 0;
+		}
+	}
 }

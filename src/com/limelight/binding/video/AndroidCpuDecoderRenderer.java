@@ -222,4 +222,14 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 	public int getCapabilities() {
 		return 0;
 	}
+
+	@Override
+	public int getAverageDecoderLatency() {
+		return 0;
+	}
+
+	@Override
+	public int getAverageEndToEndLatency() {
+		return 0;
+	}
 }

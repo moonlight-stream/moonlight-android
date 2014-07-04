@@ -35,6 +35,7 @@ import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Base64;
 
@@ -112,10 +113,10 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 			return false;
 		}
 		
-		LimeLog.info("Loaded key pair from disk");
 		return true;
 	}
 	
+	@SuppressLint("TrulyRandom")
 	private boolean generateCertKeyPair() {
 		byte[] snBytes = new byte[8];
 		new SecureRandom().nextBytes(snBytes);

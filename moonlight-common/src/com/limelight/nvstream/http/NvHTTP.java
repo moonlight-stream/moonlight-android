@@ -13,12 +13,15 @@ import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
+
+import com.limelight.nvstream.http.PairingManager.PairState;
 
 
 public class NvHTTP {
@@ -27,7 +30,7 @@ public class NvHTTP {
 	private LimelightCryptoProvider cryptoProvider;
 
 	public static final int PORT = 47984;
-	public static final int CONNECTION_TIMEOUT = 5000;
+	public static final int CONNECTION_TIMEOUT = 2000;
 	
 	private final boolean verbose = false;
 
@@ -95,6 +98,35 @@ public class NvHTTP {
 		if (statusCode != 200) {
 			throw new GfeHttpResponseException(statusCode, xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_message"));
 		}
+	}
+	
+	public ComputerDetails getComputerDetails() throws MalformedURLException, IOException, XmlPullParserException {
+		ComputerDetails details = new ComputerDetails();
+		String serverInfo = openHttpConnectionToString(baseUrl + "/serverinfo?uniqueid=" + uniqueId);
+		
+		details.name = getXmlString(serverInfo, "hostname");
+		details.uuid = UUID.fromString(getXmlString(serverInfo, "uniqueid"));
+		details.localIp = InetAddress.getByName(getXmlString(serverInfo, "LocalIP"));
+		details.remoteIp = InetAddress.getByName(getXmlString(serverInfo, "ExternalIP"));
+		details.macAddress = getXmlString(serverInfo, "mac");
+		
+		try {
+			details.pairState = Integer.parseInt(getXmlString(serverInfo, "PairStatus")) == 1 ?
+					PairState.PAIRED : PairState.NOT_PAIRED;
+		} catch (NumberFormatException e) {
+			details.pairState = PairState.FAILED;
+		}
+		
+		try {
+			details.runningGameId = Integer.parseInt(getXmlString(serverInfo, "currentgame"));
+		} catch (NumberFormatException e) {
+			details.runningGameId = 0;
+		}
+		
+		// We could reach it so it's online
+		details.state = ComputerDetails.State.ONLINE;
+		
+		return details;
 	}
 
 	private InputStream openHttpConnection(String url) throws IOException {
@@ -199,6 +231,10 @@ public class NvHTTP {
 			eventType = xpp.next();
 		}
 		return appList;
+	}
+	
+	public void unpair() throws IOException {
+		openHttpConnection(baseUrl + "/unpair?uniqueid=" + uniqueId);
 	}
 
 	public int launchApp(int appId, int width, int height, int refreshRate, SecretKey inputKey) throws IOException, XmlPullParserException {

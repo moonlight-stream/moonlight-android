@@ -35,6 +35,7 @@ public class NvConnection {
 	private NvConnectionListener listener;
 	private StreamConfiguration config;
 	private LimelightCryptoProvider cryptoProvider;
+	private String uniqueId;
 	
 	private InetAddress hostAddr;
 	private ControlStream controlStream;
@@ -52,12 +53,13 @@ public class NvConnection {
 	
 	private ThreadPoolExecutor threadPool;
 	
-	public NvConnection(String host, NvConnectionListener listener, StreamConfiguration config, LimelightCryptoProvider cryptoProvider)
+	public NvConnection(String host, String uniqueId, NvConnectionListener listener, StreamConfiguration config, LimelightCryptoProvider cryptoProvider)
 	{
 		this.host = host;
 		this.listener = listener;
 		this.config = config;
 		this.cryptoProvider = cryptoProvider;
+		this.uniqueId = uniqueId;
 		
 		try {
 			// This is unique per connection
@@ -162,7 +164,7 @@ public class NvConnection {
 	
 	private boolean startApp() throws XmlPullParserException, IOException
 	{
-		NvHTTP h = new NvHTTP(hostAddr, getMacAddressString(), localDeviceName, cryptoProvider);
+		NvHTTP h = new NvHTTP(hostAddr, uniqueId, localDeviceName, cryptoProvider);
 		
 		if (h.getServerVersion().startsWith("1.")) {
 			listener.displayMessage("Limelight now requires GeForce Experience 2.0.1 or later. Please upgrade GFE on your PC and try again.");

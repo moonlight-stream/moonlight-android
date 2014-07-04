@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -127,7 +128,6 @@ public class MdnsDiscoveryAgent {
 	
 	private MdnsDiscoveryAgent(MdnsDiscoveryListener listener) {
 		computers = new HashMap<InetAddress, MdnsComputer>();
-		discoveryTimer = new Timer();
 		pendingResolution = new ArrayList<String>();
 		this.listener = listener;
 	}
@@ -135,7 +135,7 @@ public class MdnsDiscoveryAgent {
 	public static MdnsDiscoveryAgent createDiscoveryAgent(MdnsDiscoveryListener listener) throws IOException {
 		MdnsDiscoveryAgent agent = new MdnsDiscoveryAgent(listener);
 		
-		agent.resolver = JmDNS.create();
+		agent.resolver = JmDNS.create(new InetSocketAddress(0).getAddress());
 		
 		return agent;
 	}
@@ -143,12 +143,13 @@ public class MdnsDiscoveryAgent {
 	public void startDiscovery(final int discoveryIntervalMs) {
 		resolver.addServiceListener(SERVICE_TYPE, nvstreamListener);
 		
+		discoveryTimer = new Timer();
 		discoveryTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
 				// Send another mDNS query
 				resolver.requestServiceInfo(SERVICE_TYPE, null, discoveryIntervalMs);
-				
+
 				// Run service resolution again for pending machines
 				ArrayList<String> pendingNames = new ArrayList<String>(pendingResolution);
 				for (String name : pendingNames) {
@@ -162,7 +163,10 @@ public class MdnsDiscoveryAgent {
 	public void stopDiscovery() {
 		resolver.removeServiceListener(SERVICE_TYPE, nvstreamListener);
 		
-		discoveryTimer.cancel();
+		if (discoveryTimer != null) {
+			discoveryTimer.cancel();
+			discoveryTimer = null;
+		}
 	}
 	
 	public List<MdnsComputer> getComputerSet() {

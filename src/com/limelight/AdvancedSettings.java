@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
@@ -17,6 +18,9 @@ public class AdvancedSettings extends Activity {
 	private RadioButton forceSoftDec, autoDec, forceHardDec;
 	private SeekBar bitrateSlider;
 	private TextView bitrateLabel;
+	
+	private static final int BITRATE_FLOOR = 1;
+	private static final int BITRATE_CEILING = 100;
 
 	@Override
 	public void onPause() {
@@ -49,7 +53,7 @@ public class AdvancedSettings extends Activity {
 
 		prefs = getSharedPreferences(Game.PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
 		
-		bitrateSlider.setMax(Game.BITRATE_CEILING);
+		bitrateSlider.setMax(BITRATE_CEILING);
 		bitrateSlider.setProgress(prefs.getInt(Game.BITRATE_PREF_STRING, Game.DEFAULT_BITRATE));
 		updateBitrateLabel();
 		
@@ -94,6 +98,31 @@ public class AdvancedSettings extends Activity {
 		forceSoftDec.setOnCheckedChangeListener(occl);
 		forceHardDec.setOnCheckedChangeListener(occl);
 		autoDec.setOnCheckedChangeListener(occl);
+		
+		this.bitrateSlider.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+
+				// Verify the user's selection
+				if (fromUser) {
+					if (progress < BITRATE_FLOOR) {
+						seekBar.setProgress(BITRATE_FLOOR);
+						return;
+					}
+				}
+
+				updateBitrateLabel();
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+			}
+		});
 	}
 
 	private void updateBitrateLabel() {

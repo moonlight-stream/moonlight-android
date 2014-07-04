@@ -35,6 +35,7 @@ public class AppView extends Activity {
 	private ArrayAdapter<AppObject> appListAdapter;
 	private InetAddress ipAddress;
 	private String uniqueId;
+	private boolean remote;
 	
 	private final static int RESUME_ID = 1;
 	private final static int QUIT_ID = 2;
@@ -42,6 +43,7 @@ public class AppView extends Activity {
 	public final static String ADDRESS_EXTRA = "Address";
 	public final static String UNIQUEID_EXTRA = "UniqueId";
 	public final static String NAME_EXTRA = "Name";
+	public final static String REMOTE_EXTRA = "Remote";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +52,7 @@ public class AppView extends Activity {
 		
 		byte[] address = getIntent().getByteArrayExtra(ADDRESS_EXTRA);
 		uniqueId = getIntent().getStringExtra(UNIQUEID_EXTRA);
+		remote = getIntent().getBooleanExtra(REMOTE_EXTRA, false);
 		if (address == null || uniqueId == null) {
 			return;
 		}
@@ -195,6 +198,7 @@ public class AppView extends Activity {
 		intent.putExtra(Game.EXTRA_HOST, ipAddress.getHostAddress());
 		intent.putExtra(Game.EXTRA_APP, app.getAppName());
 		intent.putExtra(Game.EXTRA_UNIQUEID, uniqueId);
+		intent.putExtra(Game.EXTRA_STREAMING_REMOTE, remote);
 		startActivity(intent);
 	}
 	

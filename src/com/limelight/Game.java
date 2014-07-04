@@ -1,11 +1,5 @@
 package com.limelight;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.InterfaceAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
 
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.input.ControllerHandler;
@@ -26,7 +20,6 @@ import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -74,6 +67,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final String EXTRA_HOST = "Host";
 	public static final String EXTRA_APP = "App";
 	public static final String EXTRA_UNIQUEID = "UniqueId";
+	public static final String EXTRA_STREAMING_REMOTE = "Remote";
 	
 	public static final String PREFS_FILE_NAME = "gameprefs";
 	
@@ -83,18 +77,11 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final String DECODER_PREF_STRING = "Decoder";
 	public static final String BITRATE_PREF_STRING = "Bitrate";
 	
-	public static final int BITRATE_FLOOR_720_30 = 2;
-	public static final int BITRATE_FLOOR_720_60 = 4;
-	public static final int BITRATE_FLOOR_1080_30 = 4;
-	public static final int BITRATE_FLOOR_1080_60 = 10;
-	
 	public static final int BITRATE_DEFAULT_720_30 = 5;
 	public static final int BITRATE_DEFAULT_720_60 = 10;
 	public static final int BITRATE_DEFAULT_1080_30 = 10;
 	public static final int BITRATE_DEFAULT_1080_60 = 30;
-	
-	public static final int BITRATE_CEILING = 50;
-	
+		
 	public static final int DEFAULT_WIDTH = 1280;
 	public static final int DEFAULT_HEIGHT = 720;
 	public static final int DEFAULT_REFRESH_RATE = 60;
@@ -179,21 +166,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
 		String app = Game.this.getIntent().getStringExtra(EXTRA_APP);
 		String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
-		InetAddress addr;
-		boolean enableLargePackets;
-		try {
-			// If this does a DNS lookup, it could cause a NetworkOnMainThread exception
-			// Chances are if it has to do this, we're not on the same network anyways
-			addr = InetAddress.getByName(host);
-			
-			// Check if we can enable large packets if we get this far
-			enableLargePackets = shouldEnableLargePackets(addr);
-		} catch (Exception e) {
-			// We don't want to deal with any exceptions here. The user will be notified
-			// when the connection fails
-			enableLargePackets = false;
-		}
-		
+		boolean enableLargePackets = !Game.this.getIntent().getBooleanExtra(EXTRA_STREAMING_REMOTE, true);
 		LimeLog.info("Using large packets? "+enableLargePackets);
         
 		// Start the connection
@@ -206,89 +179,6 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		
 		// The connection will be started when the surface gets created
 		sh.addCallback(this);
-	}
-	
-	private boolean shouldEnableLargePackets(InetAddress targetAddress) {
-		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);		
-		NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
-		String matchingPrefix;
-		
-		if (activeNetworkInfo == null) {
-			return false;
-		}
-		
-		switch (activeNetworkInfo.getType())
-		{
-		case ConnectivityManager.TYPE_ETHERNET:
-			matchingPrefix = "eth";
-			break;
-		case ConnectivityManager.TYPE_WIFI:
-			matchingPrefix = "wlan";
-			break;
-
-		default:
-			// Must be on Ethernet or Wifi to consider that we can send large packets
-			return false;
-		}
-
-		// Try to find the interface that corresponds to the active network
-		try {
-			Enumeration<NetworkInterface> ifaceList = NetworkInterface.getNetworkInterfaces();
-			while (ifaceList.hasMoreElements()) {
-				NetworkInterface iface = ifaceList.nextElement();
-
-				// Look for an interface that matches the prefix we expect
-				if (iface.isUp() && iface.getName().startsWith(matchingPrefix)) {
-					// Find the IPv4 address for the interface
-					for (InterfaceAddress addr : iface.getInterfaceAddresses()) {
-						if (!(addr.getAddress() instanceof Inet4Address)) {
-							// Skip non-IPv4 addresses
-							continue;
-						}
-						
-						// Found the right address on the right interface
-						return isOnSameSubnet(targetAddress, addr.getAddress(), addr.getNetworkPrefixLength());
-					}
-				}
-			}
-		} catch (SocketException e) {
-			e.printStackTrace();
-		}
-
-		// We didn't find the interface or something else went wrong
-		return false;
-	}
-	
-	private boolean isOnSameSubnet(InetAddress targetAddress, InetAddress localAddress, short networkPrefixLength) {
-		byte[] targetBytes = targetAddress.getAddress();
-		byte[] localBytes = localAddress.getAddress();
-
-		for (int byteIndex = 0; networkPrefixLength > 0; byteIndex++) {
-			byte target = targetBytes[byteIndex];
-			byte local = localBytes[byteIndex];
-			
-			if (networkPrefixLength >= 8) {
-				// Do a full byte comparison
-				if (target != local) {
-					return false;
-				}
-				
-				networkPrefixLength -= 8;
-			}
-			else {
-				target &= (byte)(0xFF << (8 - networkPrefixLength));
-				local &= (byte)(0xFF << (8 - networkPrefixLength));
-				
-				// Do a masked comparison
-				if (target != local) {
-					return false;
-				}
-				
-				networkPrefixLength = 0;
-			}
-		}
-		
-		return true;
 	}
 	
 	private void checkDataConnection()

@@ -223,6 +223,11 @@ public class PcView extends Activity {
 			Toast.makeText(PcView.this, "Computer is offline", Toast.LENGTH_SHORT).show();
 			return;
 		}
+		if (computer.runningGameId != 0) {
+			Toast.makeText(PcView.this, "Computer is currently in a game. " +
+					"You must close the game before pairing.", Toast.LENGTH_LONG).show();
+			return;
+		}
 		
 		Toast.makeText(PcView.this, "Pairing...", Toast.LENGTH_SHORT).show();
 		new Thread(new Runnable() {
@@ -305,7 +310,7 @@ public class PcView extends Activity {
 					message = "It may take a few seconds for your PC to wake up. " +
 							"If it doesn't, make sure it's configured properly for Wake-On-LAN.";
 				} catch (IOException e) {
-					message = "Failed to send wake-on-lan packets";
+					message = "Failed to send Wake-On-LAN packets";
 				}
 				
 				final String toastMessage = message;
@@ -388,9 +393,11 @@ public class PcView extends Activity {
 		
 		if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
 			i.putExtra(AppView.ADDRESS_EXTRA, computer.localIp.getAddress());
+			i.putExtra(AppView.REMOTE_EXTRA, false);
 		}
 		else {
 			i.putExtra(AppView.ADDRESS_EXTRA, computer.remoteIp.getAddress());
+			i.putExtra(AppView.REMOTE_EXTRA, true);
 		}
 		startActivity(i);
 	}
@@ -459,8 +466,8 @@ public class PcView extends Activity {
     }
     
     private void addListPlaceholder() {
-        pcListAdapter.add(new ComputerObject("No computers found yet. Make sure your computer is running GFE " +
-        		"or add your PC manually on the settings page.", null));
+        pcListAdapter.add(new ComputerObject("Discovery is running. No computers found yet. " +
+        		"Make sure your computer is running GFE or add your PC manually on the settings page.", null));
     }
     
     private void removeListView(ComputerDetails details) {

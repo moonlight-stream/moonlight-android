@@ -127,17 +127,10 @@ public class MdnsDiscoveryAgent {
 		return new MdnsComputer(name, uuid, address);
 	}
 	
-	private MdnsDiscoveryAgent(MdnsDiscoveryListener listener) {
+	public MdnsDiscoveryAgent(MdnsDiscoveryListener listener) {
 		computers = new HashMap<InetAddress, MdnsComputer>();
 		pendingResolution = new HashSet<String>();
 		this.listener = listener;
-	}
-	
-	public static MdnsDiscoveryAgent createDiscoveryAgent(MdnsDiscoveryListener listener) throws IOException {
-		MdnsDiscoveryAgent agent = new MdnsDiscoveryAgent(listener);
-		
-				
-		return agent;
 	}
 	
 	public void startDiscovery(final int discoveryIntervalMs) {

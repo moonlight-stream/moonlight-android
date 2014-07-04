@@ -1,6 +1,5 @@
 package com.limelight.discovery;
 
-import java.io.IOException;
 import java.util.List;
 
 import com.limelight.nvstream.mdns.MdnsComputer;
@@ -47,59 +46,35 @@ public class DiscoveryService extends Service {
 		multicastLock = wifiMgr.createMulticastLock("Limelight mDNS");
 		multicastLock.setReferenceCounted(false);
 		
-		// This pattern is nasty. We have to do it
-		// because we can't do network on the main thread
-		// even if it's non-blocking
-		Thread initThread = new Thread() {
+		discoveryAgent = new MdnsDiscoveryAgent(new MdnsDiscoveryListener() {
 			@Override
-			public void run() {
-				try {
-					discoveryAgent = MdnsDiscoveryAgent.createDiscoveryAgent(new MdnsDiscoveryListener() {
-						@Override
-						public void notifyComputerAdded(MdnsComputer computer) {
-							if (boundListener != null) {
-								boundListener.notifyComputerAdded(computer);
-							}
-						}
-
-						@Override
-						public void notifyComputerRemoved(MdnsComputer computer) {
-							if (boundListener != null) {
-								boundListener.notifyComputerRemoved(computer);
-							}
-						}
-
-						@Override
-						public void notifyDiscoveryFailure(Exception e) {
-							if (boundListener != null) {
-								boundListener.notifyDiscoveryFailure(e);
-							}
-						}
-					});
-				} catch (IOException e) {
-					e.printStackTrace();
-					discoveryAgent = null;
+			public void notifyComputerAdded(MdnsComputer computer) {
+				if (boundListener != null) {
+					boundListener.notifyComputerAdded(computer);
 				}
 			}
-		};
-		initThread.start();
-		try {
-			initThread.join();
-		} catch (InterruptedException e) {
-			discoveryAgent = null;
-		}
+
+			@Override
+			public void notifyComputerRemoved(MdnsComputer computer) {
+				if (boundListener != null) {
+					boundListener.notifyComputerRemoved(computer);
+				}
+			}
+
+			@Override
+			public void notifyDiscoveryFailure(Exception e) {
+				if (boundListener != null) {
+					boundListener.notifyDiscoveryFailure(e);
+				}
+			}
+		});
 	}
 	
 	private DiscoveryBinder binder = new DiscoveryBinder();
 	
 	@Override
 	public IBinder onBind(Intent intent) {
-		// We should only be bindable if discovery can happen
-		if (discoveryAgent != null) {
-			return binder;
-		}
-		
-		return null;
+		return binder;
 	}
 	
 	@Override

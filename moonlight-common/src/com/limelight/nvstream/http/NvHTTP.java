@@ -28,6 +28,7 @@ public class NvHTTP {
 	private String uniqueId;
 	private PairingManager pm;
 	private LimelightCryptoProvider cryptoProvider;
+	private InetAddress address;
 
 	public static final int PORT = 47984;
 	public static final int CONNECTION_TIMEOUT = 2000;
@@ -39,6 +40,7 @@ public class NvHTTP {
 	public NvHTTP(InetAddress host, String uniqueId, String deviceName, LimelightCryptoProvider cryptoProvider) {
 		this.uniqueId = uniqueId;
 		this.cryptoProvider = cryptoProvider;
+		this.address = host;
 		
 		String safeAddress;
 		if (host instanceof Inet6Address) {
@@ -104,21 +106,34 @@ public class NvHTTP {
 		ComputerDetails details = new ComputerDetails();
 		String serverInfo = openHttpConnectionToString(baseUrl + "/serverinfo?uniqueid=" + uniqueId);
 		
-		details.name = getXmlString(serverInfo, "hostname");
-		details.uuid = UUID.fromString(getXmlString(serverInfo, "uniqueid"));
-		details.localIp = InetAddress.getByName(getXmlString(serverInfo, "LocalIP"));
-		details.remoteIp = InetAddress.getByName(getXmlString(serverInfo, "ExternalIP"));
+		details.name = getXmlString(serverInfo, "hostname").trim();
+		details.uuid = UUID.fromString(getXmlString(serverInfo, "uniqueid").trim());
 		details.macAddress = getXmlString(serverInfo, "mac");
+
+		// If there's no LocalIP field, use the address we hit the server on
+		String localIpStr = getXmlString(serverInfo, "LocalIP");
+		if (localIpStr == null) {
+			localIpStr = address.getHostAddress();
+		}
+		
+		// If there's no ExternalIP field, use the address we hit the server on
+		String externalIpStr = getXmlString(serverInfo, "ExternalIP");
+		if (externalIpStr == null) {
+			externalIpStr = address.getHostAddress();
+		}
+		
+		details.localIp = InetAddress.getByName(localIpStr.trim());
+		details.remoteIp = InetAddress.getByName(externalIpStr.trim());
 		
 		try {
-			details.pairState = Integer.parseInt(getXmlString(serverInfo, "PairStatus")) == 1 ?
+			details.pairState = Integer.parseInt(getXmlString(serverInfo, "PairStatus").trim()) == 1 ?
 					PairState.PAIRED : PairState.NOT_PAIRED;
 		} catch (NumberFormatException e) {
 			details.pairState = PairState.FAILED;
 		}
 		
 		try {
-			details.runningGameId = Integer.parseInt(getXmlString(serverInfo, "currentgame"));
+			details.runningGameId = Integer.parseInt(getXmlString(serverInfo, "currentgame").trim());
 		} catch (NumberFormatException e) {
 			details.runningGameId = 0;
 		}

@@ -1,0 +1,251 @@
+package com.limelight;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.List;
+
+import org.xmlpull.v1.XmlPullParserException;
+
+import com.limelight.binding.PlatformBinding;
+import com.limelight.nvstream.http.GfeHttpResponseException;
+import com.limelight.nvstream.http.NvApp;
+import com.limelight.nvstream.http.NvHTTP;
+import com.limelight.utils.Dialog;
+import com.limelight.utils.SpinnerDialog;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+
+public class AppView extends Activity {
+	private ListView appList;
+	private ArrayAdapter<AppObject> appListAdapter;
+	private InetAddress ipAddress;
+	private String uniqueId;
+	
+	private final static int RESUME_ID = 1;
+	private final static int QUIT_ID = 2;
+	
+	public final static String ADDRESS_EXTRA = "Address";
+	public final static String UNIQUEID_EXTRA = "UniqueId";
+	public final static String NAME_EXTRA = "Name";
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_app_view);
+		
+		byte[] address = getIntent().getByteArrayExtra(ADDRESS_EXTRA);
+		uniqueId = getIntent().getStringExtra(UNIQUEID_EXTRA);
+		if (address == null || uniqueId == null) {
+			return;
+		}
+		
+		setTitle("App List for "+getIntent().getStringExtra(NAME_EXTRA));
+		
+		try {
+			ipAddress = InetAddress.getByAddress(address);
+		} catch (UnknownHostException e) {
+			return;
+		}
+		
+		// Setup the list view
+		appList = (ListView)findViewById(R.id.pcListView);
+		appListAdapter = new ArrayAdapter<AppObject>(this, R.layout.simplerow);
+		appListAdapter.setNotifyOnChange(false);
+		appList.setAdapter(appListAdapter);
+		appList.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
+					long id) {
+				AppObject app = (AppObject) appListAdapter.getItem(pos);
+				if (app == null || app.app == null) {
+					return;
+				}
+				
+				// Only open the context menu if it's running, otherwise start it
+				if (app.app.getIsRunning()) {
+					openContextMenu(arg1);
+				}
+				else {
+					doStart(app.app);
+				}
+			}
+		});
+        registerForContextMenu(appList);
+        updateAppList();
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		
+		Dialog.closeDialogs();
+		SpinnerDialog.closeDialogs();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		
+        updateAppList();
+	}
+	
+	@Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+        
+        menu.add(Menu.NONE, RESUME_ID, 1, "Resume Session");
+        menu.add(Menu.NONE, QUIT_ID, 2, "Quit Session");
+    }
+	
+	@Override
+	public void onContextMenuClosed(Menu menu) {
+	}
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+        AppObject app = (AppObject) appListAdapter.getItem(info.position);
+        switch (item.getItemId())
+        {
+        case RESUME_ID:
+        	// Resume is the same as start for us
+        	doStart(app.app);
+        	return true;
+        	
+        case QUIT_ID:
+        	doQuit(app.app);
+        	return true;
+        	
+        default:
+          return super.onContextItemSelected(item);
+        }
+    }
+
+    private static String generateString(NvApp app) {
+    	StringBuilder str = new StringBuilder();
+    	str.append(app.getAppName());
+    	if (app.getIsRunning()) {
+    		str.append(" - Running");
+    	}
+    	return str.toString();
+    }
+    
+    private void addListPlaceholder() {
+        appListAdapter.add(new AppObject("No apps found. Try rescanning for games in GeForce Experience.", null));
+    }
+    
+    private void updateAppList() {
+		final SpinnerDialog spinner = SpinnerDialog.displayDialog(this, "App List", "Refreshing app list...", true);
+		new Thread() {
+			@Override
+			public void run() {
+				NvHTTP httpConn = new NvHTTP(ipAddress, uniqueId, null,  PlatformBinding.getCryptoProvider(AppView.this));
+				
+				try {
+					final List<NvApp> appList = httpConn.getAppList();
+					
+					AppView.this.runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							appListAdapter.clear();
+							if (appList.isEmpty()) {
+								addListPlaceholder();
+							}
+							else {
+								for (NvApp app : appList) {
+									appListAdapter.add(new AppObject(generateString(app), app));
+								}
+							}
+							
+							appListAdapter.notifyDataSetChanged();
+						}
+					});
+					
+					// Success case
+					return;
+				} catch (GfeHttpResponseException e) {
+				} catch (IOException e) {
+				} catch (XmlPullParserException e) {
+				} finally {
+					spinner.dismiss();
+				}
+				
+				Dialog.displayDialog(AppView.this, "Error", "Failed to get app list", true);
+			}
+		}.start();
+    }
+	
+	private void doStart(NvApp app) {
+		Intent intent = new Intent(this, Game.class);
+		intent.putExtra(Game.EXTRA_HOST, ipAddress.getHostAddress());
+		intent.putExtra(Game.EXTRA_APP, app.getAppName());
+		intent.putExtra(Game.EXTRA_UNIQUEID, uniqueId);
+		startActivity(intent);
+	}
+	
+	private void doQuit(final NvApp app) {
+		Toast.makeText(AppView.this, "Quitting "+app.getAppName()+"...", Toast.LENGTH_SHORT).show();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				NvHTTP httpConn;
+				String message;
+				try {
+					httpConn = new NvHTTP(ipAddress, uniqueId, null,  PlatformBinding.getCryptoProvider(AppView.this));
+					if (httpConn.quitApp()) {
+						message = "Successfully quit "+app.getAppName();
+					}
+					else {
+						message = "Failed to quit "+app.getAppName();
+					}
+					updateAppList();
+				} catch (UnknownHostException e) {
+					message = "Failed to resolve host";
+				} catch (FileNotFoundException e) {
+					message = "GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU. Using remote desktop software can also cause this error. "
+							+ "Try rebooting your machine or reinstalling GFE.";
+				} catch (Exception e) {
+					message = e.getMessage();
+				}
+				
+				final String toastMessage = message;
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						Toast.makeText(AppView.this, toastMessage, Toast.LENGTH_LONG).show();
+					}
+				});
+			}
+		}).start();
+	}
+	
+	public class AppObject {
+		public String text;
+		public NvApp app;
+		
+		public AppObject(String text, NvApp app) {
+			this.text = text;
+			this.app = app;
+		}
+		
+		@Override
+		public String toString() {
+			return text;
+		}
+	}
+}

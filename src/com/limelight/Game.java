@@ -71,6 +71,10 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	
 	private int drFlags = 0;
 	
+	public static final String EXTRA_HOST = "Host";
+	public static final String EXTRA_APP = "App";
+	public static final String EXTRA_UNIQUEID = "UniqueId";
+	
 	public static final String PREFS_FILE_NAME = "gameprefs";
 	
 	public static final String WIDTH_PREF_STRING = "ResH";
@@ -172,7 +176,9 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		wifiLock.setReferenceCounted(false);
 		wifiLock.acquire();
 		
-		String host = Game.this.getIntent().getStringExtra("host");
+		String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
+		String app = Game.this.getIntent().getStringExtra(EXTRA_APP);
+		String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
 		InetAddress addr;
 		boolean enableLargePackets;
 		try {
@@ -191,8 +197,8 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		LimeLog.info("Using large packets? "+enableLargePackets);
         
 		// Start the connection
-		conn = new NvConnection(host, Game.this,
-				new StreamConfiguration("Steam", width, height, refreshRate, bitrate * 1000,
+		conn = new NvConnection(host, uniqueId, Game.this,
+				new StreamConfiguration(app, width, height, refreshRate, bitrate * 1000,
 						enableLargePackets ? 1460 : 1024), PlatformBinding.getCryptoProvider(this));
 		keybTranslator = new KeyboardTranslator(conn);
 		controllerHandler = new ControllerHandler(conn);

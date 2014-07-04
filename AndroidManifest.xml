@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.limelight"
-    android:versionCode="19"
+    android:versionCode="20"
     android:versionName="2.5 (alpha)" >
 
     <uses-sdk
@@ -21,13 +21,43 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.limelight.Connection"
+            android:name="com.limelight.PcView"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="tv.ouya.intent.category.APP" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="com.limelight.AppView"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
+            android:label="App List" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.limelight.PcView" />
+        </activity>
+        <activity
+            android:name="com.limelight.StreamSettings"
+            android:label="Streaming Settings" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.limelight.PcView" />
+        </activity>
+        <activity
+            android:name="com.limelight.AdvancedSettings"
+            android:label="Advanced Settings" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.limelight.StreamSettings" />
+        </activity>
+        <activity
+            android:name="com.limelight.AddComputerManually"
+            android:label="Add Computer Manually" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.limelight.StreamSettings" />
         </activity>
         <activity
             android:name="com.limelight.Game"
@@ -43,6 +73,9 @@
         <service
             android:name="com.limelight.discovery.DiscoveryService"
             android:label="mDNS PC Auto-Discovery Service" />
+        <service
+            android:name="com.limelight.computers.ComputerManagerService"
+            android:label="Computer Management Service" />
     </application>
 
 </manifest>

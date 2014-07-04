@@ -77,6 +77,7 @@ public class DiscoveryService extends Service {
 						}
 					});
 				} catch (IOException e) {
+					e.printStackTrace();
 					discoveryAgent = null;
 				}
 			}

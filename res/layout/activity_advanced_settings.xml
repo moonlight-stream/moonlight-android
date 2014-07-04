@@ -1,0 +1,62 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="10dp"
+    tools:context=".Connection" >
+    
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <RadioGroup
+            android:id="@+id/decoderConfigGroup"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="15dp"
+            android:orientation="vertical" >
+
+            <RadioButton
+                android:id="@+id/softwareDec"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Force Software Decoding" />
+
+            <RadioButton
+                android:id="@+id/autoDec"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Auto-select Decoder (Recommended)" />
+
+            <RadioButton
+                android:id="@+id/hardwareDec"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Force Hardware Decoding" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/bitrateLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/decoderConfigGroup"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="10dp" />
+
+        <SeekBar
+            android:id="@+id/bitrateSeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/decoderConfigGroup"
+            android:layout_marginTop="10dp"
+            android:layout_toLeftOf="@+id/bitrateLabel" />
+    </RelativeLayout>
+	
+</ScrollView>

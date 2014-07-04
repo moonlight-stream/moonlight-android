@@ -34,29 +34,40 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
     public static final class drawable {
         public static final int app_icon=0x7f020000;
         public static final int ic_launcher=0x7f020001;
-        public static final int ouya_icon=0x7f020002;
+        public static final int list_view_border=0x7f020002;
+        public static final int ouya_icon=0x7f020003;
     }
     public static final class id {
+        public static final int addPc=0x7f080001;
+        public static final int advancedSettingsButton=0x7f080012;
+        public static final int appListText=0x7f080009;
         public static final int autoDec=0x7f080004;
-        public static final int bitrateLabel=0x7f08000b;
-        public static final int bitrateSeekBar=0x7f08000c;
-        public static final int config1080p30Selected=0x7f080009;
-        public static final int config1080p60Selected=0x7f08000a;
-        public static final int config720p30Selected=0x7f080007;
-        public static final int config720p60Selected=0x7f080008;
-        public static final int decoderConfigGroup=0x7f080001;
+        public static final int bitrateLabel=0x7f080006;
+        public static final int bitrateSeekBar=0x7f080007;
+        public static final int config1080p30Selected=0x7f080010;
+        public static final int config1080p60Selected=0x7f080011;
+        public static final int config720p30Selected=0x7f08000e;
+        public static final int config720p60Selected=0x7f08000f;
+        public static final int decoderConfigGroup=0x7f080002;
+        public static final int discoveryText=0x7f08000b;
         public static final int hardwareDec=0x7f080005;
         public static final int hostTextView=0x7f080000;
-        public static final int pairButton=0x7f080006;
-        public static final int quitButton=0x7f08000e;
+        public static final int manuallyAddPc=0x7f080013;
+        public static final int pcListView=0x7f080008;
+        public static final int rowTextView=0x7f080014;
+        public static final int settingsButton=0x7f08000c;
         public static final int softwareDec=0x7f080003;
-        public static final int statusButton=0x7f08000d;
-        public static final int streamConfigGroup=0x7f080002;
-        public static final int surfaceView=0x7f08000f;
+        public static final int streamConfigGroup=0x7f08000d;
+        public static final int surfaceView=0x7f08000a;
     }
     public static final class layout {
-        public static final int activity_connection=0x7f030000;
-        public static final int activity_game=0x7f030001;
+        public static final int activity_add_computer_manually=0x7f030000;
+        public static final int activity_advanced_settings=0x7f030001;
+        public static final int activity_app_view=0x7f030002;
+        public static final int activity_game=0x7f030003;
+        public static final int activity_pc_view=0x7f030004;
+        public static final int activity_stream_settings=0x7f030005;
+        public static final int simplerow=0x7f030006;
     }
     public static final class string {
         public static final int app_name=0x7f060000;

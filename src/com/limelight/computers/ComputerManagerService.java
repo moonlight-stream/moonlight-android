@@ -123,7 +123,6 @@ public class ComputerManagerService extends Service {
 		return new MdnsDiscoveryListener() {
 			@Override
 			public void notifyComputerAdded(MdnsComputer computer) {
-				LimeLog.severe("Added computer: "+computer.getName());
 				// Kick off a serverinfo poll on this machine
 				addComputer(computer.getAddress());
 			}

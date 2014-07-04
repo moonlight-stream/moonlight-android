@@ -8,6 +8,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -26,7 +27,7 @@ public class MdnsDiscoveryAgent {
 	private HashMap<InetAddress, MdnsComputer> computers;
 	private Timer discoveryTimer;
 	private MdnsDiscoveryListener listener;
-	private ArrayList<String> pendingResolution;
+	private HashSet<String> pendingResolution;
 	private ServiceListener nvstreamListener = new ServiceListener() {
 		public void serviceAdded(ServiceEvent event) {
 			LimeLog.info("mDNS: Machine appeared: "+event.getInfo().getName());
@@ -128,26 +129,39 @@ public class MdnsDiscoveryAgent {
 	
 	private MdnsDiscoveryAgent(MdnsDiscoveryListener listener) {
 		computers = new HashMap<InetAddress, MdnsComputer>();
-		pendingResolution = new ArrayList<String>();
+		pendingResolution = new HashSet<String>();
 		this.listener = listener;
 	}
 	
 	public static MdnsDiscoveryAgent createDiscoveryAgent(MdnsDiscoveryListener listener) throws IOException {
 		MdnsDiscoveryAgent agent = new MdnsDiscoveryAgent(listener);
 		
-		agent.resolver = JmDNS.create(new InetSocketAddress(0).getAddress());
-		
+				
 		return agent;
 	}
 	
 	public void startDiscovery(final int discoveryIntervalMs) {
-		resolver.addServiceListener(SERVICE_TYPE, nvstreamListener);
-		
 		discoveryTimer = new Timer();
 		discoveryTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
+				// Close the old resolver
+				if (resolver != null) {
+					try {
+						resolver.close();
+					} catch (IOException e) {}
+				}
+				
+				// Create a new resolver
+				try {
+					resolver = JmDNS.create(new InetSocketAddress(0).getAddress());
+				} catch (IOException e) {
+					// This is fine; the network is probably not up
+					return;
+				}
+				
 				// Send another mDNS query
+				resolver.addServiceListener(SERVICE_TYPE, nvstreamListener);
 				resolver.requestServiceInfo(SERVICE_TYPE, null, discoveryIntervalMs);
 
 				// Run service resolution again for pending machines
@@ -161,11 +175,13 @@ public class MdnsDiscoveryAgent {
 	}
 	
 	public void stopDiscovery() {
-		resolver.removeServiceListener(SERVICE_TYPE, nvstreamListener);
-		
 		if (discoveryTimer != null) {
 			discoveryTimer.cancel();
 			discoveryTimer = null;
+		}
+		
+		if (resolver != null) {
+			resolver.removeServiceListener(SERVICE_TYPE, nvstreamListener);
 		}
 	}
 	

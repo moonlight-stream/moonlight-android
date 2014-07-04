@@ -86,7 +86,12 @@ public class AddComputerManually extends Activity {
 		addPcButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Toast.makeText(AddComputerManually.this, "Adding PC...", Toast.LENGTH_LONG).show();
+				if (hostText.getText().length() == 0) {
+					Toast.makeText(AddComputerManually.this, "You must enter an IP address", Toast.LENGTH_LONG).show();
+					return;
+				}
+				
+				Toast.makeText(AddComputerManually.this, "Adding PC...", Toast.LENGTH_SHORT).show();
 				
 				// Bind to the service which will try to add the PC
 				bindService(new Intent(AddComputerManually.this, ComputerManagerService.class), serviceConnection, Service.BIND_AUTO_CREATE);

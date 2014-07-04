@@ -94,7 +94,11 @@ public class PcView extends Activity {
 			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
 					long id) {
 		        ComputerObject computer = (ComputerObject) pcListAdapter.getItem(pos);
-		        if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
+		        if (computer.details == null) {
+		        	// Placeholder item; no context menu for it
+		        	return;
+		        }
+		        else if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
 		        	// Open the context menu if a PC is offline
 					openContextMenu(arg1);
 		        }

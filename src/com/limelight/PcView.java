@@ -467,7 +467,8 @@ public class PcView extends Activity {
     
     private void addListPlaceholder() {
         pcListAdapter.add(new ComputerObject("Discovery is running. No computers found yet. " +
-        		"Make sure your computer is running GFE or add your PC manually on the settings page.", null));
+        		"If your PC doesn't show up in about 15 seconds, " +
+        		"make sure your computer is running GFE or add your PC manually on the settings page.", null));
     }
     
     private void removeListView(ComputerDetails details) {

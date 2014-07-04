@@ -501,11 +501,6 @@ public class PcView extends Activity {
 				break;
 			}
 			
-			if (computer.text.equals(computerString)) {
-				// Already up to date
-				return;
-			}
-			
 			// Check if this is the same computer
 			if (details.equals(computer.details)) {
 				existingEntry = computer;

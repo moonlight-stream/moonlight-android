@@ -24,6 +24,7 @@ public class ComputerDetails {
 	
 	public void update(ComputerDetails details) {
 		this.state = details.state;
+		this.reachability = details.reachability;
 		this.name = details.name;
 		this.uuid = details.uuid;
 		this.localIp = details.localIp;

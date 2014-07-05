@@ -86,9 +86,10 @@ public class PcView extends Activity {
 		// Setup the list view
 		settingsButton = (Button)findViewById(R.id.settingsButton);
 		pcList = (ListView)findViewById(R.id.pcListView);
-		pcListAdapter = new ArrayAdapter<ComputerObject>(this, R.layout.simplerow);
+		pcListAdapter = new ArrayAdapter<ComputerObject>(this, R.layout.simplerow, R.id.rowTextView);
 		pcListAdapter.setNotifyOnChange(false);
         pcList.setAdapter(pcListAdapter);
+        pcList.setItemsCanFocus(true);
         pcList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,

@@ -9,18 +9,17 @@
     tools:context=".AppView" >
 
     <ListView
-        android:paddingTop="5dp"
         android:id="@+id/pcListView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
         android:layout_below="@+id/appListText"
         android:fastScrollEnabled="true"
         android:longClickable="false"
-        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:background="@drawable/list_view_unselected"
         android:stackFromBottom="false">
-
     </ListView>
     
     <TextView
@@ -31,6 +30,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_alignParentTop="true"
         android:paddingTop="10dp"
+        android:paddingBottom="10dp"
         android:text="Applications" />
 
 </RelativeLayout>

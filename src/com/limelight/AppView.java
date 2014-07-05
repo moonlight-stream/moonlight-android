@@ -67,9 +67,10 @@ public class AppView extends Activity {
 		
 		// Setup the list view
 		appList = (ListView)findViewById(R.id.pcListView);
-		appListAdapter = new ArrayAdapter<AppObject>(this, R.layout.simplerow);
+		appListAdapter = new ArrayAdapter<AppObject>(this, R.layout.simplerow, R.id.rowTextView);
 		appListAdapter.setNotifyOnChange(false);
 		appList.setAdapter(appListAdapter);
+		appList.setItemsCanFocus(true);
 		appList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,

@@ -148,9 +148,16 @@ public class PcView extends Activity {
 	}
 	
 	private void stopComputerUpdates() {
-		freezeUpdates = true;
-		managerBinder.stopPolling();
-		runningPolling = false;
+		if (managerBinder != null) {
+			if (!runningPolling) {
+				return;
+			}
+			
+			freezeUpdates = true;
+			
+			managerBinder.stopPolling();
+			runningPolling = false;
+		}
 	}
 	
 	@Override
@@ -227,6 +234,11 @@ public class PcView extends Activity {
 		if (computer.runningGameId != 0) {
 			Toast.makeText(PcView.this, "Computer is currently in a game. " +
 					"You must close the game before pairing.", Toast.LENGTH_LONG).show();
+			return;
+		}
+		if (managerBinder == null) {
+			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
+					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
 			return;
 		}
 		
@@ -330,6 +342,11 @@ public class PcView extends Activity {
 			Toast.makeText(PcView.this, "Computer is offline", Toast.LENGTH_SHORT).show();
 			return;
 		}
+		if (managerBinder == null) {
+			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
+					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
+			return;
+		}
 		
 		Toast.makeText(PcView.this, "Unpairing...", Toast.LENGTH_SHORT).show();
 		new Thread(new Runnable() {
@@ -387,6 +404,11 @@ public class PcView extends Activity {
 			Toast.makeText(PcView.this, "Computer is offline", Toast.LENGTH_SHORT).show();
 			return;
 		}
+		if (managerBinder == null) {
+			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
+					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
+			return;
+		}
 		
 		Intent i = new Intent(this, AppView.class);
 		i.putExtra(AppView.NAME_EXTRA, computer.name);
@@ -422,9 +444,12 @@ public class PcView extends Activity {
         	return true;
         	
         case DELETE_ID:
-        	if (managerBinder != null) {
-        		managerBinder.removeComputer(computer.details.name);
-        	}
+    		if (managerBinder == null) {
+    			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
+    					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
+    			return true;
+    		}
+        	managerBinder.removeComputer(computer.details.name);
         	removeListView(computer.details);
         	return true;
         	

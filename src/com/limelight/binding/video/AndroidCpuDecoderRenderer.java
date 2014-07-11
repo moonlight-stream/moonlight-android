@@ -31,6 +31,10 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 	private static final int MED_PERF = 2;
 	private static final int HIGH_PERF = 3;
 	
+	private int totalFrames;
+	private long decoderTimeMs;
+	private long totalTimeMs;
+	
 	private int cpuCount = Runtime.getRuntime().availableProcessors();
 	
 	private int findOptimalPerformanceLevel() {
@@ -195,6 +199,8 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 	private boolean submitDecodeUnit(DecodeUnit decodeUnit) {
 		byte[] data;
 		
+		long timeBeforeDecode = System.currentTimeMillis();
+		
 		// Use the reserved decoder buffer if this decode unit will fit
 		if (decodeUnit.getDataLength() <= DECODER_BUFFER_SIZE) {
 			decoderBuffer.clear();
@@ -215,7 +221,20 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 			}
 		}
 		
-		return (AvcDecoder.decode(data, 0, decodeUnit.getDataLength()) == 0);
+		boolean success = (AvcDecoder.decode(data, 0, decodeUnit.getDataLength()) == 0);
+		if (success) {
+			long timeAfterDecode = System.currentTimeMillis();
+			
+		    // Add delta time to the totals (excluding probable outliers)
+		    long delta = timeAfterDecode - decodeUnit.getReceiveTimestamp();
+			if (delta >= 0 && delta < 300) {
+		    	decoderTimeMs += timeAfterDecode-timeBeforeDecode;
+			    totalTimeMs += delta;
+			    totalFrames++;
+			}
+		}
+		
+		return success;
 	}
 
 	@Override
@@ -225,11 +244,17 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 
 	@Override
 	public int getAverageDecoderLatency() {
-		return 0;
+		if (totalFrames == 0) {
+			return 0;
+		}
+		return (int)(decoderTimeMs / totalFrames);
 	}
 
 	@Override
 	public int getAverageEndToEndLatency() {
-		return 0;
+		if (totalFrames == 0) {
+			return 0;
+		}
+		return (int)(totalTimeMs / totalFrames);
 	}
 }

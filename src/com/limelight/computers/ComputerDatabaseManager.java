@@ -35,7 +35,6 @@ public class ComputerDatabaseManager {
 			c.deleteDatabase(COMPUTER_DB_NAME);
 			computerDb = c.openOrCreateDatabase(COMPUTER_DB_NAME, 0, null);
 		}
-		computerDb.enableWriteAheadLogging();
 		initializeDb();
 	}
 	

@@ -181,23 +181,25 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					
 					int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
 				    if (outIndex >= 0) {
+				    	long presentationTimeUs = info.presentationTimeUs;
 					    int lastIndex = outIndex;
-					    
-					    // Add delta time to the totals (excluding probable outliers)
-					    long delta = System.currentTimeMillis()-(info.presentationTimeUs/1000);
-					    if (delta > 5 && delta < 300) {
-					    	decoderTimeMs += delta;
-						    totalTimeMs += delta;
-					    }
 					    
 					    // Get the last output buffer in the queue
 					    while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
 					    	videoDecoder.releaseOutputBuffer(lastIndex, false);
 					    	lastIndex = outIndex;
+					    	presentationTimeUs = info.presentationTimeUs;
 					    }
 					    
 					    // Render the last buffer
 				    	videoDecoder.releaseOutputBuffer(lastIndex, true);
+				    	
+					    // Add delta time to the totals (excluding probable outliers)
+					    long delta = System.currentTimeMillis()-(presentationTimeUs/1000);
+					    if (delta > 5 && delta < 300) {
+					    	decoderTimeMs += delta;
+						    totalTimeMs += delta;
+					    }
 				    } else {
 					    switch (outIndex) {
 					    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:

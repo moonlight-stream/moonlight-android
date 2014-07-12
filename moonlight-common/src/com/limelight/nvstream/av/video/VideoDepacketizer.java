@@ -77,7 +77,7 @@ public class VideoDepacketizer {
 				LimeLog.warning("Video decoder is too slow! Forced to drop decode units");
 
 				// Invalidate all frames from the start of the DU queue
-				controlListener.connectionSinkTooSlow(decodedUnits.pollPopulatedObject().getFrameNumber(), frameNumber);
+				controlListener.connectionSinkTooSlow(0, 0);
 				
 				// Remove existing frames
 				decodedUnits.clearPopulatedObjects();

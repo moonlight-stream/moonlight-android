@@ -177,6 +177,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					du = depacketizer.pollNextDecodeUnit();
 					if (du != null) {
 						submitDecodeUnit(du);
+						depacketizer.freeDecodeUnit(du);
 					}
 					
 					int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);

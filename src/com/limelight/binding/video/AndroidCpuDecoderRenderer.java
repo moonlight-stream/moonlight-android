@@ -159,6 +159,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 					du = depacketizer.pollNextDecodeUnit(); 
 					if (du != null) {
 						submitDecodeUnit(du);
+						depacketizer.freeDecodeUnit(du);
 					}
 					
 					long diff = nextFrameTime - System.currentTimeMillis();

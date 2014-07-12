@@ -6,13 +6,11 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 
 import com.jmdns.JmDNS;
 import com.jmdns.ServiceEvent;
@@ -63,8 +61,13 @@ public class MdnsDiscoveryAgent {
 			
 			try {
 				computer = parseMdnsResponse(event);
+				if (computer == null) {
+					LimeLog.info("mDNS: Invalid response for machine: "+event.getInfo().getName());
+					return;
+				}
 			} catch (UnsupportedEncodingException e) {
 				// Invalid DNS response
+				LimeLog.info("mDNS: Invalid response for machine: "+event.getInfo().getName());
 				return;
 			}
 			
@@ -77,54 +80,17 @@ public class MdnsDiscoveryAgent {
 		}
 	};
 	
-	private static ArrayList<String> parseTxtBytes(byte[] txtBytes) throws UnsupportedEncodingException {
-		int i = 0;
-		ArrayList<String> strings = new ArrayList<String>();
-		
-		while (i < txtBytes.length) {
-			int length = txtBytes[i++];
-			
-			byte[] stringData = Arrays.copyOfRange(txtBytes, i, i+length);
-			strings.add(new String(stringData, "UTF-8"));
-			
-			i += length;
-		}
-		
-		return strings;
-	}
-	
 	private static MdnsComputer parseMdnsResponse(ServiceEvent event) throws UnsupportedEncodingException {	
 		Inet4Address addrs[] = event.getInfo().getInet4Addresses();
 		if (addrs.length == 0) {
+			LimeLog.info("Missing addresses");
 			return null;
 		}
 		
 		Inet4Address address = addrs[0];
 		String name = event.getInfo().getName();
-		ArrayList<String> txtStrs = parseTxtBytes(event.getInfo().getTextBytes());
-		String uniqueId = null;
-		for (String txtStr : txtStrs) {
-			if (txtStr.startsWith("SERVICE_UNIQUEID=")) {
-				uniqueId = txtStr.substring(txtStr.indexOf("=")+1);
-				break;
-			}
-		}
 		
-		if (uniqueId == null) {
-			return null;
-		}
-		
-		UUID uuid;
-		try {
-			// fromString() throws an exception for a
-			// malformed string
-			uuid = UUID.fromString(uniqueId);
-		} catch (IllegalArgumentException e) {
-			// UUID must be properly formed
-			return null;
-		}
-		
-		return new MdnsComputer(name, uuid, address);
+		return new MdnsComputer(name, address);
 	}
 	
 	public MdnsDiscoveryAgent(MdnsDiscoveryListener listener) {

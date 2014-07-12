@@ -1,25 +1,18 @@
 package com.limelight.nvstream.mdns;
 
 import java.net.InetAddress;
-import java.util.UUID;
 
 public class MdnsComputer {
 	private InetAddress ipAddr;
-	private UUID uniqueId;
 	private String name;
 	
-	public MdnsComputer(String name, UUID uniqueId, InetAddress addr) {
+	public MdnsComputer(String name, InetAddress addr) {
 		this.name = name;
-		this.uniqueId = uniqueId;
 		this.ipAddr = addr;
 	}
 	
 	public String getName() {
 		return name;
-	}
-	
-	public UUID getUniqueId() {
-		return uniqueId;
 	}
 	
 	public InetAddress getAddress() {
@@ -28,15 +21,14 @@ public class MdnsComputer {
 	
 	@Override
 	public int hashCode() {
-		return uniqueId.hashCode();
+		return name.hashCode();
 	}
 	
 	@Override
 	public boolean equals(Object o) {
 		if (o instanceof MdnsComputer) {
 			MdnsComputer other = (MdnsComputer)o;
-			if (other.uniqueId.equals(uniqueId) &&
-				other.ipAddr.equals(ipAddr) &&
+			if (other.ipAddr.equals(ipAddr) &&
 				other.name.equals(name)) {
 				return true;
 			}
@@ -47,6 +39,6 @@ public class MdnsComputer {
 	
 	@Override
 	public String toString() {
-		return "["+name+" - "+uniqueId+" - "+ipAddr+"]";
+		return "["+name+" - "+ipAddr+"]";
 	}
 }

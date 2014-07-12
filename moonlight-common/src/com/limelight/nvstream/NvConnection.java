@@ -2,11 +2,8 @@ package com.limelight.nvstream;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Enumeration;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -80,65 +77,6 @@ public class NvConnection {
 		keyGen.init(128);
 		
 		return keyGen.generateKey();
-	}
-	
-	public static String getMacAddressString() throws SocketException {
-		Enumeration<NetworkInterface> ifaceList;
-		NetworkInterface selectedIface = null;
-
-		// First look for a WLAN interface (since those generally aren't removable)
-		ifaceList = NetworkInterface.getNetworkInterfaces();
-		while (selectedIface == null && ifaceList.hasMoreElements()) {
-			NetworkInterface iface = ifaceList.nextElement();
-
-			if (iface.getName().startsWith("wlan") && 
-				iface.getHardwareAddress() != null &&
-				iface.getHardwareAddress().length > 0) {
-				selectedIface = iface;
-			}
-		}
-
-		// If we didn't find that, look for an Ethernet interface
-		ifaceList = NetworkInterface.getNetworkInterfaces();
-		while (selectedIface == null && ifaceList.hasMoreElements()) {
-			NetworkInterface iface = ifaceList.nextElement();
-
-			if (iface.getName().startsWith("eth") &&
-				iface.getHardwareAddress() != null &&
-				iface.getHardwareAddress().length > 0) {
-				selectedIface = iface;
-			}
-		}
-		
-		// Now just find something with a MAC address
-		ifaceList = NetworkInterface.getNetworkInterfaces();
-		while (selectedIface == null && ifaceList.hasMoreElements()) {
-			NetworkInterface iface = ifaceList.nextElement();
-
-			if (iface.getHardwareAddress() != null &&
-				iface.getHardwareAddress().length > 0) {
-				selectedIface = iface;
-				break;
-			}
-		}
-		
-		if (selectedIface == null) {
-			return null;
-		}
-
-		byte[] macAddress = selectedIface.getHardwareAddress();
-		if (macAddress != null) {
-			StringBuilder addrStr = new StringBuilder();
-			for (int i = 0; i < macAddress.length; i++) {
-				addrStr.append(String.format("%02x", macAddress[i]));
-				if (i != macAddress.length - 1) {
-					addrStr.append(':');
-				}
-			}
-			return addrStr.toString();
-		}
-		
-		return null;
 	}
 	
 	public void stop()

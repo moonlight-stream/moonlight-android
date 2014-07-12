@@ -32,7 +32,6 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 	private static final int HIGH_PERF = 3;
 	
 	private int totalFrames;
-	private long decoderTimeMs;
 	private long totalTimeMs;
 	
 	private int cpuCount = Runtime.getRuntime().availableProcessors();
@@ -200,8 +199,6 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 	private boolean submitDecodeUnit(DecodeUnit decodeUnit) {
 		byte[] data;
 		
-		long timeBeforeDecode = System.currentTimeMillis();
-		
 		// Use the reserved decoder buffer if this decode unit will fit
 		if (decodeUnit.getDataLength() <= DECODER_BUFFER_SIZE) {
 			decoderBuffer.clear();
@@ -229,7 +226,6 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 		    // Add delta time to the totals (excluding probable outliers)
 		    long delta = timeAfterDecode - decodeUnit.getReceiveTimestamp();
 			if (delta >= 0 && delta < 300) {
-		    	decoderTimeMs += timeAfterDecode-timeBeforeDecode;
 			    totalTimeMs += delta;
 			    totalFrames++;
 			}
@@ -245,10 +241,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 
 	@Override
 	public int getAverageDecoderLatency() {
-		if (totalFrames == 0) {
-			return 0;
-		}
-		return (int)(decoderTimeMs / totalFrames);
+		return 0;
 	}
 
 	@Override

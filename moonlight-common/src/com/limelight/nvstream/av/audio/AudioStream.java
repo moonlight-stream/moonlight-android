@@ -137,7 +137,7 @@ public class AudioStream {
 					}
 					
 					streamListener.playDecodedAudio(samples.data, samples.offset, samples.length);
-					
+					depacketizer.freeDecodedData(samples);
 				}
 			}
 		};

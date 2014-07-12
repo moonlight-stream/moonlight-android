@@ -17,7 +17,10 @@ public class DecodeUnit {
 	private long receiveTimestamp;
 	private int flags;
 	
-	public DecodeUnit(int type, List<ByteBufferDescriptor> bufferList, int dataLength, int frameNumber, long receiveTimestamp, int flags)
+	public DecodeUnit() {
+	}
+	
+	public void initialize(int type, List<ByteBufferDescriptor> bufferList, int dataLength, int frameNumber, long receiveTimestamp, int flags)
 	{
 		this.type = type;
 		this.bufferList = bufferList;

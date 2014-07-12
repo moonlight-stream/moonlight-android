@@ -1,24 +1,18 @@
 package com.limelight.nvstream.av.audio;
 
-import java.util.concurrent.LinkedBlockingQueue;
-
 import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
+import com.limelight.nvstream.av.PopulatedBufferList;
 import com.limelight.nvstream.av.RtpPacket;
 
 public class AudioDepacketizer {
 	
 	private static final int DU_LIMIT = 15;
-	private LinkedBlockingQueue<ByteBufferDescriptor> decodedUnits =
-			new LinkedBlockingQueue<ByteBufferDescriptor>(DU_LIMIT);
+	private PopulatedBufferList<ByteBufferDescriptor> decodedUnits;
 	
 	// Direct submit state
 	private AudioRenderer directSubmitRenderer;
 	private byte[] directSubmitData;
-	
-	// Non-direct submit state
-	private byte[][] pcmRing;
-	private int ringIndex;
 	
 	// Cached objects
 	private ByteBufferDescriptor cachedDesc = new ByteBufferDescriptor(null, 0, 0);
@@ -33,22 +27,35 @@ public class AudioDepacketizer {
 			this.directSubmitData = new byte[OpusDecoder.getMaxOutputShorts()*2];
 		}
 		else {
-			pcmRing = new byte[DU_LIMIT][OpusDecoder.getMaxOutputShorts()*2];
- 		}
+			decodedUnits = new PopulatedBufferList<ByteBufferDescriptor>(DU_LIMIT, new PopulatedBufferList.BufferFactory() {
+				public Object createFreeBuffer() {
+					return new ByteBufferDescriptor(new byte[OpusDecoder.getMaxOutputShorts()*2], 0, OpusDecoder.getMaxOutputShorts()*2);
+				}
+			});
+		}
 	}
 
 	private void decodeData(byte[] data, int off, int len)
 	{
 		// Submit this data to the decoder
 		int decodeLen;
-		byte[] pcmData;
+		ByteBufferDescriptor bb;
 		if (directSubmitData != null) {
-			pcmData = null;
+			bb = null;
 			decodeLen = OpusDecoder.decode(data, off, len, directSubmitData);
 		}
 		else {
-			pcmData = pcmRing[ringIndex];
-			decodeLen = OpusDecoder.decode(data, off, len, pcmData);
+			bb = decodedUnits.pollFreeObject();
+			if (bb == null) {
+				LimeLog.warning("Audio player too slow! Forced to drop decoded samples");
+				decodedUnits.clearPopulatedObjects();
+				bb = decodedUnits.pollFreeObject();
+				if (bb == null) {
+					LimeLog.severe("Audio player is leaking buffers!");
+					return;
+				}
+			}
+			decodeLen = OpusDecoder.decode(data, off, len, bb.data);
 		}
 		
 		if (decodeLen > 0) {
@@ -58,14 +65,9 @@ public class AudioDepacketizer {
 			if (directSubmitRenderer != null) {
 				directSubmitRenderer.playDecodedAudio(directSubmitData, 0, decodeLen);
 			}
-			else if (!decodedUnits.offer(new ByteBufferDescriptor(pcmData, 0, decodeLen))) {
-				LimeLog.warning("Audio player too slow! Forced to drop decoded samples");
-				// Clear out the queue
-				decodedUnits.clear();
-			}
 			else {
-				// Frame successfully submitted for playback
-				ringIndex = (ringIndex + 1) % DU_LIMIT;
+				bb.length = decodeLen;
+				decodedUnits.addPopulatedObject(bb);
 			}
 		}
 	}
@@ -95,8 +97,11 @@ public class AudioDepacketizer {
 		decodeData(cachedDesc.data, cachedDesc.offset, cachedDesc.length);
 	}
 	
-	public ByteBufferDescriptor getNextDecodedData() throws InterruptedException
-	{
-		return decodedUnits.take();
+	public ByteBufferDescriptor getNextDecodedData() throws InterruptedException {
+		return decodedUnits.takePopulatedObject();
+	}
+	
+	public void freeDecodedData(ByteBufferDescriptor data) {
+		decodedUnits.freePopulatedObject(data);
 	}
 }

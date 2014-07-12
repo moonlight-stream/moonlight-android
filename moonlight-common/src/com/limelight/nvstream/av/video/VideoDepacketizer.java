@@ -1,12 +1,12 @@
 package com.limelight.nvstream.av.video;
 
 import java.util.LinkedList;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.ConnectionStatusListener;
+import com.limelight.nvstream.av.PopulatedBufferList;
 
 public class VideoDepacketizer {
 	
@@ -32,12 +32,18 @@ public class VideoDepacketizer {
 	private int nominalPacketSize;
 	
 	private static final int DU_LIMIT = 15;
-	private LinkedBlockingQueue<DecodeUnit> decodedUnits = new LinkedBlockingQueue<DecodeUnit>(DU_LIMIT);
+	private PopulatedBufferList<DecodeUnit> decodedUnits;
 	
 	public VideoDepacketizer(ConnectionStatusListener controlListener, int nominalPacketSize)
 	{
 		this.controlListener = controlListener;
 		this.nominalPacketSize = nominalPacketSize;
+		
+		decodedUnits = new PopulatedBufferList<DecodeUnit>(DU_LIMIT, new PopulatedBufferList.BufferFactory() {
+			public Object createFreeBuffer() {
+				return new DecodeUnit();
+			}
+		});
 	}
 	
 	private void clearAvcFrameState()
@@ -66,22 +72,32 @@ public class VideoDepacketizer {
 			}
 			
 			// Construct the H264 decode unit
-			DecodeUnit du = new DecodeUnit(DecodeUnit.TYPE_H264, avcFrameDataChain,
-					avcFrameDataLength, frameNumber, frameStartTime, flags);
-			if (!decodedUnits.offer(du)) {
+			DecodeUnit du = decodedUnits.pollFreeObject();
+			if (du == null) {
 				LimeLog.warning("Video decoder is too slow! Forced to drop decode units");
-				
+
 				// Invalidate all frames from the start of the DU queue
-				controlListener.connectionSinkTooSlow(decodedUnits.remove().getFrameNumber(), frameNumber);
+				controlListener.connectionSinkTooSlow(decodedUnits.pollPopulatedObject().getFrameNumber(), frameNumber);
 				
 				// Remove existing frames
-				decodedUnits.clear();
+				decodedUnits.clearPopulatedObjects();
 				
-				// Add this frame
-				decodedUnits.add(du);
+				// Try again
+				du = decodedUnits.pollFreeObject();
+				if (du == null) {
+					LimeLog.warning("Video decoder is leaking decode units!");
+					return;
+				}
 			}
 			
+			// Initialize the free DU
+			du.initialize(DecodeUnit.TYPE_H264, avcFrameDataChain,
+					avcFrameDataLength, frameNumber, frameStartTime, flags);
+			
 			controlListener.connectionReceivedFrame(frameNumber);
+			
+			// Submit the DU to the consumer
+			decodedUnits.addPopulatedObject(du);
 
 			// Clear old state
 			clearAvcFrameState();
@@ -335,12 +351,17 @@ public class VideoDepacketizer {
 	
 	public DecodeUnit takeNextDecodeUnit() throws InterruptedException
 	{
-		return decodedUnits.take();
+		return decodedUnits.takePopulatedObject();
 	}
 	
 	public DecodeUnit pollNextDecodeUnit()
 	{
-		return decodedUnits.poll();
+		return decodedUnits.pollPopulatedObject();
+	}
+	
+	public void freeDecodeUnit(DecodeUnit du)
+	{
+		decodedUnits.freePopulatedObject(du);
 	}
 }
 

@@ -48,12 +48,13 @@ public class ComputerManagerService extends Service {
 	private ServiceConnection discoveryServiceConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder binder) {
 			synchronized (discoveryServiceConnection) {
-				discoveryBinder = ((DiscoveryService.DiscoveryBinder)binder);
+				DiscoveryService.DiscoveryBinder privateBinder = ((DiscoveryService.DiscoveryBinder)binder);
 				
 				// Set us as the event listener
-				discoveryBinder.setListener(createDiscoveryListener());
+				privateBinder.setListener(createDiscoveryListener());
 				
 				// Signal a possible waiter that we're all setup
+				discoveryBinder = privateBinder;
 				discoveryServiceConnection.notifyAll();
 			}
 		}

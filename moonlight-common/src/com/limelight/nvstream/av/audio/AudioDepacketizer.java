@@ -20,6 +20,9 @@ public class AudioDepacketizer {
 	private byte[][] pcmRing;
 	private int ringIndex;
 	
+	// Cached objects
+	private ByteBufferDescriptor cachedDesc = new ByteBufferDescriptor(null, 0, 0);
+	
 	// Sequencing state
 	private short lastSequenceNumber;
 	
@@ -88,8 +91,8 @@ public class AudioDepacketizer {
 		lastSequenceNumber = seq;
 		
 		// This is all the depacketizing we need to do
-		ByteBufferDescriptor rtpPayload = packet.getNewPayloadDescriptor();
-		decodeData(rtpPayload.data, rtpPayload.offset, rtpPayload.length);
+		packet.initializePayloadDescriptor(cachedDesc);
+		decodeData(cachedDesc.data, cachedDesc.offset, cachedDesc.length);
 	}
 	
 	public ByteBufferDescriptor getNextDecodedData() throws InterruptedException

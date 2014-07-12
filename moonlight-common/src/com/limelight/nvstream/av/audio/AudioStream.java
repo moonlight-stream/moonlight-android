@@ -152,17 +152,18 @@ public class AudioStream {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				ByteBufferDescriptor desc = new ByteBufferDescriptor(new byte[MAX_PACKET_SIZE], 0, MAX_PACKET_SIZE);
-				DatagramPacket packet = new DatagramPacket(desc.data, desc.length);
+				byte[] buffer = new byte[MAX_PACKET_SIZE];
+				DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+				RtpPacket rtpPacket = new RtpPacket(buffer);
 				
 				while (!isInterrupted())
 				{
 					try {
 						rtp.receive(packet);
-						desc.length = packet.getLength();
 						
 						// DecodeInputData() doesn't hold onto the buffer so we are free to reuse it
-						depacketizer.decodeInputData(new RtpPacket(desc));
+						rtpPacket.initializeWithLength(packet.getLength());
+						depacketizer.decodeInputData(rtpPacket);
 						
 						packet.setLength(MAX_PACKET_SIZE);
 					} catch (IOException e) {

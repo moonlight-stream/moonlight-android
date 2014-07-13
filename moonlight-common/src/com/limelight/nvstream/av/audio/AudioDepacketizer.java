@@ -7,7 +7,7 @@ import com.limelight.nvstream.av.RtpPacket;
 
 public class AudioDepacketizer {
 	
-	private static final int DU_LIMIT = 15;
+	private static final int DU_LIMIT = 30;
 	private PopulatedBufferList<ByteBufferDescriptor> decodedUnits;
 	
 	// Direct submit state
@@ -69,6 +69,9 @@ public class AudioDepacketizer {
 				bb.length = decodeLen;
 				decodedUnits.addPopulatedObject(bb);
 			}
+		}
+		else if (directSubmitRenderer == null) {
+			decodedUnits.freePopulatedObject(bb);
 		}
 	}
 	

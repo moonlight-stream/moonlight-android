@@ -25,8 +25,6 @@
 #include <stdint.h>
 
 /**
- * @file
- * @brief Public header for libavutil XTEA algorithm
  * @defgroup lavu_xtea XTEA
  * @ingroup lavu_crypto
  * @{

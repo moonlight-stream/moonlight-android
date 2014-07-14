@@ -25,9 +25,6 @@
 #include "attributes.h"
 
 /**
- * @file
- * Public header for libavutil Adler32 hasher
- *
  * @defgroup lavu_adler32 Adler32
  * @ingroup lavu_crypto
  * @{

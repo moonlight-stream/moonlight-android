@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import android.graphics.PixelFormat;
+import android.os.Build;
 import android.view.SurfaceHolder;
 
 import com.limelight.LimeLog;
@@ -53,8 +54,12 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 
 			// We order them from greatest to least for proper detection
 			// of devices with multiple sets of cores (like Exynos 5 Octa)
-			// TODO Make this better
-			if (cpuInfoStr.contains("0xc0f")) {
+			// TODO Make this better (only even kind of works on ARM)
+			if (Build.FINGERPRINT.contains("generic")) {
+				// Emulator
+				return LOW_PERF;
+			}
+			else if (cpuInfoStr.contains("0xc0f")) {
 				// Cortex-A15
 				return MED_PERF;
 			}

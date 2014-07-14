@@ -12,6 +12,6 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/ffmpeg/$(TARGET_ARCH_ABI)/include
 LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -llog -landroid
 
 # Link to ffmpeg libraries
-LOCAL_SHARED_LIBRARIES := libavcodec libavformat libswscale libavutil libavfilter libwsresample
+LOCAL_SHARED_LIBRARIES := libavcodec libavformat libswscale libavutil libwsresample
 
 include $(BUILD_SHARED_LIBRARY)

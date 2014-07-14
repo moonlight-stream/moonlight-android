@@ -8,7 +8,6 @@ public class AvcDecoder {
 		System.loadLibrary("swscale-2");
 		System.loadLibrary("avcodec-55");
 		System.loadLibrary("avformat-55");
-		System.loadLibrary("avfilter-3");
 		
 		System.loadLibrary("nv_avc_dec");
 	}

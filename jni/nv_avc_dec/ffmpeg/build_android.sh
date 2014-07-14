@@ -16,6 +16,7 @@ TOOLCHAIN_PATH=$NDK/toolchains/$TOOLCHAIN_DIR/prebuilt/linux-x86_64
     --disable-debug \
     --disable-everything \
     --disable-avdevice \
+    --disable-avfilter \
     --enable-decoder=h264 \
     --cross-prefix=$TOOLCHAIN_PATH/bin/$TOOLCHAIN_BIN_PREFIX- \
     --target-os=linux \
@@ -24,7 +25,8 @@ TOOLCHAIN_PATH=$NDK/toolchains/$TOOLCHAIN_DIR/prebuilt/linux-x86_64
     --sysroot=$SYSROOT \
     --enable-pic \
     --extra-cflags="-O2 -fpic $ADDI_CFLAGS" \
-    --extra-ldflags="$ADDI_LDFLAGS"
+    --extra-ldflags="$ADDI_LDFLAGS" \
+    $ADDI_CONFIGURE_FLAGS
 make clean
 make -j$PARALLEL_JOBS
 make install
@@ -35,8 +37,9 @@ function build_mips
 CPU=mips
 TOOLCHAIN_BIN_PREFIX=mipsel-linux-android
 TOOLCHAIN_DIR=mipsel-linux-android-4.8
-ADDI_CFLAGS=""
+ADDI_CFLAGS="-mips32 -mhard-float -EL -mno-dsp"
 ADDI_LDFLAGS=""
+ADDI_CONFIGURE_FLAGS="--disable-mips32r2 --disable-mipsdspr1 --disable-mipsdspr2"
 build_one
 }
 
@@ -45,8 +48,9 @@ function build_x86
 CPU=x86
 TOOLCHAIN_BIN_PREFIX=i686-linux-android
 TOOLCHAIN_DIR=x86-4.8
-ADDI_CFLAGS=""
+ADDI_CFLAGS="-march=i686 -mtune=atom -mstackrealign -msse3 -mfpmath=sse -m32"
 ADDI_LDFLAGS=""
+ADDI_CONFIGURE_FLAGS=""
 build_one
 }
 
@@ -55,8 +59,9 @@ function build_armv7
 CPU=arm
 TOOLCHAIN_BIN_PREFIX=arm-linux-androideabi
 TOOLCHAIN_DIR=arm-linux-androideabi-4.8
-ADDI_CFLAGS="-marm"
+ADDI_CFLAGS="-marm -mfpu=vfpv3-d16"
 ADDI_LDFLAGS=""
+ADDI_CONFIGURE_FLAGS=""
 build_one
 }
 

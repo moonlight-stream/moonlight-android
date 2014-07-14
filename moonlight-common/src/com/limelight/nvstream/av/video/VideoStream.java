@@ -139,9 +139,9 @@ public class VideoStream {
 					60, renderTarget, drFlags)) {
 				return false;
 			}
-			
-			depacketizer = new VideoDepacketizer(avConnListener, streamConfig.getMaxPacketSize());
 		}
+		
+		depacketizer = new VideoDepacketizer(avConnListener, streamConfig.getMaxPacketSize());
 		
 		return true;
 	}

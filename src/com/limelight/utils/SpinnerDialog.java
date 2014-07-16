@@ -33,13 +33,15 @@ public class SpinnerDialog implements Runnable,OnCancelListener {
 	
 	public static void closeDialogs()
 	{
-		for (SpinnerDialog d : rundownDialogs) {
-			if (d.progress.isShowing()) {
-				d.progress.dismiss();
+		synchronized (rundownDialogs) {
+			for (SpinnerDialog d : rundownDialogs) {
+				if (d.progress.isShowing()) {
+					d.progress.dismiss();
+				}
 			}
+			
+			rundownDialogs.clear();
 		}
-		
-		rundownDialogs.clear();
 	}
 	
 	public void dismiss()
@@ -85,18 +87,27 @@ public class SpinnerDialog implements Runnable,OnCancelListener {
 	    		progress.setCancelable(false);
 	    	}
 	    	
-	    	progress.show();
+	    	synchronized (rundownDialogs) {
+		    	rundownDialogs.add(this);
+		    	progress.show();
+	    	}
 		}
 		else
 		{
-			if (progress.isShowing()) {
-				progress.dismiss();
+			synchronized (rundownDialogs) {
+				if (rundownDialogs.remove(this) && progress.isShowing()) {
+					progress.dismiss();
+				}
 			}
 		}
 	}
 
 	@Override
 	public void onCancel(DialogInterface dialog) {
+		synchronized (rundownDialogs) {
+			rundownDialogs.remove(this);
+		}
+		
 		// This will only be called if finish was true, so we don't need to check again
 		activity.finish();
 	}

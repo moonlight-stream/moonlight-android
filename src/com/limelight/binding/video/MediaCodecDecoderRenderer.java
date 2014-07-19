@@ -3,6 +3,7 @@ package com.limelight.binding.video;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.LockSupport;
 
 import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
@@ -203,6 +204,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					    }
 				    } else {
 					    switch (outIndex) {
+					    case MediaCodec.INFO_TRY_AGAIN_LATER:
+					    	LockSupport.parkNanos(1);
+					    	break;
 					    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
 					    	LimeLog.info("Output buffers changed");
 						    break;

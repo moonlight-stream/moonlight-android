@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.locks.LockSupport;
 
 import android.graphics.PixelFormat;
 import android.os.Build;
@@ -169,6 +170,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 					long diff = nextFrameTime - System.currentTimeMillis();
 
 					if (diff > WAIT_CEILING_MS) {
+						LockSupport.parkNanos(1);
 						continue;
 					}
 

@@ -270,10 +270,27 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		return modifier;
 	}
 	
+	private static boolean isSourceFlagSet(int sourcesFlags, int flag) {
+		return (sourcesFlags & flag) == flag;
+	}
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (event.getDevice() != null &&
-			(event.getDevice().getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC)) {
+		InputDevice dev = event.getDevice();
+		if (dev == null) {
+			return super.onKeyDown(keyCode, event);
+		}
+		
+		int source = dev.getSources();
+		boolean handled = false;
+		if (isSourceFlagSet(source, InputDevice.SOURCE_DPAD) ||
+			isSourceFlagSet(source, InputDevice.SOURCE_GAMEPAD) ||
+			isSourceFlagSet(source, InputDevice.SOURCE_JOYSTICK))
+		{
+			handled = controllerHandler.handleButtonDown(keyCode, event);
+		}
+		
+		if (!handled) {
 			short translated = keybTranslator.translate(event.getKeyCode());
 			if (translated == 0) {
 				return super.onKeyDown(keyCode, event);
@@ -282,12 +299,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			keybTranslator.sendKeyDown(translated,
 					getModifierState(event));
 		}
-		else {
-			if (!controllerHandler.handleButtonDown(keyCode, event)) {
-				return super.onKeyDown(keyCode, event);
-			}
-		}
-
+		
 		return true;
 	}
 	
@@ -302,21 +314,29 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 				h.postDelayed(hideSystemUi, 2000);               
 			}
 		}
-
-		if (event.getDevice() != null &&
-			(event.getDevice().getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC)) {
+		
+		InputDevice dev = event.getDevice();
+		if (dev == null) {
+			return super.onKeyUp(keyCode, event);
+		}
+		
+		int source = dev.getSources();
+		boolean handled = false;
+		if (isSourceFlagSet(source, InputDevice.SOURCE_DPAD) ||
+			isSourceFlagSet(source, InputDevice.SOURCE_GAMEPAD) ||
+			isSourceFlagSet(source, InputDevice.SOURCE_JOYSTICK))
+		{
+			handled = controllerHandler.handleButtonUp(keyCode, event);
+		}
+		
+		if (!handled) {
 			short translated = keybTranslator.translate(event.getKeyCode());
 			if (translated == 0) {
 				return super.onKeyUp(keyCode, event);
 			}
-
+			
 			keybTranslator.sendKeyUp(translated,
 					getModifierState(event));
-		}
-		else {
-			if (!controllerHandler.handleButtonUp(keyCode, event)) {
-				return super.onKeyUp(keyCode, event);
-			}
 		}
 		
 		return true;

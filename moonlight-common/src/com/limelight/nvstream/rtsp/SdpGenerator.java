@@ -213,7 +213,12 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-vqos[0].fec.enable", "1");
 		addSessionAttribute(config, "x-nv-vqos[0].fec.numSrcPackets", "50");
 		addSessionAttribute(config, "x-nv-vqos[0].fec.numOutPackets", "60");
-		addSessionAttribute(config, "x-nv-vqos[0].fec.repairPercent", "20");
+		
+		// Since we can only deal with FEC data on a 1 packet frame,
+		// restrict FEC repair percentage to minimum so we get only 1
+		// FEC packet per frame
+		addSessionAttribute(config, "x-nv-vqos[0].fec.repairPercent", "1");
+		
 		addSessionAttribute(config, "x-nv-vqos[0].pictureRefreshIntervalMs", "0");
 		addSessionAttribute(config, "x-nv-vqos[0].videoQualityScoreUpdateTime", "5000");
 		addSessionAttribute(config, "x-nv-vqos[0].invalidateThreshold", "3");

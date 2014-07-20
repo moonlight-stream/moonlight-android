@@ -52,12 +52,13 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int discoveryText=0x7f08000b;
         public static final int hardwareDec=0x7f080005;
         public static final int hostTextView=0x7f080000;
-        public static final int manuallyAddPc=0x7f080013;
+        public static final int manuallyAddPc=0x7f080014;
         public static final int pcListView=0x7f080008;
-        public static final int rowTextView=0x7f080014;
+        public static final int rowTextView=0x7f080015;
         public static final int settingsButton=0x7f08000c;
         public static final int softwareDec=0x7f080003;
         public static final int streamConfigGroup=0x7f08000d;
+        public static final int stretchToFill=0x7f080013;
         public static final int surfaceView=0x7f08000a;
     }
     public static final class layout {

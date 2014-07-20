@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.RadioButton;
@@ -18,6 +19,7 @@ public class StreamSettings extends Activity {
 	private Button advancedSettingsButton, addComputerButton;
 	private SharedPreferences prefs;
 	private RadioButton rbutton720p30, rbutton720p60, rbutton1080p30, rbutton1080p60;
+	private CheckBox stretchToFill;
 	
 	@Override
 	protected void onStop() {
@@ -32,6 +34,7 @@ public class StreamSettings extends Activity {
 		
 		setContentView(R.layout.activity_stream_settings);
 		
+		this.stretchToFill = (CheckBox) findViewById(R.id.stretchToFill);
 		this.advancedSettingsButton = (Button) findViewById(R.id.advancedSettingsButton);
 		this.addComputerButton = (Button) findViewById(R.id.manuallyAddPc);
 		this.rbutton720p30 = (RadioButton) findViewById(R.id.config720p30Selected);
@@ -44,6 +47,8 @@ public class StreamSettings extends Activity {
 		boolean res720p = prefs.getInt(Game.HEIGHT_PREF_STRING, Game.DEFAULT_HEIGHT) == 720;
 		boolean fps30 = prefs.getInt(Game.REFRESH_RATE_PREF_STRING, Game.DEFAULT_REFRESH_RATE) == 30;
 
+		stretchToFill.setChecked(prefs.getBoolean(Game.STRETCH_PREF_STRING, Game.DEFAULT_STRETCH));
+		
 		rbutton720p30.setChecked(false);
 		rbutton720p60.setChecked(false);
 		rbutton1080p30.setChecked(false);
@@ -117,6 +122,13 @@ public class StreamSettings extends Activity {
 			public void onClick(View v) {
 				Intent i = new Intent(StreamSettings.this, AddComputerManually.class);
 				startActivity(i);
+			}
+		});
+		stretchToFill.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView,
+					boolean isChecked) {
+				prefs.edit().putBoolean(Game.STRETCH_PREF_STRING, isChecked).commit();
 			}
 		});
 	}

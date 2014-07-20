@@ -11,7 +11,7 @@ public class Dialog implements Runnable {
 	private Activity activity;
 	private boolean endAfterDismiss;
 	
-	AlertDialog alert;
+	private AlertDialog alert;
 	
 	private static ArrayList<Dialog> rundownDialogs = new ArrayList<Dialog>();
 	
@@ -25,13 +25,15 @@ public class Dialog implements Runnable {
 	
 	public static void closeDialogs()
 	{
-		for (Dialog d : rundownDialogs) {
-			if (d.alert.isShowing()) {
-				d.alert.dismiss();
+		synchronized (rundownDialogs) {
+			for (Dialog d : rundownDialogs) {
+				if (d.alert.isShowing()) {
+					d.alert.dismiss();
+				}
 			}
+			
+			rundownDialogs.clear();
 		}
-		
-		rundownDialogs.clear();
 	}
 	
 	public static void displayDialog(Activity activity, String title, String message, boolean endAfterDismiss)
@@ -54,16 +56,21 @@ public class Dialog implements Runnable {
  
     	alert.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
     	      public void onClick(DialogInterface dialog, int which) {
-    	    	  alert.dismiss();
-    	    	  rundownDialogs.remove(this);
+    	    	  synchronized (rundownDialogs) {
+        	    	  rundownDialogs.remove(this);
+        	    	  alert.dismiss();
+    	    	  }
     	    	  
-    	    	  if (endAfterDismiss)
+    	    	  if (endAfterDismiss) {
     	    		  activity.finish();
+    	    	  }
     	      }
-    	      });
+    	});
     	
-    	rundownDialogs.add(this);
-    	alert.show();
+    	synchronized (rundownDialogs) {
+        	rundownDialogs.add(this);
+        	alert.show();	
+    	}
 	}
 
 }

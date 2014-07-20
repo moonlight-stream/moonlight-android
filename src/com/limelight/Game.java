@@ -32,6 +32,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnGenericMotionListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -58,6 +59,8 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	private boolean connecting = false;
 	private boolean connected = false;
 	
+	private boolean stretchToFit;
+	
 	private ConfigurableDecoderRenderer decoderRenderer;
 	
 	private WifiManager.WifiLock wifiLock;
@@ -76,6 +79,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final String REFRESH_RATE_PREF_STRING = "FPS";
 	public static final String DECODER_PREF_STRING = "Decoder";
 	public static final String BITRATE_PREF_STRING = "Bitrate";
+	public static final String STRETCH_PREF_STRING = "Stretch"; 
 	
 	public static final int BITRATE_DEFAULT_720_30 = 5;
 	public static final int BITRATE_DEFAULT_720_60 = 10;
@@ -87,6 +91,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final int DEFAULT_REFRESH_RATE = 60;
 	public static final int DEFAULT_DECODER = 0;
 	public static final int DEFAULT_BITRATE = BITRATE_DEFAULT_720_60;
+	public static final boolean DEFAULT_STRETCH = false;
 	
 	public static final int FORCE_HARDWARE_DECODER = -1;
 	public static final int AUTOSELECT_DECODER = 0;
@@ -121,13 +126,6 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		// Inflate the content
 		setContentView(R.layout.activity_game);
 
-		// Listen for events on the game surface
-		SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
-		sv.setOnGenericMotionListener(this);
-		sv.setOnTouchListener(this);
-
-		SurfaceHolder sh = sv.getHolder();
-
 		// Start the spinner
 		spinner = SpinnerDialog.displayDialog(this, "Establishing Connection", "Starting connection", true);
 		
@@ -143,16 +141,32 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			drFlags |= VideoDecoderRenderer.FLAG_FORCE_HARDWARE_DECODING;
 			break;
 		}
+		
+		stretchToFit = prefs.getBoolean(STRETCH_PREF_STRING, DEFAULT_STRETCH);
+		if (stretchToFit) {
+			drFlags |= VideoDecoderRenderer.FLAG_FILL_SCREEN;
+		}
 
 		int refreshRate, bitrate;
 		width = prefs.getInt(WIDTH_PREF_STRING, DEFAULT_WIDTH);
 		height = prefs.getInt(HEIGHT_PREF_STRING, DEFAULT_HEIGHT);
 		refreshRate = prefs.getInt(REFRESH_RATE_PREF_STRING, DEFAULT_REFRESH_RATE);
 		bitrate = prefs.getInt(BITRATE_PREF_STRING, DEFAULT_BITRATE);
-		sh.setFixedSize(width, height);
 		
 		Display display = getWindowManager().getDefaultDisplay();
 		display.getSize(screenSize);
+		
+		// Listen for events on the game surface
+		SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
+		sv.setOnGenericMotionListener(this);
+		sv.setOnTouchListener(this);
+
+		SurfaceHolder sh = sv.getHolder();
+		
+		if (stretchToFit) {
+			// Set the surface to the size of the video
+			sh.setFixedSize(width, height);
+		}
 		        
 		// Warn the user if they're on a metered connection
         checkDataConnection();
@@ -179,6 +193,21 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		
 		// The connection will be started when the surface gets created
 		sh.addCallback(this);
+	}
+	
+	private void resizeSurfaceWithAspectRatio(SurfaceView sv, double vidWidth, double vidHeight)
+	{
+		// Get the visible width of the activity
+	    double visibleWidth = getWindow().getDecorView().getWidth();
+	    
+	    ViewGroup.LayoutParams lp = sv.getLayoutParams();
+	    
+	    // Calculate the new size of the SurfaceView
+	    lp.width = (int) visibleWidth;
+	    lp.height = (int) ((vidHeight / vidWidth) * visibleWidth);
+
+	    // Apply the size change
+	    sv.setLayoutParams(lp);
 	}
 	
 	private void checkDataConnection()
@@ -233,7 +262,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		int averageDecoderLat = decoderRenderer.getAverageDecoderLatency();
 		String message = null;
 		if (averageEndToEndLat > 0) {
-			message = "Average total frame latency: "+averageEndToEndLat+" ms";
+			message = "Average client-side frame latency: "+averageEndToEndLat+" ms";
 			if (averageDecoderLat > 0) {
 				message += " (hardware decoder latency: "+averageDecoderLat+" ms)";
 			}
@@ -270,10 +299,27 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		return modifier;
 	}
 	
+	private static boolean isSourceFlagSet(int sourcesFlags, int flag) {
+		return (sourcesFlags & flag) == flag;
+	}
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (event.getDevice() != null &&
-			(event.getDevice().getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC)) {
+		InputDevice dev = event.getDevice();
+		if (dev == null) {
+			return super.onKeyDown(keyCode, event);
+		}
+		
+		int source = dev.getSources();
+		boolean handled = false;
+		if (isSourceFlagSet(source, InputDevice.SOURCE_DPAD) ||
+			isSourceFlagSet(source, InputDevice.SOURCE_GAMEPAD) ||
+			isSourceFlagSet(source, InputDevice.SOURCE_JOYSTICK))
+		{
+			handled = controllerHandler.handleButtonDown(keyCode, event);
+		}
+		
+		if (!handled) {
 			short translated = keybTranslator.translate(event.getKeyCode());
 			if (translated == 0) {
 				return super.onKeyDown(keyCode, event);
@@ -282,12 +328,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			keybTranslator.sendKeyDown(translated,
 					getModifierState(event));
 		}
-		else {
-			if (!controllerHandler.handleButtonDown(keyCode, event)) {
-				return super.onKeyDown(keyCode, event);
-			}
-		}
-
+		
 		return true;
 	}
 	
@@ -302,21 +343,29 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 				h.postDelayed(hideSystemUi, 2000);               
 			}
 		}
-
-		if (event.getDevice() != null &&
-			(event.getDevice().getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC)) {
+		
+		InputDevice dev = event.getDevice();
+		if (dev == null) {
+			return super.onKeyUp(keyCode, event);
+		}
+		
+		int source = dev.getSources();
+		boolean handled = false;
+		if (isSourceFlagSet(source, InputDevice.SOURCE_DPAD) ||
+			isSourceFlagSet(source, InputDevice.SOURCE_GAMEPAD) ||
+			isSourceFlagSet(source, InputDevice.SOURCE_JOYSTICK))
+		{
+			handled = controllerHandler.handleButtonUp(keyCode, event);
+		}
+		
+		if (!handled) {
 			short translated = keybTranslator.translate(event.getKeyCode());
 			if (translated == 0) {
 				return super.onKeyUp(keyCode, event);
 			}
-
+			
 			keybTranslator.sendKeyUp(translated,
 					getModifierState(event));
-		}
-		else {
-			if (!controllerHandler.handleButtonUp(keyCode, event)) {
-				return super.onKeyUp(keyCode, event);
-			}
 		}
 		
 		return true;
@@ -562,6 +611,13 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public void surfaceCreated(SurfaceHolder holder) {
 		if (!connected && !connecting) {
 			connecting = true;
+			
+			// Resize the surface to match the aspect ratio of the video
+			// This must be done after the surface is created.
+			if (!stretchToFit) {
+				resizeSurfaceWithAspectRatio((SurfaceView) findViewById(R.id.surfaceView), width, height);
+			}
+			
 			conn.start(PlatformBinding.getDeviceName(), holder, drFlags,
 					PlatformBinding.getAudioRenderer(), decoderRenderer);
 		}

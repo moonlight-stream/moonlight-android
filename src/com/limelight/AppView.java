@@ -94,8 +94,8 @@ public class AppView extends Activity {
 	}
 	
 	@Override
-	protected void onStop() {
-		super.onStop();
+	protected void onDestroy() {
+		super.onDestroy();
 		
 		Dialog.closeDialogs();
 		SpinnerDialog.closeDialogs();

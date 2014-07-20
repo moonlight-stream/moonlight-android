@@ -257,7 +257,7 @@ public class NvHTTP {
 			"/launch?uniqueid=" + uniqueId +
 			"&appid=" + appId +
 			"&mode=" + width + "x" + height + "x" + refreshRate +
-			"&additionalStates=1&sops=1&rikey="+cryptoProvider.encodeBase64String(inputKey.getEncoded()));
+			"&additionalStates=1&sops=0&rikey="+cryptoProvider.encodeBase64String(inputKey.getEncoded()));
 		String gameSession = getXmlString(in, "gamesession");
 		return Integer.parseInt(gameSession);
 	}

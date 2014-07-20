@@ -401,7 +401,9 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 		else {
 			if (++lossCount == MAX_LOSS_COUNT_IN_PERIOD) {
-				listener.displayTransientMessage("Detected excessive A/V data loss. Try improving your network connection or lowering stream resolution, frame rate, and/or bitrate.");
+				listener.displayTransientMessage("Detected high amounts of network packet loss. " +
+						"Try improving your network connection or lowering stream resolution, frame rate, and/or bitrate. " +
+						"Use a 5 GHz wireless connection if available and connect your PC directly to your router via Ethernet if possible.");
 				lossCount = -MAX_LOSS_COUNT_IN_PERIOD * MESSAGE_DELAY_FACTOR;
 				lossTimestamp = 0;
 			}

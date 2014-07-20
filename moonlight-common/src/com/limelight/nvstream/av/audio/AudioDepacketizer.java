@@ -90,7 +90,15 @@ public class AudioDepacketizer {
 			(short)(lastSequenceNumber + 1) != seq)
 		{
 			LimeLog.warning("Received OOS audio data (expected "+(lastSequenceNumber + 1)+", got "+seq+")");
-			decodeData(null, 0, 0);
+			
+			// Only tell the decoder if we got packets ahead of what we expected
+			// If the packet is behind the current sequence number, drop it
+			if (seq > (short)(lastSequenceNumber + 1)) {
+				decodeData(null, 0, 0);
+			}
+			else {
+				return;
+			}
 		}
 		
 		lastSequenceNumber = seq;

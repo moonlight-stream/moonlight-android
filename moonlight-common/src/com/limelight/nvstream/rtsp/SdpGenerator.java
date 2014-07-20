@@ -159,9 +159,9 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-vqos[0].ts.maximumBitrate", "10");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "819"); // Bit 2 being set causes picture problems (should be 823)
 		
-		// We clamp to min = max so manual bitrate settings take effect without time to scale up
+		// Clamp the bitrate from 1Mb to the maximum
 		addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());
-		addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+sc.getBitrate());
+		addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "1000");
 
 		addSessionAttribute(config, "x-nv-vqos[0].bw.statsTime", "50");
 		addSessionAttribute(config, "x-nv-vqos[0].bw.zeroLossCount", "3000");

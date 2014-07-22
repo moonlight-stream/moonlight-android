@@ -79,7 +79,8 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final String REFRESH_RATE_PREF_STRING = "FPS";
 	public static final String DECODER_PREF_STRING = "Decoder";
 	public static final String BITRATE_PREF_STRING = "Bitrate";
-	public static final String STRETCH_PREF_STRING = "Stretch"; 
+	public static final String STRETCH_PREF_STRING = "Stretch";
+	public static final String SOPS_PREF_STRING = "Sops";
 	
 	public static final int BITRATE_DEFAULT_720_30 = 5;
 	public static final int BITRATE_DEFAULT_720_60 = 10;
@@ -92,6 +93,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final int DEFAULT_DECODER = 0;
 	public static final int DEFAULT_BITRATE = BITRATE_DEFAULT_720_60;
 	public static final boolean DEFAULT_STRETCH = false;
+	public static final boolean DEFAULT_SOPS = true;
 	
 	public static final int FORCE_HARDWARE_DECODER = -1;
 	public static final int AUTOSELECT_DECODER = 0;
@@ -148,10 +150,12 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		}
 
 		int refreshRate, bitrate;
+		boolean sops;
 		width = prefs.getInt(WIDTH_PREF_STRING, DEFAULT_WIDTH);
 		height = prefs.getInt(HEIGHT_PREF_STRING, DEFAULT_HEIGHT);
 		refreshRate = prefs.getInt(REFRESH_RATE_PREF_STRING, DEFAULT_REFRESH_RATE);
 		bitrate = prefs.getInt(BITRATE_PREF_STRING, DEFAULT_BITRATE);
+		sops = prefs.getBoolean(SOPS_PREF_STRING, DEFAULT_SOPS);
 		
 		Display display = getWindowManager().getDefaultDisplay();
 		display.getSize(screenSize);
@@ -186,7 +190,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		// Start the connection
 		conn = new NvConnection(host, uniqueId, Game.this,
 				new StreamConfiguration(app, width, height, refreshRate, bitrate * 1000,
-						enableLargePackets ? 1460 : 1024), PlatformBinding.getCryptoProvider(this));
+						enableLargePackets ? 1460 : 1024, sops), PlatformBinding.getCryptoProvider(this));
 		keybTranslator = new KeyboardTranslator(conn);
 		controllerHandler = new ControllerHandler(conn);
 		decoderRenderer = new ConfigurableDecoderRenderer();

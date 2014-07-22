@@ -16,10 +16,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 
 public class StreamSettings extends Activity {
-	private Button advancedSettingsButton, addComputerButton;
+	private Button advancedSettingsButton;
 	private SharedPreferences prefs;
 	private RadioButton rbutton720p30, rbutton720p60, rbutton1080p30, rbutton1080p60;
-	private CheckBox stretchToFill;
+	private CheckBox stretchToFill, enableSops;
 	
 	@Override
 	protected void onStop() {
@@ -35,8 +35,8 @@ public class StreamSettings extends Activity {
 		setContentView(R.layout.activity_stream_settings);
 		
 		this.stretchToFill = (CheckBox) findViewById(R.id.stretchToFill);
+		this.enableSops = (CheckBox) findViewById(R.id.enableSops);
 		this.advancedSettingsButton = (Button) findViewById(R.id.advancedSettingsButton);
-		this.addComputerButton = (Button) findViewById(R.id.manuallyAddPc);
 		this.rbutton720p30 = (RadioButton) findViewById(R.id.config720p30Selected);
 		this.rbutton720p60 = (RadioButton) findViewById(R.id.config720p60Selected);
 		this.rbutton1080p30 = (RadioButton) findViewById(R.id.config1080p30Selected);
@@ -48,6 +48,7 @@ public class StreamSettings extends Activity {
 		boolean fps30 = prefs.getInt(Game.REFRESH_RATE_PREF_STRING, Game.DEFAULT_REFRESH_RATE) == 30;
 
 		stretchToFill.setChecked(prefs.getBoolean(Game.STRETCH_PREF_STRING, Game.DEFAULT_STRETCH));
+		enableSops.setChecked(prefs.getBoolean(Game.SOPS_PREF_STRING, Game.DEFAULT_SOPS));
 		
 		rbutton720p30.setChecked(false);
 		rbutton720p60.setChecked(false);
@@ -117,18 +118,18 @@ public class StreamSettings extends Activity {
 				startActivity(i);
 			}
 		});
-		addComputerButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent i = new Intent(StreamSettings.this, AddComputerManually.class);
-				startActivity(i);
-			}
-		});
 		stretchToFill.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView,
 					boolean isChecked) {
 				prefs.edit().putBoolean(Game.STRETCH_PREF_STRING, isChecked).commit();
+			}
+		});
+		enableSops.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView,
+					boolean isChecked) {
+				prefs.edit().putBoolean(Game.SOPS_PREF_STRING, isChecked).commit();
 			}
 		});
 	}

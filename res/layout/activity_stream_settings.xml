@@ -54,18 +54,10 @@
             android:id="@+id/advancedSettingsButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/stretchToFill"
+            android:layout_below="@+id/enableSops"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="15dp"
             android:text="Advanced Settings" />
-        
-        <Button
-            android:id="@+id/manuallyAddPc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/advancedSettingsButton"
-            android:layout_centerHorizontal="true"
-            android:text="Add PC Manually" />
 
         <CheckBox
             android:id="@+id/stretchToFill"
@@ -74,6 +66,14 @@
             android:layout_below="@+id/streamConfigGroup"
             android:layout_marginTop="15dp"
             android:text="Stretch video to fill screen" />
+        
+        <CheckBox
+            android:id="@+id/enableSops"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/stretchToFill"
+            android:layout_marginTop="15dp"
+            android:text="Allow GFE to modify game settings for optimal streaming" />
 
     </RelativeLayout>
 	

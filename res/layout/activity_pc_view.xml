@@ -29,8 +29,8 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_below="@+id/settingsButton"
-        android:paddingTop="20dp"
+        android:layout_below="@+id/manuallyAddPc"
+        android:paddingTop="10dp"
         android:paddingBottom="10dp"
         android:text="Discovered PC List" />
 
@@ -41,5 +41,13 @@
         android:layout_centerHorizontal="true"
         android:layout_alignParentTop="true"
         android:text="Streaming Settings" />
+    
+    <Button
+        android:id="@+id/manuallyAddPc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/settingsButton"
+        android:layout_centerHorizontal="true"
+        android:text="Add PC Manually" />
 
 </RelativeLayout>

@@ -39,6 +39,7 @@ public class AppView extends Activity {
 	
 	private final static int RESUME_ID = 1;
 	private final static int QUIT_ID = 2;
+	private final static int CANCEL_ID = 3;
 	
 	public final static String ADDRESS_EXTRA = "Address";
 	public final static String UNIQUEID_EXTRA = "UniqueId";
@@ -80,8 +81,8 @@ public class AppView extends Activity {
 					return;
 				}
 				
-				// Only open the context menu if it's running, otherwise start it
-				if (app.app.getIsRunning()) {
+				// Only open the context menu if something is running, otherwise start it
+				if (getRunningAppId() != -1) {
 					openContextMenu(arg1);
 				}
 				else {
@@ -108,12 +109,43 @@ public class AppView extends Activity {
         updateAppList();
 	}
 	
+	private int getRunningAppId() {
+        int runningAppId = -1;
+        for (int i = 0; i < appListAdapter.getCount(); i++) {
+        	AppObject app = appListAdapter.getItem(i);
+        	if (app.app == null) {
+        		continue;
+        	}
+        	
+        	if (app.app.getIsRunning()) {
+        		runningAppId = app.app.getAppId();
+        		break;
+        	}
+        }
+        return runningAppId;
+	}
+	
 	@Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
         
-        menu.add(Menu.NONE, RESUME_ID, 1, "Resume Session");
-        menu.add(Menu.NONE, QUIT_ID, 2, "Quit Session");
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+        AppObject selectedApp = (AppObject) appListAdapter.getItem(info.position);
+        if (selectedApp == null || selectedApp.app == null) {
+        	return;
+        }
+        
+        int runningAppId = getRunningAppId();
+        if (runningAppId != -1) {
+        	if (runningAppId == selectedApp.app.getAppId()) {
+                menu.add(Menu.NONE, RESUME_ID, 1, "Resume Session");
+                menu.add(Menu.NONE, QUIT_ID, 2, "Quit Session");
+        	}
+        	else {
+                menu.add(Menu.NONE, RESUME_ID, 1, "Quit Current Game and Start");
+                menu.add(Menu.NONE, CANCEL_ID, 2, "Cancel");
+        	}
+        }
     }
 	
 	@Override
@@ -133,6 +165,9 @@ public class AppView extends Activity {
         	
         case QUIT_ID:
         	doQuit(app.app);
+        	return true;
+        	
+        case CANCEL_ID:
         	return true;
         	
         default:

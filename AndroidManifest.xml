@@ -59,7 +59,7 @@
             android:label="Add Computer Manually" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.limelight.StreamSettings" />
+                android:value="com.limelight.PcView" />
         </activity>
         <activity
             android:name="com.limelight.Game"

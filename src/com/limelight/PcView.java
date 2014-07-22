@@ -37,7 +37,7 @@ import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class PcView extends Activity {
-	private Button settingsButton;
+	private Button settingsButton, addComputerButton;
 	private ListView pcList;
 	private ArrayAdapter<ComputerObject> pcListAdapter;
 	private ComputerManagerService.ComputerManagerBinder managerBinder;
@@ -85,6 +85,8 @@ public class PcView extends Activity {
 		
 		// Setup the list view
 		settingsButton = (Button)findViewById(R.id.settingsButton);
+		addComputerButton = (Button)findViewById(R.id.manuallyAddPc);
+
 		pcList = (ListView)findViewById(R.id.pcListView);
 		pcListAdapter = new ArrayAdapter<ComputerObject>(this, R.layout.simplerow, R.id.rowTextView);
 		pcListAdapter.setNotifyOnChange(false);
@@ -119,6 +121,13 @@ public class PcView extends Activity {
 				startActivity(new Intent(PcView.this, StreamSettings.class));
 			}
         });
+		addComputerButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent i = new Intent(PcView.this, AddComputerManually.class);
+				startActivity(i);
+			}
+		});
         
         addListPlaceholder();
 	}
@@ -494,7 +503,7 @@ public class PcView extends Activity {
     private void addListPlaceholder() {
         pcListAdapter.add(new ComputerObject("Discovery is running. No computers found yet. " +
         		"If your PC doesn't show up in about 15 seconds, " +
-        		"make sure your computer is running GFE or add your PC manually on the settings page.", null));
+        		"make sure your computer is running GFE or add your PC manually using the button above.", null));
     }
     
     private void removeListView(ComputerDetails details) {

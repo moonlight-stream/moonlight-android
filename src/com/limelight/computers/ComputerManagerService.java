@@ -391,8 +391,9 @@ public class ComputerManagerService extends Service {
 				discoveryServiceConnection, Service.BIND_AUTO_CREATE);
 		
 		// Create the thread pool for updating computer state
-		pollingPool = new ThreadPoolExecutor(1, MAX_CONCURRENT_REQUESTS, Long.MAX_VALUE, TimeUnit.DAYS,
-				new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
+		pollingPool = new ThreadPoolExecutor(MAX_CONCURRENT_REQUESTS, MAX_CONCURRENT_REQUESTS,
+				Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>(),
+				new ThreadPoolExecutor.DiscardPolicy());
 		
 		// Lookup or generate this device's UID
 		idManager = new IdentityManager(this);

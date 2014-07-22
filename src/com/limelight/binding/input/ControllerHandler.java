@@ -148,10 +148,6 @@ public class ControllerHandler {
 			}
 		}
 		
-		mapping.isDpad = (dev.getSources() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD;
-		mapping.isGamepad = (dev.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
-				(dev.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK;
-		
 		return mapping;
 	}
 	
@@ -179,47 +175,6 @@ public class ControllerHandler {
 	private void sendControllerInputPacket() {
 		conn.sendControllerInput(inputMap, leftTrigger, rightTrigger,
 				leftStickX, leftStickY, rightStickX, rightStickY);
-	}
-	
-	private static boolean isEventExpected(ControllerMapping mapping, int keyCode) {
-		if (mapping.isDpad) {
-			switch (keyCode) {
-			case KeyEvent.KEYCODE_DPAD_LEFT:
-			case KeyEvent.KEYCODE_DPAD_RIGHT:
-			case KeyEvent.KEYCODE_DPAD_CENTER:
-			case KeyEvent.KEYCODE_DPAD_UP:
-			case KeyEvent.KEYCODE_DPAD_DOWN:
-				return true;
-			}
-		}
-		
-		if (mapping.isGamepad) {
-			switch (keyCode) {
-			case KeyEvent.KEYCODE_BUTTON_MODE:
-			case KeyEvent.KEYCODE_BUTTON_START:
-			case KeyEvent.KEYCODE_MENU:
-			case KeyEvent.KEYCODE_BACK:
-			case KeyEvent.KEYCODE_BUTTON_SELECT:
-			case KeyEvent.KEYCODE_DPAD_LEFT:
-			case KeyEvent.KEYCODE_DPAD_RIGHT:
-			case KeyEvent.KEYCODE_DPAD_UP:
-			case KeyEvent.KEYCODE_DPAD_DOWN:
-			case KeyEvent.KEYCODE_BUTTON_B:
-			case KeyEvent.KEYCODE_DPAD_CENTER:
-			case KeyEvent.KEYCODE_BUTTON_A:
-			case KeyEvent.KEYCODE_BUTTON_X:
-			case KeyEvent.KEYCODE_BUTTON_Y:
-			case KeyEvent.KEYCODE_BUTTON_L1:
-			case KeyEvent.KEYCODE_BUTTON_R1:
-			case KeyEvent.KEYCODE_BUTTON_THUMBL:
-			case KeyEvent.KEYCODE_BUTTON_THUMBR:
-			case KeyEvent.KEYCODE_BUTTON_L2:
-			case KeyEvent.KEYCODE_BUTTON_R2:
-				return true;
-			}
-		}
-		
-		return false;
 	}
 	
 	private static int handleRemapping(ControllerMapping mapping, int keyCode) {
@@ -362,10 +317,6 @@ public class ControllerHandler {
 			return true;
 		}
 		
-		if (!isEventExpected(mapping, keyCode)) {
-			return false;
-		}
-		
 		// If the button hasn't been down long enough, sleep for a bit before sending the up event
 		// This allows "instant" button presses (like OUYA's virtual menu button) to work. This
 		// path should not be triggered during normal usage.
@@ -489,10 +440,6 @@ public class ControllerHandler {
 			return true;
 		}
 		
-		if (!isEventExpected(mapping, keyCode)) {
-			return false;
-		}
-		
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BUTTON_MODE:
 			inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
@@ -602,7 +549,5 @@ public class ControllerHandler {
 		public float hatYDeadzone;
 		
 		public boolean isDualShock4;
-		public boolean isDpad;
-		public boolean isGamepad;
 	}
 }

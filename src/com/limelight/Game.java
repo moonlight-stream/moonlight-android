@@ -299,10 +299,6 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		return modifier;
 	}
 	
-	private static boolean isSourceFlagSet(int sourcesFlags, int flag) {
-		return (sourcesFlags & flag) == flag;
-	}
-	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		InputDevice dev = event.getDevice();
@@ -310,16 +306,15 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			return super.onKeyDown(keyCode, event);
 		}
 		
-		int source = dev.getSources();
-		boolean handled = false;
-		if (isSourceFlagSet(source, InputDevice.SOURCE_DPAD) ||
-			isSourceFlagSet(source, InputDevice.SOURCE_GAMEPAD) ||
-			isSourceFlagSet(source, InputDevice.SOURCE_JOYSTICK))
-		{
-			handled = controllerHandler.handleButtonDown(keyCode, event);
+		// Pass-through virtual navigation keys
+		if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
+			return super.onKeyDown(keyCode, event);
 		}
 		
+		// Try the controller handler first
+		boolean handled = controllerHandler.handleButtonDown(keyCode, event);
 		if (!handled) {
+			// Try the keyboard handler
 			short translated = keybTranslator.translate(event.getKeyCode());
 			if (translated == 0) {
 				return super.onKeyDown(keyCode, event);
@@ -349,16 +344,15 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			return super.onKeyUp(keyCode, event);
 		}
 		
-		int source = dev.getSources();
-		boolean handled = false;
-		if (isSourceFlagSet(source, InputDevice.SOURCE_DPAD) ||
-			isSourceFlagSet(source, InputDevice.SOURCE_GAMEPAD) ||
-			isSourceFlagSet(source, InputDevice.SOURCE_JOYSTICK))
-		{
-			handled = controllerHandler.handleButtonUp(keyCode, event);
+		// Pass-through virtual navigation keys
+		if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
+			return super.onKeyUp(keyCode, event);
 		}
 		
+		// Try the controller handler first
+		boolean handled = controllerHandler.handleButtonUp(keyCode, event);
 		if (!handled) {
+			// Try the keyboard handler
 			short translated = keybTranslator.translate(event.getKeyCode());
 			if (translated == 0) {
 				return super.onKeyUp(keyCode, event);

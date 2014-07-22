@@ -252,12 +252,13 @@ public class NvHTTP {
 		openHttpConnection(baseUrl + "/unpair?uniqueid=" + uniqueId);
 	}
 
-	public int launchApp(int appId, int width, int height, int refreshRate, SecretKey inputKey) throws IOException, XmlPullParserException {
+	public int launchApp(int appId, int width, int height, int refreshRate, SecretKey inputKey, boolean sops) throws IOException, XmlPullParserException {
 		InputStream in = openHttpConnection(baseUrl +
 			"/launch?uniqueid=" + uniqueId +
 			"&appid=" + appId +
 			"&mode=" + width + "x" + height + "x" + refreshRate +
-			"&additionalStates=1&sops=0&rikey="+cryptoProvider.encodeBase64String(inputKey.getEncoded()));
+			"&additionalStates=1&sops=" + (sops ? 1 : 0) +
+			"&rikey="+cryptoProvider.encodeBase64String(inputKey.getEncoded()));
 		String gameSession = getXmlString(in, "gamesession");
 		return Integer.parseInt(gameSession);
 	}

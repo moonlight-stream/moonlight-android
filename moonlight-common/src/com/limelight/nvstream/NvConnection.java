@@ -127,7 +127,6 @@ public class NvConnection {
 					listener.displayMessage("Failed to resume existing session");
 					return false;
 				} else if (h.getCurrentGame() != app.getAppId()) {
-					listener.displayMessage("Another app was running. Quitting it");
 					return quitAndLaunch(h, app);
 				}
 			} catch (GfeHttpResponseException e) {
@@ -140,8 +139,9 @@ public class NvConnection {
 					return false;
 				}
 				else if (e.getErrorCode() == 525) {
-					listener.displayMessage("The application is minimized. Trying to quit it");
-					return quitAndLaunch(h, app);
+					listener.displayMessage("The application is minimized. Resume it on the PC manually or " +
+							"quit the session and start streaming again.");
+					return false;
 				} else {
 					throw e;
 				}

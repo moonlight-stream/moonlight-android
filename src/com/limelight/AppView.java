@@ -99,7 +99,6 @@ public class AppView extends Activity {
 		super.onDestroy();
 		
 		Dialog.closeDialogs();
-		SpinnerDialog.closeDialogs();
 	}
 	
 	@Override

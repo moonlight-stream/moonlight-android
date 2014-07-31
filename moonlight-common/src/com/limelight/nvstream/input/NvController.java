@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -25,17 +26,18 @@ public class NvController {
 	private Socket s;
 	private OutputStream out;
 	private Cipher riCipher;
-
 	
-	private final static byte[] ENCRYPTED_HEADER = new byte[] {0x00, 0x00, 0x00, 0x20};
-	
-	public NvController(InetAddress host, SecretKey riKey)
+	public NvController(InetAddress host, SecretKey riKey, int riKeyId)
 	{
 		this.host = host;
 		try {
 			// This cipher is guaranteed to be supported
 			this.riCipher = Cipher.getInstance("AES/CBC/NoPadding");
-			this.riCipher.init(Cipher.ENCRYPT_MODE, riKey, new IvParameterSpec(new byte[16]));
+			
+			ByteBuffer bb = ByteBuffer.allocate(16);
+			bb.putInt(riKeyId);
+			
+			this.riCipher.init(Cipher.ENCRYPT_MODE, riKey, new IvParameterSpec(bb.array()));
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		} catch (NoSuchPaddingException e) {
@@ -62,23 +64,51 @@ public class NvController {
 		} catch (IOException e) {}
 	}
 	
+	private static int getPaddedSize(int length) {
+		return ((length + 15) / 16) * 16;
+	}
+	
+	private static byte[] padData(byte[] data) {
+		// This implements the PKCS7 padding algorithm
+		
+		if ((data.length % 16) == 0) {
+			// Already a multiple of 16
+			return data;
+		}
+		
+		byte[] padded = Arrays.copyOf(data, getPaddedSize(data.length));
+		byte paddingByte = (byte)(16 - (data.length % 16));
+		
+		for (int i = data.length; i < padded.length; i++) {
+			padded[i] = paddingByte;
+		}
+		
+		return padded;
+	}
+	
 	private byte[] encryptAesInputData(byte[] data) throws Exception {
-		// Input data is rounded to units of 32 bytes
-		byte[] blockRoundedData = Arrays.copyOf(data, 32);
-		return riCipher.update(blockRoundedData);
+		return riCipher.update(padData(data));
 	}
 	
 	private void sendPacket(InputPacket packet) throws IOException {
-		out.write(ENCRYPTED_HEADER);
-		byte[] encryptedInput;
+		byte[] toWire = packet.toWire();
+		
+		// Pad to 16 byte chunks
+		int paddedLength = getPaddedSize(toWire.length);
+		
+		// Allocate a byte buffer to represent the final packet
+		ByteBuffer bb = ByteBuffer.allocate(4 + paddedLength);
+		bb.putInt(paddedLength);
 		try {
-			encryptedInput = encryptAesInputData(packet.toWire());
+			bb.put(encryptAesInputData(toWire));
 		} catch (Exception e) {
 			// Should never happen
 			e.printStackTrace();
 			return;
 		}
-		out.write(encryptedInput);
+		
+		// Send the packet
+		out.write(bb.array());
 		out.flush();
 	}
 	

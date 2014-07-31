@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +48,7 @@ public class NvConnection {
 	private AudioRenderer audioRenderer;
 	private String localDeviceName;
 	private SecretKey riKey;
+	private int riKeyId;
 	
 	private ThreadPoolExecutor threadPool;
 	
@@ -66,6 +68,8 @@ public class NvConnection {
 			e.printStackTrace();
 		}
 		
+		this.riKeyId = generateRiKeyId();
+		
 		this.threadPool = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS,
 				new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
 	}
@@ -77,6 +81,10 @@ public class NvConnection {
 		keyGen.init(128);
 		
 		return keyGen.generateKey();
+	}
+	
+	private static int generateRiKeyId() {
+		return new SecureRandom().nextInt();
 	}
 	
 	public void stop()
@@ -104,8 +112,8 @@ public class NvConnection {
 	{
 		NvHTTP h = new NvHTTP(hostAddr, uniqueId, localDeviceName, cryptoProvider);
 		
-		if (h.getServerVersion().startsWith("1.")) {
-			listener.displayMessage("Limelight now requires GeForce Experience 2.0.1 or later. Please upgrade GFE on your PC and try again.");
+		if (!h.getServerVersion().startsWith("3.")) {
+			listener.displayMessage("Limelight now requires GeForce Experience 2.1.1 or later. Please upgrade GFE on your PC and try again.");
 			return false;
 		}
 		
@@ -123,7 +131,7 @@ public class NvConnection {
 		// If there's a game running, resume it
 		if (h.getCurrentGame() != 0) {
 			try {
-				if (h.getCurrentGame() == app.getAppId() && !h.resumeApp(riKey)) {
+				if (h.getCurrentGame() == app.getAppId() && !h.resumeApp(riKey, riKeyId)) {
 					listener.displayMessage("Failed to resume existing session");
 					return false;
 				} else if (h.getCurrentGame() != app.getAppId()) {
@@ -169,7 +177,8 @@ public class NvConnection {
 			throws IOException, XmlPullParserException {
 		// Launch the app since it's not running
 		int gameSessionId = h.launchApp(app.getAppId(), config.getWidth(),
-				config.getHeight(), config.getRefreshRate(), riKey, config.getSops());
+				config.getHeight(), config.getRefreshRate(), riKey, config.getSops(),
+				riKeyId);
 		if (gameSessionId == 0) {
 			listener.displayMessage("Failed to launch application");
 			return false;
@@ -213,7 +222,7 @@ public class NvConnection {
 		// it to the instance variable once the object is properly initialized.
 		// This avoids the race where inputStream != null but inputStream.initialize()
 		// has not returned yet.
-		NvController tempController = new NvController(hostAddr, riKey);
+		NvController tempController = new NvController(hostAddr, riKey, riKeyId);
 		tempController.initialize();
 		inputStream = tempController;
 		return true;

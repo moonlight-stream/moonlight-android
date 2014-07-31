@@ -27,7 +27,6 @@ import com.limelight.nvstream.http.PairingManager.PairState;
 public class NvHTTP {
 	private String uniqueId;
 	private PairingManager pm;
-	private LimelightCryptoProvider cryptoProvider;
 	private InetAddress address;
 
 	public static final int PORT = 47984;
@@ -39,7 +38,6 @@ public class NvHTTP {
 	
 	public NvHTTP(InetAddress host, String uniqueId, String deviceName, LimelightCryptoProvider cryptoProvider) {
 		this.uniqueId = uniqueId;
-		this.cryptoProvider = cryptoProvider;
 		this.address = host;
 		
 		String safeAddress;
@@ -252,20 +250,33 @@ public class NvHTTP {
 		openHttpConnection(baseUrl + "/unpair?uniqueid=" + uniqueId);
 	}
 
-	public int launchApp(int appId, int width, int height, int refreshRate, SecretKey inputKey, boolean sops) throws IOException, XmlPullParserException {
+	final private static char[] hexArray = "0123456789ABCDEF".toCharArray();
+	private static String bytesToHex(byte[] bytes) {
+	    char[] hexChars = new char[bytes.length * 2];
+	    for ( int j = 0; j < bytes.length; j++ ) {
+	        int v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = hexArray[v >>> 4];
+	        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+	    }
+	    return new String(hexChars);
+	}
+	
+	public int launchApp(int appId, int width, int height, int refreshRate, SecretKey inputKey, boolean sops, int riKeyId) throws IOException, XmlPullParserException {
 		InputStream in = openHttpConnection(baseUrl +
 			"/launch?uniqueid=" + uniqueId +
 			"&appid=" + appId +
 			"&mode=" + width + "x" + height + "x" + refreshRate +
 			"&additionalStates=1&sops=" + (sops ? 1 : 0) +
-			"&rikey="+cryptoProvider.encodeBase64String(inputKey.getEncoded()));
+			"&rikey="+bytesToHex(inputKey.getEncoded()) +
+			"&rikeyid="+riKeyId);
 		String gameSession = getXmlString(in, "gamesession");
 		return Integer.parseInt(gameSession);
 	}
 	
-	public boolean resumeApp(SecretKey inputKey) throws IOException, XmlPullParserException {
+	public boolean resumeApp(SecretKey inputKey, int riKeyId) throws IOException, XmlPullParserException {
 		InputStream in = openHttpConnection(baseUrl + "/resume?uniqueid=" + uniqueId +
-				"&rikey="+cryptoProvider.encodeBase64String(inputKey.getEncoded()));
+				"&rikey="+bytesToHex(inputKey.getEncoded()) +
+				"&rikeyid="+riKeyId);
 		String resume = getXmlString(in, "resume");
 		return Integer.parseInt(resume) != 0;
 	}

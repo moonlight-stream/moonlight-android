@@ -221,6 +221,12 @@ public class VideoDepacketizer {
 		int frameIndex = packet.getFrameIndex();
 		boolean firstPacket = isFirstPacket(flags);
 		
+		// Drop duplicates or re-ordered packets
+		int streamPacketIndex = packet.getStreamPacketIndex();
+		if (streamPacketIndex < (int)(lastPacketInStream + 1)) {
+			return;
+		}
+		
 		// Look for a frame start before receiving a frame end
 		if (firstPacket && decodingFrame)
 		{
@@ -232,6 +238,7 @@ public class VideoDepacketizer {
 			
 			// Clear the old state and decode this frame
 			clearAvcFrameState();
+			decodingFrame = true;
 		}
 		// Look for a non-frame start before a frame start
 		else if (!firstPacket && !decodingFrame) {
@@ -245,6 +252,7 @@ public class VideoDepacketizer {
 				
 				waitingForNextSuccessfulFrame = true;
 				clearAvcFrameState();
+				decodingFrame = false;
 				return;
 			}
 			else {
@@ -266,6 +274,7 @@ public class VideoDepacketizer {
 			}
 			else if (nextFrameNumber > frameIndex){
 				// Duplicate packet or FEC dup
+				decodingFrame = false;
 				return;
 			}
 			else {
@@ -277,7 +286,23 @@ public class VideoDepacketizer {
 			decodingFrame = true;
 		}
 		
-		int streamPacketIndex = packet.getStreamPacketIndex();
+		// If it's not the first packet of a frame
+		// we need to drop it if the stream packet index
+		// doesn't match
+		if (!firstPacket && decodingFrame) {
+			if (streamPacketIndex != (int)(lastPacketInStream + 1)) {
+				LimeLog.warning("Network dropped middle of a frame");
+				nextFrameNumber = frameIndex + 1;
+				
+				waitingForNextSuccessfulFrame = true;
+				clearAvcFrameState();
+				decodingFrame = false;
+				
+				return;
+			}
+		}
+		
+		// Notify the server of any packet losses
 		if (streamPacketIndex != (int)(lastPacketInStream + 1)) {
 			// Packets were lost so report this to the server
 			controlListener.connectionLostPackets(lastPacketInStream, streamPacketIndex);

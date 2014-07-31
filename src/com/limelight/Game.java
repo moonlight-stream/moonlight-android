@@ -184,13 +184,11 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
 		String app = Game.this.getIntent().getStringExtra(EXTRA_APP);
 		String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
-		boolean enableLargePackets = !Game.this.getIntent().getBooleanExtra(EXTRA_STREAMING_REMOTE, true);
-		LimeLog.info("Using large packets? "+enableLargePackets);
         
 		// Start the connection
 		conn = new NvConnection(host, uniqueId, Game.this,
-				new StreamConfiguration(app, width, height, refreshRate, bitrate * 1000,
-						enableLargePackets ? 1460 : 1024, sops), PlatformBinding.getCryptoProvider(this));
+				new StreamConfiguration(app, width, height, refreshRate, bitrate * 1000, sops),
+				PlatformBinding.getCryptoProvider(this));
 		keybTranslator = new KeyboardTranslator(conn);
 		controllerHandler = new ControllerHandler(conn);
 		decoderRenderer = new ConfigurableDecoderRenderer();

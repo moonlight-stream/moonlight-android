@@ -322,6 +322,11 @@ public class PcView extends Activity {
 			return;
 		}
 		
+		if (computer.macAddress == null) {
+			Toast.makeText(PcView.this, "Unable to wake PC because GFE didn't send a MAC address", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
 		Toast.makeText(PcView.this, "Waking PC...", Toast.LENGTH_SHORT).show();
 		new Thread(new Runnable() {
 			@Override

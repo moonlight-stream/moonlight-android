@@ -194,7 +194,7 @@ public class VideoStream {
 				int ringIndex = 0;
 				
 				// Preinitialize the ring buffer
-				int requiredBufferSize = streamConfig.getMaxPacketSize() + RtpPacket.HEADER_SIZE;
+				int requiredBufferSize = streamConfig.getMaxPacketSize() + RtpPacket.MAX_HEADER_SIZE;
 				for (int i = 0; i < VIDEO_RING_SIZE; i++) {
 					ring[i] = new VideoPacket(new byte[requiredBufferSize]);
 				}

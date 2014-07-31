@@ -13,16 +13,14 @@ public class VideoPacket {
 	private int dataOffset;
 	
 	private int frameIndex;
-	private int packetIndex;
-	private int totalPackets;
-	private int payloadLength;
 	private int flags;
 	private int streamPacketIndex;
 	
+	public static final int FLAG_CONTAINS_PIC_DATA = 0x1;
 	public static final int FLAG_EOF = 0x2;
 	public static final int FLAG_SOF = 0x4;
 	
-	public static final int HEADER_SIZE = 56;
+	public static final int HEADER_SIZE = 16;
 	
 	public VideoPacket(byte[] buffer)
 	{
@@ -36,12 +34,9 @@ public class VideoPacket {
 		byteBuffer.rewind();
 		
 		// Read the video header fields
+		streamPacketIndex = (byteBuffer.getInt() >> 8) & 0xFFFFFF;
 		frameIndex = byteBuffer.getInt();
-		packetIndex = byteBuffer.getInt();
-		totalPackets = byteBuffer.getInt();
-		flags = byteBuffer.getInt();
-		payloadLength = byteBuffer.getInt();
-		streamPacketIndex = byteBuffer.getInt();
+		flags = byteBuffer.getInt() & 0xFF;
 		
 		// Data offset without the RTP header
 		dataOffset = HEADER_SIZE;
@@ -53,18 +48,15 @@ public class VideoPacket {
 	public void initializeWithLength(int length)
 	{
 		// Skip the RTP header
-		byteBuffer.position(RtpPacket.HEADER_SIZE);
+		byteBuffer.position(RtpPacket.MAX_HEADER_SIZE);
 		
 		// Read the video header fields
+		streamPacketIndex = (byteBuffer.getInt() >> 8) & 0xFFFFFF;
 		frameIndex = byteBuffer.getInt();
-		packetIndex = byteBuffer.getInt();
-		totalPackets = byteBuffer.getInt();
-		flags = byteBuffer.getInt();
-		payloadLength = byteBuffer.getInt();
-		streamPacketIndex = byteBuffer.getInt();
+		flags = byteBuffer.getInt() & 0xFF;
 		
 		// Data offset includes the RTP header
-		dataOffset = RtpPacket.HEADER_SIZE + HEADER_SIZE;
+		dataOffset = RtpPacket.MAX_HEADER_SIZE + HEADER_SIZE;
 		
 		// Update descriptor length
 		buffer.length = length;
@@ -78,21 +70,6 @@ public class VideoPacket {
 	public int getFrameIndex()
 	{
 		return frameIndex;
-	}
-	
-	public int getPacketIndex()
-	{
-		return packetIndex;
-	}
-	
-	public int getPayloadLength()
-	{
-		return payloadLength;
-	}
-	
-	public int getTotalPackets()
-	{
-		return totalPackets;
 	}
 	
 	public int getStreamPacketIndex()

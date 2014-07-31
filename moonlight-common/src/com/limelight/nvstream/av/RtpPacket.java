@@ -7,11 +7,16 @@ public class RtpPacket {
 	
 	private byte packetType;
 	private short seqNum;
+	private int headerSize;
 	
 	private ByteBufferDescriptor buffer;
 	private ByteBuffer bb;
 	
-	public static final int HEADER_SIZE = 12;
+	public static final int FLAG_EXTENSION = 0x10;
+	
+	public static final int FIXED_HEADER_SIZE = 12;
+	public static final int MAX_HEADER_SIZE = 16;
+
 	
 	public RtpPacket(byte[] buffer)
 	{
@@ -21,14 +26,23 @@ public class RtpPacket {
 	
 	public void initializeWithLength(int length)
 	{
-		// Discard the first byte
-		bb.position(1);
+		// Rewind to start
+		bb.rewind();
+		
+		// Read the RTP header byte
+		byte header = bb.get();
 		
 		// Get the packet type
 		packetType = bb.get();
 		
 		// Get the sequence number
 		seqNum = bb.getShort();
+		
+		// If an extension is present, read the fields
+		headerSize = FIXED_HEADER_SIZE;
+		if ((header & FLAG_EXTENSION) != 0) {
+			headerSize += 4; // 2 additional fields
+		}
 		
 		// Update descriptor length
 		buffer.length = length;
@@ -51,6 +65,6 @@ public class RtpPacket {
 	
 	public void initializePayloadDescriptor(ByteBufferDescriptor bb)
 	{
-		bb.reinitialize(buffer.data, buffer.offset+HEADER_SIZE, buffer.length-HEADER_SIZE);
+		bb.reinitialize(buffer.data, buffer.offset+headerSize, buffer.length-headerSize);
 	}
 }

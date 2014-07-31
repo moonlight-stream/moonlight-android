@@ -5,7 +5,6 @@ public class StreamConfiguration {
 	private int width, height;
 	private int refreshRate;
 	private int bitrate;
-	private int maxPacketSize;
 	private boolean sops;
 	
 	public StreamConfiguration(String app, int width, int height, int refreshRate, int bitrate) {
@@ -14,17 +13,15 @@ public class StreamConfiguration {
 		this.height = height;
 		this.refreshRate = refreshRate;
 		this.bitrate = bitrate;
-		this.maxPacketSize = 1024;
 		this.sops = true;
 	}
 	
-	public StreamConfiguration(String app, int width, int height, int refreshRate, int bitrate, int maxPacketSize, boolean sops) {
+	public StreamConfiguration(String app, int width, int height, int refreshRate, int bitrate, boolean sops) {
 		this.app = app;
 		this.width = width;
 		this.height = height;
 		this.refreshRate = refreshRate;
 		this.bitrate = bitrate;
-		this.maxPacketSize = maxPacketSize;
 		this.sops = sops;
 	}
 	
@@ -45,7 +42,7 @@ public class StreamConfiguration {
 	}
 	
 	public int getMaxPacketSize() {
-		return maxPacketSize;
+		return 1024;
 	}
 
 	public String getApp() {

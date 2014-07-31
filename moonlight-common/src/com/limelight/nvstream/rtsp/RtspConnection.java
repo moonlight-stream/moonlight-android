@@ -17,8 +17,8 @@ public class RtspConnection {
 	public static final int PORT = 48010;
 	public static final int RTSP_TIMEOUT = 5000;
 	
-	// SHIELD Update 77
-	public static final int CLIENT_VERSION = 9;
+	// GFE 2.1.1
+	public static final int CLIENT_VERSION = 10;
 	
 	private int sequenceNumber = 1;
 	private int sessionId = 0;

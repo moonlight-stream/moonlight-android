@@ -108,6 +108,10 @@ public class SdpGenerator {
 		
 		addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());
 		
+		// Prevent resolution changes due to network degradation
+		addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionLowerBoundWidth", ""+sc.getWidth());
+		addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionLowerBoundHeight", ""+sc.getHeight());
+		
 		addSessionAttribute(config, "x-nv-vqos[0].videoQualityScoreUpdateTime", "5000");
 		addSessionAttribute(config, "x-nv-vqos[0].qosTrafficType", "7");
 		addSessionAttribute(config, "x-nv-aqos.qosTrafficType", "8");

@@ -103,14 +103,18 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].timeoutLengthMs", "7000");
 		addSessionAttribute(config, "x-nv-video[0].framesWithInvalidRefThreshold", "0");
 		
-		 // The low nibble of the high byte should be 0x9 but that causes video issues
-		addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "7091");
+		// The low nibble of the high byte should be 0x9 but that causes video issues
+		// The bit 0x80 enables video scaling on packet loss which we can't support (for now)
+		addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "7011");
 		
 		addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());
 		
-		// Prevent resolution changes due to network degradation
-		addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionLowerBoundWidth", ""+sc.getWidth());
-		addSessionAttribute(config, "x-nv-vqos[0].bw.earlyDetectionLowerBoundHeight", ""+sc.getHeight());
+		// Since we can only deal with FEC data on a 1 packet frame,
+		// restrict FEC repair percentage to minimum so we get only 1
+		// FEC packet per frame
+		addSessionAttribute(config, "x-nv-vqos[0].fec.repairPercent", "1");
+		addSessionAttribute(config, "x-nv-vqos[0].fec.repairMaxPercent", "1");
+		addSessionAttribute(config, "x-nv-vqos[0].fec.repairMinPercent", "1");
 		
 		addSessionAttribute(config, "x-nv-vqos[0].videoQualityScoreUpdateTime", "5000");
 		addSessionAttribute(config, "x-nv-vqos[0].qosTrafficType", "7");

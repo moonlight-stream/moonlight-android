@@ -5,8 +5,9 @@ import java.nio.ByteOrder;
 
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.RtpPacket;
+import com.limelight.nvstream.av.RtpPacketFields;
 
-public class VideoPacket {
+public class VideoPacket implements RtpPacketFields {
 	private ByteBufferDescriptor buffer;
 	private ByteBuffer byteBuffer;
 	
@@ -15,6 +16,8 @@ public class VideoPacket {
 	private int frameIndex;
 	private int flags;
 	private int streamPacketIndex;
+	
+	private short rtpSequenceNumber;
 	
 	public static final int FLAG_CONTAINS_PIC_DATA = 0x1;
 	public static final int FLAG_EOF = 0x2;
@@ -33,6 +36,8 @@ public class VideoPacket {
 		// Back to beginning
 		byteBuffer.rewind();
 		
+		// No sequence number field is present in these packets
+		
 		// Read the video header fields
 		streamPacketIndex = (byteBuffer.getInt() >> 8) & 0xFFFFFF;
 		frameIndex = byteBuffer.getInt();
@@ -47,7 +52,12 @@ public class VideoPacket {
 	
 	public void initializeWithLength(int length)
 	{
-		// Skip the RTP header
+		// Read the RTP sequence number field (big endian)
+		byteBuffer.position(2);
+		rtpSequenceNumber = byteBuffer.getShort();
+		rtpSequenceNumber = (short)(((rtpSequenceNumber << 8) & 0xFF00) | (((rtpSequenceNumber >> 8) & 0x00FF)));
+		
+		// Skip the rest of the RTP header
 		byteBuffer.position(RtpPacket.MAX_HEADER_SIZE);
 		
 		// Read the video header fields
@@ -85,5 +95,14 @@ public class VideoPacket {
 	public void initializePayloadDescriptor(ByteBufferDescriptor bb)
 	{
 		bb.reinitialize(buffer.data, buffer.offset+dataOffset, buffer.length-dataOffset);
+	}
+
+	public byte getPacketType() {
+		// No consumers use this field so we don't look it up
+		return -1;
+	}
+
+	public short getRtpSequenceNumber() {
+		return rtpSequenceNumber;
 	}
 }

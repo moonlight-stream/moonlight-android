@@ -14,6 +14,7 @@ import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 import com.limelight.nvstream.av.RtpPacket;
+import com.limelight.nvstream.av.RtpReorderQueue;
 
 public class VideoStream {
 	public static final int RTP_PORT = 47998;
@@ -191,7 +192,10 @@ public class VideoStream {
 			@Override
 			public void run() {
 				VideoPacket ring[] = new VideoPacket[VIDEO_RING_SIZE];
+				VideoPacket queuedPacket;
 				int ringIndex = 0;
+				RtpReorderQueue rtpQueue = new RtpReorderQueue();
+				RtpReorderQueue.RtpQueueStatus queueStatus;
 				
 				// Preinitialize the ring buffer
 				int requiredBufferSize = streamConfig.getMaxPacketSize() + RtpPacket.MAX_HEADER_SIZE;
@@ -211,9 +215,22 @@ public class VideoStream {
 						packet.setData(buffer, 0, buffer.length);
 						rtp.receive(packet);
 						
-						// Submit video data to the depacketizer
+						// Initialize the video packet
 						ring[ringIndex].initializeWithLength(packet.getLength());
-						depacketizer.addInputData(ring[ringIndex]);
+						
+						queueStatus = rtpQueue.addPacket(ring[ringIndex]);
+						if (queueStatus == RtpReorderQueue.RtpQueueStatus.HANDLE_IMMEDIATELY) {
+							// Submit immediately because the packet is in order
+							depacketizer.addInputData(ring[ringIndex]);
+						}
+						else if (queueStatus == RtpReorderQueue.RtpQueueStatus.QUEUED_PACKETS_READY) {
+							// The packet queue now has packets ready
+							while ((queuedPacket = (VideoPacket) rtpQueue.getQueuedPacket()) != null) {
+								depacketizer.addInputData(queuedPacket);
+							}
+						}
+						
+						// The ring is large enough to account for the maximum queued packets
 						ringIndex = (ringIndex + 1) % VIDEO_RING_SIZE;
 					} catch (IOException e) {
 						listener.connectionTerminated(e);

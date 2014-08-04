@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.RtpPacket;
+import com.limelight.nvstream.av.RtpReorderQueue;
 
 public class AudioStream {
 	public static final int RTP_PORT = 48000;
@@ -154,7 +155,9 @@ public class AudioStream {
 			public void run() {
 				byte[] buffer = new byte[MAX_PACKET_SIZE];
 				DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-				RtpPacket rtpPacket = new RtpPacket(buffer);
+				RtpPacket queuedPacket, rtpPacket = new RtpPacket(buffer);
+				RtpReorderQueue rtpQueue = new RtpReorderQueue();
+				RtpReorderQueue.RtpQueueStatus queueStatus;
 				
 				while (!isInterrupted())
 				{
@@ -163,9 +166,38 @@ public class AudioStream {
 						
 						// DecodeInputData() doesn't hold onto the buffer so we are free to reuse it
 						rtpPacket.initializeWithLength(packet.getLength());
-						depacketizer.decodeInputData(rtpPacket);
 						
-						packet.setLength(MAX_PACKET_SIZE);
+						// Throw away non-audio packets before queuing
+						if (rtpPacket.getPacketType() != 97) {
+							// Only type 97 is audio
+							packet.setLength(MAX_PACKET_SIZE);
+							continue;
+						}
+						
+						queueStatus = rtpQueue.addPacket(rtpPacket);
+						if (queueStatus == RtpReorderQueue.RtpQueueStatus.HANDLE_IMMEDIATELY) {
+							// Send directly to the depacketizer
+							depacketizer.decodeInputData(rtpPacket);
+							packet.setLength(MAX_PACKET_SIZE);
+						}
+						else {
+							if (queueStatus != RtpReorderQueue.RtpQueueStatus.REJECTED) {
+								// The queue consumed our packet, so we must allocate a new one
+								buffer = new byte[MAX_PACKET_SIZE];
+								packet = new DatagramPacket(buffer, buffer.length);
+								rtpPacket = new RtpPacket(buffer);
+							}
+							else {
+								packet.setLength(MAX_PACKET_SIZE);
+							}
+							
+							// If packets are ready, pull them and send them to the depacketizer
+							if (queueStatus == RtpReorderQueue.RtpQueueStatus.QUEUED_PACKETS_READY) {
+								while ((queuedPacket = (RtpPacket) rtpQueue.getQueuedPacket()) != null) {
+									depacketizer.decodeInputData(queuedPacket);
+								}
+							}
+						}
 					} catch (IOException e) {
 						connListener.connectionTerminated(e);
 						return;

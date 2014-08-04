@@ -3,7 +3,7 @@ package com.limelight.nvstream.av;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class RtpPacket {
+public class RtpPacket implements RtpPacketFields {
 	
 	private byte packetType;
 	private short seqNum;
@@ -53,7 +53,7 @@ public class RtpPacket {
 		return packetType;
 	}
 	
-	public short getSequenceNumber()
+	public short getRtpSequenceNumber()
 	{
 		return seqNum;
 	}

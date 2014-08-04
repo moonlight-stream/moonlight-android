@@ -77,12 +77,7 @@ public class AudioDepacketizer {
 	
 	public void decodeInputData(RtpPacket packet)
 	{
-		short seq = packet.getSequenceNumber();
-		
-		if (packet.getPacketType() != 97) {
-			// Only type 97 is audio
-			return;
-		}
+		short seq = packet.getRtpSequenceNumber();
 		
 		// Toss out the current NAL if we receive a packet that is
 		// out of sequence

@@ -45,7 +45,13 @@ public class VideoDepacketizer {
 		});
 	}
 	
-	private void clearAvcFrameState()
+	private void dropAvcFrameState()
+	{
+		waitingForIdrFrame = true;
+		cleanupAvcFrameState();
+	}
+	
+	private void cleanupAvcFrameState()
 	{
 		avcFrameDataChain = null;
 		avcFrameDataLength = 0;
@@ -81,12 +87,9 @@ public class VideoDepacketizer {
 				// Remove existing frames
 				decodedUnits.clearPopulatedObjects();
 				
-				// Try again
-				du = decodedUnits.pollFreeObject();
-				if (du == null) {
-					LimeLog.warning("Video decoder is leaking decode units!");
-					return;
-				}
+				// Clear frame state and wait for an IDR
+				dropAvcFrameState();
+				return;
 			}
 			
 			// Initialize the free DU
@@ -99,7 +102,7 @@ public class VideoDepacketizer {
 			decodedUnits.addPopulatedObject(du);
 
 			// Clear old state
-			clearAvcFrameState();
+			cleanupAvcFrameState();
 		}
 	}
 	
@@ -249,8 +252,7 @@ public class VideoDepacketizer {
 			waitingForIdrFrame = true;
 			
 			// Clear the old state and wait for an IDR
-			clearAvcFrameState();
-			decodingFrame = true;
+			dropAvcFrameState();
 		}
 		// Look for a non-frame start before a frame start
 		else if (!firstPacket && !decodingFrame) {
@@ -263,9 +265,8 @@ public class VideoDepacketizer {
 				nextFrameNumber = frameIndex + 1;
 				
 				waitingForNextSuccessfulFrame = true;
-				waitingForIdrFrame = true;
 				
-				clearAvcFrameState();
+				dropAvcFrameState();
 				decodingFrame = false;
 				return;
 			}
@@ -284,8 +285,7 @@ public class VideoDepacketizer {
 				
 				// Wait until an IDR frame comes
 				waitingForNextSuccessfulFrame = true;
-				waitingForIdrFrame = true;
-				clearAvcFrameState();
+				dropAvcFrameState();
 			}
 			else if (nextFrameNumber > frameIndex){
 				// Duplicate packet or FEC dup
@@ -306,9 +306,8 @@ public class VideoDepacketizer {
 				nextFrameNumber = frameIndex + 1;
 				
 				waitingForNextSuccessfulFrame = true;
-				waitingForIdrFrame = true;
 				
-				clearAvcFrameState();
+				dropAvcFrameState();
 				decodingFrame = false;
 				
 				return;
@@ -353,7 +352,7 @@ public class VideoDepacketizer {
 			if (waitingForIdrFrame) {
 				LimeLog.warning("Waiting for IDR frame");
 				
-				clearAvcFrameState();
+				dropAvcFrameState();
 				return;
 			}
 			

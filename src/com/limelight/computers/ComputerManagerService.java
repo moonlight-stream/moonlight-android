@@ -410,8 +410,8 @@ public class ComputerManagerService extends Service {
 					dbManager.updateComputer(details);
 				}
 				
-				// Update anyone listening
-				if (listener != null) {
+				// Don't call the listener if this is a failed lookup of a new PC
+				if ((!newPc || details.state == ComputerDetails.State.ONLINE) && listener != null) {
 					listener.notifyComputerUpdated(details);
 				}
 				

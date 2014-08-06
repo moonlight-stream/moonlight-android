@@ -26,6 +26,10 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 		}
 		return decoderRenderer.setup(width, height, redrawRate, renderTarget, drFlags);
 	}
+	
+	public boolean isHardwareAccelerated() {
+		return (decoderRenderer instanceof MediaCodecDecoderRenderer);
+	}
 
 	@Override
 	public boolean start(VideoDepacketizer depacketizer) {

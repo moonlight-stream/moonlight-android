@@ -610,8 +610,12 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			
 			// Resize the surface to match the aspect ratio of the video
 			// This must be done after the surface is created.
-			if (!stretchToFit) {
+			if (!stretchToFit && decoderRenderer.isHardwareAccelerated()) {
 				resizeSurfaceWithAspectRatio((SurfaceView) findViewById(R.id.surfaceView), width, height);
+			}
+			else if (!decoderRenderer.isHardwareAccelerated()) {
+				// Make sure the surface is the correct size since we render directly to it
+				holder.setFixedSize(width, height);
 			}
 			
 			conn.start(PlatformBinding.getDeviceName(), holder, drFlags,

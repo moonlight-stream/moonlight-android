@@ -193,8 +193,6 @@ public class RtpReorderQueue {
 	public RtpPacketFields getQueuedPacket() {
 		RtpQueueEntry queuedEntry = null;
 		
-		System.out.println("Pulling from reordered queue");
-		
 		// Find the matching entry
 		Iterator<RtpQueueEntry> i = queue.iterator();
 		while (i.hasNext()) {

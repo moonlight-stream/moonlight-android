@@ -31,7 +31,7 @@ public class ControlStream implements ConnectionStatusListener {
 	public static final short PPAYLEN_RESYNC = 24;
 	
 	public static final short PTYPE_LOSS_STATS = 0x140c;
-	public static final short PPAYLEN_LOSS_STATS = 20;
+	public static final short PPAYLEN_LOSS_STATS = 32;
 	
 	// Currently unused
 	public static final short PTYPE_FRAME_STATS = 0x1417;
@@ -98,6 +98,9 @@ public class ControlStream implements ConnectionStatusListener {
 		bb.putInt(LOSS_REPORT_INTERVAL_MS); // Time since last report in milliseconds
 		bb.putInt(1000);
 		bb.putLong(currentFrame); // Last successfully received frame
+		bb.putInt(0);
+		bb.putInt(0);
+		bb.putInt(0x14);
 
 		sendPacket(new NvCtlPacket(PTYPE_LOSS_STATS, PPAYLEN_LOSS_STATS, bb.array()));
 	}

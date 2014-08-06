@@ -109,6 +109,8 @@ public class ComputerDatabaseManager {
 			computerList.add(details);
 		}
 		
+		c.close();
+		
 		return computerList;
 	}
 	
@@ -117,6 +119,7 @@ public class ComputerDatabaseManager {
 		ComputerDetails details = new ComputerDetails();
 		if (!c.moveToFirst()) {
 			// No matching computer
+			c.close();
 			return null;
 		}
 
@@ -145,6 +148,8 @@ public class ComputerDatabaseManager {
 		}
 		
 		details.macAddress = c.getString(4);
+		
+		c.close();
 		
 		// If a field is corrupt or missing, delete the database entry
 		if (details.uuid == null || details.localIp == null || details.remoteIp == null ||

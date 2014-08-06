@@ -12,6 +12,7 @@ import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.limelight.LimeLog;
 import com.limelight.binding.PlatformBinding;
@@ -39,6 +40,8 @@ public class ComputerManagerService extends Service {
 	private ComputerManagerBinder binder = new ComputerManagerBinder();
 	
 	private ComputerDatabaseManager dbManager;
+	private AtomicInteger dbRefCount = new AtomicInteger(0);
+	
 	private IdentityManager idManager;
 	private ThreadPoolExecutor pollingPool;
 	private Timer pollingTimer;
@@ -173,15 +176,41 @@ public class ComputerManagerService extends Service {
 	}
 	
 	public void removeComputer(String name) {
+		if (!getLocalDatabaseReference()) {
+			return;
+		}
+		
 		// Remove it from the database
 		dbManager.deleteComputer(name);
+		
+		releaseLocalDatabaseReference();
+	}
+	
+	private boolean getLocalDatabaseReference() {
+		if (dbRefCount.get() == 0) {
+			return false;
+		}
+		
+		dbRefCount.incrementAndGet();
+		return true;
+	}
+	
+	private void releaseLocalDatabaseReference() {
+		if (dbRefCount.decrementAndGet() == 0) {
+			dbManager.close();
+		}
 	}
 	
 	private TimerTask getTimerTask() {
 		return new TimerTask() {
 			@Override
 			public void run() {
+				if (!getLocalDatabaseReference()) {
+					return;
+				}
 				List<ComputerDetails> computerList = dbManager.getAllComputers();
+				releaseLocalDatabaseReference();
+				
 				for (ComputerDetails computer : computerList) {
 					pollingPool.execute(getPollingRunnable(computer));
 				}
@@ -356,6 +385,10 @@ public class ComputerManagerService extends Service {
 			public void run() {
 				boolean newPc = (details.name == null);
 				
+				if (!getLocalDatabaseReference()) {
+					return;
+				}
+				
 				// Poll the machine
 				if (!doPollMachine(details)) {
 					details.state = ComputerDetails.State.OFFLINE;
@@ -369,6 +402,7 @@ public class ComputerManagerService extends Service {
 						// removed after this was issued
 						if (dbManager.getComputerByName(details.name) == null) {
 							// It's gone
+							releaseLocalDatabaseReference();
 							return;
 						}
 					}
@@ -380,6 +414,8 @@ public class ComputerManagerService extends Service {
 				if (listener != null) {
 					listener.notifyComputerUpdated(details);
 				}
+				
+				releaseLocalDatabaseReference();
 			}
 		};
 	}
@@ -400,6 +436,7 @@ public class ComputerManagerService extends Service {
 		
 		// Initialize the DB
 		dbManager = new ComputerDatabaseManager(this);
+		dbRefCount.set(1);
 	}
 	
 	@Override
@@ -411,12 +448,11 @@ public class ComputerManagerService extends Service {
 		
 		// Stop the thread pool
 		pollingPool.shutdownNow();
-		try {
-			pollingPool.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-		} catch (InterruptedException e) {}
 		
-		// Close the DB
-		dbManager.close();
+		// FIXME: Should await termination here but we have timeout issues in HttpURLConnection
+		
+		// Remove the initial DB reference
+		releaseLocalDatabaseReference();
 	}
 	
 	@Override

@@ -91,7 +91,6 @@ public class AppView extends Activity {
 			}
 		});
         registerForContextMenu(appList);
-        updateAppList();
 	}
 	
 	@Override

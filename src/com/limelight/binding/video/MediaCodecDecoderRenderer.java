@@ -177,8 +177,14 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				{
 					du = depacketizer.pollNextDecodeUnit();
 					if (du != null) {
-						submitDecodeUnit(du);
+						if (!submitDecodeUnit(du)) {
+							// Thread was interrupted
 						depacketizer.freeDecodeUnit(du);
+							return;
+						}
+						else {
+							depacketizer.freeDecodeUnit(du);
+						}
 					}
 					
 					int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
@@ -250,9 +256,16 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	}
 
 	private boolean submitDecodeUnit(DecodeUnit decodeUnit) {
-		int inputIndex = videoDecoder.dequeueInputBuffer(-1);
-		if (inputIndex >= 0)
-		{
+		int inputIndex;
+		
+		do {
+			if (Thread.interrupted()) {
+				return false;
+			}
+			
+			inputIndex = videoDecoder.dequeueInputBuffer(100000);
+		} while (inputIndex < 0);
+		
 			ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
 
 			long currentTime = System.currentTimeMillis();
@@ -348,7 +361,6 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			videoDecoder.queueInputBuffer(inputIndex,
 					0, decodeUnit.getDataLength(),
 					currentTime * 1000, codecFlags);
-		}
 		
 		return true;
 	}

@@ -1,6 +1,7 @@
 package com.limelight.utils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -31,16 +32,19 @@ public class SpinnerDialog implements Runnable,OnCancelListener {
 		return spinner;
 	}
 	
-	public static void closeDialogs()
+	public static void closeDialogs(Activity activity)
 	{
 		synchronized (rundownDialogs) {
-			for (SpinnerDialog d : rundownDialogs) {
-				if (d.progress.isShowing()) {
-					d.progress.dismiss();
+			Iterator<SpinnerDialog> i = rundownDialogs.iterator();
+			while (i.hasNext()) {
+				SpinnerDialog dialog = i.next();
+				if (dialog.activity == activity) {
+					i.remove();
+					if (dialog.progress.isShowing()) {
+						dialog.progress.dismiss();
+					}
 				}
 			}
-			
-			rundownDialogs.clear();
 		}
 	}
 	

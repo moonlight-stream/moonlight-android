@@ -254,7 +254,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	protected void onStop() {
 		super.onStop();
 		
-		SpinnerDialog.closeDialogs();
+		SpinnerDialog.closeDialogs(this);
 		Dialog.closeDialogs();
 		
 		displayedFailureDialog = true;

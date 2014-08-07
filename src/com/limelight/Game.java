@@ -164,13 +164,6 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
 		sv.setOnGenericMotionListener(this);
 		sv.setOnTouchListener(this);
-
-		SurfaceHolder sh = sv.getHolder();
-		
-		if (stretchToFit) {
-			// Set the surface to the size of the video
-			sh.setFixedSize(width, height);
-		}
 		        
 		// Warn the user if they're on a metered connection
         checkDataConnection();
@@ -191,7 +184,15 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 				PlatformBinding.getCryptoProvider(this));
 		keybTranslator = new KeyboardTranslator(conn);
 		controllerHandler = new ControllerHandler(conn);
+		
 		decoderRenderer = new ConfigurableDecoderRenderer();
+		decoderRenderer.initializeWithFlags(drFlags);
+		
+		SurfaceHolder sh = sv.getHolder();
+		if (stretchToFit || !decoderRenderer.isHardwareAccelerated()) {
+			// Set the surface to the size of the video
+			sh.setFixedSize(width, height);
+		}
 		
 		// The connection will be started when the surface gets created
 		sh.addCallback(this);
@@ -612,10 +613,6 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			// This must be done after the surface is created.
 			if (!stretchToFit && decoderRenderer.isHardwareAccelerated()) {
 				resizeSurfaceWithAspectRatio((SurfaceView) findViewById(R.id.surfaceView), width, height);
-			}
-			else if (!decoderRenderer.isHardwareAccelerated()) {
-				// Make sure the surface is the correct size since we render directly to it
-				holder.setFixedSize(width, height);
 			}
 			
 			conn.start(PlatformBinding.getDeviceName(), holder, drFlags,

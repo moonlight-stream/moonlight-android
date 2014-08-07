@@ -16,18 +16,27 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 
 	@Override
 	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
+		if (decoderRenderer == null) {
+			throw new IllegalStateException("ConfigurableDecoderRenderer not initialized");
+		}
+		return decoderRenderer.setup(width, height, redrawRate, renderTarget, drFlags);
+	}
+	
+	public void initializeWithFlags(int drFlags) {
 		if ((drFlags & VideoDecoderRenderer.FLAG_FORCE_HARDWARE_DECODING) != 0 ||
-			((drFlags & VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING) == 0 &&
-			  MediaCodecDecoderRenderer.findSafeDecoder() != null)) {
+				((drFlags & VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING) == 0 &&
+				MediaCodecDecoderRenderer.findSafeDecoder() != null)) {
 			decoderRenderer = new MediaCodecDecoderRenderer();
 		}
 		else {
 			decoderRenderer = new AndroidCpuDecoderRenderer();
 		}
-		return decoderRenderer.setup(width, height, redrawRate, renderTarget, drFlags);
 	}
 	
 	public boolean isHardwareAccelerated() {
+		if (decoderRenderer == null) {
+			throw new IllegalStateException("ConfigurableDecoderRenderer not initialized");
+		}
 		return (decoderRenderer instanceof MediaCodecDecoderRenderer);
 	}
 

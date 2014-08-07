@@ -48,12 +48,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	static {
 		spsFixupBitsreamFixupDecoderPrefixes = new LinkedList<String>();
 		spsFixupBitsreamFixupDecoderPrefixes.add("omx.nvidia");
+		spsFixupBitsreamFixupDecoderPrefixes.add("omx.qcom");
 		
 		spsFixupNumRefFixupDecoderPrefixes = new LinkedList<String>();
 		spsFixupNumRefFixupDecoderPrefixes.add("omx.TI");
 		spsFixupNumRefFixupDecoderPrefixes.add("omx.qcom");
 	}
-		
+	
 	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
 		for (String badPrefix : decoderList) {
 			if (decoderName.length() >= badPrefix.length()) {
@@ -179,7 +180,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					if (du != null) {
 						if (!submitDecodeUnit(du)) {
 							// Thread was interrupted
-						depacketizer.freeDecodeUnit(du);
+							depacketizer.freeDecodeUnit(du);
 							return;
 						}
 						else {
@@ -266,101 +267,101 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			inputIndex = videoDecoder.dequeueInputBuffer(100000);
 		} while (inputIndex < 0);
 		
-			ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
+		ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
 
-			long currentTime = System.currentTimeMillis();
-			long delta = currentTime-decodeUnit.getReceiveTimestamp();
-			if (delta >= 0 && delta < 300) {
-			    totalTimeMs += currentTime-decodeUnit.getReceiveTimestamp();
-			    totalFrames++;
-			}
-			
-			// Clear old input data
-			buf.clear();
-			
-			int codecFlags = 0;
-			int decodeUnitFlags = decodeUnit.getFlags();
-			if ((decodeUnitFlags & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0) {
-				codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-			}
-			if ((decodeUnitFlags & DecodeUnit.DU_FLAG_SYNC_FRAME) != 0) {
-				codecFlags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
-			}
-			
-			if ((decodeUnitFlags & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0 &&
-				(needsSpsBitstreamFixup || needsSpsNumRefFixup)) {
-				ByteBufferDescriptor header = decodeUnit.getBufferList().get(0);
-				if (header.data[header.offset+4] == 0x67) {
-					byte last = header.data[header.length+header.offset-1];
+		long currentTime = System.currentTimeMillis();
+		long delta = currentTime-decodeUnit.getReceiveTimestamp();
+		if (delta >= 0 && delta < 300) {
+		    totalTimeMs += currentTime-decodeUnit.getReceiveTimestamp();
+		    totalFrames++;
+		}
+		
+		// Clear old input data
+		buf.clear();
+		
+		int codecFlags = 0;
+		int decodeUnitFlags = decodeUnit.getFlags();
+		if ((decodeUnitFlags & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0) {
+			codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+		}
+		if ((decodeUnitFlags & DecodeUnit.DU_FLAG_SYNC_FRAME) != 0) {
+			codecFlags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
+		}
+		
+		if ((decodeUnitFlags & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0 &&
+			(needsSpsBitstreamFixup || needsSpsNumRefFixup)) {
+			ByteBufferDescriptor header = decodeUnit.getBufferList().get(0);
+			if (header.data[header.offset+4] == 0x67) {
+				byte last = header.data[header.length+header.offset-1];
 
-					// TI OMAP4 requires a reference frame count of 1 to decode successfully
-					if (needsSpsNumRefFixup) {
-						LimeLog.info("Fixing up num ref frames");
-						this.replace(header, 80, 9, new byte[] {0x40}, 3);
-					}
+				// TI OMAP4 requires a reference frame count of 1 to decode successfully
+				if (needsSpsNumRefFixup) {
+					LimeLog.info("Fixing up num ref frames");
+					this.replace(header, 80, 9, new byte[] {0x40}, 3);
+				}
 
-					// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
-					// or max_dec_frame_buffering which increases decoding latency on Tegra.
-					// We manually modify the SPS here to speed-up decoding if the decoder was flagged as needing it.
-					int spsLength;
-					if (needsSpsBitstreamFixup) {
-						if (!needsSpsNumRefFixup) {
-							switch (header.length) {
-							case 26:
-								LimeLog.info("Adding bitstream restrictions to SPS (26)");
-								buf.put(header.data, header.offset, 24);
-								buf.put((byte) 0x11);
-								buf.put((byte) 0xe3);
-								buf.put((byte) 0x06);
-								buf.put((byte) 0x50);
-								spsLength = header.length + 2;
-								break;
-							case 27:
-								LimeLog.info("Adding bitstream restrictions to SPS (27)");
-								buf.put(header.data, header.offset, 25);
-								buf.put((byte) 0x04);
-								buf.put((byte) 0x78);
-								buf.put((byte) 0xc1);
-								buf.put((byte) 0x94);
-								spsLength = header.length + 2;
-								break;
-							default:
-								LimeLog.warning("Unknown SPS of length "+header.length);
-								buf.put(header.data, header.offset, header.length);
-								spsLength = header.length;
-								break;
-							}
-						}
-						else {
-							// Set bitstream restrictions to only buffer single frame
-							// (starts 9 bits before stop bit and 6 bits earlier because of the shortening above)
-							this.replace(header, header.length*8+Integer.numberOfLeadingZeros(last & - last)%8-9-6, 2, BITSTREAM_RESTRICTIONS, 3*8);
+				// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
+				// or max_dec_frame_buffering which increases decoding latency on Tegra.
+				// We manually modify the SPS here to speed-up decoding if the decoder was flagged as needing it.
+				int spsLength;
+				if (needsSpsBitstreamFixup) {
+					if (!needsSpsNumRefFixup) {
+						switch (header.length) {
+						case 26:
+							LimeLog.info("Adding bitstream restrictions to SPS (26)");
+							buf.put(header.data, header.offset, 24);
+							buf.put((byte) 0x11);
+							buf.put((byte) 0xe3);
+							buf.put((byte) 0x06);
+							buf.put((byte) 0x50);
+							spsLength = header.length + 2;
+							break;
+						case 27:
+							LimeLog.info("Adding bitstream restrictions to SPS (27)");
+							buf.put(header.data, header.offset, 25);
+							buf.put((byte) 0x04);
+							buf.put((byte) 0x78);
+							buf.put((byte) 0xc1);
+							buf.put((byte) 0x94);
+							spsLength = header.length + 2;
+							break;
+						default:
+							LimeLog.warning("Unknown SPS of length "+header.length);
 							buf.put(header.data, header.offset, header.length);
 							spsLength = header.length;
+							break;
 						}
-
 					}
 					else {
+						// Set bitstream restrictions to only buffer single frame
+						// (starts 9 bits before stop bit and 6 bits earlier because of the shortening above)
+						this.replace(header, header.length*8+Integer.numberOfLeadingZeros(last & - last)%8-9-6, 2, BITSTREAM_RESTRICTIONS, 3*8);
 						buf.put(header.data, header.offset, header.length);
 						spsLength = header.length;
 					}
 
-					videoDecoder.queueInputBuffer(inputIndex,
-							0, spsLength,
-							currentTime * 1000, codecFlags);
-					return true;
 				}
-			}
+				else {
+					buf.put(header.data, header.offset, header.length);
+					spsLength = header.length;
+				}
 
-			// Copy data from our buffer list into the input buffer
-			for (ByteBufferDescriptor desc : decodeUnit.getBufferList())
-			{
-				buf.put(desc.data, desc.offset, desc.length);
+				videoDecoder.queueInputBuffer(inputIndex,
+						0, spsLength,
+						currentTime * 1000, codecFlags);
+				return true;
 			}
+		}
 
-			videoDecoder.queueInputBuffer(inputIndex,
-					0, decodeUnit.getDataLength(),
-					currentTime * 1000, codecFlags);
+		// Copy data from our buffer list into the input buffer
+		for (ByteBufferDescriptor desc : decodeUnit.getBufferList())
+		{
+			buf.put(desc.data, desc.offset, desc.length);
+		}
+
+		videoDecoder.queueInputBuffer(inputIndex,
+				0, decodeUnit.getDataLength(),
+				currentTime * 1000, codecFlags);
 		
 		return true;
 	}

@@ -4,6 +4,7 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.PopulatedBufferList;
 import com.limelight.nvstream.av.RtpPacket;
+import com.limelight.nvstream.av.SequenceHelper;
 
 public class AudioDepacketizer {
 	
@@ -88,7 +89,7 @@ public class AudioDepacketizer {
 			
 			// Only tell the decoder if we got packets ahead of what we expected
 			// If the packet is behind the current sequence number, drop it
-			if (seq > (short)(lastSequenceNumber + 1)) {
+			if (!SequenceHelper.isBeforeSigned(seq, (short)(lastSequenceNumber + 1), false)) {
 				decodeData(null, 0, 0);
 			}
 			else {

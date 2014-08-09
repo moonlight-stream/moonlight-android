@@ -45,7 +45,7 @@ public class RtpReorderQueue {
 		
 		if (nextRtpSequenceNumber != Short.MAX_VALUE) {
 			// Don't queue packets we're already ahead of
-			if (seq < nextRtpSequenceNumber) {
+			if (SequenceHelper.isBeforeSigned(seq, nextRtpSequenceNumber, false)) {
 				return false;
 			}
 			
@@ -88,11 +88,15 @@ public class RtpReorderQueue {
 	}
 	
 	private RtpQueueEntry getEntryByLowestSeq() {
-		short nextSeq = Short.MAX_VALUE;
-		RtpQueueEntry lowestSeqEntry = null;
+		if (queue.isEmpty()) {
+			return null;
+		}
+		
+		RtpQueueEntry lowestSeqEntry = queue.getFirst();
+		short nextSeq = lowestSeqEntry.sequenceNumber;
 		
 		for (RtpQueueEntry entry : queue) {
-			if (entry.sequenceNumber < nextSeq) {
+			if (SequenceHelper.isBeforeSigned(entry.sequenceNumber, nextSeq, true)) {
 				lowestSeqEntry = entry;
 				nextSeq = entry.sequenceNumber;
 			}
@@ -140,7 +144,7 @@ public class RtpReorderQueue {
 	
 	public RtpQueueStatus addPacket(RtpPacketFields packet) {
 		if (nextRtpSequenceNumber != Short.MAX_VALUE &&
-			packet.getRtpSequenceNumber() < nextRtpSequenceNumber) {
+			SequenceHelper.isBeforeSigned(packet.getRtpSequenceNumber(), nextRtpSequenceNumber, false)) {
 			// Reject packets behind our current sequence number
 			return RtpQueueStatus.REJECTED;
 		}

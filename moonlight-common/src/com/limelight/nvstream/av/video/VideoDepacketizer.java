@@ -7,6 +7,7 @@ import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 import com.limelight.nvstream.av.PopulatedBufferList;
+import com.limelight.nvstream.av.SequenceHelper;
 
 public class VideoDepacketizer {
 	
@@ -232,12 +233,12 @@ public class VideoDepacketizer {
 		
 		// Drop duplicates or re-ordered packets
 		int streamPacketIndex = packet.getStreamPacketIndex();
-		if (streamPacketIndex < (int)(lastPacketInStream + 1)) {
+		if (SequenceHelper.isBeforeSigned((short)streamPacketIndex, (short)(lastPacketInStream + 1), false)) {
 			return;
 		}
 		
 		// Drop packets from a previously completed frame
-		if (frameIndex < nextFrameNumber) {
+		if (SequenceHelper.isBeforeSigned(frameIndex, nextFrameNumber, false)) {
 			return;
 		}
 		
@@ -279,7 +280,7 @@ public class VideoDepacketizer {
 		// miss one in between
 		else if (firstPacket) {
 			// Make sure this is the next consecutive frame
-			if (nextFrameNumber < frameIndex) {
+			if (SequenceHelper.isBeforeSigned(nextFrameNumber, frameIndex, true)) {
 				LimeLog.warning("Network dropped an entire frame");
 				nextFrameNumber = frameIndex;
 				
@@ -287,7 +288,7 @@ public class VideoDepacketizer {
 				waitingForNextSuccessfulFrame = true;
 				dropAvcFrameState();
 			}
-			else if (nextFrameNumber > frameIndex){
+			else if (nextFrameNumber != frameIndex) {
 				// Duplicate packet or FEC dup
 				decodingFrame = false;
 				return;

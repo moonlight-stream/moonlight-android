@@ -297,8 +297,8 @@ public class ControllerHandler {
 				R2 = (R2 + 1) / 2;
 			}
 			
-			leftTrigger = (byte)Math.round(L2 * 0xFF);
-			rightTrigger = (byte)Math.round(R2 * 0xFF);
+			leftTrigger = (byte)(L2 * 0xFF);
+			rightTrigger = (byte)(R2 * 0xFF);
 		}
 
 		// Hats emulate d-pad events

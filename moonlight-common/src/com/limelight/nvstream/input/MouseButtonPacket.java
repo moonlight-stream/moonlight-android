@@ -5,8 +5,8 @@ import java.nio.ByteOrder;
 
 public class MouseButtonPacket extends InputPacket {
 	
-	private byte buttonEventType;
-	private byte mouseButton;
+	byte buttonEventType;
+	byte mouseButton;
 	
 	public static final int PACKET_TYPE = 0x5;
 	public static final int PAYLOAD_LENGTH = 5;

@@ -46,13 +46,13 @@ public class ControllerPacket extends InputPacket {
 		public static final short PACKET_LENGTH = PAYLOAD_LENGTH +
 				InputPacket.HEADER_LENGTH;
 		
-		private short buttonFlags;
-		private byte leftTrigger;
-		private byte rightTrigger;
-		private short leftStickX;
-		private short leftStickY;
-		private short rightStickX;
-		private short rightStickY;
+		short buttonFlags;
+		byte leftTrigger;
+		byte rightTrigger;
+		short leftStickX;
+		short leftStickY;
+		short rightStickX;
+		short rightStickY;
 		
 		public ControllerPacket(short buttonFlags, byte leftTrigger, byte rightTrigger,
 				 short leftStickX, short leftStickY,

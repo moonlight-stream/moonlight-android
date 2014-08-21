@@ -17,8 +17,8 @@ public class MouseMovePacket extends InputPacket {
 	public static final int PACKET_LENGTH = PAYLOAD_LENGTH +
 		InputPacket.HEADER_LENGTH;
 	
-	private short deltaX;
-	private short deltaY;
+	short deltaX;
+	short deltaY;
 	
 	public MouseMovePacket(short deltaX, short deltaY)
 	{

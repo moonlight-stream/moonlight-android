@@ -5,9 +5,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -25,7 +22,7 @@ import com.limelight.nvstream.http.LimelightCryptoProvider;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.http.PairingManager;
-import com.limelight.nvstream.input.NvController;
+import com.limelight.nvstream.input.ControllerStream;
 import com.limelight.nvstream.rtsp.RtspConnection;
 
 public class NvConnection {
@@ -37,7 +34,7 @@ public class NvConnection {
 	
 	private InetAddress hostAddr;
 	private ControlStream controlStream;
-	private NvController inputStream;
+	private ControllerStream inputStream;
 	private VideoStream videoStream;
 	private AudioStream audioStream;
 	
@@ -49,8 +46,6 @@ public class NvConnection {
 	private String localDeviceName;
 	private SecretKey riKey;
 	private int riKeyId;
-	
-	private ThreadPoolExecutor threadPool;
 	
 	public NvConnection(String host, String uniqueId, NvConnectionListener listener, StreamConfiguration config, LimelightCryptoProvider cryptoProvider)
 	{
@@ -69,9 +64,6 @@ public class NvConnection {
 		}
 		
 		this.riKeyId = generateRiKeyId();
-		
-		this.threadPool = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS,
-				new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.DiscardPolicy());
 	}
 	
 	private static SecretKey generateRiAesKey() throws NoSuchAlgorithmException {
@@ -89,8 +81,6 @@ public class NvConnection {
 	
 	public void stop()
 	{
-		threadPool.shutdownNow();
-		
 		if (videoStream != null) {
 			videoStream.abort();
 		}
@@ -103,7 +93,7 @@ public class NvConnection {
 		}
 		
 		if (inputStream != null) {
-			inputStream.close();
+			inputStream.abort();
 			inputStream = null;
 		}
 	}
@@ -222,8 +212,9 @@ public class NvConnection {
 		// it to the instance variable once the object is properly initialized.
 		// This avoids the race where inputStream != null but inputStream.initialize()
 		// has not returned yet.
-		NvController tempController = new NvController(hostAddr, riKey, riKeyId);
+		ControllerStream tempController = new ControllerStream(hostAddr, riKey, riKeyId, listener);
 		tempController.initialize();
+		tempController.start();
 		inputStream = tempController;
 		return true;
 	}
@@ -306,15 +297,7 @@ public class NvConnection {
 		if (inputStream == null)
 			return;
 		
-		threadPool.execute(new Runnable() {
-			public void run() {
-				try {
-					inputStream.sendMouseMove(deltaX, deltaY);
-				} catch (IOException e) {
-					listener.connectionTerminated(e);
-				}
-			}
-		});
+		inputStream.sendMouseMove(deltaX, deltaY);
 	}
 	
 	public void sendMouseButtonDown(final byte mouseButton)
@@ -322,15 +305,7 @@ public class NvConnection {
 		if (inputStream == null)
 			return;
 		
-		threadPool.execute(new Runnable() {
-			public void run() {
-				try {
-					inputStream.sendMouseButtonDown(mouseButton);
-				} catch (IOException e) {
-					listener.connectionTerminated(e);
-				}
-			}
-		});
+		inputStream.sendMouseButtonDown(mouseButton);
 	}
 	
 	public void sendMouseButtonUp(final byte mouseButton)
@@ -338,15 +313,7 @@ public class NvConnection {
 		if (inputStream == null)
 			return;
 		
-		threadPool.execute(new Runnable() {
-			public void run() {
-				try {
-					inputStream.sendMouseButtonUp(mouseButton);
-				} catch (IOException e) {
-					listener.connectionTerminated(e);
-				}
-			}
-		});
+		inputStream.sendMouseButtonUp(mouseButton);
 	}
 	
 	public void sendControllerInput(final short buttonFlags,
@@ -357,31 +324,15 @@ public class NvConnection {
 		if (inputStream == null)
 			return;
 		
-		threadPool.execute(new Runnable() {
-			public void run() {
-				try {
-					inputStream.sendControllerInput(buttonFlags, leftTrigger,
-							rightTrigger, leftStickX, leftStickY,
-							rightStickX, rightStickY);
-				} catch (IOException e) {
-					listener.connectionTerminated(e);
-				}
-			}
-		});
+		inputStream.sendControllerInput(buttonFlags, leftTrigger,
+				rightTrigger, leftStickX, leftStickY,
+				rightStickX, rightStickY);
 	}
 	
 	public void sendKeyboardInput(final short keyMap, final byte keyDirection, final byte modifier) {
 		if (inputStream == null)
 			return;
 		
-		threadPool.execute(new Runnable() {
-			public void run() {
-				try {
-					inputStream.sendKeyboardInput(keyMap, keyDirection, modifier);
-				} catch (IOException e) {
-					listener.connectionTerminated(e);
-				}
-			}
-		});
+		inputStream.sendKeyboardInput(keyMap, keyDirection, modifier);
 	}
 }

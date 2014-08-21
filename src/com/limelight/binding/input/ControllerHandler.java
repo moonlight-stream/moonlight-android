@@ -274,8 +274,8 @@ public class ControllerHandler {
 			Vector2d leftStickVector = handleDeadZone(event.getAxisValue(mapping.leftStickXAxis),
 					event.getAxisValue(mapping.leftStickYAxis), mapping.leftStickDeadzoneRadius);
 			
-			leftStickX = (short)Math.round(leftStickVector.getX() * 0x7FFF);
-			leftStickY = (short)Math.round(-leftStickVector.getY() * 0x7FFF);
+			leftStickX = (short)(leftStickVector.getX() * 0x7FFE);
+			leftStickY = (short)(-leftStickVector.getY() * 0x7FFE);
 		}
 		
 		// Handle right stick events outside of the deadzone
@@ -283,8 +283,8 @@ public class ControllerHandler {
 			Vector2d rightStickVector = handleDeadZone(event.getAxisValue(mapping.rightStickXAxis),
 					event.getAxisValue(mapping.rightStickYAxis), mapping.rightStickDeadzoneRadius);
 			
-			rightStickX = (short)Math.round(rightStickVector.getX() * 0x7FFF);
-			rightStickY = (short)Math.round(-rightStickVector.getY() * 0x7FFF);	
+			rightStickX = (short)(rightStickVector.getX() * 0x7FFE);
+			rightStickY = (short)(-rightStickVector.getY() * 0x7FFE);	
 		}
 		
 		// Handle controllers with analog triggers

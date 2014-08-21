@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.ControllerPacket;
+import com.limelight.utils.Vector2d;
 
 public class ControllerHandler {
 	private short inputMap = 0x0000;
@@ -36,6 +37,9 @@ public class ControllerHandler {
 	
 	private static final int EMULATED_SPECIAL_UP_DELAY_MS = 100;
 	private static final int EMULATED_SELECT_UP_DELAY_MS = 30;
+	
+	private Vector2d inputVector = new Vector2d();
+	private Vector2d normalizedInputVector = new Vector2d();
 	
 	private HashMap<String, ControllerMapping> mappings = new HashMap<String, ControllerMapping>();
 	
@@ -129,22 +133,16 @@ public class ControllerHandler {
 		if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
 			InputDevice.MotionRange lsXRange = dev.getMotionRange(mapping.leftStickXAxis);
 			InputDevice.MotionRange lsYRange = dev.getMotionRange(mapping.leftStickYAxis);
-			if (lsXRange != null) {
-				mapping.leftStickXAxisDeadzone = lsXRange.getFlat();
-			}
-			if (lsYRange != null) {
-				mapping.leftStickYAxisDeadzone = lsYRange.getFlat();
+			if (lsXRange != null && lsYRange != null) {
+				mapping.leftStickDeadzoneRadius = Math.max(lsXRange.getFlat(), lsYRange.getFlat());
 			}
 		}
 		
 		if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
 			InputDevice.MotionRange rsXRange = dev.getMotionRange(mapping.rightStickXAxis);
 			InputDevice.MotionRange rsYRange = dev.getMotionRange(mapping.rightStickYAxis);
-			if (rsXRange != null) {
-				mapping.rightStickXAxisDeadzone = rsXRange.getFlat();
-			}
-			if (rsYRange != null) {
-				mapping.rightStickYAxisDeadzone = rsYRange.getFlat();
+			if (rsXRange != null && rsYRange != null) {
+				mapping.rightStickDeadzoneRadius = Math.max(rsXRange.getFlat(), rsYRange.getFlat());
 			}
 		}
 		
@@ -232,6 +230,39 @@ public class ControllerHandler {
 		return keyCode;
 	}
 	
+	private Vector2d handleDeadZone(float x, float y, float deadzoneRadius) {
+		// Reinitialize our cached Vector2d object
+		inputVector.initialize(x, y);
+		
+		if (inputVector.getMagnitude() <= deadzoneRadius) {
+			// Deadzone -- return the zero vector
+			return Vector2d.ZERO;
+		}
+		else {			
+			// Scale the input based on the distance from the deadzone
+			inputVector.getNormalized(normalizedInputVector);
+			normalizedInputVector.scalarMultiply((inputVector.getMagnitude() - deadzoneRadius) / (1.0f - deadzoneRadius));
+			
+			// Bound the X value to -1.0 to 1.0
+			if (normalizedInputVector.getX() > 1.0f) {
+				normalizedInputVector.setX(1.0f);
+			}
+			else if (normalizedInputVector.getX() < -1.0f) {
+				normalizedInputVector.setX(-1.0f);
+			}
+			
+			// Bound the Y value to -1.0 to 1.0
+			if (normalizedInputVector.getY() > 1.0f) {
+				normalizedInputVector.setY(1.0f);
+			}
+			else if (normalizedInputVector.getY() < -1.0f) {
+				normalizedInputVector.setY(-1.0f);
+			}
+			
+			return normalizedInputVector;
+		}
+	}
+	
 	public boolean handleMotionEvent(MotionEvent event) {
 		ControllerMapping mapping = getMappingForDevice(event.getDevice());
 		if (mapping == null) {
@@ -240,30 +271,20 @@ public class ControllerHandler {
 		
 		// Handle left stick events outside of the deadzone
 		if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
-			float LS_X = event.getAxisValue(mapping.leftStickXAxis);
-			float LS_Y = event.getAxisValue(mapping.leftStickYAxis);
-			if (LS_X >= -mapping.leftStickXAxisDeadzone && LS_X <= mapping.leftStickXAxisDeadzone) {
-				LS_X = 0;
-			}
-			if (LS_Y >= -mapping.leftStickYAxisDeadzone && LS_Y <= mapping.leftStickYAxisDeadzone) {
-				LS_Y = 0;
-			}
-			leftStickX = (short)Math.round(LS_X * 0x7FFF);
-			leftStickY = (short)Math.round(-LS_Y * 0x7FFF);
+			Vector2d leftStickVector = handleDeadZone(event.getAxisValue(mapping.leftStickXAxis),
+					event.getAxisValue(mapping.leftStickYAxis), mapping.leftStickDeadzoneRadius);
+			
+			leftStickX = (short)Math.round(leftStickVector.getX() * 0x7FFF);
+			leftStickY = (short)Math.round(-leftStickVector.getY() * 0x7FFF);
 		}
 		
 		// Handle right stick events outside of the deadzone
 		if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
-			float RS_X = event.getAxisValue(mapping.rightStickXAxis);
-			float RS_Y = event.getAxisValue(mapping.rightStickYAxis);
-			if (RS_X >= -mapping.rightStickXAxisDeadzone && RS_X <= mapping.rightStickXAxisDeadzone) {
-				RS_X = 0;
-			}
-			if (RS_Y >= -mapping.rightStickYAxisDeadzone && RS_Y <= mapping.rightStickYAxisDeadzone) {
-				RS_Y = 0;
-			}
-			rightStickX = (short)Math.round(RS_X * 0x7FFF);
-			rightStickY = (short)Math.round(-RS_Y * 0x7FFF);	
+			Vector2d rightStickVector = handleDeadZone(event.getAxisValue(mapping.rightStickXAxis),
+					event.getAxisValue(mapping.rightStickYAxis), mapping.rightStickDeadzoneRadius);
+			
+			rightStickX = (short)Math.round(rightStickVector.getX() * 0x7FFF);
+			rightStickY = (short)Math.round(-rightStickVector.getY() * 0x7FFF);	
 		}
 		
 		// Handle controllers with analog triggers
@@ -527,17 +548,13 @@ public class ControllerHandler {
 	}
 	
 	class ControllerMapping {
-		public int leftStickXAxis = -1;
-		public float leftStickXAxisDeadzone;
-		
+		public int leftStickXAxis = -1;		
 		public int leftStickYAxis = -1;
-		public float leftStickYAxisDeadzone;
+		public float leftStickDeadzoneRadius;
 
 		public int rightStickXAxis = -1;
-		public float rightStickXAxisDeadzone;
-
 		public int rightStickYAxis = -1;
-		public float rightStickYAxisDeadzone;
+		public float rightStickDeadzoneRadius;
 		
 		public int leftTriggerAxis = -1;
 		public int rightTriggerAxis = -1;

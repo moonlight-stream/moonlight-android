@@ -36,7 +36,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private final static byte[] BITSTREAM_RESTRICTIONS = new byte[] {(byte) 0xF1, (byte) 0x83, 0x2A, 0x00};
 	
 	public static final List<String> blacklistedDecoderPrefixes;
-	public static final List<String> spsFixupBitsreamFixupDecoderPrefixes;
+	public static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
 	public static final List<String> spsFixupNumRefFixupDecoderPrefixes;
 	
 	static {
@@ -46,13 +46,15 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	}
 	
 	static {
-		spsFixupBitsreamFixupDecoderPrefixes = new LinkedList<String>();
-		spsFixupBitsreamFixupDecoderPrefixes.add("omx.nvidia");
-		spsFixupBitsreamFixupDecoderPrefixes.add("omx.qcom");
+		spsFixupBitstreamFixupDecoderPrefixes = new LinkedList<String>();
+		spsFixupBitstreamFixupDecoderPrefixes.add("omx.nvidia");
+		spsFixupBitstreamFixupDecoderPrefixes.add("omx.qcom");
+		spsFixupBitstreamFixupDecoderPrefixes.add("omx.sec");
 		
 		spsFixupNumRefFixupDecoderPrefixes = new LinkedList<String>();
 		spsFixupNumRefFixupDecoderPrefixes.add("omx.TI");
 		spsFixupNumRefFixupDecoderPrefixes.add("omx.qcom");
+		spsFixupNumRefFixupDecoderPrefixes.add("omx.sec");
 	}
 	
 	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
@@ -137,7 +139,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			MediaCodecInfo safeDecoder = findSafeDecoder();
 			if (safeDecoder != null) {
 				videoDecoder = MediaCodec.createByCodecName(safeDecoder.getName());
-				needsSpsBitstreamFixup = isDecoderInList(spsFixupBitsreamFixupDecoderPrefixes, safeDecoder.getName());
+				needsSpsBitstreamFixup = isDecoderInList(spsFixupBitstreamFixupDecoderPrefixes, safeDecoder.getName());
 				needsSpsNumRefFixup = isDecoderInList(spsFixupNumRefFixupDecoderPrefixes, safeDecoder.getName());
 				if (needsSpsBitstreamFixup) {
 					LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS bitstream restrictions fixup");

@@ -4,12 +4,14 @@ package com.limelight;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
+import com.limelight.binding.input.TouchContext;
 import com.limelight.binding.video.ConfigurableDecoderRenderer;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.input.KeyboardPacket;
+import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 
@@ -42,9 +44,9 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	private int lastMouseX = Integer.MIN_VALUE;
 	private int lastMouseY = Integer.MIN_VALUE;
 	private int lastButtonState = 0;
-	private int lastTouchX = 0;
-	private int lastTouchY = 0;
-	private boolean hasMoved = false;
+	
+	// Only 2 touches are supported
+	private TouchContext[] touchContextMap = new TouchContext[2];
 	
 	private ControllerHandler controllerHandler;
 	private KeyboardTranslator keybTranslator;
@@ -178,7 +180,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		String app = Game.this.getIntent().getStringExtra(EXTRA_APP);
 		String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
         
-		// Start the connection
+		// Initialize the connection
 		conn = new NvConnection(host, uniqueId, Game.this,
 				new StreamConfiguration(app, width, height, refreshRate, bitrate * 1000, sops),
 				PlatformBinding.getCryptoProvider(this));
@@ -192,6 +194,11 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		if (stretchToFit || !decoderRenderer.isHardwareAccelerated()) {
 			// Set the surface to the size of the video
 			sh.setFixedSize(width, height);
+		}
+		
+		// Initialize touch contexts
+		for (int i = 0; i < touchContextMap.length; i++) {
+			touchContextMap[i] = new TouchContext(conn, i);
 		}
 		
 		// The connection will be started when the surface gets created
@@ -368,43 +375,13 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		return true;
 	}
 	
-	public void touchDownEvent(int eventX, int eventY)
-	{
-		lastTouchX = eventX;
-		lastTouchY = eventY;
-		hasMoved = false;
-	}
-	
-	public void touchUpEvent(int eventX, int eventY)
-	{
-		if (!hasMoved)
-		{
-			// We haven't moved so send a click
-
-			// Lower the mouse button
-			conn.sendMouseButtonDown((byte) 0x01);
-			
-			// We need to sleep a bit here because some games
-			// do input detection by polling
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {}
-			
-			// Raise the mouse button
-			conn.sendMouseButtonUp((byte) 0x01);
+	private TouchContext getTouchContext(int actionIndex)
+	{	
+		if (actionIndex < touchContextMap.length) {
+			return touchContextMap[actionIndex];
 		}
-	}
-	
-	public void touchMoveEvent(int eventX, int eventY)
-	{
-		if (eventX != lastTouchX || eventY != lastTouchY)
-		{
-			hasMoved = true;
-			conn.sendMouseMove((short)(eventX - lastTouchX),
-					(short)(eventY - lastTouchY));
-			
-			lastTouchX = eventX;
-			lastTouchY = eventY;
+		else {
+			return null;
 		}
 	}
 	
@@ -416,19 +393,36 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			if (event.getSource() == InputDevice.SOURCE_TOUCHSCREEN ||
 				event.getSource() == InputDevice.SOURCE_STYLUS)
 			{
-				int eventX = (int)event.getX();
-				int eventY = (int)event.getY();
+				int actionIndex = event.getActionIndex();
 				
+				int eventX = (int)event.getX(actionIndex);
+				int eventY = (int)event.getY(actionIndex);
+				
+				TouchContext context = getTouchContext(actionIndex);
+				if (context == null) {
+					return super.onTouchEvent(event);
+				}
+								
 				switch (event.getActionMasked())
 				{
+				case MotionEvent.ACTION_POINTER_DOWN:
 				case MotionEvent.ACTION_DOWN:
-					touchDownEvent(eventX, eventY);
+					context.touchDownEvent(eventX, eventY);
 					break;
+				case MotionEvent.ACTION_POINTER_UP:
 				case MotionEvent.ACTION_UP:
-					touchUpEvent(eventX, eventY);
+					context.touchUpEvent(eventX, eventY);
+					if (actionIndex == 0 && event.getPointerCount() > 1) {
+						// The original secondary touch now becomes primary
+						context.touchDownEvent((int)event.getX(1), (int)event.getY(1));
+					}
 					break;
 				case MotionEvent.ACTION_MOVE:
-					touchMoveEvent(eventX, eventY);
+					// ACTION_MOVE is special because it always has actionIndex == 0
+					// We'll call the move handlers for all indexes manually
+					for (int i = 0; i < touchContextMap.length; i++) {
+						touchContextMap[i].touchMoveEvent(eventX, eventY);
+					}
 					break;
 				default:
 					return super.onTouchEvent(event);
@@ -441,28 +435,28 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 				
 				if ((changedButtons & MotionEvent.BUTTON_PRIMARY) != 0) {
 					if ((event.getButtonState() & MotionEvent.BUTTON_PRIMARY) != 0) {
-						conn.sendMouseButtonDown((byte) 0x01);
+						conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_LEFT);
 					}
 					else {
-						conn.sendMouseButtonUp((byte) 0x01);
+						conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_LEFT);
 					}
 				}
 				
 				if ((changedButtons & MotionEvent.BUTTON_SECONDARY) != 0) {
 					if ((event.getButtonState() & MotionEvent.BUTTON_SECONDARY) != 0) {
-						conn.sendMouseButtonDown((byte) 0x03);
+						conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
 					}
 					else {
-						conn.sendMouseButtonUp((byte) 0x03);
+						conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
 					}
 				}
 				
 				if ((changedButtons & MotionEvent.BUTTON_TERTIARY) != 0) {
 					if ((event.getButtonState() & MotionEvent.BUTTON_TERTIARY) != 0) {
-						conn.sendMouseButtonDown((byte) 0x02);
+						conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_MIDDLE);
 					}
 					else {
-						conn.sendMouseButtonUp((byte) 0x02);
+						conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_MIDDLE);
 					}
 				}
 				

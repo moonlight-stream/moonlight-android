@@ -547,8 +547,10 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 
 	@Override
 	public void stageFailed(Stage stage) {
-		spinner.dismiss();
-		spinner = null;
+		if (spinner != null) {
+			spinner.dismiss();
+			spinner = null;
+		}
 
 		if (!displayedFailureDialog) {
 			displayedFailureDialog = true;
@@ -571,8 +573,10 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 
 	@Override
 	public void connectionStarted() {
-		spinner.dismiss();
-		spinner = null;
+		if (spinner != null) {
+			spinner.dismiss();
+			spinner = null;
+		}
 		
 		connecting = false;
 		connected = true;

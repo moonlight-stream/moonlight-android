@@ -1,7 +1,7 @@
 package com.limelight.binding.input.evdev;
 
 public class EvdevEvent {
-	public static final int EVDEV_MIN_EVENT_SIZE = 18;
+	public static final int EVDEV_MIN_EVENT_SIZE = 16;
 	public static final int EVDEV_MAX_EVENT_SIZE = 24;
 	
 	/* Event types */

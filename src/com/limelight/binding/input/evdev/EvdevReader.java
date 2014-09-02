@@ -1,5 +1,7 @@
 package com.limelight.binding.input.evdev;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import com.limelight.LimeLog;
@@ -10,7 +12,29 @@ public class EvdevReader {
 	}
 	
 	// Requires root to chmod /dev/input/eventX
-	public static native boolean setPermissions(String fileName, int octalPermissions);
+	public static boolean setPermissions(int octalPermissions) {
+		String chmodString = String.format("chmod %o /dev/input/*\n", octalPermissions);
+		
+		ProcessBuilder builder = new ProcessBuilder("su");
+		
+		try {
+			Process p = builder.start();
+			
+			OutputStream stdin = p.getOutputStream();
+			stdin.write(chmodString.getBytes("UTF-8"));
+			stdin.write("exit\n".getBytes("UTF-8"));
+			stdin.flush();
+			
+			p.waitFor();
+			p.destroy();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
 	
 	// Returns the fd to be passed to other function or -1 on error
 	public static native int open(String fileName);

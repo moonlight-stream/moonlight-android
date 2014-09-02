@@ -3,6 +3,8 @@ package com.limelight.binding.input.evdev;
 import java.io.File;
 import java.util.HashMap;
 
+import com.limelight.LimeLog;
+
 import android.os.FileObserver;
 
 public class EvdevWatcher {
@@ -16,6 +18,10 @@ public class EvdevWatcher {
 	private FileObserver observer = new FileObserver(PATH, FileObserver.CREATE | FileObserver.DELETE) {
 		@Override
 		public void onEvent(int event, String fileName) {
+			if (fileName == null) {
+				return;
+			}
+			
 			if (!fileName.startsWith(REQUIRED_FILE_PREFIX)) {
 				return;
 			}
@@ -26,6 +32,8 @@ public class EvdevWatcher {
 				}
 				
 				if ((event & FileObserver.CREATE) != 0) {
+					LimeLog.info("Starting evdev handler for "+fileName);
+					
 					EvdevHandler handler = new EvdevHandler(PATH + "/" + fileName, listener);
 					handler.start();
 					
@@ -33,6 +41,8 @@ public class EvdevWatcher {
 				}
 				
 				if ((event & FileObserver.DELETE) != 0) {
+					LimeLog.info("Halting evdev handler for "+fileName);
+					
 					EvdevHandler handler = handlers.get(fileName);
 					if (handler != null) {
 						handler.notifyDeleted();

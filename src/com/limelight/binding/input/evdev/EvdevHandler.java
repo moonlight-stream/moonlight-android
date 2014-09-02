@@ -44,6 +44,8 @@ public class EvdevHandler {
 						return;
 					}
 					
+					LimeLog.info("Grabbed device for raw mouse input: "+absolutePath);
+					
 					ByteBuffer buffer = ByteBuffer.allocate(EvdevEvent.EVDEV_MAX_EVENT_SIZE);
 					
 					try {

@@ -45,7 +45,7 @@ Java_com_limelight_binding_input_evdev_EvdevReader_isMouse(JNIEnv *env, jobject 
 }
 
 JNIEXPORT jint JNICALL
-Java_com_limelight_binding_input_evdev_EvdevReader_read(JNIEnv *env, jint fd, jbyteArray buffer) {
+Java_com_limelight_binding_input_evdev_EvdevReader_read(JNIEnv *env, jobject this, jint fd, jbyteArray buffer) {
     jint ret;
     jbyte *data = (*env)->GetByteArrayElements(env, buffer, NULL);
     if (data == NULL) {

@@ -5,6 +5,10 @@ import java.nio.ByteBuffer;
 import com.limelight.LimeLog;
 
 public class EvdevReader {
+	static {
+		System.loadLibrary("evdev_reader");
+	}
+	
 	// Requires root to chmod /dev/input/eventX
 	public static native boolean setPermissions(String fileName, int octalPermissions);
 	

@@ -49,13 +49,14 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int config720p30Selected=0x7f08000f;
         public static final int config720p60Selected=0x7f080010;
         public static final int decoderConfigGroup=0x7f080002;
+        public static final int disableToasts=0x7f080014;
         public static final int discoveryText=0x7f08000b;
-        public static final int enableSops=0x7f080014;
+        public static final int enableSops=0x7f080016;
         public static final int hardwareDec=0x7f080005;
         public static final int hostTextView=0x7f080000;
         public static final int manuallyAddPc=0x7f08000c;
         public static final int pcListView=0x7f080008;
-        public static final int rowTextView=0x7f080016;
+        public static final int rowTextView=0x7f080017;
         public static final int settingsButton=0x7f08000d;
         public static final int softwareDec=0x7f080003;
         public static final int streamConfigGroup=0x7f08000e;

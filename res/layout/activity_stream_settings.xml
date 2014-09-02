@@ -54,7 +54,7 @@
             android:id="@+id/advancedSettingsButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/enableSops"
+            android:layout_below="@+id/disableToasts"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="15dp"
             android:text="Advanced Settings" />
@@ -74,6 +74,14 @@
             android:layout_below="@+id/stretchToFill"
             android:layout_marginTop="15dp"
             android:text="Allow GFE to modify game settings for optimal streaming" />
+        
+        <CheckBox
+            android:id="@+id/disableToasts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/enableSops"
+            android:layout_marginTop="15dp"
+            android:text="Disable on-screen connection warning messages" />
 
     </RelativeLayout>
 	

@@ -19,7 +19,7 @@ public class StreamSettings extends Activity {
 	private Button advancedSettingsButton;
 	private SharedPreferences prefs;
 	private RadioButton rbutton720p30, rbutton720p60, rbutton1080p30, rbutton1080p60;
-	private CheckBox stretchToFill, enableSops;
+	private CheckBox stretchToFill, enableSops, toastsDisabled;
 	
 	@Override
 	protected void onStop() {
@@ -36,6 +36,7 @@ public class StreamSettings extends Activity {
 		
 		this.stretchToFill = (CheckBox) findViewById(R.id.stretchToFill);
 		this.enableSops = (CheckBox) findViewById(R.id.enableSops);
+		this.toastsDisabled = (CheckBox) findViewById(R.id.disableToasts);
 		this.advancedSettingsButton = (Button) findViewById(R.id.advancedSettingsButton);
 		this.rbutton720p30 = (RadioButton) findViewById(R.id.config720p30Selected);
 		this.rbutton720p60 = (RadioButton) findViewById(R.id.config720p60Selected);
@@ -49,6 +50,7 @@ public class StreamSettings extends Activity {
 
 		stretchToFill.setChecked(prefs.getBoolean(Game.STRETCH_PREF_STRING, Game.DEFAULT_STRETCH));
 		enableSops.setChecked(prefs.getBoolean(Game.SOPS_PREF_STRING, Game.DEFAULT_SOPS));
+		toastsDisabled.setChecked(prefs.getBoolean(Game.DISABLE_TOASTS_PREF_STRING, Game.DEFAULT_DISABLE_TOASTS));
 		
 		rbutton720p30.setChecked(false);
 		rbutton720p60.setChecked(false);
@@ -130,6 +132,13 @@ public class StreamSettings extends Activity {
 			public void onCheckedChanged(CompoundButton buttonView,
 					boolean isChecked) {
 				prefs.edit().putBoolean(Game.SOPS_PREF_STRING, isChecked).commit();
+			}
+		});
+		toastsDisabled.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView,
+					boolean isChecked) {
+				prefs.edit().putBoolean(Game.DISABLE_TOASTS_PREF_STRING, isChecked).commit();
 			}
 		});
 	}

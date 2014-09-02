@@ -37,6 +37,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
 import android.widget.Toast;
 
 
@@ -62,6 +63,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	private boolean connected = false;
 	
 	private boolean stretchToFit;
+	private boolean toastsDisabled;
 	
 	private ConfigurableDecoderRenderer decoderRenderer;
 	
@@ -83,6 +85,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final String BITRATE_PREF_STRING = "Bitrate";
 	public static final String STRETCH_PREF_STRING = "Stretch";
 	public static final String SOPS_PREF_STRING = "Sops";
+	public static final String DISABLE_TOASTS_PREF_STRING = "NoToasts";
 	
 	public static final int BITRATE_DEFAULT_720_30 = 5;
 	public static final int BITRATE_DEFAULT_720_60 = 10;
@@ -96,6 +99,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	public static final int DEFAULT_BITRATE = BITRATE_DEFAULT_720_60;
 	public static final boolean DEFAULT_STRETCH = false;
 	public static final boolean DEFAULT_SOPS = true;
+	public static final boolean DEFAULT_DISABLE_TOASTS = false;
 	
 	public static final int FORCE_HARDWARE_DECODER = -1;
 	public static final int AUTOSELECT_DECODER = 0;
@@ -158,6 +162,7 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		refreshRate = prefs.getInt(REFRESH_RATE_PREF_STRING, DEFAULT_REFRESH_RATE);
 		bitrate = prefs.getInt(BITRATE_PREF_STRING, DEFAULT_BITRATE);
 		sops = prefs.getBoolean(SOPS_PREF_STRING, DEFAULT_SOPS);
+		toastsDisabled = prefs.getBoolean(DISABLE_TOASTS_PREF_STRING, DEFAULT_DISABLE_TOASTS);
 		
 		Display display = getWindowManager().getDefaultDisplay();
 		display.getSize(screenSize);
@@ -590,12 +595,14 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 
 	@Override
 	public void displayTransientMessage(final String message) {
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				Toast.makeText(Game.this, message, Toast.LENGTH_LONG).show();
-			}
-		});
+		if (!toastsDisabled) {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Toast.makeText(Game.this, message, Toast.LENGTH_LONG).show();
+				}
+			});	
+		}
 	}
 
 	@Override

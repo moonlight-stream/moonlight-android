@@ -5,6 +5,8 @@ import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.input.TouchContext;
+import com.limelight.binding.input.evdev.EvdevListener;
+import com.limelight.binding.input.evdev.EvdevWatcher;
 import com.limelight.binding.video.ConfigurableDecoderRenderer;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
@@ -40,7 +42,9 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 
-public class Game extends Activity implements SurfaceHolder.Callback, OnGenericMotionListener, OnTouchListener, NvConnectionListener {
+public class Game extends Activity implements SurfaceHolder.Callback,
+	OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener
+{
 	private int lastMouseX = Integer.MIN_VALUE;
 	private int lastMouseY = Integer.MIN_VALUE;
 	private int lastButtonState = 0;
@@ -63,6 +67,8 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 	
 	private boolean stretchToFit;
 	private boolean toastsDisabled;
+	
+	private EvdevWatcher evdevWatcher;
 	
 	private ConfigurableDecoderRenderer decoderRenderer;
 	
@@ -205,6 +211,12 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 			touchContextMap[i] = new TouchContext(conn, i);
 		}
 		
+		if (LimelightBuildProps.ROOT_BUILD) {
+			// Start watching for raw input
+			evdevWatcher = new EvdevWatcher(this);
+			evdevWatcher.start();
+		}
+		
 		// The connection will be started when the surface gets created
 		sh.addCallback(this);
 	}
@@ -287,6 +299,10 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		
 		if (message != null) {
 			Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+		}
+		
+		if (LimelightBuildProps.ROOT_BUILD) {
+			evdevWatcher.shutdown();
 		}
 
 		finish();
@@ -629,6 +645,39 @@ public class Game extends Activity implements SurfaceHolder.Callback, OnGenericM
 		if (connected) {
 			conn.stop();
 			connected = false;
+		}
+	}
+
+	@Override
+	public void mouseMove(int deltaX, int deltaY) {
+		conn.sendMouseMove((short) deltaX, (short) deltaY);
+	}
+
+	@Override
+	public void mouseButtonEvent(int buttonId, boolean down) {
+		byte buttonIndex;
+		
+		switch (buttonId)
+		{
+		case EvdevListener.BUTTON_LEFT:
+			buttonIndex = MouseButtonPacket.BUTTON_LEFT;
+			break;
+		case EvdevListener.BUTTON_MIDDLE:
+			buttonIndex = MouseButtonPacket.BUTTON_MIDDLE;
+			break;
+		case EvdevListener.BUTTON_RIGHT:
+			buttonIndex = MouseButtonPacket.BUTTON_RIGHT;
+			break;
+		default:
+			LimeLog.warning("Unhandled button: "+buttonId);
+			return;
+		}
+		
+		if (down) {
+			conn.sendMouseButtonDown(buttonIndex);
+		}
+		else {
+			conn.sendMouseButtonUp(buttonIndex);
 		}
 	}
 }

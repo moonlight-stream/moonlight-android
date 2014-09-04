@@ -282,4 +282,9 @@ public class ControllerStream {
 	{
 		queuePacket(new KeyboardPacket(keyMap, keyDirection, modifier));
 	}
+	
+	public void sendMouseScroll(byte scrollClicks)
+	{
+		queuePacket(new MouseScrollPacket(scrollClicks));
+	}
 }

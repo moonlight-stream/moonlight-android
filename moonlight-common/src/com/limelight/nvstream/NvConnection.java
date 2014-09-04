@@ -335,4 +335,11 @@ public class NvConnection {
 		
 		inputStream.sendKeyboardInput(keyMap, keyDirection, modifier);
 	}
+	
+	public void sendMouseScroll(final byte scrollClicks) {
+		if (inputStream == null)
+			return;
+		
+		inputStream.sendMouseScroll(scrollClicks);
+	}
 }

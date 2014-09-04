@@ -38,7 +38,7 @@ public class EvdevWatcher {
 					
 					if (!init) {
 						// If this a real new device, update permissions again so we can read it
-						EvdevReader.setPermissions(0666);
+						EvdevReader.setPermissions(new String[]{PATH + "/" + fileName}, 0666);
 					}
 					
 					EvdevHandler handler = new EvdevHandler(PATH + "/" + fileName, listener);
@@ -63,17 +63,29 @@ public class EvdevWatcher {
 		this.listener = listener;
 	}
 	
+	private File[] rundownWithPermissionsChange(int newPermissions) {
+		// Rundown existing files
+		File devInputDir = new File(PATH);
+		File[] files = devInputDir.listFiles();
+		
+		// Set desired permissions
+		String[] filePaths = new String[files.length];
+		for (int i = 0; i < files.length; i++) {
+			filePaths[i] = files[i].getAbsolutePath();
+		}
+		EvdevReader.setPermissions(filePaths, newPermissions);
+		
+		return files;
+	}
+	
 	public void start() {
 		startThread = new Thread() {
 			@Override
 			public void run() {
-				// Get permissions to read the eventX files
-				EvdevReader.setPermissions(0666);
-				init = true;
+				// List all files and allow us access
+				File[] files = rundownWithPermissionsChange(0666);
 				
-				// Rundown existing files and generate synthetic events
-				File devInputDir = new File(PATH);
-				File[] files = devInputDir.listFiles();
+				init = true;
 				for (File f : files) {
 					observer.onEvent(FileObserver.CREATE, f.getName());
 				}
@@ -92,7 +104,7 @@ public class EvdevWatcher {
 				}
 				
 				// Giveup eventX permissions
-				EvdevReader.setPermissions(0066);
+				rundownWithPermissionsChange(066);
 			}
 		};
 		startThread.start();

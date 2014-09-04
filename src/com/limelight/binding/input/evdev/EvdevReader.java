@@ -12,16 +12,16 @@ public class EvdevReader {
 	}
 	
 	// Requires root to chmod /dev/input/eventX
-	public static boolean setPermissions(int octalPermissions) {
-		String chmodString = String.format("chmod %o /dev/input/*\n", octalPermissions);
-		
+	public static boolean setPermissions(String[] files, int octalPermissions) {		
 		ProcessBuilder builder = new ProcessBuilder("su");
 		
 		try {
 			Process p = builder.start();
 			
 			OutputStream stdin = p.getOutputStream();
-			stdin.write(chmodString.getBytes("UTF-8"));
+			for (String file : files) {
+				stdin.write(String.format("chmod %o %s\n", octalPermissions, file).getBytes("UTF-8"));
+			}
 			stdin.write("exit\n".getBytes("UTF-8"));
 			stdin.flush();
 			

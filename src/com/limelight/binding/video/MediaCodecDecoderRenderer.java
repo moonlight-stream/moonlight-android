@@ -77,7 +77,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		return false;
 	}
 	
-	public static void dumpDecoders() throws Exception {
+	public static String dumpDecoders() throws Exception {
+		String str = "";
 		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
 			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
 			
@@ -86,16 +87,17 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				continue;
 			}
 			
-			LimeLog.info("Decoder: "+codecInfo.getName());
+			str += "Decoder: "+codecInfo.getName()+"\n";
 			for (String type : codecInfo.getSupportedTypes()) {
-				LimeLog.info("\t"+type);
+				str += "\t"+type+"\n";
 				CodecCapabilities caps = codecInfo.getCapabilitiesForType(type);
 				
 				for (CodecProfileLevel profile : caps.profileLevels) {
-					LimeLog.info("\t\t"+profile.profile+" "+profile.level);
+					str += "\t\t"+profile.profile+" "+profile.level+"\n";
 				}
 			}
 		}
+		return str;
 	}
 	
 	private static MediaCodecInfo findFirstDecoder() {
@@ -584,6 +586,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				}
 				str += "\n";
 				str += "Buffer codec flags: "+currentCodecFlags+"\n";
+			}
+			
+			str += "Full decoder dump:\n";
+			try {
+				str += dumpDecoders();
+			} catch (Exception e) {
+				str += e.getMessage();
 			}
 			
 			str += originalException.toString();

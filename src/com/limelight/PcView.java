@@ -13,6 +13,7 @@ import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.http.PairingManager;
 import com.limelight.nvstream.http.PairingManager.PairState;
 import com.limelight.nvstream.wol.WakeOnLanSender;
+import com.limelight.root.R;
 import com.limelight.utils.Dialog;
 
 import android.app.Activity;

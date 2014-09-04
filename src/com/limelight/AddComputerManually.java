@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.computers.ComputerManagerService;
+import com.limelight.root.R;
 import com.limelight.utils.Dialog;
 
 import android.app.Activity;

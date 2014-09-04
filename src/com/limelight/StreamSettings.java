@@ -1,5 +1,6 @@
 package com.limelight;
 
+import com.limelight.root.R;
 import com.limelight.utils.Dialog;
 
 import android.os.Bundle;

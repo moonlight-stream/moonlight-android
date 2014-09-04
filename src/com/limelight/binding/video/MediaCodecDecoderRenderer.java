@@ -163,9 +163,6 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
 		videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
 		videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-		videoDecoder.start();
-
-		videoDecoderInputBuffers = videoDecoder.getInputBuffers();
 		
 		LimeLog.info("Using hardware decoding");
 		
@@ -241,17 +238,26 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	@Override
 	public boolean start(VideoDepacketizer depacketizer) {
 		this.depacketizer = depacketizer;
+		
+		// Start the decoder
+		videoDecoder.start();
+		videoDecoderInputBuffers = videoDecoder.getInputBuffers();
+		
+		// Start the rendering thread
 		startRendererThread();
 		return true;
 	}
 
 	@Override
 	public void stop() {
+		// Halt the rendering thread
 		rendererThread.interrupt();
-
 		try {
 			rendererThread.join();
 		} catch (InterruptedException e) { }
+		
+		// Stop the decoder
+		videoDecoder.stop();
 	}
 
 	@Override

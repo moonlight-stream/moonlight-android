@@ -152,7 +152,7 @@ public class VideoStream {
 		// Setup the decoder and renderer
 		if (!setupDecoderRenderer(decRend, renderTarget, drFlags)) {
 			// Nothing to cleanup here
-			return false;
+			throw new IOException("Video decoder failed to initialize. Please restart your device and try again.");
 		}
 		
 		// Open RTP sockets and start session

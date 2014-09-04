@@ -503,9 +503,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			}		
 		}
 		else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
-		{	
-			// Send a mouse move update (if neccessary)
-			updateMousePosition((int)event.getX(), (int)event.getY());
+		{
+			switch (event.getActionMasked())
+			{
+			case MotionEvent.ACTION_HOVER_MOVE:
+				// Send a mouse move update (if neccessary)
+				updateMousePosition((int)event.getX(), (int)event.getY());
+				break;
+			case MotionEvent.ACTION_SCROLL:
+				// Send the vertical scroll packet
+				byte vScrollClicks = (byte) event.getAxisValue(MotionEvent.AXIS_VSCROLL);
+				conn.sendMouseScroll(vScrollClicks);
+				break;
+			}
 			return true;
 		}
 	    
@@ -679,5 +689,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		else {
 			conn.sendMouseButtonUp(buttonIndex);
 		}
+	}
+
+	@Override
+	public void mouseScroll(byte amount) {
+		conn.sendMouseScroll(amount);
 	}
 }

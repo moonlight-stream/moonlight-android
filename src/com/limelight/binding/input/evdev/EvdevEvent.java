@@ -12,6 +12,7 @@ public class EvdevEvent {
 	/* Relative axes */
 	public static final short REL_X = 0x00;
 	public static final short REL_Y = 0x01;
+	public static final short REL_WHEEL = 0x08;
 	
 	/* Buttons */
 	public static final short BTN_LEFT = 0x110;

@@ -45,6 +45,7 @@ public class EvdevHandler {
 				try {
 					int deltaX = 0;
 					int deltaY = 0;
+					byte deltaScroll = 0;
 
 					while (!isInterrupted() && !shutdown) {
 						EvdevEvent event = EvdevReader.read(fd, buffer);
@@ -59,6 +60,10 @@ public class EvdevHandler {
 								listener.mouseMove(deltaX, deltaY);
 								deltaX = deltaY = 0;
 							}
+							if (deltaScroll != 0) {
+								listener.mouseScroll(deltaScroll);
+								deltaScroll = 0;
+							}
 							break;
 
 						case EvdevEvent.EV_REL:
@@ -69,6 +74,9 @@ public class EvdevHandler {
 								break;
 							case EvdevEvent.REL_Y:
 								deltaY = event.value;
+								break;
+							case EvdevEvent.REL_WHEEL:
+								deltaScroll = (byte) event.value;
 								break;
 							}
 							break;

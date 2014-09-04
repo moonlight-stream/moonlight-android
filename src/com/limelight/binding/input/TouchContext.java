@@ -13,7 +13,7 @@ public class TouchContext {
 	private NvConnection conn;
 	private int actionIndex;
 	
-	private static final int TAP_MOVEMENT_THRESHOLD = 5;
+	private static final int TAP_MOVEMENT_THRESHOLD = 15;
 	private static final int TAP_TIME_THRESHOLD = 500;
 	
 	public TouchContext(NvConnection conn, int actionIndex)

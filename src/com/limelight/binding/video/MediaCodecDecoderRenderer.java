@@ -42,7 +42,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	static {
 		blacklistedDecoderPrefixes = new LinkedList<String>();
 		
-		// Nothing here right now :)
+		// Software decoders that don't support H264 high profile
+		blacklistedDecoderPrefixes.add("omx.google");
+		blacklistedDecoderPrefixes.add("AVCDecoder");
 	}
 	
 	static {
@@ -70,7 +72,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		return false;
 	}
 	
-	public static void dumpDecoders() {
+	public static void dumpDecoders() throws Exception {
 		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
 			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
 			
@@ -90,11 +92,51 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			}
 		}
 	}
+	
+	private static MediaCodecInfo findFirstDecoder() {
+		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
+			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
+						
+			// Skip encoders
+			if (codecInfo.isEncoder()) {
+				continue;
+			}
+			
+			// Check for explicitly blacklisted decoders
+			if (isDecoderInList(blacklistedDecoderPrefixes, codecInfo.getName())) {
+				LimeLog.info("Skipping blacklisted decoder: "+codecInfo.getName());
+				continue;
+			}
+			
+			// Find a decoder that supports H.264
+			for (String mime : codecInfo.getSupportedTypes()) {
+				if (mime.equalsIgnoreCase("video/avc")) {
+					LimeLog.info("First decoder choice is "+codecInfo.getName());
+					return codecInfo;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	public static MediaCodecInfo findProbableSafeDecoder() {
+		// First look for decoders we know are safe
+		try {
+			// If this function completes, it will determine if the decoder is safe
+			return findKnownSafeDecoder();
+		} catch (Exception e) {
+			// Some buggy devices seem to throw exceptions
+			// from getCapabilitiesForType() so we'll just assume
+			// they're okay and go with the first one we find
+			return findFirstDecoder();
+		}
+	}
 
 	// We declare this method as explicitly throwing Exception
 	// since some bad decoders can throw IllegalArgumentExceptions unexpectedly
 	// and we want to be sure all callers are handling this possibility
-	public static MediaCodecInfo findSafeDecoder() throws Exception {
+	private static MediaCodecInfo findKnownSafeDecoder() throws Exception {
 		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
 			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
 						
@@ -135,29 +177,30 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
 		//dumpDecoders();
 		
-		// It's nasty to put all this in a try-catch block,
-		// but codecs have been known to throw all sorts of crazy runtime exceptions
+		MediaCodecInfo decoder = findProbableSafeDecoder();
+		if (decoder == null) {
+			decoder = findFirstDecoder();
+		}
+		if (decoder == null) {
+			LimeLog.severe("No available hardware decoder!");
+			return false;
+		}
+		
+		// Codecs have been known to throw all sorts of crazy runtime exceptions
 		// due to implementation problems
 		try {
-			MediaCodecInfo safeDecoder = findSafeDecoder();
-			if (safeDecoder != null) {
-				videoDecoder = MediaCodec.createByCodecName(safeDecoder.getName());
-				needsSpsBitstreamFixup = isDecoderInList(spsFixupBitstreamFixupDecoderPrefixes, safeDecoder.getName());
-				needsSpsNumRefFixup = isDecoderInList(spsFixupNumRefFixupDecoderPrefixes, safeDecoder.getName());
-				if (needsSpsBitstreamFixup) {
-					LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS bitstream restrictions fixup");
-				}
-				if (needsSpsNumRefFixup) {
-					LimeLog.info("Decoder "+safeDecoder.getName()+" needs SPS ref num fixup");
-				}
-			}
-			else {
-				videoDecoder = MediaCodec.createDecoderByType("video/avc");
-				needsSpsBitstreamFixup = false;
-				needsSpsNumRefFixup = false;
-			}
+			videoDecoder = MediaCodec.createByCodecName(decoder.getName());
 		} catch (Exception e) {
 			return false;
+		}
+		
+		needsSpsBitstreamFixup = isDecoderInList(spsFixupBitstreamFixupDecoderPrefixes, decoder.getName());
+		needsSpsNumRefFixup = isDecoderInList(spsFixupNumRefFixupDecoderPrefixes, decoder.getName());
+		if (needsSpsBitstreamFixup) {
+			LimeLog.info("Decoder "+decoder.getName()+" needs SPS bitstream restrictions fixup");
+		}
+		if (needsSpsNumRefFixup) {
+			LimeLog.info("Decoder "+decoder.getName()+" needs SPS ref num fixup");
 		}
 		
 		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);

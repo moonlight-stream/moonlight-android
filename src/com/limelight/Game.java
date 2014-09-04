@@ -198,16 +198,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		controllerHandler = new ControllerHandler(conn);
 		
 		decoderRenderer = new ConfigurableDecoderRenderer();
-		
-		try {
-			decoderRenderer.initializeWithFlags(drFlags);
-		} catch (Exception e) {
-			Dialog.displayDialog(this, "Hardware Decoder Failure",
-					"The hardware decoder failed to initialize. First, try restarting your device."+
-					"If the issue persists, please send an email to the app developer. Forcing software decoding" +
-					"can circumvent this error if needed.", true);
-			return;
-		}
+		decoderRenderer.initializeWithFlags(drFlags);
 		
 		SurfaceHolder sh = sv.getHolder();
 		if (stretchToFit || !decoderRenderer.isHardwareAccelerated()) {

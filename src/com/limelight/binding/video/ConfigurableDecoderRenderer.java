@@ -22,7 +22,7 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 		return decoderRenderer.setup(width, height, redrawRate, renderTarget, drFlags);
 	}
 	
-	public void initializeWithFlags(int drFlags) {
+	public void initializeWithFlags(int drFlags) throws Exception {
 		if ((drFlags & VideoDecoderRenderer.FLAG_FORCE_HARDWARE_DECODING) != 0 ||
 				((drFlags & VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING) == 0 &&
 				MediaCodecDecoderRenderer.findSafeDecoder() != null)) {

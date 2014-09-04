@@ -91,7 +91,10 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 	}
 
-	public static MediaCodecInfo findSafeDecoder() {
+	// We declare this method as explicitly throwing Exception
+	// since some bad decoders can throw IllegalArgumentExceptions unexpectedly
+	// and we want to be sure all callers are handling this possibility
+	public static MediaCodecInfo findSafeDecoder() throws Exception {
 		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
 			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
 						

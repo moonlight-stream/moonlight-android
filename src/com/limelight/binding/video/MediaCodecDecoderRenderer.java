@@ -33,6 +33,11 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private long decoderTimeMs;
 	private int totalFrames;
 	
+	private String decoderName;
+	private int numSpsIn;
+	private int numPpsIn;
+	private int numIframeIn;
+	
 	private final static byte[] BITSTREAM_RESTRICTIONS = new byte[] {(byte) 0xF1, (byte) 0x83, 0x2A, 0x00};
 	
 	public static final List<String> blacklistedDecoderPrefixes;
@@ -186,10 +191,12 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			return false;
 		}
 		
+		decoderName = decoder.getName();
+		
 		// Codecs have been known to throw all sorts of crazy runtime exceptions
 		// due to implementation problems
 		try {
-			videoDecoder = MediaCodec.createByCodecName(decoder.getName());
+			videoDecoder = MediaCodec.createByCodecName(decoderName);
 		} catch (Exception e) {
 			return false;
 		}
@@ -233,43 +240,48 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 						}
 					}
 					
-					int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
-				    if (outIndex >= 0) {
-				    	long presentationTimeUs = info.presentationTimeUs;
-					    int lastIndex = outIndex;
-					    
-					    // Get the last output buffer in the queue
-					    while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
-					    	videoDecoder.releaseOutputBuffer(lastIndex, false);
-					    	lastIndex = outIndex;
-					    	presentationTimeUs = info.presentationTimeUs;
+					try {
+						int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
+
+					    if (outIndex >= 0) {
+					    	long presentationTimeUs = info.presentationTimeUs;
+						    int lastIndex = outIndex;
+						    
+						    // Get the last output buffer in the queue
+						    while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
+						    	videoDecoder.releaseOutputBuffer(lastIndex, false);
+						    	lastIndex = outIndex;
+						    	presentationTimeUs = info.presentationTimeUs;
+						    }
+						    
+						    // Render the last buffer
+					    	videoDecoder.releaseOutputBuffer(lastIndex, true);
+					    	
+						    // Add delta time to the totals (excluding probable outliers)
+						    long delta = System.currentTimeMillis()-(presentationTimeUs/1000);
+						    if (delta > 5 && delta < 300) {
+						    	decoderTimeMs += delta;
+							    totalTimeMs += delta;
+						    }
+					    } else {
+						    switch (outIndex) {
+						    case MediaCodec.INFO_TRY_AGAIN_LATER:
+						    	LockSupport.parkNanos(1);
+						    	break;
+						    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
+						    	LimeLog.info("Output buffers changed");
+							    break;
+						    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
+						    	LimeLog.info("Output format changed");
+						    	LimeLog.info("New output Format: " + videoDecoder.getOutputFormat());
+						    	break;
+						    default:
+						      break;
+						    }
 					    }
-					    
-					    // Render the last buffer
-				    	videoDecoder.releaseOutputBuffer(lastIndex, true);
-				    	
-					    // Add delta time to the totals (excluding probable outliers)
-					    long delta = System.currentTimeMillis()-(presentationTimeUs/1000);
-					    if (delta > 5 && delta < 300) {
-					    	decoderTimeMs += delta;
-						    totalTimeMs += delta;
-					    }
-				    } else {
-					    switch (outIndex) {
-					    case MediaCodec.INFO_TRY_AGAIN_LATER:
-					    	LockSupport.parkNanos(1);
-					    	break;
-					    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-					    	LimeLog.info("Output buffers changed");
-						    break;
-					    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-					    	LimeLog.info("Output format changed");
-					    	LimeLog.info("New output Format: " + videoDecoder.getOutputFormat());
-					    	break;
-					    default:
-					      break;
-					    }
-				    }
+					} catch (Exception e) {
+						throw new RendererException(MediaCodecDecoderRenderer.this, e);
+					}
 				}
 			}
 		};
@@ -318,7 +330,11 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				return false;
 			}
 			
-			inputIndex = videoDecoder.dequeueInputBuffer(100000);
+			try {
+				inputIndex = videoDecoder.dequeueInputBuffer(100000);
+			} catch (Exception e) {
+				throw new RendererException(this, e);
+			}
 		} while (inputIndex < 0);
 		
 		ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
@@ -340,70 +356,79 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 		if ((decodeUnitFlags & DecodeUnit.DU_FLAG_SYNC_FRAME) != 0) {
 			codecFlags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
+			numIframeIn++;
 		}
 		
-		if ((decodeUnitFlags & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0 &&
-			(needsSpsBitstreamFixup || needsSpsNumRefFixup)) {
+		if ((decodeUnitFlags & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0) {
 			ByteBufferDescriptor header = decodeUnit.getBufferList().get(0);
 			if (header.data[header.offset+4] == 0x67) {
-				byte last = header.data[header.length+header.offset-1];
+				numSpsIn++;
+				
+				if ((needsSpsBitstreamFixup || needsSpsNumRefFixup)) {
+					byte last = header.data[header.length+header.offset-1];
 
-				// TI OMAP4 requires a reference frame count of 1 to decode successfully
-				if (needsSpsNumRefFixup) {
-					LimeLog.info("Fixing up num ref frames");
-					this.replace(header, 80, 9, new byte[] {0x40}, 3);
-				}
+					// TI OMAP4 requires a reference frame count of 1 to decode successfully
+					if (needsSpsNumRefFixup) {
+						LimeLog.info("Fixing up num ref frames");
+						this.replace(header, 80, 9, new byte[] {0x40}, 3);
+					}
 
-				// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
-				// or max_dec_frame_buffering which increases decoding latency on Tegra.
-				// We manually modify the SPS here to speed-up decoding if the decoder was flagged as needing it.
-				int spsLength;
-				if (needsSpsBitstreamFixup) {
-					if (!needsSpsNumRefFixup) {
-						switch (header.length) {
-						case 26:
-							LimeLog.info("Adding bitstream restrictions to SPS (26)");
-							buf.put(header.data, header.offset, 24);
-							buf.put((byte) 0x11);
-							buf.put((byte) 0xe3);
-							buf.put((byte) 0x06);
-							buf.put((byte) 0x50);
-							spsLength = header.length + 2;
-							break;
-						case 27:
-							LimeLog.info("Adding bitstream restrictions to SPS (27)");
-							buf.put(header.data, header.offset, 25);
-							buf.put((byte) 0x04);
-							buf.put((byte) 0x78);
-							buf.put((byte) 0xc1);
-							buf.put((byte) 0x94);
-							spsLength = header.length + 2;
-							break;
-						default:
-							LimeLog.warning("Unknown SPS of length "+header.length);
+					// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
+					// or max_dec_frame_buffering which increases decoding latency on Tegra.
+					// We manually modify the SPS here to speed-up decoding if the decoder was flagged as needing it.
+					int spsLength;
+					if (needsSpsBitstreamFixup) {
+						if (!needsSpsNumRefFixup) {
+							switch (header.length) {
+							case 26:
+								LimeLog.info("Adding bitstream restrictions to SPS (26)");
+								buf.put(header.data, header.offset, 24);
+								buf.put((byte) 0x11);
+								buf.put((byte) 0xe3);
+								buf.put((byte) 0x06);
+								buf.put((byte) 0x50);
+								spsLength = header.length + 2;
+								break;
+							case 27:
+								LimeLog.info("Adding bitstream restrictions to SPS (27)");
+								buf.put(header.data, header.offset, 25);
+								buf.put((byte) 0x04);
+								buf.put((byte) 0x78);
+								buf.put((byte) 0xc1);
+								buf.put((byte) 0x94);
+								spsLength = header.length + 2;
+								break;
+							default:
+								LimeLog.warning("Unknown SPS of length "+header.length);
+								buf.put(header.data, header.offset, header.length);
+								spsLength = header.length;
+								break;
+							}
+						}
+						else {
+							// Set bitstream restrictions to only buffer single frame
+							// (starts 9 bits before stop bit and 6 bits earlier because of the shortening above)
+							this.replace(header, header.length*8+Integer.numberOfLeadingZeros(last & - last)%8-9-6, 2, BITSTREAM_RESTRICTIONS, 3*8);
 							buf.put(header.data, header.offset, header.length);
 							spsLength = header.length;
-							break;
 						}
 					}
 					else {
-						// Set bitstream restrictions to only buffer single frame
-						// (starts 9 bits before stop bit and 6 bits earlier because of the shortening above)
-						this.replace(header, header.length*8+Integer.numberOfLeadingZeros(last & - last)%8-9-6, 2, BITSTREAM_RESTRICTIONS, 3*8);
 						buf.put(header.data, header.offset, header.length);
 						spsLength = header.length;
 					}
-
+					
+					try {
+						videoDecoder.queueInputBuffer(inputIndex,
+								0, spsLength,
+								currentTime * 1000, codecFlags);
+					} catch (Exception e) {
+						throw new RendererException(this, e, buf, codecFlags);
+					}
+					return true;
 				}
-				else {
-					buf.put(header.data, header.offset, header.length);
-					spsLength = header.length;
-				}
-
-				videoDecoder.queueInputBuffer(inputIndex,
-						0, spsLength,
-						currentTime * 1000, codecFlags);
-				return true;
+			} else if (header.data[header.offset+4] == 0x68) {
+				numPpsIn++;
 			}
 		}
 
@@ -413,9 +438,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			buf.put(desc.data, desc.offset, desc.length);
 		}
 
-		videoDecoder.queueInputBuffer(inputIndex,
-				0, decodeUnit.getDataLength(),
-				currentTime * 1000, codecFlags);
+		try {
+			videoDecoder.queueInputBuffer(inputIndex,
+					0, decodeUnit.getDataLength(),
+					currentTime * 1000, codecFlags);
+		} catch (Exception e) {
+			throw new RendererException(this, e, buf, codecFlags);
+		}
 		
 		return true;
 	}
@@ -518,5 +547,48 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			return 0;
 		}
 		return (int)(totalTimeMs / totalFrames);
+	}
+	
+	public class RendererException extends RuntimeException {
+		private static final long serialVersionUID = 8985937536997012406L;
+		
+		private Exception originalException;
+		private MediaCodecDecoderRenderer renderer;
+		private ByteBuffer currentBuffer;
+		private int currentCodecFlags;
+		
+		public RendererException(MediaCodecDecoderRenderer renderer, Exception e) {
+			this.renderer = renderer;
+			this.originalException = e;
+		}
+		
+		public RendererException(MediaCodecDecoderRenderer renderer, Exception e, ByteBuffer currentBuffer, int currentCodecFlags) {
+			this.renderer = renderer;
+			this.originalException = e;
+			this.currentBuffer = currentBuffer;
+			this.currentCodecFlags = currentCodecFlags;
+		}
+		
+		public String toString() {
+			String str = "";
+			
+			str += "Decoder: "+renderer.decoderName+"\n";
+			str += "In stats: "+renderer.numSpsIn+", "+renderer.numPpsIn+", "+renderer.numIframeIn+"\n";
+			str += "Total frames: "+renderer.totalFrames+"\n";
+			
+			if (currentBuffer != null) {
+				str += "Current buffer: ";
+				currentBuffer.flip();
+				while (currentBuffer.hasRemaining() && currentBuffer.position() < 10) {
+					str += String.format("%02x ", currentBuffer.get());
+				}
+				str += "\n";
+				str += "Buffer codec flags: "+currentCodecFlags+"\n";
+			}
+			
+			str += originalException.toString();
+			
+			return str;
+		}
 	}
 }

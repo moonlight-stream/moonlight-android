@@ -26,22 +26,35 @@ Java_com_limelight_binding_input_evdev_EvdevReader_ungrab(JNIEnv *env, jobject t
     return ioctl(fd, EVIOCGRAB, 0) == 0;
 }
 
-// isMouse() and friends are based on Android's EventHub.cpp
+// has*() and friends are based on Android's EventHub.cpp
 
 #define test_bit(bit, array)    (array[bit/8] & (1<<(bit%8)))
 
 JNIEXPORT jboolean JNICALL
-Java_com_limelight_binding_input_evdev_EvdevReader_isMouse(JNIEnv *env, jobject this, jint fd) {
-    unsigned char keyBitmask[(KEY_MAX + 1) / 8];
+Java_com_limelight_binding_input_evdev_EvdevReader_hasRelAxis(JNIEnv *env, jobject this, jint fd, jshort axis) {
     unsigned char relBitmask[(REL_MAX + 1) / 8];
     
-    ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(keyBitmask)), keyBitmask);
     ioctl(fd, EVIOCGBIT(EV_REL, sizeof(relBitmask)), relBitmask);
     
-    // If this device has all required features of a mouse, it's a mouse!
-    return test_bit(BTN_MOUSE, keyBitmask) &&
-        test_bit(REL_X, relBitmask) &&
-        test_bit(REL_Y, relBitmask);
+    return test_bit(axis, relBitmask);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_limelight_binding_input_evdev_EvdevReader_hasAbsAxis(JNIEnv *env, jobject this, jint fd, jshort axis) {
+    unsigned char absBitmask[(ABS_MAX + 1) / 8];
+    
+    ioctl(fd, EVIOCGBIT(EV_ABS, sizeof(absBitmask)), absBitmask);
+    
+    return test_bit(axis, absBitmask);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_limelight_binding_input_evdev_EvdevReader_hasKey(JNIEnv *env, jobject this, jint fd, jshort key) {
+    unsigned char keyBitmask[(KEY_MAX + 1) / 8];
+    
+    ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(keyBitmask)), keyBitmask);
+    
+    return test_bit(key, keyBitmask);
 }
 
 JNIEXPORT jint JNICALL

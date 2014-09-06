@@ -43,8 +43,26 @@ public class EvdevReader {
 	public static native boolean grab(int fd);
 	public static native boolean ungrab(int fd);
 	
-	// Returns true if the device is a mouse
-	public static native boolean isMouse(int fd);
+	// Used for checking device capabilities
+	public static native boolean hasRelAxis(int fd, short axis);
+	public static native boolean hasAbsAxis(int fd, short axis);
+	public static native boolean hasKey(int fd, short key);
+	
+	public static boolean isMouse(int fd) {
+		// This is the same check that Android does in EventHub.cpp
+		return hasRelAxis(fd, EvdevEvent.REL_X) &&
+				hasRelAxis(fd, EvdevEvent.REL_Y) &&
+				hasKey(fd, EvdevEvent.BTN_LEFT);
+	}
+	
+	public static boolean isAlphaKeyboard(int fd) {
+		// This is the same check that Android does in EventHub.cpp
+		return hasKey(fd, EvdevEvent.KEY_Q);
+	}
+	
+	public static boolean isGamepad(int fd) {
+		return hasKey(fd, EvdevEvent.BTN_GAMEPAD);
+	}
 	
 	// Returns the bytes read or -1 on error
 	private static native int read(int fd, byte[] buffer);

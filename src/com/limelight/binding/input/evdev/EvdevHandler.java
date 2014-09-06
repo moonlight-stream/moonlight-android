@@ -26,9 +26,10 @@ public class EvdevHandler {
 			}
 
 			try {
-				// Check if it's a mouse
-				if (!EvdevReader.isMouse(fd)) {
-					// We only handle mice
+				// Check if it's a mouse or keyboard, but not a gamepad
+				if ((!EvdevReader.isMouse(fd) && !EvdevReader.isAlphaKeyboard(fd)) ||
+					EvdevReader.isGamepad(fd)) {
+					// We only handle keyboards and mice
 					return;
 				}
 
@@ -38,7 +39,7 @@ public class EvdevHandler {
 					return;
 				}
 
-				LimeLog.info("Grabbed device for raw mouse input: "+absolutePath);
+				LimeLog.info("Grabbed device for raw keyboard/mouse input: "+absolutePath);
 
 				ByteBuffer buffer = ByteBuffer.allocate(EvdevEvent.EVDEV_MAX_EVENT_SIZE).order(ByteOrder.nativeOrder());
 

@@ -696,4 +696,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	public void mouseScroll(byte amount) {
 		conn.sendMouseScroll(amount);
 	}
+
+	@Override
+	public void keyboardEvent(boolean buttonDown, short keyCode) {
+		short keyMap = keybTranslator.translate(keyCode);
+		if (keyMap != 0) {
+			if (buttonDown) {
+				keybTranslator.sendKeyDown(keyMap, (byte) 0);
+			}
+			else {
+				keybTranslator.sendKeyUp(keyMap, (byte) 0);
+			}
+		}
+	}
 }

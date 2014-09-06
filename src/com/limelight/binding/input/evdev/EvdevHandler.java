@@ -96,7 +96,37 @@ public class EvdevHandler {
 								listener.mouseButtonEvent(EvdevListener.BUTTON_RIGHT,
 										event.value != 0);
 								break;
+								
+							case EvdevEvent.BTN_SIDE:
+							case EvdevEvent.BTN_EXTRA:
+							case EvdevEvent.BTN_FORWARD:
+							case EvdevEvent.BTN_BACK:
+							case EvdevEvent.BTN_TASK:
+								// Other unhandled mouse buttons
+								break;
+								
+							default:
+								// We got some unrecognized button. This means
+								// someone is trying to use the other device in this
+								// "combination" input device. We'll try to handle
+								// it via keyboard, but we're not going to disconnect
+								// if we can't
+								short keyCode = EvdevTranslator.translateEvdevKeyCode(event.code);
+								if (keyCode != 0) {
+									listener.keyboardEvent(event.value != 0, keyCode);
+								}
+								break;
 							}
+							break;
+							
+						case EvdevEvent.EV_MSC:
+							break;
+							
+						default:
+							// We got some unrecognized event. This means
+							// someone is trying to use the other device in this
+							// "combination" input device. We'll disconnect now
+							return;
 						}
 					}
 				} finally {
@@ -105,6 +135,7 @@ public class EvdevHandler {
 				}
 			} finally {
 				// Close the file
+				LimeLog.warning("Evdev handler is terminating for: "+absolutePath);
 				EvdevReader.close(fd);
 			}
 		}

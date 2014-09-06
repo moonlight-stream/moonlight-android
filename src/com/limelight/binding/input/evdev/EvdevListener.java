@@ -8,4 +8,5 @@ public interface EvdevListener {
 	public void mouseMove(int deltaX, int deltaY);
 	public void mouseButtonEvent(int buttonId, boolean down);
 	public void mouseScroll(byte amount);
+	public void keyboardEvent(boolean buttonDown, short keyCode);
 }

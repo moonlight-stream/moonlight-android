@@ -8,6 +8,7 @@ public class EvdevEvent {
 	public static final short EV_SYN = 0x00;
 	public static final short EV_KEY = 0x01;
 	public static final short EV_REL = 0x02;
+	public static final short EV_MSC = 0x04;
 	
 	/* Relative axes */
 	public static final short REL_X = 0x00;
@@ -18,6 +19,11 @@ public class EvdevEvent {
 	public static final short BTN_LEFT = 0x110;
 	public static final short BTN_RIGHT = 0x111;
 	public static final short BTN_MIDDLE = 0x112;
+	public static final short BTN_SIDE = 0x113;
+	public static final short BTN_EXTRA = 0x114;
+	public static final short BTN_FORWARD = 0x115;
+	public static final short BTN_BACK = 0x116;
+	public static final short BTN_TASK = 0x117;
 	
 	public short type;
 	public short code;

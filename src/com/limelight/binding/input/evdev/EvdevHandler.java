@@ -10,6 +10,7 @@ public class EvdevHandler {
 	private String absolutePath;
 	private EvdevListener listener;
 	private boolean shutdown = false;
+	private int fd = -1;
 	
 	private Thread handlerThread = new Thread() {
 		@Override
@@ -19,7 +20,7 @@ public class EvdevHandler {
 			// system-wide input problems.
 			
 			// Open the /dev/input/eventX file
-			int fd = EvdevReader.open(absolutePath);
+			fd = EvdevReader.open(absolutePath);
 			if (fd == -1) {
 				LimeLog.warning("Unable to open "+absolutePath);
 				return;
@@ -130,7 +131,6 @@ public class EvdevHandler {
 				}
 			} finally {
 				// Close the file
-				LimeLog.warning("Evdev handler is terminating for: "+absolutePath);
 				EvdevReader.close(fd);
 			}
 		}
@@ -146,6 +146,13 @@ public class EvdevHandler {
 	}
 	
 	public void stop() {
+		// Close the fd. It doesn't matter if this races
+		// with the handler thread. We'll close this out from
+		// under the thread to wake it up
+		if (fd != -1) {
+			EvdevReader.close(fd);
+		}
+		
 		shutdown = true;
 		handlerThread.interrupt();
 		

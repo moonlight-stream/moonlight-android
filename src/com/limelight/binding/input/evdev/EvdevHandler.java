@@ -122,12 +122,6 @@ public class EvdevHandler {
 							
 						case EvdevEvent.EV_MSC:
 							break;
-							
-						default:
-							// We got some unrecognized event. This means
-							// someone is trying to use the other device in this
-							// "combination" input device. We'll disconnect now
-							return;
 						}
 					}
 				} finally {

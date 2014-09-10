@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <linux/input.h>
 #include <unistd.h>
+#include <poll.h>
 
 JNIEXPORT jint JNICALL
 Java_com_limelight_binding_input_evdev_EvdevReader_open(JNIEnv *env, jobject this, jstring absolutePath) {
@@ -60,12 +61,33 @@ Java_com_limelight_binding_input_evdev_EvdevReader_hasKey(JNIEnv *env, jobject t
 JNIEXPORT jint JNICALL
 Java_com_limelight_binding_input_evdev_EvdevReader_read(JNIEnv *env, jobject this, jint fd, jbyteArray buffer) {
     jint ret;
-    jbyte *data = (*env)->GetByteArrayElements(env, buffer, NULL);
+    jbyte *data;
+    int pollres;
+    struct pollfd pollinfo;
+    
+    data = (*env)->GetByteArrayElements(env, buffer, NULL);
     if (data == NULL) {
         return -1;
     }
 
-    ret = read(fd, data, sizeof(struct input_event));
+    do
+    {
+        // Unwait every 250 ms to return to caller if the fd is closed
+        pollinfo.fd = fd;
+        pollinfo.events = POLLIN;
+        pollinfo.revents = 0;
+        pollres = poll(&pollinfo, 1, 250);
+    }
+    while (pollres == 0);
+    
+    if (pollres > 0 && (pollinfo.revents & POLLIN)) {
+        // We'll have data available now
+        ret = read(fd, data, sizeof(struct input_event));
+    }
+    else {
+        // There must have been a failure
+        ret = -1;
+    }
     
     (*env)->ReleaseByteArrayElements(env, buffer, data, 0);
 

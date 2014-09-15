@@ -68,12 +68,14 @@ public class ControllerPacket extends InputPacket {
 			this.rightStickX = rightStickX;
 			this.rightStickY = rightStickY;
 		}
-		
-		public byte[] toWire()
-		{
-			ByteBuffer bb = ByteBuffer.allocate(PACKET_LENGTH).order(ByteOrder.LITTLE_ENDIAN);
-			
-			bb.put(toWireHeader());
+
+		@Override
+		public ByteOrder getPayloadByteOrder() {
+			return ByteOrder.LITTLE_ENDIAN;
+		}
+
+		@Override
+		public void toWirePayload(ByteBuffer bb) {
 			bb.put(HEADER);
 			bb.putShort(buttonFlags);
 			bb.put(leftTrigger);
@@ -83,7 +85,10 @@ public class ControllerPacket extends InputPacket {
 			bb.putShort(rightStickX);
 			bb.putShort(rightStickY);
 			bb.put(TAIL);
-			
-			return bb.array();
+		}
+		
+		@Override
+		public int getPacketLength() {
+			return PACKET_LENGTH;
 		}
 	}

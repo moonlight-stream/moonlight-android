@@ -6,10 +6,10 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -34,6 +34,10 @@ public class ControllerStream {
 	
 	private Thread inputThread;
 	private LinkedBlockingQueue<InputPacket> inputQueue = new LinkedBlockingQueue<InputPacket>();
+	
+	private ByteBuffer littleEndianBuffer = ByteBuffer.allocate(128).order(ByteOrder.LITTLE_ENDIAN);
+	private ByteBuffer bigEndianBuffer = ByteBuffer.allocate(128).order(ByteOrder.BIG_ENDIAN);
+	private ByteBuffer sendBuffer = ByteBuffer.allocate(128).order(ByteOrder.BIG_ENDIAN);
 	
 	public ControllerStream(InetAddress host, SecretKey riKey, int riKeyId, NvConnectionListener listener)
 	{
@@ -205,39 +209,53 @@ public class ControllerStream {
 		return ((length + 15) / 16) * 16;
 	}
 	
-	private static byte[] padData(byte[] data) {
+	private static int inPlacePadData(byte[] data, int length) {
 		// This implements the PKCS7 padding algorithm
 		
-		if ((data.length % 16) == 0) {
+		if ((length % 16) == 0) {
 			// Already a multiple of 16
-			return data;
+			return length;
 		}
 		
-		byte[] padded = Arrays.copyOf(data, getPaddedSize(data.length));
-		byte paddingByte = (byte)(16 - (data.length % 16));
+		int paddedLength = getPaddedSize(length);
+		byte paddingByte = (byte)(16 - (length % 16));
 		
-		for (int i = data.length; i < padded.length; i++) {
-			padded[i] = paddingByte;
+		for (int i = length; i < paddedLength; i++) {
+			data[i] = paddingByte;
 		}
 		
-		return padded;
+		return paddedLength;
 	}
 	
-	private byte[] encryptAesInputData(byte[] data) throws Exception {
-		return riCipher.update(padData(data));
+	private int encryptAesInputData(byte[] inputData, int inputLength, byte[] outputData, int outputOffset) throws Exception {
+		int encryptedLength = inPlacePadData(inputData, inputLength);
+		riCipher.update(inputData, 0, encryptedLength, outputData, outputOffset);
+		return encryptedLength;
 	}
 	
 	private void sendPacket(InputPacket packet) throws IOException {
-		byte[] toWire = packet.toWire();
+		ByteBuffer toWireBuffer;
+		
+		// Choose which byte order we'll be using for converting to wire form
+		if (packet.getPayloadByteOrder() == ByteOrder.BIG_ENDIAN) {
+			toWireBuffer = bigEndianBuffer;
+		}
+		else {
+			toWireBuffer = littleEndianBuffer;
+		}
+		
+		// Store the packet in wire form in the byte buffer
+		packet.toWire(toWireBuffer);
+		int packetLen = packet.getPacketLength();
 		
 		// Pad to 16 byte chunks
-		int paddedLength = getPaddedSize(toWire.length);
+		int paddedLength = getPaddedSize(packetLen);
 		
 		// Allocate a byte buffer to represent the final packet
-		ByteBuffer bb = ByteBuffer.allocate(4 + paddedLength);
-		bb.putInt(paddedLength);
+		sendBuffer.rewind();
+		sendBuffer.putInt(paddedLength);
 		try {
-			bb.put(encryptAesInputData(toWire));
+			encryptAesInputData(toWireBuffer.array(), packetLen, sendBuffer.array(), 4);
 		} catch (Exception e) {
 			// Should never happen
 			e.printStackTrace();
@@ -245,7 +263,7 @@ public class ControllerStream {
 		}
 		
 		// Send the packet
-		out.write(bb.array());
+		out.write(sendBuffer.array(), 0, paddedLength + 4);
 		out.flush();
 	}
 	

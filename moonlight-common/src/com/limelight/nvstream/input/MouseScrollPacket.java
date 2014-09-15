@@ -1,6 +1,7 @@
 package com.limelight.nvstream.input;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class MouseScrollPacket extends InputPacket {
 	public static final int PACKET_TYPE = 0xa;
@@ -17,10 +18,12 @@ public class MouseScrollPacket extends InputPacket {
 	}
 
 	@Override
-	public byte[] toWire() {
-		ByteBuffer bb = ByteBuffer.allocate(PACKET_LENGTH);
-		
-		bb.put(toWireHeader());
+	public ByteOrder getPayloadByteOrder() {
+		return ByteOrder.BIG_ENDIAN;
+	}
+
+	@Override
+	public void toWirePayload(ByteBuffer bb) {
 		bb.put((byte) 0x09);
 		bb.put((byte) 0);
 		bb.put((byte) 0);
@@ -30,7 +33,10 @@ public class MouseScrollPacket extends InputPacket {
 		bb.putShort(scroll);
 		
 		bb.putShort((short) 0);
-		
-		return bb.array();
+	}
+	
+	@Override
+	public int getPacketLength() {
+		return PACKET_LENGTH;
 	}
 }

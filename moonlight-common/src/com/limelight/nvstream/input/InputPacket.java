@@ -13,14 +13,26 @@ public abstract class InputPacket {
 		this.packetType = packetType;
 	}
 	
-	public abstract byte[] toWire();
+	public abstract ByteOrder getPayloadByteOrder();
 	
-	public byte[] toWireHeader()
+	public abstract void toWirePayload(ByteBuffer bb);
+	
+	public abstract int getPacketLength();
+	
+	public void toWireHeader(ByteBuffer bb)
 	{
-		ByteBuffer bb = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
-		
-		bb.putInt(packetType);
-		
-		return bb.array();
+		// We don't use putInt() here because it will be subject to the byte order
+		// of the byte buffer. We just write it as a big endian int.
+		bb.put((byte)(packetType >> 24));
+		bb.put((byte)(packetType >> 16));
+		bb.put((byte)(packetType >> 8));
+		bb.put((byte)(packetType & 0xFF));
+	}
+	
+	public void toWire(ByteBuffer bb)
+	{
+		bb.rewind();
+		toWireHeader(bb);
+		toWirePayload(bb);
 	}
 }

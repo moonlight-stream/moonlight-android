@@ -5,7 +5,7 @@ import java.nio.ByteOrder;
 
 public class KeyboardPacket extends InputPacket {
 	private static final int PACKET_TYPE = 0x0A;
-	private static final int PACKET_LENGTH = 14;
+	public static final int PACKET_LENGTH = 14;
 	
 	public static final byte KEY_DOWN = 0x03;
 	public static final byte KEY_UP = 0x04;
@@ -13,7 +13,6 @@ public class KeyboardPacket extends InputPacket {
 	public static final byte MODIFIER_SHIFT = 0x01;
 	public static final byte MODIFIER_CTRL = 0x02;
 	public static final byte MODIFIER_ALT = 0x04;
-	
 	
 	short keyCode;
 	byte keyDirection;
@@ -25,12 +24,14 @@ public class KeyboardPacket extends InputPacket {
 		this.keyDirection = keyDirection;
 		this.modifier = modifier;
 	}
-	
+
 	@Override
-	public byte[] toWire() {
-		ByteBuffer bb = ByteBuffer.allocate(PACKET_LENGTH).order(ByteOrder.LITTLE_ENDIAN);
-		
-		bb.put(toWireHeader());
+	public ByteOrder getPayloadByteOrder() {
+		return ByteOrder.LITTLE_ENDIAN;
+	}
+
+	@Override
+	public void toWirePayload(ByteBuffer bb) {
 		bb.put(keyDirection);
 		bb.putShort((short)0);
 		bb.putShort((short)0);
@@ -38,7 +39,10 @@ public class KeyboardPacket extends InputPacket {
 		bb.put(modifier);
 		bb.put((byte)0);
 		bb.put((byte)0);
+	}
 
-		return bb.array();
+	@Override
+	public int getPacketLength() {
+		return PACKET_LENGTH;
 	}
 }

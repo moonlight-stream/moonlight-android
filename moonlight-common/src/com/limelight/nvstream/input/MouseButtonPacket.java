@@ -31,13 +31,18 @@ public class MouseButtonPacket extends InputPacket {
 	}
 
 	@Override
-	public byte[] toWire() {
-		ByteBuffer bb = ByteBuffer.allocate(PACKET_LENGTH).order(ByteOrder.BIG_ENDIAN);
-		
-		bb.put(toWireHeader());
+	public ByteOrder getPayloadByteOrder() {
+		return ByteOrder.BIG_ENDIAN;
+	}
+
+	@Override
+	public void toWirePayload(ByteBuffer bb) {
 		bb.put(buttonEventType);
-		bb.putInt(mouseButton); 
-		
-		return bb.array();
+		bb.putInt(mouseButton);
+	}
+	
+	@Override
+	public int getPacketLength() {
+		return PACKET_LENGTH;
 	}
 }

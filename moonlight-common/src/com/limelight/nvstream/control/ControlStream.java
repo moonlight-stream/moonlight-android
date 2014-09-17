@@ -407,6 +407,14 @@ public class ControlStream implements ConnectionStatusListener {
 	}
 
 	public void connectionDetectedFrameLoss(int firstLostFrame, int nextSuccessfulFrame) {
+		resyncConnection(firstLostFrame, nextSuccessfulFrame);
+		
+		// Suppress connection warnings for the first 150 frames to allow the connection
+		// to stabilize
+		if (currentFrame < 150) {
+			return;
+		}
+		
 		if (System.currentTimeMillis() > LOSS_PERIOD_MS + lossTimestamp) {
 			lossCount++;
 			lossTimestamp = System.currentTimeMillis();
@@ -420,17 +428,21 @@ public class ControlStream implements ConnectionStatusListener {
 				lossTimestamp = 0;
 			}
 		}
-		
-		resyncConnection(firstLostFrame, nextSuccessfulFrame);
 	}
 
 	public void connectionSinkTooSlow(int firstLostFrame, int nextSuccessfulFrame) {
+		resyncConnection(firstLostFrame, nextSuccessfulFrame);
+		
+		// Suppress connection warnings for the first 150 frames to allow the connection
+		// to stabilize
+		if (currentFrame < 150) {
+			return;
+		}
+		
 		if (++slowSinkCount == MAX_SLOW_SINK_COUNT) {
 			listener.displayTransientMessage("Your device is processing the A/V data too slowly. Try lowering stream resolution and/or frame rate.");
 			slowSinkCount = -MAX_SLOW_SINK_COUNT * MESSAGE_DELAY_FACTOR;
 		}
-		
-		resyncConnection(firstLostFrame, nextSuccessfulFrame);
 	}
 
 	public void connectionReceivedFrame(int frameIndex) {

@@ -26,6 +26,7 @@ public class MdnsDiscoveryAgent {
 	private Timer discoveryTimer;
 	private MdnsDiscoveryListener listener;
 	private HashSet<String> pendingResolution;
+	private boolean stop;
 	private ServiceListener nvstreamListener = new ServiceListener() {
 		public void serviceAdded(ServiceEvent event) {
 			LimeLog.info("mDNS: Machine appeared: "+event.getInfo().getName());
@@ -100,6 +101,7 @@ public class MdnsDiscoveryAgent {
 	}
 	
 	public void startDiscovery(final int discoveryIntervalMs) {
+		stop = false;
 		discoveryTimer = new Timer();
 		discoveryTimer.schedule(new TimerTask() {
 			@Override
@@ -109,6 +111,15 @@ public class MdnsDiscoveryAgent {
 					try {
 						resolver.close();
 					} catch (IOException e) {}
+					resolver = null;
+				}
+				
+				// Stop if requested
+				if (stop) {
+					// There will be no further timer invocations now
+					discoveryTimer.cancel();
+					discoveryTimer = null;
+					return;
 				}
 				
 				// Create a new resolver
@@ -134,14 +145,8 @@ public class MdnsDiscoveryAgent {
 	}
 	
 	public void stopDiscovery() {
-		if (discoveryTimer != null) {
-			discoveryTimer.cancel();
-			discoveryTimer = null;
-		}
-		
-		if (resolver != null) {
-			resolver.removeServiceListener(SERVICE_TYPE, nvstreamListener);
-		}
+		// Trigger a stop on the next timer expiration
+		stop = true;
 	}
 	
 	public List<MdnsComputer> getComputerSet() {

@@ -67,6 +67,9 @@ public class EvdevWatcher {
 		// Rundown existing files
 		File devInputDir = new File(PATH);
 		File[] files = devInputDir.listFiles();
+		if (files == null) {
+			return new File[0];
+		}
 		
 		// Set desired permissions
 		String[] filePaths = new String[files.length];

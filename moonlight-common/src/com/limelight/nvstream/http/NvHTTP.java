@@ -100,9 +100,13 @@ public class NvHTTP {
 		}
 	}
 	
+	public String getServerInfo(String uniqueId) throws MalformedURLException, IOException {
+		return openHttpConnectionToString(baseUrl + "/serverinfo?uniqueid=" + uniqueId);
+	}
+	
 	public ComputerDetails getComputerDetails() throws MalformedURLException, IOException, XmlPullParserException {
 		ComputerDetails details = new ComputerDetails();
-		String serverInfo = openHttpConnectionToString(baseUrl + "/serverinfo?uniqueid=" + uniqueId);
+		String serverInfo = getServerInfo(uniqueId);
 		
 		details.name = getXmlString(serverInfo, "hostname").trim();
 		details.uuid = UUID.fromString(getXmlString(serverInfo, "uniqueid").trim());
@@ -170,18 +174,20 @@ public class NvHTTP {
 		return str;
 	}
 
-	public String getServerVersion() throws XmlPullParserException, IOException {
-		InputStream in = openHttpConnection(baseUrl + "/serverinfo?uniqueid=" + uniqueId);
-		return getXmlString(in, "appversion");
+	public String getServerVersion(String serverInfo) throws XmlPullParserException, IOException {
+		return getXmlString(serverInfo, "appversion");
 	}
 
 	public PairingManager.PairState getPairState() throws IOException, XmlPullParserException {
-		return pm.getPairState(uniqueId);
+		return pm.getPairState(getServerInfo(uniqueId));
 	}
 
-	public int getCurrentGame() throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/serverinfo?uniqueid=" + uniqueId);
-		String game = getXmlString(in, "currentgame");
+	public PairingManager.PairState getPairState(String serverInfo) throws IOException, XmlPullParserException {
+		return pm.getPairState(serverInfo);
+	}
+
+	public int getCurrentGame(String serverInfo) throws IOException, XmlPullParserException {
+		String game = getXmlString(serverInfo, "currentgame");
 		return Integer.parseInt(game);
 	}
 	

@@ -102,12 +102,14 @@ public class NvConnection {
 	{
 		NvHTTP h = new NvHTTP(hostAddr, uniqueId, localDeviceName, cryptoProvider);
 		
-		if (!h.getServerVersion().startsWith("3.")) {
+		String serverInfo = h.getServerInfo(uniqueId);
+		
+		if (!h.getServerVersion(serverInfo).startsWith("3.")) {
 			listener.displayMessage("Limelight now requires GeForce Experience 2.1.1 or later. Please upgrade GFE on your PC and try again.");
 			return false;
 		}
 		
-		if (h.getPairState() != PairingManager.PairState.PAIRED) {
+		if (h.getPairState(serverInfo) != PairingManager.PairState.PAIRED) {
 			listener.displayMessage("Device not paired with computer");
 			return false;
 		}
@@ -119,12 +121,14 @@ public class NvConnection {
 		}
 		
 		// If there's a game running, resume it
-		if (h.getCurrentGame() != 0) {
+		if (h.getCurrentGame(serverInfo) != 0) {
 			try {
-				if (h.getCurrentGame() == app.getAppId() && !h.resumeApp(riKey, riKeyId)) {
-					listener.displayMessage("Failed to resume existing session");
-					return false;
-				} else if (h.getCurrentGame() != app.getAppId()) {
+				if (h.getCurrentGame(serverInfo) == app.getAppId()) {
+					if (!h.resumeApp(riKey, riKeyId)) {
+						listener.displayMessage("Failed to resume existing session");
+						return false;
+					}
+				} else if (h.getCurrentGame(serverInfo) != app.getAppId()) {
 					return quitAndLaunch(h, app);
 				}
 			} catch (GfeHttpResponseException e) {

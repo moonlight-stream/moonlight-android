@@ -219,19 +219,12 @@ public class PairingManager {
 				r.nextInt(10), r.nextInt(10));
 	}
 	
-	public PairState getPairState(String uniqueId) throws MalformedURLException, IOException, XmlPullParserException  {
-		String serverInfo = http.openHttpConnectionToString(http.baseUrl + "/serverinfo?uniqueid="+uniqueId);
+	public PairState getPairState(String serverInfo) throws MalformedURLException, IOException, XmlPullParserException  {
 		if (!NvHTTP.getXmlString(serverInfo, "PairStatus").equals("1")) {
 			return PairState.NOT_PAIRED;
 		}
 		
-		String pairChallenge = http.openHttpConnectionToString(http.baseUrl + "/pair?uniqueid="+uniqueId+"&devicename=roth&updateState=1&phrase=pairchallenge");
-		if (NvHTTP.getXmlString(pairChallenge, "paired").equals("1")) {
-			return PairState.PAIRED;
-		}
-		else {
-			return PairState.NOT_PAIRED;
-		}
+		return PairState.PAIRED;
 	}
 	
 	public PairState pair(String uniqueId, String pin) throws MalformedURLException, IOException, XmlPullParserException, CertificateException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, ShortBufferException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException {

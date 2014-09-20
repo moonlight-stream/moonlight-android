@@ -117,8 +117,10 @@ public class MdnsDiscoveryAgent {
 				// Stop if requested
 				if (stop) {
 					// There will be no further timer invocations now
-					discoveryTimer.cancel();
-					discoveryTimer = null;
+					if (discoveryTimer != null) {
+						discoveryTimer.cancel();
+						discoveryTimer = null;
+					}
 					return;
 				}
 				

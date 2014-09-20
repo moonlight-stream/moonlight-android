@@ -5,12 +5,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.LockSupport;
 
+import org.jcodec.codecs.h264.io.model.SeqParameterSet;
+import org.jcodec.codecs.h264.io.model.VUIParameters;
+
 import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.av.video.VideoDepacketizer;
 
+import android.annotation.TargetApi;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecInfo.CodecCapabilities;
@@ -18,6 +22,7 @@ import android.media.MediaCodecInfo.CodecProfileLevel;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaCodec.BufferInfo;
+import android.os.Build;
 import android.view.SurfaceHolder;
 
 public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
@@ -28,6 +33,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private boolean needsSpsBitstreamFixup;
 	private boolean needsSpsNumRefFixup;
 	private VideoDepacketizer depacketizer;
+	private boolean adaptivePlayback;
 	
 	private long totalTimeMs;
 	private long decoderTimeMs;
@@ -38,11 +44,10 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private int numPpsIn;
 	private int numIframeIn;
 	
-	private final static byte[] BITSTREAM_RESTRICTIONS = new byte[] {(byte) 0xF1, (byte) 0x83, 0x2A, 0x00};
-	
 	public static final List<String> blacklistedDecoderPrefixes;
 	public static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
 	public static final List<String> spsFixupNumRefFixupDecoderPrefixes;
+	public static final List<String> whitelistedAdaptiveResolutionPrefixes;
 	
 	static {
 		blacklistedDecoderPrefixes = new LinkedList<String>();
@@ -62,6 +67,59 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		spsFixupNumRefFixupDecoderPrefixes.add("omx.TI");
 		spsFixupNumRefFixupDecoderPrefixes.add("omx.qcom");
 		spsFixupNumRefFixupDecoderPrefixes.add("omx.sec");
+		
+		whitelistedAdaptiveResolutionPrefixes = new LinkedList<String>();
+		whitelistedAdaptiveResolutionPrefixes.add("omx.nvidia");
+		whitelistedAdaptiveResolutionPrefixes.add("omx.qcom");
+		whitelistedAdaptiveResolutionPrefixes.add("omx.sec");
+		whitelistedAdaptiveResolutionPrefixes.add("omx.TI");
+	}
+	
+	@TargetApi(Build.VERSION_CODES.KITKAT)
+	public MediaCodecDecoderRenderer() {
+		//dumpDecoders();
+		
+		MediaCodecInfo decoder = findProbableSafeDecoder();
+		if (decoder == null) {
+			decoder = findFirstDecoder();
+		}
+		if (decoder == null) {
+			// This case is handled later in setup()
+			return;
+		}
+		
+		decoderName = decoder.getName();
+		
+		// Possibly enable adaptive playback on KitKat and above
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			try {
+				if (decoder.getCapabilitiesForType("video/avc").
+						isFeatureSupported(CodecCapabilities.FEATURE_AdaptivePlayback))
+				{
+					// This will make getCapabilities() return that adaptive playback is supported
+					LimeLog.info("Adaptive playback supported (FEATURE_AdaptivePlayback)");
+					adaptivePlayback = true;
+				}
+			} catch (Exception e) {
+				// Tolerate buggy codecs
+			}
+		}
+				
+		if (!adaptivePlayback) {
+			if (isDecoderInList(whitelistedAdaptiveResolutionPrefixes, decoderName)) {
+				LimeLog.info("Adaptive playback supported (whitelist)");
+				adaptivePlayback = true;
+			}
+		}
+		
+		needsSpsBitstreamFixup = isDecoderInList(spsFixupBitstreamFixupDecoderPrefixes, decoderName);
+		needsSpsNumRefFixup = isDecoderInList(spsFixupNumRefFixupDecoderPrefixes, decoderName);
+		if (needsSpsBitstreamFixup) {
+			LimeLog.info("Decoder "+decoderName+" needs SPS bitstream restrictions fixup");
+		}
+		if (needsSpsNumRefFixup) {
+			LimeLog.info("Decoder "+decoderName+" needs SPS ref num fixup");
+		}
 	}
 	
 	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
@@ -180,20 +238,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		return null;
 	}
 	
+	@TargetApi(Build.VERSION_CODES.KITKAT)
 	@Override
 	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
-		//dumpDecoders();
-		
-		MediaCodecInfo decoder = findProbableSafeDecoder();
-		if (decoder == null) {
-			decoder = findFirstDecoder();
-		}
-		if (decoder == null) {
+		if (decoderName == null) {
 			LimeLog.severe("No available hardware decoder!");
 			return false;
 		}
-		
-		decoderName = decoder.getName();
 		
 		// Codecs have been known to throw all sorts of crazy runtime exceptions
 		// due to implementation problems
@@ -203,16 +254,15 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			return false;
 		}
 		
-		needsSpsBitstreamFixup = isDecoderInList(spsFixupBitstreamFixupDecoderPrefixes, decoder.getName());
-		needsSpsNumRefFixup = isDecoderInList(spsFixupNumRefFixupDecoderPrefixes, decoder.getName());
-		if (needsSpsBitstreamFixup) {
-			LimeLog.info("Decoder "+decoder.getName()+" needs SPS bitstream restrictions fixup");
-		}
-		if (needsSpsNumRefFixup) {
-			LimeLog.info("Decoder "+decoder.getName()+" needs SPS ref num fixup");
+		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
+		
+		// Adaptive playback can also be enabled by the whitelist on pre-KitKat devices
+		// so we don't fill these pre-KitKat
+		if (adaptivePlayback && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			videoFormat.setInteger(MediaFormat.KEY_MAX_WIDTH, width);
+			videoFormat.setInteger(MediaFormat.KEY_MAX_HEIGHT, height);
 		}
 		
-		MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
 		videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
 		videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 		
@@ -366,63 +416,44 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			if (header.data[header.offset+4] == 0x67) {
 				numSpsIn++;
 				
-				if ((needsSpsBitstreamFixup || needsSpsNumRefFixup)) {
-					byte last = header.data[header.length+header.offset-1];
-
+				if (needsSpsBitstreamFixup || needsSpsNumRefFixup) {
+					ByteBuffer spsBuf = ByteBuffer.wrap(header.data);
+					
+					// Skip to the start of the NALU data
+					spsBuf.position(header.offset+5);
+					
+					SeqParameterSet sps = SeqParameterSet.read(spsBuf);
+										
 					// TI OMAP4 requires a reference frame count of 1 to decode successfully
 					if (needsSpsNumRefFixup) {
 						LimeLog.info("Fixing up num ref frames");
-						this.replace(header, 80, 9, new byte[] {0x40}, 3);
+						sps.num_ref_frames = 1;
 					}
 
 					// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
 					// or max_dec_frame_buffering which increases decoding latency on Tegra.
-					// We manually modify the SPS here to speed-up decoding if the decoder was flagged as needing it.
-					int spsLength;
 					if (needsSpsBitstreamFixup) {
-						if (!needsSpsNumRefFixup) {
-							switch (header.length) {
-							case 26:
-								LimeLog.info("Adding bitstream restrictions to SPS (26)");
-								buf.put(header.data, header.offset, 24);
-								buf.put((byte) 0x11);
-								buf.put((byte) 0xe3);
-								buf.put((byte) 0x06);
-								buf.put((byte) 0x50);
-								spsLength = header.length + 2;
-								break;
-							case 27:
-								LimeLog.info("Adding bitstream restrictions to SPS (27)");
-								buf.put(header.data, header.offset, 25);
-								buf.put((byte) 0x04);
-								buf.put((byte) 0x78);
-								buf.put((byte) 0xc1);
-								buf.put((byte) 0x94);
-								spsLength = header.length + 2;
-								break;
-							default:
-								LimeLog.warning("Unknown SPS of length "+header.length);
-								buf.put(header.data, header.offset, header.length);
-								spsLength = header.length;
-								break;
-							}
-						}
-						else {
-							// Set bitstream restrictions to only buffer single frame
-							// (starts 9 bits before stop bit and 6 bits earlier because of the shortening above)
-							this.replace(header, header.length*8+Integer.numberOfLeadingZeros(last & - last)%8-9-6, 2, BITSTREAM_RESTRICTIONS, 3*8);
-							buf.put(header.data, header.offset, header.length);
-							spsLength = header.length;
-						}
+						LimeLog.info("Adding bitstream restrictions");
+
+						sps.vuiParams.bitstreamRestriction = new VUIParameters.BitstreamRestriction();
+						sps.vuiParams.bitstreamRestriction.motion_vectors_over_pic_boundaries_flag = false;
+						sps.vuiParams.bitstreamRestriction.max_bytes_per_pic_denom = 0;
+						sps.vuiParams.bitstreamRestriction.max_bits_per_mb_denom = 0;
+						sps.vuiParams.bitstreamRestriction.log2_max_mv_length_horizontal = 16;
+						sps.vuiParams.bitstreamRestriction.log2_max_mv_length_vertical = 16;
+						sps.vuiParams.bitstreamRestriction.num_reorder_frames = 0;
+						sps.vuiParams.bitstreamRestriction.max_dec_frame_buffering = 1;
 					}
-					else {
-						buf.put(header.data, header.offset, header.length);
-						spsLength = header.length;
-					}
+					
+					// Write the annex B header
+					buf.put(header.data, header.offset, 5);
+					
+					// Write the modified SPS to the input buffer
+					sps.write(buf);
 					
 					try {
 						videoDecoder.queueInputBuffer(inputIndex,
-								0, spsLength,
+								0, buf.position(),
 								currentTime * 1000, codecFlags);
 					} catch (Exception e) {
 						throw new RendererException(this, e, buf, codecFlags);
@@ -453,86 +484,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 	@Override
 	public int getCapabilities() {
-		return 0;
-	}
-
-	/**
-	 * Replace bits in array 
-	 * @param source array in which bits should be replaced
-	 * @param srcOffset offset in bits where replacement should take place
-	 * @param srcLength length in bits of data that should be replaced
-	 * @param data data array with the the replacement data
-	 * @param dataLength length of replacement data in bits
-	 */
-	public void replace(ByteBufferDescriptor source, int srcOffset, int srcLength, byte[] data, int dataLength) {
-		//Add 7 to always round up
-		int length = (source.length*8-srcLength+dataLength+7)/8;
-
-		int bitOffset = srcOffset%8;
-		int byteOffset = srcOffset/8;
-
-		byte dest[] = null;
-		int offset = 0;
-		if (length>source.length) {
-			dest = new byte[length];
-
-			//Copy the first bytes
-			System.arraycopy(source.data, source.offset, dest, offset, byteOffset);
-		} else {
-			dest = source.data;
-			offset = source.offset;
-		}
-
-		int byteLength = (bitOffset+dataLength+7)/8;
-		int bitTrailing = 8 - (srcOffset+dataLength) % 8;
-		for (int i=0;i<byteLength;i++) {
-			byte result = 0;
-			if (i != 0)
-				result = (byte) (data[i-1] << 8-bitOffset);
-			else if (bitOffset > 0)
-				result = (byte) (source.data[byteOffset+source.offset] & (0xFF << 8-bitOffset));
-
-			if (i == 0 || i != byteLength-1) {
-				byte moved = (byte) ((data[i]&0xFF) >>> bitOffset);
-				result |= moved;
-			}
-
-			if (i == byteLength-1 && bitTrailing > 0) {
-				int sourceOffset = srcOffset+srcLength/8;
-				int bitMove = (dataLength-srcLength)%8;
-				if (bitMove<0) {
-					result |= (byte) (source.data[sourceOffset+source.offset] << -bitMove & (0xFF >>> bitTrailing));
-					result |= (byte) (source.data[sourceOffset+1+source.offset] << -bitMove & (0xFF >>> 8+bitMove));
-				} else {
-					byte moved = (byte) ((source.data[sourceOffset+source.offset]&0xFF) >>> bitOffset);
-					result |= moved;
-				}
-			}
-
-			dest[i+byteOffset+offset] = result;
-		}
-
-		//Source offset
-		byteOffset += srcLength/8;
-		bitOffset = (srcOffset+dataLength-srcLength)%8;
-
-		//Offset in destination
-		int destOffset = (srcOffset+dataLength)/8;
-
-		for (int i=1;i<source.length-byteOffset;i++) {
-			int diff = destOffset >= byteOffset-1?i:source.length-byteOffset-i;
-
-			byte result = 0;
-			result = (byte) (source.data[byteOffset+diff-1+source.offset] << 8-bitOffset);
-			byte moved = (byte) ((source.data[byteOffset+diff+source.offset]&0xFF) >>> bitOffset);
-			result ^= moved;
-
-			dest[diff+destOffset+offset] = result;
-		}
-
-		source.data = dest;
-		source.offset = offset;
-		source.length = length;
+		return adaptivePlayback ?
+				VideoDecoderRenderer.CAPABILITY_ADAPTIVE_RESOLUTION : 0;
 	}
 
 	@Override

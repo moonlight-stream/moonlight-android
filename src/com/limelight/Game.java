@@ -189,16 +189,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
 		String app = Game.this.getIntent().getStringExtra(EXTRA_APP);
 		String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
-        
-		// Initialize the connection
-		conn = new NvConnection(host, uniqueId, Game.this,
-				new StreamConfiguration(app, width, height, refreshRate, bitrate * 1000, sops),
-				PlatformBinding.getCryptoProvider(this));
-		keybTranslator = new KeyboardTranslator(conn);
-		controllerHandler = new ControllerHandler(conn);
 		
 		decoderRenderer = new ConfigurableDecoderRenderer();
 		decoderRenderer.initializeWithFlags(drFlags);
+        
+		StreamConfiguration config = 
+				new StreamConfiguration(app, width, height,
+						refreshRate, bitrate * 1000, sops,
+						(decoderRenderer.getCapabilities() &
+								VideoDecoderRenderer.CAPABILITY_ADAPTIVE_RESOLUTION) != 0);
+		
+		// Initialize the connection
+		conn = new NvConnection(host, uniqueId, Game.this, config, PlatformBinding.getCryptoProvider(this));
+		keybTranslator = new KeyboardTranslator(conn);
+		controllerHandler = new ControllerHandler(conn);
 		
 		SurfaceHolder sh = sv.getHolder();
 		if (stretchToFit || !decoderRenderer.isHardwareAccelerated()) {

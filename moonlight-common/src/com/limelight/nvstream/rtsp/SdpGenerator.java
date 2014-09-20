@@ -19,16 +19,6 @@ public class SdpGenerator {
 		addSessionAttribute(config, attribute, new String(str));
 	}
 	
-	private static void addSessionAttributeInts(StringBuilder config, String attribute, int[] value) {
-		ByteBuffer b = ByteBuffer.allocate(value.length * 4).order(ByteOrder.LITTLE_ENDIAN);
-		
-		for (int val : value) {
-			b.putInt(val);
-		}
-		
-		addSessionAttributeBytes(config, attribute, b.array());
-	}
-	
 	private static void addSessionAttributeInt(StringBuilder config, String attribute, int value) {
 		ByteBuffer b = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		b.putInt(value);
@@ -54,39 +44,6 @@ public class SdpGenerator {
 		config.append("s=NVIDIA Streaming Client").append("\r\n");
 		
 		addSessionAttribute(config, "x-nv-general.serverAddress", host.getHostAddress());
-		addSessionAttributeInts(config, "x-nv-general.serverPorts", new int[] {
-				0x00000000, 0xffffffff, 0xffffffff, 0x00000000,
-				0xffffffff, 0xffffffff, 0x00000000, 0xffffffff,
-				0xffffffff, 0x00000000, 0xffffffff, 0xffffffff,
-				
-				0x00000000, 0xffffffff, 0xffffffff, 0x00000000,
-				0xffffffff, 0xffffffff, 0x00000000, 0xffffffff,
-				0xffffffff, 0x00000000, 0xffffffff, 0xffffffff,
-				
-				0x00000000, 0xffffffff, 0xffffffff, 0x00000000,
-				0xffffffff, 0xffffffff, 0x00000000, 0xffffffff,
-				0xffffffff, 0x00000000, 0xffffffff, 0xffffffff,
-				
-				0x00000000, 0xffffffff, 0xffffffff, 0x00000000,
-				0xffffffff, 0xffffffff, 0x00000000, 0xffffffff,
-				0xffffffff, 0x00000000, 0xffffffff, 0xffffffff,
-				
-				0x00000000, 0xffffffff, 0xffffffff, 0x00000000,
-				0xffffffff, 0xffffffff, 0x00000000, 0xffffffff,
-				0xffffffff, 0x00000000, 0xffffffff, 0xffffffff,
-				
-				0x00000000, 0xffffffff, 0xffffffff, 0x00000000,
-				0xffffffff, 0xffffffff, 0x00000000, 0xffffffff,
-				0xffffffff, 0x00000000, 0xffffffff, 0xffffffff,
-				
-				0x00000000, 0xffffffff, 0xffffffff, 0x00000000,
-				0xffffffff, 0xffffffff, 0x00000000, 0xffffffff,
-				0xffffffff, 0x00000000, 0xffffffff, 0xffffffff,
-				
-				0x00000000, 0xffffffff, 0xffffffff, 0x00000000,
-				0xffffffff, 0xffffffff, 0x00000000, 0xffffffff,
-				0xffffffff, 0x00000000, 0xffffffff, 0xffffffff
-		});
 		
 		addSessionAttributeInt(config, "x-nv-general.featureFlags", 0x42774141);
 		
@@ -94,18 +51,22 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].clientViewportHt", ""+sc.getHeight());
 		addSessionAttribute(config, "x-nv-video[0].maxFPS", ""+sc.getRefreshRate());
 		
+		addSessionAttributeInt(config, "x-nv-video[0].transferProtocol", 0x41514120);
 		addSessionAttributeInt(config, "x-nv-video[1].transferProtocol", 0x41514120);
 		addSessionAttributeInt(config, "x-nv-video[2].transferProtocol", 0x41514120);
+		addSessionAttributeInt(config, "x-nv-video[3].transferProtocol", 0x41514120);
 
 		addSessionAttributeInt(config, "x-nv-video[0].rateControlMode", 0x42414141);
+		addSessionAttributeInt(config, "x-nv-video[1].rateControlMode", 0x42514141);
 		addSessionAttributeInt(config, "x-nv-video[2].rateControlMode", 0x42514141);
+		addSessionAttributeInt(config, "x-nv-video[3].rateControlMode", 0x42514141);
 		
 		addSessionAttribute(config, "x-nv-video[0].timeoutLengthMs", "7000");
 		addSessionAttribute(config, "x-nv-video[0].framesWithInvalidRefThreshold", "0");
 		
-		// The low nibble of the high byte should be 0x9 but that causes video issues
+		// It should be 16183 but adding 100 but causes resolution to scale in the beginning
 		// The bit 0x80 enables video scaling on packet loss which we can't support (for now)
-		addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "7011");
+		addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "16083");
 		
 		addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());
 		
@@ -117,7 +78,13 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-vqos[0].fec.repairMinPercent", "1");
 		
 		addSessionAttribute(config, "x-nv-vqos[0].videoQualityScoreUpdateTime", "5000");
-		addSessionAttribute(config, "x-nv-vqos[0].qosTrafficType", "7");
+		addSessionAttribute(config, "x-nv-vqos[0].qosTrafficType", "5");
+		
+		addSessionAttribute(config, "x-nv-vqos[0].videoQosMaxConsecutiveDrops", "0");
+		addSessionAttribute(config, "x-nv-vqos[1].videoQosMaxConsecutiveDrops", "0");
+		addSessionAttribute(config, "x-nv-vqos[2].videoQosMaxConsecutiveDrops", "0");
+		addSessionAttribute(config, "x-nv-vqos[3].videoQosMaxConsecutiveDrops", "0");
+		
 		addSessionAttribute(config, "x-nv-aqos.qosTrafficType", "8");
 
 		config.append("t=0 0").append("\r\n");

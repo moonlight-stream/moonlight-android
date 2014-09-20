@@ -23,7 +23,6 @@ public class MdnsDiscoveryAgent {
 	
 	private JmDNS resolver;
 	private HashMap<InetAddress, MdnsComputer> computers;
-	private Timer discoveryTimer;
 	private MdnsDiscoveryListener listener;
 	private HashSet<String> pendingResolution;
 	private boolean stop;
@@ -102,45 +101,44 @@ public class MdnsDiscoveryAgent {
 	
 	public void startDiscovery(final int discoveryIntervalMs) {
 		stop = false;
-		discoveryTimer = new Timer();
-		discoveryTimer.schedule(new TimerTask() {
+		final Timer t = new Timer();
+		t.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				// Close the old resolver
-				if (resolver != null) {
-					try {
-						resolver.close();
-					} catch (IOException e) {}
-					resolver = null;
-				}
-				
-				// Stop if requested
-				if (stop) {
-					// There will be no further timer invocations now
-					if (discoveryTimer != null) {
-						discoveryTimer.cancel();
-						discoveryTimer = null;
+				synchronized (MdnsDiscoveryAgent.this) {
+					// Close the old resolver
+					if (resolver != null) {
+						try {
+							resolver.close();
+						} catch (IOException e) {}
+						resolver = null;
 					}
-					return;
-				}
-				
-				// Create a new resolver
-				try {
-					resolver = JmDNS.create(new InetSocketAddress(0).getAddress());
-				} catch (IOException e) {
-					// This is fine; the network is probably not up
-					return;
-				}
-				
-				// Send another mDNS query
-				resolver.addServiceListener(SERVICE_TYPE, nvstreamListener);
-				resolver.requestServiceInfo(SERVICE_TYPE, null, discoveryIntervalMs);
+					
+					// Stop if requested
+					if (stop) {
+						// There will be no further timer invocations now
+						t.cancel();
+						return;
+					}
+					
+					// Create a new resolver
+					try {
+						resolver = JmDNS.create(new InetSocketAddress(0).getAddress());
+					} catch (IOException e) {
+						// This is fine; the network is probably not up
+						return;
+					}
+					
+					// Send another mDNS query
+					resolver.addServiceListener(SERVICE_TYPE, nvstreamListener);
+					resolver.requestServiceInfo(SERVICE_TYPE, null, discoveryIntervalMs);
 
-				// Run service resolution again for pending machines
-				ArrayList<String> pendingNames = new ArrayList<String>(pendingResolution);
-				for (String name : pendingNames) {
-					LimeLog.info("mDNS: Retrying service resolution for machine: "+name);
-					resolver.getServiceInfo(SERVICE_TYPE, name);
+					// Run service resolution again for pending machines
+					ArrayList<String> pendingNames = new ArrayList<String>(pendingResolution);
+					for (String name : pendingNames) {
+						LimeLog.info("mDNS: Retrying service resolution for machine: "+name);
+						resolver.getServiceInfo(SERVICE_TYPE, name);
+					}
 				}
 			}
 		}, 0, discoveryIntervalMs);

@@ -64,15 +64,38 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].timeoutLengthMs", "7000");
 		addSessionAttribute(config, "x-nv-video[0].framesWithInvalidRefThreshold", "0");
 		
-		
-		if (sc.getAdaptiveResolutionEnabled()) {
+		// Adding 100 causes the stream to start at a lower resolution
+		/*if (sc.getAdaptiveResolutionEnabled()) {
 			addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "16183");
 		}
-		else {
-			addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "16083");
+		else*/ {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "14083");
 			
 			// Lock the bitrate if we're not scaling resolution so the picture doesn't get too bad
-			addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+sc.getBitrate());
+			if (sc.getHeight() >= 1080 && sc.getRefreshRate() >= 60) {
+				if (sc.getBitrate() < 10000) {
+					addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+sc.getBitrate());
+				}
+				else {
+					addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "10000");
+				}
+			}
+			else if (sc.getHeight() >= 1080 || sc.getRefreshRate() >= 60) {
+				if (sc.getBitrate() < 7000) {
+					addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+sc.getBitrate());
+				}
+				else {
+					addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "7000");
+				}
+			}
+			else {
+				if (sc.getBitrate() < 3000) {
+					addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+sc.getBitrate());
+				}
+				else {
+					addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "3000");
+				}
+			}
 		}
 		
 		addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());

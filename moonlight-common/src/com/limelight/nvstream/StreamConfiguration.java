@@ -6,6 +6,7 @@ public class StreamConfiguration {
 	private int refreshRate;
 	private int bitrate;
 	private boolean sops;
+	private boolean enableAdaptiveResolution;
 	
 	public StreamConfiguration(String app, int width, int height, int refreshRate, int bitrate) {
 		this.app = app;
@@ -16,13 +17,15 @@ public class StreamConfiguration {
 		this.sops = true;
 	}
 	
-	public StreamConfiguration(String app, int width, int height, int refreshRate, int bitrate, boolean sops) {
+	public StreamConfiguration(String app, int width, int height, int refreshRate, int bitrate, boolean sops,
+			boolean enableAdaptiveResolution) {
 		this.app = app;
 		this.width = width;
 		this.height = height;
 		this.refreshRate = refreshRate;
 		this.bitrate = bitrate;
 		this.sops = sops;
+		this.enableAdaptiveResolution = enableAdaptiveResolution;
 	}
 	
 	public int getWidth() {
@@ -51,5 +54,9 @@ public class StreamConfiguration {
 	
 	public boolean getSops() {
 		return sops;
+	}
+	
+	public boolean getAdaptiveResolutionEnabled() {
+		return enableAdaptiveResolution;
 	}
 }

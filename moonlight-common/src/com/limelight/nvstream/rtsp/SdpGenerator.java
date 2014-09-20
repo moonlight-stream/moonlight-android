@@ -64,9 +64,16 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].timeoutLengthMs", "7000");
 		addSessionAttribute(config, "x-nv-video[0].framesWithInvalidRefThreshold", "0");
 		
-		// It should be 16183 but adding 100 but causes resolution to scale in the beginning
-		// The bit 0x80 enables video scaling on packet loss which we can't support (for now)
-		addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "16083");
+		
+		if (sc.getAdaptiveResolutionEnabled()) {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "16183");
+		}
+		else {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "16083");
+			
+			// Lock the bitrate if we're not scaling resolution so the picture doesn't get too bad
+			addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+sc.getBitrate());
+		}
 		
 		addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+sc.getBitrate());
 		

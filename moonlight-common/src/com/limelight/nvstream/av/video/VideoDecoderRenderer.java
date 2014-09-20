@@ -6,6 +6,9 @@ public interface VideoDecoderRenderer {
 	public static final int FLAG_FORCE_SOFTWARE_DECODING = 0x4;
 	public static final int FLAG_FILL_SCREEN = 0x8;
 	
+	// Allows the resolution to dynamically change mid-stream
+	public static final int CAPABILITY_ADAPTIVE_RESOLUTION = 0x1;
+	
 	public int getCapabilities();
 	
 	public int getAverageEndToEndLatency();

@@ -156,7 +156,7 @@ public class PcView extends Activity {
 		}
 	}
 	
-	private void stopComputerUpdates() {
+	private void stopComputerUpdates(boolean wait) {
 		if (managerBinder != null) {
 			if (!runningPolling) {
 				return;
@@ -165,6 +165,11 @@ public class PcView extends Activity {
 			freezeUpdates = true;
 			
 			managerBinder.stopPolling();
+			
+			if (wait) {
+				managerBinder.waitForPollingStopped();
+			}
+			
 			runningPolling = false;
 		}
 	}
@@ -189,7 +194,7 @@ public class PcView extends Activity {
 	protected void onPause() {
 		super.onPause();
 		
-		stopComputerUpdates();
+		stopComputerUpdates(false);
 	}
 	
 	@Override
@@ -201,7 +206,7 @@ public class PcView extends Activity {
 	
 	@Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-		stopComputerUpdates();
+		stopComputerUpdates(false);
 		
 		// Call superclass
 		super.onCreateContextMenu(menu, v, menuInfo);
@@ -258,6 +263,9 @@ public class PcView extends Activity {
 				NvHTTP httpConn;
 				String message;
 				try {
+					// Stop updates and wait while pairing
+					stopComputerUpdates(true);
+					
 					InetAddress addr = null;
 					if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
 						addr = computer.localIp;
@@ -312,6 +320,9 @@ public class PcView extends Activity {
 						Toast.makeText(PcView.this, toastMessage, Toast.LENGTH_LONG).show();
 					}
 				});
+				
+				// Start polling again
+				startComputerUpdates();
 			}
 		}).start();
 	}

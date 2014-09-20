@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.limelight.root"
-    android:versionCode="33"
-    android:versionName="2.5.4.1" >
+    android:versionCode="34"
+    android:versionName="2.5.5" >
 
     <uses-sdk
         android:minSdkVersion="16"

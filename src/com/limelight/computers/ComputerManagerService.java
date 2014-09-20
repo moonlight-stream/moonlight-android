@@ -46,6 +46,8 @@ public class ComputerManagerService extends Service {
 	private ThreadPoolExecutor pollingPool;
 	private Timer pollingTimer;
 	private ComputerManagerListener listener = null;
+	private AtomicInteger activePolls = new AtomicInteger(0);
+	private boolean stopped;
 
 	private DiscoveryService.DiscoveryBinder discoveryBinder;
 	private ServiceConnection discoveryServiceConnection = new ServiceConnection() {
@@ -69,6 +71,9 @@ public class ComputerManagerService extends Service {
 	
 	public class ComputerManagerBinder extends Binder {
 		public void startPolling(ComputerManagerListener listener) {
+			// Not stopped
+			stopped = false;
+			
 			// Set the listener
 			ComputerManagerService.this.listener = listener;
 			
@@ -89,6 +94,14 @@ public class ComputerManagerService extends Service {
 					}
 				} catch (InterruptedException e) {
 				}
+			}
+		}
+		
+		public void waitForPollingStopped() {
+			while (activePolls.get() != 0) {
+				try {
+					Thread.sleep(250);
+				} catch (InterruptedException e) {}
 			}
 		}
 		
@@ -116,6 +129,9 @@ public class ComputerManagerService extends Service {
 	
 	@Override
 	public boolean onUnbind(Intent intent) {
+		// Stopped now
+		stopped = true;
+		
 		// Stop mDNS autodiscovery
 		discoveryBinder.stopDiscovery();
 		
@@ -385,15 +401,23 @@ public class ComputerManagerService extends Service {
 			public void run() {
 				boolean newPc = (details.name == null);
 				
+				if (stopped) {
+					return;
+				}
+				
 				if (!getLocalDatabaseReference()) {
 					return;
 				}
+				
+				activePolls.incrementAndGet();
 				
 				// Poll the machine
 				if (!doPollMachine(details)) {
 					details.state = ComputerDetails.State.OFFLINE;
 					details.reachability = ComputerDetails.Reachability.OFFLINE;
 				}
+				
+				activePolls.decrementAndGet();
 
 				// If it's online, update our persistent state
 				if (details.state == ComputerDetails.State.ONLINE) {

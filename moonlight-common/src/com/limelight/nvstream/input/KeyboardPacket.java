@@ -26,12 +26,8 @@ public class KeyboardPacket extends InputPacket {
 	}
 
 	@Override
-	public ByteOrder getPayloadByteOrder() {
-		return ByteOrder.LITTLE_ENDIAN;
-	}
-
-	@Override
 	public void toWirePayload(ByteBuffer bb) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
 		bb.put(keyDirection);
 		bb.putShort((short)0);
 		bb.putShort((short)0);

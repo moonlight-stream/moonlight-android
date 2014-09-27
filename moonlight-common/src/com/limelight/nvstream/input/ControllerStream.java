@@ -35,8 +35,7 @@ public class ControllerStream {
 	private Thread inputThread;
 	private LinkedBlockingQueue<InputPacket> inputQueue = new LinkedBlockingQueue<InputPacket>();
 	
-	private ByteBuffer littleEndianBuffer = ByteBuffer.allocate(128).order(ByteOrder.LITTLE_ENDIAN);
-	private ByteBuffer bigEndianBuffer = ByteBuffer.allocate(128).order(ByteOrder.BIG_ENDIAN);
+	private ByteBuffer stagingBuffer = ByteBuffer.allocate(128);
 	private ByteBuffer sendBuffer = ByteBuffer.allocate(128).order(ByteOrder.BIG_ENDIAN);
 	
 	public ControllerStream(InetAddress host, SecretKey riKey, int riKeyId, NvConnectionListener listener)
@@ -234,18 +233,8 @@ public class ControllerStream {
 	}
 	
 	private void sendPacket(InputPacket packet) throws IOException {
-		ByteBuffer toWireBuffer;
-		
-		// Choose which byte order we'll be using for converting to wire form
-		if (packet.getPayloadByteOrder() == ByteOrder.BIG_ENDIAN) {
-			toWireBuffer = bigEndianBuffer;
-		}
-		else {
-			toWireBuffer = littleEndianBuffer;
-		}
-		
 		// Store the packet in wire form in the byte buffer
-		packet.toWire(toWireBuffer);
+		packet.toWire(stagingBuffer);
 		int packetLen = packet.getPacketLength();
 		
 		// Pad to 16 byte chunks
@@ -255,7 +244,7 @@ public class ControllerStream {
 		sendBuffer.rewind();
 		sendBuffer.putInt(paddedLength);
 		try {
-			encryptAesInputData(toWireBuffer.array(), packetLen, sendBuffer.array(), 4);
+			encryptAesInputData(stagingBuffer.array(), packetLen, sendBuffer.array(), 4);
 		} catch (Exception e) {
 			// Should never happen
 			e.printStackTrace();

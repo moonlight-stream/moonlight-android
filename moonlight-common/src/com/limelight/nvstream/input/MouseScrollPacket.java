@@ -18,12 +18,9 @@ public class MouseScrollPacket extends InputPacket {
 	}
 
 	@Override
-	public ByteOrder getPayloadByteOrder() {
-		return ByteOrder.BIG_ENDIAN;
-	}
-
-	@Override
 	public void toWirePayload(ByteBuffer bb) {
+		bb.order(ByteOrder.BIG_ENDIAN);
+		
 		bb.put((byte) 0x09);
 		bb.put((byte) 0);
 		bb.put((byte) 0);

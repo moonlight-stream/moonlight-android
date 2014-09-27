@@ -70,12 +70,8 @@ public class ControllerPacket extends InputPacket {
 		}
 
 		@Override
-		public ByteOrder getPayloadByteOrder() {
-			return ByteOrder.LITTLE_ENDIAN;
-		}
-
-		@Override
 		public void toWirePayload(ByteBuffer bb) {
+			bb.order(ByteOrder.LITTLE_ENDIAN);
 			bb.put(HEADER);
 			bb.putShort(buttonFlags);
 			bb.put(leftTrigger);

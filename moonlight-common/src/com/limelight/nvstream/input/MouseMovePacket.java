@@ -30,12 +30,8 @@ public class MouseMovePacket extends InputPacket {
 	}
 
 	@Override
-	public ByteOrder getPayloadByteOrder() {
-		return ByteOrder.BIG_ENDIAN;
-	}
-
-	@Override
 	public void toWirePayload(ByteBuffer bb) {
+		bb.order(ByteOrder.BIG_ENDIAN);
 		bb.put(HEADER);
 		bb.putShort(deltaX);
 		bb.putShort(deltaY);

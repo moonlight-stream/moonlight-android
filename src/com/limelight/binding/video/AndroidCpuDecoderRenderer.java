@@ -93,7 +93,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
 		this.targetFps = redrawRate;
 		
-		int perfLevel = findOptimalPerformanceLevel();
+		int perfLevel = LOW_PERF; //findOptimalPerformanceLevel();
 		int threadCount;
 		
 		int avcFlags = 0;

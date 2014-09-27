@@ -31,6 +31,7 @@ public class NvHTTP {
 
 	public static final int PORT = 47984;
 	public static final int CONNECTION_TIMEOUT = 2000;
+	public static final int READ_TIMEOUT = 2000;
 	
 	private final boolean verbose = false;
 
@@ -101,7 +102,7 @@ public class NvHTTP {
 	}
 	
 	public String getServerInfo(String uniqueId) throws MalformedURLException, IOException {
-		return openHttpConnectionToString(baseUrl + "/serverinfo?uniqueid=" + uniqueId);
+		return openHttpConnectionToString(baseUrl + "/serverinfo?uniqueid=" + uniqueId, true);
 	}
 	
 	public ComputerDetails getComputerDetails() throws MalformedURLException, IOException, XmlPullParserException {
@@ -146,19 +147,27 @@ public class NvHTTP {
 		return details;
 	}
 
-	private InputStream openHttpConnection(String url) throws IOException {
+	// Read timeout should be enabled for any HTTP query that requires no outside action
+	// on the GFE server. Examples of queries that DO require outside action are launch, resume, and quit.
+	// The initial pair query does require outside action (user entering a PIN) but subsequent pairing
+	// queries do not.
+	private InputStream openHttpConnection(String url, boolean enableReadTimeout) throws IOException {
 		URLConnection conn = new URL(url).openConnection();
 		if (verbose) {
 			System.out.println(url);
 		}
 		conn.setConnectTimeout(CONNECTION_TIMEOUT);
+		if (enableReadTimeout) {
+			conn.setReadTimeout(READ_TIMEOUT);
+		}
+		
 		conn.setUseCaches(false);
 		conn.connect();
 		return conn.getInputStream();
 	}
 	
-	String openHttpConnectionToString(String url) throws MalformedURLException, IOException {
-		Scanner s = new Scanner(openHttpConnection(url));
+	String openHttpConnectionToString(String url, boolean enableReadTimeout) throws MalformedURLException, IOException {
+		Scanner s = new Scanner(openHttpConnection(url, enableReadTimeout));
 		
 		String str = "";
 		while (s.hasNext()) {
@@ -207,12 +216,14 @@ public class NvHTTP {
 	}
 	
 	public InputStream getBoxArtPng(NvApp app) throws IOException {
+		// FIXME: Investigate whether this should be subject to the 2 second read timeout
+		// or not.
 		return openHttpConnection(baseUrl + "/applist?uniqueid="+uniqueId+"&appid="+
-				app.getAppId()+"&AssetType=2&AssetIdx=0");
+				app.getAppId()+"&AssetType=2&AssetIdx=0", false);
 	}
 	
 	public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId);
+		InputStream in = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId, true);
 		XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 		factory.setNamespaceAware(true);
 		XmlPullParser xpp = factory.newPullParser();
@@ -253,7 +264,7 @@ public class NvHTTP {
 	}
 	
 	public void unpair() throws IOException {
-		openHttpConnection(baseUrl + "/unpair?uniqueid=" + uniqueId);
+		openHttpConnection(baseUrl + "/unpair?uniqueid=" + uniqueId, true);
 	}
 
 	final private static char[] hexArray = "0123456789ABCDEF".toCharArray();
@@ -274,7 +285,7 @@ public class NvHTTP {
 			"&mode=" + width + "x" + height + "x" + refreshRate +
 			"&additionalStates=1&sops=" + (sops ? 1 : 0) +
 			"&rikey="+bytesToHex(inputKey.getEncoded()) +
-			"&rikeyid="+riKeyId);
+			"&rikeyid="+riKeyId, false);
 		String gameSession = getXmlString(in, "gamesession");
 		return Integer.parseInt(gameSession);
 	}
@@ -282,13 +293,13 @@ public class NvHTTP {
 	public boolean resumeApp(SecretKey inputKey, int riKeyId) throws IOException, XmlPullParserException {
 		InputStream in = openHttpConnection(baseUrl + "/resume?uniqueid=" + uniqueId +
 				"&rikey="+bytesToHex(inputKey.getEncoded()) +
-				"&rikeyid="+riKeyId);
+				"&rikeyid="+riKeyId, false);
 		String resume = getXmlString(in, "resume");
 		return Integer.parseInt(resume) != 0;
 	}
 	
 	public boolean quitApp() throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/cancel?uniqueid=" + uniqueId);
+		InputStream in = openHttpConnection(baseUrl + "/cancel?uniqueid=" + uniqueId, false);
 		String cancel = getXmlString(in, "cancel");
 		return Integer.parseInt(cancel) != 0;
 	}

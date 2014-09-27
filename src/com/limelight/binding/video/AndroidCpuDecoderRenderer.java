@@ -38,6 +38,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 	
 	private int cpuCount = Runtime.getRuntime().availableProcessors();
 	
+	@SuppressWarnings("unused")
 	private int findOptimalPerformanceLevel() {
 		StringBuilder cpuInfo = new StringBuilder();
 		BufferedReader br = null;

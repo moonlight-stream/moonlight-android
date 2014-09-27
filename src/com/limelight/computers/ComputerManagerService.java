@@ -342,7 +342,7 @@ public class ComputerManagerService extends Service {
 			polledDetails = tryPollIp(details.remoteIp);
 		}
 		
-		if (polledDetails == null) {
+		if (polledDetails == null && !details.localIp.equals(details.remoteIp)) {
 			// Failed, so let's try the fallback
 			if (!localFirst) {
 				polledDetails = tryPollIp(details.localIp);
@@ -356,7 +356,8 @@ public class ComputerManagerService extends Service {
 				polledDetails.reachability = !localFirst ? ComputerDetails.Reachability.LOCAL :
 					ComputerDetails.Reachability.REMOTE;
 			}
-		} else {
+		}
+		else if (polledDetails != null) {
 			polledDetails.reachability = localFirst ? ComputerDetails.Reachability.LOCAL :
 				ComputerDetails.Reachability.REMOTE;
 		}

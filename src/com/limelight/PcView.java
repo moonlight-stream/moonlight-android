@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import com.limelight.binding.PlatformBinding;
+import com.limelight.binding.crypto.AndroidCryptoProvider;
 import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.nvstream.http.ComputerDetails;
@@ -59,6 +60,9 @@ public class PcView extends Activity {
 					
 					// Start updates
 					startComputerUpdates();
+					
+					// Force a keypair to be generated early to avoid discovery delays
+					new AndroidCryptoProvider(PcView.this).getClientCertificate();
 				}
 			}.start();
 		}

@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <poll.h>
 
+#include <android/log.h>
+
 JNIEXPORT jint JNICALL
 Java_com_limelight_binding_input_evdev_EvdevReader_open(JNIEnv *env, jobject this, jstring absolutePath) {
 	const char *path;
@@ -67,6 +69,8 @@ Java_com_limelight_binding_input_evdev_EvdevReader_read(JNIEnv *env, jobject thi
     
     data = (*env)->GetByteArrayElements(env, buffer, NULL);
     if (data == NULL) {
+        __android_log_print(ANDROID_LOG_ERROR, "EvdevReader",
+            "Failed to get byte array");
         return -1;
     }
 
@@ -83,10 +87,23 @@ Java_com_limelight_binding_input_evdev_EvdevReader_read(JNIEnv *env, jobject thi
     if (pollres > 0 && (pollinfo.revents & POLLIN)) {
         // We'll have data available now
         ret = read(fd, data, sizeof(struct input_event));
+        if (ret < 0) {
+            __android_log_print(ANDROID_LOG_ERROR, "EvdevReader",
+                "read() failed: %d", errno);
+        }
     }
     else {
         // There must have been a failure
         ret = -1;
+    
+        if (pollres < 0) {
+            __android_log_print(ANDROID_LOG_ERROR, "EvdevReader",
+                "poll() failed: %d", errno);
+        }
+        else {
+            __android_log_print(ANDROID_LOG_ERROR, "EvdevReader",
+                "Unexpected revents: %d", pollinfo.revents);
+        }
     }
     
     (*env)->ReleaseByteArrayElements(env, buffer, data, 0);

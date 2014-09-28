@@ -51,6 +51,8 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 	private RSAPrivateKey key;
 	private byte[] pemCertBytes;
 	
+	private static Object globalCryptoLock = new Object();
+	
 	static {
 		// Install the Bouncy Castle provider
 		Security.addProvider(new BouncyCastleProvider());
@@ -208,7 +210,7 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 	public X509Certificate getClientCertificate() {
 		// Use a lock here to ensure only one guy will be generating or loading
 		// the certificate and key at a time
-		synchronized (this) {
+		synchronized (globalCryptoLock) {
 			// Return a loaded cert if we have one
 			if (cert != null) {
 				return cert;
@@ -235,7 +237,7 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 	public RSAPrivateKey getClientPrivateKey() {
 		// Use a lock here to ensure only one guy will be generating or loading
 		// the certificate and key at a time
-		synchronized (this) {
+		synchronized (globalCryptoLock) {
 			// Return a loaded key if we have one
 			if (key != null) {
 				return key;
@@ -260,7 +262,7 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 	}
 	
 	public byte[] getPemEncodedClientCertificate() {
-		synchronized (this) {
+		synchronized (globalCryptoLock) {
 			// Call our helper function to do the cert loading/generation for us
 			getClientCertificate();
 			

@@ -342,7 +342,7 @@ public class ComputerManagerService extends Service {
 			polledDetails = tryPollIp(details.remoteIp);
 		}
 		
-		if (polledDetails == null) {
+		if (polledDetails == null && !details.localIp.equals(details.remoteIp)) {
 			// Failed, so let's try the fallback
 			if (!localFirst) {
 				polledDetails = tryPollIp(details.localIp);
@@ -356,7 +356,8 @@ public class ComputerManagerService extends Service {
 				polledDetails.reachability = !localFirst ? ComputerDetails.Reachability.LOCAL :
 					ComputerDetails.Reachability.REMOTE;
 			}
-		} else {
+		}
+		else if (polledDetails != null) {
 			polledDetails.reachability = localFirst ? ComputerDetails.Reachability.LOCAL :
 				ComputerDetails.Reachability.REMOTE;
 		}
@@ -401,7 +402,12 @@ public class ComputerManagerService extends Service {
 			public void run() {
 				boolean newPc = (details.name == null);
 				
-				if (stopped) {
+				// This is called from addComputerManually() where we don't
+				// want to block the initial poll if polling is disabled, so
+				// we explicitly let this through if we've never seen this
+				// PC before. This path won't be triggered normally when polling
+				// is disabled because the mDNS discovery is stopped.
+				if (stopped && !newPc) {
 					return;
 				}
 				

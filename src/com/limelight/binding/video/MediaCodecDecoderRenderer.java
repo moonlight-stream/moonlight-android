@@ -436,9 +436,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 						LimeLog.info("Adding bitstream restrictions");
 
 						sps.vuiParams.bitstreamRestriction = new VUIParameters.BitstreamRestriction();
-						sps.vuiParams.bitstreamRestriction.motion_vectors_over_pic_boundaries_flag = false;
-						sps.vuiParams.bitstreamRestriction.max_bytes_per_pic_denom = 0;
-						sps.vuiParams.bitstreamRestriction.max_bits_per_mb_denom = 0;
+						sps.vuiParams.bitstreamRestriction.motion_vectors_over_pic_boundaries_flag = true;
+						sps.vuiParams.bitstreamRestriction.max_bytes_per_pic_denom = 2;
+						sps.vuiParams.bitstreamRestriction.max_bits_per_mb_denom = 1;
 						sps.vuiParams.bitstreamRestriction.log2_max_mv_length_horizontal = 16;
 						sps.vuiParams.bitstreamRestriction.log2_max_mv_length_vertical = 16;
 						sps.vuiParams.bitstreamRestriction.num_reorder_frames = 0;

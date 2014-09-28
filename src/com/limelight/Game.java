@@ -286,7 +286,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		Dialog.closeDialogs();
 		
 		displayedFailureDialog = true;
-		conn.stop();
+		stopConnection();
 		
 		int averageEndToEndLat = decoderRenderer.getAverageEndToEndLatency();
 		int averageDecoderLat = decoderRenderer.getAverageDecoderLatency();
@@ -303,10 +303,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		
 		if (message != null) {
 			Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-		}
-		
-		if (evdevWatcher != null) {
-			evdevWatcher.shutdown();
 		}
 
 		finish();
@@ -572,6 +568,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	@Override
 	public void stageComplete(Stage stage) {
 	}
+	
+	private void stopConnection() {
+		if (connecting || connected) {
+			conn.stop();
+			connecting = connected = false;
+		}
+		
+		// Close the Evdev watcher to allow use of captured input devices
+		if (evdevWatcher != null) {
+			evdevWatcher.shutdown();
+			evdevWatcher = null;
+		}
+	}
 
 	@Override
 	public void stageFailed(Stage stage) {
@@ -583,8 +592,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		if (!displayedFailureDialog) {
 			displayedFailureDialog = true;
 			Dialog.displayDialog(this, "Connection Error", "Starting "+stage.getName()+" failed", true);
-			conn.stop();
-			connecting = false;
+			stopConnection();
 		}
 	}
 
@@ -593,9 +601,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		if (!displayedFailureDialog) {
 			displayedFailureDialog = true;
 			e.printStackTrace();
+			
 			Dialog.displayDialog(this, "Connection Terminated", "The connection failed unexpectedly", true);
-			conn.stop();
-			connected = false;
+			stopConnection();
 		}
 	}
 
@@ -657,8 +665,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		if (connected) {
-			conn.stop();
-			connected = false;
+			stopConnection();
 		}
 	}
 

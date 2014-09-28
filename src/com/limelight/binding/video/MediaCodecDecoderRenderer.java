@@ -44,10 +44,19 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private int numPpsIn;
 	private int numIframeIn;
 	
+	public static final List<String> preferredDecoders;
+
 	public static final List<String> blacklistedDecoderPrefixes;
 	public static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
 	public static final List<String> spsFixupNumRefFixupDecoderPrefixes;
 	public static final List<String> whitelistedAdaptiveResolutionPrefixes;
+	
+	static {
+		preferredDecoders = new LinkedList<String>();
+
+		// This is the most reliable of Samsung's decoders
+		preferredDecoders.add("OMX.SEC.AVC.Decoder");
+	}
 	
 	static {
 		blacklistedDecoderPrefixes = new LinkedList<String>();
@@ -158,6 +167,31 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		return str;
 	}
 	
+	private static MediaCodecInfo findPreferredDecoder() {
+		// This is a different algorithm than the other findXXXDecoder functions,
+		// because we want to evaluate the decoders in our list's order
+		// rather than MediaCodecList's order
+		
+		for (String preferredDecoder : preferredDecoders) {
+			for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
+				MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
+							
+				// Skip encoders
+				if (codecInfo.isEncoder()) {
+					continue;
+				}
+				
+				// Check for preferred decoders
+				if (preferredDecoder.equalsIgnoreCase(codecInfo.getName())) {
+					LimeLog.info("Preferred decoder choice is "+codecInfo.getName());
+					return codecInfo;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
 	private static MediaCodecInfo findFirstDecoder() {
 		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
 			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
@@ -186,7 +220,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	}
 	
 	public static MediaCodecInfo findProbableSafeDecoder() {
-		// First look for decoders we know are safe
+		// First look for a preferred decoder by name
+		MediaCodecInfo info = findPreferredDecoder();
+		if (info != null) {
+			return info;
+		}
+		
+		// Now look for decoders we know are safe
 		try {
 			// If this function completes, it will determine if the decoder is safe
 			return findKnownSafeDecoder();

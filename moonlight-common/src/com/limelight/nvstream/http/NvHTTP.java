@@ -30,8 +30,8 @@ public class NvHTTP {
 	private InetAddress address;
 
 	public static final int PORT = 47984;
-	public static final int CONNECTION_TIMEOUT = 2000;
-	public static final int READ_TIMEOUT = 2000;
+	public static final int CONNECTION_TIMEOUT = 3000;
+	public static final int READ_TIMEOUT = 5000;
 	
 	private final boolean verbose = false;
 

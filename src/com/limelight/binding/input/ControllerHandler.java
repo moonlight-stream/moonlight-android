@@ -47,6 +47,9 @@ public class ControllerHandler {
 	
 	public ControllerHandler(NvConnection conn) {
 		this.conn = conn;
+		
+		// We want limelight-common to scale the axis values to match Xinput values
+		ControllerPacket.enableAxisScaling = true;
 	}
 	
 	private ControllerMapping createMappingForDevice(InputDevice dev) {
@@ -135,6 +138,15 @@ public class ControllerHandler {
 			InputDevice.MotionRange lsYRange = dev.getMotionRange(mapping.leftStickYAxis);
 			if (lsXRange != null && lsYRange != null) {
 				mapping.leftStickDeadzoneRadius = Math.max(lsXRange.getFlat(), lsYRange.getFlat());
+				
+				// If there isn't a (reasonable) deadzone at all, use 20%
+				if (mapping.leftStickDeadzoneRadius < 0.02f) {
+					mapping.leftStickDeadzoneRadius = 0.20f;
+				}
+				// Check that the deadzone is 10% at minimum
+				else if (mapping.leftStickDeadzoneRadius < 0.10f) {
+					mapping.leftStickDeadzoneRadius = 0.10f;
+				}
 			}
 		}
 		
@@ -143,6 +155,15 @@ public class ControllerHandler {
 			InputDevice.MotionRange rsYRange = dev.getMotionRange(mapping.rightStickYAxis);
 			if (rsXRange != null && rsYRange != null) {
 				mapping.rightStickDeadzoneRadius = Math.max(rsXRange.getFlat(), rsYRange.getFlat());
+				
+				// If there isn't a (reasonable) deadzone at all, use 20%
+				if (mapping.rightStickDeadzoneRadius < 0.02f) {
+					mapping.rightStickDeadzoneRadius = 0.20f;
+				}
+				// Check that the deadzone is 10% at minimum
+				else if (mapping.rightStickDeadzoneRadius < 0.10f) {
+					mapping.rightStickDeadzoneRadius = 0.10f;
+				}
 			}
 		}
 		
@@ -242,7 +263,7 @@ public class ControllerHandler {
 			// Scale the input based on the distance from the deadzone
 			inputVector.getNormalized(normalizedInputVector);
 			normalizedInputVector.scalarMultiply((inputVector.getMagnitude() - deadzoneRadius) / (1.0f - deadzoneRadius));
-			
+		
 			// Bound the X value to -1.0 to 1.0
 			if (normalizedInputVector.getX() > 1.0f) {
 				normalizedInputVector.setX(1.0f);
@@ -284,7 +305,7 @@ public class ControllerHandler {
 					event.getAxisValue(mapping.rightStickYAxis), mapping.rightStickDeadzoneRadius);
 			
 			rightStickX = (short)(rightStickVector.getX() * 0x7FFE);
-			rightStickY = (short)(-rightStickVector.getY() * 0x7FFE);	
+			rightStickY = (short)(-rightStickVector.getY() * 0x7FFE);
 		}
 		
 		// Handle controllers with analog triggers

@@ -69,6 +69,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	private boolean toastsDisabled;
 	
 	private EvdevWatcher evdevWatcher;
+	private int modifierFlags = 0;
+	private boolean grabbedInput = true;
+	private boolean grabComboDown = false;
+	private static final int MODIFIER_CTRL = 0x1;
+	private static final int MODIFIER_SHIFT = 0x2;
 	
 	private ConfigurableDecoderRenderer decoderRenderer;
 	
@@ -315,6 +320,80 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		wifiLock.release();
 	}
 	
+	private Runnable toggleGrab = new Runnable() {
+		@Override
+		public void run() {
+			
+			if (evdevWatcher != null) {
+				if (grabbedInput) {
+					evdevWatcher.ungrabAll();
+				}
+				else {
+					evdevWatcher.regrabAll();
+				}
+			}
+			
+			grabbedInput = !grabbedInput;
+		}
+	};
+	
+	// Returns true if the key stroke was consumed
+	private boolean handleMagicKeyCombos(short translatedKey, boolean down) {
+		int modifierMask = 0;
+		
+		// Mask off the high byte
+		translatedKey &= 0xff;
+		
+		if (translatedKey == KeyboardTranslator.VK_CONTROL) {
+			modifierMask = MODIFIER_CTRL;
+		}
+		else if (translatedKey == KeyboardTranslator.VK_SHIFT) {
+			modifierMask = MODIFIER_SHIFT;
+		}
+		
+		if (down) {
+			this.modifierFlags |= modifierMask;
+		}
+		else {
+			this.modifierFlags &= ~modifierMask;
+		}
+		
+		// Check if Ctrl+Shift+Z is pressed
+		if (translatedKey == KeyboardTranslator.VK_Z &&
+			(modifierFlags & (MODIFIER_CTRL|MODIFIER_SHIFT)) == (MODIFIER_CTRL|MODIFIER_SHIFT))
+		{
+			if (down) {
+				// Now that we've pressed the magic combo
+				// we'll wait for one of the keys to come up
+				grabComboDown = true;
+			}
+			else {
+				// Toggle the grab if Z comes up
+				Handler h = getWindow().getDecorView().getHandler();
+				if (h != null) {
+					h.postDelayed(toggleGrab, 250);               
+				}
+				
+				grabComboDown = false;
+			}
+			
+			return true;
+		}
+		// Toggle the grab if control or shift comes up
+		else if (grabComboDown) {
+			Handler h = getWindow().getDecorView().getHandler();
+			if (h != null) {
+				h.postDelayed(toggleGrab, 250);               
+			}
+			
+			grabComboDown = false;
+			return true;
+		}
+		
+		// Not a special combo
+		return false;
+	}
+	
 	private static byte getModifierState(KeyEvent event) {
 		byte modifier = 0;
 		if (event.isShiftPressed()) {
@@ -347,6 +426,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			// Try the keyboard handler
 			short translated = keybTranslator.translate(event.getKeyCode());
 			if (translated == 0) {
+				return super.onKeyDown(keyCode, event);
+			}
+			
+			// Let this method take duplicate key down events
+			if (handleMagicKeyCombos(translated, true)) {
+				return true;
+			}
+			
+			// Eat repeat down events
+			if (event.getRepeatCount() > 0) {
+				return true;
+			}
+			
+			// Pass through keyboard input if we're not grabbing
+			if (!grabbedInput) {
 				return super.onKeyDown(keyCode, event);
 			}
 			
@@ -388,6 +482,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 				return super.onKeyUp(keyCode, event);
 			}
 			
+			if (handleMagicKeyCombos(translated, false)) {
+				return true;
+			}
+			
+			// Pass through keyboard input if we're not grabbing
+			if (!grabbedInput) {
+				return super.onKeyUp(keyCode, event);
+			}
+			
 			keybTranslator.sendKeyUp(translated,
 					getModifierState(event));
 		}
@@ -404,25 +507,35 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			return null;
 		}
 	}
-	
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-		if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
+
+	// Returns true if the event was consumed
+	private boolean handleMotionEvent(MotionEvent event) {
+		// Pass through keyboard input if we're not grabbing
+		if (!grabbedInput) {
+			return false;
+		}
+
+		if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
+			if (controllerHandler.handleMotionEvent(event)) {
+				return true;
+			}		
+		}
+		else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
 		{
 			// This case is for touch-based input devices
 			if (event.getSource() == InputDevice.SOURCE_TOUCHSCREEN ||
-				event.getSource() == InputDevice.SOURCE_STYLUS)
+					event.getSource() == InputDevice.SOURCE_STYLUS)
 			{
 				int actionIndex = event.getActionIndex();
-				
+
 				int eventX = (int)event.getX(actionIndex);
 				int eventY = (int)event.getY(actionIndex);
-				
+
 				TouchContext context = getTouchContext(actionIndex);
 				if (context == null) {
-					return super.onTouchEvent(event);
+					return false;
 				}
-								
+
 				switch (event.getActionMasked())
 				{
 				case MotionEvent.ACTION_POINTER_DOWN:
@@ -444,15 +557,24 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 						touchContextMap[i].touchMoveEvent(eventX, eventY);
 					}
 					break;
+				case MotionEvent.ACTION_HOVER_MOVE:
+					// Send a mouse move update (if neccessary)
+					updateMousePosition((int)event.getX(), (int)event.getY());
+					break;
+				case MotionEvent.ACTION_SCROLL:
+					// Send the vertical scroll packet
+					byte vScrollClicks = (byte) event.getAxisValue(MotionEvent.AXIS_VSCROLL);
+					conn.sendMouseScroll(vScrollClicks);
+					break;
 				default:
-					return super.onTouchEvent(event);
+					return false;
 				}
 			}
 			// This case is for mice
 			else if (event.getSource() == InputDevice.SOURCE_MOUSE)
 			{
 				int changedButtons = event.getButtonState() ^ lastButtonState;
-				
+
 				if ((changedButtons & MotionEvent.BUTTON_PRIMARY) != 0) {
 					if ((event.getButtonState() & MotionEvent.BUTTON_PRIMARY) != 0) {
 						conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_LEFT);
@@ -461,7 +583,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 						conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_LEFT);
 					}
 				}
-				
+
 				if ((changedButtons & MotionEvent.BUTTON_SECONDARY) != 0) {
 					if ((event.getButtonState() & MotionEvent.BUTTON_SECONDARY) != 0) {
 						conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
@@ -470,7 +592,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 						conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
 					}
 				}
-				
+
 				if ((changedButtons & MotionEvent.BUTTON_TERTIARY) != 0) {
 					if ((event.getButtonState() & MotionEvent.BUTTON_TERTIARY) != 0) {
 						conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_MIDDLE);
@@ -479,47 +601,41 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 						conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_MIDDLE);
 					}
 				}
-				
+
 				updateMousePosition((int)event.getX(), (int)event.getY());
-				
+
 				lastButtonState = event.getButtonState();
 			}
 			else
 			{
-				return super.onTouchEvent(event);
+				// Unknown source
+				return false;
 			}
 
+			// Handled a known source
 			return true;
 		}
+
+		// Unknown class
+		return false;
+	}
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		if (!handleMotionEvent(event)) {
+			return super.onTouchEvent(event);
+		}
 		
-		return super.onTouchEvent(event);
+		return true;
 	}
 
 	@Override
 	public boolean onGenericMotionEvent(MotionEvent event) {
-		if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
-			if (controllerHandler.handleMotionEvent(event)) {
-				return true;
-			}		
-		}
-		else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
-		{
-			switch (event.getActionMasked())
-			{
-			case MotionEvent.ACTION_HOVER_MOVE:
-				// Send a mouse move update (if neccessary)
-				updateMousePosition((int)event.getX(), (int)event.getY());
-				break;
-			case MotionEvent.ACTION_SCROLL:
-				// Send the vertical scroll packet
-				byte vScrollClicks = (byte) event.getAxisValue(MotionEvent.AXIS_VSCROLL);
-				conn.sendMouseScroll(vScrollClicks);
-				break;
-			}
-			return true;
+		if (!handleMotionEvent(event)) {
+		    return super.onGenericMotionEvent(event);
 		}
 	    
-	    return super.onGenericMotionEvent(event);
+		return true;
 	}
 	
 	private void updateMousePosition(int eventX, int eventY) {
@@ -547,15 +663,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
 	@Override
 	public boolean onGenericMotion(View v, MotionEvent event) {
-		// Send it to the activity's motion event handler
-		return onGenericMotionEvent(event);
+		return handleMotionEvent(event);
 	}
 
 	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
-		// Send it to the activity's touch event handler
-		return onTouchEvent(event);
+		return handleMotionEvent(event);
 	}
 
 	@Override
@@ -705,5 +819,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	@Override
 	public void mouseScroll(byte amount) {
 		conn.sendMouseScroll(amount);
+	}
+
+	public void keyboardEvent(boolean buttonDown, short keyCode) {
+		short keyMap = keybTranslator.translate(keyCode);
+		if (keyMap != 0) {
+			if (handleMagicKeyCombos(keyMap, buttonDown)) {
+				return;
+			}
+			
+			if (buttonDown) {
+				keybTranslator.sendKeyDown(keyMap, (byte) 0);
+			}
+			else {
+				keybTranslator.sendKeyUp(keyMap, (byte) 0);
+			}
+		}
 	}
 }

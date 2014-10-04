@@ -2,6 +2,7 @@ package com.limelight.binding.input.evdev;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
 
 import com.limelight.LimeLog;
 
@@ -14,6 +15,7 @@ public class EvdevWatcher {
 	private HashMap<String, EvdevHandler> handlers = new HashMap<String, EvdevHandler>();
 	private boolean shutdown = false;
 	private boolean init = false;
+	private boolean ungrabbed = false;
 	private EvdevListener listener;
 	private Thread startThread;
 	
@@ -42,7 +44,11 @@ public class EvdevWatcher {
 					}
 					
 					EvdevHandler handler = new EvdevHandler(PATH + "/" + fileName, listener);
-					handler.start();
+					
+					// If we're ungrabbed now, don't start the handler
+					if (!ungrabbed) {
+						handler.start();
+					}
 					
 					handlers.put(fileName, handler);
 				}
@@ -76,6 +82,31 @@ public class EvdevWatcher {
 		EvdevReader.setPermissions(filePaths, newPermissions);
 		
 		return files;
+	}
+	
+	public void ungrabAll() {
+		synchronized (handlers) {
+			// Note that we're ungrabbed for now
+			ungrabbed = true;
+			
+			// Stop all handlers
+			for (EvdevHandler handler : handlers.values()) {
+				handler.stop();
+			}
+		}
+	}
+	
+	public void regrabAll() {
+		synchronized (handlers) {
+			// We're regrabbing everything now
+			ungrabbed = false;
+			
+			for (Map.Entry<String, EvdevHandler> entry : handlers.entrySet()) {
+				// We need to recreate each entry since we can't reuse a stopped one
+				entry.setValue(new EvdevHandler(PATH + "/" + entry.getKey(), listener));
+				entry.getValue().start();
+			}
+		}
 	}
 	
 	public void start() {
@@ -119,9 +150,14 @@ public class EvdevWatcher {
 		// Stop the observer
 		observer.stopWatching();
 		
-		synchronized (handlers) {
+		synchronized (handlers) {			
 			// Stop creating new handlers
 			shutdown = true;
+			
+			// If we've already ungrabbed, there's nothing else to do
+			if (ungrabbed) {
+				return;
+			}
 			
 			// Stop all handlers
 			for (EvdevHandler handler : handlers.values()) {

@@ -35,6 +35,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnGenericMotionListener;
+import android.view.View.OnSystemUiVisibilityChangeListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -43,7 +44,8 @@ import android.widget.Toast;
 
 
 public class Game extends Activity implements SurfaceHolder.Callback,
-	OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener
+	OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
+	OnSystemUiVisibilityChangeListener
 {
 	private int lastMouseX = Integer.MIN_VALUE;
 	private int lastMouseY = Integer.MIN_VALUE;
@@ -137,6 +139,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			
 			getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
 		}
+		
+		// Listen for UI visibility events
+		getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(this);
 		
 		// Change volume button behavior
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -275,11 +280,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			}
 	};
 
-	private void hideSystemUi() {
+	private void hideSystemUi(int delay) {
 		Handler h = getWindow().getDecorView().getHandler();
 		if (h != null) {
 			h.removeCallbacks(hideSystemUi);
-			h.postDelayed(hideSystemUi, 1000);               
+			h.postDelayed(hideSystemUi, delay);               
 		}
 	}
 	
@@ -453,16 +458,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		// Pressing a volume button drops the immersive flag so the UI shows up again and doesn't
-		// go away. I'm not sure if that's a bug or a feature, but we're working around it here
-		if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-			Handler h = getWindow().getDecorView().getHandler();
-			if (h != null) {
-				h.removeCallbacks(hideSystemUi);
-				h.postDelayed(hideSystemUi, 2000);               
-			}
-		}
-		
 		InputDevice dev = event.getDevice();
 		if (dev == null) {
 			return super.onKeyUp(keyCode, event);
@@ -705,8 +700,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
 		if (!displayedFailureDialog) {
 			displayedFailureDialog = true;
-			Dialog.displayDialog(this, "Connection Error", "Starting "+stage.getName()+" failed", true);
 			stopConnection();
+			Dialog.displayDialog(this, "Connection Error", "Starting "+stage.getName()+" failed", true);
 		}
 	}
 
@@ -716,8 +711,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			displayedFailureDialog = true;
 			e.printStackTrace();
 			
-			Dialog.displayDialog(this, "Connection Terminated", "The connection failed unexpectedly", true);
 			stopConnection();
+			Dialog.displayDialog(this, "Connection Terminated", "The connection failed unexpectedly", true);
 		}
 	}
 
@@ -731,7 +726,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		connecting = false;
 		connected = true;
 		
-		hideSystemUi();
+		hideSystemUi(1000);
 	}
 
 	@Override
@@ -834,6 +829,29 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			else {
 				keybTranslator.sendKeyUp(keyMap, (byte) 0);
 			}
+		}
+	}
+
+	@Override
+	public void onSystemUiVisibilityChange(int visibility) {
+		// Don't do anything if we're not connected
+		if (!connected) {
+			return;
+		}
+		
+		// This flag is set for all devices
+		if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
+			hideSystemUi(2000);
+		}
+		// This flag is only set on 4.4+
+		else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT &&
+				 (visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0) {
+			hideSystemUi(2000);
+		}
+		// This flag is only set before 4.4+
+		else if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.KITKAT &&
+				 (visibility & View.SYSTEM_UI_FLAG_LOW_PROFILE) == 0) {
+			hideSystemUi(2000);	 
 		}
 	}
 }

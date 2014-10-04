@@ -680,8 +680,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	
 	private void stopConnection() {
 		if (connecting || connected) {
-			conn.stop();
 			connecting = connected = false;
+			conn.stop();
 		}
 		
 		// Close the Evdev watcher to allow use of captured input devices

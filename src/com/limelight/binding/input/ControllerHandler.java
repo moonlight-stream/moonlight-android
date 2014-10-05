@@ -137,7 +137,16 @@ public class ControllerHandler {
 			InputDevice.MotionRange lsXRange = dev.getMotionRange(mapping.leftStickXAxis);
 			InputDevice.MotionRange lsYRange = dev.getMotionRange(mapping.leftStickYAxis);
 			if (lsXRange != null && lsYRange != null) {
-				mapping.leftStickDeadzoneRadius = Math.max(lsXRange.getFlat(), lsYRange.getFlat());
+				// The flat values should never be negative but we'll deal with it if they are
+				mapping.leftStickDeadzoneRadius = Math.max(Math.abs(lsXRange.getFlat()),
+						Math.abs(lsYRange.getFlat()));
+				
+				// Some devices (certain OUYAs at least) report a deadzone that's larger
+				// than the entire range of their axis likely due to some system software bug.
+				// If we see a very large deadzone, simply ignore the value and use our default.
+				if (mapping.leftStickDeadzoneRadius > 0.5f) {
+					mapping.leftStickDeadzoneRadius = 0;
+				}
 				
 				// If there isn't a (reasonable) deadzone at all, use 20%
 				if (mapping.leftStickDeadzoneRadius < 0.02f) {
@@ -154,7 +163,16 @@ public class ControllerHandler {
 			InputDevice.MotionRange rsXRange = dev.getMotionRange(mapping.rightStickXAxis);
 			InputDevice.MotionRange rsYRange = dev.getMotionRange(mapping.rightStickYAxis);
 			if (rsXRange != null && rsYRange != null) {
-				mapping.rightStickDeadzoneRadius = Math.max(rsXRange.getFlat(), rsYRange.getFlat());
+				// The flat values should never be negative but we'll deal with it if they are
+				mapping.rightStickDeadzoneRadius = Math.max(Math.abs(rsXRange.getFlat()),
+						Math.abs(rsYRange.getFlat()));
+				
+				// Some devices (certain OUYAs at least) report a deadzone that's larger
+				// than the entire range of their axis likely due to some system software bug.
+				// If we see a very large deadzone, simply ignore the value and use our default.
+				if (mapping.rightStickDeadzoneRadius > 0.5f) {
+					mapping.rightStickDeadzoneRadius = 0;
+				}
 				
 				// If there isn't a (reasonable) deadzone at all, use 20%
 				if (mapping.rightStickDeadzoneRadius < 0.02f) {

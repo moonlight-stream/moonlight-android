@@ -3,6 +3,7 @@ package com.limelight.binding.video;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.locks.LockSupport;
 
 import org.jcodec.codecs.h264.io.model.SeqParameterSet;
@@ -575,7 +576,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				str += "Current buffer: ";
 				currentBuffer.flip();
 				while (currentBuffer.hasRemaining() && currentBuffer.position() < 10) {
-					str += String.format("%02x ", currentBuffer.get());
+					str += String.format((Locale)null, "%02x ", currentBuffer.get());
 				}
 				str += "\n";
 				str += "Buffer codec flags: "+currentCodecFlags+"\n";

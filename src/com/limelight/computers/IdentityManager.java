@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.Locale;
 import java.util.Random;
 
 import com.limelight.LimeLog;
@@ -61,7 +62,7 @@ public class IdentityManager {
 	private static String generateNewUniqueId(Context c) {
 		// Generate a new UID hex string
 		LimeLog.info("Generating new UID");
-		String uidStr = String.format("%016x", new Random().nextLong());
+		String uidStr = String.format((Locale)null, "%016x", new Random().nextLong());
 		
 		OutputStreamWriter writer = null;
 		try {

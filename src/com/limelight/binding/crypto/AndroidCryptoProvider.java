@@ -23,15 +23,16 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMWriter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
@@ -152,7 +153,8 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 		nameBuilder.addRDN(BCStyle.CN, "NVIDIA GameStream Client");
 		X500Name name = nameBuilder.build();
 		
-		X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(name, serial, now, expirationDate, name, keyPair.getPublic());
+		X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(name, serial, now, expirationDate, Locale.ENGLISH, name,
+			SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
 				
 		try {
 			ContentSigner sigGen = new JcaContentSignerBuilder("SHA1withRSA").setProvider(BouncyCastleProvider.PROVIDER_NAME).build(keyPair.getPrivate());
@@ -179,7 +181,7 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 			
 			// Write the certificate in OpenSSL PEM format (important for the server)
 			StringWriter strWriter = new StringWriter();
-			PEMWriter pemWriter = new PEMWriter(strWriter);
+			JcaPEMWriter pemWriter = new JcaPEMWriter(strWriter);
 			pemWriter.writeObject(cert);
 			pemWriter.close();
 			

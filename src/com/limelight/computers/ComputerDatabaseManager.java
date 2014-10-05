@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import com.limelight.LimeLog;
@@ -44,7 +45,7 @@ public class ComputerDatabaseManager {
 	
 	private void initializeDb() {
 		// Create tables if they aren't already there
-		computerDb.execSQL(String.format("CREATE TABLE IF NOT EXISTS %s(%s TEXT PRIMARY KEY," +
+		computerDb.execSQL(String.format((Locale)null, "CREATE TABLE IF NOT EXISTS %s(%s TEXT PRIMARY KEY," +
 				" %s TEXT NOT NULL, %s TEXT NOT NULL, %s TEXT NOT NULL, %s TEXT NOT NULL)",
 				COMPUTER_TABLE_NAME,
 				COMPUTER_NAME_COLUMN_NAME, COMPUTER_UUID_COLUMN_NAME, LOCAL_IP_COLUMN_NAME,

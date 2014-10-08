@@ -90,10 +90,8 @@ public class AudioStream {
 	
 	private void setupRtpSession() throws SocketException
 	{
-		rtp = new DatagramSocket(null);
-		rtp.setReuseAddress(true);
+		rtp = new DatagramSocket();
 		rtp.setReceiveBufferSize(RTP_RECV_BUFFER);
-		rtp.bind(new InetSocketAddress(RTP_PORT));
 	}
 	
 	private boolean setupAudio()

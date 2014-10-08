@@ -127,10 +127,8 @@ public class VideoStream {
 	
 	public void setupRtpSession() throws SocketException
 	{
-		rtp = new DatagramSocket(null);
-		rtp.setReuseAddress(true);
+		rtp = new DatagramSocket();
 		rtp.setReceiveBufferSize(RTP_RECV_BUFFER);
-		rtp.bind(new InetSocketAddress(RTP_PORT));
 	}
 	
 	public boolean setupDecoderRenderer(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) {

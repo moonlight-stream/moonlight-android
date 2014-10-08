@@ -315,12 +315,35 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			@Override
 			public void run() {
 				BufferInfo info = new BufferInfo();
-				DecodeUnit du;
+				DecodeUnit du = null;
+				int inputIndex = -1;
 				while (!isInterrupted())
 				{
-					du = depacketizer.pollNextDecodeUnit();
-					if (du != null) {
-						if (!submitDecodeUnit(du)) {
+					// Grab an input buffer if we don't have one already.
+					// This way we can have one ready hopefully by the time
+					// the depacketizer is done with this frame. It's important
+					// that this can timeout because it's possible that we could exhaust
+					// the decoder's input buffers and deadlocks because aren't pulling
+					// frames out of the other end.
+					if (inputIndex == -1) {
+						try {
+							// Wait for 3 milliseconds at maximum before continuing to
+							// grab a DU or render a frame
+							inputIndex = videoDecoder.dequeueInputBuffer(3000);
+						} catch (Exception e) {
+							throw new RendererException(MediaCodecDecoderRenderer.this, e);
+						}
+					}
+					
+					// Grab a decode unit if we don't have one already
+					if (du == null) {
+						du = depacketizer.pollNextDecodeUnit();
+					}
+					
+					// If we've got both a decode unit and an input buffer, we'll
+					// submit now. Otherwise, we wait until we have one.
+					if (du != null && inputIndex >= 0) {
+						if (!submitDecodeUnit(du, inputIndex)) {
 							// Thread was interrupted
 							depacketizer.freeDecodeUnit(du);
 							return;
@@ -328,8 +351,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 						else {
 							depacketizer.freeDecodeUnit(du);
 						}
+						
+						// DU and input buffer have both been consumed
+						du = null;
+						inputIndex = -1;
 					}
 					
+					// Try to output a frame
 					try {
 						int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
 
@@ -356,7 +384,11 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					    } else {
 						    switch (outIndex) {
 						    case MediaCodec.INFO_TRY_AGAIN_LATER:
-						    	LockSupport.parkNanos(1);
+						    	// Getting an input buffer may already block
+						    	// so don't park if we still need to do that
+						    	if (inputIndex >= 0) {
+							    	LockSupport.parkNanos(1);
+						    	}
 						    	break;
 						    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
 						    	LimeLog.info("Output buffers changed");
@@ -412,22 +444,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 	}
 
-	private boolean submitDecodeUnit(DecodeUnit decodeUnit) {
-		int inputIndex;
-		
-		do {
-			if (Thread.interrupted()) {
-				return false;
-			}
-			
-			try {
-				inputIndex = videoDecoder.dequeueInputBuffer(100000);
-			} catch (Exception e) {
-				throw new RendererException(this, e);
-			}
-		} while (inputIndex < 0);
-		
-		ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
+	private boolean submitDecodeUnit(DecodeUnit decodeUnit, int inputBufferIndex) {
+		ByteBuffer buf = videoDecoderInputBuffers[inputBufferIndex];
 
 		long currentTime = System.currentTimeMillis();
 		long delta = currentTime-decodeUnit.getReceiveTimestamp();
@@ -490,7 +508,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					sps.write(buf);
 					
 					try {
-						videoDecoder.queueInputBuffer(inputIndex,
+						videoDecoder.queueInputBuffer(inputBufferIndex,
 								0, buf.position(),
 								currentTime * 1000, codecFlags);
 					} catch (Exception e) {
@@ -510,7 +528,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 
 		try {
-			videoDecoder.queueInputBuffer(inputIndex,
+			videoDecoder.queueInputBuffer(inputBufferIndex,
 					0, decodeUnit.getDataLength(),
 					currentTime * 1000, codecFlags);
 		} catch (Exception e) {

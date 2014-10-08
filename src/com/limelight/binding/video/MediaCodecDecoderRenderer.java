@@ -54,9 +54,6 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	
 	static {
 		preferredDecoders = new LinkedList<String>();
-
-		// This is the most reliable of Samsung's decoders
-		preferredDecoders.add("OMX.SEC.AVC.Decoder");
 	}
 	
 	static {

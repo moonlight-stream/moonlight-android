@@ -327,9 +327,10 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					// frames out of the other end.
 					if (inputIndex == -1) {
 						try {
-							// Wait for 3 milliseconds at maximum before continuing to
-							// grab a DU or render a frame
-							inputIndex = videoDecoder.dequeueInputBuffer(3000);
+							// If we've got a DU waiting to be given to the decoder, 
+							// wait a full 3 ms for an input buffer. Otherwise
+							// just see if we can get one immediately.
+							inputIndex = videoDecoder.dequeueInputBuffer(du != null ? 3000 : 0);
 						} catch (Exception e) {
 							throw new RendererException(MediaCodecDecoderRenderer.this, e);
 						}

@@ -75,8 +75,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	private int modifierFlags = 0;
 	private boolean grabbedInput = true;
 	private boolean grabComboDown = false;
-	private static final int MODIFIER_CTRL = 0x1;
-	private static final int MODIFIER_SHIFT = 0x2;
 	
 	private ConfigurableDecoderRenderer decoderRenderer;
 	
@@ -344,17 +342,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	};
 	
 	// Returns true if the key stroke was consumed
-	private boolean handleMagicKeyCombos(short translatedKey, boolean down) {
+	private boolean handleSpecialKeys(short translatedKey, boolean down) {
 		int modifierMask = 0;
 		
 		// Mask off the high byte
 		translatedKey &= 0xff;
 		
 		if (translatedKey == KeyboardTranslator.VK_CONTROL) {
-			modifierMask = MODIFIER_CTRL;
+			modifierMask = KeyboardPacket.MODIFIER_CTRL;
 		}
 		else if (translatedKey == KeyboardTranslator.VK_SHIFT) {
-			modifierMask = MODIFIER_SHIFT;
+			modifierMask = KeyboardPacket.MODIFIER_SHIFT;
+		}
+		else if (translatedKey == KeyboardTranslator.VK_ALT) {
+			modifierMask = KeyboardPacket.MODIFIER_ALT;
 		}
 		
 		if (down) {
@@ -366,7 +367,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		
 		// Check if Ctrl+Shift+Z is pressed
 		if (translatedKey == KeyboardTranslator.VK_Z &&
-			(modifierFlags & (MODIFIER_CTRL|MODIFIER_SHIFT)) == (MODIFIER_CTRL|MODIFIER_SHIFT))
+			(modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_SHIFT)) ==
+				(KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_SHIFT))
 		{
 			if (down) {
 				// Now that we've pressed the magic combo
@@ -414,6 +416,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		return modifier;
 	}
 	
+	private byte getModifierState() {
+		return (byte) modifierFlags;
+	}
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		InputDevice dev = event.getDevice();
@@ -436,7 +442,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			}
 			
 			// Let this method take duplicate key down events
-			if (handleMagicKeyCombos(translated, true)) {
+			if (handleSpecialKeys(translated, true)) {
 				return true;
 			}
 			
@@ -478,7 +484,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 				return super.onKeyUp(keyCode, event);
 			}
 			
-			if (handleMagicKeyCombos(translated, false)) {
+			if (handleSpecialKeys(translated, false)) {
 				return true;
 			}
 			
@@ -818,15 +824,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	public void keyboardEvent(boolean buttonDown, short keyCode) {
 		short keyMap = keybTranslator.translate(keyCode);
 		if (keyMap != 0) {
-			if (handleMagicKeyCombos(keyMap, buttonDown)) {
+			if (handleSpecialKeys(keyMap, buttonDown)) {
 				return;
 			}
 			
 			if (buttonDown) {
-				keybTranslator.sendKeyDown(keyMap, (byte) 0);
+				keybTranslator.sendKeyDown(keyMap, getModifierState());
 			}
 			else {
-				keybTranslator.sendKeyUp(keyMap, (byte) 0);
+				keybTranslator.sendKeyUp(keyMap, getModifierState());
 			}
 		}
 	}

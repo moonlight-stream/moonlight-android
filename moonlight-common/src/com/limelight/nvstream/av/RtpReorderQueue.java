@@ -63,7 +63,7 @@ public class RtpReorderQueue {
 		entry.sequenceNumber = seq;
 		
 		if (oldestQueuedTime == Long.MAX_VALUE) {
-			oldestQueuedTime = System.currentTimeMillis();
+			oldestQueuedTime = entry.queueTime;
 		}
 		
 		if (head) {

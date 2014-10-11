@@ -319,6 +319,25 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				int inputIndex = -1;
 				while (!isInterrupted())
 				{
+					// In order to get as much data to the decoder as early as possible,
+					// try to submit up to 5 decode units at once without blocking.
+					if (inputIndex == -1 && du == null) {
+						for (int i = 0; i < 5; i++) {
+							inputIndex = videoDecoder.dequeueInputBuffer(0);
+							du = depacketizer.pollNextDecodeUnit();
+
+							// Stop if we can't get a DU or input buffer
+							if (du == null || inputIndex == -1) {
+								break;
+							}
+							
+							submitDecodeUnit(du, inputIndex);
+							
+							du = null;
+							inputIndex = -1;
+						}
+					}
+					
 					// Grab an input buffer if we don't have one already.
 					// This way we can have one ready hopefully by the time
 					// the depacketizer is done with this frame. It's important
@@ -344,14 +363,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					// If we've got both a decode unit and an input buffer, we'll
 					// submit now. Otherwise, we wait until we have one.
 					if (du != null && inputIndex >= 0) {
-						if (!submitDecodeUnit(du, inputIndex)) {
-							// Thread was interrupted
-							depacketizer.freeDecodeUnit(du);
-							return;
-						}
-						else {
-							depacketizer.freeDecodeUnit(du);
-						}
+						submitDecodeUnit(du, inputIndex);
 						
 						// DU and input buffer have both been consumed
 						du = null;
@@ -445,7 +457,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 	}
 
-	private boolean submitDecodeUnit(DecodeUnit decodeUnit, int inputBufferIndex) {
+	private void submitDecodeUnit(DecodeUnit decodeUnit, int inputBufferIndex) {
 		ByteBuffer buf = videoDecoderInputBuffers[inputBufferIndex];
 
 		long currentTime = System.currentTimeMillis();
@@ -515,7 +527,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					} catch (Exception e) {
 						throw new RendererException(this, e, buf, codecFlags);
 					}
-					return true;
+					
+					depacketizer.freeDecodeUnit(decodeUnit);
+					return;
 				}
 			} else if (header.data[header.offset+4] == 0x68) {
 				numPpsIn++;
@@ -536,7 +550,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			throw new RendererException(this, e, buf, codecFlags);
 		}
 		
-		return true;
+		depacketizer.freeDecodeUnit(decodeUnit);
+		return;
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package com.limelight.binding.video;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.locks.LockSupport;
 
 import org.jcodec.codecs.h264.io.model.SeqParameterSet;
@@ -53,9 +54,6 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	
 	static {
 		preferredDecoders = new LinkedList<String>();
-
-		// This is the most reliable of Samsung's decoders
-		preferredDecoders.add("OMX.SEC.AVC.Decoder");
 	}
 	
 	static {
@@ -317,21 +315,62 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			@Override
 			public void run() {
 				BufferInfo info = new BufferInfo();
-				DecodeUnit du;
+				DecodeUnit du = null;
+				int inputIndex = -1;
 				while (!isInterrupted())
 				{
-					du = depacketizer.pollNextDecodeUnit();
-					if (du != null) {
-						if (!submitDecodeUnit(du)) {
-							// Thread was interrupted
-							depacketizer.freeDecodeUnit(du);
-							return;
-						}
-						else {
-							depacketizer.freeDecodeUnit(du);
+					// In order to get as much data to the decoder as early as possible,
+					// try to submit up to 5 decode units at once without blocking.
+					if (inputIndex == -1 && du == null) {
+						for (int i = 0; i < 5; i++) {
+							inputIndex = videoDecoder.dequeueInputBuffer(0);
+							du = depacketizer.pollNextDecodeUnit();
+
+							// Stop if we can't get a DU or input buffer
+							if (du == null || inputIndex == -1) {
+								break;
+							}
+							
+							submitDecodeUnit(du, inputIndex);
+							
+							du = null;
+							inputIndex = -1;
 						}
 					}
 					
+					// Grab an input buffer if we don't have one already.
+					// This way we can have one ready hopefully by the time
+					// the depacketizer is done with this frame. It's important
+					// that this can timeout because it's possible that we could exhaust
+					// the decoder's input buffers and deadlocks because aren't pulling
+					// frames out of the other end.
+					if (inputIndex == -1) {
+						try {
+							// If we've got a DU waiting to be given to the decoder, 
+							// wait a full 3 ms for an input buffer. Otherwise
+							// just see if we can get one immediately.
+							inputIndex = videoDecoder.dequeueInputBuffer(du != null ? 3000 : 0);
+						} catch (Exception e) {
+							throw new RendererException(MediaCodecDecoderRenderer.this, e);
+						}
+					}
+					
+					// Grab a decode unit if we don't have one already
+					if (du == null) {
+						du = depacketizer.pollNextDecodeUnit();
+					}
+					
+					// If we've got both a decode unit and an input buffer, we'll
+					// submit now. Otherwise, we wait until we have one.
+					if (du != null && inputIndex >= 0) {
+						submitDecodeUnit(du, inputIndex);
+						
+						// DU and input buffer have both been consumed
+						du = null;
+						inputIndex = -1;
+					}
+					
+					// Try to output a frame
 					try {
 						int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
 
@@ -358,7 +397,11 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					    } else {
 						    switch (outIndex) {
 						    case MediaCodec.INFO_TRY_AGAIN_LATER:
-						    	LockSupport.parkNanos(1);
+						    	// Getting an input buffer may already block
+						    	// so don't park if we still need to do that
+						    	if (inputIndex >= 0) {
+							    	LockSupport.parkNanos(1);
+						    	}
 						    	break;
 						    case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
 						    	LimeLog.info("Output buffers changed");
@@ -414,22 +457,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 	}
 
-	private boolean submitDecodeUnit(DecodeUnit decodeUnit) {
-		int inputIndex;
-		
-		do {
-			if (Thread.interrupted()) {
-				return false;
-			}
-			
-			try {
-				inputIndex = videoDecoder.dequeueInputBuffer(100000);
-			} catch (Exception e) {
-				throw new RendererException(this, e);
-			}
-		} while (inputIndex < 0);
-		
-		ByteBuffer buf = videoDecoderInputBuffers[inputIndex];
+	private void submitDecodeUnit(DecodeUnit decodeUnit, int inputBufferIndex) {
+		ByteBuffer buf = videoDecoderInputBuffers[inputBufferIndex];
 
 		long currentTime = System.currentTimeMillis();
 		long delta = currentTime-decodeUnit.getReceiveTimestamp();
@@ -492,13 +521,15 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					sps.write(buf);
 					
 					try {
-						videoDecoder.queueInputBuffer(inputIndex,
+						videoDecoder.queueInputBuffer(inputBufferIndex,
 								0, buf.position(),
 								currentTime * 1000, codecFlags);
 					} catch (Exception e) {
 						throw new RendererException(this, e, buf, codecFlags);
 					}
-					return true;
+					
+					depacketizer.freeDecodeUnit(decodeUnit);
+					return;
 				}
 			} else if (header.data[header.offset+4] == 0x68) {
 				numPpsIn++;
@@ -512,14 +543,15 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 
 		try {
-			videoDecoder.queueInputBuffer(inputIndex,
+			videoDecoder.queueInputBuffer(inputBufferIndex,
 					0, decodeUnit.getDataLength(),
 					currentTime * 1000, codecFlags);
 		} catch (Exception e) {
 			throw new RendererException(this, e, buf, codecFlags);
 		}
 		
-		return true;
+		depacketizer.freeDecodeUnit(decodeUnit);
+		return;
 	}
 
 	@Override
@@ -575,7 +607,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				str += "Current buffer: ";
 				currentBuffer.flip();
 				while (currentBuffer.hasRemaining() && currentBuffer.position() < 10) {
-					str += String.format("%02x ", currentBuffer.get());
+					str += String.format((Locale)null, "%02x ", currentBuffer.get());
 				}
 				str += "\n";
 				str += "Buffer codec flags: "+currentCodecFlags+"\n";

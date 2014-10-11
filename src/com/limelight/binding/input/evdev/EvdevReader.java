@@ -3,6 +3,7 @@ package com.limelight.binding.input.evdev;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Locale;
 
 import com.limelight.LimeLog;
 
@@ -20,7 +21,7 @@ public class EvdevReader {
 			
 			OutputStream stdin = p.getOutputStream();
 			for (String file : files) {
-				stdin.write(String.format("chmod %o %s\n", octalPermissions, file).getBytes("UTF-8"));
+				stdin.write(String.format((Locale)null, "chmod %o %s\n", octalPermissions, file).getBytes("UTF-8"));
 			}
 			stdin.write("exit\n".getBytes("UTF-8"));
 			stdin.flush();

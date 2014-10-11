@@ -80,8 +80,11 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	private void sendPacket(NvCtlPacket packet) throws IOException
 	{
-		packet.write(out);
-		out.flush();
+		// Prevent multiple clients from writing to the stream at the same time
+		synchronized (this) {
+			packet.write(out);
+			out.flush();
+		}
 	}
 	
 	private ControlStream.NvCtlResponse sendAndGetReply(NvCtlPacket packet) throws IOException
@@ -257,6 +260,7 @@ public class ControlStream implements ConnectionStatusListener {
 		public byte[] payload;
 		
 		private static final ByteBuffer headerBuffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
+		private static final ByteBuffer serializationBuffer = ByteBuffer.allocate(128).order(ByteOrder.LITTLE_ENDIAN);
 		
 		public NvCtlPacket(InputStream in) throws IOException
 		{
@@ -356,15 +360,15 @@ public class ControlStream implements ConnectionStatusListener {
 		
 		public void write(OutputStream out) throws IOException
 		{
-			// Use the class's header buffer to construct the wireform to send
-			synchronized (headerBuffer) {
-				headerBuffer.rewind();
-				headerBuffer.putShort(type);
-				headerBuffer.putShort(paylen);
-				out.write(headerBuffer.array());
+			// Use the class's serialization buffer to construct the wireform to send
+			synchronized (serializationBuffer) {
+				serializationBuffer.rewind();
+				serializationBuffer.putShort(type);
+				serializationBuffer.putShort(paylen);
+				serializationBuffer.put(payload);
+
+				out.write(serializationBuffer.array(), 0, serializationBuffer.position());
 			}
-			
-			out.write(payload);
 		}
 	}
 	

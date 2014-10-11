@@ -20,7 +20,7 @@ public class SdpGenerator {
 	}
 	
 	private static void addSessionAttributeInt(StringBuilder config, String attribute, int value) {
-		ByteBuffer b = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
+		ByteBuffer b = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
 		b.putInt(value);
 		addSessionAttributeBytes(config, attribute, b.array());
 	}
@@ -51,10 +51,10 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].clientViewportHt", ""+sc.getHeight());
 		addSessionAttribute(config, "x-nv-video[0].maxFPS", ""+sc.getRefreshRate());
 		
-		addSessionAttributeInt(config, "x-nv-video[0].transferProtocol", 0x41514120);
-		addSessionAttributeInt(config, "x-nv-video[1].transferProtocol", 0x41514120);
-		addSessionAttributeInt(config, "x-nv-video[2].transferProtocol", 0x41514120);
-		addSessionAttributeInt(config, "x-nv-video[3].transferProtocol", 0x41514120);
+		addSessionAttributeInt(config, "x-nv-video[0].transferProtocol", 0x41514141);
+		addSessionAttributeInt(config, "x-nv-video[1].transferProtocol", 0x41514141);
+		addSessionAttributeInt(config, "x-nv-video[2].transferProtocol", 0x41514141);
+		addSessionAttributeInt(config, "x-nv-video[3].transferProtocol", 0x41514141);
 
 		addSessionAttributeInt(config, "x-nv-video[0].rateControlMode", 0x42414141);
 		addSessionAttributeInt(config, "x-nv-video[1].rateControlMode", 0x42514141);

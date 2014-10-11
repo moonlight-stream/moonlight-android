@@ -38,8 +38,16 @@ public class ByteBufferDescriptor {
 	
 	public void print(int offset, int length)
 	{
-		for (int i = offset; i < offset+length; i++) {
-			System.out.printf("%d: %02x \n", i, data[i]);
+		for (int i = offset; i < offset+length;) {
+			if (i + 8 < offset+length) {
+				System.out.printf("%x: %02x %02x %02x %02x %02x %02x %02x %02x\n", i,
+						data[i], data[i+1], data[i+2], data[i+3], data[i+4], data[i+5], data[i+6], data[i+7]);
+				i += 8;
+			}
+			else {
+				System.out.printf("%x: %02x \n", i, data[i]);
+				i++;
+			}
 		}
 		System.out.println();
 	}

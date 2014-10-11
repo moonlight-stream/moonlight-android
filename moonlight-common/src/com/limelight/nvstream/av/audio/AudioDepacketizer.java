@@ -32,6 +32,10 @@ public class AudioDepacketizer {
 				public Object createFreeBuffer() {
 					return new ByteBufferDescriptor(new byte[OpusDecoder.getMaxOutputShorts()*2], 0, OpusDecoder.getMaxOutputShorts()*2);
 				}
+
+				public void cleanupObject(Object o) {
+					// Nothing to do
+				}
 			});
 		}
 	}

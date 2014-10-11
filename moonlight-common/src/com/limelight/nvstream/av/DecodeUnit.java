@@ -1,6 +1,9 @@
 package com.limelight.nvstream.av;
 
+import java.util.HashSet;
 import java.util.List;
+
+import com.limelight.nvstream.av.video.VideoPacket;
 
 public class DecodeUnit {
 	public static final int TYPE_UNKNOWN = 0;
@@ -16,11 +19,13 @@ public class DecodeUnit {
 	private int frameNumber;
 	private long receiveTimestamp;
 	private int flags;
+	private HashSet<VideoPacket> backingPackets; 
 	
 	public DecodeUnit() {
 	}
 	
-	public void initialize(int type, List<ByteBufferDescriptor> bufferList, int dataLength, int frameNumber, long receiveTimestamp, int flags)
+	public void initialize(int type, List<ByteBufferDescriptor> bufferList, int dataLength,
+			int frameNumber, long receiveTimestamp, int flags, HashSet<VideoPacket> backingPackets)
 	{
 		this.type = type;
 		this.bufferList = bufferList;
@@ -28,6 +33,7 @@ public class DecodeUnit {
 		this.frameNumber = frameNumber;
 		this.receiveTimestamp = receiveTimestamp;
 		this.flags = flags;
+		this.backingPackets = backingPackets;
 	}
 	
 	public int getType()
@@ -58,5 +64,15 @@ public class DecodeUnit {
 	public int getFlags()
 	{
 		return flags;
+	}
+	
+	// Internal use only
+	public HashSet<VideoPacket> getBackingPackets() {
+		return backingPackets;
+	}
+	
+	// Internal use only
+	public void clearBackingPackets() {
+		backingPackets.clear();
 	}
 }

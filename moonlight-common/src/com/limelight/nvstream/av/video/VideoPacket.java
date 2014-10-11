@@ -2,6 +2,7 @@ package com.limelight.nvstream.av.video;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.RtpPacket;
@@ -18,6 +19,8 @@ public class VideoPacket implements RtpPacketFields {
 	private int streamPacketIndex;
 	
 	private short rtpSequenceNumber;
+	
+	AtomicInteger decodeUnitRefCount = new AtomicInteger();
 	
 	public static final int FLAG_CONTAINS_PIC_DATA = 0x1;
 	public static final int FLAG_EOF = 0x2;

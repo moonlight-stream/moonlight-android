@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.LinkedList;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.ConnectionStatusListener;
@@ -203,6 +204,7 @@ public class VideoStream {
 
 				byte[] buffer;
 				DatagramPacket packet = new DatagramPacket(new byte[1], 1); // Placeholder array
+				int iterationStart;
 				while (!isInterrupted())
 				{
 					try {
@@ -227,9 +229,20 @@ public class VideoStream {
 								depacketizer.addInputData(queuedPacket);
 							}
 						}
-						
-						// The ring is large enough to account for the maximum queued packets
-						ringIndex = (ringIndex + 1) % VIDEO_RING_SIZE;
+
+						// Go to the next free element in the ring
+						iterationStart = ringIndex; 
+						do {
+							ringIndex = (ringIndex + 1) % VIDEO_RING_SIZE;
+							if (ringIndex == iterationStart) {								
+								// Reinitialize the video ring since they're all being used
+								LimeLog.warning("Packet ring wrapped around!");
+								for (int i = 0; i < VIDEO_RING_SIZE; i++) {
+									ring[i] = new VideoPacket(new byte[requiredBufferSize]);
+								}
+								break;
+							}
+						} while (ring[ringIndex].decodeUnitRefCount.get() != 0);
 					} catch (IOException e) {
 						listener.connectionTerminated(e);
 						return;

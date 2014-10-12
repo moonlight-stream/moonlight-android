@@ -152,9 +152,9 @@ public class ControllerHandler {
 				if (mapping.leftStickDeadzoneRadius < 0.02f) {
 					mapping.leftStickDeadzoneRadius = 0.20f;
 				}
-				// Check that the deadzone is 12% at minimum
-				else if (mapping.leftStickDeadzoneRadius < 0.12f) {
-					mapping.leftStickDeadzoneRadius = 0.12f;
+				// Check that the deadzone is 15% at minimum
+				else if (mapping.leftStickDeadzoneRadius < 0.15f) {
+					mapping.leftStickDeadzoneRadius = 0.15f;
 				}
 			}
 		}
@@ -178,9 +178,9 @@ public class ControllerHandler {
 				if (mapping.rightStickDeadzoneRadius < 0.02f) {
 					mapping.rightStickDeadzoneRadius = 0.20f;
 				}
-				// Check that the deadzone is 12% at minimum
-				else if (mapping.rightStickDeadzoneRadius < 0.12f) {
-					mapping.rightStickDeadzoneRadius = 0.12f;
+				// Check that the deadzone is 15% at minimum
+				else if (mapping.rightStickDeadzoneRadius < 0.15f) {
+					mapping.rightStickDeadzoneRadius = 0.15f;
 				}
 			}
 		}

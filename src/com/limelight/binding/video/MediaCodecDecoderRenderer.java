@@ -34,6 +34,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private boolean needsSpsBitstreamFixup;
 	private VideoDepacketizer depacketizer;
 	private boolean adaptivePlayback;
+	private int initialWidth, initialHeight;
 	
 	private long totalTimeMs;
 	private long decoderTimeMs;
@@ -267,6 +268,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	@Override
 	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
+		this.initialWidth = width;
+		this.initialHeight = height;
+		
 		if (decoderName == null) {
 			LimeLog.severe("No available hardware decoder!");
 			return false;
@@ -589,6 +593,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			String str = "";
 			
 			str += "Decoder: "+renderer.decoderName+"\n";
+			str += "Initial video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
 			str += "In stats: "+renderer.numSpsIn+", "+renderer.numPpsIn+", "+renderer.numIframeIn+"\n";
 			str += "Total frames: "+renderer.totalFrames+"\n";
 			

@@ -66,7 +66,6 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		spsFixupBitstreamFixupDecoderPrefixes = new LinkedList<String>();
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.nvidia");
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.qcom");
-		spsFixupBitstreamFixupDecoderPrefixes.add("omx.sec");
 		
 		whitelistedAdaptiveResolutionPrefixes = new LinkedList<String>();
 		whitelistedAdaptiveResolutionPrefixes.add("omx.nvidia");

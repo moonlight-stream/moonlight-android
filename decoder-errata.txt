@@ -11,3 +11,9 @@ This file serves to document some of the decoder errata when using MediaCodec ha
 
 4. Some decoders require num_ref_frames=1 and max_dec_frame_buffering=1 to avoid crashing on SPS or first I-frame
 	- Affected decoders: Qualcomm in GS3 on 4.3+, Exynos 4
+
+5. Some decoders will hang if max_dec_frame_buffering is not present
+	- Affected decoders: MediaTek decoder in Fire HD 7 (2014)
+	
+6. Some decoders will hang if max_dec_frame_buffering IS present
+	- Affected decoders: Exynos 5 in Galaxy Note 10.1 (2014)

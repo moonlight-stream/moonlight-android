@@ -52,16 +52,29 @@ public class ControllerHandler {
 		ControllerPacket.enableAxisScaling = true;
 	}
 	
+	private static InputDevice.MotionRange getMotionRangeForJoystickAxis(InputDevice dev, int axis) {
+		InputDevice.MotionRange range;
+		
+		// First get the axis for SOURCE_JOYSTICK
+		range = dev.getMotionRange(axis, InputDevice.SOURCE_JOYSTICK);
+		if (range == null) {
+			// Now try the axis for SOURCE_GAMEPAD
+			range = dev.getMotionRange(axis, InputDevice.SOURCE_GAMEPAD);
+		}
+		
+		return range;
+	}
+	
 	private ControllerMapping createMappingForDevice(InputDevice dev) {
 		ControllerMapping mapping = new ControllerMapping();
 		
 		mapping.leftStickXAxis = MotionEvent.AXIS_X;
 		mapping.leftStickYAxis = MotionEvent.AXIS_Y;
 		
-		InputDevice.MotionRange leftTriggerRange = dev.getMotionRange(MotionEvent.AXIS_LTRIGGER);
-		InputDevice.MotionRange rightTriggerRange = dev.getMotionRange(MotionEvent.AXIS_RTRIGGER);
-		InputDevice.MotionRange brakeRange = dev.getMotionRange(MotionEvent.AXIS_BRAKE);
-		InputDevice.MotionRange gasRange = dev.getMotionRange(MotionEvent.AXIS_GAS);
+		InputDevice.MotionRange leftTriggerRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_LTRIGGER);
+		InputDevice.MotionRange rightTriggerRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RTRIGGER);
+		InputDevice.MotionRange brakeRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_BRAKE);
+		InputDevice.MotionRange gasRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_GAS);
 		if (leftTriggerRange != null && rightTriggerRange != null)
 		{
 			// Some controllers use LTRIGGER and RTRIGGER (like Ouya)
@@ -76,8 +89,8 @@ public class ControllerHandler {
 		}
 		else
 		{
-			InputDevice.MotionRange rxRange = dev.getMotionRange(MotionEvent.AXIS_RX);
-			InputDevice.MotionRange ryRange = dev.getMotionRange(MotionEvent.AXIS_RY);
+			InputDevice.MotionRange rxRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RX);
+			InputDevice.MotionRange ryRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RY);
 			if (rxRange != null && ryRange != null) {
 				String devName = dev.getName();
 				if (devName.contains("Xbox") || devName.contains("XBox") || devName.contains("X-Box")) {
@@ -102,8 +115,8 @@ public class ControllerHandler {
 		}
 		
 		if (mapping.rightStickXAxis == -1 && mapping.rightStickYAxis == -1) {
-			InputDevice.MotionRange zRange = dev.getMotionRange(MotionEvent.AXIS_Z);
-			InputDevice.MotionRange rzRange = dev.getMotionRange(MotionEvent.AXIS_RZ);
+			InputDevice.MotionRange zRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_Z);
+			InputDevice.MotionRange rzRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RZ);
 			
 			// Most other controllers use Z and RZ for the right stick
 			if (zRange != null && rzRange != null) {
@@ -111,8 +124,8 @@ public class ControllerHandler {
 				mapping.rightStickYAxis = MotionEvent.AXIS_RZ;
 			}
 			else {
-				InputDevice.MotionRange rxRange = dev.getMotionRange(MotionEvent.AXIS_RX);
-				InputDevice.MotionRange ryRange = dev.getMotionRange(MotionEvent.AXIS_RY);
+				InputDevice.MotionRange rxRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RX);
+				InputDevice.MotionRange ryRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RY);
 				
 				// Try RX and RY now
 				if (rxRange != null && ryRange != null) {
@@ -123,8 +136,8 @@ public class ControllerHandler {
 		}
 		
 		// Some devices have "hats" for d-pads
-		InputDevice.MotionRange hatXRange = dev.getMotionRange(MotionEvent.AXIS_HAT_X);
-		InputDevice.MotionRange hatYRange = dev.getMotionRange(MotionEvent.AXIS_HAT_Y);
+		InputDevice.MotionRange hatXRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_HAT_X);
+		InputDevice.MotionRange hatYRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_HAT_Y);
 		if (hatXRange != null && hatYRange != null) {
 			mapping.hatXAxis = MotionEvent.AXIS_HAT_X;
 			mapping.hatYAxis = MotionEvent.AXIS_HAT_Y;
@@ -134,8 +147,8 @@ public class ControllerHandler {
 		}
 		
 		if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
-			InputDevice.MotionRange lsXRange = dev.getMotionRange(mapping.leftStickXAxis);
-			InputDevice.MotionRange lsYRange = dev.getMotionRange(mapping.leftStickYAxis);
+			InputDevice.MotionRange lsXRange = getMotionRangeForJoystickAxis(dev, mapping.leftStickXAxis);
+			InputDevice.MotionRange lsYRange = getMotionRangeForJoystickAxis(dev, mapping.leftStickYAxis);
 			if (lsXRange != null && lsYRange != null) {
 				// The flat values should never be negative but we'll deal with it if they are
 				mapping.leftStickDeadzoneRadius = Math.max(Math.abs(lsXRange.getFlat()),
@@ -160,8 +173,8 @@ public class ControllerHandler {
 		}
 		
 		if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
-			InputDevice.MotionRange rsXRange = dev.getMotionRange(mapping.rightStickXAxis);
-			InputDevice.MotionRange rsYRange = dev.getMotionRange(mapping.rightStickYAxis);
+			InputDevice.MotionRange rsXRange = getMotionRangeForJoystickAxis(dev, mapping.rightStickXAxis);
+			InputDevice.MotionRange rsYRange = getMotionRangeForJoystickAxis(dev, mapping.rightStickYAxis);
 			if (rsXRange != null && rsYRange != null) {
 				// The flat values should never be negative but we'll deal with it if they are
 				mapping.rightStickDeadzoneRadius = Math.max(Math.abs(rsXRange.getFlat()),

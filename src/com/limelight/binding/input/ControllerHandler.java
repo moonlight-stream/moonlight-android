@@ -102,6 +102,7 @@ public class ControllerHandler {
 					mapping.leftTriggerAxis = MotionEvent.AXIS_Z;
 					mapping.rightTriggerAxis = MotionEvent.AXIS_RZ;
 					mapping.triggersIdleNegative = true;
+					mapping.isXboxController = true;
 				}
 				else {
 					// DS4 controller uses RX and RY for triggers
@@ -227,9 +228,9 @@ public class ControllerHandler {
 				leftStickX, leftStickY, rightStickX, rightStickY);
 	}
 	
-	private static int handleRemapping(ControllerMapping mapping, int keyCode) {
+	private static int handleRemapping(ControllerMapping mapping, KeyEvent event) {
 		if (mapping.isDualShock4) {
-			switch (keyCode) {
+			switch (event.getKeyCode()) {
 			case KeyEvent.KEYCODE_BUTTON_Y:
 				return KeyEvent.KEYCODE_BUTTON_L1;
 				
@@ -268,7 +269,7 @@ public class ControllerHandler {
 		}
 		
 		if (mapping.hatXAxis != -1 && mapping.hatYAxis != -1) {
-			switch (keyCode) {
+			switch (event.getKeyCode()) {
 			// These are duplicate dpad events for hat input
 			case KeyEvent.KEYCODE_DPAD_LEFT:
 			case KeyEvent.KEYCODE_DPAD_RIGHT:
@@ -278,8 +279,26 @@ public class ControllerHandler {
 				return 0;
 			}
 		}
+		else if (mapping.hatXAxis == -1 &&
+				 mapping.hatYAxis == -1 &&
+				 mapping.isXboxController &&
+				 event.getKeyCode() == KeyEvent.KEYCODE_UNKNOWN) {
+			// If there's not a proper Xbox controller mapping, we'll translate the raw d-pad
+			// scan codes into proper key codes
+			switch (event.getScanCode())
+			{
+			case 704:
+				return KeyEvent.KEYCODE_DPAD_LEFT;
+			case 705:
+				return KeyEvent.KEYCODE_DPAD_RIGHT;
+			case 706:
+				return KeyEvent.KEYCODE_DPAD_UP;
+			case 707:
+				return KeyEvent.KEYCODE_DPAD_DOWN;
+			}
+		}
 		
-		return keyCode;
+		return event.getKeyCode();
 	}
 	
 	private Vector2d handleDeadZone(float x, float y, float deadzoneRadius) {
@@ -385,7 +404,7 @@ public class ControllerHandler {
 			return false;
 		}
 		
-		keyCode = handleRemapping(mapping, keyCode);
+		keyCode = handleRemapping(mapping, event);
 		if (keyCode == 0) {
 			return true;
 		}
@@ -508,7 +527,7 @@ public class ControllerHandler {
 			return false;
 		}
 		
-		keyCode = handleRemapping(mapping, keyCode);
+		keyCode = handleRemapping(mapping, event);
 		if (keyCode == 0) {
 			return true;
 		}
@@ -618,5 +637,6 @@ public class ControllerHandler {
 		public float hatYDeadzone;
 		
 		public boolean isDualShock4;
+		public boolean isXboxController;
 	}
 }

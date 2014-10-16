@@ -11,11 +11,23 @@
     <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" >
+        
+        <TextView
+	        android:id="@+id/advancedSettingsText"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_centerHorizontal="true"
+	        android:textAppearance="?android:attr/textAppearanceLarge"
+	        android:layout_alignParentTop="true"
+	        android:paddingTop="0dp"
+	        android:paddingBottom="10dp"
+	        android:text="Advanced Settings" />
 
         <RadioGroup
             android:id="@+id/decoderConfigGroup"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/advancedSettingsText"
             android:layout_alignParentLeft="true"
             android:layout_alignParentRight="true"
             android:layout_marginTop="15dp"

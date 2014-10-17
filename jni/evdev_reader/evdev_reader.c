@@ -7,6 +7,7 @@
 #include <linux/input.h>
 #include <unistd.h>
 #include <poll.h>
+#include <errno.h>
 
 #include <android/log.h>
 

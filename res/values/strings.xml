@@ -1,7 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- General strings -->
     <string name="app_name">Limelight</string>
-    <string name="title_activity_game">Game</string>
-
+    <string name="ip_hint">IP address of GeForce PC</string>
+    
+    <!-- PC view activity -->
+    <string name="title_pc_view">PC List</string>
+    <string name="button_stream_settings">Streaming Settings</string>
+    <string name="button_add_pc_manually">Add PC Manually</string>
+    
+    <!-- Add computer manually activity -->
+    <string name="button_add_pc">Manually Add PC</string>
+    
+    <!-- Stream settings activity -->
+    <string name="title_streaming_settings">Streaming Settings</string>
+    <string name="button_advanced_settings">Advanced Settings</string>
+    <string name="radio_720p30">720p 30 FPS (Only recommended for poor devices or networks)</string>
+    <string name="radio_720p60">720p 60 FPS (Recommended for most devices and networks)</string>
+    <string name="radio_1080p30">1080p 30 FPS (Recommended for most devices if 1080p streaming is desired)</string>
+    <string name="radio_1080p60">1080p 60 FPS (Requires extremely fast device and network)</string>
+    <string name="check_stretchToFill">Stretch video to fill screen</string>
+    <string name="check_enableSops">Allow GFE to modify game settings for optimal streaming</string>
+    <string name="check_disableToasts">Disable on-screen connection warning messages"</string>
+    
+    <!-- Advanced settings activity -->
+    <string name="radio_forceSoftware">Force Software Decoding</string>
+    <string name="radio_autoSelect">Auto-select Decoder (Recommended)</string>
+    <string name="radio_forceHardware">Force Hardware Decoding</string>
+    
 </resources>

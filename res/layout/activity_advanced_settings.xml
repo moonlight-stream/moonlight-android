@@ -21,7 +21,7 @@
 	        android:layout_alignParentTop="true"
 	        android:paddingTop="0dp"
 	        android:paddingBottom="10dp"
-	        android:text="Advanced Settings" />
+	        android:text="@string/button_advanced_settings" />
 
         <RadioGroup
             android:id="@+id/decoderConfigGroup"
@@ -37,19 +37,19 @@
                 android:id="@+id/softwareDec"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Force Software Decoding" />
+                android:text="@string/radio_forceSoftware" />
 
             <RadioButton
                 android:id="@+id/autoDec"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Auto-select Decoder (Recommended)" />
+                android:text="@string/radio_autoSelect" />
 
             <RadioButton
                 android:id="@+id/hardwareDec"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Force Hardware Decoding" />
+                android:text="@string/radio_forceHardware" />
         </RadioGroup>
 
         <TextView

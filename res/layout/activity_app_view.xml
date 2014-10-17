@@ -30,7 +30,6 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_alignParentTop="true"
         android:paddingTop="0dp"
-        android:paddingBottom="10dp"
-        android:text="Applications" />
+        android:paddingBottom="10dp" />
 
 </RelativeLayout>

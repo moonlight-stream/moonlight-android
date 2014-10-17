@@ -8,6 +8,8 @@
     </issue>
     <issue id="InvalidPackage">
         <ignore path="libs/bcprov-jdk15on-150.jar" />
+        <ignore path="libs/bcprov-jdk15on-151.jar" />
+        <ignore path="libs/jcodec-0.1.5.jar" />
     </issue>
     <issue id="UnusedResources">
         <ignore path="res/drawable-xhdpi/ouya_icon.png" />

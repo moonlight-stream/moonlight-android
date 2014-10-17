@@ -30,7 +30,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_centerHorizontal="true"
         android:layout_alignBaseline="@+id/settingsButton"
-        android:text="PC List" />
+        android:text="@string/title_pc_view" />
 
     <Button
         android:id="@+id/settingsButton"
@@ -40,7 +40,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="15dp"
-        android:text="Streaming Settings" />
+        android:text="@string/button_stream_settings" />
     
     <Button
         android:id="@+id/manuallyAddPc"
@@ -50,6 +50,6 @@
         android:layout_alignParentTop="true"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="15dp"
-        android:text="Add PC Manually" />
+        android:text="@string/button_add_pc_manually" />
 
 </RelativeLayout>

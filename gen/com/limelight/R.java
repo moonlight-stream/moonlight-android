@@ -73,8 +73,34 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int simplerow=0x7f030006;
     }
     public static final class string {
+        /**  General strings 
+         */
         public static final int app_name=0x7f050000;
-        public static final int title_activity_game=0x7f050001;
+        /**  Add computer manually activity 
+         */
+        public static final int button_add_pc=0x7f050005;
+        public static final int button_add_pc_manually=0x7f050004;
+        public static final int button_advanced_settings=0x7f050007;
+        public static final int button_stream_settings=0x7f050003;
+        public static final int check_disableToasts=0x7f05000e;
+        public static final int check_enableSops=0x7f05000d;
+        public static final int check_stretchToFill=0x7f05000c;
+        public static final int ip_hint=0x7f050001;
+        public static final int radio_1080p30=0x7f05000a;
+        public static final int radio_1080p60=0x7f05000b;
+        public static final int radio_720p30=0x7f050008;
+        public static final int radio_720p60=0x7f050009;
+        public static final int radio_autoSelect=0x7f050010;
+        public static final int radio_forceHardware=0x7f050011;
+        /**  Advanced settings activity 
+         */
+        public static final int radio_forceSoftware=0x7f05000f;
+        /**  PC view activity 
+         */
+        public static final int title_pc_view=0x7f050002;
+        /**  Stream settings activity 
+         */
+        public static final int title_streaming_settings=0x7f050006;
     }
     public static final class style {
         /** 

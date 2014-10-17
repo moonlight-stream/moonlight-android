@@ -365,7 +365,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 		
 		long timestampUs = currentTime * 1000;
-		if (timestampUs == lastTimestampUs) {
+		if (timestampUs <= lastTimestampUs) {
 			// We can't submit multiple buffers with the same timestamp
 			// so bump it up by one before queuing
 			timestampUs = lastTimestampUs + 1;

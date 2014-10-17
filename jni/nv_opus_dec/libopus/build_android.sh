@@ -1,4 +1,4 @@
-ANDROID_API_TARGET=L
+ANDROID_API_TARGET=21
 PARALLEL_JOBS=$(nproc)
 
 rm -r ./android

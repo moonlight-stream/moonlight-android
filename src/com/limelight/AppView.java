@@ -28,6 +28,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
@@ -59,7 +60,10 @@ public class AppView extends Activity {
 			return;
 		}
 		
-		setTitle("App List for "+getIntent().getStringExtra(NAME_EXTRA));
+		String labelText = "App List for "+getIntent().getStringExtra(NAME_EXTRA);
+		TextView label = (TextView) findViewById(R.id.appListText);
+		setTitle(labelText);
+		label.setText(labelText);
 		
 		try {
 			ipAddress = InetAddress.getByAddress(address);

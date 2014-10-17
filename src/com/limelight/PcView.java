@@ -22,6 +22,7 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.ContextMenu;
@@ -73,59 +74,58 @@ public class PcView extends Activity {
 		}
 	};
 	
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		
+		// Reinitialize views just in case orientation changed
+		initializeViews();
+	}
+	
 	private final static int APP_LIST_ID = 1;
 	private final static int PAIR_ID = 2;
 	private final static int UNPAIR_ID = 3;
 	private final static int WOL_ID = 4;
 	private final static int DELETE_ID = 5;
 	
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+	private void initializeViews() {
 		setContentView(R.layout.activity_pc_view);
-		
-		// Bind to the computer manager service
-		bindService(new Intent(PcView.this, ComputerManagerService.class), serviceConnection,
-				Service.BIND_AUTO_CREATE);
 		
 		// Setup the list view
 		settingsButton = (Button)findViewById(R.id.settingsButton);
 		addComputerButton = (Button)findViewById(R.id.manuallyAddPc);
 
 		pcList = (ListView)findViewById(R.id.pcListView);
-		pcListAdapter = new ArrayAdapter<ComputerObject>(this, R.layout.simplerow, R.id.rowTextView);
-		pcListAdapter.setNotifyOnChange(false);
-        pcList.setAdapter(pcListAdapter);
-        pcList.setItemsCanFocus(true);
-        pcList.setOnItemClickListener(new OnItemClickListener() {
+		pcList.setAdapter(pcListAdapter);
+		pcList.setItemsCanFocus(true);
+		pcList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
 					long id) {
-		        ComputerObject computer = (ComputerObject) pcListAdapter.getItem(pos);
-		        if (computer.details == null) {
-		        	// Placeholder item; no context menu for it
-		        	return;
-		        }
-		        else if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
-		        	// Open the context menu if a PC is offline
+				ComputerObject computer = (ComputerObject) pcListAdapter.getItem(pos);
+				if (computer.details == null) {
+					// Placeholder item; no context menu for it
+					return;
+				}
+				else if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
+					// Open the context menu if a PC is offline
 					openContextMenu(arg1);
-		        }
-		        else if (computer.details.pairState != PairState.PAIRED) {
-		        	// Pair an unpaired machine by default
-		            doPair(computer.details);
-		        }
-		        else {
-		            doAppList(computer.details);
-		        }
+				}
+				else if (computer.details.pairState != PairState.PAIRED) {
+					// Pair an unpaired machine by default
+					doPair(computer.details);
+				}
+				else {
+					doAppList(computer.details);
+				}
 			}
-        });
-        registerForContextMenu(pcList);
-        settingsButton.setOnClickListener(new OnClickListener() {
+		});
+		registerForContextMenu(pcList);
+		settingsButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				startActivity(new Intent(PcView.this, StreamSettings.class));
 			}
-        });
+		});
 		addComputerButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -133,8 +133,27 @@ public class PcView extends Activity {
 				startActivity(i);
 			}
 		});
-        
-        addListPlaceholder();
+
+		if (pcListAdapter.isEmpty()) {
+			addListPlaceholder();
+		}
+		else {
+			pcListAdapter.notifyDataSetChanged();
+		}
+	}
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		// Bind to the computer manager service
+		bindService(new Intent(PcView.this, ComputerManagerService.class), serviceConnection,
+				Service.BIND_AUTO_CREATE);
+		
+		pcListAdapter = new ArrayAdapter<ComputerObject>(this, R.layout.simplerow, R.id.rowTextView);
+		pcListAdapter.setNotifyOnChange(false);
+		
+		initializeViews();
 	}
 	
 	private void startComputerUpdates() {

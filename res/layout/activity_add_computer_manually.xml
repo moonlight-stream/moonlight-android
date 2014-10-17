@@ -18,7 +18,7 @@
         android:ems="10"
         android:singleLine="true"
         android:inputType="textNoSuggestions"
-        android:hint="IP address of GeForce PC" >
+        android:hint="@string/ip_hint" >
         
         <requestFocus />
     </EditText>
@@ -29,6 +29,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/hostTextView"
         android:layout_centerHorizontal="true"
-        android:text="Manually Add PC" />
+        android:text="@string/button_add_pc" />
 	
 </RelativeLayout>

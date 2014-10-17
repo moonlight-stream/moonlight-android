@@ -6,30 +6,48 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".AppView" >
+    tools:context=".PcView" >
 
     <ListView
         android:id="@+id/pcListView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:layout_below="@+id/appListText"
+        android:layout_below="@+id/discoveryText"
+        android:background="@drawable/list_view_unselected"
         android:fastScrollEnabled="true"
         android:longClickable="false"
-        android:background="@drawable/list_view_unselected"
-        android:stackFromBottom="false">
+        android:stackFromBottom="false" >
+
     </ListView>
     
     <TextView
-        android:id="@+id/appListText"
+        android:id="@+id/discoveryText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_below="@+id/manuallyAddPc"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:text="@string/title_pc_view" />
+
+    <Button
+        android:id="@+id/settingsButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
         android:layout_alignParentTop="true"
-        android:paddingTop="0dp"
-        android:paddingBottom="10dp" />
+        android:text="@string/button_stream_settings" />
+    
+    <Button
+        android:id="@+id/manuallyAddPc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/settingsButton"
+        android:layout_centerHorizontal="true"
+        android:text="@string/button_add_pc_manually" />
 
 </RelativeLayout>

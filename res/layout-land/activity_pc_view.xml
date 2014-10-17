@@ -15,7 +15,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/discoveryText"
+        android:layout_below="@+id/settingsButton"
         android:background="@drawable/list_view_unselected"
         android:fastScrollEnabled="true"
         android:longClickable="false"
@@ -27,27 +27,29 @@
         android:id="@+id/discoveryText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_below="@+id/manuallyAddPc"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        android:text="Discovered PC List" />
+        android:layout_centerHorizontal="true"
+        android:layout_alignBaseline="@+id/settingsButton"
+        android:text="@string/title_pc_view" />
 
     <Button
         android:id="@+id/settingsButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+        android:layout_alignLeft="@+id/pcListView"
         android:layout_alignParentTop="true"
-        android:text="Streaming Settings" />
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="15dp"
+        android:text="@string/button_stream_settings" />
     
     <Button
         android:id="@+id/manuallyAddPc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/settingsButton"
-        android:layout_centerHorizontal="true"
-        android:text="Add PC Manually" />
+        android:layout_alignRight="@+id/pcListView"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="15dp"
+        android:text="@string/button_add_pc_manually" />
 
 </RelativeLayout>

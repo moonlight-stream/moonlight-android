@@ -32,9 +32,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private MediaCodec videoDecoder;
 	private Thread rendererThread;
 	private boolean needsSpsBitstreamFixup;
-	private boolean needsSpsNumRefFixup;
 	private VideoDepacketizer depacketizer;
 	private boolean adaptivePlayback;
+	private int initialWidth, initialHeight;
 	
 	private long totalTimeMs;
 	private long decoderTimeMs;
@@ -49,7 +49,6 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 	public static final List<String> blacklistedDecoderPrefixes;
 	public static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
-	public static final List<String> spsFixupNumRefFixupDecoderPrefixes;
 	public static final List<String> whitelistedAdaptiveResolutionPrefixes;
 	
 	static {
@@ -68,12 +67,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		spsFixupBitstreamFixupDecoderPrefixes = new LinkedList<String>();
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.nvidia");
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.qcom");
-		spsFixupBitstreamFixupDecoderPrefixes.add("omx.sec");
-		
-		spsFixupNumRefFixupDecoderPrefixes = new LinkedList<String>();
-		spsFixupNumRefFixupDecoderPrefixes.add("omx.TI");
-		spsFixupNumRefFixupDecoderPrefixes.add("omx.qcom");
-		spsFixupNumRefFixupDecoderPrefixes.add("omx.sec");
+		spsFixupBitstreamFixupDecoderPrefixes.add("omx.mtk");
 		
 		whitelistedAdaptiveResolutionPrefixes = new LinkedList<String>();
 		whitelistedAdaptiveResolutionPrefixes.add("omx.nvidia");
@@ -120,12 +114,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 		
 		needsSpsBitstreamFixup = isDecoderInList(spsFixupBitstreamFixupDecoderPrefixes, decoderName);
-		needsSpsNumRefFixup = isDecoderInList(spsFixupNumRefFixupDecoderPrefixes, decoderName);
 		if (needsSpsBitstreamFixup) {
 			LimeLog.info("Decoder "+decoderName+" needs SPS bitstream restrictions fixup");
-		}
-		if (needsSpsNumRefFixup) {
-			LimeLog.info("Decoder "+decoderName+" needs SPS ref num fixup");
 		}
 	}
 	
@@ -279,6 +269,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	@Override
 	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
+		this.initialWidth = width;
+		this.initialHeight = height;
+		
 		if (decoderName == null) {
 			LimeLog.severe("No available hardware decoder!");
 			return false;
@@ -485,52 +478,53 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			if (header.data[header.offset+4] == 0x67) {
 				numSpsIn++;
 				
-				if (needsSpsBitstreamFixup || needsSpsNumRefFixup) {
-					ByteBuffer spsBuf = ByteBuffer.wrap(header.data);
-					
-					// Skip to the start of the NALU data
-					spsBuf.position(header.offset+5);
-					
-					SeqParameterSet sps = SeqParameterSet.read(spsBuf);
-										
-					// TI OMAP4 requires a reference frame count of 1 to decode successfully
-					if (needsSpsNumRefFixup) {
-						LimeLog.info("Fixing up num ref frames");
-						sps.num_ref_frames = 1;
-					}
-
+				ByteBuffer spsBuf = ByteBuffer.wrap(header.data);
+				
+				// Skip to the start of the NALU data
+				spsBuf.position(header.offset+5);
+				
+				SeqParameterSet sps = SeqParameterSet.read(spsBuf);
+				
+				// TI OMAP4 requires a reference frame count of 1 to decode successfully. Exynos 4
+				// also requires this fixup.
+				//
+				// I'm doing this fixup for all devices because I haven't seen any devices that
+				// this causes issues for. At worst, it seems to do nothing and at best it fixes
+				// issues with video lag, hangs, and crashes.
+				LimeLog.info("Patching num_ref_frames in SPS");
+				sps.num_ref_frames = 1;
+				
+				if (needsSpsBitstreamFixup) {
 					// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
 					// or max_dec_frame_buffering which increases decoding latency on Tegra.
-					if (needsSpsBitstreamFixup) {
-						LimeLog.info("Adding bitstream restrictions");
+					LimeLog.info("Adding bitstream restrictions");
 
-						sps.vuiParams.bitstreamRestriction = new VUIParameters.BitstreamRestriction();
-						sps.vuiParams.bitstreamRestriction.motion_vectors_over_pic_boundaries_flag = true;
-						sps.vuiParams.bitstreamRestriction.max_bytes_per_pic_denom = 2;
-						sps.vuiParams.bitstreamRestriction.max_bits_per_mb_denom = 1;
-						sps.vuiParams.bitstreamRestriction.log2_max_mv_length_horizontal = 16;
-						sps.vuiParams.bitstreamRestriction.log2_max_mv_length_vertical = 16;
-						sps.vuiParams.bitstreamRestriction.num_reorder_frames = 0;
-						sps.vuiParams.bitstreamRestriction.max_dec_frame_buffering = 1;
-					}
-					
-					// Write the annex B header
-					buf.put(header.data, header.offset, 5);
-					
-					// Write the modified SPS to the input buffer
-					sps.write(buf);
-					
-					try {
-						videoDecoder.queueInputBuffer(inputBufferIndex,
-								0, buf.position(),
-								currentTime * 1000, codecFlags);
-					} catch (Exception e) {
-						throw new RendererException(this, e, buf, codecFlags);
-					}
-					
-					depacketizer.freeDecodeUnit(decodeUnit);
-					return;
+					sps.vuiParams.bitstreamRestriction = new VUIParameters.BitstreamRestriction();
+					sps.vuiParams.bitstreamRestriction.motion_vectors_over_pic_boundaries_flag = true;
+					sps.vuiParams.bitstreamRestriction.max_bytes_per_pic_denom = 2;
+					sps.vuiParams.bitstreamRestriction.max_bits_per_mb_denom = 1;
+					sps.vuiParams.bitstreamRestriction.log2_max_mv_length_horizontal = 16;
+					sps.vuiParams.bitstreamRestriction.log2_max_mv_length_vertical = 16;
+					sps.vuiParams.bitstreamRestriction.num_reorder_frames = 0;
+					sps.vuiParams.bitstreamRestriction.max_dec_frame_buffering = 1;
 				}
+				
+				// Write the annex B header
+				buf.put(header.data, header.offset, 5);
+				
+				// Write the modified SPS to the input buffer
+				sps.write(buf);
+				
+				try {
+					videoDecoder.queueInputBuffer(inputBufferIndex,
+							0, buf.position(),
+							currentTime * 1000, codecFlags);
+				} catch (Exception e) {
+					throw new RendererException(this, e, buf, codecFlags);
+				}
+				
+				depacketizer.freeDecodeUnit(decodeUnit);
+				return;
 			} else if (header.data[header.offset+4] == 0x68) {
 				numPpsIn++;
 			}
@@ -600,6 +594,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			String str = "";
 			
 			str += "Decoder: "+renderer.decoderName+"\n";
+			str += "Initial video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
 			str += "In stats: "+renderer.numSpsIn+", "+renderer.numPpsIn+", "+renderer.numIframeIn+"\n";
 			str += "Total frames: "+renderer.totalFrames+"\n";
 			

@@ -26,6 +26,9 @@ import android.media.MediaCodec.BufferInfo;
 import android.os.Build;
 import android.view.SurfaceHolder;
 
+// Ignore warnings about deprecated MediaCodecList APIs in API level 21
+// We don't care about any of the new codec types anyway.
+@SuppressWarnings("deprecation")
 public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 	private ByteBuffer[] videoDecoderInputBuffers;

@@ -49,14 +49,14 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int config720p60Selected=0x7f070012;
         public static final int decoderConfigGroup=0x7f070003;
         public static final int disableToasts=0x7f070016;
-        public static final int discoveryText=0x7f07000d;
+        public static final int discoveryText=0x7f07000c;
         public static final int enableSops=0x7f070018;
         public static final int hardwareDec=0x7f070006;
         public static final int hostTextView=0x7f070000;
-        public static final int manuallyAddPc=0x7f07000e;
+        public static final int manuallyAddPc=0x7f07000d;
         public static final int pcListView=0x7f070009;
         public static final int rowTextView=0x7f070019;
-        public static final int settingsButton=0x7f07000c;
+        public static final int settingsButton=0x7f07000e;
         public static final int softwareDec=0x7f070004;
         public static final int streamConfigGroup=0x7f070010;
         public static final int streamSettingsText=0x7f07000f;
@@ -120,6 +120,12 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         res/values-v11/styles.xml on API 14+ devices.
     
  API 14 theme customizations can go here. 
+
+        Base application theme for API 21+. This theme completely replaces
+        AppBaseTheme from BOTH res/values/styles.xml and
+        res/values-v11/styles.xml on API 21+ devices.
+    
+ API 21 theme customizations can go here. 
          */
         public static final int AppBaseTheme=0x7f060000;
         /**  Application theme. 

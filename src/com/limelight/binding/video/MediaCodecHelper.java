@@ -1,0 +1,236 @@
+package com.limelight.binding.video;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
+import android.media.MediaCodecInfo.CodecCapabilities;
+import android.media.MediaCodecInfo.CodecProfileLevel;
+import android.os.Build;
+
+import com.limelight.LimeLog;
+
+public class MediaCodecHelper {
+	
+	public static final List<String> preferredDecoders;
+
+	public static final List<String> blacklistedDecoderPrefixes;
+	public static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
+	public static final List<String> whitelistedAdaptiveResolutionPrefixes;
+	
+	static {
+		preferredDecoders = new LinkedList<String>();
+	}
+	
+	static {
+		blacklistedDecoderPrefixes = new LinkedList<String>();
+		
+		// Software decoders that don't support H264 high profile
+		blacklistedDecoderPrefixes.add("omx.google");
+		blacklistedDecoderPrefixes.add("AVCDecoder");
+	}
+	
+	static {
+		spsFixupBitstreamFixupDecoderPrefixes = new LinkedList<String>();
+		spsFixupBitstreamFixupDecoderPrefixes.add("omx.nvidia");
+		spsFixupBitstreamFixupDecoderPrefixes.add("omx.qcom");
+		spsFixupBitstreamFixupDecoderPrefixes.add("omx.mtk");
+		
+		whitelistedAdaptiveResolutionPrefixes = new LinkedList<String>();
+		whitelistedAdaptiveResolutionPrefixes.add("omx.nvidia");
+		whitelistedAdaptiveResolutionPrefixes.add("omx.qcom");
+		whitelistedAdaptiveResolutionPrefixes.add("omx.sec");
+		whitelistedAdaptiveResolutionPrefixes.add("omx.TI");
+	}
+
+	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
+		for (String badPrefix : decoderList) {
+			if (decoderName.length() >= badPrefix.length()) {
+				String prefix = decoderName.substring(0, badPrefix.length());
+				if (prefix.equalsIgnoreCase(badPrefix)) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	@TargetApi(Build.VERSION_CODES.KITKAT)
+	public static boolean decoderSupportsAdaptivePlayback(String decoderName, MediaCodecInfo decoderInfo) {
+		if (isDecoderInList(whitelistedAdaptiveResolutionPrefixes, decoderName)) {
+			LimeLog.info("Adaptive playback supported (whitelist)");
+			return true;
+		}
+		
+		// Possibly enable adaptive playback on KitKat and above
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			try {
+				if (decoderInfo.getCapabilitiesForType("video/avc").
+						isFeatureSupported(CodecCapabilities.FEATURE_AdaptivePlayback))
+				{
+					// This will make getCapabilities() return that adaptive playback is supported
+					LimeLog.info("Adaptive playback supported (FEATURE_AdaptivePlayback)");
+					return true;
+				}
+			} catch (Exception e) {
+				// Tolerate buggy codecs
+			}
+		}
+		
+		return false;
+	}
+	
+	public static boolean decoderNeedsSpsBitstreamRestrictions(String decoderName, MediaCodecInfo decoderInfo) {
+		return isDecoderInList(spsFixupBitstreamFixupDecoderPrefixes, decoderName);
+	}
+	
+	@SuppressWarnings("deprecation")
+	@SuppressLint("NewApi")
+	private static LinkedList<MediaCodecInfo> getMediaCodecList() {
+		LinkedList<MediaCodecInfo> infoList = new LinkedList<MediaCodecInfo>();
+		
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			MediaCodecList mcl = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
+			for (MediaCodecInfo info : mcl.getCodecInfos()) {
+				infoList.add(info);
+			}
+		}
+		else {
+			for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
+				infoList.add(MediaCodecList.getCodecInfoAt(i));
+			}	
+		}
+		
+		return infoList;
+	}
+	
+	public static String dumpDecoders() throws Exception {
+		String str = "";
+		for (MediaCodecInfo codecInfo : getMediaCodecList()) {
+			// Skip encoders
+			if (codecInfo.isEncoder()) {
+				continue;
+			}
+			
+			str += "Decoder: "+codecInfo.getName()+"\n";
+			for (String type : codecInfo.getSupportedTypes()) {
+				str += "\t"+type+"\n";
+				CodecCapabilities caps = codecInfo.getCapabilitiesForType(type);
+				
+				for (CodecProfileLevel profile : caps.profileLevels) {
+					str += "\t\t"+profile.profile+" "+profile.level+"\n";
+				}
+			}
+		}
+		return str;
+	}
+	
+	public static MediaCodecInfo findPreferredDecoder() {
+		// This is a different algorithm than the other findXXXDecoder functions,
+		// because we want to evaluate the decoders in our list's order
+		// rather than MediaCodecList's order
+		
+		for (String preferredDecoder : preferredDecoders) {
+			for (MediaCodecInfo codecInfo : getMediaCodecList()) {
+				// Skip encoders
+				if (codecInfo.isEncoder()) {
+					continue;
+				}
+				
+				// Check for preferred decoders
+				if (preferredDecoder.equalsIgnoreCase(codecInfo.getName())) {
+					LimeLog.info("Preferred decoder choice is "+codecInfo.getName());
+					return codecInfo;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	public static MediaCodecInfo findFirstDecoder() {
+		for (MediaCodecInfo codecInfo : getMediaCodecList()) {
+			// Skip encoders
+			if (codecInfo.isEncoder()) {
+				continue;
+			}
+			
+			// Check for explicitly blacklisted decoders
+			if (isDecoderInList(blacklistedDecoderPrefixes, codecInfo.getName())) {
+				LimeLog.info("Skipping blacklisted decoder: "+codecInfo.getName());
+				continue;
+			}
+			
+			// Find a decoder that supports H.264
+			for (String mime : codecInfo.getSupportedTypes()) {
+				if (mime.equalsIgnoreCase("video/avc")) {
+					LimeLog.info("First decoder choice is "+codecInfo.getName());
+					return codecInfo;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	public static MediaCodecInfo findProbableSafeDecoder() {
+		// First look for a preferred decoder by name
+		MediaCodecInfo info = findPreferredDecoder();
+		if (info != null) {
+			return info;
+		}
+		
+		// Now look for decoders we know are safe
+		try {
+			// If this function completes, it will determine if the decoder is safe
+			return findKnownSafeDecoder();
+		} catch (Exception e) {
+			// Some buggy devices seem to throw exceptions
+			// from getCapabilitiesForType() so we'll just assume
+			// they're okay and go with the first one we find
+			return findFirstDecoder();
+		}
+	}
+
+	// We declare this method as explicitly throwing Exception
+	// since some bad decoders can throw IllegalArgumentExceptions unexpectedly
+	// and we want to be sure all callers are handling this possibility
+	public static MediaCodecInfo findKnownSafeDecoder() throws Exception {
+		for (MediaCodecInfo codecInfo : getMediaCodecList()) {		
+			// Skip encoders
+			if (codecInfo.isEncoder()) {
+				continue;
+			}
+			
+			// Check for explicitly blacklisted decoders
+			if (isDecoderInList(blacklistedDecoderPrefixes, codecInfo.getName())) {
+				LimeLog.info("Skipping blacklisted decoder: "+codecInfo.getName());
+				continue;
+			}
+			
+			// Find a decoder that supports H.264 high profile
+			for (String mime : codecInfo.getSupportedTypes()) {
+				if (mime.equalsIgnoreCase("video/avc")) {
+					LimeLog.info("Examining decoder capabilities of "+codecInfo.getName());
+					
+					CodecCapabilities caps = codecInfo.getCapabilitiesForType(mime);
+					for (CodecProfileLevel profile : caps.profileLevels) {
+						if (profile.profile == CodecProfileLevel.AVCProfileHigh) {
+							LimeLog.info("Decoder "+codecInfo.getName()+" supports high profile");
+							LimeLog.info("Selected decoder: "+codecInfo.getName());
+							return codecInfo;
+						}
+					}
+					
+					LimeLog.info("Decoder "+codecInfo.getName()+" does NOT support high profile");
+				}
+			}
+		}
+		
+		return null;
+	}
+}

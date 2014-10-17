@@ -25,7 +25,7 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 	public void initializeWithFlags(int drFlags) {
 		if ((drFlags & VideoDecoderRenderer.FLAG_FORCE_HARDWARE_DECODING) != 0 ||
 				((drFlags & VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING) == 0 &&
-				MediaCodecDecoderRenderer.findProbableSafeDecoder() != null)) {
+				MediaCodecHelper.findProbableSafeDecoder() != null)) {
 			decoderRenderer = new MediaCodecDecoderRenderer();
 		}
 		else {

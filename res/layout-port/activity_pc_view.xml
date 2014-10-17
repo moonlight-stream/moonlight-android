@@ -32,7 +32,7 @@
         android:layout_below="@+id/manuallyAddPc"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
-        android:text="Discovered PC List" />
+        android:text="PC List" />
 
     <Button
         android:id="@+id/settingsButton"

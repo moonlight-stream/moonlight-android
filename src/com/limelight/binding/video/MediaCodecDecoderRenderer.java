@@ -39,6 +39,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private boolean adaptivePlayback;
 	private int initialWidth, initialHeight;
 	
+	private long lastTimestampUs;
 	private long totalTimeMs;
 	private long decoderTimeMs;
 	private int totalFrames;
@@ -463,6 +464,14 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		    totalFrames++;
 		}
 		
+		long timestampUs = currentTime * 1000;
+		if (timestampUs == lastTimestampUs) {
+			// We can't submit multiple buffers with the same timestamp
+			// so bump it up by one before queuing
+			timestampUs = lastTimestampUs + 1;
+		}
+		lastTimestampUs = timestampUs;
+		
 		// Clear old input data
 		buf.clear();
 		
@@ -521,7 +530,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				try {
 					videoDecoder.queueInputBuffer(inputBufferIndex,
 							0, buf.position(),
-							currentTime * 1000, codecFlags);
+							timestampUs, codecFlags);
 				} catch (Exception e) {
 					throw new RendererException(this, e, buf, codecFlags);
 				}
@@ -542,7 +551,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		try {
 			videoDecoder.queueInputBuffer(inputBufferIndex,
 					0, decodeUnit.getDataLength(),
-					currentTime * 1000, codecFlags);
+					timestampUs, codecFlags);
 		} catch (Exception e) {
 			throw new RendererException(this, e, buf, codecFlags);
 		}

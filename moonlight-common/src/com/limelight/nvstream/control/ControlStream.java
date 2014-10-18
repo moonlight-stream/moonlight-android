@@ -171,6 +171,7 @@ public class ControlStream implements ConnectionStatusListener {
 				}
 			}
 		};
+		lossStatsThread.setPriority(Thread.MIN_PRIORITY + 1);
 		lossStatsThread.setName("Control - Loss Stats Thread");
 		lossStatsThread.start();
 		
@@ -220,6 +221,7 @@ public class ControlStream implements ConnectionStatusListener {
 			}
 		};
 		resyncThread.setName("Control - Resync Thread");
+		resyncThread.setPriority(Thread.MAX_PRIORITY - 1);
 		resyncThread.start();
 	}
 	

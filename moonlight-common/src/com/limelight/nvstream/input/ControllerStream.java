@@ -186,6 +186,7 @@ public class ControllerStream {
 			}
 		};
 		inputThread.setName("Input - Queue");
+		inputThread.setPriority(Thread.NORM_PRIORITY + 1);
 		inputThread.start();
 	}
 	

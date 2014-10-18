@@ -142,6 +142,7 @@ public class AudioStream {
 		};
 		threads.add(t);
 		t.setName("Audio - Player");
+		t.setPriority(Thread.NORM_PRIORITY + 2);
 		t.start();
 	}
 	
@@ -205,6 +206,7 @@ public class AudioStream {
 		};
 		threads.add(t);
 		t.setName("Audio - Receive");
+		t.setPriority(Thread.NORM_PRIORITY + 1);
 		t.start();
 	}
 	

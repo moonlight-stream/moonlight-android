@@ -252,7 +252,7 @@ public class VideoStream {
 		};
 		threads.add(t);
 		t.setName("Video - Receive");
-		t.setPriority(Thread.MAX_PRIORITY);
+		t.setPriority(Thread.MAX_PRIORITY - 1);
 		t.start();
 	}
 	

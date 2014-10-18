@@ -42,7 +42,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private int numPpsIn;
 	private int numIframeIn;
 	
-	private static final boolean ENABLE_ASYNC_RENDERER = true;
+	private static final boolean ENABLE_ASYNC_RENDERER = false;
 	
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public MediaCodecDecoderRenderer() {

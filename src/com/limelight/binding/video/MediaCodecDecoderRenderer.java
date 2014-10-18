@@ -1,8 +1,6 @@
 package com.limelight.binding.video;
 
 import java.nio.ByteBuffer;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.locks.LockSupport;
 
@@ -18,11 +16,9 @@ import com.limelight.nvstream.av.video.VideoDepacketizer;
 import android.annotation.TargetApi;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
-import android.media.MediaCodecInfo.CodecCapabilities;
-import android.media.MediaCodecInfo.CodecProfileLevel;
-import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaCodec.BufferInfo;
+import android.media.MediaCodec.CodecException;
 import android.os.Build;
 import android.view.SurfaceHolder;
 
@@ -36,6 +32,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private boolean adaptivePlayback;
 	private int initialWidth, initialHeight;
 	
+	private long lastTimestampUs;
 	private long totalTimeMs;
 	private long decoderTimeMs;
 	private int totalFrames;
@@ -45,44 +42,15 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 	private int numPpsIn;
 	private int numIframeIn;
 	
-	public static final List<String> preferredDecoders;
-
-	public static final List<String> blacklistedDecoderPrefixes;
-	public static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
-	public static final List<String> whitelistedAdaptiveResolutionPrefixes;
-	
-	static {
-		preferredDecoders = new LinkedList<String>();
-	}
-	
-	static {
-		blacklistedDecoderPrefixes = new LinkedList<String>();
-		
-		// Software decoders that don't support H264 high profile
-		blacklistedDecoderPrefixes.add("omx.google");
-		blacklistedDecoderPrefixes.add("AVCDecoder");
-	}
-	
-	static {
-		spsFixupBitstreamFixupDecoderPrefixes = new LinkedList<String>();
-		spsFixupBitstreamFixupDecoderPrefixes.add("omx.nvidia");
-		spsFixupBitstreamFixupDecoderPrefixes.add("omx.qcom");
-		spsFixupBitstreamFixupDecoderPrefixes.add("omx.mtk");
-		
-		whitelistedAdaptiveResolutionPrefixes = new LinkedList<String>();
-		whitelistedAdaptiveResolutionPrefixes.add("omx.nvidia");
-		whitelistedAdaptiveResolutionPrefixes.add("omx.qcom");
-		whitelistedAdaptiveResolutionPrefixes.add("omx.sec");
-		whitelistedAdaptiveResolutionPrefixes.add("omx.TI");
-	}
+	private static final boolean ENABLE_ASYNC_RENDERER = false;
 	
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public MediaCodecDecoderRenderer() {
 		//dumpDecoders();
 		
-		MediaCodecInfo decoder = findProbableSafeDecoder();
+		MediaCodecInfo decoder = MediaCodecHelper.findProbableSafeDecoder();
 		if (decoder == null) {
-			decoder = findFirstDecoder();
+			decoder = MediaCodecHelper.findFirstDecoder();
 		}
 		if (decoder == null) {
 			// This case is handled later in setup()
@@ -91,182 +59,15 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		
 		decoderName = decoder.getName();
 		
-		// Possibly enable adaptive playback on KitKat and above
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-			try {
-				if (decoder.getCapabilitiesForType("video/avc").
-						isFeatureSupported(CodecCapabilities.FEATURE_AdaptivePlayback))
-				{
-					// This will make getCapabilities() return that adaptive playback is supported
-					LimeLog.info("Adaptive playback supported (FEATURE_AdaptivePlayback)");
-					adaptivePlayback = true;
-				}
-			} catch (Exception e) {
-				// Tolerate buggy codecs
-			}
-		}
-				
-		if (!adaptivePlayback) {
-			if (isDecoderInList(whitelistedAdaptiveResolutionPrefixes, decoderName)) {
-				LimeLog.info("Adaptive playback supported (whitelist)");
-				adaptivePlayback = true;
-			}
-		}
-		
-		needsSpsBitstreamFixup = isDecoderInList(spsFixupBitstreamFixupDecoderPrefixes, decoderName);
+		// Set decoder-specific attributes
+		adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(decoderName, decoder);
+		needsSpsBitstreamFixup = MediaCodecHelper.decoderNeedsSpsBitstreamRestrictions(decoderName, decoder);
 		if (needsSpsBitstreamFixup) {
 			LimeLog.info("Decoder "+decoderName+" needs SPS bitstream restrictions fixup");
 		}
 	}
 	
-	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
-		for (String badPrefix : decoderList) {
-			if (decoderName.length() >= badPrefix.length()) {
-				String prefix = decoderName.substring(0, badPrefix.length());
-				if (prefix.equalsIgnoreCase(badPrefix)) {
-					return true;
-				}
-			}
-		}
-		
-		return false;
-	}
-	
-	public static String dumpDecoders() throws Exception {
-		String str = "";
-		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
-			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
-			
-			// Skip encoders
-			if (codecInfo.isEncoder()) {
-				continue;
-			}
-			
-			str += "Decoder: "+codecInfo.getName()+"\n";
-			for (String type : codecInfo.getSupportedTypes()) {
-				str += "\t"+type+"\n";
-				CodecCapabilities caps = codecInfo.getCapabilitiesForType(type);
-				
-				for (CodecProfileLevel profile : caps.profileLevels) {
-					str += "\t\t"+profile.profile+" "+profile.level+"\n";
-				}
-			}
-		}
-		return str;
-	}
-	
-	private static MediaCodecInfo findPreferredDecoder() {
-		// This is a different algorithm than the other findXXXDecoder functions,
-		// because we want to evaluate the decoders in our list's order
-		// rather than MediaCodecList's order
-		
-		for (String preferredDecoder : preferredDecoders) {
-			for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
-				MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
-							
-				// Skip encoders
-				if (codecInfo.isEncoder()) {
-					continue;
-				}
-				
-				// Check for preferred decoders
-				if (preferredDecoder.equalsIgnoreCase(codecInfo.getName())) {
-					LimeLog.info("Preferred decoder choice is "+codecInfo.getName());
-					return codecInfo;
-				}
-			}
-		}
-		
-		return null;
-	}
-	
-	private static MediaCodecInfo findFirstDecoder() {
-		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
-			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
-						
-			// Skip encoders
-			if (codecInfo.isEncoder()) {
-				continue;
-			}
-			
-			// Check for explicitly blacklisted decoders
-			if (isDecoderInList(blacklistedDecoderPrefixes, codecInfo.getName())) {
-				LimeLog.info("Skipping blacklisted decoder: "+codecInfo.getName());
-				continue;
-			}
-			
-			// Find a decoder that supports H.264
-			for (String mime : codecInfo.getSupportedTypes()) {
-				if (mime.equalsIgnoreCase("video/avc")) {
-					LimeLog.info("First decoder choice is "+codecInfo.getName());
-					return codecInfo;
-				}
-			}
-		}
-		
-		return null;
-	}
-	
-	public static MediaCodecInfo findProbableSafeDecoder() {
-		// First look for a preferred decoder by name
-		MediaCodecInfo info = findPreferredDecoder();
-		if (info != null) {
-			return info;
-		}
-		
-		// Now look for decoders we know are safe
-		try {
-			// If this function completes, it will determine if the decoder is safe
-			return findKnownSafeDecoder();
-		} catch (Exception e) {
-			// Some buggy devices seem to throw exceptions
-			// from getCapabilitiesForType() so we'll just assume
-			// they're okay and go with the first one we find
-			return findFirstDecoder();
-		}
-	}
-
-	// We declare this method as explicitly throwing Exception
-	// since some bad decoders can throw IllegalArgumentExceptions unexpectedly
-	// and we want to be sure all callers are handling this possibility
-	private static MediaCodecInfo findKnownSafeDecoder() throws Exception {
-		for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
-			MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
-						
-			// Skip encoders
-			if (codecInfo.isEncoder()) {
-				continue;
-			}
-			
-			// Check for explicitly blacklisted decoders
-			if (isDecoderInList(blacklistedDecoderPrefixes, codecInfo.getName())) {
-				LimeLog.info("Skipping blacklisted decoder: "+codecInfo.getName());
-				continue;
-			}
-			
-			// Find a decoder that supports H.264 high profile
-			for (String mime : codecInfo.getSupportedTypes()) {
-				if (mime.equalsIgnoreCase("video/avc")) {
-					LimeLog.info("Examining decoder capabilities of "+codecInfo.getName());
-					
-					CodecCapabilities caps = codecInfo.getCapabilitiesForType(mime);
-					for (CodecProfileLevel profile : caps.profileLevels) {
-						if (profile.profile == CodecProfileLevel.AVCProfileHigh) {
-							LimeLog.info("Decoder "+codecInfo.getName()+" supports high profile");
-							LimeLog.info("Selected decoder: "+codecInfo.getName());
-							return codecInfo;
-						}
-					}
-					
-					LimeLog.info("Decoder "+codecInfo.getName()+" does NOT support high profile");
-				}
-			}
-		}
-		
-		return null;
-	}
-	
-	@TargetApi(Build.VERSION_CODES.KITKAT)
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
 		this.initialWidth = width;
@@ -294,6 +95,52 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			videoFormat.setInteger(MediaFormat.KEY_MAX_HEIGHT, height);
 		}
 		
+		// On Lollipop, we use asynchronous mode to avoid having a busy looping renderer thread
+		if (ENABLE_ASYNC_RENDERER && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			videoDecoder.setCallback(new MediaCodec.Callback() {
+				@Override
+				public void onOutputFormatChanged(MediaCodec codec, MediaFormat format) {
+			    	LimeLog.info("Output format changed");
+			    	LimeLog.info("New output Format: " + format);
+				}
+				
+				@Override
+				public void onOutputBufferAvailable(MediaCodec codec, int index,
+						BufferInfo info) {
+					try {
+						// FIXME: It looks like we can't frameskip here
+						codec.releaseOutputBuffer(index, true);
+					} catch (Exception e) {
+						handleDecoderException(MediaCodecDecoderRenderer.this, e, null, 0);
+					}
+				}
+				
+				@Override
+				public void onInputBufferAvailable(MediaCodec codec, int index) {
+					try {
+						submitDecodeUnit(depacketizer.takeNextDecodeUnit(), codec.getInputBuffer(index), index);
+					} catch (InterruptedException e) {
+						// What do we do here?
+						e.printStackTrace();
+					} catch (Exception e) {
+						handleDecoderException(MediaCodecDecoderRenderer.this, e, null, 0);
+					}
+				}
+				
+				@Override
+				public void onError(MediaCodec codec, CodecException e) {
+					if (e.isTransient()) {
+						LimeLog.warning(e.getDiagnosticInfo());
+						e.printStackTrace();
+					}
+					else {
+						LimeLog.severe(e.getDiagnosticInfo());
+						e.printStackTrace();
+					}
+				}
+			});
+		}
+		
 		videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
 		videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 		
@@ -302,9 +149,34 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		return true;
 	}
 	
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	private void handleDecoderException(MediaCodecDecoderRenderer dr, Exception e, ByteBuffer buf, int codecFlags) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			if (e instanceof CodecException) {
+				CodecException codecExc = (CodecException) e;
+				
+				if (codecExc.isTransient()) {
+					// We'll let transient exceptions go
+					LimeLog.warning(codecExc.getDiagnosticInfo());
+					return;
+				}
+				
+				LimeLog.severe(codecExc.getDiagnosticInfo());
+			}
+		}
+		
+		if (buf != null || codecFlags != 0) {
+			throw new RendererException(dr, e, buf, codecFlags);
+		}
+		else {
+			throw new RendererException(dr, e);
+		}
+	}
+	
 	private void startRendererThread()
 	{
 		rendererThread = new Thread() {
+			@SuppressWarnings("deprecation")
 			@Override
 			public void run() {
 				BufferInfo info = new BufferInfo();
@@ -315,19 +187,24 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					// In order to get as much data to the decoder as early as possible,
 					// try to submit up to 5 decode units at once without blocking.
 					if (inputIndex == -1 && du == null) {
-						for (int i = 0; i < 5; i++) {
-							inputIndex = videoDecoder.dequeueInputBuffer(0);
-							du = depacketizer.pollNextDecodeUnit();
+						try {
+							for (int i = 0; i < 5; i++) {
+								inputIndex = videoDecoder.dequeueInputBuffer(0);
+								du = depacketizer.pollNextDecodeUnit();
 
-							// Stop if we can't get a DU or input buffer
-							if (du == null || inputIndex == -1) {
-								break;
+								// Stop if we can't get a DU or input buffer
+								if (du == null || inputIndex == -1) {
+									break;
+								}
+								
+								submitDecodeUnit(du, videoDecoderInputBuffers[inputIndex], inputIndex);
+								
+								du = null;
+								inputIndex = -1;
 							}
-							
-							submitDecodeUnit(du, inputIndex);
-							
-							du = null;
+						} catch (Exception e) {
 							inputIndex = -1;
+							handleDecoderException(MediaCodecDecoderRenderer.this, e, null, 0);
 						}
 					}
 					
@@ -344,7 +221,8 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 							// just see if we can get one immediately.
 							inputIndex = videoDecoder.dequeueInputBuffer(du != null ? 3000 : 0);
 						} catch (Exception e) {
-							throw new RendererException(MediaCodecDecoderRenderer.this, e);
+							inputIndex = -1;
+							handleDecoderException(MediaCodecDecoderRenderer.this, e, null, 0);
 						}
 					}
 					
@@ -356,7 +234,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					// If we've got both a decode unit and an input buffer, we'll
 					// submit now. Otherwise, we wait until we have one.
 					if (du != null && inputIndex >= 0) {
-						submitDecodeUnit(du, inputIndex);
+						submitDecodeUnit(du, videoDecoderInputBuffers[inputIndex], inputIndex);
 						
 						// DU and input buffer have both been consumed
 						du = null;
@@ -408,7 +286,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 						    }
 					    }
 					} catch (Exception e) {
-						throw new RendererException(MediaCodecDecoderRenderer.this, e);
+						handleDecoderException(MediaCodecDecoderRenderer.this, e, null, 0);
 					}
 				}
 			}
@@ -418,26 +296,31 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		rendererThread.start();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean start(VideoDepacketizer depacketizer) {
 		this.depacketizer = depacketizer;
 		
 		// Start the decoder
 		videoDecoder.start();
-		videoDecoderInputBuffers = videoDecoder.getInputBuffers();
 		
-		// Start the rendering thread
-		startRendererThread();
+		// On devices pre-Lollipop, we'll use a rendering thread
+		if (!ENABLE_ASYNC_RENDERER || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+			videoDecoderInputBuffers = videoDecoder.getInputBuffers();
+			startRendererThread();
+		}
 		return true;
 	}
 
 	@Override
 	public void stop() {
-		// Halt the rendering thread
-		rendererThread.interrupt();
-		try {
-			rendererThread.join();
-		} catch (InterruptedException e) { }
+		if (rendererThread != null) {
+			// Halt the rendering thread
+			rendererThread.interrupt();
+			try {
+				rendererThread.join();
+			} catch (InterruptedException e) { }
+		}
 		
 		// Stop the decoder
 		videoDecoder.stop();
@@ -449,16 +332,45 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			videoDecoder.release();
 		}
 	}
+	
+	private void queueInputBuffer(int inputBufferIndex, int offset, int length, long timestampUs, int codecFlags) {
+		// Try 25 times to submit the input buffer before throwing a real exception
+		int i;
+		Exception lastException = null;
+		
+		for (i = 0; i < 25; i++) {
+			try {
+				videoDecoder.queueInputBuffer(inputBufferIndex,
+						0, length,
+						timestampUs, codecFlags);
+				break;
+			} catch (Exception e) {
+				handleDecoderException(this, e, null, codecFlags);
+				lastException = e;
+			}
+		}
+		
+		if (i == 25) {
+			throw new RendererException(this, lastException, null, codecFlags);
+		}
+	}
 
-	private void submitDecodeUnit(DecodeUnit decodeUnit, int inputBufferIndex) {
-		ByteBuffer buf = videoDecoderInputBuffers[inputBufferIndex];
-
+	@SuppressWarnings("deprecation")
+	private void submitDecodeUnit(DecodeUnit decodeUnit, ByteBuffer buf, int inputBufferIndex) {
 		long currentTime = System.currentTimeMillis();
 		long delta = currentTime-decodeUnit.getReceiveTimestamp();
 		if (delta >= 0 && delta < 300) {
 		    totalTimeMs += currentTime-decodeUnit.getReceiveTimestamp();
 		    totalFrames++;
 		}
+		
+		long timestampUs = currentTime * 1000;
+		if (timestampUs <= lastTimestampUs) {
+			// We can't submit multiple buffers with the same timestamp
+			// so bump it up by one before queuing
+			timestampUs = lastTimestampUs + 1;
+		}
+		lastTimestampUs = timestampUs;
 		
 		// Clear old input data
 		buf.clear();
@@ -515,13 +427,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				// Write the modified SPS to the input buffer
 				sps.write(buf);
 				
-				try {
-					videoDecoder.queueInputBuffer(inputBufferIndex,
-							0, buf.position(),
-							currentTime * 1000, codecFlags);
-				} catch (Exception e) {
-					throw new RendererException(this, e, buf, codecFlags);
-				}
+				queueInputBuffer(inputBufferIndex,
+						0, buf.position(),
+						timestampUs, codecFlags);
 				
 				depacketizer.freeDecodeUnit(decodeUnit);
 				return;
@@ -536,13 +444,9 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			buf.put(desc.data, desc.offset, desc.length);
 		}
 
-		try {
-			videoDecoder.queueInputBuffer(inputBufferIndex,
-					0, decodeUnit.getDataLength(),
-					currentTime * 1000, codecFlags);
-		} catch (Exception e) {
-			throw new RendererException(this, e, buf, codecFlags);
-		}
+		queueInputBuffer(inputBufferIndex,
+				0, decodeUnit.getDataLength(),
+				timestampUs, codecFlags);
 		
 		depacketizer.freeDecodeUnit(decodeUnit);
 		return;
@@ -610,7 +514,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			
 			str += "Full decoder dump:\n";
 			try {
-				str += dumpDecoders();
+				str += MediaCodecHelper.dumpDecoders();
 			} catch (Exception e) {
 				str += e.getMessage();
 			}

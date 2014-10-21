@@ -1,7 +1,11 @@
 package com.limelight.binding.video;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -232,5 +236,64 @@ public class MediaCodecHelper {
 		}
 		
 		return null;
+	}
+	
+	public static String readCpuinfo() throws Exception {
+		StringBuilder cpuInfo = new StringBuilder();
+		BufferedReader br = new BufferedReader(new FileReader(new File("/proc/cpuinfo")));
+		try {
+			for (;;) {
+				int ch = br.read();
+				if (ch == -1)
+					break;
+				cpuInfo.append((char)ch);
+			}
+			
+			return cpuInfo.toString();
+		} finally {
+			br.close();
+		}
+	}
+	
+	private static boolean stringContainsIgnoreCase(String string, String substring) {
+		return string.toLowerCase(Locale.ENGLISH).contains(substring.toLowerCase(Locale.ENGLISH));
+	}
+	
+	public static boolean isExynos4Device() {
+		try {
+			// Try reading CPU info too look for 
+			String cpuInfo = readCpuinfo();
+			
+			// SMDK4xxx is Exynos 4 
+			if (stringContainsIgnoreCase(cpuInfo, "SMDK4")) {
+				LimeLog.info("Found SMDK4 in /proc/cpuinfo");
+				return true;
+			}
+			
+			// If we see "Exynos 4" also we'll count it
+			if (stringContainsIgnoreCase(cpuInfo, "Exynos 4")) {
+				LimeLog.info("Found Exynos 4 in /proc/cpuinfo");
+				return true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			File systemDir = new File("/sys/devices/system");
+			File[] files = systemDir.listFiles();
+			if (files != null) {
+				for (File f : files) {
+					if (stringContainsIgnoreCase(f.getName(), "exynos4")) {
+						LimeLog.info("Found exynos4 in /sys/devices/system");
+						return true;
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
 	}
 }

@@ -218,7 +218,7 @@ public class NvHTTP {
 	public InputStream getBoxArtPng(NvApp app) throws IOException {
 		// FIXME: Investigate whether this should be subject to the 2 second read timeout
 		// or not.
-		return openHttpConnection(baseUrl + "/applist?uniqueid="+uniqueId+"&appid="+
+		return openHttpConnection(baseUrl + "/appasset?uniqueid="+uniqueId+"&appid="+
 				app.getAppId()+"&AssetType=2&AssetIdx=0", false);
 	}
 	

@@ -22,12 +22,13 @@ import android.media.MediaCodec.CodecException;
 import android.os.Build;
 import android.view.SurfaceHolder;
 
+@SuppressWarnings("unused")
 public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 
 	private ByteBuffer[] videoDecoderInputBuffers;
 	private MediaCodec videoDecoder;
 	private Thread rendererThread;
-	private boolean needsSpsBitstreamFixup;
+	private boolean needsSpsBitstreamFixup, isExynos4;
 	private VideoDepacketizer depacketizer;
 	private boolean adaptivePlayback;
 	private int initialWidth, initialHeight;
@@ -64,6 +65,10 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		needsSpsBitstreamFixup = MediaCodecHelper.decoderNeedsSpsBitstreamRestrictions(decoderName, decoder);
 		if (needsSpsBitstreamFixup) {
 			LimeLog.info("Decoder "+decoderName+" needs SPS bitstream restrictions fixup");
+		}
+		isExynos4 = MediaCodecHelper.isExynos4Device();
+		if (isExynos4) {
+			LimeLog.info("Decoder "+decoderName+" is on Exynos 4");
 		}
 	}
 	
@@ -406,7 +411,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				LimeLog.info("Patching num_ref_frames in SPS");
 				sps.num_ref_frames = 1;
 				
-				if (needsSpsBitstreamFixup) {
+				if (needsSpsBitstreamFixup || isExynos4) {
 					// The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
 					// or max_dec_frame_buffering which increases decoding latency on Tegra.
 					LimeLog.info("Adding bitstream restrictions");
@@ -510,6 +515,15 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				}
 				str += "\n";
 				str += "Buffer codec flags: "+currentCodecFlags+"\n";
+			}
+			
+			str += "Is Exynos 4: "+renderer.isExynos4+"\n";
+			
+			str += "/proc/cpuinfo:\n";
+			try {
+				str += MediaCodecHelper.readCpuinfo();
+			} catch (Exception e) {
+				str += e.getMessage();
 			}
 			
 			str += "Full decoder dump:\n";

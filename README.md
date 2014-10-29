@@ -1,12 +1,12 @@
 #Limelight
 
 Limelight is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield.
-We reverse engineered the Shield streaming software, and created a version that can be run on any Android device.
+We reverse engineered the Shield streaming software and created a version that can be run on any Android device.
 
 Limelight will allow you to stream your full collection of games from your Windows PC to your Android device,
-in your own home, or over the internet.
+whether in your own home or over the internet.
 
-[Limelight-pc](https://github.com/limelight-stream/limelight-pc) is also currently in development for Windows, OS X and Linux. Versions for [iOS](https://github.com/limelight-stream/limelight-ios) and [Windows Phone](https://github.com/limelight-stream/limelight-wp) are also in development.
+[Limelight-pc](https://github.com/limelight-stream/limelight-pc) is also currently in development for Windows, OS X and Linux. Versions for [iOS](https://github.com/limelight-stream/limelight-ios) and [Windows and Windows Phone](https://github.com/limelight-stream/limelight-windows) are also in development.
 
 ##Features
 

@@ -227,7 +227,7 @@ static int update_rgb_frame(void) {
 
 	// Convert the YUV image to RGB
 	err = sws_scale(scaler_ctx,
-		our_yuv_frame->data,
+		(const uint8_t **)our_yuv_frame->data,
 		our_yuv_frame->linesize,
 		0,
 		decoder_ctx->height,

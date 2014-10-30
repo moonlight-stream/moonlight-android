@@ -7,9 +7,18 @@ android {
     buildToolsVersion "21.0.2"
 
     defaultConfig {
-        applicationId "com.limelight.root"
         minSdkVersion 16
         targetSdkVersion 21
+    }
+
+    productFlavors {
+        root {
+            applicationId "com.limelight.root"
+        }
+
+        nonRoot {
+            applicationId "com.limelight"
+        }
     }
 
     buildTypes {

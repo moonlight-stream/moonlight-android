@@ -12,7 +12,7 @@ import com.limelight.binding.PlatformBinding;
 import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
-import com.limelight.root.R;
+import com.limelight.R;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 

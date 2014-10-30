@@ -14,7 +14,7 @@ import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
-import com.limelight.root.R;
+import com.limelight.R;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 

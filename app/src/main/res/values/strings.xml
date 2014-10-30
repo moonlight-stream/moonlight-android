@@ -2,7 +2,6 @@
 <resources>
 
     <!-- General strings -->
-    <string name="app_name">Limelight (Root)</string>
     <string name="ip_hint">IP address of GeForce PC</string>
     
     <!-- PC view activity -->

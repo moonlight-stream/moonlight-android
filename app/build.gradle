@@ -1,0 +1,57 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.0.2"
+
+    defaultConfig {
+        applicationId "com.limelight.root"
+        minSdkVersion 16
+        targetSdkVersion 21
+    }
+
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    sourceSets.main.jni.srcDirs = []
+
+    task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
+        Properties properties = new Properties()
+        properties.load(project.rootProject.file('local.properties').newDataInputStream())
+        def ndkDir = properties.getProperty('ndk.dir')
+
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            commandLine "$ndkDir\\ndk-build.cmd",
+                    'NDK_PROJECT_PATH=build/intermediates/ndk',
+                    'NDK_LIBS_OUT=src/main/jniLibs',
+                    'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
+                    'NDK_APPLICATION_MK=src/main/jni/Application.mk'
+        }
+        else {
+            commandLine "$ndkDir/ndk-build",
+                    'NDK_PROJECT_PATH=build/intermediates/ndk',
+                    'NDK_LIBS_OUT=src/main/jniLibs',
+                    'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
+                    'NDK_APPLICATION_MK=src/main/jni/Application.mk'
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        compileTask -> compileTask.dependsOn ndkBuild
+    }
+}
+
+dependencies {
+    compile files('libs/bcpkix-jdk15on-151.jar')
+    compile files('libs/bcprov-jdk15on-151.jar')
+    compile files('libs/jcodec-0.1.5.jar')
+    compile files('libs/jmdns-fixed.jar')
+    compile files('libs/limelight-common.jar')
+    compile files('libs/tinyrtsp.jar')
+}

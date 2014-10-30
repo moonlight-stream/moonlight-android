@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.limelight" >
-    <!-- No manifest changes for non-root -->
+
+    <!-- Non-root application name -->
+    <application android:label="Limelight" />
 </manifest>

@@ -4,4 +4,7 @@
 
     <!-- Root permissions -->
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
+
+    <!-- Root application name -->
+    <application android:label="Limelight (Root)" />
 </manifest>

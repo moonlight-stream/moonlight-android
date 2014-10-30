@@ -48,9 +48,9 @@ android {
 }
 
 dependencies {
-    compile files('libs/bcpkix-jdk15on-151.jar')
-    compile files('libs/bcprov-jdk15on-151.jar')
-    compile files('libs/jcodec-0.1.5.jar')
+    compile group: 'org.jcodec', name: 'jcodec', version: '0.1.6-3'
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.51'
+    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.51'
     compile files('libs/jmdns-fixed.jar')
     compile files('libs/limelight-common.jar')
     compile files('libs/tinyrtsp.jar')

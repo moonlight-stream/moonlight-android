@@ -80,12 +80,12 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 21 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" exported="" name="bcprov-jdk15on-1.51" level="project" />
     <orderEntry type="library" exported="" name="jmdns-fixed" level="project" />
+    <orderEntry type="library" exported="" name="jcodec-0.1.6-3" level="project" />
+    <orderEntry type="library" exported="" name="bcpkix-jdk15on-1.51" level="project" />
     <orderEntry type="library" exported="" name="tinyrtsp" level="project" />
     <orderEntry type="library" exported="" name="limelight-common" level="project" />
-    <orderEntry type="library" exported="" name="bcprov-jdk15on-151" level="project" />
-    <orderEntry type="library" exported="" name="bcpkix-jdk15on-151" level="project" />
-    <orderEntry type="library" exported="" name="jcodec-0.1.5" level="project" />
   </component>
 </module>
 

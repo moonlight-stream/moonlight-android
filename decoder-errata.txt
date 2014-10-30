@@ -1,0 +1,19 @@
+This file serves to document some of the decoder errata when using MediaCodec hardware decoders on certain devices.
+
+1. num_ref_frames is set to 16 by NVENC which causes decoders to allocate 16+ buffers. This can cause an error or lag on some devices.
+	- Affected decoders: TI OMAP4, Allwinner A20
+	
+2. Some decoders have a huge per-frame latency with the unmodified SPS sent from NVENC. Setting max_dec_frame_buffering fixes this latency issue.
+	- Affected decoders: NVIDIA Tegra 3 and 4
+
+3. Some decoders strictly require that you pass BUFFER_FLAG_CODEC_CONFIG and crash upon the IDR frame if you don't
+	- Affected decoders: TI OMAP4
+
+4. Some decoders require num_ref_frames=1 and max_dec_frame_buffering=1 to avoid crashing on SPS or first I-frame
+	- Affected decoders: Qualcomm in GS3 on 4.3+, Exynos 4 at 1080p only
+
+5. Some decoders will hang if max_dec_frame_buffering is not present
+	- Affected decoders: MediaTek decoder in Fire HD 7 (2014)
+	
+6. Some decoders will hang if max_dec_frame_buffering IS present
+	- Affected decoders: Exynos 5 in Galaxy Note 10.1 (2014)

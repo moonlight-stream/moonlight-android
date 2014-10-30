@@ -418,7 +418,7 @@ public class ControllerHandler {
 			// UI thread.
 			try {
 				Thread.sleep(ControllerHandler.MINIMUM_BUTTON_DOWN_TIME_MS);
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException ignored) {}
 		}
 		
 		switch (keyCode) {
@@ -495,7 +495,7 @@ public class ControllerHandler {
 				
 				try {
 					Thread.sleep(EMULATED_SELECT_UP_DELAY_MS);
-				} catch (InterruptedException e) {}
+				} catch (InterruptedException ignored) {}
 			}
 		}
 		
@@ -513,7 +513,7 @@ public class ControllerHandler {
 				
 				try {
 					Thread.sleep(EMULATED_SPECIAL_UP_DELAY_MS);
-				} catch (InterruptedException e) {}
+				} catch (InterruptedException ignored) {}
 			}
 		}
 		

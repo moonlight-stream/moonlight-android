@@ -158,7 +158,7 @@ public class EvdevHandler {
 		
 		try {
 			handlerThread.join();
-		} catch (InterruptedException e) {}
+		} catch (InterruptedException ignored) {}
 	}
 	
 	public void notifyDeleted() {

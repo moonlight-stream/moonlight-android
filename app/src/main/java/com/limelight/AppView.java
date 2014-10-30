@@ -81,7 +81,7 @@ public class AppView extends Activity {
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
 					long id) {
-				AppObject app = (AppObject) appListAdapter.getItem(pos);
+				AppObject app = appListAdapter.getItem(pos);
 				if (app == null || app.app == null) {
 					return;
 				}
@@ -134,7 +134,7 @@ public class AppView extends Activity {
 		super.onCreateContextMenu(menu, v, menuInfo);
         
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-        AppObject selectedApp = (AppObject) appListAdapter.getItem(info.position);
+        AppObject selectedApp = appListAdapter.getItem(info.position);
         if (selectedApp == null || selectedApp.app == null) {
         	return;
         }
@@ -159,7 +159,7 @@ public class AppView extends Activity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        AppObject app = (AppObject) appListAdapter.getItem(info.position);
+        AppObject app = appListAdapter.getItem(info.position);
         switch (item.getItemId())
         {
         case RESUME_ID:
@@ -221,9 +221,9 @@ public class AppView extends Activity {
 					
 					// Success case
 					return;
-				} catch (GfeHttpResponseException e) {
-				} catch (IOException e) {
-				} catch (XmlPullParserException e) {
+				} catch (GfeHttpResponseException ignored) {
+				} catch (IOException ignored) {
+				} catch (XmlPullParserException ignored) {
 				} finally {
 					spinner.dismiss();
 				}

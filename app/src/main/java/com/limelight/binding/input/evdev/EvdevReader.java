@@ -13,7 +13,7 @@ public class EvdevReader {
 	}
 	
 	// Requires root to chmod /dev/input/eventX
-	public static boolean setPermissions(String[] files, int octalPermissions) {		
+	public static boolean setPermissions(String[] files, int octalPermissions) {
 		ProcessBuilder builder = new ProcessBuilder("su");
 		
 		try {
@@ -28,6 +28,7 @@ public class EvdevReader {
 			
 			p.waitFor();
 			p.destroy();
+            return true;
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {

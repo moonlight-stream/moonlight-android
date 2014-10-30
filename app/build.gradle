@@ -1,3 +1,4 @@
+import com.android.builder.model.ProductFlavor
 import org.apache.tools.ant.taskdefs.condition.Os
 
 apply plugin: 'com.android.application'
@@ -33,6 +34,7 @@ android {
 
     sourceSets.main.jni.srcDirs = []
 
+    //noinspection GroovyAssignabilityCheck,GroovyAssignabilityCheck
     task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
         Properties properties = new Properties()
         properties.load(project.rootProject.file('local.properties').newDataInputStream())

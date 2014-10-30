@@ -52,7 +52,7 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 	private RSAPrivateKey key;
 	private byte[] pemCertBytes;
 	
-	private static Object globalCryptoLock = new Object();
+	private static final Object globalCryptoLock = new Object();
 	
 	static {
 		// Install the Bouncy Castle provider
@@ -74,7 +74,10 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 		try {
 			FileInputStream fin = new FileInputStream(f);
 			byte[] fileData = new byte[(int) f.length()];
-			fin.read(fileData);
+			if (fin.read(fileData) != f.length()) {
+                // Failed to read
+                fileData = null;
+            }
 			fin.close();
 			return fileData;
 		} catch (IOException e) {

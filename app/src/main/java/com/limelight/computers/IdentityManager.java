@@ -54,7 +54,7 @@ public class IdentityManager {
 			if (reader != null) {
 				try {
 					reader.close();
-				} catch (IOException e) {}
+				} catch (IOException ignored) {}
 			}
 		}
 	}
@@ -76,7 +76,7 @@ public class IdentityManager {
 			if (writer != null) {
 				try {
 					writer.close();
-				} catch (IOException e) {}
+				} catch (IOException ignored) {}
 			}
 		}
 		

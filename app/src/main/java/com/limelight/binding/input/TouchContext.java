@@ -65,7 +65,7 @@ public class TouchContext {
 			// do input detection by polling
 			try {
 				Thread.sleep(100);
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException ignored) {}
 			
 			// Raise the mouse button
 			conn.sendMouseButtonUp(buttonIndex);

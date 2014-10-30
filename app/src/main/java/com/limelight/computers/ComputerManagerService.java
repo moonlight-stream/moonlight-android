@@ -42,7 +42,7 @@ public class ComputerManagerService extends Service {
 	private boolean stopped;
 
 	private DiscoveryService.DiscoveryBinder discoveryBinder;
-	private ServiceConnection discoveryServiceConnection = new ServiceConnection() {
+	private final ServiceConnection discoveryServiceConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder binder) {
 			synchronized (discoveryServiceConnection) {
 				DiscoveryService.DiscoveryBinder privateBinder = ((DiscoveryService.DiscoveryBinder)binder);
@@ -84,7 +84,7 @@ public class ComputerManagerService extends Service {
 						// Wait for the bind notification
 						discoveryServiceConnection.wait(1000);
 					}
-				} catch (InterruptedException e) {
+				} catch (InterruptedException ignored) {
 				}
 			}
 		}
@@ -93,7 +93,7 @@ public class ComputerManagerService extends Service {
 			while (activePolls.get() != 0) {
 				try {
 					Thread.sleep(250);
-				} catch (InterruptedException e) {}
+				} catch (InterruptedException ignored) {}
 			}
 		}
 		

@@ -101,7 +101,7 @@ public class PcView extends Activity {
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
 					long id) {
-				ComputerObject computer = (ComputerObject) pcListAdapter.getItem(pos);
+				ComputerObject computer = pcListAdapter.getItem(pos);
 				if (computer.details == null) {
 					// Placeholder item; no context menu for it
 					return;
@@ -236,7 +236,7 @@ public class PcView extends Activity {
 		super.onCreateContextMenu(menu, v, menuInfo);
                 
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-        ComputerObject computer = (ComputerObject) pcListAdapter.getItem(info.position);
+        ComputerObject computer = pcListAdapter.getItem(info.position);
         if (computer == null || computer.details == null) {
         	startComputerUpdates();
         	return;
@@ -477,7 +477,7 @@ public class PcView extends Activity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        ComputerObject computer = (ComputerObject) pcListAdapter.getItem(info.position);
+        ComputerObject computer = pcListAdapter.getItem(info.position);
         switch (item.getItemId())
         {
         case PAIR_ID:

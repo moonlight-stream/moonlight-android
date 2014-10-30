@@ -8,11 +8,12 @@ import com.limelight.LimeLog;
 
 import android.os.FileObserver;
 
+@SuppressWarnings("ALL")
 public class EvdevWatcher {
 	private static final String PATH = "/dev/input";
 	private static final String REQUIRED_FILE_PREFIX = "event";
 	
-	private HashMap<String, EvdevHandler> handlers = new HashMap<String, EvdevHandler>();
+	private final HashMap<String, EvdevHandler> handlers = new HashMap<String, EvdevHandler>();
 	private boolean shutdown = false;
 	private boolean init = false;
 	private boolean ungrabbed = false;

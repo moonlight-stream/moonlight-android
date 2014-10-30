@@ -3,6 +3,7 @@ package com.limelight.binding.video;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -99,9 +100,7 @@ public class MediaCodecHelper {
 		
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 			MediaCodecList mcl = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
-			for (MediaCodecInfo info : mcl.getCodecInfos()) {
-				infoList.add(info);
-			}
+            Collections.addAll(infoList, mcl.getCodecInfos());
 		}
 		else {
 			for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
@@ -112,7 +111,8 @@ public class MediaCodecHelper {
 		return infoList;
 	}
 	
-	public static String dumpDecoders() throws Exception {
+	@SuppressWarnings("RedundantThrows")
+    public static String dumpDecoders() throws Exception {
 		String str = "";
 		for (MediaCodecInfo codecInfo : getMediaCodecList()) {
 			// Skip encoders
@@ -203,7 +203,8 @@ public class MediaCodecHelper {
 	// We declare this method as explicitly throwing Exception
 	// since some bad decoders can throw IllegalArgumentExceptions unexpectedly
 	// and we want to be sure all callers are handling this possibility
-	public static MediaCodecInfo findKnownSafeDecoder() throws Exception {
+	@SuppressWarnings("RedundantThrows")
+    public static MediaCodecInfo findKnownSafeDecoder() throws Exception {
 		for (MediaCodecInfo codecInfo : getMediaCodecList()) {		
 			// Skip encoders
 			if (codecInfo.isEncoder()) {

@@ -555,9 +555,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 				case MotionEvent.ACTION_MOVE:
 					// ACTION_MOVE is special because it always has actionIndex == 0
 					// We'll call the move handlers for all indexes manually
-					for (int i = 0; i < touchContextMap.length; i++) {
-						touchContextMap[i].touchMoveEvent(eventX, eventY);
-					}
+                    for (TouchContext aTouchContextMap : touchContextMap) {
+                        aTouchContextMap.touchMoveEvent(eventX, eventY);
+                    }
 					break;
 				default:
 					return false;
@@ -621,21 +621,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		if (!handleMotionEvent(event)) {
-			return super.onTouchEvent(event);
-		}
-		
-		return true;
-	}
+        return handleMotionEvent(event) || super.onTouchEvent(event);
+
+    }
 
 	@Override
 	public boolean onGenericMotionEvent(MotionEvent event) {
-		if (!handleMotionEvent(event)) {
-		    return super.onGenericMotionEvent(event);
-		}
-	    
-		return true;
-	}
+        return handleMotionEvent(event) || super.onGenericMotionEvent(event);
+
+    }
 	
 	private void updateMousePosition(int eventX, int eventY) {
 		// Send a mouse move if we already have a mouse location

@@ -98,7 +98,7 @@ public class AddComputerManually extends Activity {
 			
 			try {
 				addThread.join();
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException ignored) {}
 			
 			addThread = null;
 		}

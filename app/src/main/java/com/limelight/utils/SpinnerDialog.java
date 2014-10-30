@@ -14,7 +14,7 @@ public class SpinnerDialog implements Runnable,OnCancelListener {
 	private ProgressDialog progress;
 	private boolean finish;
 	
-	private static ArrayList<SpinnerDialog> rundownDialogs = new ArrayList<SpinnerDialog>();
+	private static final ArrayList<SpinnerDialog> rundownDialogs = new ArrayList<SpinnerDialog>();
 	
 	public SpinnerDialog(Activity activity, String title, String message, boolean finish)
 	{

@@ -13,7 +13,7 @@ public class Dialog implements Runnable {
 	
 	private AlertDialog alert;
 	
-	private static ArrayList<Dialog> rundownDialogs = new ArrayList<Dialog>();
+	private static final ArrayList<Dialog> rundownDialogs = new ArrayList<Dialog>();
 	
 	public Dialog(Activity activity, String title, String message, boolean endAfterDismiss)
 	{
@@ -57,7 +57,7 @@ public class Dialog implements Runnable {
     	alert.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
     	      public void onClick(DialogInterface dialog, int which) {
     	    	  synchronized (rundownDialogs) {
-        	    	  rundownDialogs.remove(this);
+        	    	  rundownDialogs.remove(Dialog.this);
         	    	  alert.dismiss();
     	    	  }
     	    	  

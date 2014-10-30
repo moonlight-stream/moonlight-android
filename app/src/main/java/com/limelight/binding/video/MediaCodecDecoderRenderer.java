@@ -324,7 +324,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 			rendererThread.interrupt();
 			try {
 				rendererThread.join();
-			} catch (InterruptedException e) { }
+			} catch (InterruptedException ignored) { }
 		}
 		
 		// Stop the decoder
@@ -454,7 +454,6 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 				timestampUs, codecFlags);
 		
 		depacketizer.freeDecodeUnit(decodeUnit);
-		return;
 	}
 
 	@Override

@@ -18,6 +18,7 @@ import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.av.video.VideoDepacketizer;
 import com.limelight.nvstream.av.video.cpu.AvcDecoder;
 
+@SuppressWarnings("EmptyCatchBlock")
 public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 
 	private Thread rendererThread;

@@ -25,6 +25,7 @@ import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -89,7 +90,10 @@ public class PcView extends Activity {
 	
 	private void initializeViews() {
 		setContentView(R.layout.activity_pc_view);
-		
+
+        // Set default preferences if we've never been run
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+
 		// Setup the list view
 		settingsButton = (Button)findViewById(R.id.settingsButton);
 		addComputerButton = (Button)findViewById(R.id.manuallyAddPc);

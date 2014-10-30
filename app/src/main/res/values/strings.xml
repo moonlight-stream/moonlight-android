@@ -11,21 +11,21 @@
     
     <!-- Add computer manually activity -->
     <string name="button_add_pc">Manually Add PC</string>
-    
-    <!-- Stream settings activity -->
-    <string name="title_streaming_settings">Streaming Settings</string>
-    <string name="button_advanced_settings">Advanced Settings</string>
-    <string name="radio_720p30">720p 30 FPS (Only recommended for poor devices or networks)</string>
-    <string name="radio_720p60">720p 60 FPS (Recommended for most devices and networks)</string>
-    <string name="radio_1080p30">1080p 30 FPS (Recommended for most devices if 1080p streaming is desired)</string>
-    <string name="radio_1080p60">1080p 60 FPS (Requires extremely fast device and network)</string>
-    <string name="check_stretchToFill">Stretch video to fill screen</string>
-    <string name="check_enableSops">Allow GFE to modify game settings for optimal streaming</string>
-    <string name="check_disableToasts">Disable on-screen connection warning messages"</string>
-    
-    <!-- Advanced settings activity -->
-    <string name="radio_forceSoftware">Force Software Decoding</string>
-    <string name="radio_autoSelect">Auto-select Decoder (Recommended)</string>
-    <string name="radio_forceHardware">Force Hardware Decoding</string>
-    
+
+    <!-- Preferences -->
+    <string name="category_basic_settings">Basic Settings</string>
+    <string name="title_resolution_list">Select resolution and FPS target</string>
+    <string name="summary_resolution_list">Setting values too high for your device may cause lag or crashing</string>
+    <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
+
+    <string name="category_host_settings">Host Settings</string>
+    <string name="title_checkbox_enable_sops">Optimize game settings</string>
+    <string name="summary_checkbox_enable_sops">Allow GFE to modify game settings for optimal streaming</string>
+    <string name="title_checkbox_host_audio">Play audio on PC</string>
+    <string name="summary_checkbox_host_audio">Play audio from the computer instead of the device</string>
+
+    <string name="category_advanced_settings">Advanced Settings</string>
+    <string name="title_decoder_list">Change decoder</string>
+    <string name="title_checkbox_disable_warnings">Disable warning messages</string>
+    <string name="summary_checkbox_disable_warnings">Disable on-screen connection warning messages while streaming</string>
 </resources>

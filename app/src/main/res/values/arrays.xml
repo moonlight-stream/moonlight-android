@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="resolution_names">
+        <item>720p 30 FPS</item>
+        <item>720p 60 FPS</item>
+        <item>1080p 30 FPS</item>
+        <item>1080p 60 FPS</item>
+    </string-array>
+    <string-array name="resolution_values">
+        <item>720p30</item>
+        <item>720p60</item>
+        <item>1080p30</item>
+        <item>1080p60</item>
+    </string-array>
+
+    <string-array name="decoder_names">
+        <item>Force Software Decoding</item>
+        <item>Auto-select Decoder</item>
+        <item>Force Hardware Decoding</item>
+    </string-array>
+    <string-array name="decoder_values">
+        <item>software</item>
+        <item>auto</item>
+        <item>hardware</item>
+    </string-array>
+</resources>

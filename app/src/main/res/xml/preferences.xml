@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/category_basic_settings">
+        <ListPreference
+            android:key="list_resolution_fps"
+            android:title="@string/title_resolution_list"
+            android:summary="@string/summary_resolution_list"
+            android:entries="@array/resolution_names"
+            android:entryValues="@array/resolution_values"
+            android:defaultValue="720p60" />
+        <CheckBoxPreference
+            android:key="checkbox_stretch_video"
+            android:title="@string/title_checkbox_stretch_video"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/category_host_settings">
+        <CheckBoxPreference
+            android:key="checkbox_enable_sops"
+            android:title="@string/title_checkbox_enable_sops"
+            android:summary="@string/summary_checkbox_enable_sops"
+            android:defaultValue="true" />
+        <CheckBoxPreference
+            android:key="checkbox_host_audio"
+            android:title="@string/title_checkbox_host_audio"
+            android:summary="@string/summary_checkbox_host_audio"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/category_advanced_settings">
+        <ListPreference
+            android:key="list_decoders"
+            android:title="@string/title_decoder_list"
+            android:entries="@array/decoder_names"
+            android:entryValues="@array/decoder_values"
+            android:defaultValue="auto" />
+        <CheckBoxPreference
+            android:key="checkbox_disable_warnings"
+            android:title="@string/title_checkbox_disable_warnings"
+            android:summary="@string/summary_checkbox_disable_warnings"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

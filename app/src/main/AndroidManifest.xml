@@ -42,8 +42,7 @@
         
         <activity
             android:name=".AppView"
-            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
-            android:label="App List" >
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.limelight.PcView" />
@@ -65,8 +64,7 @@
         <activity
             android:name=".Game"
             android:screenOrientation="sensorLandscape"
-            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
-            android:theme="@style/FullscreenTheme" >
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.limelight.Connection" />

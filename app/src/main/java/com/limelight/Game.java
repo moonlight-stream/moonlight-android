@@ -14,14 +14,13 @@ import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
-import com.limelight.R;
+import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
@@ -58,8 +57,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	private ControllerHandler controllerHandler;
 	private KeyboardTranslator keybTranslator;
 	
-	private int height;
-	private int width;
+	private PreferenceConfiguration prefConfig;
 	private Point screenSize = new Point(0, 0);
 	
 	private NvConnection conn;
@@ -67,9 +65,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	private boolean displayedFailureDialog = false;
 	private boolean connecting = false;
 	private boolean connected = false;
-	
-	private boolean stretchToFit;
-	private boolean toastsDisabled;
 	
 	private EvdevWatcher evdevWatcher;
 	private int modifierFlags = 0;
@@ -86,35 +81,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	public static final String EXTRA_APP = "App";
 	public static final String EXTRA_UNIQUEID = "UniqueId";
 	public static final String EXTRA_STREAMING_REMOTE = "Remote";
-	
-	public static final String PREFS_FILE_NAME = "gameprefs";
-	
-	public static final String WIDTH_PREF_STRING = "ResH";
-	public static final String HEIGHT_PREF_STRING = "ResV";
-	public static final String REFRESH_RATE_PREF_STRING = "FPS";
-	public static final String DECODER_PREF_STRING = "Decoder";
-	public static final String BITRATE_PREF_STRING = "Bitrate";
-	public static final String STRETCH_PREF_STRING = "Stretch";
-	public static final String SOPS_PREF_STRING = "Sops";
-	public static final String DISABLE_TOASTS_PREF_STRING = "NoToasts";
-	
-	public static final int BITRATE_DEFAULT_720_30 = 5;
-	public static final int BITRATE_DEFAULT_720_60 = 10;
-	public static final int BITRATE_DEFAULT_1080_30 = 10;
-	public static final int BITRATE_DEFAULT_1080_60 = 30;
-		
-	public static final int DEFAULT_WIDTH = 1280;
-	public static final int DEFAULT_HEIGHT = 720;
-	public static final int DEFAULT_REFRESH_RATE = 60;
-	public static final int DEFAULT_DECODER = 0;
-	public static final int DEFAULT_BITRATE = BITRATE_DEFAULT_720_60;
-	public static final boolean DEFAULT_STRETCH = false;
-	public static final boolean DEFAULT_SOPS = true;
-	public static final boolean DEFAULT_DISABLE_TOASTS = false;
-	
-	public static final int FORCE_HARDWARE_DECODER = -1;
-	public static final int AUTOSELECT_DECODER = 0;
-	public static final int FORCE_SOFTWARE_DECODER = 1;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -152,31 +118,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		spinner = SpinnerDialog.displayDialog(this, "Establishing Connection", "Starting connection", true);
 		
 		// Read the stream preferences
-		SharedPreferences prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_MULTI_PROCESS);
-		switch (prefs.getInt(Game.DECODER_PREF_STRING, Game.DEFAULT_DECODER)) {
-		case Game.FORCE_SOFTWARE_DECODER:
+        prefConfig = PreferenceConfiguration.readPreferences(this);
+		switch (prefConfig.decoder) {
+		case PreferenceConfiguration.FORCE_SOFTWARE_DECODER:
 			drFlags |= VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING;
 			break;
-		case Game.AUTOSELECT_DECODER:
+		case PreferenceConfiguration.AUTOSELECT_DECODER:
 			break;
-		case Game.FORCE_HARDWARE_DECODER:
+		case PreferenceConfiguration.FORCE_HARDWARE_DECODER:
 			drFlags |= VideoDecoderRenderer.FLAG_FORCE_HARDWARE_DECODING;
 			break;
 		}
 		
-		stretchToFit = prefs.getBoolean(STRETCH_PREF_STRING, DEFAULT_STRETCH);
-		if (stretchToFit) {
+		if (prefConfig.stretchVideo) {
 			drFlags |= VideoDecoderRenderer.FLAG_FILL_SCREEN;
 		}
-
-		int refreshRate, bitrate;
-		boolean sops;
-		width = prefs.getInt(WIDTH_PREF_STRING, DEFAULT_WIDTH);
-		height = prefs.getInt(HEIGHT_PREF_STRING, DEFAULT_HEIGHT);
-		refreshRate = prefs.getInt(REFRESH_RATE_PREF_STRING, DEFAULT_REFRESH_RATE);
-		bitrate = prefs.getInt(BITRATE_PREF_STRING, DEFAULT_BITRATE);
-		sops = prefs.getBoolean(SOPS_PREF_STRING, DEFAULT_SOPS);
-		toastsDisabled = prefs.getBoolean(DISABLE_TOASTS_PREF_STRING, DEFAULT_DISABLE_TOASTS);
 		
 		Display display = getWindowManager().getDefaultDisplay();
 		display.getSize(screenSize);
@@ -203,8 +159,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		decoderRenderer.initializeWithFlags(drFlags);
         
 		StreamConfiguration config = 
-				new StreamConfiguration(app, width, height,
-						refreshRate, bitrate * 1000, sops,
+				new StreamConfiguration(app, prefConfig.width, prefConfig.height,
+						prefConfig.fps, prefConfig.bitrate * 1000, prefConfig.enableSops,
 						(decoderRenderer.getCapabilities() &
 								VideoDecoderRenderer.CAPABILITY_ADAPTIVE_RESOLUTION) != 0);
 		
@@ -214,9 +170,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		controllerHandler = new ControllerHandler(conn);
 		
 		SurfaceHolder sh = sv.getHolder();
-		if (stretchToFit || !decoderRenderer.isHardwareAccelerated()) {
+		if (prefConfig.stretchVideo || !decoderRenderer.isHardwareAccelerated()) {
 			// Set the surface to the size of the video
-			sh.setFixedSize(width, height);
+			sh.setFixedSize(prefConfig.width, prefConfig.height);
 		}
 		
 		// Initialize touch contexts
@@ -643,8 +599,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			
 			// Scale the deltas if the device resolution is different
 			// than the stream resolution
-			deltaX = (int)Math.round((double)deltaX * ((double)width / (double)screenSize.x));
-			deltaY = (int)Math.round((double)deltaY * ((double)height / (double)screenSize.y));
+			deltaX = (int)Math.round((double)deltaX * ((double)prefConfig.width / (double)screenSize.x));
+			deltaY = (int)Math.round((double)deltaY * ((double)prefConfig.height / (double)screenSize.y));
 			
 			conn.sendMouseMove((short)deltaX, (short)deltaY);
 		}
@@ -739,7 +695,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
 	@Override
 	public void displayTransientMessage(final String message) {
-		if (!toastsDisabled) {
+		if (!prefConfig.disableWarnings) {
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
@@ -760,8 +716,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			
 			// Resize the surface to match the aspect ratio of the video
 			// This must be done after the surface is created.
-			if (!stretchToFit && decoderRenderer.isHardwareAccelerated()) {
-				resizeSurfaceWithAspectRatio((SurfaceView) findViewById(R.id.surfaceView), width, height);
+			if (!prefConfig.stretchVideo && decoderRenderer.isHardwareAccelerated()) {
+				resizeSurfaceWithAspectRatio((SurfaceView) findViewById(R.id.surfaceView),
+                        prefConfig.width, prefConfig.height);
 			}
 			
 			conn.start(PlatformBinding.getDeviceName(), holder, drFlags,

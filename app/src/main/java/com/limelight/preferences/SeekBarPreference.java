@@ -48,7 +48,7 @@ public class SeekBarPreference extends DialogPreference
         }
 
         // Get default and max seekbar values
-        defaultValue = attrs.getAttributeIntValue(SCHEMA_URL, "defaultValue", 0);
+        defaultValue = PreferenceConfiguration.getDefaultBitrate(context);
         maxValue = attrs.getAttributeIntValue(SCHEMA_URL, "max", 100);
     }
 

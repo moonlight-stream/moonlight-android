@@ -11,7 +11,6 @@
             android:defaultValue="720p60" />
         <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_bitrate"
-            android:defaultValue="50"
             android:dialogMessage="@string/summary_seekbar_bitrate"
             android:max="100"
             android:summary="@string/summary_seekbar_bitrate"

@@ -53,6 +53,11 @@ public class ComputerDetails {
 	}
 	
 	@Override
+	public int hashCode() {
+		return localIp.hashCode();
+	}
+	
+	@Override
 	public String toString() {
 		StringBuilder str = new StringBuilder();
 		str.append("State: ").append(state).append("\n");

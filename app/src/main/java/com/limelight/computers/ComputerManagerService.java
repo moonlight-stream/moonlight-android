@@ -1,6 +1,7 @@
 package com.limelight.computers;
 
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,7 +26,6 @@ import android.os.Binder;
 import android.os.IBinder;
 
 public class ComputerManagerService extends Service {
-	private static final int MAX_CONCURRENT_REQUESTS = 4;
 	private static final int POLLING_PERIOD_MS = 5000;
 	private static final int MDNS_QUERY_PERIOD_MS = 1000;
 	
@@ -35,8 +35,7 @@ public class ComputerManagerService extends Service {
 	private AtomicInteger dbRefCount = new AtomicInteger(0);
 	
 	private IdentityManager idManager;
-	private ThreadPoolExecutor pollingPool;
-	private Timer pollingTimer;
+	private HashMap<ComputerDetails, Thread> pollingThreads;
 	private ComputerManagerListener listener = null;
 	private AtomicInteger activePolls = new AtomicInteger(0);
 	private boolean stopped;
@@ -60,6 +59,85 @@ public class ComputerManagerService extends Service {
 			discoveryBinder = null;
 		}
 	};
+
+    // Returns true if the details object was modified
+    private boolean runPoll(ComputerDetails details)
+    {
+        boolean newPc = (details.name == null);
+
+        // This is called from addComputerManually() where we don't
+        // want to block the initial poll if polling is disabled, so
+        // we explicitly let this through if we've never seen this
+        // PC before. This path won't be triggered normally when polling
+        // is disabled because the mDNS discovery is stopped.
+        if (stopped && !newPc) {
+            return false;
+        }
+
+        if (!getLocalDatabaseReference()) {
+            return false;
+        }
+
+        activePolls.incrementAndGet();
+
+        // Poll the machine
+        if (!doPollMachine(details)) {
+            details.state = ComputerDetails.State.OFFLINE;
+            details.reachability = ComputerDetails.Reachability.OFFLINE;
+        }
+
+        activePolls.decrementAndGet();
+
+        // If it's online, update our persistent state
+        if (details.state == ComputerDetails.State.ONLINE) {
+            if (!newPc) {
+                // Check if it's in the database because it could have been
+                // removed after this was issued
+                if (dbManager.getComputerByName(details.name) == null) {
+                    // It's gone
+                    releaseLocalDatabaseReference();
+                    return true;
+                }
+            }
+
+            dbManager.updateComputer(details);
+        }
+
+        // Don't call the listener if this is a failed lookup of a new PC
+        if ((!newPc || details.state == ComputerDetails.State.ONLINE) && listener != null) {
+            listener.notifyComputerUpdated(details);
+        }
+
+        releaseLocalDatabaseReference();
+        return true;
+    }
+
+    private Thread createPollingThread(final ComputerDetails details) {
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                while (!isInterrupted()) {
+                    ComputerDetails originalDetails = new ComputerDetails();
+                    originalDetails.update(details);
+
+                    // Check if this poll has modified the details
+                    if (runPoll(details) && !originalDetails.equals(details)) {
+                        // Replace our thread entry with the new one
+                        synchronized (pollingThreads) {
+                            pollingThreads.remove(originalDetails);
+                            pollingThreads.put(details, this);
+                        }
+                    }
+
+                    // Wait until the next polling interval
+                    try {
+                        Thread.sleep(POLLING_PERIOD_MS);
+                    } catch (InterruptedException e) {}
+                }
+            }
+        };
+        return t;
+    }
 	
 	public class ComputerManagerBinder extends Binder {
 		public void startPolling(ComputerManagerListener listener) {
@@ -73,8 +151,19 @@ public class ComputerManagerService extends Service {
 			discoveryBinder.startDiscovery(MDNS_QUERY_PERIOD_MS);
 			
 			// Start polling known machines
-			pollingTimer = new Timer();
-			pollingTimer.schedule(getTimerTask(), 0, POLLING_PERIOD_MS);
+            if (!getLocalDatabaseReference()) {
+                return;
+            }
+            List<ComputerDetails> computerList = dbManager.getAllComputers();
+            releaseLocalDatabaseReference();
+
+            synchronized (pollingThreads) {
+                for (ComputerDetails computer : computerList) {
+                    Thread t = createPollingThread(computer);
+                    pollingThreads.put(computer, t);
+                    t.start();
+                }
+            }
 		}
 		
 		public void waitForReady() {
@@ -128,10 +217,11 @@ public class ComputerManagerService extends Service {
 		discoveryBinder.stopDiscovery();
 		
 		// Stop polling
-		if (pollingTimer != null) {
-			pollingTimer.cancel();
-			pollingTimer = null;
-		}
+        synchronized (pollingThreads) {
+            for (Thread t : pollingThreads.values()) {
+                t.interrupt();
+            }
+        }
 		
 		// Remove the listener
 		listener = null;
@@ -159,17 +249,21 @@ public class ComputerManagerService extends Service {
 			}
 		};
 	}
-	
+
 	public void addComputer(InetAddress addr) {
 		// Setup a placeholder
 		ComputerDetails fakeDetails = new ComputerDetails();
 		fakeDetails.localIp = addr;
 		fakeDetails.remoteIp = addr;
-		
-		// Put it in the thread pool to process later
-		pollingPool.execute(getPollingRunnable(fakeDetails));
+
+		// Spawn a thread for this computer
+        synchronized (pollingThreads) {
+            Thread t = createPollingThread(fakeDetails);
+            pollingThreads.put(fakeDetails, t);
+            t.start();
+        }
 	}
-	
+
 	public boolean addComputerBlocking(InetAddress addr) {
 		// Setup a placeholder
 		ComputerDetails fakeDetails = new ComputerDetails();
@@ -177,7 +271,7 @@ public class ComputerManagerService extends Service {
 		fakeDetails.remoteIp = addr;
 		
 		// Block while we try to fill the details
-		getPollingRunnable(fakeDetails).run();
+        runPoll(fakeDetails);
 		
 		// If the machine is reachable, it was successful
 		return fakeDetails.state == ComputerDetails.State.ONLINE;
@@ -207,23 +301,6 @@ public class ComputerManagerService extends Service {
 		if (dbRefCount.decrementAndGet() == 0) {
 			dbManager.close();
 		}
-	}
-	
-	private TimerTask getTimerTask() {
-		return new TimerTask() {
-			@Override
-			public void run() {
-				if (!getLocalDatabaseReference()) {
-					return;
-				}
-				List<ComputerDetails> computerList = dbManager.getAllComputers();
-				releaseLocalDatabaseReference();
-				
-				for (ComputerDetails computer : computerList) {
-					pollingPool.execute(getPollingRunnable(computer));
-				}
-			}
-		};
 	}
 	
 	private ComputerDetails tryPollIp(InetAddress ipAddr) {
@@ -281,71 +358,13 @@ public class ComputerManagerService extends Service {
 		return pollComputer(details, true);
 	}
 	
-	private Runnable getPollingRunnable(final ComputerDetails details) {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				boolean newPc = (details.name == null);
-				
-				// This is called from addComputerManually() where we don't
-				// want to block the initial poll if polling is disabled, so
-				// we explicitly let this through if we've never seen this
-				// PC before. This path won't be triggered normally when polling
-				// is disabled because the mDNS discovery is stopped.
-				if (stopped && !newPc) {
-					return;
-				}
-				
-				if (!getLocalDatabaseReference()) {
-					return;
-				}
-				
-				activePolls.incrementAndGet();
-				
-				// Poll the machine
-				if (!doPollMachine(details)) {
-					details.state = ComputerDetails.State.OFFLINE;
-					details.reachability = ComputerDetails.Reachability.OFFLINE;
-				}
-				
-				activePolls.decrementAndGet();
-
-				// If it's online, update our persistent state
-				if (details.state == ComputerDetails.State.ONLINE) {
-					if (!newPc) {
-						// Check if it's in the database because it could have been
-						// removed after this was issued
-						if (dbManager.getComputerByName(details.name) == null) {
-							// It's gone
-							releaseLocalDatabaseReference();
-							return;
-						}
-					}
-					
-					dbManager.updateComputer(details);
-				}
-				
-				// Don't call the listener if this is a failed lookup of a new PC
-				if ((!newPc || details.state == ComputerDetails.State.ONLINE) && listener != null) {
-					listener.notifyComputerUpdated(details);
-				}
-				
-				releaseLocalDatabaseReference();
-			}
-		};
-	}
-	
 	@Override
 	public void onCreate() {
 		// Bind to the discovery service
 		bindService(new Intent(this, DiscoveryService.class),
 				discoveryServiceConnection, Service.BIND_AUTO_CREATE);
-		
-		// Create the thread pool for updating computer state
-		pollingPool = new ThreadPoolExecutor(MAX_CONCURRENT_REQUESTS, MAX_CONCURRENT_REQUESTS,
-				Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>(),
-				new ThreadPoolExecutor.DiscardPolicy());
+
+		pollingThreads = new HashMap<ComputerDetails, Thread>();
 		
 		// Lookup or generate this device's UID
 		idManager = new IdentityManager(this);
@@ -361,9 +380,6 @@ public class ComputerManagerService extends Service {
 			// Unbind from the discovery service
 			unbindService(discoveryServiceConnection);
 		}
-		
-		// Stop the thread pool
-		pollingPool.shutdownNow();
 		
 		// FIXME: Should await termination here but we have timeout issues in HttpURLConnection
 		

@@ -9,9 +9,22 @@
             android:entries="@array/resolution_names"
             android:entryValues="@array/resolution_values"
             android:defaultValue="720p60" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_bitrate"
+            android:defaultValue="50"
+            android:dialogMessage="@string/summary_seekbar_bitrate"
+            android:max="100"
+            android:summary="@string/summary_seekbar_bitrate"
+            android:text="@string/suffix_seekbar_bitrate"
+            android:title="@string/title_seekbar_bitrate" />
         <CheckBoxPreference
             android:key="checkbox_stretch_video"
             android:title="@string/title_checkbox_stretch_video"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_disable_warnings"
+            android:title="@string/title_checkbox_disable_warnings"
+            android:summary="@string/summary_checkbox_disable_warnings"
             android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">
@@ -33,11 +46,6 @@
             android:entries="@array/decoder_names"
             android:entryValues="@array/decoder_values"
             android:defaultValue="auto" />
-        <CheckBoxPreference
-            android:key="checkbox_disable_warnings"
-            android:title="@string/title_checkbox_disable_warnings"
-            android:summary="@string/summary_checkbox_disable_warnings"
-            android:defaultValue="false" />
     </PreferenceCategory>
 
 </PreferenceScreen>

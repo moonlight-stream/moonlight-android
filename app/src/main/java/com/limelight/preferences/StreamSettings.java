@@ -1,8 +1,10 @@
-package com.limelight;
+package com.limelight.preferences;
 
 import android.os.Bundle;
 import android.app.Activity;
 import android.preference.PreferenceFragment;
+
+import com.limelight.R;
 
 public class StreamSettings extends Activity {
     @Override

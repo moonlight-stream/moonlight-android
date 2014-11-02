@@ -19,7 +19,7 @@
         
         <!-- Launcher for traditional devices -->
         <activity
-            android:name="com.limelight.PcView"
+            android:name=".PcView"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,7 +30,7 @@
         
         <!-- Launcher for Android TV devices -->
         <activity
-            android:name="com.limelight.PcViewTv"
+            android:name=".PcViewTv"
             android:logo="@drawable/atv_banner"
             android:icon="@drawable/atv_banner"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
@@ -41,7 +41,7 @@
         </activity>
         
         <activity
-            android:name="com.limelight.AppView"
+            android:name=".AppView"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:label="App List" >
             <meta-data
@@ -49,28 +49,21 @@
                 android:value="com.limelight.PcView" />
         </activity>
         <activity
-            android:name="com.limelight.StreamSettings"
+            android:name=".preferences.StreamSettings"
             android:label="Streaming Settings" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.limelight.PcView" />
         </activity>
         <activity
-            android:name="com.limelight.AdvancedSettings"
-            android:label="Advanced Settings" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.limelight.StreamSettings" />
-        </activity>
-        <activity
-            android:name="com.limelight.AddComputerManually"
+            android:name=".preferences.AddComputerManually"
             android:label="Add Computer Manually" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.limelight.PcView" />
         </activity>
         <activity
-            android:name="com.limelight.Game"
+            android:name=".Game"
             android:screenOrientation="sensorLandscape"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:theme="@style/FullscreenTheme" >
@@ -79,10 +72,10 @@
                 android:value="com.limelight.Connection" />
         </activity>
         <service
-            android:name="com.limelight.discovery.DiscoveryService"
+            android:name=".discovery.DiscoveryService"
             android:label="mDNS PC Auto-Discovery Service" />
         <service
-            android:name="com.limelight.computers.ComputerManagerService"
+            android:name=".computers.ComputerManagerService"
             android:label="Computer Management Service" />
     </application>
 

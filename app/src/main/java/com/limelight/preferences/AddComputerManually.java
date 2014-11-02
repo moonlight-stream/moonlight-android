@@ -1,4 +1,4 @@
-package com.limelight;
+package com.limelight.preferences;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

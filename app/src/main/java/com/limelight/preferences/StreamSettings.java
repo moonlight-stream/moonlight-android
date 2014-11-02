@@ -1,8 +1,11 @@
 package com.limelight.preferences;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.app.Activity;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
 
 import com.limelight.R;
 
@@ -23,6 +26,26 @@ public class StreamSettings extends Activity {
             super.onCreate(savedInstanceState);
 
             addPreferencesFromResource(R.xml.preferences);
+
+            // Add a listener to the FPS and resolution preference
+            // so the bitrate can be auto-adjusted
+            Preference pref = findPreference(PreferenceConfiguration.RES_FPS_PREF_STRING);
+            pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                    String valueStr = (String) newValue;
+
+                    // Write the new bitrate value
+                    prefs.edit()
+                            .putInt(PreferenceConfiguration.BITRATE_PREF_STRING,
+                                    PreferenceConfiguration.getDefaultBitrate(valueStr))
+                            .apply();
+
+                    // Allow the original preference change to take place
+                    return true;
+                }
+            });
         }
     }
 }

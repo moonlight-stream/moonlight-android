@@ -5,9 +5,9 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 public class PreferenceConfiguration {
-    private static final String RES_FPS_PREF_STRING = "list_resolution_fps";
+    static final String RES_FPS_PREF_STRING = "list_resolution_fps";
     private static final String DECODER_PREF_STRING = "list_decoders";
-    private static final String BITRATE_PREF_STRING = "seekbar_bitrate";
+    static final String BITRATE_PREF_STRING = "seekbar_bitrate";
     private static final String STRETCH_PREF_STRING = "checkbox_stretch_video";
     private static final String SOPS_PREF_STRING = "checkbox_enable_sops";
     private static final String DISABLE_TOASTS_PREF_STRING = "checkbox_disable_warnings";
@@ -34,6 +34,25 @@ public class PreferenceConfiguration {
     public int bitrate;
     public int decoder;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
+
+    public static int getDefaultBitrate(String resFpsString) {
+        if (resFpsString.equals("720p30")) {
+            return BITRATE_DEFAULT_720_30;
+        }
+        else if (resFpsString.equals("720p60")) {
+            return BITRATE_DEFAULT_720_60;
+        }
+        else if (resFpsString.equals("1080p30")) {
+            return BITRATE_DEFAULT_1080_30;
+        }
+        else if (resFpsString.equals("1080p60")) {
+            return BITRATE_DEFAULT_1080_60;
+        }
+        else {
+            // Should never get here
+            return DEFAULT_BITRATE;
+        }
+    }
 
     public static int getDefaultBitrate(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);

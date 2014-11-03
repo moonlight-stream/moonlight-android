@@ -21,6 +21,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.http.PairingManager.PairState;
 
 
@@ -278,14 +279,15 @@ public class NvHTTP {
 	    return new String(hexChars);
 	}
 	
-	public int launchApp(int appId, int width, int height, int refreshRate, SecretKey inputKey, boolean sops, int riKeyId) throws IOException, XmlPullParserException {
+	public int launchApp(int appId, SecretKey inputKey, int riKeyId, StreamConfiguration config) throws IOException, XmlPullParserException {
 		InputStream in = openHttpConnection(baseUrl +
 			"/launch?uniqueid=" + uniqueId +
 			"&appid=" + appId +
-			"&mode=" + width + "x" + height + "x" + refreshRate +
-			"&additionalStates=1&sops=" + (sops ? 1 : 0) +
+			"&mode=" + config.getWidth() + "x" + config.getHeight() + "x" + config.getRefreshRate() +
+			"&additionalStates=1&sops=" + (config.getSops() ? 1 : 0) +
 			"&rikey="+bytesToHex(inputKey.getEncoded()) +
-			"&rikeyid="+riKeyId, false);
+			"&rikeyid="+riKeyId +
+			"&localAudioPlayMode=" + (config.getPlayLocalAudio() ? 1 : 0), false);
 		String gameSession = getXmlString(in, "gamesession");
 		return Integer.parseInt(gameSession);
 	}

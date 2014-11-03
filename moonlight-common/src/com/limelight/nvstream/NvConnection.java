@@ -170,9 +170,7 @@ public class NvConnection {
 	private boolean launchNotRunningApp(NvHTTP h, NvApp app) 
 			throws IOException, XmlPullParserException {
 		// Launch the app since it's not running
-		int gameSessionId = h.launchApp(app.getAppId(), config.getWidth(),
-				config.getHeight(), config.getRefreshRate(), riKey, config.getSops(),
-				riKeyId);
+		int gameSessionId = h.launchApp(app.getAppId(), riKey, riKeyId, config);
 		if (gameSessionId == 0) {
 			listener.displayMessage("Failed to launch application");
 			return false;

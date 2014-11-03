@@ -158,12 +158,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		decoderRenderer = new ConfigurableDecoderRenderer();
 		decoderRenderer.initializeWithFlags(drFlags);
         
-		StreamConfiguration config = 
-				new StreamConfiguration(app, prefConfig.width, prefConfig.height,
-						prefConfig.fps, prefConfig.bitrate * 1000, prefConfig.enableSops,
-						(decoderRenderer.getCapabilities() &
-								VideoDecoderRenderer.CAPABILITY_ADAPTIVE_RESOLUTION) != 0);
-		
+		StreamConfiguration config = new StreamConfiguration.Builder()
+                .setResolution(prefConfig.width, prefConfig.height)
+                .setRefreshRate(prefConfig.fps)
+                .setApp(app)
+                .setBitrate(prefConfig.bitrate * 1000)
+                .setEnableSops(prefConfig.enableSops)
+                .enableAdaptiveResolution((decoderRenderer.getCapabilities() &
+                        VideoDecoderRenderer.CAPABILITY_ADAPTIVE_RESOLUTION) != 0)
+                .enableLocalAudioPlayback(prefConfig.playHostAudio)
+                .build();
+
 		// Initialize the connection
 		conn = new NvConnection(host, uniqueId, Game.this, config, PlatformBinding.getCryptoProvider(this));
 		keybTranslator = new KeyboardTranslator(conn);

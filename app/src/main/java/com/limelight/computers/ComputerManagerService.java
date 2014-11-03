@@ -38,7 +38,6 @@ public class ComputerManagerService extends Service {
 	private HashMap<ComputerDetails, Thread> pollingThreads;
 	private ComputerManagerListener listener = null;
 	private AtomicInteger activePolls = new AtomicInteger(0);
-	private boolean stopped;
 
 	private DiscoveryService.DiscoveryBinder discoveryBinder;
 	private final ServiceConnection discoveryServiceConnection = new ServiceConnection() {
@@ -64,15 +63,6 @@ public class ComputerManagerService extends Service {
     private boolean runPoll(ComputerDetails details)
     {
         boolean newPc = (details.name == null);
-
-        // This is called from addComputerManually() where we don't
-        // want to block the initial poll if polling is disabled, so
-        // we explicitly let this through if we've never seen this
-        // PC before. This path won't be triggered normally when polling
-        // is disabled because the mDNS discovery is stopped.
-        if (stopped && !newPc) {
-            return false;
-        }
 
         if (!getLocalDatabaseReference()) {
             return false;
@@ -132,18 +122,18 @@ public class ComputerManagerService extends Service {
                     // Wait until the next polling interval
                     try {
                         Thread.sleep(POLLING_PERIOD_MS);
-                    } catch (InterruptedException e) {}
+                    } catch (InterruptedException e) {
+                        break;
+                    }
                 }
             }
         };
+        t.setName("Polling thread for "+details.localIp.getHostAddress());
         return t;
     }
 	
 	public class ComputerManagerBinder extends Binder {
 		public void startPolling(ComputerManagerListener listener) {
-			// Not stopped
-			stopped = false;
-			
 			// Set the listener
 			ComputerManagerService.this.listener = listener;
 			
@@ -159,9 +149,12 @@ public class ComputerManagerService extends Service {
 
             synchronized (pollingThreads) {
                 for (ComputerDetails computer : computerList) {
-                    Thread t = createPollingThread(computer);
-                    pollingThreads.put(computer, t);
-                    t.start();
+                    // This polling thread might already be there
+                    if (!pollingThreads.containsKey(computer)) {
+                        Thread t = createPollingThread(computer);
+                        pollingThreads.put(computer, t);
+                        t.start();
+                    }
                 }
             }
 		}
@@ -210,9 +203,6 @@ public class ComputerManagerService extends Service {
 	
 	@Override
 	public boolean onUnbind(Intent intent) {
-		// Stopped now
-		stopped = true;
-		
 		// Stop mDNS autodiscovery
 		discoveryBinder.stopDiscovery();
 		
@@ -221,6 +211,7 @@ public class ComputerManagerService extends Service {
             for (Thread t : pollingThreads.values()) {
                 t.interrupt();
             }
+            pollingThreads.clear();
         }
 		
 		// Remove the listener
@@ -258,9 +249,12 @@ public class ComputerManagerService extends Service {
 
 		// Spawn a thread for this computer
         synchronized (pollingThreads) {
-            Thread t = createPollingThread(fakeDetails);
-            pollingThreads.put(fakeDetails, t);
-            t.start();
+            // This polling thread might already be there
+            if (!pollingThreads.containsKey(fakeDetails)) {
+                Thread t = createPollingThread(fakeDetails);
+                pollingThreads.put(fakeDetails, t);
+                t.start();
+            }
         }
 	}
 
@@ -307,7 +301,7 @@ public class ComputerManagerService extends Service {
 		try {
 			NvHTTP http = new NvHTTP(ipAddr, idManager.getUniqueId(),
 					null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
-			
+
 			return http.getComputerDetails();
 		} catch (Exception e) {
 			return null;

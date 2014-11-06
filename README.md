@@ -14,9 +14,6 @@ whether in your own home or over the internet.
 * Full gamepad support for MOGA, Xbox 360, PS3, OUYA, and Shield
 * Automatically finds GameStream-compatible PCs on your network
 
-##Features in development
-* Keyboard input
-
 ##Installation
 
 * Download and install Limelight for Android from
@@ -28,7 +25,6 @@ whether in your own home or over the internet.
 * [GameStream compatible](http://shield.nvidia.com/play-pc-games/) computer with GTX 600/700 series GPU
 * Android device running 4.1 (Jelly Bean) or higher
 * High-end wireless router (802.11n dual-band recommended)
-* Exynos/Snapdragon SoC __OR__ Quad-Core 1.4 GHz Cortex-A9 or higher (Tegra 3)
 
 ##Usage
 

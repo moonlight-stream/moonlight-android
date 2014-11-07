@@ -18,7 +18,6 @@
         android:layout_below="@+id/appListText"
         android:fastScrollEnabled="true"
         android:longClickable="false"
-        android:background="@drawable/list_view_unselected"
         android:stackFromBottom="false">
     </ListView>
     

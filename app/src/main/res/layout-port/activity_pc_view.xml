@@ -8,37 +8,23 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".PcView" >
 
-    <ListView
-        android:id="@+id/pcListView"
-        android:layout_width="match_parent"
+    <GridView
+        android:id="@+id/pcGridView"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:numColumns="auto_fit"
+        android:stretchMode="columnWidth"
+        android:gravity="center"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/discoveryText"
-        android:background="@drawable/list_view_unselected"
-        android:fastScrollEnabled="true"
-        android:longClickable="false"
-        android:stackFromBottom="false" >
-
-    </ListView>
-    
-    <TextView
-        android:id="@+id/discoveryText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_below="@+id/manuallyAddPc"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        android:text="@string/title_pc_view" />
+        android:layout_below="@+id/settingsButton"/>
 
     <Button
         android:id="@+id/settingsButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:text="@string/button_stream_settings" />
     
@@ -46,8 +32,8 @@
         android:id="@+id/manuallyAddPc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/settingsButton"
-        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
         android:text="@string/button_add_pc_manually" />
 
 </RelativeLayout>

@@ -9,6 +9,7 @@ import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.crypto.AndroidCryptoProvider;
 import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
+import com.limelight.grid.PcGridAdapter;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.http.PairingManager;
@@ -36,16 +37,15 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.GridView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class PcView extends Activity {
 	private Button settingsButton, addComputerButton;
-	private ListView pcList;
-	private ArrayAdapter<ComputerObject> pcListAdapter;
+	private GridView pcGrid;
+	private PcGridAdapter pcGridAdapter;
 	private ComputerManagerService.ComputerManagerBinder managerBinder;
 	private boolean freezeUpdates, runningPolling;
 	private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -102,14 +102,13 @@ public class PcView extends Activity {
 		settingsButton = (Button)findViewById(R.id.settingsButton);
 		addComputerButton = (Button)findViewById(R.id.manuallyAddPc);
 
-		pcList = (ListView)findViewById(R.id.pcListView);
-		pcList.setAdapter(pcListAdapter);
-		pcList.setItemsCanFocus(true);
-		pcList.setOnItemClickListener(new OnItemClickListener() {
+		pcGrid = (GridView)findViewById(R.id.pcGridView);
+        pcGrid.setAdapter(pcGridAdapter);
+        pcGrid.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
 					long id) {
-				ComputerObject computer = pcListAdapter.getItem(pos);
+				ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
 				if (computer.details == null) {
 					// Placeholder item; no context menu for it
 					return;
@@ -127,7 +126,7 @@ public class PcView extends Activity {
 				}
 			}
 		});
-		registerForContextMenu(pcList);
+		registerForContextMenu(pcGrid);
 		settingsButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -142,11 +141,11 @@ public class PcView extends Activity {
 			}
 		});
 
-		if (pcListAdapter.isEmpty()) {
+		if (pcGridAdapter.isEmpty()) {
 			addListPlaceholder();
 		}
 		else {
-			pcListAdapter.notifyDataSetChanged();
+            pcGridAdapter.notifyDataSetChanged();
 		}
 	}
 	
@@ -157,9 +156,8 @@ public class PcView extends Activity {
 		// Bind to the computer manager service
 		bindService(new Intent(PcView.this, ComputerManagerService.class), serviceConnection,
 				Service.BIND_AUTO_CREATE);
-		
-		pcListAdapter = new ArrayAdapter<ComputerObject>(this, R.layout.simplerow, R.id.rowTextView);
-		pcListAdapter.setNotifyOnChange(false);
+
+        pcGridAdapter = new PcGridAdapter(this);
 		
 		initializeViews();
 	}
@@ -244,7 +242,7 @@ public class PcView extends Activity {
 		super.onCreateContextMenu(menu, v, menuInfo);
                 
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-        ComputerObject computer = pcListAdapter.getItem(info.position);
+        ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
         if (computer == null || computer.details == null) {
         	startComputerUpdates();
         	return;
@@ -485,7 +483,7 @@ public class PcView extends Activity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        ComputerObject computer = pcListAdapter.getItem(info.position);
+        ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
         switch (item.getItemId())
         {
         case PAIR_ID:
@@ -518,65 +516,33 @@ public class PcView extends Activity {
           return super.onContextItemSelected(item);
         }
     }
-
-    private static String generateString(ComputerDetails details) {
-    	StringBuilder str = new StringBuilder();
-    	str.append(details.name).append(" - ");
-    	if (details.state == ComputerDetails.State.ONLINE) {
-    		str.append("Online ");
-    		if (details.reachability == ComputerDetails.Reachability.LOCAL) {
-    			str.append("(Local) - ");
-    		}
-    		else {
-    			str.append("(Remote) - ");
-    		}
-    		if (details.pairState == PairState.PAIRED) {
-    			if (details.runningGameId == 0) {
-    				str.append("Available");
-    			}
-    			else {
-    				str.append("In Game");
-    			}
-    		}
-    		else {
-    			str.append("Not Paired");
-    		}
-    	}
-    	else {
-    		str.append("Offline");
-    	}
-    	return str.toString();
-    }
     
     private void addListPlaceholder() {
-        pcListAdapter.add(new ComputerObject("Discovery is running. No computers found yet. " +
-        		"If your PC doesn't show up in about 15 seconds, " +
-        		"make sure your computer is running GFE or add your PC manually using the button above.", null));
+
     }
     
     private void removeListView(ComputerDetails details) {
-		for (int i = 0; i < pcListAdapter.getCount(); i++) {
-			ComputerObject computer = pcListAdapter.getItem(i);
+		for (int i = 0; i < pcGridAdapter.getCount(); i++) {
+			ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(i);
 			
 			if (details.equals(computer.details)) {
-				pcListAdapter.remove(computer);
+                pcGridAdapter.removeComputer(computer);
 				break;
 			}
 		}
 		
-		if (pcListAdapter.getCount() == 0) {
+		if (pcGridAdapter.getCount() == 0) {
 			// Add the placeholder if we're down to 0 computers
 			addListPlaceholder();
 		}
     }
     
 	private void updateListView(ComputerDetails details) {
-		String computerString = generateString(details);
 		ComputerObject existingEntry = null;
 		boolean placeholderPresent = false;
 		
-		for (int i = 0; i < pcListAdapter.getCount(); i++) {
-			ComputerObject computer = pcListAdapter.getItem(i);
+		for (int i = 0; i < pcGridAdapter.getCount(); i++) {
+			ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(i);
 			
 			// If there's a placeholder, there's nothing else
 			if (computer.details == null) {
@@ -593,35 +559,32 @@ public class PcView extends Activity {
 		
 		if (existingEntry != null) {
 			// Replace the information in the existing entry
-			existingEntry.text = computerString;
 			existingEntry.details = details;
 		}
 		else {
 			// If the placeholder is the only object, remove it
 			if (placeholderPresent) {
-				pcListAdapter.remove(pcListAdapter.getItem(0));
+                pcGridAdapter.removeComputer((ComputerObject) pcGridAdapter.getItem(0));
 			}
 			
 			// Add a new entry
-			pcListAdapter.add(new ComputerObject(computerString, details));
+            pcGridAdapter.addComputer(new ComputerObject(details));
 		}
 		
 		// Notify the view that the data has changed
-		pcListAdapter.notifyDataSetChanged();
+        pcGridAdapter.notifyDataSetChanged();
 	}
 	
 	public class ComputerObject {
-		public String text;
 		public ComputerDetails details;
 		
-		public ComputerObject(String text, ComputerDetails details) {
-			this.text = text;
+		public ComputerObject(ComputerDetails details) {
 			this.details = details;
 		}
 		
 		@Override
 		public String toString() {
-			return text;
+			return details.name;
 		}
 	}
 }

@@ -15,6 +15,7 @@ import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.R;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
+import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -52,6 +53,8 @@ public class AppView extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_app_view);
+
+        UiHelper.notifyNewRootView(this);
 		
 		byte[] address = getIntent().getByteArrayExtra(ADDRESS_EXTRA);
 		uniqueId = getIntent().getStringExtra(UNIQUEID_EXTRA);

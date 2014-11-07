@@ -8,6 +8,7 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 
 import com.limelight.R;
+import com.limelight.utils.UiHelper;
 
 public class StreamSettings extends Activity {
     @Override
@@ -18,6 +19,8 @@ public class StreamSettings extends Activity {
         getFragmentManager().beginTransaction().replace(
                 R.id.stream_settings, new SettingsFragment()
         ).commit();
+
+        UiHelper.notifyNewRootView(this);
     }
 
     public static class SettingsFragment extends PreferenceFragment {

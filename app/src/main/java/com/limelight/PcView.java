@@ -17,6 +17,7 @@ import com.limelight.nvstream.wol.WakeOnLanSender;
 import com.limelight.preferences.AddComputerManually;
 import com.limelight.preferences.StreamSettings;
 import com.limelight.utils.Dialog;
+import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
 import android.app.Service;
@@ -91,6 +92,8 @@ public class PcView extends Activity {
 	
 	private void initializeViews() {
 		setContentView(R.layout.activity_pc_view);
+
+        UiHelper.notifyNewRootView(this);
 
         // Set default preferences if we've never been run
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);

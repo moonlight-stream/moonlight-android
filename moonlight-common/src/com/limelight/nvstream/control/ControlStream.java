@@ -46,7 +46,7 @@ public class ControlStream implements ConnectionStatusListener {
 	private InetAddress host;
 	
 	public static final int LOSS_PERIOD_MS = 15000;
-	public static final int MAX_LOSS_COUNT_IN_PERIOD = 2;
+	public static final int MAX_LOSS_COUNT_IN_PERIOD = 5;
 	public static final int MAX_SLOW_SINK_COUNT = 2;
 	public static final int MESSAGE_DELAY_FACTOR = 3;
 	
@@ -427,9 +427,7 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 		else {
 			if (++lossCount == MAX_LOSS_COUNT_IN_PERIOD) {
-				listener.displayTransientMessage("Detected high amounts of network packet loss. " +
-						"Try improving your network connection or lowering stream resolution, frame rate, and/or bitrate. " +
-						"Use a 5 GHz wireless connection if available and connect your PC directly to your router via Ethernet if possible.");
+				listener.displayTransientMessage("Detected high amounts of network packet loss");
 				lossCount = -MAX_LOSS_COUNT_IN_PERIOD * MESSAGE_DELAY_FACTOR;
 				lossTimestamp = 0;
 			}

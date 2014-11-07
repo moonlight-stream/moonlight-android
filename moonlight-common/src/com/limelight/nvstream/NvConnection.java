@@ -226,6 +226,11 @@ public class NvConnection {
 		{
 			boolean success = false;
 
+			if (currentStage == NvConnectionListener.Stage.LAUNCH_APP) {
+				// Display the app name instead of the stage name
+				currentStage.setName(config.getApp());
+			}
+			
 			listener.stageStarting(currentStage);
 			try {
 				switch (currentStage)

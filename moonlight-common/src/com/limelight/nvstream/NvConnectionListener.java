@@ -15,6 +15,10 @@ public interface NvConnectionListener {
 			this.name = name;
 		}
 		
+		void setName(String name) {
+			this.name = name;
+		}
+		
 		public String getName() {
 			return name;
 		}

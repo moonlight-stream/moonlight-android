@@ -49,7 +49,7 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
     @Override
     public View getView(int i, View convertView, ViewGroup viewGroup) {
         if (convertView == null) {
-            convertView = inflater.inflate(layoutId, null);
+            convertView = inflater.inflate(layoutId, viewGroup, false);
         }
 
         ImageView imgView = (ImageView) convertView.findViewById(R.id.grid_image);

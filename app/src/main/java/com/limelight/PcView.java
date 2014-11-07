@@ -109,11 +109,7 @@ public class PcView extends Activity {
 			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
 					long id) {
 				ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
-				if (computer.details == null) {
-					// Placeholder item; no context menu for it
-					return;
-				}
-				else if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
+				if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
 					// Open the context menu if a PC is offline
 					openContextMenu(arg1);
 				}
@@ -141,13 +137,8 @@ public class PcView extends Activity {
 			}
 		});
 
-		if (pcGridAdapter.isEmpty()) {
-			addListPlaceholder();
-		}
-		else {
-            pcGridAdapter.notifyDataSetChanged();
-		}
-	}
+        pcGridAdapter.notifyDataSetChanged();
+    }
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -176,7 +167,7 @@ public class PcView extends Activity {
 						PcView.this.runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
-								updateListView(details);
+								updateComputer(details);
 							}
 						});
 					}
@@ -505,7 +496,7 @@ public class PcView extends Activity {
     			return true;
     		}
         	managerBinder.removeComputer(computer.details.name);
-        	removeListView(computer.details);
+        	removeComputer(computer.details);
         	return true;
         	
         case APP_LIST_ID:
@@ -517,11 +508,7 @@ public class PcView extends Activity {
         }
     }
     
-    private void addListPlaceholder() {
-
-    }
-    
-    private void removeListView(ComputerDetails details) {
+    private void removeComputer(ComputerDetails details) {
 		for (int i = 0; i < pcGridAdapter.getCount(); i++) {
 			ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(i);
 			
@@ -530,25 +517,13 @@ public class PcView extends Activity {
 				break;
 			}
 		}
-		
-		if (pcGridAdapter.getCount() == 0) {
-			// Add the placeholder if we're down to 0 computers
-			addListPlaceholder();
-		}
     }
     
-	private void updateListView(ComputerDetails details) {
+	private void updateComputer(ComputerDetails details) {
 		ComputerObject existingEntry = null;
-		boolean placeholderPresent = false;
 		
 		for (int i = 0; i < pcGridAdapter.getCount(); i++) {
 			ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(i);
-			
-			// If there's a placeholder, there's nothing else
-			if (computer.details == null) {
-				placeholderPresent = true;
-				break;
-			}
 			
 			// Check if this is the same computer
 			if (details.equals(computer.details)) {
@@ -562,17 +537,12 @@ public class PcView extends Activity {
 			existingEntry.details = details;
 		}
 		else {
-			// If the placeholder is the only object, remove it
-			if (placeholderPresent) {
-                pcGridAdapter.removeComputer((ComputerObject) pcGridAdapter.getItem(0));
-			}
-			
 			// Add a new entry
             pcGridAdapter.addComputer(new ComputerObject(details));
+
+            // Notify the view that the data has changed
+            pcGridAdapter.notifyDataSetChanged();
 		}
-		
-		// Notify the view that the data has changed
-        pcGridAdapter.notifyDataSetChanged();
 	}
 	
 	public class ComputerObject {

@@ -21,6 +21,11 @@ public class TouchContext {
 		this.conn = conn;
 		this.actionIndex = actionIndex;
 	}
+
+    public int getActionIndex()
+    {
+        return actionIndex;
+    }
 	
 	private boolean isTap()
 	{
@@ -84,10 +89,8 @@ public class TouchContext {
 			
 			lastTouchX = eventX;
 			lastTouchY = eventY;
-			
-			return true;
 		}
 		
-		return false;
+		return true;
 	}
 }

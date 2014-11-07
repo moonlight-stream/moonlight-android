@@ -517,7 +517,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 					// ACTION_MOVE is special because it always has actionIndex == 0
 					// We'll call the move handlers for all indexes manually
                     for (TouchContext aTouchContextMap : touchContextMap) {
-                        aTouchContextMap.touchMoveEvent(eventX, eventY);
+                        if (aTouchContextMap.getActionIndex() < event.getPointerCount())
+                        {
+                            aTouchContextMap.touchMoveEvent(
+                                    (int)event.getX(aTouchContextMap.getActionIndex()),
+                                    (int)event.getY(aTouchContextMap.getActionIndex()));
+                        }
                     }
 					break;
 				default:

@@ -7,6 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.R;
 import com.limelight.utils.Dialog;
+import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
 import android.app.Service;
@@ -126,8 +127,10 @@ public class AddComputerManually extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.activity_add_computer_manually);
-		
-		this.addPcButton = (Button) findViewById(R.id.addPc);
+
+        UiHelper.notifyNewRootView(this);
+
+        this.addPcButton = (Button) findViewById(R.id.addPc);
 		this.hostText = (TextView) findViewById(R.id.hostTextView);
 		
 		// Bind to the ComputerManager service

@@ -26,8 +26,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="15dp"
         android:text="@string/button_stream_settings" />
     
     <Button
@@ -36,8 +34,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="15dp"
         android:text="@string/button_add_pc_manually" />
 
 </RelativeLayout>

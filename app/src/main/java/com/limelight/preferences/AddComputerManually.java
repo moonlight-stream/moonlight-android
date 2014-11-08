@@ -7,6 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.R;
 import com.limelight.utils.Dialog;
+import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
@@ -16,14 +17,17 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class AddComputerManually extends Activity {
-	private Button addPcButton;
 	private TextView hostText;
 	private ComputerManagerService.ComputerManagerBinder managerBinder;
 	private LinkedBlockingQueue<String> computersToAdd = new LinkedBlockingQueue<String>();
@@ -43,6 +47,9 @@ public class AddComputerManually extends Activity {
 	private void doAddPc(String host) {
 		String msg;
 		boolean finish = false;
+
+        SpinnerDialog dialog = SpinnerDialog.displayDialog(this, "Add PC Manually", "Connecting to the specified PC...", false);
+
 		try {
 			InetAddress addr = InetAddress.getByName(host);
 			
@@ -56,8 +63,10 @@ public class AddComputerManually extends Activity {
 		} catch (UnknownHostException e) {
 			msg = "Unable to resolve PC address. Make sure you didn't make a typo in the address.";
 		}
-		
-		final boolean toastFinish = finish;
+
+        dialog.dismiss();
+
+        final boolean toastFinish = finish;
 		final String toastMsg = msg;
 		AddComputerManually.this.runOnUiThread(new Runnable() {
 			@Override
@@ -110,6 +119,7 @@ public class AddComputerManually extends Activity {
 		super.onStop();
 		
 		Dialog.closeDialogs();
+        SpinnerDialog.closeDialogs(this);
 	}
 	
 	@Override
@@ -130,24 +140,28 @@ public class AddComputerManually extends Activity {
 
         UiHelper.notifyNewRootView(this);
 
-        this.addPcButton = (Button) findViewById(R.id.addPc);
 		this.hostText = (TextView) findViewById(R.id.hostTextView);
+        hostText.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        hostText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+                if (actionId == EditorInfo.IME_ACTION_DONE ||
+                        keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
+                                keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                    if (hostText.getText().length() == 0) {
+                        Toast.makeText(AddComputerManually.this, "You must enter an IP address", Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+
+                    computersToAdd.add(hostText.getText().toString());
+                }
+
+                return false;
+            }
+        });
 		
 		// Bind to the ComputerManager service
 		bindService(new Intent(AddComputerManually.this,
-				ComputerManagerService.class), serviceConnection, Service.BIND_AUTO_CREATE);
-	
-		addPcButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (hostText.getText().length() == 0) {
-					Toast.makeText(AddComputerManually.this, "You must enter an IP address", Toast.LENGTH_LONG).show();
-					return;
-				}
-				
-				Toast.makeText(AddComputerManually.this, "Adding PC...", Toast.LENGTH_SHORT).show();
-				computersToAdd.add(hostText.getText().toString());
-			}
-		});
+                ComputerManagerService.class), serviceConnection, Service.BIND_AUTO_CREATE);
 	}
 }

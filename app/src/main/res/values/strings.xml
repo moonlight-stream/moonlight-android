@@ -4,13 +4,9 @@
     <!-- General strings -->
     <string name="ip_hint">IP address of GeForce PC</string>
     
-    <!-- PC view activity -->
-    <string name="title_pc_view">PC List</string>
-    <string name="button_stream_settings">Settings</string>
-    <string name="button_add_pc_manually">Add PC</string>
-    
     <!-- Add computer manually activity -->
-    <string name="button_add_pc">Manually Add PC</string>
+    <string name="title_add_pc">Add PC Manually</string>
+    <string name="button_add_pc">Add PC</string>
 
     <!-- Preferences -->
     <string name="category_basic_settings">Basic Settings</string>

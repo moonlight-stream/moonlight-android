@@ -676,7 +676,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			e.printStackTrace();
 			
 			stopConnection();
-			Dialog.displayDialog(this, "Connection Terminated", "The connection failed unexpectedly", true);
+			Dialog.displayDialog(this, "Connection Terminated", "The connection was terminated", true);
 		}
 	}
 

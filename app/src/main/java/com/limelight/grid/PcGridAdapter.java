@@ -10,7 +10,7 @@ import com.limelight.R;
 public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
     public PcGridAdapter(Context context) {
-        super(context, R.layout.generic_grid_item, R.drawable.computer);
+        super(context, R.layout.pc_grid_item, R.drawable.computer);
     }
 
     public void addComputer(PcView.ComputerObject computer) {

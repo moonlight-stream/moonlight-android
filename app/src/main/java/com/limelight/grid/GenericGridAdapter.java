@@ -28,6 +28,10 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
         this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    public void clear() {
+        itemList.clear();
+    }
+
     @Override
     public int getCount() {
         return itemList.size();

@@ -4,15 +4,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import org.xmlpull.v1.XmlPullParserException;
 
 import com.limelight.binding.PlatformBinding;
+import com.limelight.grid.AppGridAdapter;
 import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
-import com.limelight.R;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
@@ -27,15 +29,14 @@ import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class AppView extends Activity {
-	private ListView appList;
-	private ArrayAdapter<AppObject> appListAdapter;
+	private GridView appGrid;
+	private AppGridAdapter appGridAdapter;
 	private InetAddress ipAddress;
 	private String uniqueId;
 	private boolean remote;
@@ -60,10 +61,11 @@ public class AppView extends Activity {
 		uniqueId = getIntent().getStringExtra(UNIQUEID_EXTRA);
 		remote = getIntent().getBooleanExtra(REMOTE_EXTRA, false);
 		if (address == null || uniqueId == null) {
+            finish();
 			return;
 		}
 		
-		String labelText = "App List for "+getIntent().getStringExtra(NAME_EXTRA);
+		String labelText = "Apps on "+getIntent().getStringExtra(NAME_EXTRA);
 		TextView label = (TextView) findViewById(R.id.appListText);
 		setTitle(labelText);
 		label.setText(labelText);
@@ -71,20 +73,26 @@ public class AppView extends Activity {
 		try {
 			ipAddress = InetAddress.getByAddress(address);
 		} catch (UnknownHostException e) {
-			return;
+            e.printStackTrace();
+            finish();
+            return;
 		}
 		
 		// Setup the list view
-		appList = (ListView)findViewById(R.id.pcListView);
-		appListAdapter = new ArrayAdapter<AppObject>(this, R.layout.simplerow, R.id.rowTextView);
-		appListAdapter.setNotifyOnChange(false);
-		appList.setAdapter(appListAdapter);
-		appList.setItemsCanFocus(true);
-		appList.setOnItemClickListener(new OnItemClickListener() {
+		appGrid = (GridView)findViewById(R.id.appGridView);
+        try {
+            appGridAdapter = new AppGridAdapter(this, ipAddress, uniqueId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            finish();
+            return;
+        }
+        appGrid.setAdapter(appGridAdapter);
+        appGrid.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
 					long id) {
-				AppObject app = appListAdapter.getItem(pos);
+				AppObject app = (AppObject) appGridAdapter.getItem(pos);
 				if (app == null || app.app == null) {
 					return;
 				}
@@ -98,7 +106,7 @@ public class AppView extends Activity {
 				}
 			}
 		});
-        registerForContextMenu(appList);
+        registerForContextMenu(appGrid);
 	}
 	
 	@Override
@@ -118,8 +126,8 @@ public class AppView extends Activity {
 	
 	private int getRunningAppId() {
         int runningAppId = -1;
-        for (int i = 0; i < appListAdapter.getCount(); i++) {
-        	AppObject app = appListAdapter.getItem(i);
+        for (int i = 0; i < appGridAdapter.getCount(); i++) {
+        	AppObject app = (AppObject) appGridAdapter.getItem(i);
         	if (app.app == null) {
         		continue;
         	}
@@ -137,7 +145,7 @@ public class AppView extends Activity {
 		super.onCreateContextMenu(menu, v, menuInfo);
         
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-        AppObject selectedApp = appListAdapter.getItem(info.position);
+        AppObject selectedApp = (AppObject) appGridAdapter.getItem(info.position);
         if (selectedApp == null || selectedApp.app == null) {
         	return;
         }
@@ -162,7 +170,7 @@ public class AppView extends Activity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        AppObject app = appListAdapter.getItem(info.position);
+        AppObject app = (AppObject) appGridAdapter.getItem(info.position);
         switch (item.getItemId())
         {
         case RESUME_ID:
@@ -191,12 +199,8 @@ public class AppView extends Activity {
     	return str.toString();
     }
     
-    private void addListPlaceholder() {
-        appListAdapter.add(new AppObject("No apps found. Try rescanning for games in GeForce Experience.", null));
-    }
-    
     private void updateAppList() {
-		final SpinnerDialog spinner = SpinnerDialog.displayDialog(this, "App List", "Refreshing app list...", true);
+		final SpinnerDialog spinner = SpinnerDialog.displayDialog(this, "App List", "Refreshing apps...", true);
 		new Thread() {
 			@Override
 			public void run() {
@@ -208,17 +212,12 @@ public class AppView extends Activity {
 					AppView.this.runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							appListAdapter.clear();
-							if (appList.isEmpty()) {
-								addListPlaceholder();
-							}
-							else {
-								for (NvApp app : appList) {
-									appListAdapter.add(new AppObject(generateString(app), app));
-								}
-							}
-							
-							appListAdapter.notifyDataSetChanged();
+                            appGridAdapter.clear();
+                            for (NvApp app : appList) {
+                                appGridAdapter.addApp(new AppObject(generateString(app), app));
+                            }
+
+                            appGridAdapter.notifyDataSetChanged();
 						}
 					});
 					
@@ -282,17 +281,15 @@ public class AppView extends Activity {
 	}
 	
 	public class AppObject {
-		public String text;
 		public NvApp app;
 		
 		public AppObject(String text, NvApp app) {
-			this.text = text;
 			this.app = app;
 		}
 		
 		@Override
 		public String toString() {
-			return text;
+			return app.getAppName();
 		}
 	}
 }

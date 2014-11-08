@@ -171,32 +171,22 @@ public class AppView extends Activity {
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
         AppObject app = (AppObject) appGridAdapter.getItem(info.position);
-        switch (item.getItemId())
-        {
-        case RESUME_ID:
-        	// Resume is the same as start for us
-        	doStart(app.app);
-        	return true;
-        	
-        case QUIT_ID:
-        	doQuit(app.app);
-        	return true;
-        	
-        case CANCEL_ID:
-        	return true;
-        	
-        default:
-          return super.onContextItemSelected(item);
-        }
-    }
+        switch (item.getItemId()) {
+            case RESUME_ID:
+                // Resume is the same as start for us
+                doStart(app.app);
+                return true;
 
-    private static String generateString(NvApp app) {
-    	StringBuilder str = new StringBuilder();
-    	str.append(app.getAppName());
-    	if (app.getIsRunning()) {
-    		str.append(" - Running");
-    	}
-    	return str.toString();
+            case QUIT_ID:
+                doQuit(app.app);
+                return true;
+
+            case CANCEL_ID:
+                return true;
+
+            default:
+                return super.onContextItemSelected(item);
+        }
     }
     
     private void updateAppList() {
@@ -214,7 +204,7 @@ public class AppView extends Activity {
 						public void run() {
                             appGridAdapter.clear();
                             for (NvApp app : appList) {
-                                appGridAdapter.addApp(new AppObject(generateString(app), app));
+                                appGridAdapter.addApp(new AppObject(app));
                             }
 
                             appGridAdapter.notifyDataSetChanged();
@@ -283,7 +273,7 @@ public class AppView extends Activity {
 	public class AppObject {
 		public NvApp app;
 		
-		public AppObject(String text, NvApp app) {
+		public AppObject(NvApp app) {
 			this.app = app;
 		}
 		

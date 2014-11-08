@@ -251,9 +251,7 @@ public class PcView extends Activity {
         }
         else if (computer.details.pairState != PairState.PAIRED) {
             menu.add(Menu.NONE, PAIR_ID, 1, "Pair with PC");
-            if (computer.details.reachability == ComputerDetails.Reachability.REMOTE) {
-                menu.add(Menu.NONE, DELETE_ID, 2, "Delete PC");
-            }
+            menu.add(Menu.NONE, DELETE_ID, 2, "Delete PC");
         }
         else {
             menu.add(Menu.NONE, APP_LIST_ID, 1, "View Game List");

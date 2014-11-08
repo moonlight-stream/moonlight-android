@@ -13,27 +13,33 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:numColumns="auto_fit"
-        android:stretchMode="columnWidth"
+        android:columnWidth="160dp"
         android:gravity="center"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/settingsButton"/>
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/manuallyAddPc"
+        android:layout_toRightOf="@+id/settingsButton"/>
 
-    <Button
+    <ImageButton
         android:id="@+id/settingsButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="70dp"
+        android:layout_height="65dp"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:text="@string/button_stream_settings" />
+        android:src="@drawable/settings"
+        style="?android:attr/borderlessButtonStyle"/>
     
-    <Button
+    <ImageButton
         android:id="@+id/manuallyAddPc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="70dp"
+        android:layout_height="65dp"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:text="@string/button_add_pc_manually" />
+        android:src="@drawable/add_computer"
+        style="?android:attr/borderlessButtonStyle"/>
 
 </RelativeLayout>

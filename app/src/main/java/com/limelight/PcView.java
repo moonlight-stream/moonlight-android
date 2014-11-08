@@ -39,11 +39,12 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class PcView extends Activity {
-	private Button settingsButton, addComputerButton;
+	private ImageButton settingsButton, addComputerButton;
 	private GridView pcGrid;
 	private PcGridAdapter pcGridAdapter;
 	private ComputerManagerService.ComputerManagerBinder managerBinder;
@@ -99,8 +100,8 @@ public class PcView extends Activity {
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
 		// Setup the list view
-		settingsButton = (Button)findViewById(R.id.settingsButton);
-		addComputerButton = (Button)findViewById(R.id.manuallyAddPc);
+		settingsButton = (ImageButton)findViewById(R.id.settingsButton);
+		addComputerButton = (ImageButton)findViewById(R.id.manuallyAddPc);
 
 		pcGrid = (GridView)findViewById(R.id.pcGridView);
         pcGrid.setAdapter(pcGridAdapter);

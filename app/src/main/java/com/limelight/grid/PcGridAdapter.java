@@ -50,6 +50,13 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
     @Override
     public boolean populateOverlayView(ImageView overlayView, PcView.ComputerObject obj) {
+        if (obj.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
+            // Still refreshing this PC so display the overlay
+            overlayView.setImageResource(R.drawable.image_loading);
+            return true;
+        }
+
+        // No overlay
         return false;
     }
 }

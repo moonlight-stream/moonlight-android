@@ -110,7 +110,10 @@ public class PcView extends Activity {
 			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
 					long id) {
 				ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
-				if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
+                if (computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
+                    // Do nothing
+                }
+				else if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
 					// Open the context menu if a PC is offline
 					openContextMenu(arg1);
 				}
@@ -235,7 +238,8 @@ public class PcView extends Activity {
                 
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
-        if (computer == null || computer.details == null) {
+        if (computer == null || computer.details == null ||
+                computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
         	startComputerUpdates();
         	return;
         }

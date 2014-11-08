@@ -40,11 +40,13 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class PcView extends Activity {
 	private ImageButton settingsButton, addComputerButton;
+    private RelativeLayout noPcFoundLayout;
 	private GridView pcGrid;
 	private PcGridAdapter pcGridAdapter;
 	private ComputerManagerService.ComputerManagerBinder managerBinder;
@@ -141,6 +143,13 @@ public class PcView extends Activity {
 			}
 		});
 
+        noPcFoundLayout = (RelativeLayout) findViewById(R.id.no_pc_found_layout);
+        if (pcGridAdapter.getCount() == 0) {
+            noPcFoundLayout.setVisibility(View.VISIBLE);
+        }
+        else {
+            noPcFoundLayout.setVisibility(View.INVISIBLE);
+        }
         pcGridAdapter.notifyDataSetChanged();
     }
 	
@@ -542,6 +551,9 @@ public class PcView extends Activity {
 		else {
 			// Add a new entry
             pcGridAdapter.addComputer(new ComputerObject(details));
+
+            // Remove the "Discovery in progress" view
+            noPcFoundLayout.setVisibility(View.INVISIBLE);
 		}
 
         // Notify the view that the data has changed

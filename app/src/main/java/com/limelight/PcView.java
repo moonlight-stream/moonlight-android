@@ -540,10 +540,10 @@ public class PcView extends Activity {
 		else {
 			// Add a new entry
             pcGridAdapter.addComputer(new ComputerObject(details));
-
-            // Notify the view that the data has changed
-            pcGridAdapter.notifyDataSetChanged();
 		}
+
+        // Notify the view that the data has changed
+        pcGridAdapter.notifyDataSetChanged();
 	}
 	
 	public class ComputerObject {

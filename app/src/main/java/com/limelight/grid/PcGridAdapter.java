@@ -6,6 +6,7 @@ import android.widget.TextView;
 
 import com.limelight.PcView;
 import com.limelight.R;
+import com.limelight.nvstream.http.ComputerDetails;
 
 public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
@@ -23,13 +24,32 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
     @Override
     public boolean populateImageView(ImageView imgView, PcView.ComputerObject obj) {
+        if (obj.details.reachability != ComputerDetails.Reachability.OFFLINE) {
+            imgView.setAlpha(1.0f);
+        }
+        else {
+            imgView.setAlpha(0.4f);
+        }
+
         // Return false to use the default drawable
         return false;
     }
 
     @Override
     public boolean populateTextView(TextView txtView, PcView.ComputerObject obj) {
+        if (obj.details.reachability != ComputerDetails.Reachability.OFFLINE) {
+            txtView.setAlpha(1.0f);
+        }
+        else {
+            txtView.setAlpha(0.4f);
+        }
+
         // Return false to use the computer's toString method
+        return false;
+    }
+
+    @Override
+    public boolean populateOverlayView(ImageView overlayView, PcView.ComputerObject obj) {
         return false;
     }
 }

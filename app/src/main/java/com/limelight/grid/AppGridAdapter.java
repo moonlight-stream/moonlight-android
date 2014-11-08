@@ -152,4 +152,16 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         // Return false to use the app's toString method
         return false;
     }
+
+    @Override
+    public boolean populateOverlayView(ImageView overlayView, AppView.AppObject obj) {
+        if (obj.app.getIsRunning()) {
+            // Show the play button overlay
+            overlayView.setImageResource(R.drawable.play);
+            return true;
+        }
+
+        // No overlay
+        return false;
+    }
 }

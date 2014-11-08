@@ -49,6 +49,7 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
 
     public abstract boolean populateImageView(ImageView imgView, T obj);
     public abstract boolean populateTextView(TextView txtView, T obj);
+    public abstract boolean populateOverlayView(ImageView overlayView, T obj);
 
     @Override
     public View getView(int i, View convertView, ViewGroup viewGroup) {
@@ -57,6 +58,7 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
         }
 
         ImageView imgView = (ImageView) convertView.findViewById(R.id.grid_image);
+        ImageView overlayView = (ImageView) convertView.findViewById(R.id.grid_overlay);
         TextView txtView = (TextView) convertView.findViewById(R.id.grid_text);
 
         if (!populateImageView(imgView, itemList.get(i))) {
@@ -64,6 +66,12 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
         }
         if (!populateTextView(txtView, itemList.get(i))) {
             txtView.setText(itemList.get(i).toString());
+        }
+        if (!populateOverlayView(overlayView, itemList.get(i))) {
+            overlayView.setVisibility(View.INVISIBLE);
+        }
+        else {
+            overlayView.setVisibility(View.VISIBLE);
         }
 
         return convertView;

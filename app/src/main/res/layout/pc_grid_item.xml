@@ -3,17 +3,29 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:padding="20dp">
-    <ImageView
-        android:id="@+id/grid_image"
-        android:layout_centerHorizontal="true"
-        android:layout_width="150dp"
-        android:layout_height="100dp">
-    </ImageView>
+    <RelativeLayout
+        android:id="@+id/grid_image_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/grid_image"
+            android:layout_centerHorizontal="true"
+            android:layout_width="150dp"
+            android:layout_height="100dp">
+        </ImageView>
+        <ImageView
+            android:id="@+id/grid_overlay"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_width="50dp"
+            android:layout_height="50dp">
+        </ImageView>
+    </RelativeLayout>
     <TextView
         android:id="@+id/grid_text"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/grid_image"
+        android:layout_below="@id/grid_image_layout"
         android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
         android:gravity="center"

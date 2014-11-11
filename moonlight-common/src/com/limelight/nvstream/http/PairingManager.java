@@ -7,7 +7,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.ShortBufferException;
 import javax.crypto.spec.SecretKeySpec;
-import javax.net.ssl.*;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -15,7 +14,6 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.io.*;
 import java.net.MalformedURLException;
-import java.net.Socket;
 import java.security.*;
 import java.security.cert.*;
 import java.util.Arrays;
@@ -43,66 +41,6 @@ public class PairingManager {
 		this.cert = cryptoProvider.getClientCertificate();
 		this.pemCertBytes = cryptoProvider.getPemEncodedClientCertificate();
 		this.pk = cryptoProvider.getClientPrivateKey();
-		
-		// Update the trust manager and key manager to use our certificate and PK
-	    installSslKeysAndTrust();
-	}
-	
-	private void installSslKeysAndTrust() {
-		// Create a trust manager that does not validate certificate chains
-		TrustManager[] trustAllCerts = new TrustManager[] { 
-				new X509TrustManager() {
-					public X509Certificate[] getAcceptedIssuers() { 
-						return new X509Certificate[0]; 
-					}
-					public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-					public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-				}};
-
-		KeyManager[] ourKeyman = new KeyManager[] {
-				new X509KeyManager() {
-					public String chooseClientAlias(String[] keyTypes,
-							Principal[] issuers, Socket socket) {
-						return "Limelight-RSA";
-					}
-
-					public String chooseServerAlias(String keyType, Principal[] issuers,
-							Socket socket) {
-						return null;
-					}
-
-					public X509Certificate[] getCertificateChain(String alias) {
-						return new X509Certificate[] {cert};
-					}
-
-					public String[] getClientAliases(String keyType, Principal[] issuers) {
-						return null;
-					}
-
-					public PrivateKey getPrivateKey(String alias) {
-						return pk;
-					}
-
-					public String[] getServerAliases(String keyType, Principal[] issuers) {
-						return null;
-					}
-				}
-		};
-
-		// Ignore differences between given hostname and certificate hostname
-		HostnameVerifier hv = new HostnameVerifier() {
-			public boolean verify(String hostname, SSLSession session) { return true; }
-		};
-
-		// Install the all-trusting trust manager
-		try {
-			SSLContext sc = SSLContext.getInstance("SSL");
-			sc.init(ourKeyman, trustAllCerts, new SecureRandom());
-			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-			HttpsURLConnection.setDefaultHostnameVerifier(hv);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 	
 	final private static char[] hexArray = "0123456789ABCDEF".toCharArray();

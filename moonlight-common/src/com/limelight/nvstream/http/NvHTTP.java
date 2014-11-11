@@ -8,14 +8,25 @@ import java.io.StringReader;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.Socket;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.Stack;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.SecretKey;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -23,6 +34,9 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.http.PairingManager.PairState;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.ResponseBody;
 
 
 public class NvHTTP {
@@ -38,6 +52,51 @@ public class NvHTTP {
 
 	public String baseUrl;
 	
+	private OkHttpClient httpClient = new OkHttpClient();
+	private OkHttpClient httpClientWithReadTimeout;
+		
+	private TrustManager[] trustAllCerts;
+	private KeyManager[] ourKeyman;
+	
+	private void initializeHttpState(final LimelightCryptoProvider cryptoProvider) {
+		trustAllCerts = new TrustManager[] { 
+				new X509TrustManager() {
+					public X509Certificate[] getAcceptedIssuers() { 
+						return new X509Certificate[0]; 
+					}
+					public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+					public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+				}};
+
+		ourKeyman = new KeyManager[] {
+				new X509KeyManager() {
+					public String chooseClientAlias(String[] keyTypes,
+							Principal[] issuers, Socket socket) { return "Limelight-RSA"; }
+					public String chooseServerAlias(String keyType, Principal[] issuers,
+							Socket socket) { return null; }
+					public X509Certificate[] getCertificateChain(String alias) {
+						return new X509Certificate[] {cryptoProvider.getClientCertificate()};
+					}
+					public String[] getClientAliases(String keyType, Principal[] issuers) { return null; }
+					public PrivateKey getPrivateKey(String alias) {
+						return cryptoProvider.getClientPrivateKey();
+					}
+					public String[] getServerAliases(String keyType, Principal[] issuers) { return null; }
+				}
+		};
+
+		// Ignore differences between given hostname and certificate hostname
+		HostnameVerifier hv = new HostnameVerifier() {
+			public boolean verify(String hostname, SSLSession session) { return true; }
+		};
+		
+		httpClient.setHostnameVerifier(hv);
+		httpClient.setConnectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
+		
+		httpClientWithReadTimeout = httpClient.clone();
+		httpClientWithReadTimeout.setReadTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS);
+	}
+	
 	public NvHTTP(InetAddress host, String uniqueId, String deviceName, LimelightCryptoProvider cryptoProvider) {
 		this.uniqueId = uniqueId;
 		this.address = host;
@@ -50,6 +109,8 @@ public class NvHTTP {
 		else {
 			safeAddress = host.getHostAddress();
 		}
+		
+		initializeHttpState(cryptoProvider);
 		
 		this.baseUrl = "https://" + safeAddress + ":" + PORT;
 		this.pm = new PairingManager(this, cryptoProvider);
@@ -147,28 +208,42 @@ public class NvHTTP {
 		
 		return details;
 	}
+	
+	// This hack is Android-specific but we do it on all platforms
+	// because it doesn't really matter
+	private void performAndroidTlsHack(OkHttpClient client) {
+		// Doing this each time we create a socket is required
+		// to avoid the SSLv3 fallback that causes connection failures
+		try {
+			SSLContext sc = SSLContext.getInstance("TLSv1");
+			sc.init(ourKeyman, trustAllCerts, new SecureRandom());
+			
+			client.setSslSocketFactory(sc.getSocketFactory());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	// Read timeout should be enabled for any HTTP query that requires no outside action
 	// on the GFE server. Examples of queries that DO require outside action are launch, resume, and quit.
 	// The initial pair query does require outside action (user entering a PIN) but subsequent pairing
 	// queries do not.
-	private InputStream openHttpConnection(String url, boolean enableReadTimeout) throws IOException {
-		URLConnection conn = new URL(url).openConnection();
-		if (verbose) {
-			System.out.println(url);
-		}
-		conn.setConnectTimeout(CONNECTION_TIMEOUT);
-		if (enableReadTimeout) {
-			conn.setReadTimeout(READ_TIMEOUT);
-		}
+	private ResponseBody openHttpConnection(String url, boolean enableReadTimeout) throws IOException {
+		Request request = new Request.Builder().url(url).build();
 		
-		conn.setUseCaches(false);
-		conn.connect();
-		return conn.getInputStream();
+		if (enableReadTimeout) {
+			performAndroidTlsHack(httpClientWithReadTimeout);
+			return httpClientWithReadTimeout.newCall(request).execute().body();
+		}
+		else {
+			performAndroidTlsHack(httpClient);
+			return httpClient.newCall(request).execute().body();
+		}
 	}
 	
 	String openHttpConnectionToString(String url, boolean enableReadTimeout) throws MalformedURLException, IOException {
-		Scanner s = new Scanner(openHttpConnection(url, enableReadTimeout));
+		ResponseBody resp = openHttpConnection(url, enableReadTimeout);
+		Scanner s = new Scanner(resp.byteStream());
 		
 		String str = "";
 		while (s.hasNext()) {
@@ -176,6 +251,7 @@ public class NvHTTP {
 		}
 		
 		s.close();
+		resp.close();
 		
 		if (verbose) {
 			System.out.println(str);
@@ -216,20 +292,13 @@ public class NvHTTP {
 		return pm.pair(uniqueId, pin);
 	}
 	
-	public InputStream getBoxArtPng(NvApp app) throws IOException {
-		// FIXME: Investigate whether this should be subject to the 2 second read timeout
-		// or not.
-		return openHttpConnection(baseUrl + "/appasset?uniqueid="+uniqueId+"&appid="+
-				app.getAppId()+"&AssetType=2&AssetIdx=0", false);
-	}
-	
 	public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId, true);
+		ResponseBody resp = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId, true);
 		XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 		factory.setNamespaceAware(true);
 		XmlPullParser xpp = factory.newPullParser();
 
-		xpp.setInput(new InputStreamReader(in));
+		xpp.setInput(new InputStreamReader(resp.byteStream()));
 		int eventType = xpp.getEventType();
 		LinkedList<NvApp> appList = new LinkedList<NvApp>();
 		Stack<String> currentTag = new Stack<String>();
@@ -261,11 +330,14 @@ public class NvHTTP {
 			}
 			eventType = xpp.next();
 		}
+		
+		resp.close();
+		
 		return appList;
 	}
 	
 	public void unpair() throws IOException {
-		openHttpConnection(baseUrl + "/unpair?uniqueid=" + uniqueId, true);
+		openHttpConnectionToString(baseUrl + "/unpair?uniqueid=" + uniqueId, true);
 	}
 
 	final private static char[] hexArray = "0123456789ABCDEF".toCharArray();
@@ -280,7 +352,7 @@ public class NvHTTP {
 	}
 	
 	public int launchApp(int appId, SecretKey inputKey, int riKeyId, StreamConfiguration config) throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl +
+		String xmlStr = openHttpConnectionToString(baseUrl +
 			"/launch?uniqueid=" + uniqueId +
 			"&appid=" + appId +
 			"&mode=" + config.getWidth() + "x" + config.getHeight() + "x" + config.getRefreshRate() +
@@ -288,21 +360,21 @@ public class NvHTTP {
 			"&rikey="+bytesToHex(inputKey.getEncoded()) +
 			"&rikeyid="+riKeyId +
 			"&localAudioPlayMode=" + (config.getPlayLocalAudio() ? 1 : 0), false);
-		String gameSession = getXmlString(in, "gamesession");
+		String gameSession = getXmlString(xmlStr, "gamesession");
 		return Integer.parseInt(gameSession);
 	}
 	
 	public boolean resumeApp(SecretKey inputKey, int riKeyId) throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/resume?uniqueid=" + uniqueId +
+		String xmlStr = openHttpConnectionToString(baseUrl + "/resume?uniqueid=" + uniqueId +
 				"&rikey="+bytesToHex(inputKey.getEncoded()) +
 				"&rikeyid="+riKeyId, false);
-		String resume = getXmlString(in, "resume");
+		String resume = getXmlString(xmlStr, "resume");
 		return Integer.parseInt(resume) != 0;
 	}
 	
 	public boolean quitApp() throws IOException, XmlPullParserException {
-		InputStream in = openHttpConnection(baseUrl + "/cancel?uniqueid=" + uniqueId, false);
-		String cancel = getXmlString(in, "cancel");
+		String xmlStr = openHttpConnectionToString(baseUrl + "/cancel?uniqueid=" + uniqueId, false);
+		String cancel = getXmlString(xmlStr, "cancel");
 		return Integer.parseInt(cancel) != 0;
 	}
 }

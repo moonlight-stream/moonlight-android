@@ -337,6 +337,7 @@ public class PcView extends Activity {
 					message = "GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU. Using remote desktop software can also cause this error. "
 							+ "Try rebooting your machine or reinstalling GFE.";
 				} catch (Exception e) {
+                    e.printStackTrace();
 					message = e.getMessage();
 				}
 				

@@ -237,35 +237,35 @@ public class PcView extends Activity {
 	}
 	
 	@Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		stopComputerUpdates(false);
 		
 		// Call superclass
 		super.onCreateContextMenu(menu, v, menuInfo);
-                
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-        ComputerObject computer = pcListAdapter.getItem(info.position);
-        if (computer == null || computer.details == null) {
-        	startComputerUpdates();
-        	return;
-        }
-        
-        // Inflate the context menu
-        if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
-            menu.add(Menu.NONE, WOL_ID, 1, "Send Wake-On-LAN request");
-            menu.add(Menu.NONE, DELETE_ID, 2, "Delete PC");
-        }
-        else if (computer.details.pairState != PairState.PAIRED) {
-            menu.add(Menu.NONE, PAIR_ID, 1, "Pair with PC");
-            if (computer.details.reachability == ComputerDetails.Reachability.REMOTE) {
-                menu.add(Menu.NONE, DELETE_ID, 2, "Delete PC");
-            }
-        }
-        else {
-            menu.add(Menu.NONE, APP_LIST_ID, 1, "View Game List");
-            menu.add(Menu.NONE, UNPAIR_ID, 2, "Unpair");
-        }
-    }
+		
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+		ComputerObject computer = pcListAdapter.getItem(info.position);
+		if (computer == null || computer.details == null) {
+			startComputerUpdates();
+			return;
+		}
+		
+		// Inflate the context menu
+		if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
+			menu.add(Menu.NONE, WOL_ID, 1, getResources().getString(R.string.pcview_menu_send_wol));
+			menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
+		}
+		else if (computer.details.pairState != PairState.PAIRED) {
+			menu.add(Menu.NONE, PAIR_ID, 1, getResources().getString(R.string.pcview_menu_pair_pc));
+			if (computer.details.reachability == ComputerDetails.Reachability.REMOTE) {
+				menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
+			}
+		}
+		else {
+			menu.add(Menu.NONE, APP_LIST_ID, 1, getResources().getString(R.string.pcview_menu_app_list));
+			menu.add(Menu.NONE, UNPAIR_ID, 2, getResources().getString(R.string.pcview_menu_unpair_pc));
+		}
+	}
 	
 	@Override
 	public void onContextMenuClosed(Menu menu) {
@@ -274,21 +274,19 @@ public class PcView extends Activity {
 	
 	private void doPair(final ComputerDetails computer) {
 		if (computer.reachability == ComputerDetails.Reachability.OFFLINE) {
-			Toast.makeText(PcView.this, "Computer is offline", Toast.LENGTH_SHORT).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
 			return;
 		}
 		if (computer.runningGameId != 0) {
-			Toast.makeText(PcView.this, "Computer is currently in a game. " +
-					"You must close the game before pairing.", Toast.LENGTH_LONG).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_ingame), Toast.LENGTH_LONG).show();
 			return;
 		}
 		if (managerBinder == null) {
-			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
-					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
 			return;
 		}
 		
-		Toast.makeText(PcView.this, "Pairing...", Toast.LENGTH_SHORT).show();
+		Toast.makeText(PcView.this, getResources().getString(R.string.pairing), Toast.LENGTH_SHORT).show();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -311,23 +309,24 @@ public class PcView extends Activity {
 							PlatformBinding.getDeviceName(), 
 							PlatformBinding.getCryptoProvider(PcView.this));
 					if (httpConn.getPairState() == PairingManager.PairState.PAIRED) {
-						message = "Already paired";
+						message = getResources().getString(R.string.pair_already_paired);
 					}
 					else {
 						final String pinStr = PairingManager.generatePinString();
 						
 						// Spin the dialog off in a thread because it blocks
-						Dialog.displayDialog(PcView.this, "Pairing", "Please enter the following PIN on the target PC: "+pinStr, false);
+						Dialog.displayDialog(PcView.this, getResources().getString(R.string.pair_pairing_title),
+								getResources().getString(R.string.pair_pairing_msg)+" "+pinStr, false);
 						
 						PairingManager.PairState pairState = httpConn.pair(pinStr);
 						if (pairState == PairingManager.PairState.PIN_WRONG) {
-							message = "Incorrect PIN";
+							message = getResources().getString(R.string.pair_incorrect_pin);
 						}
 						else if (pairState == PairingManager.PairState.FAILED) {
-							message = "Pairing failed";
+							message = getResources().getString(R.string.pair_fail);
 						}
 						else if (pairState == PairingManager.PairState.PAIRED) {
-							message = "Paired successfully";
+							message = getResources().getString(R.string.pair_success);
 						}
 						else {
 							// Should be no other values
@@ -335,10 +334,9 @@ public class PcView extends Activity {
 						}
 					}
 				} catch (UnknownHostException e) {
-					message = "Failed to resolve host";
+					message = getResources().getString(R.string.error_unknown_host);
 				} catch (FileNotFoundException e) {
-					message = "GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU. Using remote desktop software can also cause this error. "
-							+ "Try rebooting your machine or reinstalling GFE.";
+					message = getResources().getString(R.string.error_404);
 				} catch (Exception e) {
 					message = e.getMessage();
 				}
@@ -361,26 +359,25 @@ public class PcView extends Activity {
 	
 	private void doWakeOnLan(final ComputerDetails computer) {
 		if (computer.reachability != ComputerDetails.Reachability.OFFLINE) {
-			Toast.makeText(PcView.this, "Computer is online", Toast.LENGTH_SHORT).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.wol_pc_online), Toast.LENGTH_SHORT).show();
 			return;
 		}
 		
 		if (computer.macAddress == null) {
-			Toast.makeText(PcView.this, "Unable to wake PC because GFE didn't send a MAC address", Toast.LENGTH_SHORT).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.wol_no_mac), Toast.LENGTH_SHORT).show();
 			return;
 		}
 		
-		Toast.makeText(PcView.this, "Waking PC...", Toast.LENGTH_SHORT).show();
+		Toast.makeText(PcView.this, getResources().getString(R.string.wol_waking_pc), Toast.LENGTH_SHORT).show();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				String message;
 				try {
 					WakeOnLanSender.sendWolPacket(computer);
-					message = "It may take a few seconds for your PC to wake up. " +
-							"If it doesn't, make sure it's configured properly for Wake-On-LAN.";
+					message = getResources().getString(R.string.wol_waking_msg);
 				} catch (IOException e) {
-					message = "Failed to send Wake-On-LAN packets";
+					message = getResources().getString(R.string.wol_fail);
 				}
 				
 				final String toastMessage = message;
@@ -396,16 +393,15 @@ public class PcView extends Activity {
 	
 	private void doUnpair(final ComputerDetails computer) {
 		if (computer.reachability == ComputerDetails.Reachability.OFFLINE) {
-			Toast.makeText(PcView.this, "Computer is offline", Toast.LENGTH_SHORT).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.error_pc_offline), Toast.LENGTH_SHORT).show();
 			return;
 		}
 		if (managerBinder == null) {
-			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
-					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
 			return;
 		}
 		
-		Toast.makeText(PcView.this, "Unpairing...", Toast.LENGTH_SHORT).show();
+		Toast.makeText(PcView.this, getResources().getString(R.string.unpairing), Toast.LENGTH_SHORT).show();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -427,20 +423,19 @@ public class PcView extends Activity {
 					if (httpConn.getPairState() == PairingManager.PairState.PAIRED) {
 						httpConn.unpair();
 						if (httpConn.getPairState() == PairingManager.PairState.NOT_PAIRED) {
-							message = "Unpaired successfully";
+							message = getResources().getString(R.string.unpair_success);
 						}
 						else {
-							message = "Failed to unpair";
+							message = getResources().getString(R.string.unpair_fail);
 						}
 					}
 					else {
-						message = "Device was not paired";
+						message = getResources().getString(R.string.unpair_error);
 					}
 				} catch (UnknownHostException e) {
-					message = "Failed to resolve host";
+					message = getResources().getString(R.string.error_unknown_host);
 				} catch (FileNotFoundException e) {
-					message = "GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU. Using remote desktop software can also cause this error. "
-							+ "Try rebooting your machine or reinstalling GFE.";
+					message = getResources().getString(R.string.error_404);
 				} catch (Exception e) {
 					message = e.getMessage();
 				}
@@ -458,12 +453,11 @@ public class PcView extends Activity {
 	
 	private void doAppList(ComputerDetails computer) {
 		if (computer.reachability == ComputerDetails.Reachability.OFFLINE) {
-			Toast.makeText(PcView.this, "Computer is offline", Toast.LENGTH_SHORT).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.error_pc_offline), Toast.LENGTH_SHORT).show();
 			return;
 		}
 		if (managerBinder == null) {
-			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
-					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
 			return;
 		}
 		
@@ -482,79 +476,76 @@ public class PcView extends Activity {
 		startActivity(i);
 	}
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        ComputerObject computer = pcListAdapter.getItem(info.position);
-        switch (item.getItemId())
-        {
-        case PAIR_ID:
-        	doPair(computer.details);
-        	return true;
-        	
-        case UNPAIR_ID:
-        	doUnpair(computer.details);
-        	return true;
-        	
-        case WOL_ID:
-        	doWakeOnLan(computer.details);
-        	return true;
-        	
-        case DELETE_ID:
-    		if (managerBinder == null) {
-    			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
-    					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
-    			return true;
-    		}
-        	managerBinder.removeComputer(computer.details.name);
-        	removeListView(computer.details);
-        	return true;
-        	
-        case APP_LIST_ID:
-        	doAppList(computer.details);
-        	return true;
-        	
-        default:
-          return super.onContextItemSelected(item);
-        }
-    }
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+		ComputerObject computer = pcListAdapter.getItem(info.position);
+		switch (item.getItemId())
+		{
+		case PAIR_ID:
+			doPair(computer.details);
+			return true;
+			
+		case UNPAIR_ID:
+			doUnpair(computer.details);
+			return true;
+			
+		case WOL_ID:
+			doWakeOnLan(computer.details);
+			return true;
+			
+		case DELETE_ID:
+			if (managerBinder == null) {
+				Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+				return true;
+			}
+			managerBinder.removeComputer(computer.details.name);
+			removeListView(computer.details);
+			return true;
+			
+		case APP_LIST_ID:
+			doAppList(computer.details);
+			return true;
+			
+		default:
+			return super.onContextItemSelected(item);
+		}
+	}
 
-    private static String generateString(ComputerDetails details) {
-    	StringBuilder str = new StringBuilder();
-    	str.append(details.name).append(" - ");
-    	if (details.state == ComputerDetails.State.ONLINE) {
-    		str.append("Online ");
-    		if (details.reachability == ComputerDetails.Reachability.LOCAL) {
-    			str.append("(Local) - ");
-    		}
-    		else {
-    			str.append("(Remote) - ");
-    		}
-    		if (details.pairState == PairState.PAIRED) {
-    			if (details.runningGameId == 0) {
-    				str.append("Available");
-    			}
-    			else {
-    				str.append("In Game");
-    			}
-    		}
-    		else {
-    			str.append("Not Paired");
-    		}
-    	}
-    	else {
-    		str.append("Offline");
-    	}
-    	return str.toString();
-    }
-    
-    private void addListPlaceholder() {
-        pcListAdapter.add(new ComputerObject("Discovery is running. No computers found yet. " +
-        		"If your PC doesn't show up in about 15 seconds, " +
-        		"make sure your computer is running GFE or add your PC manually using the button above.", null));
-    }
-    
-    private void removeListView(ComputerDetails details) {
+	private static String generateString(ComputerDetails details) {
+		StringBuilder str = new StringBuilder();
+		str.append(details.name).append(" - ");
+		if (details.state == ComputerDetails.State.ONLINE) {
+			str.append(getResources().getString(R.string.status_online)+" ");
+			if (details.reachability == ComputerDetails.Reachability.LOCAL) {
+				str.append("("+getResources().getString(R.string.status_local)+") - ");
+			}
+			else {
+				str.append("("+getResources().getString(R.string.status_remote)+") - ");
+			}
+			if (details.pairState == PairState.PAIRED) {
+				if (details.runningGameId == 0) {
+					str.append(getResources().getString(R.string.status_available));
+				}
+				else {
+					str.append(getResources().getString(R.string.status_ingame));
+				}
+			}
+			else {
+				str.append(getResources().getString(R.string.status_not_paired));
+			}
+		}
+		else {
+			str.append(getResources().getString(R.string.status_offline));
+		}
+		return str.toString();
+	}
+	
+	private void addListPlaceholder() {
+		pcListAdapter.add(new ComputerObject(getResources().getString(R.string.discovery_running), null));
+	}
+	
+	private void removeListView(ComputerDetails details) {
 		for (int i = 0; i < pcListAdapter.getCount(); i++) {
 			ComputerObject computer = pcListAdapter.getItem(i);
 			
@@ -568,8 +559,8 @@ public class PcView extends Activity {
 			// Add the placeholder if we're down to 0 computers
 			addListPlaceholder();
 		}
-    }
-    
+	}
+	
 	private void updateListView(ComputerDetails details) {
 		String computerString = generateString(details);
 		ComputerObject existingEntry = null;

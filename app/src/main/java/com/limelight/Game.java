@@ -113,12 +113,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		
 		// Inflate the content
 		setContentView(R.layout.activity_game);
-
+		
 		// Start the spinner
-		spinner = SpinnerDialog.displayDialog(this, "Establishing Connection", "Starting connection", true);
+		spinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.conn_establishing_title),
+				getResources().getString(R.string.conn_establishing_msg), true);
 		
 		// Read the stream preferences
-        prefConfig = PreferenceConfiguration.readPreferences(this);
+		prefConfig = PreferenceConfiguration.readPreferences(this);
 		switch (prefConfig.decoder) {
 		case PreferenceConfiguration.FORCE_SOFTWARE_DECODER:
 			drFlags |= VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING;
@@ -143,11 +144,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		sv.setOnTouchListener(this);
 		        
 		// Warn the user if they're on a metered connection
-        checkDataConnection();
-        
-        // Make sure Wi-Fi is fully powered up
+		checkDataConnection();
+		
+		// Make sure Wi-Fi is fully powered up
 		WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        wifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Limelight");
+		wifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Limelight");
 		wifiLock.setReferenceCounted(false);
 		wifiLock.acquire();
 		
@@ -214,7 +215,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	{
 		ConnectivityManager mgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		if (mgr.isActiveNetworkMetered()) {
-			displayTransientMessage("Warning: Your active network connection is metered!");
+			displayTransientMessage(getResources().getString(R.string.conn_metered));
 		}
 	}
 
@@ -262,13 +263,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		int averageDecoderLat = decoderRenderer.getAverageDecoderLatency();
 		String message = null;
 		if (averageEndToEndLat > 0) {
-			message = "Average client-side frame latency: "+averageEndToEndLat+" ms";
+			message = getResources().getString(R.string.conn_client_latency)+" "+averageEndToEndLat+" ms";
 			if (averageDecoderLat > 0) {
-				message += " (hardware decoder latency: "+averageDecoderLat+" ms)";
+				message += " ("+getResources().getString(R.string.conn_client_latency_hw)+" "+averageDecoderLat+" ms)";
 			}
 		}
 		else if (averageDecoderLat > 0) {
-			message = "Average hardware decoder latency: "+averageDecoderLat+" ms";
+			message = getResources().getString(R.string.conn_hardware_latency)+" "+averageDecoderLat+" ms";
 		}
 		
 		if (message != null) {
@@ -634,7 +635,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	@Override
 	public void stageStarting(Stage stage) {
 		if (spinner != null) {
-			spinner.setMessage("Starting "+stage.getName());
+			spinner.setMessage(getResources().getString(R.string.conn_starting)+" "+stage.getName());
 		}
 	}
 
@@ -665,7 +666,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		if (!displayedFailureDialog) {
 			displayedFailureDialog = true;
 			stopConnection();
-			Dialog.displayDialog(this, "Connection Error", "Starting "+stage.getName()+" failed", true);
+			Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title),
+					getResources().getString(R.string.conn_error_msg)+" "+stage.getName(), true);
 		}
 	}
 
@@ -676,7 +678,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			e.printStackTrace();
 			
 			stopConnection();
-			Dialog.displayDialog(this, "Connection Terminated", "The connection failed unexpectedly", true);
+			Dialog.displayDialog(this, getResources().getString(R.string.conn_fail_title),
+					getResources().getString(R.string.conn_fail_msg), true);
 		}
 	}
 

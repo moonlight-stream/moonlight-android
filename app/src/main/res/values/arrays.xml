@@ -6,7 +6,7 @@
         <item>1080p 30 FPS</item>
         <item>1080p 60 FPS</item>
     </string-array>
-    <string-array name="resolution_values">
+    <string-array name="resolution_values" translatable="false">
         <item>720p30</item>
         <item>720p60</item>
         <item>1080p30</item>
@@ -14,13 +14,13 @@
     </string-array>
 
     <string-array name="decoder_names">
-        <item>Force Software Decoding</item>
         <item>Auto-select Decoder</item>
+        <item>Force Software Decoding</item>
         <item>Force Hardware Decoding</item>
     </string-array>
-    <string-array name="decoder_values">
-        <item>software</item>
+    <string-array name="decoder_values" translatable="false">
         <item>auto</item>
+        <item>software</item>
         <item>hardware</item>
     </string-array>
 </resources>

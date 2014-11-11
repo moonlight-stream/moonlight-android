@@ -1,13 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Context menu entries -->
+    <string name="pcview_menu_app_list">View Game List</string>
+    <string name="pcview_menu_pair_pc">Pair with PC</string>
+    <string name="pcview_menu_unpair_pc">Unpair</string>
+    <string name="pcview_menu_send_wol">Send Wake-On-LAN request</string>
+    <string name="pcview_menu_delete_pc">Delete PC</string>
+
+    <!-- Pair messages -->
+    <string name="pairing">Pairing...</string>
+    <string name="pair_pc_offline">Computer is offline</string>
+    <string name="pair_pc_ingame">Computer is currently in a game. You must close the game before pairing.</string>
+    <string name="pair_already_paired">Already paired</string>
+    <string name="pair_pairing_title">Pairing</string>
+    <string name="pair_pairing_msg">Please enter the following PIN on the target PC:</string>
+    <string name="pair_incorrect_pin">Incorrect PIN</string>
+    <string name="pair_fail">Pairing failed</string>
+    <string name="pair_success">Paired successfully</string>
+
+    <!-- WOL messages -->
+    <string name="wol_pc_online">Computer is online</string>
+    <string name="wol_no_mac">Unable to wake PC because GFE didn\'t send a MAC address</string>
+    <string name="wol_waking_pc">Waking PC...</string>
+    <string name="wol_waking_msg">It may take a few seconds for your PC to wake up.
+	    If it doesn\'t, make sure it'\s configured properly for Wake-On-LAN.
+    </string>
+    <string name="wol_fail">Failed to send Wake-On-LAN packets</string>
+
+    <!-- Unpair messages -->
+    <string name="unpairing">Unpairing...</string>
+    <string name="unpair_success">Unpaired successfully</string>
+    <string name="unpair_fail">Failed to unpair</string>
+    <string name="unpair_error">Device was not paired</string>
+
+    <!-- Errors -->
+    <string name="error_pc_offline">Computer is offline</string>
+    <string name="error_manager_not_running">The ComputerManager service is not running. Please wait a few seconds or restart the app.</string>
+    <string name="error_unknown_host">Failed to resolve host</string>
+    <string name="error_404">GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU.
+	    Using remote desktop software can also cause this error. Try rebooting your machine or reinstalling GFE.
+    </string>
+
+    <!-- Status info -->
+    <string name="status_online">Online</string>
+    <string name="status_offline">Offline</string>
+    <string name="status_local">Local</string>
+    <string name="status_remote">Remote</string>
+    <string name="status_available">Available</string>
+    <string name="status_ingame">In Game</string>
+    <string name="status_not_paired">Not Paired</string>
+
+    <!-- Start application messages -->
+    <string name="conn_establishing_title">Establishing Connection</string>
+    <string name="conn_establishing_msg">Starting connection</string>
+    <string name="conn_metered">Warning: Your active network connection is metered!</string>
+    <string name="conn_client_latency">Average client-side frame latency:</string>
+    <string name="conn_client_latency_hw">hardware decoder latency:</string>
+    <string name="conn_hardware_latency">Average hardware decoder latency:</string>
+    <string name="conn_starting">Starting</string>
+    <string name="conn_error_title">Connection Error</string>
+    <string name="conn_error_msg">Fail starting</string>
+    <string name="conn_fail_title">Connection Terminated</string>
+    <string name="conn_fail_msg">The connection failed unexpectedly</string>
+
+    <!-- Add computer manually messages -->
+    <string name="addpc_fail">Unable to connect to the specified computer. Make sure the required ports are allowed through the firewall.</string>
+    <string name="addpc_success">Successfully added computer</string>
+    <string name="addpc_unknown_host">Unable to resolve PC address. Make sure you didn\'t make a typo in the address.</string>
+    <string name="addpc_enter_ip">You must enter an IP address</string>
+    <string name="addpc_adding_pc">Adding PC...</string>
+
     <!-- General strings -->
+    <string name="discovery_running">Discovery is running. No computers found yet. If your PC doesn't show up in about 15 seconds,
+	    make sure your computer is running GFE or add your PC manually using the button above.
+    </string>
     <string name="ip_hint">IP address of GeForce PC</string>
     
     <!-- PC view activity -->
     <string name="title_pc_view">PC List</string>
     <string name="button_stream_settings">Streaming Settings</string>
     <string name="button_add_pc_manually">Add PC Manually</string>
+
+    <!-- AppList activity -->
+    <string name="title_applist">App List for</string>
+    <string name="applist_menu_resume">Resume Session</string>
+    <string name="applist_menu_quit">Quit Session</string>
+    <string name="applist_menu_quit_and_start">Quit Current Game and Start</string>
+    <string name="applist_menu_cancel">Cancel</string>
+    <string name="applist_app_running">Running</string>
+    <string name="applist_no_apps">No apps found. Try rescanningfor games in GeForce Experience.</string>
+    <string name="applist_refersh_title">App List</string>
+    <string name="applist_refresh_msg">Refreshing app list...</string>
+    <string name="applist_refersh_error_title">Error</string>
+    <string name="applist_refersh_error_msg">Failed to get app list</string>
+    <string name="applist_quit_app">Quitting</string>
+    <string name="applist_quit_success">Successfully quit</string>
+    <string name="applist_quit_fail">Failed to quit</string>
     
     <!-- Add computer manually activity -->
     <string name="button_add_pc">Manually Add PC</string>

@@ -154,6 +154,13 @@ public class VideoStream {
 			throw new IOException("Video decoder failed to initialize. Please restart your device and try again.");
 		}
 		
+		// Start the renderer
+		if (!decRend.start(depacketizer)) {
+			abort();
+			return false;
+		}
+		startedRendering = true;
+		
 		// Open RTP sockets and start session
 		setupRtpSession();
 		
@@ -172,13 +179,6 @@ public class VideoStream {
 			// Start the receive thread early to avoid missing
 			// early packets
 			startReceiveThread();
-			
-			// Start the renderer
-			if (!decRend.start(depacketizer)) {
-				abort();
-				return false;
-			}
-			startedRendering = true;
 		}
 		
 		return true;

@@ -91,23 +91,9 @@ public class VideoDepacketizer {
 					flags |= DecodeUnit.DU_FLAG_CODEC_CONFIG;
 					break;
 				case 0x65:
-					waitingForIdrFrame = false;
 					flags |= DecodeUnit.DU_FLAG_SYNC_FRAME;
 					break;
-				default:
-					// Other frames types require IDR frames to precede them
-					if (waitingForIdrFrame) {
-						LimeLog.warning("Waiting for IDR frame");
-						dropAvcFrameState();
-						return;
-					}
 				}
-			}
-			else {
-				LimeLog.severe("Internal video depacketizer error: Invalid frame start");
-				controlListener.connectionSinkTooSlow(0, 0);
-				dropAvcFrameState();
-				return;
 			}
 			
 			// Construct the H264 decode unit
@@ -173,6 +159,11 @@ public class VideoDepacketizer {
 						avcFrameDataChain = new LinkedList<ByteBufferDescriptor>();
 						avcFrameDataLength = 0;
 						packetSet = new HashSet<VideoPacket>();
+						
+						if (cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x65) {
+							// This is the NALU code for I-frame data
+							waitingForIdrFrame = false;
+						}
 					}
 
 					// Skip the start sequence
@@ -181,6 +172,12 @@ public class VideoDepacketizer {
 				}
 				else
 				{
+					// Check if this is padding after a full AVC frame
+					if (isDecodingH264 && NAL.isPadding(cachedSpecialDesc)) {
+						// The decode unit is complete
+						reassembleAvcFrame(packet.getFrameIndex());
+					}
+
 					// Not decoding AVC
 					isDecodingH264 = false;
 
@@ -383,6 +380,14 @@ public class VideoDepacketizer {
 				// This is the next successful frame after a loss event
 				controlListener.connectionDetectedFrameLoss(startFrameNumber, nextFrameNumber - 1);
 				waitingForNextSuccessfulFrame = false;
+			}
+			
+			// If we need an IDR frame first, then drop this frame
+			if (waitingForIdrFrame) {
+				LimeLog.warning("Waiting for IDR frame");
+				
+				dropAvcFrameState();
+				return;
 			}
 			
 	        reassembleAvcFrame(frameIndex);

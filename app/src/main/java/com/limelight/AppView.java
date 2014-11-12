@@ -221,7 +221,8 @@ public class AppView extends Activity {
 					spinner.dismiss();
 				}
 				
-				Dialog.displayDialog(AppView.this, "Error", "Failed to get app list", true);
+				Dialog.displayDialog(AppView.this, getResources().getString(R.string.applist_refresh_error_title),
+						getResources().getString(R.string.applist_refresh_error_msg), true);
 			}
 		}.start();
     }

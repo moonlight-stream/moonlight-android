@@ -48,7 +48,8 @@ public class AddComputerManually extends Activity {
 		String msg;
 		boolean finish = false;
 
-        SpinnerDialog dialog = SpinnerDialog.displayDialog(this, "Add PC Manually", "Connecting to the specified PC...", false);
+        SpinnerDialog dialog = SpinnerDialog.displayDialog(this, getResources().getString(R.string.title_add_pc),
+			getResources().getString(R.string.msg_add_pc), false);
 
 		try {
 			InetAddress addr = InetAddress.getByName(host);

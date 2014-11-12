@@ -143,11 +143,9 @@ public class VideoDepacketizer {
 		}
 	}
 	
-	private void addInputDataSlow(VideoPacket packet, ByteBufferDescriptor location,
-			boolean atFrameStart, boolean hasIntraNalPadding)
+	private void addInputDataSlow(VideoPacket packet, ByteBufferDescriptor location)
 	{
-		// If we're at frame start, we aren't yet decoding.
-		boolean isDecodingH264 = !atFrameStart;
+		boolean isDecodingH264 = false;
 		
 		while (location.length != 0)
 		{
@@ -172,7 +170,6 @@ public class VideoDepacketizer {
 						reassembleAvcFrame(packet.getFrameIndex());
 
 						// Setup state for the new NAL
-						frameStartTime = System.currentTimeMillis();
 						avcFrameDataChain = new LinkedList<ByteBufferDescriptor>();
 						avcFrameDataLength = 0;
 						packetSet = new HashSet<VideoPacket>();
@@ -204,15 +201,8 @@ public class VideoDepacketizer {
 					{
 						// Only stop if we're decoding something or this
 						// isn't padding
-						boolean isPadding = NAL.isPadding(cachedSpecialDesc);
-						if (isDecodingH264 || !isPadding)
+						if (isDecodingH264 || !NAL.isPadding(cachedSpecialDesc))
 						{
-							break;
-						}
-						else if (!hasIntraNalPadding && isPadding)
-						{
-							// There's nothing more after this
-							location.length = 0;
 							break;
 						}
 					}
@@ -225,15 +215,6 @@ public class VideoDepacketizer {
 
 			if (isDecodingH264 && avcFrameDataChain != null)
 			{
-				// HACK: It's possible that the last location in the packet could be zero-padded
-				// but not with enough zeros to be an invalid AVC sequence. In this case, we're going to
-				// just guess that 2 zeros in a row at the end are probably padding.
-				if (!hasIntraNalPadding && location.length == 0 &&
-					location.data[location.offset-2] == 0 &&
-					location.data[location.offset-1] == 0) {
-					location.offset -= 2;
-				}
-				
 				ByteBufferDescriptor data = new ByteBufferDescriptor(location.data, start, location.offset-start);
 				
 				if (packetSet.add(packet)) {
@@ -377,18 +358,13 @@ public class VideoDepacketizer {
 		}
 		lastPacketInStream = streamPacketIndex;
 		
-		if ((flags & VideoPacket.FLAG_EOF) != 0)
-		{
-			// The last video packet can also have zero padding which we must strip using the slow path.
-			addInputDataSlow(packet, cachedReassemblyDesc, (flags & VideoPacket.FLAG_SOF) != 0, false);
-		}
-		else if (firstPacket
+		if (firstPacket
 				&& NAL.getSpecialSequenceDescriptor(cachedReassemblyDesc, cachedSpecialDesc)
 				&& NAL.isAvcFrameStart(cachedSpecialDesc)
 				&& cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x67)
 		{
-			// SPS and PPS prefix is padded between NALs, so we must decode it with the slow path.
-			addInputDataSlow(packet, cachedReassemblyDesc, true, true);
+			// SPS and PPS prefix is padded between NALs, so we must decode it with the slow path
+			addInputDataSlow(packet, cachedReassemblyDesc);
 		}
 		else
 		{

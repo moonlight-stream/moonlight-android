@@ -90,10 +90,10 @@
     <string name="applist_menu_cancel">Cancel</string>
     <string name="applist_app_running">Running</string>
     <string name="applist_no_apps">No apps found. Try rescanningfor games in GeForce Experience.</string>
-    <string name="applist_refersh_title">App List</string>
+    <string name="applist_refresh_title">App List</string>
     <string name="applist_refresh_msg">Refreshing app list...</string>
-    <string name="applist_refersh_error_title">Error</string>
-    <string name="applist_refersh_error_msg">Failed to get app list</string>
+    <string name="applist_refresh_error_title">Error</string>
+    <string name="applist_refresh_error_msg">Failed to get app list</string>
     <string name="applist_quit_app">Quitting</string>
     <string name="applist_quit_success">Successfully quit</string>
     <string name="applist_quit_fail">Failed to quit</string>

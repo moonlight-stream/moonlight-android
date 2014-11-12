@@ -678,8 +678,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			e.printStackTrace();
 			
 			stopConnection();
-			Dialog.displayDialog(this, getResources().getString(R.string.conn_fail_title),
-					getResources().getString(R.string.conn_fail_msg), true);
+			Dialog.displayDialog(this, getResources().getString(R.string.conn_terminated_title),
+					getResources().getString(R.string.conn_terminated_msg), true);
 		}
 	}
 

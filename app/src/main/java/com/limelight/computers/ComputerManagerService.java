@@ -151,6 +151,9 @@ public class ComputerManagerService extends Service {
                 for (ComputerDetails computer : computerList) {
                     // This polling thread might already be there
                     if (!pollingThreads.containsKey(computer)) {
+                        // Report this computer initially
+                        listener.notifyComputerUpdated(computer);
+
                         Thread t = createPollingThread(computer);
                         pollingThreads.put(computer, t);
                         t.start();

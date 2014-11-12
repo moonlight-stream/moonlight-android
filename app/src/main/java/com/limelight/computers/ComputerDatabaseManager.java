@@ -99,15 +99,17 @@ public class ComputerDatabaseManager {
 			details.macAddress = c.getString(4);
 			
 			// This signifies we don't have dynamic state (like pair state)
-			details.state = ComputerDetails.State.UNKNOWN;
+            details.state = ComputerDetails.State.UNKNOWN;
+            details.reachability = ComputerDetails.Reachability.UNKNOWN;
 			
 			// If a field is corrupt or missing, skip the database entry
 			if (details.uuid == null || details.localIp == null || details.remoteIp == null ||
 					details.macAddress == null) {
 				continue;
 			}
-			
-			computerList.add(details);
+
+
+            computerList.add(details);
 		}
 		
 		c.close();
@@ -151,6 +153,9 @@ public class ComputerDatabaseManager {
 		details.macAddress = c.getString(4);
 		
 		c.close();
+
+        details.state = ComputerDetails.State.UNKNOWN;
+        details.reachability = ComputerDetails.Reachability.UNKNOWN;
 		
 		// If a field is corrupt or missing, delete the database entry
 		if (details.uuid == null || details.localIp == null || details.remoteIp == null ||

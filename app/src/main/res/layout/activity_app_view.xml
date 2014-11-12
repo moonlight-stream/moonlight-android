@@ -8,19 +8,18 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".AppView" >
 
-    <ListView
-        android:id="@+id/pcListView"
-        android:layout_width="match_parent"
+    <GridView
+        android:id="@+id/appGridView"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:numColumns="auto_fit"
+        android:columnWidth="160dp"
+        android:gravity="center"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/appListText"
-        android:fastScrollEnabled="true"
-        android:longClickable="false"
-        android:background="@drawable/list_view_unselected"
-        android:stackFromBottom="false">
-    </ListView>
+        android:layout_below="@+id/appListText">
+    </GridView>
     
     <TextView
         android:id="@+id/appListText"

@@ -8,46 +8,64 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".PcView" >
 
-    <ListView
-        android:id="@+id/pcListView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/discoveryText"
-        android:background="@drawable/list_view_unselected"
-        android:fastScrollEnabled="true"
-        android:longClickable="false"
-        android:stackFromBottom="false" >
-
-    </ListView>
-    
-    <TextView
-        android:id="@+id/discoveryText"
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_below="@+id/manuallyAddPc"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        android:text="@string/title_pc_view" />
+        android:layout_toLeftOf="@+id/manuallyAddPc"
+        android:layout_toRightOf="@+id/settingsButton">
+        <GridView
+            android:id="@+id/pcGridView"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:numColumns="auto_fit"
+            android:columnWidth="160dp"
+            android:gravity="center"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentTop="true"/>
+        <RelativeLayout
+            android:id="@+id/no_pc_found_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true">
+            <ImageView
+                android:id="@+id/pcs_loading"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:src="@drawable/image_loading"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/pcs_loading"
+                android:layout_marginLeft="5dp"
+                android:layout_centerVertical="true"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:gravity="center"
+                android:text="Searching for PCs on the network..."/>
+        </RelativeLayout>
+    </RelativeLayout>
 
-    <Button
+    <ImageButton
         android:id="@+id/settingsButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+        android:layout_width="70dp"
+        android:layout_height="65dp"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:text="@string/button_stream_settings" />
+        android:src="@drawable/settings"
+        style="?android:attr/borderlessButtonStyle"/>
     
-    <Button
+    <ImageButton
         android:id="@+id/manuallyAddPc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/settingsButton"
-        android:layout_centerHorizontal="true"
-        android:text="@string/button_add_pc_manually" />
+        android:layout_width="70dp"
+        android:layout_height="65dp"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/add_computer"
+        style="?android:attr/borderlessButtonStyle"/>
 
 </RelativeLayout>

@@ -63,6 +63,7 @@
 
     <!-- General strings -->
     <string name="ip_hint">IP address of GeForce PC</string>
+    <string name="searching_pc">Searching for PCs on the network...</string>
     
     <!-- AppList activity -->
     <string name="title_applist">Apps on</string>

@@ -47,14 +47,14 @@ public class AddComputerManually extends Activity {
 			InetAddress addr = InetAddress.getByName(host);
 			
 			if (!managerBinder.addComputerBlocking(addr)){
-				msg = "Unable to connect to the specified computer. Make sure the required ports are allowed through the firewall.";
+				msg = getResources().getString(R.string.addpc_fail);
 			}
 			else {
-				msg = "Successfully added computer";
+				msg = getResources().getString(R.string.addpc_success);
 				finish = true;
 			}
 		} catch (UnknownHostException e) {
-			msg = "Unable to resolve PC address. Make sure you didn't make a typo in the address.";
+			msg = getResources().getString(R.string.addpc_unknown_host);
 		}
 		
 		final boolean toastFinish = finish;
@@ -141,11 +141,11 @@ public class AddComputerManually extends Activity {
 			@Override
 			public void onClick(View v) {
 				if (hostText.getText().length() == 0) {
-					Toast.makeText(AddComputerManually.this, "You must enter an IP address", Toast.LENGTH_LONG).show();
+					Toast.makeText(AddComputerManually.this, getResources().getString(R.string.addpc_enter_ip), Toast.LENGTH_LONG).show();
 					return;
 				}
 				
-				Toast.makeText(AddComputerManually.this, "Adding PC...", Toast.LENGTH_SHORT).show();
+				Toast.makeText(AddComputerManually.this, getResources().getString(R.string.addpc_adding_pc), Toast.LENGTH_SHORT).show();
 				computersToAdd.add(hostText.getText().toString());
 			}
 		});

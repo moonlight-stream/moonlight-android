@@ -9,42 +9,39 @@
     tools:context=".PcView" >
 
     <RelativeLayout
+        android:id="@+id/no_pc_found_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toLeftOf="@+id/manuallyAddPc"
-        android:layout_toRightOf="@+id/settingsButton">
-        <GridView
-            android:id="@+id/pcGridView"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:numColumns="auto_fit"
-            android:columnWidth="160dp"
-            android:gravity="center"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentTop="true"/>
-        <RelativeLayout
-            android:id="@+id/no_pc_found_layout"
+        android:layout_centerInParent="true"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true">
+        <ImageView
+            android:id="@+id/pcs_loading"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:src="@drawable/image_loading"/>
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
+            android:layout_toRightOf="@+id/pcs_loading"
+            android:layout_marginLeft="5dp"
             android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true">
-            <ImageView
-                android:id="@+id/pcs_loading"
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:src="@drawable/image_loading"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toRightOf="@+id/pcs_loading"
-                android:layout_marginLeft="5dp"
-                android:layout_centerVertical="true"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:gravity="center"
-		android:text="@string/searching_pc"/>
-            </RelativeLayout>
-        </RelativeLayout>
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:gravity="center"
+            android:text="@string/searching_pc"/>
+    </RelativeLayout>
+
+    <GridView
+        android:id="@+id/pcGridView"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:numColumns="auto_fit"
+        android:columnWidth="160dp"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/manuallyAddPc"
+        android:layout_toRightOf="@+id/settingsButton"/>
 
     <ImageButton
         android:id="@+id/settingsButton"

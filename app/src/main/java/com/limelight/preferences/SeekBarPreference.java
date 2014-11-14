@@ -71,7 +71,7 @@ public class SeekBarPreference extends DialogPreference
         valueText.setGravity(Gravity.CENTER_HORIZONTAL);
         valueText.setTextSize(32);
         params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.FILL_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
         layout.addView(valueText, params);
 
@@ -90,7 +90,7 @@ public class SeekBarPreference extends DialogPreference
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        layout.addView(seekBar, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        layout.addView(seekBar, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
         if (shouldPersist()) {
             currentValue = getPersistedInt(defaultValue);

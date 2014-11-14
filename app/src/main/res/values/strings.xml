@@ -9,7 +9,7 @@
     <string name="pcview_menu_delete_pc">Delete PC</string>
 
     <!-- Pair messages -->
-    <string name="pairing">Pairing...</string>
+    <string name="pairing">Pairing…</string>
     <string name="pair_pc_offline">Computer is offline</string>
     <string name="pair_pc_ingame">Computer is currently in a game. You must close the game before pairing.</string>
     <string name="pair_pairing_title">Pairing</string>
@@ -21,14 +21,14 @@
     <!-- WOL messages -->
     <string name="wol_pc_online">Computer is online</string>
     <string name="wol_no_mac">Unable to wake PC because GFE didn\'t send a MAC address</string>
-    <string name="wol_waking_pc">Waking PC...</string>
+    <string name="wol_waking_pc">Waking PC…</string>
     <string name="wol_waking_msg">It may take a few seconds for your PC to wake up.
 	    If it doesn\'t, make sure it\'s configured properly for Wake-On-LAN.
     </string>
     <string name="wol_fail">Failed to send Wake-On-LAN packets</string>
 
     <!-- Unpair messages -->
-    <string name="unpairing">Unpairing...</string>
+    <string name="unpairing">Unpairing…</string>
     <string name="unpair_success">Unpaired successfully</string>
     <string name="unpair_fail">Failed to unpair</string>
     <string name="unpair_error">Device was not paired</string>
@@ -62,7 +62,7 @@
 
     <!-- General strings -->
     <string name="ip_hint">IP address of GeForce PC</string>
-    <string name="searching_pc">Searching for PCs on the network...</string>
+    <string name="searching_pc">Searching for PCs on the network…</string>
     
     <!-- AppList activity -->
     <string name="title_applist">Apps on</string>
@@ -71,7 +71,7 @@
     <string name="applist_menu_quit_and_start">Quit Current Game and Start</string>
     <string name="applist_menu_cancel">Cancel</string>
     <string name="applist_refresh_title">App List</string>
-    <string name="applist_refresh_msg">Refreshing apps...</string>
+    <string name="applist_refresh_msg">Refreshing apps…</string>
     <string name="applist_refresh_error_title">Error</string>
     <string name="applist_refresh_error_msg">Failed to get app list</string>
     <string name="applist_quit_app">Quitting</string>
@@ -81,7 +81,7 @@
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>
     <string name="button_add_pc">Add PC</string>
-    <string name="msg_add_pc">Connecting to the specified PC...</string>
+    <string name="msg_add_pc">Connecting to the specified PC…</string>
 
     <!-- Preferences -->
     <string name="category_basic_settings">Basic Settings</string>

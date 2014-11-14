@@ -1,5 +1,6 @@
 package com.limelight.nvstream.http;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -36,6 +37,7 @@ import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.http.PairingManager.PairState;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 import com.squareup.okhttp.ResponseBody;
 
 
@@ -230,14 +232,25 @@ public class NvHTTP {
 	// queries do not.
 	private ResponseBody openHttpConnection(String url, boolean enableReadTimeout) throws IOException {
 		Request request = new Request.Builder().url(url).build();
+		Response response;
 		
 		if (enableReadTimeout) {
 			performAndroidTlsHack(httpClientWithReadTimeout);
-			return httpClientWithReadTimeout.newCall(request).execute().body();
+			response = httpClientWithReadTimeout.newCall(request).execute();
 		}
 		else {
 			performAndroidTlsHack(httpClient);
-			return httpClient.newCall(request).execute().body();
+			response = httpClient.newCall(request).execute();
+		}
+		
+		if (response.isSuccessful()) {
+			return response.body();
+		}
+		else if (response.code() == 404) {
+			throw new FileNotFoundException(url);
+		}
+		else {
+			throw new IOException("HTTP request failed: "+response.code());
 		}
 	}
 	

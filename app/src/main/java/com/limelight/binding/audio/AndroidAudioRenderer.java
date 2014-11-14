@@ -31,23 +31,50 @@ public class AndroidAudioRenderer implements AudioRenderer {
 			return false;
 		}
 
-		bufferSize = Math.max(AudioTrack.getMinBufferSize(sampleRate,
-				channelConfig,
-				AudioFormat.ENCODING_PCM_16BIT),
-				FRAME_SIZE * 2);
-		
-		// Round to next frame
-		bufferSize = (((bufferSize + (FRAME_SIZE - 1)) / FRAME_SIZE) * FRAME_SIZE);
+        // We're not supposed to request less than the minimum
+        // buffer size for our buffer, but it appears that we can
+        // do this on many devices and it lowers audio latency.
+        // We'll try the small buffer size first and if it fails,
+        // use the recommended larger buffer size.
+        try {
+            // Buffer two frames of audio if possible
+            bufferSize = FRAME_SIZE * 2;
+
+            track = new AudioTrack(AudioManager.STREAM_MUSIC,
+                    sampleRate,
+                    channelConfig,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    bufferSize,
+                    AudioTrack.MODE_STREAM);
+            track.play();
+        } catch (Exception e) {
+            // Try to release the AudioTrack if we got far enough
+            try {
+                if (track != null) {
+                    track.release();
+                }
+            } catch (Exception ignored) {}
+
+            // Now try the larger buffer size
+            bufferSize = Math.max(AudioTrack.getMinBufferSize(sampleRate,
+                            channelConfig,
+                            AudioFormat.ENCODING_PCM_16BIT),
+                    FRAME_SIZE * 2);
+
+            // Round to next frame
+            bufferSize = (((bufferSize + (FRAME_SIZE - 1)) / FRAME_SIZE) * FRAME_SIZE);
+
+            track = new AudioTrack(AudioManager.STREAM_MUSIC,
+                    sampleRate,
+                    channelConfig,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    bufferSize,
+                    AudioTrack.MODE_STREAM);
+            track.play();
+        }
 		
 		LimeLog.info("Audio track buffer size: "+bufferSize);
-		track = new AudioTrack(AudioManager.STREAM_MUSIC,
-				sampleRate,
-				channelConfig,
-				AudioFormat.ENCODING_PCM_16BIT,
-				bufferSize,
-				AudioTrack.MODE_STREAM);
 
-		track.play();
 		return true;
 	}
 

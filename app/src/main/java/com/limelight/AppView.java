@@ -187,7 +187,7 @@ public class AppView extends Activity {
     
     private void updateAppList() {
 		final SpinnerDialog spinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.applist_refresh_title),
-				getResources().getString(R.string.applist_refresh_title), true);
+				getResources().getString(R.string.applist_refresh_msg), true);
 		new Thread() {
 			@Override
 			public void run() {

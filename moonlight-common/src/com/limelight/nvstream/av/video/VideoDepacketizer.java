@@ -360,6 +360,9 @@ public class VideoDepacketizer {
 				&& NAL.isAvcFrameStart(cachedSpecialDesc)
 				&& cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x67)
 		{
+			// The slow path doesn't update the frame start time by itself
+			frameStartTime = System.currentTimeMillis();
+			
 			// SPS and PPS prefix is padded between NALs, so we must decode it with the slow path
 			addInputDataSlow(packet, cachedReassemblyDesc);
 		}

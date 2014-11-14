@@ -295,6 +295,7 @@ public class PcView extends Activity {
 			public void run() {
 				NvHTTP httpConn;
 				String message;
+                boolean success = false;
 				try {
 					// Stop updates and wait while pairing
 					stopComputerUpdates(true);
@@ -312,7 +313,9 @@ public class PcView extends Activity {
 							PlatformBinding.getDeviceName(), 
 							PlatformBinding.getCryptoProvider(PcView.this));
 					if (httpConn.getPairState() == PairingManager.PairState.PAIRED) {
-						message = "Already paired";
+                        // Don't display any toast, but open the app list
+						message = null;
+                        success = true;
 					}
 					else {
 						final String pinStr = PairingManager.generatePinString();
@@ -329,6 +332,7 @@ public class PcView extends Activity {
 						}
 						else if (pairState == PairingManager.PairState.PAIRED) {
 							message = "Paired successfully";
+                            success = true;
 						}
 						else {
 							// Should be no other values
@@ -348,10 +352,18 @@ public class PcView extends Activity {
 				Dialog.closeDialogs();
 				
 				final String toastMessage = message;
+                final boolean toastSuccess = success;
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-						Toast.makeText(PcView.this, toastMessage, Toast.LENGTH_LONG).show();
+                        if (toastMessage != null) {
+                            Toast.makeText(PcView.this, toastMessage, Toast.LENGTH_LONG).show();
+                        }
+
+                        if (toastSuccess) {
+                            // Open the app list after a successful pairing attemp
+                            doAppList(computer);
+                        }
 					}
 				});
 				

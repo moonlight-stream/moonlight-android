@@ -62,7 +62,7 @@
 
     <!-- General strings -->
     <string name="ip_hint">IP address of GeForce PC</string>
-    <string name="searching_pc">Searching for PCs on the network…</string>
+    <string name="searching_pc">Searching for PCs…</string>
     
     <!-- AppList activity -->
     <string name="title_applist">Apps on</string>
@@ -81,7 +81,7 @@
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>
     <string name="button_add_pc">Add PC</string>
-    <string name="msg_add_pc">Connecting to the specified PC…</string>
+    <string name="msg_add_pc">Connecting to the PC…</string>
 
     <!-- Preferences -->
     <string name="category_basic_settings">Basic Settings</string>

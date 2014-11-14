@@ -37,7 +37,6 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
@@ -114,6 +113,7 @@ public class PcView extends Activity {
 				ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
                 if (computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
                     // Do nothing
+                    return;
                 }
 				else if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
 					// Open the context menu if a PC is offline
@@ -239,7 +239,7 @@ public class PcView extends Activity {
 	}
 	
 	@Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		stopComputerUpdates(false);
 		
 		// Call superclass
@@ -255,16 +255,16 @@ public class PcView extends Activity {
         
         // Inflate the context menu
         if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
-            menu.add(Menu.NONE, WOL_ID, 1, "Send Wake-On-LAN request");
-            menu.add(Menu.NONE, DELETE_ID, 2, "Delete PC");
+            menu.add(Menu.NONE, WOL_ID, 1, getResources().getString(R.string.pcview_menu_send_wol));
+            menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
         }
         else if (computer.details.pairState != PairState.PAIRED) {
-            menu.add(Menu.NONE, PAIR_ID, 1, "Pair with PC");
-            menu.add(Menu.NONE, DELETE_ID, 2, "Delete PC");
+            menu.add(Menu.NONE, PAIR_ID, 1, getResources().getString(R.string.pcview_menu_pair_pc));
+            menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
         }
         else {
-            menu.add(Menu.NONE, APP_LIST_ID, 1, "View Game List");
-            menu.add(Menu.NONE, UNPAIR_ID, 2, "Unpair");
+            menu.add(Menu.NONE, APP_LIST_ID, 1, getResources().getString(R.string.pcview_menu_app_list));
+            menu.add(Menu.NONE, UNPAIR_ID, 2, getResources().getString(R.string.pcview_menu_unpair_pc));
         }
     }
 	
@@ -275,21 +275,19 @@ public class PcView extends Activity {
 	
 	private void doPair(final ComputerDetails computer) {
 		if (computer.reachability == ComputerDetails.Reachability.OFFLINE) {
-			Toast.makeText(PcView.this, "Computer is offline", Toast.LENGTH_SHORT).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
 			return;
 		}
 		if (computer.runningGameId != 0) {
-			Toast.makeText(PcView.this, "Computer is currently in a game. " +
-					"You must close the game before pairing.", Toast.LENGTH_LONG).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_ingame), Toast.LENGTH_LONG).show();
 			return;
 		}
 		if (managerBinder == null) {
-			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
-					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
 			return;
 		}
 		
-		Toast.makeText(PcView.this, "Pairing...", Toast.LENGTH_SHORT).show();
+		Toast.makeText(PcView.this, getResources().getString(R.string.pairing), Toast.LENGTH_SHORT).show();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -321,17 +319,18 @@ public class PcView extends Activity {
 						final String pinStr = PairingManager.generatePinString();
 						
 						// Spin the dialog off in a thread because it blocks
-						Dialog.displayDialog(PcView.this, "Pairing", "Please enter the following PIN on the target PC: "+pinStr, false);
+						Dialog.displayDialog(PcView.this, getResources().getString(R.string.pair_pairing_title),
+								getResources().getString(R.string.pair_pairing_msg)+" "+pinStr, false);
 						
 						PairingManager.PairState pairState = httpConn.pair(pinStr);
 						if (pairState == PairingManager.PairState.PIN_WRONG) {
-							message = "Incorrect PIN";
+							message = getResources().getString(R.string.pair_incorrect_pin);
 						}
 						else if (pairState == PairingManager.PairState.FAILED) {
-							message = "Pairing failed";
+							message = getResources().getString(R.string.pair_fail);
 						}
 						else if (pairState == PairingManager.PairState.PAIRED) {
-							message = "Paired successfully";
+                            message = getResources().getString(R.string.pair_success);
                             success = true;
 						}
 						else {
@@ -340,10 +339,9 @@ public class PcView extends Activity {
 						}
 					}
 				} catch (UnknownHostException e) {
-					message = "Failed to resolve host";
+					message = getResources().getString(R.string.error_unknown_host);
 				} catch (FileNotFoundException e) {
-					message = "GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU. Using remote desktop software can also cause this error. "
-							+ "Try rebooting your machine or reinstalling GFE.";
+					message = getResources().getString(R.string.error_404);
 				} catch (Exception e) {
                     e.printStackTrace();
 					message = e.getMessage();
@@ -375,26 +373,25 @@ public class PcView extends Activity {
 	
 	private void doWakeOnLan(final ComputerDetails computer) {
 		if (computer.reachability != ComputerDetails.Reachability.OFFLINE) {
-			Toast.makeText(PcView.this, "Computer is online", Toast.LENGTH_SHORT).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.wol_pc_online), Toast.LENGTH_SHORT).show();
 			return;
 		}
 		
 		if (computer.macAddress == null) {
-			Toast.makeText(PcView.this, "Unable to wake PC because GFE didn't send a MAC address", Toast.LENGTH_SHORT).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.wol_no_mac), Toast.LENGTH_SHORT).show();
 			return;
 		}
 		
-		Toast.makeText(PcView.this, "Waking PC...", Toast.LENGTH_SHORT).show();
+		Toast.makeText(PcView.this, getResources().getString(R.string.wol_waking_pc), Toast.LENGTH_SHORT).show();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				String message;
 				try {
 					WakeOnLanSender.sendWolPacket(computer);
-					message = "It may take a few seconds for your PC to wake up. " +
-							"If it doesn't, make sure it's configured properly for Wake-On-LAN.";
+					message = getResources().getString(R.string.wol_waking_msg);
 				} catch (IOException e) {
-					message = "Failed to send Wake-On-LAN packets";
+					message = getResources().getString(R.string.wol_fail);
 				}
 				
 				final String toastMessage = message;
@@ -410,16 +407,15 @@ public class PcView extends Activity {
 	
 	private void doUnpair(final ComputerDetails computer) {
 		if (computer.reachability == ComputerDetails.Reachability.OFFLINE) {
-			Toast.makeText(PcView.this, "Computer is offline", Toast.LENGTH_SHORT).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.error_pc_offline), Toast.LENGTH_SHORT).show();
 			return;
 		}
 		if (managerBinder == null) {
-			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
-					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
 			return;
 		}
 		
-		Toast.makeText(PcView.this, "Unpairing...", Toast.LENGTH_SHORT).show();
+		Toast.makeText(PcView.this, getResources().getString(R.string.unpairing), Toast.LENGTH_SHORT).show();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -441,20 +437,19 @@ public class PcView extends Activity {
 					if (httpConn.getPairState() == PairingManager.PairState.PAIRED) {
 						httpConn.unpair();
 						if (httpConn.getPairState() == PairingManager.PairState.NOT_PAIRED) {
-							message = "Unpaired successfully";
+							message = getResources().getString(R.string.unpair_success);
 						}
 						else {
-							message = "Failed to unpair";
+							message = getResources().getString(R.string.unpair_fail);
 						}
 					}
 					else {
-						message = "Device was not paired";
+						message = getResources().getString(R.string.unpair_error);
 					}
 				} catch (UnknownHostException e) {
-					message = "Failed to resolve host";
+					message = getResources().getString(R.string.error_unknown_host);
 				} catch (FileNotFoundException e) {
-					message = "GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU. Using remote desktop software can also cause this error. "
-							+ "Try rebooting your machine or reinstalling GFE.";
+					message = getResources().getString(R.string.error_404);
 				} catch (Exception e) {
 					message = e.getMessage();
 				}
@@ -472,12 +467,11 @@ public class PcView extends Activity {
 	
 	private void doAppList(ComputerDetails computer) {
 		if (computer.reachability == ComputerDetails.Reachability.OFFLINE) {
-			Toast.makeText(PcView.this, "Computer is offline", Toast.LENGTH_SHORT).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.error_pc_offline), Toast.LENGTH_SHORT).show();
 			return;
 		}
 		if (managerBinder == null) {
-			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
-					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
+			Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
 			return;
 		}
 		
@@ -516,8 +510,7 @@ public class PcView extends Activity {
         	
         case DELETE_ID:
     		if (managerBinder == null) {
-    			Toast.makeText(PcView.this, "The ComputerManager service is not running. " +
-    					"Please wait a few seconds or restart the app.", Toast.LENGTH_LONG).show();
+    			Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
     			return true;
     		}
         	managerBinder.removeComputer(computer.details.name);

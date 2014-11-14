@@ -65,7 +65,7 @@ public class AppView extends Activity {
 			return;
 		}
 		
-		String labelText = "Apps on "+getIntent().getStringExtra(NAME_EXTRA);
+		String labelText = getResources().getString(R.string.title_applist)+" "+getIntent().getStringExtra(NAME_EXTRA);
 		TextView label = (TextView) findViewById(R.id.appListText);
 		setTitle(labelText);
 		label.setText(labelText);
@@ -141,7 +141,7 @@ public class AppView extends Activity {
 	}
 	
 	@Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
         
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
@@ -153,12 +153,12 @@ public class AppView extends Activity {
         int runningAppId = getRunningAppId();
         if (runningAppId != -1) {
         	if (runningAppId == selectedApp.app.getAppId()) {
-                menu.add(Menu.NONE, RESUME_ID, 1, "Resume Session");
-                menu.add(Menu.NONE, QUIT_ID, 2, "Quit Session");
+                menu.add(Menu.NONE, RESUME_ID, 1, getResources().getString(R.string.applist_menu_resume));
+                menu.add(Menu.NONE, QUIT_ID, 2, getResources().getString(R.string.applist_menu_quit));
         	}
         	else {
-                menu.add(Menu.NONE, RESUME_ID, 1, "Quit Current Game and Start");
-                menu.add(Menu.NONE, CANCEL_ID, 2, "Cancel");
+                menu.add(Menu.NONE, RESUME_ID, 1, getResources().getString(R.string.applist_menu_quit_and_start));
+                menu.add(Menu.NONE, CANCEL_ID, 2, getResources().getString(R.string.applist_menu_cancel));
         	}
         }
     }
@@ -190,7 +190,8 @@ public class AppView extends Activity {
     }
     
     private void updateAppList() {
-		final SpinnerDialog spinner = SpinnerDialog.displayDialog(this, "App List", "Refreshing apps...", true);
+		final SpinnerDialog spinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.applist_refresh_title),
+				getResources().getString(R.string.applist_refresh_title), true);
 		new Thread() {
 			@Override
 			public void run() {
@@ -220,7 +221,8 @@ public class AppView extends Activity {
 					spinner.dismiss();
 				}
 				
-				Dialog.displayDialog(AppView.this, "Error", "Failed to get app list", true);
+				Dialog.displayDialog(AppView.this, getResources().getString(R.string.applist_refresh_error_title),
+						getResources().getString(R.string.applist_refresh_error_msg), true);
 			}
 		}.start();
     }
@@ -235,7 +237,7 @@ public class AppView extends Activity {
 	}
 	
 	private void doQuit(final NvApp app) {
-		Toast.makeText(AppView.this, "Quitting "+app.getAppName()+"...", Toast.LENGTH_SHORT).show();
+		Toast.makeText(AppView.this, getResources().getString(R.string.applist_quit_app)+" "+app.getAppName()+"...", Toast.LENGTH_SHORT).show();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -244,17 +246,16 @@ public class AppView extends Activity {
 				try {
 					httpConn = new NvHTTP(ipAddress, uniqueId, null,  PlatformBinding.getCryptoProvider(AppView.this));
 					if (httpConn.quitApp()) {
-						message = "Successfully quit "+app.getAppName();
+						message = getResources().getString(R.string.applist_quit_success)+" "+app.getAppName();
 					}
 					else {
-						message = "Failed to quit "+app.getAppName();
+						message = getResources().getString(R.string.applist_quit_fail)+" "+app.getAppName();
 					}
 					updateAppList();
 				} catch (UnknownHostException e) {
-					message = "Failed to resolve host";
+					message = getResources().getString(R.string.error_unknown_host);
 				} catch (FileNotFoundException e) {
-					message = "GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU. Using remote desktop software can also cause this error. "
-							+ "Try rebooting your machine or reinstalling GFE.";
+					message = getResources().getString(R.string.error_404);
 				} catch (Exception e) {
 					message = e.getMessage();
 				}

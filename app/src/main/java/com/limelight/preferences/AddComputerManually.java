@@ -48,20 +48,21 @@ public class AddComputerManually extends Activity {
 		String msg;
 		boolean finish = false;
 
-        SpinnerDialog dialog = SpinnerDialog.displayDialog(this, "Add PC Manually", "Connecting to the specified PC...", false);
+        SpinnerDialog dialog = SpinnerDialog.displayDialog(this, getResources().getString(R.string.title_add_pc),
+			getResources().getString(R.string.msg_add_pc), false);
 
 		try {
 			InetAddress addr = InetAddress.getByName(host);
 			
 			if (!managerBinder.addComputerBlocking(addr)){
-				msg = "Unable to connect to the specified computer. Make sure the required ports are allowed through the firewall.";
+				msg = getResources().getString(R.string.addpc_fail);
 			}
 			else {
-				msg = "Successfully added computer";
+				msg = getResources().getString(R.string.addpc_success);
 				finish = true;
 			}
 		} catch (UnknownHostException e) {
-			msg = "Unable to resolve PC address. Make sure you didn't make a typo in the address.";
+			msg = getResources().getString(R.string.addpc_unknown_host);
 		}
 
         dialog.dismiss();
@@ -149,7 +150,7 @@ public class AddComputerManually extends Activity {
                         keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
                                 keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
                     if (hostText.getText().length() == 0) {
-                        Toast.makeText(AddComputerManually.this, "You must enter an IP address", Toast.LENGTH_LONG).show();
+                        Toast.makeText(AddComputerManually.this, getResources().getString(R.string.addpc_enter_ip), Toast.LENGTH_LONG).show();
                         return true;
                     }
 
@@ -162,6 +163,6 @@ public class AddComputerManually extends Activity {
 		
 		// Bind to the ComputerManager service
 		bindService(new Intent(AddComputerManually.this,
-                ComputerManagerService.class), serviceConnection, Service.BIND_AUTO_CREATE);
+					ComputerManagerService.class), serviceConnection, Service.BIND_AUTO_CREATE);
 	}
 }

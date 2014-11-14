@@ -42,7 +42,7 @@
                 android:layout_centerVertical="true"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:gravity="center"
-                android:text="Searching for PCs on the network..."/>
+		android:text="@string/searching_pc"/>
             </RelativeLayout>
         </RelativeLayout>
 

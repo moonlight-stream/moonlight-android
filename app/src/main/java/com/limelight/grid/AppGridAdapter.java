@@ -1,7 +1,6 @@
 package com.limelight.grid;
 
 import android.content.Context;
-import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 

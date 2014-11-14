@@ -8,7 +8,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.limelight.PcView;
 import com.limelight.R;
 
 import java.util.ArrayList;

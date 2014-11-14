@@ -37,6 +37,7 @@ public class AppView extends Activity {
 	private InetAddress ipAddress;
 	private String uniqueId;
 	private boolean remote;
+    private boolean firstLoad = true;
 	
 	private final static int RESUME_ID = 1;
 	private final static int QUIT_ID = 2;
@@ -116,8 +117,12 @@ public class AppView extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
-        updateAppList();
+
+        // Display the error message if it was the
+        // first load, but just kill the activity
+        // on subsequent errors
+        updateAppList(firstLoad);
+        firstLoad = false;
 	}
 	
 	private int getRunningAppId() {
@@ -185,7 +190,7 @@ public class AppView extends Activity {
         }
     }
     
-    private void updateAppList() {
+    private void updateAppList(final boolean displayError) {
 		final SpinnerDialog spinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.applist_refresh_title),
 				getResources().getString(R.string.applist_refresh_msg), true);
 		new Thread() {
@@ -216,9 +221,20 @@ public class AppView extends Activity {
 				} finally {
 					spinner.dismiss();
 				}
-				
-				Dialog.displayDialog(AppView.this, getResources().getString(R.string.applist_refresh_error_title),
-						getResources().getString(R.string.applist_refresh_error_msg), true);
+
+                if (displayError) {
+                    Dialog.displayDialog(AppView.this, getResources().getString(R.string.applist_refresh_error_title),
+                            getResources().getString(R.string.applist_refresh_error_msg), true);
+                }
+                else {
+                    // Just finish the activity immediately
+                    AppView.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            finish();
+                        }
+                    });
+                }
 			}
 		}.start();
     }
@@ -247,7 +263,7 @@ public class AppView extends Activity {
 					else {
 						message = getResources().getString(R.string.applist_quit_fail)+" "+app.getAppName();
 					}
-					updateAppList();
+					updateAppList(true);
 				} catch (UnknownHostException e) {
 					message = getResources().getString(R.string.error_unknown_host);
 				} catch (FileNotFoundException e) {

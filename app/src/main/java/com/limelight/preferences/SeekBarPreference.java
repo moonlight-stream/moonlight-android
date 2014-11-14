@@ -19,7 +19,7 @@ public class SeekBarPreference extends DialogPreference
     private static final String SCHEMA_URL = "http://schemas.android.com/apk/res/android";
 
     private SeekBar seekBar;
-    private TextView splashText, valueText;
+    private TextView valueText;
     private Context context;
 
     private String dialogMessage, suffix;
@@ -60,7 +60,7 @@ public class SeekBarPreference extends DialogPreference
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(6, 6, 6, 6);
 
-        splashText = new TextView(context);
+        TextView splashText = new TextView(context);
         splashText.setPadding(30, 10, 30, 10);
         if (dialogMessage != null) {
             splashText.setText(dialogMessage);
@@ -149,10 +149,10 @@ public class SeekBarPreference extends DialogPreference
                 if (shouldPersist()) {
                     currentValue = seekBar.getProgress();
                     persistInt(seekBar.getProgress());
-                    callChangeListener(Integer.valueOf(seekBar.getProgress()));
+                    callChangeListener(seekBar.getProgress());
                 }
 
-                ((AlertDialog) getDialog()).dismiss();
+                getDialog().dismiss();
             }
         });
     }

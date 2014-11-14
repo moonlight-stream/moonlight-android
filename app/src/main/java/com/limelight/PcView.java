@@ -44,10 +44,8 @@ import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class PcView extends Activity {
-	private ImageButton settingsButton, addComputerButton;
     private RelativeLayout noPcFoundLayout;
-	private GridView pcGrid;
-	private PcGridAdapter pcGridAdapter;
+    private PcGridAdapter pcGridAdapter;
 	private ComputerManagerService.ComputerManagerBinder managerBinder;
 	private boolean freezeUpdates, runningPolling;
 	private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -101,47 +99,43 @@ public class PcView extends Activity {
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
 		// Setup the list view
-		settingsButton = (ImageButton)findViewById(R.id.settingsButton);
-		addComputerButton = (ImageButton)findViewById(R.id.manuallyAddPc);
+        ImageButton settingsButton = (ImageButton) findViewById(R.id.settingsButton);
+        ImageButton addComputerButton = (ImageButton) findViewById(R.id.manuallyAddPc);
 
-		pcGrid = (GridView)findViewById(R.id.pcGridView);
+        GridView pcGrid = (GridView) findViewById(R.id.pcGridView);
         pcGrid.setAdapter(pcGridAdapter);
         pcGrid.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
-					long id) {
-				ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
+                                    long id) {
+                ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
                 if (computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
                     // Do nothing
-                    return;
+                } else if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
+                    // Open the context menu if a PC is offline
+                    openContextMenu(arg1);
+                } else if (computer.details.pairState != PairState.PAIRED) {
+                    // Pair an unpaired machine by default
+                    doPair(computer.details);
+                } else {
+                    doAppList(computer.details);
                 }
-				else if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
-					// Open the context menu if a PC is offline
-					openContextMenu(arg1);
-				}
-				else if (computer.details.pairState != PairState.PAIRED) {
-					// Pair an unpaired machine by default
-					doPair(computer.details);
-				}
-				else {
-					doAppList(computer.details);
-				}
-			}
-		});
+            }
+        });
 		registerForContextMenu(pcGrid);
 		settingsButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				startActivity(new Intent(PcView.this, StreamSettings.class));
-			}
-		});
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(PcView.this, StreamSettings.class));
+            }
+        });
 		addComputerButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent i = new Intent(PcView.this, AddComputerManually.class);
-				startActivity(i);
-			}
-		});
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(PcView.this, AddComputerManually.class);
+                startActivity(i);
+            }
+        });
 
         noPcFoundLayout = (RelativeLayout) findViewById(R.id.no_pc_found_layout);
         if (pcGridAdapter.getCount() == 0) {

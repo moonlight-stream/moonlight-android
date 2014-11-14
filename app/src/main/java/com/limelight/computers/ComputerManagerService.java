@@ -30,7 +30,7 @@ public class ComputerManagerService extends Service {
 	private AtomicInteger dbRefCount = new AtomicInteger(0);
 	
 	private IdentityManager idManager;
-	private HashMap<ComputerDetails, Thread> pollingThreads;
+	private final HashMap<ComputerDetails, Thread> pollingThreads = new HashMap<ComputerDetails, Thread>();
 	private ComputerManagerListener listener = null;
 	private AtomicInteger activePolls = new AtomicInteger(0);
 
@@ -355,8 +355,6 @@ public class ComputerManagerService extends Service {
 		// Bind to the discovery service
 		bindService(new Intent(this, DiscoveryService.class),
 				discoveryServiceConnection, Service.BIND_AUTO_CREATE);
-
-		pollingThreads = new HashMap<ComputerDetails, Thread>();
 		
 		// Lookup or generate this device's UID
 		idManager = new IdentityManager(this);

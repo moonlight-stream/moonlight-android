@@ -14,7 +14,7 @@ public class UiHelper {
 
     public static void notifyNewRootView(Activity activity)
     {
-        View rootView = (View) activity.findViewById(android.R.id.content);
+        View rootView = activity.findViewById(android.R.id.content);
         UiModeManager modeMgr = (UiModeManager) activity.getSystemService(Context.UI_MODE_SERVICE);
 
         if (modeMgr.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION)

@@ -395,7 +395,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		}
 		
 		// Try the controller handler first
-		boolean handled = controllerHandler.handleButtonDown(keyCode, event);
+		boolean handled = controllerHandler.handleButtonDown(event);
 		if (!handled) {
 			// Try the keyboard handler
 			short translated = keybTranslator.translate(event.getKeyCode());
@@ -438,7 +438,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		}
 		
 		// Try the controller handler first
-		boolean handled = controllerHandler.handleButtonUp(keyCode, event);
+		boolean handled = controllerHandler.handleButtonUp(event);
 		if (!handled) {
 			// Try the keyboard handler
 			short translated = keybTranslator.translate(event.getKeyCode());

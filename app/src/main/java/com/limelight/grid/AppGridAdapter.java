@@ -36,7 +36,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     private String uniqueId;
     private LimelightCryptoProvider cryptoProvider;
     private SSLContext sslContext;
-    private HashMap<ImageView, Future> pendingRequests = new HashMap<ImageView, Future>();
+    private final HashMap<ImageView, Future> pendingRequests = new HashMap<ImageView, Future>();
 
     public AppGridAdapter(Context context, InetAddress address, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
         super(context, R.layout.app_grid_item, R.drawable.image_loading);

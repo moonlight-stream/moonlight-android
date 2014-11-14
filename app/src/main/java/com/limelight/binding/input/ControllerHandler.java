@@ -398,13 +398,13 @@ public class ControllerHandler {
 		return true;
 	}
 	
-	public boolean handleButtonUp(int keyCode, KeyEvent event) {
+	public boolean handleButtonUp(KeyEvent event) {
 		ControllerMapping mapping = getMappingForDevice(event.getDevice());
 		if (mapping == null) {
 			return false;
 		}
-		
-		keyCode = handleRemapping(mapping, event);
+
+        int keyCode = handleRemapping(mapping, event);
 		if (keyCode == 0) {
 			return true;
 		}
@@ -521,13 +521,13 @@ public class ControllerHandler {
 		return true;
 	}
 	
-	public boolean handleButtonDown(int keyCode, KeyEvent event) {
+	public boolean handleButtonDown(KeyEvent event) {
 		ControllerMapping mapping = getMappingForDevice(event.getDevice());
 		if (mapping == null) {
 			return false;
 		}
-		
-		keyCode = handleRemapping(mapping, event);
+
+        int keyCode = handleRemapping(mapping, event);
 		if (keyCode == 0) {
 			return true;
 		}

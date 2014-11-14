@@ -33,8 +33,7 @@ import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class AppView extends Activity {
-	private GridView appGrid;
-	private AppGridAdapter appGridAdapter;
+    private AppGridAdapter appGridAdapter;
 	private InetAddress ipAddress;
 	private String uniqueId;
 	private boolean remote;
@@ -77,7 +76,7 @@ public class AppView extends Activity {
 		}
 		
 		// Setup the list view
-		appGrid = (GridView)findViewById(R.id.appGridView);
+        GridView appGrid = (GridView) findViewById(R.id.appGridView);
         try {
             appGridAdapter = new AppGridAdapter(this, ipAddress, uniqueId);
         } catch (Exception e) {
@@ -87,23 +86,22 @@ public class AppView extends Activity {
         }
         appGrid.setAdapter(appGridAdapter);
         appGrid.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
-					long id) {
-				AppObject app = (AppObject) appGridAdapter.getItem(pos);
-				if (app == null || app.app == null) {
-					return;
-				}
-				
-				// Only open the context menu if something is running, otherwise start it
-				if (getRunningAppId() != -1) {
-					openContextMenu(arg1);
-				}
-				else {
-					doStart(app.app);
-				}
-			}
-		});
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
+                                    long id) {
+                AppObject app = (AppObject) appGridAdapter.getItem(pos);
+                if (app == null || app.app == null) {
+                    return;
+                }
+
+                // Only open the context menu if something is running, otherwise start it
+                if (getRunningAppId() != -1) {
+                    openContextMenu(arg1);
+                } else {
+                    doStart(app.app);
+                }
+            }
+        });
         registerForContextMenu(appGrid);
 	}
 	

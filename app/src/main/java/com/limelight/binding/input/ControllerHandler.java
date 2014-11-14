@@ -44,9 +44,11 @@ public class ControllerHandler {
 	private HashMap<String, ControllerMapping> mappings = new HashMap<String, ControllerMapping>();
 	
 	private NvConnection conn;
+    private double stickDeadzone;
 	
-	public ControllerHandler(NvConnection conn) {
+	public ControllerHandler(NvConnection conn, int deadzonePercentage) {
 		this.conn = conn;
+        this.stickDeadzone = (double)deadzonePercentage / 100.0;
 		
 		// We want limelight-common to scale the axis values to match Xinput values
 		ControllerPacket.enableAxisScaling = true;
@@ -148,56 +150,12 @@ public class ControllerHandler {
 		}
 		
 		if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
-			InputDevice.MotionRange lsXRange = getMotionRangeForJoystickAxis(dev, mapping.leftStickXAxis);
-			InputDevice.MotionRange lsYRange = getMotionRangeForJoystickAxis(dev, mapping.leftStickYAxis);
-			if (lsXRange != null && lsYRange != null) {
-				// The flat values should never be negative but we'll deal with it if they are
-				mapping.leftStickDeadzoneRadius = Math.max(Math.abs(lsXRange.getFlat()),
-						Math.abs(lsYRange.getFlat()));
-				
-				// Some devices (certain OUYAs at least) report a deadzone that's larger
-				// than the entire range of their axis likely due to some system software bug.
-				// If we see a very large deadzone, simply ignore the value and use our default.
-				if (mapping.leftStickDeadzoneRadius > 0.5f) {
-					mapping.leftStickDeadzoneRadius = 0;
-				}
-				
-				// If there isn't a (reasonable) deadzone at all, use 20%
-				if (mapping.leftStickDeadzoneRadius < 0.02f) {
-					mapping.leftStickDeadzoneRadius = 0.20f;
-				}
-				// Check that the deadzone is 15% at minimum
-				else if (mapping.leftStickDeadzoneRadius < 0.15f) {
-					mapping.leftStickDeadzoneRadius = 0.15f;
-				}
-			}
+            mapping.leftStickDeadzoneRadius = (float) stickDeadzone;
 		}
 		
 		if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
-			InputDevice.MotionRange rsXRange = getMotionRangeForJoystickAxis(dev, mapping.rightStickXAxis);
-			InputDevice.MotionRange rsYRange = getMotionRangeForJoystickAxis(dev, mapping.rightStickYAxis);
-			if (rsXRange != null && rsYRange != null) {
-				// The flat values should never be negative but we'll deal with it if they are
-				mapping.rightStickDeadzoneRadius = Math.max(Math.abs(rsXRange.getFlat()),
-						Math.abs(rsYRange.getFlat()));
-				
-				// Some devices (certain OUYAs at least) report a deadzone that's larger
-				// than the entire range of their axis likely due to some system software bug.
-				// If we see a very large deadzone, simply ignore the value and use our default.
-				if (mapping.rightStickDeadzoneRadius > 0.5f) {
-					mapping.rightStickDeadzoneRadius = 0;
-				}
-				
-				// If there isn't a (reasonable) deadzone at all, use 20%
-				if (mapping.rightStickDeadzoneRadius < 0.02f) {
-					mapping.rightStickDeadzoneRadius = 0.20f;
-				}
-				// Check that the deadzone is 15% at minimum
-				else if (mapping.rightStickDeadzoneRadius < 0.15f) {
-					mapping.rightStickDeadzoneRadius = 0.15f;
-				}
-			}
-		}
+            mapping.rightStickDeadzoneRadius = (float) stickDeadzone;
+        }
 		
 		return mapping;
 	}

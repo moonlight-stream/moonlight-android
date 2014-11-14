@@ -94,6 +94,10 @@
     <string name="title_checkbox_disable_warnings">Disable warning messages</string>
     <string name="summary_checkbox_disable_warnings">Disable on-screen connection warning messages while streaming</string>
 
+    <string name="category_gamepad_settings">Gamepad Settings</string>
+    <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+
     <string name="category_host_settings">Host Settings</string>
     <string name="title_checkbox_enable_sops">Optimize game settings</string>
     <string name="summary_checkbox_enable_sops">Allow GFE to modify game settings for optimal streaming</string>

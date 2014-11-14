@@ -48,7 +48,7 @@ public class SeekBarPreference extends DialogPreference
         }
 
         // Get default and max seekbar values
-        defaultValue = PreferenceConfiguration.getDefaultBitrate(context);
+        defaultValue = attrs.getAttributeIntValue(SCHEMA_URL, "defaultValue", PreferenceConfiguration.getDefaultBitrate(context));
         maxValue = attrs.getAttributeIntValue(SCHEMA_URL, "max", 100);
     }
 
@@ -80,7 +80,7 @@ public class SeekBarPreference extends DialogPreference
             @Override
             public void onProgressChanged(SeekBar seekBar, int value, boolean b) {
                 String t = String.valueOf(value);
-                valueText.setText(suffix == null ? t : t.concat(" " + suffix));
+                valueText.setText(suffix == null ? t : t.concat(suffix.length() > 1 ? " "+suffix : suffix));
             }
 
             @Override

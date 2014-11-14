@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Context menu entries -->
+    <!-- PC view menu entries -->
     <string name="pcview_menu_app_list">View Game List</string>
     <string name="pcview_menu_pair_pc">Pair with PC</string>
     <string name="pcview_menu_unpair_pc">Unpair</string>
@@ -54,12 +54,6 @@
     <string name="conn_terminated_title">Connection Terminated</string>
     <string name="conn_terminated_msg">The connection was terminated</string>
 
-    <!-- Add computer manually messages -->
-    <string name="addpc_fail">Unable to connect to the specified computer. Make sure the required ports are allowed through the firewall.</string>
-    <string name="addpc_success">Successfully added computer</string>
-    <string name="addpc_unknown_host">Unable to resolve PC address. Make sure you didn\'t make a typo in the address.</string>
-    <string name="addpc_enter_ip">You must enter an IP address</string>
-
     <!-- General strings -->
     <string name="ip_hint">IP address of GeForce PC</string>
     <string name="searching_pc">Searching for PCs…</string>
@@ -82,6 +76,10 @@
     <string name="title_add_pc">Add PC Manually</string>
     <string name="button_add_pc">Add PC</string>
     <string name="msg_add_pc">Connecting to the PC…</string>
+    <string name="addpc_fail">Unable to connect to the specified computer. Make sure the required ports are allowed through the firewall.</string>
+    <string name="addpc_success">Successfully added computer</string>
+    <string name="addpc_unknown_host">Unable to resolve PC address. Make sure you didn\'t make a typo in the address.</string>
+    <string name="addpc_enter_ip">You must enter an IP address</string>
 
     <!-- Preferences -->
     <string name="category_basic_settings">Basic Settings</string>

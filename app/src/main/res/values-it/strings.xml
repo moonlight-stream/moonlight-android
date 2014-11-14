@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- PC view menu entries -->
+    <string name="pcview_menu_app_list">Lista applicazioni</string>
+    <string name="pcview_menu_pair_pc">Accoppia PC</string>
+    <string name="pcview_menu_unpair_pc">Disaccoppia PC</string>
+    <string name="pcview_menu_send_wol">Invia richiesta Wake-On-LAN</string>
+    <string name="pcview_menu_delete_pc">Rimuovi PC</string>
+
+    <!-- Pair messages -->
+    <string name="pairing">Accoppiamento…</string>
+    <string name="pair_pc_offline">PC offline</string>
+    <string name="pair_pc_ingame">PC con applicazione avviata. Devi chiudere l\'applicazione prima dell\'accoppiamento.</string>
+    <string name="pair_pairing_title">Accoppiamento</string>
+    <string name="pair_pairing_msg">Inserisci il seguente PIN sul PC:</string>
+    <string name="pair_incorrect_pin">PIN non corretto</string>
+    <string name="pair_fail">Accoppiamento fallito</string>
+    <string name="pair_success">Accoppiato con successo</string>
+
+    <!-- WOL messages -->
+    <string name="wol_pc_online">PC già avviato</string>
+    <string name="wol_no_mac">Impossibile risvegliare il PC perchè GFE non ha inviato nessun indirizzo MAC</string>
+    <string name="wol_waking_pc">Risveglio PC…</string>
+    <string name="wol_waking_msg">Il PC potrebbe impiegare qualche secondo per risvegliarsi.
+	    Se non succede niente, assicurati che l\'opzione Wake-On-LAN sia configurata correttamente.
+    </string>
+    <string name="wol_fail">Invio pacchetto Wake-On-LAN fallito</string>
+
+    <!-- Unpair messages -->
+    <string name="unpairing">Disaccoppiamento…</string>
+    <string name="unpair_success">Disaccoppiato con successo</string>
+    <string name="unpair_fail">Disaccoppiamento fallito</string>
+    <string name="unpair_error">PC non accoppiato</string>
+
+    <!-- Errors -->
+    <string name="error_pc_offline">PC offline</string>
+    <string name="error_manager_not_running">Il servizio ComputerManager non è avviato. Attendi qualche secondo o riavvia l\'applicazione.</string>
+    <string name="error_unknown_host">Risoluzione nome host fallita</string>
+    <string name="error_404">GFE ha ritornato un errore HTTP 404 error. Assicurati che il PC stia usando una GPU supportata.
+	    Usare un software di remote-desktop può causare questo errore. Prova a riavviare il PC o a reinstallare GFE.
+    </string>
+
+    <!-- Start application messages -->
+    <string name="conn_establishing_title">Connessione</string>
+    <string name="conn_establishing_msg">Connessione in corso</string>
+    <string name="conn_metered">Attenzione: la rete attiva prevede costi aggiuntivi in base all\'utilizzo!</string>
+    <string name="conn_client_latency">Latenza frame media client-side:</string>
+    <string name="conn_client_latency_hw">latenza decoder hardware:</string>
+    <string name="conn_hardware_latency">Latenza decoder hardware media:</string>
+    <string name="conn_starting">Avvio in corso…</string>
+    <string name="conn_error_title">Errore connessione</string>
+    <string name="conn_error_msg">Avvio fallito</string>
+    <string name="conn_terminated_title">Connessione terminata</string>
+    <string name="conn_terminated_msg">La connessione è stata interrotta</string>
+
+    <!-- General strings -->
+    <string name="ip_hint">Indirizzo IP del PC</string>
+    <string name="searching_pc">Ricerca PC in corso…</string>
+
+    <!-- AppList activity -->
+    <string name="title_applist">Applicazioni su</string>
+    <string name="applist_menu_resume">Riprendi Sessione</string>
+    <string name="applist_menu_quit">Chiudi Sessione</string>
+    <string name="applist_menu_quit_and_start">Chiudi sessione corrente e avvia</string>
+    <string name="applist_menu_cancel">Annulla</string>
+    <string name="applist_refresh_title">Lista applicazioni</string>
+    <string name="applist_refresh_msg">Aggiornamento lista in corso…</string>
+    <string name="applist_refresh_error_title">Errore</string>
+    <string name="applist_refresh_error_msg">Ricezione lista applicazioni fallita</string>
+    <string name="applist_quit_app">Chiusura in corso…</string>
+    <string name="applist_quit_success">Sessione chiusa con successo</string>
+    <string name="applist_quit_fail">Chiusura sessione fallita</string>
+
+    <!-- Add computer manually activity -->
+    <string name="title_add_pc">Aggiungi PC Manualmente</string>
+    <string name="button_add_pc">Aggiungi PC</string>
+    <string name="msg_add_pc">Connessione al PC in corso…</string>
+    <string name="addpc_fail">Impossibile connettersi al PC. Assicurati che il firewall del PC sia configurato correttamente.</string>
+    <string name="addpc_success">PC aggiunto con successo</string>
+    <string name="addpc_unknown_host">Impossibile risovere l\'indirizzo del PC. Assicurati di aver scritto correttamente l\'indirizzo.</string>
+    <string name="addpc_enter_ip">Devi inserire un indirizzo IP</string>
+
+    <!-- Preferences -->
+    <string name="category_basic_settings">Impostazioni Base</string>
+    <string name="title_resolution_list">Risoluzione e FPS</string>
+    <string name="summary_resolution_list">Valori troppo elevati possono causare lag o crash</string>
+    <string name="title_seekbar_bitrate">Bitrate video</string>
+    <string name="summary_seekbar_bitrate">Abbassa il bitrate per ridurre lo stuttering; alza il bitrate per aumenteare la qualità dell\'immagine</string>
+    <string name="suffix_seekbar_bitrate">Mbps</string>
+    <string name="title_checkbox_stretch_video">Forza video in full-screen</string>
+    <string name="title_checkbox_disable_warnings">Disabilita i messaggi di warning</string>
+    <string name="summary_checkbox_disable_warnings">Disabilita i messaggi di warning sullo schermo durante lo streaming</string>
+
+    <string name="category_gamepad_settings">Impostazioni Gamepad</string>
+    <string name="title_seekbar_deadzone">Aggiusta deadzone degli stick analogici</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+
+    <string name="category_host_settings">Impostazioni Host</string>
+    <string name="title_checkbox_enable_sops">Ottimizza le impostazioni dei giochi</string>
+    <string name="summary_checkbox_enable_sops">Permetti a GFE di modificare le impostazioni dei giochi per uno streaming ottimale</string>
+    <string name="title_checkbox_host_audio">Riproduci audio sul PC</string>
+    <string name="summary_checkbox_host_audio">Riproduci l\'audio sul computer e su questo dispositivo. Richiede GFE 2.1.2+</string>
+
+    <string name="category_advanced_settings">Impostazioni Avanzate</string>
+    <string name="title_decoder_list">Cambia decoder</string>
+</resources>

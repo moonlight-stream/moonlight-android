@@ -23,7 +23,7 @@
     <string name="wol_no_mac">Unable to wake PC because GFE didn\'t send a MAC address</string>
     <string name="wol_waking_pc">Waking PC...</string>
     <string name="wol_waking_msg">It may take a few seconds for your PC to wake up.
-	    If it doesn\'t, make sure it'\s configured properly for Wake-On-LAN.
+	    If it doesn\'t, make sure it\'s configured properly for Wake-On-LAN.
     </string>
     <string name="wol_fail">Failed to send Wake-On-LAN packets</string>
 

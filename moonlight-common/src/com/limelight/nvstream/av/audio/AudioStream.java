@@ -221,7 +221,7 @@ public class AudioStream {
 				DatagramPacket pingPacket = new DatagramPacket(pingPacketData, pingPacketData.length);
 				pingPacket.setSocketAddress(new InetSocketAddress(host, RTP_PORT));
 				
-				// Send PING every 100 ms
+				// Send PING every 500 ms
 				while (!isInterrupted())
 				{
 					try {
@@ -232,7 +232,7 @@ public class AudioStream {
 					}
 					
 					try {
-						Thread.sleep(100);
+						Thread.sleep(500);
 					} catch (InterruptedException e) {
 						connListener.connectionTerminated(e);
 						return;

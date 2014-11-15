@@ -8,6 +8,7 @@ public class StreamConfiguration {
 	private boolean sops;
 	private boolean enableAdaptiveResolution;
 	private boolean playLocalAudio;
+	private int maxPacketSize;
 	
 	public static class Builder {
 		private StreamConfiguration config = new StreamConfiguration();
@@ -48,6 +49,11 @@ public class StreamConfiguration {
 			return this;
 		}
 		
+		public StreamConfiguration.Builder setMaxPacketSize(int maxPacketSize) {
+			config.maxPacketSize = maxPacketSize;
+			return this;
+		}
+		
 		public StreamConfiguration build() {
 			return config;
 		}
@@ -60,6 +66,7 @@ public class StreamConfiguration {
 		this.height = 720;
 		this.refreshRate = 60;
 		this.bitrate = 10000;
+		this.maxPacketSize = 1024;
 		this.sops = true;
 		this.enableAdaptiveResolution = false;
 	}
@@ -81,7 +88,7 @@ public class StreamConfiguration {
 	}
 	
 	public int getMaxPacketSize() {
-		return 1024;
+		return maxPacketSize;
 	}
 
 	public String getApp() {

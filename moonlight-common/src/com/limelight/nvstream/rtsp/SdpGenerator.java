@@ -51,6 +51,8 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].clientViewportHt", ""+sc.getHeight());
 		addSessionAttribute(config, "x-nv-video[0].maxFPS", ""+sc.getRefreshRate());
 		
+		addSessionAttribute(config, "x-nv-video[0].packetSize", ""+sc.getMaxPacketSize());
+				
 		addSessionAttributeInt(config, "x-nv-video[0].transferProtocol", 0x41514141);
 		addSessionAttributeInt(config, "x-nv-video[1].transferProtocol", 0x41514141);
 		addSessionAttributeInt(config, "x-nv-video[2].transferProtocol", 0x41514141);

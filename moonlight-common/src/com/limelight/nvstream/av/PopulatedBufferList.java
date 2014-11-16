@@ -20,6 +20,14 @@ public class PopulatedBufferList<T> {
 		}
 	}
 	
+	public int getPopulatedCount() {
+		return populatedList.size();
+	}
+	
+	public int getFreeCount() {
+		return freeList.size();
+	}
+	
 	public T pollFreeObject() {
 		return freeList.poll();
 	}

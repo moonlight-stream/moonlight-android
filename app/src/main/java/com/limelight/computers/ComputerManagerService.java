@@ -109,8 +109,11 @@ public class ComputerManagerService extends Service {
                     if (runPoll(details) && !originalDetails.equals(details)) {
                         // Replace our thread entry with the new one
                         synchronized (pollingThreads) {
-                            pollingThreads.remove(originalDetails);
-                            pollingThreads.put(details, this);
+                            if (pollingThreads.remove(originalDetails) != null) {
+                                // This could have gone away in the meantime, so don't
+                                // add it back if it has
+                                pollingThreads.put(details, this);
+                            }
                         }
                     }
 

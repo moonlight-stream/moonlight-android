@@ -21,14 +21,14 @@ import com.limelight.nvstream.av.video.cpu.AvcDecoder;
 @SuppressWarnings("EmptyCatchBlock")
 public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 
-	private Thread rendererThread;
+	private Thread rendererThread, decoderThread;
 	private int targetFps;
 	
 	private static final int DECODER_BUFFER_SIZE = 92*1024;
 	private ByteBuffer decoderBuffer;
 	
 	// Only sleep if the difference is above this value
-	private static final int WAIT_CEILING_MS = 8;
+	private static final int WAIT_CEILING_MS = 5;
 	
 	private static final int LOW_PERF = 1;
 	private static final int MED_PERF = 2;
@@ -108,9 +108,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 
 		case LOW_PERF:
 			// Disable the loop filter for performance reasons
-			avcFlags = AvcDecoder.DISABLE_LOOP_FILTER |
-				AvcDecoder.FAST_BILINEAR_FILTERING |
-				AvcDecoder.FAST_DECODE;
+			avcFlags = AvcDecoder.FAST_BILINEAR_FILTERING;
 			
 			// Use plenty of threads to try to utilize the CPU as best we can
 			threadCount = cpuCount - 1;
@@ -118,8 +116,7 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 
 		default:
 		case MED_PERF:
-			avcFlags = AvcDecoder.BILINEAR_FILTERING |
-				AvcDecoder.FAST_DECODE;
+			avcFlags = AvcDecoder.BILINEAR_FILTERING;
 			
 			// Only use 2 threads to minimize frame processing latency
 			threadCount = 2;
@@ -156,6 +153,26 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 
 	@Override
 	public boolean start(final VideoDepacketizer depacketizer) {
+        decoderThread = new Thread() {
+            @Override
+            public void run() {
+                DecodeUnit du;
+                while (!isInterrupted()) {
+                    try {
+                        du = depacketizer.takeNextDecodeUnit();
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+
+                    submitDecodeUnit(du);
+                    depacketizer.freeDecodeUnit(du);
+                }
+            }
+        };
+        decoderThread.setName("Video - Decoder (CPU)");
+        decoderThread.setPriority(Thread.MAX_PRIORITY - 1);
+        decoderThread.start();
+
 		rendererThread = new Thread() {
 			@Override
 			public void run() {
@@ -163,17 +180,15 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 				DecodeUnit du;
 				while (!isInterrupted())
 				{
-					du = depacketizer.pollNextDecodeUnit(); 
-					if (du != null) {
-						submitDecodeUnit(du);
-						depacketizer.freeDecodeUnit(du);
-					}
-					
 					long diff = nextFrameTime - System.currentTimeMillis();
 
 					if (diff > WAIT_CEILING_MS) {
-						LockSupport.parkNanos(1);
-						continue;
+                        try {
+                            Thread.sleep(diff - WAIT_CEILING_MS);
+                        } catch (InterruptedException e) {
+                            return;
+                        }
+                        continue;
 					}
 
 					nextFrameTime = computePresentationTimeMs(targetFps);
@@ -194,10 +209,14 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 	@Override
 	public void stop() {
 		rendererThread.interrupt();
+        decoderThread.interrupt();
 		
 		try {
-			rendererThread.join();
-		} catch (InterruptedException e) { }
+            rendererThread.join();
+        } catch (InterruptedException e) { }
+        try {
+            decoderThread.join();
+        } catch (InterruptedException e) { }
 	}
 
 	@Override

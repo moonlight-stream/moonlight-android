@@ -52,6 +52,7 @@
             android:title="@string/title_decoder_list"
             android:entries="@array/decoder_names"
             android:entryValues="@array/decoder_values"
+            android:summary="@string/summary_decoder_list"
             android:defaultValue="auto" />
     </PreferenceCategory>
 

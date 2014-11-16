@@ -347,7 +347,18 @@ public class ComputerManagerService extends Service {
 	}
 	
 	private boolean doPollMachine(ComputerDetails details) {
-		return pollComputer(details, true);
+        if (details.reachability == ComputerDetails.Reachability.UNKNOWN ||
+            details.reachability == ComputerDetails.Reachability.OFFLINE) {
+            // Always try local first to avoid potential UDP issues when
+            // attempting to stream via the router's external IP address
+            // behind its NAT
+            return pollComputer(details, true);
+        }
+        else {
+            // If we're already reached a machine via a particular IP address,
+            // always try that one first
+            return pollComputer(details, details.reachability == ComputerDetails.Reachability.LOCAL);
+        }
 	}
 	
 	@Override

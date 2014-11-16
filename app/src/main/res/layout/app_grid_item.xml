@@ -2,16 +2,19 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:padding="30dp">
+    android:padding="20dp">
     <RelativeLayout
         android:id="@+id/grid_image_layout"
+        android:layout_centerHorizontal="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <ImageView
             android:id="@+id/grid_image"
+            android:cropToPadding="false"
+            android:scaleType="fitXY"
             android:layout_centerHorizontal="true"
-            android:layout_width="100dp"
-            android:layout_height="150dp">
+            android:layout_width="150dp"
+            android:layout_height="175dp">
         </ImageView>
         <ImageView
             android:id="@+id/grid_overlay"
@@ -23,12 +26,16 @@
     </RelativeLayout>
     <TextView
         android:id="@+id/grid_text"
-        android:layout_width="125dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/grid_image_layout"
         android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
         android:gravity="center"
-        android:textSize="20sp" >
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:scrollHorizontally="true"
+        android:textSize="18sp" >
     </TextView>
 </RelativeLayout>

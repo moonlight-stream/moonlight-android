@@ -148,6 +148,9 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
     @Override
     public boolean populateTextView(TextView txtView, AppView.AppObject obj) {
+        // Select the text view so it starts marquee mode
+        txtView.setSelected(true);
+
         // Return false to use the app's toString method
         return false;
     }

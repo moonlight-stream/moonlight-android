@@ -155,6 +155,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
 		String app = Game.this.getIntent().getStringExtra(EXTRA_APP);
 		String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
+        boolean remote = Game.this.getIntent().getBooleanExtra(EXTRA_STREAMING_REMOTE, false);
 		
 		decoderRenderer = new ConfigurableDecoderRenderer();
 		decoderRenderer.initializeWithFlags(drFlags);
@@ -168,6 +169,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .enableAdaptiveResolution((decoderRenderer.getCapabilities() &
                         VideoDecoderRenderer.CAPABILITY_ADAPTIVE_RESOLUTION) != 0)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
+                .setMaxPacketSize(remote ? 1024 : 1392)
                 .build();
 
 		// Initialize the connection

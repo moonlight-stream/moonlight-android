@@ -30,6 +30,6 @@
         android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
         android:gravity="center"
-        android:textSize="20sp" >
+        android:textSize="18sp" >
     </TextView>
 </RelativeLayout>

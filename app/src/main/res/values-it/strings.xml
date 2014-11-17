@@ -16,7 +16,6 @@
     <string name="pair_pairing_msg">Inserisci il seguente PIN sul PC:</string>
     <string name="pair_incorrect_pin">PIN non corretto</string>
     <string name="pair_fail">Accoppiamento fallito</string>
-    <string name="pair_success">Accoppiato con successo</string>
 
     <!-- WOL messages -->
     <string name="wol_pc_online">PC già avviato</string>
@@ -104,4 +103,5 @@
 
     <string name="category_advanced_settings">Impostazioni Avanzate</string>
     <string name="title_decoder_list">Cambia decoder</string>
+    <string name="summary_decoder_list">Il decoder software può aumentare la latenza video quando si usano impostazioni streaming basse</string>
 </resources>

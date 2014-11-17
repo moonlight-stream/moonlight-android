@@ -14,6 +14,7 @@
         android:layout_height="wrap_content"
         android:numColumns="auto_fit"
         android:columnWidth="160dp"
+        android:stretchMode="spacingWidth"
         android:gravity="center"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
@@ -26,9 +27,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_alignParentTop="true"
         android:paddingTop="0dp"
-        android:paddingBottom="10dp" />
+        android:paddingBottom="10dp"
+        android:textSize="28sp"/>
 
 </RelativeLayout>

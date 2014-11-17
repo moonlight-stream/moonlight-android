@@ -1,8 +1,7 @@
 package com.limelight.computers;
 
 import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.limelight.LimeLog;
@@ -21,7 +20,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 public class ComputerManagerService extends Service {
-	private static final int POLLING_PERIOD_MS = 5000;
+	private static final int POLLING_PERIOD_MS = 3000;
 	private static final int MDNS_QUERY_PERIOD_MS = 1000;
 	
 	private ComputerManagerBinder binder = new ComputerManagerBinder();
@@ -30,9 +29,10 @@ public class ComputerManagerService extends Service {
 	private AtomicInteger dbRefCount = new AtomicInteger(0);
 	
 	private IdentityManager idManager;
-	private final HashMap<ComputerDetails, Thread> pollingThreads = new HashMap<ComputerDetails, Thread>();
+	private final LinkedList<PollingTuple> pollingTuples = new LinkedList<PollingTuple>();
 	private ComputerManagerListener listener = null;
 	private AtomicInteger activePolls = new AtomicInteger(0);
+    private boolean pollingActive = false;
 
 	private DiscoveryService.DiscoveryBinder discoveryBinder;
 	private final ServiceConnection discoveryServiceConnection = new ServiceConnection() {
@@ -101,18 +101,9 @@ public class ComputerManagerService extends Service {
         Thread t = new Thread() {
             @Override
             public void run() {
-                while (!isInterrupted()) {
-                    ComputerDetails originalDetails = new ComputerDetails();
-                    originalDetails.update(details);
-
+                while (!isInterrupted() && pollingActive) {
                     // Check if this poll has modified the details
-                    if (runPoll(details) && !originalDetails.equals(details)) {
-                        // Replace our thread entry with the new one
-                        synchronized (pollingThreads) {
-                            pollingThreads.remove(originalDetails);
-                            pollingThreads.put(details, this);
-                        }
-                    }
+                    runPoll(details);
 
                     // Wait until the next polling interval
                     try {
@@ -129,29 +120,24 @@ public class ComputerManagerService extends Service {
 	
 	public class ComputerManagerBinder extends Binder {
 		public void startPolling(ComputerManagerListener listener) {
+            // Polling is active
+            pollingActive = true;
+
 			// Set the listener
 			ComputerManagerService.this.listener = listener;
 			
 			// Start mDNS autodiscovery too
 			discoveryBinder.startDiscovery(MDNS_QUERY_PERIOD_MS);
-			
-			// Start polling known machines
-            if (!getLocalDatabaseReference()) {
-                return;
-            }
-            List<ComputerDetails> computerList = dbManager.getAllComputers();
-            releaseLocalDatabaseReference();
 
-            synchronized (pollingThreads) {
-                for (ComputerDetails computer : computerList) {
+            synchronized (pollingTuples) {
+                for (PollingTuple tuple : pollingTuples) {
                     // This polling thread might already be there
-                    if (!pollingThreads.containsKey(computer)) {
+                    if (tuple.thread == null) {
                         // Report this computer initially
-                        listener.notifyComputerUpdated(computer);
+                        listener.notifyComputerUpdated(tuple.computer);
 
-                        Thread t = createPollingThread(computer);
-                        pollingThreads.put(computer, t);
-                        t.start();
+                        tuple.thread = createPollingThread(tuple.computer);
+                        tuple.thread.start();
                     }
                 }
             }
@@ -205,11 +191,15 @@ public class ComputerManagerService extends Service {
 		discoveryBinder.stopDiscovery();
 		
 		// Stop polling
-        synchronized (pollingThreads) {
-            for (Thread t : pollingThreads.values()) {
-                t.interrupt();
+        pollingActive = false;
+        synchronized (pollingTuples) {
+            for (PollingTuple tuple : pollingTuples) {
+                if (tuple.thread != null) {
+                    // Interrupt and remove the thread
+                    tuple.thread.interrupt();
+                    tuple.thread = null;
+                }
             }
-            pollingThreads.clear();
         }
 		
 		// Remove the listener
@@ -245,16 +235,37 @@ public class ComputerManagerService extends Service {
 		fakeDetails.localIp = addr;
 		fakeDetails.remoteIp = addr;
 
-		// Spawn a thread for this computer
-        synchronized (pollingThreads) {
-            // This polling thread might already be there
-            if (!pollingThreads.containsKey(fakeDetails)) {
-                Thread t = createPollingThread(fakeDetails);
-                pollingThreads.put(fakeDetails, t);
-                t.start();
+        addTuple(fakeDetails);
+	}
+
+    private void addTuple(ComputerDetails details) {
+        synchronized (pollingTuples) {
+            for (PollingTuple tuple : pollingTuples) {
+                // Check if this is the same computer
+                if (tuple.computer == details ||
+                        tuple.computer.localIp.equals(details.localIp) ||
+                        tuple.computer.remoteIp.equals(details.remoteIp) ||
+                        tuple.computer.name.equals(details.name)) {
+
+                    // Start a polling thread if polling is active
+                    if (pollingActive && tuple.thread == null) {
+                        tuple.thread = createPollingThread(details);
+                        tuple.thread.start();
+                    }
+
+                    // Found an entry so we're done
+                    return;
+                }
+            }
+
+            // If we got here, we didn't find an entry
+            PollingTuple tuple = new PollingTuple(details, pollingActive ? createPollingThread(details) : null);
+            pollingTuples.add(tuple);
+            if (tuple.thread != null) {
+                tuple.thread.start();
             }
         }
-	}
+    }
 
 	public boolean addComputerBlocking(InetAddress addr) {
 		// Setup a placeholder
@@ -266,7 +277,14 @@ public class ComputerManagerService extends Service {
         runPoll(fakeDetails);
 		
 		// If the machine is reachable, it was successful
-		return fakeDetails.state == ComputerDetails.State.ONLINE;
+		if (fakeDetails.state == ComputerDetails.State.ONLINE) {
+            // Start a polling thread for this machine
+            addTuple(fakeDetails);
+            return true;
+        }
+        else {
+            return false;
+        }
 	}
 	
 	public void removeComputer(String name) {
@@ -276,6 +294,20 @@ public class ComputerManagerService extends Service {
 		
 		// Remove it from the database
 		dbManager.deleteComputer(name);
+
+        synchronized (pollingTuples) {
+            // Remove the computer from the computer list
+            for (PollingTuple tuple : pollingTuples) {
+                if (tuple.computer.name.equals(name)) {
+                    if (tuple.thread != null) {
+                        // Interrupt the thread on this entry
+                        tuple.thread.interrupt();
+                    }
+                    pollingTuples.remove(tuple);
+                    break;
+                }
+            }
+        }
 		
 		releaseLocalDatabaseReference();
 	}
@@ -347,7 +379,18 @@ public class ComputerManagerService extends Service {
 	}
 	
 	private boolean doPollMachine(ComputerDetails details) {
-		return pollComputer(details, true);
+        if (details.reachability == ComputerDetails.Reachability.UNKNOWN ||
+            details.reachability == ComputerDetails.Reachability.OFFLINE) {
+            // Always try local first to avoid potential UDP issues when
+            // attempting to stream via the router's external IP address
+            // behind its NAT
+            return pollComputer(details, true);
+        }
+        else {
+            // If we're already reached a machine via a particular IP address,
+            // always try that one first
+            return pollComputer(details, details.reachability == ComputerDetails.Reachability.LOCAL);
+        }
 	}
 	
 	@Override
@@ -362,6 +405,18 @@ public class ComputerManagerService extends Service {
 		// Initialize the DB
 		dbManager = new ComputerDatabaseManager(this);
 		dbRefCount.set(1);
+
+        // Grab known machines into our computer list
+        if (!getLocalDatabaseReference()) {
+            return;
+        }
+
+        for (ComputerDetails computer : dbManager.getAllComputers()) {
+            // Add this computer without a thread
+            pollingTuples.add(new PollingTuple(computer, null));
+        }
+
+        releaseLocalDatabaseReference();
 	}
 	
 	@Override
@@ -381,4 +436,14 @@ public class ComputerManagerService extends Service {
 	public IBinder onBind(Intent intent) {
 		return binder;
 	}
+}
+
+class PollingTuple {
+    public Thread thread;
+    public ComputerDetails computer;
+
+    public PollingTuple(ComputerDetails computer, Thread thread) {
+        this.computer = computer;
+        this.thread = thread;
+    }
 }

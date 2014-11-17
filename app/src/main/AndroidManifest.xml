@@ -64,6 +64,7 @@
         <activity
             android:name=".Game"
             android:screenOrientation="sensorLandscape"
+            android:theme="@style/StreamTheme"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

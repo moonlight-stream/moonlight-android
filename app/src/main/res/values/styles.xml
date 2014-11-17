@@ -22,4 +22,14 @@
         <item name="android:windowNoTitle">true</item>
     </style>
 
+    <!-- Stream activity theme -->
+    <style name="StreamTheme" parent="AppBaseTheme">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+
+        <!-- Transparent streaming background to avoid extra overdraw -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
 </resources>

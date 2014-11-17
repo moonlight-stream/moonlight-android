@@ -16,7 +16,6 @@
     <string name="pair_pairing_msg">Please enter the following PIN on the target PC:</string>
     <string name="pair_incorrect_pin">Incorrect PIN</string>
     <string name="pair_fail">Pairing failed</string>
-    <string name="pair_success">Paired successfully</string>
 
     <!-- WOL messages -->
     <string name="wol_pc_online">Computer is online</string>

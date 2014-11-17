@@ -324,7 +324,8 @@ public class PcView extends Activity {
 							message = getResources().getString(R.string.pair_fail);
 						}
 						else if (pairState == PairingManager.PairState.PAIRED) {
-                            message = getResources().getString(R.string.pair_success);
+                            // Just navigate to the app view without displaying a toast
+                            message = null;
                             success = true;
 						}
 						else {

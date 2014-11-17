@@ -20,7 +20,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 public class ComputerManagerService extends Service {
-	private static final int POLLING_PERIOD_MS = 5000;
+	private static final int POLLING_PERIOD_MS = 3000;
 	private static final int MDNS_QUERY_PERIOD_MS = 1000;
 	
 	private ComputerManagerBinder binder = new ComputerManagerBinder();

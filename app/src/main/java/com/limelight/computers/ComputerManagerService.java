@@ -32,6 +32,7 @@ public class ComputerManagerService extends Service {
 	private final LinkedList<PollingTuple> pollingTuples = new LinkedList<PollingTuple>();
 	private ComputerManagerListener listener = null;
 	private AtomicInteger activePolls = new AtomicInteger(0);
+    private boolean pollingActive = false;
 
 	private DiscoveryService.DiscoveryBinder discoveryBinder;
 	private final ServiceConnection discoveryServiceConnection = new ServiceConnection() {
@@ -100,7 +101,7 @@ public class ComputerManagerService extends Service {
         Thread t = new Thread() {
             @Override
             public void run() {
-                while (!isInterrupted()) {
+                while (!isInterrupted() && pollingActive) {
                     // Check if this poll has modified the details
                     runPoll(details);
 
@@ -119,6 +120,9 @@ public class ComputerManagerService extends Service {
 	
 	public class ComputerManagerBinder extends Binder {
 		public void startPolling(ComputerManagerListener listener) {
+            // Polling is active
+            pollingActive = true;
+
 			// Set the listener
 			ComputerManagerService.this.listener = listener;
 			
@@ -187,6 +191,7 @@ public class ComputerManagerService extends Service {
 		discoveryBinder.stopDiscovery();
 		
 		// Stop polling
+        pollingActive = false;
         synchronized (pollingTuples) {
             for (PollingTuple tuple : pollingTuples) {
                 if (tuple.thread != null) {
@@ -230,15 +235,21 @@ public class ComputerManagerService extends Service {
 		fakeDetails.localIp = addr;
 		fakeDetails.remoteIp = addr;
 
-		// Spawn a thread for this computer
+        addTuple(fakeDetails);
+	}
+
+    private void addTuple(ComputerDetails details) {
         synchronized (pollingTuples) {
-            // This polling thread might already be there
             for (PollingTuple tuple : pollingTuples) {
-                if (tuple.computer.localIp.equals(addr) ||
-                    tuple.computer.remoteIp.equals(addr)) {
-                    // This is the same computer
-                    if (tuple.thread == null) {
-                        tuple.thread = createPollingThread(fakeDetails);
+                // Check if this is the same computer
+                if (tuple.computer == details ||
+                        tuple.computer.localIp.equals(details.localIp) ||
+                        tuple.computer.remoteIp.equals(details.remoteIp) ||
+                        tuple.computer.name.equals(details.name)) {
+
+                    // Start a polling thread if polling is active
+                    if (pollingActive && tuple.thread == null) {
+                        tuple.thread = createPollingThread(details);
                         tuple.thread.start();
                     }
 
@@ -248,11 +259,13 @@ public class ComputerManagerService extends Service {
             }
 
             // If we got here, we didn't find an entry
-            PollingTuple tuple = new PollingTuple(fakeDetails, createPollingThread(fakeDetails));
+            PollingTuple tuple = new PollingTuple(details, pollingActive ? createPollingThread(details) : null);
             pollingTuples.add(tuple);
-            tuple.thread.start();
+            if (tuple.thread != null) {
+                tuple.thread.start();
+            }
         }
-	}
+    }
 
 	public boolean addComputerBlocking(InetAddress addr) {
 		// Setup a placeholder
@@ -264,7 +277,14 @@ public class ComputerManagerService extends Service {
         runPoll(fakeDetails);
 		
 		// If the machine is reachable, it was successful
-		return fakeDetails.state == ComputerDetails.State.ONLINE;
+		if (fakeDetails.state == ComputerDetails.State.ONLINE) {
+            // Start a polling thread for this machine
+            addTuple(fakeDetails);
+            return true;
+        }
+        else {
+            return false;
+        }
 	}
 	
 	public void removeComputer(String name) {

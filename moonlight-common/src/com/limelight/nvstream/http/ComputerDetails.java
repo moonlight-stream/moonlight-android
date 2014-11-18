@@ -22,6 +22,17 @@ public class ComputerDetails {
 	public String macAddress;
 	public int runningGameId;
 	
+	public ComputerDetails() {
+		// Use defaults
+		state = State.UNKNOWN;
+		reachability = Reachability.UNKNOWN;
+	}
+	
+	public ComputerDetails(ComputerDetails details) {
+		// Copy details from the other computer
+		update(details);
+	}
+	
 	public void update(ComputerDetails details) {
 		this.state = details.state;
 		this.reachability = details.reachability;
@@ -32,29 +43,6 @@ public class ComputerDetails {
 		this.macAddress = details.macAddress;
 		this.pairState = details.pairState;
 		this.runningGameId = details.runningGameId;
-	}
-	
-	@Override
-	public boolean equals(Object o) {
-		if (o instanceof ComputerDetails) {
-			ComputerDetails other = (ComputerDetails)o;
-			
-			// Use UUIDs if they both have them
-			if (other.uuid != null && this.uuid != null)
-			{
-				return other.uuid.equals(this.uuid);
-			}
-			
-			// Otherwise use local IP
-			return other.localIp.equals(this.localIp);
-		}
-		
-		return false;
-	}
-	
-	@Override
-	public int hashCode() {
-		return localIp.hashCode();
 	}
 	
 	@Override

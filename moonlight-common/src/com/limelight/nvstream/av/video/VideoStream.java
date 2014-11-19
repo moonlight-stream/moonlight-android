@@ -84,11 +84,11 @@ public class VideoStream {
 			} catch (InterruptedException e) { }
 		}
 		
-		if (startedRendering) {
-			decRend.stop();
-		}
-		
 		if (decRend != null) {
+			if (startedRendering) {
+				decRend.stop();
+			}
+			
 			decRend.release();
 		}
 		
@@ -117,9 +117,9 @@ public class VideoStream {
 				offset += bytesRead;
 			}
 			
-			VideoPacket packet = new VideoPacket(firstFrame);
-			packet.initializeWithLengthNoRtpHeader(offset);
-			depacketizer.addInputData(packet);
+			// We can actually ignore this data. It's the act of reading it that matters.
+			// If this changes, we'll need to move this call before startReceiveThread()
+			// to avoid state corruption in the depacketizer
 		} finally {
 			firstFrameSocket.close();
 			firstFrameSocket = null;
@@ -134,14 +134,27 @@ public class VideoStream {
 	
 	public boolean setupDecoderRenderer(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) {
 		this.decRend = decRend;
+		
+		depacketizer = new VideoDepacketizer(avConnListener, streamConfig.getMaxPacketSize());
+		
 		if (decRend != null) {
-			if (!decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(),
-					60, renderTarget, drFlags)) {
+			try {
+				if (!decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(),
+						60, renderTarget, drFlags)) {
+					return false;
+				}
+				
+				if (!decRend.start(depacketizer)) {
+					abort();
+					return false;
+				}
+				
+				startedRendering = true;
+			} catch (Exception e) {
+				e.printStackTrace();
 				return false;
 			}
 		}
-		
-		depacketizer = new VideoDepacketizer(avConnListener, streamConfig.getMaxPacketSize());
 		
 		return true;
 	}
@@ -154,13 +167,6 @@ public class VideoStream {
 			throw new IOException("Video decoder failed to initialize. Please restart your device and try again.");
 		}
 		
-		// Start the renderer
-		if (!decRend.start(depacketizer)) {
-			abort();
-			return false;
-		}
-		startedRendering = true;
-		
 		// Open RTP sockets and start session
 		setupRtpSession();
 		
@@ -169,17 +175,15 @@ public class VideoStream {
 		// the reference frame
 		startUdpPingThread();
 		
-		// Read the first frame to start the UDP video stream
-		// This MUST be called before the normal UDP receive thread
-		// starts in order to avoid state corruption caused by two
-		// threads simultaneously adding input data.
-		readFirstFrame();
-		
 		if (decRend != null) {
 			// Start the receive thread early to avoid missing
-			// early packets
+			// early packets that are part of the IDR frame
 			startReceiveThread();
 		}
+		
+		// Now that we're ready, read the first frame to start the
+		// UDP video stream
+		readFirstFrame();
 		
 		return true;
 	}

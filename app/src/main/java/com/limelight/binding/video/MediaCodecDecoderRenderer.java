@@ -266,7 +266,7 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 					    	
 						    // Add delta time to the totals (excluding probable outliers)
 						    long delta = System.currentTimeMillis()-(presentationTimeUs/1000);
-						    if (delta > 5 && delta < 300) {
+						    if (delta >= 0 && delta < 300) {
 						    	decoderTimeMs += delta;
 							    totalTimeMs += delta;
 						    }

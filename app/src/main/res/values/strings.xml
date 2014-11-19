@@ -49,7 +49,7 @@
     <string name="conn_hardware_latency">Average hardware decoder latency:</string>
     <string name="conn_starting">Starting</string>
     <string name="conn_error_title">Connection Error</string>
-    <string name="conn_error_msg">Fail starting</string>
+    <string name="conn_error_msg">Failed to start</string>
     <string name="conn_terminated_title">Connection Terminated</string>
     <string name="conn_terminated_msg">The connection was terminated</string>
 

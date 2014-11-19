@@ -33,6 +33,9 @@ public class VideoDepacketizer {
 	private ConnectionStatusListener controlListener;
 	private final int nominalPacketDataLength;
 	
+	private static final int CONSECUTIVE_DROP_LIMIT = 120;
+	private int consecutiveFrameDrops = 0;
+	
 	private static final int DU_LIMIT = 15;
 	private PopulatedBufferList<DecodeUnit> decodedUnits;
 	
@@ -61,6 +64,22 @@ public class VideoDepacketizer {
 	private void dropAvcFrameState()
 	{
 		waitingForIdrFrame = true;
+		
+		// Count the number of consecutive frames dropped
+		consecutiveFrameDrops++;
+		
+		// If we reach our limit, immediately request an IDR frame
+		// and reset
+		if (consecutiveFrameDrops == CONSECUTIVE_DROP_LIMIT) {
+			LimeLog.warning("Reached consecutive drop limit");
+			
+			// Restart the count
+			consecutiveFrameDrops = 0;
+			
+			// Request an IDR frame
+			controlListener.connectionDetectedFrameLoss(0, 0);
+		}
+		
 		cleanupAvcFrameState();
 	}
 	
@@ -126,6 +145,9 @@ public class VideoDepacketizer {
 
 			// Clear old state
 			cleanupAvcFrameState();
+			
+			// Clear frame drops
+			consecutiveFrameDrops = 0;
 		}
 	}
 	

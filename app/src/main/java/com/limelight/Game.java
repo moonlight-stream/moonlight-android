@@ -186,7 +186,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		
 		// Initialize touch contexts
 		for (int i = 0; i < touchContextMap.length; i++) {
-			touchContextMap[i] = new TouchContext(conn, i);
+			touchContextMap[i] = new TouchContext(conn, i,
+                    ((double)prefConfig.width / (double)screenSize.x),
+                    ((double)prefConfig.height / (double)screenSize.y));
 		}
 		
 		if (LimelightBuildProps.ROOT_BUILD) {

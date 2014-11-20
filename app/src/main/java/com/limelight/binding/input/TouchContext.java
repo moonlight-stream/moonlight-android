@@ -12,14 +12,17 @@ public class TouchContext {
 	
 	private NvConnection conn;
 	private int actionIndex;
+    private double xFactor, yFactor;
 	
 	private static final int TAP_MOVEMENT_THRESHOLD = 10;
 	private static final int TAP_TIME_THRESHOLD = 250;
 	
-	public TouchContext(NvConnection conn, int actionIndex)
+	public TouchContext(NvConnection conn, int actionIndex, double xFactor, double yFactor)
 	{
 		this.conn = conn;
 		this.actionIndex = actionIndex;
+        this.xFactor = xFactor;
+        this.yFactor = yFactor;
 	}
 
     public int getActionIndex()
@@ -83,8 +86,14 @@ public class TouchContext {
 		{
 			// We only send moves for the primary touch point
 			if (actionIndex == 0) {
-				conn.sendMouseMove((short)(eventX - lastTouchX),
-						(short)(eventY - lastTouchY));
+                int deltaX = eventX - lastTouchX;
+                int deltaY = eventY - lastTouchY;
+
+                // Scale the deltas based on the factors passed to our constructor
+                deltaX = (int)Math.round((double)deltaX * xFactor);
+                deltaY = (int)Math.round((double)deltaY * yFactor);
+
+				conn.sendMouseMove((short)deltaX, (short)deltaY);
 			}
 			
 			lastTouchX = eventX;

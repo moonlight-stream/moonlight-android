@@ -45,6 +45,7 @@ public class ControllerHandler {
 	
 	private NvConnection conn;
     private double stickDeadzone;
+    private final ControllerMapping defaultMapping = new ControllerMapping();
 	
 	public ControllerHandler(NvConnection conn, int deadzonePercentage) {
 		this.conn = conn;
@@ -52,6 +53,16 @@ public class ControllerHandler {
 		
 		// We want limelight-common to scale the axis values to match Xinput values
 		ControllerPacket.enableAxisScaling = true;
+
+        // Initialize the default mapping for events with no device
+        defaultMapping.leftStickXAxis = MotionEvent.AXIS_X;
+        defaultMapping.leftStickYAxis = MotionEvent.AXIS_Y;
+        defaultMapping.leftStickDeadzoneRadius = (float) stickDeadzone;
+        defaultMapping.rightStickXAxis = MotionEvent.AXIS_Z;
+        defaultMapping.rightStickYAxis = MotionEvent.AXIS_RZ;
+        defaultMapping.rightStickDeadzoneRadius = (float) stickDeadzone;
+        defaultMapping.leftTriggerAxis = MotionEvent.AXIS_BRAKE;
+        defaultMapping.rightTriggerAxis = MotionEvent.AXIS_GAS;
 	}
 	
 	private static InputDevice.MotionRange getMotionRangeForJoystickAxis(InputDevice dev, int axis) {
@@ -161,9 +172,9 @@ public class ControllerHandler {
 	}
 	
 	private ControllerMapping getMappingForDevice(InputDevice dev) {
-		// Unknown devices can't be handled
+		// Unknown devices use the default mapping
 		if (dev == null) {
-			return null;
+			return defaultMapping;
 		}
 		
 		String descriptor = dev.getDescriptor();
@@ -294,10 +305,7 @@ public class ControllerHandler {
 	
 	public boolean handleMotionEvent(MotionEvent event) {
 		ControllerMapping mapping = getMappingForDevice(event.getDevice());
-		if (mapping == null) {
-			return false;
-		}
-		
+
 		// Handle left stick events outside of the deadzone
 		if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
 			Vector2d leftStickVector = handleDeadZone(event.getAxisValue(mapping.leftStickXAxis),
@@ -358,9 +366,6 @@ public class ControllerHandler {
 	
 	public boolean handleButtonUp(KeyEvent event) {
 		ControllerMapping mapping = getMappingForDevice(event.getDevice());
-		if (mapping == null) {
-			return false;
-		}
 
         int keyCode = handleRemapping(mapping, event);
 		if (keyCode == 0) {
@@ -481,9 +486,6 @@ public class ControllerHandler {
 	
 	public boolean handleButtonDown(KeyEvent event) {
 		ControllerMapping mapping = getMappingForDevice(event.getDevice());
-		if (mapping == null) {
-			return false;
-		}
 
         int keyCode = handleRemapping(mapping, event);
 		if (keyCode == 0) {

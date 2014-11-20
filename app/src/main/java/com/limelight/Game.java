@@ -386,11 +386,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		InputDevice dev = event.getDevice();
-		if (dev == null) {
-			return super.onKeyDown(keyCode, event);
-		}
-		
 		// Pass-through virtual navigation keys
 		if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
 			return super.onKeyDown(keyCode, event);
@@ -429,11 +424,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		InputDevice dev = event.getDevice();
-		if (dev == null) {
-			return super.onKeyUp(keyCode, event);
-		}
-		
 		// Pass-through virtual navigation keys
 		if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
 			return super.onKeyUp(keyCode, event);

@@ -266,8 +266,22 @@ public class ControllerHandler {
 				return KeyEvent.KEYCODE_DPAD_DOWN;
 			}
 		}
+
+        // Past here we can fixup the keycode and potentially trigger
+        // another special case so we need to remember what keycode we're using
+        int keyCode = event.getKeyCode();
+
+        // This is a hack for (at least) the "Tablet Remote" app
+        // which sends BACK with META_ALT_ON instead of KEYCODE_BUTTON_B
+        if (keyCode == KeyEvent.KEYCODE_BACK &&
+                !event.hasNoModifiers() &&
+                (event.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0)
+        {
+            keyCode = KeyEvent.KEYCODE_BUTTON_B;
+        }
+
 		
-		return event.getKeyCode();
+		return keyCode;
 	}
 	
 	private Vector2d handleDeadZone(float x, float y, float deadzoneRadius) {

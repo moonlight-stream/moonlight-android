@@ -167,6 +167,17 @@ public class ControllerHandler {
 		if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
             mapping.rightStickDeadzoneRadius = (float) stickDeadzone;
         }
+
+        // This path will make the back button function as start for Android TV controllers
+        // that don't have a real start button. It's fine being KitKat and above because
+        // ATV is a 5.0 platform
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            // Check if this controller has a start or menu button
+            boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
+            if (!hasStartKey[0] && !hasStartKey[1]) {
+                mapping.backIsStart = true;
+            }
+        }
 		
 		return mapping;
 	}
@@ -280,6 +291,15 @@ public class ControllerHandler {
             keyCode = KeyEvent.KEYCODE_BUTTON_B;
         }
 
+        if (keyCode == KeyEvent.KEYCODE_BUTTON_START ||
+                keyCode == KeyEvent.KEYCODE_MENU) {
+            // Ensure that we never use back as start if we have a real start
+            mapping.backIsStart = false;
+        }
+        else if (mapping.backIsStart && keyCode == KeyEvent.KEYCODE_BACK) {
+            // Emulate the start button with back
+            return KeyEvent.KEYCODE_BUTTON_START;
+        }
 		
 		return keyCode;
 	}
@@ -612,5 +632,6 @@ public class ControllerHandler {
 		
 		public boolean isDualShock4;
 		public boolean isXboxController;
+        public boolean backIsStart;
 	}
 }

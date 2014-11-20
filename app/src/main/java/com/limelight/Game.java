@@ -1,6 +1,7 @@
 package com.limelight;
 
 
+import com.limelight.LimelightBuildProps;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;

@@ -49,6 +49,12 @@ public class ControllerHandler {
 	
 	public ControllerHandler(NvConnection conn, int deadzonePercentage) {
 		this.conn = conn;
+
+        // 1% is the lowest possible deadzone we support
+        if (deadzonePercentage <= 0) {
+            deadzonePercentage = 1;
+        }
+
         this.stickDeadzone = (double)deadzonePercentage / 100.0;
 		
 		// We want limelight-common to scale the axis values to match Xinput values

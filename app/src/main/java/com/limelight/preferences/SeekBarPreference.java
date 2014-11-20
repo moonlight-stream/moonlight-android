@@ -23,7 +23,7 @@ public class SeekBarPreference extends DialogPreference
     private Context context;
 
     private String dialogMessage, suffix;
-    private int defaultValue, maxValue, currentValue;
+    private int defaultValue, maxValue, minValue, currentValue;
 
     public SeekBarPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -47,9 +47,10 @@ public class SeekBarPreference extends DialogPreference
             suffix = context.getString(suffixId);
         }
 
-        // Get default and max seekbar values
+        // Get default, min, and max seekbar values
         defaultValue = attrs.getAttributeIntValue(SCHEMA_URL, "defaultValue", PreferenceConfiguration.getDefaultBitrate(context));
         maxValue = attrs.getAttributeIntValue(SCHEMA_URL, "max", 100);
+        minValue = 1;
     }
 
     @Override
@@ -79,6 +80,11 @@ public class SeekBarPreference extends DialogPreference
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int value, boolean b) {
+                if (value < minValue) {
+                    seekBar.setProgress(minValue);
+                    return;
+                }
+
                 String t = String.valueOf(value);
                 valueText.setText(suffix == null ? t : t.concat(suffix.length() > 1 ? " "+suffix : suffix));
             }

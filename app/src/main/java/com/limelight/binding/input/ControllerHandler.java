@@ -607,8 +607,12 @@ public class ControllerHandler {
 			
 			emulatingButtonFlags |= ControllerHandler.EMULATING_SPECIAL;
 		}
-		
-		sendControllerInputPacket();
+
+        // Send a new input packet if this is the first instance of a button down event
+        // or anytime if we're emulating a button
+        if (event.getRepeatCount() == 0 || emulatingButtonFlags != 0) {
+            sendControllerInputPacket();
+        }
 		return true;
 	}
 	

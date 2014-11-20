@@ -24,7 +24,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/pcs_loading"
+            android:layout_toEndOf="@+id/pcs_loading"
             android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"
             android:layout_centerVertical="true"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:gravity="center"
@@ -39,7 +41,9 @@
         android:columnWidth="160dp"
         android:gravity="center"
         android:layout_toLeftOf="@+id/manuallyAddPc"
+        android:layout_toStartOf="@+id/manuallyAddPc"
         android:layout_toRightOf="@+id/settingsButton"
+        android:layout_toEndOf="@+id/settingsButton"
         android:layout_alignParentBottom="true"
         android:layout_alignParentTop="true"/>
 
@@ -50,6 +54,7 @@
         android:cropToPadding="false"
         android:scaleType="fitXY"
         android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:src="@drawable/settings"
         style="?android:attr/borderlessButtonStyle"/>
@@ -61,6 +66,7 @@
         android:cropToPadding="false"
         android:scaleType="fitXY"
         android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:src="@drawable/add_computer"
         style="?android:attr/borderlessButtonStyle"/>

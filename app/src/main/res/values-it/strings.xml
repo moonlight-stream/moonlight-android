@@ -73,7 +73,6 @@
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Aggiungi PC Manualmente</string>
-    <string name="button_add_pc">Aggiungi PC</string>
     <string name="msg_add_pc">Connessione al PC in corso…</string>
     <string name="addpc_fail">Impossibile connettersi al PC. Assicurati che il firewall del PC sia configurato correttamente.</string>
     <string name="addpc_success">PC aggiunto con successo</string>

@@ -73,7 +73,6 @@
     
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>
-    <string name="button_add_pc">Add PC</string>
     <string name="msg_add_pc">Connecting to the PC…</string>
     <string name="addpc_fail">Unable to connect to the specified computer. Make sure the required ports are allowed through the firewall.</string>
     <string name="addpc_success">Successfully added computer</string>

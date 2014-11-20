@@ -171,16 +171,23 @@ public class ControllerHandler {
             mapping.rightStickDeadzoneRadius = (float) stickDeadzone;
         }
 
+        /*
+        FIXME: This is broken on SHIELD
+
         // This path will make the back button function as start for Android TV controllers
         // that don't have a real start button. It's fine being KitKat and above because
         // ATV is a 5.0 platform
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-            // Check if this controller has a start or menu button
-            boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
-            if (!hasStartKey[0] && !hasStartKey[1]) {
-                mapping.backIsStart = true;
+            // Make sure this is a gamepad and not some other device
+            if ((dev.getSources() & InputDevice.SOURCE_GAMEPAD) != 0) {
+                // Check if this controller has a start or menu button
+                boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
+                if (!hasStartKey[0] && !hasStartKey[1]) {
+                    mapping.backIsStart = true;
+                }
             }
         }
+        */
 		
 		return mapping;
 	}

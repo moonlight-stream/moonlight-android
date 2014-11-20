@@ -339,65 +339,107 @@ public class ControllerHandler {
 			return normalizedInputVector;
 		}
 	}
+
+    private void handleAxisSet(ControllerMapping mapping, float lsX, float lsY, float rsX,
+                               float rsY, float lt, float rt, float hatX, float hatY) {
+
+        if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
+            Vector2d leftStickVector = handleDeadZone(lsX, lsY, mapping.leftStickDeadzoneRadius);
+
+            leftStickX = (short) (leftStickVector.getX() * 0x7FFE);
+            leftStickY = (short) (-leftStickVector.getY() * 0x7FFE);
+        }
+
+        if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
+            Vector2d rightStickVector = handleDeadZone(rsX, rsY, mapping.rightStickDeadzoneRadius);
+
+            rightStickX = (short) (rightStickVector.getX() * 0x7FFE);
+            rightStickY = (short) (-rightStickVector.getY() * 0x7FFE);
+        }
+
+        if (mapping.leftTriggerAxis != -1 && mapping.rightTriggerAxis != -1) {
+            if (mapping.triggersIdleNegative) {
+                lt = (lt + 1) / 2;
+                rt = (rt + 1) / 2;
+            }
+
+            leftTrigger = (byte)(lt * 0xFF);
+            rightTrigger = (byte)(rt * 0xFF);
+        }
+
+        if (mapping.hatXAxis != -1 && mapping.hatYAxis != -1) {
+            inputMap &= ~(ControllerPacket.LEFT_FLAG | ControllerPacket.RIGHT_FLAG);
+            if (hatX < -0.5) {
+                inputMap |= ControllerPacket.LEFT_FLAG;
+            }
+            else if (hatX > 0.5) {
+                inputMap |= ControllerPacket.RIGHT_FLAG;
+            }
+
+            inputMap &= ~(ControllerPacket.UP_FLAG | ControllerPacket.DOWN_FLAG);
+            if (hatY < -0.5) {
+                inputMap |= ControllerPacket.UP_FLAG;
+            }
+            else if (hatY > 0.5) {
+                inputMap |= ControllerPacket.DOWN_FLAG;
+            }
+        }
+
+        sendControllerInputPacket();
+    }
 	
 	public boolean handleMotionEvent(MotionEvent event) {
 		ControllerMapping mapping = getMappingForDevice(event.getDevice());
+        float lsX = 0, lsY = 0, rsX = 0, rsY = 0, rt = 0, lt = 0, hatX = 0, hatY = 0;
 
-		// Handle left stick events outside of the deadzone
-		if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
-			Vector2d leftStickVector = handleDeadZone(event.getAxisValue(mapping.leftStickXAxis),
-					event.getAxisValue(mapping.leftStickYAxis), mapping.leftStickDeadzoneRadius);
-			
-			leftStickX = (short)(leftStickVector.getX() * 0x7FFE);
-			leftStickY = (short)(-leftStickVector.getY() * 0x7FFE);
-		}
-		
-		// Handle right stick events outside of the deadzone
-		if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
-			Vector2d rightStickVector = handleDeadZone(event.getAxisValue(mapping.rightStickXAxis),
-					event.getAxisValue(mapping.rightStickYAxis), mapping.rightStickDeadzoneRadius);
-			
-			rightStickX = (short)(rightStickVector.getX() * 0x7FFE);
-			rightStickY = (short)(-rightStickVector.getY() * 0x7FFE);
-		}
-		
-		// Handle controllers with analog triggers
-		if (mapping.leftTriggerAxis != -1 && mapping.rightTriggerAxis != -1) {
-			float L2 = event.getAxisValue(mapping.leftTriggerAxis);
-			float R2 = event.getAxisValue(mapping.rightTriggerAxis);
-			
-			if (mapping.triggersIdleNegative) {
-				L2 = (L2 + 1) / 2;
-				R2 = (R2 + 1) / 2;
-			}
-			
-			leftTrigger = (byte)(L2 * 0xFF);
-			rightTrigger = (byte)(R2 * 0xFF);
-		}
+        // Replay the full history before getting the current values
+        for (int i = 0; i < event.getHistorySize(); i++) {
+            if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
+                lsX = event.getHistoricalAxisValue(mapping.leftStickXAxis, i);
+                lsY = event.getHistoricalAxisValue(mapping.leftStickYAxis, i);
+            }
 
-		// Hats emulate d-pad events
-		if (mapping.hatXAxis != -1 && mapping.hatYAxis != -1) {
-			float hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X);
-			float hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
+            if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
+                rsX = event.getHistoricalAxisValue(mapping.rightStickXAxis, i);
+                rsY = event.getHistoricalAxisValue(mapping.rightStickYAxis, i);
+            }
 
-			inputMap &= ~(ControllerPacket.LEFT_FLAG | ControllerPacket.RIGHT_FLAG);
-			if (hatX < -(0.5 + mapping.hatXDeadzone)) {
-				inputMap |= ControllerPacket.LEFT_FLAG;
-			}
-			else if (hatX > (0.5 + mapping.hatXDeadzone)) {
-				inputMap |= ControllerPacket.RIGHT_FLAG;
-			}
-			
-			inputMap &= ~(ControllerPacket.UP_FLAG | ControllerPacket.DOWN_FLAG);
-			if (hatY < -(0.5 + mapping.hatYDeadzone)) {
-				inputMap |= ControllerPacket.UP_FLAG;
-			}
-			else if (hatY > (0.5 + mapping.hatYDeadzone)) {
-				inputMap |= ControllerPacket.DOWN_FLAG;
-			}
-		}
+            if (mapping.leftTriggerAxis != -1 && mapping.rightTriggerAxis != -1) {
+                lt = event.getHistoricalAxisValue(mapping.leftTriggerAxis, i);
+                rt = event.getHistoricalAxisValue(mapping.rightTriggerAxis, i);
+            }
 
-		sendControllerInputPacket();
+            if (mapping.hatXAxis != -1 && mapping.hatYAxis != -1) {
+                hatX = event.getHistoricalAxisValue(MotionEvent.AXIS_HAT_X, i);
+                hatY = event.getHistoricalAxisValue(MotionEvent.AXIS_HAT_Y, i);
+            }
+
+            handleAxisSet(mapping, lsX, lsY, rsX, rsY, lt, rt, hatX, hatY);
+        }
+
+        // Now handle the current set of values
+        if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
+            lsX = event.getAxisValue(mapping.leftStickXAxis);
+            lsY = event.getAxisValue(mapping.leftStickYAxis);
+        }
+
+        if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
+            rsX = event.getAxisValue(mapping.rightStickXAxis);
+            rsY = event.getAxisValue(mapping.rightStickYAxis);
+        }
+
+        if (mapping.leftTriggerAxis != -1 && mapping.rightTriggerAxis != -1) {
+            lt = event.getAxisValue(mapping.leftTriggerAxis);
+            rt = event.getAxisValue(mapping.rightTriggerAxis);
+        }
+
+        if (mapping.hatXAxis != -1 && mapping.hatYAxis != -1) {
+            hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X);
+            hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
+        }
+
+        handleAxisSet(mapping, lsX, lsY, rsX, rsY, lt, rt, hatX, hatY);
+
 		return true;
 	}
 	

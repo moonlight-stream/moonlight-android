@@ -510,6 +510,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 				case MotionEvent.ACTION_MOVE:
 					// ACTION_MOVE is special because it always has actionIndex == 0
 					// We'll call the move handlers for all indexes manually
+
+                    // First process the historical events
+                    for (int i = 0; i < event.getHistorySize(); i++) {
+                        for (TouchContext aTouchContextMap : touchContextMap) {
+                            if (aTouchContextMap.getActionIndex() < event.getPointerCount())
+                            {
+                                aTouchContextMap.touchMoveEvent(
+                                        (int)event.getHistoricalX(aTouchContextMap.getActionIndex(), i),
+                                        (int)event.getHistoricalY(aTouchContextMap.getActionIndex(), i));
+                            }
+                        }
+                    }
+
+                    // Now process the current values
                     for (TouchContext aTouchContextMap : touchContextMap) {
                         if (aTouchContextMap.getActionIndex() < event.getPointerCount())
                         {
@@ -561,9 +575,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 					}
 				}
 
-				updateMousePosition((int)event.getX(), (int)event.getY());
+                // First process the history
+                for (int i = 0; i < event.getHistorySize(); i++) {
+                    updateMousePosition((int)event.getHistoricalX(i), (int)event.getHistoricalY(i));
+                }
 
-				lastButtonState = event.getButtonState();
+                // Now process the current values
+                updateMousePosition((int)event.getX(), (int)event.getY());
+
+                lastButtonState = event.getButtonState();
 			}
 			else
 			{

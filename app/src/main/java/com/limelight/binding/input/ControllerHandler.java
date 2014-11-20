@@ -171,6 +171,21 @@ public class ControllerHandler {
             mapping.rightStickDeadzoneRadius = (float) stickDeadzone;
         }
 
+        if (mapping.leftTriggerAxis != -1 && mapping.rightTriggerAxis != -1) {
+            InputDevice.MotionRange ltRange = getMotionRangeForJoystickAxis(dev, mapping.leftTriggerAxis);
+            InputDevice.MotionRange rtRange = getMotionRangeForJoystickAxis(dev, mapping.rightTriggerAxis);
+
+            // It's important to have a valid deadzone so controller packet batching works properly
+            mapping.triggerDeadzone = Math.max(Math.abs(ltRange.getFlat()), Math.abs(rtRange.getFlat()));
+
+            // For triggers without (valid) deadzones, we'll use 10%
+            if (mapping.triggerDeadzone <= 0.02 ||
+                mapping.triggerDeadzone > 0.30)
+            {
+                mapping.triggerDeadzone = 0.1f;
+            }
+        }
+
         /*
         FIXME: This is broken on SHIELD
 
@@ -368,6 +383,13 @@ public class ControllerHandler {
             if (mapping.triggersIdleNegative) {
                 lt = (lt + 1) / 2;
                 rt = (rt + 1) / 2;
+            }
+
+            if (lt <= mapping.triggerDeadzone) {
+                lt = 0;
+            }
+            if (rt <= mapping.triggerDeadzone) {
+                rt = 0;
             }
 
             leftTrigger = (byte)(lt * 0xFF);
@@ -680,6 +702,7 @@ public class ControllerHandler {
 		public int leftTriggerAxis = -1;
 		public int rightTriggerAxis = -1;
 		public boolean triggersIdleNegative;
+        public float triggerDeadzone;
 		
 		public int hatXAxis = -1;
 		public int hatYAxis = -1;

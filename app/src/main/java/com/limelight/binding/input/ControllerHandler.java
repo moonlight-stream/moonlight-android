@@ -50,15 +50,16 @@ public class ControllerHandler {
 	public ControllerHandler(NvConnection conn, int deadzonePercentage) {
 		this.conn = conn;
 
+        // HACK: For now we're hardcoding a 10% deadzone. Some deadzone
+        // is required for controller batching support to work.
+        deadzonePercentage = 10;
+
         // 1% is the lowest possible deadzone we support
         if (deadzonePercentage <= 0) {
             deadzonePercentage = 1;
         }
 
         this.stickDeadzone = (double)deadzonePercentage / 100.0;
-		
-		// We want limelight-common to scale the axis values to match Xinput values
-		ControllerPacket.enableAxisScaling = true;
 
         // Initialize the default mapping for events with no device
         defaultMapping.leftStickXAxis = MotionEvent.AXIS_X;
@@ -337,7 +338,12 @@ public class ControllerHandler {
 			// Deadzone -- return the zero vector
 			return Vector2d.ZERO;
 		}
-		else {			
+		else {
+            /*
+            FIXME: We're not normalizing here because we let the computer handle the deadzones.
+            Normalizing can make the deadzones larger than they should be after the computer also
+            evaluates the deadzone
+
 			// Scale the input based on the distance from the deadzone
 			inputVector.getNormalized(normalizedInputVector);
 			normalizedInputVector.scalarMultiply((inputVector.getMagnitude() - deadzoneRadius) / (1.0f - deadzoneRadius));
@@ -359,6 +365,9 @@ public class ControllerHandler {
 			}
 			
 			return normalizedInputVector;
+			*/
+
+            return inputVector;
 		}
 	}
 

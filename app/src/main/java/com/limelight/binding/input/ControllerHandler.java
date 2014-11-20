@@ -161,9 +161,6 @@ public class ControllerHandler {
 		if (hatXRange != null && hatYRange != null) {
 			mapping.hatXAxis = MotionEvent.AXIS_HAT_X;
 			mapping.hatYAxis = MotionEvent.AXIS_HAT_Y;
-			
-			mapping.hatXDeadzone = hatXRange.getFlat();
-			mapping.hatYDeadzone = hatYRange.getFlat();
 		}
 		
 		if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
@@ -637,8 +634,6 @@ public class ControllerHandler {
 		
 		public int hatXAxis = -1;
 		public int hatYAxis = -1;
-		public float hatXDeadzone;
-		public float hatYDeadzone;
 		
 		public boolean isDualShock4;
 		public boolean isXboxController;

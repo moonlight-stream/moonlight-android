@@ -234,6 +234,7 @@ public class ComputerManagerService extends Service {
 		ComputerDetails fakeDetails = new ComputerDetails();
 		fakeDetails.localIp = addr;
 		fakeDetails.remoteIp = addr;
+        fakeDetails.name = "";
 
         addTuple(fakeDetails);
 	}
@@ -272,6 +273,7 @@ public class ComputerManagerService extends Service {
 		ComputerDetails fakeDetails = new ComputerDetails();
 		fakeDetails.localIp = addr;
 		fakeDetails.remoteIp = addr;
+        fakeDetails.name = "";
 		
 		// Block while we try to fill the details
         runPoll(fakeDetails);

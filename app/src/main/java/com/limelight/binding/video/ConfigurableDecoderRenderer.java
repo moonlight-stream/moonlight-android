@@ -3,9 +3,9 @@ package com.limelight.binding.video;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.av.video.VideoDepacketizer;
 
-public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
+public class ConfigurableDecoderRenderer extends EnhancedDecoderRenderer {
 
-	private VideoDecoderRenderer decoderRenderer;
+	private EnhancedDecoderRenderer decoderRenderer;
 	
 	@Override
 	public void release() {
@@ -74,4 +74,14 @@ public class ConfigurableDecoderRenderer implements VideoDecoderRenderer {
 			return 0;
 		}
 	}
+
+    @Override
+    public String getDecoderName() {
+        if (decoderRenderer != null) {
+            return decoderRenderer.getDecoderName();
+        }
+        else {
+            return null;
+        }
+    }
 }

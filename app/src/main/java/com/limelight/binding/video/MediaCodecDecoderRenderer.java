@@ -23,7 +23,7 @@ import android.os.Build;
 import android.view.SurfaceHolder;
 
 @SuppressWarnings("unused")
-public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
+public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 
 	private ByteBuffer[] videoDecoderInputBuffers;
 	private MediaCodec videoDecoder;
@@ -477,8 +477,13 @@ public class MediaCodecDecoderRenderer implements VideoDecoderRenderer {
 		}
 		return (int)(totalTimeMs / totalFrames);
 	}
-	
-	public class RendererException extends RuntimeException {
+
+    @Override
+    public String getDecoderName() {
+        return decoderName;
+    }
+
+    public class RendererException extends RuntimeException {
 		private static final long serialVersionUID = 8985937536997012406L;
 		
 		private Exception originalException;

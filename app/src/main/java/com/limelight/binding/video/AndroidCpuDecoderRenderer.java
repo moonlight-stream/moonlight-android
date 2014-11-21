@@ -18,7 +18,7 @@ import com.limelight.nvstream.av.video.VideoDepacketizer;
 import com.limelight.nvstream.av.video.cpu.AvcDecoder;
 
 @SuppressWarnings("EmptyCatchBlock")
-public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
+public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
 
 	private Thread rendererThread, decoderThread;
 	private int targetFps;
@@ -278,4 +278,9 @@ public class AndroidCpuDecoderRenderer implements VideoDecoderRenderer {
 		}
 		return (int)(totalTimeMs / totalFrames);
 	}
+
+    @Override
+    public String getDecoderName() {
+        return "CPU decoding";
+    }
 }

@@ -94,16 +94,19 @@ public class VideoStream {
 		
 		threads.clear();
 	}
+	
+	private void connectFirstFrame() throws IOException
+	{
+		firstFrameSocket = new Socket();
+		firstFrameSocket.setSoTimeout(FIRST_FRAME_TIMEOUT);
+		firstFrameSocket.connect(new InetSocketAddress(host, FIRST_FRAME_PORT), FIRST_FRAME_TIMEOUT);
+	}
 
 	private void readFirstFrame() throws IOException
 	{
 		byte[] firstFrame = new byte[streamConfig.getMaxPacketSize()];
 		
-		firstFrameSocket = new Socket();
-		firstFrameSocket.setSoTimeout(FIRST_FRAME_TIMEOUT);
-		
 		try {
-			firstFrameSocket.connect(new InetSocketAddress(host, FIRST_FRAME_PORT), FIRST_FRAME_TIMEOUT);
 			InputStream firstFrameStream = firstFrameSocket.getInputStream();
 			
 			int offset = 0;
@@ -170,19 +173,20 @@ public class VideoStream {
 		// Open RTP sockets and start session
 		setupRtpSession();
 		
-		// Start pinging before reading the first frame
-		// so Shield Proxy knows we're here and sends us
-		// the reference frame
-		startUdpPingThread();
-		
 		if (decRend != null) {
 			// Start the receive thread early to avoid missing
 			// early packets that are part of the IDR frame
 			startReceiveThread();
 		}
 		
-		// Now that we're ready, read the first frame to start the
-		// UDP video stream
+		// Connect to the first frame port to open UDP 47998
+		connectFirstFrame();
+		
+		// Start pinging before reading the first frame
+		// so GFE knows where to send UDP data
+		startUdpPingThread();
+		
+		// Read the first frame to start the flow of video
 		readFirstFrame();
 		
 		return true;

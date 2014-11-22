@@ -57,7 +57,7 @@ public class ComputerManagerService extends Service {
     // Returns true if the details object was modified
     private boolean runPoll(ComputerDetails details)
     {
-        boolean newPc = (details.name == null);
+        boolean newPc = details.name.isEmpty();
 
         if (!getLocalDatabaseReference()) {
             return false;

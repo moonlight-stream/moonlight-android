@@ -17,3 +17,9 @@ This file serves to document some of the decoder errata when using MediaCodec ha
 	
 6. Some decoders will hang if max_dec_frame_buffering IS present
 	- Affected decoders: Exynos 5 in Galaxy Note 10.1 (2014)
+
+7. Some decoders will not enter low latency mode if adaptive playback is enabled
+	- Affected decoders: Intel decoder in Nexus Player
+
+8. Some decoders will not enter low latency mode if the profile isn't baseline in the first SPS.
+	- Affected decoders: Intel decoder in Nexus Player

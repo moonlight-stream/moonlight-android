@@ -7,6 +7,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.utils.Vector2d;
@@ -87,8 +88,11 @@ public class ControllerHandler {
 	
 	private ControllerMapping createMappingForDevice(InputDevice dev) {
 		ControllerMapping mapping = new ControllerMapping();
-		
-		mapping.leftStickXAxis = MotionEvent.AXIS_X;
+        String devName = dev.getName();
+
+        LimeLog.info("Creating controller mapping for device: "+devName);
+
+        mapping.leftStickXAxis = MotionEvent.AXIS_X;
 		mapping.leftStickYAxis = MotionEvent.AXIS_Y;
 		
 		InputDevice.MotionRange leftTriggerRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_LTRIGGER);
@@ -111,8 +115,7 @@ public class ControllerHandler {
 		{
 			InputDevice.MotionRange rxRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RX);
 			InputDevice.MotionRange ryRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RY);
-			if (rxRange != null && ryRange != null) {
-				String devName = dev.getName();
+			if (rxRange != null && ryRange != null && devName != null) {
 				if (devName.contains("Xbox") || devName.contains("XBox") || devName.contains("X-Box")) {
 					// Xbox controllers use RX and RY for right stick
 					mapping.rightStickXAxis = MotionEvent.AXIS_RX;
@@ -187,23 +190,19 @@ public class ControllerHandler {
             }
         }
 
-        /*
-        FIXME: This is broken on SHIELD
-
-        // This path will make the back button function as start for Android TV controllers
-        // that don't have a real start button. It's fine being KitKat and above because
-        // ATV is a 5.0 platform
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-            // Make sure this is a gamepad and not some other device
-            if ((dev.getSources() & InputDevice.SOURCE_GAMEPAD) != 0) {
-                // Check if this controller has a start or menu button
+        // For the Nexus Player (and probably other ATV devices), we should
+        // use the back button as start since it doesn't have a start/menu button
+        // on the controller
+        if (devName != null && devName.contains("ASUS Gamepad")) {
+            // We can only do this check on KitKat or higher, but it doesn't matter since ATV
+            // is Android 5.0 anyway
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
                 boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
                 if (!hasStartKey[0] && !hasStartKey[1]) {
                     mapping.backIsStart = true;
                 }
             }
         }
-        */
 		
 		return mapping;
 	}

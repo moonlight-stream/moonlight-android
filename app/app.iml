@@ -103,6 +103,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="okhttp-2.1.0-RC1" level="project" />
     <orderEntry type="library" exported="" name="bcprov-jdk15on-1.51" level="project" />
+    <orderEntry type="library" exported="" name="gson-2.3.1" level="project" />
     <orderEntry type="library" exported="" name="androidasync-1.3.7" level="project" />
     <orderEntry type="library" exported="" name="jmdns-fixed" level="project" />
     <orderEntry type="library" exported="" name="jcodec-0.1.6-3" level="project" />
@@ -110,7 +111,6 @@
     <orderEntry type="library" exported="" name="tinyrtsp" level="project" />
     <orderEntry type="library" exported="" name="limelight-common" level="project" />
     <orderEntry type="library" exported="" name="support-v4-r6" level="project" />
-    <orderEntry type="library" exported="" name="gson-2.3" level="project" />
     <orderEntry type="library" exported="" name="okio-1.0.1" level="project" />
     <orderEntry type="library" exported="" name="ion-1.3.7" level="project" />
   </component>

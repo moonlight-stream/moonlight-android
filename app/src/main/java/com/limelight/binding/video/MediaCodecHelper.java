@@ -25,6 +25,7 @@ public class MediaCodecHelper {
 	public static final List<String> blacklistedDecoderPrefixes;
 	public static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
 	public static final List<String> whitelistedAdaptiveResolutionPrefixes;
+    public static final List<String> baselineProfileHackPrefixes;
 	
 	static {
 		preferredDecoders = new LinkedList<String>();
@@ -43,7 +44,10 @@ public class MediaCodecHelper {
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.nvidia");
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.qcom");
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.mtk");
-		
+
+        baselineProfileHackPrefixes = new LinkedList<String>();
+        baselineProfileHackPrefixes.add("omx.intel");
+
 		whitelistedAdaptiveResolutionPrefixes = new LinkedList<String>();
 		whitelistedAdaptiveResolutionPrefixes.add("omx.nvidia");
 		whitelistedAdaptiveResolutionPrefixes.add("omx.qcom");
@@ -96,6 +100,10 @@ public class MediaCodecHelper {
 	public static boolean decoderNeedsSpsBitstreamRestrictions(String decoderName, MediaCodecInfo decoderInfo) {
 		return isDecoderInList(spsFixupBitstreamFixupDecoderPrefixes, decoderName);
 	}
+
+    public static boolean decoderNeedsBaselineSpsHack(String decoderName, MediaCodecInfo decoderInfo) {
+        return isDecoderInList(baselineProfileHackPrefixes, decoderName);
+    }
 	
 	@SuppressWarnings("deprecation")
 	@SuppressLint("NewApi")

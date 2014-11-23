@@ -32,6 +32,9 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 	private VideoDepacketizer depacketizer;
 	private boolean adaptivePlayback;
 	private int initialWidth, initialHeight;
+
+    private boolean needsBaselineSpsHack;
+    private SeqParameterSet savedSps;
 	
 	private long lastTimestampUs;
 	private long totalTimeMs;
@@ -63,10 +66,14 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 		// Set decoder-specific attributes
 		adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(decoderName, decoder);
 		needsSpsBitstreamFixup = MediaCodecHelper.decoderNeedsSpsBitstreamRestrictions(decoderName, decoder);
-		if (needsSpsBitstreamFixup) {
+        needsBaselineSpsHack = MediaCodecHelper.decoderNeedsBaselineSpsHack(decoderName, decoder);
+        isExynos4 = MediaCodecHelper.isExynos4Device();
+        if (needsSpsBitstreamFixup) {
 			LimeLog.info("Decoder "+decoderName+" needs SPS bitstream restrictions fixup");
 		}
-		isExynos4 = MediaCodecHelper.isExynos4Device();
+        if (needsBaselineSpsHack) {
+            LimeLog.info("Decoder "+decoderName+" needs baseline SPS hack");
+        }
 		if (isExynos4) {
 			LimeLog.info("Decoder "+decoderName+" is on Exynos 4");
 		}
@@ -389,6 +396,8 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 			codecFlags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
 			numIframeIn++;
 		}
+
+        boolean needsSpsReplay = false;
 		
 		if ((decodeUnitFlags & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0) {
 			ByteBufferDescriptor header = decodeUnit.getBufferList().get(0);
@@ -425,6 +434,13 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 					sps.vuiParams.bitstreamRestriction.num_reorder_frames = 0;
 					sps.vuiParams.bitstreamRestriction.max_dec_frame_buffering = 1;
 				}
+
+                // If we need to hack this SPS to say we're baseline, do so now
+                if (needsBaselineSpsHack) {
+                    LimeLog.info("Hacking SPS to baseline");
+                    sps.profile_idc = 66;
+                    savedSps = sps;
+                }
 				
 				// Write the annex B header
 				buf.put(header.data, header.offset, 5);
@@ -440,6 +456,14 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 				return;
 			} else if (header.data[header.offset+4] == 0x68) {
 				numPpsIn++;
+
+                if (needsBaselineSpsHack) {
+                    LimeLog.info("Saw PPS; disabling SPS hack");
+                    needsBaselineSpsHack = false;
+
+                    // Give the decoder the SPS again with the proper profile now
+                    needsSpsReplay = true;
+                }
 			}
 		}
 
@@ -454,7 +478,38 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 				timestampUs, codecFlags);
 		
 		depacketizer.freeDecodeUnit(decodeUnit);
+
+        if (needsSpsReplay) {
+            replaySps();
+        }
 	}
+
+    private void replaySps() {
+        int inputIndex = videoDecoder.dequeueInputBuffer(-1);
+        ByteBuffer inputBuffer = videoDecoderInputBuffers[inputIndex];
+
+        inputBuffer.clear();
+
+        // Write the Annex B header
+        inputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
+
+        // Switch the H264 profile back to high
+        savedSps.profile_idc = 100;
+
+        // Write the SPS data
+        savedSps.write(inputBuffer);
+
+        // No need for the SPS anymore
+        savedSps = null;
+
+        // Queue the new SPS
+        queueInputBuffer(inputIndex,
+                0, inputBuffer.position(),
+                System.currentTimeMillis() * 1000,
+                MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
+
+        LimeLog.info("SPS replay complete");
+    }
 
 	@Override
 	public int getCapabilities() {

@@ -87,7 +87,7 @@
     <string name="summary_seekbar_bitrate">Abbassa il bitrate per ridurre lo stuttering; alza il bitrate per aumenteare la qualità dell\'immagine</string>
     <string name="suffix_seekbar_bitrate">Mbps</string>
     <string name="title_checkbox_stretch_video">Forza video in full-screen</string>
-    <string name="title_checkbox_disable_warnings">Disabilita i messaggi di warning</string>
+    <string name="title_checkbox_disable_warnings">Disabilita messaggi di warning</string>
     <string name="summary_checkbox_disable_warnings">Disabilita i messaggi di warning sullo schermo durante lo streaming</string>
 
     <string name="category_gamepad_settings">Impostazioni Gamepad</string>
@@ -102,5 +102,5 @@
 
     <string name="category_advanced_settings">Impostazioni Avanzate</string>
     <string name="title_decoder_list">Cambia decoder</string>
-    <string name="summary_decoder_list">Il decoder software può aumentare la latenza video quando si usano impostazioni streaming basse</string>
+    <string name="summary_decoder_list">Il decoder software può ridurre la latenza video quando si usano impostazioni streaming basse</string>
 </resources>

@@ -2,10 +2,10 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="libs/xpp3-1.1.4c.jar"/>
 	<classpathentry kind="lib" path="libs/tinyrtsp.jar"/>
 	<classpathentry kind="lib" path="libs/jmdns-fixed.jar"/>
-	<classpathentry kind="lib" path="libs/okhttp-2.1.0-RC1.jar"/>
 	<classpathentry kind="lib" path="libs/okio-1.0.1.jar"/>
+	<classpathentry kind="lib" path="libs/okhttp-2.1.0.jar"/>
+	<classpathentry kind="lib" path="libs/xpp3-1.1.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -151,6 +151,14 @@ public class PcView extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		String locale = prefs.getString("list_languages", "default");
+		if (!locale.equals("default")) {
+			Configuration config = new Configuration(getResources().getConfiguration());
+			config.locale = new Locale(locale);
+			getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+		}
+		
 		// Bind to the computer manager service
 		bindService(new Intent(PcView.this, ComputerManagerService.class), serviceConnection,
 				Service.BIND_AUTO_CREATE);

@@ -51,6 +51,15 @@ public class AppView extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		String locale = prefs.getString("list_languages", "default");
+		if (!locale.equals("default")) {
+			Configuration config = new Configuration(getResources().getConfiguration());
+			config.locale = new Locale(locale);
+			getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+		}
+
 		setContentView(R.layout.activity_app_view);
 
         UiHelper.notifyNewRootView(this);

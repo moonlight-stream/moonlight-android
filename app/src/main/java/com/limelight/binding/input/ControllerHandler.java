@@ -47,6 +47,7 @@ public class ControllerHandler {
 	private NvConnection conn;
     private double stickDeadzone;
     private final ControllerMapping defaultMapping = new ControllerMapping();
+    private boolean hasGameController;
 	
 	public ControllerHandler(NvConnection conn, int deadzonePercentage) {
 		this.conn = conn;
@@ -54,6 +55,20 @@ public class ControllerHandler {
         // HACK: For now we're hardcoding a 10% deadzone. Some deadzone
         // is required for controller batching support to work.
         deadzonePercentage = 10;
+
+        int[] ids = InputDevice.getDeviceIds();
+        for (int i = 0; i < ids.length; i++) {
+            InputDevice dev = InputDevice.getDevice(ids[i]);
+            if ((dev.getSources() & InputDevice.SOURCE_JOYSTICK) != 0 ||
+                    (dev.getSources() & InputDevice.SOURCE_GAMEPAD) != 0) {
+                // This looks like a gamepad, but we'll check X and Y to be sure
+                if (getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_X) != null &&
+                    getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_Y) != null) {
+                    // This is a gamepad
+                    hasGameController = true;
+                }
+            }
+        }
 
         // 1% is the lowest possible deadzone we support
         if (deadzonePercentage <= 0) {
@@ -94,6 +109,11 @@ public class ControllerHandler {
 
         mapping.leftStickXAxis = MotionEvent.AXIS_X;
 		mapping.leftStickYAxis = MotionEvent.AXIS_Y;
+        if (getMotionRangeForJoystickAxis(dev, mapping.leftStickXAxis) != null &&
+                getMotionRangeForJoystickAxis(dev, mapping.leftStickYAxis) != null) {
+            // This is a gamepad
+            hasGameController = true;
+        }
 		
 		InputDevice.MotionRange leftTriggerRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_LTRIGGER);
 		InputDevice.MotionRange rightTriggerRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RTRIGGER);
@@ -232,9 +252,21 @@ public class ControllerHandler {
 		conn.sendControllerInput(inputMap, leftTrigger, rightTrigger,
 				leftStickX, leftStickY, rightStickX, rightStickY);
 	}
-	
-	private static int handleRemapping(ControllerMapping mapping, KeyEvent event) {
-		if (mapping.isDualShock4) {
+
+    // Return a valid keycode, 0 to consume, or -1 to not consume the event
+    // Device MAY BE NULL
+	private int handleRemapping(ControllerMapping mapping, KeyEvent event) {
+		InputDevice device = event.getDevice();
+        if (hasGameController && device != null) {
+            String devName = device.getName();
+            if (devName != null && devName.contains("Fire TV Remote")) {
+                // There is already another game controller attached, so
+                // allow these remote events to go unhandled
+                return -1;
+            }
+        }
+
+        if (mapping.isDualShock4) {
 			switch (event.getKeyCode()) {
 			case KeyEvent.KEYCODE_BUTTON_Y:
 				return KeyEvent.KEYCODE_BUTTON_L1;

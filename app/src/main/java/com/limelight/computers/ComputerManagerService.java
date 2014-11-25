@@ -332,12 +332,22 @@ public class ComputerManagerService extends Service {
 		}
 	}
 	
-	private ComputerDetails tryPollIp(InetAddress ipAddr) {
+	private ComputerDetails tryPollIp(ComputerDetails details, InetAddress ipAddr) {
 		try {
 			NvHTTP http = new NvHTTP(ipAddr, idManager.getUniqueId(),
 					null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
-			return http.getComputerDetails();
+			ComputerDetails newDetails = http.getComputerDetails();
+
+            // Check if this is the PC we expected
+            if (details.uuid != null && newDetails.uuid != null &&
+                    !details.uuid.equals(newDetails.uuid)) {
+                // We got the wrong PC!
+                LimeLog.info("Polling returned the wrong PC!");
+                return null;
+            }
+
+            return newDetails;
 		} catch (Exception e) {
 			return null;
 		}
@@ -347,19 +357,19 @@ public class ComputerManagerService extends Service {
 		ComputerDetails polledDetails;
 		
 		if (localFirst) {
-			polledDetails = tryPollIp(details.localIp);
+			polledDetails = tryPollIp(details, details.localIp);
 		}
 		else {
-			polledDetails = tryPollIp(details.remoteIp);
+			polledDetails = tryPollIp(details, details.remoteIp);
 		}
 		
 		if (polledDetails == null && !details.localIp.equals(details.remoteIp)) {
 			// Failed, so let's try the fallback
 			if (!localFirst) {
-				polledDetails = tryPollIp(details.localIp);
+				polledDetails = tryPollIp(details, details.localIp);
 			}
 			else {
-				polledDetails = tryPollIp(details.remoteIp);
+				polledDetails = tryPollIp(details, details.remoteIp);
 			}
 			
 			// The fallback poll worked
@@ -417,8 +427,8 @@ public class ComputerManagerService extends Service {
         }
 
         for (ComputerDetails computer : dbManager.getAllComputers()) {
-            // Add this computer without a thread
-            pollingTuples.add(new PollingTuple(computer, null));
+            // Add tuples for each computer
+            addTuple(computer);
         }
 
         releaseLocalDatabaseReference();

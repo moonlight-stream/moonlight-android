@@ -273,7 +273,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 					    	
 						    // Add delta time to the totals (excluding probable outliers)
 						    long delta = System.currentTimeMillis()-(presentationTimeUs/1000);
-						    if (delta >= 0 && delta < 300) {
+						    if (delta >= 0 && delta < 1000) {
 						    	decoderTimeMs += delta;
 							    totalTimeMs += delta;
 						    }
@@ -371,7 +371,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 	private void submitDecodeUnit(DecodeUnit decodeUnit, ByteBuffer buf, int inputBufferIndex) {
 		long currentTime = System.currentTimeMillis();
 		long delta = currentTime-decodeUnit.getReceiveTimestamp();
-		if (delta >= 0 && delta < 300) {
+		if (delta >= 0 && delta < 1000) {
 		    totalTimeMs += currentTime-decodeUnit.getReceiveTimestamp();
 		    totalFrames++;
 		}

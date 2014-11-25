@@ -254,7 +254,7 @@ public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
 			
 		    // Add delta time to the totals (excluding probable outliers)
 		    long delta = timeAfterDecode - decodeUnit.getReceiveTimestamp();
-			if (delta >= 0 && delta < 300) {
+			if (delta >= 0 && delta < 1000) {
 			    totalTimeMs += delta;
 			    totalFrames++;
 			}

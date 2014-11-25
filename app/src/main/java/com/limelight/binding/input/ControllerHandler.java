@@ -113,6 +113,7 @@ public class ControllerHandler {
                 getMotionRangeForJoystickAxis(dev, mapping.leftStickYAxis) != null) {
             // This is a gamepad
             hasGameController = true;
+            mapping.hasJoystickAxes = true;
         }
 		
 		InputDevice.MotionRange leftTriggerRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_LTRIGGER);
@@ -210,19 +211,29 @@ public class ControllerHandler {
             }
         }
 
-        // For the Nexus Player (and probably other ATV devices), we should
-        // use the back button as start since it doesn't have a start/menu button
-        // on the controller
-        if (devName != null && devName.contains("ASUS Gamepad")) {
-            // We can only do this check on KitKat or higher, but it doesn't matter since ATV
-            // is Android 5.0 anyway
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-                boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
-                if (!hasStartKey[0] && !hasStartKey[1]) {
-                    mapping.backIsStart = true;
+        if (devName != null) {
+            // For the Nexus Player (and probably other ATV devices), we should
+            // use the back button as start since it doesn't have a start/menu button
+            // on the controller
+            if (devName.contains("ASUS Gamepad")) {
+                // We can only do this check on KitKat or higher, but it doesn't matter since ATV
+                // is Android 5.0 anyway
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                    boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
+                    if (!hasStartKey[0] && !hasStartKey[1]) {
+                        mapping.backIsStart = true;
+                    }
+                }
+            }
+            // Classify this device as a remote by name
+            else if (devName.contains("Fire TV Remote")) {
+                // It's only a remote if it doesn't any sticks
+                if (!mapping.hasJoystickAxes) {
+                    mapping.isRemote = true;
                 }
             }
         }
+
 		
 		return mapping;
 	}
@@ -256,12 +267,9 @@ public class ControllerHandler {
     // Return a valid keycode, 0 to consume, or -1 to not consume the event
     // Device MAY BE NULL
 	private int handleRemapping(ControllerMapping mapping, KeyEvent event) {
-		InputDevice device = event.getDevice();
-        if (hasGameController && device != null) {
-            String devName = device.getName();
-            if (devName != null && devName.contains("Fire TV Remote")) {
-                // There is already another game controller attached, so
-                // allow these remote events to go unhandled
+        // For remotes, don't capture the back button
+		if (mapping.isRemote) {
+            if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                 return -1;
             }
         }
@@ -750,5 +758,7 @@ public class ControllerHandler {
 		public boolean isDualShock4;
 		public boolean isXboxController;
         public boolean backIsStart;
+        public boolean isRemote;
+        public boolean hasJoystickAxes;
 	}
 }

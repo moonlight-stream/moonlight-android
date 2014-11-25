@@ -170,7 +170,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .enableAdaptiveResolution((decoderRenderer.getCapabilities() &
                         VideoDecoderRenderer.CAPABILITY_ADAPTIVE_RESOLUTION) != 0)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
-                .setMaxPacketSize(remote ? 1024 : 1392)
+                .setMaxPacketSize(remote ? 1024 : 1292)
                 .build();
 
 		// Initialize the connection

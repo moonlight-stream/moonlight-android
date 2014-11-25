@@ -203,11 +203,11 @@ public class ControllerHandler {
             // It's important to have a valid deadzone so controller packet batching works properly
             mapping.triggerDeadzone = Math.max(Math.abs(ltRange.getFlat()), Math.abs(rtRange.getFlat()));
 
-            // For triggers without (valid) deadzones, we'll use 10%
-            if (mapping.triggerDeadzone <= 0.02 ||
-                mapping.triggerDeadzone > 0.30)
+            // For triggers without (valid) deadzones, we'll use 13% (around XInput's default)
+            if (mapping.triggerDeadzone < 0.13f ||
+                mapping.triggerDeadzone > 0.30f)
             {
-                mapping.triggerDeadzone = 0.1f;
+                mapping.triggerDeadzone = 0.13f;
             }
         }
 
@@ -224,9 +224,13 @@ public class ControllerHandler {
                         mapping.backIsStart = true;
                     }
                 }
+
+                // The ASUS Gamepad has triggers that sit far forward and are prone to false presses
+                // so we increase the deadzone on them to minimize this
+                mapping.triggerDeadzone = 0.30f;
             }
             // Classify this device as a remote by name
-            else if (devName.contains("Fire TV Remote")) {
+            else if (devName.contains("Fire TV Remote") || devName.contains("Nexus Remote")) {
                 // It's only a remote if it doesn't any sticks
                 if (!mapping.hasJoystickAxes) {
                     mapping.isRemote = true;
@@ -234,6 +238,8 @@ public class ControllerHandler {
             }
         }
 
+        LimeLog.info("Analog stick deadzone: "+mapping.leftStickDeadzoneRadius+" "+mapping.rightStickDeadzoneRadius);
+        LimeLog.info("Trigger deadzone: "+mapping.triggerDeadzone);
 		
 		return mapping;
 	}

@@ -244,9 +244,12 @@ public class ComputerManagerService extends Service {
             for (PollingTuple tuple : pollingTuples) {
                 // Check if this is the same computer
                 if (tuple.computer == details ||
-                        tuple.computer.localIp.equals(details.localIp) ||
-                        tuple.computer.remoteIp.equals(details.remoteIp) ||
-                        tuple.computer.name.equals(details.name)) {
+                        // If there's no name on one of these computers, compare with the local IP
+                        ((details.name.isEmpty() || tuple.computer.name.isEmpty()) &&
+                                tuple.computer.localIp.equals(details.localIp)) ||
+                        // If there is a name on both computers, compare with name
+                        ((!details.name.isEmpty() && !tuple.computer.name.isEmpty()) &&
+                                tuple.computer.name.equals(details.name))) {
 
                     // Start a polling thread if polling is active
                     if (pollingActive && tuple.thread == null) {

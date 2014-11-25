@@ -44,6 +44,7 @@ public class MediaCodecHelper {
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.nvidia");
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.qcom");
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.mtk");
+        spsFixupBitstreamFixupDecoderPrefixes.add("omx.brcm");
 
         baselineProfileHackPrefixes = new LinkedList<String>();
         baselineProfileHackPrefixes.add("omx.intel");

@@ -141,7 +141,9 @@ public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
 			throw new IllegalStateException("AVC decoder initialization failure: "+err);
 		}
 		
-		AvcDecoder.setRenderTarget(sh.getSurface());
+		if (!AvcDecoder.setRenderTarget(sh.getSurface())) {
+            return false;
+        }
 		
 		decoderBuffer = ByteBuffer.allocate(DECODER_BUFFER_SIZE + AvcDecoder.getInputPaddingSize());
 		

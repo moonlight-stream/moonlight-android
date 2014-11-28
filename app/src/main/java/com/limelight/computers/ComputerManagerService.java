@@ -355,6 +355,12 @@ public class ComputerManagerService extends Service {
 	
 	private boolean pollComputer(ComputerDetails details, boolean localFirst) {
 		ComputerDetails polledDetails;
+
+        // If the local address is routable across the Internet,
+        // always consider this PC remote to be conservative
+        if (details.localIp.equals(details.remoteIp)) {
+            localFirst = false;
+        }
 		
 		if (localFirst) {
 			polledDetails = tryPollIp(details, details.localIp);

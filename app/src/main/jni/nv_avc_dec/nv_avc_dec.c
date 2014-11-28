@@ -69,9 +69,6 @@ int nv_avc_init(int width, int height, int perf_lvl, int thread_count) {
 		return -1;
 	}
 
-	// Show frames even before a reference frame
-	decoder_ctx->flags2 |= CODEC_FLAG2_SHOW_ALL;
-
 	if (perf_lvl & DISABLE_LOOP_FILTER) {
 		// Skip the loop filter for performance reasons
 		decoder_ctx->skip_loop_filter = AVDISCARD_ALL;
@@ -370,17 +367,20 @@ int nv_avc_decode(unsigned char* indata, int inlen) {
 	
 	// Only copy the picture at the end of decoding the packet
 	if (got_pic) {
+	    // Clone the current decode frame outside of the mutex
+	    AVFrame* new_frame = av_frame_clone(dec_frame);
+	    AVFrame* old_frame;
+
+	    // Swap it in under lock
 		pthread_mutex_lock(&mutex);
-
-		// Only clone this frame if the last frame was taken.
-		// This saves on extra copies for frames that don't get
-		// rendered.
-		if (yuv_frame == NULL) {
-			// Clone a new frame
-			yuv_frame = av_frame_clone(dec_frame);
-		}
-
+		old_frame = yuv_frame;
+		yuv_frame = new_frame;
 		pthread_mutex_unlock(&mutex);
+
+        // Free the old frame outside of the mutex
+        if (old_frame != NULL) {
+            av_frame_free(&old_frame);
+        }
 	}
 
 	return err < 0 ? err : 0;

@@ -47,6 +47,7 @@ public class ControllerHandler {
 	private NvConnection conn;
     private double stickDeadzone;
     private final ControllerMapping defaultMapping = new ControllerMapping();
+    private boolean hasGameController;
 	
 	public ControllerHandler(NvConnection conn, int deadzonePercentage) {
 		this.conn = conn;
@@ -54,6 +55,20 @@ public class ControllerHandler {
         // HACK: For now we're hardcoding a 10% deadzone. Some deadzone
         // is required for controller batching support to work.
         deadzonePercentage = 10;
+
+        int[] ids = InputDevice.getDeviceIds();
+        for (int i = 0; i < ids.length; i++) {
+            InputDevice dev = InputDevice.getDevice(ids[i]);
+            if ((dev.getSources() & InputDevice.SOURCE_JOYSTICK) != 0 ||
+                    (dev.getSources() & InputDevice.SOURCE_GAMEPAD) != 0) {
+                // This looks like a gamepad, but we'll check X and Y to be sure
+                if (getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_X) != null &&
+                    getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_Y) != null) {
+                    // This is a gamepad
+                    hasGameController = true;
+                }
+            }
+        }
 
         // 1% is the lowest possible deadzone we support
         if (deadzonePercentage <= 0) {
@@ -94,6 +109,12 @@ public class ControllerHandler {
 
         mapping.leftStickXAxis = MotionEvent.AXIS_X;
 		mapping.leftStickYAxis = MotionEvent.AXIS_Y;
+        if (getMotionRangeForJoystickAxis(dev, mapping.leftStickXAxis) != null &&
+                getMotionRangeForJoystickAxis(dev, mapping.leftStickYAxis) != null) {
+            // This is a gamepad
+            hasGameController = true;
+            mapping.hasJoystickAxes = true;
+        }
 		
 		InputDevice.MotionRange leftTriggerRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_LTRIGGER);
 		InputDevice.MotionRange rightTriggerRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RTRIGGER);
@@ -182,27 +203,43 @@ public class ControllerHandler {
             // It's important to have a valid deadzone so controller packet batching works properly
             mapping.triggerDeadzone = Math.max(Math.abs(ltRange.getFlat()), Math.abs(rtRange.getFlat()));
 
-            // For triggers without (valid) deadzones, we'll use 10%
-            if (mapping.triggerDeadzone <= 0.02 ||
-                mapping.triggerDeadzone > 0.30)
+            // For triggers without (valid) deadzones, we'll use 13% (around XInput's default)
+            if (mapping.triggerDeadzone < 0.13f ||
+                mapping.triggerDeadzone > 0.30f)
             {
-                mapping.triggerDeadzone = 0.1f;
+                mapping.triggerDeadzone = 0.13f;
             }
         }
 
-        // For the Nexus Player (and probably other ATV devices), we should
-        // use the back button as start since it doesn't have a start/menu button
-        // on the controller
-        if (devName != null && devName.contains("ASUS Gamepad")) {
-            // We can only do this check on KitKat or higher, but it doesn't matter since ATV
-            // is Android 5.0 anyway
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-                boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
-                if (!hasStartKey[0] && !hasStartKey[1]) {
-                    mapping.backIsStart = true;
+        if (devName != null) {
+            // For the Nexus Player (and probably other ATV devices), we should
+            // use the back button as start since it doesn't have a start/menu button
+            // on the controller
+            if (devName.contains("ASUS Gamepad")) {
+                // We can only do this check on KitKat or higher, but it doesn't matter since ATV
+                // is Android 5.0 anyway
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                    boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
+                    if (!hasStartKey[0] && !hasStartKey[1]) {
+                        mapping.backIsStart = true;
+                    }
+                }
+
+                // The ASUS Gamepad has triggers that sit far forward and are prone to false presses
+                // so we increase the deadzone on them to minimize this
+                mapping.triggerDeadzone = 0.30f;
+            }
+            // Classify this device as a remote by name
+            else if (devName.contains("Fire TV Remote") || devName.contains("Nexus Remote")) {
+                // It's only a remote if it doesn't any sticks
+                if (!mapping.hasJoystickAxes) {
+                    mapping.isRemote = true;
                 }
             }
         }
+
+        LimeLog.info("Analog stick deadzone: "+mapping.leftStickDeadzoneRadius+" "+mapping.rightStickDeadzoneRadius);
+        LimeLog.info("Trigger deadzone: "+mapping.triggerDeadzone);
 		
 		return mapping;
 	}
@@ -232,9 +269,18 @@ public class ControllerHandler {
 		conn.sendControllerInput(inputMap, leftTrigger, rightTrigger,
 				leftStickX, leftStickY, rightStickX, rightStickY);
 	}
-	
-	private static int handleRemapping(ControllerMapping mapping, KeyEvent event) {
-		if (mapping.isDualShock4) {
+
+    // Return a valid keycode, 0 to consume, or -1 to not consume the event
+    // Device MAY BE NULL
+	private int handleRemapping(ControllerMapping mapping, KeyEvent event) {
+        // For remotes, don't capture the back button
+		if (mapping.isRemote) {
+            if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                return -1;
+            }
+        }
+
+        if (mapping.isDualShock4) {
 			switch (event.getKeyCode()) {
 			case KeyEvent.KEYCODE_BUTTON_Y:
 				return KeyEvent.KEYCODE_BUTTON_L1;
@@ -718,5 +764,7 @@ public class ControllerHandler {
 		public boolean isDualShock4;
 		public boolean isXboxController;
         public boolean backIsStart;
+        public boolean isRemote;
+        public boolean hasJoystickAxes;
 	}
 }

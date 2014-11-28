@@ -11,8 +11,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 21
 
-        versionName "3.0"
-        versionCode = 46
+        versionName "3.0.1"
+        versionCode = 47
     }
 
     productFlavors {
@@ -62,13 +62,19 @@ android {
 }
 
 dependencies {
-    compile group: 'org.jcodec', name: 'jcodec', version: '0.1.9'
-    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.51'
-    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.51'
-    compile group: 'com.google.android', name: 'support-v4', version:'r7'
-    compile group: 'com.koushikdutta.ion', name: 'ion', version:'2.0.1'
-    compile group: 'com.squareup.okhttp', name: 'okhttp', version:'2.1.0'
-    compile group: 'com.squareup.okio', name:'okio', version:'1.0.1'
+    compile group: 'org.jcodec', name: 'jcodec', version: '+'
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '+'
+    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '+'
+    compile group: 'com.google.android', name: 'support-v4', version:'+'
+
+    // FIXME: Pending resolution of issue #346 using custom build
+    //compile group: 'com.koushikdutta.ion', name: 'ion', version:'+'
+    compile group: 'com.google.code.gson', name: 'gson', version:'+'
+    compile files('libs/androidasync-e1dfb4.jar')
+    compile files('libs/ion-2f46fa.jar')
+
+    compile group: 'com.squareup.okhttp', name: 'okhttp', version:'+'
+    compile group: 'com.squareup.okio', name:'okio', version:'+'
     compile files('libs/jmdns-fixed.jar')
     compile files('libs/limelight-common.jar')
     compile files('libs/tinyrtsp.jar')

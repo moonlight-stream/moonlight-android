@@ -141,7 +141,9 @@ public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
 			throw new IllegalStateException("AVC decoder initialization failure: "+err);
 		}
 		
-		AvcDecoder.setRenderTarget(sh.getSurface());
+		if (!AvcDecoder.setRenderTarget(sh.getSurface())) {
+            return false;
+        }
 		
 		decoderBuffer = ByteBuffer.allocate(DECODER_BUFFER_SIZE + AvcDecoder.getInputPaddingSize());
 		
@@ -252,7 +254,7 @@ public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
 			
 		    // Add delta time to the totals (excluding probable outliers)
 		    long delta = timeAfterDecode - decodeUnit.getReceiveTimestamp();
-			if (delta >= 0 && delta < 300) {
+			if (delta >= 0 && delta < 1000) {
 			    totalTimeMs += delta;
 			    totalFrames++;
 			}

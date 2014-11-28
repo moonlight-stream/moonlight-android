@@ -244,9 +244,12 @@ public class ComputerManagerService extends Service {
             for (PollingTuple tuple : pollingTuples) {
                 // Check if this is the same computer
                 if (tuple.computer == details ||
-                        tuple.computer.localIp.equals(details.localIp) ||
-                        tuple.computer.remoteIp.equals(details.remoteIp) ||
-                        tuple.computer.name.equals(details.name)) {
+                        // If there's no name on one of these computers, compare with the local IP
+                        ((details.name.isEmpty() || tuple.computer.name.isEmpty()) &&
+                                tuple.computer.localIp.equals(details.localIp)) ||
+                        // If there is a name on both computers, compare with name
+                        ((!details.name.isEmpty() && !tuple.computer.name.isEmpty()) &&
+                                tuple.computer.name.equals(details.name))) {
 
                     // Start a polling thread if polling is active
                     if (pollingActive && tuple.thread == null) {
@@ -329,12 +332,22 @@ public class ComputerManagerService extends Service {
 		}
 	}
 	
-	private ComputerDetails tryPollIp(InetAddress ipAddr) {
+	private ComputerDetails tryPollIp(ComputerDetails details, InetAddress ipAddr) {
 		try {
 			NvHTTP http = new NvHTTP(ipAddr, idManager.getUniqueId(),
 					null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
-			return http.getComputerDetails();
+			ComputerDetails newDetails = http.getComputerDetails();
+
+            // Check if this is the PC we expected
+            if (details.uuid != null && newDetails.uuid != null &&
+                    !details.uuid.equals(newDetails.uuid)) {
+                // We got the wrong PC!
+                LimeLog.info("Polling returned the wrong PC!");
+                return null;
+            }
+
+            return newDetails;
 		} catch (Exception e) {
 			return null;
 		}
@@ -342,21 +355,27 @@ public class ComputerManagerService extends Service {
 	
 	private boolean pollComputer(ComputerDetails details, boolean localFirst) {
 		ComputerDetails polledDetails;
+
+        // If the local address is routable across the Internet,
+        // always consider this PC remote to be conservative
+        if (details.localIp.equals(details.remoteIp)) {
+            localFirst = false;
+        }
 		
 		if (localFirst) {
-			polledDetails = tryPollIp(details.localIp);
+			polledDetails = tryPollIp(details, details.localIp);
 		}
 		else {
-			polledDetails = tryPollIp(details.remoteIp);
+			polledDetails = tryPollIp(details, details.remoteIp);
 		}
 		
 		if (polledDetails == null && !details.localIp.equals(details.remoteIp)) {
 			// Failed, so let's try the fallback
 			if (!localFirst) {
-				polledDetails = tryPollIp(details.localIp);
+				polledDetails = tryPollIp(details, details.localIp);
 			}
 			else {
-				polledDetails = tryPollIp(details.remoteIp);
+				polledDetails = tryPollIp(details, details.remoteIp);
 			}
 			
 			// The fallback poll worked
@@ -414,8 +433,8 @@ public class ComputerManagerService extends Service {
         }
 
         for (ComputerDetails computer : dbManager.getAllComputers()) {
-            // Add this computer without a thread
-            pollingTuples.add(new PollingTuple(computer, null));
+            // Add tuples for each computer
+            addTuple(computer);
         }
 
         releaseLocalDatabaseReference();

@@ -236,6 +236,11 @@ public class ControllerHandler {
                     mapping.isRemote = true;
                 }
             }
+            // NYKO Playpad has a fake hat that mimics the left stick for some reason
+            else if (devName.contains("NYKO PLAYPAD")) {
+                mapping.hatXAxis = -1;
+                mapping.hatYAxis = -1;
+            }
         }
 
         LimeLog.info("Analog stick deadzone: "+mapping.leftStickDeadzoneRadius+" "+mapping.rightStickDeadzoneRadius);

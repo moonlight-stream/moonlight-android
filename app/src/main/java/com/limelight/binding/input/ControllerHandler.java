@@ -40,7 +40,7 @@ public class ControllerHandler {
 	private static final int EMULATED_SELECT_UP_DELAY_MS = 30;
 	
 	private Vector2d inputVector = new Vector2d();
-	private Vector2d normalizedInputVector = new Vector2d();
+	//private Vector2d normalizedInputVector = new Vector2d();
 	
 	private HashMap<String, ControllerMapping> mappings = new HashMap<String, ControllerMapping>();
 	

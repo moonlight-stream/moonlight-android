@@ -133,8 +133,9 @@ public class AddComputerManually extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		String locale = prefs.getString("list_languages", "default");
-		if (!locale.equals("default")) {
+		String locale = prefs.getString(PreferenceConfiguration.LANGUAGE_PREF_STRING,
+				PreferenceConfiguration.DEFAULT_LANGUAGE);
+		if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
 			Configuration config = new Configuration(getResources().getConfiguration());
 			config.locale = new Locale(locale);
 			getResources().updateConfiguration(config, getResources().getDisplayMetrics());

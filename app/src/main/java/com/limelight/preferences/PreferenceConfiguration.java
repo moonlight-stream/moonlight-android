@@ -13,7 +13,7 @@ public class PreferenceConfiguration {
     private static final String DISABLE_TOASTS_PREF_STRING = "checkbox_disable_warnings";
     private static final String HOST_AUDIO_PREF_STRING = "checkbox_host_audio";
     private static final String DEADZONE_PREF_STRING = "seekbar_deadzone";
-    private static final String LANGUAGE_PREF_STRING = "list_languages";
+    public static final String LANGUAGE_PREF_STRING = "list_languages";
 
     private static final int BITRATE_DEFAULT_720_30 = 5;
     private static final int BITRATE_DEFAULT_720_60 = 10;
@@ -28,7 +28,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_DISABLE_TOASTS = false;
     private static final boolean DEFAULT_HOST_AUDIO = false;
     private static final int DEFAULT_DEADZONE = 15;
-    private static final String DEFAULT_LANGUAGE = "default";
+    public static final String DEFAULT_LANGUAGE = "default";
 
     public static final int FORCE_HARDWARE_DECODER = -1;
     public static final int AUTOSELECT_DECODER = 0;

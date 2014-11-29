@@ -13,6 +13,7 @@ import com.limelight.grid.AppGridAdapter;
 import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
+import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
@@ -53,8 +54,9 @@ public class AppView extends Activity {
 		super.onCreate(savedInstanceState);
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		String locale = prefs.getString("list_languages", "default");
-		if (!locale.equals("default")) {
+		String locale = prefs.getString(PreferenceConfiguration.LANGUAGE_PREF_STRING,
+				PreferenceConfiguration.DEFAULT_LANGUAGE);
+		if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
 			Configuration config = new Configuration(getResources().getConfiguration());
 			config.locale = new Locale(locale);
 			getResources().updateConfiguration(config, getResources().getDisplayMetrics());

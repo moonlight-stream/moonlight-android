@@ -16,6 +16,7 @@ import com.limelight.nvstream.http.PairingManager;
 import com.limelight.nvstream.http.PairingManager.PairState;
 import com.limelight.nvstream.wol.WakeOnLanSender;
 import com.limelight.preferences.AddComputerManually;
+import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.preferences.StreamSettings;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
@@ -152,8 +153,9 @@ public class PcView extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		String locale = prefs.getString("list_languages", "default");
-		if (!locale.equals("default")) {
+		String locale = prefs.getString(PreferenceConfiguration.LANGUAGE_PREF_STRING,
+				PreferenceConfiguration.DEFAULT_LANGUAGE);
+		if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
 			Configuration config = new Configuration(getResources().getConfiguration());
 			config.locale = new Locale(locale);
 			getResources().updateConfiguration(config, getResources().getDisplayMetrics());

@@ -480,32 +480,9 @@ public class ControllerHandler {
 		ControllerMapping mapping = getMappingForDevice(event.getDevice());
         float lsX = 0, lsY = 0, rsX = 0, rsY = 0, rt = 0, lt = 0, hatX = 0, hatY = 0;
 
-        // Replay the full history before getting the current values
-        for (int i = 0; i < event.getHistorySize(); i++) {
-            if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
-                lsX = event.getHistoricalAxisValue(mapping.leftStickXAxis, i);
-                lsY = event.getHistoricalAxisValue(mapping.leftStickYAxis, i);
-            }
+        // We purposefully ignore the historical values in the motion event as it makes
+        // the controller feel sluggish for some users.
 
-            if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
-                rsX = event.getHistoricalAxisValue(mapping.rightStickXAxis, i);
-                rsY = event.getHistoricalAxisValue(mapping.rightStickYAxis, i);
-            }
-
-            if (mapping.leftTriggerAxis != -1 && mapping.rightTriggerAxis != -1) {
-                lt = event.getHistoricalAxisValue(mapping.leftTriggerAxis, i);
-                rt = event.getHistoricalAxisValue(mapping.rightTriggerAxis, i);
-            }
-
-            if (mapping.hatXAxis != -1 && mapping.hatYAxis != -1) {
-                hatX = event.getHistoricalAxisValue(MotionEvent.AXIS_HAT_X, i);
-                hatY = event.getHistoricalAxisValue(MotionEvent.AXIS_HAT_Y, i);
-            }
-
-            handleAxisSet(mapping, lsX, lsY, rsX, rsY, lt, rt, hatX, hatY);
-        }
-
-        // Now handle the current set of values
         if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
             lsX = event.getAxisValue(mapping.leftStickXAxis);
             lsY = event.getAxisValue(mapping.leftStickYAxis);

@@ -40,7 +40,6 @@ public class ControllerHandler {
 	private static final int EMULATED_SELECT_UP_DELAY_MS = 30;
 	
 	private Vector2d inputVector = new Vector2d();
-	//private Vector2d normalizedInputVector = new Vector2d();
 	
 	private HashMap<String, ControllerMapping> mappings = new HashMap<String, ControllerMapping>();
 	
@@ -379,47 +378,23 @@ public class ControllerHandler {
 		
 		return keyCode;
 	}
+
+    private Vector2d populateCachedVector(float x, float y) {
+        // Reinitialize our cached Vector2d object
+        inputVector.initialize(x, y);
+        return inputVector;
+    }
 	
-	private Vector2d handleDeadZone(float x, float y, float deadzoneRadius) {
-		// Reinitialize our cached Vector2d object
-		inputVector.initialize(x, y);
-		
-		if (inputVector.getMagnitude() <= deadzoneRadius) {
-			// Deadzone -- return the zero vector
-			return Vector2d.ZERO;
+	private void handleDeadZone(Vector2d stickVector, float deadzoneRadius) {
+		if (stickVector.getMagnitude() <= deadzoneRadius) {
+			// Deadzone
+            stickVector.initialize(0, 0);
 		}
-		else {
-            /*
-            FIXME: We're not normalizing here because we let the computer handle the deadzones.
-            Normalizing can make the deadzones larger than they should be after the computer also
-            evaluates the deadzone
 
-			// Scale the input based on the distance from the deadzone
-			inputVector.getNormalized(normalizedInputVector);
-			normalizedInputVector.scalarMultiply((inputVector.getMagnitude() - deadzoneRadius) / (1.0f - deadzoneRadius));
-		
-			// Bound the X value to -1.0 to 1.0
-			if (normalizedInputVector.getX() > 1.0f) {
-				normalizedInputVector.setX(1.0f);
-			}
-			else if (normalizedInputVector.getX() < -1.0f) {
-				normalizedInputVector.setX(-1.0f);
-			}
-			
-			// Bound the Y value to -1.0 to 1.0
-			if (normalizedInputVector.getY() > 1.0f) {
-				normalizedInputVector.setY(1.0f);
-			}
-			else if (normalizedInputVector.getY() < -1.0f) {
-				normalizedInputVector.setY(-1.0f);
-			}
-			
-			return normalizedInputVector;
-			*/
-
-            return inputVector;
-		}
-	}
+        // We're not normalizing here because we let the computer handle the deadzones.
+        // Normalizing can make the deadzones larger than they should be after the computer also
+        // evaluates the deadzone.
+    }
 
     private void handleAnalogStickPlaneMapping(ControllerMapping mapping, Vector2d stickVector) {
         if (!mapping.squareAnalogStick) {
@@ -434,8 +409,11 @@ public class ControllerHandler {
         if (mapping.squareAnalogStick) {
             double xSquare = stickVector.getX();
             double ySquare = stickVector.getY();
-            stickVector.setX((float)(xSquare * Math.sqrt(1.0 - 0.5*Math.abs(ySquare))));
-            stickVector.setY((float)(ySquare * Math.sqrt(1.0 - 0.5*Math.abs(xSquare))));
+
+            // Scale the vector from the square stick to the circular range
+            stickVector.initialize(
+                    (float)(xSquare * Math.sqrt(1.0 - 0.5*Math.abs(ySquare))),
+                    (float)(ySquare * Math.sqrt(1.0 - 0.5*Math.abs(xSquare))));
         }
     }
 
@@ -443,18 +421,26 @@ public class ControllerHandler {
                                float rsY, float lt, float rt, float hatX, float hatY) {
 
         if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
-            Vector2d leftStickVector = handleDeadZone(lsX, lsY, mapping.leftStickDeadzoneRadius);
+            Vector2d leftStickVector = populateCachedVector(lsX, lsY);
 
+            // Map to the circular plane before applying the deadzone to ensure
+            // the effective deadzone area isn't skewed by the transformation
             handleAnalogStickPlaneMapping(mapping, leftStickVector);
+
+            handleDeadZone(leftStickVector, mapping.leftStickDeadzoneRadius);
 
             leftStickX = (short) (leftStickVector.getX() * 0x7FFE);
             leftStickY = (short) (-leftStickVector.getY() * 0x7FFE);
         }
 
         if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
-            Vector2d rightStickVector = handleDeadZone(rsX, rsY, mapping.rightStickDeadzoneRadius);
+            Vector2d rightStickVector = populateCachedVector(rsX, rsY);
 
+            // Map to the circular plane before applying the deadzone to ensure
+            // the effective deadzone area isn't skewed by the transformation
             handleAnalogStickPlaneMapping(mapping, rightStickVector);
+
+            handleDeadZone(rightStickVector, mapping.rightStickDeadzoneRadius);
 
             rightStickX = (short) (rightStickVector.getX() * 0x7FFE);
             rightStickY = (short) (-rightStickVector.getY() * 0x7FFE);

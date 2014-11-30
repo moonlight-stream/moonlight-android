@@ -421,11 +421,31 @@ public class ControllerHandler {
 		}
 	}
 
+    private void handleAnalogStickPlaneMapping(ControllerMapping mapping, Vector2d stickVector) {
+        if (!mapping.squareAnalogStick) {
+            // If the stick vector's magnitude exceeds 1.0 (1.1 to be safe), that means
+            // that the stick isn't behaving like a circular analog stick but like a square
+            if (stickVector.getMagnitude() > 1.1f) {
+                mapping.squareAnalogStick = true;
+                LimeLog.info("Switching to square analog stick mode");
+            }
+        }
+
+        if (mapping.squareAnalogStick) {
+            double xSquare = stickVector.getX();
+            double ySquare = stickVector.getY();
+            stickVector.setX((float)(xSquare * Math.sqrt(1.0 - 0.5*Math.abs(ySquare))));
+            stickVector.setY((float)(ySquare * Math.sqrt(1.0 - 0.5*Math.abs(xSquare))));
+        }
+    }
+
     private void handleAxisSet(ControllerMapping mapping, float lsX, float lsY, float rsX,
                                float rsY, float lt, float rt, float hatX, float hatY) {
 
         if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
             Vector2d leftStickVector = handleDeadZone(lsX, lsY, mapping.leftStickDeadzoneRadius);
+
+            handleAnalogStickPlaneMapping(mapping, leftStickVector);
 
             leftStickX = (short) (leftStickVector.getX() * 0x7FFE);
             leftStickY = (short) (-leftStickVector.getY() * 0x7FFE);
@@ -433,6 +453,8 @@ public class ControllerHandler {
 
         if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
             Vector2d rightStickVector = handleDeadZone(rsX, rsY, mapping.rightStickDeadzoneRadius);
+
+            handleAnalogStickPlaneMapping(mapping, rightStickVector);
 
             rightStickX = (short) (rightStickVector.getX() * 0x7FFE);
             rightStickY = (short) (-rightStickVector.getY() * 0x7FFE);
@@ -748,5 +770,9 @@ public class ControllerHandler {
         public boolean backIsStart;
         public boolean isRemote;
         public boolean hasJoystickAxes;
+
+        // XInput uses a rounded analog stick where (1.0, 1.0) -> (2^(1/2), 2^(1/2))
+        // Some controllers have square sticks which we will map onto the circular plane
+        public boolean squareAnalogStick;
 	}
 }

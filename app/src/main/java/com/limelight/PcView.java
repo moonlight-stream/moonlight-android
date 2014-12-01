@@ -527,6 +527,7 @@ public class PcView extends Activity {
 			
 			if (details.equals(computer.details)) {
                 pcGridAdapter.removeComputer(computer);
+                pcGridAdapter.notifyDataSetChanged();
 				break;
 			}
 		}

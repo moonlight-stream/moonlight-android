@@ -150,7 +150,7 @@ public class EvdevWatcher {
 				}
 				
 				// Giveup eventX permissions
-				rundownWithPermissionsChange(066);
+				rundownWithPermissionsChange(0660);
 
                 // Kill the root shell
                 try {

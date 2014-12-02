@@ -19,6 +19,8 @@ public class EvdevWatcher {
 	private boolean ungrabbed = false;
 	private EvdevListener listener;
 	private Thread startThread;
+
+    private static boolean patchedSeLinuxPolicies = false;
 	
 	private FileObserver observer = new FileObserver(PATH, FileObserver.CREATE | FileObserver.DELETE) {
 		@Override
@@ -117,6 +119,15 @@ public class EvdevWatcher {
 		startThread = new Thread() {
 			@Override
 			public void run() {
+                // Initialize the root shell
+                EvdevShell.getInstance().startShell();
+
+                // Patch SELinux policies (if needed)
+                if (!patchedSeLinuxPolicies) {
+                    EvdevReader.patchSeLinuxPolicies();
+                    patchedSeLinuxPolicies = true;
+                }
+
 				// List all files and allow us access
 				File[] files = rundownWithPermissionsChange(0666);
 				
@@ -140,6 +151,11 @@ public class EvdevWatcher {
 				
 				// Giveup eventX permissions
 				rundownWithPermissionsChange(066);
+
+                // Kill the root shell
+                try {
+                    EvdevShell.getInstance().stopShell();
+                } catch (InterruptedException e) {}
 			}
 		};
 		startThread.start();

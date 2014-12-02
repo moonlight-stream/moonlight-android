@@ -1,7 +1,7 @@
 package com.limelight.binding.input.evdev;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import android.os.Build;
+
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
@@ -11,31 +11,33 @@ public class EvdevReader {
 	static {
 		System.loadLibrary("evdev_reader");
 	}
+
+    public static void patchSeLinuxPolicies() {
+        //
+        // FIXME: We REALLY shouldn't being changing permissions on the input devices like this.
+        // We should probably do something clever with a separate daemon and talk via a localhost
+        // socket. We don't return the SELinux policies back to default after we're done which I feel
+        // bad about, but we do chmod the input devices back so I don't think any additional attack surface
+        // remains opened after streaming other than listing the /dev/input directory which you wouldn't
+        // normally be able to do with SELinux enforcing on Lollipop.
+        //
+        // We need to modify SELinux policies to allow us to capture input devices on Lollipop and possibly other
+        // more restrictive ROMs. Per Chainfire's SuperSU documentation, the supolicy binary is provided on
+        // 4.4 and later to do live SELinux policy changes.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            EvdevShell shell = EvdevShell.getInstance();
+            shell.runCommand("supolicy --live \"allow untrusted_app input_device dir getattr\" " +
+                    "\"allow untrusted_app input_device chr_file { open read write ioctl }\"");
+        }
+    }
 	
 	// Requires root to chmod /dev/input/eventX
-	public static boolean setPermissions(String[] files, int octalPermissions) {
-		ProcessBuilder builder = new ProcessBuilder("su");
-		
-		try {
-			Process p = builder.start();
-			
-			OutputStream stdin = p.getOutputStream();
-			for (String file : files) {
-				stdin.write(String.format((Locale)null, "chmod %o %s\n", octalPermissions, file).getBytes("UTF-8"));
-			}
-			stdin.write("exit\n".getBytes("UTF-8"));
-			stdin.flush();
-			
-			p.waitFor();
-			p.destroy();
-            return true;
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		return false;
+	public static void setPermissions(String[] files, int octalPermissions) {
+        EvdevShell shell = EvdevShell.getInstance();
+
+        for (String file : files) {
+            shell.runCommand(String.format((Locale)null, "chmod %o %s", octalPermissions, file));
+        }
 	}
 	
 	// Returns the fd to be passed to other function or -1 on error

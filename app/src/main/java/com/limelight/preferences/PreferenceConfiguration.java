@@ -17,7 +17,7 @@ public class PreferenceConfiguration {
     private static final int BITRATE_DEFAULT_720_30 = 5;
     private static final int BITRATE_DEFAULT_720_60 = 10;
     private static final int BITRATE_DEFAULT_1080_30 = 10;
-    private static final int BITRATE_DEFAULT_1080_60 = 30;
+    private static final int BITRATE_DEFAULT_1080_60 = 20;
 
     private static final String DEFAULT_RES_FPS = "720p60";
     private static final String DEFAULT_DECODER = "auto";

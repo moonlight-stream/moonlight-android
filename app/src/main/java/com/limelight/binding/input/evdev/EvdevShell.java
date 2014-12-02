@@ -32,8 +32,6 @@ public class EvdevShell {
             // This is unexpected
             e.printStackTrace();
 
-
-
             // Kill the shell if it spawned
             if (stdin != null) {
                 try {

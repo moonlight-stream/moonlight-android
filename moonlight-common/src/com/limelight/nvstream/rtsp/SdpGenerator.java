@@ -63,6 +63,15 @@ public class SdpGenerator {
 		addSessionAttributeInt(config, "x-nv-video[2].rateControlMode", 0x42514141);
 		addSessionAttributeInt(config, "x-nv-video[3].rateControlMode", 0x42514141);
 		
+		if (sc.getRemote()) {
+			addSessionAttribute(config, "x-nv-video[0].averageBitrate", "4");
+			addSessionAttribute(config, "x-nv-video[0].peakBitrate", "4");
+		}
+		else if (sc.getBitrate() <= 13000) {
+			addSessionAttribute(config, "x-nv-video[0].averageBitrate", "9");
+			addSessionAttribute(config, "x-nv-video[0].peakBitrate", "9");
+		}
+		
 		addSessionAttribute(config, "x-nv-video[0].timeoutLengthMs", "7000");
 		addSessionAttribute(config, "x-nv-video[0].framesWithInvalidRefThreshold", "0");
 		
@@ -109,14 +118,25 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-vqos[0].fec.enable", "0");
 		
 		addSessionAttribute(config, "x-nv-vqos[0].videoQualityScoreUpdateTime", "5000");
-		addSessionAttribute(config, "x-nv-vqos[0].qosTrafficType", "5");
+		
+		if (sc.getRemote()) {
+			addSessionAttribute(config, "x-nv-vqos[0].qosTrafficType", "0");
+		}
+		else {
+			addSessionAttribute(config, "x-nv-vqos[0].qosTrafficType", "5");
+		}
 		
 		addSessionAttribute(config, "x-nv-vqos[0].videoQosMaxConsecutiveDrops", "0");
 		addSessionAttribute(config, "x-nv-vqos[1].videoQosMaxConsecutiveDrops", "0");
 		addSessionAttribute(config, "x-nv-vqos[2].videoQosMaxConsecutiveDrops", "0");
 		addSessionAttribute(config, "x-nv-vqos[3].videoQosMaxConsecutiveDrops", "0");
 		
-		addSessionAttribute(config, "x-nv-aqos.qosTrafficType", "8");
+		if (sc.getRemote()) {
+			addSessionAttribute(config, "x-nv-aqos.qosTrafficType", "0");
+		}
+		else {
+			addSessionAttribute(config, "x-nv-aqos.qosTrafficType", "4");
+		}
 
 		config.append("t=0 0").append("\r\n");
 		

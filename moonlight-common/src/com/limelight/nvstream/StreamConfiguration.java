@@ -9,12 +9,18 @@ public class StreamConfiguration {
 	private boolean enableAdaptiveResolution;
 	private boolean playLocalAudio;
 	private int maxPacketSize;
+	private boolean remote;
 	
 	public static class Builder {
 		private StreamConfiguration config = new StreamConfiguration();
 		
 		public StreamConfiguration.Builder setApp(String app) {
 			config.app = app;
+			return this;
+		}
+		
+		public StreamConfiguration.Builder setRemote(boolean remote) {
+			config.remote = remote;
 			return this;
 		}
 		
@@ -105,5 +111,9 @@ public class StreamConfiguration {
 	
 	public boolean getPlayLocalAudio() {
 		return playLocalAudio;
+	}
+	
+	public boolean getRemote() {
+		return remote;
 	}
 }

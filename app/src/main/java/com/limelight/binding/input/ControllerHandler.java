@@ -396,36 +396,11 @@ public class ControllerHandler {
         // evaluates the deadzone.
     }
 
-    private void handleAnalogStickPlaneMapping(ControllerMapping mapping, Vector2d stickVector) {
-        if (!mapping.squareAnalogStick) {
-            // If the stick vector's magnitude exceeds 1.0 (1.1 to be safe), that means
-            // that the stick isn't behaving like a circular analog stick but like a square
-            if (stickVector.getMagnitude() > 1.1f) {
-                mapping.squareAnalogStick = true;
-                LimeLog.info("Switching to square analog stick mode");
-            }
-        }
-
-        if (mapping.squareAnalogStick) {
-            double xSquare = stickVector.getX();
-            double ySquare = stickVector.getY();
-
-            // Scale the vector from the square stick to the circular range
-            stickVector.initialize(
-                    (float)(xSquare * Math.sqrt(1.0 - 0.5*Math.abs(ySquare))),
-                    (float)(ySquare * Math.sqrt(1.0 - 0.5*Math.abs(xSquare))));
-        }
-    }
-
     private void handleAxisSet(ControllerMapping mapping, float lsX, float lsY, float rsX,
                                float rsY, float lt, float rt, float hatX, float hatY) {
 
         if (mapping.leftStickXAxis != -1 && mapping.leftStickYAxis != -1) {
             Vector2d leftStickVector = populateCachedVector(lsX, lsY);
-
-            // Map to the circular plane before applying the deadzone to ensure
-            // the effective deadzone area isn't skewed by the transformation
-            handleAnalogStickPlaneMapping(mapping, leftStickVector);
 
             handleDeadZone(leftStickVector, mapping.leftStickDeadzoneRadius);
 
@@ -435,10 +410,6 @@ public class ControllerHandler {
 
         if (mapping.rightStickXAxis != -1 && mapping.rightStickYAxis != -1) {
             Vector2d rightStickVector = populateCachedVector(rsX, rsY);
-
-            // Map to the circular plane before applying the deadzone to ensure
-            // the effective deadzone area isn't skewed by the transformation
-            handleAnalogStickPlaneMapping(mapping, rightStickVector);
 
             handleDeadZone(rightStickVector, mapping.rightStickDeadzoneRadius);
 
@@ -756,9 +727,5 @@ public class ControllerHandler {
         public boolean backIsStart;
         public boolean isRemote;
         public boolean hasJoystickAxes;
-
-        // XInput uses a rounded analog stick where (1.0, 1.0) -> (2^(1/2), 2^(1/2))
-        // Some controllers have square sticks which we will map onto the circular plane
-        public boolean squareAnalogStick;
 	}
 }

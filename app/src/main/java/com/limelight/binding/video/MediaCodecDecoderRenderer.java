@@ -410,6 +410,23 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 				spsBuf.position(header.offset+5);
 				
 				SeqParameterSet sps = SeqParameterSet.read(spsBuf);
+
+                // Some decoders rely on H264 level to decide how many buffers are needed
+                // Since we only need one frame buffered, we'll set the level as low as we can
+                // for known resolution combinations
+                if (initialWidth == 1280 && initialHeight == 720) {
+                    // Max 5 buffered frames at 1280x720x60
+                    LimeLog.info("Patching level_idc to 32");
+                    sps.level_idc = 32;
+                }
+                else if (initialWidth == 1920 && initialHeight == 1080) {
+                    // Max 4 buffered frames at 1920x1080x64
+                    LimeLog.info("Patching level_idc to 42");
+                    sps.level_idc = 42;
+                }
+                else {
+                    // Leave the profile alone (currently 5.0)
+                }
 				
 				// TI OMAP4 requires a reference frame count of 1 to decode successfully. Exynos 4
 				// also requires this fixup.

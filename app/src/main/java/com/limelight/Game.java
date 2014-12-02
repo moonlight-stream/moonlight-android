@@ -171,6 +171,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         VideoDecoderRenderer.CAPABILITY_ADAPTIVE_RESOLUTION) != 0)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
                 .setMaxPacketSize(remote ? 1024 : 1292)
+                .setRemote(remote)
                 .build();
 
 		// Initialize the connection

@@ -31,6 +31,7 @@
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/nonRoot/debug" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/nonRoot/debug" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/nonRoot/debug" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/generated/nonRoot/debug" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/nonRootDebug/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/nonRootDebug/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/nonRootDebug/assets" type="java-resource" />
@@ -43,6 +44,7 @@
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/test/nonRoot/debug" isTestSource="true" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/test/nonRoot/debug" isTestSource="true" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/test/nonRoot/debug" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/generated/test/nonRoot/debug" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/nonRoot/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/nonRoot/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/nonRoot/assets" type="java-resource" />

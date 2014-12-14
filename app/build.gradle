@@ -63,18 +63,17 @@ android {
 
 dependencies {
     compile group: 'org.jcodec', name: 'jcodec', version: '+'
+
     compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '+'
     compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '+'
-    compile group: 'com.google.android', name: 'support-v4', version:'+'
 
-    // FIXME: Pending resolution of issue #346 using custom build
-    //compile group: 'com.koushikdutta.ion', name: 'ion', version:'+'
+    compile group: 'com.google.android', name: 'support-v4', version:'+'
+    compile group: 'com.koushikdutta.ion', name: 'ion', version:'+'
     compile group: 'com.google.code.gson', name: 'gson', version:'+'
-    compile files('libs/androidasync-e1dfb4.jar')
-    compile files('libs/ion-2f46fa.jar')
 
     compile group: 'com.squareup.okhttp', name: 'okhttp', version:'+'
     compile group: 'com.squareup.okio', name:'okio', version:'+'
+
     compile files('libs/jmdns-fixed.jar')
     compile files('libs/limelight-common.jar')
     compile files('libs/tinyrtsp.jar')

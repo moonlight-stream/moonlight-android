@@ -8,6 +8,8 @@ whether in your own home or over the internet.
 
 [Limelight-pc](https://github.com/limelight-stream/limelight-pc) is also currently in development for Windows, OS X and Linux. Versions for [iOS](https://github.com/limelight-stream/limelight-ios) and [Windows and Windows Phone](https://github.com/limelight-stream/limelight-windows) are also in development.
 
+Check our [wiki](https://github.com/limelight-stream/limelight-android/wiki) for more detailed information or a troubleshooting guide. 
+
 ##Features
 
 * Streams any of your games from your PC to your Android device

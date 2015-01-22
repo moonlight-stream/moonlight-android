@@ -1,7 +1,6 @@
 package com.limelight.nvstream.av.video;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;

@@ -20,21 +20,22 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	public static final int CONTROL_TIMEOUT = 5000;
 	
-	public static final short PTYPE_START_STREAM_A = 0x140b;
-	public static final short PPAYLEN_START_STREAM_A = 1;
-	public static final byte[] PPAYLOAD_START_STREAM_A = new byte[]{0};
+	public static final short PTYPE_START_STREAM_A = 0x0606;
+	public static final short PPAYLEN_START_STREAM_A = 2;
+	public static final byte[] PPAYLOAD_START_STREAM_A = new byte[]{0, 0};
 	
-	public static final short PTYPE_START_STREAM_B = 0x1410;
-	public static final short PPAYLEN_START_STREAM_B = 16;
+	public static final short PTYPE_START_STREAM_B = 0x0609;
+	public static final short PPAYLEN_START_STREAM_B = 1;
+	public static final byte[] PPAYLOAD_START_STREAM_B = new byte[]{0};
 	
-	public static final short PTYPE_RESYNC = 0x1404;
+	public static final short PTYPE_RESYNC = 0x0604;
 	public static final short PPAYLEN_RESYNC = 24;
 	
-	public static final short PTYPE_LOSS_STATS = 0x140c;
+	public static final short PTYPE_LOSS_STATS = 0x060a;
 	public static final short PPAYLEN_LOSS_STATS = 32;
 	
 	// Currently unused
-	public static final short PTYPE_FRAME_STATS = 0x1417;
+	public static final short PTYPE_FRAME_STATS = 0x0611;
 	public static final short PPAYLEN_FRAME_STATS = 64;
 	
 	public static final int LOSS_REPORT_INTERVAL_MS = 50;
@@ -233,14 +234,8 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	private ControlStream.NvCtlResponse doStartB() throws IOException
 	{
-		ByteBuffer payload = ByteBuffer.wrap(new byte[PPAYLEN_START_STREAM_B]).order(ByteOrder.LITTLE_ENDIAN);
-		
-		payload.putInt(0);
-		payload.putInt(0);
-		payload.putInt(0);
-		payload.putInt(0xa);
-		
-		return sendAndGetReply(new NvCtlPacket(PTYPE_START_STREAM_B, PPAYLEN_START_STREAM_B, payload.array()));
+		return sendAndGetReply(new NvCtlPacket(PTYPE_START_STREAM_B,
+				PPAYLEN_START_STREAM_B, PPAYLOAD_START_STREAM_B));
 	}
 	
 	private void sendResync(int firstLostFrame, int nextSuccessfulFrame) throws IOException

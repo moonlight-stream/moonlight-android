@@ -103,9 +103,9 @@ public class NvConnection {
 		NvHTTP h = new NvHTTP(hostAddr, uniqueId, localDeviceName, cryptoProvider);
 		
 		String serverInfo = h.getServerInfo(uniqueId);
-		
-		if (!h.getServerVersion(serverInfo).startsWith("3.")) {
-			listener.displayMessage("Limelight now requires GeForce Experience 2.1.1 or later. Please upgrade GFE on your PC and try again.");
+		String serverVersion = h.getServerVersion(serverInfo);
+		if (!serverVersion.startsWith("4.")) {
+			listener.displayMessage("Limelight now requires GeForce Experience 2.2.2 or later. Please upgrade GFE on your PC and try again.");
 			return false;
 		}
 		

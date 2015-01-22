@@ -20,7 +20,6 @@ import com.limelight.nvstream.av.RtpReorderQueue;
 public class VideoStream {
 	public static final int RTP_PORT = 47998;
 	public static final int RTCP_PORT = 47999;
-	public static final int FIRST_FRAME_PORT = 47996;
 	
 	public static final int FIRST_FRAME_TIMEOUT = 5000;
 	public static final int RTP_RECV_BUFFER = 256 * 1024;
@@ -100,40 +99,6 @@ public class VideoStream {
 		threads.clear();
 	}
 	
-	private void connectFirstFrame() throws IOException
-	{
-		firstFrameSocket = new Socket();
-		firstFrameSocket.setSoTimeout(FIRST_FRAME_TIMEOUT);
-		firstFrameSocket.connect(new InetSocketAddress(host, FIRST_FRAME_PORT), FIRST_FRAME_TIMEOUT);
-	}
-
-	private void readFirstFrame() throws IOException
-	{
-		byte[] firstFrame = new byte[streamConfig.getMaxPacketSize()];
-		
-		try {
-			InputStream firstFrameStream = firstFrameSocket.getInputStream();
-			
-			int offset = 0;
-			for (;;)
-			{
-				int bytesRead = firstFrameStream.read(firstFrame, offset, firstFrame.length-offset);
-				
-				if (bytesRead == -1)
-					break;
-				
-				offset += bytesRead;
-			}
-			
-			// We can actually ignore this data. It's the act of reading it that matters.
-			// If this changes, we'll need to move this call before startReceiveThread()
-			// to avoid state corruption in the depacketizer
-		} finally {
-			firstFrameSocket.close();
-			firstFrameSocket = null;
-		}
-	}
-	
 	public void setupRtpSession() throws SocketException
 	{
 		rtp = new DatagramSocket();
@@ -184,15 +149,9 @@ public class VideoStream {
 			startReceiveThread();
 		}
 		
-		// Connect to the first frame port to open UDP 47998
-		connectFirstFrame();
-		
 		// Start pinging before reading the first frame
 		// so GFE knows where to send UDP data
 		startUdpPingThread();
-		
-		// Read the first frame to start the flow of video
-		readFirstFrame();
 		
 		return true;
 	}

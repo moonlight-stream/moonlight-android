@@ -38,10 +38,6 @@ public class VirtualControllerConfiguration extends Activity
         // start with configuration constructor
         virtualController = new VirtualController(frameLayout, getApplicationContext(), getWindowManager());
 
-        Toast toast = new Toast(this);
-        toast.setText("Not implemented yet!");
-        toast.setDuration(Toast.LENGTH_SHORT);
-
-        toast.show();
+        Toast.makeText(getApplicationContext(), "Not implemented yet!", Toast.LENGTH_SHORT).show();
     }
 }

@@ -14,6 +14,9 @@ public class PreferenceConfiguration {
     private static final String HOST_AUDIO_PREF_STRING = "checkbox_host_audio";
     private static final String DEADZONE_PREF_STRING = "seekbar_deadzone";
 
+    private static final String VIRTUAL_CONTROLLER_ENABLE = "virtual_controller_checkbox_enable";
+    private static final Boolean VIRTUAL_CONTROLLER_ENABLE_DEFAULT = true;
+
     private static final int BITRATE_DEFAULT_720_30 = 5;
     private static final int BITRATE_DEFAULT_720_60 = 10;
     private static final int BITRATE_DEFAULT_1080_30 = 10;
@@ -37,6 +40,8 @@ public class PreferenceConfiguration {
     public int decoder;
     public int deadzonePercentage;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
+
+    public boolean virtualController_enable;
 
     public static int getDefaultBitrate(String resFpsString) {
         if (resFpsString.equals("720p30")) {
@@ -140,6 +145,8 @@ public class PreferenceConfiguration {
         config.enableSops = prefs.getBoolean(SOPS_PREF_STRING, DEFAULT_SOPS);
         config.stretchVideo = prefs.getBoolean(STRETCH_PREF_STRING, DEFAULT_STRETCH);
         config.playHostAudio = prefs.getBoolean(HOST_AUDIO_PREF_STRING, DEFAULT_HOST_AUDIO);
+
+        config.virtualController_enable = prefs.getBoolean(VIRTUAL_CONTROLLER_ENABLE, VIRTUAL_CONTROLLER_ENABLE_DEFAULT);
 
         return config;
     }

@@ -8,6 +8,7 @@ import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.input.TouchContext;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.evdev.EvdevWatcher;
+import com.limelight.binding.input.virtual_controller.VirtualController;
 import com.limelight.binding.video.ConfigurableDecoderRenderer;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
@@ -41,6 +42,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 
@@ -56,6 +58,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	private TouchContext[] touchContextMap = new TouchContext[2];
 	
 	private ControllerHandler controllerHandler;
+    private VirtualController virtualController;
 	private KeyboardTranslator keybTranslator;
 	
 	private PreferenceConfiguration prefConfig;
@@ -197,7 +200,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			evdevWatcher = new EvdevWatcher(this);
 			evdevWatcher.start();
 		}
-		
+
+        if (prefConfig.virtualController_enable)
+        {
+            FrameLayout frameLayout = (FrameLayout) findViewById(R.id.frameLayout);
+
+            virtualController = new VirtualController(conn, frameLayout, getApplicationContext(), getWindowManager());
+        }
+
 		// The connection will be started when the surface gets created
 		sh.addCallback(this);
 	}

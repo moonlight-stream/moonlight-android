@@ -20,7 +20,7 @@ import com.limelight.nvstream.input.ControllerPacket;
  */
 public class VirtualController
 {
-	private  static final boolean _PRINT_DEBUG_INFORMATION = false;
+	private  static final boolean _PRINT_DEBUG_INFORMATION = true;
 
 	private static final void _DBG(String text)
 	{
@@ -30,25 +30,25 @@ public class VirtualController
 		}
 	}
 	private short 				inputMap 			= 0x0000;
-	private byte 				leftTrigger 			= 0x00;
-	private byte 				rightTrigger 			= 0x00;
-	private short				rightStickX 			= 0x0000;
-	private short 				rightStickY 			= 0x0000;
+	private byte 				leftTrigger 		= 0x00;
+	private byte 				rightTrigger 		= 0x00;
+	private short				rightStickX 		= 0x0000;
+	private short 				rightStickY 		= 0x0000;
 	private short 				leftStickX 			= 0x0000;
 	private short 				leftStickY 			= 0x0000;
 
 	private FrameLayout			frame_layout			= null;
-	private RelativeLayout			relative_layout 		= null;
+	private RelativeLayout		relative_layout 		= null;
 
 	private RelativeLayout.LayoutParams 	layoutParamsButtonDPadLeft	= null;
 	private RelativeLayout.LayoutParams 	layoutParamsButtonDPadRight	= null;
 	private RelativeLayout.LayoutParams 	layoutParamsButtonDPadUp	= null;
 	private RelativeLayout.LayoutParams 	layoutParamsButtonDPadDown	= null;
 
-	private RelativeLayout.LayoutParams 	layoutParamsButtonA		= null;
-	private RelativeLayout.LayoutParams 	layoutParamsButtonB		= null;
-	private RelativeLayout.LayoutParams 	layoutParamsButtonX		= null;
-	private RelativeLayout.LayoutParams 	layoutParamsButtonY		= null;
+	private RelativeLayout.LayoutParams 	layoutParamsButtonA		    = null;
+	private RelativeLayout.LayoutParams 	layoutParamsButtonB		    = null;
+	private RelativeLayout.LayoutParams 	layoutParamsButtonX	    	= null;
+	private RelativeLayout.LayoutParams 	layoutParamsButtonY	    	= null;
 	private RelativeLayout.LayoutParams 	layoutParamsButtonR1		= null;
 	private RelativeLayout.LayoutParams 	layoutParamsButtonR2		= null;
 
@@ -56,13 +56,13 @@ public class VirtualController
 	private RelativeLayout.LayoutParams 	layoutParamsParamsStick2	= null;
 
 	private Button				buttonStart			= null;
-	private Button				buttonSelect			= null;
+	private Button				buttonSelect		= null;
 	private Button				buttonESC			= null;
 
-	private Button				buttonDPadLeft			= null;
-	private Button				buttonDPadRight			= null;
-	private Button				buttonDPadUp			= null;
-	private Button				buttonDPadDown			= null;
+	private Button				buttonDPadLeft		= null;
+	private Button				buttonDPadRight		= null;
+	private Button				buttonDPadUp		= null;
+	private Button				buttonDPadDown		= null;
 
 	private Button				buttonA				= null;
 	private Button				buttonB				= null;
@@ -71,8 +71,10 @@ public class VirtualController
 	private Button				buttonR1			= null;
 	private Button				buttonR2			= null;
 
-	private AnalogStick 			stick				= null;
+	private AnalogStick 		stick				= null;
 	private AnalogStick			stick2				= null;
+
+    private boolean             configuration       = false;
 
 	NvConnection				connection			= null;
 
@@ -141,21 +143,21 @@ public class VirtualController
 		layoutParamsButtonB		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
 		layoutParamsButtonX		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
 		layoutParamsButtonY		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-		layoutParamsButtonR1		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-		layoutParamsButtonR2		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+		layoutParamsButtonR1	= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+		layoutParamsButtonR2	= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
 
-		setPercentilePosition(layoutParamsButtonDPadLeft,	5,	45);
-		setPercentilePosition(layoutParamsButtonDPadRight,	15,	45);
-		setPercentilePosition(layoutParamsButtonDPadUp,		10,	35);
-		setPercentilePosition(layoutParamsButtonDPadDown,	10,	55);
+		setPercentilePosition(layoutParamsButtonDPadLeft,	5,	    45);
+		setPercentilePosition(layoutParamsButtonDPadRight,	15,	    45);
+		setPercentilePosition(layoutParamsButtonDPadUp,		10,	    35);
+		setPercentilePosition(layoutParamsButtonDPadDown,	10,	    55);
 
-		setPercentilePosition(layoutParamsParamsStick,		22,	78);
-		setPercentilePosition(layoutParamsParamsStick2,		78,	78);
+		setPercentilePosition(layoutParamsParamsStick,		22,	    78);
+		setPercentilePosition(layoutParamsParamsStick2,		78,	    78);
 
-		setPercentilePosition(layoutParamsButtonA, 		85, 	52);
-		setPercentilePosition(layoutParamsButtonB, 		92, 	47);
-		setPercentilePosition(layoutParamsButtonX, 		85, 	40);
-		setPercentilePosition(layoutParamsButtonY, 		92, 	35);
+		setPercentilePosition(layoutParamsButtonA, 		    85, 	52);
+		setPercentilePosition(layoutParamsButtonB, 		    92, 	47);
+		setPercentilePosition(layoutParamsButtonX, 		    85, 	40);
+		setPercentilePosition(layoutParamsButtonY, 		    92, 	35);
 
 		setPercentilePosition(layoutParamsButtonR1, 		95, 	68);
 		setPercentilePosition(layoutParamsButtonR2, 		95, 	80);
@@ -404,24 +406,94 @@ public class VirtualController
 		refreshLayout();
 	}
 
+    public VirtualController(FrameLayout layout, Context context, WindowManager window_manager)
+    {
+        this.connection		= null;
+        frame_layout		= layout;
+
+        relative_layout = new RelativeLayout(context);
+
+        relative_layout.addOnLayoutChangeListener(new View.OnLayoutChangeListener()
+        {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom)
+            {
+                refreshLayout();
+            }
+        });
+
+        frame_layout.addView(relative_layout);
+
+        buttonDPadLeft	= new Button(context);
+        buttonDPadLeft.setText("LF");
+
+        buttonDPadRight	= new Button(context);
+        buttonDPadRight.setText("RI");
+
+        buttonDPadUp	= new Button(context);
+        buttonDPadUp.setText("UP");
+
+        buttonDPadDown	= new Button(context);
+        buttonDPadDown.setText("DW");
+
+        buttonX = new Button(context);
+        buttonX.setText("X");
+
+        buttonY = new Button(context);
+        buttonY.setText("Y");
+
+        buttonA = new Button(context);
+        buttonA.setText("A");
+
+        buttonB = new Button(context);
+        buttonB.setText("B");
+
+        buttonR1 = new Button(context);
+        buttonR1.setText("LT");
+
+        buttonR2 = new Button(context);
+        buttonR2.setText("RT");
+
+        stick = new AnalogStick(context);
+        stick2 = new AnalogStick(context);
+
+        configuration = true;
+
+
+        // receive touch events
+        frame_layout.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event)
+            {
+                _DBG("touch event");
+                return  true;
+            }
+        });
+
+
+        refreshLayout();
+    }
+
 	private void sendControllerInputPacket()
 	{
-		try
-		{
-			_DBG("INPUT_MAP + " + inputMap);
-			_DBG("LEFT_TRIGGER " + leftTrigger);
-			_DBG("RIGHT_TRIGGER " + rightTrigger);
-			_DBG("LEFT STICK X: " + leftStickX + " Y: " + leftStickY);
-			_DBG("RIGHT STICK X: " + rightStickX + " Y: " + rightStickY);
-			_DBG("RIGHT STICK X: " + rightStickX + " Y: " + rightStickY);
+		try {
+            _DBG("INPUT_MAP + " + inputMap);
+            _DBG("LEFT_TRIGGER " + leftTrigger);
+            _DBG("RIGHT_TRIGGER " + rightTrigger);
+            _DBG("LEFT STICK X: " + leftStickX + " Y: " + leftStickY);
+            _DBG("RIGHT STICK X: " + rightStickX + " Y: " + rightStickY);
+            _DBG("RIGHT STICK X: " + rightStickX + " Y: " + rightStickY);
 
-
-			connection.sendControllerInput(inputMap, leftTrigger, rightTrigger,
-				leftStickX, leftStickY, rightStickX, rightStickY);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+            if (connection != null)
+            {
+                connection.sendControllerInput(inputMap, leftTrigger, rightTrigger,
+                        leftStickX, leftStickY, rightStickX, rightStickY);
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
 	}
 }

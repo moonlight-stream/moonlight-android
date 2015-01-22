@@ -55,5 +55,15 @@
             android:summary="@string/summary_decoder_list"
             android:defaultValue="auto" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="Virtual Controller">
+        <CheckBoxPreference
+            android:key="virtual_controller_checkbox_enable"
+            android:title="Enable virtual controller"
+            android:summary="Show virtual controller overlay on game screen"
+            android:defaultValue="true"/>
+        <Preference android:title="Site virtual controller items"
+                 android:key="button_open_virtual_controller_configuration"
+                 android:summary="tbd"/>
+    </PreferenceCategory>
 
 </PreferenceScreen>

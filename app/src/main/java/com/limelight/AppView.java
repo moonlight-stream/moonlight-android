@@ -20,6 +20,7 @@ import com.limelight.utils.UiHelper;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -54,8 +55,8 @@ public class AppView extends Activity {
 		setContentView(R.layout.activity_app_view);
 
         UiHelper.notifyNewRootView(this);
-		
-		byte[] address = getIntent().getByteArrayExtra(ADDRESS_EXTRA);
+
+        byte[] address = getIntent().getByteArrayExtra(ADDRESS_EXTRA);
 		uniqueId = getIntent().getStringExtra(UNIQUEID_EXTRA);
 		remote = getIntent().getBooleanExtra(REMOTE_EXTRA, false);
 		if (address == null || uniqueId == null) {

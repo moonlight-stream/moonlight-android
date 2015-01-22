@@ -10,4 +10,204 @@
         android:layout_height="match_parent"
         android:layout_gravity="center" />
 
+    <ImageView
+        android:layout_width="201dp"
+        android:layout_height="201dp"
+        android:id="@+id/imageView"
+        android:layout_gravity="left|bottom"
+        android:src="@drawable/buttondpad"
+        android:alpha="0.3" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/upBtn"
+        android:layout_gravity="left|bottom"
+        android:scaleType="fitCenter"
+        android:layout_marginLeft="60dp"
+        android:alpha="0"
+        android:onClick="upOnClick"
+        android:layout_marginBottom="110dp" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/rightBtn"
+        android:layout_gravity="left|bottom"
+        android:scaleType="fitCenter"
+        android:layout_marginLeft="120dp"
+        android:alpha="0"
+        android:onClick="rightOnClick"
+        android:layout_marginBottom="55dp" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/downBtn"
+        android:layout_gravity="left|bottom"
+        android:scaleType="fitCenter"
+        android:layout_marginLeft="60dp"
+        android:alpha="0"
+        android:onClick="downOnClick" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/leftBtn"
+        android:layout_gravity="left|bottom"
+        android:scaleType="fitCenter"
+        android:alpha="0"
+        android:onClick="leftOnClick"
+        android:layout_marginBottom="55dp" />
+
+    <RelativeLayout
+        android:id="@+id/layout_joystick"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="36dp"
+        android:background="@drawable/image_button_bg"
+        android:layout_gravity="left|center_vertical"
+        android:alpha="0.3" >
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Button"
+            android:id="@+id/button"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:alpha="0"
+            android:onClick="onAlphaBtnClick" />
+    </RelativeLayout>
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/yBtn"
+        android:layout_gravity="right|center_vertical"
+        android:scaleType="fitCenter"
+        android:layout_marginBottom="140dp"
+        android:onClick="yOnClick"
+        android:layout_marginRight="70dp"
+        android:background="@drawable/buttony"
+        android:alpha="0.3" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/bBtn"
+        android:layout_gravity="right|center_vertical"
+        android:src="@drawable/buttonb"
+        android:scaleType="fitCenter"
+        android:onClick="bOnClick"
+        android:layout_marginBottom="70dp"
+        android:background="@drawable/buttonb"
+        android:alpha="0.3" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/aBtn"
+        android:layout_gravity="right|center_vertical"
+        android:src="@drawable/buttona"
+        android:scaleType="fitCenter"
+        android:clickable="false"
+        android:onClick="aOnClick"
+        android:layout_marginRight="70dp"
+        android:background="@drawable/buttona"
+        android:layout_marginBottom="0dp"
+        android:alpha="0.3" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/xBtn"
+        android:layout_gravity="right|center_vertical"
+        android:src="@drawable/buttonx"
+        android:scaleType="fitCenter"
+        android:onClick="xOnClick"
+        android:layout_marginBottom="70dp"
+        android:layout_marginRight="140dp"
+        android:background="@drawable/buttonx"
+        android:alpha="0.3" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="60dp"
+        android:id="@+id/rtBtn"
+        android:layout_gravity="right|top"
+        android:scaleType="fitCenter"
+        android:onClick="yOnClick"
+        android:background="@drawable/rt"
+        android:alpha="0.3" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="60dp"
+        android:id="@+id/rbBtn"
+        android:layout_gravity="right|top"
+        android:scaleType="fitCenter"
+        android:onClick="yOnClick"
+        android:background="@drawable/rb"
+        android:layout_marginRight="100dp"
+        android:alpha="0.3" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="60dp"
+        android:id="@+id/ltBtn"
+        android:layout_gravity="left|top"
+        android:scaleType="fitCenter"
+        android:onClick="yOnClick"
+        android:background="@drawable/lt"
+        android:alpha="0.3" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="60dp"
+        android:id="@+id/lbBtn"
+        android:layout_gravity="left|top"
+        android:scaleType="fitCenter"
+        android:onClick="yOnClick"
+        android:background="@drawable/lb"
+        android:layout_marginLeft="100dp"
+        android:alpha="0.3" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="60dp"
+        android:id="@+id/selectBtn"
+        android:layout_gravity="center_horizontal|bottom"
+        android:scaleType="fitCenter"
+        android:onClick="yOnClick"
+        android:background="@drawable/select"
+        android:alpha="0.3" />
+
+    <ImageButton
+        android:layout_width="80dp"
+        android:layout_height="60dp"
+        android:id="@+id/startBtn"
+        android:layout_gravity="center_horizontal|bottom"
+        android:scaleType="fitCenter"
+        android:onClick="yOnClick"
+        android:background="@drawable/start"
+        android:layout_marginLeft="100dp"
+        android:alpha="0.3" />
+
+    <RelativeLayout
+        android:id="@+id/right_js"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/image_button_bg"
+        android:layout_gravity="right|bottom"
+        android:alpha="0.3"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp" />
+
+
 </FrameLayout>

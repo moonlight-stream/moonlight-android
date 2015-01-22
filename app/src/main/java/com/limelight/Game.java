@@ -13,11 +13,13 @@ import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
+import com.limelight.utils.Vector2d;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -28,6 +30,7 @@ import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -41,6 +44,12 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -82,7 +91,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	public static final String EXTRA_APP = "App";
 	public static final String EXTRA_UNIQUEID = "UniqueId";
 	public static final String EXTRA_STREAMING_REMOTE = "Remote";
-	
+	int repeatCount = 0;
+    int count=0;
+    JoyStickClass js;
+    JoyStickClass rjs;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -143,6 +155,149 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
 		sv.setOnGenericMotionListener(this);
 		sv.setOnTouchListener(this);
+
+        RelativeLayout layout_joystick = (RelativeLayout)findViewById(R.id.layout_joystick);
+        RelativeLayout right_js = (RelativeLayout)findViewById(R.id.right_js);
+
+        js = new JoyStickClass(getApplicationContext()
+                , layout_joystick, R.drawable.image_button);
+        js.setStickSize(150,150);
+        js.setLayoutSize(500, 500);
+        js.setLayoutAlpha(150);
+        js.setStickAlpha(100);
+        js.setOffset(90);
+        js.setMinimumDistance(50);
+
+        rjs = new JoyStickClass(getApplicationContext()
+                , right_js, R.drawable.image_button);
+        rjs.setStickSize(150, 150);
+        rjs.setLayoutSize(500, 500);
+        rjs.setLayoutAlpha(150);
+        rjs.setStickAlpha(100);
+        rjs.setOffset(90);
+        rjs.setMinimumDistance(50);
+
+        layout_joystick.setOnTouchListener(new OnTouchListener() {
+            public boolean onTouch(View arg0, MotionEvent arg1) {
+                js.drawStick(arg1);
+                if(arg1.getAction() == MotionEvent.ACTION_DOWN
+                        || arg1.getAction() == MotionEvent.ACTION_MOVE) {
+                    /*textView1.setText("X : " + String.valueOf(js.getX()));
+                    textView2.setText("Y : " + String.valueOf(js.getY()));
+                    textView3.setText("Angle : " + String.valueOf(js.getAngle()));
+                    textView4.setText("Distance : " + String.valueOf(js.getDistance()));
+
+                    int direction = js.get8Direction();
+                    if(direction == JoyStickClass.STICK_UP) {
+                        textView5.setText("Direction : Up");
+                    } else if(direction == JoyStickClass.STICK_UPRIGHT) {
+                        textView5.setText("Direction : Up Right");
+                    } else if(direction == JoyStickClass.STICK_RIGHT) {
+                        textView5.setText("Direction : Right");
+                    } else if(direction == JoyStickClass.STICK_DOWNRIGHT) {
+                        textView5.setText("Direction : Down Right");
+                    } else if(direction == JoyStickClass.STICK_DOWN) {
+                        textView5.setText("Direction : Down");
+                    } else if(direction == JoyStickClass.STICK_DOWNLEFT) {
+                        textView5.setText("Direction : Down Left");
+                    } else if(direction == JoyStickClass.STICK_LEFT) {
+                        textView5.setText("Direction : Left");
+                    } else if(direction == JoyStickClass.STICK_UPLEFT) {
+                        textView5.setText("Direction : Up Left");
+                    } else if(direction == JoyStickClass.STICK_NONE) {
+                        textView5.setText("Direction : Center");
+                    }*/
+                    float x = js.getX()/200.0f;
+                    float y = js.getY()/200.0f;
+                    handleJoyStick(0,x,y);
+                    //handleJoyStick(0,js.getY(), js.getX());
+                } else if(arg1.getAction() == MotionEvent.ACTION_UP) {
+                   /* textView1.setText("X :");
+                    textView2.setText("Y :");
+                    textView3.setText("Angle :");
+                    textView4.setText("Distance :");
+                    textView5.setText("Direction :");*/
+                    handleJoyStick(0,0,0);
+                }
+                return true;
+            }
+        });
+
+        right_js.setOnTouchListener(new OnTouchListener() {
+            public boolean onTouch(View arg0, MotionEvent arg1) {
+                rjs.drawStick(arg1);
+                if(arg1.getAction() == MotionEvent.ACTION_DOWN
+                        || arg1.getAction() == MotionEvent.ACTION_MOVE) {
+                    float x = rjs.getX()/200.0f;
+                    float y = rjs.getY()/200.0f;
+                    handleJoyStick(1,x,y);
+                } else if(arg1.getAction() == MotionEvent.ACTION_UP) {
+                    handleJoyStick(1,0, 0);
+                }
+                return true;
+            }
+        });
+
+
+        //START: added by hasan
+
+        RepeatListener touchListener = new RepeatListener(100,100,new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                handleButtons(v,event);
+
+                count++;
+
+                repeatCount++;
+                if(event.getAction() == MotionEvent.ACTION_DOWN) {
+
+
+                }
+                else if(event.getAction() == MotionEvent.ACTION_UP){
+                    repeatCount=0;
+                }
+
+                return true;
+            }
+        });
+
+        ImageButton aBtn = (ImageButton) findViewById(R.id.aBtn);
+        aBtn.setOnTouchListener(touchListener);
+        ImageButton yBtn = (ImageButton) findViewById(R.id.yBtn);
+        yBtn.setOnTouchListener(touchListener);
+        ImageButton bBtn = (ImageButton) findViewById(R.id.bBtn);
+        bBtn.setOnTouchListener(touchListener);
+
+        ImageButton xBtn = (ImageButton) findViewById(R.id.xBtn);
+        xBtn.setOnTouchListener(touchListener);
+
+        ImageButton leftBtn = (ImageButton) findViewById(R.id.leftBtn);
+        leftBtn.setOnTouchListener(touchListener);
+
+        ImageButton rightBtn = (ImageButton) findViewById(R.id.rightBtn);
+        rightBtn.setOnTouchListener(touchListener);
+
+        ImageButton upBtn = (ImageButton) findViewById(R.id.upBtn);
+        upBtn.setOnTouchListener(touchListener);
+
+        ImageButton downBtn = (ImageButton) findViewById(R.id.downBtn);
+        downBtn.setOnTouchListener(touchListener);
+
+        ImageButton lbBtn = (ImageButton) findViewById(R.id.lbBtn);
+        lbBtn.setOnTouchListener(touchListener);
+        ImageButton ltBtn = (ImageButton) findViewById(R.id.ltBtn);
+        ltBtn.setOnTouchListener(touchListener);
+        ImageButton rbBtn = (ImageButton) findViewById(R.id.rbBtn);
+        rbBtn.setOnTouchListener(touchListener);
+        ImageButton rtBtn = (ImageButton) findViewById(R.id.rtBtn);
+        rtBtn.setOnTouchListener(touchListener);
+
+        ImageButton startBtn = (ImageButton) findViewById(R.id.startBtn);
+        startBtn.setOnTouchListener(touchListener);
+        ImageButton selectBtn = (ImageButton) findViewById(R.id.selectBtn);
+        selectBtn.setOnTouchListener(touchListener);
+
+        //END: added by hasan
 		        
 		// Warn the user if they're on a metered connection
 		checkDataConnection();
@@ -608,6 +763,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     }
 
+
+
 	@Override
 	public boolean onGenericMotionEvent(MotionEvent event) {
         return handleMotionEvent(event) || super.onGenericMotionEvent(event);
@@ -839,4 +996,774 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 			hideSystemUi(2000);	 
 		}
 	}
+
+    public void bOnClick(View v) {
+        handleButtonDown(KeyEvent.KEYCODE_BUTTON_B);
+        try {
+            Thread.sleep(MINIMUM_BUTTON_DOWN_TIME_MS);
+        }
+        catch(Exception e)
+        {
+
+        }
+        handleButtonUp(KeyEvent.KEYCODE_BUTTON_B);
+    }
+
+    public void aOnClick(View v) {
+        handleButtonDown(KeyEvent.KEYCODE_BUTTON_A);
+        handleButtonUp(KeyEvent.KEYCODE_BUTTON_A);
+    }
+
+    public void yOnClick(View v) {
+        short inputMap = 0x0000;
+        byte leftTrigger = 0x00;
+        byte rightTrigger = 0x00;
+        short rightStickX = 0x0000;
+        short rightStickY = 0x0000;
+        short leftStickX = 0x0000;
+        short leftStickY = 0x0000;
+        int emulatingButtonFlags = 0;
+       // handleButtonPress(KeyEvent.KEYCODE_BUTTON_Y);
+        inputMap |= ControllerPacket.Y_FLAG;
+        conn.sendControllerInput(inputMap, leftTrigger, rightTrigger,
+                leftStickX, leftStickY, rightStickX, rightStickY);
+    }
+
+    public void xOnClick(View v) {
+        handleButtonDown(KeyEvent.KEYCODE_BUTTON_X);
+    }
+
+    public void startOnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_BUTTON_START);
+    }
+
+    public void selectOnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_BUTTON_SELECT);
+    }
+
+    public void l1OnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_BUTTON_L1);
+    }
+
+    public void l2OnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_BUTTON_L2);
+    }
+
+    public void r1OnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_BUTTON_R1);
+    }
+
+    public void r2OnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_BUTTON_R2);
+    }
+
+    public void thumblOnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_BUTTON_THUMBL);
+    }
+
+    public void thumbrOnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_BUTTON_THUMBR);
+    }
+
+    public void leftOnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_DPAD_LEFT);
+    }
+
+    public void rightOnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_DPAD_RIGHT);
+    }
+
+    public void upOnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_DPAD_UP);
+    }
+
+    public void downOnClick(View v) {
+        handleButtonPress(KeyEvent.KEYCODE_DPAD_DOWN);
+    }
+
+    short inputMap = 0x0000;
+    byte leftTrigger = 0x00;
+    byte rightTrigger = 0x00;
+    short rightStickX = 0x0000;
+    short rightStickY = 0x0000;
+    short leftStickX = 0x0000;
+    short leftStickY = 0x0000;
+    int emulatingButtonFlags = 0;
+
+    private long lastLbUpTime = 0;
+    private long lastRbUpTime = 0;
+    private static final int MAXIMUM_BUMPER_UP_DELAY_MS = 100;
+
+    private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 25;
+
+    private static final int EMULATING_SPECIAL = 0x1;
+    private static final int EMULATING_SELECT = 0x2;
+
+    private static final int EMULATED_SPECIAL_UP_DELAY_MS = 100;
+    private static final int EMULATED_SELECT_UP_DELAY_MS = 30;
+
+
+    public boolean handleButtonPress(int keyCode) {
+        short inputMap = 0x0000;
+        byte leftTrigger = 0x00;
+        byte rightTrigger = 0x00;
+        short rightStickX = 0x0000;
+        short rightStickY = 0x0000;
+        short leftStickX = 0x0000;
+        short leftStickY = 0x0000;
+        int emulatingButtonFlags = 0;
+
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BUTTON_MODE:
+                inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_START:
+            case KeyEvent.KEYCODE_MENU:
+                inputMap |= ControllerPacket.PLAY_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_BUTTON_SELECT:
+                inputMap |= ControllerPacket.BACK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                inputMap |= ControllerPacket.LEFT_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                inputMap |= ControllerPacket.RIGHT_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_UP:
+                inputMap |= ControllerPacket.UP_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                inputMap |= ControllerPacket.DOWN_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_B:
+                inputMap |= ControllerPacket.B_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_CENTER:
+            case KeyEvent.KEYCODE_BUTTON_A:
+                inputMap |= ControllerPacket.A_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_X:
+                inputMap |= ControllerPacket.X_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                inputMap |= ControllerPacket.Y_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_L1:
+                inputMap |= ControllerPacket.LB_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_R1:
+                inputMap |= ControllerPacket.RB_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_THUMBL:
+                inputMap |= ControllerPacket.LS_CLK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_THUMBR:
+                inputMap |= ControllerPacket.RS_CLK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_L2:
+                leftTrigger = (byte)0xFF;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_R2:
+                rightTrigger = (byte)0xFF;
+                break;
+            default:
+                return false;
+        }
+
+        conn.sendControllerInput(inputMap, leftTrigger, rightTrigger,
+                leftStickX, leftStickY, rightStickX, rightStickY);
+        return true;
+    }
+
+
+    public boolean handleButtonUp(int keyCode) {
+
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BUTTON_MODE:
+                inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_START:
+            case KeyEvent.KEYCODE_MENU:
+                inputMap &= ~ControllerPacket.PLAY_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_BUTTON_SELECT:
+                inputMap &= ~ControllerPacket.BACK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                inputMap &= ~ControllerPacket.LEFT_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                inputMap &= ~ControllerPacket.RIGHT_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_UP:
+                inputMap &= ~ControllerPacket.UP_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                inputMap &= ~ControllerPacket.DOWN_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_B:
+                inputMap &= ~ControllerPacket.B_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_CENTER:
+            case KeyEvent.KEYCODE_BUTTON_A:
+                inputMap &= ~ControllerPacket.A_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_X:
+                inputMap &= ~ControllerPacket.X_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                inputMap &= ~ControllerPacket.Y_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_L1:
+                inputMap &= ~ControllerPacket.LB_FLAG;
+                lastLbUpTime = SystemClock.uptimeMillis();
+                break;
+            case KeyEvent.KEYCODE_BUTTON_R1:
+                inputMap &= ~ControllerPacket.RB_FLAG;
+                lastRbUpTime = SystemClock.uptimeMillis();
+                break;
+            case KeyEvent.KEYCODE_BUTTON_THUMBL:
+                inputMap &= ~ControllerPacket.LS_CLK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_THUMBR:
+                inputMap &= ~ControllerPacket.RS_CLK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_L2:
+                leftTrigger = 0;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_R2:
+                rightTrigger = 0;
+                break;
+            default:
+                return false;
+        }
+
+        // Check if we're emulating the select button
+        if ((emulatingButtonFlags & EMULATING_SELECT) != 0)
+        {
+            // If either start or LB is up, select comes up too
+            if ((inputMap & ControllerPacket.PLAY_FLAG) == 0 ||
+                    (inputMap & ControllerPacket.LB_FLAG) == 0)
+            {
+                inputMap &= ~ControllerPacket.BACK_FLAG;
+
+                emulatingButtonFlags &= ~EMULATING_SELECT;
+
+                try {
+                    Thread.sleep(EMULATED_SELECT_UP_DELAY_MS);
+                } catch (InterruptedException ignored) {}
+            }
+        }
+
+        // Check if we're emulating the special button
+        if ((emulatingButtonFlags & EMULATING_SPECIAL) != 0)
+        {
+            // If either start or select and RB is up, the special button comes up too
+            if ((inputMap & ControllerPacket.PLAY_FLAG) == 0 ||
+                    ((inputMap & ControllerPacket.BACK_FLAG) == 0 &&
+                            (inputMap & ControllerPacket.RB_FLAG) == 0))
+            {
+                inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
+
+                emulatingButtonFlags &= ~EMULATING_SPECIAL;
+
+                try {
+                    Thread.sleep(EMULATED_SPECIAL_UP_DELAY_MS);
+                } catch (InterruptedException ignored) {}
+            }
+        }
+
+        sendControllerInputPacket();
+        return true;
+    }
+
+    public boolean handleButtonDown(int keyCode) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BUTTON_MODE:
+                inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_START:
+            case KeyEvent.KEYCODE_MENU:
+                inputMap |= ControllerPacket.PLAY_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_BUTTON_SELECT:
+                inputMap |= ControllerPacket.BACK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                inputMap |= ControllerPacket.LEFT_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                inputMap |= ControllerPacket.RIGHT_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_UP:
+                inputMap |= ControllerPacket.UP_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                inputMap |= ControllerPacket.DOWN_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_B:
+                inputMap |= ControllerPacket.B_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_CENTER:
+            case KeyEvent.KEYCODE_BUTTON_A:
+                inputMap |= ControllerPacket.A_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_X:
+                inputMap |= ControllerPacket.X_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                inputMap |= ControllerPacket.Y_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_L1:
+                inputMap |= ControllerPacket.LB_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_R1:
+                inputMap |= ControllerPacket.RB_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_THUMBL:
+                inputMap |= ControllerPacket.LS_CLK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_THUMBR:
+                inputMap |= ControllerPacket.RS_CLK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_L2:
+                leftTrigger = (byte)0xFF;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_R2:
+                rightTrigger = (byte)0xFF;
+                break;
+            default:
+                return false;
+        }
+
+        // Start+LB acts like select for controllers with one button
+        if ((inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
+                ((inputMap & ControllerPacket.LB_FLAG) != 0 ||
+                        SystemClock.uptimeMillis() - lastLbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
+        {
+            inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG);
+            inputMap |= ControllerPacket.BACK_FLAG;
+
+            emulatingButtonFlags |= EMULATING_SELECT;
+        }
+
+        // We detect select+start or start+RB as the special button combo
+        if (((inputMap & ControllerPacket.RB_FLAG) != 0 ||
+                (SystemClock.uptimeMillis() - lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS) ||
+                (inputMap & ControllerPacket.BACK_FLAG) != 0) &&
+                (inputMap & ControllerPacket.PLAY_FLAG) != 0)
+        {
+            inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG);
+            inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+
+            emulatingButtonFlags |= EMULATING_SPECIAL;
+        }
+
+        // Send a new input packet if this is the first instance of a button down event
+        // or anytime if we're emulating a button
+        if (emulatingButtonFlags != 0) {
+            sendControllerInputPacket();
+        }
+        return true;
+    }
+
+    private void sendControllerInputPacket() {
+        conn.sendControllerInput(inputMap, leftTrigger, rightTrigger,
+                leftStickX, leftStickY, rightStickX, rightStickY);
+    }
+
+
+    boolean isDown = false;
+    private void handleButtons(View v,MotionEvent event)
+    {
+        int keyCode = 0;
+
+        if(v.getId() == R.id.aBtn)
+            keyCode = KeyEvent.KEYCODE_BUTTON_A;
+        else if(v.getId() == R.id.bBtn)
+            keyCode = KeyEvent.KEYCODE_BUTTON_B;
+        else if(v.getId() == R.id.yBtn)
+            keyCode = KeyEvent.KEYCODE_BUTTON_Y;
+        else if(v.getId() == R.id.xBtn)
+            keyCode = KeyEvent.KEYCODE_BUTTON_X;
+        else if(v.getId() == R.id.leftBtn)
+            keyCode = KeyEvent.KEYCODE_DPAD_LEFT;
+        else if(v.getId() == R.id.rightBtn)
+            keyCode = KeyEvent.KEYCODE_DPAD_RIGHT;
+        else if(v.getId() == R.id.upBtn)
+            keyCode = KeyEvent.KEYCODE_DPAD_UP;
+        else if(v.getId() == R.id.downBtn)
+            keyCode = KeyEvent.KEYCODE_DPAD_DOWN;
+        else if(v.getId() == R.id.lbBtn)
+            keyCode = KeyEvent.KEYCODE_BUTTON_L1;
+        else if(v.getId() == R.id.ltBtn)
+            keyCode = KeyEvent.KEYCODE_BUTTON_L2;
+        else if(v.getId() == R.id.rbBtn)
+            keyCode = KeyEvent.KEYCODE_BUTTON_R1;
+        else if(v.getId() == R.id.rtBtn)
+            keyCode = KeyEvent.KEYCODE_BUTTON_R2;
+        else if(v.getId() == R.id.startBtn)
+            keyCode = KeyEvent.KEYCODE_BUTTON_START;
+        else if(v.getId() == R.id.selectBtn)
+            keyCode = KeyEvent.KEYCODE_BUTTON_SELECT;
+
+        if(event.getAction() == MotionEvent.ACTION_DOWN) {
+            if (isDown) {
+                handleButtonUp(keyCode, event);
+                repeatCount = 0;
+                isDown = false;
+            }
+            handleButtonDown(keyCode, event);
+            isDown = true;
+        }
+        else if(event.getAction() == MotionEvent.ACTION_UP)
+        {
+            handleButtonUp(keyCode, event);
+        }
+    }
+
+
+    public boolean handleButtonUp(int keyCode, MotionEvent event) {
+
+        // If the button hasn't been down long enough, sleep for a bit before sending the up event
+        // This allows "instant" button presses (like OUYA's virtual menu button) to work. This
+        // path should not be triggered during normal usage.
+        if (SystemClock.uptimeMillis() - event.getDownTime() < MINIMUM_BUTTON_DOWN_TIME_MS)
+        {
+            // Since our sleep time is so short (10 ms), it shouldn't cause a problem doing this in the
+            // UI thread.
+            try {
+                Thread.sleep(MINIMUM_BUTTON_DOWN_TIME_MS);
+            } catch (InterruptedException ignored) {}
+        }
+
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BUTTON_MODE:
+                inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_START:
+            case KeyEvent.KEYCODE_MENU:
+                inputMap &= ~ControllerPacket.PLAY_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_BUTTON_SELECT:
+                inputMap &= ~ControllerPacket.BACK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                inputMap &= ~ControllerPacket.LEFT_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                inputMap &= ~ControllerPacket.RIGHT_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_UP:
+                inputMap &= ~ControllerPacket.UP_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                inputMap &= ~ControllerPacket.DOWN_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_B:
+                inputMap &= ~ControllerPacket.B_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_CENTER:
+            case KeyEvent.KEYCODE_BUTTON_A:
+                inputMap &= ~ControllerPacket.A_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_X:
+                inputMap &= ~ControllerPacket.X_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                inputMap &= ~ControllerPacket.Y_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_L1:
+                inputMap &= ~ControllerPacket.LB_FLAG;
+                lastLbUpTime = SystemClock.uptimeMillis();
+                break;
+            case KeyEvent.KEYCODE_BUTTON_R1:
+                inputMap &= ~ControllerPacket.RB_FLAG;
+                lastRbUpTime = SystemClock.uptimeMillis();
+                break;
+            case KeyEvent.KEYCODE_BUTTON_THUMBL:
+                inputMap &= ~ControllerPacket.LS_CLK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_THUMBR:
+                inputMap &= ~ControllerPacket.RS_CLK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_L2:
+                leftTrigger = 0;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_R2:
+                rightTrigger = 0;
+                break;
+            default:
+                return false;
+        }
+
+        // Check if we're emulating the select button
+        if ((emulatingButtonFlags & EMULATING_SELECT) != 0)
+        {
+            // If either start or LB is up, select comes up too
+            if ((inputMap & ControllerPacket.PLAY_FLAG) == 0 ||
+                    (inputMap & ControllerPacket.LB_FLAG) == 0)
+            {
+                inputMap &= ~ControllerPacket.BACK_FLAG;
+
+                emulatingButtonFlags &= ~EMULATING_SELECT;
+
+                try {
+                    Thread.sleep(EMULATED_SELECT_UP_DELAY_MS);
+                } catch (InterruptedException ignored) {}
+            }
+        }
+
+        // Check if we're emulating the special button
+        if ((emulatingButtonFlags & EMULATING_SPECIAL) != 0)
+        {
+            // If either start or select and RB is up, the special button comes up too
+            if ((inputMap & ControllerPacket.PLAY_FLAG) == 0 ||
+                    ((inputMap & ControllerPacket.BACK_FLAG) == 0 &&
+                            (inputMap & ControllerPacket.RB_FLAG) == 0))
+            {
+                inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
+
+                emulatingButtonFlags &= ~EMULATING_SPECIAL;
+
+                try {
+                    Thread.sleep(EMULATED_SPECIAL_UP_DELAY_MS);
+                } catch (InterruptedException ignored) {}
+            }
+        }
+
+        sendControllerInputPacket();
+        return true;
+    }
+
+    public boolean handleButtonDown(int keyCode, MotionEvent event) {
+
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BUTTON_MODE:
+                inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_START:
+            case KeyEvent.KEYCODE_MENU:
+                inputMap |= ControllerPacket.PLAY_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_BUTTON_SELECT:
+                inputMap |= ControllerPacket.BACK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                inputMap |= ControllerPacket.LEFT_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                inputMap |= ControllerPacket.RIGHT_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_UP:
+                inputMap |= ControllerPacket.UP_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                inputMap |= ControllerPacket.DOWN_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_B:
+                inputMap |= ControllerPacket.B_FLAG;
+                break;
+            case KeyEvent.KEYCODE_DPAD_CENTER:
+            case KeyEvent.KEYCODE_BUTTON_A:
+                inputMap |= ControllerPacket.A_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_X:
+                inputMap |= ControllerPacket.X_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                inputMap |= ControllerPacket.Y_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_L1:
+                inputMap |= ControllerPacket.LB_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_R1:
+                inputMap |= ControllerPacket.RB_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_THUMBL:
+                inputMap |= ControllerPacket.LS_CLK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_THUMBR:
+                inputMap |= ControllerPacket.RS_CLK_FLAG;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_L2:
+                leftTrigger = (byte)0xFF;
+                break;
+            case KeyEvent.KEYCODE_BUTTON_R2:
+                rightTrigger = (byte)0xFF;
+                break;
+            default:
+                return false;
+        }
+
+        // Start+LB acts like select for controllers with one button
+        if ((inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
+                ((inputMap & ControllerPacket.LB_FLAG) != 0 ||
+                        SystemClock.uptimeMillis() - lastLbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
+        {
+            inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG);
+            inputMap |= ControllerPacket.BACK_FLAG;
+
+            emulatingButtonFlags |= EMULATING_SELECT;
+        }
+
+        // We detect select+start or start+RB as the special button combo
+        if (((inputMap & ControllerPacket.RB_FLAG) != 0 ||
+                (SystemClock.uptimeMillis() - lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS) ||
+                (inputMap & ControllerPacket.BACK_FLAG) != 0) &&
+                (inputMap & ControllerPacket.PLAY_FLAG) != 0)
+        {
+            inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG);
+            inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+
+            emulatingButtonFlags |= EMULATING_SPECIAL;
+        }
+
+        // Send a new input packet if this is the first instance of a button down event
+        // or anytime if we're emulating a button
+        if (repeatCount == 0 || emulatingButtonFlags != 0) {
+            sendControllerInputPacket();
+        }
+        sendControllerInputPacket();
+        return true;
+    }
+
+    public boolean handleJoyStick(int jsNo,float x, float y) {
+        float lsX = 0, lsY = 0, rsX = 0, rsY = 0, rt = 0, lt = 0, hatX = 0, hatY = 0;
+        if(jsNo == 0) {
+            lsX = x;
+            lsY = y;
+        }
+        else
+        {
+            rsX = x;
+            rsY = y;
+        }
+        handleAxisSet(jsNo, lsX, lsY, rsX, rsY, lt, rt, hatX, hatY);
+
+        return true;
+    }
+
+    private void handleAxisSet(int jsNo/*0 for left js and 1 for right*/, float lsX, float lsY, float rsX,
+                               float rsY, float lt, float rt, float hatX, float hatY) {
+        if(jsNo == 0) {
+            Vector2d leftStickVector = populateCachedVector(lsX, lsY);
+
+            //handleDeadZone(leftStickVector, mapping.leftStickDeadzoneRadius);
+
+            leftStickX = (short) (leftStickVector.getX() * 0x7FFE);
+            leftStickY = (short) (-leftStickVector.getY() * 0x7FFE);
+        }
+
+        if (jsNo == 1) {
+            Vector2d rightStickVector = populateCachedVector(rsX, rsY);
+
+            //handleDeadZone(rightStickVector, mapping.rightStickDeadzoneRadius);
+
+            rightStickX = (short) (rightStickVector.getX() * 0x7FFE);
+            rightStickY = (short) (-rightStickVector.getY() * 0x7FFE);
+        }
+
+        /*if (mapping.leftTriggerAxis != -1 && mapping.rightTriggerAxis != -1) {
+            if (mapping.triggersIdleNegative) {
+                lt = (lt + 1) / 2;
+                rt = (rt + 1) / 2;
+            }
+
+            if (lt <= mapping.triggerDeadzone) {
+                lt = 0;
+            }
+            if (rt <= mapping.triggerDeadzone) {
+                rt = 0;
+            }
+
+            leftTrigger = (byte)(lt * 0xFF);
+            rightTrigger = (byte)(rt * 0xFF);
+        }*/
+
+        /*if (mapping.hatXAxis != -1 && mapping.hatYAxis != -1) {
+            inputMap &= ~(ControllerPacket.LEFT_FLAG | ControllerPacket.RIGHT_FLAG);
+            if (hatX < -0.5) {
+                inputMap |= ControllerPacket.LEFT_FLAG;
+            }
+            else if (hatX > 0.5) {
+                inputMap |= ControllerPacket.RIGHT_FLAG;
+            }
+
+            inputMap &= ~(ControllerPacket.UP_FLAG | ControllerPacket.DOWN_FLAG);
+            if (hatY < -0.5) {
+                inputMap |= ControllerPacket.UP_FLAG;
+            }
+            else if (hatY > 0.5) {
+                inputMap |= ControllerPacket.DOWN_FLAG;
+            }
+        }*/
+
+        sendControllerInputPacket();
+    }
+
+    private void handleDeadZone(Vector2d stickVector, float deadzoneRadius) {
+        if (stickVector.getMagnitude() <= deadzoneRadius) {
+            // Deadzone
+            stickVector.initialize(0, 0);
+        }
+
+        // We're not normalizing here because we let the computer handle the deadzones.
+        // Normalizing can make the deadzones larger than they should be after the computer also
+        // evaluates the deadzone.
+    }
+
+    private Vector2d inputVector = new Vector2d();
+    private Vector2d populateCachedVector(float x, float y) {
+        // Reinitialize our cached Vector2d object
+        inputVector.initialize(x, y);
+        return inputVector;
+    }
+
+    float alpha = 0;
+    public void onAlphaBtnClick(View v)
+    {
+        ImageButton a = (ImageButton)findViewById(R.id.aBtn);
+        ImageButton b = (ImageButton)findViewById(R.id.bBtn);
+        ImageButton x = (ImageButton)findViewById(R.id.xBtn);
+        ImageButton y = (ImageButton)findViewById(R.id.yBtn);
+        ImageButton lb = (ImageButton)findViewById(R.id.lbBtn);
+        ImageButton lt = (ImageButton)findViewById(R.id.ltBtn);
+        ImageButton rb = (ImageButton)findViewById(R.id.rbBtn);
+        ImageButton rt = (ImageButton)findViewById(R.id.rtBtn);
+        ImageButton start = (ImageButton)findViewById(R.id.startBtn);
+        ImageButton select = (ImageButton)findViewById(R.id.selectBtn);
+
+        ImageView dpad = (ImageView)findViewById(R.id.imageView);
+        RelativeLayout ljs = (RelativeLayout)findViewById(R.id.layout_joystick);
+        RelativeLayout rjs = (RelativeLayout)findViewById(R.id.right_js);
+
+        if(alpha == 0)
+            alpha = 0.3f;
+        else if(alpha == 0.3f)
+            alpha = 1;
+        else
+            alpha = 0;
+
+        a.setAlpha(alpha);
+        b.setAlpha(alpha);
+        y.setAlpha(alpha);
+        x.setAlpha(alpha);
+        lb.setAlpha(alpha);
+        lt.setAlpha(alpha);
+        rb.setAlpha(alpha);
+        rt.setAlpha(alpha);
+        start.setAlpha(alpha);
+        select.setAlpha(alpha);
+        ljs.setAlpha(alpha);
+        rjs.setAlpha(alpha);
+        dpad.setAlpha(alpha);
+    }
+
 }

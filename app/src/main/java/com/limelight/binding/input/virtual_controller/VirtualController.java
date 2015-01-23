@@ -1,10 +1,6 @@
 package com.limelight.binding.input.virtual_controller;
 
-import android.animation.LayoutTransition;
-import android.app.ActionBar;
 import android.content.Context;
-import android.util.DisplayMetrics;
-import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -49,10 +45,12 @@ public class VirtualController
 	private RelativeLayout.LayoutParams 	layoutParamsButtonB		    = null;
 	private RelativeLayout.LayoutParams 	layoutParamsButtonX	    	= null;
 	private RelativeLayout.LayoutParams 	layoutParamsButtonY	    	= null;
-	private RelativeLayout.LayoutParams 	layoutParamsButtonR1		= null;
-	private RelativeLayout.LayoutParams 	layoutParamsButtonR2		= null;
+	private RelativeLayout.LayoutParams     layoutParamsButtonLT        = null;
+	private RelativeLayout.LayoutParams     layoutParamsButtonRT        = null;
+    private RelativeLayout.LayoutParams 	layoutParamsButtonLB		= null;
+    private RelativeLayout.LayoutParams 	layoutParamsButtonRB		= null;
 
-	private RelativeLayout.LayoutParams 	layoutParamsParamsStick 	= null;
+    private RelativeLayout.LayoutParams 	layoutParamsParamsStick 	= null;
 	private RelativeLayout.LayoutParams 	layoutParamsParamsStick2	= null;
 
 	private Button				buttonStart			= null;
@@ -68,10 +66,13 @@ public class VirtualController
 	private Button				buttonB				= null;
 	private Button				buttonX				= null;
 	private Button				buttonY				= null;
-	private Button				buttonR1			= null;
-	private Button				buttonR2			= null;
+	private Button              buttonLT            = null;
+	private Button              buttonRT            = null;
+    private Button				buttonLB			= null;
+    private Button				buttonRB			= null;
 
-	private AnalogStick 		stick				= null;
+
+    private AnalogStick 		stick				= null;
 	private AnalogStick			stick2				= null;
 
     private boolean             configuration       = false;
@@ -143,8 +144,11 @@ public class VirtualController
 		layoutParamsButtonB		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
 		layoutParamsButtonX		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
 		layoutParamsButtonY		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-		layoutParamsButtonR1	= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-		layoutParamsButtonR2	= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+        layoutParamsButtonLT    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+        layoutParamsButtonRT    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+
+        layoutParamsButtonLB    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+        layoutParamsButtonRB    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
 
 		setPercentilePosition(layoutParamsButtonDPadLeft,	5,	    45);
 		setPercentilePosition(layoutParamsButtonDPadRight,	15,	    45);
@@ -159,10 +163,13 @@ public class VirtualController
 		setPercentilePosition(layoutParamsButtonX, 		    85, 	40);
 		setPercentilePosition(layoutParamsButtonY, 		    92, 	35);
 
-		setPercentilePosition(layoutParamsButtonR1, 		95, 	68);
-		setPercentilePosition(layoutParamsButtonR2, 		95, 	80);
+		setPercentilePosition(layoutParamsButtonLT, 		95, 	68);
+		setPercentilePosition(layoutParamsButtonRT, 		95, 	80);
 
-		relative_layout.addView(buttonDPadLeft,		layoutParamsButtonDPadLeft);
+        setPercentilePosition(layoutParamsButtonLB, 		85, 	28);
+        setPercentilePosition(layoutParamsButtonRB, 		92, 	23);
+
+        relative_layout.addView(buttonDPadLeft,		layoutParamsButtonDPadLeft);
 		relative_layout.addView(buttonDPadRight,	layoutParamsButtonDPadRight);
 		relative_layout.addView(buttonDPadUp, 		layoutParamsButtonDPadUp);
 		relative_layout.addView(buttonDPadDown, 	layoutParamsButtonDPadDown);
@@ -173,8 +180,10 @@ public class VirtualController
 		relative_layout.addView(buttonB, layoutParamsButtonB);
 		relative_layout.addView(buttonX, layoutParamsButtonX);
 		relative_layout.addView(buttonY, layoutParamsButtonY);
-		relative_layout.addView(buttonR1, layoutParamsButtonR1);
-		relative_layout.addView(buttonR2, layoutParamsButtonR2);
+        relative_layout.addView(buttonLT, layoutParamsButtonLT);
+        relative_layout.addView(buttonRT, layoutParamsButtonRT);
+        relative_layout.addView(buttonLB, layoutParamsButtonLB);
+        relative_layout.addView(buttonRB, layoutParamsButtonRB);
 	}
 
 	public VirtualController(final NvConnection conn, FrameLayout layout, Context context, WindowManager window_manager)
@@ -299,81 +308,98 @@ public class VirtualController
 			}
 		});
 
-		buttonR1 = new Button(context);
-		buttonR1.setText("LT");
-		buttonR1.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				// get masked (not specific to a pointer) action
-				int action = event.getActionMasked();
+		buttonLT = new Button(context);
+		buttonLT.setText("LT");
+		buttonLT.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                // get masked (not specific to a pointer) action
+                int action = event.getActionMasked();
 
-				switch (action)
-				{
-					case MotionEvent.ACTION_DOWN:
-					case MotionEvent.ACTION_POINTER_DOWN:
-					{
-						leftTrigger = (byte)(1 * 0xFF);
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_POINTER_DOWN: {
+                        leftTrigger = (byte) (1 * 0xFF);
 
-						sendControllerInputPacket();
+                        sendControllerInputPacket();
 
-						break;
-					}
+                        break;
+                    }
 
-					case MotionEvent.ACTION_UP:
-					case MotionEvent.ACTION_POINTER_UP:
-					{
-						leftTrigger = (byte)(0 * 0xFF);
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_POINTER_UP: {
+                        leftTrigger = (byte) (0 * 0xFF);
 
-						sendControllerInputPacket();
+                        sendControllerInputPacket();
 
-						break;
-					}
-				}
+                        break;
+                    }
+                }
 
-				return false;
-			}
-		});
+                return false;
+            }
+        });
 
-		buttonR2 = new Button(context);
-		buttonR2.setText("RT");
-		buttonR2.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				// get masked (not specific to a pointer) action
-				int action = event.getActionMasked();
+		buttonRT = new Button(context);
+		buttonRT.setText("RT");
+		buttonRT.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                // get masked (not specific to a pointer) action
+                int action = event.getActionMasked();
 
-				switch (action)
-				{
-					case MotionEvent.ACTION_DOWN:
-					case MotionEvent.ACTION_POINTER_DOWN:
-					{
-						rightTrigger = (byte)(1 * 0xFF);
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_POINTER_DOWN: {
+                        rightTrigger = (byte) (1 * 0xFF);
 
-						sendControllerInputPacket();
+                        sendControllerInputPacket();
 
-						break;
-					}
+                        break;
+                    }
 
-					case MotionEvent.ACTION_UP:
-					case MotionEvent.ACTION_POINTER_UP:
-					{
-						rightTrigger = (byte)(0 * 0xFF);
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_POINTER_UP: {
+                        rightTrigger = (byte) (0 * 0xFF);
 
-						sendControllerInputPacket();
+                        sendControllerInputPacket();
 
-						break;
-					}
-				}
+                        break;
+                    }
+                }
 
-				return false;
-			}
-		});
+                return false;
+            }
+        });
 
-		stick = new AnalogStick(context);
+        buttonLB = new Button(context);
+        buttonLB.setText("LB");
+        buttonLB.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event)
+            {
+                onButtonTouchEvent(v, event, ControllerPacket.LB_FLAG);
+
+                return false;
+            }
+        });
+
+        buttonRB = new Button(context);
+        buttonRB.setText("RB");
+        buttonRB.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event)
+            {
+                onButtonTouchEvent(v, event, ControllerPacket.RB_FLAG);
+
+                return false;
+            }
+        });
+
+
+        stick = new AnalogStick(context);
 
 		stick.addAnalogStickListener(new AnalogStick.AnalogStickListener()
 		{
@@ -448,11 +474,17 @@ public class VirtualController
         buttonB = new Button(context);
         buttonB.setText("B");
 
-        buttonR1 = new Button(context);
-        buttonR1.setText("LT");
+        buttonLT = new Button(context);
+        buttonLT.setText("LT");
 
-        buttonR2 = new Button(context);
-        buttonR2.setText("RT");
+        buttonRT = new Button(context);
+        buttonRT.setText("RT");
+
+        buttonLB = new Button(context);
+        buttonLB.setText("LB");
+
+        buttonRB = new Button(context);
+        buttonRB.setText("RB");
 
         stick = new AnalogStick(context);
         stick2 = new AnalogStick(context);

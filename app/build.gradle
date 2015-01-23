@@ -5,14 +5,14 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    buildToolsVersion "21.1.2"
 
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 21
 
-        versionName "3.0.2"
-        versionCode = 48
+        versionName "3.0.3"
+        versionCode = 49
     }
 
     productFlavors {

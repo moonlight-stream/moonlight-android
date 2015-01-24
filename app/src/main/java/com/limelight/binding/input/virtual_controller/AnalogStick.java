@@ -21,7 +21,7 @@ public class AnalogStick extends View
 		MOVED
 	}
 
-	private  static final boolean _PRINT_DEBUG_INFORMATION = true;
+	private  static final boolean _PRINT_DEBUG_INFORMATION = false;
 
 	public interface AnalogStickListener
 	{
@@ -46,8 +46,8 @@ public class AnalogStick extends View
 		}
 	}
 
-    private int     normalColor  = 0x88888888;
-    private int     pressedColor  = 0x880000FF;
+    private int     normalColor  = 0xF0888888;
+    private int     pressedColor  = 0xF00000FF;
 
 	float 		radius_complete			= 0;
 	float 		radius_dead_zone		= 0;
@@ -73,6 +73,12 @@ public class AnalogStick extends View
 		pressed			= false;
 
 	}
+
+    public  void setColors(int normalColor, int pressedColor)
+    {
+        this.normalColor    = normalColor;
+        this.pressedColor   = pressedColor;
+    }
 
 	private float getPercent(float value, int percent)
 	{

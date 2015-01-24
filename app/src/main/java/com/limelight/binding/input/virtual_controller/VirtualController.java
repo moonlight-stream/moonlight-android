@@ -25,6 +25,7 @@ public class VirtualController
 			System.out.println("VirtualController: " + text);
 		}
 	}
+
 	private short 				inputMap 			= 0x0000;
 	private byte 				leftTrigger 		= 0x00;
 	private byte 				rightTrigger 		= 0x00;
@@ -50,7 +51,11 @@ public class VirtualController
     private RelativeLayout.LayoutParams 	layoutParamsParamsStick 	= null;
 	private RelativeLayout.LayoutParams 	layoutParamsParamsStick2	= null;
 
-	private Button				buttonStart			= null;
+    // configuration
+    private RelativeLayout.LayoutParams     layoutParamsButtonOpenColorPickerNormal = null;
+    private RelativeLayout.LayoutParams     layoutParamsButtonOpenColorPickerPressed = null;
+
+    private Button				buttonStart			= null;
 	private Button				buttonSelect		= null;
 	private Button				buttonESC			= null;
 
@@ -64,7 +69,6 @@ public class VirtualController
 	private DigitalButton       buttonRT            = null;
     private DigitalButton		buttonLB			= null;
     private DigitalButton		buttonRB			= null;
-
 
     private AnalogStick 		stick				= null;
 	private AnalogStick			stick2				= null;
@@ -91,35 +95,6 @@ public class VirtualController
 			0,
 			0
 		);
-	}
-
-	private void onButtonTouchEvent(View v, MotionEvent event, short key)
-	{
-		// get masked (not specific to a pointer) action
-		int action = event.getActionMasked();
-
-		switch (action)
-		{
-			case MotionEvent.ACTION_DOWN:
-			case MotionEvent.ACTION_POINTER_DOWN:
-			{
-				inputMap |= key;
-
-				sendControllerInputPacket();
-
-				break;
-			}
-
-			case MotionEvent.ACTION_UP:
-			case MotionEvent.ACTION_POINTER_UP:
-			{
-				inputMap &= ~key;
-
-				sendControllerInputPacket();
-
-				break;
-			}
-		}
 	}
 
 	void refreshLayout()
@@ -171,6 +146,27 @@ public class VirtualController
         relative_layout.addView(buttonLB, layoutParamsButtonLB);
         relative_layout.addView(buttonRB, layoutParamsButtonRB);
 	}
+
+    private DigitalButton createDigitalButton(String text, final int key, Context context)
+    {
+        DigitalButton button = new DigitalButton(context);
+        button.setText(text);
+        button.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
+            @Override
+            public void onClick() {
+                inputMap |= key;
+                sendControllerInputPacket();
+            }
+
+            @Override
+            public void onRelease() {
+                inputMap &= ~key;
+                sendControllerInputPacket();
+            }
+        });
+
+        return  button;
+    }
 
 	public VirtualController(final NvConnection conn, FrameLayout layout, Context context, WindowManager window_manager)
 	{
@@ -234,72 +230,10 @@ public class VirtualController
             }
         });
 
-		buttonX = new DigitalButton(context);
-		buttonX.setText("X");
-		buttonX.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
-            @Override
-            public void onClick() {
-                inputMap |= ControllerPacket.X_FLAG;
-                sendControllerInputPacket();
-            }
-
-            @Override
-            public void onRelease() {
-                inputMap &= ControllerPacket.X_FLAG;
-                sendControllerInputPacket();
-            }
-        });
-
-		buttonY = new DigitalButton(context);
-		buttonY.setText("Y");
-        buttonY.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
-        {
-            @Override
-            public void onClick()
-            {
-                inputMap |= ControllerPacket.Y_FLAG;
-                sendControllerInputPacket();
-            }
-
-            @Override
-            public void onRelease()
-            {
-                inputMap &= ControllerPacket.Y_FLAG;
-                sendControllerInputPacket();
-            }
-        });
-
-   		buttonA = new DigitalButton(context);
-		buttonA.setText("A");
-        buttonA.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
-            @Override
-            public void onClick() {
-                inputMap |= ControllerPacket.A_FLAG;
-                sendControllerInputPacket();
-            }
-
-            @Override
-            public void onRelease() {
-                inputMap &= ControllerPacket.A_FLAG;
-                sendControllerInputPacket();
-            }
-        });
-
-		buttonB = new DigitalButton(context);
-		buttonB.setText("B");
-        buttonB.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
-            @Override
-            public void onClick() {
-                inputMap |= ControllerPacket.B_FLAG;
-                sendControllerInputPacket();
-            }
-
-            @Override
-            public void onRelease() {
-                inputMap &= ControllerPacket.B_FLAG;
-                sendControllerInputPacket();
-            }
-        });
+		buttonX = createDigitalButton("X", ControllerPacket.X_FLAG ,context);
+		buttonY = createDigitalButton("Y", ControllerPacket.Y_FLAG ,context);
+   		buttonA = createDigitalButton("A", ControllerPacket.A_FLAG ,context);
+		buttonB = createDigitalButton("B", ControllerPacket.B_FLAG ,context);
 
 		buttonLT = new DigitalButton(context);
 		buttonLT.setText("LT");
@@ -343,38 +277,8 @@ public class VirtualController
             }
         });
 
-        buttonLB = new DigitalButton(context);
-        buttonLB.setText("LB");
-        buttonLB.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
-            @Override
-            public void onClick() {
-                inputMap |= ControllerPacket.LB_FLAG;
-                sendControllerInputPacket();
-            }
-
-            @Override
-            public void onRelease() {
-                inputMap &= ControllerPacket.LB_FLAG;
-                sendControllerInputPacket();
-            }
-        });
-
-        buttonRB = new DigitalButton(context);
-        buttonRB.setText("RB");
-        buttonRB.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
-            @Override
-            public void onClick() {
-                inputMap |= ControllerPacket.RB_FLAG;
-                sendControllerInputPacket();
-            }
-
-            @Override
-            public void onRelease() {
-                inputMap &= ControllerPacket.RB_FLAG;
-                sendControllerInputPacket();
-            }
-        });
-
+        buttonLB = createDigitalButton("LB", ControllerPacket.LB_FLAG ,context);
+        buttonRB = createDigitalButton("RB", ControllerPacket.RB_FLAG ,context);
 
         stick = new AnalogStick(context);
 
@@ -404,7 +308,6 @@ public class VirtualController
 				sendControllerInputPacket();
 			}
 		});
-
 
 		refreshLayout();
 	}
@@ -456,8 +359,8 @@ public class VirtualController
         stick = new AnalogStick(context);
         stick2 = new AnalogStick(context);
 
-        configuration = true;
 
+        configuration = true;
 
         // receive touch events
         frame_layout.setOnTouchListener(new View.OnTouchListener()

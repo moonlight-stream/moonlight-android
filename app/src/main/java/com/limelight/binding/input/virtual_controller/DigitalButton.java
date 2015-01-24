@@ -15,10 +15,10 @@ import java.util.List;
  */
 public class DigitalButton  extends View
 {
-    private static final boolean _PRINT_DEBUG_INFORMATION = true;
+    private static final boolean _PRINT_DEBUG_INFORMATION = false;
 
-    private int     normalColor  = 0x88888888;
-    private int     pressedColor  = 0x880000FF;
+    private int     normalColor  = 0xF0888888;
+    private int     pressedColor  = 0xF00000FF;
     private String  text;
 
 
@@ -32,6 +32,12 @@ public class DigitalButton  extends View
     public void addDigitalButtonListener(DigitalButtonListener listener)
     {
         listeners.add(listener);
+    }
+
+    public  void setColors(int normalColor, int pressedColor)
+    {
+        this.normalColor    = normalColor;
+        this.pressedColor   = pressedColor;
     }
 
     public void setOnTouchListener(OnTouchListener listener)

@@ -21,10 +21,10 @@ public class DigitalPad extends View
     public final  static int DIGITAL_PAD_DIRECTION_RIGHT               = 4;
     public final  static int DIGITAL_PAD_DIRECTION_DOWN                = 8;
 
-    private int normalColor  = 0x88888888;
-    private int pressedColor  = 0x880000FF;
+    private int     normalColor  = 0xF0888888;
+    private int     pressedColor  = 0xF00000FF;
 
-    private  static final boolean _PRINT_DEBUG_INFORMATION = true;
+    private  static final boolean _PRINT_DEBUG_INFORMATION = false;
 
     public interface DigitalPadListener
     {
@@ -71,6 +71,12 @@ public class DigitalPad extends View
         return  getWidth() > getHeight() ? getHeight() : getWidth();
     }
 
+    public  void setColors(int normalColor, int pressedColor)
+    {
+        this.normalColor    = normalColor;
+        this.pressedColor   = pressedColor;
+    }
+
     @Override
     protected void onDraw(Canvas canvas)
     {
@@ -83,14 +89,17 @@ public class DigitalPad extends View
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setStrokeWidth(3);
 
-        // draw no direction rect
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(direction == DIGITAL_PAD_DIRECTION_NO_DIRECTION ? pressedColor : normalColor);
-        canvas.drawRect(
-                getPercent(getWidth(), 36), getPercent(getHeight(), 36),
-                getPercent(getWidth(), 63), getPercent(getHeight(), 63),
-                paint
-                );
+        if (direction == DIGITAL_PAD_DIRECTION_NO_DIRECTION)
+        {
+            // draw no direction rect
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(normalColor);
+            canvas.drawRect(
+                    getPercent(getWidth(), 36), getPercent(getHeight(), 36),
+                    getPercent(getWidth(), 63), getPercent(getHeight(), 63),
+                    paint
+            );
+        }
 
         // draw left rect
         paint.setColor((direction & DIGITAL_PAD_DIRECTION_LEFT) > 0 ? pressedColor : normalColor);

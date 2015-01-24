@@ -36,10 +36,7 @@ public class VirtualController
 	private FrameLayout			frame_layout			= null;
 	private RelativeLayout		relative_layout 		= null;
 
-	private RelativeLayout.LayoutParams 	layoutParamsButtonDPadLeft	= null;
-	private RelativeLayout.LayoutParams 	layoutParamsButtonDPadRight	= null;
-	private RelativeLayout.LayoutParams 	layoutParamsButtonDPadUp	= null;
-	private RelativeLayout.LayoutParams 	layoutParamsButtonDPadDown	= null;
+	private RelativeLayout.LayoutParams 	layoutParamsDPad        	= null;
 
 	private RelativeLayout.LayoutParams 	layoutParamsButtonA		    = null;
 	private RelativeLayout.LayoutParams 	layoutParamsButtonB		    = null;
@@ -57,19 +54,16 @@ public class VirtualController
 	private Button				buttonSelect		= null;
 	private Button				buttonESC			= null;
 
-	private Button				buttonDPadLeft		= null;
-	private Button				buttonDPadRight		= null;
-	private Button				buttonDPadUp		= null;
-	private Button				buttonDPadDown		= null;
+    private DigitalPad          digitalPad          = null;
 
-	private Button				buttonA				= null;
-	private Button				buttonB				= null;
-	private Button				buttonX				= null;
-	private Button				buttonY				= null;
-	private Button              buttonLT            = null;
-	private Button              buttonRT            = null;
-    private Button				buttonLB			= null;
-    private Button				buttonRB			= null;
+	private DigitalButton		buttonA				= null;
+	private DigitalButton   	buttonB				= null;
+	private DigitalButton	    buttonX				= null;
+	private DigitalButton		buttonY				= null;
+	private DigitalButton       buttonLT            = null;
+	private DigitalButton       buttonRT            = null;
+    private DigitalButton		buttonLB			= null;
+    private DigitalButton		buttonRB			= null;
 
 
     private AnalogStick 		stick				= null;
@@ -132,10 +126,7 @@ public class VirtualController
 	{
 		relative_layout.removeAllViews();
 
-		layoutParamsButtonDPadLeft	= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-		layoutParamsButtonDPadRight	= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-		layoutParamsButtonDPadUp	= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-		layoutParamsButtonDPadDown	= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+        layoutParamsDPad            = new RelativeLayout.LayoutParams(getPercentageV(30), getPercentageV(30));
 
 		layoutParamsParamsStick		= new RelativeLayout.LayoutParams(getPercentageV(40), getPercentageV(40));
 		layoutParamsParamsStick2	= new RelativeLayout.LayoutParams(getPercentageV(40), getPercentageV(40));
@@ -150,10 +141,7 @@ public class VirtualController
         layoutParamsButtonLB    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
         layoutParamsButtonRB    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
 
-		setPercentilePosition(layoutParamsButtonDPadLeft,	5,	    45);
-		setPercentilePosition(layoutParamsButtonDPadRight,	15,	    45);
-		setPercentilePosition(layoutParamsButtonDPadUp,		10,	    35);
-		setPercentilePosition(layoutParamsButtonDPadDown,	10,	    55);
+		setPercentilePosition(layoutParamsDPad,		10,	    35);
 
 		setPercentilePosition(layoutParamsParamsStick,		22,	    78);
 		setPercentilePosition(layoutParamsParamsStick2,		78,	    78);
@@ -169,13 +157,11 @@ public class VirtualController
         setPercentilePosition(layoutParamsButtonLB, 		85, 	28);
         setPercentilePosition(layoutParamsButtonRB, 		92, 	23);
 
-        relative_layout.addView(buttonDPadLeft,		layoutParamsButtonDPadLeft);
-		relative_layout.addView(buttonDPadRight,	layoutParamsButtonDPadRight);
-		relative_layout.addView(buttonDPadUp, 		layoutParamsButtonDPadUp);
-		relative_layout.addView(buttonDPadDown, 	layoutParamsButtonDPadDown);
+        relative_layout.addView(digitalPad,		layoutParamsDPad);
 
 		relative_layout.addView(stick, layoutParamsParamsStick);
 		relative_layout.addView(stick2, layoutParamsParamsStick2);
+
 		relative_layout.addView(buttonA, layoutParamsButtonA);
 		relative_layout.addView(buttonB, layoutParamsButtonB);
 		relative_layout.addView(buttonX, layoutParamsButtonX);
@@ -204,197 +190,188 @@ public class VirtualController
 
 		frame_layout.addView(relative_layout);
 
-		buttonDPadLeft	= new Button(context);
-		buttonDPadLeft.setText("LF");
-		buttonDPadLeft.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				onButtonTouchEvent(v, event, ControllerPacket.LEFT_FLAG);
+        digitalPad = new DigitalPad(context);
+        digitalPad.addDigitalPadListener(new DigitalPad.DigitalPadListener()
+        {
+            @Override
+            public void onDirectionChange(int direction)
+            {
+                do
+                {
+                    if (direction == DigitalPad.DIGITAL_PAD_DIRECTION_NO_DIRECTION)
+                    {
+                        inputMap &= ~ControllerPacket.LEFT_FLAG;
+                        inputMap &= ~ControllerPacket.RIGHT_FLAG;
+                        inputMap &= ~ControllerPacket.UP_FLAG;
+                        inputMap &= ~ControllerPacket.DOWN_FLAG;
 
-				return false;
-			}
-		});
+                        break;
+                    }
 
-		buttonDPadRight	= new Button(context);
-		buttonDPadRight.setText("RI");
-		buttonDPadRight.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				onButtonTouchEvent(v, event, ControllerPacket.RIGHT_FLAG);
+                    if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_LEFT) > 0)
+                    {
+                        inputMap |= ControllerPacket.LEFT_FLAG;
+                    }
 
-				return false;
-			}
-		});
+                    if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_RIGHT) > 0)
+                    {
+                        inputMap |= ControllerPacket.RIGHT_FLAG;
+                    }
 
-		buttonDPadUp	= new Button(context);
-		buttonDPadUp.setText("UP");
-		buttonDPadUp.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				onButtonTouchEvent(v, event, ControllerPacket.UP_FLAG);
+                    if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_UP) > 0)
+                    {
+                        inputMap |= ControllerPacket.UP_FLAG;
+                    }
 
-				return false;
-			}
-		});
+                    if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_DOWN) > 0)
+                    {
+                        inputMap |= ControllerPacket.DOWN_FLAG;
+                    }
+                }
+                while (false);
 
-		buttonDPadDown	= new Button(context);
-		buttonDPadDown.setText("DW");
-		buttonDPadDown.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				onButtonTouchEvent(v, event, ControllerPacket.DOWN_FLAG);
+                sendControllerInputPacket();
+            }
+        });
 
-				return false;
-			}
-		});
-
-		buttonX = new Button(context);
+		buttonX = new DigitalButton(context);
 		buttonX.setText("X");
-		buttonX.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				onButtonTouchEvent(v, event, ControllerPacket.X_FLAG);
+		buttonX.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
+            @Override
+            public void onClick() {
+                inputMap |= ControllerPacket.X_FLAG;
+                sendControllerInputPacket();
+            }
 
-				return false;
-			}
-		});
+            @Override
+            public void onRelease() {
+                inputMap &= ControllerPacket.X_FLAG;
+                sendControllerInputPacket();
+            }
+        });
 
-		buttonY = new Button(context);
+		buttonY = new DigitalButton(context);
 		buttonY.setText("Y");
-		buttonY.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				onButtonTouchEvent(v, event, ControllerPacket.Y_FLAG);
+        buttonY.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
+        {
+            @Override
+            public void onClick()
+            {
+                inputMap |= ControllerPacket.Y_FLAG;
+                sendControllerInputPacket();
+            }
 
-				return false;
-			}
-		});
+            @Override
+            public void onRelease()
+            {
+                inputMap &= ControllerPacket.Y_FLAG;
+                sendControllerInputPacket();
+            }
+        });
 
-		buttonA = new Button(context);
+   		buttonA = new DigitalButton(context);
 		buttonA.setText("A");
-		buttonA.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				onButtonTouchEvent(v, event, ControllerPacket.A_FLAG);
+        buttonA.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
+            @Override
+            public void onClick() {
+                inputMap |= ControllerPacket.A_FLAG;
+                sendControllerInputPacket();
+            }
 
-				return false;
-			}
-		});
+            @Override
+            public void onRelease() {
+                inputMap &= ControllerPacket.A_FLAG;
+                sendControllerInputPacket();
+            }
+        });
 
-		buttonB = new Button(context);
+		buttonB = new DigitalButton(context);
 		buttonB.setText("B");
-		buttonB.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				onButtonTouchEvent(v, event, ControllerPacket.B_FLAG);
+        buttonB.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
+            @Override
+            public void onClick() {
+                inputMap |= ControllerPacket.B_FLAG;
+                sendControllerInputPacket();
+            }
 
-				return false;
-			}
-		});
+            @Override
+            public void onRelease() {
+                inputMap &= ControllerPacket.B_FLAG;
+                sendControllerInputPacket();
+            }
+        });
 
-		buttonLT = new Button(context);
+		buttonLT = new DigitalButton(context);
 		buttonLT.setText("LT");
-		buttonLT.setOnTouchListener(new View.OnTouchListener() {
+        buttonLT.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
+        {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                // get masked (not specific to a pointer) action
-                int action = event.getActionMasked();
+            public void onClick()
+            {
+                leftTrigger = (byte) (1 * 0xFF);
 
-                switch (action) {
-                    case MotionEvent.ACTION_DOWN:
-                    case MotionEvent.ACTION_POINTER_DOWN: {
-                        leftTrigger = (byte) (1 * 0xFF);
+                sendControllerInputPacket();
+            }
 
-                        sendControllerInputPacket();
+            @Override
+            public void onRelease()
+            {
+                leftTrigger = (byte) (0 * 0xFF);
 
-                        break;
-                    }
-
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_POINTER_UP: {
-                        leftTrigger = (byte) (0 * 0xFF);
-
-                        sendControllerInputPacket();
-
-                        break;
-                    }
-                }
-
-                return false;
+                sendControllerInputPacket();
             }
         });
 
-		buttonRT = new Button(context);
+		buttonRT = new DigitalButton(context);
 		buttonRT.setText("RT");
-		buttonRT.setOnTouchListener(new View.OnTouchListener() {
+        buttonRT.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
+        {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                // get masked (not specific to a pointer) action
-                int action = event.getActionMasked();
+            public void onClick()
+            {
+                rightTrigger = (byte) (0xFF);
 
-                switch (action) {
-                    case MotionEvent.ACTION_DOWN:
-                    case MotionEvent.ACTION_POINTER_DOWN: {
-                        rightTrigger = (byte) (1 * 0xFF);
+                sendControllerInputPacket();
+            }
 
-                        sendControllerInputPacket();
+            @Override
+            public void onRelease()
+            {
+                rightTrigger = (byte) (0);
 
-                        break;
-                    }
-
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_POINTER_UP: {
-                        rightTrigger = (byte) (0 * 0xFF);
-
-                        sendControllerInputPacket();
-
-                        break;
-                    }
-                }
-
-                return false;
+                sendControllerInputPacket();
             }
         });
 
-        buttonLB = new Button(context);
+        buttonLB = new DigitalButton(context);
         buttonLB.setText("LB");
-        buttonLB.setOnTouchListener(new View.OnTouchListener()
-        {
+        buttonLB.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent event)
-            {
-                onButtonTouchEvent(v, event, ControllerPacket.LB_FLAG);
+            public void onClick() {
+                inputMap |= ControllerPacket.LB_FLAG;
+                sendControllerInputPacket();
+            }
 
-                return false;
+            @Override
+            public void onRelease() {
+                inputMap &= ControllerPacket.LB_FLAG;
+                sendControllerInputPacket();
             }
         });
 
-        buttonRB = new Button(context);
+        buttonRB = new DigitalButton(context);
         buttonRB.setText("RB");
-        buttonRB.setOnTouchListener(new View.OnTouchListener()
-        {
+        buttonRB.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent event)
-            {
-                onButtonTouchEvent(v, event, ControllerPacket.RB_FLAG);
+            public void onClick() {
+                inputMap |= ControllerPacket.RB_FLAG;
+                sendControllerInputPacket();
+            }
 
-                return false;
+            @Override
+            public void onRelease() {
+                inputMap &= ControllerPacket.RB_FLAG;
+                sendControllerInputPacket();
             }
         });
 
@@ -450,40 +427,30 @@ public class VirtualController
 
         frame_layout.addView(relative_layout);
 
-        buttonDPadLeft	= new Button(context);
-        buttonDPadLeft.setText("LF");
+        digitalPad = new DigitalPad(context);
 
-        buttonDPadRight	= new Button(context);
-        buttonDPadRight.setText("RI");
-
-        buttonDPadUp	= new Button(context);
-        buttonDPadUp.setText("UP");
-
-        buttonDPadDown	= new Button(context);
-        buttonDPadDown.setText("DW");
-
-        buttonX = new Button(context);
+        buttonX = new DigitalButton(context);
         buttonX.setText("X");
 
-        buttonY = new Button(context);
+        buttonY = new DigitalButton(context);
         buttonY.setText("Y");
 
-        buttonA = new Button(context);
+        buttonA = new DigitalButton(context);
         buttonA.setText("A");
 
-        buttonB = new Button(context);
+        buttonB = new DigitalButton(context);
         buttonB.setText("B");
 
-        buttonLT = new Button(context);
+        buttonLT = new DigitalButton(context);
         buttonLT.setText("LT");
 
-        buttonRT = new Button(context);
+        buttonRT = new DigitalButton(context);
         buttonRT.setText("RT");
 
-        buttonLB = new Button(context);
+        buttonLB = new DigitalButton(context);
         buttonLB.setText("LB");
 
-        buttonRB = new Button(context);
+        buttonRB = new DigitalButton(context);
         buttonRB.setText("RB");
 
         stick = new AnalogStick(context);

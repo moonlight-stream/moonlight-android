@@ -21,7 +21,7 @@ public class AnalogStick extends View
 		MOVED
 	}
 
-	private  static final boolean _PRINT_DEBUG_INFORMATION = false;
+	private  static final boolean _PRINT_DEBUG_INFORMATION = true;
 
 	public interface AnalogStickListener
 	{
@@ -33,6 +33,11 @@ public class AnalogStick extends View
 		listeners.add(listener);
 	}
 
+    public void setOnTouchListener(OnTouchListener listener)
+    {
+        onTouchListener = listener;
+    }
+
 	private static final void _DBG(String text)
 	{
 		if (_PRINT_DEBUG_INFORMATION)
@@ -40,6 +45,9 @@ public class AnalogStick extends View
 			System.out.println("AnalogStick: " + text);
 		}
 	}
+
+    private int     normalColor  = 0x88888888;
+    private int     pressedColor  = 0x880000FF;
 
 	float 		radius_complete			= 0;
 	float 		radius_dead_zone		= 0;
@@ -52,6 +60,7 @@ public class AnalogStick extends View
 	_STICK_STATE	stick_state			= _STICK_STATE.NO_MOVEMENT;
 
 	List<AnalogStickListener> listeners		= new ArrayList<AnalogStickListener>();
+    OnTouchListener                         onTouchListener = null;
 
 	public AnalogStick(Context context)
 	{
@@ -93,9 +102,9 @@ public class AnalogStick extends View
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh)
 	{
-		radius_complete		= getPercent(getCorrectWidth() / 2, 90);
-		radius_dead_zone	= getPercent(getCorrectWidth() / 2, 10);
-		radius_analog_stick	= getPercent(getCorrectWidth() / 2, 20);
+		radius_complete		= getPercent(getCorrectWidth() / 2, 95);
+		radius_dead_zone	= getPercent(getCorrectWidth() / 2, 20);
+		radius_analog_stick	= getPercent(getCorrectWidth() / 2, 30);
 
 		super.onSizeChanged(w, h, oldw, oldh);
 	}
@@ -103,11 +112,14 @@ public class AnalogStick extends View
 	@Override
 	protected void onDraw(Canvas canvas)
 	{
+        // set transparent background
+        canvas.drawColor(Color.TRANSPARENT);
+
 		Paint paint = new Paint();
 		paint.setStyle(Paint.Style.STROKE);
 		paint.setStrokeWidth(getPercent(getCorrectWidth() / 2, 2));
 
-		paint.setColor(Color.YELLOW);
+		paint.setColor(normalColor);
 
 		// draw outer circle
 		canvas.drawCircle(getWidth() / 2, getHeight() / 2,  radius_complete, paint);
@@ -122,14 +134,14 @@ public class AnalogStick extends View
 			{
 				case NO_MOVEMENT:
 				{
-					paint.setColor(Color.BLUE);
+					paint.setColor(normalColor);
 					canvas.drawCircle(position_stick_x, position_stick_y, radius_analog_stick, paint);
 
 					break;
 				}
 				case MOVED:
 				{
-					paint.setColor(Color.CYAN);
+					paint.setColor(pressedColor);
 					canvas.drawCircle(position_stick_x, position_stick_y, radius_analog_stick, paint);
 
 					break;
@@ -138,11 +150,9 @@ public class AnalogStick extends View
 		}
 		else
 		{
-			paint.setColor(Color.RED);
+			paint.setColor(normalColor);
 			canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_analog_stick, paint);
 		}
-		// set transparent background
-		canvas.drawColor(Color.TRANSPARENT);
 
 		super.onDraw(canvas);
 	}
@@ -244,7 +254,7 @@ public class AnalogStick extends View
 		position_stick_x = getWidth() / 2 - correlated_x;
 		position_stick_y = getHeight() / 2 - correlated_y;
 
-		// check if analog stick is inside of dead zone
+		// check if analog stick is outside of dead zone
 		if (movement_radius > radius_dead_zone)
 		{
 			moveActionCallback(movement_x, movement_y);
@@ -260,6 +270,11 @@ public class AnalogStick extends View
 	@Override
 	public boolean onTouchEvent(MotionEvent event)
 	{
+        if (onTouchListener != null)
+        {
+            return onTouchListener.onTouch(this, event);
+        }
+
 		// get masked (not specific to a pointer) action
 		int action = event.getActionMasked();
 

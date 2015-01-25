@@ -68,7 +68,7 @@
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.limelight.Connection" />
+                android:value="com.limelight.AppView" />
         </activity>
         <service
             android:name=".discovery.DiscoveryService"

@@ -1,6 +1,7 @@
 package com.limelight.binding.input.virtual_controller;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.view.Window;
@@ -36,7 +37,7 @@ public class VirtualControllerConfiguration extends Activity
         FrameLayout frameLayout = (FrameLayout) findViewById(R.id.configure_virtual_controller_frameLayout);
 
         // start with configuration constructor
-        virtualController = new VirtualController(frameLayout, getApplicationContext(), getWindowManager());
+        virtualController = new VirtualController(null, frameLayout, this, getWindowManager());
 
         Toast.makeText(getApplicationContext(), "Not implemented yet!", Toast.LENGTH_SHORT).show();
     }

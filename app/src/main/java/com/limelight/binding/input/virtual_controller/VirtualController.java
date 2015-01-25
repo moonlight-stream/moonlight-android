@@ -1,10 +1,8 @@
 package com.limelight.binding.input.virtual_controller;
 
 import android.content.Context;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
@@ -16,7 +14,7 @@ import com.limelight.nvstream.input.ControllerPacket;
  */
 public class VirtualController
 {
-	private  static final boolean _PRINT_DEBUG_INFORMATION = true;
+	private  static final boolean _PRINT_DEBUG_INFORMATION = false;
 
 	private static final void _DBG(String text)
 	{
@@ -37,6 +35,10 @@ public class VirtualController
 	private FrameLayout			frame_layout			= null;
 	private RelativeLayout		relative_layout 		= null;
 
+    private RelativeLayout.LayoutParams 	layoutParamsButtonStart	    = null;
+    private RelativeLayout.LayoutParams 	layoutParamsButtonSelect    = null;
+//    private RelativeLayout.LayoutParams 	layoutParamsButtonEscape  	= null;
+
 	private RelativeLayout.LayoutParams 	layoutParamsDPad        	= null;
 
 	private RelativeLayout.LayoutParams 	layoutParamsButtonA		    = null;
@@ -51,13 +53,9 @@ public class VirtualController
     private RelativeLayout.LayoutParams 	layoutParamsParamsStick 	= null;
 	private RelativeLayout.LayoutParams 	layoutParamsParamsStick2	= null;
 
-    // configuration
-    private RelativeLayout.LayoutParams     layoutParamsButtonOpenColorPickerNormal = null;
-    private RelativeLayout.LayoutParams     layoutParamsButtonOpenColorPickerPressed = null;
-
-    private Button				buttonStart			= null;
-	private Button				buttonSelect		= null;
-	private Button				buttonESC			= null;
+    private DigitalButton       buttonStart = null;
+	private DigitalButton		buttonSelect		= null;
+//	private DigitalButton		buttonEscape		= null;
 
     private DigitalPad          digitalPad          = null;
 
@@ -73,8 +71,6 @@ public class VirtualController
     private AnalogStick 		stick				= null;
 	private AnalogStick			stick2				= null;
 
-    private boolean             configuration       = false;
-
 	NvConnection				connection			= null;
 
 	private int getPercentageV(int percent)
@@ -87,11 +83,11 @@ public class VirtualController
 		return (int)(((float)frame_layout.getWidth() / (float)100) * (float)percent);
 	}
 
-	private void setPercentilePosition(RelativeLayout.LayoutParams parm, int pos_x, int pos_y)
+	private void setPercentilePosition(RelativeLayout.LayoutParams parm, float pos_x, float pos_y)
 	{
 		parm.setMargins(
-			(int)(((float)frame_layout.getWidth() / (float)100 * (float)pos_x) - ((float)parm.width / (float)2)),
-			(int)(((float)frame_layout.getHeight() / (float)100 * (float)pos_y) - ((float)parm.height / (float)2)),
+			(int)(((float)frame_layout.getWidth() / (float)100 * pos_x) - ((float)parm.width / (float)2)),
+			(int)(((float)frame_layout.getHeight() / (float)100 * pos_y) - ((float)parm.height / (float)2)),
 			0,
 			0
 		);
@@ -116,6 +112,9 @@ public class VirtualController
         layoutParamsButtonLB    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
         layoutParamsButtonRB    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
 
+        layoutParamsButtonStart     = new RelativeLayout.LayoutParams(getPercentageH(12), getPercentageV(8));
+        layoutParamsButtonSelect    = new RelativeLayout.LayoutParams(getPercentageH(12), getPercentageV(8));
+
 		setPercentilePosition(layoutParamsDPad,		10,	    35);
 
 		setPercentilePosition(layoutParamsParamsStick,		22,	    78);
@@ -132,6 +131,10 @@ public class VirtualController
         setPercentilePosition(layoutParamsButtonLB, 		85, 	28);
         setPercentilePosition(layoutParamsButtonRB, 		92, 	23);
 
+        setPercentilePosition(layoutParamsButtonSelect,     43,     94);
+        setPercentilePosition(layoutParamsButtonStart,      57,     94);
+
+
         relative_layout.addView(digitalPad,		layoutParamsDPad);
 
 		relative_layout.addView(stick, layoutParamsParamsStick);
@@ -145,6 +148,9 @@ public class VirtualController
         relative_layout.addView(buttonRT, layoutParamsButtonRT);
         relative_layout.addView(buttonLB, layoutParamsButtonLB);
         relative_layout.addView(buttonRB, layoutParamsButtonRB);
+
+        relative_layout.addView(buttonSelect, layoutParamsButtonSelect);
+        relative_layout.addView(buttonStart, layoutParamsButtonStart);
 	}
 
     private DigitalButton createDigitalButton(String text, final int key, Context context)
@@ -309,73 +315,11 @@ public class VirtualController
 			}
 		});
 
+        buttonStart     = createDigitalButton("START", ControllerPacket.PLAY_FLAG, context);
+        buttonSelect    = createDigitalButton("SELECT", ControllerPacket.SPECIAL_BUTTON_FLAG, context);
+
 		refreshLayout();
 	}
-
-    public VirtualController(FrameLayout layout, Context context, WindowManager window_manager)
-    {
-        this.connection		= null;
-        frame_layout		= layout;
-
-        relative_layout = new RelativeLayout(context);
-
-        relative_layout.addOnLayoutChangeListener(new View.OnLayoutChangeListener()
-        {
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom)
-            {
-                refreshLayout();
-            }
-        });
-
-        frame_layout.addView(relative_layout);
-
-        digitalPad = new DigitalPad(context);
-
-        buttonX = new DigitalButton(context);
-        buttonX.setText("X");
-
-        buttonY = new DigitalButton(context);
-        buttonY.setText("Y");
-
-        buttonA = new DigitalButton(context);
-        buttonA.setText("A");
-
-        buttonB = new DigitalButton(context);
-        buttonB.setText("B");
-
-        buttonLT = new DigitalButton(context);
-        buttonLT.setText("LT");
-
-        buttonRT = new DigitalButton(context);
-        buttonRT.setText("RT");
-
-        buttonLB = new DigitalButton(context);
-        buttonLB.setText("LB");
-
-        buttonRB = new DigitalButton(context);
-        buttonRB.setText("RB");
-
-        stick = new AnalogStick(context);
-        stick2 = new AnalogStick(context);
-
-
-        configuration = true;
-
-        // receive touch events
-        frame_layout.setOnTouchListener(new View.OnTouchListener()
-        {
-            @Override
-            public boolean onTouch(View v, MotionEvent event)
-            {
-                _DBG("touch event");
-                return  true;
-            }
-        });
-
-
-        refreshLayout();
-    }
 
 	private void sendControllerInputPacket()
 	{

@@ -104,7 +104,7 @@ public class DigitalButton  extends View
 
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         canvas.drawText(text,
-                getPercent(getWidth(), 50), getPercent(getHeight(), 75),
+                getPercent(getWidth(), 50), getPercent(getHeight(), 73),
                 paint);
 
         super.onDraw(canvas);
@@ -173,6 +173,6 @@ public class DigitalButton  extends View
             }
         }
 
-        return super.onTouchEvent(event);
+        return true;
     }
 }

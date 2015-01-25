@@ -89,6 +89,8 @@
     <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
     <string name="title_checkbox_disable_warnings">Disable warning messages</string>
     <string name="summary_checkbox_disable_warnings">Disable on-screen connection warning messages while streaming</string>
+    <string name="title_language_list">Language</string>
+    <string name="summary_language_list">Language to use for Limelight</string>
 
     <string name="category_gamepad_settings">Gamepad Settings</string>
     <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>

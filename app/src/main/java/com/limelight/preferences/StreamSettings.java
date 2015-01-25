@@ -14,6 +14,15 @@ public class StreamSettings extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+	
+	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+	String locale = prefs.getString(PreferenceConfigration.LANGUAGE_PREF_STRING,
+			PreferenceConfiguration.DEFAULT_LANGUAGE);
+	if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
+		Configuration config = new Configuration(getResources().getConfiguration());
+		config.locale = new Locale(locale);
+		getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+	}
 
         setContentView(R.layout.activity_stream_settings);
         getFragmentManager().beginTransaction().replace(

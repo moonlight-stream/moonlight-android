@@ -25,6 +25,13 @@
             android:title="@string/title_checkbox_disable_warnings"
             android:summary="@string/summary_checkbox_disable_warnings"
             android:defaultValue="false" />
+        <ListPreference
+            android:key="list_languages"
+            android:title="@string/title_language_list"
+            android:entries="@array/language_names"
+            android:entryvalues="@array/language_values"
+            android:summary="@string/summary_language_list"
+            android:defaultvalue="default" />
     </PreferenceCategory>
     <!--PreferenceCategory android:title="@string/category_gamepad_settings">
         <com.limelight.preferences.SeekBarPreference

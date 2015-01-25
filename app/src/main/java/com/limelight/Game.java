@@ -87,6 +87,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		String locale = prefs.getString(PreferenceConfiguration.LANGUAGE_PREF_STRING,
+				PreferenceConfiguration.DEFAULT_LANGUAGE);
+		if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
+			Configuration config = new Configuration(getResources().getConfiguration());
+			config.locale = new Locale(locale);
+			getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+		}
+		
 		// We don't want a title bar
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		

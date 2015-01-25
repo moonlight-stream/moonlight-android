@@ -13,6 +13,17 @@
         <item>1080p60</item>
     </string-array>
 
+    <string-array name="language_names" translatable="false">
+            <item>Default</item>
+            <item>English</item>
+            <item>Italiano</item>
+    </string-array>
+    <string-array name="language_values" translatable="false">
+            <item>default</item>
+            <item>en</item>
+            <item>it</item>
+    </string-array>
+
     <string-array name="decoder_names">
         <item>Auto-select Decoder</item>
         <item>Force Software Decoding</item>

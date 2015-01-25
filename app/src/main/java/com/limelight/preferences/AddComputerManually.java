@@ -132,6 +132,15 @@ public class AddComputerManually extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		String locale = prefs.getString(PreferenceConfiguration.LANGUAGE_PREF_STRING,
+				PreferenceConfiguration.DEFAULT_LANGUAGE);
+		if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
+			Configuration config = new Configuration(getResources().getConfiguration());
+			config.locale = new Locale(locale);
+			getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+		}
+		
 		setContentView(R.layout.activity_add_computer_manually);
 
         UiHelper.notifyNewRootView(this);

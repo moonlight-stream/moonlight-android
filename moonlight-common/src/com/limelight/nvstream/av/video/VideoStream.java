@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -179,9 +178,19 @@ public class VideoStream {
 			startReceiveThread();
 		}
 		
+		// Open the first frame port connection on Gen 3 servers
+		if (context.serverGeneration == ConnectionContext.SERVER_GENERATION_3) {
+			connectFirstFrame();
+		}
+		
 		// Start pinging before reading the first frame
 		// so GFE knows where to send UDP data
 		startUdpPingThread();
+		
+		// Read the first frame on Gen 3 servers
+		if (context.serverGeneration == ConnectionContext.SERVER_GENERATION_3) {
+			readFirstFrame();
+		}
 		
 		return true;
 	}

@@ -19,23 +19,55 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	public static final int CONTROL_TIMEOUT = 5000;
 	
-	public static final short PTYPE_START_STREAM_A = 0x0606;
-	public static final short PPAYLEN_START_STREAM_A = 2;
-	public static final byte[] PPAYLOAD_START_STREAM_A = new byte[]{0, 0};
+	private static final int IDX_START_A = 0;
+	private static final int IDX_START_B = 1;
+	private static final int IDX_RESYNC = 2;
+	private static final int IDX_LOSS_STATS = 3;
 	
-	public static final short PTYPE_START_STREAM_B = 0x0609;
-	public static final short PPAYLEN_START_STREAM_B = 1;
-	public static final byte[] PPAYLOAD_START_STREAM_B = new byte[]{0};
+	private static final short packetTypesGen3[] = {
+		0x140b, // Start A
+		0x1410, // Start B
+		0x1404, // Resync
+		0x140c, // Loss Stats
+		0x1417, // Frame Stats (unused)
+	};
+	private static final short packetTypesGen4[] = {
+		0x0606, // Start A
+		0x0609, // Start B
+		0x0604, // Resync
+		0x060a, // Loss Stats
+		0x0611, // Frame Stats (unused)
+	};
 	
-	public static final short PTYPE_RESYNC = 0x0604;
-	public static final short PPAYLEN_RESYNC = 24;
+	private static final short payloadLengthsGen3[] = {
+		-1, // Start A
+		16, // Start B
+		24, // Resync
+		32, // Loss Stats
+		64, // Frame Stats
+	};
+	private static final short payloadLengthsGen4[] = {
+		-1, // Start A
+		-1, // Start B
+		24, // Resync
+		32, // Loss Stats
+		64, // Frame Stats
+	};
 	
-	public static final short PTYPE_LOSS_STATS = 0x060a;
-	public static final short PPAYLEN_LOSS_STATS = 32;
-	
-	// Currently unused
-	public static final short PTYPE_FRAME_STATS = 0x0611;
-	public static final short PPAYLEN_FRAME_STATS = 64;
+	private static final byte[] precontructedPayloadsGen3[] = {
+		new byte[]{0}, // Start A
+		null, // Start B
+		null, // Resync
+		null, // Loss Stats
+		null, // Frame Stats
+	};
+	private static final byte[] precontructedPayloadsGen4[] = {
+		new byte[]{0, 0}, // Start A
+		new byte[]{0},  // Start B
+		null, // Resync
+		null, // Loss Stats
+		null, // Frame Stats
+	};
 	
 	public static final int LOSS_REPORT_INTERVAL_MS = 50;
 	
@@ -62,9 +94,28 @@ public class ControlStream implements ConnectionStatusListener {
 	private LinkedBlockingQueue<int[]> invalidReferenceFrameTuples = new LinkedBlockingQueue<int[]>();
 	private boolean aborting = false;
 	
+	private final short[] packetTypes;
+	private final short[] payloadLengths;
+	private final byte[][] preconstructedPayloads;
+	
 	public ControlStream(ConnectionContext context)
 	{
 		this.context = context;
+		
+		switch (context.serverGeneration)
+		{
+		case ConnectionContext.SERVER_GENERATION_3:
+			packetTypes = packetTypesGen3;
+			payloadLengths = payloadLengthsGen3;
+			preconstructedPayloads = precontructedPayloadsGen3;
+			break;
+		case ConnectionContext.SERVER_GENERATION_4:
+		default:
+			packetTypes = packetTypesGen4;
+			payloadLengths = payloadLengthsGen4;
+			preconstructedPayloads = precontructedPayloadsGen4;
+			break;
+		}
 	}
 	
 	public void initialize() throws IOException
@@ -102,7 +153,8 @@ public class ControlStream implements ConnectionStatusListener {
 		bb.putInt(0);
 		bb.putInt(0x14);
 
-		sendPacket(new NvCtlPacket(PTYPE_LOSS_STATS, PPAYLEN_LOSS_STATS, bb.array()));
+		sendPacket(new NvCtlPacket(packetTypes[IDX_LOSS_STATS],
+				payloadLengths[IDX_LOSS_STATS], bb.array()));
 	}
 	
 	public void abort()
@@ -148,7 +200,7 @@ public class ControlStream implements ConnectionStatusListener {
 		lossStatsThread = new Thread() {
 			@Override
 			public void run() {
-				ByteBuffer bb = ByteBuffer.allocate(PPAYLEN_LOSS_STATS).order(ByteOrder.LITTLE_ENDIAN);
+				ByteBuffer bb = ByteBuffer.allocate(payloadLengths[IDX_LOSS_STATS]).order(ByteOrder.LITTLE_ENDIAN);
 				
 				while (!isInterrupted())
 				{	
@@ -225,19 +277,33 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	private ControlStream.NvCtlResponse doStartA() throws IOException
 	{
-		return sendAndGetReply(new NvCtlPacket(PTYPE_START_STREAM_A,
-				PPAYLEN_START_STREAM_A, PPAYLOAD_START_STREAM_A));
+		return sendAndGetReply(new NvCtlPacket(packetTypes[IDX_START_A],
+				(short) preconstructedPayloads[IDX_START_A].length,
+				preconstructedPayloads[IDX_START_A]));
 	}
 	
 	private ControlStream.NvCtlResponse doStartB() throws IOException
 	{
-		return sendAndGetReply(new NvCtlPacket(PTYPE_START_STREAM_B,
-				PPAYLEN_START_STREAM_B, PPAYLOAD_START_STREAM_B));
+		if (context.serverGeneration == ConnectionContext.SERVER_GENERATION_3) {
+	        ByteBuffer payload = ByteBuffer.wrap(new byte[payloadLengths[IDX_START_B]]).order(ByteOrder.LITTLE_ENDIAN);
+	        
+	        payload.putInt(0);
+	        payload.putInt(0);
+	        payload.putInt(0);
+	        payload.putInt(0xa);
+	        
+	        return sendAndGetReply(new NvCtlPacket(packetTypes[IDX_START_B],
+	        		payloadLengths[IDX_START_B], payload.array()));
+		}
+		else {
+			return sendAndGetReply(new NvCtlPacket(packetTypes[IDX_START_B],
+					payloadLengths[IDX_START_B], preconstructedPayloads[IDX_START_B]));
+		}
 	}
 	
 	private void sendResync(int firstLostFrame, int nextSuccessfulFrame) throws IOException
 	{
-		ByteBuffer conf = ByteBuffer.wrap(new byte[PPAYLEN_RESYNC]).order(ByteOrder.LITTLE_ENDIAN);
+		ByteBuffer conf = ByteBuffer.wrap(new byte[payloadLengths[IDX_RESYNC]]).order(ByteOrder.LITTLE_ENDIAN);
 		
 		//conf.putLong(firstLostFrame);
 		//conf.putLong(nextSuccessfulFrame);
@@ -245,7 +311,8 @@ public class ControlStream implements ConnectionStatusListener {
 		conf.putLong(0xFFFFF);
 		conf.putLong(0);
 		
-		sendAndGetReply(new NvCtlPacket(PTYPE_RESYNC, PPAYLEN_RESYNC, conf.array()));
+		sendAndGetReply(new NvCtlPacket(packetTypes[IDX_RESYNC],
+				payloadLengths[IDX_RESYNC], conf.array()));
 	}
 	
 	static class NvCtlPacket {

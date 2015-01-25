@@ -119,6 +119,16 @@ public class NvConnection {
 				context.connListener.displayTransientMessage("This version of GFE is not currently supported. You may experience issues until Limelight is updated");
 			}
 			
+			switch (majorVersion) {
+			case 3:
+				context.serverGeneration = ConnectionContext.SERVER_GENERATION_3;
+				break;
+			case 4:
+			default:
+				context.serverGeneration = ConnectionContext.SERVER_GENERATION_4;
+				break;
+			}
+			
 			LimeLog.info("Server major version: "+majorVersion);
 		} catch (NumberFormatException e) {
 			context.connListener.displayMessage("Server version malformed: "+serverVersion);

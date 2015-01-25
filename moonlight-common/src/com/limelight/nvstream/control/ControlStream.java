@@ -76,13 +76,20 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	private ConnectionContext context;
 	
+	// If we drop at least 10 frames in 15 second (or less) window
+	// more than 5 times in 60 seconds, we'll display a warning
 	public static final int LOSS_PERIOD_MS = 15000;
-	public static final int MAX_LOSS_COUNT_IN_PERIOD = 5;
+	public static final int LOSS_EVENT_TIME_THRESHOLD_MS = 60000;
+	public static final int MAX_LOSS_COUNT_IN_PERIOD = 10;
+	public static final int LOSS_EVENTS_TO_WARN = 5;
 	public static final int MAX_SLOW_SINK_COUNT = 2;
 	public static final int MESSAGE_DELAY_FACTOR = 3;
 	
 	private long lossTimestamp;
+	private long lossEventTimestamp;
 	private int lossCount;
+	private int lossEventCount;
+
 	private int slowSinkCount;
 	
 	private Socket s;
@@ -480,16 +487,29 @@ public class ControlStream implements ConnectionStatusListener {
 			return;
 		}
 		
+		// Reset the loss count if it's been too long
 		if (System.currentTimeMillis() > LOSS_PERIOD_MS + lossTimestamp) {
-			lossCount++;
+			lossCount = 0;
 			lossTimestamp = System.currentTimeMillis();
 		}
-		else {
-			if (++lossCount == MAX_LOSS_COUNT_IN_PERIOD) {
-				context.connListener.displayTransientMessage("Detected high amounts of network packet loss");
-				lossCount = -MAX_LOSS_COUNT_IN_PERIOD * MESSAGE_DELAY_FACTOR;
-				lossTimestamp = 0;
+		
+		// Count this loss event
+		if (++lossCount == MAX_LOSS_COUNT_IN_PERIOD) {
+			// Reset the loss event count if it's been too long
+			if (System.currentTimeMillis() > LOSS_EVENT_TIME_THRESHOLD_MS + lossEventTimestamp) {
+				lossEventCount = 0;
+				lossEventTimestamp = System.currentTimeMillis();
 			}
+			
+			if (++lossEventCount == LOSS_EVENTS_TO_WARN) {
+				context.connListener.displayTransientMessage("Poor network connection");
+				
+				lossEventCount = 0;
+				lossEventTimestamp = 0;
+			}
+			
+			lossCount = 0;
+			lossTimestamp = 0;
 		}
 	}
 

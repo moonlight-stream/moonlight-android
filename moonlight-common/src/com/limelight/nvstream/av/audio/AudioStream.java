@@ -8,7 +8,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.LinkedList;
 
-import com.limelight.nvstream.NvConnectionListener;
+import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.RtpPacket;
 import com.limelight.nvstream.av.RtpReorderQueue;
@@ -28,14 +28,12 @@ public class AudioStream {
 	
 	private boolean aborting = false;
 	
-	private InetAddress host;
-	private NvConnectionListener connListener;
+	private ConnectionContext context;
 	private AudioRenderer streamListener;
 	
-	public AudioStream(InetAddress host, NvConnectionListener connListener, AudioRenderer streamListener)
+	public AudioStream(ConnectionContext context, AudioRenderer streamListener)
 	{
-		this.host = host;
-		this.connListener = connListener;
+		this.context = context;
 		this.streamListener = streamListener;
 	}
 	
@@ -131,7 +129,7 @@ public class AudioStream {
 					try {
 						samples = depacketizer.getNextDecodedData();
 					} catch (InterruptedException e) {
-						connListener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 					
@@ -198,7 +196,7 @@ public class AudioStream {
 							}
 						}
 					} catch (IOException e) {
-						connListener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 				}
@@ -219,7 +217,7 @@ public class AudioStream {
 				// PING in ASCII
 				final byte[] pingPacketData = new byte[] {0x50, 0x49, 0x4E, 0x47};
 				DatagramPacket pingPacket = new DatagramPacket(pingPacketData, pingPacketData.length);
-				pingPacket.setSocketAddress(new InetSocketAddress(host, RTP_PORT));
+				pingPacket.setSocketAddress(new InetSocketAddress(context.serverAddress, RTP_PORT));
 				
 				// Send PING every 500 ms
 				while (!isInterrupted())
@@ -227,14 +225,14 @@ public class AudioStream {
 					try {
 						rtp.send(pingPacket);
 					} catch (IOException e) {
-						connListener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 					
 					try {
 						Thread.sleep(500);
 					} catch (InterruptedException e) {
-						connListener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 				}

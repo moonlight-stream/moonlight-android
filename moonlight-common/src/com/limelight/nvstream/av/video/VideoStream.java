@@ -1,6 +1,7 @@
 package com.limelight.nvstream.av.video;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -10,8 +11,7 @@ import java.net.SocketException;
 import java.util.LinkedList;
 
 import com.limelight.LimeLog;
-import com.limelight.nvstream.NvConnectionListener;
-import com.limelight.nvstream.StreamConfiguration;
+import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 import com.limelight.nvstream.av.RtpPacket;
 import com.limelight.nvstream.av.RtpReorderQueue;
@@ -19,6 +19,7 @@ import com.limelight.nvstream.av.RtpReorderQueue;
 public class VideoStream {
 	public static final int RTP_PORT = 47998;
 	public static final int RTCP_PORT = 47999;
+	public static final int FIRST_FRAME_PORT = 47996;
 	
 	public static final int FIRST_FRAME_TIMEOUT = 5000;
 	public static final int RTP_RECV_BUFFER = 256 * 1024;
@@ -33,28 +34,24 @@ public class VideoStream {
 	// presentable frame
 	public static final int VIDEO_RING_SIZE = 384;
 	
-	private InetAddress host;
 	private DatagramSocket rtp;
 	private Socket firstFrameSocket;
 	
 	private LinkedList<Thread> threads = new LinkedList<Thread>();
 
-	private NvConnectionListener listener;
+	private ConnectionContext context;
 	private ConnectionStatusListener avConnListener;
 	private VideoDepacketizer depacketizer;
-	private StreamConfiguration streamConfig;
 	
 	private VideoDecoderRenderer decRend;
 	private boolean startedRendering;
 	
 	private boolean aborting = false;
 	
-	public VideoStream(InetAddress host, NvConnectionListener listener, ConnectionStatusListener avConnListener, StreamConfiguration streamConfig)
+	public VideoStream(ConnectionContext context, ConnectionStatusListener avConnListener)
 	{
-		this.host = host;
-		this.listener = listener;
+		this.context = context;
 		this.avConnListener = avConnListener;
-		this.streamConfig = streamConfig;
 	}
 	
 	public void abort()
@@ -98,6 +95,40 @@ public class VideoStream {
 		threads.clear();
 	}
 	
+	private void connectFirstFrame() throws IOException
+	{
+		firstFrameSocket = new Socket();
+		firstFrameSocket.setSoTimeout(FIRST_FRAME_TIMEOUT);
+		firstFrameSocket.connect(new InetSocketAddress(context.serverAddress, FIRST_FRAME_PORT), FIRST_FRAME_TIMEOUT);
+	}
+
+	private void readFirstFrame() throws IOException
+	{
+		byte[] firstFrame = new byte[context.streamConfig.getMaxPacketSize()];
+		
+		try {
+			InputStream firstFrameStream = firstFrameSocket.getInputStream();
+			
+			int offset = 0;
+			for (;;)
+			{
+				int bytesRead = firstFrameStream.read(firstFrame, offset, firstFrame.length-offset);
+				
+				if (bytesRead == -1)
+					break;
+				
+				offset += bytesRead;
+			}
+			
+			// We can actually ignore this data. It's the act of reading it that matters.
+			// If this changes, we'll need to move this call before startReceiveThread()
+			// to avoid state corruption in the depacketizer
+		} finally {
+			firstFrameSocket.close();
+			firstFrameSocket = null;
+		}
+	}
+	
 	public void setupRtpSession() throws SocketException
 	{
 		rtp = new DatagramSocket();
@@ -107,11 +138,11 @@ public class VideoStream {
 	public boolean setupDecoderRenderer(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) {
 		this.decRend = decRend;
 		
-		depacketizer = new VideoDepacketizer(avConnListener, streamConfig.getMaxPacketSize());
+		depacketizer = new VideoDepacketizer(avConnListener, context.streamConfig.getMaxPacketSize());
 		
 		if (decRend != null) {
 			try {
-				if (!decRend.setup(streamConfig.getWidth(), streamConfig.getHeight(),
+				if (!decRend.setup(context.streamConfig.getWidth(), context.streamConfig.getHeight(),
 						60, renderTarget, drFlags)) {
 					return false;
 				}
@@ -168,7 +199,7 @@ public class VideoStream {
 				RtpReorderQueue.RtpQueueStatus queueStatus;
 				
 				// Preinitialize the ring buffer
-				int requiredBufferSize = streamConfig.getMaxPacketSize() + RtpPacket.MAX_HEADER_SIZE;
+				int requiredBufferSize = context.streamConfig.getMaxPacketSize() + RtpPacket.MAX_HEADER_SIZE;
 				for (int i = 0; i < VIDEO_RING_SIZE; i++) {
 					ring[i] = new VideoPacket(new byte[requiredBufferSize]);
 				}
@@ -215,7 +246,7 @@ public class VideoStream {
 							}
 						} while (ring[ringIndex].decodeUnitRefCount.get() != 0);
 					} catch (IOException e) {
-						listener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 				}
@@ -236,7 +267,7 @@ public class VideoStream {
 				// PING in ASCII
 				final byte[] pingPacketData = new byte[] {0x50, 0x49, 0x4E, 0x47};
 				DatagramPacket pingPacket = new DatagramPacket(pingPacketData, pingPacketData.length);
-				pingPacket.setSocketAddress(new InetSocketAddress(host, RTP_PORT));
+				pingPacket.setSocketAddress(new InetSocketAddress(context.serverAddress, RTP_PORT));
 				
 				// Send PING every 500 ms
 				while (!isInterrupted())
@@ -244,14 +275,14 @@ public class VideoStream {
 					try {
 						rtp.send(pingPacket);
 					} catch (IOException e) {
-						listener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 					
 					try {
 						Thread.sleep(500);
 					} catch (InterruptedException e) {
-						listener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 				}

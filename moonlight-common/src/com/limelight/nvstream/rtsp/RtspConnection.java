@@ -1,13 +1,12 @@
 package com.limelight.nvstream.rtsp;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Inet6Address;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashMap;
 
-import com.limelight.nvstream.StreamConfiguration;
+import com.limelight.nvstream.ConnectionContext;
 import com.tinyrtsp.rtsp.message.RtspMessage;
 import com.tinyrtsp.rtsp.message.RtspRequest;
 import com.tinyrtsp.rtsp.message.RtspResponse;
@@ -17,30 +16,38 @@ public class RtspConnection {
 	public static final int PORT = 48010;
 	public static final int RTSP_TIMEOUT = 5000;
 	
-	// GFE 2.2.2+
-	public static final int CLIENT_VERSION = 11;
-	
 	private int sequenceNumber = 1;
 	private int sessionId = 0;
 	
-	private InetAddress host;
+	private ConnectionContext context;
 	private String hostStr;
 	
-	public RtspConnection(InetAddress host) {
-		this.host = host;
-		if (host instanceof Inet6Address) {
+	public RtspConnection(ConnectionContext context) {
+		this.context = context;
+		if (context.serverAddress instanceof Inet6Address) {
 			// RFC2732-formatted IPv6 address for use in URL
-			this.hostStr = "["+host.getHostAddress()+"]";
+			this.hostStr = "["+context.serverAddress.getHostAddress()+"]";
 		}
 		else {
-			this.hostStr = host.getHostAddress();
+			this.hostStr = context.serverAddress.getHostAddress();
+		}
+	}
+	
+	public static int getRtspVersionFromContext(ConnectionContext context) {
+		switch (context.serverGeneration)
+		{
+		case ConnectionContext.SERVER_GENERATION_3:
+			return 10;
+		case ConnectionContext.SERVER_GENERATION_4:
+		default:
+			return 11;
 		}
 	}
 
 	private RtspRequest createRtspRequest(String command, String target) {
 		RtspRequest m = new RtspRequest(command, target, "RTSP/1.0",
 				sequenceNumber++, new HashMap<String, String>(), null);
-		m.setOption("X-GS-ClientVersion", ""+CLIENT_VERSION);
+		m.setOption("X-GS-ClientVersion", ""+getRtspVersionFromContext(context));
 		return m;
 	}
 	
@@ -48,7 +55,7 @@ public class RtspConnection {
 		Socket s = new Socket();
 		try {
 			s.setTcpNoDelay(true);
-			s.connect(new InetSocketAddress(host, PORT), RTSP_TIMEOUT);
+			s.connect(new InetSocketAddress(context.serverAddress, PORT), RTSP_TIMEOUT);
 			
 			RtspStream rtspStream = new RtspStream(s.getInputStream(), s.getOutputStream());
 			try {
@@ -90,16 +97,16 @@ public class RtspConnection {
 		return transactRtspMessage(m);
 	}
 	
-	private RtspResponse sendVideoAnnounce(StreamConfiguration sc) throws IOException {
+	private RtspResponse sendVideoAnnounce() throws IOException {
 		RtspRequest m = createRtspRequest("ANNOUNCE", "streamid=video");
 		m.setOption("Session", ""+sessionId);
 		m.setOption("Content-type", "application/sdp");
-		m.setPayload(SdpGenerator.generateSdpFromConfig(host, sc));
+		m.setPayload(SdpGenerator.generateSdpFromContext(context));
 		m.setOption("Content-length", ""+m.getPayload().length());
 		return transactRtspMessage(m);
 	}
 	
-	public void doRtspHandshake(StreamConfiguration sc) throws IOException {
+	public void doRtspHandshake() throws IOException {
 		RtspResponse r;
 		
 		r = requestOptions();
@@ -128,7 +135,7 @@ public class RtspConnection {
 			throw new IOException("RTSP SETUP request failed: "+r.getStatusCode());
 		}
 		
-		r = sendVideoAnnounce(sc);
+		r = sendVideoAnnounce();
 		if (r.getStatusCode() != 200) {
 			throw new IOException("RTSP ANNOUNCE request failed: "+r.getStatusCode());
 		}

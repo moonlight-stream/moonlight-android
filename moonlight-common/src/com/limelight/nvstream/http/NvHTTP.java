@@ -20,7 +20,6 @@ import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import javax.crypto.SecretKey;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -33,7 +32,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import com.limelight.nvstream.StreamConfiguration;
+import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.http.PairingManager.PairState;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -364,23 +363,23 @@ public class NvHTTP {
 	    return new String(hexChars);
 	}
 	
-	public int launchApp(int appId, SecretKey inputKey, int riKeyId, StreamConfiguration config) throws IOException, XmlPullParserException {
+	public int launchApp(ConnectionContext context, int appId) throws IOException, XmlPullParserException {
 		String xmlStr = openHttpConnectionToString(baseUrl +
 			"/launch?uniqueid=" + uniqueId +
 			"&appid=" + appId +
-			"&mode=" + config.getWidth() + "x" + config.getHeight() + "x" + config.getRefreshRate() +
-			"&additionalStates=1&sops=" + (config.getSops() ? 1 : 0) +
-			"&rikey="+bytesToHex(inputKey.getEncoded()) +
-			"&rikeyid="+riKeyId +
-			"&localAudioPlayMode=" + (config.getPlayLocalAudio() ? 1 : 0), false);
+			"&mode=" + context.streamConfig.getWidth() + "x" + context.streamConfig.getHeight() + "x" + context.streamConfig.getRefreshRate() +
+			"&additionalStates=1&sops=" + (context.streamConfig.getSops() ? 1 : 0) +
+			"&rikey="+bytesToHex(context.riKey.getEncoded()) +
+			"&rikeyid="+context.riKeyId +
+			"&localAudioPlayMode=" + (context.streamConfig.getPlayLocalAudio() ? 1 : 0), false);
 		String gameSession = getXmlString(xmlStr, "gamesession");
 		return Integer.parseInt(gameSession);
 	}
 	
-	public boolean resumeApp(SecretKey inputKey, int riKeyId) throws IOException, XmlPullParserException {
+	public boolean resumeApp(ConnectionContext context) throws IOException, XmlPullParserException {
 		String xmlStr = openHttpConnectionToString(baseUrl + "/resume?uniqueid=" + uniqueId +
-				"&rikey="+bytesToHex(inputKey.getEncoded()) +
-				"&rikeyid="+riKeyId, false);
+				"&rikey="+bytesToHex(context.riKey.getEncoded()) +
+				"&rikeyid="+context.riKeyId, false);
 		String resume = getXmlString(xmlStr, "resume");
 		return Integer.parseInt(resume) != 0;
 	}

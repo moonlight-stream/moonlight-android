@@ -3,7 +3,6 @@ package com.limelight.nvstream.control;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -11,7 +10,7 @@ import java.nio.ByteOrder;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.LimeLog;
-import com.limelight.nvstream.NvConnectionListener;
+import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 
 public class ControlStream implements ConnectionStatusListener {
@@ -43,8 +42,7 @@ public class ControlStream implements ConnectionStatusListener {
 	private int currentFrame;
 	private int lossCountSinceLastReport;
 	
-	private NvConnectionListener listener;
-	private InetAddress host;
+	private ConnectionContext context;
 	
 	public static final int LOSS_PERIOD_MS = 15000;
 	public static final int MAX_LOSS_COUNT_IN_PERIOD = 5;
@@ -64,17 +62,16 @@ public class ControlStream implements ConnectionStatusListener {
 	private LinkedBlockingQueue<int[]> invalidReferenceFrameTuples = new LinkedBlockingQueue<int[]>();
 	private boolean aborting = false;
 	
-	public ControlStream(InetAddress host, NvConnectionListener listener)
+	public ControlStream(ConnectionContext context)
 	{
-		this.listener = listener;
-		this.host = host;
+		this.context = context;
 	}
 	
 	public void initialize() throws IOException
 	{
 		s = new Socket();
 		s.setTcpNoDelay(true);
-		s.connect(new InetSocketAddress(host, PORT), CONTROL_TIMEOUT);
+		s.connect(new InetSocketAddress(context.serverAddress, PORT), CONTROL_TIMEOUT);
 		in = s.getInputStream();
 		out = s.getOutputStream();
 	}
@@ -159,14 +156,14 @@ public class ControlStream implements ConnectionStatusListener {
 						sendLossStats(bb);
 						lossCountSinceLastReport = 0;
 					} catch (IOException e) {
-						listener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 					
 					try {
 						Thread.sleep(LOSS_REPORT_INTERVAL_MS);
 					} catch (InterruptedException e) {
-						listener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 				}
@@ -187,7 +184,7 @@ public class ControlStream implements ConnectionStatusListener {
 					try {
 						tuple = invalidReferenceFrameTuples.take();
 					} catch (InterruptedException e) {
-						listener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 					
@@ -215,7 +212,7 @@ public class ControlStream implements ConnectionStatusListener {
 						ControlStream.this.sendResync(tuple[0], tuple[1]);
 						LimeLog.warning("Frames invalidated");
 					} catch (IOException e) {
-						listener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 				}
@@ -422,7 +419,7 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 		else {
 			if (++lossCount == MAX_LOSS_COUNT_IN_PERIOD) {
-				listener.displayTransientMessage("Detected high amounts of network packet loss");
+				context.connListener.displayTransientMessage("Detected high amounts of network packet loss");
 				lossCount = -MAX_LOSS_COUNT_IN_PERIOD * MESSAGE_DELAY_FACTOR;
 				lossTimestamp = 0;
 			}
@@ -439,7 +436,7 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 		
 		if (++slowSinkCount == MAX_SLOW_SINK_COUNT) {
-			listener.displayTransientMessage("Your device is processing the A/V data too slowly. Try lowering stream resolution and/or frame rate.");
+			context.connListener.displayTransientMessage("Your device is processing the A/V data too slowly. Try lowering stream resolution and/or frame rate.");
 			slowSinkCount = -MAX_SLOW_SINK_COUNT * MESSAGE_DELAY_FACTOR;
 		}
 	}

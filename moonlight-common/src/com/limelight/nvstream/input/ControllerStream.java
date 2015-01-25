@@ -2,7 +2,6 @@ package com.limelight.nvstream.input;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -15,10 +14,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-import com.limelight.nvstream.NvConnectionListener;
+import com.limelight.nvstream.ConnectionContext;
 
 public class ControllerStream {
 	
@@ -26,11 +24,11 @@ public class ControllerStream {
 	
 	public final static int CONTROLLER_TIMEOUT = 3000;
 	
-	private InetAddress host;
+	private ConnectionContext context;
+	
 	private Socket s;
 	private OutputStream out;
 	private Cipher riCipher;
-	private NvConnectionListener listener;
 	
 	private Thread inputThread;
 	private LinkedBlockingQueue<InputPacket> inputQueue = new LinkedBlockingQueue<InputPacket>();
@@ -38,18 +36,17 @@ public class ControllerStream {
 	private ByteBuffer stagingBuffer = ByteBuffer.allocate(128);
 	private ByteBuffer sendBuffer = ByteBuffer.allocate(128).order(ByteOrder.BIG_ENDIAN);
 	
-	public ControllerStream(InetAddress host, SecretKey riKey, int riKeyId, NvConnectionListener listener)
+	public ControllerStream(ConnectionContext context)
 	{
-		this.host = host;
-		this.listener = listener;
+		this.context = context;
 		try {
 			// This cipher is guaranteed to be supported
 			this.riCipher = Cipher.getInstance("AES/CBC/NoPadding");
 			
 			ByteBuffer bb = ByteBuffer.allocate(16);
-			bb.putInt(riKeyId);
+			bb.putInt(context.riKeyId);
 			
-			this.riCipher.init(Cipher.ENCRYPT_MODE, riKey, new IvParameterSpec(bb.array()));
+			this.riCipher.init(Cipher.ENCRYPT_MODE, context.riKey, new IvParameterSpec(bb.array()));
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		} catch (NoSuchPaddingException e) {
@@ -64,7 +61,7 @@ public class ControllerStream {
 	public void initialize() throws IOException
 	{
 		s = new Socket();
-		s.connect(new InetSocketAddress(host, PORT), CONTROLLER_TIMEOUT);
+		s.connect(new InetSocketAddress(context.serverAddress, PORT), CONTROLLER_TIMEOUT);
 		s.setTcpNoDelay(true);
 		out = s.getOutputStream();
 	}
@@ -80,7 +77,7 @@ public class ControllerStream {
 					try {
 						packet = inputQueue.take();
 					} catch (InterruptedException e) {
-						listener.connectionTerminated(e);
+						context.connListener.connectionTerminated(e);
 						return;
 					}
 					
@@ -123,7 +120,7 @@ public class ControllerStream {
 							try {
 								sendPacket(initialMouseMove);
 							} catch (IOException e) {
-								listener.connectionTerminated(e);
+								context.connListener.connectionTerminated(e);
 								return;
 							}
 							
@@ -169,7 +166,7 @@ public class ControllerStream {
 						try {
 							sendPacket(packet);
 						} catch (IOException e) {
-							listener.connectionTerminated(e);
+							context.connListener.connectionTerminated(e);
 							return;
 						}
 					}
@@ -178,7 +175,7 @@ public class ControllerStream {
 						try {
 							sendPacket(packet);
 						} catch (IOException e) {
-							listener.connectionTerminated(e);
+							context.connListener.connectionTerminated(e);
 							return;
 						}
 					}

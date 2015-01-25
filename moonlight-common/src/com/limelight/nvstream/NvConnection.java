@@ -26,13 +26,13 @@ import com.limelight.nvstream.input.ControllerStream;
 import com.limelight.nvstream.rtsp.RtspConnection;
 
 public class NvConnection {
+	// Context parameters
 	private String host;
-	private NvConnectionListener listener;
-	private StreamConfiguration config;
 	private LimelightCryptoProvider cryptoProvider;
 	private String uniqueId;
+	private ConnectionContext context;
 	
-	private InetAddress hostAddr;
+	// Stream objects
 	private ControlStream controlStream;
 	private ControllerStream inputStream;
 	private VideoStream videoStream;
@@ -43,27 +43,25 @@ public class NvConnection {
 	private Object videoRenderTarget;
 	private VideoDecoderRenderer videoDecoderRenderer;
 	private AudioRenderer audioRenderer;
-	private String localDeviceName;
-	private SecretKey riKey;
-	private int riKeyId;
 	
 	public NvConnection(String host, String uniqueId, NvConnectionListener listener, StreamConfiguration config, LimelightCryptoProvider cryptoProvider)
-	{
+	{		
 		this.host = host;
-		this.listener = listener;
-		this.config = config;
 		this.cryptoProvider = cryptoProvider;
 		this.uniqueId = uniqueId;
 		
+		this.context = new ConnectionContext();
+		this.context.connListener = listener;
+		this.context.streamConfig = config;
 		try {
 			// This is unique per connection
-			this.riKey = generateRiAesKey();
+			this.context.riKey = generateRiAesKey();
 		} catch (NoSuchAlgorithmException e) {
 			// Should never happen
 			e.printStackTrace();
 		}
 		
-		this.riKeyId = generateRiKeyId();
+		this.context.riKeyId = generateRiKeyId();
 	}
 	
 	private static SecretKey generateRiAesKey() throws NoSuchAlgorithmException {
@@ -100,23 +98,41 @@ public class NvConnection {
 	
 	private boolean startApp() throws XmlPullParserException, IOException
 	{
-		NvHTTP h = new NvHTTP(hostAddr, uniqueId, localDeviceName, cryptoProvider);
+		NvHTTP h = new NvHTTP(context.serverAddress, uniqueId, null, cryptoProvider);
 		
 		String serverInfo = h.getServerInfo(uniqueId);
 		String serverVersion = h.getServerVersion(serverInfo);
-		if (!serverVersion.startsWith("4.")) {
-			listener.displayMessage("Limelight now requires GeForce Experience 2.2.2 or later. Please upgrade GFE on your PC and try again.");
+		if (serverVersion == null || serverVersion.indexOf('.') < 0) {
+			context.connListener.displayMessage("Server major version not present");
+			return false;
+		}
+		
+		try {
+			int majorVersion = Integer.parseInt(serverVersion.substring(0, serverVersion.indexOf('.')));
+			if (majorVersion < 3) {
+				// Even though we support major version 3 (2.1.x), GFE 2.2.2 is preferred.
+				context.connListener.displayMessage("Limelight now requires GeForce Experience 2.2.2 or later. Please upgrade GFE on your PC and try again.");
+				return false;
+			}
+			else if (majorVersion > 4) {
+				// Warn the user but allow them to continue
+				context.connListener.displayTransientMessage("This version of GFE is not currently supported. You may experience issues until Limelight is updated");
+			}
+			
+			LimeLog.info("Server major version: "+majorVersion);
+		} catch (NumberFormatException e) {
+			context.connListener.displayMessage("Server version malformed: "+serverVersion);
 			return false;
 		}
 		
 		if (h.getPairState(serverInfo) != PairingManager.PairState.PAIRED) {
-			listener.displayMessage("Device not paired with computer");
+			context.connListener.displayMessage("Device not paired with computer");
 			return false;
 		}
 				
-		NvApp app = h.getApp(config.getApp());
+		NvApp app = h.getApp(context.streamConfig.getApp());
 		if (app == null) {
-			listener.displayMessage("The app " + config.getApp() + " is not in GFE app list");
+			context.connListener.displayMessage("The app " + context.streamConfig.getApp() + " is not in GFE app list");
 			return false;
 		}
 		
@@ -124,8 +140,8 @@ public class NvConnection {
 		if (h.getCurrentGame(serverInfo) != 0) {
 			try {
 				if (h.getCurrentGame(serverInfo) == app.getAppId()) {
-					if (!h.resumeApp(riKey, riKeyId)) {
-						listener.displayMessage("Failed to resume existing session");
+					if (!h.resumeApp(context)) {
+						context.connListener.displayMessage("Failed to resume existing session");
 						return false;
 					}
 				} else if (h.getCurrentGame(serverInfo) != app.getAppId()) {
@@ -135,13 +151,13 @@ public class NvConnection {
 				if (e.getErrorCode() == 470) {
 					// This is the error you get when you try to resume a session that's not yours.
 					// Because this is fairly common, we'll display a more detailed message.
-					listener.displayMessage("This session wasn't started by this device," +
+					context.connListener.displayMessage("This session wasn't started by this device," +
 							" so it cannot be resumed. End streaming on the original " +
 							"device or the PC itself and try again. (Error code: "+e.getErrorCode()+")");
 					return false;
 				}
 				else if (e.getErrorCode() == 525) {
-					listener.displayMessage("The application is minimized. Resume it on the PC manually or " +
+					context.connListener.displayMessage("The application is minimized. Resume it on the PC manually or " +
 							"quit the session and start streaming again.");
 					return false;
 				} else {
@@ -160,7 +176,7 @@ public class NvConnection {
 	protected boolean quitAndLaunch(NvHTTP h, NvApp app) throws IOException,
 			XmlPullParserException {
 		if (!h.quitApp()) {
-			listener.displayMessage("Failed to quit previous session! You must quit it manually");
+			context.connListener.displayMessage("Failed to quit previous session! You must quit it manually");
 			return false;
 		} else {
 			return launchNotRunningApp(h, app);
@@ -170,9 +186,9 @@ public class NvConnection {
 	private boolean launchNotRunningApp(NvHTTP h, NvApp app) 
 			throws IOException, XmlPullParserException {
 		// Launch the app since it's not running
-		int gameSessionId = h.launchApp(app.getAppId(), riKey, riKeyId, config);
+		int gameSessionId = h.launchApp(context, app.getAppId());
 		if (gameSessionId == 0) {
-			listener.displayMessage("Failed to launch application");
+			context.connListener.displayMessage("Failed to launch application");
 			return false;
 		}
 		
@@ -183,14 +199,14 @@ public class NvConnection {
 	
 	private boolean doRtspHandshake() throws IOException
 	{
-		RtspConnection r = new RtspConnection(hostAddr);
-		r.doRtspHandshake(config);
+		RtspConnection r = new RtspConnection(context);
+		r.doRtspHandshake();
 		return true;
 	}
 	
 	private boolean startControlStream() throws IOException
 	{
-		controlStream = new ControlStream(hostAddr, listener);
+		controlStream = new ControlStream(context);
 		controlStream.initialize();
 		controlStream.start();
 		return true;
@@ -198,13 +214,13 @@ public class NvConnection {
 	
 	private boolean startVideoStream() throws IOException
 	{
-		videoStream = new VideoStream(hostAddr, listener, controlStream, config);
+		videoStream = new VideoStream(context, controlStream);
 		return videoStream.startVideoStream(videoDecoderRenderer, videoRenderTarget, drFlags);
 	}
 	
 	private boolean startAudioStream() throws IOException
 	{
-		audioStream = new AudioStream(hostAddr, listener, audioRenderer);
+		audioStream = new AudioStream(context, audioRenderer);
 		return audioStream.startAudioStream();
 	}
 	
@@ -214,7 +230,7 @@ public class NvConnection {
 		// it to the instance variable once the object is properly initialized.
 		// This avoids the race where inputStream != null but inputStream.initialize()
 		// has not returned yet.
-		ControllerStream tempController = new ControllerStream(hostAddr, riKey, riKeyId, listener);
+		ControllerStream tempController = new ControllerStream(context);
 		tempController.initialize();
 		tempController.start();
 		inputStream = tempController;
@@ -228,10 +244,10 @@ public class NvConnection {
 
 			if (currentStage == NvConnectionListener.Stage.LAUNCH_APP) {
 				// Display the app name instead of the stage name
-				currentStage.setName(config.getApp());
+				currentStage.setName(context.streamConfig.getApp());
 			}
 			
-			listener.stageStarting(currentStage);
+			context.connListener.stageStarting(currentStage);
 			try {
 				switch (currentStage)
 				{
@@ -261,25 +277,24 @@ public class NvConnection {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-				listener.displayMessage(e.getMessage());
+				context.connListener.displayMessage(e.getMessage());
 				success = false;
 			}
 			
 			if (success) {
-				listener.stageComplete(currentStage);
+				context.connListener.stageComplete(currentStage);
 			}
 			else {
-				listener.stageFailed(currentStage);
+				context.connListener.stageFailed(currentStage);
 				return;
 			}
 		}
 		
-		listener.connectionStarted();
+		context.connListener.connectionStarted();
 	}
 
 	public void start(String localDeviceName, Object videoRenderTarget, int drFlags, AudioRenderer audioRenderer, VideoDecoderRenderer videoDecoderRenderer)
 	{
-		this.localDeviceName = localDeviceName;
 		this.drFlags = drFlags;
 		this.audioRenderer = audioRenderer;
 		this.videoRenderTarget = videoRenderTarget;
@@ -288,9 +303,9 @@ public class NvConnection {
 		new Thread(new Runnable() {
 			public void run() {
 				try {
-					hostAddr = InetAddress.getByName(host);
+					context.serverAddress = InetAddress.getByName(host);
 				} catch (UnknownHostException e) {
-					listener.connectionTerminated(e);
+					context.connListener.connectionTerminated(e);
 					return;
 				}
 				

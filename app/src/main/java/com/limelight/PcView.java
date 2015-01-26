@@ -124,7 +124,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         });
 
         getFragmentManager().beginTransaction()
-                .add(R.id.pcFragmentContainer, new AdapterFragment()).commit();
+                .add(R.id.pcFragmentContainer, new AdapterFragment()).commitAllowingStateLoss();
 
         noPcFoundLayout = (RelativeLayout) findViewById(R.id.no_pc_found_layout);
         if (pcGridAdapter.getCount() == 0) {

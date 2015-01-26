@@ -105,7 +105,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         }
 
         getFragmentManager().beginTransaction()
-                .add(R.id.appFragmentContainer, new AdapterFragment()).commit();
+                .add(R.id.appFragmentContainer, new AdapterFragment()).commitAllowingStateLoss();
 	}
 	
 	@Override

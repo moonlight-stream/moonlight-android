@@ -1,6 +1,7 @@
 package com.limelight.preferences;
 
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.app.Activity;
 import android.preference.Preference;
@@ -10,19 +11,19 @@ import android.preference.PreferenceManager;
 import com.limelight.R;
 import com.limelight.utils.UiHelper;
 
+import java.util.Locale;
+
 public class StreamSettings extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-	
-	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-	String locale = prefs.getString(PreferenceConfigration.LANGUAGE_PREF_STRING,
-			PreferenceConfiguration.DEFAULT_LANGUAGE);
-	if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
-		Configuration config = new Configuration(getResources().getConfiguration());
-		config.locale = new Locale(locale);
-		getResources().updateConfiguration(config, getResources().getDisplayMetrics());
-	}
+
+        String locale = PreferenceConfiguration.readPreferences(this).language;
+        if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
+            Configuration config = new Configuration(getResources().getConfiguration());
+            config.locale = new Locale(locale);
+            getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        }
 
         setContentView(R.layout.activity_stream_settings);
         getFragmentManager().beginTransaction().replace(

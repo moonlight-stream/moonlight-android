@@ -22,12 +22,15 @@ import com.limelight.utils.SpinnerDialog;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -42,6 +45,8 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
+
+import java.util.Locale;
 
 
 public class Game extends Activity implements SurfaceHolder.Callback,
@@ -86,11 +91,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		String locale = prefs.getString(PreferenceConfiguration.LANGUAGE_PREF_STRING,
-				PreferenceConfiguration.DEFAULT_LANGUAGE);
-		if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
+
+        String locale = PreferenceConfiguration.readPreferences(this).language;
+        if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
 			Configuration config = new Configuration(getResources().getConfiguration());
 			config.locale = new Locale(locale);
 			getResources().updateConfiguration(config, getResources().getDisplayMetrics());

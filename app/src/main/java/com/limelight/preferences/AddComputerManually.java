@@ -2,6 +2,7 @@ package com.limelight.preferences;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.computers.ComputerManagerService;
@@ -15,8 +16,10 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.Preference;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
@@ -132,9 +135,7 @@ public class AddComputerManually extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		String locale = prefs.getString(PreferenceConfiguration.LANGUAGE_PREF_STRING,
-				PreferenceConfiguration.DEFAULT_LANGUAGE);
+		String locale = PreferenceConfiguration.readPreferences(this).language;
 		if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
 			Configuration config = new Configuration(getResources().getConfiguration());
 			config.locale = new Locale(locale);

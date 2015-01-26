@@ -100,7 +100,7 @@
     <string name="title_checkbox_enable_sops">Ottimizza le impostazioni dei giochi</string>
     <string name="summary_checkbox_enable_sops">Permetti a GFE di modificare le impostazioni dei giochi per uno streaming ottimale</string>
     <string name="title_checkbox_host_audio">Riproduci audio sul PC</string>
-    <string name="summary_checkbox_host_audio">Riproduci l\'audio sul computer e su questo dispositivo. Richiede GFE 2.1.2+</string>
+    <string name="summary_checkbox_host_audio">Riproduci l\'audio sul computer e su questo dispositivo</string>
 
     <string name="category_advanced_settings">Impostazioni Avanzate</string>
     <string name="title_decoder_list">Cambia decoder</string>

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Locale;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -14,26 +15,34 @@ import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.preferences.PreferenceConfiguration;
+import com.limelight.ui.AdapterFragment;
+import com.limelight.ui.AdapterFragmentCallbacks;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
-public class AppView extends Activity {
+public class AppView extends Activity implements AdapterFragmentCallbacks {
     private AppGridAdapter appGridAdapter;
 	private InetAddress ipAddress;
 	private String uniqueId;
@@ -53,9 +62,7 @@ public class AppView extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		String locale = prefs.getString(PreferenceConfiguration.LANGUAGE_PREF_STRING,
-				PreferenceConfiguration.DEFAULT_LANGUAGE);
+        String locale = PreferenceConfiguration.readPreferences(this).language;
 		if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
 			Configuration config = new Configuration(getResources().getConfiguration());
 			config.locale = new Locale(locale);
@@ -86,35 +93,19 @@ public class AppView extends Activity {
             finish();
             return;
 		}
-		
-		// Setup the list view
-        GridView appGrid = (GridView) findViewById(R.id.appGridView);
+
         try {
-            appGridAdapter = new AppGridAdapter(this, ipAddress, uniqueId);
+            appGridAdapter = new AppGridAdapter(this,
+                    PreferenceConfiguration.readPreferences(this).listMode,
+                    ipAddress, uniqueId);
         } catch (Exception e) {
             e.printStackTrace();
             finish();
             return;
         }
-        appGrid.setAdapter(appGridAdapter);
-        appGrid.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
-                                    long id) {
-                AppObject app = (AppObject) appGridAdapter.getItem(pos);
-                if (app == null || app.app == null) {
-                    return;
-                }
 
-                // Only open the context menu if something is running, otherwise start it
-                if (getRunningAppId() != -1) {
-                    openContextMenu(arg1);
-                } else {
-                    doStart(app.app);
-                }
-            }
-        });
-        registerForContextMenu(appGrid);
+        getFragmentManager().beginTransaction()
+                .add(R.id.appFragmentContainer, new AdapterFragment()).commit();
 	}
 	
 	@Override
@@ -293,8 +284,37 @@ public class AppView extends Activity {
 			}
 		}).start();
 	}
-	
-	public class AppObject {
+
+    @Override
+    public int getAdapterFragmentLayoutId() {
+        return PreferenceConfiguration.readPreferences(this).listMode ?
+                R.layout.list_view : R.layout.app_grid_view;
+    }
+
+    @Override
+    public void receiveAbsListView(AbsListView listView) {
+        listView.setAdapter(appGridAdapter);
+        listView.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
+                                    long id) {
+                AppObject app = (AppObject) appGridAdapter.getItem(pos);
+                if (app == null || app.app == null) {
+                    return;
+                }
+
+                // Only open the context menu if something is running, otherwise start it
+                if (getRunningAppId() != -1) {
+                    openContextMenu(arg1);
+                } else {
+                    doStart(app.app);
+                }
+            }
+        });
+        registerForContextMenu(listView);
+    }
+
+    public class AppObject {
 		public NvApp app;
 		
 		public AppObject(NvApp app) {

@@ -19,6 +19,8 @@ import com.limelight.nvstream.wol.WakeOnLanSender;
 import com.limelight.preferences.AddComputerManually;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.preferences.StreamSettings;
+import com.limelight.ui.AdapterFragment;
+import com.limelight.ui.AdapterFragmentCallbacks;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
 
@@ -38,15 +40,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
-public class PcView extends Activity {
+public class PcView extends Activity implements AdapterFragmentCallbacks {
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
 	private ComputerManagerService.ComputerManagerBinder managerBinder;
@@ -105,27 +109,6 @@ public class PcView extends Activity {
         ImageButton settingsButton = (ImageButton) findViewById(R.id.settingsButton);
         ImageButton addComputerButton = (ImageButton) findViewById(R.id.manuallyAddPc);
 
-        GridView pcGrid = (GridView) findViewById(R.id.pcGridView);
-        pcGrid.setAdapter(pcGridAdapter);
-        pcGrid.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
-                                    long id) {
-                ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
-                if (computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
-                    // Do nothing
-                } else if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
-                    // Open the context menu if a PC is offline
-                    openContextMenu(arg1);
-                } else if (computer.details.pairState != PairState.PAIRED) {
-                    // Pair an unpaired machine by default
-                    doPair(computer.details);
-                } else {
-                    doAppList(computer.details);
-                }
-            }
-        });
-		registerForContextMenu(pcGrid);
 		settingsButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -140,6 +123,9 @@ public class PcView extends Activity {
             }
         });
 
+        getFragmentManager().beginTransaction()
+                .add(R.id.pcFragmentContainer, new AdapterFragment()).commit();
+
         noPcFoundLayout = (RelativeLayout) findViewById(R.id.no_pc_found_layout);
         if (pcGridAdapter.getCount() == 0) {
             noPcFoundLayout.setVisibility(View.VISIBLE);
@@ -153,10 +139,8 @@ public class PcView extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		String locale = prefs.getString(PreferenceConfiguration.LANGUAGE_PREF_STRING,
-				PreferenceConfiguration.DEFAULT_LANGUAGE);
+
+        String locale = PreferenceConfiguration.readPreferences(this).language;
 		if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
 			Configuration config = new Configuration(getResources().getConfiguration());
 			config.locale = new Locale(locale);
@@ -167,7 +151,8 @@ public class PcView extends Activity {
 		bindService(new Intent(PcView.this, ComputerManagerService.class), serviceConnection,
 				Service.BIND_AUTO_CREATE);
 
-        pcGridAdapter = new PcGridAdapter(this);
+        pcGridAdapter = new PcGridAdapter(this,
+                PreferenceConfiguration.readPreferences(this).listMode);
 		
 		initializeViews();
 	}
@@ -573,8 +558,38 @@ public class PcView extends Activity {
         // Notify the view that the data has changed
         pcGridAdapter.notifyDataSetChanged();
 	}
-	
-	public class ComputerObject {
+
+    @Override
+    public int getAdapterFragmentLayoutId() {
+        return PreferenceConfiguration.readPreferences(this).listMode ?
+                R.layout.list_view : R.layout.pc_grid_view;
+    }
+
+    @Override
+    public void receiveAbsListView(AbsListView listView) {
+        listView.setAdapter(pcGridAdapter);
+        listView.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
+                                    long id) {
+                ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
+                if (computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
+                    // Do nothing
+                } else if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
+                    // Open the context menu if a PC is offline
+                    openContextMenu(arg1);
+                } else if (computer.details.pairState != PairState.PAIRED) {
+                    // Pair an unpaired machine by default
+                    doPair(computer.details);
+                } else {
+                    doAppList(computer.details);
+                }
+            }
+        });
+        registerForContextMenu(listView);
+    }
+
+    public class ComputerObject {
 		public ComputerDetails details;
 		
 		public ComputerObject(ComputerDetails details) {

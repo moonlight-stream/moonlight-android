@@ -304,7 +304,8 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 		else {
 			return sendAndGetReply(new NvCtlPacket(packetTypes[IDX_START_B],
-					payloadLengths[IDX_START_B], preconstructedPayloads[IDX_START_B]));
+					 (short) preconstructedPayloads[IDX_START_B].length,
+					 preconstructedPayloads[IDX_START_B]));
 		}
 	}
 	

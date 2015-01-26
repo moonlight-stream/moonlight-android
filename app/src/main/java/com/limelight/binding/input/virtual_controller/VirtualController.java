@@ -1,11 +1,16 @@
 package com.limelight.binding.input.virtual_controller;
 
 import android.content.Context;
+import android.content.Intent;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
+import com.limelight.R;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.ControllerPacket;
 
@@ -37,7 +42,6 @@ public class VirtualController
 
     private RelativeLayout.LayoutParams 	layoutParamsButtonStart	    = null;
     private RelativeLayout.LayoutParams 	layoutParamsButtonSelect    = null;
-//    private RelativeLayout.LayoutParams 	layoutParamsButtonEscape  	= null;
 
 	private RelativeLayout.LayoutParams 	layoutParamsDPad        	= null;
 
@@ -50,12 +54,13 @@ public class VirtualController
     private RelativeLayout.LayoutParams 	layoutParamsButtonLB		= null;
     private RelativeLayout.LayoutParams 	layoutParamsButtonRB		= null;
 
-    private RelativeLayout.LayoutParams 	layoutParamsParamsStick 	= null;
-	private RelativeLayout.LayoutParams 	layoutParamsParamsStick2	= null;
+    private RelativeLayout.LayoutParams     layoutParamsStick           = null;
+	private RelativeLayout.LayoutParams     layoutParamsStick2          = null;
+
+    private RelativeLayout.LayoutParams     layoutParamsButtonConfigure = null;
 
     private DigitalButton       buttonStart = null;
 	private DigitalButton		buttonSelect		= null;
-//	private DigitalButton		buttonEscape		= null;
 
     private DigitalPad          digitalPad          = null;
 
@@ -70,6 +75,8 @@ public class VirtualController
 
     private AnalogStick 		stick				= null;
 	private AnalogStick			stick2				= null;
+
+    private DigitalButton       buttonConfigure     = null;
 
 	NvConnection				connection			= null;
 
@@ -99,8 +106,8 @@ public class VirtualController
 
         layoutParamsDPad            = new RelativeLayout.LayoutParams(getPercentageV(30), getPercentageV(30));
 
-		layoutParamsParamsStick		= new RelativeLayout.LayoutParams(getPercentageV(40), getPercentageV(40));
-		layoutParamsParamsStick2	= new RelativeLayout.LayoutParams(getPercentageV(40), getPercentageV(40));
+		layoutParamsStick = new RelativeLayout.LayoutParams(getPercentageV(40), getPercentageV(40));
+		layoutParamsStick2 = new RelativeLayout.LayoutParams(getPercentageV(40), getPercentageV(40));
 
 		layoutParamsButtonA		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
 		layoutParamsButtonB		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
@@ -115,10 +122,12 @@ public class VirtualController
         layoutParamsButtonStart     = new RelativeLayout.LayoutParams(getPercentageH(12), getPercentageV(8));
         layoutParamsButtonSelect    = new RelativeLayout.LayoutParams(getPercentageH(12), getPercentageV(8));
 
+        layoutParamsButtonConfigure = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+
 		setPercentilePosition(layoutParamsDPad,		10,	    35);
 
-		setPercentilePosition(layoutParamsParamsStick,		22,	    78);
-		setPercentilePosition(layoutParamsParamsStick2,		78,	    78);
+		setPercentilePosition(layoutParamsStick,		22,	    78);
+		setPercentilePosition(layoutParamsStick2,		78,	    78);
 
 		setPercentilePosition(layoutParamsButtonA, 		    85, 	52);
 		setPercentilePosition(layoutParamsButtonB, 		    92, 	47);
@@ -134,11 +143,12 @@ public class VirtualController
         setPercentilePosition(layoutParamsButtonSelect,     43,     94);
         setPercentilePosition(layoutParamsButtonStart,      57,     94);
 
+        setPercentilePosition(layoutParamsButtonConfigure,  93,     7);
 
         relative_layout.addView(digitalPad,		layoutParamsDPad);
 
-		relative_layout.addView(stick, layoutParamsParamsStick);
-		relative_layout.addView(stick2, layoutParamsParamsStick2);
+		relative_layout.addView(stick, layoutParamsStick);
+		relative_layout.addView(stick2, layoutParamsStick2);
 
 		relative_layout.addView(buttonA, layoutParamsButtonA);
 		relative_layout.addView(buttonB, layoutParamsButtonB);
@@ -151,6 +161,8 @@ public class VirtualController
 
         relative_layout.addView(buttonSelect, layoutParamsButtonSelect);
         relative_layout.addView(buttonStart, layoutParamsButtonStart);
+
+        relative_layout.addView(buttonConfigure,    layoutParamsButtonConfigure);
 	}
 
     private DigitalButton createDigitalButton(String text, final int key, Context context)
@@ -165,6 +177,12 @@ public class VirtualController
             }
 
             @Override
+            public void onLongClick()
+            {
+
+            }
+
+            @Override
             public void onRelease() {
                 inputMap &= ~key;
                 sendControllerInputPacket();
@@ -174,7 +192,7 @@ public class VirtualController
         return  button;
     }
 
-	public VirtualController(final NvConnection conn, FrameLayout layout, Context context, WindowManager window_manager)
+	public VirtualController(final NvConnection conn, FrameLayout layout, final Context context)
 	{
 		this.connection		= conn;
 		frame_layout		= layout;
@@ -254,6 +272,12 @@ public class VirtualController
             }
 
             @Override
+            public void onLongClick()
+            {
+
+            }
+
+            @Override
             public void onRelease()
             {
                 leftTrigger = (byte) (0 * 0xFF);
@@ -272,6 +296,12 @@ public class VirtualController
                 rightTrigger = (byte) (0xFF);
 
                 sendControllerInputPacket();
+            }
+
+            @Override
+            public void onLongClick()
+            {
+
             }
 
             @Override
@@ -299,6 +329,27 @@ public class VirtualController
 				_DBG("LEFT STICK MOVEMENT X: "+ leftStickX + " Y: " + leftStickY);
 				sendControllerInputPacket();
 			}
+
+            @Override
+            public  void onClick()
+            {
+            }
+
+            @Override
+            public  void onDoubleClick()
+            {
+                inputMap |= ControllerPacket.LS_CLK_FLAG;
+
+                sendControllerInputPacket();
+            }
+
+            @Override
+            public  void onRevoke()
+            {
+                inputMap &= ~ControllerPacket.LS_CLK_FLAG;
+
+                sendControllerInputPacket();
+            }
 		});
 
 		stick2 = new AnalogStick(context);
@@ -313,10 +364,57 @@ public class VirtualController
 				_DBG("RIGHT STICK MOVEMENT X: "+ rightStickX + " Y: " + rightStickY);
 				sendControllerInputPacket();
 			}
-		});
+
+            @Override
+            public  void onClick()
+            {
+            }
+
+            @Override
+            public  void onDoubleClick()
+            {
+                inputMap |= ControllerPacket.RS_CLK_FLAG;
+
+                sendControllerInputPacket();
+            }
+
+            @Override
+            public  void onRevoke()
+            {
+                inputMap &= ~ControllerPacket.RS_CLK_FLAG;
+
+                sendControllerInputPacket();
+            }
+        });
 
         buttonStart     = createDigitalButton("START", ControllerPacket.PLAY_FLAG, context);
         buttonSelect    = createDigitalButton("SELECT", ControllerPacket.SPECIAL_BUTTON_FLAG, context);
+
+        buttonConfigure = new DigitalButton(context);
+        buttonConfigure.setIcon(R.drawable.settings);
+        buttonConfigure.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
+        {
+            @Override
+            public void onClick() {
+
+            }
+
+            @Override
+            public void onLongClick()
+            {
+                Intent virtualControllerConfiguration = new Intent(context,VirtualControllerSettings.class);
+
+                virtualControllerConfiguration.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                context.startActivity(virtualControllerConfiguration);
+
+            }
+
+            @Override
+            public void onRelease() {
+
+            }
+        });
 
 		refreshLayout();
 	}

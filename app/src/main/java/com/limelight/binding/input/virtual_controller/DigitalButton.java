@@ -4,28 +4,44 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by Karim on 24.01.2015.
  */
 public class DigitalButton  extends View
 {
+    private class TimerLongClickTimerTask extends TimerTask
+    {
+        @Override
+        public void run()
+        {
+            onLongClickCallback();
+        }
+    }
     private static final boolean _PRINT_DEBUG_INFORMATION = false;
 
-    private int     normalColor  = 0xF0888888;
-    private int     pressedColor  = 0xF00000FF;
-    private String  text;
+    private int     normalColor     = 0xF0888888;
+    private int     pressedColor    = 0xF00000FF;
+    private String  text            = "";
+    private int     icon            = -1;
+
+    private long                    timerLongClickTimeout   = 3000;
+    private Timer                   timerLongClick          = null;
+    private TimerLongClickTimerTask longClickTimerTask      = null;
 
 
     public interface DigitalButtonListener
     {
         void onClick();
-
+        void onLongClick();
         void onRelease();
     }
 
@@ -72,6 +88,13 @@ public class DigitalButton  extends View
         invalidate();
     }
 
+    public  void setIcon(int id)
+    {
+        this.icon = id;
+
+        invalidate();
+    }
+
     private float getPercent(float value, float percent)
     {
         return value / 100 * percent;
@@ -102,10 +125,19 @@ public class DigitalButton  extends View
                 paint
         );
 
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.drawText(text,
-                getPercent(getWidth(), 50), getPercent(getHeight(), 73),
-                paint);
+        if (icon != -1)
+        {
+            Drawable d = getResources().getDrawable(icon);
+            d.setBounds(5, 5, getWidth() - 5, getHeight() - 5);
+            d.draw(canvas);
+        }
+        else
+        {
+            paint.setStyle(Paint.Style.FILL_AND_STROKE);
+            canvas.drawText(text,
+                    getPercent(getWidth(), 50), getPercent(getHeight(), 73),
+                    paint);
+        }
 
         super.onDraw(canvas);
     }
@@ -119,6 +151,22 @@ public class DigitalButton  extends View
         {
             listener.onClick();
         }
+
+        timerLongClick          = new Timer();
+        longClickTimerTask      = new TimerLongClickTimerTask();
+
+        timerLongClick.schedule(longClickTimerTask, timerLongClickTimeout);
+    }
+
+    private void onLongClickCallback()
+    {
+        _DBG("long click");
+
+        // notify listeners
+        for (DigitalButtonListener listener : listeners)
+        {
+            listener.onLongClick();
+        }
     }
 
     private void onReleaseCallback()
@@ -130,6 +178,9 @@ public class DigitalButton  extends View
         {
             listener.onRelease();
         }
+
+        timerLongClick.cancel();
+        longClickTimerTask.cancel();
     }
 
 

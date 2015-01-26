@@ -37,7 +37,7 @@ public class VirtualControllerConfiguration extends Activity
         FrameLayout frameLayout = (FrameLayout) findViewById(R.id.configure_virtual_controller_frameLayout);
 
         // start with configuration constructor
-        virtualController = new VirtualController(null, frameLayout, this, getWindowManager());
+        virtualController = new VirtualController(null, frameLayout, this);
 
         Toast.makeText(getApplicationContext(), "Not implemented yet!", Toast.LENGTH_SHORT).show();
     }

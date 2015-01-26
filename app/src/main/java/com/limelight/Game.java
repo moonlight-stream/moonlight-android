@@ -205,7 +205,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         {
             FrameLayout frameLayout = (FrameLayout) findViewById(R.id.frameLayout);
 
-            virtualController = new VirtualController(conn, frameLayout, getApplicationContext(), getWindowManager());
+            virtualController = new VirtualController(conn, frameLayout, getApplicationContext());
         }
 
 		// The connection will be started when the surface gets created

@@ -8,6 +8,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,11 +22,20 @@ public class AnalogStick extends View
 		MOVED
 	}
 
+    private enum _CLICK_STATE
+    {
+        SINGLE,
+        DOUBLE
+    }
+
 	private  static final boolean _PRINT_DEBUG_INFORMATION = false;
 
 	public interface AnalogStickListener
 	{
 		void onMovement(float x, float y);
+        void onClick();
+        void onRevoke();
+        void onDoubleClick();
 	}
 
 	public void addAnalogStickListener (AnalogStickListener listener)
@@ -46,8 +56,11 @@ public class AnalogStick extends View
 		}
 	}
 
-    private int     normalColor  = 0xF0888888;
-    private int     pressedColor  = 0xF00000FF;
+    private int     normalColor         = 0xF0888888;
+    private int     pressedColor        = 0xF00000FF;
+
+    private long    timeoutDoubleClick  = 250;
+    private long    timeLastClick       = 0;
 
 	float 		radius_complete			= 0;
 	float 		radius_dead_zone		= 0;
@@ -56,8 +69,10 @@ public class AnalogStick extends View
 	float 		position_stick_x		= 0;
 	float		position_stick_y		= 0;
 
-	boolean		pressed				= false;
+    boolean         viewPressed         = false;
+	boolean		    analogStickActive   = false;
 	_STICK_STATE	stick_state			= _STICK_STATE.NO_MOVEMENT;
+    _CLICK_STATE    click_state         = _CLICK_STATE.SINGLE;
 
 	List<AnalogStickListener> listeners		= new ArrayList<AnalogStickListener>();
     OnTouchListener                         onTouchListener = null;
@@ -69,8 +84,10 @@ public class AnalogStick extends View
 		position_stick_x	= getWidth() / 2;
 		position_stick_y	= getHeight() / 2;
 
-		stick_state		= _STICK_STATE.NO_MOVEMENT;
-		pressed			= false;
+		stick_state		        = _STICK_STATE.NO_MOVEMENT;
+        click_state             = _CLICK_STATE.SINGLE;
+        viewPressed             = false;
+		analogStickActive		= false;
 
 	}
 
@@ -125,16 +142,25 @@ public class AnalogStick extends View
 		paint.setStyle(Paint.Style.STROKE);
 		paint.setStrokeWidth(getPercent(getCorrectWidth() / 2, 2));
 
-		paint.setColor(normalColor);
+        // draw outer circle
+        if (!viewPressed || click_state == _CLICK_STATE.SINGLE)
+        {
+            paint.setColor(normalColor);
+        }
+        else
+        {
+            paint.setColor(pressedColor);
+        }
 
-		// draw outer circle
-		canvas.drawCircle(getWidth() / 2, getHeight() / 2,  radius_complete, paint);
+        canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_complete, paint);
+
+        paint.setColor(normalColor);
 
 		// draw dead zone
 		canvas.drawCircle(getWidth() / 2, getHeight() / 2,  radius_dead_zone, paint);
 
 		// draw stick depending on state (no movement, moved, active(out of dead zone))
-		if (pressed)
+		if (analogStickActive)
 		{
 			switch (stick_state)
 			{
@@ -232,7 +258,41 @@ public class AnalogStick extends View
 		}
 	}
 
-	private void updatePosition(float x, float y)
+    private void clickActionCallback()
+    {
+        _DBG("click");
+
+        // notify listeners
+        for (AnalogStickListener listener : listeners)
+        {
+            listener.onClick();
+        }
+    }
+
+    private void doubleClickActionCallback()
+    {
+        _DBG("double click");
+
+        // notify listeners
+        for (AnalogStickListener listener : listeners)
+        {
+            listener.onDoubleClick();
+        }
+    }
+
+    private void revokeActionCallback()
+    {
+        _DBG("revoke");
+
+        // notify listeners
+        for (AnalogStickListener listener : listeners)
+        {
+            listener.onRevoke();
+        }
+    }
+
+
+    private void updatePosition(float x, float y)
 	{
 		float way_x		= -(getWidth() / 2 - x);
 		float way_y		= -(getHeight() / 2 - y);
@@ -282,33 +342,65 @@ public class AnalogStick extends View
         }
 
 		// get masked (not specific to a pointer) action
-		int action = event.getActionMasked();
+		int             action          = event.getActionMasked();
+        _CLICK_STATE    lastClickState  = click_state;
+        boolean         wasPressed      = analogStickActive;
 
 		switch (action)
 		{
 			case MotionEvent.ACTION_DOWN:
 			case MotionEvent.ACTION_POINTER_DOWN:
+            {
+                viewPressed    = true;
+                // check for double click
+                if (lastClickState == _CLICK_STATE.SINGLE && timeLastClick + timeoutDoubleClick > System.currentTimeMillis())
+                {
+                    click_state = _CLICK_STATE.DOUBLE;
+
+                    doubleClickActionCallback();
+                }
+                else
+                {
+                    click_state = _CLICK_STATE.SINGLE;
+
+                    clickActionCallback();
+                }
+
+                timeLastClick  = System.currentTimeMillis();
+
+                break;
+            }
 			case MotionEvent.ACTION_MOVE:
-			{
-				pressed = true;
+            {
+                if (analogStickActive || timeLastClick + timeoutDoubleClick  < System.currentTimeMillis())
+                {
+                    analogStickActive = true;
+                }
 
 				break;
 			}
-			default:
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
 			{
-				pressed = false;
+				analogStickActive   = false;
+                viewPressed         = false;
+
+                revokeActionCallback();
 
 				break;
 			}
 		}
 
-		if (pressed)
+		if (analogStickActive)
 		{	// when is pressed calculate new positions (will trigger movement if necessary)
 			updatePosition(event.getX(), event.getY());
 		}
 		else
 		{	// no longer pressed reset movement
-			moveActionCallback(0, 0);
+            if (wasPressed)
+            {
+                moveActionCallback(0, 0);
+            }
 		}
 
 		// to get view refreshed

@@ -76,6 +76,12 @@
             android:theme="@style/StreamTheme"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" >
         </activity>
+        <activity
+            android:name=".binding.input.virtual_controller.VirtualControllerSettings"
+            android:screenOrientation="landscape"
+            android:theme="@style/StreamTheme"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" >
+        </activity>
         <service
             android:name=".discovery.DiscoveryService"
             android:label="mDNS PC Auto-Discovery Service" />

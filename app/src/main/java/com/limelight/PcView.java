@@ -25,6 +25,7 @@ import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -51,6 +52,7 @@ import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class PcView extends Activity implements AdapterFragmentCallbacks {
+    private AdapterFragment adapterFragment;
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
 	private ComputerManagerService.ComputerManagerBinder managerBinder;
@@ -123,8 +125,14 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             }
         });
 
-        getFragmentManager().beginTransaction()
-                .add(R.id.pcFragmentContainer, new AdapterFragment()).commitAllowingStateLoss();
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        if (adapterFragment != null) {
+            // Remove the old fragment
+            transaction.remove(adapterFragment);
+        }
+        adapterFragment = new AdapterFragment();
+        transaction.add(R.id.pcFragmentContainer, adapterFragment);
+        transaction.commitAllowingStateLoss();
 
         noPcFoundLayout = (RelativeLayout) findViewById(R.id.no_pc_found_layout);
         if (pcGridAdapter.getCount() == 0) {

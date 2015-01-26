@@ -1,7 +1,6 @@
 package com.limelight.nvstream.av.video;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
@@ -103,29 +102,11 @@ public class VideoStream {
 
 	private void readFirstFrame() throws IOException
 	{
-		byte[] firstFrame = new byte[context.streamConfig.getMaxPacketSize()];
+		// We can actually ignore this data. It's the act of gracefully closing the socket
+		// that matters.
 		
-		try {
-			InputStream firstFrameStream = firstFrameSocket.getInputStream();
-			
-			int offset = 0;
-			for (;;)
-			{
-				int bytesRead = firstFrameStream.read(firstFrame, offset, firstFrame.length-offset);
-				
-				if (bytesRead == -1)
-					break;
-				
-				offset += bytesRead;
-			}
-			
-			// We can actually ignore this data. It's the act of reading it that matters.
-			// If this changes, we'll need to move this call before startReceiveThread()
-			// to avoid state corruption in the depacketizer
-		} finally {
-			firstFrameSocket.close();
-			firstFrameSocket = null;
-		}
+		firstFrameSocket.close();
+		firstFrameSocket = null;
 	}
 	
 	public void setupRtpSession() throws SocketException

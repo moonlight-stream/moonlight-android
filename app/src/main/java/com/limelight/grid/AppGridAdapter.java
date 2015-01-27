@@ -29,6 +29,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.concurrent.Future;
 
@@ -106,8 +108,18 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         public boolean verify(String hostname, SSLSession session) { return true; }
     };
 
+    private void sortList() {
+        Collections.sort(itemList, new Comparator<AppView.AppObject>() {
+            @Override
+            public int compare(AppView.AppObject lhs, AppView.AppObject rhs) {
+                return lhs.app.getAppName().compareTo(rhs.app.getAppName());
+            }
+        });
+    }
+
     public void addApp(AppView.AppObject app) {
         itemList.add(app);
+        sortList();
     }
 
     public void abortPendingRequests() {

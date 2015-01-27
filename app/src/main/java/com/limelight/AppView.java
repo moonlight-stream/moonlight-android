@@ -22,6 +22,8 @@ import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -44,9 +46,10 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 	private boolean remote;
     private boolean firstLoad = true;
 	
-	private final static int RESUME_ID = 1;
+	private final static int START_OR_RESUME_ID = 1;
 	private final static int QUIT_ID = 2;
 	private final static int CANCEL_ID = 3;
+    private final static int START_WTIH_QUIT = 4;
 	
 	public final static String ADDRESS_EXTRA = "Address";
 	public final static String UNIQUEID_EXTRA = "UniqueId";
@@ -151,11 +154,11 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         int runningAppId = getRunningAppId();
         if (runningAppId != -1) {
         	if (runningAppId == selectedApp.app.getAppId()) {
-                menu.add(Menu.NONE, RESUME_ID, 1, getResources().getString(R.string.applist_menu_resume));
+                menu.add(Menu.NONE, START_OR_RESUME_ID, 1, getResources().getString(R.string.applist_menu_resume));
                 menu.add(Menu.NONE, QUIT_ID, 2, getResources().getString(R.string.applist_menu_quit));
         	}
         	else {
-                menu.add(Menu.NONE, RESUME_ID, 1, getResources().getString(R.string.applist_menu_quit_and_start));
+                menu.add(Menu.NONE, START_WTIH_QUIT, 1, getResources().getString(R.string.applist_menu_quit_and_start));
                 menu.add(Menu.NONE, CANCEL_ID, 2, getResources().getString(R.string.applist_menu_cancel));
         	}
         }
@@ -165,18 +168,61 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 	public void onContextMenuClosed(Menu menu) {
 	}
 
+    private void displayQuitConfirmationDialog(final Runnable onYes, final Runnable onNo) {
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        if (onYes != null) {
+                            onYes.run();
+                        }
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        if (onNo != null) {
+                            onNo.run();
+                        }
+                        break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(getResources().getString(R.string.applist_quit_confirmation))
+                .setPositiveButton(getResources().getString(R.string.yes), dialogClickListener)
+                .setNegativeButton(getResources().getString(R.string.no), dialogClickListener)
+                .show();
+    }
+
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        AppObject app = (AppObject) appGridAdapter.getItem(info.position);
+        final AppObject app = (AppObject) appGridAdapter.getItem(info.position);
         switch (item.getItemId()) {
-            case RESUME_ID:
+            case START_WTIH_QUIT:
+                // Display a confirmation dialog first
+                displayQuitConfirmationDialog(new Runnable() {
+                    @Override
+                    public void run() {
+                        doStart(app.app);
+                    }
+                }, null);
+                return true;
+
+            case START_OR_RESUME_ID:
                 // Resume is the same as start for us
                 doStart(app.app);
                 return true;
 
             case QUIT_ID:
-                doQuit(app.app);
+                // Display a confirmation dialog first
+                displayQuitConfirmationDialog(new Runnable() {
+                    @Override
+                    public void run() {
+                        doQuit(app.app);
+                    }
+                }, null);
                 return true;
 
             case CANCEL_ID:

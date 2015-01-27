@@ -56,6 +56,8 @@
     <!-- General strings -->
     <string name="ip_hint">Indirizzo IP del PC</string>
     <string name="searching_pc">Ricerca PC in corso…</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 
     <!-- AppList activity -->
     <string name="title_applist">Applicazioni su</string>
@@ -70,6 +72,7 @@
     <string name="applist_quit_app">Chiusura in corso…</string>
     <string name="applist_quit_success">Sessione chiusa con successo</string>
     <string name="applist_quit_fail">Chiusura sessione fallita</string>
+    <string name="applist_quit_confirmation">Are you sure you want to quit the running app? All unsaved data will be lost.</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Aggiungi PC Manualmente</string>

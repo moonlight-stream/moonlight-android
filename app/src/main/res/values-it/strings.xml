@@ -94,11 +94,17 @@
     <string name="title_seekbar_deadzone">Aggiusta deadzone degli stick analogici</string>
     <string name="suffix_seekbar_deadzone">%</string>
 
+    <string name="category_ui_settings">UI Settings</string>
+    <string name="title_language_list">Lingua</string>
+    <string name="summary_language_list">Lingua da usare in Limelight</string>
+    <string name="title_checkbox_list_mode">Use lists instead of grids</string>
+    <string name="summary_checkbox_list_mode">Display apps and PCs in lists instead of grids</string>
+
     <string name="category_host_settings">Impostazioni Host</string>
     <string name="title_checkbox_enable_sops">Ottimizza le impostazioni dei giochi</string>
     <string name="summary_checkbox_enable_sops">Permetti a GFE di modificare le impostazioni dei giochi per uno streaming ottimale</string>
     <string name="title_checkbox_host_audio">Riproduci audio sul PC</string>
-    <string name="summary_checkbox_host_audio">Riproduci l\'audio sul computer e su questo dispositivo. Richiede GFE 2.1.2+</string>
+    <string name="summary_checkbox_host_audio">Riproduci l\'audio sul computer e su questo dispositivo</string>
 
     <string name="category_advanced_settings">Impostazioni Avanzate</string>
     <string name="title_decoder_list">Cambia decoder</string>

@@ -2,13 +2,9 @@ package com.limelight.binding.input.virtual_controller;
 
 import android.content.Context;
 import android.content.Intent;
-import android.view.MenuInflater;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.limelight.R;
 import com.limelight.nvstream.NvConnection;
@@ -19,183 +15,63 @@ import com.limelight.nvstream.input.ControllerPacket;
  */
 public class VirtualController
 {
-	private  static final boolean _PRINT_DEBUG_INFORMATION = false;
+	private static final boolean _PRINT_DEBUG_INFORMATION = false;
+	NvConnection connection = null;
+	private Context context = null;
+	private short inputMap = 0x0000;
+	private byte leftTrigger = 0x00;
+	private byte rightTrigger = 0x00;
+	private short rightStickX = 0x0000;
+	private short rightStickY = 0x0000;
+	private short leftStickX = 0x0000;
+	private short leftStickY = 0x0000;
 
-	private static final void _DBG(String text)
-	{
-		if (_PRINT_DEBUG_INFORMATION)
-		{
-			System.out.println("VirtualController: " + text);
-		}
-	}
+	private FrameLayout frame_layout = null;
+	private RelativeLayout relative_layout = null;
 
-	private short 				inputMap 			= 0x0000;
-	private byte 				leftTrigger 		= 0x00;
-	private byte 				rightTrigger 		= 0x00;
-	private short				rightStickX 		= 0x0000;
-	private short 				rightStickY 		= 0x0000;
-	private short 				leftStickX 			= 0x0000;
-	private short 				leftStickY 			= 0x0000;
+	private RelativeLayout.LayoutParams layoutParamsButtonStart = null;
+	private RelativeLayout.LayoutParams layoutParamsButtonSelect = null;
 
-	private FrameLayout			frame_layout			= null;
-	private RelativeLayout		relative_layout 		= null;
+	private RelativeLayout.LayoutParams layoutParamsDPad = null;
 
-    private RelativeLayout.LayoutParams 	layoutParamsButtonStart	    = null;
-    private RelativeLayout.LayoutParams 	layoutParamsButtonSelect    = null;
+	private RelativeLayout.LayoutParams layoutParamsButtonA = null;
+	private RelativeLayout.LayoutParams layoutParamsButtonB = null;
+	private RelativeLayout.LayoutParams layoutParamsButtonX = null;
+	private RelativeLayout.LayoutParams layoutParamsButtonY = null;
+	private RelativeLayout.LayoutParams layoutParamsButtonLT = null;
+	private RelativeLayout.LayoutParams layoutParamsButtonRT = null;
+	private RelativeLayout.LayoutParams layoutParamsButtonLB = null;
+	private RelativeLayout.LayoutParams layoutParamsButtonRB = null;
 
-	private RelativeLayout.LayoutParams 	layoutParamsDPad        	= null;
+	private RelativeLayout.LayoutParams layoutParamsStick = null;
+	private RelativeLayout.LayoutParams layoutParamsStick2 = null;
 
-	private RelativeLayout.LayoutParams 	layoutParamsButtonA		    = null;
-	private RelativeLayout.LayoutParams 	layoutParamsButtonB		    = null;
-	private RelativeLayout.LayoutParams 	layoutParamsButtonX	    	= null;
-	private RelativeLayout.LayoutParams 	layoutParamsButtonY	    	= null;
-	private RelativeLayout.LayoutParams     layoutParamsButtonLT        = null;
-	private RelativeLayout.LayoutParams     layoutParamsButtonRT        = null;
-    private RelativeLayout.LayoutParams 	layoutParamsButtonLB		= null;
-    private RelativeLayout.LayoutParams 	layoutParamsButtonRB		= null;
+	private RelativeLayout.LayoutParams layoutParamsButtonConfigure = null;
 
-    private RelativeLayout.LayoutParams     layoutParamsStick           = null;
-	private RelativeLayout.LayoutParams     layoutParamsStick2          = null;
+	private DigitalButton buttonStart = null;
+	private DigitalButton buttonSelect = null;
 
-    private RelativeLayout.LayoutParams     layoutParamsButtonConfigure = null;
+	private DigitalPad digitalPad = null;
 
-    private DigitalButton       buttonStart = null;
-	private DigitalButton		buttonSelect		= null;
+	private DigitalButton buttonA = null;
+	private DigitalButton buttonB = null;
+	private DigitalButton buttonX = null;
+	private DigitalButton buttonY = null;
+	private DigitalButton buttonLT = null;
+	private DigitalButton buttonRT = null;
+	private DigitalButton buttonLB = null;
+	private DigitalButton buttonRB = null;
 
-    private DigitalPad          digitalPad          = null;
+	private AnalogStick stick = null;
+	private AnalogStick stick2 = null;
 
-	private DigitalButton		buttonA				= null;
-	private DigitalButton   	buttonB				= null;
-	private DigitalButton	    buttonX				= null;
-	private DigitalButton		buttonY				= null;
-	private DigitalButton       buttonLT            = null;
-	private DigitalButton       buttonRT            = null;
-    private DigitalButton		buttonLB			= null;
-    private DigitalButton		buttonRB			= null;
-
-    private AnalogStick 		stick				= null;
-	private AnalogStick			stick2				= null;
-
-    private DigitalButton       buttonConfigure     = null;
-
-	NvConnection				connection			= null;
-
-	private int getPercentageV(int percent)
-	{
-		return  (int)(((float)frame_layout.getHeight() / (float)100) * (float)percent);
-	}
-
-	private int getPercentageH(int percent)
-	{
-		return (int)(((float)frame_layout.getWidth() / (float)100) * (float)percent);
-	}
-
-	private void setPercentilePosition(RelativeLayout.LayoutParams parm, float pos_x, float pos_y)
-	{
-		parm.setMargins(
-			(int)(((float)frame_layout.getWidth() / (float)100 * pos_x) - ((float)parm.width / (float)2)),
-			(int)(((float)frame_layout.getHeight() / (float)100 * pos_y) - ((float)parm.height / (float)2)),
-			0,
-			0
-		);
-	}
-
-	void refreshLayout()
-	{
-		relative_layout.removeAllViews();
-
-        layoutParamsDPad            = new RelativeLayout.LayoutParams(getPercentageV(30), getPercentageV(30));
-
-		layoutParamsStick = new RelativeLayout.LayoutParams(getPercentageV(40), getPercentageV(40));
-		layoutParamsStick2 = new RelativeLayout.LayoutParams(getPercentageV(40), getPercentageV(40));
-
-		layoutParamsButtonA		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-		layoutParamsButtonB		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-		layoutParamsButtonX		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-		layoutParamsButtonY		= new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-        layoutParamsButtonLT    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-        layoutParamsButtonRT    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-
-        layoutParamsButtonLB    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-        layoutParamsButtonRB    = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-
-        layoutParamsButtonStart     = new RelativeLayout.LayoutParams(getPercentageH(12), getPercentageV(8));
-        layoutParamsButtonSelect    = new RelativeLayout.LayoutParams(getPercentageH(12), getPercentageV(8));
-
-        layoutParamsButtonConfigure = new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
-
-		setPercentilePosition(layoutParamsDPad,		10,	    35);
-
-		setPercentilePosition(layoutParamsStick,		22,	    78);
-		setPercentilePosition(layoutParamsStick2,		78,	    78);
-
-		setPercentilePosition(layoutParamsButtonA, 		    85, 	52);
-		setPercentilePosition(layoutParamsButtonB, 		    92, 	47);
-		setPercentilePosition(layoutParamsButtonX, 		    85, 	40);
-		setPercentilePosition(layoutParamsButtonY, 		    92, 	35);
-
-		setPercentilePosition(layoutParamsButtonLT, 		95, 	68);
-		setPercentilePosition(layoutParamsButtonRT, 		95, 	80);
-
-        setPercentilePosition(layoutParamsButtonLB, 		85, 	28);
-        setPercentilePosition(layoutParamsButtonRB, 		92, 	23);
-
-        setPercentilePosition(layoutParamsButtonSelect,     43,     94);
-        setPercentilePosition(layoutParamsButtonStart,      57,     94);
-
-        setPercentilePosition(layoutParamsButtonConfigure,  93,     7);
-
-        relative_layout.addView(digitalPad,		layoutParamsDPad);
-
-		relative_layout.addView(stick, layoutParamsStick);
-		relative_layout.addView(stick2, layoutParamsStick2);
-
-		relative_layout.addView(buttonA, layoutParamsButtonA);
-		relative_layout.addView(buttonB, layoutParamsButtonB);
-		relative_layout.addView(buttonX, layoutParamsButtonX);
-		relative_layout.addView(buttonY, layoutParamsButtonY);
-        relative_layout.addView(buttonLT, layoutParamsButtonLT);
-        relative_layout.addView(buttonRT, layoutParamsButtonRT);
-        relative_layout.addView(buttonLB, layoutParamsButtonLB);
-        relative_layout.addView(buttonRB, layoutParamsButtonRB);
-
-        relative_layout.addView(buttonSelect, layoutParamsButtonSelect);
-        relative_layout.addView(buttonStart, layoutParamsButtonStart);
-
-        relative_layout.addView(buttonConfigure,    layoutParamsButtonConfigure);
-	}
-
-    private DigitalButton createDigitalButton(String text, final int key, Context context)
-    {
-        DigitalButton button = new DigitalButton(context);
-        button.setText(text);
-        button.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
-            @Override
-            public void onClick() {
-                inputMap |= key;
-                sendControllerInputPacket();
-            }
-
-            @Override
-            public void onLongClick()
-            {
-
-            }
-
-            @Override
-            public void onRelease() {
-                inputMap &= ~key;
-                sendControllerInputPacket();
-            }
-        });
-
-        return  button;
-    }
+	private DigitalButton buttonConfigure = null;
 
 	public VirtualController(final NvConnection conn, FrameLayout layout, final Context context)
 	{
-		this.connection		= conn;
-		frame_layout		= layout;
+		this.connection = conn;
+		this.frame_layout = layout;
+		this.context = context;
 
 		relative_layout = new RelativeLayout(context);
 
@@ -210,113 +86,113 @@ public class VirtualController
 
 		frame_layout.addView(relative_layout);
 
-        digitalPad = new DigitalPad(context);
-        digitalPad.addDigitalPadListener(new DigitalPad.DigitalPadListener()
-        {
-            @Override
-            public void onDirectionChange(int direction)
-            {
-                do
-                {
-                    if (direction == DigitalPad.DIGITAL_PAD_DIRECTION_NO_DIRECTION)
-                    {
-                        inputMap &= ~ControllerPacket.LEFT_FLAG;
-                        inputMap &= ~ControllerPacket.RIGHT_FLAG;
-                        inputMap &= ~ControllerPacket.UP_FLAG;
-                        inputMap &= ~ControllerPacket.DOWN_FLAG;
+		digitalPad = new DigitalPad(context);
+		digitalPad.addDigitalPadListener(new DigitalPad.DigitalPadListener()
+		{
+			@Override
+			public void onDirectionChange(int direction)
+			{
+				do
+				{
+					if (direction == DigitalPad.DIGITAL_PAD_DIRECTION_NO_DIRECTION)
+					{
+						inputMap &= ~ControllerPacket.LEFT_FLAG;
+						inputMap &= ~ControllerPacket.RIGHT_FLAG;
+						inputMap &= ~ControllerPacket.UP_FLAG;
+						inputMap &= ~ControllerPacket.DOWN_FLAG;
 
-                        break;
-                    }
+						break;
+					}
 
-                    if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_LEFT) > 0)
-                    {
-                        inputMap |= ControllerPacket.LEFT_FLAG;
-                    }
+					if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_LEFT) > 0)
+					{
+						inputMap |= ControllerPacket.LEFT_FLAG;
+					}
 
-                    if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_RIGHT) > 0)
-                    {
-                        inputMap |= ControllerPacket.RIGHT_FLAG;
-                    }
+					if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_RIGHT) > 0)
+					{
+						inputMap |= ControllerPacket.RIGHT_FLAG;
+					}
 
-                    if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_UP) > 0)
-                    {
-                        inputMap |= ControllerPacket.UP_FLAG;
-                    }
+					if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_UP) > 0)
+					{
+						inputMap |= ControllerPacket.UP_FLAG;
+					}
 
-                    if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_DOWN) > 0)
-                    {
-                        inputMap |= ControllerPacket.DOWN_FLAG;
-                    }
-                }
-                while (false);
+					if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_DOWN) > 0)
+					{
+						inputMap |= ControllerPacket.DOWN_FLAG;
+					}
+				}
+				while (false);
 
-                sendControllerInputPacket();
-            }
-        });
+				sendControllerInputPacket();
+			}
+		});
 
-		buttonX = createDigitalButton("X", ControllerPacket.X_FLAG ,context);
-		buttonY = createDigitalButton("Y", ControllerPacket.Y_FLAG ,context);
-   		buttonA = createDigitalButton("A", ControllerPacket.A_FLAG ,context);
-		buttonB = createDigitalButton("B", ControllerPacket.B_FLAG ,context);
+		buttonX = createDigitalButton("X", ControllerPacket.X_FLAG, context);
+		buttonY = createDigitalButton("Y", ControllerPacket.Y_FLAG, context);
+		buttonA = createDigitalButton("A", ControllerPacket.A_FLAG, context);
+		buttonB = createDigitalButton("B", ControllerPacket.B_FLAG, context);
 
 		buttonLT = new DigitalButton(context);
 		buttonLT.setText("LT");
-        buttonLT.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
-        {
-            @Override
-            public void onClick()
-            {
-                leftTrigger = (byte) (1 * 0xFF);
+		buttonLT.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
+		{
+			@Override
+			public void onClick()
+			{
+				leftTrigger = (byte) (1 * 0xFF);
 
-                sendControllerInputPacket();
-            }
+				sendControllerInputPacket();
+			}
 
-            @Override
-            public void onLongClick()
-            {
+			@Override
+			public void onLongClick()
+			{
 
-            }
+			}
 
-            @Override
-            public void onRelease()
-            {
-                leftTrigger = (byte) (0 * 0xFF);
+			@Override
+			public void onRelease()
+			{
+				leftTrigger = (byte) (0 * 0xFF);
 
-                sendControllerInputPacket();
-            }
-        });
+				sendControllerInputPacket();
+			}
+		});
 
 		buttonRT = new DigitalButton(context);
 		buttonRT.setText("RT");
-        buttonRT.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
-        {
-            @Override
-            public void onClick()
-            {
-                rightTrigger = (byte) (0xFF);
+		buttonRT.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
+		{
+			@Override
+			public void onClick()
+			{
+				rightTrigger = (byte) (0xFF);
 
-                sendControllerInputPacket();
-            }
+				sendControllerInputPacket();
+			}
 
-            @Override
-            public void onLongClick()
-            {
+			@Override
+			public void onLongClick()
+			{
 
-            }
+			}
 
-            @Override
-            public void onRelease()
-            {
-                rightTrigger = (byte) (0);
+			@Override
+			public void onRelease()
+			{
+				rightTrigger = (byte) (0);
 
-                sendControllerInputPacket();
-            }
-        });
+				sendControllerInputPacket();
+			}
+		});
 
-        buttonLB = createDigitalButton("LB", ControllerPacket.LB_FLAG ,context);
-        buttonRB = createDigitalButton("RB", ControllerPacket.RB_FLAG ,context);
+		buttonLB = createDigitalButton("LB", ControllerPacket.LB_FLAG, context);
+		buttonRB = createDigitalButton("RB", ControllerPacket.RB_FLAG, context);
 
-        stick = new AnalogStick(context);
+		stick = new AnalogStick(context);
 
 		stick.addAnalogStickListener(new AnalogStick.AnalogStickListener()
 		{
@@ -326,30 +202,30 @@ public class VirtualController
 				leftStickX = (short) (x * 0x7FFE);
 				leftStickY = (short) (y * 0x7FFE);
 
-				_DBG("LEFT STICK MOVEMENT X: "+ leftStickX + " Y: " + leftStickY);
+				_DBG("LEFT STICK MOVEMENT X: " + leftStickX + " Y: " + leftStickY);
 				sendControllerInputPacket();
 			}
 
-            @Override
-            public  void onClick()
-            {
-            }
+			@Override
+			public void onClick()
+			{
+			}
 
-            @Override
-            public  void onDoubleClick()
-            {
-                inputMap |= ControllerPacket.LS_CLK_FLAG;
+			@Override
+			public void onDoubleClick()
+			{
+				inputMap |= ControllerPacket.LS_CLK_FLAG;
 
-                sendControllerInputPacket();
-            }
+				sendControllerInputPacket();
+			}
 
-            @Override
-            public  void onRevoke()
-            {
-                inputMap &= ~ControllerPacket.LS_CLK_FLAG;
+			@Override
+			public void onRevoke()
+			{
+				inputMap &= ~ControllerPacket.LS_CLK_FLAG;
 
-                sendControllerInputPacket();
-            }
+				sendControllerInputPacket();
+			}
 		});
 
 		stick2 = new AnalogStick(context);
@@ -361,83 +237,229 @@ public class VirtualController
 				rightStickX = (short) (x * 0x7FFE);
 				rightStickY = (short) (y * 0x7FFE);
 
-				_DBG("RIGHT STICK MOVEMENT X: "+ rightStickX + " Y: " + rightStickY);
+				_DBG("RIGHT STICK MOVEMENT X: " + rightStickX + " Y: " + rightStickY);
 				sendControllerInputPacket();
 			}
 
-            @Override
-            public  void onClick()
-            {
-            }
+			@Override
+			public void onClick()
+			{
+			}
 
-            @Override
-            public  void onDoubleClick()
-            {
-                inputMap |= ControllerPacket.RS_CLK_FLAG;
+			@Override
+			public void onDoubleClick()
+			{
+				inputMap |= ControllerPacket.RS_CLK_FLAG;
 
-                sendControllerInputPacket();
-            }
+				sendControllerInputPacket();
+			}
 
-            @Override
-            public  void onRevoke()
-            {
-                inputMap &= ~ControllerPacket.RS_CLK_FLAG;
+			@Override
+			public void onRevoke()
+			{
+				inputMap &= ~ControllerPacket.RS_CLK_FLAG;
 
-                sendControllerInputPacket();
-            }
-        });
+				sendControllerInputPacket();
+			}
+		});
 
-        buttonStart     = createDigitalButton("START", ControllerPacket.PLAY_FLAG, context);
-        buttonSelect    = createDigitalButton("SELECT", ControllerPacket.SPECIAL_BUTTON_FLAG, context);
+		buttonStart = createDigitalButton("START", ControllerPacket.PLAY_FLAG, context);
+		buttonSelect =
+			createDigitalButton("SELECT", ControllerPacket.SPECIAL_BUTTON_FLAG, context);
 
-        buttonConfigure = new DigitalButton(context);
-        buttonConfigure.setIcon(R.drawable.settings);
-        buttonConfigure.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
-        {
-            @Override
-            public void onClick() {
+		buttonConfigure = new DigitalButton(context);
+		buttonConfigure.setIcon(R.drawable.settings);
+		buttonConfigure.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
+		{
+			@Override
+			public void onClick()
+			{
 
-            }
+			}
 
-            @Override
-            public void onLongClick()
-            {
-                Intent virtualControllerConfiguration = new Intent(context,VirtualControllerSettings.class);
+			@Override
+			public void onLongClick()
+			{
+				openSettingsDialog();
+			}
 
-                virtualControllerConfiguration.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			@Override
+			public void onRelease()
+			{
 
-                context.startActivity(virtualControllerConfiguration);
-
-            }
-
-            @Override
-            public void onRelease() {
-
-            }
-        });
+			}
+		});
 
 		refreshLayout();
 	}
 
+	private static final void _DBG(String text)
+	{
+		if (_PRINT_DEBUG_INFORMATION)
+		{
+			System.out.println("VirtualController: " + text);
+		}
+	}
+
+	private int getPercentageV(int percent)
+	{
+		return (int) (((float) frame_layout.getHeight() / (float) 100) * (float) percent);
+	}
+
+	private int getPercentageH(int percent)
+	{
+		return (int) (((float) frame_layout.getWidth() / (float) 100) * (float) percent);
+	}
+
+	private void setPercentilePosition(RelativeLayout.LayoutParams parm, float pos_x, float pos_y)
+	{
+		parm.setMargins(
+			(int) (((float) frame_layout.getWidth() / (float) 100 * pos_x) - ((float) parm.width / (float) 2)),
+			(int) (((float) frame_layout.getHeight() / (float) 100 * pos_y) - ((float) parm.height / (float) 2)),
+			0,
+			0
+		);
+	}
+
+	public void openSettingsDialog()
+	{
+		Intent virtualControllerConfiguration =
+			new Intent(context, VirtualControllerSettings.class);
+		virtualControllerConfiguration.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+		context.startActivity(virtualControllerConfiguration);
+
+	}
+
+	void refreshLayout()
+	{
+		relative_layout.removeAllViews();
+
+		layoutParamsDPad =
+			new RelativeLayout.LayoutParams(getPercentageV(30), getPercentageV(30));
+
+		layoutParamsStick =
+			new RelativeLayout.LayoutParams(getPercentageV(40), getPercentageV(40));
+		layoutParamsStick2 =
+			new RelativeLayout.LayoutParams(getPercentageV(40), getPercentageV(40));
+
+		layoutParamsButtonA =
+			new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+		layoutParamsButtonB =
+			new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+		layoutParamsButtonX =
+			new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+		layoutParamsButtonY =
+			new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+		layoutParamsButtonLT =
+			new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+		layoutParamsButtonRT =
+			new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+
+		layoutParamsButtonLB =
+			new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+		layoutParamsButtonRB =
+			new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+
+		layoutParamsButtonStart =
+			new RelativeLayout.LayoutParams(getPercentageH(12), getPercentageV(8));
+		layoutParamsButtonSelect =
+			new RelativeLayout.LayoutParams(getPercentageH(12), getPercentageV(8));
+
+		layoutParamsButtonConfigure =
+			new RelativeLayout.LayoutParams(getPercentageV(10), getPercentageV(10));
+
+		setPercentilePosition(layoutParamsDPad, 10, 35);
+
+		setPercentilePosition(layoutParamsStick, 22, 78);
+		setPercentilePosition(layoutParamsStick2, 78, 78);
+
+		setPercentilePosition(layoutParamsButtonA, 85, 52);
+		setPercentilePosition(layoutParamsButtonB, 92, 47);
+		setPercentilePosition(layoutParamsButtonX, 85, 40);
+		setPercentilePosition(layoutParamsButtonY, 92, 35);
+
+		setPercentilePosition(layoutParamsButtonLT, 95, 68);
+		setPercentilePosition(layoutParamsButtonRT, 95, 80);
+
+		setPercentilePosition(layoutParamsButtonLB, 85, 28);
+		setPercentilePosition(layoutParamsButtonRB, 92, 23);
+
+		setPercentilePosition(layoutParamsButtonSelect, 43, 94);
+		setPercentilePosition(layoutParamsButtonStart, 57, 94);
+
+		setPercentilePosition(layoutParamsButtonConfigure, 93, 7);
+
+		relative_layout.addView(digitalPad, layoutParamsDPad);
+
+		relative_layout.addView(stick, layoutParamsStick);
+		relative_layout.addView(stick2, layoutParamsStick2);
+
+		relative_layout.addView(buttonA, layoutParamsButtonA);
+		relative_layout.addView(buttonB, layoutParamsButtonB);
+		relative_layout.addView(buttonX, layoutParamsButtonX);
+		relative_layout.addView(buttonY, layoutParamsButtonY);
+		relative_layout.addView(buttonLT, layoutParamsButtonLT);
+		relative_layout.addView(buttonRT, layoutParamsButtonRT);
+		relative_layout.addView(buttonLB, layoutParamsButtonLB);
+		relative_layout.addView(buttonRB, layoutParamsButtonRB);
+
+		relative_layout.addView(buttonSelect, layoutParamsButtonSelect);
+		relative_layout.addView(buttonStart, layoutParamsButtonStart);
+
+		relative_layout.addView(buttonConfigure, layoutParamsButtonConfigure);
+	}
+
+	private DigitalButton createDigitalButton(String text, final int key, Context context)
+	{
+		DigitalButton button = new DigitalButton(context);
+		button.setText(text);
+		button.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
+		{
+			@Override
+			public void onClick()
+			{
+				inputMap |= key;
+				sendControllerInputPacket();
+			}
+
+			@Override
+			public void onLongClick()
+			{
+
+			}
+
+			@Override
+			public void onRelease()
+			{
+				inputMap &= ~key;
+				sendControllerInputPacket();
+			}
+		});
+
+		return button;
+	}
+
 	private void sendControllerInputPacket()
 	{
-		try {
-            _DBG("INPUT_MAP + " + inputMap);
-            _DBG("LEFT_TRIGGER " + leftTrigger);
-            _DBG("RIGHT_TRIGGER " + rightTrigger);
-            _DBG("LEFT STICK X: " + leftStickX + " Y: " + leftStickY);
-            _DBG("RIGHT STICK X: " + rightStickX + " Y: " + rightStickY);
-            _DBG("RIGHT STICK X: " + rightStickX + " Y: " + rightStickY);
+		try
+		{
+			_DBG("INPUT_MAP + " + inputMap);
+			_DBG("LEFT_TRIGGER " + leftTrigger);
+			_DBG("RIGHT_TRIGGER " + rightTrigger);
+			_DBG("LEFT STICK X: " + leftStickX + " Y: " + leftStickY);
+			_DBG("RIGHT STICK X: " + rightStickX + " Y: " + rightStickY);
+			_DBG("RIGHT STICK X: " + rightStickX + " Y: " + rightStickY);
 
-            if (connection != null)
-            {
-                connection.sendControllerInput(inputMap, leftTrigger, rightTrigger,
-                        leftStickX, leftStickY, rightStickX, rightStickY);
-            }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+			if (connection != null)
+			{
+				connection.sendControllerInput(inputMap, leftTrigger, rightTrigger,
+					leftStickX, leftStickY, rightStickX, rightStickY);
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 }

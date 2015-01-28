@@ -9,6 +9,7 @@ public class TouchContext {
 	private int originalTouchX = 0;
 	private int originalTouchY = 0;
 	private long originalTouchTime = 0;
+    private boolean cancelled;
 	
 	private NvConnection conn;
 	private int actionIndex;
@@ -56,12 +57,17 @@ public class TouchContext {
 		originalTouchX = lastTouchX = eventX;
 		originalTouchY = lastTouchY = eventY;
 		originalTouchTime = System.currentTimeMillis();
-		
-		return true;
+        cancelled = false;
+
+        return true;
 	}
 	
 	public void touchUpEvent(int eventX, int eventY)
 	{
+        if (cancelled) {
+            return;
+        }
+
 		if (isTap())
 		{
 			byte buttonIndex = getMouseButtonIndex();
@@ -81,8 +87,8 @@ public class TouchContext {
 	}
 	
 	public boolean touchMoveEvent(int eventX, int eventY)
-	{	
-		if (eventX != lastTouchX || eventY != lastTouchY)
+    {
+        if (eventX != lastTouchX || eventY != lastTouchY)
 		{
 			// We only send moves for the primary touch point
 			if (actionIndex == 0) {
@@ -102,4 +108,12 @@ public class TouchContext {
 		
 		return true;
 	}
+
+    public void cancelTouch() {
+        cancelled = true;
+    }
+
+    public boolean isCancelled() {
+        return cancelled;
+    }
 }

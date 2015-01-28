@@ -251,6 +251,11 @@ public class ComputerManagerService extends Service {
                         ((!details.name.isEmpty() && !tuple.computer.name.isEmpty()) &&
                                 tuple.computer.name.equals(details.name))) {
 
+                    // Update details anyway in case this machine has been re-added by IP
+                    // after not being reachable by our existing information
+                    tuple.computer.localIp = details.localIp;
+                    tuple.computer.remoteIp = details.remoteIp;
+
                     // Start a polling thread if polling is active
                     if (pollingActive && tuple.thread == null) {
                         tuple.thread = createPollingThread(details);

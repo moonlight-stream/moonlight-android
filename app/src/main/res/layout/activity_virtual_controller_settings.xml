@@ -61,7 +61,7 @@
                         android:text="Color 1"/>
 
                     <ImageView
-                        android:layout_width="100dp"
+                        android:layout_width="200dp"
                         android:layout_height="100dp"
                         android:layout_gravity="center_horizontal"/>
 
@@ -93,7 +93,8 @@
                         android:text="Color 2"/>
 
                     <ImageView
-                        android:layout_width="100dp"
+                        android:layout_width="200dp"
+
                         android:layout_height="100dp"
                         android:layout_gravity="center_horizontal"/>
 

@@ -8,14 +8,27 @@ import com.limelight.PcView;
 import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
 
+import java.util.Collections;
+import java.util.Comparator;
+
 public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
-    public PcGridAdapter(Context context) {
-        super(context, R.layout.pc_grid_item, R.drawable.computer);
+    public PcGridAdapter(Context context, boolean listMode) {
+        super(context, listMode ? R.layout.simple_row : R.layout.pc_grid_item, R.drawable.computer);
     }
 
     public void addComputer(PcView.ComputerObject computer) {
         itemList.add(computer);
+        sortList();
+    }
+
+    private void sortList() {
+        Collections.sort(itemList, new Comparator<PcView.ComputerObject>() {
+            @Override
+            public int compare(PcView.ComputerObject lhs, PcView.ComputerObject rhs) {
+                return lhs.details.name.compareTo(rhs.details.name);
+            }
+        });
     }
 
     public boolean removeComputer(PcView.ComputerObject computer) {

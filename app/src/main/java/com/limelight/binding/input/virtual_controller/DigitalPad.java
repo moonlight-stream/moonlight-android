@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.MotionEvent;
-import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,273 +12,244 @@ import java.util.List;
 /**
  * Created by Karim Mreisi on 23.01.2015.
  */
-public class DigitalPad extends View
+public class DigitalPad extends VirtualControllerElement
 {
-    public final  static int DIGITAL_PAD_DIRECTION_NO_DIRECTION        = 0;
-    public final  static int DIGITAL_PAD_DIRECTION_LEFT                = 1;
-    public final  static int DIGITAL_PAD_DIRECTION_UP                  = 2;
-    public final  static int DIGITAL_PAD_DIRECTION_RIGHT               = 4;
-    public final  static int DIGITAL_PAD_DIRECTION_DOWN                = 8;
+	public final static int DIGITAL_PAD_DIRECTION_NO_DIRECTION = 0;
+	int direction = DIGITAL_PAD_DIRECTION_NO_DIRECTION;
+	public final static int DIGITAL_PAD_DIRECTION_LEFT = 1;
+	public final static int DIGITAL_PAD_DIRECTION_UP = 2;
+	public final static int DIGITAL_PAD_DIRECTION_RIGHT = 4;
+	public final static int DIGITAL_PAD_DIRECTION_DOWN = 8;
+	List<DigitalPadListener> listeners = new ArrayList<DigitalPadListener>();
+	OnTouchListener onTouchListener = null;
 
-    private int     normalColor  = 0xF0888888;
-    private int     pressedColor  = 0xF00000FF;
+	public DigitalPad(Context context)
+	{
+		super(context);
+	}
 
-    private  static final boolean _PRINT_DEBUG_INFORMATION = false;
+	public void addDigitalPadListener(DigitalPadListener listener)
+	{
+		listeners.add(listener);
+	}
 
-    public interface DigitalPadListener
-    {
-        void onDirectionChange(int direction);
-    }
+	public void setOnTouchListener(OnTouchListener listener)
+	{
+		onTouchListener = listener;
+	}
 
-    public void addDigitalPadListener (DigitalPadListener listener)
-    {
-        listeners.add(listener);
-    }
+	@Override
+	protected void onDraw(Canvas canvas)
+	{
+		// set transparent background
+		canvas.drawColor(Color.TRANSPARENT);
 
-    public void setOnTouchListener(OnTouchListener listener)
-    {
-        onTouchListener = listener;
-    }
+		Paint paint = new Paint();
 
-    private static final void _DBG(String text)
-    {
-        if (_PRINT_DEBUG_INFORMATION)
-        {
-            System.out.println("DigitalPad: " + text);
-        }
-    }
+		paint.setTextSize(getPercent(getCorrectWidth(), 20));
+		paint.setTextAlign(Paint.Align.CENTER);
+		paint.setStrokeWidth(3);
 
-    List<DigitalPadListener> listeners		= new ArrayList<DigitalPadListener>();
-    OnTouchListener                         onTouchListener = null;
+		if (direction == DIGITAL_PAD_DIRECTION_NO_DIRECTION)
+		{
+			// draw no direction rect
+			paint.setStyle(Paint.Style.STROKE);
+			paint.setColor(normalColor);
+			canvas.drawRect(
+				getPercent(getWidth(), 36), getPercent(getHeight(), 36),
+				getPercent(getWidth(), 63), getPercent(getHeight(), 63),
+				paint
+			);
+		}
 
-    int                      direction;
+		// draw left rect
+		paint.setColor(
+			(direction & DIGITAL_PAD_DIRECTION_LEFT) > 0 ? pressedColor : normalColor);
+		paint.setStyle(Paint.Style.FILL_AND_STROKE);
+		canvas.drawText("LF",
+			getPercent(getWidth(), 16.5f), getPercent(getHeight(), 56),
+			paint);
+		paint.setStyle(Paint.Style.STROKE);
+		canvas.drawRect(
+			0, getPercent(getHeight(), 33),
+			getPercent(getWidth(), 33), getPercent(getHeight(), 66),
+			paint
+		);
 
-    public DigitalPad(Context context)
-    {
-        super(context);
+		// draw left up line
+		paint.setColor((
+				(direction & DIGITAL_PAD_DIRECTION_LEFT) > 0 &&
+					(direction & DIGITAL_PAD_DIRECTION_UP) > 0
+			) ? pressedColor : normalColor
+		);
+		paint.setStyle(Paint.Style.STROKE);
+		canvas.drawLine(
+			0, getPercent(getWidth(), 33),
+			getPercent(getWidth(), 33), 0,
+			paint
+		);
 
-        direction = DIGITAL_PAD_DIRECTION_NO_DIRECTION;
-    }
+		// draw up rect
+		paint.setColor(
+			(direction & DIGITAL_PAD_DIRECTION_UP) > 0 ? pressedColor : normalColor);
+		paint.setStyle(Paint.Style.FILL_AND_STROKE);
+		canvas.drawText("UP",
+			getPercent(getWidth(), 49.5f), getPercent(getHeight(), 23),
+			paint);
+		paint.setStyle(Paint.Style.STROKE);
+		canvas.drawRect(
+			getPercent(getWidth(), 33), 0,
+			getPercent(getWidth(), 66), getPercent(getHeight(), 33),
+			paint
+		);
 
-    private float getPercent(float value, float percent)
-    {
-        return  value / 100 * percent;
-    }
+		// draw up right line
+		paint.setColor((
+				(direction & DIGITAL_PAD_DIRECTION_UP) > 0 &&
+					(direction & DIGITAL_PAD_DIRECTION_RIGHT) > 0
+			) ? pressedColor : normalColor
+		);
+		paint.setStyle(Paint.Style.STROKE);
+		canvas.drawLine(
+			getPercent(getWidth(), 66), 0,
+			getPercent(getWidth(), 100), getPercent(getHeight(), 33),
+			paint
+		);
 
-    private int getCorrectWidth()
-    {
-        return  getWidth() > getHeight() ? getHeight() : getWidth();
-    }
+		// draw right rect
+		paint.setColor(
+			(direction & DIGITAL_PAD_DIRECTION_RIGHT) > 0 ? pressedColor : normalColor);
+		paint.setStyle(Paint.Style.FILL_AND_STROKE);
+		canvas.drawText("RI",
+			getPercent(getWidth(), 82.5f), getPercent(getHeight(), 56),
+			paint);
+		paint.setStyle(Paint.Style.STROKE);
+		canvas.drawRect(
+			getPercent(getWidth(), 66), getPercent(getHeight(), 33),
+			getPercent(getWidth(), 100), getPercent(getHeight(), 66),
+			paint
+		);
 
-    public  void setColors(int normalColor, int pressedColor)
-    {
-        this.normalColor    = normalColor;
-        this.pressedColor   = pressedColor;
-    }
+		// draw right down line
+		paint.setColor((
+				(direction & DIGITAL_PAD_DIRECTION_RIGHT) > 0 &&
+					(direction & DIGITAL_PAD_DIRECTION_DOWN) > 0
+			) ? pressedColor : normalColor
+		);
+		paint.setStyle(Paint.Style.STROKE);
+		canvas.drawLine(
+			getPercent(getWidth(), 100), getPercent(getHeight(), 66),
+			getPercent(getWidth(), 66), getPercent(getHeight(), 100),
+			paint
+		);
 
-    @Override
-    protected void onDraw(Canvas canvas)
-    {
-        // set transparent background
-        canvas.drawColor(Color.TRANSPARENT);
+		// draw down rect
+		paint.setColor(
+			(direction & DIGITAL_PAD_DIRECTION_DOWN) > 0 ? pressedColor : normalColor);
+		paint.setStyle(Paint.Style.FILL_AND_STROKE);
+		canvas.drawText("DW",
+			getPercent(getWidth(), 49.5f), getPercent(getHeight(), 89),
+			paint);
+		paint.setStyle(Paint.Style.STROKE);
+		canvas.drawRect(
+			getPercent(getWidth(), 33), getPercent(getHeight(), 66),
+			getPercent(getWidth(), 66), getPercent(getHeight(), 100),
+			paint
+		);
 
-        Paint paint = new Paint();
+		// draw down left line
+		paint.setColor((
+				(direction & DIGITAL_PAD_DIRECTION_DOWN) > 0 &&
+					(direction & DIGITAL_PAD_DIRECTION_LEFT) > 0
+			) ? pressedColor : normalColor
+		);
+		paint.setStyle(Paint.Style.STROKE);
+		canvas.drawLine(
+			getPercent(getWidth(), 33), getPercent(getHeight(), 100),
+			getPercent(getWidth(), 0), getPercent(getHeight(), 66),
+			paint
+		);
 
-        paint.setTextSize(getPercent(getCorrectWidth(), 20));
-        paint.setTextAlign(Paint.Align.CENTER);
-        paint.setStrokeWidth(3);
+		super.onDraw(canvas);
+	}
 
-        if (direction == DIGITAL_PAD_DIRECTION_NO_DIRECTION)
-        {
-            // draw no direction rect
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setColor(normalColor);
-            canvas.drawRect(
-                    getPercent(getWidth(), 36), getPercent(getHeight(), 36),
-                    getPercent(getWidth(), 63), getPercent(getHeight(), 63),
-                    paint
-            );
-        }
+	private void newDirectionCallback(int direction)
+	{
+		_DBG("direction: " + direction);
 
-        // draw left rect
-        paint.setColor((direction & DIGITAL_PAD_DIRECTION_LEFT) > 0 ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.drawText("LF",
-                getPercent(getWidth(), 16.5f),  getPercent(getHeight(), 56),
-                paint);
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(
-                0,                          getPercent(getHeight(), 33),
-                getPercent(getWidth(), 33), getPercent(getHeight(), 66),
-                paint
-        );
+		// notify listeners
+		for (DigitalPadListener listener : listeners)
+		{
+			listener.onDirectionChange(direction);
+		}
+	}
 
-        // draw left up line
-        paint.setColor((
-                (direction & DIGITAL_PAD_DIRECTION_LEFT) > 0 &&
-                (direction & DIGITAL_PAD_DIRECTION_UP) > 0
-                    )  ? pressedColor : normalColor
-        );
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawLine(
-                0,                          getPercent(getWidth(), 33),
-                getPercent(getWidth(), 33), 0,
-                paint
-        );
+	@Override
+	public boolean onTouchEvent(MotionEvent event)
+	{
+		if (onTouchListener != null)
+		{
+			return onTouchListener.onTouch(this, event);
+		}
 
-        // draw up rect
-        paint.setColor((direction & DIGITAL_PAD_DIRECTION_UP) > 0 ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.drawText("UP",
-                getPercent(getWidth(), 49.5f),  getPercent(getHeight(), 23),
-                paint);
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(
-                getPercent(getWidth(), 33),                          0,
-                getPercent(getWidth(), 66), getPercent(getHeight(), 33),
-                paint
-        );
+		// get masked (not specific to a pointer) action
+		int action = event.getActionMasked();
 
-        // draw up right line
-        paint.setColor((
-                        (direction & DIGITAL_PAD_DIRECTION_UP) > 0 &&
-                        (direction & DIGITAL_PAD_DIRECTION_RIGHT) > 0
-                )  ? pressedColor : normalColor
-        );
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawLine(
-                getPercent(getWidth(), 66),                          0,
-                getPercent(getWidth(), 100), getPercent(getHeight(), 33),
-                paint
-        );
+		switch (action)
+		{
+			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_POINTER_DOWN:
+			{
+				direction = 0;
 
-        // draw right rect
-        paint.setColor((direction & DIGITAL_PAD_DIRECTION_RIGHT) > 0 ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.drawText("RI",
-                getPercent(getWidth(), 82.5f),  getPercent(getHeight(), 56),
-                paint);
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(
-                getPercent(getWidth(), 66), getPercent(getHeight(), 33),
-                getPercent(getWidth(), 100), getPercent(getHeight(), 66),
-                paint
-        );
+				if (event.getX() < getPercent(getWidth(), 33))
+				{
+					direction |= DIGITAL_PAD_DIRECTION_LEFT;
+				}
 
-        // draw right down line
-        paint.setColor((
-                        (direction & DIGITAL_PAD_DIRECTION_RIGHT) > 0 &&
-                        (direction & DIGITAL_PAD_DIRECTION_DOWN) > 0
-                )  ? pressedColor : normalColor
-        );
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawLine(
-                getPercent(getWidth(), 100), getPercent(getHeight(), 66),
-                getPercent(getWidth(), 66), getPercent(getHeight(), 100),
-                paint
-        );
+				if (event.getX() > getPercent(getWidth(), 66))
+				{
+					direction |= DIGITAL_PAD_DIRECTION_RIGHT;
+				}
 
-        // draw down rect
-        paint.setColor((direction & DIGITAL_PAD_DIRECTION_DOWN) > 0 ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.drawText("DW",
-                getPercent(getWidth(), 49.5f),  getPercent(getHeight(), 89),
-                paint);
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(
-                getPercent(getWidth(), 33), getPercent(getHeight(), 66),
-                getPercent(getWidth(), 66), getPercent(getHeight(), 100),
-                paint
-        );
+				if (event.getY() > getPercent(getHeight(), 66))
+				{
+					direction |= DIGITAL_PAD_DIRECTION_DOWN;
+				}
 
-        // draw down left line
-        paint.setColor((
-                        (direction & DIGITAL_PAD_DIRECTION_DOWN) > 0 &&
-                        (direction & DIGITAL_PAD_DIRECTION_LEFT) > 0
-                )  ? pressedColor : normalColor
-        );
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawLine(
-                getPercent(getWidth(), 33), getPercent(getHeight(), 100),
-                getPercent(getWidth(), 0),  getPercent(getHeight(), 66),
-                paint
-        );
+				if (event.getY() < getPercent(getHeight(), 33))
+				{
+					direction |= DIGITAL_PAD_DIRECTION_UP;
+				}
 
-        super.onDraw(canvas);
-    }
+				newDirectionCallback(direction);
 
-    private void newDirectionCallback(int direction)
-    {
-        _DBG("direction: " + direction);
+				invalidate();
 
-        // notify listeners
-        for (DigitalPadListener listener : listeners)
-        {
-            listener.onDirectionChange(direction);
-        }
-    }
+				return true;
+			}
+			case MotionEvent.ACTION_CANCEL:
+			case MotionEvent.ACTION_UP:
+			case MotionEvent.ACTION_POINTER_UP:
+			{
+				direction = 0;
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event)
-    {
-        if (onTouchListener != null)
-        {
-            return onTouchListener.onTouch(this, event);
-        }
+				newDirectionCallback(direction);
 
-        // get masked (not specific to a pointer) action
-        int action = event.getActionMasked();
+				invalidate();
 
-        switch (action)
-        {
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_POINTER_DOWN:
-            {
-                direction = 0;
+				return true;
+			}
+			default:
+			{
+			}
+		}
 
-                if (event.getX() < getPercent(getWidth(), 33))
-                {
-                    direction |= DIGITAL_PAD_DIRECTION_LEFT;
-                }
+		return true;
+	}
 
-                if (event.getX() > getPercent(getWidth(), 66))
-                {
-                    direction |= DIGITAL_PAD_DIRECTION_RIGHT;
-                }
-
-                if (event.getY() > getPercent(getHeight(), 66))
-                {
-                    direction |= DIGITAL_PAD_DIRECTION_DOWN;
-                }
-
-                if (event.getY() < getPercent(getHeight(), 33))
-                {
-                    direction |= DIGITAL_PAD_DIRECTION_UP;
-                }
-
-                newDirectionCallback(direction);
-
-                invalidate();
-
-                return  true;
-            }
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_POINTER_UP:
-            {
-                direction = 0;
-
-                newDirectionCallback(direction);
-
-                invalidate();
-
-                return true;
-            }
-            default:
-            {
-            }
-        }
-
-        return true;
-    }
+	public interface DigitalPadListener
+	{
+		void onDirectionChange(int direction);
+	}
 }

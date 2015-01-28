@@ -8,21 +8,17 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".AppView" >
 
-    <GridView
-        android:id="@+id/appGridView"
+    <FrameLayout
+        android:id="@+id/appFragmentContainer"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:numColumns="auto_fit"
-        android:columnWidth="160dp"
-        android:stretchMode="spacingWidth"
         android:gravity="center"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/appListText">
-    </GridView>
+        android:layout_below="@+id/appListText"/>
     
     <TextView
         android:id="@+id/appListText"

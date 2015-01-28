@@ -33,12 +33,10 @@
             android:text="@string/searching_pc"/>
     </RelativeLayout>
 
-    <GridView
-        android:id="@+id/pcGridView"
+    <FrameLayout
+        android:id="@+id/pcFragmentContainer"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:numColumns="auto_fit"
-        android:columnWidth="160dp"
         android:gravity="center"
         android:layout_alignParentBottom="true"
         android:layout_alignParentTop="true"

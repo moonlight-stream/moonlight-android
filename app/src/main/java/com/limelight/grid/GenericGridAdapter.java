@@ -60,17 +60,21 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
         ImageView overlayView = (ImageView) convertView.findViewById(R.id.grid_overlay);
         TextView txtView = (TextView) convertView.findViewById(R.id.grid_text);
 
-        if (!populateImageView(imgView, itemList.get(i))) {
-            imgView.setImageResource(defaultImageRes);
+        if (imgView != null) {
+            if (!populateImageView(imgView, itemList.get(i))) {
+                imgView.setImageResource(defaultImageRes);
+            }
         }
         if (!populateTextView(txtView, itemList.get(i))) {
             txtView.setText(itemList.get(i).toString());
         }
-        if (!populateOverlayView(overlayView, itemList.get(i))) {
-            overlayView.setVisibility(View.INVISIBLE);
-        }
-        else {
-            overlayView.setVisibility(View.VISIBLE);
+        if (overlayView != null) {
+            if (!populateOverlayView(overlayView, itemList.get(i))) {
+                overlayView.setVisibility(View.INVISIBLE);
+            }
+            else {
+                overlayView.setVisibility(View.VISIBLE);
+            }
         }
 
         return convertView;

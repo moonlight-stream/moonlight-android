@@ -1,16 +1,30 @@
 package com.limelight.grid;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.koushikdutta.async.future.FutureCallback;
+import com.koushikdutta.ion.ImageViewBitmapInfo;
 import com.koushikdutta.ion.Ion;
+import com.koushikdutta.ion.bitmap.BitmapInfo;
 import com.limelight.AppView;
+import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.nvstream.http.LimelightCryptoProvider;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.security.KeyManagementException;
@@ -32,14 +46,15 @@ import java.security.cert.X509Certificate;
 
 public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
+    private boolean listMode;
     private InetAddress address;
     private String uniqueId;
     private LimelightCryptoProvider cryptoProvider;
     private SSLContext sslContext;
     private final HashMap<ImageView, Future> pendingRequests = new HashMap<ImageView, Future>();
 
-    public AppGridAdapter(Context context, InetAddress address, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
-        super(context, R.layout.app_grid_item, R.drawable.image_loading);
+    public AppGridAdapter(Context context, boolean listMode, InetAddress address, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
+        super(context, listMode ? R.layout.simple_row : R.layout.app_grid_item, R.drawable.image_loading);
 
         this.address = address;
         this.uniqueId = uniqueId;
@@ -107,7 +122,9 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
 
         for (Future f : tempMap.values()) {
-            f.cancel(true);
+            if (!f.isCancelled() && !f.isDone()) {
+                f.cancel(true);
+            }
         }
 
         synchronized (pendingRequests) {
@@ -118,28 +135,92 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
     }
 
+    private Bitmap checkBitmapCache(String addrStr, int appId) {
+        File addrFolder = new File(context.getCacheDir(), addrStr);
+        if (addrFolder.isDirectory()) {
+            File bitmapFile = new File(addrFolder, appId+".png");
+            if (bitmapFile.exists()) {
+                InputStream fileIn = null;
+                try {
+                    fileIn = new BufferedInputStream(new FileInputStream(bitmapFile));
+                    Bitmap bm = BitmapFactory.decodeStream(fileIn);
+                    if (bm == null) {
+                        // The image seems corrupt
+                        bitmapFile.delete();
+                    }
+
+                    return bm;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    bitmapFile.delete();
+                } finally {
+                    if (fileIn != null) {
+                        try {
+                            fileIn.close();
+                        } catch (IOException ignored) {}
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // TODO: Handle pruning of bitmap cache
+    private void populateBitmapCache(String addrStr, int appId, Bitmap bitmap) {
+        File addrFolder = new File(context.getCacheDir(), addrStr);
+        addrFolder.mkdirs();
+
+        File bitmapFile = new File(addrFolder, appId+".png");
+        try {
+            // PNG ignores quality setting
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0, new FileOutputStream(bitmapFile));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
-    public boolean populateImageView(final ImageView imgView, AppView.AppObject obj) {
+    public boolean populateImageView(final ImageView imgView, final AppView.AppObject obj) {
 
         // Set SSL contexts correctly to allow us to authenticate
         Ion.getDefault(imgView.getContext()).getHttpClient().getSSLSocketMiddleware().setTrustManagers(trustAllCerts);
         Ion.getDefault(imgView.getContext()).getHttpClient().getSSLSocketMiddleware().setSSLContext(sslContext);
 
-        // Set off the deferred image load
+        // Check the on-disk cache
+        Bitmap cachedBitmap = checkBitmapCache(address.getHostAddress(), obj.app.getAppId());
+        if (cachedBitmap != null) {
+            // Cache hit; we're done
+            LimeLog.info("Image cache hit for ("+address.getHostAddress()+", "+obj.app.getAppId()+")");
+            imgView.setImageBitmap(cachedBitmap);
+            return true;
+        }
+
+        // Kick off the deferred image load
         synchronized (pendingRequests) {
-            Future f = Ion.with(imgView)
+            Future<ImageViewBitmapInfo> f = Ion.with(imgView)
                     .placeholder(defaultImageRes)
                     .error(defaultImageRes)
                     .load("https://" + address.getHostAddress() + ":47984/appasset?uniqueid=" + uniqueId + "&appid=" +
                             obj.app.getAppId() + "&AssetType=2&AssetIdx=0")
-                    .setCallback(new FutureCallback<ImageView>() {
-                        @Override
-                        public void onCompleted(Exception e, ImageView result) {
-                            synchronized (pendingRequests) {
-                                pendingRequests.remove(imgView);
-                            }
-                        }
-                    });
+                    .withBitmapInfo()
+                    .setCallback(
+                            new FutureCallback<ImageViewBitmapInfo>() {
+                                @Override
+                                public void onCompleted(Exception e, ImageViewBitmapInfo result) {
+                                    synchronized (pendingRequests) {
+                                        pendingRequests.remove(imgView);
+                                    }
+
+                                    // Populate the cache if we got an image back
+                                    if (result != null &&
+                                        result.getBitmapInfo() != null &&
+                                        result.getBitmapInfo().bitmap != null) {
+                                        populateBitmapCache(address.getHostAddress(), obj.app.getAppId(),
+                                                result.getBitmapInfo().bitmap);
+                                    }
+                                }
+                            });
             pendingRequests.put(imgView, f);
         }
 

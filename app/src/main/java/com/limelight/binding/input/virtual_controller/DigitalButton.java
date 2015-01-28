@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.view.MotionEvent;
-import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,214 +15,181 @@ import java.util.TimerTask;
 /**
  * Created by Karim on 24.01.2015.
  */
-public class DigitalButton  extends View
+public class DigitalButton extends VirtualControllerElement
 {
-    private class TimerLongClickTimerTask extends TimerTask
-    {
-        @Override
-        public void run()
-        {
-            onLongClickCallback();
-        }
-    }
-    private static final boolean _PRINT_DEBUG_INFORMATION = false;
+	List<DigitalButtonListener> listeners = new ArrayList<DigitalButtonListener>();
+	OnTouchListener onTouchListener = null;
+	boolean clicked;
+	private String text = "";
+	private int icon = -1;
+	private long timerLongClickTimeout = 3000;
+	private Timer timerLongClick = null;
+	private TimerLongClickTimerTask longClickTimerTask = null;
 
-    private int     normalColor     = 0xF0888888;
-    private int     pressedColor    = 0xF00000FF;
-    private String  text            = "";
-    private int     icon            = -1;
+	public DigitalButton(Context context)
+	{
+		super(context);
+		clicked = false;
+	}
 
-    private long                    timerLongClickTimeout   = 3000;
-    private Timer                   timerLongClick          = null;
-    private TimerLongClickTimerTask longClickTimerTask      = null;
+	public void addDigitalButtonListener(DigitalButtonListener listener)
+	{
+		listeners.add(listener);
+	}
 
+	public void setOnTouchListener(OnTouchListener listener)
+	{
+		onTouchListener = listener;
+	}
 
-    public interface DigitalButtonListener
-    {
-        void onClick();
-        void onLongClick();
-        void onRelease();
-    }
+	public void setText(String text)
+	{
+		this.text = text;
+		invalidate();
+	}
 
-    public void addDigitalButtonListener(DigitalButtonListener listener)
-    {
-        listeners.add(listener);
-    }
+	public void setIcon(int id)
+	{
+		this.icon = id;
+		invalidate();
+	}
 
-    public  void setColors(int normalColor, int pressedColor)
-    {
-        this.normalColor    = normalColor;
-        this.pressedColor   = pressedColor;
-    }
+	@Override
+	protected void onDraw(Canvas canvas)
+	{
+		// set transparent background
+		canvas.drawColor(Color.TRANSPARENT);
 
-    public void setOnTouchListener(OnTouchListener listener)
-    {
-        onTouchListener = listener;
-    }
+		Paint paint = new Paint();
 
-    private static final void _DBG(String text)
-    {
-        if (_PRINT_DEBUG_INFORMATION)
-        {
-            System.out.println("DigitalButton: " + text);
-        }
-    }
+		paint.setTextSize(getPercent(getCorrectWidth(), 50));
+		paint.setTextAlign(Paint.Align.CENTER);
+		paint.setStrokeWidth(3);
 
-    List<DigitalButtonListener> listeners = new ArrayList<DigitalButtonListener>();
-    OnTouchListener onTouchListener = null;
+		paint.setColor(clicked ? pressedColor : normalColor);
+		paint.setStyle(Paint.Style.STROKE);
+		canvas.drawRect(
+			1, 1,
+			getWidth() - 1, getHeight() - 1,
+			paint
+		);
 
-    boolean clicked;
+		if (icon != -1)
+		{
+			Drawable d = getResources().getDrawable(icon);
+			d.setBounds(5, 5, getWidth() - 5, getHeight() - 5);
+			d.draw(canvas);
+		}
+		else
+		{
+			paint.setStyle(Paint.Style.FILL_AND_STROKE);
+			canvas.drawText(text,
+				getPercent(getWidth(), 50), getPercent(getHeight(), 73),
+				paint);
+		}
 
-    public DigitalButton(Context context)
-    {
-        super(context);
+		super.onDraw(canvas);
+	}
 
-        clicked = false;
-    }
+	private void onClickCallback()
+	{
+		_DBG("clicked");
 
-    public void setText(String text)
-    {
-        this.text = text;
+		// notify listeners
+		for (DigitalButtonListener listener : listeners)
+		{
+			listener.onClick();
+		}
 
-        invalidate();
-    }
+		timerLongClick = new Timer();
+		longClickTimerTask = new TimerLongClickTimerTask();
 
-    public  void setIcon(int id)
-    {
-        this.icon = id;
+		timerLongClick.schedule(longClickTimerTask, timerLongClickTimeout);
+	}
 
-        invalidate();
-    }
+	private void onLongClickCallback()
+	{
+		_DBG("long click");
 
-    private float getPercent(float value, float percent)
-    {
-        return value / 100 * percent;
-    }
+		// notify listeners
+		for (DigitalButtonListener listener : listeners)
+		{
+			listener.onLongClick();
+		}
+	}
 
-    private int getCorrectWidth()
-    {
-        return getWidth() > getHeight() ? getHeight() : getWidth();
-    }
+	private void onReleaseCallback()
+	{
+		_DBG("released");
 
-    @Override
-    protected void onDraw(Canvas canvas)
-    {
-        // set transparent background
-        canvas.drawColor(Color.TRANSPARENT);
+		// notify listeners
+		for (DigitalButtonListener listener : listeners)
+		{
+			listener.onRelease();
+		}
 
-        Paint paint = new Paint();
+		timerLongClick.cancel();
+		longClickTimerTask.cancel();
+	}
 
-        paint.setTextSize(getPercent(getCorrectWidth(), 50));
-        paint.setTextAlign(Paint.Align.CENTER);
-        paint.setStrokeWidth(3);
+	@Override
+	public boolean onTouchEvent(MotionEvent event)
+	{
+		/*
+		if (onTouchListener != null)
+		{
+		return onTouchListener.onTouch(this, event);
+		}
+		*/
+		// get masked (not specific to a pointer) action
+		int action = event.getActionMasked();
 
-        paint.setColor(clicked ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(
-                1,              1,
-                getWidth() - 1, getHeight() - 1,
-                paint
-        );
+		switch (action)
+		{
+			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_POINTER_DOWN:
+			{
+				clicked = true;
+				onClickCallback();
 
-        if (icon != -1)
-        {
-            Drawable d = getResources().getDrawable(icon);
-            d.setBounds(5, 5, getWidth() - 5, getHeight() - 5);
-            d.draw(canvas);
-        }
-        else
-        {
-            paint.setStyle(Paint.Style.FILL_AND_STROKE);
-            canvas.drawText(text,
-                    getPercent(getWidth(), 50), getPercent(getHeight(), 73),
-                    paint);
-        }
+				invalidate();
 
-        super.onDraw(canvas);
-    }
+				return true;
+			}
+			case MotionEvent.ACTION_CANCEL:
+			case MotionEvent.ACTION_UP:
+			case MotionEvent.ACTION_POINTER_UP:
+			{
+				clicked = false;
+				onReleaseCallback();
 
-    private void onClickCallback()
-    {
-        _DBG("clicked");
+				invalidate();
 
-        // notify listeners
-        for (DigitalButtonListener listener : listeners)
-        {
-            listener.onClick();
-        }
+				return true;
+			}
+			default:
+			{
+			}
+		}
 
-        timerLongClick          = new Timer();
-        longClickTimerTask      = new TimerLongClickTimerTask();
+		return true;
+	}
 
-        timerLongClick.schedule(longClickTimerTask, timerLongClickTimeout);
-    }
+	public interface DigitalButtonListener
+	{
+		void onClick();
 
-    private void onLongClickCallback()
-    {
-        _DBG("long click");
+		void onLongClick();
 
-        // notify listeners
-        for (DigitalButtonListener listener : listeners)
-        {
-            listener.onLongClick();
-        }
-    }
+		void onRelease();
+	}
 
-    private void onReleaseCallback()
-    {
-        _DBG("released");
-
-        // notify listeners
-        for (DigitalButtonListener listener : listeners)
-        {
-            listener.onRelease();
-        }
-
-        timerLongClick.cancel();
-        longClickTimerTask.cancel();
-    }
-
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event)
-    {
-        /*
-        if (onTouchListener != null)
-        {
-            return onTouchListener.onTouch(this, event);
-        }
-        */
-        // get masked (not specific to a pointer) action
-        int action = event.getActionMasked();
-
-        switch (action)
-        {
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_POINTER_DOWN:
-            {
-                clicked = true;
-                onClickCallback();
-
-                invalidate();
-
-                return  true;
-            }
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_POINTER_UP:
-            {
-                clicked = false;
-                onReleaseCallback();
-
-                invalidate();
-
-                return true;
-            }
-            default:
-            {
-            }
-        }
-
-        return true;
-    }
+	private class TimerLongClickTimerTask extends TimerTask
+	{
+		@Override
+		public void run()
+		{
+			onLongClickCallback();
+		}
+	}
 }

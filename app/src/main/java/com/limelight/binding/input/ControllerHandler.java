@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import com.limelight.LimeLog;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.ControllerPacket;
+import com.limelight.ui.GameGestures;
 import com.limelight.utils.Vector2d;
 
 public class ControllerHandler {
@@ -30,6 +31,9 @@ public class ControllerHandler {
 	private long lastLbUpTime = 0;
 	private long lastRbUpTime = 0;
 	private static final int MAXIMUM_BUMPER_UP_DELAY_MS = 100;
+
+    private long startDownTime = 0;
+    private static final int START_DOWN_TIME_KEYB_MS = 750;
 	
 	private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 25;
 	
@@ -46,10 +50,12 @@ public class ControllerHandler {
 	private NvConnection conn;
     private double stickDeadzone;
     private final ControllerMapping defaultMapping = new ControllerMapping();
+    private GameGestures gestures;
     private boolean hasGameController;
 	
-	public ControllerHandler(NvConnection conn, int deadzonePercentage) {
+	public ControllerHandler(NvConnection conn, GameGestures gestures, int deadzonePercentage) {
 		this.conn = conn;
+        this.gestures = gestures;
 
         // HACK: For now we're hardcoding a 10% deadzone. Some deadzone
         // is required for controller batching support to work.
@@ -513,6 +519,9 @@ public class ControllerHandler {
 			break;
 		case KeyEvent.KEYCODE_BUTTON_START:
 		case KeyEvent.KEYCODE_MENU:
+            if (SystemClock.uptimeMillis() - startDownTime > ControllerHandler.START_DOWN_TIME_KEYB_MS) {
+                gestures.showKeyboard();
+            }
 			inputMap &= ~ControllerPacket.PLAY_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BACK:
@@ -621,6 +630,9 @@ public class ControllerHandler {
 			break;
 		case KeyEvent.KEYCODE_BUTTON_START:
 		case KeyEvent.KEYCODE_MENU:
+            if (event.getRepeatCount() == 0) {
+                startDownTime = SystemClock.uptimeMillis();
+            }
 			inputMap |= ControllerPacket.PLAY_FLAG;
 			break;
 		case KeyEvent.KEYCODE_BACK:

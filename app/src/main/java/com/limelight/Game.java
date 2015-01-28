@@ -17,18 +17,23 @@ import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.preferences.PreferenceConfiguration;
+import com.limelight.ui.GameGestures;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -43,12 +48,15 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
+
+import java.util.Locale;
 
 
 public class Game extends Activity implements SurfaceHolder.Callback,
 	OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
-	OnSystemUiVisibilityChangeListener
+	OnSystemUiVisibilityChangeListener, GameGestures
 {
 	private int lastMouseX = Integer.MIN_VALUE;
 	private int lastMouseY = Integer.MIN_VALUE;
@@ -56,6 +64,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	
 	// Only 2 touches are supported
 	private TouchContext[] touchContextMap = new TouchContext[2];
+    private long threeFingerDownTime = 0;
+
+    private static final int THREE_FINGER_TAP_THRESHOLD = 300;
 	
 	private ControllerHandler controllerHandler;
     private VirtualController virtualController;
@@ -89,6 +100,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+        String locale = PreferenceConfiguration.readPreferences(this).language;
+        if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
+			Configuration config = new Configuration(getResources().getConfiguration());
+			config.locale = new Locale(locale);
+			getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+		}
 		
 		// We don't want a title bar
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -180,7 +198,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		// Initialize the connection
 		conn = new NvConnection(host, uniqueId, Game.this, config, PlatformBinding.getCryptoProvider(this));
 		keybTranslator = new KeyboardTranslator(conn);
-		controllerHandler = new ControllerHandler(conn, prefConfig.deadzonePercentage);
+		controllerHandler = new ControllerHandler(conn, this, prefConfig.deadzonePercentage);
 		
 		SurfaceHolder sh = sv.getHolder();
 		if (prefConfig.stretchVideo || !decoderRenderer.isHardwareAccelerated()) {
@@ -478,6 +496,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		}
 	}
 
+    @Override
+    public void showKeyboard() {
+        LimeLog.info("Showing keyboard overlay");
+        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+    }
+
 	// Returns true if the event was consumed
 	private boolean handleMotionEvent(MotionEvent event) {
 		// Pass through keyboard input if we're not grabbing
@@ -499,7 +524,22 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 				int actionIndex = event.getActionIndex();
 
 				int eventX = (int)event.getX(actionIndex);
-				int eventY = (int)event.getY(actionIndex);
+                int eventY = (int)event.getY(actionIndex);
+
+                // Special handling for 3 finger gesture
+                if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN &&
+                        event.getPointerCount() == 3) {
+                    // Three fingers down
+                    threeFingerDownTime = SystemClock.uptimeMillis();
+
+                    // Cancel the first and second touches to avoid
+                    // erroneous events
+                    for (TouchContext aTouchContext : touchContextMap) {
+                        aTouchContext.cancelTouch();
+                    }
+
+                    return true;
+                }
 
 				TouchContext context = getTouchContext(actionIndex);
 				if (context == null) {
@@ -514,8 +554,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 					break;
 				case MotionEvent.ACTION_POINTER_UP:
 				case MotionEvent.ACTION_UP:
+                    if (event.getPointerCount() == 1) {
+                        // All fingers up
+                        if (SystemClock.uptimeMillis() - threeFingerDownTime < THREE_FINGER_TAP_THRESHOLD) {
+                            // This is a 3 finger tap to bring up the keyboard
+                            showKeyboard();
+                            return true;
+                        }
+                    }
 					context.touchUpEvent(eventX, eventY);
-					if (actionIndex == 0 && event.getPointerCount() > 1) {
+					if (actionIndex == 0 && event.getPointerCount() > 1 && !context.isCancelled()) {
 						// The original secondary touch now becomes primary
 						context.touchDownEvent((int)event.getX(1), (int)event.getY(1));
 					}

@@ -1,32 +1,45 @@
 package com.limelight;
 
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import org.xmlpull.v1.XmlPullParserException;
 
 import com.limelight.binding.PlatformBinding;
+import com.limelight.binding.crypto.AndroidCryptoProvider;
+import com.limelight.computers.ComputerManagerListener;
+import com.limelight.computers.ComputerManagerService;
 import com.limelight.grid.AppGridAdapter;
+import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
+import com.limelight.utils.CacheHelper;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Service;
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,26 +48,145 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class AppView extends Activity implements AdapterFragmentCallbacks {
     private AppGridAdapter appGridAdapter;
-	private InetAddress ipAddress;
-	private String uniqueId;
-	private boolean remote;
-    private boolean firstLoad = true;
-	
+    private String uuidString;
+
+    private ComputerDetails computer;
+    private ComputerManagerService.ApplistPoller poller;
+    private SpinnerDialog blockingLoadSpinner;
+    private String lastRawApplist;
+
+    private int consecutiveAppListFailures = 0;
+    private final static int CONSECUTIVE_FAILURE_LIMIT = 3;
+
 	private final static int START_OR_RESUME_ID = 1;
 	private final static int QUIT_ID = 2;
 	private final static int CANCEL_ID = 3;
     private final static int START_WTIH_QUIT = 4;
-	
-	public final static String ADDRESS_EXTRA = "Address";
-	public final static String UNIQUEID_EXTRA = "UniqueId";
-	public final static String NAME_EXTRA = "Name";
-	public final static String REMOTE_EXTRA = "Remote";
+
+    public final static String NAME_EXTRA = "Name";
+	public final static String UUID_EXTRA = "UUID";
+
+    private ComputerManagerService.ComputerManagerBinder managerBinder;
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder binder) {
+            final ComputerManagerService.ComputerManagerBinder localBinder =
+                    ((ComputerManagerService.ComputerManagerBinder)binder);
+
+            // Wait in a separate thread to avoid stalling the UI
+            new Thread() {
+                @Override
+                public void run() {
+                    // Wait for the binder to be ready
+                    localBinder.waitForReady();
+
+                    // Now make the binder visible
+                    managerBinder = localBinder;
+
+                    // Get the computer object
+                    computer = managerBinder.getComputer(UUID.fromString(uuidString));
+
+                    // Start updates
+                    startComputerUpdates();
+
+                    try {
+                        appGridAdapter = new AppGridAdapter(AppView.this, 1.0,
+                                PreferenceConfiguration.readPreferences(AppView.this).listMode,
+                                computer, managerBinder.getUniqueId());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        finish();
+                        return;
+                    }
+
+                    // Load the app grid with cached data (if possible)
+                    populateAppGridWithCache();
+
+                    getFragmentManager().beginTransaction()
+                            .add(R.id.appFragmentContainer, new AdapterFragment()).commitAllowingStateLoss();
+                }
+            }.start();
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            managerBinder = null;
+        }
+    };
+
+    private InetAddress getAddress() {
+        return computer.reachability == ComputerDetails.Reachability.LOCAL ?
+        computer.localIp : computer.remoteIp;
+    }
+
+    private void startComputerUpdates() {
+        if (managerBinder == null) {
+            return;
+        }
+
+        managerBinder.startPolling(new ComputerManagerListener() {
+            @Override
+            public void notifyComputerUpdated(ComputerDetails details) {
+                // Don't care about other computers
+                if (details != computer) {
+                    return;
+                }
+
+                if (details.state != ComputerDetails.State.ONLINE) {
+                    consecutiveAppListFailures++;
+
+                    if (consecutiveAppListFailures >= CONSECUTIVE_FAILURE_LIMIT) {
+                        // The PC is unreachable now
+                        AppView.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Display a toast to the user and quit the activity
+                                Toast.makeText(AppView.this, getResources().getText(R.string.lost_connection), Toast.LENGTH_SHORT).show();
+                                finish();
+                            }
+                        });
+                    }
+
+                    return;
+                }
+
+                // App list is the same or empty; nothing to do
+                if (details.rawAppList == null || details.rawAppList.equals(lastRawApplist)) {
+                    return;
+                }
+
+                try {
+                    lastRawApplist = details.rawAppList;
+                    updateUiWithAppList(NvHTTP.getAppListByReader(new StringReader(details.rawAppList)));
+
+                    if (blockingLoadSpinner != null) {
+                        blockingLoadSpinner.dismiss();
+                        blockingLoadSpinner = null;
+                    }
+                } catch (Exception e) {}
+            }
+        });
+
+        if (poller == null) {
+            poller = managerBinder.createAppListPoller(computer);
+        }
+        poller.start();
+    }
+
+    private void stopComputerUpdates() {
+        if (poller != null) {
+            poller.stop();
+        }
+
+        if (managerBinder != null) {
+            managerBinder.stopPolling();
+        }
+    }
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -70,41 +202,35 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 		setContentView(R.layout.activity_app_view);
 
         UiHelper.notifyNewRootView(this);
-		
-		byte[] address = getIntent().getByteArrayExtra(ADDRESS_EXTRA);
-		uniqueId = getIntent().getStringExtra(UNIQUEID_EXTRA);
-		remote = getIntent().getBooleanExtra(REMOTE_EXTRA, false);
-		if (address == null || uniqueId == null) {
-            finish();
-			return;
-		}
+
+        uuidString = getIntent().getStringExtra(UUID_EXTRA);
 		
 		String labelText = getResources().getString(R.string.title_applist)+" "+getIntent().getStringExtra(NAME_EXTRA);
 		TextView label = (TextView) findViewById(R.id.appListText);
 		setTitle(labelText);
 		label.setText(labelText);
-		
-		try {
-			ipAddress = InetAddress.getByAddress(address);
-		} catch (UnknownHostException e) {
-            e.printStackTrace();
-            finish();
-            return;
-		}
 
-        try {
-            appGridAdapter = new AppGridAdapter(this,
-                    PreferenceConfiguration.readPreferences(this).listMode,
-                    ipAddress, uniqueId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            finish();
-            return;
-        }
-
-        getFragmentManager().beginTransaction()
-                .add(R.id.appFragmentContainer, new AdapterFragment()).commitAllowingStateLoss();
+        // Bind to the computer manager service
+        bindService(new Intent(this, ComputerManagerService.class), serviceConnection,
+                Service.BIND_AUTO_CREATE);
 	}
+
+    private void populateAppGridWithCache() {
+        try {
+            // Try to load from cache
+            updateUiWithAppList(NvHTTP.getAppListByReader(new InputStreamReader(CacheHelper.openCacheFileForInput(getCacheDir(), "applist", uuidString))));
+            LimeLog.info("Loaded applist from cache");
+        } catch (Exception e) {
+            LimeLog.info("Loading applist from the network");
+            // We'll need to load from the network
+            loadAppsBlocking();
+        }
+    }
+
+    private void loadAppsBlocking() {
+        blockingLoadSpinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.applist_refresh_title),
+                getResources().getString(R.string.applist_refresh_msg), true);
+    }
 	
 	@Override
 	protected void onDestroy() {
@@ -112,18 +238,25 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 		
 		SpinnerDialog.closeDialogs(this);
 		Dialog.closeDialogs();
+
+        if (managerBinder != null) {
+            unbindService(serviceConnection);
+        }
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
 
-        // Display the error message if it was the
-        // first load, but just kill the activity
-        // on subsequent errors
-        updateAppList(firstLoad);
-        firstLoad = false;
+        startComputerUpdates();
 	}
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        stopComputerUpdates();
+    }
 	
 	private int getRunningAppId() {
         int runningAppId = -1;
@@ -232,62 +365,62 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 return super.onContextItemSelected(item);
         }
     }
-    
-    private void updateAppList(final boolean displayError) {
-		final SpinnerDialog spinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.applist_refresh_title),
-				getResources().getString(R.string.applist_refresh_msg), true);
-		new Thread() {
-			@Override
-			public void run() {
-				NvHTTP httpConn = new NvHTTP(ipAddress, uniqueId, null,  PlatformBinding.getCryptoProvider(AppView.this));
-				
-				try {
-					final List<NvApp> appList = httpConn.getAppList();
-					
-					AppView.this.runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-                            appGridAdapter.clear();
-                            for (NvApp app : appList) {
-                                appGridAdapter.addApp(new AppObject(app));
+
+    private void updateUiWithAppList(final List<NvApp> appList) {
+        AppView.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                boolean updated = false;
+
+                for (NvApp app : appList) {
+                    boolean foundExistingApp = false;
+
+                    // Try to update an existing app in the list first
+                    for (int i = 0; i < appGridAdapter.getCount(); i++) {
+                        AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
+                        if (existingApp.app == null) {
+                            continue;
+                        }
+
+                        if (existingApp.app.getAppId() == app.getAppId()) {
+                            // Found the app; update its properties
+                            if (existingApp.app.getIsRunning() != app.getIsRunning()) {
+                                existingApp.app.setIsRunningBoolean(app.getIsRunning());
+                                updated = true;
+                            }
+                            if (!existingApp.app.getAppName().equals(app.getAppName())) {
+                                existingApp.app.setAppName(app.getAppName());
+                                updated = true;
                             }
 
-                            appGridAdapter.notifyDataSetChanged();
-						}
-					});
-					
-					// Success case
-					return;
-				} catch (GfeHttpResponseException ignored) {
-				} catch (IOException ignored) {
-				} catch (XmlPullParserException ignored) {
-				} finally {
-					spinner.dismiss();
-				}
-
-                if (displayError) {
-                    Dialog.displayDialog(AppView.this, getResources().getString(R.string.applist_refresh_error_title),
-                            getResources().getString(R.string.applist_refresh_error_msg), true);
-                }
-                else {
-                    // Just finish the activity immediately
-                    AppView.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            finish();
+                            foundExistingApp = true;
+                            break;
                         }
-                    });
+                    }
+
+                    if (!foundExistingApp) {
+                        // This app must be new
+                        appGridAdapter.addApp(new AppObject(app));
+                        updated = true;
+                    }
                 }
-			}
-		}.start();
+
+                if (updated) {
+                    appGridAdapter.notifyDataSetChanged();
+                }
+            }
+        });
     }
-	
+
 	private void doStart(NvApp app) {
 		Intent intent = new Intent(this, Game.class);
-		intent.putExtra(Game.EXTRA_HOST, ipAddress.getHostAddress());
+		intent.putExtra(Game.EXTRA_HOST,
+                computer.reachability == ComputerDetails.Reachability.LOCAL ?
+                computer.localIp.getHostAddress() : computer.remoteIp.getHostAddress());
 		intent.putExtra(Game.EXTRA_APP, app.getAppName());
-		intent.putExtra(Game.EXTRA_UNIQUEID, uniqueId);
-		intent.putExtra(Game.EXTRA_STREAMING_REMOTE, remote);
+		intent.putExtra(Game.EXTRA_UNIQUEID, managerBinder.getUniqueId());
+		intent.putExtra(Game.EXTRA_STREAMING_REMOTE,
+                computer.reachability != ComputerDetails.Reachability.LOCAL);
 		startActivity(intent);
 	}
 	
@@ -299,21 +432,26 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 				NvHTTP httpConn;
 				String message;
 				try {
-					httpConn = new NvHTTP(ipAddress, uniqueId, null,  PlatformBinding.getCryptoProvider(AppView.this));
+					httpConn = new NvHTTP(getAddress(),
+                            managerBinder.getUniqueId(), null, PlatformBinding.getCryptoProvider(AppView.this));
 					if (httpConn.quitApp()) {
 						message = getResources().getString(R.string.applist_quit_success)+" "+app.getAppName();
 					}
 					else {
 						message = getResources().getString(R.string.applist_quit_fail)+" "+app.getAppName();
 					}
-					updateAppList(true);
 				} catch (UnknownHostException e) {
 					message = getResources().getString(R.string.error_unknown_host);
 				} catch (FileNotFoundException e) {
 					message = getResources().getString(R.string.error_404);
 				} catch (Exception e) {
 					message = e.getMessage();
-				}
+				} finally {
+                    // Trigger a poll immediately
+                    if (poller != null) {
+                        poller.pollNow();
+                    }
+                }
 				
 				final String toastMessage = message;
 				runOnUiThread(new Runnable() {

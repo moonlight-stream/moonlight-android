@@ -15,6 +15,7 @@ public class PreferenceConfiguration {
     private static final String DEADZONE_PREF_STRING = "seekbar_deadzone";
     private static final String LANGUAGE_PREF_STRING = "list_languages";
     private static final String LIST_MODE_PREF_STRING = "checkbox_list_mode";
+    private static final String SMALL_ICONS_PREF_STRING = "checkbox_small_icon_mode";
 
     private static final int BITRATE_DEFAULT_720_30 = 5;
     private static final int BITRATE_DEFAULT_720_60 = 10;
@@ -31,6 +32,7 @@ public class PreferenceConfiguration {
     private static final int DEFAULT_DEADZONE = 15;
     public static final String DEFAULT_LANGUAGE = "default";
     private static final boolean DEFAULT_LIST_MODE = false;
+    private static final boolean DEFAULT_SMALL_ICON = false;
 
     public static final int FORCE_HARDWARE_DECODER = -1;
     public static final int AUTOSELECT_DECODER = 0;
@@ -42,7 +44,7 @@ public class PreferenceConfiguration {
     public int deadzonePercentage;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
     public String language;
-    public boolean listMode;
+    public boolean listMode, smallIconMode;
 
     public static int getDefaultBitrate(String resFpsString) {
         if (resFpsString.equals("720p30")) {
@@ -149,6 +151,7 @@ public class PreferenceConfiguration {
         config.stretchVideo = prefs.getBoolean(STRETCH_PREF_STRING, DEFAULT_STRETCH);
         config.playHostAudio = prefs.getBoolean(HOST_AUDIO_PREF_STRING, DEFAULT_HOST_AUDIO);
         config.listMode = prefs.getBoolean(LIST_MODE_PREF_STRING, DEFAULT_LIST_MODE);
+        config.smallIconMode = prefs.getBoolean(SMALL_ICONS_PREF_STRING, DEFAULT_SMALL_ICON);
 
         return config;
     }

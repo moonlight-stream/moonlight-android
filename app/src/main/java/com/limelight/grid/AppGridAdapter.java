@@ -13,7 +13,9 @@ import com.limelight.AppView;
 import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.binding.PlatformBinding;
+import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.LimelightCryptoProvider;
+import com.limelight.utils.CacheHelper;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -32,6 +34,7 @@ import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.Future;
 
 import javax.net.ssl.HostnameVerifier;
@@ -45,17 +48,16 @@ import java.security.cert.X509Certificate;
 
 public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
-    private boolean listMode;
-    private InetAddress address;
+    private ComputerDetails computer;
     private String uniqueId;
     private LimelightCryptoProvider cryptoProvider;
     private SSLContext sslContext;
     private final HashMap<ImageView, Future> pendingRequests = new HashMap<ImageView, Future>();
 
-    public AppGridAdapter(Context context, boolean listMode, InetAddress address, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
-        super(context, listMode ? R.layout.simple_row : R.layout.app_grid_item, R.drawable.image_loading);
+    public AppGridAdapter(Context context, double gridScaleFactor, boolean listMode, ComputerDetails computer, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
+        super(context, listMode ? R.layout.simple_row : R.layout.app_grid_item, R.drawable.image_loading, gridScaleFactor);
 
-        this.address = address;
+        this.computer = computer;
         this.uniqueId = uniqueId;
 
         cryptoProvider = PlatformBinding.getCryptoProvider(context);
@@ -117,6 +119,15 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         });
     }
 
+    private InetAddress getCurrentAddress() {
+        if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
+            return computer.localIp;
+        }
+        else {
+            return computer.remoteIp;
+        }
+    }
+
     public void addApp(AppView.AppObject app) {
         itemList.add(app);
         sortList();
@@ -144,47 +155,24 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
     }
 
-    private Bitmap checkBitmapCache(String addrStr, int appId) {
-        File addrFolder = new File(context.getCacheDir(), addrStr);
-        if (addrFolder.isDirectory()) {
-            File bitmapFile = new File(addrFolder, appId+".png");
-            if (bitmapFile.exists()) {
-                InputStream fileIn = null;
-                try {
-                    fileIn = new BufferedInputStream(new FileInputStream(bitmapFile));
-                    Bitmap bm = BitmapFactory.decodeStream(fileIn);
-                    if (bm == null) {
-                        // The image seems corrupt
-                        bitmapFile.delete();
-                    }
-
-                    return bm;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    bitmapFile.delete();
-                } finally {
-                    if (fileIn != null) {
-                        try {
-                            fileIn.close();
-                        } catch (IOException ignored) {}
-                    }
-                }
-            }
-        }
-
+    private Bitmap checkBitmapCache(int appId) {
+        try {
+            InputStream in = CacheHelper.openCacheFileForInput(context.getCacheDir(), "boxart", computer.uuid.toString(), appId+".png");
+            Bitmap bm = BitmapFactory.decodeStream(in);
+            in.close();
+            return bm;
+        } catch (IOException e) {}
         return null;
     }
 
     // TODO: Handle pruning of bitmap cache
-    private void populateBitmapCache(String addrStr, int appId, Bitmap bitmap) {
-        File addrFolder = new File(context.getCacheDir(), addrStr);
-        addrFolder.mkdirs();
-
-        File bitmapFile = new File(addrFolder, appId+".png");
+    private void populateBitmapCache(UUID uuid, int appId, Bitmap bitmap) {
         try {
             // PNG ignores quality setting
-            bitmap.compress(Bitmap.CompressFormat.PNG, 0, new FileOutputStream(bitmapFile));
-        } catch (FileNotFoundException e) {
+            FileOutputStream out = CacheHelper.openCacheFileForOutput(context.getCacheDir(), "boxart", uuid.toString(), appId+".png");
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0, out);
+            out.close();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -197,10 +185,10 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         Ion.getDefault(imgView.getContext()).getHttpClient().getSSLSocketMiddleware().setSSLContext(sslContext);
 
         // Check the on-disk cache
-        Bitmap cachedBitmap = checkBitmapCache(address.getHostAddress(), obj.app.getAppId());
+        Bitmap cachedBitmap = checkBitmapCache(obj.app.getAppId());
         if (cachedBitmap != null) {
             // Cache hit; we're done
-            LimeLog.info("Image cache hit for ("+address.getHostAddress()+", "+obj.app.getAppId()+")");
+            LimeLog.info("Image cache hit for ("+computer.uuid+", "+obj.app.getAppId()+")");
             imgView.setImageBitmap(cachedBitmap);
             return true;
         }
@@ -210,7 +198,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
             Future<ImageViewBitmapInfo> f = Ion.with(imgView)
                     .placeholder(defaultImageRes)
                     .error(defaultImageRes)
-                    .load("https://" + address.getHostAddress() + ":47984/appasset?uniqueid=" + uniqueId + "&appid=" +
+                    .load("https://" + getCurrentAddress().getHostAddress() + ":47984/appasset?uniqueid=" + uniqueId + "&appid=" +
                             obj.app.getAppId() + "&AssetType=2&AssetIdx=0")
                     .withBitmapInfo()
                     .setCallback(
@@ -225,7 +213,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                                     if (result != null &&
                                         result.getBitmapInfo() != null &&
                                         result.getBitmapInfo().bitmap != null) {
-                                        populateBitmapCache(address.getHostAddress(), obj.app.getAppId(),
+                                        populateBitmapCache(computer.uuid, obj.app.getAppId(),
                                                 result.getBitmapInfo().bitmap);
                                     }
                                 }

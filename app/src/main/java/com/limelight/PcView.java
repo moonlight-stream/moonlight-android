@@ -156,7 +156,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 		bindService(new Intent(PcView.this, ComputerManagerService.class), serviceConnection,
 				Service.BIND_AUTO_CREATE);
 
-        pcGridAdapter = new PcGridAdapter(this,
+        pcGridAdapter = new PcGridAdapter(this, 1.0,
                 PreferenceConfiguration.readPreferences(this).listMode);
 		
 		initializeViews();
@@ -474,16 +474,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 		
 		Intent i = new Intent(this, AppView.class);
 		i.putExtra(AppView.NAME_EXTRA, computer.name);
-		i.putExtra(AppView.UNIQUEID_EXTRA, managerBinder.getUniqueId());
-		
-		if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
-			i.putExtra(AppView.ADDRESS_EXTRA, computer.localIp.getAddress());
-			i.putExtra(AppView.REMOTE_EXTRA, false);
-		}
-		else {
-			i.putExtra(AppView.ADDRESS_EXTRA, computer.remoteIp.getAddress());
-			i.putExtra(AppView.REMOTE_EXTRA, true);
-		}
+		i.putExtra(AppView.UUID_EXTRA, computer.uuid.toString());
 		startActivity(i);
 	}
 

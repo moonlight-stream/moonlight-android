@@ -13,8 +13,8 @@ import java.util.Comparator;
 
 public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
-    public PcGridAdapter(Context context, boolean listMode) {
-        super(context, listMode ? R.layout.simple_row : R.layout.pc_grid_item, R.drawable.computer);
+    public PcGridAdapter(Context context, double gridScaleFactor, boolean listMode) {
+        super(context, listMode ? R.layout.simple_row : R.layout.pc_grid_item, R.drawable.computer, gridScaleFactor);
     }
 
     public void addComputer(PcView.ComputerObject computer) {

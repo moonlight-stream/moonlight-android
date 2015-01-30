@@ -304,13 +304,12 @@ public class NvHTTP {
 		return pm.pair(uniqueId, pin);
 	}
 	
-	public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
-		ResponseBody resp = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId, true);
+	public static LinkedList<NvApp> getAppListByReader(Reader r) throws XmlPullParserException, IOException {
 		XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 		factory.setNamespaceAware(true);
 		XmlPullParser xpp = factory.newPullParser();
 
-		xpp.setInput(new InputStreamReader(resp.byteStream()));
+		xpp.setInput(r);
 		int eventType = xpp.getEventType();
 		LinkedList<NvApp> appList = new LinkedList<NvApp>();
 		Stack<String> currentTag = new Stack<String>();
@@ -342,9 +341,18 @@ public class NvHTTP {
 			}
 			eventType = xpp.next();
 		}
-		
+				
+		return appList;
+	}
+	
+	public String getAppListRaw() throws MalformedURLException, IOException {
+		return openHttpConnectionToString(baseUrl + "/applist?uniqueid=" + uniqueId, true);
+	}
+	
+	public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
+		ResponseBody resp = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId, true);
+		LinkedList<NvApp> appList = getAppListByReader(new InputStreamReader(resp.byteStream()));
 		resp.close();
-		
 		return appList;
 	}
 	

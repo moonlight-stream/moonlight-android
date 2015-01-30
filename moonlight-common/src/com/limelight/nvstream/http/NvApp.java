@@ -17,6 +17,10 @@ public class NvApp {
 		this.isRunning = isRunning.equals("1");
 	}
 	
+	public void setIsRunningBoolean(boolean isRunning) {
+		this.isRunning = isRunning;
+	}
+	
 	public String getAppName() {
 		return this.appName;
 	}

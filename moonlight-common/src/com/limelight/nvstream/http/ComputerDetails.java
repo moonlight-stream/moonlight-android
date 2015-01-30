@@ -21,6 +21,7 @@ public class ComputerDetails {
 	public PairingManager.PairState pairState;
 	public String macAddress;
 	public int runningGameId;
+	public String rawAppList;
 	
 	public ComputerDetails() {
 		// Use defaults
@@ -43,6 +44,7 @@ public class ComputerDetails {
 		this.macAddress = details.macAddress;
 		this.pairState = details.pairState;
 		this.runningGameId = details.runningGameId;
+		this.rawAppList = details.rawAppList;
 	}
 	
 	@Override

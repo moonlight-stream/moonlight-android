@@ -66,7 +66,7 @@ public class PreferenceConfiguration {
 
     private static boolean getDefaultSmallMode(Context context) {
         // Use small mode on anything smaller than a 7" tablet
-        return context.getResources().getConfiguration().smallestScreenWidthDp < 720;
+        return context.getResources().getConfiguration().smallestScreenWidthDp < 600;
     }
 
     public static int getDefaultBitrate(Context context) {

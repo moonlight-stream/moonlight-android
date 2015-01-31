@@ -56,8 +56,9 @@
     <!-- General strings -->
     <string name="ip_hint">Indirizzo IP del PC</string>
     <string name="searching_pc">Ricerca PC in corso…</string>
-    <string name="yes">Yes</string>
+    <string name="yes">Sì</string>
     <string name="no">No</string>
+    <string name="lost_connection">Connessione con il PC persa</string>
 
     <!-- AppList activity -->
     <string name="title_applist">Applicazioni su</string>
@@ -72,7 +73,7 @@
     <string name="applist_quit_app">Chiusura in corso…</string>
     <string name="applist_quit_success">Sessione chiusa con successo</string>
     <string name="applist_quit_fail">Chiusura sessione fallita</string>
-    <string name="applist_quit_confirmation">Are you sure you want to quit the running app? All unsaved data will be lost.</string>
+    <string name="applist_quit_confirmation">Sei sicuro di voler chiudere l\'applicazione avviata? Tutti i dati non salvati saranno persi.</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Aggiungi PC Manualmente</string>
@@ -102,6 +103,8 @@
     <string name="summary_language_list">Lingua da usare in Limelight</string>
     <string name="title_checkbox_list_mode">Usa lista invece della griglia</string>
     <string name="summary_checkbox_list_mode">Visualizza applicazioni e computers in una lista invece di una griglia</string>
+    <string name="title_checkbox_small_icon_mode">Usa icone piccole</string>
+    <string name="summary_checkbox_small_icon_mode">Usa icone piccole nella vista a griglia per avere più oggetti sullo schermo</string>
 
     <string name="category_host_settings">Impostazioni Host</string>
     <string name="title_checkbox_enable_sops">Ottimizza le impostazioni dei giochi</string>

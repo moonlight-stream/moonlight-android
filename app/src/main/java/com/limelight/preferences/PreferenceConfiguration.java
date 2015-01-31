@@ -32,7 +32,6 @@ public class PreferenceConfiguration {
     private static final int DEFAULT_DEADZONE = 15;
     public static final String DEFAULT_LANGUAGE = "default";
     private static final boolean DEFAULT_LIST_MODE = false;
-    private static final boolean DEFAULT_SMALL_ICON = false;
 
     public static final int FORCE_HARDWARE_DECODER = -1;
     public static final int AUTOSELECT_DECODER = 0;
@@ -63,6 +62,11 @@ public class PreferenceConfiguration {
             // Should never get here
             return DEFAULT_BITRATE;
         }
+    }
+
+    private static boolean getDefaultSmallMode(Context context) {
+        // Use small mode on anything smaller than a 7" tablet
+        return context.getResources().getConfiguration().smallestScreenWidthDp < 720;
     }
 
     public static int getDefaultBitrate(Context context) {
@@ -151,7 +155,7 @@ public class PreferenceConfiguration {
         config.stretchVideo = prefs.getBoolean(STRETCH_PREF_STRING, DEFAULT_STRETCH);
         config.playHostAudio = prefs.getBoolean(HOST_AUDIO_PREF_STRING, DEFAULT_HOST_AUDIO);
         config.listMode = prefs.getBoolean(LIST_MODE_PREF_STRING, DEFAULT_LIST_MODE);
-        config.smallIconMode = prefs.getBoolean(SMALL_ICONS_PREF_STRING, DEFAULT_SMALL_ICON);
+        config.smallIconMode = prefs.getBoolean(SMALL_ICONS_PREF_STRING, getDefaultSmallMode(context));
 
         return config;
     }

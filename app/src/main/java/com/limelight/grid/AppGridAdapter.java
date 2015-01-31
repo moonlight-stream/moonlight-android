@@ -54,8 +54,8 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     private SSLContext sslContext;
     private final HashMap<ImageView, Future> pendingRequests = new HashMap<ImageView, Future>();
 
-    public AppGridAdapter(Context context, double gridScaleFactor, boolean listMode, ComputerDetails computer, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
-        super(context, listMode ? R.layout.simple_row : R.layout.app_grid_item, R.drawable.image_loading, gridScaleFactor);
+    public AppGridAdapter(Context context, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
+        super(context, listMode ? R.layout.simple_row : (small ? R.layout.app_grid_item_small : R.layout.app_grid_item), R.drawable.image_loading);
 
         this.computer = computer;
         this.uniqueId = uniqueId;

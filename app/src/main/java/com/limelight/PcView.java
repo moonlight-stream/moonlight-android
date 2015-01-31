@@ -156,8 +156,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 		bindService(new Intent(PcView.this, ComputerManagerService.class), serviceConnection,
 				Service.BIND_AUTO_CREATE);
 
-        pcGridAdapter = new PcGridAdapter(this, 1.0,
-                PreferenceConfiguration.readPreferences(this).listMode);
+        pcGridAdapter = new PcGridAdapter(this,
+                PreferenceConfiguration.readPreferences(this).listMode,
+                PreferenceConfiguration.readPreferences(this).smallIconMode);
 		
 		initializeViews();
 	}
@@ -558,7 +559,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     @Override
     public int getAdapterFragmentLayoutId() {
         return PreferenceConfiguration.readPreferences(this).listMode ?
-                R.layout.list_view : R.layout.pc_grid_view;
+                R.layout.list_view : (PreferenceConfiguration.readPreferences(this).smallIconMode ?
+                R.layout.pc_grid_view_small : R.layout.pc_grid_view);
     }
 
     @Override

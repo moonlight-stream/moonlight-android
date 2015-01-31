@@ -18,13 +18,11 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
     protected int layoutId;
     protected ArrayList<T> itemList = new ArrayList<T>();
     protected LayoutInflater inflater;
-    protected double gridSizeFactor;
 
-    public GenericGridAdapter(Context context, int layoutId, int defaultImageRes, double gridSizeFactor) {
+    public GenericGridAdapter(Context context, int layoutId, int defaultImageRes) {
         this.context = context;
         this.layoutId = layoutId;
         this.defaultImageRes = defaultImageRes;
-        this.gridSizeFactor = gridSizeFactor;
 
         this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
@@ -66,26 +64,11 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
             if (!populateImageView(imgView, itemList.get(i))) {
                 imgView.setImageResource(defaultImageRes);
             }
-
-            ViewGroup.LayoutParams params = imgView.getLayoutParams();
-            params.width *= gridSizeFactor;
-            params.height *= gridSizeFactor;
-            imgView.setLayoutParams(params);
         }
         if (!populateTextView(txtView, itemList.get(i))) {
             txtView.setText(itemList.get(i).toString());
-
-            ViewGroup.LayoutParams params = txtView.getLayoutParams();
-            params.width *= gridSizeFactor;
-            params.height *= gridSizeFactor;
-            txtView.setLayoutParams(params);
         }
         if (overlayView != null) {
-            ViewGroup.LayoutParams params = overlayView.getLayoutParams();
-            params.width *= gridSizeFactor;
-            params.height *= gridSizeFactor;
-            overlayView.setLayoutParams(params);
-
             if (!populateOverlayView(overlayView, itemList.get(i))) {
                 overlayView.setVisibility(View.INVISIBLE);
             }

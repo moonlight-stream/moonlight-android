@@ -96,8 +96,9 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     startComputerUpdates();
 
                     try {
-                        appGridAdapter = new AppGridAdapter(AppView.this, 1.0,
+                        appGridAdapter = new AppGridAdapter(AppView.this,
                                 PreferenceConfiguration.readPreferences(AppView.this).listMode,
+                                PreferenceConfiguration.readPreferences(AppView.this).smallIconMode,
                                 computer, managerBinder.getUniqueId());
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -467,7 +468,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     @Override
     public int getAdapterFragmentLayoutId() {
         return PreferenceConfiguration.readPreferences(this).listMode ?
-                R.layout.list_view : R.layout.app_grid_view;
+                R.layout.list_view : (PreferenceConfiguration.readPreferences(AppView.this).smallIconMode ?
+                    R.layout.app_grid_view_small : R.layout.app_grid_view);
     }
 
     @Override

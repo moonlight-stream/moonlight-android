@@ -3,6 +3,8 @@ package com.limelight.grid;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -34,6 +36,7 @@ import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
@@ -155,16 +158,6 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
     }
 
-    private Bitmap checkBitmapCache(int appId) {
-        try {
-            InputStream in = CacheHelper.openCacheFileForInput(context.getCacheDir(), "boxart", computer.uuid.toString(), appId+".png");
-            Bitmap bm = BitmapFactory.decodeStream(in);
-            in.close();
-            return bm;
-        } catch (IOException e) {}
-        return null;
-    }
-
     // TODO: Handle pruning of bitmap cache
     private void populateBitmapCache(UUID uuid, int appId, Bitmap bitmap) {
         try {
@@ -184,42 +177,11 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         Ion.getDefault(imgView.getContext()).getHttpClient().getSSLSocketMiddleware().setTrustManagers(trustAllCerts);
         Ion.getDefault(imgView.getContext()).getHttpClient().getSSLSocketMiddleware().setSSLContext(sslContext);
 
+        // Hide the image view while we're loading the image from cache
+        imgView.setVisibility(View.INVISIBLE);
+
         // Check the on-disk cache
-        Bitmap cachedBitmap = checkBitmapCache(obj.app.getAppId());
-        if (cachedBitmap != null) {
-            // Cache hit; we're done
-            LimeLog.info("Image cache hit for ("+computer.uuid+", "+obj.app.getAppId()+")");
-            imgView.setImageBitmap(cachedBitmap);
-            return true;
-        }
-
-        // Kick off the deferred image load
-        synchronized (pendingRequests) {
-            Future<ImageViewBitmapInfo> f = Ion.with(imgView)
-                    .placeholder(defaultImageRes)
-                    .error(defaultImageRes)
-                    .load("https://" + getCurrentAddress().getHostAddress() + ":47984/appasset?uniqueid=" + uniqueId + "&appid=" +
-                            obj.app.getAppId() + "&AssetType=2&AssetIdx=0")
-                    .withBitmapInfo()
-                    .setCallback(
-                            new FutureCallback<ImageViewBitmapInfo>() {
-                                @Override
-                                public void onCompleted(Exception e, ImageViewBitmapInfo result) {
-                                    synchronized (pendingRequests) {
-                                        pendingRequests.remove(imgView);
-                                    }
-
-                                    // Populate the cache if we got an image back
-                                    if (result != null &&
-                                        result.getBitmapInfo() != null &&
-                                        result.getBitmapInfo().bitmap != null) {
-                                        populateBitmapCache(computer.uuid, obj.app.getAppId(),
-                                                result.getBitmapInfo().bitmap);
-                                    }
-                                }
-                            });
-            pendingRequests.put(imgView, f);
-        }
+        new ImageCacheRequest(imgView, obj.app.getAppId()).execute();
 
         return true;
     }
@@ -244,4 +206,78 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         // No overlay
         return false;
     }
+
+    private class ImageCacheRequest extends AsyncTask<Void, Void, Bitmap> {
+        private ImageView view;
+        private int appId;
+
+        public ImageCacheRequest(ImageView view, int appId) {
+            this.view = view;
+            this.appId = appId;
+        }
+
+        @Override
+        protected Bitmap doInBackground(Void... v) {
+            InputStream in = null;
+            try {
+                in = CacheHelper.openCacheFileForInput(context.getCacheDir(), "boxart", computer.uuid.toString(), appId + ".png");
+                Bitmap bm = BitmapFactory.decodeStream(in);
+                in.close();
+
+                return bm;
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (in != null) {
+                    try {
+                        in.close();
+                    } catch (IOException e) {}
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap result) {
+            if (result != null) {
+                // Cache was read successfully
+                LimeLog.info("Image cache hit for ("+computer.uuid+", "+appId+")");
+                view.setImageBitmap(result);
+                view.setVisibility(View.VISIBLE);
+            }
+            else {
+                LimeLog.info("Image cache miss for ("+computer.uuid+", "+appId+")");
+
+                // Kick off the deferred image load
+                synchronized (pendingRequests) {
+                    Future<ImageViewBitmapInfo> f = Ion.with(view)
+                            .placeholder(defaultImageRes)
+                            .error(defaultImageRes)
+                            .load("https://" + getCurrentAddress().getHostAddress() + ":47984/appasset?uniqueid=" + uniqueId + "&appid=" +
+                                    appId + "&AssetType=2&AssetIdx=0")
+                            .withBitmapInfo()
+                            .setCallback(
+                                    new FutureCallback<ImageViewBitmapInfo>() {
+                                        @Override
+                                        public void onCompleted(Exception e, ImageViewBitmapInfo result) {
+                                            view.setVisibility(View.VISIBLE);
+
+                                            synchronized (pendingRequests) {
+                                                pendingRequests.remove(view);
+                                            }
+
+                                            // Populate the cache if we got an image back
+                                            if (result != null &&
+                                                    result.getBitmapInfo() != null &&
+                                                    result.getBitmapInfo().bitmap != null) {
+                                                populateBitmapCache(computer.uuid, appId,
+                                                        result.getBitmapInfo().bitmap);
+                                            }
+                                        }
+                                    });
+                    pendingRequests.put(view, f);
+                }
+            }
+        }
+    };
 }

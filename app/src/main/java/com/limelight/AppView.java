@@ -156,6 +156,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     return;
                 }
 
+                consecutiveAppListFailures = 0;
+
                 // App list is the same or empty; nothing to do
                 if (details.rawAppList == null || details.rawAppList.equals(lastRawApplist)) {
                     return;
@@ -219,7 +221,9 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private void populateAppGridWithCache() {
         try {
             // Try to load from cache
-            updateUiWithAppList(NvHTTP.getAppListByReader(new InputStreamReader(CacheHelper.openCacheFileForInput(getCacheDir(), "applist", uuidString))));
+            lastRawApplist = CacheHelper.readInputStreamToString(CacheHelper.openCacheFileForInput(getCacheDir(), "applist", uuidString));
+            List<NvApp> applist = NvHTTP.getAppListByReader(new StringReader(lastRawApplist));
+            updateUiWithAppList(applist);
             LimeLog.info("Loaded applist from cache");
         } catch (Exception e) {
             LimeLog.info("Loading applist from the network");

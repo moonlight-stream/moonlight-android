@@ -38,12 +38,14 @@ public class CacheHelper {
         return new FileOutputStream(openPath(true, root, path));
     }
 
-    public static String readInputStreamToString(InputStream in) {
-        Scanner s = new Scanner(in);
+    public static String readInputStreamToString(InputStream in) throws IOException {
+        Reader r = new InputStreamReader(in);
 
         StringBuilder sb = new StringBuilder();
-        while (s.hasNext()) {
-            sb.append(s.next());
+        char[] buf = new char[256];
+        int bytesRead;
+        while ((bytesRead = r.read(buf)) != -1) {
+            sb.append(buf, 0, bytesRead);
         }
 
         return sb.toString();

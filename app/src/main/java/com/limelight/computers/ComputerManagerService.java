@@ -520,7 +520,9 @@ public class ComputerManagerService extends Service {
 
                         // Can't poll if it's not online
                         if (computer.state != ComputerDetails.State.ONLINE) {
-                            listener.notifyComputerUpdated(computer);
+                            if (listener != null) {
+                                listener.notifyComputerUpdated(computer);
+                            }
                             continue;
                         }
 
@@ -542,20 +544,23 @@ public class ComputerManagerService extends Service {
                         try {
                             // Query the app list from the server
                             String appList = http.getAppListRaw();
+                            if (appList != null && !appList.isEmpty()) {
+                                // Open the cache file
+                                FileOutputStream cacheOut = CacheHelper.openCacheFileForOutput(getCacheDir(), "applist", computer.uuid.toString());
+                                CacheHelper.writeStringToOutputStream(cacheOut, appList);
+                                cacheOut.close();
 
-                            // Open the cache file
-                            LimeLog.info("Updating app list from "+computer.uuid.toString());
-                            FileOutputStream cacheOut = CacheHelper.openCacheFileForOutput(getCacheDir(), "applist", computer.uuid.toString());
-                            CacheHelper.writeStringToOutputStream(cacheOut, appList);
-                            cacheOut.close();
+                                // Update the computer
+                                computer.rawAppList = appList;
 
-                            // Update the computer
-                            computer.rawAppList = appList;
-
-                            // Notify that the app list has been updated
-                            // and ensure that the thread is still active
-                            if (listener != null && thread != null) {
-                                listener.notifyComputerUpdated(computer);
+                                // Notify that the app list has been updated
+                                // and ensure that the thread is still active
+                                if (listener != null && thread != null) {
+                                    listener.notifyComputerUpdated(computer);
+                                }
+                            }
+                            else {
+                                LimeLog.warning("Empty app list received from "+computer.uuid);
                             }
                         } catch (IOException e) {
                             e.printStackTrace();

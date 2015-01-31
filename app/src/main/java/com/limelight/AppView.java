@@ -110,7 +110,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     populateAppGridWithCache();
 
                     getFragmentManager().beginTransaction()
-                            .add(R.id.appFragmentContainer, new AdapterFragment()).commitAllowingStateLoss();
+                            .replace(R.id.appFragmentContainer, new AdapterFragment())
+                            .commitAllowingStateLoss();
                 }
             }.start();
         }

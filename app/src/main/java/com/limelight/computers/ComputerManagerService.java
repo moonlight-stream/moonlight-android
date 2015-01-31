@@ -508,7 +508,7 @@ public class ComputerManagerService extends Service {
                 return false;
             }
 
-            return !thread.isInterrupted();
+            return thread != null && !thread.isInterrupted();
         }
 
         public void start() {
@@ -553,7 +553,10 @@ public class ComputerManagerService extends Service {
                             computer.rawAppList = appList;
 
                             // Notify that the app list has been updated
-                            listener.notifyComputerUpdated(computer);
+                            // and ensure that the thread is still active
+                            if (listener != null && thread != null) {
+                                listener.notifyComputerUpdated(computer);
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -567,9 +570,7 @@ public class ComputerManagerService extends Service {
             if (thread != null) {
                 thread.interrupt();
 
-                try {
-                    thread.join();
-                } catch (InterruptedException e) {}
+                // Don't join here because we might be blocked on network I/O
 
                 thread = null;
             }

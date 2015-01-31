@@ -92,9 +92,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     // Get the computer object
                     computer = managerBinder.getComputer(UUID.fromString(uuidString));
 
-                    // Start updates
-                    startComputerUpdates();
-
                     try {
                         appGridAdapter = new AppGridAdapter(AppView.this,
                                 PreferenceConfiguration.readPreferences(AppView.this).listMode,
@@ -105,6 +102,9 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         finish();
                         return;
                     }
+
+                    // Start updates
+                    startComputerUpdates();
 
                     // Load the app grid with cached data (if possible)
                     populateAppGridWithCache();
@@ -226,6 +226,10 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             updateUiWithAppList(applist);
             LimeLog.info("Loaded applist from cache");
         } catch (Exception e) {
+            if (lastRawApplist != null) {
+                LimeLog.warning("Saved applist corrupted: "+lastRawApplist);
+                e.printStackTrace();
+            }
             LimeLog.info("Loading applist from the network");
             // We'll need to load from the network
             loadAppsBlocking();

@@ -3,8 +3,10 @@ package com.limelight.computers;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.InetAddress;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -12,6 +14,7 @@ import com.limelight.LimeLog;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.discovery.DiscoveryService;
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.mdns.MdnsComputer;
 import com.limelight.nvstream.mdns.MdnsDiscoveryListener;
@@ -23,6 +26,8 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Binder;
 import android.os.IBinder;
+
+import org.xmlpull.v1.XmlPullParserException;
 
 public class ComputerManagerService extends Service {
 	private static final int POLLING_PERIOD_MS = 3000;
@@ -544,7 +549,8 @@ public class ComputerManagerService extends Service {
                         try {
                             // Query the app list from the server
                             String appList = http.getAppListRaw();
-                            if (appList != null && !appList.isEmpty()) {
+                            List<NvApp> list = NvHTTP.getAppListByReader(new StringReader(appList));
+                            if (appList != null && !appList.isEmpty() && !list.isEmpty()) {
                                 // Open the cache file
                                 FileOutputStream cacheOut = CacheHelper.openCacheFileForOutput(getCacheDir(), "applist", computer.uuid.toString());
                                 CacheHelper.writeStringToOutputStream(cacheOut, appList);
@@ -563,6 +569,8 @@ public class ComputerManagerService extends Service {
                                 LimeLog.warning("Empty app list received from "+computer.uuid);
                             }
                         } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (XmlPullParserException e) {
                             e.printStackTrace();
                         }
                     } while (waitPollingDelay());

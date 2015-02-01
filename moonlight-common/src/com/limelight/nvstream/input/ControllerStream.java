@@ -129,8 +129,8 @@ public class ControllerStream {
 						} while (totalDeltaX != 0 && totalDeltaY != 0);
 					}
 					// Try to batch axis changes on controller packets too
-					else if (!inputQueue.isEmpty() && packet instanceof ControllerPacket) {
-						ControllerPacket initialControllerPacket = (ControllerPacket) packet;
+					else if (!inputQueue.isEmpty() && packet instanceof MultiControllerPacket) {
+						MultiControllerPacket initialControllerPacket = (MultiControllerPacket) packet;
 						ControllerBatchingBlock batchingBlock = null;
 						
 						synchronized (inputQueue) {
@@ -138,13 +138,13 @@ public class ControllerStream {
 							while (i.hasNext()) {
 								InputPacket queuedPacket = i.next();
 								
-								if (queuedPacket instanceof ControllerPacket) {
+								if (queuedPacket instanceof MultiControllerPacket) {
 									// Only initialize the batching block if we got here
 									if (batchingBlock == null) {
 										batchingBlock = new ControllerBatchingBlock(initialControllerPacket);
 									}
 									
-									if (batchingBlock.submitNewPacket((ControllerPacket) queuedPacket))
+									if (batchingBlock.submitNewPacket((MultiControllerPacket) queuedPacket))
 									{
 										// Batching was successful, so remove this packet
 										i.remove();
@@ -263,9 +263,35 @@ public class ControllerStream {
 	public void sendControllerInput(short buttonFlags, byte leftTrigger, byte rightTrigger,
 			short leftStickX, short leftStickY, short rightStickX, short rightStickY)
 	{
-		queuePacket(new ControllerPacket(buttonFlags, leftTrigger,
-				rightTrigger, leftStickX, leftStickY,
-				rightStickX, rightStickY));
+		if (context.serverGeneration == ConnectionContext.SERVER_GENERATION_3) {
+			// Use legacy controller packets for generation 3
+			queuePacket(new ControllerPacket(buttonFlags, leftTrigger,
+					rightTrigger, leftStickX, leftStickY,
+					rightStickX, rightStickY));
+		}
+		else {
+			// Use multi-controller packets for generation 4 and above
+			queuePacket(new MultiControllerPacket((short) 0, buttonFlags, leftTrigger,
+					rightTrigger, leftStickX, leftStickY,
+					rightStickX, rightStickY));
+		}
+	}
+	
+	public void sendControllerInput(short controllerNumber, short buttonFlags, byte leftTrigger, byte rightTrigger,
+			short leftStickX, short leftStickY, short rightStickX, short rightStickY)
+	{
+		if (context.serverGeneration == ConnectionContext.SERVER_GENERATION_3) {
+			// Use legacy controller packets for generation 3
+			queuePacket(new ControllerPacket(buttonFlags, leftTrigger,
+					rightTrigger, leftStickX, leftStickY,
+					rightStickX, rightStickY));
+		}
+		else {
+			// Use multi-controller packets for generation 4 and above
+			queuePacket(new MultiControllerPacket(controllerNumber, buttonFlags, leftTrigger,
+					rightTrigger, leftStickX, leftStickY,
+					rightStickX, rightStickY));
+		}
 	}
 	
 	public void sendMouseButtonDown(byte mouseButton)

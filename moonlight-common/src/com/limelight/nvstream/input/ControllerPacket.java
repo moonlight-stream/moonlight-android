@@ -3,7 +3,7 @@ package com.limelight.nvstream.input;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class ControllerPacket extends InputPacket {
+public class ControllerPacket extends MultiControllerPacket {
 		public static final byte[] HEADER =
 			{
 				0x0A,
@@ -46,26 +46,12 @@ public class ControllerPacket extends InputPacket {
 		public static final short PACKET_LENGTH = PAYLOAD_LENGTH +
 				InputPacket.HEADER_LENGTH;
 		
-		// Set this flag if you want ControllerPacket to handle scaling for you
-		// You MUST properly handle deadzones to use this flag
-		//
-		// Note: This flag does nothing right now. It causes some controllers
-		// to behave badly.
-		public static boolean enableAxisScaling = false;
-		
-		short buttonFlags;
-		byte leftTrigger;
-		byte rightTrigger;
-		short leftStickX;
-		short leftStickY;
-		short rightStickX;
-		short rightStickY;
-		
 		public ControllerPacket(short buttonFlags, byte leftTrigger, byte rightTrigger,
 				 short leftStickX, short leftStickY,
 				 short rightStickX, short rightStickY)
 		{
-			super(PACKET_TYPE);
+			super((short) 0, buttonFlags, leftTrigger, rightTrigger, leftStickX,
+					leftStickY, rightStickX, rightStickY);
 			
 			this.buttonFlags = buttonFlags;
 			this.leftTrigger = leftTrigger;

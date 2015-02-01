@@ -11,8 +11,9 @@ public class ControllerBatchingBlock {
 	private short leftStickY;
 	private short rightStickX;
 	private short rightStickY;
+	private short controllerNumber;
 	
-	public ControllerBatchingBlock(ControllerPacket initialPacket) {
+	public ControllerBatchingBlock(MultiControllerPacket initialPacket) {
 		this.buttonFlags = initialPacket.buttonFlags;
 		this.leftTrigger = initialPacket.leftTrigger;
 		this.rightTrigger = initialPacket.rightTrigger;
@@ -54,8 +55,9 @@ public class ControllerBatchingBlock {
 	// We have several restrictions that will cause batching to break up the controller packets.
 	// 1) Button flags must be the same for all packets in the batch
 	// 2) The movement direction of all axes must remain the same or be neutral
-	public boolean submitNewPacket(ControllerPacket packet) {
+	public boolean submitNewPacket(MultiControllerPacket packet) {
 		if (buttonFlags != packet.buttonFlags ||
+			controllerNumber != packet.controllerNumber ||
 			!checkDirs(leftTrigger, packet.leftTrigger, 0) ||
 			!checkDirs(rightTrigger, packet.rightTrigger, 1) ||
 			!checkDirs(leftStickX, packet.leftStickX, 2) ||
@@ -66,6 +68,7 @@ public class ControllerBatchingBlock {
 			return false;
 		}
 		
+		this.controllerNumber = packet.controllerNumber;
 		this.leftTrigger = packet.leftTrigger;
 		this.rightTrigger = packet.rightTrigger;
 		this.leftStickX = packet.leftStickX;
@@ -75,7 +78,8 @@ public class ControllerBatchingBlock {
 		return true;
 	}
 	
-	public void reinitializePacket(ControllerPacket packet) {
+	public void reinitializePacket(MultiControllerPacket packet) {
+		packet.controllerNumber = controllerNumber;
 		packet.buttonFlags = buttonFlags;
 		packet.leftTrigger = leftTrigger;
 		packet.rightTrigger = rightTrigger;

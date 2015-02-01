@@ -348,6 +348,20 @@ public class NvConnection {
 		inputStream.sendMouseButtonUp(mouseButton);
 	}
 	
+	public void sendControllerInput(final short controllerNumber,
+			final short buttonFlags,
+			final byte leftTrigger, final byte rightTrigger,
+			final short leftStickX, final short leftStickY,
+			final short rightStickX, final short rightStickY)
+	{
+		if (inputStream == null)
+			return;
+		
+		inputStream.sendControllerInput(controllerNumber, buttonFlags, leftTrigger,
+				rightTrigger, leftStickX, leftStickY,
+				rightStickX, rightStickY);
+	}
+	
 	public void sendControllerInput(final short buttonFlags,
 			final byte leftTrigger, final byte rightTrigger,
 			final short leftStickX, final short leftStickY,

@@ -85,8 +85,10 @@
 
     <!-- Preferences -->
     <string name="category_basic_settings">Basic Settings</string>
-    <string name="title_resolution_list">Select resolution and FPS target</string>
-    <string name="summary_resolution_list">Setting values too high for your device may cause lag or crashing</string>
+    <string name="title_resolution">Select stream resolution</string>
+    <string name="summary_resolution">Some resolutions may not be supported on your device</string>
+    <string name="title_fps_list">Select target FPS</string>
+    <string name="summary_fps_list">Some FPS values may not be supported with high resolutions on your device</string>
     <string name="title_seekbar_bitrate">Select target video bitrate</string>
     <string name="summary_seekbar_bitrate">Lower bitrate to reduce stuttering. Raise bitrate to increase image quality.</string>
     <string name="suffix_seekbar_bitrate">Mbps</string>
@@ -115,4 +117,9 @@
     <string name="category_advanced_settings">Advanced Settings</string>
     <string name="title_decoder_list">Change decoder</string>
     <string name="summary_decoder_list">Software decoding may improve video latency at lower streaming settings</string>
+
+    <!-- Resolution Preference -->
+    <string name="aspect_4_3">4:3</string>
+    <string name="aspect_16_9">16:9</string>
+    <string name="aspect_16_10">16:10</string>
 </resources>

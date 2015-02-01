@@ -5,7 +5,9 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 public class PreferenceConfiguration {
-    static final String RES_FPS_PREF_STRING = "list_resolution_fps";
+    static final String RESX_PREF_STRING = "resolution_x";
+    static final String RESY_PREF_STRING = "resolution_y";
+    private static final String FPS_PREF_STRING = "fps";
     private static final String DECODER_PREF_STRING = "list_decoders";
     static final String BITRATE_PREF_STRING = "seekbar_bitrate";
     private static final String STRETCH_PREF_STRING = "checkbox_stretch_video";
@@ -21,10 +23,12 @@ public class PreferenceConfiguration {
     private static final int BITRATE_DEFAULT_720_60 = 10;
     private static final int BITRATE_DEFAULT_1080_30 = 10;
     private static final int BITRATE_DEFAULT_1080_60 = 20;
+    private static final int BITRATE_DEFAULT_MAX = 35;
 
-    private static final String DEFAULT_RES_FPS = "720p60";
+    private static final int DEFAULT_RESX = 1280;
+    private static final int DEFAULT_RESY = 720;
+    private static final String DEFAULT_FPS = "60";
     private static final String DEFAULT_DECODER = "auto";
-    private static final int DEFAULT_BITRATE = BITRATE_DEFAULT_720_60;
     private static final boolean DEFAULT_STRETCH = false;
     private static final boolean DEFAULT_SOPS = true;
     private static final boolean DEFAULT_DISABLE_TOASTS = false;
@@ -45,49 +49,40 @@ public class PreferenceConfiguration {
     public String language;
     public boolean listMode, smallIconMode;
 
-    public static int getDefaultBitrate(String resFpsString) {
-        if (resFpsString.equals("720p30")) {
-            return BITRATE_DEFAULT_720_30;
-        }
-        else if (resFpsString.equals("720p60")) {
-            return BITRATE_DEFAULT_720_60;
-        }
-        else if (resFpsString.equals("1080p30")) {
-            return BITRATE_DEFAULT_1080_30;
-        }
-        else if (resFpsString.equals("1080p60")) {
-            return BITRATE_DEFAULT_1080_60;
-        }
-        else {
-            // Should never get here
-            return DEFAULT_BITRATE;
-        }
-    }
-
     public static boolean getDefaultSmallMode(Context context) {
         // Use small mode on anything smaller than a 7" tablet
         return context.getResources().getConfiguration().smallestScreenWidthDp < 600;
     }
 
+    private static int getFpsInt(SharedPreferences prefs) {
+        try {
+            return Integer.parseInt(prefs.getString(FPS_PREF_STRING, DEFAULT_FPS));
+        } catch (NumberFormatException e) {
+            return Integer.parseInt(DEFAULT_FPS);
+        }
+    }
+
     public static int getDefaultBitrate(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-        String str = prefs.getString(RES_FPS_PREF_STRING, DEFAULT_RES_FPS);
-        if (str.equals("720p30")) {
+        long width = prefs.getInt(RESX_PREF_STRING, DEFAULT_RESX);
+        long height = prefs.getInt(RESY_PREF_STRING, DEFAULT_RESY);
+
+        long product = width * height * getFpsInt(prefs);
+        if (product <= 1280 * 720 * 30) {
             return BITRATE_DEFAULT_720_30;
         }
-        else if (str.equals("720p60")) {
+        else if (product <= 1280 * 720 * 60) {
             return BITRATE_DEFAULT_720_60;
         }
-        else if (str.equals("1080p30")) {
+        else if (product <= 1920 * 1080 * 30) {
             return BITRATE_DEFAULT_1080_30;
         }
-        else if (str.equals("1080p60")) {
+        else if (product <= 1920 * 1080 * 60) {
             return BITRATE_DEFAULT_1080_60;
         }
         else {
-            // Should never get here
-            return DEFAULT_BITRATE;
+            return BITRATE_DEFAULT_MAX;
         }
     }
 
@@ -115,33 +110,9 @@ public class PreferenceConfiguration {
         PreferenceConfiguration config = new PreferenceConfiguration();
 
         config.bitrate = prefs.getInt(BITRATE_PREF_STRING, getDefaultBitrate(context));
-        String str = prefs.getString(RES_FPS_PREF_STRING, DEFAULT_RES_FPS);
-        if (str.equals("720p30")) {
-            config.width = 1280;
-            config.height = 720;
-            config.fps = 30;
-        }
-        else if (str.equals("720p60")) {
-            config.width = 1280;
-            config.height = 720;
-            config.fps = 60;
-        }
-        else if (str.equals("1080p30")) {
-            config.width = 1920;
-            config.height = 1080;
-            config.fps = 30;
-        }
-        else if (str.equals("1080p60")) {
-            config.width = 1920;
-            config.height = 1080;
-            config.fps = 60;
-        }
-        else {
-            // Should never get here
-            config.width = 1280;
-            config.height = 720;
-            config.fps = 60;
-        }
+        config.width = prefs.getInt(RESX_PREF_STRING, DEFAULT_RESX);
+        config.height = prefs.getInt(RESY_PREF_STRING, DEFAULT_RESY);
+        config.fps = getFpsInt(prefs);
 
         config.decoder = getDecoderValue(context);
 

@@ -26,14 +26,19 @@
             android:summary="@string/summary_checkbox_disable_warnings"
             android:defaultValue="false" />
     </PreferenceCategory>
-    <!--PreferenceCategory android:title="@string/category_gamepad_settings">
-        <com.limelight.preferences.SeekBarPreference
+    <PreferenceCategory android:title="@string/category_gamepad_settings">
+        <!--com.limelight.preferences.SeekBarPreference
             android:key="seekbar_deadzone"
             android:defaultValue="15"
             android:max="50"
             android:text="@string/suffix_seekbar_deadzone"
-            android:title="@string/title_seekbar_deadzone"/>
-    </PreferenceCategory-->
+            android:title="@string/title_seekbar_deadzone"/-->
+        <CheckBoxPreference
+            android:key="checkbox_multi_controller"
+            android:title="@string/title_checkbox_multi_controller"
+            android:summary="@string/summary_checkbox_multi_controller"
+            android:defaultValue="true" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">
         <CheckBoxPreference
             android:key="checkbox_enable_sops"

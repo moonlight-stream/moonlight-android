@@ -193,7 +193,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		// Initialize the connection
 		conn = new NvConnection(host, uniqueId, Game.this, config, PlatformBinding.getCryptoProvider(this));
 		keybTranslator = new KeyboardTranslator(conn);
-		controllerHandler = new ControllerHandler(conn, this, prefConfig.deadzonePercentage);
+		controllerHandler = new ControllerHandler(conn, this, prefConfig.multiController, prefConfig.deadzonePercentage);
 		
 		SurfaceHolder sh = sv.getHolder();
 		if (prefConfig.stretchVideo || !decoderRenderer.isHardwareAccelerated()) {

@@ -172,12 +172,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
     @Override
     public boolean populateImageView(final ImageView imgView, final AppView.AppObject obj) {
-
-        // Set SSL contexts correctly to allow us to authenticate
-        Ion.getDefault(imgView.getContext()).getHttpClient().getSSLSocketMiddleware().setTrustManagers(trustAllCerts);
-        Ion.getDefault(imgView.getContext()).getHttpClient().getSSLSocketMiddleware().setSSLContext(sslContext);
-
-        // Hide the image view while we're loading the image from cache
+        // Hide the image view while we're loading the image from disk cache
         imgView.setVisibility(View.INVISIBLE);
 
         // Check the on-disk cache
@@ -221,10 +216,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
             InputStream in = null;
             try {
                 in = CacheHelper.openCacheFileForInput(context.getCacheDir(), "boxart", computer.uuid.toString(), appId + ".png");
-                Bitmap bm = BitmapFactory.decodeStream(in);
-                in.close();
-
-                return bm;
+                return BitmapFactory.decodeStream(in);
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -240,43 +232,52 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         @Override
         protected void onPostExecute(Bitmap result) {
             if (result != null) {
-                // Cache was read successfully
-                LimeLog.info("Image cache hit for ("+computer.uuid+", "+appId+")");
+                // Disk cache was read successfully
+                LimeLog.info("Image disk cache hit for ("+computer.uuid+", "+appId+")");
                 view.setImageBitmap(result);
                 view.setVisibility(View.VISIBLE);
             }
             else {
-                LimeLog.info("Image cache miss for ("+computer.uuid+", "+appId+")");
+                LimeLog.info("Image disk cache miss for ("+computer.uuid+", "+appId+")");
+                LimeLog.info("Requesting: "+"https://" + getCurrentAddress().getHostAddress() + ":47984/appasset?uniqueid=" + uniqueId + "&appid=" +
+                        appId + "&AssetType=2&AssetIdx=0");
+
+                // Load the placeholder image
+                view.setImageResource(defaultImageRes);
+                view.setVisibility(View.VISIBLE);
+
+                // Set SSL contexts correctly to allow us to authenticate
+                Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setTrustManagers(trustAllCerts);
+                Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setSSLContext(sslContext);
 
                 // Kick off the deferred image load
                 synchronized (pendingRequests) {
-                    Future<ImageViewBitmapInfo> f = Ion.with(view)
-                            .placeholder(defaultImageRes)
-                            .error(defaultImageRes)
+                    Future<Bitmap> f = Ion.with(context)
                             .load("https://" + getCurrentAddress().getHostAddress() + ":47984/appasset?uniqueid=" + uniqueId + "&appid=" +
                                     appId + "&AssetType=2&AssetIdx=0")
-                            .withBitmapInfo()
-                            .setCallback(
-                                    new FutureCallback<ImageViewBitmapInfo>() {
-                                        @Override
-                                        public void onCompleted(Exception e, ImageViewBitmapInfo result) {
-                                            view.setVisibility(View.VISIBLE);
+                            .asBitmap()
+                            .setCallback(new FutureCallback<Bitmap>() {
+                                @Override
+                                public void onCompleted(Exception e, Bitmap result) {
+                                    synchronized (pendingRequests) {
+                                        pendingRequests.remove(view);
+                                    }
 
-                                            synchronized (pendingRequests) {
-                                                pendingRequests.remove(view);
-                                            }
+                                    if (result != null) {
+                                        // Make the view visible now
+                                        view.setImageBitmap(result);
+                                        view.setVisibility(View.VISIBLE);
 
-                                            // Populate the cache if we got an image back
-                                            if (result != null &&
-                                                    result.getBitmapInfo() != null &&
-                                                    result.getBitmapInfo().bitmap != null) {
-                                                populateBitmapCache(computer.uuid, appId,
-                                                        result.getBitmapInfo().bitmap);
-                                            }
-                                        }
-                                    });
+                                        // Populate the disk cache if we got an image back
+                                        populateBitmapCache(computer.uuid, appId, result);
+                                    }
+                                    else {
+                                        // Leave the loading icon as is (probably should change this eventually...)
+                                    }
+                                }
+                            });
                     pendingRequests.put(view, f);
-                }
+            }
             }
         }
     };

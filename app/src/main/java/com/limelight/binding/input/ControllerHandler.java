@@ -101,6 +101,8 @@ public class ControllerHandler {
 
         LimeLog.info("Creating controller context for device: "+devName);
 
+        context.name = devName;
+
         context.leftStickXAxis = MotionEvent.AXIS_X;
 		context.leftStickYAxis = MotionEvent.AXIS_Y;
         if (getMotionRangeForJoystickAxis(dev, context.leftStickXAxis) != null &&
@@ -240,7 +242,11 @@ public class ControllerHandler {
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);
         LimeLog.info("Trigger deadzone: "+context.triggerDeadzone);
 
-        if (multiControllerEnabled) {
+        if (devName != null && devName.equals("gpio-keys")) {
+            // This is the back button on Shield portable consoles
+            context.controllerNumber = 0;
+        }
+        else if (multiControllerEnabled) {
             context.controllerNumber = nextControllerNumber;
             nextControllerNumber = (short)((nextControllerNumber + 1) % 4);
         }
@@ -718,6 +724,8 @@ public class ControllerHandler {
 	}
 	
 	class ControllerContext {
+        public String name;
+
 		public int leftStickXAxis = -1;		
 		public int leftStickYAxis = -1;
 		public float leftStickDeadzoneRadius;

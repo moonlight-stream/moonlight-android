@@ -159,7 +159,7 @@ public class AddComputerManually extends Activity {
                         return true;
                     }
 
-                    computersToAdd.add(hostText.getText().toString());
+                    computersToAdd.add(hostText.getText().toString().trim());
                 }
 
                 return false;

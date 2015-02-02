@@ -1,7 +1,10 @@
 package com.limelight.binding.input;
 
 import java.util.HashMap;
+import java.util.Map;
 
+import android.content.Context;
+import android.hardware.input.InputManager;
 import android.os.SystemClock;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -13,7 +16,7 @@ import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.ui.GameGestures;
 import com.limelight.utils.Vector2d;
 
-public class ControllerHandler {
+public class ControllerHandler implements InputManager.InputDeviceListener {
 
 	private static final int MAXIMUM_BUMPER_UP_DELAY_MS = 100;
 
@@ -38,7 +41,7 @@ public class ControllerHandler {
     private boolean hasGameController;
 
     private boolean multiControllerEnabled;
-    private short nextControllerNumber;
+    private short currentControllers;
 	
 	public ControllerHandler(NvConnection conn, GameGestures gestures, boolean multiControllerEnabled, int deadzonePercentage) {
 		this.conn = conn;
@@ -94,6 +97,47 @@ public class ControllerHandler {
 		
 		return range;
 	}
+
+    private short assignNewControllerNumber() {
+        for (short i = 0; i < 4; i++) {
+            if ((currentControllers & (1 << i)) == 0) {
+                // Found an unused controller value
+                currentControllers |= (1 << i);
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+    @Override
+    public void onInputDeviceAdded(int deviceId) {
+        // Nothing happening here yet
+    }
+
+    @Override
+    public void onInputDeviceRemoved(int deviceId) {
+        for (Map.Entry<String, ControllerContext> device : contexts.entrySet()) {
+            if (device.getValue().id == deviceId) {
+                LimeLog.info("Removed controller: "+device.getValue().name);
+                releaseControllerNumber(device.getValue().controllerNumber);
+                contexts.remove(device.getKey());
+                return;
+            }
+        }
+    }
+
+    @Override
+    public void onInputDeviceChanged(int deviceId) {
+        // Remove and re-add 
+        onInputDeviceRemoved(deviceId);
+        onInputDeviceAdded(deviceId);
+    }
+
+    private void releaseControllerNumber(int controllerNumber) {
+        LimeLog.info("Controller number "+controllerNumber+" is now available");
+        currentControllers &= ~(1 << controllerNumber);
+    }
 	
 	private ControllerContext createContextForDevice(InputDevice dev) {
 		ControllerContext context = new ControllerContext();
@@ -102,6 +146,7 @@ public class ControllerHandler {
         LimeLog.info("Creating controller context for device: "+devName);
 
         context.name = devName;
+        context.id = dev.getId();
 
         context.leftStickXAxis = MotionEvent.AXIS_X;
 		context.leftStickYAxis = MotionEvent.AXIS_Y;
@@ -247,8 +292,7 @@ public class ControllerHandler {
             context.controllerNumber = 0;
         }
         else if (multiControllerEnabled) {
-            context.controllerNumber = nextControllerNumber;
-            nextControllerNumber = (short)((nextControllerNumber + 1) % 4);
+            context.controllerNumber = assignNewControllerNumber();
         }
         else {
             context.controllerNumber = 0;
@@ -722,9 +766,10 @@ public class ControllerHandler {
         }
 		return true;
 	}
-	
-	class ControllerContext {
+
+    class ControllerContext {
         public String name;
+        public int id;
 
 		public int leftStickXAxis = -1;		
 		public int leftStickYAxis = -1;

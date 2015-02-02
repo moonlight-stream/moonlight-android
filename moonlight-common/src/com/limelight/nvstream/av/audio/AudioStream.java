@@ -13,11 +13,10 @@ import com.limelight.nvstream.av.RtpPacket;
 import com.limelight.nvstream.av.RtpReorderQueue;
 
 public class AudioStream {
-	public static final int RTP_PORT = 48000;
-	public static final int RTCP_PORT = 47999;
+	private static final int RTP_PORT = 48000;
 	
-	public static final int RTP_RECV_BUFFER = 64 * 1024;
-	public static final int MAX_PACKET_SIZE = 100;
+	private static final int RTP_RECV_BUFFER = 64 * 1024;
+	private static final int MAX_PACKET_SIZE = 100;
 	
 	private DatagramSocket rtp;
 	

@@ -4,9 +4,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class MouseScrollPacket extends InputPacket {
-	public static final int PACKET_TYPE = 0xa;
-	public static final int PAYLOAD_LENGTH = 10;
-	public static final int PACKET_LENGTH = PAYLOAD_LENGTH +
+	private static final int PACKET_TYPE = 0xa;
+	private static final int PAYLOAD_LENGTH = 10;
+	private static final int PACKET_LENGTH = PAYLOAD_LENGTH +
 		InputPacket.HEADER_LENGTH;
 	
 	short scroll;

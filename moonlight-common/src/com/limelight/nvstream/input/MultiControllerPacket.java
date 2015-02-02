@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class MultiControllerPacket extends InputPacket {
-		public static final byte[] TAIL =
+		private static final byte[] TAIL =
 			{
 				(byte)0x9C,
 				0x00,
@@ -14,10 +14,10 @@ public class MultiControllerPacket extends InputPacket {
 				0x00
 			};
 		
-		public static final int PACKET_TYPE = 0x1e;
+		private static final int PACKET_TYPE = 0x1e;
 		
-		public static final short PAYLOAD_LENGTH = 30;
-		public static final short PACKET_LENGTH = PAYLOAD_LENGTH +
+		private static final short PAYLOAD_LENGTH = 30;
+		private static final short PACKET_LENGTH = PAYLOAD_LENGTH +
 				InputPacket.HEADER_LENGTH;
 		
 		short controllerNumber;
@@ -34,6 +34,27 @@ public class MultiControllerPacket extends InputPacket {
 				 short rightStickX, short rightStickY)
 		{
 			super(PACKET_TYPE);
+			
+			this.controllerNumber = controllerNumber;
+			
+			this.buttonFlags = buttonFlags;
+			this.leftTrigger = leftTrigger;
+			this.rightTrigger = rightTrigger;
+			
+			this.leftStickX = leftStickX;
+			this.leftStickY = leftStickY;
+			
+			this.rightStickX = rightStickX;
+			this.rightStickY = rightStickY;
+		}
+		
+		public MultiControllerPacket(int packetType,
+				 short controllerNumber, short buttonFlags,
+				 byte leftTrigger, byte rightTrigger,
+				 short leftStickX, short leftStickY,
+				 short rightStickX, short rightStickY)
+		{
+			super(packetType);
 			
 			this.controllerNumber = controllerNumber;
 			

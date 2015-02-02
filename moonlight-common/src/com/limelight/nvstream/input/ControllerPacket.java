@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class ControllerPacket extends MultiControllerPacket {
-		public static final byte[] HEADER =
+		private static final byte[] HEADER =
 			{
 				0x0A,
 				0x00,
@@ -14,7 +14,7 @@ public class ControllerPacket extends MultiControllerPacket {
 				0x14
 			};
 		
-		public static final byte[] TAIL =
+		private static final byte[] TAIL =
 			{
 				(byte)0x9C,
 				0x00,
@@ -24,7 +24,7 @@ public class ControllerPacket extends MultiControllerPacket {
 				0x00
 			};
 		
-		public static final int PACKET_TYPE = 0x18;
+		private static final int PACKET_TYPE = 0x18;
 		
 		public static final short A_FLAG = 0x1000;
 		public static final short B_FLAG = 0x2000;
@@ -42,15 +42,15 @@ public class ControllerPacket extends MultiControllerPacket {
 		public static final short RS_CLK_FLAG = 0x0080;
 		public static final short SPECIAL_BUTTON_FLAG = 0x0400;
 		
-		public static final short PAYLOAD_LENGTH = 24;
-		public static final short PACKET_LENGTH = PAYLOAD_LENGTH +
+		private static final short PAYLOAD_LENGTH = 24;
+		private static final short PACKET_LENGTH = PAYLOAD_LENGTH +
 				InputPacket.HEADER_LENGTH;
 		
 		public ControllerPacket(short buttonFlags, byte leftTrigger, byte rightTrigger,
 				 short leftStickX, short leftStickY,
 				 short rightStickX, short rightStickY)
 		{
-			super((short) 0, buttonFlags, leftTrigger, rightTrigger, leftStickX,
+			super(PACKET_TYPE, (short) 0, buttonFlags, leftTrigger, rightTrigger, leftStickX,
 					leftStickY, rightStickX, rightStickY);
 			
 			this.buttonFlags = buttonFlags;

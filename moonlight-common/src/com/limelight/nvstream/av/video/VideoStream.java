@@ -15,22 +15,21 @@ import com.limelight.nvstream.av.RtpPacket;
 import com.limelight.nvstream.av.RtpReorderQueue;
 
 public class VideoStream {
-	public static final int RTP_PORT = 47998;
-	public static final int RTCP_PORT = 47999;
-	public static final int FIRST_FRAME_PORT = 47996;
+	private static final int RTP_PORT = 47998;
+	private static final int FIRST_FRAME_PORT = 47996;
 	
-	public static final int FIRST_FRAME_TIMEOUT = 5000;
-	public static final int RTP_RECV_BUFFER = 256 * 1024;
+	private static final int FIRST_FRAME_TIMEOUT = 5000;
+	private static final int RTP_RECV_BUFFER = 256 * 1024;
 	
 	// We can't request an IDR frame until the depacketizer knows
 	// that a packet was lost. This timeout bounds the time that
 	// the RTP queue will wait for missing/reordered packets.
-	public static final int MAX_RTP_QUEUE_DELAY_MS = 10;
+	private static final int MAX_RTP_QUEUE_DELAY_MS = 10;
 	
 	// The ring size MUST be greater than or equal to
 	// the maximum number of packets in a fully
 	// presentable frame
-	public static final int VIDEO_RING_SIZE = 384;
+	private static final int VIDEO_RING_SIZE = 384;
 	
 	private DatagramSocket rtp;
 	private Socket firstFrameSocket;

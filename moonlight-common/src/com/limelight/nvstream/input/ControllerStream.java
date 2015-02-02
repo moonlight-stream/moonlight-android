@@ -20,9 +20,9 @@ import com.limelight.nvstream.ConnectionContext;
 
 public class ControllerStream {
 	
-	public final static int PORT = 35043;
+	private final static int PORT = 35043;
 	
-	public final static int CONTROLLER_TIMEOUT = 3000;
+	private final static int CONTROLLER_TIMEOUT = 3000;
 	
 	private ConnectionContext context;
 	

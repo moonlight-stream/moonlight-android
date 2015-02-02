@@ -15,9 +15,9 @@ import com.limelight.nvstream.av.ConnectionStatusListener;
 
 public class ControlStream implements ConnectionStatusListener {
 	
-	public static final int PORT = 47995;
+	private static final int PORT = 47995;
 	
-	public static final int CONTROL_TIMEOUT = 5000;
+	private static final int CONTROL_TIMEOUT = 5000;
 	
 	private static final int IDX_START_A = 0;
 	private static final int IDX_START_B = 1;

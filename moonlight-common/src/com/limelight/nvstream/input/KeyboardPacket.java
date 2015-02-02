@@ -5,7 +5,7 @@ import java.nio.ByteOrder;
 
 public class KeyboardPacket extends InputPacket {
 	private static final int PACKET_TYPE = 0x0A;
-	public static final int PACKET_LENGTH = 14;
+	private static final int PACKET_LENGTH = 14;
 	
 	public static final byte KEY_DOWN = 0x03;
 	public static final byte KEY_UP = 0x04;

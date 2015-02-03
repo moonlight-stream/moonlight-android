@@ -1,16 +1,24 @@
 package com.limelight.computers;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.InetAddress;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.limelight.LimeLog;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.discovery.DiscoveryService;
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.mdns.MdnsComputer;
 import com.limelight.nvstream.mdns.MdnsDiscoveryListener;
+import com.limelight.utils.CacheHelper;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -18,6 +26,8 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Binder;
 import android.os.IBinder;
+
+import org.xmlpull.v1.XmlPullParserException;
 
 public class ComputerManagerService extends Service {
 	private static final int POLLING_PERIOD_MS = 3000;
@@ -179,10 +189,26 @@ public class ComputerManagerService extends Service {
 			// Just call the unbind handler to cleanup
 			ComputerManagerService.this.onUnbind(null);
 		}
+
+        public ApplistPoller createAppListPoller(ComputerDetails computer) {
+            return new ApplistPoller(computer);
+        }
 		
 		public String getUniqueId() {
 			return idManager.getUniqueId();
 		}
+
+        public ComputerDetails getComputer(UUID uuid) {
+            synchronized (pollingTuples) {
+                for (PollingTuple tuple : pollingTuples) {
+                    if (uuid.equals(tuple.computer.uuid)) {
+                        return tuple.computer;
+                    }
+                }
+            }
+
+            return null;
+        }
 	}
 	
 	@Override
@@ -462,6 +488,107 @@ public class ComputerManagerService extends Service {
 	public IBinder onBind(Intent intent) {
 		return binder;
 	}
+
+    public class ApplistPoller {
+        private Thread thread;
+        private ComputerDetails computer;
+        private Object pollEvent = new Object();
+
+        public ApplistPoller(ComputerDetails computer) {
+            this.computer = computer;
+        }
+
+        public void pollNow() {
+            synchronized (pollEvent) {
+                pollEvent.notify();
+            }
+        }
+
+        private boolean waitPollingDelay() {
+            try {
+                synchronized (pollEvent) {
+                    pollEvent.wait(POLLING_PERIOD_MS);
+                }
+            } catch (InterruptedException e) {
+                return false;
+            }
+
+            return thread != null && !thread.isInterrupted();
+        }
+
+        public void start() {
+            thread = new Thread() {
+                @Override
+                public void run() {
+                    do {
+                        InetAddress selectedAddr;
+
+                        // Can't poll if it's not online
+                        if (computer.state != ComputerDetails.State.ONLINE) {
+                            if (listener != null) {
+                                listener.notifyComputerUpdated(computer);
+                            }
+                            continue;
+                        }
+
+                        // Can't poll if there's no UUID yet
+                        if (computer.uuid == null) {
+                            continue;
+                        }
+
+                        if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
+                            selectedAddr = computer.localIp;
+                        }
+                        else {
+                            selectedAddr = computer.remoteIp;
+                        }
+
+                        NvHTTP http = new NvHTTP(selectedAddr, idManager.getUniqueId(),
+                                null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
+
+                        try {
+                            // Query the app list from the server
+                            String appList = http.getAppListRaw();
+                            List<NvApp> list = NvHTTP.getAppListByReader(new StringReader(appList));
+                            if (appList != null && !appList.isEmpty() && !list.isEmpty()) {
+                                // Open the cache file
+                                FileOutputStream cacheOut = CacheHelper.openCacheFileForOutput(getCacheDir(), "applist", computer.uuid.toString());
+                                CacheHelper.writeStringToOutputStream(cacheOut, appList);
+                                cacheOut.close();
+
+                                // Update the computer
+                                computer.rawAppList = appList;
+
+                                // Notify that the app list has been updated
+                                // and ensure that the thread is still active
+                                if (listener != null && thread != null) {
+                                    listener.notifyComputerUpdated(computer);
+                                }
+                            }
+                            else {
+                                LimeLog.warning("Empty app list received from "+computer.uuid);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (XmlPullParserException e) {
+                            e.printStackTrace();
+                        }
+                    } while (waitPollingDelay());
+                }
+            };
+            thread.start();
+        }
+
+        public void stop() {
+            if (thread != null) {
+                thread.interrupt();
+
+                // Don't join here because we might be blocked on network I/O
+
+                thread = null;
+            }
+        }
+    }
 }
 
 class PollingTuple {

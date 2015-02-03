@@ -30,7 +30,6 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -44,15 +43,12 @@ import android.view.View.OnClickListener;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.GridView;
 import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class PcView extends Activity implements AdapterFragmentCallbacks {
-    private AdapterFragment adapterFragment;
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
 	private ComputerManagerService.ComputerManagerBinder managerBinder;
@@ -125,14 +121,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             }
         });
 
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        if (adapterFragment != null) {
-            // Remove the old fragment
-            transaction.remove(adapterFragment);
-        }
-        adapterFragment = new AdapterFragment();
-        transaction.add(R.id.pcFragmentContainer, adapterFragment);
-        transaction.commitAllowingStateLoss();
+        getFragmentManager().beginTransaction()
+            .replace(R.id.pcFragmentContainer, new AdapterFragment())
+            .commitAllowingStateLoss();
 
         noPcFoundLayout = (RelativeLayout) findViewById(R.id.no_pc_found_layout);
         if (pcGridAdapter.getCount() == 0) {
@@ -160,7 +151,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 				Service.BIND_AUTO_CREATE);
 
         pcGridAdapter = new PcGridAdapter(this,
-                PreferenceConfiguration.readPreferences(this).listMode);
+                PreferenceConfiguration.readPreferences(this).listMode,
+                PreferenceConfiguration.readPreferences(this).smallIconMode);
 		
 		initializeViews();
 	}
@@ -477,16 +469,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 		
 		Intent i = new Intent(this, AppView.class);
 		i.putExtra(AppView.NAME_EXTRA, computer.name);
-		i.putExtra(AppView.UNIQUEID_EXTRA, managerBinder.getUniqueId());
-		
-		if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
-			i.putExtra(AppView.ADDRESS_EXTRA, computer.localIp.getAddress());
-			i.putExtra(AppView.REMOTE_EXTRA, false);
-		}
-		else {
-			i.putExtra(AppView.ADDRESS_EXTRA, computer.remoteIp.getAddress());
-			i.putExtra(AppView.REMOTE_EXTRA, true);
-		}
+		i.putExtra(AppView.UUID_EXTRA, computer.uuid.toString());
 		startActivity(i);
 	}
 
@@ -570,7 +553,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     @Override
     public int getAdapterFragmentLayoutId() {
         return PreferenceConfiguration.readPreferences(this).listMode ?
-                R.layout.list_view : R.layout.pc_grid_view;
+                R.layout.list_view : (PreferenceConfiguration.readPreferences(this).smallIconMode ?
+                R.layout.pc_grid_view_small : R.layout.pc_grid_view);
     }
 
     @Override

@@ -54,6 +54,10 @@
             android:entryValues="@array/language_values"
             android:summary="@string/summary_language_list"
             android:defaultValue="default" />
+        <com.limelight.preferences.SmallIconCheckboxPreference
+            android:key="checkbox_small_icon_mode"
+            android:title="@string/title_checkbox_small_icon_mode"
+            android:summary="@string/summary_checkbox_small_icon_mode" />
         <CheckBoxPreference
             android:key="checkbox_list_mode"
             android:title="@string/title_checkbox_list_mode"

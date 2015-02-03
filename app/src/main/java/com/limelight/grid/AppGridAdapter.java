@@ -3,20 +3,21 @@ package com.limelight.grid;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.ImageViewBitmapInfo;
 import com.koushikdutta.ion.Ion;
-import com.koushikdutta.ion.bitmap.BitmapInfo;
 import com.limelight.AppView;
 import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.binding.PlatformBinding;
+import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.LimelightCryptoProvider;
+import com.limelight.utils.CacheHelper;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -32,7 +33,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Future;
 
 import javax.net.ssl.HostnameVerifier;
@@ -46,17 +51,16 @@ import java.security.cert.X509Certificate;
 
 public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
-    private boolean listMode;
-    private InetAddress address;
+    private ComputerDetails computer;
     private String uniqueId;
     private LimelightCryptoProvider cryptoProvider;
     private SSLContext sslContext;
     private final HashMap<ImageView, Future> pendingRequests = new HashMap<ImageView, Future>();
 
-    public AppGridAdapter(Context context, boolean listMode, InetAddress address, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
-        super(context, listMode ? R.layout.simple_row : R.layout.app_grid_item, R.drawable.image_loading);
+    public AppGridAdapter(Context context, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
+        super(context, listMode ? R.layout.simple_row : (small ? R.layout.app_grid_item_small : R.layout.app_grid_item), R.drawable.image_loading);
 
-        this.address = address;
+        this.computer = computer;
         this.uniqueId = uniqueId;
 
         cryptoProvider = PlatformBinding.getCryptoProvider(context);
@@ -109,8 +113,27 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         public boolean verify(String hostname, SSLSession session) { return true; }
     };
 
+    private void sortList() {
+        Collections.sort(itemList, new Comparator<AppView.AppObject>() {
+            @Override
+            public int compare(AppView.AppObject lhs, AppView.AppObject rhs) {
+                return lhs.app.getAppName().compareTo(rhs.app.getAppName());
+            }
+        });
+    }
+
+    private InetAddress getCurrentAddress() {
+        if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
+            return computer.localIp;
+        }
+        else {
+            return computer.remoteIp;
+        }
+    }
+
     public void addApp(AppView.AppObject app) {
         itemList.add(app);
+        sortList();
     }
 
     public void abortPendingRequests() {
@@ -135,94 +158,25 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
     }
 
-    private Bitmap checkBitmapCache(String addrStr, int appId) {
-        File addrFolder = new File(context.getCacheDir(), addrStr);
-        if (addrFolder.isDirectory()) {
-            File bitmapFile = new File(addrFolder, appId+".png");
-            if (bitmapFile.exists()) {
-                InputStream fileIn = null;
-                try {
-                    fileIn = new BufferedInputStream(new FileInputStream(bitmapFile));
-                    Bitmap bm = BitmapFactory.decodeStream(fileIn);
-                    if (bm == null) {
-                        // The image seems corrupt
-                        bitmapFile.delete();
-                    }
-
-                    return bm;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    bitmapFile.delete();
-                } finally {
-                    if (fileIn != null) {
-                        try {
-                            fileIn.close();
-                        } catch (IOException ignored) {}
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
     // TODO: Handle pruning of bitmap cache
-    private void populateBitmapCache(String addrStr, int appId, Bitmap bitmap) {
-        File addrFolder = new File(context.getCacheDir(), addrStr);
-        addrFolder.mkdirs();
-
-        File bitmapFile = new File(addrFolder, appId+".png");
+    private void populateBitmapCache(UUID uuid, int appId, Bitmap bitmap) {
         try {
             // PNG ignores quality setting
-            bitmap.compress(Bitmap.CompressFormat.PNG, 0, new FileOutputStream(bitmapFile));
-        } catch (FileNotFoundException e) {
+            FileOutputStream out = CacheHelper.openCacheFileForOutput(context.getCacheDir(), "boxart", uuid.toString(), appId+".png");
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0, out);
+            out.close();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Override
     public boolean populateImageView(final ImageView imgView, final AppView.AppObject obj) {
-
-        // Set SSL contexts correctly to allow us to authenticate
-        Ion.getDefault(imgView.getContext()).getHttpClient().getSSLSocketMiddleware().setTrustManagers(trustAllCerts);
-        Ion.getDefault(imgView.getContext()).getHttpClient().getSSLSocketMiddleware().setSSLContext(sslContext);
+        // Hide the image view while we're loading the image from disk cache
+        imgView.setVisibility(View.INVISIBLE);
 
         // Check the on-disk cache
-        Bitmap cachedBitmap = checkBitmapCache(address.getHostAddress(), obj.app.getAppId());
-        if (cachedBitmap != null) {
-            // Cache hit; we're done
-            LimeLog.info("Image cache hit for ("+address.getHostAddress()+", "+obj.app.getAppId()+")");
-            imgView.setImageBitmap(cachedBitmap);
-            return true;
-        }
-
-        // Kick off the deferred image load
-        synchronized (pendingRequests) {
-            Future<ImageViewBitmapInfo> f = Ion.with(imgView)
-                    .placeholder(defaultImageRes)
-                    .error(defaultImageRes)
-                    .load("https://" + address.getHostAddress() + ":47984/appasset?uniqueid=" + uniqueId + "&appid=" +
-                            obj.app.getAppId() + "&AssetType=2&AssetIdx=0")
-                    .withBitmapInfo()
-                    .setCallback(
-                            new FutureCallback<ImageViewBitmapInfo>() {
-                                @Override
-                                public void onCompleted(Exception e, ImageViewBitmapInfo result) {
-                                    synchronized (pendingRequests) {
-                                        pendingRequests.remove(imgView);
-                                    }
-
-                                    // Populate the cache if we got an image back
-                                    if (result != null &&
-                                        result.getBitmapInfo() != null &&
-                                        result.getBitmapInfo().bitmap != null) {
-                                        populateBitmapCache(address.getHostAddress(), obj.app.getAppId(),
-                                                result.getBitmapInfo().bitmap);
-                                    }
-                                }
-                            });
-            pendingRequests.put(imgView, f);
-        }
+        new ImageCacheRequest(imgView, obj.app.getAppId()).execute();
 
         return true;
     }
@@ -247,4 +201,84 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         // No overlay
         return false;
     }
+
+    private class ImageCacheRequest extends AsyncTask<Void, Void, Bitmap> {
+        private ImageView view;
+        private int appId;
+
+        public ImageCacheRequest(ImageView view, int appId) {
+            this.view = view;
+            this.appId = appId;
+        }
+
+        @Override
+        protected Bitmap doInBackground(Void... v) {
+            InputStream in = null;
+            try {
+                in = CacheHelper.openCacheFileForInput(context.getCacheDir(), "boxart", computer.uuid.toString(), appId + ".png");
+                return BitmapFactory.decodeStream(in);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (in != null) {
+                    try {
+                        in.close();
+                    } catch (IOException e) {}
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap result) {
+            if (result != null) {
+                // Disk cache was read successfully
+                LimeLog.info("Image disk cache hit for ("+computer.uuid+", "+appId+")");
+                view.setImageBitmap(result);
+                view.setVisibility(View.VISIBLE);
+            }
+            else {
+                LimeLog.info("Image disk cache miss for ("+computer.uuid+", "+appId+")");
+                LimeLog.info("Requesting: "+"https://" + getCurrentAddress().getHostAddress() + ":47984/appasset?uniqueid=" + uniqueId + "&appid=" +
+                        appId + "&AssetType=2&AssetIdx=0");
+
+                // Load the placeholder image
+                view.setImageResource(defaultImageRes);
+                view.setVisibility(View.VISIBLE);
+
+                // Set SSL contexts correctly to allow us to authenticate
+                Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setTrustManagers(trustAllCerts);
+                Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setSSLContext(sslContext);
+
+                // Kick off the deferred image load
+                synchronized (pendingRequests) {
+                    Future<Bitmap> f = Ion.with(context)
+                            .load("https://" + getCurrentAddress().getHostAddress() + ":47984/appasset?uniqueid=" + uniqueId + "&appid=" +
+                                    appId + "&AssetType=2&AssetIdx=0")
+                            .asBitmap()
+                            .setCallback(new FutureCallback<Bitmap>() {
+                                @Override
+                                public void onCompleted(Exception e, Bitmap result) {
+                                    synchronized (pendingRequests) {
+                                        pendingRequests.remove(view);
+                                    }
+
+                                    if (result != null) {
+                                        // Make the view visible now
+                                        view.setImageBitmap(result);
+                                        view.setVisibility(View.VISIBLE);
+
+                                        // Populate the disk cache if we got an image back
+                                        populateBitmapCache(computer.uuid, appId, result);
+                                    }
+                                    else {
+                                        // Leave the loading icon as is (probably should change this eventually...)
+                                    }
+                                }
+                            });
+                    pendingRequests.put(view, f);
+            }
+            }
+        }
+    };
 }

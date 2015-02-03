@@ -10,6 +10,9 @@ import com.limelight.R;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.ControllerPacket;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Karim Mreisi on 30.11.2014.
  */
@@ -135,7 +138,7 @@ public class VirtualController
 		buttonA = createDigitalButton("A", ControllerPacket.A_FLAG, context);
 		buttonB = createDigitalButton("B", ControllerPacket.B_FLAG, context);
 
-		buttonLT = new DigitalButton(context);
+		buttonLT = new DigitalButton(2, context);
 		buttonLT.setText("LT");
 		buttonLT.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
 		{
@@ -162,7 +165,7 @@ public class VirtualController
 			}
 		});
 
-		buttonRT = new DigitalButton(context);
+		buttonRT = new DigitalButton(2, context);
 		buttonRT.setText("RT");
 		buttonRT.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
 		{
@@ -267,7 +270,7 @@ public class VirtualController
 		buttonSelect =
 			createDigitalButton("SELECT", ControllerPacket.SPECIAL_BUTTON_FLAG, context);
 
-		buttonConfigure = new DigitalButton(context);
+		buttonConfigure = new DigitalButton(1, context);
 		buttonConfigure.setIcon(R.drawable.settings);
 		buttonConfigure.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
 		{
@@ -412,7 +415,7 @@ public class VirtualController
 
 	private DigitalButton createDigitalButton(String text, final int key, Context context)
 	{
-		DigitalButton button = new DigitalButton(context);
+		DigitalButton button = new DigitalButton(1, context);
 		button.setText(text);
 		button.addDigitalButtonListener(new DigitalButton.DigitalButtonListener()
 		{

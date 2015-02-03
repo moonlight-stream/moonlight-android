@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.MotionEvent;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,25 +14,27 @@ import java.util.List;
  */
 public class AnalogStick extends VirtualControllerElement
 {
-	protected static boolean _PRINT_DEBUG_INFORMATION = true;
+	float radius_complete		= 0;
+	float radius_minimum		= 0;
+	float radius_dead_zone		= 0;
+	float radius_analog_stick	= 0;
 
-	float radius_complete = 0;
-	float radius_dead_zone = 0;
-	float radius_analog_stick = 0;
+	float position_pressed_x 	= 0;
+	float position_pressed_y 	= 0;
 
-	float position_pressed_x = 0;
-	float position_pressed_y = 0;
+	float position_moved_x 		= 0;
+	float position_moved_y		= 0;
 
-	float position_stick_x = 0;
-	float position_stick_y = 0;
+	float position_stick_x 		= 0;
+	float position_stick_y 		= 0;
 
-	boolean viewPressed = false;
-	boolean analogStickActive = false;
+	Paint paint			= new Paint();
+
 
 	_STICK_STATE stick_state = _STICK_STATE.NO_MOVEMENT;
 	_CLICK_STATE click_state = _CLICK_STATE.SINGLE;
 
-	List<AnalogStickListener> listeners = new ArrayList<AnalogStickListener>();
+	List<AnalogStickListener> listeners = new ArrayList<>();
 	OnTouchListener onTouchListener = null;
 	private long timeoutDoubleClick = 250;
 	private long timeLastClick = 0;
@@ -80,9 +81,10 @@ public class AnalogStick extends VirtualControllerElement
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh)
 	{
-		radius_complete = getPercent(getCorrectWidth() / 2, 40);
-		radius_dead_zone = getPercent(getCorrectWidth() / 2, 20);
-		radius_analog_stick = getPercent(getCorrectWidth() / 2, 20);
+		radius_complete 	= getPercent(getCorrectWidth() / 2, 	90);
+		radius_minimum		= getPercent(getCorrectWidth() / 2, 	30);
+		radius_dead_zone 	= getPercent(getCorrectWidth() / 2, 	10);
+		radius_analog_stick 	= getPercent(getCorrectWidth() / 2, 	20);
 
 		super.onSizeChanged(w, h, oldw, oldh);
 	}
@@ -93,12 +95,11 @@ public class AnalogStick extends VirtualControllerElement
 		// set transparent background
 		canvas.drawColor(Color.TRANSPARENT);
 
-		Paint paint = new Paint();
 		paint.setStyle(Paint.Style.STROKE);
 		paint.setStrokeWidth(getPercent(getCorrectWidth() / 2, 2));
 
 		// draw outer circle
-		if (!viewPressed || click_state == _CLICK_STATE.SINGLE)
+		if (!isPressed() || click_state == _CLICK_STATE.SINGLE)
 		{
 			paint.setColor(normalColor);
 		}
@@ -107,47 +108,36 @@ public class AnalogStick extends VirtualControllerElement
 			paint.setColor(pressedColor);
 		}
 
-		canvas.drawRect(0,		0,
-				getWidth(),	getHeight(),
-				paint);
+		canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_complete, paint);
 
 		paint.setColor(normalColor);
-
-		// draw dead zone
-		if (analogStickActive)
-		{
-			canvas.drawCircle(position_pressed_x, position_pressed_y, radius_dead_zone, paint);
-		}
-		else
-		{
-			canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_dead_zone, paint);
-		}
+		// draw minimum
+		canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_minimum, paint);
 
 		// draw stick depending on state (no movement, moved, active(out of dead zone))
-		if (analogStickActive)
+		switch (stick_state)
 		{
-			switch (stick_state)
+			case NO_MOVEMENT:
 			{
-				case NO_MOVEMENT:
-				{
-					paint.setColor(normalColor);
-					canvas.drawCircle(position_stick_x, position_stick_y, radius_analog_stick, paint);
+				paint.setColor(normalColor);
+				canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_analog_stick, paint);
 
-					break;
-				}
-				case MOVED:
-				{
-					paint.setColor(pressedColor);
-					canvas.drawCircle(position_stick_x, position_stick_y, radius_analog_stick, paint);
-
-					break;
-				}
+				break;
 			}
-		}
-		else
-		{
-			paint.setColor(normalColor);
-			canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_analog_stick, paint);
+			case MOVED_IN_DEAD_ZONE:
+			{
+				paint.setColor(normalColor);
+				canvas.drawCircle(position_stick_x, position_stick_y, radius_analog_stick, paint);
+
+				break;
+			}
+			case MOVED_ACTIVE:
+			{
+				paint.setColor(pressedColor);
+				canvas.drawCircle(position_stick_x, position_stick_y, radius_analog_stick, paint);
+
+				break;
+			}
 		}
 
 		super.onDraw(canvas);
@@ -256,116 +246,79 @@ public class AnalogStick extends VirtualControllerElement
 		}
 	}
 
-	private void updatePosition(float x, float y)
+	private void updatePosition()
 	{
-		float way_x;
-		float way_y;
+		// get real way for each axis
+		float way_center_x 	= -(getWidth() / 2 - position_moved_x);
+		float way_center_y 	= -(getHeight() / 2 - position_moved_y);
 
-		if (x > position_pressed_x)
-		{
-			way_x = x - position_pressed_x;
+		// get radius and angel of movement from center
+		double movement_radius	= getMovementRadius(way_center_x, way_center_y);
+		double movement_angle	= getAngle(way_center_x, way_center_y);
 
-			if (way_x > radius_complete)
-			{
-				way_x = radius_complete;
-			}
-		}
-		else
-		{
-			way_x = -(position_pressed_x - x);
+		// get dead zone way for each axis
+		float way_pressed_x = position_pressed_x - position_moved_x;
+		float way_pressed_y = position_pressed_y - position_moved_y;
 
-			if (way_x < -radius_complete)
-			{
-				way_x = -radius_complete;
-			}
-		}
+		// get radius and angel from pressed position
+		double movement_dead_zone_radius = getMovementRadius(way_pressed_x, way_pressed_y);
 
-		if (y > position_pressed_y)
-		{
-			way_y = y - position_pressed_y;
-
-			if (way_y > radius_complete)
-			{
-				way_y = radius_complete;
-			}
-		}
-		else
-		{
-			way_y = -(position_pressed_y - y);
-
-			if (way_y < -radius_complete)
-			{
-				way_y = -radius_complete;
-			}
-		}
-
-		float movement_x = 0;
-		float movement_y = 0;
-
-		double movement_radius = getMovementRadius(way_x, way_y);
-		//double movement_angle = getAngle(way_x, way_y);
-
-		/*
 		// chop radius if out of outer circle
 		if (movement_radius > (radius_complete - radius_analog_stick))
 		{
 			movement_radius = radius_complete - radius_analog_stick;
 		}
 
+		// calculate new positions
 		float correlated_y =
 			(float) (Math.sin(Math.PI / 2 - movement_angle) * (movement_radius));
 		float correlated_x =
 			(float) (Math.cos(Math.PI / 2 - movement_angle) * (movement_radius));
 
-		float complete = (radius_complete - radius_analog_stick);
+		float complete = (radius_complete - radius_analog_stick - radius_minimum);
 
-		movement_x = -(1 / complete) * correlated_x;
-		movement_y = (1 / complete) * correlated_y;
+		float movement_x;
+		float movement_y;
 
-		*/
+		movement_x = -(1 / complete) * (correlated_x - (correlated_x > 0 ? radius_minimum : -radius_minimum));
+		movement_y = (1 / complete) * (correlated_y - (correlated_y > 0 ? radius_minimum : -radius_minimum));
 
-		movement_x = (1 / radius_complete) * way_x;
-		movement_y = -(1 / radius_complete) * way_y;
+		position_stick_x = getWidth() / 2 - correlated_x;
+		position_stick_y = getHeight() / 2 - correlated_y;
 
-		position_stick_x = position_pressed_x + way_x;
-		position_stick_y = position_pressed_y + way_y;
+		// check if analog stick is outside of dead zone and minimum
+		if (movement_radius > radius_minimum && movement_dead_zone_radius > radius_dead_zone)
+		{
+			// set active
+			stick_state = _STICK_STATE.MOVED_ACTIVE;
+		}
 
-		// check if analog stick is outside of dead zone
-		if (movement_radius > radius_dead_zone)
+		if (stick_state == _STICK_STATE.MOVED_ACTIVE)
 		{
 			moveActionCallback(movement_x, movement_y);
-
-			stick_state = _STICK_STATE.MOVED;
-		}
-		else
-		{
-			stick_state = _STICK_STATE.NO_MOVEMENT;
 		}
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event)
 	{
-		if (onTouchListener != null)
-		{
-			return onTouchListener.onTouch(this, event);
-		}
-
 		// get masked (not specific to a pointer) action
 		int action = event.getActionMasked();
 		_CLICK_STATE lastClickState = click_state;
-		boolean wasActive = analogStickActive;
+
+		position_moved_x = event.getX();
+		position_moved_y = event.getY();
 
 		switch (action)
 		{
 			case MotionEvent.ACTION_DOWN:
 			case MotionEvent.ACTION_POINTER_DOWN:
 			{
-				position_pressed_x = event.getX();
-				position_pressed_y = event.getY();
+				setPressed(true);
+				position_pressed_x	= position_moved_x;
+				position_pressed_y	= position_moved_y;
+				stick_state		= _STICK_STATE.MOVED_IN_DEAD_ZONE;
 
-				analogStickActive = true;
-				viewPressed = true;
 				// check for double click
 				if (lastClickState == _CLICK_STATE.SINGLE && timeLastClick + timeoutDoubleClick > System.currentTimeMillis())
 				{
@@ -384,15 +337,11 @@ public class AnalogStick extends VirtualControllerElement
 
 				break;
 			}
-			case MotionEvent.ACTION_MOVE:
-			{
-				break;
-			}
 			case MotionEvent.ACTION_UP:
 			case MotionEvent.ACTION_POINTER_UP:
 			{
-				analogStickActive = false;
-				viewPressed = false;
+				setPressed(false);
+				stick_state = _STICK_STATE.NO_MOVEMENT;
 
 				revokeActionCallback();
 
@@ -400,13 +349,12 @@ public class AnalogStick extends VirtualControllerElement
 			}
 		}
 
-		// no longer pressed reset movement
-		if (analogStickActive)
+		if (isPressed())
 		{        // when is pressed calculate new positions (will trigger movement if necessary)
-			updatePosition(event.getX(), event.getY());
+			updatePosition();
 		}
-		else if (wasActive)
-		{
+		else
+		{	// not longer pressed reset analog stick
 			moveActionCallback(0, 0);
 		}
 
@@ -419,7 +367,8 @@ public class AnalogStick extends VirtualControllerElement
 	private enum _STICK_STATE
 	{
 		NO_MOVEMENT,
-		MOVED
+		MOVED_IN_DEAD_ZONE,
+		MOVED_ACTIVE
 	}
 
 

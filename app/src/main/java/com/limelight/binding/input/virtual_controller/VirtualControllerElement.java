@@ -21,7 +21,7 @@ public abstract class VirtualControllerElement extends View
 	{
 		if (_PRINT_DEBUG_INFORMATION)
 		{
-			System.out.println("DigitalButton: " + text);
+			System.out.println(text);
 		}
 	}
 

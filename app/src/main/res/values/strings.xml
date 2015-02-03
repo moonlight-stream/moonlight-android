@@ -56,7 +56,10 @@
     <!-- General strings -->
     <string name="ip_hint">IP address of GeForce PC</string>
     <string name="searching_pc">Searching for PCs…</string>
-    
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="lost_connection">Lost connection to PC</string>
+
     <!-- AppList activity -->
     <string name="title_applist">Apps on</string>
     <string name="applist_menu_resume">Resume Session</string>
@@ -70,7 +73,8 @@
     <string name="applist_quit_app">Quitting</string>
     <string name="applist_quit_success">Successfully quit</string>
     <string name="applist_quit_fail">Failed to quit</string>
-    
+    <string name="applist_quit_confirmation">Are you sure you want to quit the running app? All unsaved data will be lost.</string>
+
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>
     <string name="msg_add_pc">Connecting to the PC…</string>
@@ -99,6 +103,8 @@
     <string name="summary_language_list">Language to use for Limelight</string>
     <string name="title_checkbox_list_mode">Use lists instead of grids</string>
     <string name="summary_checkbox_list_mode">Display apps and PCs in lists instead of grids</string>
+    <string name="title_checkbox_small_icon_mode">Use small icons</string>
+    <string name="summary_checkbox_small_icon_mode">Use small icons in grid items to allow more items on screen</string>
 
     <string name="category_host_settings">Host Settings</string>
     <string name="title_checkbox_enable_sops">Optimize game settings</string>

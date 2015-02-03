@@ -19,7 +19,6 @@ import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.Preference;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
@@ -160,7 +159,7 @@ public class AddComputerManually extends Activity {
                         return true;
                     }
 
-                    computersToAdd.add(hostText.getText().toString());
+                    computersToAdd.add(hostText.getText().toString().trim());
                 }
 
                 return false;

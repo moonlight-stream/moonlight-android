@@ -15,6 +15,7 @@ public class PreferenceConfiguration {
     private static final String DEADZONE_PREF_STRING = "seekbar_deadzone";
     private static final String LANGUAGE_PREF_STRING = "list_languages";
     private static final String LIST_MODE_PREF_STRING = "checkbox_list_mode";
+    private static final String SMALL_ICONS_PREF_STRING = "checkbox_small_icon_mode";
 
     private static final String VIRTUAL_CONTROLLER_ENABLE = "virtual_controller_checkbox_enable";
     private static final Boolean VIRTUAL_CONTROLLER_ENABLE_DEFAULT = true;
@@ -45,7 +46,7 @@ public class PreferenceConfiguration {
     public int deadzonePercentage;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
     public String language;
-    public boolean listMode;
+    public boolean listMode, smallIconMode;
 
     public boolean virtualController_enable;
 
@@ -66,6 +67,11 @@ public class PreferenceConfiguration {
             // Should never get here
             return DEFAULT_BITRATE;
         }
+    }
+
+    public static boolean getDefaultSmallMode(Context context) {
+        // Use small mode on anything smaller than a 7" tablet
+        return context.getResources().getConfiguration().smallestScreenWidthDp < 600;
     }
 
     public static int getDefaultBitrate(Context context) {
@@ -154,6 +160,7 @@ public class PreferenceConfiguration {
         config.stretchVideo = prefs.getBoolean(STRETCH_PREF_STRING, DEFAULT_STRETCH);
         config.playHostAudio = prefs.getBoolean(HOST_AUDIO_PREF_STRING, DEFAULT_HOST_AUDIO);
         config.listMode = prefs.getBoolean(LIST_MODE_PREF_STRING, DEFAULT_LIST_MODE);
+        config.smallIconMode = prefs.getBoolean(SMALL_ICONS_PREF_STRING, getDefaultSmallMode(context));
 
         config.virtualController_enable = prefs.getBoolean(VIRTUAL_CONTROLLER_ENABLE, VIRTUAL_CONTROLLER_ENABLE_DEFAULT);
 

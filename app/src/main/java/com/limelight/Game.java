@@ -26,6 +26,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Point;
+import android.hardware.input.InputManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
@@ -196,7 +197,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		// Initialize the connection
 		conn = new NvConnection(host, uniqueId, Game.this, config, PlatformBinding.getCryptoProvider(this));
 		keybTranslator = new KeyboardTranslator(conn);
-		controllerHandler = new ControllerHandler(conn, this, prefConfig.deadzonePercentage);
+		controllerHandler = new ControllerHandler(conn, this, prefConfig.multiController, prefConfig.deadzonePercentage);
+
+        InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
+        inputManager.registerInputDeviceListener(controllerHandler, null);
 		
 		SurfaceHolder sh = sv.getHolder();
 		if (prefConfig.stretchVideo || !decoderRenderer.isHardwareAccelerated()) {
@@ -287,6 +291,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		
 		SpinnerDialog.closeDialogs(this);
 		Dialog.closeDialogs();
+
+        InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
+        inputManager.unregisterInputDeviceListener(controllerHandler);
 		
 		displayedFailureDialog = true;
 		stopConnection();

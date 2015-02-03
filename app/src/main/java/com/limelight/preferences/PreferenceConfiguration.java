@@ -2,6 +2,7 @@ package com.limelight.preferences;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.preference.PreferenceManager;
 
 public class PreferenceConfiguration {
@@ -16,6 +17,7 @@ public class PreferenceConfiguration {
     private static final String LANGUAGE_PREF_STRING = "list_languages";
     private static final String LIST_MODE_PREF_STRING = "checkbox_list_mode";
     private static final String SMALL_ICONS_PREF_STRING = "checkbox_small_icon_mode";
+    private static final String MULTI_CONTROLLER_PREF_STRING = "checkbox_multi_controller";
 
     private static final String VIRTUAL_CONTROLLER_ENABLE = "virtual_controller_checkbox_enable";
     private static final Boolean VIRTUAL_CONTROLLER_ENABLE_DEFAULT = true;
@@ -35,6 +37,7 @@ public class PreferenceConfiguration {
     private static final int DEFAULT_DEADZONE = 15;
     public static final String DEFAULT_LANGUAGE = "default";
     private static final boolean DEFAULT_LIST_MODE = false;
+    private static final boolean DEFAULT_MULTI_CONTROLLER = true;
 
     public static final int FORCE_HARDWARE_DECODER = -1;
     public static final int AUTOSELECT_DECODER = 0;
@@ -46,7 +49,7 @@ public class PreferenceConfiguration {
     public int deadzonePercentage;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
     public String language;
-    public boolean listMode, smallIconMode;
+    public boolean listMode, smallIconMode, multiController;
 
     public boolean virtualController_enable;
 
@@ -70,6 +73,12 @@ public class PreferenceConfiguration {
     }
 
     public static boolean getDefaultSmallMode(Context context) {
+        PackageManager manager = context.getPackageManager();
+        if (manager != null && manager.hasSystemFeature(PackageManager.FEATURE_TELEVISION)) {
+            // TVs shouldn't use small mode by default
+            return false;
+        }
+
         // Use small mode on anything smaller than a 7" tablet
         return context.getResources().getConfiguration().smallestScreenWidthDp < 600;
     }
@@ -161,6 +170,7 @@ public class PreferenceConfiguration {
         config.playHostAudio = prefs.getBoolean(HOST_AUDIO_PREF_STRING, DEFAULT_HOST_AUDIO);
         config.listMode = prefs.getBoolean(LIST_MODE_PREF_STRING, DEFAULT_LIST_MODE);
         config.smallIconMode = prefs.getBoolean(SMALL_ICONS_PREF_STRING, getDefaultSmallMode(context));
+        config.multiController = prefs.getBoolean(MULTI_CONTROLLER_PREF_STRING, DEFAULT_MULTI_CONTROLLER);
 
         config.virtualController_enable = prefs.getBoolean(VIRTUAL_CONTROLLER_ENABLE, VIRTUAL_CONTROLLER_ENABLE_DEFAULT);
 

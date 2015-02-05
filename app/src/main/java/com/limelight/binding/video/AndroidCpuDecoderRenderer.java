@@ -36,7 +36,7 @@ public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
 	private int totalFrames;
 	private long totalTimeMs;
 	
-	private int cpuCount = Runtime.getRuntime().availableProcessors();
+	private final int cpuCount = Runtime.getRuntime().availableProcessors();
 	
 	@SuppressWarnings("unused")
 	private int findOptimalPerformanceLevel() {

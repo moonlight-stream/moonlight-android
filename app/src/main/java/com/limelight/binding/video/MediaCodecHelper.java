@@ -20,12 +20,12 @@ import com.limelight.LimeLog;
 
 public class MediaCodecHelper {
 	
-	public static final List<String> preferredDecoders;
+	private static final List<String> preferredDecoders;
 
-	public static final List<String> blacklistedDecoderPrefixes;
-	public static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
-	public static final List<String> whitelistedAdaptiveResolutionPrefixes;
-    public static final List<String> baselineProfileHackPrefixes;
+	private static final List<String> blacklistedDecoderPrefixes;
+	private static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
+	private static final List<String> whitelistedAdaptiveResolutionPrefixes;
+    private static final List<String> baselineProfileHackPrefixes;
 	
 	static {
 		preferredDecoders = new LinkedList<String>();
@@ -146,7 +146,7 @@ public class MediaCodecHelper {
 		return str;
 	}
 	
-	public static MediaCodecInfo findPreferredDecoder() {
+	private static MediaCodecInfo findPreferredDecoder() {
 		// This is a different algorithm than the other findXXXDecoder functions,
 		// because we want to evaluate the decoders in our list's order
 		// rather than MediaCodecList's order
@@ -217,7 +217,7 @@ public class MediaCodecHelper {
 	// since some bad decoders can throw IllegalArgumentExceptions unexpectedly
 	// and we want to be sure all callers are handling this possibility
 	@SuppressWarnings("RedundantThrows")
-    public static MediaCodecInfo findKnownSafeDecoder() throws Exception {
+    private static MediaCodecInfo findKnownSafeDecoder() throws Exception {
 		for (MediaCodecInfo codecInfo : getMediaCodecList()) {		
 			// Skip encoders
 			if (codecInfo.isEncoder()) {

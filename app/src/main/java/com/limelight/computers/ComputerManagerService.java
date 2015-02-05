@@ -33,15 +33,15 @@ public class ComputerManagerService extends Service {
 	private static final int POLLING_PERIOD_MS = 3000;
 	private static final int MDNS_QUERY_PERIOD_MS = 1000;
 	
-	private ComputerManagerBinder binder = new ComputerManagerBinder();
+	private final ComputerManagerBinder binder = new ComputerManagerBinder();
 	
 	private ComputerDatabaseManager dbManager;
-	private AtomicInteger dbRefCount = new AtomicInteger(0);
+	private final AtomicInteger dbRefCount = new AtomicInteger(0);
 	
 	private IdentityManager idManager;
 	private final LinkedList<PollingTuple> pollingTuples = new LinkedList<PollingTuple>();
 	private ComputerManagerListener listener = null;
-	private AtomicInteger activePolls = new AtomicInteger(0);
+	private final AtomicInteger activePolls = new AtomicInteger(0);
     private boolean pollingActive = false;
 
 	private DiscoveryService.DiscoveryBinder discoveryBinder;
@@ -491,8 +491,8 @@ public class ComputerManagerService extends Service {
 
     public class ApplistPoller {
         private Thread thread;
-        private ComputerDetails computer;
-        private Object pollEvent = new Object();
+        private final ComputerDetails computer;
+        private final Object pollEvent = new Object();
 
         public ApplistPoller(ComputerDetails computer) {
             this.computer = computer;
@@ -593,7 +593,7 @@ public class ComputerManagerService extends Service {
 
 class PollingTuple {
     public Thread thread;
-    public ComputerDetails computer;
+    public final ComputerDetails computer;
 
     public PollingTuple(ComputerDetails computer, Thread thread) {
         this.computer = computer;

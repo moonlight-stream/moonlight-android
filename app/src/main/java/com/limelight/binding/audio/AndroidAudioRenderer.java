@@ -9,7 +9,7 @@ import com.limelight.nvstream.av.audio.AudioRenderer;
 
 public class AndroidAudioRenderer implements AudioRenderer {
 
-	public static final int FRAME_SIZE = 960;
+	private static final int FRAME_SIZE = 960;
 	
 	private AudioTrack track;
 

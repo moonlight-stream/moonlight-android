@@ -70,7 +70,7 @@ public class DiscoveryService extends Service {
 		});
 	}
 	
-	private DiscoveryBinder binder = new DiscoveryBinder();
+	private final DiscoveryBinder binder = new DiscoveryBinder();
 	
 	@Override
 	public IBinder onBind(Intent intent) {

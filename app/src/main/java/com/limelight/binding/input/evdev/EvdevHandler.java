@@ -7,12 +7,12 @@ import com.limelight.LimeLog;
 
 public class EvdevHandler {
 
-	private String absolutePath;
-	private EvdevListener listener;
+	private final String absolutePath;
+	private final EvdevListener listener;
 	private boolean shutdown = false;
 	private int fd = -1;
 	
-	private Thread handlerThread = new Thread() {
+	private final Thread handlerThread = new Thread() {
 		@Override
 		public void run() {
 			// All the finally blocks here make this code look like a mess

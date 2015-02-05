@@ -4,7 +4,7 @@ import android.view.KeyEvent;
 
 public class EvdevTranslator {
 
-	public static final short EVDEV_KEY_CODES[] = {
+	private static final short[] EVDEV_KEY_CODES = {
 		0, //KeyEvent.VK_RESERVED
 		KeyEvent.KEYCODE_ESCAPE,
 		KeyEvent.KEYCODE_1,

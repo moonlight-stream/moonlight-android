@@ -27,9 +27,9 @@ import android.widget.Toast;
 public class AddComputerManually extends Activity {
 	private TextView hostText;
 	private ComputerManagerService.ComputerManagerBinder managerBinder;
-	private LinkedBlockingQueue<String> computersToAdd = new LinkedBlockingQueue<String>();
+	private final LinkedBlockingQueue<String> computersToAdd = new LinkedBlockingQueue<String>();
 	private Thread addThread;
-	private ServiceConnection serviceConnection = new ServiceConnection() {
+	private final ServiceConnection serviceConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, final IBinder binder) {
 			managerBinder = ((ComputerManagerService.ComputerManagerBinder)binder);
 			startAddThread();

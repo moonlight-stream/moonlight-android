@@ -30,17 +30,17 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
 	private static final int EMULATED_SPECIAL_UP_DELAY_MS = 100;
 	private static final int EMULATED_SELECT_UP_DELAY_MS = 30;
 	
-	private Vector2d inputVector = new Vector2d();
+	private final Vector2d inputVector = new Vector2d();
 	
-	private HashMap<String, ControllerContext> contexts = new HashMap<String, ControllerContext>();
+	private final HashMap<String, ControllerContext> contexts = new HashMap<String, ControllerContext>();
 	
-	private NvConnection conn;
-    private double stickDeadzone;
+	private final NvConnection conn;
+    private final double stickDeadzone;
     private final ControllerContext defaultContext = new ControllerContext();
-    private GameGestures gestures;
+    private final GameGestures gestures;
     private boolean hasGameController;
 
-    private boolean multiControllerEnabled;
+    private final boolean multiControllerEnabled;
     private short currentControllers;
 	
 	public ControllerHandler(NvConnection conn, GameGestures gestures, boolean multiControllerEnabled, int deadzonePercentage) {

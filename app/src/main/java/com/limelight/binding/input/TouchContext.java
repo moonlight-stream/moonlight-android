@@ -11,9 +11,10 @@ public class TouchContext {
 	private long originalTouchTime = 0;
     private boolean cancelled;
 	
-	private NvConnection conn;
-	private int actionIndex;
-    private double xFactor, yFactor;
+	private final NvConnection conn;
+	private final int actionIndex;
+    private final double xFactor;
+    private final double yFactor;
 	
 	private static final int TAP_MOVEMENT_THRESHOLD = 10;
 	private static final int TAP_TIME_THRESHOLD = 250;

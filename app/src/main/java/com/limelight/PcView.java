@@ -53,7 +53,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private PcGridAdapter pcGridAdapter;
 	private ComputerManagerService.ComputerManagerBinder managerBinder;
 	private boolean freezeUpdates, runningPolling;
-	private ServiceConnection serviceConnection = new ServiceConnection() {
+	private final ServiceConnection serviceConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder binder) {
 			final ComputerManagerService.ComputerManagerBinder localBinder =
 					((ComputerManagerService.ComputerManagerBinder)binder);

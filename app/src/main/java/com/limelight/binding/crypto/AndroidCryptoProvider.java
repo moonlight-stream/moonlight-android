@@ -45,8 +45,8 @@ import com.limelight.nvstream.http.LimelightCryptoProvider;
 
 public class AndroidCryptoProvider implements LimelightCryptoProvider {
 
-	private File certFile;
-	private File keyFile;
+	private final File certFile;
+	private final File keyFile;
 	
 	private X509Certificate cert;
 	private RSAPrivateKey key;

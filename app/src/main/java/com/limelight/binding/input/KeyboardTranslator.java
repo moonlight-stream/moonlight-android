@@ -15,7 +15,7 @@ public class KeyboardTranslator extends KeycodeTranslator {
 	/**
 	 * GFE's prefix for every key code
 	 */
-	public static final short KEY_PREFIX = (short) 0x80;
+	private static final short KEY_PREFIX = (short) 0x80;
 	
 	public static final int VK_0 = 48;
 	public static final int VK_9 = 57;

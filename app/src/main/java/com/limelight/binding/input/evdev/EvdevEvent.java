@@ -29,9 +29,9 @@ public class EvdevEvent {
 	/* Keys */
 	public static final short KEY_Q = 16;
 	
-	public short type;
-	public short code;
-	public int value;
+	public final short type;
+	public final short code;
+	public final int value;
 	
 	public EvdevEvent(short type, short code, int value) {
 		this.type = type;

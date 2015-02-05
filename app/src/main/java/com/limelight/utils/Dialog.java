@@ -7,15 +7,16 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 
 public class Dialog implements Runnable {
-	private String title, message;
-	private Activity activity;
-	private boolean endAfterDismiss;
+	private final String title;
+    private final String message;
+	private final Activity activity;
+	private final boolean endAfterDismiss;
 	
 	private AlertDialog alert;
 	
 	private static final ArrayList<Dialog> rundownDialogs = new ArrayList<Dialog>();
 	
-	public Dialog(Activity activity, String title, String message, boolean endAfterDismiss)
+	private Dialog(Activity activity, String title, String message, boolean endAfterDismiss)
 	{
 		this.activity = activity;
 		this.title = title;

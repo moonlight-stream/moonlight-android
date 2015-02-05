@@ -74,7 +74,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 	public final static String UUID_EXTRA = "UUID";
 
     private ComputerManagerService.ComputerManagerBinder managerBinder;
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder binder) {
             final ComputerManagerService.ComputerManagerBinder localBinder =
                     ((ComputerManagerService.ComputerManagerBinder)binder);
@@ -172,7 +172,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         blockingLoadSpinner.dismiss();
                         blockingLoadSpinner = null;
                     }
-                } catch (Exception e) {}
+                } catch (Exception ignored) {}
             }
         });
 
@@ -505,7 +505,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     }
 
     public class AppObject {
-		public NvApp app;
+		public final NvApp app;
 		
 		public AppObject(NvApp app) {
 			this.app = app;

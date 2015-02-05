@@ -9,14 +9,15 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 
 public class SpinnerDialog implements Runnable,OnCancelListener {
-	private String title, message;
-	private Activity activity;
+	private final String title;
+    private final String message;
+	private final Activity activity;
 	private ProgressDialog progress;
-	private boolean finish;
+	private final boolean finish;
 	
 	private static final ArrayList<SpinnerDialog> rundownDialogs = new ArrayList<SpinnerDialog>();
 	
-	public SpinnerDialog(Activity activity, String title, String message, boolean finish)
+	private SpinnerDialog(Activity activity, String title, String message, boolean finish)
 	{
 		this.activity = activity;
 		this.title = title;

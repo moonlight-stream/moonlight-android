@@ -558,8 +558,8 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
     public class RendererException extends RuntimeException {
 		private static final long serialVersionUID = 8985937536997012406L;
 		
-		private Exception originalException;
-		private MediaCodecDecoderRenderer renderer;
+		private final Exception originalException;
+		private final MediaCodecDecoderRenderer renderer;
 		private ByteBuffer currentBuffer;
 		private int currentCodecFlags;
 		

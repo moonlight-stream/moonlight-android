@@ -60,7 +60,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	private int lastButtonState = 0;
 	
 	// Only 2 touches are supported
-	private TouchContext[] touchContextMap = new TouchContext[2];
+	private final TouchContext[] touchContextMap = new TouchContext[2];
     private long threeFingerDownTime = 0;
 
     private static final int THREE_FINGER_TAP_THRESHOLD = 300;
@@ -69,7 +69,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	private KeyboardTranslator keybTranslator;
 	
 	private PreferenceConfiguration prefConfig;
-	private Point screenSize = new Point(0, 0);
+	private final Point screenSize = new Point(0, 0);
 	
 	private NvConnection conn;
 	private SpinnerDialog spinner;
@@ -246,7 +246,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	}
 
 	@SuppressLint("InlinedApi")
-	private Runnable hideSystemUi = new Runnable() {
+	private final Runnable hideSystemUi = new Runnable() {
 			@Override
 			public void run() {
 				// Use immersive mode on 4.4+ or standard low profile on previous builds
@@ -315,7 +315,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 		wifiLock.release();
 	}
 	
-	private Runnable toggleGrab = new Runnable() {
+	private final Runnable toggleGrab = new Runnable() {
 		@Override
 		public void run() {
 			

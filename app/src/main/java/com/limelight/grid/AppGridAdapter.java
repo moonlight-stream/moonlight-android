@@ -51,10 +51,10 @@ import java.security.cert.X509Certificate;
 
 public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
-    private ComputerDetails computer;
-    private String uniqueId;
-    private LimelightCryptoProvider cryptoProvider;
-    private SSLContext sslContext;
+    private final ComputerDetails computer;
+    private final String uniqueId;
+    private final LimelightCryptoProvider cryptoProvider;
+    private final SSLContext sslContext;
     private final HashMap<ImageView, Future> pendingRequests = new HashMap<ImageView, Future>();
 
     public AppGridAdapter(Context context, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
@@ -69,7 +69,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         sslContext.init(ourKeyman, trustAllCerts, new SecureRandom());
     }
 
-    TrustManager[] trustAllCerts = new TrustManager[] {
+    private final TrustManager[] trustAllCerts = new TrustManager[] {
             new X509TrustManager() {
                 public X509Certificate[] getAcceptedIssuers() {
                     return new X509Certificate[0];
@@ -78,7 +78,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                 public void checkServerTrusted(X509Certificate[] certs, String authType) {}
             }};
 
-    KeyManager[] ourKeyman = new KeyManager[] {
+    private final KeyManager[] ourKeyman = new KeyManager[] {
             new X509KeyManager() {
                 public String chooseClientAlias(String[] keyTypes,
                                                 Principal[] issuers, Socket socket) {
@@ -203,8 +203,8 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     }
 
     private class ImageCacheRequest extends AsyncTask<Void, Void, Bitmap> {
-        private ImageView view;
-        private int appId;
+        private final ImageView view;
+        private final int appId;
 
         public ImageCacheRequest(ImageView view, int appId) {
             this.view = view;
@@ -223,7 +223,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                 if (in != null) {
                     try {
                         in.close();
-                    } catch (IOException e) {}
+                    } catch (IOException ignored) {}
                 }
             }
             return null;
@@ -249,6 +249,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                 // Set SSL contexts correctly to allow us to authenticate
                 Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setTrustManagers(trustAllCerts);
                 Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setSSLContext(sslContext);
+                Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setHostnameVerifier(hv);
 
                 // Kick off the deferred image load
                 synchronized (pendingRequests) {

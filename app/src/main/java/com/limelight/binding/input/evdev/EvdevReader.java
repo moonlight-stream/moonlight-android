@@ -26,7 +26,7 @@ public class EvdevReader {
         // 4.4 and later to do live SELinux policy changes.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             EvdevShell shell = EvdevShell.getInstance();
-            shell.runCommand("supolicy --live \"allow untrusted_app input_device dir { getattr read search }\" " +
+            shell.runCommand("supolicy --live \"allow untrusted_app input_device dir { open getattr read search }\" " +
                     "\"allow untrusted_app input_device chr_file { open read write ioctl }\"");
         }
     }

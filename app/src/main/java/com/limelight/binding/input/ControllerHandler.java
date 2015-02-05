@@ -3,7 +3,6 @@ package com.limelight.binding.input;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.content.Context;
 import android.hardware.input.InputManager;
 import android.os.SystemClock;
 import android.view.InputDevice;

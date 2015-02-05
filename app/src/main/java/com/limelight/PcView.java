@@ -25,7 +25,6 @@ import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
-import android.app.FragmentTransaction;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;

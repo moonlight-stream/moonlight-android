@@ -95,8 +95,8 @@
     <string name="summary_checkbox_disable_warnings">Disabilita i messaggi di warning sullo schermo durante lo streaming</string>
 
     <string name="category_gamepad_settings">Impostazioni Gamepad</string>
-    <string name="title_checkbox_multi_controller">Enable multiple controller support</string>
-    <string name="summary_checkbox_multi_controller">When unchecked, all controllers appear as one</string>
+    <string name="title_checkbox_multi_controller">Supporto controller multipli</string>
+    <string name="summary_checkbox_multi_controller">Quando disabilitato, tutti i controllers appaiono come uno solo</string>
     <string name="title_seekbar_deadzone">Aggiusta deadzone degli stick analogici</string>
     <string name="suffix_seekbar_deadzone">%</string>
 

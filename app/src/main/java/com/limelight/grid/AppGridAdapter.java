@@ -280,5 +280,5 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
             }
             }
         }
-    };
+    }
 }

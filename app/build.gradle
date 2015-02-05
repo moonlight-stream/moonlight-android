@@ -62,17 +62,17 @@ android {
 }
 
 dependencies {
-    compile group: 'org.jcodec', name: 'jcodec', version: '+'
+    compile group: 'org.jcodec', name: 'jcodec', version: '0.1.9'
 
-    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '+'
-    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '+'
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.51'
+    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.51'
 
-    compile group: 'com.google.android', name: 'support-v4', version:'+'
-    compile group: 'com.koushikdutta.ion', name: 'ion', version:'+'
-    compile group: 'com.google.code.gson', name: 'gson', version:'+'
+    compile group: 'com.google.android', name: 'support-v4', version:'21.0.3'
+    compile group: 'com.koushikdutta.ion', name: 'ion', version:'2.0.5'
+    compile group: 'com.google.code.gson', name: 'gson', version:'2.3.1'
 
-    compile group: 'com.squareup.okhttp', name: 'okhttp', version:'+'
-    compile group: 'com.squareup.okio', name:'okio', version:'+'
+    compile group: 'com.squareup.okhttp', name: 'okhttp', version:'2.2.0'
+    compile group: 'com.squareup.okio', name:'okio', version:'1.2.0'
 
     compile files('libs/jmdns-fixed.jar')
     compile files('libs/limelight-common.jar')

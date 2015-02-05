@@ -262,6 +262,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
                     boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
                     if (!hasStartKey[0] && !hasStartKey[1]) {
                         context.backIsStart = true;
+                        context.modeIsSelect = true;
                     }
                 }
 
@@ -426,9 +427,17 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
             // Ensure that we never use back as start if we have a real start
             context.backIsStart = false;
         }
+        else if (keyCode == KeyEvent.KEYCODE_BUTTON_SELECT) {
+            // Don't use mode as select if we have a select
+            context.modeIsSelect = false;
+        }
         else if (context.backIsStart && keyCode == KeyEvent.KEYCODE_BACK) {
             // Emulate the start button with back
             return KeyEvent.KEYCODE_BUTTON_START;
+        }
+        else if (context.modeIsSelect && keyCode == KeyEvent.KEYCODE_BUTTON_MODE) {
+            // Emulate the select button with mode
+            return KeyEvent.KEYCODE_BUTTON_SELECT;
         }
 		
 		return keyCode;
@@ -789,6 +798,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
 		public boolean isDualShock4;
 		public boolean isXboxController;
         public boolean backIsStart;
+        public boolean modeIsSelect;
         public boolean isRemote;
         public boolean hasJoystickAxes;
 

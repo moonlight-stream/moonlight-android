@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="resolution_names">
+        <item>640x480 - 30 FPS</item>
+        <item>800x600 - 30 FPS</item>
+        <item>1024x768 - 30 FPS</item>
         <item>720p - 30 FPS</item>
         <item>720p - 60 FPS</item>
         <item>1080p - 30 FPS</item>

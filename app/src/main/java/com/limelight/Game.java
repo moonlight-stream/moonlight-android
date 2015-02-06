@@ -226,12 +226,22 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 	{
 		// Get the visible width of the activity
 	    double visibleWidth = getWindow().getDecorView().getWidth();
+	    double visibleHeight = getWindow().getDecorView().getHeight();
 	    
 	    ViewGroup.LayoutParams lp = sv.getLayoutParams();
 	    
+	    double vidRatio = vidHeight / vidWidth;
+	    double visibleRatio = visibleHeight / visibleWidth;
+
 	    // Calculate the new size of the SurfaceView
-	    lp.width = (int) visibleWidth;
-	    lp.height = (int) ((vidHeight / vidWidth) * visibleWidth);
+	    if (vidRatio < visibleRatio) {
+		    lp.width = (int) visibleWidth;
+		    lp.height = (int) ((vidHeight / vidWidth) * visibleWidth);
+	    }
+	    else {
+		    lp.width = (int) ((vidWidth / vidHeight) * visibleHeight);
+		    lp.height = (int) visibleHeight;
+	    }
 
 	    // Apply the size change
 	    sv.setLayoutParams(lp);

@@ -19,6 +19,9 @@ public class PreferenceConfiguration {
     private static final String SMALL_ICONS_PREF_STRING = "checkbox_small_icon_mode";
     private static final String MULTI_CONTROLLER_PREF_STRING = "checkbox_multi_controller";
 
+    private static final int BITRATE_DEFAULT_640_480_30 = 1;
+    private static final int BITRATE_DEFAULT_800_600_30 = 2;
+    private static final int BITRATE_DEFAULT_1024_768_30 = 4;
     private static final int BITRATE_DEFAULT_720_30 = 5;
     private static final int BITRATE_DEFAULT_720_60 = 10;
     private static final int BITRATE_DEFAULT_1080_30 = 10;
@@ -49,7 +52,16 @@ public class PreferenceConfiguration {
     public boolean listMode, smallIconMode, multiController;
 
     public static int getDefaultBitrate(String resFpsString) {
-        if (resFpsString.equals("720p30")) {
+        if (resFpsString.equals("640_480_30")) {
+            return BITRATE_DEFAULT_640_480_30;
+        }
+        else if (resFpsString.equals("800_600_30")) {
+            return BITRATE_DEFAULT_800_600_30;
+        }
+        else if (resFpsString.equals("1024_768_30")) {
+            return BITRATE_DEFAULT_1024_768_30;
+        }
+        else if (resFpsString.equals("720p30")) {
             return BITRATE_DEFAULT_720_30;
         }
         else if (resFpsString.equals("720p60")) {
@@ -82,7 +94,16 @@ public class PreferenceConfiguration {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
         String str = prefs.getString(RES_FPS_PREF_STRING, DEFAULT_RES_FPS);
-        if (str.equals("720p30")) {
+        if (str.equals("640_480_30")) {
+            return BITRATE_DEFAULT_640_480_30;
+        }
+        else if (str.equals("800_600_30")) {
+            return BITRATE_DEFAULT_800_600_30;
+        }
+        else if (str.equals("1024_768_30")) {
+            return BITRATE_DEFAULT_1024_768_30;
+        }
+        else if (str.equals("720p30")) {
             return BITRATE_DEFAULT_720_30;
         }
         else if (str.equals("720p60")) {
@@ -125,7 +146,22 @@ public class PreferenceConfiguration {
 
         config.bitrate = prefs.getInt(BITRATE_PREF_STRING, getDefaultBitrate(context));
         String str = prefs.getString(RES_FPS_PREF_STRING, DEFAULT_RES_FPS);
-        if (str.equals("720p30")) {
+        if (str.equals("640_480_30")) {
+            config.width = 640;
+            config.height = 480;
+            config.fps = 30;
+        }
+        else if (str.equals("800_600_30")) {
+            config.width = 800;
+            config.height = 600;
+            config.fps = 30;
+        }
+        else if (str.equals("1024_768_30")) {
+            config.width = 1024;
+            config.height = 768;
+            config.fps = 30;
+        }
+        else if (str.equals("720p30")) {
             config.width = 1280;
             config.height = 720;
             config.fps = 30;

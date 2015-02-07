@@ -254,7 +254,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }
         else {
             menu.add(Menu.NONE, APP_LIST_ID, 1, getResources().getString(R.string.pcview_menu_app_list));
-            menu.add(Menu.NONE, UNPAIR_ID, 2, getResources().getString(R.string.pcview_menu_unpair_pc));
+
+            // FIXME: We used to be able to unpair here but it's been broken since GFE 2.1.x, so I've replaced
+            // it with delete which actually work
+            menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
         }
     }
 	

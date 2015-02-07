@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -166,8 +165,8 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
     @Override
     public boolean populateImageView(final ImageView imgView, final AppView.AppObject obj) {
-        // Hide the image view while we're loading the image from disk cache
-        imgView.setVisibility(View.INVISIBLE);
+        // Clear existing contents of the image view
+        imgView.setImageAlpha(0);
 
         // Check the on-disk cache
         new ImageCacheRequest(imgView, obj.app.getAppId()).execute();
@@ -229,7 +228,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                 // Disk cache was read successfully
                 LimeLog.info("Image disk cache hit for ("+computer.uuid+", "+appId+")");
                 view.setImageBitmap(result);
-                view.setVisibility(View.VISIBLE);
+                view.setImageAlpha(255);
             }
             else {
                 LimeLog.info("Image disk cache miss for ("+computer.uuid+", "+appId+")");
@@ -238,7 +237,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
                 // Load the placeholder image
                 view.setImageResource(defaultImageRes);
-                view.setVisibility(View.VISIBLE);
+                view.setImageAlpha(255);
 
                 // Set SSL contexts correctly to allow us to authenticate
                 Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setTrustManagers(trustAllCerts);
@@ -261,7 +260,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                                     if (result != null) {
                                         // Make the view visible now
                                         view.setImageBitmap(result);
-                                        view.setVisibility(View.VISIBLE);
+                                        view.setImageAlpha(255);
 
                                         // Populate the disk cache if we got an image back.
                                         // We do it in a new thread because it can be very expensive, especially

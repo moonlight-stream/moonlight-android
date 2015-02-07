@@ -14,6 +14,7 @@ import com.limelight.utils.UiHelper;
 import android.app.Activity;
 import android.app.Service;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
@@ -21,6 +22,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -160,6 +162,12 @@ public class AddComputerManually extends Activity {
                     }
 
                     computersToAdd.add(hostText.getText().toString().trim());
+                }
+                else if (actionId == EditorInfo.IME_ACTION_PREVIOUS) {
+                    // This is how the Fire TV dismisses the keyboard
+                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(hostText.getWindowToken(), 0);
+                    return false;
                 }
 
                 return false;

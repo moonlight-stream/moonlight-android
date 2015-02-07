@@ -23,8 +23,8 @@ public class KeyboardTranslator extends KeycodeTranslator {
 	public static final int VK_Z = 90;
 	public static final int VK_ALT = 18;
 	public static final int VK_NUMPAD0 = 96;
-	public static final int VK_BACK_SLASH = 92;
-	public static final int VK_CAPS_LOCK = 20;
+    public static final int VK_BACK_SLASH = 92;
+    public static final int VK_CAPS_LOCK = 20;
 	public static final int VK_CLEAR = 12;
 	public static final int VK_COMMA = 44;
 	public static final int VK_CONTROL = 17;

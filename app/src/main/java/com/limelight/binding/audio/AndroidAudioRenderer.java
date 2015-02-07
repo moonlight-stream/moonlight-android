@@ -9,27 +9,27 @@ import com.limelight.nvstream.av.audio.AudioRenderer;
 
 public class AndroidAudioRenderer implements AudioRenderer {
 
-	private static final int FRAME_SIZE = 960;
-	
-	private AudioTrack track;
+    private static final int FRAME_SIZE = 960;
 
-	@Override
-	public boolean streamInitialized(int channelCount, int sampleRate) {
-		int channelConfig;
-		int bufferSize;
+    private AudioTrack track;
 
-		switch (channelCount)
-		{
-		case 1:
-			channelConfig = AudioFormat.CHANNEL_OUT_MONO;
-			break;
-		case 2:
-			channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
-			break;
-		default:
-			LimeLog.severe("Decoder returned unhandled channel count");
-			return false;
-		}
+    @Override
+    public boolean streamInitialized(int channelCount, int sampleRate) {
+        int channelConfig;
+        int bufferSize;
+
+        switch (channelCount)
+        {
+        case 1:
+            channelConfig = AudioFormat.CHANNEL_OUT_MONO;
+            break;
+        case 2:
+            channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
+            break;
+        default:
+            LimeLog.severe("Decoder returned unhandled channel count");
+            return false;
+        }
 
         // We're not supposed to request less than the minimum
         // buffer size for our buffer, but it appears that we can
@@ -72,26 +72,26 @@ public class AndroidAudioRenderer implements AudioRenderer {
                     AudioTrack.MODE_STREAM);
             track.play();
         }
-		
-		LimeLog.info("Audio track buffer size: "+bufferSize);
 
-		return true;
-	}
+        LimeLog.info("Audio track buffer size: "+bufferSize);
 
-	@Override
-	public void playDecodedAudio(byte[] audioData, int offset, int length) {
-		track.write(audioData, offset, length);
-	}
+        return true;
+    }
 
-	@Override
-	public void streamClosing() {
-		if (track != null) {
-			track.release();
-		}
-	}
+    @Override
+    public void playDecodedAudio(byte[] audioData, int offset, int length) {
+        track.write(audioData, offset, length);
+    }
 
-	@Override
-	public int getCapabilities() {
-		return 0;
-	}
+    @Override
+    public void streamClosing() {
+        if (track != null) {
+            track.release();
+        }
+    }
+
+    @Override
+    public int getCapabilities() {
+        return 0;
+    }
 }

@@ -29,39 +29,39 @@ import android.os.IBinder;
 import org.xmlpull.v1.XmlPullParserException;
 
 public class ComputerManagerService extends Service {
-	private static final int POLLING_PERIOD_MS = 3000;
-	private static final int MDNS_QUERY_PERIOD_MS = 1000;
-	
-	private final ComputerManagerBinder binder = new ComputerManagerBinder();
-	
-	private ComputerDatabaseManager dbManager;
-	private final AtomicInteger dbRefCount = new AtomicInteger(0);
-	
-	private IdentityManager idManager;
-	private final LinkedList<PollingTuple> pollingTuples = new LinkedList<PollingTuple>();
-	private ComputerManagerListener listener = null;
-	private final AtomicInteger activePolls = new AtomicInteger(0);
+    private static final int POLLING_PERIOD_MS = 3000;
+    private static final int MDNS_QUERY_PERIOD_MS = 1000;
+
+    private final ComputerManagerBinder binder = new ComputerManagerBinder();
+
+    private ComputerDatabaseManager dbManager;
+    private final AtomicInteger dbRefCount = new AtomicInteger(0);
+
+    private IdentityManager idManager;
+    private final LinkedList<PollingTuple> pollingTuples = new LinkedList<PollingTuple>();
+    private ComputerManagerListener listener = null;
+    private final AtomicInteger activePolls = new AtomicInteger(0);
     private boolean pollingActive = false;
 
-	private DiscoveryService.DiscoveryBinder discoveryBinder;
-	private final ServiceConnection discoveryServiceConnection = new ServiceConnection() {
-		public void onServiceConnected(ComponentName className, IBinder binder) {
-			synchronized (discoveryServiceConnection) {
-				DiscoveryService.DiscoveryBinder privateBinder = ((DiscoveryService.DiscoveryBinder)binder);
-				
-				// Set us as the event listener
-				privateBinder.setListener(createDiscoveryListener());
-				
-				// Signal a possible waiter that we're all setup
-				discoveryBinder = privateBinder;
-				discoveryServiceConnection.notifyAll();
-			}
-		}
+    private DiscoveryService.DiscoveryBinder discoveryBinder;
+    private final ServiceConnection discoveryServiceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder binder) {
+            synchronized (discoveryServiceConnection) {
+                DiscoveryService.DiscoveryBinder privateBinder = ((DiscoveryService.DiscoveryBinder)binder);
 
-		public void onServiceDisconnected(ComponentName className) {
-			discoveryBinder = null;
-		}
-	};
+                // Set us as the event listener
+                privateBinder.setListener(createDiscoveryListener());
+
+                // Signal a possible waiter that we're all setup
+                discoveryBinder = privateBinder;
+                discoveryServiceConnection.notifyAll();
+            }
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            discoveryBinder = null;
+        }
+    };
 
     // Returns true if the details object was modified
     private boolean runPoll(ComputerDetails details, boolean newPc)
@@ -124,17 +124,17 @@ public class ComputerManagerService extends Service {
         t.setName("Polling thread for "+details.localIp.getHostAddress());
         return t;
     }
-	
-	public class ComputerManagerBinder extends Binder {
-		public void startPolling(ComputerManagerListener listener) {
+
+    public class ComputerManagerBinder extends Binder {
+        public void startPolling(ComputerManagerListener listener) {
             // Polling is active
             pollingActive = true;
 
-			// Set the listener
-			ComputerManagerService.this.listener = listener;
-			
-			// Start mDNS autodiscovery too
-			discoveryBinder.startDiscovery(MDNS_QUERY_PERIOD_MS);
+            // Set the listener
+            ComputerManagerService.this.listener = listener;
+
+            // Start mDNS autodiscovery too
+            discoveryBinder.startDiscovery(MDNS_QUERY_PERIOD_MS);
 
             synchronized (pollingTuples) {
                 for (PollingTuple tuple : pollingTuples) {
@@ -148,48 +148,48 @@ public class ComputerManagerService extends Service {
                     }
                 }
             }
-		}
-		
-		public void waitForReady() {
-			synchronized (discoveryServiceConnection) {
-				try {
-					while (discoveryBinder == null) {
-						// Wait for the bind notification
-						discoveryServiceConnection.wait(1000);
-					}
-				} catch (InterruptedException ignored) {
-				}
-			}
-		}
-		
-		public void waitForPollingStopped() {
-			while (activePolls.get() != 0) {
-				try {
-					Thread.sleep(250);
-				} catch (InterruptedException ignored) {}
-			}
-		}
-		
-		public boolean addComputerBlocking(InetAddress addr) {
-			return ComputerManagerService.this.addComputerBlocking(addr);
-		}
-		
-		public void removeComputer(String name) {
-			ComputerManagerService.this.removeComputer(name);
-		}
-		
-		public void stopPolling() {
-			// Just call the unbind handler to cleanup
-			ComputerManagerService.this.onUnbind(null);
-		}
+        }
+
+        public void waitForReady() {
+            synchronized (discoveryServiceConnection) {
+                try {
+                    while (discoveryBinder == null) {
+                        // Wait for the bind notification
+                        discoveryServiceConnection.wait(1000);
+                    }
+                } catch (InterruptedException ignored) {
+                }
+            }
+        }
+
+        public void waitForPollingStopped() {
+            while (activePolls.get() != 0) {
+                try {
+                    Thread.sleep(250);
+                } catch (InterruptedException ignored) {}
+            }
+        }
+
+        public boolean addComputerBlocking(InetAddress addr) {
+            return ComputerManagerService.this.addComputerBlocking(addr);
+        }
+
+        public void removeComputer(String name) {
+            ComputerManagerService.this.removeComputer(name);
+        }
+
+        public void stopPolling() {
+            // Just call the unbind handler to cleanup
+            ComputerManagerService.this.onUnbind(null);
+        }
 
         public ApplistPoller createAppListPoller(ComputerDetails computer) {
             return new ApplistPoller(computer);
         }
-		
-		public String getUniqueId() {
-			return idManager.getUniqueId();
-		}
+
+        public String getUniqueId() {
+            return idManager.getUniqueId();
+        }
 
         public ComputerDetails getComputer(UUID uuid) {
             synchronized (pollingTuples) {
@@ -202,14 +202,14 @@ public class ComputerManagerService extends Service {
 
             return null;
         }
-	}
-	
-	@Override
-	public boolean onUnbind(Intent intent) {
-		// Stop mDNS autodiscovery
-		discoveryBinder.stopDiscovery();
-		
-		// Stop polling
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        // Stop mDNS autodiscovery
+        discoveryBinder.stopDiscovery();
+
+        // Stop polling
         pollingActive = false;
         synchronized (pollingTuples) {
             for (PollingTuple tuple : pollingTuples) {
@@ -220,33 +220,33 @@ public class ComputerManagerService extends Service {
                 }
             }
         }
-		
-		// Remove the listener
-		listener = null;
-		
-		return false;
-	}
-	
-	private MdnsDiscoveryListener createDiscoveryListener() {
-		return new MdnsDiscoveryListener() {
-			@Override
-			public void notifyComputerAdded(MdnsComputer computer) {
-				// Kick off a serverinfo poll on this machine
-				addComputerBlocking(computer.getAddress());
-			}
 
-			@Override
-			public void notifyComputerRemoved(MdnsComputer computer) {
-				// Nothing to do here
-			}
+        // Remove the listener
+        listener = null;
 
-			@Override
-			public void notifyDiscoveryFailure(Exception e) {
-				LimeLog.severe("mDNS discovery failed");
-				e.printStackTrace();
-			}
-		};
-	}
+        return false;
+    }
+
+    private MdnsDiscoveryListener createDiscoveryListener() {
+        return new MdnsDiscoveryListener() {
+            @Override
+            public void notifyComputerAdded(MdnsComputer computer) {
+                // Kick off a serverinfo poll on this machine
+                addComputerBlocking(computer.getAddress());
+            }
+
+            @Override
+            public void notifyComputerRemoved(MdnsComputer computer) {
+                // Nothing to do here
+            }
+
+            @Override
+            public void notifyDiscoveryFailure(Exception e) {
+                LimeLog.severe("mDNS discovery failed");
+                e.printStackTrace();
+            }
+        };
+    }
 
     private void addTuple(ComputerDetails details) {
         synchronized (pollingTuples) {
@@ -278,17 +278,17 @@ public class ComputerManagerService extends Service {
         }
     }
 
-	public boolean addComputerBlocking(InetAddress addr) {
-		// Setup a placeholder
-		ComputerDetails fakeDetails = new ComputerDetails();
-		fakeDetails.localIp = addr;
-		fakeDetails.remoteIp = addr;
+    public boolean addComputerBlocking(InetAddress addr) {
+        // Setup a placeholder
+        ComputerDetails fakeDetails = new ComputerDetails();
+        fakeDetails.localIp = addr;
+        fakeDetails.remoteIp = addr;
 
-		// Block while we try to fill the details
+        // Block while we try to fill the details
         runPoll(fakeDetails, true);
-		
-		// If the machine is reachable, it was successful
-		if (fakeDetails.state == ComputerDetails.State.ONLINE) {
+
+        // If the machine is reachable, it was successful
+        if (fakeDetails.state == ComputerDetails.State.ONLINE) {
             LimeLog.info("New PC ("+fakeDetails.name+") is UUID "+fakeDetails.uuid);
 
             // Start a polling thread for this machine
@@ -298,15 +298,15 @@ public class ComputerManagerService extends Service {
         else {
             return false;
         }
-	}
-	
-	public void removeComputer(String name) {
-		if (!getLocalDatabaseReference()) {
-			return;
-		}
-		
-		// Remove it from the database
-		dbManager.deleteComputer(name);
+    }
+
+    public void removeComputer(String name) {
+        if (!getLocalDatabaseReference()) {
+            return;
+        }
+
+        // Remove it from the database
+        dbManager.deleteComputer(name);
 
         synchronized (pollingTuples) {
             // Remove the computer from the computer list
@@ -321,31 +321,31 @@ public class ComputerManagerService extends Service {
                 }
             }
         }
-		
-		releaseLocalDatabaseReference();
-	}
-	
-	private boolean getLocalDatabaseReference() {
-		if (dbRefCount.get() == 0) {
-			return false;
-		}
-		
-		dbRefCount.incrementAndGet();
-		return true;
-	}
-	
-	private void releaseLocalDatabaseReference() {
-		if (dbRefCount.decrementAndGet() == 0) {
-			dbManager.close();
-		}
-	}
-	
-	private ComputerDetails tryPollIp(ComputerDetails details, InetAddress ipAddr) {
-		try {
-			NvHTTP http = new NvHTTP(ipAddr, idManager.getUniqueId(),
-					null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
-			ComputerDetails newDetails = http.getComputerDetails();
+        releaseLocalDatabaseReference();
+    }
+
+    private boolean getLocalDatabaseReference() {
+        if (dbRefCount.get() == 0) {
+            return false;
+        }
+
+        dbRefCount.incrementAndGet();
+        return true;
+    }
+
+    private void releaseLocalDatabaseReference() {
+        if (dbRefCount.decrementAndGet() == 0) {
+            dbManager.close();
+        }
+    }
+
+    private ComputerDetails tryPollIp(ComputerDetails details, InetAddress ipAddr) {
+        try {
+            NvHTTP http = new NvHTTP(ipAddr, idManager.getUniqueId(),
+                    null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
+
+            ComputerDetails newDetails = http.getComputerDetails();
 
             // Check if this is the PC we expected
             if (details.uuid != null && newDetails.uuid != null &&
@@ -356,58 +356,58 @@ public class ComputerManagerService extends Service {
             }
 
             return newDetails;
-		} catch (Exception e) {
-			return null;
-		}
-	}
-	
-	private boolean pollComputer(ComputerDetails details, boolean localFirst) {
-		ComputerDetails polledDetails;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private boolean pollComputer(ComputerDetails details, boolean localFirst) {
+        ComputerDetails polledDetails;
 
         // If the local address is routable across the Internet,
         // always consider this PC remote to be conservative
         if (details.localIp.equals(details.remoteIp)) {
             localFirst = false;
         }
-		
-		if (localFirst) {
-			polledDetails = tryPollIp(details, details.localIp);
-		}
-		else {
-			polledDetails = tryPollIp(details, details.remoteIp);
-		}
-		
-		if (polledDetails == null && !details.localIp.equals(details.remoteIp)) {
-			// Failed, so let's try the fallback
-			if (!localFirst) {
-				polledDetails = tryPollIp(details, details.localIp);
-			}
-			else {
-				polledDetails = tryPollIp(details, details.remoteIp);
-			}
-			
-			// The fallback poll worked
-			if (polledDetails != null) {
-				polledDetails.reachability = !localFirst ? ComputerDetails.Reachability.LOCAL :
-					ComputerDetails.Reachability.REMOTE;
-			}
-		}
-		else if (polledDetails != null) {
-			polledDetails.reachability = localFirst ? ComputerDetails.Reachability.LOCAL :
-				ComputerDetails.Reachability.REMOTE;
-		}
-		
-		// Machine was unreachable both tries
-		if (polledDetails == null) {
-			return false;
-		}
-		
-		// If we got here, it's reachable
-		details.update(polledDetails);
-		return true;
-	}
-	
-	private boolean doPollMachine(ComputerDetails details) {
+
+        if (localFirst) {
+            polledDetails = tryPollIp(details, details.localIp);
+        }
+        else {
+            polledDetails = tryPollIp(details, details.remoteIp);
+        }
+
+        if (polledDetails == null && !details.localIp.equals(details.remoteIp)) {
+            // Failed, so let's try the fallback
+            if (!localFirst) {
+                polledDetails = tryPollIp(details, details.localIp);
+            }
+            else {
+                polledDetails = tryPollIp(details, details.remoteIp);
+            }
+
+            // The fallback poll worked
+            if (polledDetails != null) {
+                polledDetails.reachability = !localFirst ? ComputerDetails.Reachability.LOCAL :
+                    ComputerDetails.Reachability.REMOTE;
+            }
+        }
+        else if (polledDetails != null) {
+            polledDetails.reachability = localFirst ? ComputerDetails.Reachability.LOCAL :
+                ComputerDetails.Reachability.REMOTE;
+        }
+
+        // Machine was unreachable both tries
+        if (polledDetails == null) {
+            return false;
+        }
+
+        // If we got here, it's reachable
+        details.update(polledDetails);
+        return true;
+    }
+
+    private boolean doPollMachine(ComputerDetails details) {
         if (details.reachability == ComputerDetails.Reachability.UNKNOWN ||
             details.reachability == ComputerDetails.Reachability.OFFLINE) {
             // Always try local first to avoid potential UDP issues when
@@ -420,20 +420,20 @@ public class ComputerManagerService extends Service {
             // always try that one first
             return pollComputer(details, details.reachability == ComputerDetails.Reachability.LOCAL);
         }
-	}
-	
-	@Override
-	public void onCreate() {
-		// Bind to the discovery service
-		bindService(new Intent(this, DiscoveryService.class),
-				discoveryServiceConnection, Service.BIND_AUTO_CREATE);
-		
-		// Lookup or generate this device's UID
-		idManager = new IdentityManager(this);
-		
-		// Initialize the DB
-		dbManager = new ComputerDatabaseManager(this);
-		dbRefCount.set(1);
+    }
+
+    @Override
+    public void onCreate() {
+        // Bind to the discovery service
+        bindService(new Intent(this, DiscoveryService.class),
+                discoveryServiceConnection, Service.BIND_AUTO_CREATE);
+
+        // Lookup or generate this device's UID
+        idManager = new IdentityManager(this);
+
+        // Initialize the DB
+        dbManager = new ComputerDatabaseManager(this);
+        dbRefCount.set(1);
 
         // Grab known machines into our computer list
         if (!getLocalDatabaseReference()) {
@@ -446,25 +446,25 @@ public class ComputerManagerService extends Service {
         }
 
         releaseLocalDatabaseReference();
-	}
-	
-	@Override
-	public void onDestroy() {
-		if (discoveryBinder != null) {
-			// Unbind from the discovery service
-			unbindService(discoveryServiceConnection);
-		}
-		
-		// FIXME: Should await termination here but we have timeout issues in HttpURLConnection
-		
-		// Remove the initial DB reference
-		releaseLocalDatabaseReference();
-	}
-	
-	@Override
-	public IBinder onBind(Intent intent) {
-		return binder;
-	}
+    }
+
+    @Override
+    public void onDestroy() {
+        if (discoveryBinder != null) {
+            // Unbind from the discovery service
+            unbindService(discoveryServiceConnection);
+        }
+
+        // FIXME: Should await termination here but we have timeout issues in HttpURLConnection
+
+        // Remove the initial DB reference
+        releaseLocalDatabaseReference();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return binder;
+    }
 
     public class ApplistPoller {
         private Thread thread;

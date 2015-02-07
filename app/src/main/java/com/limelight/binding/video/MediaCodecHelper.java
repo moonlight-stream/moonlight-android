@@ -72,8 +72,8 @@ public class MediaCodecHelper {
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static boolean decoderSupportsAdaptivePlayback(String decoderName, MediaCodecInfo decoderInfo) {
 		/*
-		FIXME: Intel's decoder on Nexus Player forces the high latency path if adaptive playback is enabled
-		so we'll keep it off for now, since we don't know whether other devices also do the same
+        FIXME: Intel's decoder on Nexus Player forces the high latency path if adaptive playback is enabled
+        so we'll keep it off for now, since we don't know whether other devices also do the same
 
 		if (isDecoderInList(whitelistedAdaptiveResolutionPrefixes, decoderName)) {
 			LimeLog.info("Adaptive playback supported (whitelist)");

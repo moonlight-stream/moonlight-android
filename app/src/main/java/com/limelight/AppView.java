@@ -494,6 +494,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             }
         });
         registerForContextMenu(listView);
+        listView.requestFocus();
     }
 
     public class AppObject {

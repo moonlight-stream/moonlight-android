@@ -10,6 +10,8 @@
         android:background="@drawable/list_view_unselected"
         android:fastScrollEnabled="true"
         android:longClickable="false"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:stackFromBottom="false" >
 
     </ListView>

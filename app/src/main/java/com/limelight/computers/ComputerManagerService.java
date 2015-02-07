@@ -64,10 +64,8 @@ public class ComputerManagerService extends Service {
 	};
 
     // Returns true if the details object was modified
-    private boolean runPoll(ComputerDetails details)
+    private boolean runPoll(ComputerDetails details, boolean newPc)
     {
-        boolean newPc = details.name.isEmpty();
-
         if (!getLocalDatabaseReference()) {
             return false;
         }
@@ -112,7 +110,7 @@ public class ComputerManagerService extends Service {
             public void run() {
                 while (!isInterrupted() && pollingActive) {
                     // Check if this poll has modified the details
-                    runPoll(details);
+                    runPoll(details, false);
 
                     // Wait until the next polling interval
                     try {
@@ -176,10 +174,6 @@ public class ComputerManagerService extends Service {
 			return ComputerManagerService.this.addComputerBlocking(addr);
 		}
 		
-		public void addComputer(InetAddress addr) {
-			ComputerManagerService.this.addComputer(addr);
-		}
-		
 		public void removeComputer(String name) {
 			ComputerManagerService.this.removeComputer(name);
 		}
@@ -238,7 +232,7 @@ public class ComputerManagerService extends Service {
 			@Override
 			public void notifyComputerAdded(MdnsComputer computer) {
 				// Kick off a serverinfo poll on this machine
-				addComputer(computer.getAddress());
+				addComputerBlocking(computer.getAddress());
 			}
 
 			@Override
@@ -254,28 +248,11 @@ public class ComputerManagerService extends Service {
 		};
 	}
 
-	public void addComputer(InetAddress addr) {
-		// Setup a placeholder
-		ComputerDetails fakeDetails = new ComputerDetails();
-		fakeDetails.localIp = addr;
-		fakeDetails.remoteIp = addr;
-        fakeDetails.name = "";
-
-        addTuple(fakeDetails);
-	}
-
     private void addTuple(ComputerDetails details) {
         synchronized (pollingTuples) {
             for (PollingTuple tuple : pollingTuples) {
                 // Check if this is the same computer
-                if (tuple.computer == details ||
-                        // If there's no name on one of these computers, compare with the local IP
-                        ((details.name.isEmpty() || tuple.computer.name.isEmpty()) &&
-                                tuple.computer.localIp.equals(details.localIp)) ||
-                        // If there is a name on both computers, compare with name
-                        ((!details.name.isEmpty() && !tuple.computer.name.isEmpty()) &&
-                                tuple.computer.name.equals(details.name))) {
-
+                if (tuple.computer.uuid.equals(details.uuid)) {
                     // Update details anyway in case this machine has been re-added by IP
                     // after not being reachable by our existing information
                     tuple.computer.localIp = details.localIp;
@@ -306,13 +283,14 @@ public class ComputerManagerService extends Service {
 		ComputerDetails fakeDetails = new ComputerDetails();
 		fakeDetails.localIp = addr;
 		fakeDetails.remoteIp = addr;
-        fakeDetails.name = "";
-		
+
 		// Block while we try to fill the details
-        runPoll(fakeDetails);
+        runPoll(fakeDetails, true);
 		
 		// If the machine is reachable, it was successful
 		if (fakeDetails.state == ComputerDetails.State.ONLINE) {
+            LimeLog.info("New PC ("+fakeDetails.name+") is UUID "+fakeDetails.uuid);
+
             // Start a polling thread for this machine
             addTuple(fakeDetails);
             return true;

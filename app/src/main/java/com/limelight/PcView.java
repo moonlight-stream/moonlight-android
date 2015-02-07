@@ -530,7 +530,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 			ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(i);
 			
 			// Check if this is the same computer
-			if (details.equals(computer.details)) {
+			if (details.uuid.equals(computer.details.uuid)) {
 				existingEntry = computer;
 				break;
 			}

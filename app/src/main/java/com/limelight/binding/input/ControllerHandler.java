@@ -578,7 +578,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         case KeyEvent.KEYCODE_BUTTON_START:
         case KeyEvent.KEYCODE_MENU:
             if (SystemClock.uptimeMillis() - context.startDownTime > ControllerHandler.START_DOWN_TIME_KEYB_MS) {
-                gestures.showKeyboard();
+                // FIXME: The stock keyboard doesn't have controller focus so isn't usable. I'm not enabling this shortcut
+                // until we have a custom keyboard or some other fix
+                //gestures.showKeyboard();
             }
             context.inputMap &= ~ControllerPacket.PLAY_FLAG;
             break;

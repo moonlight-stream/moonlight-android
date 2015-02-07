@@ -253,7 +253,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                             .asBitmap()
                             .setCallback(new FutureCallback<Bitmap>() {
                                 @Override
-                                public void onCompleted(Exception e, Bitmap result) {
+                                public void onCompleted(Exception e, final Bitmap result) {
                                     synchronized (pendingRequests) {
                                         pendingRequests.remove(view);
                                     }
@@ -263,8 +263,15 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                                         view.setImageBitmap(result);
                                         view.setVisibility(View.VISIBLE);
 
-                                        // Populate the disk cache if we got an image back
-                                        populateBitmapCache(computer.uuid, appId, result);
+                                        // Populate the disk cache if we got an image back.
+                                        // We do it in a new thread because it can be very expensive, especially
+                                        // when we do the initial load where lots of disk I/O is happening at once.
+                                        new Thread() {
+                                            @Override
+                                            public void run() {
+                                                populateBitmapCache(computer.uuid, appId, result);
+                                            }
+                                        }.start();
                                     }
                                     else {
                                         // Leave the loading icon as is (probably should change this eventually...)

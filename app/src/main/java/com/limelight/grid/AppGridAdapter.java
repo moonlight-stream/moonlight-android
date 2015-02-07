@@ -166,7 +166,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     @Override
     public boolean populateImageView(final ImageView imgView, final AppView.AppObject obj) {
         // Clear existing contents of the image view
-        imgView.setImageAlpha(0);
+        imgView.setAlpha(0.0f);
 
         // Check the on-disk cache
         new ImageCacheRequest(imgView, obj.app.getAppId()).execute();
@@ -222,13 +222,17 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
             return null;
         }
 
+        private void fadeInImage(ImageView view) {
+            view.animate().alpha(1.0f).setDuration(250).start();
+        }
+
         @Override
         protected void onPostExecute(Bitmap result) {
             if (result != null) {
                 // Disk cache was read successfully
-                LimeLog.info("Image disk cache hit for ("+computer.uuid+", "+appId+")");
+                LimeLog.info("Image disk cache hit for (" + computer.uuid + ", " + appId + ")");
                 view.setImageBitmap(result);
-                view.setImageAlpha(255);
+                fadeInImage(view);
             }
             else {
                 LimeLog.info("Image disk cache miss for ("+computer.uuid+", "+appId+")");
@@ -237,7 +241,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
                 // Load the placeholder image
                 view.setImageResource(defaultImageRes);
-                view.setImageAlpha(255);
+                fadeInImage(view);
 
                 // Set SSL contexts correctly to allow us to authenticate
                 Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setTrustManagers(trustAllCerts);
@@ -260,7 +264,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                                     if (result != null) {
                                         // Make the view visible now
                                         view.setImageBitmap(result);
-                                        view.setImageAlpha(255);
+                                        fadeInImage(view);
 
                                         // Populate the disk cache if we got an image back.
                                         // We do it in a new thread because it can be very expensive, especially

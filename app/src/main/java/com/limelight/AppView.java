@@ -127,7 +127,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             @Override
             public void notifyComputerUpdated(ComputerDetails details) {
                 // Don't care about other computers
-                if (details != computer) {
+                if (!details.uuid.toString().equalsIgnoreCase(uuidString)) {
                     return;
                 }
 

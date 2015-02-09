@@ -1,7 +1,7 @@
 package com.limelight.nvstream.http;
 
 public class NvApp {
-	private String appName;
+	private String appName = "";
 	private int appId;
 	private boolean isRunning;
 	

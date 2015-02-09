@@ -15,6 +15,7 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.Scanner;
 import java.util.Stack;
 import java.util.UUID;
@@ -32,6 +33,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.http.PairingManager.PairState;
 import com.squareup.okhttp.OkHttpClient;
@@ -341,7 +343,19 @@ public class NvHTTP {
 			}
 			eventType = xpp.next();
 		}
-				
+		
+		// Ensure that all apps in the list are initialized
+		ListIterator<NvApp> i = appList.listIterator();
+		while (i.hasNext()) {
+			NvApp app = i.next();
+			
+			// Remove uninitialized apps
+			if (!app.isInitialized()) {
+				LimeLog.warning("GFE returned incomplete app: "+app.getAppId()+" "+app.getAppName()+" "+app.getIsRunning());
+				i.remove();
+			}
+		}
+		
 		return appList;
 	}
 	

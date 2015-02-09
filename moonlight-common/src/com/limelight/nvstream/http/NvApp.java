@@ -4,6 +4,7 @@ public class NvApp {
 	private String appName = "";
 	private int appId;
 	private boolean isRunning;
+	private boolean initialized;
 	
 	public void setAppName(String appName) {
 		this.appName = appName;
@@ -11,6 +12,7 @@ public class NvApp {
 	
 	public void setAppId(String appId) {
 		this.appId = Integer.parseInt(appId);
+		this.initialized = true;
 	}
 	
 	public void setIsRunning(String isRunning) {
@@ -31,5 +33,9 @@ public class NvApp {
 	
 	public boolean getIsRunning() {
 		return this.isRunning;
+	}
+	
+	public boolean isInitialized() {
+		return this.initialized;
 	}
 }

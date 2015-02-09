@@ -237,8 +237,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
-        if (computer == null || computer.details == null ||
-                computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
+        if (computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
             startComputerUpdates();
             return;
         }
@@ -587,6 +586,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         public ComputerDetails details;
 
         public ComputerObject(ComputerDetails details) {
+            if (details == null) {
+                throw new IllegalArgumentException("details must not be null");
+            }
             this.details = details;
         }
 

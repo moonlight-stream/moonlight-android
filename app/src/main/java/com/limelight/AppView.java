@@ -264,10 +264,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         int runningAppId = -1;
         for (int i = 0; i < appGridAdapter.getCount(); i++) {
             AppObject app = (AppObject) appGridAdapter.getItem(i);
-            if (app.app == null) {
-                continue;
-            }
-
             if (app.app.getIsRunning()) {
                 runningAppId = app.app.getAppId();
                 break;
@@ -282,10 +278,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         AppObject selectedApp = (AppObject) appGridAdapter.getItem(info.position);
-        if (selectedApp == null || selectedApp.app == null) {
-            return;
-        }
-        
         int runningAppId = getRunningAppId();
         if (runningAppId != -1) {
             if (runningAppId == selectedApp.app.getAppId()) {
@@ -380,10 +372,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     // Try to update an existing app in the list first
                     for (int i = 0; i < appGridAdapter.getCount(); i++) {
                         AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
-                        if (existingApp.app == null) {
-                            continue;
-                        }
-
                         if (existingApp.app.getAppId() == app.getAppId()) {
                             // Found the app; update its properties
                             if (existingApp.app.getIsRunning() != app.getIsRunning()) {
@@ -481,9 +469,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
                                     long id) {
                 AppObject app = (AppObject) appGridAdapter.getItem(pos);
-                if (app == null || app.app == null) {
-                    return;
-                }
 
                 // Only open the context menu if something is running, otherwise start it
                 if (getRunningAppId() != -1) {
@@ -501,6 +486,9 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         public final NvApp app;
 
         public AppObject(NvApp app) {
+            if (app == null) {
+                throw new IllegalArgumentException("app must not be null");
+            }
             this.app = app;
         }
 

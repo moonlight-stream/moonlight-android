@@ -1,5 +1,7 @@
 package com.limelight.nvstream.http;
 
+import com.limelight.LimeLog;
+
 public class NvApp {
 	private String appName = "";
 	private int appId;
@@ -11,8 +13,12 @@ public class NvApp {
 	}
 	
 	public void setAppId(String appId) {
-		this.appId = Integer.parseInt(appId);
-		this.initialized = true;
+		try {
+			this.appId = Integer.parseInt(appId);
+			this.initialized = true;
+		} catch (NumberFormatException e) {
+			LimeLog.warning("Malformed app ID: "+appId);
+		}
 	}
 	
 	public void setIsRunning(String isRunning) {

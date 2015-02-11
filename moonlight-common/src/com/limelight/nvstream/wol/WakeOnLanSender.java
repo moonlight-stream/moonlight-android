@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Scanner;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.http.ComputerDetails;
 
 public class WakeOnLanSender {
@@ -45,7 +46,12 @@ public class WakeOnLanSender {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(macAddress).useDelimiter(":");
 		for (int i = 0; i < macBytes.length && scan.hasNext(); i++) {
-			macBytes[i] = (byte) Integer.parseInt(scan.next(), 16);
+			try {
+				macBytes[i] = (byte) Integer.parseInt(scan.next(), 16);
+			} catch (NumberFormatException e) {
+				LimeLog.warning("Malformed MAC address: "+macAddress+" (index: "+i+")");
+				break;
+			}
 		}
 		scan.close();
 		return macBytes;

@@ -4,6 +4,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +33,7 @@ import org.xmlpull.v1.XmlPullParserException;
 public class ComputerManagerService extends Service {
     private static final int POLLING_PERIOD_MS = 3000;
     private static final int MDNS_QUERY_PERIOD_MS = 1000;
+    private static final int FAST_POLL_TIMEOUT = 500;
 
     private final ComputerManagerBinder binder = new ComputerManagerBinder();
 
@@ -64,8 +67,7 @@ public class ComputerManagerService extends Service {
     };
 
     // Returns true if the details object was modified
-    private boolean runPoll(ComputerDetails details, boolean newPc)
-    {
+    private boolean runPoll(ComputerDetails details, boolean newPc) throws InterruptedException {
         if (!getLocalDatabaseReference()) {
             return false;
         }
@@ -73,12 +75,17 @@ public class ComputerManagerService extends Service {
         activePolls.incrementAndGet();
 
         // Poll the machine
-        if (!doPollMachine(details)) {
-            details.state = ComputerDetails.State.OFFLINE;
-            details.reachability = ComputerDetails.Reachability.OFFLINE;
+        try {
+            if (!pollComputer(details)) {
+                details.state = ComputerDetails.State.OFFLINE;
+                details.reachability = ComputerDetails.Reachability.OFFLINE;
+            }
+        } catch (InterruptedException e) {
+            releaseLocalDatabaseReference();
+            throw e;
+        } finally {
+            activePolls.decrementAndGet();
         }
-
-        activePolls.decrementAndGet();
 
         // If it's online, update our persistent state
         if (details.state == ComputerDetails.State.ONLINE) {
@@ -109,11 +116,11 @@ public class ComputerManagerService extends Service {
             @Override
             public void run() {
                 while (!isInterrupted() && pollingActive) {
-                    // Check if this poll has modified the details
-                    runPoll(details, false);
-
-                    // Wait until the next polling interval
                     try {
+                        // Check if this poll has modified the details
+                        pollComputer(details);
+
+                        // Wait until the next polling interval
                         Thread.sleep(POLLING_PERIOD_MS);
                     } catch (InterruptedException e) {
                         break;
@@ -285,7 +292,11 @@ public class ComputerManagerService extends Service {
         fakeDetails.remoteIp = addr;
 
         // Block while we try to fill the details
-        runPoll(fakeDetails, true);
+        try {
+            pollComputer(fakeDetails);
+        } catch (InterruptedException e) {
+            return false;
+        }
 
         // If the machine is reachable, it was successful
         if (fakeDetails.state == ComputerDetails.State.ONLINE) {
@@ -361,14 +372,91 @@ public class ComputerManagerService extends Service {
         }
     }
 
-    private boolean pollComputer(ComputerDetails details, boolean localFirst) {
+    // Just try to establish a TCP connection to speculatively detect a running
+    // GFE server
+    private boolean fastPollIp(InetAddress addr) {
+        Socket s = new Socket();
+        try {
+            s.connect(new InetSocketAddress(addr, NvHTTP.PORT), FAST_POLL_TIMEOUT);
+            s.close();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private void startFastPollThread(final InetAddress addr, final boolean[] info) {
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                boolean pollRes = fastPollIp(addr);
+
+                synchronized (info) {
+                    info[0] = true; // Done
+                    info[1] = pollRes; // Polling result
+
+                    info.notify();
+                }
+            }
+        };
+        t.setName("Fast Poll - "+addr.getHostAddress());
+        t.start();
+    }
+
+    private ComputerDetails.Reachability fastPollPc(final InetAddress local, final InetAddress remote) throws InterruptedException {
+        final boolean[] remoteInfo = new boolean[2];
+        final boolean[] localInfo = new boolean[2];
+
+        startFastPollThread(local, localInfo);
+        startFastPollThread(remote, remoteInfo);
+
+        // Check local first
+        synchronized (localInfo) {
+            while (!localInfo[0]) {
+                localInfo.wait(500);
+            }
+
+            if (localInfo[1]) {
+                return ComputerDetails.Reachability.LOCAL;
+            }
+        }
+
+        // Now remote
+        synchronized (remoteInfo) {
+            while (!remoteInfo[0]) {
+                remoteInfo.wait(500);
+            }
+
+            if (remoteInfo[1]) {
+                return ComputerDetails.Reachability.REMOTE;
+            }
+        }
+
+        return ComputerDetails.Reachability.OFFLINE;
+    }
+
+    private boolean pollComputer(ComputerDetails details) throws InterruptedException {
         ComputerDetails polledDetails;
+        ComputerDetails.Reachability reachability;
 
         // If the local address is routable across the Internet,
         // always consider this PC remote to be conservative
-        if (details.localIp.equals(details.remoteIp)) {
-            localFirst = false;
+        /*if (details.localIp.equals(details.remoteIp)) {
+            reachability = ComputerDetails.Reachability.REMOTE;
         }
+        else*/ {
+            // Do a TCP-level connection to the HTTP server to see if it's listening
+            LimeLog.info("Starting fast poll for "+details.name+" ("+details.localIp+", "+details.remoteIp+")");
+            reachability = fastPollPc(details.localIp, details.remoteIp);
+            LimeLog.info("Fast poll for "+details.name+" returned "+reachability.toString());
+        }
+
+        // If no connection could be established to either IP address, there's nothing we can do
+        if (reachability == ComputerDetails.Reachability.OFFLINE) {
+            return false;
+        }
+
+        boolean localFirst = (reachability == ComputerDetails.Reachability.LOCAL);
 
         if (localFirst) {
             polledDetails = tryPollIp(details, details.localIp);
@@ -402,24 +490,19 @@ public class ComputerManagerService extends Service {
             return false;
         }
 
+        // Save the old MAC address
+        String savedMacAddress = details.macAddress;
+
         // If we got here, it's reachable
         details.update(polledDetails);
-        return true;
-    }
 
-    private boolean doPollMachine(ComputerDetails details) {
-        if (details.reachability == ComputerDetails.Reachability.UNKNOWN ||
-            details.reachability == ComputerDetails.Reachability.OFFLINE) {
-            // Always try local first to avoid potential UDP issues when
-            // attempting to stream via the router's external IP address
-            // behind its NAT
-            return pollComputer(details, true);
+        // If the new MAC address is empty, restore the old one (workaround for GFE bug)
+        if (details.macAddress.equals("00:00:00:00:00:00")) {
+            LimeLog.info("MAC address was empty; using existing value: "+savedMacAddress);
+            details.macAddress = savedMacAddress;
         }
-        else {
-            // If we're already reached a machine via a particular IP address,
-            // always try that one first
-            return pollComputer(details, details.reachability == ComputerDetails.Reachability.LOCAL);
-        }
+
+        return true;
     }
 
     @Override

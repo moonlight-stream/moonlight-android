@@ -122,7 +122,7 @@ public class VideoStream {
 		if (decRend != null) {
 			try {
 				if (!decRend.setup(context.streamConfig.getWidth(), context.streamConfig.getHeight(),
-						60, renderTarget, drFlags)) {
+						context.streamConfig.getRefreshRate(), renderTarget, drFlags)) {
 					return false;
 				}
 				

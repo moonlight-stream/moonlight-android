@@ -14,6 +14,7 @@ public class ControllerBatchingBlock {
 	private short controllerNumber;
 	
 	public ControllerBatchingBlock(MultiControllerPacket initialPacket) {
+		this.controllerNumber = initialPacket.controllerNumber;
 		this.buttonFlags = initialPacket.buttonFlags;
 		this.leftTrigger = initialPacket.leftTrigger;
 		this.rightTrigger = initialPacket.rightTrigger;

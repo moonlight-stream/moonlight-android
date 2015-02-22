@@ -48,7 +48,8 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     private final String uniqueId;
     private final LimelightCryptoProvider cryptoProvider;
     private final SSLContext sslContext;
-    private final HashMap<ImageView, Future> pendingRequests = new HashMap<ImageView, Future>();
+    private final HashMap<ImageView, Future> pendingIonRequests = new HashMap<ImageView, Future>();
+    private final HashMap<ImageView, ImageCacheRequest> pendingCacheRequests = new HashMap<ImageView, ImageCacheRequest>();
 
     public AppGridAdapter(Context context, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
         super(context, listMode ? R.layout.simple_row : (small ? R.layout.app_grid_item_small : R.layout.app_grid_item), R.drawable.image_loading);
@@ -132,9 +133,9 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     public void abortPendingRequests() {
         HashMap<ImageView, Future> tempMap;
 
-        synchronized (pendingRequests) {
+        synchronized (pendingIonRequests) {
             // Copy the pending requests under a lock
-            tempMap = new HashMap<ImageView, Future>(pendingRequests);
+            tempMap = new HashMap<ImageView, Future>(pendingIonRequests);
         }
 
         for (Future f : tempMap.values()) {
@@ -143,10 +144,10 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
             }
         }
 
-        synchronized (pendingRequests) {
+        synchronized (pendingIonRequests) {
             // Remove cancelled requests
             for (ImageView v : tempMap.keySet()) {
-                pendingRequests.remove(v);
+                pendingIonRequests.remove(v);
             }
         }
     }
@@ -165,11 +166,31 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
     @Override
     public boolean populateImageView(final ImageView imgView, final AppView.AppObject obj) {
+        // Cancel any pending cache requests for this view
+        synchronized (pendingCacheRequests) {
+            ImageCacheRequest req = pendingCacheRequests.remove(imgView);
+            if (req != null) {
+                req.cancel(false);
+            }
+        }
+
+        // Cancel any pending Ion requests for this view
+        synchronized (pendingIonRequests) {
+            Future f = pendingIonRequests.remove(imgView);
+            if (f != null && !f.isCancelled() && !f.isDone()) {
+                f.cancel(true);
+            }
+        }
+
         // Clear existing contents of the image view
         imgView.setAlpha(0.0f);
 
         // Check the on-disk cache
-        new ImageCacheRequest(imgView, obj.app.getAppId()).execute();
+        ImageCacheRequest req = new ImageCacheRequest(imgView, obj.app.getAppId());
+        synchronized (pendingCacheRequests) {
+            pendingCacheRequests.put(imgView, req);
+        }
+        req.execute();
 
         return true;
     }
@@ -228,6 +249,13 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
         @Override
         protected void onPostExecute(Bitmap result) {
+            // Check if the cache request is still live
+            synchronized (pendingCacheRequests) {
+                if (pendingCacheRequests.remove(view) == null) {
+                    return;
+                }
+            }
+
             if (result != null) {
                 // Disk cache was read successfully
                 LimeLog.info("Image disk cache hit for (" + computer.uuid + ", " + appId + ")");
@@ -249,7 +277,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                 Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setHostnameVerifier(hv);
 
                 // Kick off the deferred image load
-                synchronized (pendingRequests) {
+                synchronized (pendingIonRequests) {
                     Future<Bitmap> f = Ion.with(context)
                             .load("https://" + getCurrentAddress().getHostAddress() + ":47984/appasset?uniqueid=" + uniqueId + "&appid=" +
                                     appId + "&AssetType=2&AssetIdx=0")
@@ -257,8 +285,11 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                             .setCallback(new FutureCallback<Bitmap>() {
                                 @Override
                                 public void onCompleted(Exception e, final Bitmap result) {
-                                    synchronized (pendingRequests) {
-                                        pendingRequests.remove(view);
+                                    synchronized (pendingIonRequests) {
+                                        // Don't set this image if the request was cancelled
+                                        if (pendingIonRequests.remove(view) == null) {
+                                            return;
+                                        }
                                     }
 
                                     if (result != null) {
@@ -281,8 +312,8 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                                     }
                                 }
                             });
-                    pendingRequests.put(view, f);
-            }
+                    pendingIonRequests.put(view, f);
+                }
             }
         }
     }

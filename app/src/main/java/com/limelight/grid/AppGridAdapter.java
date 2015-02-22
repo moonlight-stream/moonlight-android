@@ -130,6 +130,10 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         sortList();
     }
 
+    public void removeApp(AppView.AppObject app) {
+        itemList.remove(app);
+    }
+
     public void abortPendingRequests() {
         HashMap<ImageView, Future> tempMap;
 

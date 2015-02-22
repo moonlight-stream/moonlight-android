@@ -366,6 +366,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             public void run() {
                 boolean updated = false;
 
+                // First handle app updates and additions
                 for (NvApp app : appList) {
                     boolean foundExistingApp = false;
 
@@ -391,6 +392,26 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     if (!foundExistingApp) {
                         // This app must be new
                         appGridAdapter.addApp(new AppObject(app));
+                        updated = true;
+                    }
+                }
+
+                // Next handle app removals
+                for (int i = 0; i < appGridAdapter.getCount(); i++) {
+                    boolean foundExistingApp = false;
+                    AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
+
+                    // Check if this app is in the latest list
+                    for (NvApp app : appList) {
+                        if (existingApp.app.getAppId() == app.getAppId()) {
+                            foundExistingApp = true;
+                            break;
+                        }
+                    }
+
+                    // This app was removed in the latest app list
+                    if (!foundExistingApp) {
+                        appGridAdapter.removeApp(existingApp);
                         updated = true;
                     }
                 }

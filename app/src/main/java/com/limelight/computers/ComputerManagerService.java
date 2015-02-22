@@ -118,7 +118,7 @@ public class ComputerManagerService extends Service {
                 while (!isInterrupted() && pollingActive) {
                     try {
                         // Check if this poll has modified the details
-                        pollComputer(details);
+                        runPoll(details, false);
 
                         // Wait until the next polling interval
                         Thread.sleep(POLLING_PERIOD_MS);
@@ -293,7 +293,7 @@ public class ComputerManagerService extends Service {
 
         // Block while we try to fill the details
         try {
-            pollComputer(fakeDetails);
+            runPoll(fakeDetails, true);
         } catch (InterruptedException e) {
             return false;
         }
@@ -441,10 +441,10 @@ public class ComputerManagerService extends Service {
 
         // If the local address is routable across the Internet,
         // always consider this PC remote to be conservative
-        /*if (details.localIp.equals(details.remoteIp)) {
+        if (details.localIp.equals(details.remoteIp)) {
             reachability = ComputerDetails.Reachability.REMOTE;
         }
-        else*/ {
+        else {
             // Do a TCP-level connection to the HTTP server to see if it's listening
             LimeLog.info("Starting fast poll for "+details.name+" ("+details.localIp+", "+details.remoteIp+")");
             reachability = fastPollPc(details.localIp, details.remoteIp);

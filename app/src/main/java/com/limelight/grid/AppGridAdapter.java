@@ -134,28 +134,6 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         itemList.remove(app);
     }
 
-    public void abortPendingRequests() {
-        HashMap<ImageView, Future> tempMap;
-
-        synchronized (pendingIonRequests) {
-            // Copy the pending requests under a lock
-            tempMap = new HashMap<ImageView, Future>(pendingIonRequests);
-        }
-
-        for (Future f : tempMap.values()) {
-            if (!f.isCancelled() && !f.isDone()) {
-                f.cancel(true);
-            }
-        }
-
-        synchronized (pendingIonRequests) {
-            // Remove cancelled requests
-            for (ImageView v : tempMap.keySet()) {
-                pendingIonRequests.remove(v);
-            }
-        }
-    }
-
     // TODO: Handle pruning of bitmap cache
     private void populateBitmapCache(UUID uuid, int appId, Bitmap bitmap) {
         try {

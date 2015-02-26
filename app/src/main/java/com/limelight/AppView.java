@@ -398,7 +398,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 }
 
                 // Next handle app removals
-                for (int i = 0; i < appGridAdapter.getCount(); i++) {
+                int i = 0;
+                while (i < appGridAdapter.getCount()) {
                     boolean foundExistingApp = false;
                     AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
 
@@ -414,7 +415,14 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     if (!foundExistingApp) {
                         appGridAdapter.removeApp(existingApp);
                         updated = true;
+
+                        // Check this same index again because the item at i+1 is now at i after
+                        // the removal
+                        continue;
                     }
+
+                    // Move on to the next item
+                    i++;
                 }
 
                 if (updated) {

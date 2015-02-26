@@ -185,12 +185,24 @@ public class NvConnection {
 
 	protected boolean quitAndLaunch(NvHTTP h, NvApp app) throws IOException,
 			XmlPullParserException {
-		if (!h.quitApp()) {
-			context.connListener.displayMessage("Failed to quit previous session! You must quit it manually");
-			return false;
-		} else {
-			return launchNotRunningApp(h, app);
+		try {
+			if (!h.quitApp()) {
+				context.connListener.displayMessage("Failed to quit previous session! You must quit it manually");
+				return false;
+			} 
+		} catch (GfeHttpResponseException e) {
+			if (e.getErrorCode() == 599) {
+				context.connListener.displayMessage("This session wasn't started by this device," +
+						" so it cannot be quit. End streaming on the original " +
+						"device or the PC itself. (Error code: "+e.getErrorCode()+")");
+				return false;
+			}
+			else {
+				throw e;
+			}
 		}
+
+		return launchNotRunningApp(h, app);
 	}
 	
 	private boolean launchNotRunningApp(NvHTTP h, NvApp app) 

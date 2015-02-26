@@ -43,6 +43,9 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     }
 
     public void addApp(AppView.AppObject app) {
+        // Queue a request to fetch this bitmap in the background
+        loader.loadBitmapWithContextInBackground(app.app, null, backgroundLoadListener);
+
         itemList.add(app);
         sortList();
     }
@@ -51,7 +54,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         itemList.remove(app);
     }
 
-    private final CachedAppAssetLoader.LoadListener loadListener = new CachedAppAssetLoader.LoadListener() {
+    private final CachedAppAssetLoader.LoadListener imageViewLoadListener = new CachedAppAssetLoader.LoadListener() {
         @Override
         public void notifyLongLoad(Object object) {
             final ImageView view = (ImageView) object;
@@ -86,6 +89,14 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
     };
 
+    private final CachedAppAssetLoader.LoadListener backgroundLoadListener = new CachedAppAssetLoader.LoadListener() {
+        @Override
+        public void notifyLongLoad(Object object) {}
+
+        @Override
+        public void notifyLoadComplete(Object object, final Bitmap bitmap) {}
+    };
+
     public boolean populateImageView(final ImageView imgView, final AppView.AppObject obj) {
         // Cancel pending loads on this image view
         CachedAppAssetLoader.LoaderTuple tuple = loadingTuples.remove(imgView);
@@ -99,7 +110,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         imgView.setAlpha(0.0f);
 
         // Start loading the bitmap
-        tuple = loader.loadBitmapWithContext(obj.app, imgView, loadListener);
+        tuple = loader.loadBitmapWithContext(obj.app, imgView, imageViewLoadListener);
         if (tuple != null) {
             // The load was issued asynchronously
             loadingTuples.put(imgView, tuple);

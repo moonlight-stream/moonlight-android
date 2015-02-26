@@ -12,7 +12,8 @@ import java.util.concurrent.TimeUnit;
 public class CachedAppAssetLoader {
     private final ComputerDetails computer;
     private final String uniqueId;
-    private final ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 8, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
+    private final ThreadPoolExecutor foregroundExecutor = new ThreadPoolExecutor(8, 8, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
+    private final ThreadPoolExecutor backgroundExecutor = new ThreadPoolExecutor(2, 2, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
     private final NetworkLoader networkLoader;
     private final CachedLoader memoryLoader;
     private final CachedLoader diskLoader;
@@ -86,6 +87,14 @@ public class CachedAppAssetLoader {
     }
 
     public LoaderTuple loadBitmapWithContext(NvApp app, Object context, LoadListener listener) {
+        return loadBitmapWithContext(app, context, listener, false);
+    }
+
+    public LoaderTuple loadBitmapWithContextInBackground(NvApp app, Object context, LoadListener listener) {
+        return loadBitmapWithContext(app, context, listener, true);
+    }
+
+    private LoaderTuple loadBitmapWithContext(NvApp app, Object context, LoadListener listener, boolean background) {
         LoaderTuple tuple = new LoaderTuple(computer, uniqueId, app);
 
         // First, try the memory cache in the current context
@@ -105,7 +114,12 @@ public class CachedAppAssetLoader {
         }
 
         // If it's not in memory, throw this in our executor
-        executor.execute(createLoaderRunnable(tuple, context, listener));
+        if (background) {
+            backgroundExecutor.execute(createLoaderRunnable(tuple, context, listener));
+        }
+        else {
+            foregroundExecutor.execute(createLoaderRunnable(tuple, context, listener));
+        }
         return tuple;
     }
 

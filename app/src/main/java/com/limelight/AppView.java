@@ -174,6 +174,10 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         if (managerBinder != null) {
             managerBinder.stopPolling();
         }
+
+        if (appGridAdapter != null) {
+            appGridAdapter.cancelQueuedOperations();
+        }
     }
 
     @Override

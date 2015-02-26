@@ -15,6 +15,7 @@ import com.limelight.nvstream.http.ComputerDetails;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +25,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
     private final CachedAppAssetLoader loader;
     private final ConcurrentHashMap<ImageView, CachedAppAssetLoader.LoaderTuple> loadingTuples = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Object, CachedAppAssetLoader.LoaderTuple> backgroundLoadingTuples = new ConcurrentHashMap<>();
 
     public AppGridAdapter(Activity activity, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) throws KeyManagementException, NoSuchAlgorithmException {
         super(activity, listMode ? R.layout.simple_row : (small ? R.layout.app_grid_item_small : R.layout.app_grid_item), R.drawable.image_loading);
@@ -31,6 +33,21 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         this.activity = activity;
         this.loader = new CachedAppAssetLoader(computer, uniqueId, new NetworkAssetLoader(context),
                 new MemoryAssetLoader(), new DiskAssetLoader(context.getCacheDir()));
+    }
+
+    private static void cancelTuples(ConcurrentHashMap<?, CachedAppAssetLoader.LoaderTuple> map) {
+        Collection<CachedAppAssetLoader.LoaderTuple> tuples = map.values();
+
+        for (CachedAppAssetLoader.LoaderTuple tuple : tuples) {
+            tuple.cancel();
+        }
+
+        map.clear();
+    }
+
+    public void cancelQueuedOperations() {
+        cancelTuples(loadingTuples);
+        cancelTuples(backgroundLoadingTuples);
     }
 
     private void sortList() {
@@ -44,7 +61,12 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
     public void addApp(AppView.AppObject app) {
         // Queue a request to fetch this bitmap in the background
-        loader.loadBitmapWithContextInBackground(app.app, null, backgroundLoadListener);
+        Object tupleKey = new Object();
+        CachedAppAssetLoader.LoaderTuple tuple =
+                loader.loadBitmapWithContextInBackground(app.app, tupleKey, backgroundLoadListener);
+        if (tuple != null) {
+            backgroundLoadingTuples.put(tupleKey, tuple);
+        }
 
         itemList.add(app);
         sortList();
@@ -94,7 +116,9 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         public void notifyLongLoad(Object object) {}
 
         @Override
-        public void notifyLoadComplete(Object object, final Bitmap bitmap) {}
+        public void notifyLoadComplete(Object object, final Bitmap bitmap) {
+            backgroundLoadingTuples.remove(object);
+        }
     };
 
     public boolean populateImageView(final ImageView imgView, final AppView.AppObject obj) {

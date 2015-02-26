@@ -176,7 +176,7 @@ public class NvHTTP {
 		
 		details.name = getXmlString(serverInfo, "hostname").trim();
 		details.uuid = UUID.fromString(getXmlString(serverInfo, "uniqueid").trim());
-		details.macAddress = getXmlString(serverInfo, "mac");
+		details.macAddress = getXmlString(serverInfo, "mac").trim();
 
 		// If there's no LocalIP field, use the address we hit the server on
 		String localIpStr = getXmlString(serverInfo, "LocalIP");
@@ -346,11 +346,11 @@ public class NvHTTP {
 			case (XmlPullParser.TEXT):
 				NvApp app = appList.getLast();
 				if (currentTag.peek().equals("AppTitle")) {
-					app.setAppName(xpp.getText());
+					app.setAppName(xpp.getText().trim());
 				} else if (currentTag.peek().equals("ID")) {
-					app.setAppId(xpp.getText());
+					app.setAppId(xpp.getText().trim());
 				} else if (currentTag.peek().equals("IsRunning")) {
-					app.setIsRunning(xpp.getText());
+					app.setIsRunning(xpp.getText().trim());
 				}
 				break;
 			}

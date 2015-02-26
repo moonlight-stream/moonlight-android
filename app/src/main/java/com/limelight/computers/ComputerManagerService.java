@@ -497,7 +497,7 @@ public class ComputerManagerService extends Service {
         details.update(polledDetails);
 
         // If the new MAC address is empty, restore the old one (workaround for GFE bug)
-        if (details.macAddress.equals("00:00:00:00:00:00")) {
+        if (details.macAddress.equals("00:00:00:00:00:00") && savedMacAddress != null) {
             LimeLog.info("MAC address was empty; using existing value: "+savedMacAddress);
             details.macAddress = savedMacAddress;
         }

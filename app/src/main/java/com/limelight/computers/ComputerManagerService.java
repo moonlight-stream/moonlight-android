@@ -2,6 +2,7 @@ package com.limelight.computers;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -34,6 +35,7 @@ public class ComputerManagerService extends Service {
     private static final int POLLING_PERIOD_MS = 3000;
     private static final int MDNS_QUERY_PERIOD_MS = 1000;
     private static final int FAST_POLL_TIMEOUT = 500;
+    private static final int OFFLINE_POLL_TRIES = 3;
 
     private final ComputerManagerBinder binder = new ComputerManagerBinder();
 
@@ -67,7 +69,7 @@ public class ComputerManagerService extends Service {
     };
 
     // Returns true if the details object was modified
-    private boolean runPoll(ComputerDetails details, boolean newPc) throws InterruptedException {
+    private boolean runPoll(ComputerDetails details, boolean newPc, int offlineCount) throws InterruptedException {
         if (!getLocalDatabaseReference()) {
             return false;
         }
@@ -77,6 +79,11 @@ public class ComputerManagerService extends Service {
         // Poll the machine
         try {
             if (!pollComputer(details)) {
+                if (!newPc && offlineCount < OFFLINE_POLL_TRIES) {
+                    // Return without calling the listener
+                    return false;
+                }
+
                 details.state = ComputerDetails.State.OFFLINE;
                 details.reachability = ComputerDetails.Reachability.OFFLINE;
             }
@@ -95,7 +102,7 @@ public class ComputerManagerService extends Service {
                 if (dbManager.getComputerByName(details.name) == null) {
                     // It's gone
                     releaseLocalDatabaseReference();
-                    return true;
+                    return false;
                 }
             }
 
@@ -115,13 +122,21 @@ public class ComputerManagerService extends Service {
         Thread t = new Thread() {
             @Override
             public void run() {
+
+                int offlineCount = 0;
                 while (!isInterrupted() && pollingActive) {
                     try {
                         // Check if this poll has modified the details
-                        runPoll(details, false);
+                        if (!runPoll(details, false, offlineCount)) {
+                            LimeLog.warning(details.name + " is offline (try " + offlineCount + ")");
+                            offlineCount++;
+                        }
+                        else {
+                            offlineCount = 0;
+                        }
 
                         // Wait until the next polling interval
-                        Thread.sleep(POLLING_PERIOD_MS);
+                        Thread.sleep(POLLING_PERIOD_MS / ((offlineCount > 0) ? 2 : 1));
                     } catch (InterruptedException e) {
                         break;
                     }
@@ -293,7 +308,7 @@ public class ComputerManagerService extends Service {
 
         // Block while we try to fill the details
         try {
-            runPoll(fakeDetails, true);
+            runPoll(fakeDetails, true, 0);
         } catch (InterruptedException e) {
             return false;
         }

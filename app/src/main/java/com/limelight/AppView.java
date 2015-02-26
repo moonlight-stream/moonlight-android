@@ -55,9 +55,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private SpinnerDialog blockingLoadSpinner;
     private String lastRawApplist;
 
-    private int consecutiveAppListFailures = 0;
-    private final static int CONSECUTIVE_FAILURE_LIMIT = 3;
-
     private final static int START_OR_RESUME_ID = 1;
     private final static int QUIT_ID = 2;
     private final static int CANCEL_ID = 3;
@@ -133,24 +130,18 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 }
 
                 if (details.state != ComputerDetails.State.ONLINE) {
-                    consecutiveAppListFailures++;
-
-                    if (consecutiveAppListFailures >= CONSECUTIVE_FAILURE_LIMIT) {
-                        // The PC is unreachable now
-                        AppView.this.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                // Display a toast to the user and quit the activity
-                                Toast.makeText(AppView.this, getResources().getText(R.string.lost_connection), Toast.LENGTH_SHORT).show();
-                                finish();
-                            }
-                        });
-                    }
+                    // The PC is unreachable now
+                    AppView.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Display a toast to the user and quit the activity
+                            Toast.makeText(AppView.this, getResources().getText(R.string.lost_connection), Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    });
 
                     return;
                 }
-
-                consecutiveAppListFailures = 0;
 
                 // App list is the same or empty; nothing to do
                 if (details.rawAppList == null || details.rawAppList.equals(lastRawApplist)) {

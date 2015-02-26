@@ -51,7 +51,7 @@ public class NvHTTP {
 	public static final int CONNECTION_TIMEOUT = 3000;
 	public static final int READ_TIMEOUT = 5000;
 	
-	private final boolean verbose = false;
+	private static boolean verbose = false;
 
 	public String baseUrl;
 	

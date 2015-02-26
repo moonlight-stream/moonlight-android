@@ -13,6 +13,7 @@ import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.grid.AppGridAdapter;
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.preferences.PreferenceConfiguration;
@@ -446,10 +447,18 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     httpConn = new NvHTTP(getAddress(),
                             managerBinder.getUniqueId(), null, PlatformBinding.getCryptoProvider(AppView.this));
                     if (httpConn.quitApp()) {
-                        message = getResources().getString(R.string.applist_quit_success)+" "+app.getAppName();
+                        message = getResources().getString(R.string.applist_quit_success) + " " + app.getAppName();
+                    } else {
+                        message = getResources().getString(R.string.applist_quit_fail) + " " + app.getAppName();
+                    }
+                } catch (GfeHttpResponseException e) {
+                    if (e.getErrorCode() == 599) {
+                        message = "This session wasn't started by this device," +
+                                " so it cannot be quit. End streaming on the original " +
+                                "device or the PC itself. (Error code: "+e.getErrorCode()+")";
                     }
                     else {
-                        message = getResources().getString(R.string.applist_quit_fail)+" "+app.getAppName();
+                        message = e.getMessage();
                     }
                 } catch (UnknownHostException e) {
                     message = getResources().getString(R.string.error_unknown_host);

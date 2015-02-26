@@ -612,9 +612,19 @@ public class ComputerManagerService extends Service {
                             List<NvApp> list = NvHTTP.getAppListByReader(new StringReader(appList));
                             if (appList != null && !appList.isEmpty() && !list.isEmpty()) {
                                 // Open the cache file
-                                FileOutputStream cacheOut = CacheHelper.openCacheFileForOutput(getCacheDir(), "applist", computer.uuid.toString());
-                                CacheHelper.writeStringToOutputStream(cacheOut, appList);
-                                cacheOut.close();
+                                FileOutputStream cacheOut = null;
+                                try {
+                                    cacheOut = CacheHelper.openCacheFileForOutput(getCacheDir(), "applist", computer.uuid.toString());
+                                    CacheHelper.writeStringToOutputStream(cacheOut, appList);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    try {
+                                        if (cacheOut != null) {
+                                            cacheOut.close();
+                                        }
+                                    } catch (IOException e) {}
+                                }
 
                                 // Update the computer
                                 computer.rawAppList = appList;

@@ -256,7 +256,20 @@ public class NvHTTP {
 	}
 	
 	String openHttpConnectionToString(String url, boolean enableReadTimeout) throws MalformedURLException, IOException {
-		ResponseBody resp = openHttpConnection(url, enableReadTimeout);
+		if (verbose) {
+			LimeLog.info("Requesting URL: "+url);
+		}
+		
+		ResponseBody resp;
+		try {
+			resp = openHttpConnection(url, enableReadTimeout);
+		} catch (IOException e) {
+			if (verbose) {
+				e.printStackTrace();
+			}
+			throw e;
+		}
+		
 		Scanner s = new Scanner(resp.byteStream());
 		
 		String str = "";
@@ -268,7 +281,7 @@ public class NvHTTP {
 		resp.close();
 		
 		if (verbose) {
-			System.out.println(str);
+			LimeLog.info(url+" -> "+str);
 		}
 		
 		return str;
@@ -364,10 +377,16 @@ public class NvHTTP {
 	}
 	
 	public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
-		ResponseBody resp = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId, true);
-		LinkedList<NvApp> appList = getAppListByReader(new InputStreamReader(resp.byteStream()));
-		resp.close();
-		return appList;
+		if (verbose) {
+			// Use the raw function so the app list is printed
+			return getAppListByReader(new StringReader(getAppListRaw()));
+		}
+		else {
+			ResponseBody resp = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId, true);
+			LinkedList<NvApp> appList = getAppListByReader(new InputStreamReader(resp.byteStream()));
+			resp.close();
+			return appList;
+		}
 	}
 	
 	public void unpair() throws IOException {

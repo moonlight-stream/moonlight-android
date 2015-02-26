@@ -328,6 +328,7 @@ public class NvHTTP {
 		int eventType = xpp.getEventType();
 		LinkedList<NvApp> appList = new LinkedList<NvApp>();
 		Stack<String> currentTag = new Stack<String>();
+		boolean rootTerminated = false;
 
 		while (eventType != XmlPullParser.END_DOCUMENT) {
 			switch (eventType) {
@@ -342,6 +343,9 @@ public class NvHTTP {
 				break;
 			case (XmlPullParser.END_TAG):
 				currentTag.pop();
+				if (xpp.getName().equals("root")) {
+					rootTerminated = true;
+				}
 				break;
 			case (XmlPullParser.TEXT):
 				NvApp app = appList.getLast();
@@ -355,6 +359,11 @@ public class NvHTTP {
 				break;
 			}
 			eventType = xpp.next();
+		}
+		
+		// Throw a malformed XML exception if we've not seen the root tag ended
+		if (!rootTerminated) {
+			throw new XmlPullParserException("Malformed XML: Root tag was not terminated");
 		}
 		
 		// Ensure that all apps in the list are initialized

@@ -401,6 +401,12 @@ public class NvHTTP {
 	public void unpair() throws IOException {
 		openHttpConnectionToString(baseUrl + "/unpair?uniqueid=" + uniqueId, true);
 	}
+	
+	public InputStream getBoxArt(NvApp app) throws IOException {
+		ResponseBody resp = openHttpConnection(baseUrl + "/appasset?uniqueid=" + uniqueId +
+				"&appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0", true);
+		return resp.byteStream();
+	}
 
 	final private static char[] hexArray = "0123456789ABCDEF".toCharArray();
 	private static String bytesToHex(byte[] bytes) {

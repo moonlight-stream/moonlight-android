@@ -2,7 +2,6 @@ package com.limelight.grid;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.util.DisplayMetrics;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -25,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SuppressWarnings("unchecked")
 public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     private final Activity activity;
 
@@ -57,7 +57,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         LimeLog.info("Art scaling divisor: " + scalingDivisor);
 
         this.activity = activity;
-        this.loader = new CachedAppAssetLoader(computer, uniqueId, scalingDivisor,
+        this.loader = new CachedAppAssetLoader(computer, scalingDivisor,
                 new NetworkAssetLoader(context, uniqueId),
                 new MemoryAssetLoader(), new DiskAssetLoader(context.getCacheDir()));
     }
@@ -126,7 +126,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
 
         @Override
-        public void notifyLoadComplete(Object object, Bitmap bitmap) {
+        public void notifyLoadComplete(Object object, final Bitmap bitmap) {
             final WeakReference<ImageView> viewRef = (WeakReference<ImageView>) object;
 
             loadingTuples.remove(viewRef);
@@ -141,13 +141,12 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                 return;
             }
 
-            final Bitmap viewBmp = bitmap;
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     ImageView view = viewRef.get();
                     if (view != null) {
-                        view.setImageBitmap(viewBmp);
+                        view.setImageBitmap(bitmap);
                         fadeInImage(view);
                     }
                 }

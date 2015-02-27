@@ -1,8 +1,6 @@
 package com.limelight.grid.assets;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
 import com.limelight.LimeLog;
 import com.limelight.binding.PlatformBinding;
@@ -19,7 +17,7 @@ public class NetworkAssetLoader {
     private final Context context;
     private final String uniqueId;
 
-    public NetworkAssetLoader(Context context, String uniqueId) throws NoSuchAlgorithmException, KeyManagementException {
+    public NetworkAssetLoader(Context context, String uniqueId) {
         this.context = context;
         this.uniqueId = uniqueId;
     }

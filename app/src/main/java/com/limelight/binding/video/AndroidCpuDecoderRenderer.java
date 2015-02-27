@@ -178,7 +178,6 @@ public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
             @Override
             public void run() {
                 long nextFrameTime = System.currentTimeMillis();
-                DecodeUnit du;
                 while (!isInterrupted())
                 {
                     long diff = nextFrameTime - System.currentTimeMillis();

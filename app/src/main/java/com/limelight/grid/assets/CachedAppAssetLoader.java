@@ -1,7 +1,6 @@
 package com.limelight.grid.assets;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
@@ -13,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 
 public class CachedAppAssetLoader {
     private final ComputerDetails computer;
-    private final String uniqueId;
     private final double scalingDivider;
     private final ThreadPoolExecutor foregroundExecutor = new ThreadPoolExecutor(8, 8, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
     private final ThreadPoolExecutor backgroundExecutor = new ThreadPoolExecutor(2, 2, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
@@ -21,25 +19,15 @@ public class CachedAppAssetLoader {
     private final MemoryAssetLoader memoryLoader;
     private final DiskAssetLoader diskLoader;
 
-    public CachedAppAssetLoader(ComputerDetails computer, String uniqueId, double scalingDivider,
+    public CachedAppAssetLoader(ComputerDetails computer, double scalingDivider,
                                 NetworkAssetLoader networkLoader, MemoryAssetLoader memoryLoader,
                                 DiskAssetLoader diskLoader) {
         this.computer = computer;
-        this.uniqueId = uniqueId;
         this.scalingDivider = scalingDivider;
 
         this.networkLoader = networkLoader;
         this.memoryLoader = memoryLoader;
         this.diskLoader = diskLoader;
-    }
-
-    private static Bitmap scaleBitmapAndRecyle(Bitmap bmp, double scalingDivider) {
-        Bitmap newBmp = Bitmap.createScaledBitmap(bmp, (int)(bmp.getWidth() / scalingDivider),
-                (int)(bmp.getHeight() / scalingDivider), true);
-        if (newBmp != bmp) {
-            bmp.recycle();
-        }
-        return newBmp;
     }
 
     private Runnable createLoaderRunnable(final LoaderTuple tuple, final Object context, final LoadListener listener) {
@@ -119,15 +107,7 @@ public class CachedAppAssetLoader {
         // First, try the memory cache in the current context
         Bitmap bmp = memoryLoader.loadBitmapFromCache(tuple);
         if (bmp != null) {
-            synchronized (tuple) {
-                if (tuple.cancelled) {
-                    return null;
-                }
-                else {
-                    tuple.notified = true;
-                }
-            }
-
+            // The caller never sees our tuple in this case
             listener.notifyLoadComplete(context, bmp);
             return null;
         }

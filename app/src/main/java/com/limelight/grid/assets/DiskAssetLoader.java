@@ -7,9 +7,9 @@ import com.limelight.LimeLog;
 import com.limelight.utils.CacheHelper;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public class DiskAssetLoader implements CachedAppAssetLoader.CachedLoader {
     private final File cacheDir;
@@ -44,7 +44,7 @@ public class DiskAssetLoader implements CachedAppAssetLoader.CachedLoader {
 
     @Override
     public void populateCache(CachedAppAssetLoader.LoaderTuple tuple, Bitmap bitmap) {
-        FileOutputStream out = null;
+        OutputStream out = null;
         try {
             // PNG ignores quality setting
             out = CacheHelper.openCacheFileForOutput(cacheDir, "boxart", tuple.computer.uuid.toString(), tuple.app.getAppId() + ".png");

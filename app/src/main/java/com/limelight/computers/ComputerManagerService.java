@@ -2,6 +2,7 @@ package com.limelight.computers;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.net.InetAddress;
@@ -627,7 +628,7 @@ public class ComputerManagerService extends Service {
                             List<NvApp> list = NvHTTP.getAppListByReader(new StringReader(appList));
                             if (appList != null && !appList.isEmpty() && !list.isEmpty()) {
                                 // Open the cache file
-                                FileOutputStream cacheOut = null;
+                                OutputStream cacheOut = null;
                                 try {
                                     cacheOut = CacheHelper.openCacheFileForOutput(getCacheDir(), "applist", computer.uuid.toString());
                                     CacheHelper.writeStringToOutputStream(cacheOut, appList);

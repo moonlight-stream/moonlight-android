@@ -1,5 +1,7 @@
 package com.limelight.utils;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,12 +30,12 @@ public class CacheHelper {
         return f;
     }
 
-    public static FileInputStream openCacheFileForInput(File root, String... path) throws FileNotFoundException {
-        return new FileInputStream(openPath(false, root, path));
+    public static InputStream openCacheFileForInput(File root, String... path) throws FileNotFoundException {
+        return new BufferedInputStream(new FileInputStream(openPath(false, root, path)));
     }
 
-    public static FileOutputStream openCacheFileForOutput(File root, String... path) throws FileNotFoundException {
-        return new FileOutputStream(openPath(true, root, path));
+    public static OutputStream openCacheFileForOutput(File root, String... path) throws FileNotFoundException {
+        return new BufferedOutputStream(new FileOutputStream(openPath(true, root, path)));
     }
 
     public static String readInputStreamToString(InputStream in) throws IOException {

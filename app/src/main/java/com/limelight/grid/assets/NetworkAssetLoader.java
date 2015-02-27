@@ -90,6 +90,7 @@ public class NetworkAssetLoader implements CachedAppAssetLoader.NetworkLoader {
         Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setTrustManagers(trustAllCerts);
         Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setSSLContext(sslContext);
         Ion.getDefault(context).getHttpClient().getSSLSocketMiddleware().setHostnameVerifier(hv);
+        Ion.getDefault(context).getBitmapCache().clear();
 
         Bitmap bmp = Ion.with(context)
                 .load("https://" + getCurrentAddress(tuple.computer).getHostAddress() + ":47984/appasset?uniqueid=" +

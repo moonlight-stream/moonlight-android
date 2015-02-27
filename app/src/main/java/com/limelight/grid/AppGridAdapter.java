@@ -13,18 +13,21 @@ import com.limelight.grid.assets.MemoryAssetLoader;
 import com.limelight.grid.assets.NetworkAssetLoader;
 import com.limelight.nvstream.http.ComputerDetails;
 
+import java.lang.ref.WeakReference;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     private final Activity activity;
 
     private final CachedAppAssetLoader loader;
-    private final ConcurrentHashMap<ImageView, CachedAppAssetLoader.LoaderTuple> loadingTuples = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<WeakReference<ImageView>, CachedAppAssetLoader.LoaderTuple> loadingTuples = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Object, CachedAppAssetLoader.LoaderTuple> backgroundLoadingTuples = new ConcurrentHashMap<>();
 
     public AppGridAdapter(Activity activity, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) throws KeyManagementException, NoSuchAlgorithmException {
@@ -79,33 +82,49 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     private final CachedAppAssetLoader.LoadListener imageViewLoadListener = new CachedAppAssetLoader.LoadListener() {
         @Override
         public void notifyLongLoad(Object object) {
-            final ImageView view = (ImageView) object;
+            final WeakReference<ImageView> viewRef = (WeakReference<ImageView>) object;
 
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    view.setImageResource(R.drawable.image_loading);
-                    fadeInImage(view);
-                }
-            });
-        }
-
-        @Override
-        public void notifyLoadComplete(Object object, final Bitmap bitmap) {
-            final ImageView view = (ImageView) object;
-
-            loadingTuples.remove(view);
-
-            // Just leave the loading icon in place
-            if (bitmap == null) {
+            // If the view isn't there anymore, don't bother scheduling on the UI thread
+            if (viewRef.get() == null) {
                 return;
             }
 
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    view.setImageBitmap(bitmap);
-                    fadeInImage(view);
+                    ImageView view = viewRef.get();
+                    if (view != null) {
+                        view.setImageResource(R.drawable.image_loading);
+                        fadeInImage(view);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void notifyLoadComplete(Object object, final Bitmap bitmap) {
+            final WeakReference<ImageView> viewRef = (WeakReference<ImageView>) object;
+
+            loadingTuples.remove(viewRef);
+
+            // Just leave the loading icon in place
+            if (bitmap == null) {
+                return;
+            }
+
+            // If the view isn't there anymore, don't bother scheduling on the UI thread
+            if (viewRef.get() == null) {
+                return;
+            }
+
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ImageView view = viewRef.get();
+                    if (view != null) {
+                        view.setImageBitmap(bitmap);
+                        fadeInImage(view);
+                    }
                 }
             });
         }
@@ -121,23 +140,38 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
     };
 
+    private void reapLoaderTuples(ImageView view) {
+        // Poor HashMap doesn't deserve this...
+        Iterator<Map.Entry<WeakReference<ImageView>, CachedAppAssetLoader.LoaderTuple>> i = loadingTuples.entrySet().iterator();
+        while (i.hasNext()) {
+            Map.Entry<WeakReference<ImageView>, CachedAppAssetLoader.LoaderTuple> entry = i.next();
+            ImageView imageView = entry.getKey().get();
+
+            // Remove tuples that refer to this view or no view
+            if (imageView == null || imageView == view) {
+                // FIXME: There's a small chance that this can race if we've already gone down
+                // the path to notification but haven't been notified yet
+                entry.getValue().cancel();
+
+                // Remove it from the tuple list
+                i.remove();
+            }
+        }
+    }
+
     public boolean populateImageView(final ImageView imgView, final AppView.AppObject obj) {
         // Cancel pending loads on this image view
-        CachedAppAssetLoader.LoaderTuple tuple = loadingTuples.remove(imgView);
-        if (tuple != null) {
-            // FIXME: There's a small chance that this can race if we've already gone down
-            // the path to notification but haven't been notified yet
-            tuple.cancel();
-        }
+        reapLoaderTuples(imgView);
 
         // Clear existing contents of the image view
         imgView.setAlpha(0.0f);
 
         // Start loading the bitmap
-        tuple = loader.loadBitmapWithContext(obj.app, imgView, imageViewLoadListener);
+        WeakReference<ImageView> viewRef = new WeakReference<>(imgView);
+        CachedAppAssetLoader.LoaderTuple tuple = loader.loadBitmapWithContext(obj.app, viewRef, imageViewLoadListener);
         if (tuple != null) {
             // The load was issued asynchronously
-            loadingTuples.put(imgView, tuple);
+            loadingTuples.put(viewRef, tuple);
         }
         return true;
     }

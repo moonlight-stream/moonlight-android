@@ -304,11 +304,24 @@ public class NvHTTP {
 		return Integer.parseInt(game);
 	}
 	
-	public NvApp getApp(String app) throws IOException,
-			XmlPullParserException {
+	public NvApp getAppById(int appId) throws IOException, XmlPullParserException {
 		LinkedList<NvApp> appList = getAppList();
 		for (NvApp appFromList : appList) {
-			if (appFromList.getAppName().equals(app)) {
+			if (appFromList.getAppId() == appId) {
+				return appFromList;
+			}
+		}
+		return null;
+	}
+	
+	/* NOTE: Only use this function if you know what you're doing.
+	 * It's totally valid to have two apps named the same thing,
+	 * or even nothing at all! Look apps up by ID if at all possible
+	 * using the above function */
+	public NvApp getAppByName(String appName) throws IOException, XmlPullParserException {
+		LinkedList<NvApp> appList = getAppList();
+		for (NvApp appFromList : appList) {
+			if (appFromList.getAppName().equals(appName)) {
 				return appFromList;
 			}
 		}

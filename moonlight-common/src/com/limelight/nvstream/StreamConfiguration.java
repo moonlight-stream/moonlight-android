@@ -1,7 +1,10 @@
 package com.limelight.nvstream;
 
 public class StreamConfiguration {
-	private String app;
+	public static final int INVALID_APP_ID = 0;
+	
+	private String appName;
+	private int appId = INVALID_APP_ID;
 	private int width, height;
 	private int refreshRate;
 	private int bitrate;
@@ -15,7 +18,12 @@ public class StreamConfiguration {
 		private StreamConfiguration config = new StreamConfiguration();
 		
 		public StreamConfiguration.Builder setApp(String app) {
-			config.app = app;
+			config.appName = app;
+			return this;
+		}
+		
+		public StreamConfiguration.Builder setAppId(int appId) {
+			config.appId = appId;
 			return this;
 		}
 		
@@ -67,7 +75,7 @@ public class StreamConfiguration {
 	
 	private StreamConfiguration() {
 		// Set default attributes
-		this.app = "Steam";
+		this.appName = "Steam";
 		this.width = 1280;
 		this.height = 720;
 		this.refreshRate = 60;
@@ -97,8 +105,12 @@ public class StreamConfiguration {
 		return maxPacketSize;
 	}
 
-	public String getApp() {
-		return app;
+	public String getAppName() {
+		return appName;
+	}
+	
+	public int getAppId() {
+		return appId;
 	}
 	
 	public boolean getSops() {

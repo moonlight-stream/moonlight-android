@@ -139,10 +139,20 @@ public class NvConnection {
 			context.connListener.displayMessage("Device not paired with computer");
 			return false;
 		}
-				
-		NvApp app = h.getApp(context.streamConfig.getApp());
+		
+		NvApp app;
+		
+		// If the client provided an exact app ID, use that to find the app object
+		if (context.streamConfig.getAppId() != StreamConfiguration.INVALID_APP_ID) {
+			app = h.getAppById(context.streamConfig.getAppId());
+		}
+		else {
+			LimeLog.info("Using deprecated app lookup method - Please specify an app ID in your StreamConfiguration instead");
+			app = h.getAppByName(context.streamConfig.getAppName());
+		}
+		
 		if (app == null) {
-			context.connListener.displayMessage("The app " + context.streamConfig.getApp() + " is not in GFE app list");
+			context.connListener.displayMessage("The app " + context.streamConfig.getAppName() + " is not in GFE app list");
 			return false;
 		}
 		
@@ -266,7 +276,7 @@ public class NvConnection {
 
 			if (currentStage == NvConnectionListener.Stage.LAUNCH_APP) {
 				// Display the app name instead of the stage name
-				currentStage.setName(context.streamConfig.getApp());
+				currentStage.setName(context.streamConfig.getAppName());
 			}
 			
 			context.connListener.stageStarting(currentStage);

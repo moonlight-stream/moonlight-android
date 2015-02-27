@@ -517,6 +517,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             if (details.equals(computer.details)) {
                 pcGridAdapter.removeComputer(computer);
                 pcGridAdapter.notifyDataSetChanged();
+
+                if (pcGridAdapter.getCount() == 0) {
+                    // Show the "Discovery in progress" view
+                    noPcFoundLayout.setVisibility(View.VISIBLE);
+                }
+
                 break;
             }
         }

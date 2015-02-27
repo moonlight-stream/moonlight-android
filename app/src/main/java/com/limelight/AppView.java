@@ -372,7 +372,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         if (existingApp.app.getAppId() == app.getAppId()) {
                             // Found the app; update its properties
                             if (existingApp.app.getIsRunning() != app.getIsRunning()) {
-                                existingApp.app.setIsRunningBoolean(app.getIsRunning());
+                                existingApp.app.setIsRunning(app.getIsRunning());
                                 updated = true;
                             }
                             if (!existingApp.app.getAppName().equals(app.getAppName())) {

@@ -13,6 +13,7 @@ import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.preferences.PreferenceConfiguration;
@@ -188,8 +189,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
                 .setRefreshRate(prefConfig.fps)
-                .setApp(appName)
-                .setAppId(appId)
+                .setApp(new NvApp(appName, appId))
                 .setBitrate(prefConfig.bitrate * 1000)
                 .setEnableSops(prefConfig.enableSops)
                 .enableAdaptiveResolution((decoderRenderer.getCapabilities() &

@@ -140,26 +140,25 @@ public class NvConnection {
 			return false;
 		}
 		
-		NvApp app;
+		NvApp app = context.streamConfig.getApp();
 		
-		// If the client provided an exact app ID, use that to find the app object
-		if (context.streamConfig.getAppId() != StreamConfiguration.INVALID_APP_ID) {
-			app = h.getAppById(context.streamConfig.getAppId());
-		}
-		else {
+		// If the client did not provide an exact app ID, do a lookup with the applist
+		if (!context.streamConfig.getApp().isInitialized()) {
 			LimeLog.info("Using deprecated app lookup method - Please specify an app ID in your StreamConfiguration instead");
-			app = h.getAppByName(context.streamConfig.getAppName());
+			app = h.getAppByName(context.streamConfig.getApp().getAppName());
+			if (app == null) {
+				context.connListener.displayMessage("The app " + context.streamConfig.getApp().getAppName() + " is not in GFE app list");
+				return false;
+			}
 		}
 		
-		if (app == null) {
-			context.connListener.displayMessage("The app " + context.streamConfig.getAppName() + " is not in GFE app list");
-			return false;
-		}
+		// Update the running status of the app
+		app.setIsRunning(h.getCurrentGame(serverInfo) == app.getAppId());
 		
 		// If there's a game running, resume it
 		if (h.getCurrentGame(serverInfo) != 0) {
 			try {
-				if (h.getCurrentGame(serverInfo) == app.getAppId()) {
+				if (app.getIsRunning()) {
 					if (!h.resumeApp(context)) {
 						context.connListener.displayMessage("Failed to resume existing session");
 						return false;
@@ -276,7 +275,7 @@ public class NvConnection {
 
 			if (currentStage == NvConnectionListener.Stage.LAUNCH_APP) {
 				// Display the app name instead of the stage name
-				currentStage.setName(context.streamConfig.getAppName());
+				currentStage.setName(context.streamConfig.getApp().getAppName());
 			}
 			
 			context.connListener.stageStarting(currentStage);

@@ -321,7 +321,7 @@ public class NvHTTP {
 	public NvApp getAppByName(String appName) throws IOException, XmlPullParserException {
 		LinkedList<NvApp> appList = getAppList();
 		for (NvApp appFromList : appList) {
-			if (appFromList.getAppName().equals(appName)) {
+			if (appFromList.getAppName().equalsIgnoreCase(appName)) {
 				return appFromList;
 			}
 		}

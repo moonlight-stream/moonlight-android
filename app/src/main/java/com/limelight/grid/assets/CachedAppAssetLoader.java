@@ -30,6 +30,10 @@ public class CachedAppAssetLoader {
         this.diskLoader = diskLoader;
     }
 
+    public void freeCacheMemory() {
+        memoryLoader.clearCache();
+    }
+
     private Runnable createLoaderRunnable(final LoaderTuple tuple, final Object context, final LoadListener listener) {
         return new Runnable() {
             @Override

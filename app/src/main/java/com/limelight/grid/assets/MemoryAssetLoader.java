@@ -30,4 +30,8 @@ public class MemoryAssetLoader {
     public void populateCache(CachedAppAssetLoader.LoaderTuple tuple, Bitmap bitmap) {
         memoryCache.put(constructKey(tuple), bitmap);
     }
+
+    public void clearCache() {
+        memoryCache.evictAll();
+    }
 }

@@ -75,6 +75,8 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     public void cancelQueuedOperations() {
         cancelTuples(loadingTuples);
         cancelTuples(backgroundLoadingTuples);
+
+        loader.freeCacheMemory();
     }
 
     private void sortList() {

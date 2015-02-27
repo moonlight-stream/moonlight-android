@@ -1,10 +1,12 @@
 package com.limelight.grid.assets;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 
+import java.io.InputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -12,19 +14,32 @@ import java.util.concurrent.TimeUnit;
 public class CachedAppAssetLoader {
     private final ComputerDetails computer;
     private final String uniqueId;
+    private final double scalingDivider;
     private final ThreadPoolExecutor foregroundExecutor = new ThreadPoolExecutor(8, 8, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
     private final ThreadPoolExecutor backgroundExecutor = new ThreadPoolExecutor(2, 2, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>());
-    private final NetworkLoader networkLoader;
-    private final CachedLoader memoryLoader;
-    private final CachedLoader diskLoader;
+    private final NetworkAssetLoader networkLoader;
+    private final MemoryAssetLoader memoryLoader;
+    private final DiskAssetLoader diskLoader;
 
-    public CachedAppAssetLoader(ComputerDetails computer, String uniqueId, NetworkLoader networkLoader, CachedLoader memoryLoader, CachedLoader diskLoader) {
+    public CachedAppAssetLoader(ComputerDetails computer, String uniqueId, double scalingDivider,
+                                NetworkAssetLoader networkLoader, MemoryAssetLoader memoryLoader,
+                                DiskAssetLoader diskLoader) {
         this.computer = computer;
         this.uniqueId = uniqueId;
+        this.scalingDivider = scalingDivider;
 
         this.networkLoader = networkLoader;
         this.memoryLoader = memoryLoader;
         this.diskLoader = diskLoader;
+    }
+
+    private static Bitmap scaleBitmapAndRecyle(Bitmap bmp, double scalingDivider) {
+        Bitmap newBmp = Bitmap.createScaledBitmap(bmp, (int)(bmp.getWidth() / scalingDivider),
+                (int)(bmp.getHeight() / scalingDivider), true);
+        if (newBmp != bmp) {
+            bmp.recycle();
+        }
+        return newBmp;
     }
 
     private Runnable createLoaderRunnable(final LoaderTuple tuple, final Object context, final LoadListener listener) {
@@ -36,7 +51,7 @@ public class CachedAppAssetLoader {
                     return;
                 }
 
-                Bitmap bmp = diskLoader.loadBitmapFromCache(tuple);
+                Bitmap bmp = diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
                 if (bmp == null) {
                     // Notify the listener that this may take a while
                     listener.notifyLongLoad(context);
@@ -48,20 +63,24 @@ public class CachedAppAssetLoader {
                             return;
                         }
 
-                        bmp = networkLoader.loadBitmap(tuple);
-                        if (bmp != null) {
-                            break;
+                        InputStream in = networkLoader.getBitmapStream(tuple);
+                        if (in != null) {
+                            // Write the stream straight to disk
+                            diskLoader.populateCacheWithStream(tuple, in);
+
+                            // Read it back scaled
+                            bmp = diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
+                            if (bmp != null) {
+                                break;
+                            }
                         }
 
                         // Wait 1 second with a bit of fuzz
                         try {
-                            Thread.sleep((int) (1000 + (Math.random()*500)));
-                        } catch (InterruptedException e) {}
-                    }
-
-                    if (bmp != null) {
-                        // Populate the disk cache
-                        diskLoader.populateCache(tuple, bmp);
+                            Thread.sleep((int) (1000 + (Math.random() * 500)));
+                        } catch (InterruptedException e) {
+                            break;
+                        }
                     }
                 }
 
@@ -95,7 +114,7 @@ public class CachedAppAssetLoader {
     }
 
     private LoaderTuple loadBitmapWithContext(NvApp app, Object context, LoadListener listener, boolean background) {
-        LoaderTuple tuple = new LoaderTuple(computer, uniqueId, app);
+        LoaderTuple tuple = new LoaderTuple(computer, app);
 
         // First, try the memory cache in the current context
         Bitmap bmp = memoryLoader.loadBitmapFromCache(tuple);
@@ -125,15 +144,13 @@ public class CachedAppAssetLoader {
 
     public class LoaderTuple {
         public final ComputerDetails computer;
-        public final String uniqueId;
         public final NvApp app;
 
         public boolean notified;
         public boolean cancelled;
 
-        public LoaderTuple(ComputerDetails computer, String uniqueId, NvApp app) {
+        public LoaderTuple(ComputerDetails computer, NvApp app) {
             this.computer = computer;
-            this.uniqueId = uniqueId;
             this.app = app;
         }
 
@@ -148,15 +165,6 @@ public class CachedAppAssetLoader {
         public String toString() {
             return "("+computer.uuid+", "+app.getAppId()+")";
         }
-    }
-
-    public interface NetworkLoader {
-        public Bitmap loadBitmap(LoaderTuple tuple);
-    }
-
-    public interface CachedLoader {
-        public Bitmap loadBitmapFromCache(LoaderTuple tuple);
-        public void populateCache(LoaderTuple tuple, Bitmap bitmap);
     }
 
     public interface LoadListener {

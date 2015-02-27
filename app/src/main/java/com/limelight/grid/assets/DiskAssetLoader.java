@@ -11,20 +11,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class DiskAssetLoader implements CachedAppAssetLoader.CachedLoader {
+public class DiskAssetLoader {
     private final File cacheDir;
 
     public DiskAssetLoader(File cacheDir) {
         this.cacheDir = cacheDir;
     }
 
-    @Override
-    public Bitmap loadBitmapFromCache(CachedAppAssetLoader.LoaderTuple tuple) {
+    public Bitmap loadBitmapFromCache(CachedAppAssetLoader.LoaderTuple tuple, int sampleSize) {
         InputStream in = null;
         Bitmap bmp = null;
         try {
             in = CacheHelper.openCacheFileForInput(cacheDir, "boxart", tuple.computer.uuid.toString(), tuple.app.getAppId() + ".png");
-            bmp = BitmapFactory.decodeStream(in);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = sampleSize;
+            bmp = BitmapFactory.decodeStream(in, null, options);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -42,13 +43,11 @@ public class DiskAssetLoader implements CachedAppAssetLoader.CachedLoader {
         return bmp;
     }
 
-    @Override
-    public void populateCache(CachedAppAssetLoader.LoaderTuple tuple, Bitmap bitmap) {
+    public void populateCacheWithStream(CachedAppAssetLoader.LoaderTuple tuple, InputStream input) {
         OutputStream out = null;
         try {
-            // PNG ignores quality setting
             out = CacheHelper.openCacheFileForOutput(cacheDir, "boxart", tuple.computer.uuid.toString(), tuple.app.getAppId() + ".png");
-            bitmap.compress(Bitmap.CompressFormat.PNG, 0, out);
+            CacheHelper.writeInputStreamToOutputStream(input, out);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

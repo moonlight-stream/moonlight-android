@@ -2,10 +2,12 @@ package com.limelight.grid;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.util.DisplayMetrics;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.limelight.AppView;
+import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.grid.assets.CachedAppAssetLoader;
 import com.limelight.grid.assets.DiskAssetLoader;
@@ -26,6 +28,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     private final Activity activity;
 
+    private static final int ART_WIDTH_PX = 300;
+    private static final int SMALL_WIDTH_DP = 100;
+    private static final int LARGE_WIDTH_DP = 150;
+
     private final CachedAppAssetLoader loader;
     private final ConcurrentHashMap<WeakReference<ImageView>, CachedAppAssetLoader.LoaderTuple> loadingTuples = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Object, CachedAppAssetLoader.LoaderTuple> backgroundLoadingTuples = new ConcurrentHashMap<>();
@@ -33,8 +39,26 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     public AppGridAdapter(Activity activity, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) throws KeyManagementException, NoSuchAlgorithmException {
         super(activity, listMode ? R.layout.simple_row : (small ? R.layout.app_grid_item_small : R.layout.app_grid_item), R.drawable.image_loading);
 
+        int dpi = activity.getResources().getDisplayMetrics().densityDpi;
+        int dp;
+
+        if (small) {
+            dp = SMALL_WIDTH_DP;
+        }
+        else {
+            dp = LARGE_WIDTH_DP;
+        }
+
+        double scalingDivisor = ART_WIDTH_PX / (dp * (dpi / 160));
+        if (scalingDivisor < 1.0) {
+            // We don't want to make them bigger before draw-time
+            scalingDivisor = 1.0;
+        }
+        LimeLog.info("Art scaling divisor: " + scalingDivisor);
+
         this.activity = activity;
-        this.loader = new CachedAppAssetLoader(computer, uniqueId, new NetworkAssetLoader(context),
+        this.loader = new CachedAppAssetLoader(computer, uniqueId, scalingDivisor,
+                new NetworkAssetLoader(context, uniqueId),
                 new MemoryAssetLoader(), new DiskAssetLoader(context.getCacheDir()));
     }
 
@@ -102,7 +126,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
 
         @Override
-        public void notifyLoadComplete(Object object, final Bitmap bitmap) {
+        public void notifyLoadComplete(Object object, Bitmap bitmap) {
             final WeakReference<ImageView> viewRef = (WeakReference<ImageView>) object;
 
             loadingTuples.remove(viewRef);
@@ -117,12 +141,13 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                 return;
             }
 
+            final Bitmap viewBmp = bitmap;
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     ImageView view = viewRef.get();
                     if (view != null) {
-                        view.setImageBitmap(bitmap);
+                        view.setImageBitmap(viewBmp);
                         fadeInImage(view);
                     }
                 }

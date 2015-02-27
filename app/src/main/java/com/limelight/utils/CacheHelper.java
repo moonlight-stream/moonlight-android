@@ -38,6 +38,15 @@ public class CacheHelper {
         return new BufferedOutputStream(new FileOutputStream(openPath(true, root, path)));
     }
 
+    public static void writeInputStreamToOutputStream(InputStream in, OutputStream out) throws IOException {
+        byte[] buf = new byte[4096];
+        int bytesRead;
+
+        while ((bytesRead = in.read(buf)) != -1) {
+            out.write(buf, 0, bytesRead);
+        }
+    }
+
     public static String readInputStreamToString(InputStream in) throws IOException {
         Reader r = new InputStreamReader(in);
 

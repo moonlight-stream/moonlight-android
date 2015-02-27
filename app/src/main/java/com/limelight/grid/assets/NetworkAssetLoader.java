@@ -98,9 +98,6 @@ public class NetworkAssetLoader implements CachedAppAssetLoader.NetworkLoader {
                 .tryGet();
         if (bmp != null) {
             LimeLog.info("Network asset load complete: " + tuple);
-
-            // Scale the bitmap to half size
-            bmp = Bitmap.createScaledBitmap(bmp, bmp.getWidth() / 2, bmp.getHeight() / 2, true);
         }
         else {
             LimeLog.info("Network asset load failed: " + tuple);

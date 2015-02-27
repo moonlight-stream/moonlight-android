@@ -8,9 +8,7 @@ public class NvApp {
 	private boolean isRunning;
 	private boolean initialized;
 	
-	public NvApp() {
-		
-	}
+	public NvApp() {}
 	
 	public NvApp(String appName) {
 		this.appName = appName;
@@ -19,6 +17,7 @@ public class NvApp {
 	public NvApp(String appName, int appId) {
 		this.appName = appName;
 		this.appId = appId;
+		this.initialized = true;
 	}
 	
 	public void setAppName(String appName) {

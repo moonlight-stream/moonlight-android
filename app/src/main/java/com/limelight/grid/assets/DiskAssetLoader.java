@@ -44,13 +44,19 @@ public class DiskAssetLoader implements CachedAppAssetLoader.CachedLoader {
 
     @Override
     public void populateCache(CachedAppAssetLoader.LoaderTuple tuple, Bitmap bitmap) {
+        FileOutputStream out = null;
         try {
             // PNG ignores quality setting
-            FileOutputStream out = CacheHelper.openCacheFileForOutput(cacheDir, "boxart", tuple.computer.uuid.toString(), tuple.app.getAppId() + ".png");
+            out = CacheHelper.openCacheFileForOutput(cacheDir, "boxart", tuple.computer.uuid.toString(), tuple.app.getAppId() + ".png");
             bitmap.compress(Bitmap.CompressFormat.PNG, 0, out);
-            out.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException ignored) {}
+            }
         }
     }
 }

@@ -129,7 +129,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     return;
                 }
 
-                if (details.state != ComputerDetails.State.ONLINE) {
+                if (details.state == ComputerDetails.State.OFFLINE) {
                     // The PC is unreachable now
                     AppView.this.runOnUiThread(new Runnable() {
                         @Override

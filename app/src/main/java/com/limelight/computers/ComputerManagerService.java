@@ -122,8 +122,7 @@ public class ComputerManagerService extends Service {
             @Override
             public void run() {
 
-                // Start with an immediate offline notification
-                int offlineCount = Integer.MAX_VALUE;
+                int offlineCount = 0;
                 while (!isInterrupted() && pollingActive) {
                     try {
                         // Check if this poll has modified the details

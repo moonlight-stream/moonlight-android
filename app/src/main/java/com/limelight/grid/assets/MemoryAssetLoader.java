@@ -7,7 +7,7 @@ import com.limelight.LimeLog;
 
 public class MemoryAssetLoader implements CachedAppAssetLoader.CachedLoader {
     private static final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
-    private static final LruCache<String, Bitmap> memoryCache = new LruCache<String, Bitmap>(maxMemory / 4) {
+    private static final LruCache<String, Bitmap> memoryCache = new LruCache<String, Bitmap>(maxMemory / 8) {
         @Override
         protected int sizeOf(String key, Bitmap bitmap) {
             // Sizeof returns kilobytes

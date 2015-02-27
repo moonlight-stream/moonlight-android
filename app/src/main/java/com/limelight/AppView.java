@@ -432,7 +432,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         intent.putExtra(Game.EXTRA_HOST,
                 computer.reachability == ComputerDetails.Reachability.LOCAL ?
                 computer.localIp.getHostAddress() : computer.remoteIp.getHostAddress());
-        intent.putExtra(Game.EXTRA_APP, app.getAppName());
+        intent.putExtra(Game.EXTRA_APP_NAME, app.getAppName());
+        intent.putExtra(Game.EXTRA_APP_ID, app.getAppId());
         intent.putExtra(Game.EXTRA_UNIQUEID, managerBinder.getUniqueId());
         intent.putExtra(Game.EXTRA_STREAMING_REMOTE,
                 computer.reachability != ComputerDetails.Reachability.LOCAL);

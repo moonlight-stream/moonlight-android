@@ -89,7 +89,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private int drFlags = 0;
 
     public static final String EXTRA_HOST = "Host";
-    public static final String EXTRA_APP = "App";
+    public static final String EXTRA_APP_NAME = "AppName";
+    public static final String EXTRA_APP_ID = "AppId";
     public static final String EXTRA_UNIQUEID = "UniqueId";
     public static final String EXTRA_STREAMING_REMOTE = "Remote";
 
@@ -171,9 +172,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         wifiLock.acquire();
 
         String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
-        String app = Game.this.getIntent().getStringExtra(EXTRA_APP);
+        String appName = Game.this.getIntent().getStringExtra(EXTRA_APP_NAME);
+        int appId = Game.this.getIntent().getIntExtra(EXTRA_APP_ID, StreamConfiguration.INVALID_APP_ID);
         String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
         boolean remote = Game.this.getIntent().getBooleanExtra(EXTRA_STREAMING_REMOTE, false);
+
+        if (appId == StreamConfiguration.INVALID_APP_ID) {
+            finish();
+            return;
+        }
 
         decoderRenderer = new ConfigurableDecoderRenderer();
         decoderRenderer.initializeWithFlags(drFlags);
@@ -181,7 +188,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
                 .setRefreshRate(prefConfig.fps)
-                .setApp(app)
+                .setApp(appName)
+                .setAppId(appId)
                 .setBitrate(prefConfig.bitrate * 1000)
                 .setEnableSops(prefConfig.enableSops)
                 .enableAdaptiveResolution((decoderRenderer.getCapabilities() &

@@ -19,6 +19,10 @@ public class DiskAssetLoader {
         this.cacheDir = cacheDir;
     }
 
+    public boolean checkCacheExists(CachedAppAssetLoader.LoaderTuple tuple) {
+        return CacheHelper.cacheFileExists(cacheDir, "boxart", tuple.computer.uuid.toString(), tuple.app.getAppId() + ".png");
+    }
+
     public Bitmap loadBitmapFromCache(CachedAppAssetLoader.LoaderTuple tuple, int sampleSize) {
         InputStream in = null;
         Bitmap bmp = null;

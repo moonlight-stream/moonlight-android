@@ -7,7 +7,7 @@ import com.limelight.LimeLog;
 
 public class MemoryAssetLoader {
     private static final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
-    private static final LruCache<String, Bitmap> memoryCache = new LruCache<String, Bitmap>(maxMemory / 12) {
+    private static final LruCache<String, Bitmap> memoryCache = new LruCache<String, Bitmap>(maxMemory / 16) {
         @Override
         protected int sizeOf(String key, Bitmap bitmap) {
             // Sizeof returns kilobytes

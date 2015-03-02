@@ -30,6 +30,10 @@ public class CacheHelper {
         return f;
     }
 
+    public static boolean cacheFileExists(File root, String... path) {
+        return openPath(false, root, path).exists();
+    }
+
     public static InputStream openCacheFileForInput(File root, String... path) throws FileNotFoundException {
         return new BufferedInputStream(new FileInputStream(openPath(false, root, path)));
     }

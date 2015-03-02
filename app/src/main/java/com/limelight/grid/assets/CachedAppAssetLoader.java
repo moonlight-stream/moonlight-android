@@ -13,16 +13,17 @@ import com.limelight.nvstream.http.NvApp;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class CachedAppAssetLoader {
-    private static final int MAX_CONCURRENT_FOREGROUND_LOADS = 8;
+    private static final int MAX_CONCURRENT_DISK_LOADS = 4;
+    private static final int MAX_CONCURRENT_NETWORK_LOADS = 4;
     private static final int MAX_CONCURRENT_CACHE_LOADS = 2;
 
     private static final int MAX_PENDING_CACHE_LOADS = 100;
-    private static final int MAX_PENDING_FOREGROUND_LOADS = 30;
+    private static final int MAX_PENDING_NETWORK_LOADS = 40;
+    private static final int MAX_PENDING_DISK_LOADS = 40;
 
     private final ThreadPoolExecutor cacheExecutor = new ThreadPoolExecutor(
             MAX_CONCURRENT_CACHE_LOADS, MAX_CONCURRENT_CACHE_LOADS,
@@ -31,9 +32,15 @@ public class CachedAppAssetLoader {
             new ThreadPoolExecutor.DiscardOldestPolicy());
 
     private final ThreadPoolExecutor foregroundExecutor = new ThreadPoolExecutor(
-            MAX_CONCURRENT_FOREGROUND_LOADS, MAX_CONCURRENT_FOREGROUND_LOADS,
+            MAX_CONCURRENT_DISK_LOADS, MAX_CONCURRENT_DISK_LOADS,
             Long.MAX_VALUE, TimeUnit.DAYS,
-            new LinkedBlockingQueue<Runnable>(MAX_PENDING_FOREGROUND_LOADS),
+            new LinkedBlockingQueue<Runnable>(MAX_PENDING_DISK_LOADS),
+            new ThreadPoolExecutor.DiscardOldestPolicy());
+
+    private final ThreadPoolExecutor networkExecutor = new ThreadPoolExecutor(
+            MAX_CONCURRENT_NETWORK_LOADS, MAX_CONCURRENT_NETWORK_LOADS,
+            Long.MAX_VALUE, TimeUnit.DAYS,
+            new LinkedBlockingQueue<Runnable>(MAX_PENDING_NETWORK_LOADS),
             new ThreadPoolExecutor.DiscardOldestPolicy());
 
     private final ComputerDetails computer;
@@ -63,8 +70,13 @@ public class CachedAppAssetLoader {
 
     public void cancelForegroundLoads() {
         Runnable r;
+
         while ((r = foregroundExecutor.getQueue().poll()) != null) {
             foregroundExecutor.remove(r);
+        }
+
+        while ((r = networkExecutor.getQueue().poll()) != null) {
+            networkExecutor.remove(r);
         }
     }
 
@@ -73,8 +85,6 @@ public class CachedAppAssetLoader {
     }
 
     private Bitmap doNetworkAssetLoad(LoaderTuple tuple, LoaderTask task) {
-        Bitmap bmp;
-
         // Try 3 times
         for (int i = 0; i < 3; i++) {
             // Check again whether we've been cancelled or the image view is gone
@@ -87,10 +97,13 @@ public class CachedAppAssetLoader {
                 // Write the stream straight to disk
                 diskLoader.populateCacheWithStream(tuple, in);
 
-                // Read it back scaled
-                bmp = diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
-                if (bmp != null) {
-                    return bmp;
+                // If there's a task associated with this load, we should return the bitmap
+                if (task != null) {
+                    return diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
+                }
+                else {
+                    // Otherwise it's a background load and we return nothing
+                    return null;
                 }
             }
 
@@ -107,11 +120,13 @@ public class CachedAppAssetLoader {
 
     private class LoaderTask extends AsyncTask<LoaderTuple, Void, Bitmap> {
         private final WeakReference<ImageView> imageViewRef;
-        private LoaderTuple tuple;
-        private boolean loadFinished;
+        private final boolean diskOnly;
 
-        public LoaderTask(ImageView imageView) {
-            imageViewRef = new WeakReference<ImageView>(imageView);
+        private LoaderTuple tuple;
+
+        public LoaderTask(ImageView imageView, boolean diskOnly) {
+            this.imageViewRef = new WeakReference<ImageView>(imageView);
+            this.diskOnly = diskOnly;
         }
 
         @Override
@@ -120,22 +135,23 @@ public class CachedAppAssetLoader {
 
             // Check whether it has been cancelled or the image view is gone
             if (isCancelled() || imageViewRef.get() == null) {
-                System.out.println("Cancelled or no image view in doInBackground");
                 return null;
             }
 
             Bitmap bmp = diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
             if (bmp == null) {
-                // Report progress to display the placeholder
-                publishProgress();
-
-                // Try to load the asset from the network
-                bmp = doNetworkAssetLoad(tuple, this);
+                if (!diskOnly) {
+                    // Try to load the asset from the network
+                    bmp = doNetworkAssetLoad(tuple, this);
+                } else {
+                    // Report progress to display the placeholder and spin
+                    // off the network-capable task
+                    publishProgress();
+                }
             }
 
             // Cache the bitmap
             if (bmp != null) {
-                loadFinished = true;
                 memoryLoader.populateCache(tuple, bmp);
             }
 
@@ -144,25 +160,20 @@ public class CachedAppAssetLoader {
 
         @Override
         protected void onProgressUpdate(Void... nothing) {
-            // Do nothing if the load has already completed
-            if (loadFinished) {
-                return;
-            }
-
             // Do nothing if cancelled
             if (isCancelled()) {
                 return;
             }
 
+            // If the current loader task for this view isn't us, do nothing
             final ImageView imageView = imageViewRef.get();
-            if (imageView != null) {
-                // If the current loader task for this view isn't us, do nothing
-                if (getLoaderTask(imageView) != this) {
-                    return;
-                }
-
-                // Show the placeholder by setting alpha to 1.0
+            if (getLoaderTask(imageView) == this) {
+                // Set off another loader task on the network executor
+                LoaderTask task = new LoaderTask(imageView, false);
+                AsyncDrawable asyncDrawable = new AsyncDrawable(imageView.getResources(), placeholderBitmap, task);
                 imageView.setAlpha(1.0f);
+                imageView.setImageDrawable(asyncDrawable);
+                task.executeOnExecutor(networkExecutor, tuple);
             }
         }
 
@@ -174,12 +185,7 @@ public class CachedAppAssetLoader {
             }
 
             final ImageView imageView = imageViewRef.get();
-            if (imageView != null) {
-                // If the current loader task for this view isn't us, do nothing
-                if (getLoaderTask(imageView) != this) {
-                    return;
-                }
-
+            if (getLoaderTask(imageView) == this) {
                 // Set the bitmap
                 if (bitmap != null) {
                     imageView.setImageBitmap(bitmap);
@@ -206,6 +212,10 @@ public class CachedAppAssetLoader {
     }
 
     private static LoaderTask getLoaderTask(ImageView imageView) {
+        if (imageView == null) {
+            return null;
+        }
+
         final Drawable drawable = imageView.getDrawable();
 
         // If our drawable is in play, get the loader task
@@ -249,34 +259,19 @@ public class CachedAppAssetLoader {
         cacheExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                Bitmap bmp;
-
                 // Check if the image is cached on disk
-                bmp = diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
-                if (bmp == null) {
-                    // Try to load the asset from the network and cache on disk
-                    bmp = doNetworkAssetLoad(tuple, null);
+                if (diskLoader.checkCacheExists(tuple)) {
+                    return;
                 }
 
-                // If the bitmap was loaded, recycle it immediately. We can do this
-                // because it's not loaded into any image views or cached in memory
-                if (bmp != null) {
-                    bmp.recycle();
-                }
+                // Try to load the asset from the network and cache result on disk
+                doNetworkAssetLoad(tuple, null);
             }
         });
     }
 
     public void populateImageView(NvApp app, ImageView view) {
         LoaderTuple tuple = new LoaderTuple(computer, app);
-
-        // First, try the memory cache in the current context
-        Bitmap bmp = memoryLoader.loadBitmapFromCache(tuple);
-        if (bmp != null) {
-            // Show the bitmap immediately
-            view.setImageBitmap(bmp);
-            return;
-        }
 
         // If there's already a task in progress for this view,
         // cancel it. If the task is already loading the same image,
@@ -285,9 +280,18 @@ public class CachedAppAssetLoader {
             return;
         }
 
+        // First, try the memory cache in the current context
+        Bitmap bmp = memoryLoader.loadBitmapFromCache(tuple);
+        if (bmp != null) {
+            // Show the bitmap immediately
+            view.setAlpha(1.0f);
+            view.setImageBitmap(bmp);
+            return;
+        }
+
         // If it's not in memory, create an async task to load it. This task will be attached
         // via AsyncDrawable to this view.
-        final LoaderTask task = new LoaderTask(view);
+        final LoaderTask task = new LoaderTask(view, true);
         final AsyncDrawable asyncDrawable = new AsyncDrawable(view.getResources(), placeholderBitmap, task);
         view.setAlpha(0.0f);
         view.setImageDrawable(asyncDrawable);

@@ -54,6 +54,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private ComputerManagerService.ApplistPoller poller;
     private SpinnerDialog blockingLoadSpinner;
     private String lastRawApplist;
+    private int lastRunningAppId;
 
     private final static int START_OR_RESUME_ID = 1;
     private final static int QUIT_ID = 2;
@@ -143,13 +144,23 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     return;
                 }
 
-                // App list is the same or empty; nothing to do
+                // App list is the same or empty
                 if (details.rawAppList == null || details.rawAppList.equals(lastRawApplist)) {
+
+                    // Let's check if the running app ID changed
+                    if (details.runningGameId != lastRunningAppId) {
+                        // Update the currently running game using the app ID
+                        lastRunningAppId = details.runningGameId;
+                        updateUiWithServerinfo(details);
+                    }
+
                     return;
                 }
 
+                lastRunningAppId = details.runningGameId;
+                lastRawApplist = details.rawAppList;
+
                 try {
-                    lastRawApplist = details.rawAppList;
                     updateUiWithAppList(NvHTTP.getAppListByReader(new StringReader(details.rawAppList)));
 
                     if (blockingLoadSpinner != null) {
@@ -354,6 +365,44 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             default:
                 return super.onContextItemSelected(item);
         }
+    }
+
+    private void updateUiWithServerinfo(final ComputerDetails details) {
+        AppView.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                boolean updated = false;
+
+                    // Look through our current app list to tag the running app
+                for (int i = 0; i < appGridAdapter.getCount(); i++) {
+                    AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
+
+                    // There can only be one or zero apps running.
+                    if (existingApp.app.getIsRunning() &&
+                            existingApp.app.getAppId() == details.runningGameId) {
+                        // This app was running and still is, so we're done now
+                        return;
+                    }
+                    else if (existingApp.app.getAppId() == details.runningGameId) {
+                        // This app wasn't running but now is
+                        existingApp.app.setIsRunning(true);
+                        updated = true;
+                    }
+                    else if (existingApp.app.getIsRunning()) {
+                        // This app was running but now isn't
+                        existingApp.app.setIsRunning(false);
+                        updated = true;
+                    }
+                    else {
+                        // This app wasn't running and still isn't
+                    }
+                }
+
+                if (updated) {
+                    appGridAdapter.notifyDataSetChanged();
+                }
+            }
+        });
     }
 
     private void updateUiWithAppList(final List<NvApp> appList) {

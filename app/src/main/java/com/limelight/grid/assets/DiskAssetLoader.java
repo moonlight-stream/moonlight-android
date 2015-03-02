@@ -7,6 +7,7 @@ import com.limelight.LimeLog;
 import com.limelight.utils.CacheHelper;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,6 +27,7 @@ public class DiskAssetLoader {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = sampleSize;
             bmp = BitmapFactory.decodeStream(in, null, options);
+        } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

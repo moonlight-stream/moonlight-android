@@ -10,8 +10,6 @@ import com.limelight.nvstream.http.NvHTTP;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 
 public class NetworkAssetLoader {
     private final Context context;

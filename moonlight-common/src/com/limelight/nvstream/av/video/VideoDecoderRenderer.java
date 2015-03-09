@@ -1,6 +1,8 @@
 package com.limelight.nvstream.av.video;
 
-public interface VideoDecoderRenderer {
+import com.limelight.nvstream.av.DecodeUnit;
+
+public abstract class VideoDecoderRenderer {
 	public static final int FLAG_PREFER_QUALITY = 0x1;
 	public static final int FLAG_FORCE_HARDWARE_DECODING = 0x2;
 	public static final int FLAG_FORCE_SOFTWARE_DECODING = 0x4;
@@ -9,17 +11,30 @@ public interface VideoDecoderRenderer {
 	// Allows the resolution to dynamically change mid-stream
 	public static final int CAPABILITY_ADAPTIVE_RESOLUTION = 0x1;
 	
-	public int getCapabilities();
+	// Allows decode units to be submitted directly from the receive thread
+	public static final int CAPABILITY_DIRECT_SUBMIT = 0x2;
 	
-	public int getAverageEndToEndLatency();
+	public int getCapabilities() {
+		return 0;
+	}
 	
-	public int getAverageDecoderLatency();
+	public int getAverageEndToEndLatency() {
+		return 0;
+	}
+	
+	public int getAverageDecoderLatency() {
+		return 0;
+	}
+	
+	public void directSubmitDecodeUnit(DecodeUnit du) {
+		throw new UnsupportedOperationException("CAPABILITY_DIRECT_SUBMIT requires overriding directSubmitDecodeUnit()");
+	}
 
-	public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags);
+	public abstract boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags);
 	
-	public boolean start(VideoDepacketizer depacketizer);
+	public abstract boolean start(VideoDepacketizer depacketizer);
 	
-	public void stop();
+	public abstract void stop();
 	
-	public void release();
+	public abstract void release();
 }

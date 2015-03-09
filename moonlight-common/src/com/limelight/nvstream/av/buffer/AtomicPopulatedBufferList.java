@@ -1,16 +1,14 @@
-package com.limelight.nvstream.av;
+package com.limelight.nvstream.av.buffer;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
-public class PopulatedBufferList<T> {
-	private ArrayBlockingQueue<T> populatedList;
-	private ArrayBlockingQueue<T> freeList;
-	
-	private BufferFactory factory;
+public class AtomicPopulatedBufferList<T> extends AbstractPopulatedBufferList<T> {
+	private final ArrayBlockingQueue<T> populatedList;
+	private final ArrayBlockingQueue<T> freeList;
 	
 	@SuppressWarnings("unchecked")
-	public PopulatedBufferList(int maxQueueSize, BufferFactory factory) {
-		this.factory = factory;
+	public AtomicPopulatedBufferList(int maxQueueSize, BufferFactory factory) {
+		super(maxQueueSize, factory);
 		
 		this.populatedList = new ArrayBlockingQueue<T>(maxQueueSize, false);
 		this.freeList = new ArrayBlockingQueue<T>(maxQueueSize, false);
@@ -20,48 +18,44 @@ public class PopulatedBufferList<T> {
 		}
 	}
 	
+	@Override
 	public int getPopulatedCount() {
 		return populatedList.size();
 	}
 	
+	@Override
 	public int getFreeCount() {
 		return freeList.size();
 	}
 	
+	@Override
 	public T pollFreeObject() {
 		return freeList.poll();
 	}
 	
+	@Override
 	public void addPopulatedObject(T object) {
 		populatedList.add(object);
 	}
 	
+	@Override
 	public void freePopulatedObject(T object) {
 		factory.cleanupObject(object);
 		freeList.add(object);
 	}
 	
-	public void clearPopulatedObjects() {
-		T object;
-		while ((object = populatedList.poll()) != null) {
-			freePopulatedObject(object);
-		}
-	}
-	
+	@Override
 	public T pollPopulatedObject() {
 		return populatedList.poll();
 	}
-	
+
+	@Override
 	public T peekPopulatedObject() {
 		return populatedList.peek();
 	}
 	
+	@Override
 	public T takePopulatedObject() throws InterruptedException {
 		return populatedList.take();
-	}
-	
-	public static interface BufferFactory {
-		public Object createFreeBuffer();
-		public void cleanupObject(Object o);
 	}
 }

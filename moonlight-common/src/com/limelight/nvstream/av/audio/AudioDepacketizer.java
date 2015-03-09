@@ -2,14 +2,15 @@ package com.limelight.nvstream.av.audio;
 
 import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
-import com.limelight.nvstream.av.PopulatedBufferList;
 import com.limelight.nvstream.av.RtpPacket;
 import com.limelight.nvstream.av.SequenceHelper;
+import com.limelight.nvstream.av.buffer.AbstractPopulatedBufferList;
+import com.limelight.nvstream.av.buffer.AtomicPopulatedBufferList;
 
 public class AudioDepacketizer {
 	
 	private static final int DU_LIMIT = 30;
-	private PopulatedBufferList<ByteBufferDescriptor> decodedUnits;
+	private AbstractPopulatedBufferList<ByteBufferDescriptor> decodedUnits;
 	
 	// Direct submit state
 	private AudioRenderer directSubmitRenderer;
@@ -28,7 +29,7 @@ public class AudioDepacketizer {
 			this.directSubmitData = new byte[OpusDecoder.getMaxOutputShorts()*2];
 		}
 		else {
-			decodedUnits = new PopulatedBufferList<ByteBufferDescriptor>(DU_LIMIT, new PopulatedBufferList.BufferFactory() {
+			decodedUnits = new AtomicPopulatedBufferList<ByteBufferDescriptor>(DU_LIMIT, new AbstractPopulatedBufferList.BufferFactory() {
 				public Object createFreeBuffer() {
 					return new ByteBufferDescriptor(new byte[OpusDecoder.getMaxOutputShorts()*2], 0, OpusDecoder.getMaxOutputShorts()*2);
 				}

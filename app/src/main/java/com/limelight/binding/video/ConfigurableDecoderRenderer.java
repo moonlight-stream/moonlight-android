@@ -1,5 +1,6 @@
 package com.limelight.binding.video;
 
+import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.av.video.VideoDepacketizer;
 
@@ -53,6 +54,11 @@ public class ConfigurableDecoderRenderer extends EnhancedDecoderRenderer {
     @Override
     public int getCapabilities() {
         return decoderRenderer.getCapabilities();
+    }
+
+    @Override
+    public void directSubmitDecodeUnit(DecodeUnit du) {
+        decoderRenderer.directSubmitDecodeUnit(du);
     }
 
     @Override

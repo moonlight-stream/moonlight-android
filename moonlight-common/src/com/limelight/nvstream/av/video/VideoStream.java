@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import com.limelight.LimeLog;
 import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.av.ConnectionStatusListener;
+import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.RtpPacket;
 import com.limelight.nvstream.av.RtpReorderQueue;
 
@@ -117,7 +118,8 @@ public class VideoStream {
 	public boolean setupDecoderRenderer(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) {
 		this.decRend = decRend;
 		
-		depacketizer = new VideoDepacketizer(avConnListener, context.streamConfig.getMaxPacketSize());
+		depacketizer = new VideoDepacketizer(avConnListener, context.streamConfig.getMaxPacketSize(),
+				decRend != null && (decRend.getCapabilities() & VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT) != 0);
 		
 		if (decRend != null) {
 			try {
@@ -192,6 +194,9 @@ public class VideoStream {
 				for (int i = 0; i < VIDEO_RING_SIZE; i++) {
 					ring[i] = new VideoPacket(new byte[requiredBufferSize]);
 				}
+				
+				boolean directSubmit = (decRend != null && (decRend.getCapabilities() &
+						VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT) != 0);
 
 				byte[] buffer;
 				DatagramPacket packet = new DatagramPacket(new byte[1], 1); // Placeholder array
@@ -218,6 +223,15 @@ public class VideoStream {
 							// The packet queue now has packets ready
 							while ((queuedPacket = (VideoPacket) rtpQueue.getQueuedPacket()) != null) {
 								depacketizer.addInputData(queuedPacket);
+							}
+						}
+						
+						// If the DR supports direct submission, call the direct submit callback
+						if (directSubmit) {
+							DecodeUnit du;
+							
+							while ((du = depacketizer.pollNextDecodeUnit()) != null) {
+								decRend.directSubmitDecodeUnit(du);
 							}
 						}
 

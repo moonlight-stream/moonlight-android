@@ -7,8 +7,10 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.ConnectionStatusListener;
-import com.limelight.nvstream.av.PopulatedBufferList;
 import com.limelight.nvstream.av.SequenceHelper;
+import com.limelight.nvstream.av.buffer.AbstractPopulatedBufferList;
+import com.limelight.nvstream.av.buffer.AtomicPopulatedBufferList;
+import com.limelight.nvstream.av.buffer.UnsynchronizedPopulatedBufferList;
 
 public class VideoDepacketizer {
 	
@@ -37,14 +39,14 @@ public class VideoDepacketizer {
 	private int consecutiveFrameDrops = 0;
 	
 	private static final int DU_LIMIT = 15;
-	private PopulatedBufferList<DecodeUnit> decodedUnits;
+	private AbstractPopulatedBufferList<DecodeUnit> decodedUnits;
 	
-	public VideoDepacketizer(ConnectionStatusListener controlListener, int nominalPacketSize)
+	public VideoDepacketizer(ConnectionStatusListener controlListener, int nominalPacketSize, boolean unsynchronized)
 	{
 		this.controlListener = controlListener;
 		this.nominalPacketDataLength = nominalPacketSize - VideoPacket.HEADER_SIZE;
 		
-		decodedUnits = new PopulatedBufferList<DecodeUnit>(DU_LIMIT, new PopulatedBufferList.BufferFactory() {
+		AbstractPopulatedBufferList.BufferFactory factory = new AbstractPopulatedBufferList.BufferFactory() {
 			public Object createFreeBuffer() {
 				return new DecodeUnit();
 			}
@@ -58,7 +60,14 @@ public class VideoDepacketizer {
 				}
 				du.clearBackingPackets();
 			}
-		});
+		};
+		
+		if (unsynchronized) {
+			decodedUnits = new UnsynchronizedPopulatedBufferList<DecodeUnit>(DU_LIMIT, factory);
+		}
+		else {
+			decodedUnits = new AtomicPopulatedBufferList<DecodeUnit>(DU_LIMIT, factory);
+		}
 	}
 	
 	private void dropAvcFrameState()

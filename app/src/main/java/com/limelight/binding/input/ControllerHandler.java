@@ -277,11 +277,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
                     context.isRemote = true;
                 }
             }
-            // NYKO Playpad has a fake hat that mimics the left stick for some reason
-            else if (devName.contains("NYKO PLAYPAD")) {
-                context.hatXAxis = -1;
-                context.hatYAxis = -1;
-            }
         }
 
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);

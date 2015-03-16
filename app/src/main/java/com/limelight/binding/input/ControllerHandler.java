@@ -286,7 +286,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
             // This is the back button on Shield portable consoles
             context.controllerNumber = 0;
         }
-        else if (multiControllerEnabled) {
+        else if (multiControllerEnabled && context.hasJoystickAxes) {
             context.controllerNumber = assignNewControllerNumber();
         }
         else {

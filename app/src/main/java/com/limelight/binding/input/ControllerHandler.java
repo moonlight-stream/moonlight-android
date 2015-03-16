@@ -277,6 +277,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
                     context.isRemote = true;
                 }
             }
+            // SHIELD controllers will use small stick deadzones
+            else if (devName.contains("SHIELD")) {
+                context.leftStickDeadzoneRadius = 0.07f;
+                context.rightStickDeadzoneRadius = 0.07f;
+            }
         }
 
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);

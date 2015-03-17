@@ -27,10 +27,11 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
     private ByteBuffer[] videoDecoderInputBuffers;
     private MediaCodec videoDecoder;
     private Thread rendererThread;
-    private boolean needsSpsBitstreamFixup, isExynos4;
+    private final boolean needsSpsBitstreamFixup, isExynos4;
     private VideoDepacketizer depacketizer;
-    private boolean adaptivePlayback;
+    private final boolean adaptivePlayback;
     private int initialWidth, initialHeight;
+    private final int dequeueOutputBufferTimeout;
 
     private boolean needsBaselineSpsHack;
     private SeqParameterSet savedSps;
@@ -55,12 +56,17 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         }
         if (decoder == null) {
             // This case is handled later in setup()
+            needsSpsBitstreamFixup = false;
+            isExynos4 = false;
+            adaptivePlayback = false;
+            dequeueOutputBufferTimeout = 0;
             return;
         }
 
         decoderName = decoder.getName();
 
         // Set decoder-specific attributes
+        dequeueOutputBufferTimeout = MediaCodecHelper.getOptimalOutputBufferDequeueTimeout(decoderName, decoder);
         adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(decoderName, decoder);
         needsSpsBitstreamFixup = MediaCodecHelper.decoderNeedsSpsBitstreamRestrictions(decoderName, decoder);
         needsBaselineSpsHack = MediaCodecHelper.decoderNeedsBaselineSpsHack(decoderName, decoder);
@@ -145,7 +151,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                 while (!isInterrupted()) {
                     try {
                         // Try to output a frame
-                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 50000);
+                        int outIndex = videoDecoder.dequeueOutputBuffer(info, dequeueOutputBufferTimeout);
                         if (outIndex >= 0) {
                             long presentationTimeUs = info.presentationTimeUs;
                             int lastIndex = outIndex;
@@ -189,7 +195,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
             }
         };
         rendererThread.setName("Video - Renderer (MediaCodec)");
-        rendererThread.setPriority(Thread.MAX_PRIORITY);
+        rendererThread.setPriority(Thread.NORM_PRIORITY + 2);
         rendererThread.start();
     }
 

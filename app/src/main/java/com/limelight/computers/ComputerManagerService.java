@@ -31,7 +31,8 @@ import android.os.IBinder;
 import org.xmlpull.v1.XmlPullParserException;
 
 public class ComputerManagerService extends Service {
-    private static final int POLLING_PERIOD_MS = 3000;
+    private static final int SERVERINFO_POLLING_PERIOD_MS = 3000;
+    private static final int APPLIST_POLLING_PERIOD_MS = 30000;
     private static final int MDNS_QUERY_PERIOD_MS = 1000;
     private static final int FAST_POLL_TIMEOUT = 500;
     private static final int OFFLINE_POLL_TRIES = 3;
@@ -135,7 +136,7 @@ public class ComputerManagerService extends Service {
                         }
 
                         // Wait until the next polling interval
-                        Thread.sleep(POLLING_PERIOD_MS / ((offlineCount > 0) ? 2 : 1));
+                        Thread.sleep(SERVERINFO_POLLING_PERIOD_MS / ((offlineCount > 0) ? 2 : 1));
                     } catch (InterruptedException e) {
                         break;
                     }
@@ -581,7 +582,7 @@ public class ComputerManagerService extends Service {
         private boolean waitPollingDelay() {
             try {
                 synchronized (pollEvent) {
-                    pollEvent.wait(POLLING_PERIOD_MS);
+                    pollEvent.wait(APPLIST_POLLING_PERIOD_MS);
                 }
             } catch (InterruptedException e) {
                 return false;

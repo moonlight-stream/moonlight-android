@@ -17,9 +17,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class CachedAppAssetLoader {
-    private static final int MAX_CONCURRENT_DISK_LOADS = 4;
-    private static final int MAX_CONCURRENT_NETWORK_LOADS = 4;
-    private static final int MAX_CONCURRENT_CACHE_LOADS = 2;
+    private static final int MAX_CONCURRENT_DISK_LOADS = 3;
+    private static final int MAX_CONCURRENT_NETWORK_LOADS = 3;
+    private static final int MAX_CONCURRENT_CACHE_LOADS = 1;
 
     private static final int MAX_PENDING_CACHE_LOADS = 100;
     private static final int MAX_PENDING_NETWORK_LOADS = 40;

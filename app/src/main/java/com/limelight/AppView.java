@@ -55,6 +55,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private SpinnerDialog blockingLoadSpinner;
     private String lastRawApplist;
     private int lastRunningAppId;
+    private boolean suspendGridUpdates;
 
     private final static int START_OR_RESUME_ID = 1;
     private final static int QUIT_ID = 2;
@@ -125,6 +126,11 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         managerBinder.startPolling(new ComputerManagerListener() {
             @Override
             public void notifyComputerUpdated(ComputerDetails details) {
+                // Do nothing if updates are suspended
+                if (suspendGridUpdates) {
+                    return;
+                }
+
                 // Don't care about other computers
                 if (!details.uuid.toString().equalsIgnoreCase(uuidString)) {
                     return;
@@ -497,6 +503,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 NvHTTP httpConn;
                 String message;
                 try {
+                    suspendGridUpdates = true;
                     httpConn = new NvHTTP(getAddress(),
                             managerBinder.getUniqueId(), null, PlatformBinding.getCryptoProvider(AppView.this));
                     if (httpConn.quitApp()) {
@@ -521,6 +528,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     message = e.getMessage();
                 } finally {
                     // Trigger a poll immediately
+                    suspendGridUpdates = false;
                     if (poller != null) {
                         poller.pollNow();
                     }

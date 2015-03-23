@@ -35,6 +35,7 @@ public class MediaCodecHelper {
         // can be directly invoked from the receive thread
         directSubmitPrefixes.add("omx.qcom");
         directSubmitPrefixes.add("omx.sec");
+        directSubmitPrefixes.add("omx.exynos");
         directSubmitPrefixes.add("omx.intel");
         directSubmitPrefixes.add("omx.brcm");
     }

@@ -26,14 +26,17 @@ public class MediaCodecHelper {
 	private static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
 	private static final List<String> whitelistedAdaptiveResolutionPrefixes;
     private static final List<String> baselineProfileHackPrefixes;
-    private static final List<String> fastOutputPollPrefixes;
-
-    private static final int FAST_OUTPUT_POLL_US = 3; // 3 us
-    private static final int NORMAL_OUTPUT_POLL_US = 50000; // 50 ms
+    private static final List<String> directSubmitPrefixes;
 
     static {
-        fastOutputPollPrefixes = new LinkedList<String>();
-        fastOutputPollPrefixes.add("omx.nvidia");
+        directSubmitPrefixes = new LinkedList<String>();
+
+        // These decoders have low enough input buffer latency that they
+        // can be directly invoked from the receive thread
+        directSubmitPrefixes.add("omx.qcom");
+        directSubmitPrefixes.add("omx.sec");
+        directSubmitPrefixes.add("omx.intel");
+        directSubmitPrefixes.add("omx.brcm");
     }
 
 	static {
@@ -107,18 +110,8 @@ public class MediaCodecHelper {
 		return false;
 	}
 
-    public static int getOptimalOutputBufferDequeueTimeout(String decoderName, MediaCodecInfo decoderInfo) {
-        // This concept of "fast output polling" is a workaround for certain devices that are powerful enough
-        // that the governor overzealously reduces the clockspeed of the CPU enough that it causes frames to be
-        // lost. This (at least) affects the Denver Tegra K1 running Android 5.0. To simplify things, I've simply
-        // set all Tegra devices to use fast polling.
-        if (isDecoderInList(fastOutputPollPrefixes, decoderName)) {
-            LimeLog.info("Decoder "+decoderName+" requires fast output polling");
-            return FAST_OUTPUT_POLL_US;
-        }
-        else {
-            return NORMAL_OUTPUT_POLL_US;
-        }
+    public static boolean decoderCanDirectSubmit(String decoderName, MediaCodecInfo decoderInfo) {
+        return isDecoderInList(directSubmitPrefixes, decoderName) && !isExynos4Device();
     }
 	
 	public static boolean decoderNeedsSpsBitstreamRestrictions(String decoderName, MediaCodecInfo decoderInfo) {

@@ -12,6 +12,7 @@ import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.grid.PcGridAdapter;
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.http.PairingManager;
 import com.limelight.nvstream.http.PairingManager.PairState;
@@ -22,6 +23,7 @@ import com.limelight.preferences.StreamSettings;
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
 import com.limelight.utils.Dialog;
+import com.limelight.utils.ServerHelper;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
@@ -93,6 +95,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private final static int UNPAIR_ID = 3;
     private final static int WOL_ID = 4;
     private final static int DELETE_ID = 5;
+    private final static int RESUME_ID = 6;
+    private final static int QUIT_ID = 7;
 
     private void initializeViews() {
         setContentView(R.layout.activity_pc_view);
@@ -252,11 +256,16 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
         }
         else {
-            menu.add(Menu.NONE, APP_LIST_ID, 1, getResources().getString(R.string.pcview_menu_app_list));
+            if (computer.details.runningGameId != 0) {
+                menu.add(Menu.NONE, RESUME_ID, 1, getResources().getString(R.string.applist_menu_resume));
+                menu.add(Menu.NONE, QUIT_ID, 2, getResources().getString(R.string.applist_menu_quit));
+            }
+
+            menu.add(Menu.NONE, APP_LIST_ID, 3, getResources().getString(R.string.pcview_menu_app_list));
 
             // FIXME: We used to be able to unpair here but it's been broken since GFE 2.1.x, so I've replaced
             // it with delete which actually work
-            menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
+            menu.add(Menu.NONE, DELETE_ID, 4, getResources().getString(R.string.pcview_menu_delete_pc));
         }
     }
 
@@ -477,36 +486,61 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
-        switch (item.getItemId())
-        {
-        case PAIR_ID:
-            doPair(computer.details);
-            return true;
-
-        case UNPAIR_ID:
-            doUnpair(computer.details);
-            return true;
-
-        case WOL_ID:
-            doWakeOnLan(computer.details);
-            return true;
-
-        case DELETE_ID:
-            if (managerBinder == null) {
-                Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+        final ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
+        switch (item.getItemId()) {
+            case PAIR_ID:
+                doPair(computer.details);
                 return true;
-            }
-            managerBinder.removeComputer(computer.details.name);
-            removeComputer(computer.details);
-            return true;
 
-        case APP_LIST_ID:
-            doAppList(computer.details);
-            return true;
+            case UNPAIR_ID:
+                doUnpair(computer.details);
+                return true;
 
-        default:
-          return super.onContextItemSelected(item);
+            case WOL_ID:
+                doWakeOnLan(computer.details);
+                return true;
+
+            case DELETE_ID:
+                if (managerBinder == null) {
+                    Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+                    return true;
+                }
+                managerBinder.removeComputer(computer.details.name);
+                removeComputer(computer.details);
+                return true;
+
+            case APP_LIST_ID:
+                doAppList(computer.details);
+                return true;
+
+            case RESUME_ID:
+                if (managerBinder == null) {
+                    Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+                    return true;
+                }
+
+                ServerHelper.doStart(this, new NvApp("app", computer.details.runningGameId), computer.details, managerBinder);
+                return true;
+
+            case QUIT_ID:
+                if (managerBinder == null) {
+                    Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+                    return true;
+                }
+
+                // Display a confirmation dialog first
+                UiHelper.displayQuitConfirmationDialog(this, new Runnable() {
+                    @Override
+                    public void run() {
+                        ServerHelper.doQuit(PcView.this,
+                                ServerHelper.getCurrentAddressFromComputer(computer.details),
+                                new NvApp("app", 0), managerBinder, null);
+                    }
+                }, null);
+                return true;
+
+            default:
+                return super.onContextItemSelected(item);
         }
     }
     

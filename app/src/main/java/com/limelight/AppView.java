@@ -21,6 +21,7 @@ import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
 import com.limelight.utils.CacheHelper;
 import com.limelight.utils.Dialog;
+import com.limelight.utils.ServerHelper;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
@@ -112,11 +113,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             managerBinder = null;
         }
     };
-
-    private InetAddress getAddress() {
-        return computer.reachability == ComputerDetails.Reachability.LOCAL ?
-        computer.localIp : computer.remoteIp;
-    }
 
     private void startComputerUpdates() {
         if (managerBinder == null) {
@@ -308,33 +304,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     public void onContextMenuClosed(Menu menu) {
     }
 
-    private void displayQuitConfirmationDialog(final Runnable onYes, final Runnable onNo) {
-        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which){
-                    case DialogInterface.BUTTON_POSITIVE:
-                        if (onYes != null) {
-                            onYes.run();
-                        }
-                        break;
-
-                    case DialogInterface.BUTTON_NEGATIVE:
-                        if (onNo != null) {
-                            onNo.run();
-                        }
-                        break;
-                }
-            }
-        };
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(getResources().getString(R.string.applist_quit_confirmation))
-                .setPositiveButton(getResources().getString(R.string.yes), dialogClickListener)
-                .setNegativeButton(getResources().getString(R.string.no), dialogClickListener)
-                .show();
-    }
-
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
@@ -342,25 +311,37 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         switch (item.getItemId()) {
             case START_WTIH_QUIT:
                 // Display a confirmation dialog first
-                displayQuitConfirmationDialog(new Runnable() {
+                UiHelper.displayQuitConfirmationDialog(this, new Runnable() {
                     @Override
                     public void run() {
-                        doStart(app.app);
+                        ServerHelper.doStart(AppView.this, app.app, computer, managerBinder);
                     }
                 }, null);
                 return true;
 
             case START_OR_RESUME_ID:
                 // Resume is the same as start for us
-                doStart(app.app);
+                ServerHelper.doStart(AppView.this, app.app, computer, managerBinder);
                 return true;
 
             case QUIT_ID:
                 // Display a confirmation dialog first
-                displayQuitConfirmationDialog(new Runnable() {
+                UiHelper.displayQuitConfirmationDialog(this, new Runnable() {
                     @Override
                     public void run() {
-                        doQuit(app.app);
+                        suspendGridUpdates = true;
+                        ServerHelper.doQuit(AppView.this,
+                                ServerHelper.getCurrentAddressFromComputer(computer),
+                                app.app, managerBinder, new Runnable() {
+                            @Override
+                            public void run() {
+                                // Trigger a poll immediately
+                                suspendGridUpdates = false;
+                                if (poller != null) {
+                                    poller.pollNow();
+                                }
+                            }
+                        });
                     }
                 }, null);
                 return true;
@@ -482,69 +463,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         });
     }
 
-    private void doStart(NvApp app) {
-        Intent intent = new Intent(this, Game.class);
-        intent.putExtra(Game.EXTRA_HOST,
-                computer.reachability == ComputerDetails.Reachability.LOCAL ?
-                computer.localIp.getHostAddress() : computer.remoteIp.getHostAddress());
-        intent.putExtra(Game.EXTRA_APP_NAME, app.getAppName());
-        intent.putExtra(Game.EXTRA_APP_ID, app.getAppId());
-        intent.putExtra(Game.EXTRA_UNIQUEID, managerBinder.getUniqueId());
-        intent.putExtra(Game.EXTRA_STREAMING_REMOTE,
-                computer.reachability != ComputerDetails.Reachability.LOCAL);
-        startActivity(intent);
-    }
-
-    private void doQuit(final NvApp app) {
-        Toast.makeText(AppView.this, getResources().getString(R.string.applist_quit_app)+" "+app.getAppName()+"...", Toast.LENGTH_SHORT).show();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                NvHTTP httpConn;
-                String message;
-                try {
-                    suspendGridUpdates = true;
-                    httpConn = new NvHTTP(getAddress(),
-                            managerBinder.getUniqueId(), null, PlatformBinding.getCryptoProvider(AppView.this));
-                    if (httpConn.quitApp()) {
-                        message = getResources().getString(R.string.applist_quit_success) + " " + app.getAppName();
-                    } else {
-                        message = getResources().getString(R.string.applist_quit_fail) + " " + app.getAppName();
-                    }
-                } catch (GfeHttpResponseException e) {
-                    if (e.getErrorCode() == 599) {
-                        message = "This session wasn't started by this device," +
-                                " so it cannot be quit. End streaming on the original " +
-                                "device or the PC itself. (Error code: "+e.getErrorCode()+")";
-                    }
-                    else {
-                        message = e.getMessage();
-                    }
-                } catch (UnknownHostException e) {
-                    message = getResources().getString(R.string.error_unknown_host);
-                } catch (FileNotFoundException e) {
-                    message = getResources().getString(R.string.error_404);
-                } catch (Exception e) {
-                    message = e.getMessage();
-                } finally {
-                    // Trigger a poll immediately
-                    suspendGridUpdates = false;
-                    if (poller != null) {
-                        poller.pollNow();
-                    }
-                }
-
-                final String toastMessage = message;
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(AppView.this, toastMessage, Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-        }).start();
-    }
-
     @Override
     public int getAdapterFragmentLayoutId() {
         return PreferenceConfiguration.readPreferences(this).listMode ?
@@ -565,7 +483,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 if (getRunningAppId() != -1) {
                     openContextMenu(arg1);
                 } else {
-                    doStart(app.app);
+                    ServerHelper.doStart(AppView.this, app.app, computer, managerBinder);
                 }
             }
         });

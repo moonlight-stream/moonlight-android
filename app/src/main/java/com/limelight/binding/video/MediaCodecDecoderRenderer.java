@@ -452,7 +452,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         boolean needsSpsReplay = false;
 
         if ((decodeUnitFlags & DecodeUnit.DU_FLAG_CODEC_CONFIG) != 0) {
-            ByteBufferDescriptor header = decodeUnit.getBufferList().get(0);
+            ByteBufferDescriptor header = decodeUnit.getBufferHead();
             if (header.data[header.offset+4] == 0x67) {
                 numSpsIn++;
 
@@ -537,8 +537,8 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         }
 
         // Copy data from our buffer list into the input buffer
-        for (ByteBufferDescriptor desc : decodeUnit.getBufferList())
-        {
+        for (ByteBufferDescriptor desc = decodeUnit.getBufferHead();
+             desc != null; desc = desc.nextDescriptor) {
             buf.put(desc.data, desc.offset, desc.length);
         }
 

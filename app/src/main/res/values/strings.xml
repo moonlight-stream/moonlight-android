@@ -44,9 +44,9 @@
     <string name="conn_establishing_title">Establishing Connection</string>
     <string name="conn_establishing_msg">Starting connection</string>
     <string name="conn_metered">Warning: Your active network connection is metered!</string>
-    <string name="conn_client_latency">Average client-side frame latency:</string>
+    <string name="conn_client_latency">Average frame decoding latency:</string>
     <string name="conn_client_latency_hw">hardware decoder latency:</string>
-    <string name="conn_hardware_latency">Average hardware decoder latency:</string>
+    <string name="conn_hardware_latency">Average hardware decoding latency:</string>
     <string name="conn_starting">Starting</string>
     <string name="conn_error_title">Connection Error</string>
     <string name="conn_error_msg">Failed to start</string>

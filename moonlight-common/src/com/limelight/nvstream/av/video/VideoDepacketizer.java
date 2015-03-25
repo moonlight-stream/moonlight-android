@@ -1,8 +1,5 @@
 package com.limelight.nvstream.av.video;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-
 import com.limelight.LimeLog;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
@@ -15,9 +12,11 @@ import com.limelight.nvstream.av.buffer.UnsynchronizedPopulatedBufferList;
 public class VideoDepacketizer {
 	
 	// Current frame state
-	private LinkedList<ByteBufferDescriptor> avcFrameDataChain = null;
 	private int avcFrameDataLength = 0;
-	private HashSet<VideoPacket> packetSet = null;
+	private ByteBufferDescriptor frameDataChainHead;
+	private ByteBufferDescriptor frameDataChainTail;
+	private VideoPacket backingPacketHead;
+	private VideoPacket backingPacketTail;
 	
 	// Sequencing state
 	private int lastPacketInStream = 0;
@@ -55,10 +54,10 @@ public class VideoDepacketizer {
 				DecodeUnit du = (DecodeUnit) o;
 				
 				// Disassociate video packets from this DU
-				for (VideoPacket pkt : du.getBackingPackets()) {
-					pkt.decodeUnitRefCount.decrementAndGet();
+				VideoPacket pkt;
+				while ((pkt = du.removeBackingPacketHead()) != null) {
+					pkt.dereferencePacket();
 				}
-				du.clearBackingPackets();
 			}
 		};
 		
@@ -94,22 +93,21 @@ public class VideoDepacketizer {
 	
 	private void cleanupAvcFrameState()
 	{
-		if (packetSet != null) {
-			for (VideoPacket pkt : packetSet) {
-				pkt.decodeUnitRefCount.decrementAndGet();
-			}
-			packetSet = null;
+		backingPacketTail = null;
+		while (backingPacketHead != null) {
+			backingPacketHead.dereferencePacket();
+			backingPacketHead = backingPacketHead.nextPacket;
 		}
 		
-		avcFrameDataChain = null;
+		frameDataChainHead = frameDataChainTail = null;
 		avcFrameDataLength = 0;
 	}
 	
 	private void reassembleAvcFrame(int frameNumber)
 	{
 		// This is the start of a new frame
-		if (avcFrameDataChain != null && avcFrameDataLength != 0) {
-			ByteBufferDescriptor firstBuffer = avcFrameDataChain.getFirst();
+		if (frameDataChainHead != null) {
+			ByteBufferDescriptor firstBuffer = frameDataChainHead;
 			
 			int flags = 0;
 			if (NAL.getSpecialSequenceDescriptor(firstBuffer, cachedSpecialDesc) && NAL.isAvcFrameStart(cachedSpecialDesc)) {
@@ -141,11 +139,11 @@ public class VideoDepacketizer {
 			}
 			
 			// Initialize the free DU
-			du.initialize(DecodeUnit.TYPE_H264, avcFrameDataChain,
-					avcFrameDataLength, frameNumber, frameStartTime, flags, packetSet);
+			du.initialize(DecodeUnit.TYPE_H264, frameDataChainHead,
+					avcFrameDataLength, frameNumber, frameStartTime, flags, backingPacketHead);
 			
 			// Packets now owned by the DU
-			packetSet = null;
+			backingPacketTail = backingPacketHead = null;
 			
 			controlListener.connectionReceivedFrame(frameNumber);
 			
@@ -157,6 +155,39 @@ public class VideoDepacketizer {
 			
 			// Clear frame drops
 			consecutiveFrameDrops = 0;
+		}
+	}
+	
+	private void chainBufferToCurrentFrame(ByteBufferDescriptor desc) {
+		desc.nextDescriptor = null;
+
+		// Chain the packet
+		if (frameDataChainTail != null) {
+			frameDataChainTail.nextDescriptor = desc;
+			frameDataChainTail = desc;
+		}
+		else {
+			frameDataChainHead = frameDataChainTail = desc;
+		}
+		
+		avcFrameDataLength += desc.length;
+	}
+	
+	private void chainPacketToCurrentFrame(VideoPacket packet) {
+		// It's possible to get more than one NAL from a packet but we can cheaply
+		// check for this condition because all duplicates must be contiguous
+		if (backingPacketTail != packet) {
+			packet.referencePacket();
+			packet.nextPacket = null;
+
+			// Chain the packet
+			if (backingPacketTail != null) {
+				backingPacketTail.nextPacket = packet;
+				backingPacketTail = packet;
+			}
+			else {
+				backingPacketHead = backingPacketTail = packet;
+			}
 		}
 	}
 	
@@ -185,11 +216,6 @@ public class VideoDepacketizer {
 						
 						// Reassemble any pending AVC NAL
 						reassembleAvcFrame(packet.getFrameIndex());
-
-						// Setup state for the new NAL
-						avcFrameDataChain = new LinkedList<ByteBufferDescriptor>();
-						avcFrameDataLength = 0;
-						packetSet = new HashSet<VideoPacket>();
 						
 						if (cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x65) {
 							// This is the NALU code for I-frame data
@@ -241,17 +267,13 @@ public class VideoDepacketizer {
 				location.length--;
 			}
 
-			if (isDecodingH264 && avcFrameDataChain != null)
+			if (isDecodingH264 && decodingFrame)
 			{
-				ByteBufferDescriptor data = new ByteBufferDescriptor(location.data, start, location.offset-start);
+				// Chain this packet to the current frame
+				chainPacketToCurrentFrame(packet);
 				
-				if (packetSet.add(packet)) {
-					packet.decodeUnitRefCount.incrementAndGet();
-				}
-
 				// Add a buffer descriptor describing the NAL data in this packet
-				avcFrameDataChain.add(data);
-				avcFrameDataLength += location.offset-start;
+				chainBufferToCurrentFrame(new ByteBufferDescriptor(location.data, start, location.offset-start));
 			}
 		}
 	}
@@ -261,19 +283,13 @@ public class VideoDepacketizer {
 		if (firstPacket) {
 			// Setup state for the new frame
 			frameStartTime = System.currentTimeMillis();
-			avcFrameDataChain = new LinkedList<ByteBufferDescriptor>();
-			avcFrameDataLength = 0;
-			packetSet = new HashSet<VideoPacket>();
 		}
 		
 		// Add the payload data to the chain
-		avcFrameDataChain.add(new ByteBufferDescriptor(location));
-		avcFrameDataLength += location.length;
+		chainBufferToCurrentFrame(new ByteBufferDescriptor(location));
 		
 		// The receive thread can't use this until we're done with it
-		if (packetSet.add(packet)) {
-			packet.decodeUnitRefCount.incrementAndGet();
-		}
+		chainPacketToCurrentFrame(packet);
 	}
 	
 	private static boolean isFirstPacket(int flags) {

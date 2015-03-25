@@ -1,8 +1,5 @@
 package com.limelight.nvstream.av;
 
-import java.util.HashSet;
-import java.util.List;
-
 import com.limelight.nvstream.av.video.VideoPacket;
 
 public class DecodeUnit {
@@ -14,26 +11,26 @@ public class DecodeUnit {
 	public static final int DU_FLAG_SYNC_FRAME = 0x2;
 	
 	private int type;
-	private List<ByteBufferDescriptor> bufferList;
+	private ByteBufferDescriptor bufferHead;
 	private int dataLength;
 	private int frameNumber;
 	private long receiveTimestamp;
 	private int flags;
-	private HashSet<VideoPacket> backingPackets; 
+	private VideoPacket backingPacketHead;
 	
 	public DecodeUnit() {
 	}
 	
-	public void initialize(int type, List<ByteBufferDescriptor> bufferList, int dataLength,
-			int frameNumber, long receiveTimestamp, int flags, HashSet<VideoPacket> backingPackets)
+	public void initialize(int type, ByteBufferDescriptor bufferHead, int dataLength,
+			int frameNumber, long receiveTimestamp, int flags, VideoPacket backingPacketHead)
 	{
 		this.type = type;
-		this.bufferList = bufferList;
+		this.bufferHead = bufferHead;
 		this.dataLength = dataLength;
 		this.frameNumber = frameNumber;
 		this.receiveTimestamp = receiveTimestamp;
 		this.flags = flags;
-		this.backingPackets = backingPackets;
+		this.backingPacketHead = backingPacketHead;
 	}
 	
 	public int getType()
@@ -46,9 +43,9 @@ public class DecodeUnit {
 		return receiveTimestamp;
 	}
 	
-	public List<ByteBufferDescriptor> getBufferList()
+	public ByteBufferDescriptor getBufferHead()
 	{
-		return bufferList;
+		return bufferHead;
 	}
 	
 	public int getDataLength()
@@ -67,12 +64,11 @@ public class DecodeUnit {
 	}
 	
 	// Internal use only
-	public HashSet<VideoPacket> getBackingPackets() {
-		return backingPackets;
-	}
-	
-	// Internal use only
-	public void clearBackingPackets() {
-		backingPackets.clear();
+	public VideoPacket removeBackingPacketHead() {
+		VideoPacket pkt = backingPacketHead;
+		if (pkt != null) {
+			backingPacketHead = pkt.nextPacket;
+		}
+		return pkt;
 	}
 }

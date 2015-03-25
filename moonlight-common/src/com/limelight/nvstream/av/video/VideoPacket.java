@@ -9,8 +9,9 @@ import com.limelight.nvstream.av.RtpPacket;
 import com.limelight.nvstream.av.RtpPacketFields;
 
 public class VideoPacket implements RtpPacketFields {
-	private ByteBufferDescriptor buffer;
-	private ByteBuffer byteBuffer;
+	private final ByteBufferDescriptor buffer;
+	private final ByteBuffer byteBuffer;
+	private final boolean useAtomicRefCount;
 	
 	private int dataOffset;
 	
@@ -20,7 +21,11 @@ public class VideoPacket implements RtpPacketFields {
 	
 	private short rtpSequenceNumber;
 	
-	AtomicInteger decodeUnitRefCount = new AtomicInteger();
+	private AtomicInteger duAtomicRefCount = new AtomicInteger();
+	private int duRefCount;
+	
+	// Only for use in DecodeUnit for packet queuing
+	public VideoPacket nextPacket;
 	
 	public static final int FLAG_CONTAINS_PIC_DATA = 0x1;
 	public static final int FLAG_EOF = 0x2;
@@ -28,10 +33,11 @@ public class VideoPacket implements RtpPacketFields {
 	
 	public static final int HEADER_SIZE = 16;
 	
-	public VideoPacket(byte[] buffer)
+	public VideoPacket(byte[] buffer, boolean useAtomicRefCount)
 	{
 		this.buffer = new ByteBufferDescriptor(buffer, 0, buffer.length);
 		this.byteBuffer = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+		this.useAtomicRefCount = useAtomicRefCount;
 	}
 	
 	public void initializeWithLengthNoRtpHeader(int length)
@@ -107,5 +113,32 @@ public class VideoPacket implements RtpPacketFields {
 
 	public short getRtpSequenceNumber() {
 		return rtpSequenceNumber;
+	}
+	
+	int referencePacket() {
+		if (useAtomicRefCount) {
+			return duAtomicRefCount.incrementAndGet();
+		}
+		else {
+			return ++duRefCount;
+		}
+	}
+	
+	int dereferencePacket() {
+		if (useAtomicRefCount) {
+			return duAtomicRefCount.decrementAndGet();
+		}
+		else {
+			return --duRefCount;
+		}
+	}
+	
+	int getRefCount() {
+		if (useAtomicRefCount) {
+			return duAtomicRefCount.get();
+		}
+		else {
+			return duRefCount;
+		}
 	}
 }

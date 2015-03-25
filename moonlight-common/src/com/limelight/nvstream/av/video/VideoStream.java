@@ -189,14 +189,14 @@ public class VideoStream {
 				RtpReorderQueue rtpQueue = new RtpReorderQueue(16, MAX_RTP_QUEUE_DELAY_MS);
 				RtpReorderQueue.RtpQueueStatus queueStatus;
 				
+				boolean directSubmit = (decRend != null && (decRend.getCapabilities() &
+						VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT) != 0);
+				
 				// Preinitialize the ring buffer
 				int requiredBufferSize = context.streamConfig.getMaxPacketSize() + RtpPacket.MAX_HEADER_SIZE;
 				for (int i = 0; i < VIDEO_RING_SIZE; i++) {
-					ring[i] = new VideoPacket(new byte[requiredBufferSize]);
+					ring[i] = new VideoPacket(new byte[requiredBufferSize], !directSubmit);
 				}
-				
-				boolean directSubmit = (decRend != null && (decRend.getCapabilities() &
-						VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT) != 0);
 
 				byte[] buffer;
 				DatagramPacket packet = new DatagramPacket(new byte[1], 1); // Placeholder array
@@ -243,11 +243,11 @@ public class VideoStream {
 								// Reinitialize the video ring since they're all being used
 								LimeLog.warning("Packet ring wrapped around!");
 								for (int i = 0; i < VIDEO_RING_SIZE; i++) {
-									ring[i] = new VideoPacket(new byte[requiredBufferSize]);
+									ring[i] = new VideoPacket(new byte[requiredBufferSize], !directSubmit);
 								}
 								break;
 							}
-						} while (ring[ringIndex].decodeUnitRefCount.get() != 0);
+						} while (ring[ringIndex].getRefCount() != 0);
 					} catch (IOException e) {
 						context.connListener.connectionTerminated(e);
 						return;

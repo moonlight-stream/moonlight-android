@@ -5,6 +5,8 @@ public class ByteBufferDescriptor {
 	public int offset;
 	public int length;
 	
+	public ByteBufferDescriptor nextDescriptor;
+	
 	public ByteBufferDescriptor(byte[] data, int offset, int length)
 	{
 		this.data = data;
@@ -24,6 +26,7 @@ public class ByteBufferDescriptor {
 		this.data = data;
 		this.offset = offset;
 		this.length = length;
+		this.nextDescriptor = null;
 	}
 	
 	public void print()

@@ -239,13 +239,13 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                             for (int i = 0; i < 5; i++) {
                                 inputIndex = dequeueInputBuffer(false, false);
                                 du = depacketizer.pollNextDecodeUnit();
+                                if (du != null) {
+                                    lastDuDequeueTime = System.currentTimeMillis();
+                                    notifyDuReceived(du);
+                                }
 
                                 // Stop if we can't get a DU or input buffer
                                 if (du == null || inputIndex == -1) {
-                                    if (du != null) {
-                                        lastDuDequeueTime = System.currentTimeMillis();
-                                    }
-
                                     break;
                                 }
 
@@ -283,6 +283,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                         du = depacketizer.pollNextDecodeUnit();
                         if (du != null) {
                             lastDuDequeueTime = System.currentTimeMillis();
+                            notifyDuReceived(du);
                         }
                     }
 
@@ -421,14 +422,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 
     @SuppressWarnings("deprecation")
     private void submitDecodeUnit(DecodeUnit decodeUnit, ByteBuffer buf, int inputBufferIndex) {
-        long currentTime = System.currentTimeMillis();
-        long delta = currentTime-decodeUnit.getReceiveTimestamp();
-        if (delta >= 0 && delta < 1000) {
-            totalTimeMs += currentTime-decodeUnit.getReceiveTimestamp();
-            totalFrames++;
-        }
-
-        long timestampUs = currentTime * 1000;
+        long timestampUs = System.currentTimeMillis() * 1000;
         if (timestampUs <= lastTimestampUs) {
             // We can't submit multiple buffers with the same timestamp
             // so bump it up by one before queuing
@@ -614,9 +608,20 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         return decoderName;
     }
 
+    private void notifyDuReceived(DecodeUnit du) {
+        long currentTime = System.currentTimeMillis();
+        long delta = currentTime-du.getReceiveTimestamp();
+        if (delta >= 0 && delta < 1000) {
+            totalTimeMs += currentTime-du.getReceiveTimestamp();
+            totalFrames++;
+        }
+    }
+
     @Override
     public void directSubmitDecodeUnit(DecodeUnit du) {
         int inputIndex;
+
+        notifyDuReceived(du);
 
         for (;;) {
             try {

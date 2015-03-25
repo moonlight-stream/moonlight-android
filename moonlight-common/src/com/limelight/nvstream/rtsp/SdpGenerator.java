@@ -55,6 +55,9 @@ public class SdpGenerator {
 
 		addSessionAttribute(config, "x-nv-video[0].rateControlMode", "4");
 		
+		// Use slicing for increased performance on some decoders
+		addSessionAttribute(config, "x-nv-video[0].videoEncoderSlicesPerFrame", "4");
+		
 		addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "51");
 	}
 	

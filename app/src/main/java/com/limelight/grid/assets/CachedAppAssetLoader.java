@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -96,6 +97,11 @@ public class CachedAppAssetLoader {
             if (in != null) {
                 // Write the stream straight to disk
                 diskLoader.populateCacheWithStream(tuple, in);
+
+                // Close the network input stream
+                try {
+                    in.close();
+                } catch (IOException ignored) {}
 
                 // If there's a task associated with this load, we should return the bitmap
                 if (task != null) {

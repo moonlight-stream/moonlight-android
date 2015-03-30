@@ -61,6 +61,10 @@ public class CacheHelper {
             sb.append(buf, 0, bytesRead);
         }
 
+        try {
+            in.close();
+        } catch (IOException ignored) {}
+
         return sb.toString();
     }
 

@@ -97,18 +97,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         return range;
     }
 
-    private short assignNewControllerNumber() {
-        for (short i = 0; i < 4; i++) {
-            if ((currentControllers & (1 << i)) == 0) {
-                // Found an unused controller value
-                currentControllers |= (1 << i);
-                return i;
-            }
-        }
-
-        return 0;
-    }
-
     @Override
     public void onInputDeviceAdded(int deviceId) {
         // Nothing happening here yet
@@ -136,6 +124,41 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
     private void releaseControllerNumber(int controllerNumber) {
         LimeLog.info("Controller number "+controllerNumber+" is now available");
         currentControllers &= ~(1 << controllerNumber);
+    }
+
+    // Called before sending input but after we've determined that this
+    // is definitely a controller (not a keyboard, mouse, or something else)
+    private void assignControllerNumberIfNeeded(ControllerContext context) {
+        if (context.assignedControllerNumber) {
+            return;
+        }
+
+        LimeLog.info(context.name+" needs a controller number assigned");
+        if (context.name != null && context.name.contains("gpio-keys")) {
+            // This is the back button on Shield portable consoles
+            LimeLog.info("Built-in buttons hardcoded as controller 0");
+            context.controllerNumber = 0;
+        }
+        else if (multiControllerEnabled && context.hasJoystickAxes) {
+            context.controllerNumber = 0;
+
+            LimeLog.info("Reserving the next available controller number");
+            for (short i = 0; i < 4; i++) {
+                if ((currentControllers & (1 << i)) == 0) {
+                    // Found an unused controller value
+                    currentControllers |= (1 << i);
+                    context.controllerNumber = i;
+                    break;
+                }
+            }
+        }
+        else {
+            LimeLog.info("Not reserving a controller number");
+            context.controllerNumber = 0;
+        }
+
+        LimeLog.info("Assigned as controller "+context.controllerNumber);
+        context.assignedControllerNumber = true;
     }
 
     private ControllerContext createContextForDevice(InputDevice dev) {
@@ -287,18 +310,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);
         LimeLog.info("Trigger deadzone: "+context.triggerDeadzone);
 
-        if (devName != null && devName.equals("gpio-keys")) {
-            // This is the back button on Shield portable consoles
-            context.controllerNumber = 0;
-        }
-        else if (multiControllerEnabled && context.hasJoystickAxes) {
-            context.controllerNumber = assignNewControllerNumber();
-        }
-        else {
-            context.controllerNumber = 0;
-        }
-        LimeLog.info("Assigned as controller "+context.controllerNumber);
-
         return context;
     }
 
@@ -324,6 +335,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
     }
 
     private void sendControllerInputPacket(ControllerContext context) {
+        assignControllerNumberIfNeeded(context);
         conn.sendControllerInput(context.controllerNumber, context.inputMap,
                 context.leftTrigger, context.rightTrigger,
                 context.leftStickX, context.leftStickY,
@@ -804,6 +816,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         public boolean isRemote;
         public boolean hasJoystickAxes;
 
+        public boolean assignedControllerNumber;
         public short controllerNumber;
 
         public short inputMap = 0x0000;

@@ -81,6 +81,7 @@ public class ComputerManagerService extends Service {
             if (!pollComputer(details)) {
                 if (!newPc && offlineCount < OFFLINE_POLL_TRIES) {
                     // Return without calling the listener
+                    releaseLocalDatabaseReference();
                     return false;
                 }
 

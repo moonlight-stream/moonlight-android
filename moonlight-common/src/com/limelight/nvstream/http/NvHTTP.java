@@ -244,10 +244,20 @@ public class NvHTTP {
 			response = httpClient.newCall(request).execute();
 		}
 		
+		ResponseBody body = response.body();
+		
 		if (response.isSuccessful()) {
-			return response.body();
+			return body;
 		}
-		else if (response.code() == 404) {
+		
+		// Unsuccessful, so close the response body
+		try {
+			if (body != null) {
+				body.close();
+			}
+		} catch (IOException e) {}
+		
+		if (response.code() == 404) {
 			throw new FileNotFoundException(url);
 		}
 		else {
@@ -267,24 +277,30 @@ public class NvHTTP {
 			if (verbose) {
 				e.printStackTrace();
 			}
+			
 			throw e;
 		}
 		
-		Scanner s = new Scanner(resp.byteStream());
-		
-		String str = "";
-		while (s.hasNext()) {
-			str += s.next() + " ";
+		StringBuilder strb = new StringBuilder();
+		try {
+			Scanner s = new Scanner(resp.byteStream());
+			try {
+				while (s.hasNext()) {
+					strb.append(s.next());
+					strb.append(' ');
+				}
+			} finally {
+				s.close();
+			}
+		} finally {
+			resp.close();
 		}
-		
-		s.close();
-		resp.close();
 		
 		if (verbose) {
-			LimeLog.info(url+" -> "+str);
+			LimeLog.info(url+" -> "+strb.toString());
 		}
 		
-		return str;
+		return strb.toString();
 	}
 
 	public String getServerVersion(String serverInfo) throws XmlPullParserException, IOException {

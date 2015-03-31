@@ -107,7 +107,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         for (Map.Entry<String, ControllerContext> device : contexts.entrySet()) {
             if (device.getValue().id == deviceId) {
                 LimeLog.info("Removed controller: "+device.getValue().name);
-                releaseControllerNumber(device.getValue().controllerNumber);
+                releaseControllerNumber(device.getValue());
                 contexts.remove(device.getKey());
                 return;
             }
@@ -121,9 +121,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         onInputDeviceAdded(deviceId);
     }
 
-    private void releaseControllerNumber(int controllerNumber) {
-        LimeLog.info("Controller number "+controllerNumber+" is now available");
-        currentControllers &= ~(1 << controllerNumber);
+    private void releaseControllerNumber(ControllerContext context) {
+        if (context.reservedControllerNumber) {
+            LimeLog.info("Controller number "+context.controllerNumber+" is now available");
+            currentControllers &= ~(1 << context.controllerNumber);
+        }
     }
 
     // Called before sending input but after we've determined that this
@@ -148,6 +150,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
                     // Found an unused controller value
                     currentControllers |= (1 << i);
                     context.controllerNumber = i;
+                    context.reservedControllerNumber = true;
                     break;
                 }
             }
@@ -817,6 +820,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         public boolean hasJoystickAxes;
 
         public boolean assignedControllerNumber;
+        public boolean reservedControllerNumber;
         public short controllerNumber;
 
         public short inputMap = 0x0000;

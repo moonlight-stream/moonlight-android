@@ -39,6 +39,7 @@ public class MediaCodecHelper {
         directSubmitPrefixes.add("omx.intel");
         directSubmitPrefixes.add("omx.brcm");
         directSubmitPrefixes.add("omx.TI");
+        directSubmitPrefixes.add("omx.arc");
     }
 
 	static {

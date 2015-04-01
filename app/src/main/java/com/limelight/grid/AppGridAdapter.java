@@ -40,7 +40,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
             dp = LARGE_WIDTH_DP;
         }
 
-        double scalingDivisor = ART_WIDTH_PX / (dp * (dpi / 160));
+        double scalingDivisor = ART_WIDTH_PX / (dp * (dpi / 160.0));
         if (scalingDivisor < 1.0) {
             // We don't want to make them bigger before draw-time
             scalingDivisor = 1.0;

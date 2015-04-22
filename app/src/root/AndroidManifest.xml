@@ -5,5 +5,5 @@
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
 
     <!-- Root application name -->
-    <application android:label="Limelight (Root)" />
+    <application android:label="Moonlight (Root)" />
 </manifest>

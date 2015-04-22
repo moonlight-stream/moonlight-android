@@ -102,7 +102,7 @@
 
     <string name="category_ui_settings">Impostazioni Interfaccia</string>
     <string name="title_language_list">Lingua</string>
-    <string name="summary_language_list">Lingua da usare in Limelight</string>
+    <string name="summary_language_list">Lingua da usare in Moonlight</string>
     <string name="title_checkbox_list_mode">Usa lista invece della griglia</string>
     <string name="summary_checkbox_list_mode">Visualizza applicazioni e computers in una lista invece di una griglia</string>
     <string name="title_checkbox_small_icon_mode">Usa icone piccole</string>

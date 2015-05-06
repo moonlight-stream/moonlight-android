@@ -306,6 +306,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
                 context.leftStickDeadzoneRadius = 0.07f;
                 context.rightStickDeadzoneRadius = 0.07f;
             }
+            // Samsung's face buttons appear as a non-virtual button so we'll classify them as remotes
+            // so the back button gets passed through to exit streaming
+            else if (devName.equals("sec_touchscreen")) {
+                context.isRemote = true;
+            }
         }
 
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);

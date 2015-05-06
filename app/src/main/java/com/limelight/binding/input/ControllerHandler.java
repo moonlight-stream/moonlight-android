@@ -1,10 +1,10 @@
 package com.limelight.binding.input;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import android.hardware.input.InputManager;
 import android.os.SystemClock;
+import android.util.SparseArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -31,7 +31,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
 
     private final Vector2d inputVector = new Vector2d();
 
-    private final HashMap<String, ControllerContext> contexts = new HashMap<String, ControllerContext>();
+    private final SparseArray<ControllerContext> contexts = new SparseArray<ControllerContext>();
 
     private final NvConnection conn;
     private final double stickDeadzone;
@@ -104,13 +104,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
 
     @Override
     public void onInputDeviceRemoved(int deviceId) {
-        for (Map.Entry<String, ControllerContext> device : contexts.entrySet()) {
-            if (device.getValue().id == deviceId) {
-                LimeLog.info("Removed controller: "+device.getValue().name);
-                releaseControllerNumber(device.getValue());
-                contexts.remove(device.getKey());
-                return;
-            }
+        ControllerContext context = contexts.get(deviceId);
+        if (context != null) {
+            LimeLog.info("Removed controller: "+context.name+" ("+deviceId+")");
+            releaseControllerNumber(context);
+            contexts.remove(deviceId);
         }
     }
 
@@ -135,7 +133,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
             return;
         }
 
-        LimeLog.info(context.name+" needs a controller number assigned");
+        LimeLog.info(context.name+" ("+context.id+") needs a controller number assigned");
         if (context.name != null && context.name.contains("gpio-keys")) {
             // This is the back button on Shield portable consoles
             LimeLog.info("Built-in buttons hardcoded as controller 0");
@@ -322,17 +320,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
             return defaultContext;
         }
 
-        String descriptor = dev.getDescriptor();
-
         // Return the existing context if it exists
-        ControllerContext context = contexts.get(descriptor);
+        ControllerContext context = contexts.get(dev.getId());
         if (context != null) {
             return context;
         }
 
         // Otherwise create a new context
         context = createContextForDevice(dev);
-        contexts.put(descriptor, context);
+        contexts.put(dev.getId(), context);
 
         return context;
     }

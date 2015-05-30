@@ -1,7 +1,5 @@
 package com.limelight.binding.input;
 
-import java.util.Map;
-
 import android.hardware.input.InputManager;
 import android.os.SystemClock;
 import android.util.SparseArray;
@@ -52,8 +50,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         deadzonePercentage = 10;
 
         int[] ids = InputDevice.getDeviceIds();
-        for (int i = 0; i < ids.length; i++) {
-            InputDevice dev = InputDevice.getDevice(ids[i]);
+        for (int id : ids) {
+            InputDevice dev = InputDevice.getDevice(id);
             if ((dev.getSources() & InputDevice.SOURCE_JOYSTICK) != 0 ||
                     (dev.getSources() & InputDevice.SOURCE_GAMEPAD) != 0) {
                 // This looks like a gamepad, but we'll check X and Y to be sure

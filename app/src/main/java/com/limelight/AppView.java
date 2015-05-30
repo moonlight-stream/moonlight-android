@@ -1,19 +1,14 @@
 package com.limelight;
 
-import java.io.FileNotFoundException;
 import java.io.StringReader;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-import com.limelight.binding.PlatformBinding;
 import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.grid.AppGridAdapter;
 import com.limelight.nvstream.http.ComputerDetails;
-import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.preferences.PreferenceConfiguration;
@@ -26,10 +21,8 @@ import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Service;
 import android.content.ComponentName;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;

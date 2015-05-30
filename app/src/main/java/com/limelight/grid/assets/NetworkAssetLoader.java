@@ -26,7 +26,7 @@ public class NetworkAssetLoader {
         InputStream in = null;
         try {
             in = http.getBoxArt(tuple.app);
-        } catch (IOException e) {}
+        } catch (IOException ignored) {}
 
         if (in != null) {
             LimeLog.info("Network asset load complete: " + tuple);

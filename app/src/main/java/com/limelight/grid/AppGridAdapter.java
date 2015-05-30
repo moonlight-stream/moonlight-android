@@ -27,7 +27,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
     private final CachedAppAssetLoader loader;
 
-    public AppGridAdapter(Activity activity, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) throws KeyManagementException, NoSuchAlgorithmException {
+    public AppGridAdapter(Activity activity, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) {
         super(activity, listMode ? R.layout.simple_row : (small ? R.layout.app_grid_item_small : R.layout.app_grid_item), R.drawable.image_loading);
 
         int dpi = activity.getResources().getDisplayMetrics().densityDpi;

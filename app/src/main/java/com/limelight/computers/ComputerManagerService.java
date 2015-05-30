@@ -639,7 +639,7 @@ public class ComputerManagerService extends Service {
                                         if (cacheOut != null) {
                                             cacheOut.close();
                                         }
-                                    } catch (IOException e) {}
+                                    } catch (IOException ignored) {}
                                 }
 
                                 // Update the computer

@@ -3,6 +3,7 @@ package com.limelight.preferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.preference.PreferenceManager;
 
 public class PreferenceConfiguration {
@@ -69,9 +70,18 @@ public class PreferenceConfiguration {
 
     public static boolean getDefaultSmallMode(Context context) {
         PackageManager manager = context.getPackageManager();
-        if (manager != null && manager.hasSystemFeature(PackageManager.FEATURE_TELEVISION)) {
+        if (manager != null) {
             // TVs shouldn't use small mode by default
-            return false;
+            if (manager.hasSystemFeature(PackageManager.FEATURE_TELEVISION)) {
+                return false;
+            }
+
+            // API 21 uses LEANBACK instead of TELEVISION
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                if (manager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)) {
+                    return false;
+                }
+            }
         }
 
         // Use small mode on anything smaller than a 7" tablet

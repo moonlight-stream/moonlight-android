@@ -306,6 +306,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     else if (computer.reachability == ComputerDetails.Reachability.REMOTE) {
                         addr = computer.remoteIp;
                     }
+                    else {
+                        LimeLog.warning("Unknown reachability - using local IP");
+                        addr = computer.localIp;
+                    }
 
                     httpConn = new NvHTTP(addr,
                             managerBinder.getUniqueId(),
@@ -430,6 +434,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     }
                     else if (computer.reachability == ComputerDetails.Reachability.REMOTE) {
                         addr = computer.remoteIp;
+                    }
+                    else {
+                        LimeLog.warning("Unknown reachability - using local IP");
+                        addr = computer.localIp;
                     }
 
                     httpConn = new NvHTTP(addr,

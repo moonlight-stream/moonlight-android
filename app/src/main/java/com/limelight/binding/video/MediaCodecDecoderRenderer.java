@@ -134,11 +134,14 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
             }
         }
 
-        if (buf != null || codecFlags != 0) {
-            throw new RendererException(this, e, buf, codecFlags);
-        }
-        else {
-            throw new RendererException(this, e);
+        // Only throw if this happens at the beginning of a stream
+        if (totalFrames < 60) {
+            if (buf != null || codecFlags != 0) {
+                throw new RendererException(this, e, buf, codecFlags);
+            }
+            else {
+                throw new RendererException(this, e);
+            }
         }
     }
 

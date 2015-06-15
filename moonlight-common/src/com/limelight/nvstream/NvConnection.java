@@ -111,12 +111,12 @@ public class NvConnection {
 			int majorVersion = Integer.parseInt(serverVersion.substring(0, serverVersion.indexOf('.')));
 			if (majorVersion < 3) {
 				// Even though we support major version 3 (2.1.x), GFE 2.2.2 is preferred.
-				context.connListener.displayMessage("Limelight now requires GeForce Experience 2.2.2 or later. Please upgrade GFE on your PC and try again.");
+				context.connListener.displayMessage("This app requires GeForce Experience 2.2.2 or later. Please upgrade GFE on your PC and try again.");
 				return false;
 			}
 			else if (majorVersion > 4) {
 				// Warn the user but allow them to continue
-				context.connListener.displayTransientMessage("This version of GFE is not currently supported. You may experience issues until Limelight is updated");
+				context.connListener.displayTransientMessage("This version of GFE is not currently supported. You may experience issues until this app is updated.");
 			}
 			
 			switch (majorVersion) {

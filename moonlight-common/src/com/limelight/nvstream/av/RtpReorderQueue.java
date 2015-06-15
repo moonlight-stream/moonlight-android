@@ -64,6 +64,7 @@ public class RtpReorderQueue {
 		
 		if (oldestQueuedTime == Long.MAX_VALUE) {
 			oldestQueuedTime = entry.queueTime;
+			oldestQueuedEntry = entry;
 		}
 		
 		if (head) {

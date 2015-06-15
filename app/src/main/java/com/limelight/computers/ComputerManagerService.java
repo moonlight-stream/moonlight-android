@@ -393,7 +393,7 @@ public class ComputerManagerService extends Service {
     private boolean fastPollIp(InetAddress addr) {
         Socket s = new Socket();
         try {
-            s.connect(new InetSocketAddress(addr, NvHTTP.PORT), FAST_POLL_TIMEOUT);
+            s.connect(new InetSocketAddress(addr, NvHTTP.HTTPS_PORT), FAST_POLL_TIMEOUT);
             s.close();
             return true;
         } catch (IOException e) {

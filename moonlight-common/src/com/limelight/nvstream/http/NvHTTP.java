@@ -47,13 +47,15 @@ public class NvHTTP {
 	private PairingManager pm;
 	private InetAddress address;
 
-	public static final int PORT = 47984;
+	public static final int HTTPS_PORT = 47984;
+	public static final int HTTP_PORT = 47989;
 	public static final int CONNECTION_TIMEOUT = 3000;
 	public static final int READ_TIMEOUT = 5000;
 	
 	private static boolean verbose = false;
 
-	public String baseUrl;
+	public String baseUrlHttps;
+	public String baseUrlHttp;
 	
 	private OkHttpClient httpClient = new OkHttpClient();
 	private OkHttpClient httpClientWithReadTimeout;
@@ -115,7 +117,8 @@ public class NvHTTP {
 		
 		initializeHttpState(cryptoProvider);
 		
-		this.baseUrl = "https://" + safeAddress + ":" + PORT;
+		this.baseUrlHttps = "https://" + safeAddress + ":" + HTTPS_PORT;
+		this.baseUrlHttp = "http://" + safeAddress + ":" + HTTP_PORT;
 		this.pm = new PairingManager(this, cryptoProvider);
 	}
 	
@@ -166,8 +169,25 @@ public class NvHTTP {
 		}
 	}
 	
-	public String getServerInfo(String uniqueId) throws MalformedURLException, IOException {
-		return openHttpConnectionToString(baseUrl + "/serverinfo?uniqueid=" + uniqueId, true);
+	public String getServerInfo(String uniqueId) throws MalformedURLException, IOException, XmlPullParserException {
+		String resp;
+		try {
+			resp = openHttpConnectionToString(baseUrlHttps + "/serverinfo?uniqueid=" + uniqueId, true);
+			
+			// This will throw an exception if the request came back with a failure status.
+			// We want this because it will throw us into the HTTP case if the client is unpaired.
+			getServerVersion(resp);
+		}
+		catch (GfeHttpResponseException e) {
+			if (e.getErrorCode() == 401) {
+				// Cert validation error - fall back to HTTP
+				return openHttpConnectionToString(baseUrlHttp + "/serverinfo", true);
+			}
+			
+			// If it's not a cert validation error, throw it
+			throw e;
+		}
+		return resp;
 	}
 	
 	public ComputerDetails getComputerDetails() throws MalformedURLException, IOException, XmlPullParserException {
@@ -411,7 +431,7 @@ public class NvHTTP {
 	}
 	
 	public String getAppListRaw() throws MalformedURLException, IOException {
-		return openHttpConnectionToString(baseUrl + "/applist?uniqueid=" + uniqueId, true);
+		return openHttpConnectionToString(baseUrlHttps + "/applist?uniqueid=" + uniqueId, true);
 	}
 	
 	public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
@@ -420,7 +440,7 @@ public class NvHTTP {
 			return getAppListByReader(new StringReader(getAppListRaw()));
 		}
 		else {
-			ResponseBody resp = openHttpConnection(baseUrl + "/applist?uniqueid=" + uniqueId, true);
+			ResponseBody resp = openHttpConnection(baseUrlHttps + "/applist?uniqueid=" + uniqueId, true);
 			LinkedList<NvApp> appList = getAppListByReader(new InputStreamReader(resp.byteStream()));
 			resp.close();
 			return appList;
@@ -428,11 +448,11 @@ public class NvHTTP {
 	}
 	
 	public void unpair() throws IOException {
-		openHttpConnectionToString(baseUrl + "/unpair?uniqueid=" + uniqueId, true);
+		openHttpConnectionToString(baseUrlHttps + "/unpair?uniqueid=" + uniqueId, true);
 	}
 	
 	public InputStream getBoxArt(NvApp app) throws IOException {
-		ResponseBody resp = openHttpConnection(baseUrl + "/appasset?uniqueid=" + uniqueId +
+		ResponseBody resp = openHttpConnection(baseUrlHttps + "/appasset?uniqueid=" + uniqueId +
 				"&appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0", true);
 		return resp.byteStream();
 	}
@@ -449,7 +469,7 @@ public class NvHTTP {
 	}
 	
 	public int launchApp(ConnectionContext context, int appId) throws IOException, XmlPullParserException {
-		String xmlStr = openHttpConnectionToString(baseUrl +
+		String xmlStr = openHttpConnectionToString(baseUrlHttps +
 			"/launch?uniqueid=" + uniqueId +
 			"&appid=" + appId +
 			"&mode=" + context.streamConfig.getWidth() + "x" + context.streamConfig.getHeight() + "x" + context.streamConfig.getRefreshRate() +
@@ -462,7 +482,7 @@ public class NvHTTP {
 	}
 	
 	public boolean resumeApp(ConnectionContext context) throws IOException, XmlPullParserException {
-		String xmlStr = openHttpConnectionToString(baseUrl + "/resume?uniqueid=" + uniqueId +
+		String xmlStr = openHttpConnectionToString(baseUrlHttps + "/resume?uniqueid=" + uniqueId +
 				"&rikey="+bytesToHex(context.riKey.getEncoded()) +
 				"&rikeyid="+context.riKeyId, false);
 		String resume = getXmlString(xmlStr, "resume");
@@ -470,7 +490,7 @@ public class NvHTTP {
 	}
 	
 	public boolean quitApp() throws IOException, XmlPullParserException {
-		String xmlStr = openHttpConnectionToString(baseUrl + "/cancel?uniqueid=" + uniqueId, false);
+		String xmlStr = openHttpConnectionToString(baseUrlHttps + "/cancel?uniqueid=" + uniqueId, false);
 		String cancel = getXmlString(xmlStr, "cancel");
 		return Integer.parseInt(cancel) != 0;
 	}

@@ -273,6 +273,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
             }
         }
 
+        // Ignore the back buttonn if a controller has both buttons
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            boolean[] hasSelectKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BACK, 0);
+            if (hasSelectKey[0] && hasSelectKey[1]) {
+                LimeLog.info("Ignoring back button because select is present");
+                context.ignoreBack = true;
+            }
+        }
+
         if (devName != null) {
             // For the Nexus Player (and probably other ATV devices), we should
             // use the back button as start since it doesn't have a start/menu button
@@ -296,7 +305,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
             else if (devName.contains("Fire TV Remote") || devName.contains("Nexus Remote")) {
                 // It's only a remote if it doesn't any sticks
                 if (!context.hasJoystickAxes) {
-                    context.isRemote = true;
+                    context.ignoreBack = true;
                 }
             }
             // SHIELD controllers will use small stick deadzones
@@ -304,10 +313,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
                 context.leftStickDeadzoneRadius = 0.07f;
                 context.rightStickDeadzoneRadius = 0.07f;
             }
-            // Samsung's face buttons appear as a non-virtual button so we'll classify them as remotes
-            // so the back button gets passed through to exit streaming
+            // Samsung's face buttons appear as a non-virtual button so we'll explicitly ignore
+            // back presses on this device
             else if (devName.equals("sec_touchscreen")) {
-                context.isRemote = true;
+                context.ignoreBack = true;
+            }
+            // The Serval has a couple of unknown buttons that are start and select. It also has
+            // a back button which we want to ignore since there's already a select button.
+            else if (devName.contains("Razer Serval")) {
+                context.isServal = true;
+                context.ignoreBack = true;
             }
         }
 
@@ -347,8 +362,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
     // Return a valid keycode, 0 to consume, or -1 to not consume the event
     // Device MAY BE NULL
     private int handleRemapping(ControllerContext context, KeyEvent event) {
-        // For remotes, don't capture the back button
-        if (context.isRemote) {
+        // Don't capture the back button if configured
+        if (context.ignoreBack) {
             if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                 return -1;
             }
@@ -390,6 +405,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
             case KeyEvent.KEYCODE_BUTTON_R1:
             case KeyEvent.KEYCODE_BUTTON_L1:
                 return 0;
+            }
+        }
+        // If this is a Serval controller sending an unknown key code, it's probably
+        // the start and select buttons
+        else if (context.isServal && event.getKeyCode() == KeyEvent.KEYCODE_UNKNOWN) {
+            switch (event.getScanCode())  {
+                case 314:
+                    return KeyEvent.KEYCODE_BUTTON_SELECT;
+                case 315:
+                    return KeyEvent.KEYCODE_BUTTON_START;
             }
         }
 
@@ -813,9 +838,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
 
         public boolean isDualShock4;
         public boolean isXboxController;
+        public boolean isServal;
         public boolean backIsStart;
         public boolean modeIsSelect;
-        public boolean isRemote;
+        public boolean ignoreBack;
         public boolean hasJoystickAxes;
 
         public boolean assignedControllerNumber;

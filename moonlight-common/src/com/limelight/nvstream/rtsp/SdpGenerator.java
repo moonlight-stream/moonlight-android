@@ -57,8 +57,6 @@ public class SdpGenerator {
 		
 		// Use slicing for increased performance on some decoders
 		addSessionAttribute(config, "x-nv-video[0].videoEncoderSlicesPerFrame", "4");
-		
-		addSessionAttribute(config, "x-nv-vqos[0].bw.flags", "51");
 	}
 	
 	public static String generateSdpFromContext(ConnectionContext context) {

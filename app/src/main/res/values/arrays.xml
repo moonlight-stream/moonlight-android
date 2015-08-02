@@ -16,11 +16,13 @@
     <string-array name="language_names" translatable="false">
             <item>Default</item>
             <item>English</item>
+			<item>French</item>
             <item>Italiano</item>
     </string-array>
     <string-array name="language_values" translatable="false">
             <item>default</item>
             <item>en</item>
+			<item>fr</item>
             <item>it</item>
     </string-array>
 

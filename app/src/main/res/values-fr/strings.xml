@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- PC view menu entries -->
+    <string name="pcview_menu_app_list">Voir la liste des jeux</string>
+    <string name="pcview_menu_pair_pc">Appairer au PC</string>
+    <string name="pcview_menu_unpair_pc">Désappairer</string>
+    <string name="pcview_menu_send_wol">Envoyer une requête Wake-On-LAN</string>
+    <string name="pcview_menu_delete_pc">Supprimer le PC</string>
+
+    <!-- Pair messages -->
+    <string name="pairing">Appairage…</string>
+    <string name="pair_pc_offline">L\'ordinateur est hors-ligne</string>
+    <string name="pair_pc_ingame">L\'ordinateur est en jeu. Vous devez fermer le jeu avant l\'appairage.</string>
+    <string name="pair_pairing_title">Appairage</string>
+    <string name="pair_pairing_msg">Entrez ce code PIN sur votre ordinateur:</string>
+    <string name="pair_incorrect_pin">Code PIN incorrect</string>
+    <string name="pair_fail">Échec de l\'appairage</string>
+
+    <!-- WOL messages -->
+    <string name="wol_pc_online">L\'ordinateur est en ligne</string>
+    <string name="wol_no_mac">Impossible d\'allumer l\'ordinateur car GFE n\'a pas envoyé d\'adresse MAC</string>
+    <string name="wol_waking_pc">Allumage du PC…</string>
+    <string name="wol_waking_msg">Cela peut prendre un moment pour allumer votre ordinateur.
+	    S'\il ne s\'allume pas, assurez-vous qu\'il est bien configuré pour le Wake-On-LAN.
+    </string>
+    <string name="wol_fail">Échec de l\'envoi des paquets Wake-On-LAN</string>
+
+    <!-- Unpair messages -->
+    <string name="unpairing">Désappairage…</string>
+    <string name="unpair_success">Succès du désappairage</string>
+    <string name="unpair_fail">Échec du désappairage</string>
+    <string name="unpair_error">L\'appareil n\'était pas appairé</string>
+
+    <!-- Errors -->
+    <string name="error_pc_offline">L\'ordinateur est hors-ligne</string>
+    <string name="error_manager_not_running">Le service ComputerManager n\'est pas en cours d\'exécution. Attendez quelques secondes ou relancez l\'application.</string>
+    <string name="error_unknown_host">Échec de la détermination de l\'hôte</string>
+    <string name="error_404">GFE a retourné une erreur http 404. Assurez-vous que le PC possède un GPU supporté.
+	    Utiliser un logiciel de bureau à distance peut aussi causer cette erreur. Essayez de redémarrer ou réinstaller GFE.
+    </string>
+
+    <!-- Start application messages -->
+    <string name="conn_establishing_title">Création de la connexion</string>
+    <string name="conn_establishing_msg">Démarrage de la connexion</string>
+    <string name="conn_metered">Attention: Votre connexion active est limitée</string>
+    <string name="conn_client_latency">Moyenne de la latence du décodage par frame:</string>
+    <string name="conn_client_latency_hw">Latence du décodage matériel:</string>
+    <string name="conn_hardware_latency">Moyenne de la latence du décodage matériel:</string>
+    <string name="conn_starting">Démarrage</string>
+    <string name="conn_error_title">Erreur de connexion</string>
+    <string name="conn_error_msg">Échec du démarrage</string>
+    <string name="conn_terminated_title">Connexion interrompue</string>
+    <string name="conn_terminated_msg">La connexion a été interrompue</string>
+
+    <!-- General strings -->
+    <string name="ip_hint">Adresse IP du PC</string>
+    <string name="searching_pc">Recherche de PC…</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+    <string name="lost_connection">Perte de la connexion au PC</string>
+
+    <!-- AppList activity -->
+    <string name="title_applist">Applications</string>
+    <string name="applist_menu_resume">Reprendre la session</string>
+    <string name="applist_menu_quit">Quitter la session</string>
+    <string name="applist_menu_quit_and_start">Quitter le jeu actuel et lancer</string>
+    <string name="applist_menu_cancel">Annuler</string>
+    <string name="applist_refresh_title">Liste des applications</string>
+    <string name="applist_refresh_msg">Rafraîchissement des applications…</string>
+    <string name="applist_refresh_error_title">Erreur</string>
+    <string name="applist_refresh_error_msg">Échec de l\'obtention de la liste des applications</string>
+    <string name="applist_quit_app">Fermeture</string>
+    <string name="applist_quit_success">Fermeture réussie</string>
+    <string name="applist_quit_fail">Échec de la fermeture</string>
+    <string name="applist_quit_confirmation">Êtes-vous sûr de vouloir fermer l\'application actuelle? Les données non sauvegardées seront perdues.</string>
+
+    <!-- Add computer manually activity -->
+    <string name="title_add_pc">Ajouter un PC manuellement</string>
+    <string name="msg_add_pc">Connexion au PC…</string>
+    <string name="addpc_fail">Impossible de se connecter au PC spécifié. Assurez-vous que les ports soient autorisés par le pare-feu.</string>
+    <string name="addpc_success">PC ajouté avec succès</string>
+    <string name="addpc_unknown_host">Impossible d\'atteindre l\'adresse IP. Assurez-vous de ne pas avoir commis une erreur dans l\'adresse.</string>
+    <string name="addpc_enter_ip">Vous devez entrer une adresse IP</string>
+
+    <!-- Preferences -->
+    <string name="category_basic_settings">Paramètres de base</string>
+    <string name="title_resolution_list">Choisir la résolution et le nombre d\'IPS</string>
+    <string name="summary_resolution_list">Choisir des valeurs trop élevées peut engendrer des ralentissements et des crashs.</string>
+    <string name="title_seekbar_bitrate">Choisir le bitrate vidéo</string>
+    <string name="summary_seekbar_bitrate">Réduisez le bitrate pour réduire les ralentissements. Augmentez le bitrate pour améliorer la qualité de l\'image.</string>
+    <string name="suffix_seekbar_bitrate">Mbps</string>
+    <string name="title_checkbox_stretch_video">Étirer la vidéo en plein-écran</string>
+    <string name="title_checkbox_disable_warnings">Désactiver les avertissements</string>
+    <string name="summary_checkbox_disable_warnings">Désactiver les avertissements de connexion pendant le streaming</string>
+
+    <string name="category_gamepad_settings">Paramètres de la manette</string>
+    <string name="title_checkbox_multi_controller">Support de multiples manettes</string>
+    <string name="summary_checkbox_multi_controller">Quand décoché, toutes les manettes apparaissent comme une seule</string>
+    <string name="title_seekbar_deadzone">Ajuster les angles morts des sticks analogiques</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+
+    <string name="category_ui_settings">Paramètres de l\'interface utilisateur</string>
+    <string name="title_language_list">Langage</string>
+    <string name="summary_language_list">Langage à utiliser dans Moonlight</string>
+    <string name="title_checkbox_list_mode">Utiliser des listes à la place des grilles</string>
+    <string name="summary_checkbox_list_mode">Afficher les applications sous forme de listes à la place de grilles</string>
+    <string name="title_checkbox_small_icon_mode">Utiliser des petites icônes</string>
+    <string name="summary_checkbox_small_icon_mode">Utiliser des petites icônes dans les grilles afin de voir plus d\'éléments sur l\'écran</string>
+
+    <string name="category_host_settings">Paramètres d\'hôte</string>
+    <string name="title_checkbox_enable_sops">Optimiser les paramètres des jeux</string>
+    <string name="summary_checkbox_enable_sops">Autoriser GFE à modifier les paramètres des jeux pour permettre un streaming optimal</string>
+    <string name="title_checkbox_host_audio">Diffuser le son sur le PC</string>
+    <string name="summary_checkbox_host_audio">Diffuser le son sur l\'ordinateur et cet appareil</string>
+
+    <string name="category_advanced_settings">Paramètres avancés</string>
+    <string name="title_decoder_list">Changer le décodeur</string>
+    <string name="summary_decoder_list">Le décodeur logiciel peut améliorer la latence vidéo pour des réglages de streaming bas</string>
+</resources>

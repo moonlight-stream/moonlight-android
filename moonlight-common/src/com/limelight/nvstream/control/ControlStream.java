@@ -20,21 +20,22 @@ public class ControlStream implements ConnectionStatusListener {
 	private static final int CONTROL_TIMEOUT = 5000;
 	
 	private static final int IDX_START_A = 0;
+	private static final int IDX_REQUEST_IDR_FRAME = 0;
 	private static final int IDX_START_B = 1;
-	private static final int IDX_RESYNC = 2;
+	private static final int IDX_INVALIDATE_REF_FRAMES = 2;
 	private static final int IDX_LOSS_STATS = 3;
 	
 	private static final short packetTypesGen3[] = {
 		0x140b, // Start A
 		0x1410, // Start B
-		0x1404, // Resync
+		0x1404, // Invalidate reference frames
 		0x140c, // Loss Stats
 		0x1417, // Frame Stats (unused)
 	};
 	private static final short packetTypesGen4[] = {
-		0x0606, // Start A
+		0x0606, // Request IDR frame
 		0x0609, // Start B
-		0x0604, // Resync
+		0x0604, // Invalidate reference frames
 		0x060a, // Loss Stats
 		0x0611, // Frame Stats (unused)
 	};
@@ -42,14 +43,14 @@ public class ControlStream implements ConnectionStatusListener {
 	private static final short payloadLengthsGen3[] = {
 		-1, // Start A
 		16, // Start B
-		24, // Resync
+		24, // Invalidate reference frames
 		32, // Loss Stats
 		64, // Frame Stats
 	};
 	private static final short payloadLengthsGen4[] = {
-		-1, // Start A
+		-1, // Request IDR frame
 		-1, // Start B
-		24, // Resync
+		24, // Invalidate reference frames
 		32, // Loss Stats
 		64, // Frame Stats
 	};
@@ -57,14 +58,14 @@ public class ControlStream implements ConnectionStatusListener {
 	private static final byte[] precontructedPayloadsGen3[] = {
 		new byte[]{0}, // Start A
 		null, // Start B
-		null, // Resync
+		null, // Invalidate reference frames
 		null, // Loss Stats
 		null, // Frame Stats
 	};
 	private static final byte[] precontructedPayloadsGen4[] = {
-		new byte[]{0, 0}, // Start A
+		new byte[]{0, 0}, // Request IDR frame
 		new byte[]{0},  // Start B
-		null, // Resync
+		null, // Invalidate reference frames
 		null, // Loss Stats
 		null, // Frame Stats
 	};
@@ -268,7 +269,7 @@ public class ControlStream implements ConnectionStatusListener {
 					
 					try {
 						LimeLog.warning("Invalidating reference frames from "+tuple[0]+" to "+tuple[1]);
-						ControlStream.this.sendResync(tuple[0], tuple[1]);
+						ControlStream.this.invalidateReferenceFrames(tuple[0], tuple[1]);
 						LimeLog.warning("Frames invalidated");
 					} catch (IOException e) {
 						context.connListener.connectionTerminated(e);
@@ -309,18 +310,29 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 	}
 	
-	private void sendResync(int firstLostFrame, int nextSuccessfulFrame) throws IOException
+	private void invalidateReferenceFrames(int firstLostFrame, int nextSuccessfulFrame) throws IOException
 	{
-		ByteBuffer conf = ByteBuffer.wrap(new byte[payloadLengths[IDX_RESYNC]]).order(ByteOrder.LITTLE_ENDIAN);
+		// We can't handle a real reference frame invalidation yet.
+		// On Gen 3, we use the invalidate reference frames trick which works for about 5 hours of streaming at 60 FPS
+		// On Gen 4+, we use the known IDR frame request packet
 		
-		//conf.putLong(firstLostFrame);
-		//conf.putLong(nextSuccessfulFrame);
-		conf.putLong(0);
-		conf.putLong(0xFFFFF);
-		conf.putLong(0);
-		
-		sendAndGetReply(new NvCtlPacket(packetTypes[IDX_RESYNC],
-				payloadLengths[IDX_RESYNC], conf.array()));
+		if (context.serverGeneration == ConnectionContext.SERVER_GENERATION_3) {
+			ByteBuffer conf = ByteBuffer.wrap(new byte[payloadLengths[IDX_INVALIDATE_REF_FRAMES]]).order(ByteOrder.LITTLE_ENDIAN);
+			
+			//conf.putLong(firstLostFrame);
+			//conf.putLong(nextSuccessfulFrame);
+			conf.putLong(0);
+			conf.putLong(0xFFFFF);
+			conf.putLong(0);
+			
+			sendAndGetReply(new NvCtlPacket(packetTypes[IDX_INVALIDATE_REF_FRAMES],
+					payloadLengths[IDX_INVALIDATE_REF_FRAMES], conf.array()));
+		}
+		else {
+			sendAndGetReply(new NvCtlPacket(packetTypes[IDX_REQUEST_IDR_FRAME],
+					(short) preconstructedPayloads[IDX_REQUEST_IDR_FRAME].length,
+					preconstructedPayloads[IDX_REQUEST_IDR_FRAME]));
+		}
 	}
 	
 	static class NvCtlPacket {

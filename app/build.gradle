@@ -5,7 +5,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 22
-    buildToolsVersion "21.1.2"
+    buildToolsVersion "22.0.1"
 
     defaultConfig {
         minSdkVersion 16
@@ -64,8 +64,8 @@ android {
 dependencies {
     compile group: 'org.jcodec', name: 'jcodec', version: '0.1.9'
 
-    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.51'
-    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.51'
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.52'
+    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.52'
 
     compile group: 'com.squareup.okhttp', name: 'okhttp', version:'2.2.0'
     compile group: 'com.squareup.okio', name:'okio', version:'1.2.0'

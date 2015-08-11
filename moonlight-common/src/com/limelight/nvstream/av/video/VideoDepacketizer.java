@@ -19,7 +19,7 @@ public class VideoDepacketizer {
 	private VideoPacket backingPacketTail;
 	
 	// Sequencing state
-	private int lastPacketInStream = 0;
+	private int lastPacketInStream = -1;
 	private int nextFrameNumber = 1;
 	private int startFrameNumber = 1;
 	private boolean waitingForNextSuccessfulFrame;

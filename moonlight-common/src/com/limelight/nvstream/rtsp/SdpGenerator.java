@@ -83,10 +83,6 @@ public class SdpGenerator {
 			addSessionAttribute(config, "x-nv-video[0].averageBitrate", "4");
 			addSessionAttribute(config, "x-nv-video[0].peakBitrate", "4");
 		}
-		else if (context.streamConfig.getBitrate() <= 13000) {
-			addSessionAttribute(config, "x-nv-video[0].averageBitrate", "9");
-			addSessionAttribute(config, "x-nv-video[0].peakBitrate", "9");
-		}
 		
 		addSessionAttribute(config, "x-nv-video[0].timeoutLengthMs", "7000");
 		addSessionAttribute(config, "x-nv-video[0].framesWithInvalidRefThreshold", "0");

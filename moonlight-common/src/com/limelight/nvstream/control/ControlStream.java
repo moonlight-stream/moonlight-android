@@ -286,9 +286,6 @@ public class ControlStream implements ConnectionStatusListener {
 							requestIdrFrame();
 						}
 						else {
-							// The server expects this to be the firstLostFrame + 1
-							tuple[0]++;
-							
 							// Update the end of the range to the latest tuple
 							if (lastTuple != null) {
 								tuple[1] = lastTuple[1];

@@ -171,6 +171,13 @@ public class RtpReorderQueue {
 			// Validate that the queue remains within our contraints
 			RtpQueueEntry lowestEntry = validateQueueConstraints();
 			
+			// If the queue is now empty after validating queue constraints,
+			// this packet can be returned immediately
+			if (lowestEntry == null && queue.isEmpty()) {
+				nextRtpSequenceNumber = (short) (packet.getRtpSequenceNumber() + 1);
+				return RtpQueueStatus.HANDLE_IMMEDIATELY;
+			}
+			
 			// Queue has data inside, so we need to see where this packet fits
 			if (packet.getRtpSequenceNumber() == nextRtpSequenceNumber) {
 				// It fits in a hole where we need a packet, now we have some ready

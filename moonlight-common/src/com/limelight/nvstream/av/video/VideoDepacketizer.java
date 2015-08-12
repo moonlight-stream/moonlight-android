@@ -1,6 +1,7 @@
 package com.limelight.nvstream.av.video;
 
 import com.limelight.LimeLog;
+import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.av.ByteBufferDescriptor;
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.ConnectionStatusListener;
@@ -26,6 +27,7 @@ public class VideoDepacketizer {
 	private boolean waitingForIdrFrame = true;
 	private long frameStartTime;
 	private boolean decodingFrame;
+	private boolean strictIdrFrameWait;
 	
 	// Cached objects
 	private ByteBufferDescriptor cachedReassemblyDesc = new ByteBufferDescriptor(null, 0, 0);
@@ -40,10 +42,22 @@ public class VideoDepacketizer {
 	private static final int DU_LIMIT = 15;
 	private AbstractPopulatedBufferList<DecodeUnit> decodedUnits;
 	
-	public VideoDepacketizer(ConnectionStatusListener controlListener, int nominalPacketSize, boolean unsynchronized)
+	public VideoDepacketizer(ConnectionContext context, ConnectionStatusListener controlListener, int nominalPacketSize)
 	{
 		this.controlListener = controlListener;
 		this.nominalPacketDataLength = nominalPacketSize - VideoPacket.HEADER_SIZE;
+		
+		boolean unsynchronized;
+		if (context.videoDecoderRenderer != null) {
+			int videoCaps = context.videoDecoderRenderer.getCapabilities();
+			this.strictIdrFrameWait = (videoCaps & VideoDecoderRenderer.CAPABILITY_REFERENCE_FRAME_INVALIDATION) == 0;
+			unsynchronized = (videoCaps & VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT) != 0;
+		}
+		else {
+			// If there's no renderer, it doesn't matter if we synchronize or wait for IDRs
+			this.strictIdrFrameWait = false;
+			unsynchronized = true;
+		}
 		
 		AbstractPopulatedBufferList.BufferFactory factory = new AbstractPopulatedBufferList.BufferFactory() {
 			public Object createFreeBuffer() {
@@ -71,7 +85,10 @@ public class VideoDepacketizer {
 	
 	private void dropAvcFrameState()
 	{
-		waitingForIdrFrame = true;
+		// We'll need an IDR frame now if we're in strict mode
+		if (strictIdrFrameWait) {
+			waitingForIdrFrame = true;	
+		}
 		
 		// Count the number of consecutive frames dropped
 		consecutiveFrameDrops++;
@@ -84,7 +101,7 @@ public class VideoDepacketizer {
 			// Restart the count
 			consecutiveFrameDrops = 0;
 			
-			// Request an IDR frame
+			// Request an IDR frame (0 tuple always generates an IDR frame)
 			controlListener.connectionDetectedFrameLoss(0, 0);
 		}
 		
@@ -128,7 +145,9 @@ public class VideoDepacketizer {
 				LimeLog.warning("Video decoder is too slow! Forced to drop decode units");
 
 				// Invalidate all frames from the start of the DU queue
+				// (0 tuple always generates an IDR frame)
 				controlListener.connectionSinkTooSlow(0, 0);
+				waitingForIdrFrame = true;
 				
 				// Remove existing frames
 				decodedUnits.clearPopulatedObjects();
@@ -330,7 +349,6 @@ public class VideoDepacketizer {
 			
 			// Unexpected start of next frame before terminating the last
 			waitingForNextSuccessfulFrame = true;
-			waitingForIdrFrame = true;
 			
 			// Clear the old state and wait for an IDR
 			dropAvcFrameState();

@@ -4,6 +4,8 @@ import java.net.InetAddress;
 
 import javax.crypto.SecretKey;
 
+import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+
 public class ConnectionContext {
 	// Gen 3 servers are 2.1.1 - 2.2.1
 	public static final int SERVER_GENERATION_3 = 3;
@@ -13,6 +15,7 @@ public class ConnectionContext {
 	
 	public InetAddress serverAddress;
 	public StreamConfiguration streamConfig;
+	public VideoDecoderRenderer videoDecoderRenderer;
 	public NvConnectionListener connListener;
 	public SecretKey riKey;
 	public int riKeyId;

@@ -14,6 +14,10 @@ public abstract class VideoDecoderRenderer {
 	// Allows decode units to be submitted directly from the receive thread
 	public static final int CAPABILITY_DIRECT_SUBMIT = 0x2;
 	
+	// !!! EXPERIMENTAL !!!
+	// Allows reference frame invalidation to be use to recover from packet loss
+	public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION = 0x4;
+	
 	public int getCapabilities() {
 		return 0;
 	}

@@ -118,8 +118,7 @@ public class VideoStream {
 	public boolean setupDecoderRenderer(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) {
 		this.decRend = decRend;
 		
-		depacketizer = new VideoDepacketizer(avConnListener, context.streamConfig.getMaxPacketSize(),
-				decRend != null && (decRend.getCapabilities() & VideoDecoderRenderer.CAPABILITY_DIRECT_SUBMIT) != 0);
+		depacketizer = new VideoDepacketizer(context, avConnListener, context.streamConfig.getMaxPacketSize());
 		
 		if (decRend != null) {
 			try {
@@ -143,10 +142,10 @@ public class VideoStream {
 		return true;
 	}
 
-	public boolean startVideoStream(VideoDecoderRenderer decRend, Object renderTarget, int drFlags) throws IOException
+	public boolean startVideoStream(Object renderTarget, int drFlags) throws IOException
 	{
 		// Setup the decoder and renderer
-		if (!setupDecoderRenderer(decRend, renderTarget, drFlags)) {
+		if (!setupDecoderRenderer(context.videoDecoderRenderer, renderTarget, drFlags)) {
 			// Nothing to cleanup here
 			throw new IOException("Video decoder failed to initialize. Please restart your device and try again.");
 		}
@@ -154,7 +153,7 @@ public class VideoStream {
 		// Open RTP sockets and start session
 		setupRtpSession();
 		
-		if (decRend != null) {
+		if (this.decRend != null) {
 			// Start the receive thread early to avoid missing
 			// early packets that are part of the IDR frame
 			startReceiveThread();

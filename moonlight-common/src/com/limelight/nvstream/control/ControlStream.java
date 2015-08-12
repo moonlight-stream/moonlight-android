@@ -12,6 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.limelight.LimeLog;
 import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.av.ConnectionStatusListener;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 
 public class ControlStream implements ConnectionStatusListener {
 	
@@ -101,6 +102,7 @@ public class ControlStream implements ConnectionStatusListener {
 	private Thread resyncThread;
 	private LinkedBlockingQueue<int[]> invalidReferenceFrameTuples = new LinkedBlockingQueue<int[]>();
 	private boolean aborting = false;
+	private boolean forceIdrRequest;
 	
 	private final short[] packetTypes;
 	private final short[] payloadLengths;
@@ -123,6 +125,11 @@ public class ControlStream implements ConnectionStatusListener {
 			payloadLengths = payloadLengthsGen4;
 			preconstructedPayloads = precontructedPayloadsGen4;
 			break;
+		}
+		
+		if (context.videoDecoderRenderer != null) {
+			forceIdrRequest = (context.videoDecoderRenderer.getCapabilities() &
+					VideoDecoderRenderer.CAPABILITY_REFERENCE_FRAME_INVALIDATION) == 0;
 		}
 	}
 	
@@ -239,6 +246,7 @@ public class ControlStream implements ConnectionStatusListener {
 				while (!isInterrupted())
 				{
 					int[] tuple;
+					boolean idrFrameRequired = false;
 					
 					// Wait for a tuple
 					try {
@@ -248,29 +256,46 @@ public class ControlStream implements ConnectionStatusListener {
 						return;
 					}
 					
-					// Aggregate all lost frames into one range
+					// Check for the magic IDR frame tuple
 					int[] lastTuple = null;
-					for (;;) {
-						int[] nextTuple = lastTuple = invalidReferenceFrameTuples.poll();
-						if (nextTuple == null) {
-							break;
+					if (tuple[0] != 0 || tuple[1] != 0) {
+						// Aggregate all lost frames into one range
+						for (;;) {
+							int[] nextTuple = lastTuple = invalidReferenceFrameTuples.poll();
+							if (nextTuple == null) {
+								break;
+							}
+							
+							// Check if this tuple has IDR frame magic values
+							if (nextTuple[0] == 0 && nextTuple[1] == 0) {
+								// We will need an IDR frame now, but we won't break out
+								// of the loop because we want to dequeue all pending requests
+								idrFrameRequired = true;
+							}
+							
+							lastTuple = nextTuple;
 						}
-						
-						lastTuple = nextTuple;
 					}
-					
-					// The server expects this to be the firstLostFrame + 1
-					tuple[0]++;
-					
-					// Update the end of the range to the latest tuple
-					if (lastTuple != null) {
-						tuple[1] = lastTuple[1];
+					else {
+						// We must require an IDR frame
+						idrFrameRequired = true;
 					}
 					
 					try {
-						LimeLog.warning("Invalidating reference frames from "+tuple[0]+" to "+tuple[1]);
-						ControlStream.this.invalidateReferenceFrames(tuple[0], tuple[1]);
-						LimeLog.warning("Frames invalidated");
+						if (forceIdrRequest || idrFrameRequired) {
+							requestIdrFrame();
+						}
+						else {
+							// The server expects this to be the firstLostFrame + 1
+							tuple[0]++;
+							
+							// Update the end of the range to the latest tuple
+							if (lastTuple != null) {
+								tuple[1] = lastTuple[1];
+							}
+							
+							invalidateReferenceFrames(tuple[0], tuple[1]);
+						}
 					} catch (IOException e) {
 						context.connListener.connectionTerminated(e);
 						return;
@@ -310,9 +335,7 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 	}
 	
-	private void invalidateReferenceFrames(int firstLostFrame, int nextSuccessfulFrame) throws IOException
-	{
-		// We can't handle a real reference frame invalidation yet.
+	private void requestIdrFrame() throws IOException {
 		// On Gen 3, we use the invalidate reference frames trick which works for about 5 hours of streaming at 60 FPS
 		// On Gen 4+, we use the known IDR frame request packet
 		
@@ -333,6 +356,23 @@ public class ControlStream implements ConnectionStatusListener {
 					(short) preconstructedPayloads[IDX_REQUEST_IDR_FRAME].length,
 					preconstructedPayloads[IDX_REQUEST_IDR_FRAME]));
 		}
+		
+		LimeLog.warning("IDR frame request sent");
+	}
+	
+	private void invalidateReferenceFrames(int firstLostFrame, int nextSuccessfulFrame) throws IOException {
+		LimeLog.warning("Invalidating reference frames from "+firstLostFrame+" to "+nextSuccessfulFrame);
+
+		ByteBuffer conf = ByteBuffer.wrap(new byte[payloadLengths[IDX_INVALIDATE_REF_FRAMES]]).order(ByteOrder.LITTLE_ENDIAN);
+		
+		conf.putLong(firstLostFrame);
+		conf.putLong(nextSuccessfulFrame);
+		conf.putLong(0);
+		
+		sendAndGetReply(new NvCtlPacket(packetTypes[IDX_INVALIDATE_REF_FRAMES],
+				payloadLengths[IDX_INVALIDATE_REF_FRAMES], conf.array()));
+		
+		LimeLog.warning("Reference frame invalidation sent");
 	}
 	
 	static class NvCtlPacket {

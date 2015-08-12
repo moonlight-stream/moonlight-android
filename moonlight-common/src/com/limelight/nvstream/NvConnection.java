@@ -41,7 +41,6 @@ public class NvConnection {
 	// Start parameters
 	private int drFlags;
 	private Object videoRenderTarget;
-	private VideoDecoderRenderer videoDecoderRenderer;
 	private AudioRenderer audioRenderer;
 	
 	public NvConnection(String host, String uniqueId, NvConnectionListener listener, StreamConfiguration config, LimelightCryptoProvider cryptoProvider)
@@ -246,7 +245,7 @@ public class NvConnection {
 	private boolean startVideoStream() throws IOException
 	{
 		videoStream = new VideoStream(context, controlStream);
-		return videoStream.startVideoStream(videoDecoderRenderer, videoRenderTarget, drFlags);
+		return videoStream.startVideoStream(videoRenderTarget, drFlags);
 	}
 	
 	private boolean startAudioStream() throws IOException
@@ -329,7 +328,7 @@ public class NvConnection {
 		this.drFlags = drFlags;
 		this.audioRenderer = audioRenderer;
 		this.videoRenderTarget = videoRenderTarget;
-		this.videoDecoderRenderer = videoDecoderRenderer;
+		this.context.videoDecoderRenderer = videoDecoderRenderer;
 		
 		new Thread(new Runnable() {
 			public void run() {

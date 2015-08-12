@@ -22,7 +22,7 @@ public class VideoDepacketizer {
 	// Sequencing state
 	private int lastPacketInStream = -1;
 	private int nextFrameNumber = 1;
-	private int startFrameNumber = 1;
+	private int startFrameNumber = 0;
 	private boolean waitingForNextSuccessfulFrame;
 	private boolean waitingForIdrFrame = true;
 	private long frameStartTime;

@@ -112,8 +112,8 @@
     <orderEntry type="library" exported="" name="jmdns-fixed" level="project" />
     <orderEntry type="library" exported="" name="tinyrtsp" level="project" />
     <orderEntry type="library" exported="" name="limelight-common" level="project" />
-    <orderEntry type="library" exported="" name="okhttp-2.2.0" level="project" />
+    <orderEntry type="library" exported="" name="okhttp-2.4.0" level="project" />
     <orderEntry type="library" exported="" name="jcodec-0.1.9" level="project" />
-    <orderEntry type="library" exported="" name="okio-1.2.0" level="project" />
+    <orderEntry type="library" exported="" name="okio-1.5.0" level="project" />
   </component>
 </module>

@@ -67,8 +67,8 @@ dependencies {
     compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.52'
     compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.52'
 
-    compile group: 'com.squareup.okhttp', name: 'okhttp', version:'2.2.0'
-    compile group: 'com.squareup.okio', name:'okio', version:'1.2.0'
+    compile group: 'com.squareup.okhttp', name: 'okhttp', version:'2.4.0'
+    compile group: 'com.squareup.okio', name:'okio', version:'1.5.0'
 
     compile files('libs/jmdns-fixed.jar')
     compile files('libs/limelight-common.jar')

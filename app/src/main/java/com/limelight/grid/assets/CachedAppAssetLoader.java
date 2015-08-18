@@ -105,7 +105,11 @@ public class CachedAppAssetLoader {
 
                 // If there's a task associated with this load, we should return the bitmap
                 if (task != null) {
-                    return diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
+                    // If the cached bitmap is valid, return it. Otherwise, we'll try the load again
+                    Bitmap bmp = diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
+                    if (bmp != null) {
+                        return bmp;
+                    }
                 }
                 else {
                     // Otherwise it's a background load and we return nothing

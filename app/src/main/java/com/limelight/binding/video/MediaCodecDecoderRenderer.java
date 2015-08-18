@@ -593,8 +593,6 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         int inputIndex = dequeueInputBuffer(true, true);
         ByteBuffer inputBuffer = getEmptyInputBuffer(inputIndex);
 
-        inputBuffer.clear();
-
         // Write the Annex B header
         inputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
 

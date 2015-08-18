@@ -1,6 +1,5 @@
 package com.limelight.nvstream.mdns;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -13,6 +12,7 @@ import java.util.TimerTask;
 
 import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 
 import com.limelight.LimeLog;
@@ -29,11 +29,15 @@ public class MdnsDiscoveryAgent {
 		public void serviceAdded(ServiceEvent event) {
 			LimeLog.info("mDNS: Machine appeared: "+event.getInfo().getName());
 			
-			// This machine is pending resolution until we get the serviceResolved callback
-			pendingResolution.add(event.getInfo().getName());
+			ServiceInfo[] infos = resolver.getServiceInfos(SERVICE_TYPE, event.getInfo().getName(), 500);
+			if (infos == null || infos.length == 0) {
+				// This machine is pending resolution
+				pendingResolution.add(event.getInfo().getName());
+				return;
+			}
 			
-			// We call this to kick the resolver
-			resolver.requestServiceInfo(SERVICE_TYPE, event.getInfo().getName());
+			LimeLog.info("mDNS: Resolved (blocking) with "+infos.length+" service entries");
+			handleResolvedServiceInfo(infos[0]);
 		}
 
 		public void serviceRemoved(ServiceEvent event) {
@@ -52,42 +56,45 @@ public class MdnsDiscoveryAgent {
 		}
 
 		public void serviceResolved(ServiceEvent event) {
-			MdnsComputer computer;
-			
-			LimeLog.info("mDNS: Machine resolved: "+event.getInfo().getName());
-			
-			pendingResolution.remove(event.getInfo().getName());
-			
-			try {
-				computer = parseMdnsResponse(event);
-				if (computer == null) {
-					LimeLog.info("mDNS: Invalid response for machine: "+event.getInfo().getName());
-					return;
-				}
-			} catch (UnsupportedEncodingException e) {
-				// Invalid DNS response
-				LimeLog.info("mDNS: Invalid response for machine: "+event.getInfo().getName());
-				return;
-			}
-			
-			synchronized (computers) {
-				if (computers.put(computer.getAddress(), computer) == null) {
-					// This was a new entry
-					listener.notifyComputerAdded(computer);
-				}
-			}
+			LimeLog.info("mDNS: Machine resolved (callback): "+event.getInfo().getName());
+			handleResolvedServiceInfo(event.getInfo());
 		}
 	};
 	
-	private static MdnsComputer parseMdnsResponse(ServiceEvent event) throws UnsupportedEncodingException {	
-		Inet4Address addrs[] = event.getInfo().getInet4Addresses();
+	private void handleResolvedServiceInfo(ServiceInfo info) {
+		MdnsComputer computer;
+				
+		pendingResolution.remove(info.getName());
+		
+		try {
+			computer = parseServerInfo(info);
+			if (computer == null) {
+				LimeLog.info("mDNS: Invalid response for machine: "+info.getName());
+				return;
+			}
+		} catch (UnsupportedEncodingException e) {
+			// Invalid DNS response
+			LimeLog.info("mDNS: Invalid response for machine: "+info.getName());
+			return;
+		}
+		
+		synchronized (computers) {
+			if (computers.put(computer.getAddress(), computer) == null) {
+				// This was a new entry
+				listener.notifyComputerAdded(computer);
+			}
+		}
+	}
+	
+	private static MdnsComputer parseServerInfo(ServiceInfo info) throws UnsupportedEncodingException {	
+		Inet4Address addrs[] = info.getInet4Addresses();
 		if (addrs.length == 0) {
-			LimeLog.info("Missing addresses");
+			LimeLog.info("mDNS: "+info.getName()+" is missing addresses");
 			return null;
 		}
 		
 		Inet4Address address = addrs[0];
-		String name = event.getInfo().getName();
+		String name = info.getName();
 		
 		return new MdnsComputer(name, address);
 	}
@@ -100,8 +107,6 @@ public class MdnsDiscoveryAgent {
 	
 	public void startDiscovery(final int discoveryIntervalMs) {
 		stop = false;
-		resolver = JmmDNS.Factory.getInstance();
-		resolver.addServiceListener(SERVICE_TYPE, nvstreamListener);
 		
 		final Timer t = new Timer();
 		t.schedule(new TimerTask() {
@@ -113,14 +118,20 @@ public class MdnsDiscoveryAgent {
 						// There will be no further timer invocations now
 						t.cancel();
 						
-						// Close the resolver
 						if (resolver != null) {
-							try {
-								resolver.close();
-							} catch (IOException e) {}
+							resolver.removeServiceListener(SERVICE_TYPE, nvstreamListener);
 							resolver = null;
 						}
 						return;
+					}
+					
+					// Perform initialization
+					if (resolver == null) {
+						resolver = JmmDNS.Factory.getInstance();
+						
+						// This will cause the listener to be invoked for known hosts immediately.
+						// We do this in the timer callback to be off the main thread when this happens.
+						resolver.addServiceListener(SERVICE_TYPE, nvstreamListener);
 					}
 					
 					// Send another mDNS query
@@ -130,7 +141,11 @@ public class MdnsDiscoveryAgent {
 					ArrayList<String> pendingNames = new ArrayList<String>(pendingResolution);
 					for (String name : pendingNames) {
 						LimeLog.info("mDNS: Retrying service resolution for machine: "+name);
-						resolver.requestServiceInfo(SERVICE_TYPE, name);
+						ServiceInfo[] infos = resolver.getServiceInfos(SERVICE_TYPE, name, 500);
+						if (infos != null && infos.length != 0) {
+							LimeLog.info("mDNS: Resolved (retry) with "+infos.length+" service entries");
+							handleResolvedServiceInfo(infos[0]);
+						}
 					}
 				}
 			}

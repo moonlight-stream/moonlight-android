@@ -13,7 +13,6 @@ import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.av.video.VideoDepacketizer;
 
-import android.annotation.TargetApi;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -22,10 +21,11 @@ import android.media.MediaCodec.CodecException;
 import android.os.Build;
 import android.view.SurfaceHolder;
 
-@SuppressWarnings("unused")
 public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 
-    private ByteBuffer[] videoDecoderInputBuffers;
+    // Used on versions < 5.0
+    private ByteBuffer[] legacyInputBuffers;
+
     private MediaCodec videoDecoder;
     private Thread rendererThread;
     private final boolean needsSpsBitstreamFixup, isExynos4;
@@ -46,7 +46,6 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
     private int numPpsIn;
     private int numIframeIn;
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
     public MediaCodecDecoderRenderer() {
         //dumpDecoders();
 
@@ -118,7 +117,6 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         return true;
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void handleDecoderException(Exception e, ByteBuffer buf, int codecFlags) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (e instanceof CodecException) {
@@ -148,7 +146,6 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
     private void startDirectSubmitRendererThread()
     {
         rendererThread = new Thread() {
-            @SuppressWarnings("deprecation")
             @Override
             public void run() {
                 BufferInfo info = new BufferInfo();
@@ -180,9 +177,6 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                         } else {
                             switch (outIndex) {
                                 case MediaCodec.INFO_TRY_AGAIN_LATER:
-                                    break;
-                                case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-                                    LimeLog.info("Output buffers changed");
                                     break;
                                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                                     LimeLog.info("Output format changed");
@@ -217,7 +211,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         queueTime = System.currentTimeMillis();
 
         if (queueTime - startTime >= 20) {
-            LimeLog.warning("Queue input buffer ran long: "+(queueTime - startTime)+" ms");
+            LimeLog.warning("Queue input buffer ran long: " + (queueTime - startTime) + " ms");
         }
 
         return index;
@@ -226,7 +220,6 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
     private void startLegacyRendererThread()
     {
         rendererThread = new Thread() {
-            @SuppressWarnings("deprecation")
             @Override
             public void run() {
                 BufferInfo info = new BufferInfo();
@@ -252,7 +245,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                                     break;
                                 }
 
-                                submitDecodeUnit(du, videoDecoderInputBuffers[inputIndex], inputIndex);
+                                submitDecodeUnit(du, inputIndex);
 
                                 du = null;
                                 inputIndex = -1;
@@ -298,7 +291,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                             LimeLog.warning("Receiving an input buffer took too long: "+(submissionTime - lastDuDequeueTime)+" ms");
                         }
 
-                        submitDecodeUnit(du, videoDecoderInputBuffers[inputIndex], inputIndex);
+                        submitDecodeUnit(du, inputIndex);
 
                         // DU and input buffer have both been consumed
                         du = null;
@@ -338,9 +331,6 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                                         LockSupport.parkNanos(1);
                                     }
                                     break;
-                                case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-                                    LimeLog.info("Output buffers changed");
-                                    break;
                                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                                     LimeLog.info("Output format changed");
                                     LimeLog.info("New output Format: " + videoDecoder.getOutputFormat());
@@ -368,7 +358,9 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         // Start the decoder
         videoDecoder.start();
 
-        videoDecoderInputBuffers = videoDecoder.getInputBuffers();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            legacyInputBuffers = videoDecoder.getInputBuffers();
+        }
 
         if (directSubmit) {
             startDirectSubmitRendererThread();
@@ -409,7 +401,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         for (i = 0; i < 25; i++) {
             try {
                 videoDecoder.queueInputBuffer(inputBufferIndex,
-                        0, length,
+                        offset, length,
                         timestampUs, codecFlags);
                 break;
             } catch (Exception e) {
@@ -423,8 +415,26 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         }
     }
 
+    // Using the new getInputBuffer() API on Lollipop allows
+    // the framework to do some performance optimizations for us
+    private ByteBuffer getEmptyInputBuffer(int inputBufferIndex) {
+        ByteBuffer buf;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            buf = videoDecoder.getInputBuffer(inputBufferIndex);
+        }
+        else {
+            buf = legacyInputBuffers[inputBufferIndex];
+
+            // Clear old input data pre-Lollipop
+            buf.clear();
+        }
+
+        return buf;
+    }
+
     @SuppressWarnings("deprecation")
-    private void submitDecodeUnit(DecodeUnit decodeUnit, ByteBuffer buf, int inputBufferIndex) {
+    private void submitDecodeUnit(DecodeUnit decodeUnit, int inputBufferIndex) {
         long timestampUs = System.currentTimeMillis() * 1000;
         if (timestampUs <= lastTimestampUs) {
             // We can't submit multiple buffers with the same timestamp
@@ -433,8 +443,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         }
         lastTimestampUs = timestampUs;
 
-        // Clear old input data
-        buf.clear();
+        ByteBuffer buf = getEmptyInputBuffer(inputBufferIndex);
 
         int codecFlags = 0;
         int decodeUnitFlags = decodeUnit.getFlags();
@@ -582,7 +591,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 
     private void replaySps() {
         int inputIndex = dequeueInputBuffer(true, true);
-        ByteBuffer inputBuffer = videoDecoderInputBuffers[inputIndex];
+        ByteBuffer inputBuffer = getEmptyInputBuffer(inputIndex);
 
         inputBuffer.clear();
 
@@ -666,7 +675,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         }
 
         if (inputIndex >= 0) {
-            submitDecodeUnit(du, videoDecoderInputBuffers[inputIndex], inputIndex);
+            submitDecodeUnit(du, inputIndex);
         }
     }
 

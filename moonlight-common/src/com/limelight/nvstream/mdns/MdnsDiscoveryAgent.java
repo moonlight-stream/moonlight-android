@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,16 +11,16 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.jmdns.JmDNS;
-import com.jmdns.ServiceEvent;
-import com.jmdns.ServiceListener;
+import javax.jmdns.JmmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceListener;
 
 import com.limelight.LimeLog;
 
 public class MdnsDiscoveryAgent {
 	public static final String SERVICE_TYPE = "_nvstream._tcp.local.";
 	
-	private JmDNS resolver;
+	private JmmDNS resolver;
 	private HashMap<InetAddress, MdnsComputer> computers;
 	private MdnsDiscoveryListener listener;
 	private HashSet<String> pendingResolution;
@@ -34,7 +33,7 @@ public class MdnsDiscoveryAgent {
 			pendingResolution.add(event.getInfo().getName());
 			
 			// We call this to kick the resolver
-			resolver.getServiceInfo(SERVICE_TYPE, event.getInfo().getName());
+			resolver.requestServiceInfo(SERVICE_TYPE, event.getInfo().getName());
 		}
 
 		public void serviceRemoved(ServiceEvent event) {
@@ -101,43 +100,37 @@ public class MdnsDiscoveryAgent {
 	
 	public void startDiscovery(final int discoveryIntervalMs) {
 		stop = false;
+		resolver = JmmDNS.Factory.getInstance();
+		resolver.addServiceListener(SERVICE_TYPE, nvstreamListener);
+		
 		final Timer t = new Timer();
 		t.schedule(new TimerTask() {
 			@Override
 			public void run() {
 				synchronized (MdnsDiscoveryAgent.this) {
-					// Close the old resolver
-					if (resolver != null) {
-						try {
-							resolver.close();
-						} catch (IOException e) {}
-						resolver = null;
-					}
-					
 					// Stop if requested
 					if (stop) {
 						// There will be no further timer invocations now
 						t.cancel();
-						return;
-					}
-					
-					// Create a new resolver
-					try {
-						resolver = JmDNS.create(new InetSocketAddress(0).getAddress());
-					} catch (IOException e) {
-						// This is fine; the network is probably not up
+						
+						// Close the resolver
+						if (resolver != null) {
+							try {
+								resolver.close();
+							} catch (IOException e) {}
+							resolver = null;
+						}
 						return;
 					}
 					
 					// Send another mDNS query
-					resolver.addServiceListener(SERVICE_TYPE, nvstreamListener);
 					resolver.requestServiceInfo(SERVICE_TYPE, null, discoveryIntervalMs);
 
 					// Run service resolution again for pending machines
 					ArrayList<String> pendingNames = new ArrayList<String>(pendingResolution);
 					for (String name : pendingNames) {
 						LimeLog.info("mDNS: Retrying service resolution for machine: "+name);
-						resolver.getServiceInfo(SERVICE_TYPE, name);
+						resolver.requestServiceInfo(SERVICE_TYPE, name);
 					}
 				}
 			}

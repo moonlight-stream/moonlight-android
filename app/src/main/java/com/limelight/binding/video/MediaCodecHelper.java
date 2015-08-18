@@ -83,6 +83,10 @@ public class MediaCodecHelper {
 		
 		return false;
 	}
+
+	public static long getMonotonicMillis() {
+		return System.nanoTime() / 1000000L;
+	}
 	
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static boolean decoderSupportsAdaptivePlayback(String decoderName, MediaCodecInfo decoderInfo) {

@@ -177,10 +177,10 @@ public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
         rendererThread = new Thread() {
             @Override
             public void run() {
-                long nextFrameTime = System.currentTimeMillis();
+                long nextFrameTime = MediaCodecHelper.getMonotonicMillis();
                 while (!isInterrupted())
                 {
-                    long diff = nextFrameTime - System.currentTimeMillis();
+                    long diff = nextFrameTime - MediaCodecHelper.getMonotonicMillis();
 
                     if (diff > WAIT_CEILING_MS) {
                         try {
@@ -203,7 +203,7 @@ public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
     }
 
     private long computePresentationTimeMs(int frameRate) {
-        return System.currentTimeMillis() + (1000 / frameRate);
+        return MediaCodecHelper.getMonotonicMillis() + (1000 / frameRate);
     }
 
     @Override
@@ -251,7 +251,7 @@ public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
 
         boolean success = (AvcDecoder.decode(data, 0, decodeUnit.getDataLength()) == 0);
         if (success) {
-            long timeAfterDecode = System.currentTimeMillis();
+            long timeAfterDecode = MediaCodecHelper.getMonotonicMillis();
 
             // Add delta time to the totals (excluding probable outliers)
             long delta = timeAfterDecode - decodeUnit.getReceiveTimestamp();

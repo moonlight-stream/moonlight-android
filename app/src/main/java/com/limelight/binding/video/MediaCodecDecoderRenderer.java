@@ -169,7 +169,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                             videoDecoder.releaseOutputBuffer(lastIndex, true);
 
                             // Add delta time to the totals (excluding probable outliers)
-                            long delta = System.currentTimeMillis() - (presentationTimeUs / 1000);
+                            long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
                             if (delta >= 0 && delta < 1000) {
                                 decoderTimeMs += delta;
                                 totalTimeMs += delta;
@@ -201,14 +201,14 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         int index;
         long startTime, queueTime;
 
-        startTime = System.currentTimeMillis();
+        startTime = MediaCodecHelper.getMonotonicMillis();
 
         index = videoDecoder.dequeueInputBuffer(wait ? (infiniteWait ? -1 : 3000) : 0);
         if (index < 0) {
             return index;
         }
 
-        queueTime = System.currentTimeMillis();
+        queueTime = MediaCodecHelper.getMonotonicMillis();
 
         if (queueTime - startTime >= 20) {
             LimeLog.warning("Queue input buffer ran long: " + (queueTime - startTime) + " ms");
@@ -236,7 +236,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                                 inputIndex = dequeueInputBuffer(false, false);
                                 du = depacketizer.pollNextDecodeUnit();
                                 if (du != null) {
-                                    lastDuDequeueTime = System.currentTimeMillis();
+                                    lastDuDequeueTime = MediaCodecHelper.getMonotonicMillis();
                                     notifyDuReceived(du);
                                 }
 
@@ -278,7 +278,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                     if (du == null) {
                         du = depacketizer.pollNextDecodeUnit();
                         if (du != null) {
-                            lastDuDequeueTime = System.currentTimeMillis();
+                            lastDuDequeueTime = MediaCodecHelper.getMonotonicMillis();
                             notifyDuReceived(du);
                         }
                     }
@@ -286,7 +286,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                     // If we've got both a decode unit and an input buffer, we'll
                     // submit now. Otherwise, we wait until we have one.
                     if (du != null && inputIndex >= 0) {
-                        long submissionTime = System.currentTimeMillis();
+                        long submissionTime = MediaCodecHelper.getMonotonicMillis();
                         if (submissionTime - lastDuDequeueTime >= 20) {
                             LimeLog.warning("Receiving an input buffer took too long: "+(submissionTime - lastDuDequeueTime)+" ms");
                         }
@@ -317,7 +317,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                             videoDecoder.releaseOutputBuffer(lastIndex, true);
 
                             // Add delta time to the totals (excluding probable outliers)
-                            long delta = System.currentTimeMillis()-(presentationTimeUs/1000);
+                            long delta = MediaCodecHelper.getMonotonicMillis()-(presentationTimeUs/1000);
                             if (delta >= 0 && delta < 1000) {
                                 decoderTimeMs += delta;
                                 totalTimeMs += delta;
@@ -435,7 +435,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 
     @SuppressWarnings("deprecation")
     private void submitDecodeUnit(DecodeUnit decodeUnit, int inputBufferIndex) {
-        long timestampUs = System.currentTimeMillis() * 1000;
+        long timestampUs = System.nanoTime() / 1000;
         if (timestampUs <= lastTimestampUs) {
             // We can't submit multiple buffers with the same timestamp
             // so bump it up by one before queuing
@@ -608,7 +608,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         // Queue the new SPS
         queueInputBuffer(inputIndex,
                 0, inputBuffer.position(),
-                System.currentTimeMillis() * 1000,
+                System.nanoTime() / 1000,
                 MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
 
         LimeLog.info("SPS replay complete");
@@ -649,7 +649,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
     }
 
     private void notifyDuReceived(DecodeUnit du) {
-        long currentTime = System.currentTimeMillis();
+        long currentTime = MediaCodecHelper.getMonotonicMillis();
         long delta = currentTime-du.getReceiveTimestamp();
         if (delta >= 0 && delta < 1000) {
             totalTimeMs += currentTime-du.getReceiveTimestamp();

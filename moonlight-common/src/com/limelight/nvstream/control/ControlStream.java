@@ -13,6 +13,7 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.utils.TimeHelper;
 
 public class ControlStream implements ConnectionStatusListener {
 	
@@ -538,17 +539,17 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 		
 		// Reset the loss count if it's been too long
-		if (System.currentTimeMillis() > LOSS_PERIOD_MS + lossTimestamp) {
+		if (TimeHelper.getMonotonicMillis() > LOSS_PERIOD_MS + lossTimestamp) {
 			lossCount = 0;
-			lossTimestamp = System.currentTimeMillis();
+			lossTimestamp = TimeHelper.getMonotonicMillis();
 		}
 		
 		// Count this loss event
 		if (++lossCount == MAX_LOSS_COUNT_IN_PERIOD) {
 			// Reset the loss event count if it's been too long
-			if (System.currentTimeMillis() > LOSS_EVENT_TIME_THRESHOLD_MS + lossEventTimestamp) {
+			if (TimeHelper.getMonotonicMillis() > LOSS_EVENT_TIME_THRESHOLD_MS + lossEventTimestamp) {
 				lossEventCount = 0;
-				lossEventTimestamp = System.currentTimeMillis();
+				lossEventTimestamp = TimeHelper.getMonotonicMillis();
 			}
 			
 			if (++lossEventCount == LOSS_EVENTS_TO_WARN) {

@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import com.limelight.LimeLog;
+import com.limelight.utils.TimeHelper;
 
 public class RtpReorderQueue {
 	private final int maxSize;
@@ -59,7 +60,7 @@ public class RtpReorderQueue {
 		
 		RtpQueueEntry entry = new RtpQueueEntry();
 		entry.packet = packet;
-		entry.queueTime = System.currentTimeMillis();
+		entry.queueTime = TimeHelper.getMonotonicMillis();
 		entry.sequenceNumber = seq;
 		
 		if (oldestQueuedTime == Long.MAX_VALUE) {
@@ -118,8 +119,8 @@ public class RtpReorderQueue {
 		boolean needsUpdate = false;
 		
 		// Check that the queue's time constraint is satisfied
-		if (System.currentTimeMillis() - oldestQueuedTime > maxQueueTime) {
-			LimeLog.info("Discarding RTP packet queued for too long");
+		if (TimeHelper.getMonotonicMillis() - oldestQueuedTime > maxQueueTime) {
+			LimeLog.info("Discarding RTP packet queued for too long: "+(TimeHelper.getMonotonicMillis() - oldestQueuedTime));
 			queue.remove(oldestQueuedEntry);
 			needsUpdate = true;
 		}

@@ -9,6 +9,7 @@ import com.limelight.nvstream.av.SequenceHelper;
 import com.limelight.nvstream.av.buffer.AbstractPopulatedBufferList;
 import com.limelight.nvstream.av.buffer.AtomicPopulatedBufferList;
 import com.limelight.nvstream.av.buffer.UnsynchronizedPopulatedBufferList;
+import com.limelight.utils.TimeHelper;
 
 public class VideoDepacketizer {
 	
@@ -301,7 +302,7 @@ public class VideoDepacketizer {
 	{
 		if (firstPacket) {
 			// Setup state for the new frame
-			frameStartTime = System.currentTimeMillis();
+			frameStartTime = TimeHelper.getMonotonicMillis();
 		}
 		
 		// Add the payload data to the chain
@@ -426,7 +427,7 @@ public class VideoDepacketizer {
 				&& cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x67)
 		{
 			// The slow path doesn't update the frame start time by itself
-			frameStartTime = System.currentTimeMillis();
+			frameStartTime = TimeHelper.getMonotonicMillis();
 			
 			// SPS and PPS prefix is padded between NALs, so we must decode it with the slow path
 			addInputDataSlow(packet, cachedReassemblyDesc);

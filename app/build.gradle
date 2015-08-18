@@ -70,7 +70,7 @@ dependencies {
     compile group: 'com.squareup.okhttp', name: 'okhttp', version:'2.4.0'
     compile group: 'com.squareup.okio', name:'okio', version:'1.5.0'
 
-    compile files('libs/jmdns-fixed.jar')
+    compile files('libs/jmdns-3.4.2.jar')
     compile files('libs/limelight-common.jar')
     compile files('libs/tinyrtsp.jar')
 }

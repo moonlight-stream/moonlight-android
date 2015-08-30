@@ -19,7 +19,7 @@ Check our [wiki](https://github.com/moonlight-stream/moonlight-android/wiki) for
 ##Installation
 
 * Download and install Moonlight for Android from
-[Google Play](https://play.google.com/store/apps/details?id=com.limelight)
+[Google Play](https://play.google.com/store/apps/details?id=com.limelight), [Amazon App Store](http://www.amazon.com/gp/product/B00JK4MFN2), or directly from the [releases page](https://github.com/moonlight-stream/moonlight-android/releases)
 * Download [GeForce Experience](http://www.geforce.com/geforce-experience) and install on your Windows PC
 
 ##Requirements

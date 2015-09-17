@@ -30,6 +30,14 @@ public class CacheHelper {
         return f;
     }
 
+    public static long getFileSize(File root, String... path) {
+        return openPath(false, root, path).length();
+    }
+
+    public static boolean deleteCacheFile(File root, String... path) {
+        return openPath(false, root, path).delete();
+    }
+
     public static boolean cacheFileExists(File root, String... path) {
         return openPath(false, root, path).exists();
     }
@@ -42,11 +50,15 @@ public class CacheHelper {
         return new BufferedOutputStream(new FileOutputStream(openPath(true, root, path)));
     }
 
-    public static void writeInputStreamToOutputStream(InputStream in, OutputStream out) throws IOException {
+    public static void writeInputStreamToOutputStream(InputStream in, OutputStream out, long maxLength) throws IOException {
         byte[] buf = new byte[4096];
         int bytesRead;
 
         while ((bytesRead = in.read(buf)) != -1) {
+            maxLength -= bytesRead;
+            if (maxLength <= 0) {
+                throw new IOException("Stream exceeded max size");
+            }
             out.write(buf, 0, bytesRead);
         }
     }

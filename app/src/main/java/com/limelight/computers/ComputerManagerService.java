@@ -465,11 +465,11 @@ public class ComputerManagerService extends Service {
             LimeLog.info("Starting fast poll for "+details.name+" ("+details.localIp+", "+details.remoteIp+")");
             reachability = fastPollPc(details.localIp, details.remoteIp);
             LimeLog.info("Fast poll for "+details.name+" returned "+reachability.toString());
-        }
 
-        // If no connection could be established to either IP address, there's nothing we can do
-        if (reachability == ComputerDetails.Reachability.OFFLINE) {
-            return false;
+            // If no connection could be established to either IP address, there's nothing we can do
+            if (reachability == ComputerDetails.Reachability.OFFLINE) {
+                return false;
+            }
         }
 
         boolean localFirst = (reachability == ComputerDetails.Reachability.LOCAL);
@@ -481,6 +481,7 @@ public class ComputerManagerService extends Service {
             polledDetails = tryPollIp(details, details.remoteIp);
         }
 
+        InetAddress reachableAddr = null;
         if (polledDetails == null && !details.localIp.equals(details.remoteIp)) {
             // Failed, so let's try the fallback
             if (!localFirst) {
@@ -490,20 +491,38 @@ public class ComputerManagerService extends Service {
                 polledDetails = tryPollIp(details, details.remoteIp);
             }
 
-            // The fallback poll worked
             if (polledDetails != null) {
-                polledDetails.reachability = !localFirst ? ComputerDetails.Reachability.LOCAL :
-                    ComputerDetails.Reachability.REMOTE;
+                // The fallback poll worked
+                reachableAddr = !localFirst ? details.localIp : details.remoteIp;
             }
         }
         else if (polledDetails != null) {
-            polledDetails.reachability = localFirst ? ComputerDetails.Reachability.LOCAL :
-                ComputerDetails.Reachability.REMOTE;
+            reachableAddr = localFirst ? details.localIp : details.remoteIp;
         }
 
         // Machine was unreachable both tries
         if (polledDetails == null) {
             return false;
+        }
+
+        // Determine the machine's reachability based on the address we reached it on
+        if (polledDetails.remoteIp.equals(reachableAddr)) {
+            polledDetails.reachability = ComputerDetails.Reachability.REMOTE;
+        }
+        else if (polledDetails.localIp.equals(reachableAddr)) {
+            polledDetails.reachability = ComputerDetails.Reachability.LOCAL;
+        }
+        else {
+            // Neither IP address reported in the serverinfo response was the one we used.
+            // We'll do a fast poll now to see if the machine is reachable via either of
+            // these.
+            polledDetails.reachability = fastPollPc(polledDetails.localIp, polledDetails.remoteIp);
+            LimeLog.info("Fast poll for reachability returned "+reachability.toString());
+            if (polledDetails.reachability == ComputerDetails.Reachability.OFFLINE) {
+                // Neither of those seem to work, so we'll hold onto the address that did work
+                polledDetails.localIp = reachableAddr;
+                polledDetails.reachability = ComputerDetails.Reachability.LOCAL;
+            }
         }
 
         // Save the old MAC address

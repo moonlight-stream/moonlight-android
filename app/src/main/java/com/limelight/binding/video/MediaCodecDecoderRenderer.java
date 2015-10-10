@@ -499,12 +499,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                 // Some devices don't like these so we remove them here.
                 sps.vuiParams.video_signal_type_present_flag = false;
                 sps.vuiParams.colour_description_present_flag = false;
-                sps.vuiParams.colour_primaries = 2;
-                sps.vuiParams.transfer_characteristics = 2;
-                sps.vuiParams.matrix_coefficients = 2;
                 sps.vuiParams.chroma_loc_info_present_flag = false;
-                sps.vuiParams.chroma_sample_loc_type_bottom_field = 0;
-                sps.vuiParams.chroma_sample_loc_type_top_field = 0;
 
                 if (needsSpsBitstreamFixup || isExynos4) {
                     // The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
@@ -704,6 +699,8 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
             str += "Initial video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "In stats: "+renderer.numSpsIn+", "+renderer.numPpsIn+", "+renderer.numIframeIn+"\n";
             str += "Total frames: "+renderer.totalFrames+"\n";
+            str += "Average end-to-end client latency: "+getAverageEndToEndLatency()+"ms\n";
+            str += "Average hardware decoder latency: "+getAverageDecoderLatency()+"ms\n";
 
             if (currentBuffer != null) {
                 str += "Current buffer: ";

@@ -41,9 +41,7 @@ public class DiskAssetLoader {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = sampleSize;
             bmp = BitmapFactory.decodeStream(in, null, options);
-        } catch (FileNotFoundException ignored) {
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         } finally {
             if (in != null) {
                 try {

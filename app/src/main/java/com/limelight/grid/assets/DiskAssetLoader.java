@@ -40,6 +40,7 @@ public class DiskAssetLoader {
             in = CacheHelper.openCacheFileForInput(cacheDir, "boxart", tuple.computer.uuid.toString(), tuple.app.getAppId() + ".png");
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = sampleSize;
+            options.inPreferredConfig = Bitmap.Config.RGB_565;
             bmp = BitmapFactory.decodeStream(in, null, options);
         } catch (IOException ignored) {
         } finally {

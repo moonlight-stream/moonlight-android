@@ -368,6 +368,11 @@ public class ComputerManagerService extends Service {
     }
 
     private ComputerDetails tryPollIp(ComputerDetails details, InetAddress ipAddr) {
+        // Fast poll this address first to determine if we can connect at the TCP layer
+        if (!fastPollIp(ipAddr)) {
+            return null;
+        }
+
         try {
             NvHTTP http = new NvHTTP(ipAddr, idManager.getUniqueId(),
                     null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));

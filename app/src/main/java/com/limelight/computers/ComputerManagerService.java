@@ -451,7 +451,7 @@ public class ComputerManagerService extends Service {
         return ComputerDetails.Reachability.OFFLINE;
     }
 
-    private boolean pollComputer(ComputerDetails details) throws InterruptedException {
+    private ReachabilityTuple pollForReachability(ComputerDetails details) throws InterruptedException {
         ComputerDetails polledDetails;
         ComputerDetails.Reachability reachability;
 
@@ -468,7 +468,7 @@ public class ComputerManagerService extends Service {
 
             // If no connection could be established to either IP address, there's nothing we can do
             if (reachability == ComputerDetails.Reachability.OFFLINE) {
-                return false;
+                return null;
             }
         }
 
@@ -500,12 +500,10 @@ public class ComputerManagerService extends Service {
             reachableAddr = localFirst ? details.localIp : details.remoteIp;
         }
 
-        // Machine was unreachable both tries
-        if (polledDetails == null) {
-            return false;
+        if (reachableAddr == null) {
+            return null;
         }
 
-        // Determine the machine's reachability based on the address we reached it on
         if (polledDetails.remoteIp.equals(reachableAddr)) {
             polledDetails.reachability = ComputerDetails.Reachability.REMOTE;
         }
@@ -513,15 +511,31 @@ public class ComputerManagerService extends Service {
             polledDetails.reachability = ComputerDetails.Reachability.LOCAL;
         }
         else {
+            polledDetails.reachability = ComputerDetails.Reachability.UNKNOWN;
+        }
+
+        return new ReachabilityTuple(polledDetails, reachableAddr);
+    }
+
+    private boolean pollComputer(ComputerDetails details) throws InterruptedException {
+        ReachabilityTuple initialReachTuple = pollForReachability(details);
+        if (initialReachTuple == null) {
+            return false;
+        }
+
+        if (initialReachTuple.computer.reachability == ComputerDetails.Reachability.UNKNOWN) {
             // Neither IP address reported in the serverinfo response was the one we used.
-            // We'll do a fast poll now to see if the machine is reachable via either of
-            // these.
-            polledDetails.reachability = fastPollPc(polledDetails.localIp, polledDetails.remoteIp);
-            LimeLog.info("Fast poll for reachability returned "+reachability.toString());
-            if (polledDetails.reachability == ComputerDetails.Reachability.OFFLINE) {
+            // Poll again to see if we can contact this machine on either of its reported addresses.
+            ReachabilityTuple confirmationReachTuple = pollForReachability(initialReachTuple.computer);
+            if (confirmationReachTuple == null) {
                 // Neither of those seem to work, so we'll hold onto the address that did work
-                polledDetails.localIp = reachableAddr;
-                polledDetails.reachability = ComputerDetails.Reachability.LOCAL;
+                initialReachTuple.computer.localIp = initialReachTuple.reachableAddress;
+                initialReachTuple.computer.reachability = ComputerDetails.Reachability.LOCAL;
+            }
+            else {
+                // We got it on one of the returned addresses; replace the original reach tuple
+                // with the new one
+                initialReachTuple = confirmationReachTuple;
             }
         }
 
@@ -529,7 +543,7 @@ public class ComputerManagerService extends Service {
         String savedMacAddress = details.macAddress;
 
         // If we got here, it's reachable
-        details.update(polledDetails);
+        details.update(initialReachTuple.computer);
 
         // If the new MAC address is empty, restore the old one (workaround for GFE bug)
         if (details.macAddress.equals("00:00:00:00:00:00") && savedMacAddress != null) {
@@ -703,5 +717,15 @@ class PollingTuple {
     public PollingTuple(ComputerDetails computer, Thread thread) {
         this.computer = computer;
         this.thread = thread;
+    }
+}
+
+class ReachabilityTuple {
+    public final InetAddress reachableAddress;
+    public final ComputerDetails computer;
+
+    public ReachabilityTuple(ComputerDetails computer, InetAddress reachableAddress) {
+        this.computer = computer;
+        this.reachableAddress = reachableAddress;
     }
 }

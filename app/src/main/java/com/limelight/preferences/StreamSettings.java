@@ -16,14 +16,17 @@ import com.limelight.utils.UiHelper;
 import java.util.Locale;
 
 public class StreamSettings extends Activity {
+    private PreferenceConfiguration previousPrefs;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        String locale = PreferenceConfiguration.readPreferences(this).language;
-        if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
+        previousPrefs = PreferenceConfiguration.readPreferences(this);
+
+        if (!previousPrefs.language.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
             Configuration config = new Configuration(getResources().getConfiguration());
-            config.locale = new Locale(locale);
+            config.locale = new Locale(previousPrefs.language);
             getResources().updateConfiguration(config, getResources().getDisplayMetrics());
         }
 
@@ -39,10 +42,16 @@ public class StreamSettings extends Activity {
     public void onBackPressed() {
         finish();
 
-        // Restart the PC view to apply UI changes
-        Intent intent = new Intent(this, PcView.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent, null);
+        // Check for changes that require a UI reload to take effect
+        PreferenceConfiguration newPrefs = PreferenceConfiguration.readPreferences(this);
+        if (newPrefs.listMode != previousPrefs.listMode ||
+                newPrefs.smallIconMode != previousPrefs.smallIconMode ||
+                !newPrefs.language.equals(previousPrefs.language)) {
+            // Restart the PC view to apply UI changes
+            Intent intent = new Intent(this, PcView.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent, null);
+        }
     }
 
     public static class SettingsFragment extends PreferenceFragment {

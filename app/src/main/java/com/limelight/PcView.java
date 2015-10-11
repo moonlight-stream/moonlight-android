@@ -241,13 +241,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
-        if (computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
-            startComputerUpdates();
-            return;
-        }
-        
+
         // Inflate the context menu
-        if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
+        if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE ||
+            computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
             menu.add(Menu.NONE, WOL_ID, 1, getResources().getString(R.string.pcview_menu_send_wol));
             menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
         }
@@ -378,7 +375,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     private void doWakeOnLan(final ComputerDetails computer) {
-        if (computer.reachability != ComputerDetails.Reachability.OFFLINE) {
+        if (computer.state == ComputerDetails.State.ONLINE) {
             Toast.makeText(PcView.this, getResources().getString(R.string.wol_pc_online), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -614,10 +611,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
                                     long id) {
                 ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
-                if (computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
-                    // Do nothing
-                } else if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
-                    // Open the context menu if a PC is offline
+                if (computer.details.reachability == ComputerDetails.Reachability.UNKNOWN ||
+                    computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
+                    // Open the context menu if a PC is offline or refreshing
                     openContextMenu(arg1);
                 } else if (computer.details.pairState != PairState.PAIRED) {
                     // Pair an unpaired machine by default

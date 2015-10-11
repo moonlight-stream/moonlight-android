@@ -535,6 +535,25 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                     sps.vuiParams.bitstreamRestriction = null;
                 }
 
+                // Set constraint flags 4 & 5 to make this Constrained High Profile
+                // which allows the decoder to assume there will be no B-frames and
+                // reduce delay and buffering accordingly.
+                //
+                // This profile is fairly new (standardized in H264 revision 2012-06) and
+                // it's known that at least some devices don't like these previously unused
+                // constraints being set. To minimize the chance of interfering with old devices,
+                // I'm only setting these on KitKat or higher. It's an arbitrary limitation and could
+                // change if it causes problems.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    sps.constraint_set_4_flag = true;
+                    sps.constraint_set_5_flag = true;
+                }
+                else {
+                    // Force the constraints unset for < 4.4 (some may be set by default)
+                    sps.constraint_set_4_flag = false;
+                    sps.constraint_set_5_flag = false;
+                }
+
                 // If we need to hack this SPS to say we're baseline, do so now
                 if (needsBaselineSpsHack) {
                     LimeLog.info("Hacking SPS to baseline");

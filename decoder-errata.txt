@@ -21,5 +21,8 @@ This file serves to document some of the decoder errata when using MediaCodec ha
 7. Some decoders will not enter low latency mode if adaptive playback is enabled
 	- Affected decoders: Intel decoder in Nexus Player
 
-8. Some decoders will not enter low latency mode if the profile isn't baseline in the first SPS.
-	- Affected decoders: Intel decoder in Nexus Player
+8. Some decoders will not enter low latency mode if the profile isn't baseline in the first SPS because B-frames may be present.
+	- Affected decoders: Intel decoder in Nexus Player (prior to Android 6.0)
+
+9. Some decoders will not enter low latency mode if the profile isn't constrained high profile because B-frames may be present.
+	- Affected decoders: Intel decoder in Nexus Player (after Android 6.0)

@@ -114,7 +114,7 @@
     <orderEntry type="library" exported="" name="limelight-common" level="project" />
     <orderEntry type="library" exported="" name="jmdns-3.4.2" level="project" />
     <orderEntry type="library" exported="" name="okhttp-2.4.0" level="project" />
-    <orderEntry type="library" exported="" name="jcodec-0.1.9" level="project" />
+    <orderEntry type="library" exported="" name="jcodec-0.1.9-patched" level="project" />
     <orderEntry type="library" exported="" name="okio-1.5.0" level="project" />
   </component>
 </module>

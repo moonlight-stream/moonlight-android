@@ -31,6 +31,7 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
     private final boolean needsSpsBitstreamFixup, isExynos4;
     private VideoDepacketizer depacketizer;
     private final boolean adaptivePlayback, directSubmit;
+    private final boolean constrainedHighProfile;
     private int initialWidth, initialHeight;
 
     private boolean needsBaselineSpsHack;
@@ -56,7 +57,8 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         if (decoder == null) {
             // This case is handled later in setup()
             needsSpsBitstreamFixup = isExynos4 =
-            adaptivePlayback = directSubmit = false;
+            adaptivePlayback = directSubmit =
+            constrainedHighProfile = false;
             return;
         }
 
@@ -67,12 +69,16 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(decoderName, decoder);
         needsSpsBitstreamFixup = MediaCodecHelper.decoderNeedsSpsBitstreamRestrictions(decoderName, decoder);
         needsBaselineSpsHack = MediaCodecHelper.decoderNeedsBaselineSpsHack(decoderName, decoder);
+        constrainedHighProfile = MediaCodecHelper.decoderNeedsConstrainedHighProfile(decoderName, decoder);
         isExynos4 = MediaCodecHelper.isExynos4Device();
         if (needsSpsBitstreamFixup) {
             LimeLog.info("Decoder "+decoderName+" needs SPS bitstream restrictions fixup");
         }
         if (needsBaselineSpsHack) {
             LimeLog.info("Decoder "+decoderName+" needs baseline SPS hack");
+        }
+        if (constrainedHighProfile) {
+            LimeLog.info("Decoder "+decoderName+" needs constrained high profile");
         }
         if (isExynos4) {
             LimeLog.info("Decoder "+decoderName+" is on Exynos 4");
@@ -535,21 +541,17 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                     sps.vuiParams.bitstreamRestriction = null;
                 }
 
-                // Set constraint flags 4 & 5 to make this Constrained High Profile
-                // which allows the decoder to assume there will be no B-frames and
-                // reduce delay and buffering accordingly.
-                //
-                // This profile is fairly new (standardized in H264 revision 2012-06) and
-                // it's known that at least some devices don't like these previously unused
-                // constraints being set. To minimize the chance of interfering with old devices,
-                // I'm only setting these on KitKat or higher. It's an arbitrary limitation and could
-                // change if it causes problems.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                // Some devices benefit from setting constraint flags 4 & 5 to make this Constrained
+                // High Profile which allows the decoder to assume there will be no B-frames and
+                // reduce delay and buffering accordingly. Some devices (Marvell, Exynos 4) don't
+                // like it so we only set them on devices that are confirmed to benefit from it.
+                if (constrainedHighProfile) {
+                    LimeLog.info("Setting constraint set flags for constrained high profile");
                     sps.constraint_set_4_flag = true;
                     sps.constraint_set_5_flag = true;
                 }
                 else {
-                    // Force the constraints unset for < 4.4 (some may be set by default)
+                    // Force the constraints unset otherwise (some may be set by default)
                     sps.constraint_set_4_flag = false;
                     sps.constraint_set_5_flag = false;
                 }

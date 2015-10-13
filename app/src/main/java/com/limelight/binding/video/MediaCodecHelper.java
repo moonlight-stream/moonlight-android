@@ -27,6 +27,7 @@ public class MediaCodecHelper {
 	private static final List<String> whitelistedAdaptiveResolutionPrefixes;
     private static final List<String> baselineProfileHackPrefixes;
     private static final List<String> directSubmitPrefixes;
+	private static final List<String> constrainedHighProfilePrefixes;
 
     static {
         directSubmitPrefixes = new LinkedList<String>();
@@ -68,6 +69,9 @@ public class MediaCodecHelper {
 		whitelistedAdaptiveResolutionPrefixes.add("omx.qcom");
 		whitelistedAdaptiveResolutionPrefixes.add("omx.sec");
 		whitelistedAdaptiveResolutionPrefixes.add("omx.TI");
+
+		constrainedHighProfilePrefixes = new LinkedList<String>();
+		constrainedHighProfilePrefixes.add("omx.intel");
 	}
 
 	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
@@ -114,6 +118,10 @@ public class MediaCodecHelper {
 		}*/
 		
 		return false;
+	}
+
+	public static boolean decoderNeedsConstrainedHighProfile(String decoderName, MediaCodecInfo decoderInfo) {
+		return isDecoderInList(constrainedHighProfilePrefixes, decoderName);
 	}
 
     public static boolean decoderCanDirectSubmit(String decoderName, MediaCodecInfo decoderInfo) {

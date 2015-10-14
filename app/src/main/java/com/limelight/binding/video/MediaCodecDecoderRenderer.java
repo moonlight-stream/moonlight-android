@@ -439,6 +439,23 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         return buf;
     }
 
+    private void doProfileSpecificSpsPatching(SeqParameterSet sps) {
+        // Some devices benefit from setting constraint flags 4 & 5 to make this Constrained
+        // High Profile which allows the decoder to assume there will be no B-frames and
+        // reduce delay and buffering accordingly. Some devices (Marvell, Exynos 4) don't
+        // like it so we only set them on devices that are confirmed to benefit from it.
+        if (sps.profile_idc == 100 && constrainedHighProfile) {
+            LimeLog.info("Setting constraint set flags for constrained high profile");
+            sps.constraint_set_4_flag = true;
+            sps.constraint_set_5_flag = true;
+        }
+        else {
+            // Force the constraints unset otherwise (some may be set by default)
+            sps.constraint_set_4_flag = false;
+            sps.constraint_set_5_flag = false;
+        }
+    }
+
     @SuppressWarnings("deprecation")
     private void submitDecodeUnit(DecodeUnit decodeUnit, int inputBufferIndex) {
         long timestampUs = System.nanoTime() / 1000;
@@ -541,27 +558,15 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                     sps.vuiParams.bitstreamRestriction = null;
                 }
 
-                // Some devices benefit from setting constraint flags 4 & 5 to make this Constrained
-                // High Profile which allows the decoder to assume there will be no B-frames and
-                // reduce delay and buffering accordingly. Some devices (Marvell, Exynos 4) don't
-                // like it so we only set them on devices that are confirmed to benefit from it.
-                if (constrainedHighProfile) {
-                    LimeLog.info("Setting constraint set flags for constrained high profile");
-                    sps.constraint_set_4_flag = true;
-                    sps.constraint_set_5_flag = true;
-                }
-                else {
-                    // Force the constraints unset otherwise (some may be set by default)
-                    sps.constraint_set_4_flag = false;
-                    sps.constraint_set_5_flag = false;
-                }
-
                 // If we need to hack this SPS to say we're baseline, do so now
                 if (needsBaselineSpsHack) {
                     LimeLog.info("Hacking SPS to baseline");
                     sps.profile_idc = 66;
                     savedSps = sps;
                 }
+
+                // Patch the SPS constraint flags
+                doProfileSpecificSpsPatching(sps);
 
                 // Write the annex B header
                 buf.put(header.data, header.offset, 5);
@@ -614,6 +619,9 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 
         // Switch the H264 profile back to high
         savedSps.profile_idc = 100;
+
+        // Patch the SPS constraint flags
+        doProfileSpecificSpsPatching(savedSps);
 
         // Write the SPS data
         savedSps.write(inputBuffer);

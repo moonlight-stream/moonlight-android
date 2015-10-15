@@ -53,7 +53,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
-    private boolean freezeUpdates, runningPolling;
+    private boolean freezeUpdates, runningPolling, hasResumed;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder binder) {
             final ComputerManagerService.ComputerManagerBinder localBinder =
@@ -215,6 +215,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     protected void onResume() {
         super.onResume();
 
+        hasResumed = true;
         startComputerUpdates();
     }
 
@@ -222,6 +223,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     protected void onPause() {
         super.onPause();
 
+        hasResumed = false;
         stopComputerUpdates(false);
     }
 
@@ -268,7 +270,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
     @Override
     public void onContextMenuClosed(Menu menu) {
-        startComputerUpdates();
+        // For some reason, this gets called again _after_ onPause() is called on this activity.
+        // We don't want to start computer updates again, so we need to keep track of whether we're paused.
+        if (hasResumed) {
+            startComputerUpdates();
+        }
     }
 
     private void doPair(final ComputerDetails computer) {

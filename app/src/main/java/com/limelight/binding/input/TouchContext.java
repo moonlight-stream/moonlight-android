@@ -97,14 +97,33 @@ public class TouchContext {
                 int deltaY = eventY - lastTouchY;
 
                 // Scale the deltas based on the factors passed to our constructor
-                deltaX = (int)Math.round((double)deltaX * xFactor);
-                deltaY = (int)Math.round((double)deltaY * yFactor);
+                deltaX = (int)Math.round((double)Math.abs(deltaX) * xFactor);
+                deltaY = (int)Math.round((double)Math.abs(deltaY) * yFactor);
+
+                // Fix up the signs
+                if (eventX < lastTouchX) {
+                    deltaX = -deltaX;
+                }
+                if (eventY < lastTouchY) {
+                    deltaY = -deltaY;
+                }
+
+                // If the scaling factor ended up rounding deltas to zero, wait until they are
+                // non-zero to update lastTouch that way devices that report small touch events often
+                // will work correctly
+                if (deltaX != 0) {
+                    lastTouchX = eventX;
+                }
+                if (deltaY != 0) {
+                    lastTouchY = eventY;
+                }
 
                 conn.sendMouseMove((short)deltaX, (short)deltaY);
             }
-
-            lastTouchX = eventX;
-            lastTouchY = eventY;
+            else {
+                lastTouchX = eventX;
+                lastTouchY = eventY;
+            }
         }
 
         return true;

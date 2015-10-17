@@ -90,24 +90,7 @@ public class PreferenceConfiguration {
 
     public static int getDefaultBitrate(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-
-        String str = prefs.getString(RES_FPS_PREF_STRING, DEFAULT_RES_FPS);
-        if (str.equals("720p30")) {
-            return BITRATE_DEFAULT_720_30;
-        }
-        else if (str.equals("720p60")) {
-            return BITRATE_DEFAULT_720_60;
-        }
-        else if (str.equals("1080p30")) {
-            return BITRATE_DEFAULT_1080_30;
-        }
-        else if (str.equals("1080p60")) {
-            return BITRATE_DEFAULT_1080_60;
-        }
-        else {
-            // Should never get here
-            return DEFAULT_BITRATE;
-        }
+        return getDefaultBitrate(prefs.getString(RES_FPS_PREF_STRING, DEFAULT_RES_FPS));
     }
 
     private static int getDecoderValue(Context context) {

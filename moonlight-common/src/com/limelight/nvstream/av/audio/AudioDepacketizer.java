@@ -11,9 +11,7 @@ public class AudioDepacketizer {
 	
 	private static final int DU_LIMIT = 30;
 	private AbstractPopulatedBufferList<ByteBufferDescriptor> decodedUnits;
-	
-	private final int channelCount;
-	
+		
 	// Direct submit state
 	private AudioRenderer directSubmitRenderer;
 	private byte[] directSubmitData;
@@ -24,10 +22,9 @@ public class AudioDepacketizer {
 	// Sequencing state
 	private short lastSequenceNumber;
 	
-	public AudioDepacketizer(AudioRenderer directSubmitRenderer, final int channelCount, final int bufferSizeShorts)
+	public AudioDepacketizer(AudioRenderer directSubmitRenderer, final int bufferSizeShorts)
 	{
 		this.directSubmitRenderer = directSubmitRenderer;
-		this.channelCount = channelCount;
 		if (directSubmitRenderer != null) {
 			this.directSubmitData = new byte[bufferSizeShorts*2];
 		}
@@ -68,9 +65,6 @@ public class AudioDepacketizer {
 		}
 		
 		if (decodeLen > 0) {
-			// Return value of decode is frames (shorts) decoded per channel
-			decodeLen *= 2*channelCount;
-			
 			if (directSubmitRenderer != null) {
 				directSubmitRenderer.playDecodedAudio(directSubmitData, 0, decodeLen);
 			}

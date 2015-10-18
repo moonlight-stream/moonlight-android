@@ -5,6 +5,15 @@ import com.limelight.nvstream.http.NvApp;
 public class StreamConfiguration {
 	public static final int INVALID_APP_ID = 0;
 	
+	public static final int AUDIO_CONFIGURATION_STEREO = 1;
+	public static final int AUDIO_CONFIGURATION_5_1 = 2;
+	
+	private static final int CHANNEL_COUNT_STEREO = 2;
+	private static final int CHANNEL_COUNT_5_1 = 6;
+	
+	private static final int CHANNEL_MASK_STEREO = 0x3;
+	private static final int CHANNEL_MASK_5_1 = 0xFC;
+	
 	private NvApp app;
 	private int width, height;
 	private int refreshRate;
@@ -66,9 +75,16 @@ public class StreamConfiguration {
 			return this;
 		}
 		
-		public StreamConfiguration.Builder setAudioParameters(int audioChannelMask, int audioChannelCount) {
-			config.audioChannelCount = audioChannelCount;
-			config.audioChannelMask = audioChannelMask;
+		public StreamConfiguration.Builder setAudioConfiguration(int audioConfig) {
+			if (audioConfig == AUDIO_CONFIGURATION_STEREO) {
+				config.audioChannelCount = CHANNEL_COUNT_STEREO;
+				config.audioChannelMask = CHANNEL_MASK_STEREO;
+			}
+			else if (audioConfig == AUDIO_CONFIGURATION_5_1) {
+				config.audioChannelCount = CHANNEL_COUNT_5_1;
+				config.audioChannelMask = CHANNEL_MASK_5_1;
+			}
+
 			return this;
 		}
 		
@@ -87,8 +103,8 @@ public class StreamConfiguration {
 		this.maxPacketSize = 1024;
 		this.sops = true;
 		this.enableAdaptiveResolution = false;
-		this.audioChannelCount = 2;
-		this.audioChannelMask = 0x3;
+		this.audioChannelCount = CHANNEL_COUNT_STEREO;
+		this.audioChannelMask = CHANNEL_MASK_STEREO;
 	}
 	
 	public int getWidth() {

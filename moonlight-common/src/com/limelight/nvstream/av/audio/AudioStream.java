@@ -19,7 +19,7 @@ public class AudioStream {
 	private static final int SHORTS_PER_CHANNEL = 240;
 	
 	private static final int RTP_RECV_BUFFER = 64 * 1024;
-	private static final int MAX_PACKET_SIZE = 100;
+	private static final int MAX_PACKET_SIZE = 250;
 	
 	private DatagramSocket rtp;
 	
@@ -93,14 +93,36 @@ public class AudioStream {
 		rtp.setReceiveBufferSize(RTP_RECV_BUFFER);
 	}
 	
+	private static final int[] STREAMS_2 = new int[] {1, 1};
+	private static final int[] STREAMS_5_1 = new int[] {4, 2};
+	
+	private static final byte[] MAPPING_2 = new byte[] {0, 1};
+	private static final byte[] MAPPING_5_1 = new byte[] {0, 4, 1, 5, 2, 3};
+	
 	private boolean setupAudio()
 	{
 		int err;
 		
-		err = OpusDecoder.init(SAMPLE_RATE, context.streamConfig.getAudioChannelCount(),
-				1, 1, new byte[]{0, 1, 2, 3, 4, 5, 6});
+		int channels = context.streamConfig.getAudioChannelCount();
+		byte[] mapping;
+		int[] streams;
+		
+		if (channels == 2) {
+			mapping = MAPPING_2;
+			streams = STREAMS_2;
+		}
+		else if (channels == 6) {
+			mapping = MAPPING_5_1;
+			streams = STREAMS_5_1;
+		}
+		else {
+			throw new IllegalStateException("Unsupported surround configuration");
+		}
+		
+		err = OpusDecoder.init(SAMPLE_RATE, SHORTS_PER_CHANNEL, channels,
+				streams[0], streams[1], mapping);
 		if (err != 0) {
-			throw new IllegalStateException("Opus decoder failed to initialize");
+			throw new IllegalStateException("Opus decoder failed to initialize: "+err);
 		}
 		
 		if (!streamListener.streamInitialized(context.streamConfig.getAudioChannelCount(),
@@ -111,12 +133,10 @@ public class AudioStream {
 		}
 		
 		if ((streamListener.getCapabilities() & AudioRenderer.CAPABILITY_DIRECT_SUBMIT) != 0) {
-			depacketizer = new AudioDepacketizer(streamListener, context.streamConfig.getAudioChannelCount(),
-					context.streamConfig.getAudioChannelCount()*SHORTS_PER_CHANNEL);
+			depacketizer = new AudioDepacketizer(streamListener, context.streamConfig.getAudioChannelCount()*SHORTS_PER_CHANNEL);
 		}
 		else {
-			depacketizer = new AudioDepacketizer(null, context.streamConfig.getAudioChannelCount(), 
-					context.streamConfig.getAudioChannelCount()*SHORTS_PER_CHANNEL);
+			depacketizer = new AudioDepacketizer(null, context.streamConfig.getAudioChannelCount()*SHORTS_PER_CHANNEL);
 		}
 		
 		return true;

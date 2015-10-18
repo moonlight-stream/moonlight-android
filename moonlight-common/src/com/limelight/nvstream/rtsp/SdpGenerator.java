@@ -57,6 +57,16 @@ public class SdpGenerator {
 		
 		// Use slicing for increased performance on some decoders
 		addSessionAttribute(config, "x-nv-video[0].videoEncoderSlicesPerFrame", "4");
+		
+		// Enable surround sound if configured for it
+		addSessionAttribute(config, "x-nv-audio.surround.numChannels", ""+context.streamConfig.getAudioChannelCount());
+		addSessionAttribute(config, "x-nv-audio.surround.channelMask", ""+context.streamConfig.getAudioChannelMask());
+		if (context.streamConfig.getAudioChannelCount() > 2) {
+			addSessionAttribute(config, "x-nv-audio.surround.enable", "1");
+		}
+		else {
+			addSessionAttribute(config, "x-nv-audio.surround.enable", "0");
+		}
 	}
 	
 	public static String generateSdpFromContext(ConnectionContext context) {

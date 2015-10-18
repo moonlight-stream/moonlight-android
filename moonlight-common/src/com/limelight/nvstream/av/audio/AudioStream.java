@@ -15,6 +15,9 @@ import com.limelight.nvstream.av.RtpReorderQueue;
 public class AudioStream {
 	private static final int RTP_PORT = 48000;
 	
+	private static final int SAMPLE_RATE = 48000;
+	private static final int SHORTS_PER_CHANNEL = 240;
+	
 	private static final int RTP_RECV_BUFFER = 64 * 1024;
 	private static final int MAX_PACKET_SIZE = 100;
 	
@@ -94,20 +97,26 @@ public class AudioStream {
 	{
 		int err;
 		
-		err = OpusDecoder.init();
+		err = OpusDecoder.init(SAMPLE_RATE, context.streamConfig.getAudioChannelCount(),
+				1, 1, new byte[]{0, 1, 2, 3, 4, 5, 6});
 		if (err != 0) {
 			throw new IllegalStateException("Opus decoder failed to initialize");
 		}
 		
-		if (!streamListener.streamInitialized(OpusDecoder.getChannelCount(), OpusDecoder.getSampleRate())) {
+		if (!streamListener.streamInitialized(context.streamConfig.getAudioChannelCount(),
+				context.streamConfig.getAudioChannelMask(),
+				context.streamConfig.getAudioChannelCount()*SHORTS_PER_CHANNEL,
+				SAMPLE_RATE)) {
 			return false;
 		}
 		
 		if ((streamListener.getCapabilities() & AudioRenderer.CAPABILITY_DIRECT_SUBMIT) != 0) {
-			depacketizer = new AudioDepacketizer(streamListener);
+			depacketizer = new AudioDepacketizer(streamListener, context.streamConfig.getAudioChannelCount(),
+					context.streamConfig.getAudioChannelCount()*SHORTS_PER_CHANNEL);
 		}
 		else {
-			depacketizer = new AudioDepacketizer(null);
+			depacketizer = new AudioDepacketizer(null, context.streamConfig.getAudioChannelCount(), 
+					context.streamConfig.getAudioChannelCount()*SHORTS_PER_CHANNEL);
 		}
 		
 		return true;

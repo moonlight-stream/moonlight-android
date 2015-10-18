@@ -14,6 +14,8 @@ public class StreamConfiguration {
 	private boolean playLocalAudio;
 	private int maxPacketSize;
 	private boolean remote;
+	private int audioChannelMask;
+	private int audioChannelCount;
 	
 	public static class Builder {
 		private StreamConfiguration config = new StreamConfiguration();
@@ -64,6 +66,12 @@ public class StreamConfiguration {
 			return this;
 		}
 		
+		public StreamConfiguration.Builder setAudioParameters(int audioChannelMask, int audioChannelCount) {
+			config.audioChannelCount = audioChannelCount;
+			config.audioChannelMask = audioChannelMask;
+			return this;
+		}
+		
 		public StreamConfiguration build() {
 			return config;
 		}
@@ -79,6 +87,8 @@ public class StreamConfiguration {
 		this.maxPacketSize = 1024;
 		this.sops = true;
 		this.enableAdaptiveResolution = false;
+		this.audioChannelCount = 2;
+		this.audioChannelMask = 0x3;
 	}
 	
 	public int getWidth() {
@@ -119,5 +129,13 @@ public class StreamConfiguration {
 	
 	public boolean getRemote() {
 		return remote;
+	}
+	
+	public int getAudioChannelCount() {
+		return audioChannelCount;
+	}
+	
+	public int getAudioChannelMask() {
+		return audioChannelMask;
 	}
 }

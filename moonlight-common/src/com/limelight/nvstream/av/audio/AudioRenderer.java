@@ -6,7 +6,7 @@ public interface AudioRenderer {
 	
 	public int getCapabilities();
 	
-	public boolean streamInitialized(int channelCount, int sampleRate);
+	public boolean streamInitialized(int channelCount, int channelMask, int samplesPerFrame, int sampleRate);
 	
 	public void playDecodedAudio(byte[] audioData, int offset, int length);
 	

@@ -84,6 +84,9 @@ public class StreamConfiguration {
 				config.audioChannelCount = CHANNEL_COUNT_5_1;
 				config.audioChannelMask = CHANNEL_MASK_5_1;
 			}
+			else {
+				throw new IllegalArgumentException("Invalid audio configuration");
+			}
 
 			return this;
 		}

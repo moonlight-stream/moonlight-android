@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.locks.LockSupport;
 
+import org.jcodec.codecs.h264.H264Utils;
 import org.jcodec.codecs.h264.io.model.SeqParameterSet;
 import org.jcodec.codecs.h264.io.model.VUIParameters;
 
@@ -490,7 +491,9 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                 // Skip to the start of the NALU data
                 spsBuf.position(header.offset+5);
 
-                SeqParameterSet sps = SeqParameterSet.read(spsBuf);
+                // The H264Utils.readSPS function safely handles
+                // Annex B NALUs (including NALUs with escape sequences)
+                SeqParameterSet sps = H264Utils.readSPS(spsBuf);
 
                 // Some decoders rely on H264 level to decide how many buffers are needed
                 // Since we only need one frame buffered, we'll set the level as low as we can
@@ -571,8 +574,10 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                 // Write the annex B header
                 buf.put(header.data, header.offset, 5);
 
-                // Write the modified SPS to the input buffer
-                sps.write(buf);
+                // The H264Utils.writeSPS function safely handles
+                // Annex B NALUs (including NALUs with escape sequences)
+                ByteBuffer escapedNalu = H264Utils.writeSPS(sps, header.length);
+                buf.put(escapedNalu);
 
                 queueInputBuffer(inputBufferIndex,
                         0, buf.position(),

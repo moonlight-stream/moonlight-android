@@ -5,12 +5,16 @@
         <item>720p 60 FPS</item>
         <item>1080p 30 FPS</item>
         <item>1080p 60 FPS</item>
+        <item>4K 30 FPS</item>
+        <item>4K 60 FPS</item>
     </string-array>
     <string-array name="resolution_values" translatable="false">
         <item>720p30</item>
         <item>720p60</item>
         <item>1080p30</item>
         <item>1080p60</item>
+        <item>4K30</item>
+        <item>4K60</item>
     </string-array>
 
     <string-array name="language_names" translatable="false">

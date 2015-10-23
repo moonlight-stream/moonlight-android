@@ -26,6 +26,13 @@
             android:summary="@string/summary_checkbox_disable_warnings"
             android:defaultValue="false" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/category_audio_settings">
+        <CheckBoxPreference
+            android:key="checkbox_51_surround"
+            android:title="@string/title_checkbox_51_surround"
+            android:summary="@string/summary_checkbox_51_surround"
+            android:defaultValue="false" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_gamepad_settings">
         <!--com.limelight.preferences.SeekBarPreference
             android:key="seekbar_deadzone"

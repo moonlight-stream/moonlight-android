@@ -96,49 +96,11 @@ public class SdpGenerator {
 		
 		addSessionAttribute(config, "x-nv-video[0].timeoutLengthMs", "7000");
 		addSessionAttribute(config, "x-nv-video[0].framesWithInvalidRefThreshold", "0");
-				
-		// Lock the bitrate if we're not scaling resolution so the picture doesn't get too bad
-		if (context.streamConfig.getHeight() >= 2160 && context.streamConfig.getRefreshRate() >= 60) {
-			if (context.streamConfig.getBitrate() < 80000) {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
-			}
-			else {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "80000");
-			}
-		}
-		else if (context.streamConfig.getHeight() >= 2160) {
-			if (context.streamConfig.getBitrate() < 40000) {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
-			}
-			else {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "40000");
-			}
-		}
-		else if (context.streamConfig.getHeight() >= 1080 && context.streamConfig.getRefreshRate() >= 60) {
-			if (context.streamConfig.getBitrate() < 20000) {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
-			}
-			else {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "20000");
-			}
-		}
-		else if (context.streamConfig.getHeight() >= 1080 || context.streamConfig.getRefreshRate() >= 60) {
-			if (context.streamConfig.getBitrate() < 10000) {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
-			}
-			else {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "10000");
-			}
-		}
-		else {
-			if (context.streamConfig.getBitrate() < 5000) {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
-			}
-			else {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "5000");
-			}
-		}
 		
+		// We don't support dynamic bitrate scaling properly (it tends to bounce between min and max and never
+		// settle on the optimal bitrate if it's somewhere in the middle), so we'll just latch the bitrate
+		// to the requested value.
+		addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
 		addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+context.streamConfig.getBitrate());
 		
 		// Using FEC turns padding on which makes us have to take the slow path

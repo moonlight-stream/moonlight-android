@@ -98,7 +98,31 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].framesWithInvalidRefThreshold", "0");
 				
 		// Lock the bitrate if we're not scaling resolution so the picture doesn't get too bad
-		if (context.streamConfig.getHeight() >= 1080 && context.streamConfig.getRefreshRate() >= 60) {
+		if (context.streamConfig.getHeight() >= 2160 && context.streamConfig.getRefreshRate() >= 60) {
+			if (context.streamConfig.getBitrate() < 80000) {
+				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
+			}
+			else {
+				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "80000");
+			}
+		}
+		else if (context.streamConfig.getHeight() >= 2160) {
+			if (context.streamConfig.getBitrate() < 40000) {
+				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
+			}
+			else {
+				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "40000");
+			}
+		}
+		else if (context.streamConfig.getHeight() >= 1080 && context.streamConfig.getRefreshRate() >= 60) {
+			if (context.streamConfig.getBitrate() < 20000) {
+				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
+			}
+			else {
+				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "20000");
+			}
+		}
+		else if (context.streamConfig.getHeight() >= 1080 || context.streamConfig.getRefreshRate() >= 60) {
 			if (context.streamConfig.getBitrate() < 10000) {
 				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
 			}
@@ -106,20 +130,12 @@ public class SdpGenerator {
 				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "10000");
 			}
 		}
-		else if (context.streamConfig.getHeight() >= 1080 || context.streamConfig.getRefreshRate() >= 60) {
-			if (context.streamConfig.getBitrate() < 7000) {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
-			}
-			else {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "7000");
-			}
-		}
 		else {
-			if (context.streamConfig.getBitrate() < 3000) {
+			if (context.streamConfig.getBitrate() < 5000) {
 				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
 			}
 			else {
-				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "3000");
+				addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", "5000");
 			}
 		}
 		

@@ -1,7 +1,6 @@
 package com.limelight;
 
 
-import com.limelight.LimelightBuildProps;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
@@ -63,6 +62,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     // Only 2 touches are supported
     private final TouchContext[] touchContextMap = new TouchContext[2];
     private long threeFingerDownTime = 0;
+
+    private static final double REFERENCE_HORIZ_RES = 1280;
+    private static final double REFERENCE_VERT_RES = 720;
 
     private static final int THREE_FINGER_TAP_THRESHOLD = 300;
 
@@ -219,8 +221,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
             touchContextMap[i] = new TouchContext(conn, i,
-                    ((double)prefConfig.width / (double)screenSize.x),
-                    ((double)prefConfig.height / (double)screenSize.y));
+                    (REFERENCE_HORIZ_RES / (double)screenSize.x),
+                    (REFERENCE_VERT_RES / (double)screenSize.y));
         }
 
         if (LimelightBuildProps.ROOT_BUILD) {
@@ -684,8 +686,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             // Scale the deltas if the device resolution is different
             // than the stream resolution
-            deltaX = (int)Math.round((double)deltaX * ((double)prefConfig.width / (double)screenSize.x));
-            deltaY = (int)Math.round((double)deltaY * ((double)prefConfig.height / (double)screenSize.y));
+            deltaX = (int)Math.round((double)deltaX * (REFERENCE_HORIZ_RES / (double)screenSize.x));
+            deltaY = (int)Math.round((double)deltaY * (REFERENCE_VERT_RES / (double)screenSize.y));
 
             conn.sendMouseMove((short)deltaX, (short)deltaY);
         }

@@ -79,6 +79,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
     private boolean connected = false;
+    private boolean deferredSurfaceResize = false;
 
     private EvdevWatcher evdevWatcher;
     private int modifierFlags = 0;
@@ -212,10 +213,29 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         inputManager.registerInputDeviceListener(controllerHandler, null);
 
+        boolean aspectRatioMatch = false;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            // On KitKat and later (where we can use the whole screen via immersive mode), we'll
+            // calculate whether we need to scale by aspect ratio or not. If not, we'll use
+            // setFixedSize so we can handle 4K properly. The only known devices that have
+            // >= 4K screens have exactly 4K screens, so we'll be able to hit this good path
+            // on these devices. On Marshmallow, we can start changing to 4K manually but no
+            // 4K devices run 6.0 at the moment.
+            double screenAspectRatio = ((double)screenSize.y) / screenSize.x;
+            double streamAspectRatio = ((double)prefConfig.height) / prefConfig.width;
+            if (Math.abs(screenAspectRatio - streamAspectRatio) < 0.001) {
+                LimeLog.info("Stream has compatible aspect ratio with output display");
+                aspectRatioMatch = true;
+            }
+        }
+
         SurfaceHolder sh = sv.getHolder();
-        if (prefConfig.stretchVideo || !decoderRenderer.isHardwareAccelerated()) {
+        if (prefConfig.stretchVideo || !decoderRenderer.isHardwareAccelerated() || aspectRatioMatch) {
             // Set the surface to the size of the video
             sh.setFixedSize(prefConfig.width, prefConfig.height);
+        }
+        else {
+            deferredSurfaceResize = true;
         }
 
         // Initialize touch contexts
@@ -805,7 +825,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             // Resize the surface to match the aspect ratio of the video
             // This must be done after the surface is created.
-            if (!prefConfig.stretchVideo && decoderRenderer.isHardwareAccelerated()) {
+            if (deferredSurfaceResize) {
                 resizeSurfaceWithAspectRatio((SurfaceView) findViewById(R.id.surfaceView),
                         prefConfig.width, prefConfig.height);
             }

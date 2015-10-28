@@ -31,11 +31,12 @@ import android.os.IBinder;
 import org.xmlpull.v1.XmlPullParserException;
 
 public class ComputerManagerService extends Service {
-    private static final int SERVERINFO_POLLING_PERIOD_MS = 3000;
+    private static final int SERVERINFO_POLLING_PERIOD_MS = 1500;
     private static final int APPLIST_POLLING_PERIOD_MS = 30000;
+    private static final int APPLIST_FAILED_POLLING_RETRY_MS = 2000;
     private static final int MDNS_QUERY_PERIOD_MS = 1000;
     private static final int FAST_POLL_TIMEOUT = 500;
-    private static final int OFFLINE_POLL_TRIES = 3;
+    private static final int OFFLINE_POLL_TRIES = 5;
 
     private final ComputerManagerBinder binder = new ComputerManagerBinder();
 
@@ -139,7 +140,7 @@ public class ComputerManagerService extends Service {
                         }
 
                         // Wait until the next polling interval
-                        Thread.sleep(SERVERINFO_POLLING_PERIOD_MS / ((offlineCount > 0) ? 2 : 1));
+                        Thread.sleep(SERVERINFO_POLLING_PERIOD_MS);
                     } catch (InterruptedException e) {
                         break;
                     }
@@ -612,6 +613,7 @@ public class ComputerManagerService extends Service {
         private Thread thread;
         private final ComputerDetails computer;
         private final Object pollEvent = new Object();
+        private boolean receivedAppList = false;
 
         public ApplistPoller(ComputerDetails computer) {
             this.computer = computer;
@@ -626,7 +628,15 @@ public class ComputerManagerService extends Service {
         private boolean waitPollingDelay() {
             try {
                 synchronized (pollEvent) {
-                    pollEvent.wait(APPLIST_POLLING_PERIOD_MS);
+                    if (receivedAppList) {
+                        // If we've already reported an app list successfully,
+                        // wait the full polling period
+                        pollEvent.wait(APPLIST_POLLING_PERIOD_MS);
+                    }
+                    else {
+                        // If we've failed to get an app list so far, retry much earlier
+                        pollEvent.wait(APPLIST_FAILED_POLLING_RETRY_MS);
+                    }
                 }
             } catch (InterruptedException e) {
                 return false;
@@ -713,6 +723,7 @@ public class ComputerManagerService extends Service {
 
                                 // Update the computer
                                 computer.rawAppList = appList;
+                                receivedAppList = true;
 
                                 // Notify that the app list has been updated
                                 // and ensure that the thread is still active

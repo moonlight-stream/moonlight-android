@@ -119,7 +119,7 @@ public class ComputerManagerService extends Service {
         return true;
     }
 
-    private Thread createPollingThread(final ComputerDetails details) {
+    private Thread createPollingThread(final PollingTuple tuple) {
         Thread t = new Thread() {
             @Override
             public void run() {
@@ -127,13 +127,15 @@ public class ComputerManagerService extends Service {
                 int offlineCount = 0;
                 while (!isInterrupted() && pollingActive) {
                     try {
-                        // Check if this poll has modified the details
-                        if (!runPoll(details, false, offlineCount)) {
-                            LimeLog.warning(details.name + " is offline (try " + offlineCount + ")");
-                            offlineCount++;
-                        }
-                        else {
-                            offlineCount = 0;
+                        // Only allow one request to the machine at a time
+                        synchronized (tuple.networkLock) {
+                            // Check if this poll has modified the details
+                            if (!runPoll(tuple.computer, false, offlineCount)) {
+                                LimeLog.warning(tuple.computer.name + " is offline (try " + offlineCount + ")");
+                                offlineCount++;
+                            } else {
+                                offlineCount = 0;
+                            }
                         }
 
                         // Wait until the next polling interval
@@ -144,7 +146,7 @@ public class ComputerManagerService extends Service {
                 }
             }
         };
-        t.setName("Polling thread for "+details.localIp.getHostAddress());
+        t.setName("Polling thread for " + tuple.computer.localIp.getHostAddress());
         return t;
     }
 
@@ -166,7 +168,7 @@ public class ComputerManagerService extends Service {
                         // Report this computer initially
                         listener.notifyComputerUpdated(tuple.computer);
 
-                        tuple.thread = createPollingThread(tuple.computer);
+                        tuple.thread = createPollingThread(tuple);
                         tuple.thread.start();
                     }
                 }
@@ -283,7 +285,7 @@ public class ComputerManagerService extends Service {
 
                     // Start a polling thread if polling is active
                     if (pollingActive && tuple.thread == null) {
-                        tuple.thread = createPollingThread(details);
+                        tuple.thread = createPollingThread(tuple);
                         tuple.thread.start();
                     }
 
@@ -293,7 +295,10 @@ public class ComputerManagerService extends Service {
             }
 
             // If we got here, we didn't find an entry
-            PollingTuple tuple = new PollingTuple(details, pollingActive ? createPollingThread(details) : null);
+            PollingTuple tuple = new PollingTuple(details, null);
+            if (pollingActive) {
+                tuple.thread = createPollingThread(tuple);
+            }
             pollingTuples.add(tuple);
             if (tuple.thread != null) {
                 tuple.thread.start();
@@ -630,6 +635,18 @@ public class ComputerManagerService extends Service {
             return thread != null && !thread.isInterrupted();
         }
 
+        private PollingTuple getPollingTuple(ComputerDetails details) {
+            synchronized (pollingTuples) {
+                for (PollingTuple tuple : pollingTuples) {
+                    if (details.uuid.equals(tuple.computer.uuid)) {
+                        return tuple;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         public void start() {
             thread = new Thread() {
                 @Override
@@ -660,9 +677,23 @@ public class ComputerManagerService extends Service {
                         NvHTTP http = new NvHTTP(selectedAddr, idManager.getUniqueId(),
                                 null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
+                        PollingTuple tuple = getPollingTuple(computer);
+
                         try {
-                            // Query the app list from the server
-                            String appList = http.getAppListRaw();
+                            String appList;
+                            if (tuple != null) {
+                                // If we're polling this machine too, grab the network lock
+                                // while doing the app list request to prevent other requests
+                                // from being issued in the meantime.
+                                synchronized (tuple.networkLock) {
+                                    appList = http.getAppListRaw();
+                                }
+                            }
+                            else {
+                                // No polling is happening now, so we just call it directly
+                                appList = http.getAppListRaw();
+                            }
+
                             List<NvApp> list = NvHTTP.getAppListByReader(new StringReader(appList));
                             if (appList != null && !appList.isEmpty() && !list.isEmpty()) {
                                 // Open the cache file
@@ -718,10 +749,12 @@ public class ComputerManagerService extends Service {
 class PollingTuple {
     public Thread thread;
     public final ComputerDetails computer;
+    public final Object networkLock;
 
     public PollingTuple(ComputerDetails computer, Thread thread) {
         this.computer = computer;
         this.thread = thread;
+        this.networkLock = new Object();
     }
 }
 

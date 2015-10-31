@@ -219,6 +219,7 @@ public class AudioStream {
 							if (queueStatus == RtpReorderQueue.RtpQueueStatus.QUEUED_PACKETS_READY) {
 								while ((queuedPacket = (RtpPacket) rtpQueue.getQueuedPacket()) != null) {
 									depacketizer.decodeInputData(queuedPacket);
+									queuedPacket.dereferencePacket();
 								}
 							}
 						}

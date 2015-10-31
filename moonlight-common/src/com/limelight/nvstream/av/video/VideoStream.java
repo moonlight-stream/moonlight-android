@@ -222,6 +222,7 @@ public class VideoStream {
 							// The packet queue now has packets ready
 							while ((queuedPacket = (VideoPacket) rtpQueue.getQueuedPacket()) != null) {
 								depacketizer.addInputData(queuedPacket);
+								queuedPacket.dereferencePacket();
 							}
 						}
 						

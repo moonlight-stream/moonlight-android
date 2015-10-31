@@ -68,6 +68,9 @@ public class RtpReorderQueue {
 			oldestQueuedEntry = entry;
 		}
 		
+		// Add a reference to the packet while it's in the queue
+		packet.referencePacket();
+		
 		if (head) {
 			queue.addFirst(entry);
 		}
@@ -111,6 +114,11 @@ public class RtpReorderQueue {
 		return lowestSeqEntry;
 	}
 	
+	private void removeEntry(RtpQueueEntry entry) {
+		queue.remove(entry);
+		entry.packet.dereferencePacket();
+	}
+	
 	private RtpQueueEntry validateQueueConstraints() {
 		if (queue.isEmpty()) {
 			return null;
@@ -121,14 +129,14 @@ public class RtpReorderQueue {
 		// Check that the queue's time constraint is satisfied
 		if (TimeHelper.getMonotonicMillis() - oldestQueuedTime > maxQueueTime) {
 			LimeLog.info("Discarding RTP packet queued for too long: "+(TimeHelper.getMonotonicMillis() - oldestQueuedTime));
-			queue.remove(oldestQueuedEntry);
+			removeEntry(oldestQueuedEntry);
 			needsUpdate = true;
 		}
 		
 		// Check that the queue's size constraint is satisfied
 		if (queue.size() == maxSize) {
 			LimeLog.info("Discarding RTP packet after queue overgrowth");
-			queue.remove(oldestQueuedEntry);
+			removeEntry(oldestQueuedEntry);
 			needsUpdate = true;
 		}
 		
@@ -203,6 +211,8 @@ public class RtpReorderQueue {
 		}
 	}
 	
+	// This function returns a referenced packet. The caller must dereference
+	// the packet when it is finished.
 	public RtpPacketFields getQueuedPacket() {
 		RtpQueueEntry queuedEntry = null;
 		

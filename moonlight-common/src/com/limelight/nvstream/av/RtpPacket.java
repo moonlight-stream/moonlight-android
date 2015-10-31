@@ -67,4 +67,22 @@ public class RtpPacket implements RtpPacketFields {
 	{
 		bb.reinitialize(buffer.data, buffer.offset+headerSize, buffer.length-headerSize);
 	}
+
+	@Override
+	public int referencePacket() {
+		// There's no circular buffer for audio packets so this is a no-op
+		return 0;
+	}
+
+	@Override
+	public int dereferencePacket() {
+		// There's no circular buffer for audio packets so this is a no-op
+		return 0;
+	}
+
+	@Override
+	public int getRefCount() {
+		// There's no circular buffer for audio packets so this is a no-op
+		return 0;
+	}
 }

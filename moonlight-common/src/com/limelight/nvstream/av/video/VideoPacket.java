@@ -115,7 +115,7 @@ public class VideoPacket implements RtpPacketFields {
 		return rtpSequenceNumber;
 	}
 	
-	int referencePacket() {
+	public int referencePacket() {
 		if (useAtomicRefCount) {
 			return duAtomicRefCount.incrementAndGet();
 		}
@@ -124,7 +124,7 @@ public class VideoPacket implements RtpPacketFields {
 		}
 	}
 	
-	int dereferencePacket() {
+	public int dereferencePacket() {
 		if (useAtomicRefCount) {
 			return duAtomicRefCount.decrementAndGet();
 		}
@@ -133,7 +133,7 @@ public class VideoPacket implements RtpPacketFields {
 		}
 	}
 	
-	int getRefCount() {
+	public int getRefCount() {
 		if (useAtomicRefCount) {
 			return duAtomicRefCount.get();
 		}

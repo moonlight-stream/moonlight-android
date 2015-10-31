@@ -194,20 +194,16 @@ public class VideoDepacketizer {
 	}
 	
 	private void chainPacketToCurrentFrame(VideoPacket packet) {
-		// It's possible to get more than one NAL from a packet but we can cheaply
-		// check for this condition because all duplicates must be contiguous
-		if (backingPacketTail != packet) {
-			packet.referencePacket();
-			packet.nextPacket = null;
+		packet.referencePacket();
+		packet.nextPacket = null;
 
-			// Chain the packet
-			if (backingPacketTail != null) {
-				backingPacketTail.nextPacket = packet;
-				backingPacketTail = packet;
-			}
-			else {
-				backingPacketHead = backingPacketTail = packet;
-			}
+		// Chain the packet
+		if (backingPacketTail != null) {
+			backingPacketTail.nextPacket = packet;
+			backingPacketTail = packet;
+		}
+		else {
+			backingPacketHead = backingPacketTail = packet;
 		}
 	}
 	
@@ -289,11 +285,27 @@ public class VideoDepacketizer {
 
 			if (isDecodingH264 && decodingFrame)
 			{
-				// Chain this packet to the current frame
-				chainPacketToCurrentFrame(packet);
-				
-				// Add a buffer descriptor describing the NAL data in this packet
-				chainBufferToCurrentFrame(new ByteBufferDescriptor(location.data, start, location.offset-start));
+				// The slow path may result in multiple decode units per packet.
+				// The VideoPacket objects only support being in 1 DU list, so we'll
+				// copy this data into a new array rather than reference the packet, if
+				// this NALU ends before the end of the frame. Only copying if this doesn't
+				// go to the end of the frame means we'll be only copying the SPS and PPS which
+				// are quite small, while the actual I-frame data is referenced via the packet.
+				if (location.length != 0) {
+					// Copy the packet data into a new array
+					byte[] dataCopy = new byte[location.offset-start];
+					System.arraycopy(location.data, start, dataCopy, 0, dataCopy.length);
+
+					// Chain a descriptor referencing the copied data
+					chainBufferToCurrentFrame(new ByteBufferDescriptor(dataCopy, 0, dataCopy.length));
+				}
+				else {
+					// Chain this packet to the current frame
+					chainPacketToCurrentFrame(packet);
+					
+					// Add a buffer descriptor describing the NAL data in this packet
+					chainBufferToCurrentFrame(new ByteBufferDescriptor(location.data, start, location.offset-start));
+				}
 			}
 		}
 	}

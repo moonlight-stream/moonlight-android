@@ -31,11 +31,12 @@ import android.os.IBinder;
 import org.xmlpull.v1.XmlPullParserException;
 
 public class ComputerManagerService extends Service {
-    private static final int SERVERINFO_POLLING_PERIOD_MS = 3000;
+    private static final int SERVERINFO_POLLING_PERIOD_MS = 1500;
     private static final int APPLIST_POLLING_PERIOD_MS = 30000;
+    private static final int APPLIST_FAILED_POLLING_RETRY_MS = 2000;
     private static final int MDNS_QUERY_PERIOD_MS = 1000;
     private static final int FAST_POLL_TIMEOUT = 500;
-    private static final int OFFLINE_POLL_TRIES = 3;
+    private static final int OFFLINE_POLL_TRIES = 5;
 
     private final ComputerManagerBinder binder = new ComputerManagerBinder();
 
@@ -119,7 +120,7 @@ public class ComputerManagerService extends Service {
         return true;
     }
 
-    private Thread createPollingThread(final ComputerDetails details) {
+    private Thread createPollingThread(final PollingTuple tuple) {
         Thread t = new Thread() {
             @Override
             public void run() {
@@ -127,24 +128,26 @@ public class ComputerManagerService extends Service {
                 int offlineCount = 0;
                 while (!isInterrupted() && pollingActive) {
                     try {
-                        // Check if this poll has modified the details
-                        if (!runPoll(details, false, offlineCount)) {
-                            LimeLog.warning(details.name + " is offline (try " + offlineCount + ")");
-                            offlineCount++;
-                        }
-                        else {
-                            offlineCount = 0;
+                        // Only allow one request to the machine at a time
+                        synchronized (tuple.networkLock) {
+                            // Check if this poll has modified the details
+                            if (!runPoll(tuple.computer, false, offlineCount)) {
+                                LimeLog.warning(tuple.computer.name + " is offline (try " + offlineCount + ")");
+                                offlineCount++;
+                            } else {
+                                offlineCount = 0;
+                            }
                         }
 
                         // Wait until the next polling interval
-                        Thread.sleep(SERVERINFO_POLLING_PERIOD_MS / ((offlineCount > 0) ? 2 : 1));
+                        Thread.sleep(SERVERINFO_POLLING_PERIOD_MS);
                     } catch (InterruptedException e) {
                         break;
                     }
                 }
             }
         };
-        t.setName("Polling thread for "+details.localIp.getHostAddress());
+        t.setName("Polling thread for " + tuple.computer.localIp.getHostAddress());
         return t;
     }
 
@@ -166,7 +169,7 @@ public class ComputerManagerService extends Service {
                         // Report this computer initially
                         listener.notifyComputerUpdated(tuple.computer);
 
-                        tuple.thread = createPollingThread(tuple.computer);
+                        tuple.thread = createPollingThread(tuple);
                         tuple.thread.start();
                     }
                 }
@@ -283,7 +286,7 @@ public class ComputerManagerService extends Service {
 
                     // Start a polling thread if polling is active
                     if (pollingActive && tuple.thread == null) {
-                        tuple.thread = createPollingThread(details);
+                        tuple.thread = createPollingThread(tuple);
                         tuple.thread.start();
                     }
 
@@ -293,7 +296,10 @@ public class ComputerManagerService extends Service {
             }
 
             // If we got here, we didn't find an entry
-            PollingTuple tuple = new PollingTuple(details, pollingActive ? createPollingThread(details) : null);
+            PollingTuple tuple = new PollingTuple(details, null);
+            if (pollingActive) {
+                tuple.thread = createPollingThread(tuple);
+            }
             pollingTuples.add(tuple);
             if (tuple.thread != null) {
                 tuple.thread.start();
@@ -607,6 +613,7 @@ public class ComputerManagerService extends Service {
         private Thread thread;
         private final ComputerDetails computer;
         private final Object pollEvent = new Object();
+        private boolean receivedAppList = false;
 
         public ApplistPoller(ComputerDetails computer) {
             this.computer = computer;
@@ -621,13 +628,33 @@ public class ComputerManagerService extends Service {
         private boolean waitPollingDelay() {
             try {
                 synchronized (pollEvent) {
-                    pollEvent.wait(APPLIST_POLLING_PERIOD_MS);
+                    if (receivedAppList) {
+                        // If we've already reported an app list successfully,
+                        // wait the full polling period
+                        pollEvent.wait(APPLIST_POLLING_PERIOD_MS);
+                    }
+                    else {
+                        // If we've failed to get an app list so far, retry much earlier
+                        pollEvent.wait(APPLIST_FAILED_POLLING_RETRY_MS);
+                    }
                 }
             } catch (InterruptedException e) {
                 return false;
             }
 
             return thread != null && !thread.isInterrupted();
+        }
+
+        private PollingTuple getPollingTuple(ComputerDetails details) {
+            synchronized (pollingTuples) {
+                for (PollingTuple tuple : pollingTuples) {
+                    if (details.uuid.equals(tuple.computer.uuid)) {
+                        return tuple;
+                    }
+                }
+            }
+
+            return null;
         }
 
         public void start() {
@@ -660,9 +687,23 @@ public class ComputerManagerService extends Service {
                         NvHTTP http = new NvHTTP(selectedAddr, idManager.getUniqueId(),
                                 null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
+                        PollingTuple tuple = getPollingTuple(computer);
+
                         try {
-                            // Query the app list from the server
-                            String appList = http.getAppListRaw();
+                            String appList;
+                            if (tuple != null) {
+                                // If we're polling this machine too, grab the network lock
+                                // while doing the app list request to prevent other requests
+                                // from being issued in the meantime.
+                                synchronized (tuple.networkLock) {
+                                    appList = http.getAppListRaw();
+                                }
+                            }
+                            else {
+                                // No polling is happening now, so we just call it directly
+                                appList = http.getAppListRaw();
+                            }
+
                             List<NvApp> list = NvHTTP.getAppListByReader(new StringReader(appList));
                             if (appList != null && !appList.isEmpty() && !list.isEmpty()) {
                                 // Open the cache file
@@ -682,6 +723,7 @@ public class ComputerManagerService extends Service {
 
                                 // Update the computer
                                 computer.rawAppList = appList;
+                                receivedAppList = true;
 
                                 // Notify that the app list has been updated
                                 // and ensure that the thread is still active
@@ -718,10 +760,12 @@ public class ComputerManagerService extends Service {
 class PollingTuple {
     public Thread thread;
     public final ComputerDetails computer;
+    public final Object networkLock;
 
     public PollingTuple(ComputerDetails computer, Thread thread) {
         this.computer = computer;
         this.thread = thread;
+        this.networkLock = new Object();
     }
 }
 

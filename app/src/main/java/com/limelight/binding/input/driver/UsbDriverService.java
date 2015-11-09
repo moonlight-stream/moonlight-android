@@ -14,7 +14,7 @@ import android.os.IBinder;
 
 import java.util.ArrayList;
 
-public class UsbDriverService extends Service {
+public class UsbDriverService extends Service implements UsbDriverListener {
 
     private static final String ACTION_USB_PERMISSION =
             "com.limelight.USB_PERMISSION";
@@ -28,6 +28,38 @@ public class UsbDriverService extends Service {
 
     private UsbDriverListener listener;
     private static int nextDeviceId;
+
+    @Override
+    public void reportControllerState(int controllerId, short buttonFlags, float leftStickX, float leftStickY, float rightStickX, float rightStickY, float leftTrigger, float rightTrigger) {
+        // Call through to the client's listener
+        if (listener != null) {
+            listener.reportControllerState(controllerId, buttonFlags, leftStickX, leftStickY, rightStickX, rightStickY, leftTrigger, rightTrigger);
+        }
+    }
+
+    @Override
+    public void deviceRemoved(int controllerId) {
+        // Remove the the controller from our list (if not removed already)
+        for (XboxOneController controller : controllers) {
+            if (controller.getControllerId() == controllerId) {
+                controllers.remove(controller);
+                break;
+            }
+        }
+
+        // Call through to the client's listener
+        if (listener != null) {
+            listener.deviceRemoved(controllerId);
+        }
+    }
+
+    @Override
+    public void deviceAdded(int controllerId) {
+        // Call through to the client's listener
+        if (listener != null) {
+            listener.deviceAdded(controllerId);
+        }
+    }
 
     public class UsbEventReceiver extends BroadcastReceiver {
         @Override
@@ -56,13 +88,13 @@ public class UsbDriverService extends Service {
     public class UsbDriverBinder extends Binder {
         public void setListener(UsbDriverListener listener) {
             UsbDriverService.this.listener = listener;
-            updateListeners();
-        }
-    }
 
-    private void updateListeners() {
-        for (XboxOneController controller : controllers) {
-            controller.setListener(listener);
+            // Report all controllerMap that already exist
+            if (listener != null) {
+                for (XboxOneController controller : controllers) {
+                    listener.deviceAdded(controller.getControllerId());
+                }
+            }
         }
     }
 
@@ -80,23 +112,20 @@ public class UsbDriverService extends Service {
             UsbDeviceConnection connection = usbManager.openDevice(device);
 
             // Try to initialize it
-            XboxOneController controller = new XboxOneController(device, connection, nextDeviceId++);
+            XboxOneController controller = new XboxOneController(device, connection, nextDeviceId++, this);
             if (!controller.start()) {
                 connection.close();
                 return;
             }
 
-            // Add to the list
+            // Add this controller to the list
             controllers.add(controller);
-
-            // Add listener
-            updateListeners();
         }
     }
 
     @Override
     public void onCreate() {
-        usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        this.usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
         // Register for USB attach broadcasts and permission completions
         IntentFilter filter = new IntentFilter();
@@ -118,13 +147,13 @@ public class UsbDriverService extends Service {
         // Stop the attachment receiver
         unregisterReceiver(receiver);
 
-        // Remove all listeners
+        // Remove listeners
         listener = null;
-        updateListeners();
 
         // Stop all controllers
-        for (XboxOneController controller : controllers) {
-            controller.stop();
+        while (controllers.size() > 0) {
+            // Stop and remove the controller
+            controllers.remove(0).stop();
         }
     }
 

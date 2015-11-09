@@ -5,7 +5,6 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
-import android.media.MediaCodec;
 
 import com.limelight.LimeLog;
 import com.limelight.binding.video.MediaCodecHelper;
@@ -35,18 +34,15 @@ public class XboxOneController {
     // FIXME: odata_serial
     private static final byte[] XB1_INIT_DATA = {0x05, 0x20, 0x00, 0x01, 0x00};
 
-    public XboxOneController(UsbDevice device, UsbDeviceConnection connection, int deviceId) {
+    public XboxOneController(UsbDevice device, UsbDeviceConnection connection, int deviceId, UsbDriverListener listener) {
         this.device = device;
         this.connection = connection;
         this.deviceId = deviceId;
+        this.listener = listener;
     }
 
-    public void setListener(UsbDriverListener listener) {
-        this.listener = listener;
-
-        if (listener != null) {
-            listener.deviceAdded(deviceId);
-        }
+    public int getControllerId() {
+        return this.deviceId;
     }
 
     private void setButtonFlag(int buttonFlag, int data) {
@@ -59,10 +55,8 @@ public class XboxOneController {
     }
 
     private void reportInput() {
-        if (listener != null) {
-            listener.reportControllerState(deviceId, buttonFlags, leftStickX, leftStickY,
-                    rightStickX, rightStickY, leftTrigger, rightTrigger);
-        }
+        listener.reportControllerState(deviceId, buttonFlags, leftStickX, leftStickY,
+                rightStickX, rightStickY, leftTrigger, rightTrigger);
     }
 
     private void processButtons(ByteBuffer buffer) {
@@ -203,21 +197,29 @@ public class XboxOneController {
         // Start listening for controller input
         startInputThread(inEndpt);
 
+        // Report this device added via the listener
+        listener.deviceAdded(deviceId);
+
         return true;
     }
 
     public void stop() {
+        if (stopped) {
+            return;
+        }
+
         stopped = true;
 
+        // Stop the input thread
         if (inputThread != null) {
             inputThread.interrupt();
             inputThread = null;
         }
 
-        if (listener != null) {
-            listener.deviceRemoved(deviceId);
-        }
+        // Report the device removed
+        listener.deviceRemoved(deviceId);
 
+        // Close the USB connection
         connection.close();
     }
 

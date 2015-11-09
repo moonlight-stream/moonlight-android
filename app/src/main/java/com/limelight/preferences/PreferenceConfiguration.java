@@ -20,6 +20,7 @@ public class PreferenceConfiguration {
     private static final String SMALL_ICONS_PREF_STRING = "checkbox_small_icon_mode";
     private static final String MULTI_CONTROLLER_PREF_STRING = "checkbox_multi_controller";
     private static final String ENABLE_51_SURROUND_PREF_STRING = "checkbox_51_surround";
+    private static final String USB_DRIVER_PREF_SRING = "checkbox_usb_driver";
 
     private static final int BITRATE_DEFAULT_720_30 = 5;
     private static final int BITRATE_DEFAULT_720_60 = 10;
@@ -40,6 +41,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_LIST_MODE = false;
     private static final boolean DEFAULT_MULTI_CONTROLLER = true;
     private static final boolean DEFAULT_ENABLE_51_SURROUND = false;
+    private static final boolean DEFAULT_USB_DRIVER = true;
 
     public static final int FORCE_HARDWARE_DECODER = -1;
     public static final int AUTOSELECT_DECODER = 0;
@@ -51,7 +53,7 @@ public class PreferenceConfiguration {
     public int deadzonePercentage;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
     public String language;
-    public boolean listMode, smallIconMode, multiController, enable51Surround;
+    public boolean listMode, smallIconMode, multiController, enable51Surround, usbDriver;
 
     public static int getDefaultBitrate(String resFpsString) {
         if (resFpsString.equals("720p30")) {
@@ -180,6 +182,7 @@ public class PreferenceConfiguration {
         config.smallIconMode = prefs.getBoolean(SMALL_ICONS_PREF_STRING, getDefaultSmallMode(context));
         config.multiController = prefs.getBoolean(MULTI_CONTROLLER_PREF_STRING, DEFAULT_MULTI_CONTROLLER);
         config.enable51Surround = prefs.getBoolean(ENABLE_51_SURROUND_PREF_STRING, DEFAULT_ENABLE_51_SURROUND);
+        config.usbDriver = prefs.getBoolean(USB_DRIVER_PREF_SRING, DEFAULT_USB_DRIVER);
 
         return config;
     }

@@ -5,6 +5,7 @@ import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.input.TouchContext;
+import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.evdev.EvdevWatcher;
 import com.limelight.binding.video.ConfigurableDecoderRenderer;
@@ -22,7 +23,11 @@ import com.limelight.utils.SpinnerDialog;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.hardware.input.InputManager;
@@ -31,6 +36,7 @@ import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.SystemClock;
 import android.view.Display;
 import android.view.InputDevice;
@@ -91,6 +97,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private WifiManager.WifiLock wifiLock;
 
     private int drFlags = 0;
+
+    private boolean connectedToUsbDriverService = false;
+    private ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            UsbDriverService.UsbDriverBinder binder = (UsbDriverService.UsbDriverBinder) iBinder;
+            binder.setListener(controllerHandler);
+            connectedToUsbDriverService = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            connectedToUsbDriverService = false;
+        }
+    };
 
     public static final String EXTRA_HOST = "Host";
     public static final String EXTRA_APP_NAME = "AppName";
@@ -251,6 +272,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             evdevWatcher.start();
         }
 
+        if (prefConfig.usbDriver) {
+            // Start the USB driver
+            bindService(new Intent(this, UsbDriverService.class),
+                    usbDriverServiceConnection, Service.BIND_AUTO_CREATE);
+        }
+
         // The connection will be started when the surface gets created
         sh.addCallback(this);
     }
@@ -318,6 +345,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         inputManager.unregisterInputDeviceListener(controllerHandler);
 
+        wifiLock.release();
+
+        if (connectedToUsbDriverService) {
+            // Unbind from the discovery service
+            unbindService(usbDriverServiceConnection);
+        }
+
         displayedFailureDialog = true;
         stopConnection();
 
@@ -339,13 +373,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         finish();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        wifiLock.release();
     }
 
     private final Runnable toggleGrab = new Runnable() {

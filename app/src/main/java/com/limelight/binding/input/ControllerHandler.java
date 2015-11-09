@@ -8,12 +8,13 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import com.limelight.LimeLog;
+import com.limelight.binding.input.driver.UsbDriverListener;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.ui.GameGestures;
 import com.limelight.utils.Vector2d;
 
-public class ControllerHandler implements InputManager.InputDeviceListener {
+public class ControllerHandler implements InputManager.InputDeviceListener, UsbDriverListener {
 
     private static final int MAXIMUM_BUMPER_UP_DELAY_MS = 100;
 
@@ -29,11 +30,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
 
     private final Vector2d inputVector = new Vector2d();
 
-    private final SparseArray<ControllerContext> contexts = new SparseArray<ControllerContext>();
+    private final SparseArray<InputDeviceContext> inputDeviceContexts = new SparseArray<>();
+    private final SparseArray<UsbDeviceContext> usbDeviceContexts = new SparseArray<>();
 
     private final NvConnection conn;
     private final double stickDeadzone;
-    private final ControllerContext defaultContext = new ControllerContext();
+    private final InputDeviceContext defaultContext = new InputDeviceContext();
     private final GameGestures gestures;
     private boolean hasGameController;
 
@@ -102,11 +104,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
 
     @Override
     public void onInputDeviceRemoved(int deviceId) {
-        ControllerContext context = contexts.get(deviceId);
+        InputDeviceContext context = inputDeviceContexts.get(deviceId);
         if (context != null) {
             LimeLog.info("Removed controller: "+context.name+" ("+deviceId+")");
             releaseControllerNumber(context);
-            contexts.remove(deviceId);
+            inputDeviceContexts.remove(deviceId);
         }
     }
 
@@ -117,7 +119,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         onInputDeviceAdded(deviceId);
     }
 
-    private void releaseControllerNumber(ControllerContext context) {
+    private void releaseControllerNumber(GenericControllerContext context) {
+        // If this device sent data as a gamepad, zero the values before removing
+        if (context.assignedControllerNumber) {
+            conn.sendControllerInput(context.controllerNumber, (short) 0,
+                    (byte) 0, (byte) 0,
+                    (short) 0, (short) 0,
+                    (short) 0, (short) 0);
+        }
+
+        // If we reserved a controller number, remove that reservation
         if (context.reservedControllerNumber) {
             LimeLog.info("Controller number "+context.controllerNumber+" is now available");
             currentControllers &= ~(1 << context.controllerNumber);
@@ -126,42 +137,78 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
 
     // Called before sending input but after we've determined that this
     // is definitely a controller (not a keyboard, mouse, or something else)
-    private void assignControllerNumberIfNeeded(ControllerContext context) {
+    private void assignControllerNumberIfNeeded(GenericControllerContext context) {
         if (context.assignedControllerNumber) {
             return;
         }
 
-        LimeLog.info(context.name+" ("+context.id+") needs a controller number assigned");
-        if (context.name != null && context.name.contains("gpio-keys")) {
-            // This is the back button on Shield portable consoles
-            LimeLog.info("Built-in buttons hardcoded as controller 0");
-            context.controllerNumber = 0;
-        }
-        else if (multiControllerEnabled && context.hasJoystickAxes) {
-            context.controllerNumber = 0;
+        if (context instanceof InputDeviceContext) {
+            InputDeviceContext devContext = (InputDeviceContext) context;
 
-            LimeLog.info("Reserving the next available controller number");
-            for (short i = 0; i < 4; i++) {
-                if ((currentControllers & (1 << i)) == 0) {
-                    // Found an unused controller value
-                    currentControllers |= (1 << i);
-                    context.controllerNumber = i;
-                    context.reservedControllerNumber = true;
-                    break;
+            LimeLog.info(devContext.name+" ("+context.id+") needs a controller number assigned");
+            if (devContext.name != null && devContext.name.contains("gpio-keys")) {
+                // This is the back button on Shield portable consoles
+                LimeLog.info("Built-in buttons hardcoded as controller 0");
+                context.controllerNumber = 0;
+            }
+            else if (multiControllerEnabled && devContext.hasJoystickAxes) {
+                context.controllerNumber = 0;
+
+                LimeLog.info("Reserving the next available controller number");
+                for (short i = 0; i < 4; i++) {
+                    if ((currentControllers & (1 << i)) == 0) {
+                        // Found an unused controller value
+                        currentControllers |= (1 << i);
+                        context.controllerNumber = i;
+                        context.reservedControllerNumber = true;
+                        break;
+                    }
                 }
+            }
+            else {
+                LimeLog.info("Not reserving a controller number");
+                context.controllerNumber = 0;
             }
         }
         else {
-            LimeLog.info("Not reserving a controller number");
-            context.controllerNumber = 0;
+            if (multiControllerEnabled) {
+                context.controllerNumber = 0;
+
+                LimeLog.info("Reserving the next available controller number");
+                for (short i = 0; i < 4; i++) {
+                    if ((currentControllers & (1 << i)) == 0) {
+                        // Found an unused controller value
+                        currentControllers |= (1 << i);
+                        context.controllerNumber = i;
+                        context.reservedControllerNumber = true;
+                        break;
+                    }
+                }
+            }
+            else {
+                LimeLog.info("Not reserving a controller number");
+                context.controllerNumber = 0;
+            }
         }
 
         LimeLog.info("Assigned as controller "+context.controllerNumber);
         context.assignedControllerNumber = true;
     }
 
-    private ControllerContext createContextForDevice(InputDevice dev) {
-        ControllerContext context = new ControllerContext();
+    private UsbDeviceContext createUsbDeviceContextForDevice(int deviceId) {
+        UsbDeviceContext context = new UsbDeviceContext();
+
+        context.id = deviceId;
+
+        context.leftStickDeadzoneRadius = (float) stickDeadzone;
+        context.rightStickDeadzoneRadius = (float) stickDeadzone;
+        context.triggerDeadzone = 0.13f;
+
+        return context;
+    }
+
+    private InputDeviceContext createInputDeviceContextForDevice(InputDevice dev) {
+        InputDeviceContext context = new InputDeviceContext();
         String devName = dev.getName();
 
         LimeLog.info("Creating controller context for device: "+devName);
@@ -332,26 +379,26 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         return context;
     }
 
-    private ControllerContext getContextForDevice(InputDevice dev) {
+    private InputDeviceContext getContextForDevice(InputDevice dev) {
         // Unknown devices use the default context
         if (dev == null) {
             return defaultContext;
         }
 
         // Return the existing context if it exists
-        ControllerContext context = contexts.get(dev.getId());
+        InputDeviceContext context = inputDeviceContexts.get(dev.getId());
         if (context != null) {
             return context;
         }
 
         // Otherwise create a new context
-        context = createContextForDevice(dev);
-        contexts.put(dev.getId(), context);
+        context = createInputDeviceContextForDevice(dev);
+        inputDeviceContexts.put(dev.getId(), context);
 
         return context;
     }
 
-    private void sendControllerInputPacket(ControllerContext context) {
+    private void sendControllerInputPacket(GenericControllerContext context) {
         assignControllerNumberIfNeeded(context);
         conn.sendControllerInput(context.controllerNumber, context.inputMap,
                 context.leftTrigger, context.rightTrigger,
@@ -361,7 +408,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
 
     // Return a valid keycode, 0 to consume, or -1 to not consume the event
     // Device MAY BE NULL
-    private int handleRemapping(ControllerContext context, KeyEvent event) {
+    private int handleRemapping(InputDeviceContext context, KeyEvent event) {
         // Don't capture the back button if configured
         if (context.ignoreBack) {
             if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
@@ -499,7 +546,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         // evaluates the deadzone.
     }
 
-    private void handleAxisSet(ControllerContext context, float lsX, float lsY, float rsX,
+    private void handleAxisSet(InputDeviceContext context, float lsX, float lsY, float rsX,
                                float rsY, float lt, float rt, float hatX, float hatY) {
 
         if (context.leftStickXAxis != -1 && context.leftStickYAxis != -1) {
@@ -559,7 +606,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
     }
 
     public boolean handleMotionEvent(MotionEvent event) {
-        ControllerContext context = getContextForDevice(event.getDevice());
+        InputDeviceContext context = getContextForDevice(event.getDevice());
         float lsX = 0, lsY = 0, rsX = 0, rsY = 0, rt = 0, lt = 0, hatX = 0, hatY = 0;
 
         // We purposefully ignore the historical values in the motion event as it makes
@@ -591,7 +638,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
     }
 
     public boolean handleButtonUp(KeyEvent event) {
-        ControllerContext context = getContextForDevice(event.getDevice());
+        InputDeviceContext context = getContextForDevice(event.getDevice());
 
         int keyCode = handleRemapping(context, event);
         if (keyCode == 0) {
@@ -716,7 +763,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
     }
 
     public boolean handleButtonDown(KeyEvent event) {
-        ControllerContext context = getContextForDevice(event.getDevice());
+        InputDeviceContext context = getContextForDevice(event.getDevice());
 
         int keyCode = handleRemapping(context, event);
         if (keyCode == 0) {
@@ -816,33 +863,64 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         return true;
     }
 
-    class ControllerContext {
-        public String name;
+    @Override
+    public void reportControllerState(int controllerId, short buttonFlags,
+                                      float leftStickX, float leftStickY,
+                                      float rightStickX, float rightStickY,
+                                      float leftTrigger, float rightTrigger) {
+        UsbDeviceContext context = usbDeviceContexts.get(controllerId);
+
+        Vector2d leftStickVector = populateCachedVector(leftStickX, leftStickY);
+
+        handleDeadZone(leftStickVector, context.leftStickDeadzoneRadius);
+
+        context.leftStickX = (short) (leftStickVector.getX() * 0x7FFE);
+        context.leftStickY = (short) (-leftStickVector.getY() * 0x7FFE);
+
+        Vector2d rightStickVector = populateCachedVector(rightStickX, rightStickY);
+
+        handleDeadZone(rightStickVector, context.rightStickDeadzoneRadius);
+
+        context.rightStickX = (short) (rightStickVector.getX() * 0x7FFE);
+        context.rightStickY = (short) (-rightStickVector.getY() * 0x7FFE);
+
+        if (leftTrigger <= context.triggerDeadzone) {
+            leftTrigger = 0;
+        }
+        if (rightTrigger <= context.triggerDeadzone) {
+            rightTrigger = 0;
+        }
+
+        context.leftTrigger = (byte)(leftTrigger * 0xFF);
+        context.rightTrigger = (byte)(rightTrigger * 0xFF);
+
+        context.inputMap = buttonFlags;
+
+        sendControllerInputPacket(context);
+    }
+
+    @Override
+    public void deviceRemoved(int controllerId) {
+        UsbDeviceContext context = usbDeviceContexts.get(controllerId);
+        if (context != null) {
+            LimeLog.info("Removed controller: "+controllerId);
+            releaseControllerNumber(context);
+            usbDeviceContexts.remove(controllerId);
+        }
+    }
+
+    @Override
+    public void deviceAdded(int controllerId) {
+        UsbDeviceContext context = createUsbDeviceContextForDevice(controllerId);
+        usbDeviceContexts.put(controllerId, context);
+    }
+
+    class GenericControllerContext {
         public int id;
 
-        public int leftStickXAxis = -1;
-        public int leftStickYAxis = -1;
         public float leftStickDeadzoneRadius;
-
-        public int rightStickXAxis = -1;
-        public int rightStickYAxis = -1;
         public float rightStickDeadzoneRadius;
-
-        public int leftTriggerAxis = -1;
-        public int rightTriggerAxis = -1;
-        public boolean triggersIdleNegative;
         public float triggerDeadzone;
-
-        public int hatXAxis = -1;
-        public int hatYAxis = -1;
-
-        public boolean isDualShock4;
-        public boolean isXboxController;
-        public boolean isServal;
-        public boolean backIsStart;
-        public boolean modeIsSelect;
-        public boolean ignoreBack;
-        public boolean hasJoystickAxes;
 
         public boolean assignedControllerNumber;
         public boolean reservedControllerNumber;
@@ -855,6 +933,32 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
         public short rightStickY = 0x0000;
         public short leftStickX = 0x0000;
         public short leftStickY = 0x0000;
+    }
+
+    class InputDeviceContext extends GenericControllerContext {
+        public String name;
+
+        public int leftStickXAxis = -1;
+        public int leftStickYAxis = -1;
+
+        public int rightStickXAxis = -1;
+        public int rightStickYAxis = -1;
+
+        public int leftTriggerAxis = -1;
+        public int rightTriggerAxis = -1;
+        public boolean triggersIdleNegative;
+
+        public int hatXAxis = -1;
+        public int hatYAxis = -1;
+
+        public boolean isDualShock4;
+        public boolean isXboxController;
+        public boolean isServal;
+        public boolean backIsStart;
+        public boolean modeIsSelect;
+        public boolean ignoreBack;
+        public boolean hasJoystickAxes;
+
         public int emulatingButtonFlags = 0;
 
         // Used for OUYA bumper state tracking since they force all buttons
@@ -867,4 +971,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener {
 
         public long startDownTime = 0;
     }
+
+    class UsbDeviceContext extends GenericControllerContext {}
 }

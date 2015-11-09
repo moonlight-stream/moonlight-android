@@ -45,6 +45,11 @@
             android:title="@string/title_checkbox_multi_controller"
             android:summary="@string/summary_checkbox_multi_controller"
             android:defaultValue="true" />
+        <CheckBoxPreference
+            android:key="checkbox_usb_driver"
+            android:title="@string/title_checkbox_xb1_driver"
+            android:summary="@string/summary_checkbox_xb1_driver"
+            android:defaultValue="true" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">
         <CheckBoxPreference

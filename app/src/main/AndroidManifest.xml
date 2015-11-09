@@ -81,6 +81,9 @@
         <service
             android:name=".computers.ComputerManagerService"
             android:label="Computer Management Service" />
+        <service
+            android:name=".binding.input.driver.UsbDriverService"
+            android:label="Usb Driver Service" />
     </application>
 
 </manifest>

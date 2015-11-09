@@ -120,6 +120,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     private void releaseControllerNumber(GenericControllerContext context) {
+        // If this device sent data as a gamepad, zero the values before removing
+        if (context.assignedControllerNumber) {
+            conn.sendControllerInput(context.controllerNumber, (short) 0,
+                    (byte) 0, (byte) 0,
+                    (short) 0, (short) 0,
+                    (short) 0, (short) 0);
+        }
+
+        // If we reserved a controller number, remove that reservation
         if (context.reservedControllerNumber) {
             LimeLog.info("Controller number "+context.controllerNumber+" is now available");
             currentControllers &= ~(1 << context.controllerNumber);

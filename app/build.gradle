@@ -12,7 +12,7 @@ android {
         targetSdkVersion 23
 
         versionName "3.5-beta4"
-        versionCode = 71
+        versionCode = 73
     }
 
     productFlavors {

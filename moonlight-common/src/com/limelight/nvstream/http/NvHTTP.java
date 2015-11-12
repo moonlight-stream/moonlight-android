@@ -221,7 +221,7 @@ public class NvHTTP {
 		}
 		
 		try {
-			details.runningGameId = Integer.parseInt(getXmlString(serverInfo, "currentgame").trim());
+			details.runningGameId = getCurrentGame(serverInfo);
 		} catch (NumberFormatException e) {
 			details.runningGameId = 0;
 		}
@@ -336,8 +336,17 @@ public class NvHTTP {
 	}
 
 	public int getCurrentGame(String serverInfo) throws IOException, XmlPullParserException {
-		String game = getXmlString(serverInfo, "currentgame");
-		return Integer.parseInt(game);
+		// GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
+		// has the semantics that its name would indicate. To contain the effects of this change as much
+		// as possible, we'll force the current game to zero if the server isn't in a streaming session.
+		String serverState = getXmlString(serverInfo, "state").trim();
+		if (serverState != null && !serverState.endsWith("_SERVER_AVAILABLE")) {
+			String game = getXmlString(serverInfo, "currentgame").trim();
+			return Integer.parseInt(game);
+		}
+		else {
+			return 0;
+		}
 	}
 	
 	public NvApp getAppById(int appId) throws IOException, XmlPullParserException {
@@ -468,7 +477,7 @@ public class NvHTTP {
 	    return new String(hexChars);
 	}
 	
-	public int launchApp(ConnectionContext context, int appId) throws IOException, XmlPullParserException {
+	public boolean launchApp(ConnectionContext context, int appId) throws IOException, XmlPullParserException {
 		String xmlStr = openHttpConnectionToString(baseUrlHttps +
 			"/launch?uniqueid=" + uniqueId +
 			"&appid=" + appId +
@@ -478,7 +487,7 @@ public class NvHTTP {
 			"&rikeyid="+context.riKeyId +
 			"&localAudioPlayMode=" + (context.streamConfig.getPlayLocalAudio() ? 1 : 0), false);
 		String gameSession = getXmlString(xmlStr, "gamesession");
-		return Integer.parseInt(gameSession);
+		return gameSession != null && !gameSession.equals("0");
 	}
 	
 	public boolean resumeApp(ConnectionContext context) throws IOException, XmlPullParserException {

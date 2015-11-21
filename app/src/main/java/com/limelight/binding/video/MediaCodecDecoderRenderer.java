@@ -628,8 +628,10 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         // Patch the SPS constraint flags
         doProfileSpecificSpsPatching(savedSps);
 
-        // Write the SPS data
-        savedSps.write(inputBuffer);
+        // The H264Utils.writeSPS function safely handles
+        // Annex B NALUs (including NALUs with escape sequences)
+        ByteBuffer escapedNalu = H264Utils.writeSPS(savedSps, 128);
+        inputBuffer.put(escapedNalu);
 
         // No need for the SPS anymore
         savedSps = null;

@@ -29,6 +29,8 @@ public class PreferenceConfiguration {
     //ADDED For CPEN 321
     private static final int BITRATE_DEFAULT_1440_30 = 20;
     private static final int BITRATE_DEFAULT_1440_60 = 40;
+    private static final int BITRATE_DEFAULT_2K_30 = 20;
+    private static final int BITRATE_DEFAULT_2K_60 = 40;
     private static final int BITRATE_DEFAULT_4K_30 = 40;
 
 
@@ -75,6 +77,12 @@ public class PreferenceConfiguration {
         }
         else if (resFpsString.equals("1440p60")) {
             return BITRATE_DEFAULT_1440_60;
+        }
+        else if (resFpsString.equals("2k30")) {
+            return BITRATE_DEFAULT_2K_30;
+        }
+        else if (resFpsString.equals("2k60")) {
+            return BITRATE_DEFAULT_2K_60;
         }
         else if (resFpsString.equals("4k30")) {
             return BITRATE_DEFAULT_4K_30;
@@ -161,6 +169,14 @@ public class PreferenceConfiguration {
         } else if (str.equals("1440p60")) {
             config.width = 2560;
             config.height = 1440;
+            config.fps = 60;
+        } else if (str.equals("2k30")) {
+            config.width = 2048;
+            config.height = 1152;
+            config.fps = 30;
+        }else if (str.equals("2k60")) {
+            config.width = 2048;
+            config.height = 1152;
             config.fps = 60;
         } else if (str.equals("4k30")) {
             config.width = 3840;

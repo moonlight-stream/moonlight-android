@@ -5,6 +5,11 @@
         <item>720p - 60 FPS</item>
         <item>1080p - 30 FPS</item>
         <item>1080p - 60 FPS</item>
+        <item>1440p - 30 FPS</item>
+        <item>1440p - 60 FPS</item>
+        <item>2k - 30 FPS</item>
+        <item>2k - 60 FPS</item>
+        <item>4k - 30 FPS</item>
     </string-array>
 
     <string-array name="decoder_names">

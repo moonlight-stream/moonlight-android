@@ -7,6 +7,8 @@
         <item>1080p 60 FPS</item>
         <item>1440p 30 FPS</item>
         <item>1440p 60 FPS</item>
+        <item>2K 30 FPS</item>
+        <item>2K 60 FPS</item>
         <item>4K 30 FPS</item>
     </string-array>
     <string-array name="resolution_values" translatable="false">
@@ -16,6 +18,8 @@
         <item>1080p60</item>
         <item>1440p30</item>
         <item>1440p60</item>
+        <item>2k30</item>
+        <item>2k60</item>
         <item>4k30</item>
     </string-array>
 

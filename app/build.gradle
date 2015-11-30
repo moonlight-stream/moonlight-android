@@ -4,7 +4,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 'Google Inc.:Google APIs:23'
     buildToolsVersion "23.0.2"
 
     defaultConfig {
@@ -62,12 +62,10 @@ android {
 }
 
 dependencies {
-    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.52'
-    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.52'
-
-    compile group: 'com.squareup.okhttp', name: 'okhttp', version:'2.4.0'
-    compile group: 'com.squareup.okio', name:'okio', version:'1.5.0'
-
+    compile 'org.bouncycastle:bcprov-jdk15on:1.52'
+    compile 'org.bouncycastle:bcpkix-jdk15on:1.52'
+    compile 'com.squareup.okhttp:okhttp:2.4.0'
+    compile 'com.squareup.okio:okio:1.5.0'
     compile files('libs/jmdns-3.4.2.jar')
     compile files('libs/limelight-common.jar')
     compile files('libs/tinyrtsp.jar')

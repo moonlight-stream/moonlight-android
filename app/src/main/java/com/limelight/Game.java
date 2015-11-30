@@ -241,7 +241,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // 4K devices run 6.0 at the moment.
             double screenAspectRatio = ((double)screenSize.y) / screenSize.x;
             double streamAspectRatio = ((double)prefConfig.height) / prefConfig.width;
-            if (Math.abs(screenAspectRatio - streamAspectRatio) < 0.001) {
+            if ((Math.abs(screenAspectRatio - streamAspectRatio) < 0.001)) {
                 LimeLog.info("Stream has compatible aspect ratio with output display");
                 aspectRatioMatch = true;
             }

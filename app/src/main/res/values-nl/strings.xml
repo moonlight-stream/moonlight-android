@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- PC view menu entries -->
+    <string name="pcview_menu_app_list">Toon Spel Lijst</string>
+    <string name="pcview_menu_pair_pc">Koppel met PC</string>
+    <string name="pcview_menu_unpair_pc">Ontkoppen</string>
+    <string name="pcview_menu_send_wol">Stuur Wake-On-LAN aanvraag</string>
+    <string name="pcview_menu_delete_pc">Verwijder PC</string>
+
+    <!-- Pair messages -->
+    <string name="pairing">Koppelen…</string>
+    <string name="pair_pc_offline">Computer is onbereikbaar</string>
+    <string name="pair_pc_ingame">Computer is op dit moment in een spel. Sluit de spel voordat je koppelt.</string>
+    <string name="pair_pairing_title">Koppelen</string>
+    <string name="pair_pairing_msg">Voer de volgende PIN in op de doel PC:</string>
+    <string name="pair_incorrect_pin">Ongeldige PIN</string>
+    <string name="pair_fail">Koppelen mislukt</string>
+
+    <!-- WOL messages -->
+    <string name="wol_pc_online">Computer is online</string>
+    <string name="wol_no_mac">Het is niet mogelijk om de PC uit slaapstand te halen, omdat GFE geen MAC adres heeft verstuurd.</string>
+    <string name="wol_waking_pc">PC uit slaapstand halen…</string>
+    <string name="wol_waking_msg"> Het ken even duren voordat de PC reageert.
+	    Als dit niet gebeurt dan moet je de Wake-On-LAN instellingen controleren.
+    </string>
+    <string name="wol_fail">Wake-On-LAN packets versturen mislukt</string>
+
+    <!-- Unpair messages -->
+    <string name="unpairing">Ontkoppelen…</string>
+    <string name="unpair_success">Ontkoppeling succesvol</string>
+    <string name="unpair_fail">Ontkoppeling mislukt</string>
+    <string name="unpair_error">Apparaat niet gekoppeld</string>
+
+    <!-- Errors -->
+    <string name="error_pc_offline">Computer is offline</string>
+    <string name="error_manager_not_running">The ComputerManager service is niet gestart. Wacht een ogenblik of herstart de app.</string>
+    <string name="error_unknown_host">Host achterhalen mislukt.</string>
+    <string name="error_404">GFE geeft een HTTP 404 fout.  Kijk na of de PC een ondersteunde GPU heeft.
+	    Remote desktop software kan soms ook voor deze fout zorgen. Probeer de computer opnieuw op te starten of GFE te herinstalleren.
+    </string>
+
+    <!-- Start application messages -->
+    <string name="conn_establishing_title">Verbinding maken</string>
+    <string name="conn_establishing_msg">Verbinding starten</string>
+    <string name="conn_metered">Waarschuwing: Dit internet verbinding bevat een datalimiet!</string>
+    <string name="conn_client_latency">Gemiddelde frame decoding reactietijd:</string>
+    <string name="conn_client_latency_hw">hardware decoder reactietijd:</string>
+    <string name="conn_hardware_latency">Gemiddelde hardware decoding reactietijd:</string>
+    <string name="conn_starting">Starten</string>
+    <string name="conn_error_title">Verbindingsprobleem</string>
+    <string name="conn_error_msg">Starten mislukt</string>
+    <string name="conn_terminated_title">Verbinding be&euml;indigd</string>
+    <string name="conn_terminated_msg">De verbinding is be&euml;indigd</string>
+
+    <!-- General strings -->
+    <string name="ip_hint">IP adres van GeForce PC</string>
+    <string name="searching_pc">Zoeken naar PCs…</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nee</string>
+    <string name="lost_connection">Verbinding met PC verloren</string>
+
+    <!-- AppList activity -->
+    <string name="title_applist">Apps op</string>
+    <string name="applist_menu_resume">Hervat Sessie</string>
+    <string name="applist_menu_quit">Stop Sessie</string>
+    <string name="applist_menu_quit_and_start">Stop Huidige Spel en Start</string>
+    <string name="applist_menu_cancel">Annuleer</string>
+    <string name="applist_refresh_title">App Lijst</string>
+    <string name="applist_refresh_msg">Apps Verversen…</string>
+    <string name="applist_refresh_error_title">Fout</string>
+    <string name="applist_refresh_error_msg">App lijst ophalen mislukt</string>
+    <string name="applist_quit_app">Stoppen</string>
+    <string name="applist_quit_success">Succesvol gestopt.</string>
+    <string name="applist_quit_fail">Stoppen mislukt</string>
+    <string name="applist_quit_confirmation">Are you sure you want to quit the running app? All unsaved data will be lost.</string>
+
+    <!-- Add computer manually activity -->
+    <string name="title_add_pc">Add PC Manually</string>
+    <string name="msg_add_pc">Connecting to the PC…</string>
+    <string name="addpc_fail">Unable to connect to the specified computer. Make sure the required ports are allowed through the firewall.</string>
+    <string name="addpc_success">Successfully added computer</string>
+    <string name="addpc_unknown_host">Unable to resolve PC address. Make sure you didn\'t make a typo in the address.</string>
+    <string name="addpc_enter_ip">You must enter an IP address</string>
+
+    <!-- Preferences -->
+    <string name="category_basic_settings">Basic Settings</string>
+    <string name="title_resolution_list">Select resolution and FPS target</string>
+    <string name="summary_resolution_list">Setting values too high for your device may cause lag or crashing</string>
+    <string name="title_seekbar_bitrate">Select target video bitrate</string>
+    <string name="summary_seekbar_bitrate">Lower bitrate to reduce stuttering. Raise bitrate to increase image quality.</string>
+    <string name="suffix_seekbar_bitrate">Mbps</string>
+    <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
+    <string name="title_checkbox_disable_warnings">Disable warning messages</string>
+    <string name="summary_checkbox_disable_warnings">Disable on-screen connection warning messages while streaming</string>
+
+    <string name="category_gamepad_settings">Gamepad Settings</string>
+    <string name="title_checkbox_multi_controller">Multiple controller support</string>
+    <string name="summary_checkbox_multi_controller">When unchecked, all controllers appear as one</string>
+    <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Xbox One controller driver</string>
+    <string name="summary_checkbox_xb1_driver">Enables a built-in USB driver for devices without native Xbox One controller support.</string>
+
+    <string name="category_ui_settings">UI Settings</string>
+    <string name="title_language_list">Language</string>
+    <string name="summary_language_list">Language to use for Moonlight</string>
+    <string name="title_checkbox_list_mode">Use lists instead of grids</string>
+    <string name="summary_checkbox_list_mode">Display apps and PCs in lists instead of grids</string>
+    <string name="title_checkbox_small_icon_mode">Use small icons</string>
+    <string name="summary_checkbox_small_icon_mode">Use small icons in grid items to allow more items on screen</string>
+
+    <string name="category_host_settings">Host Settings</string>
+    <string name="title_checkbox_enable_sops">Optimize game settings</string>
+    <string name="summary_checkbox_enable_sops">Allow GFE to modify game settings for optimal streaming</string>
+    <string name="title_checkbox_host_audio">Play audio on PC</string>
+    <string name="summary_checkbox_host_audio">Play audio from the computer and this device</string>
+
+    <string name="category_advanced_settings">Advanced Settings</string>
+    <string name="title_decoder_list">Change decoder</string>
+    <string name="summary_decoder_list">Software decoding may improve video latency at lower streaming settings</string>
+</resources>

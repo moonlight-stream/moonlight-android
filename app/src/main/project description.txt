@@ -1,0 +1,8 @@
+We wanted to add support of 1440p and 4k resolution in the game stream.
+
+We included all resolutions added (1440p, 2k, 4k):
+preferenceConfiguration.java
+game.java
+arrays.xml
+
+

@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import javax.crypto.SecretKey;
 
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer.VideoFormat;
 
 public class ConnectionContext {
 	// Gen 3 servers are 2.1.1 - 2.2.1
@@ -21,4 +22,6 @@ public class ConnectionContext {
 	public int riKeyId;
 	
 	public int serverGeneration;
+	
+	public VideoFormat negotiatedVideoFormat;
 }

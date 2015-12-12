@@ -25,6 +25,7 @@ public class StreamConfiguration {
 	private boolean remote;
 	private int audioChannelMask;
 	private int audioChannelCount;
+	private boolean supportsHevc;
 	
 	public static class Builder {
 		private StreamConfiguration config = new StreamConfiguration();
@@ -91,6 +92,11 @@ public class StreamConfiguration {
 			return this;
 		}
 		
+		public StreamConfiguration.Builder setHevcSupported(boolean supportsHevc) {
+			config.supportsHevc = supportsHevc;
+			return this;
+		}
+		
 		public StreamConfiguration build() {
 			return config;
 		}
@@ -108,6 +114,7 @@ public class StreamConfiguration {
 		this.enableAdaptiveResolution = false;
 		this.audioChannelCount = CHANNEL_COUNT_STEREO;
 		this.audioChannelMask = CHANNEL_MASK_STEREO;
+		this.supportsHevc = false;
 	}
 	
 	public int getWidth() {
@@ -156,5 +163,9 @@ public class StreamConfiguration {
 	
 	public int getAudioChannelMask() {
 		return audioChannelMask;
+	}
+	
+	public boolean getHevcSupported() {
+		return supportsHevc;
 	}
 }

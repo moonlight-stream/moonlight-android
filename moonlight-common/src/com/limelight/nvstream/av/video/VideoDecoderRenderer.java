@@ -3,6 +3,11 @@ package com.limelight.nvstream.av.video;
 import com.limelight.nvstream.av.DecodeUnit;
 
 public abstract class VideoDecoderRenderer {
+	public enum VideoFormat {
+		H264,
+		H265
+	};
+	
 	public static final int FLAG_PREFER_QUALITY = 0x1;
 	public static final int FLAG_FORCE_HARDWARE_DECODING = 0x2;
 	public static final int FLAG_FORCE_SOFTWARE_DECODING = 0x4;
@@ -34,7 +39,7 @@ public abstract class VideoDecoderRenderer {
 		throw new UnsupportedOperationException("CAPABILITY_DIRECT_SUBMIT requires overriding directSubmitDecodeUnit()");
 	}
 
-	public abstract boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags);
+	public abstract boolean setup(VideoFormat format, int width, int height, int redrawRate, Object renderTarget, int drFlags);
 	
 	public abstract boolean start(VideoDepacketizer depacketizer);
 	

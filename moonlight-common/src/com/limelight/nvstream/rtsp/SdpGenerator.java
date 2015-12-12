@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import com.limelight.nvstream.ConnectionContext;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer.VideoFormat;
 
 public class SdpGenerator {
 	private static void addSessionAttribute(StringBuilder config, String attribute, String value) {
@@ -53,6 +54,17 @@ public class SdpGenerator {
 	private static void addGen4Attributes(StringBuilder config, ConnectionContext context) {
 		addSessionAttribute(config, "x-nv-general.serverAddress", "rtsp://"+context.serverAddress.getHostAddress()+":48010");
 
+		// If client and server are able, request HEVC
+		if (context.negotiatedVideoFormat == VideoFormat.H265) {
+			addSessionAttribute(config, "x-nv-clientSupportHevc", "1");
+			addSessionAttribute(config, "x-nv-vqos[0].bitStreamFormat", "1");
+		}
+		else {
+			// Otherwise, use AVC
+			addSessionAttribute(config, "x-nv-clientSupportHevc", "0");
+			addSessionAttribute(config, "x-nv-vqos[0].bitStreamFormat", "0");
+		}
+		
 		addSessionAttribute(config, "x-nv-video[0].rateControlMode", "4");
 		
 		// Use slicing for increased performance on some decoders

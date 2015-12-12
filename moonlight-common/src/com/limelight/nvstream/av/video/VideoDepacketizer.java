@@ -130,11 +130,23 @@ public class VideoDepacketizer {
 			int flags = 0;
 			if (NAL.getSpecialSequenceDescriptor(firstBuffer, cachedSpecialDesc) && NAL.isAnnexBFrameStart(cachedSpecialDesc)) {
 				switch (cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length]) {
-				case 0x67:
-				case 0x68:
+				
+				// H265
+				case 0x40: // VPS
+				case 0x42: // SPS
+				case 0x44: // PPS
 					flags |= DecodeUnit.DU_FLAG_CODEC_CONFIG;
 					break;
-				case 0x65:
+				case 0x26: // I-frame
+					flags |= DecodeUnit.DU_FLAG_SYNC_FRAME;
+					break;
+				
+				// H264
+				case 0x67: // SPS
+				case 0x68: // PPS
+					flags |= DecodeUnit.DU_FLAG_CODEC_CONFIG;
+					break;
+				case 0x65: // I-frame
 					flags |= DecodeUnit.DU_FLAG_SYNC_FRAME;
 					break;
 				}
@@ -159,8 +171,8 @@ public class VideoDepacketizer {
 			}
 			
 			// Initialize the free DU
-			du.initialize(DecodeUnit.TYPE_H264, frameDataChainHead,
-					frameDataLength, frameNumber, frameStartTime, flags, backingPacketHead);
+			du.initialize(frameDataChainHead, frameDataLength, frameNumber,
+					frameStartTime, flags, backingPacketHead);
 			
 			// Packets now owned by the DU
 			backingPacketTail = backingPacketHead = null;
@@ -233,7 +245,8 @@ public class VideoDepacketizer {
 						// Reassemble any pending NAL
 						reassembleFrame(packet.getFrameIndex());
 						
-						if (cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x65) {
+						if (cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x65 || // H264 I-Frame
+								cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x26) { // H265 I-Frame
 							// This is the NALU code for I-frame data
 							waitingForIdrFrame = false;
 						}
@@ -433,10 +446,7 @@ public class VideoDepacketizer {
 		}
 		lastPacketInStream = streamPacketIndex;
 		
-		if (firstPacket
-				&& NAL.getSpecialSequenceDescriptor(cachedReassemblyDesc, cachedSpecialDesc)
-				&& NAL.isAnnexBFrameStart(cachedSpecialDesc)
-				&& cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x67)
+		if (firstPacket && isIdrFrameStart(cachedReassemblyDesc))
 		{
 			// The slow path doesn't update the frame start time by itself
 			frameStartTime = TimeHelper.getMonotonicMillis();
@@ -475,6 +485,13 @@ public class VideoDepacketizer {
 			
 	        startFrameNumber = nextFrameNumber;
 		}
+	}
+	
+	private boolean isIdrFrameStart(ByteBufferDescriptor desc) {
+		return NAL.getSpecialSequenceDescriptor(desc, cachedSpecialDesc) &&
+				NAL.isAnnexBFrameStart(cachedSpecialDesc) &&
+				(cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x67 || // H264 SPS
+				 cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x40); // H265 VPS
 	}
 	
 	public DecodeUnit takeNextDecodeUnit() throws InterruptedException

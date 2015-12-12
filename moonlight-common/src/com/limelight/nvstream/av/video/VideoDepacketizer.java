@@ -14,7 +14,7 @@ import com.limelight.utils.TimeHelper;
 public class VideoDepacketizer {
 	
 	// Current frame state
-	private int avcFrameDataLength = 0;
+	private int frameDataLength = 0;
 	private ByteBufferDescriptor frameDataChainHead;
 	private ByteBufferDescriptor frameDataChainTail;
 	private VideoPacket backingPacketHead;
@@ -84,7 +84,7 @@ public class VideoDepacketizer {
 		}
 	}
 	
-	private void dropAvcFrameState()
+	private void dropFrameState()
 	{
 		// We'll need an IDR frame now if we're in strict mode
 		if (strictIdrFrameWait) {
@@ -106,10 +106,10 @@ public class VideoDepacketizer {
 			controlListener.connectionDetectedFrameLoss(0, 0);
 		}
 		
-		cleanupAvcFrameState();
+		cleanupFrameState();
 	}
 	
-	private void cleanupAvcFrameState()
+	private void cleanupFrameState()
 	{
 		backingPacketTail = null;
 		while (backingPacketHead != null) {
@@ -118,17 +118,17 @@ public class VideoDepacketizer {
 		}
 		
 		frameDataChainHead = frameDataChainTail = null;
-		avcFrameDataLength = 0;
+		frameDataLength = 0;
 	}
 	
-	private void reassembleAvcFrame(int frameNumber)
+	private void reassembleFrame(int frameNumber)
 	{
 		// This is the start of a new frame
 		if (frameDataChainHead != null) {
 			ByteBufferDescriptor firstBuffer = frameDataChainHead;
 			
 			int flags = 0;
-			if (NAL.getSpecialSequenceDescriptor(firstBuffer, cachedSpecialDesc) && NAL.isAvcFrameStart(cachedSpecialDesc)) {
+			if (NAL.getSpecialSequenceDescriptor(firstBuffer, cachedSpecialDesc) && NAL.isAnnexBFrameStart(cachedSpecialDesc)) {
 				switch (cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length]) {
 				case 0x67:
 				case 0x68:
@@ -140,7 +140,7 @@ public class VideoDepacketizer {
 				}
 			}
 			
-			// Construct the H264 decode unit
+			// Construct the video decode unit
 			DecodeUnit du = decodedUnits.pollFreeObject();
 			if (du == null) {
 				LimeLog.warning("Video decoder is too slow! Forced to drop decode units");
@@ -154,13 +154,13 @@ public class VideoDepacketizer {
 				decodedUnits.clearPopulatedObjects();
 				
 				// Clear frame state and wait for an IDR
-				dropAvcFrameState();
+				dropFrameState();
 				return;
 			}
 			
 			// Initialize the free DU
 			du.initialize(DecodeUnit.TYPE_H264, frameDataChainHead,
-					avcFrameDataLength, frameNumber, frameStartTime, flags, backingPacketHead);
+					frameDataLength, frameNumber, frameStartTime, flags, backingPacketHead);
 			
 			// Packets now owned by the DU
 			backingPacketTail = backingPacketHead = null;
@@ -171,7 +171,7 @@ public class VideoDepacketizer {
 			decodedUnits.addPopulatedObject(du);
 
 			// Clear old state
-			cleanupAvcFrameState();
+			cleanupFrameState();
 			
 			// Clear frame drops
 			consecutiveFrameDrops = 0;
@@ -190,7 +190,7 @@ public class VideoDepacketizer {
 			frameDataChainHead = frameDataChainTail = desc;
 		}
 		
-		avcFrameDataLength += desc.length;
+		frameDataLength += desc.length;
 	}
 	
 	private void chainPacketToCurrentFrame(VideoPacket packet) {
@@ -209,7 +209,7 @@ public class VideoDepacketizer {
 	
 	private void addInputDataSlow(VideoPacket packet, ByteBufferDescriptor location)
 	{
-		boolean isDecodingH264 = false;
+		boolean isDecodingVideoData = false;
 		
 		while (location.length != 0)
 		{
@@ -219,19 +219,19 @@ public class VideoDepacketizer {
 			// Check for a special sequence
 			if (NAL.getSpecialSequenceDescriptor(location, cachedSpecialDesc))
 			{
-				if (NAL.isAvcStartSequence(cachedSpecialDesc))
+				if (NAL.isAnnexBStartSequence(cachedSpecialDesc))
 				{
-					// We're decoding H264 now
-					isDecodingH264 = true;
+					// We're decoding video data now
+					isDecodingVideoData = true;
 					
 					// Check if it's the end of the last frame
-					if (NAL.isAvcFrameStart(cachedSpecialDesc))
+					if (NAL.isAnnexBFrameStart(cachedSpecialDesc))
 					{
 						// Update the global state that we're decoding a new frame
 						this.decodingFrame = true;
 						
-						// Reassemble any pending AVC NAL
-						reassembleAvcFrame(packet.getFrameIndex());
+						// Reassemble any pending NAL
+						reassembleFrame(packet.getFrameIndex());
 						
 						if (cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x65) {
 							// This is the NALU code for I-frame data
@@ -245,14 +245,14 @@ public class VideoDepacketizer {
 				}
 				else
 				{
-					// Check if this is padding after a full AVC frame
-					if (isDecodingH264 && NAL.isPadding(cachedSpecialDesc)) {
+					// Check if this is padding after a full video frame
+					if (isDecodingVideoData && NAL.isPadding(cachedSpecialDesc)) {
 						// The decode unit is complete
-						reassembleAvcFrame(packet.getFrameIndex());
+						reassembleFrame(packet.getFrameIndex());
 					}
 
-					// Not decoding AVC
-					isDecodingH264 = false;
+					// Not decoding video
+					isDecodingVideoData = false;
 
 					// Just skip this byte
 					location.length--;
@@ -271,7 +271,7 @@ public class VideoDepacketizer {
 					{
 						// Only stop if we're decoding something or this
 						// isn't padding
-						if (isDecodingH264 || !NAL.isPadding(cachedSpecialDesc))
+						if (isDecodingVideoData || !NAL.isPadding(cachedSpecialDesc))
 						{
 							break;
 						}
@@ -283,7 +283,7 @@ public class VideoDepacketizer {
 				location.length--;
 			}
 
-			if (isDecodingH264 && decodingFrame)
+			if (isDecodingVideoData && decodingFrame)
 			{
 				// The slow path may result in multiple decode units per packet.
 				// The VideoPacket objects only support being in 1 DU list, so we'll
@@ -364,7 +364,7 @@ public class VideoDepacketizer {
 			waitingForNextSuccessfulFrame = true;
 			
 			// Clear the old state and wait for an IDR
-			dropAvcFrameState();
+			dropFrameState();
 		}
 		// Look for a non-frame start before a frame start
 		else if (!firstPacket && !decodingFrame) {
@@ -378,7 +378,7 @@ public class VideoDepacketizer {
 				
 				waitingForNextSuccessfulFrame = true;
 				
-				dropAvcFrameState();
+				dropFrameState();
 				decodingFrame = false;
 				return;
 			}
@@ -397,7 +397,7 @@ public class VideoDepacketizer {
 				
 				// Wait until an IDR frame comes
 				waitingForNextSuccessfulFrame = true;
-				dropAvcFrameState();
+				dropFrameState();
 			}
 			else if (nextFrameNumber != frameIndex) {
 				// Duplicate packet or FEC dup
@@ -419,7 +419,7 @@ public class VideoDepacketizer {
 				
 				waitingForNextSuccessfulFrame = true;
 				
-				dropAvcFrameState();
+				dropFrameState();
 				decodingFrame = false;
 				
 				return;
@@ -435,7 +435,7 @@ public class VideoDepacketizer {
 		
 		if (firstPacket
 				&& NAL.getSpecialSequenceDescriptor(cachedReassemblyDesc, cachedSpecialDesc)
-				&& NAL.isAvcFrameStart(cachedSpecialDesc)
+				&& NAL.isAnnexBFrameStart(cachedSpecialDesc)
 				&& cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x67)
 		{
 			// The slow path doesn't update the frame start time by itself
@@ -467,11 +467,11 @@ public class VideoDepacketizer {
 			if (waitingForIdrFrame) {
 				LimeLog.warning("Waiting for IDR frame");
 				
-				dropAvcFrameState();
+				dropFrameState();
 				return;
 			}
 			
-	        reassembleAvcFrame(frameIndex);
+	        reassembleFrame(frameIndex);
 			
 	        startFrameNumber = nextFrameNumber;
 		}
@@ -496,14 +496,14 @@ public class VideoDepacketizer {
 class NAL {
 	
 	// This assumes that the buffer passed in is already a special sequence
-	public static boolean isAvcStartSequence(ByteBufferDescriptor specialSeq)
+	public static boolean isAnnexBStartSequence(ByteBufferDescriptor specialSeq)
 	{
 		// The start sequence is 00 00 01 or 00 00 00 01
 		return (specialSeq.data[specialSeq.offset+specialSeq.length-1] == 0x01);
 	}
 	
 	// This assumes that the buffer passed in is already a special sequence
-	public static boolean isAvcFrameStart(ByteBufferDescriptor specialSeq)
+	public static boolean isAnnexBFrameStart(ByteBufferDescriptor specialSeq)
 	{
 		if (specialSeq.length != 4)
 			return false;
@@ -537,7 +537,7 @@ class NAL {
 				if (buffer.length >= 4 &&
 					buffer.data[buffer.offset+3] == 0x01)
 				{
-					// It's the AVC start sequence 00 00 00 01
+					// It's the Annex B start sequence 00 00 00 01
 					outputDesc.reinitialize(buffer.data, buffer.offset, 4);
 				}
 				else

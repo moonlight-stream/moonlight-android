@@ -144,6 +144,15 @@ public class MediaCodecHelper {
     }
 
 	public static boolean decoderIsWhitelistedForHevc(String decoderName) {
+		// NVIDIA does partial HEVC acceleration on the Shield Tablet. I don't know
+		// whether the performance is good enough to use for streaming, but they're
+		// using the same omx.nvidia.h265.decode name as the Shield TV which has a
+		// fully accelerated HEVC pipeline. AFAIK, the only K1 device with this
+		// partially accelerated HEVC decoder is the Shield Tablet, so I'll
+		// check for it here.
+		if (Build.DEVICE.equalsIgnoreCase("shieldtablet")) {
+			return false;
+		}
 		return isDecoderInList(whitelistedHevcDecoders, decoderName);
 	}
 	

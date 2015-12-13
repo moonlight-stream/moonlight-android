@@ -212,7 +212,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Display a message to the user if H.265 was forced on but we still didn't find a decoder
         if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
-            Toast.makeText(this, "No H.265 decoder found. Falling back to H.264", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "No H.265 decoder found.\nFalling back to H.264.", Toast.LENGTH_LONG).show();
         }
         
         StreamConfiguration config = new StreamConfiguration.Builder()

@@ -21,6 +21,7 @@ public class PreferenceConfiguration {
     private static final String MULTI_CONTROLLER_PREF_STRING = "checkbox_multi_controller";
     private static final String ENABLE_51_SURROUND_PREF_STRING = "checkbox_51_surround";
     private static final String USB_DRIVER_PREF_SRING = "checkbox_usb_driver";
+    private static final String VIDEO_FORMAT_PREF_STRING = "video_format";
 
     private static final int BITRATE_DEFAULT_720_30 = 5;
     private static final int BITRATE_DEFAULT_720_60 = 10;
@@ -42,14 +43,19 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_MULTI_CONTROLLER = true;
     private static final boolean DEFAULT_ENABLE_51_SURROUND = false;
     private static final boolean DEFAULT_USB_DRIVER = true;
+    private static final String DEFAULT_VIDEO_FORMAT = "auto";
 
     public static final int FORCE_HARDWARE_DECODER = -1;
     public static final int AUTOSELECT_DECODER = 0;
     public static final int FORCE_SOFTWARE_DECODER = 1;
 
+    public static final int FORCE_H265_ON = -1;
+    public static final int AUTOSELECT_H265 = 0;
+    public static final int FORCE_H265_OFF = 1;
+
     public int width, height, fps;
     public int bitrate;
-    public int decoder;
+    public int decoder, videoFormat;
     public int deadzonePercentage;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
     public String language;
@@ -124,6 +130,25 @@ public class PreferenceConfiguration {
         }
     }
 
+    private static int getVideoFormatValue(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        String str = prefs.getString(VIDEO_FORMAT_PREF_STRING, DEFAULT_VIDEO_FORMAT);
+        if (str.equals("auto")) {
+            return AUTOSELECT_H265;
+        }
+        else if (str.equals("forceh265")) {
+            return FORCE_H265_ON;
+        }
+        else if (str.equals("neverh265")) {
+            return FORCE_H265_OFF;
+        }
+        else {
+            // Should never get here
+            return AUTOSELECT_H265;
+        }
+    }
+
     public static PreferenceConfiguration readPreferences(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         PreferenceConfiguration config = new PreferenceConfiguration();
@@ -168,6 +193,7 @@ public class PreferenceConfiguration {
         }
 
         config.decoder = getDecoderValue(context);
+        config.videoFormat = getVideoFormatValue(context);
 
         config.deadzonePercentage = prefs.getInt(DEADZONE_PREF_STRING, DEFAULT_DEADZONE);
 

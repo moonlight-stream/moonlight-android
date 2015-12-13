@@ -208,7 +208,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         decoderRenderer = new ConfigurableDecoderRenderer();
-        decoderRenderer.initializeWithFlags(drFlags);
+        decoderRenderer.initializeWithFlags(drFlags, prefConfig.videoFormat);
+
+        // Display a message to the user if H.265 was forced on but we still didn't find a decoder
+        if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
+            Toast.makeText(this, "No H.265 decoder found. Falling back to H.264", Toast.LENGTH_LONG).show();
+        }
         
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
@@ -221,6 +226,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
                 .setMaxPacketSize(remote ? 1024 : 1292)
                 .setRemote(remote)
+                .setHevcSupported(decoderRenderer.isHevcSupported())
                 .setAudioConfiguration(prefConfig.enable51Surround ?
                         StreamConfiguration.AUDIO_CONFIGURATION_5_1 :
                         StreamConfiguration.AUDIO_CONFIGURATION_STEREO)
@@ -352,6 +358,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             unbindService(usbDriverServiceConnection);
         }
 
+        VideoDecoderRenderer.VideoFormat videoFormat = conn.getActiveVideoFormat();
+
         displayedFailureDialog = true;
         stopConnection();
 
@@ -366,6 +374,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
         else if (averageDecoderLat > 0) {
             message = getResources().getString(R.string.conn_hardware_latency)+" "+averageDecoderLat+" ms";
+        }
+
+        // Add the video codec to the post-stream toast
+        if (message != null && videoFormat != VideoDecoderRenderer.VideoFormat.Unknown) {
+            if (videoFormat == VideoDecoderRenderer.VideoFormat.H265) {
+                message += " [H.265]";
+            }
+            else {
+                message += " [H.264]";
+            }
         }
 
         if (message != null) {

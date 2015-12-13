@@ -1,5 +1,7 @@
 package com.limelight.binding.video;
 
+import android.media.MediaCodecInfo;
+
 import com.limelight.nvstream.av.DecodeUnit;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.av.video.VideoDepacketizer;
@@ -16,18 +18,18 @@ public class ConfigurableDecoderRenderer extends EnhancedDecoderRenderer {
     }
 
     @Override
-    public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
+    public boolean setup(VideoFormat format, int width, int height, int redrawRate, Object renderTarget, int drFlags) {
         if (decoderRenderer == null) {
             throw new IllegalStateException("ConfigurableDecoderRenderer not initialized");
         }
-        return decoderRenderer.setup(width, height, redrawRate, renderTarget, drFlags);
+        return decoderRenderer.setup(format, width, height, redrawRate, renderTarget, drFlags);
     }
 
-    public void initializeWithFlags(int drFlags) {
+    public void initializeWithFlags(int drFlags, int videoFormat) {
         if ((drFlags & VideoDecoderRenderer.FLAG_FORCE_HARDWARE_DECODING) != 0 ||
                 ((drFlags & VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING) == 0 &&
-                MediaCodecHelper.findProbableSafeDecoder() != null)) {
-            decoderRenderer = new MediaCodecDecoderRenderer();
+                MediaCodecHelper.findProbableSafeDecoder("video/avc", MediaCodecInfo.CodecProfileLevel.AVCProfileHigh) != null)) {
+            decoderRenderer = new MediaCodecDecoderRenderer(videoFormat);
         }
         else {
             decoderRenderer = new AndroidCpuDecoderRenderer();
@@ -82,12 +84,12 @@ public class ConfigurableDecoderRenderer extends EnhancedDecoderRenderer {
     }
 
     @Override
-    public String getDecoderName() {
+    public boolean isHevcSupported() {
         if (decoderRenderer != null) {
-            return decoderRenderer.getDecoderName();
+            return decoderRenderer.isHevcSupported();
         }
         else {
-            return null;
+            return false;
         }
     }
 }

@@ -28,6 +28,7 @@ public class MediaCodecHelper {
     private static final List<String> baselineProfileHackPrefixes;
     private static final List<String> directSubmitPrefixes;
 	private static final List<String> constrainedHighProfilePrefixes;
+	private static final List<String> whitelistedHevcDecoders;
 
     static {
         directSubmitPrefixes = new LinkedList<String>();
@@ -72,6 +73,12 @@ public class MediaCodecHelper {
 
 		constrainedHighProfilePrefixes = new LinkedList<String>();
 		constrainedHighProfilePrefixes.add("omx.intel");
+
+		whitelistedHevcDecoders = new LinkedList<>();
+		whitelistedHevcDecoders.add("omx.exynos");
+		whitelistedHevcDecoders.add("omx.qcom");
+		whitelistedHevcDecoders.add("omx.nvidia");
+		whitelistedHevcDecoders.add("omx.mtk");
 	}
 
 	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
@@ -92,7 +99,7 @@ public class MediaCodecHelper {
 	}
 	
 	@TargetApi(Build.VERSION_CODES.KITKAT)
-	public static boolean decoderSupportsAdaptivePlayback(String decoderName, MediaCodecInfo decoderInfo) {
+	public static boolean decoderSupportsAdaptivePlayback(String decoderName) {
 		/*
         FIXME: Intel's decoder on Nexus Player forces the high latency path if adaptive playback is enabled
         so we'll keep it off for now, since we don't know whether other devices also do the same
@@ -120,21 +127,25 @@ public class MediaCodecHelper {
 		return false;
 	}
 
-	public static boolean decoderNeedsConstrainedHighProfile(String decoderName, MediaCodecInfo decoderInfo) {
+	public static boolean decoderNeedsConstrainedHighProfile(String decoderName) {
 		return isDecoderInList(constrainedHighProfilePrefixes, decoderName);
 	}
 
-    public static boolean decoderCanDirectSubmit(String decoderName, MediaCodecInfo decoderInfo) {
+    public static boolean decoderCanDirectSubmit(String decoderName) {
         return isDecoderInList(directSubmitPrefixes, decoderName) && !isExynos4Device();
     }
 	
-	public static boolean decoderNeedsSpsBitstreamRestrictions(String decoderName, MediaCodecInfo decoderInfo) {
+	public static boolean decoderNeedsSpsBitstreamRestrictions(String decoderName) {
 		return isDecoderInList(spsFixupBitstreamFixupDecoderPrefixes, decoderName);
 	}
 
-    public static boolean decoderNeedsBaselineSpsHack(String decoderName, MediaCodecInfo decoderInfo) {
+    public static boolean decoderNeedsBaselineSpsHack(String decoderName) {
         return isDecoderInList(baselineProfileHackPrefixes, decoderName);
     }
+
+	public static boolean decoderIsWhitelistedForHevc(String decoderName) {
+		return isDecoderInList(whitelistedHevcDecoders, decoderName);
+	}
 	
 	@SuppressWarnings("deprecation")
 	@SuppressLint("NewApi")
@@ -199,7 +210,7 @@ public class MediaCodecHelper {
 		return null;
 	}
 	
-	public static MediaCodecInfo findFirstDecoder() {
+	public static MediaCodecInfo findFirstDecoder(String mimeType) {
 		for (MediaCodecInfo codecInfo : getMediaCodecList()) {
 			// Skip encoders
 			if (codecInfo.isEncoder()) {
@@ -212,9 +223,9 @@ public class MediaCodecHelper {
 				continue;
 			}
 			
-			// Find a decoder that supports H.264
+			// Find a decoder that supports the specified video format
 			for (String mime : codecInfo.getSupportedTypes()) {
-				if (mime.equalsIgnoreCase("video/avc")) {
+				if (mime.equalsIgnoreCase(mimeType)) {
 					LimeLog.info("First decoder choice is "+codecInfo.getName());
 					return codecInfo;
 				}
@@ -224,7 +235,7 @@ public class MediaCodecHelper {
 		return null;
 	}
 	
-	public static MediaCodecInfo findProbableSafeDecoder() {
+	public static MediaCodecInfo findProbableSafeDecoder(String mimeType, int requiredProfile) {
 		// First look for a preferred decoder by name
 		MediaCodecInfo info = findPreferredDecoder();
 		if (info != null) {
@@ -234,12 +245,12 @@ public class MediaCodecHelper {
 		// Now look for decoders we know are safe
 		try {
 			// If this function completes, it will determine if the decoder is safe
-			return findKnownSafeDecoder();
+			return findKnownSafeDecoder(mimeType, requiredProfile);
 		} catch (Exception e) {
 			// Some buggy devices seem to throw exceptions
 			// from getCapabilitiesForType() so we'll just assume
 			// they're okay and go with the first one we find
-			return findFirstDecoder();
+			return findFirstDecoder(mimeType);
 		}
 	}
 
@@ -247,7 +258,7 @@ public class MediaCodecHelper {
 	// since some bad decoders can throw IllegalArgumentExceptions unexpectedly
 	// and we want to be sure all callers are handling this possibility
 	@SuppressWarnings("RedundantThrows")
-    private static MediaCodecInfo findKnownSafeDecoder() throws Exception {
+    private static MediaCodecInfo findKnownSafeDecoder(String mimeType, int requiredProfile) throws Exception {
 		for (MediaCodecInfo codecInfo : getMediaCodecList()) {		
 			// Skip encoders
 			if (codecInfo.isEncoder()) {
@@ -260,21 +271,26 @@ public class MediaCodecHelper {
 				continue;
 			}
 			
-			// Find a decoder that supports H.264 high profile
+			// Find a decoder that supports the requested video format
 			for (String mime : codecInfo.getSupportedTypes()) {
-				if (mime.equalsIgnoreCase("video/avc")) {
+				if (mime.equalsIgnoreCase(mimeType)) {
 					LimeLog.info("Examining decoder capabilities of "+codecInfo.getName());
-					
+
 					CodecCapabilities caps = codecInfo.getCapabilitiesForType(mime);
-					for (CodecProfileLevel profile : caps.profileLevels) {
-						if (profile.profile == CodecProfileLevel.AVCProfileHigh) {
-							LimeLog.info("Decoder "+codecInfo.getName()+" supports high profile");
-							LimeLog.info("Selected decoder: "+codecInfo.getName());
-							return codecInfo;
+
+					if (requiredProfile != -1) {
+						for (CodecProfileLevel profile : caps.profileLevels) {
+							if (profile.profile == requiredProfile) {
+								LimeLog.info("Decoder " + codecInfo.getName() + " supports required profile");
+								return codecInfo;
+							}
 						}
+
+						LimeLog.info("Decoder " + codecInfo.getName() + " does NOT support required profile");
 					}
-					
-					LimeLog.info("Decoder "+codecInfo.getName()+" does NOT support high profile");
+					else {
+						return codecInfo;
+					}
 				}
 			}
 		}

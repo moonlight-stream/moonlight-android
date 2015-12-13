@@ -91,8 +91,13 @@ public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
     }
 
     @Override
-    public boolean setup(int width, int height, int redrawRate, Object renderTarget, int drFlags) {
+    public boolean setup(VideoFormat format, int width, int height, int redrawRate, Object renderTarget, int drFlags) {
         this.targetFps = redrawRate;
+
+        // We should never make it here with H265
+        if (format != VideoFormat.H264) {
+            return false;
+        }
 
         int perfLevel = LOW_PERF; //findOptimalPerformanceLevel();
         int threadCount;
@@ -283,7 +288,7 @@ public class AndroidCpuDecoderRenderer extends EnhancedDecoderRenderer {
     }
 
     @Override
-    public String getDecoderName() {
-        return "CPU decoding";
+    public boolean isHevcSupported() {
+        return false;
     }
 }

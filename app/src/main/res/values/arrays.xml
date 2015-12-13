@@ -38,4 +38,15 @@
         <item>software</item>
         <item>hardware</item>
     </string-array>
+
+    <string-array name="video_format_names">
+        <item>Use H.265 only if safe</item>
+        <item>Always use H.265 if available</item>
+        <item>Never use H.265</item>
+    </string-array>
+    <string-array name="video_format_values" translatable="false">
+        <item>auto</item>
+        <item>forceh265</item>
+        <item>neverh265</item>
+    </string-array>
 </resources>

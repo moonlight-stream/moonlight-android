@@ -58,17 +58,22 @@ public class SdpGenerator {
 		if (context.negotiatedVideoFormat == VideoFormat.H265) {
 			addSessionAttribute(config, "x-nv-clientSupportHevc", "1");
 			addSessionAttribute(config, "x-nv-vqos[0].bitStreamFormat", "1");
+			
+			// Disable slicing on HEVC
+			addSessionAttribute(config, "x-nv-video[0].videoEncoderSlicesPerFrame", "1");
 		}
 		else {
 			// Otherwise, use AVC
 			addSessionAttribute(config, "x-nv-clientSupportHevc", "0");
 			addSessionAttribute(config, "x-nv-vqos[0].bitStreamFormat", "0");
+			
+			// Use slicing for increased performance on some decoders
+			addSessionAttribute(config, "x-nv-video[0].videoEncoderSlicesPerFrame", "4");
 		}
 		
 		addSessionAttribute(config, "x-nv-video[0].rateControlMode", "4");
 		
-		// Use slicing for increased performance on some decoders
-		addSessionAttribute(config, "x-nv-video[0].videoEncoderSlicesPerFrame", "4");
+
 		
 		// Enable surround sound if configured for it
 		addSessionAttribute(config, "x-nv-audio.surround.numChannels", ""+context.streamConfig.getAudioChannelCount());

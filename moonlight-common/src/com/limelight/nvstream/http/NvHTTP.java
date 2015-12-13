@@ -334,6 +334,55 @@ public class NvHTTP {
 	public PairingManager.PairState getPairState(String serverInfo) throws IOException, XmlPullParserException {
 		return pm.getPairState(serverInfo);
 	}
+	
+	public long getMaxLumaPixelsH264(String serverInfo) throws XmlPullParserException, IOException {
+		String str = getXmlString(serverInfo, "MaxLumaPixelsH264");
+		if (str != null) {
+			try {
+				return Long.parseLong(str);
+			} catch (NumberFormatException e) {
+				return 0;
+			}
+		} else {
+			return 0;
+		}
+	}
+	
+	public long getMaxLumaPixelsHEVC(String serverInfo) throws XmlPullParserException, IOException {
+		String str = getXmlString(serverInfo, "MaxLumaPixelsHEVC");
+		if (str != null) {
+			try {
+				return Long.parseLong(str);
+			} catch (NumberFormatException e) {
+				return 0;
+			}
+		} else {
+			return 0;
+		}
+	}
+	
+	public String getGpuType(String serverInfo) throws XmlPullParserException, IOException {
+		return getXmlString(serverInfo, "gputype");
+	}
+	
+	public boolean supports4K(String serverInfo) throws XmlPullParserException, IOException {
+		// serverinfo returns supported resolutions in descending order, so getting the first
+		// height will give us whether we support 4K. If this is not present, we don't support
+		// 4K.
+		String heightStr = getXmlString(serverInfo, "Height");
+		if (heightStr == null) {
+			return false;
+		}
+		
+		try {
+			if (Integer.parseInt(heightStr) >= 2160) {
+				// Found a 4K resolution in the list
+				return true;
+			}
+		} catch (NumberFormatException ignored) {}
+		
+		return false;
+	}
 
 	public int getCurrentGame(String serverInfo) throws IOException, XmlPullParserException {
 		// GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
@@ -481,7 +530,7 @@ public class NvHTTP {
 		String xmlStr = openHttpConnectionToString(baseUrlHttps +
 			"/launch?uniqueid=" + uniqueId +
 			"&appid=" + appId +
-			"&mode=" + context.streamConfig.getWidth() + "x" + context.streamConfig.getHeight() + "x" + context.streamConfig.getRefreshRate() +
+			"&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + context.negotiatedFps +
 			"&additionalStates=1&sops=" + (context.streamConfig.getSops() ? 1 : 0) +
 			"&rikey="+bytesToHex(context.riKey.getEncoded()) +
 			"&rikeyid="+context.riKeyId +

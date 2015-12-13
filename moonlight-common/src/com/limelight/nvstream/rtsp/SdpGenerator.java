@@ -95,9 +95,9 @@ public class SdpGenerator {
 		config.append("\r\n");
 		config.append("s=NVIDIA Streaming Client").append("\r\n");
 				
-		addSessionAttribute(config, "x-nv-video[0].clientViewportWd", ""+context.streamConfig.getWidth());
-		addSessionAttribute(config, "x-nv-video[0].clientViewportHt", ""+context.streamConfig.getHeight());
-		addSessionAttribute(config, "x-nv-video[0].maxFPS", ""+context.streamConfig.getRefreshRate());
+		addSessionAttribute(config, "x-nv-video[0].clientViewportWd", ""+context.negotiatedWidth);
+		addSessionAttribute(config, "x-nv-video[0].clientViewportHt", ""+context.negotiatedHeight);
+		addSessionAttribute(config, "x-nv-video[0].maxFPS", ""+context.negotiatedFps);
 		
 		addSessionAttribute(config, "x-nv-video[0].packetSize", ""+context.streamConfig.getMaxPacketSize());
 		

@@ -4,6 +4,7 @@ import com.limelight.nvstream.av.DecodeUnit;
 
 public abstract class VideoDecoderRenderer {
 	public enum VideoFormat {
+		Unknown,
 		H264,
 		H265
 	};

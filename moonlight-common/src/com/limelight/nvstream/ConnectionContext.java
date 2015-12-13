@@ -24,4 +24,6 @@ public class ConnectionContext {
 	public int serverGeneration;
 	
 	public VideoFormat negotiatedVideoFormat;
+	public int negotiatedWidth, negotiatedHeight;
+	public int negotiatedFps;
 }

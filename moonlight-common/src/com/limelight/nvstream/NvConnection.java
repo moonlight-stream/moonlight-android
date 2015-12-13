@@ -15,6 +15,7 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.av.audio.AudioStream;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer.VideoFormat;
 import com.limelight.nvstream.av.video.VideoStream;
 import com.limelight.nvstream.control.ControlStream;
 import com.limelight.nvstream.http.GfeHttpResponseException;
@@ -61,6 +62,8 @@ public class NvConnection {
 		}
 		
 		this.context.riKeyId = generateRiKeyId();
+		
+		this.context.negotiatedVideoFormat = VideoFormat.Unknown;
 	}
 	
 	private static SecretKey generateRiAesKey() throws NoSuchAlgorithmException {
@@ -137,6 +140,41 @@ public class NvConnection {
 		if (h.getPairState(serverInfo) != PairingManager.PairState.PAIRED) {
 			context.connListener.displayMessage("Device not paired with computer");
 			return false;
+		}
+		
+		//
+		// Decide on negotiated stream parameters now
+		//
+		
+		// Check for a supported stream resolution
+		if (context.streamConfig.getHeight() >= 2160 && !h.supports4K(serverInfo)) {
+			// Client wants 4K but the server can't do it
+			context.connListener.displayTransientMessage("Your PC does not have a supported GPU or GFE version for 4K streaming. The stream will be 1080p.");
+			
+			// Lower resolution to 1080p
+			context.negotiatedWidth = 1920;
+			context.negotiatedHeight = 1080;
+		}
+		else {
+			// Take what the client wanted
+			context.negotiatedWidth = context.streamConfig.getWidth();
+			context.negotiatedHeight = context.streamConfig.getHeight();
+		}
+		
+		// For now, always take the client's FPS request
+		context.negotiatedFps = context.streamConfig.getRefreshRate();
+		
+		// Determine whether we should request H.265 video
+		String gpuType = h.getGpuType(serverInfo);
+		if (context.streamConfig.getHevcSupported() && // Client wants it
+				h.getMaxLumaPixelsHEVC(serverInfo) > 0 && gpuType != null && // Check if GFE version supports it
+				gpuType.contains("GTX 9")) // Check if GPU can do it (only 900-series) - TODO: Find a better way to detect this
+		{
+			context.negotiatedVideoFormat = VideoFormat.H265;
+		}
+		else 
+		{
+			context.negotiatedVideoFormat = VideoFormat.H264;
 		}
 		
 		NvApp app = context.streamConfig.getApp();
@@ -406,5 +444,9 @@ public class NvConnection {
 			return;
 		
 		inputStream.sendMouseScroll(scrollClicks);
+	}
+	
+	public VideoFormat getActiveVideoFormat() {
+		return context.negotiatedVideoFormat;
 	}
 }

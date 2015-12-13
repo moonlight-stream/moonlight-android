@@ -122,8 +122,8 @@ public class VideoStream {
 		
 		if (decRend != null) {
 			try {
-				if (!decRend.setup(context.negotiatedVideoFormat, context.streamConfig.getWidth(),
-						context.streamConfig.getHeight(), context.streamConfig.getRefreshRate(),
+				if (!decRend.setup(context.negotiatedVideoFormat, context.negotiatedWidth,
+						context.negotiatedHeight, context.negotiatedFps,
 						renderTarget, drFlags)) {
 					return false;
 				}

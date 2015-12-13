@@ -109,11 +109,22 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-video[0].timeoutLengthMs", "7000");
 		addSessionAttribute(config, "x-nv-video[0].framesWithInvalidRefThreshold", "0");
 		
+		// H.265 can encode much more efficiently, but we have a problem since not all
+		// users will be using H.265 and we don't have an independent bitrate setting
+		// for H.265. We'll use use the selected bitrate * .75 when H.265 is in use.
+		int bitrate;
+		if (context.negotiatedVideoFormat == VideoFormat.H265) {
+			bitrate = (int)(context.streamConfig.getBitrate()*0.75);
+		}
+		else {
+			bitrate = context.streamConfig.getBitrate();
+		}
+		
 		// We don't support dynamic bitrate scaling properly (it tends to bounce between min and max and never
 		// settle on the optimal bitrate if it's somewhere in the middle), so we'll just latch the bitrate
 		// to the requested value.
-		addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+context.streamConfig.getBitrate());
-		addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+context.streamConfig.getBitrate());
+		addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+bitrate);
+		addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+bitrate);
 		
 		// Using FEC turns padding on which makes us have to take the slow path
 		// in the depacketizer, not to mention exposing some ambiguous cases with

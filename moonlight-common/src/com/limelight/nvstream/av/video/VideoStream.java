@@ -148,7 +148,7 @@ public class VideoStream {
 		// Setup the decoder and renderer
 		if (!setupDecoderRenderer(context.videoDecoderRenderer, renderTarget, drFlags)) {
 			// Nothing to cleanup here
-			throw new IOException("Video decoder failed to initialize. Please restart your device and try again.");
+			throw new IOException("Video decoder failed to initialize. Your device may not support the selected resolution.");
 		}
 		
 		// Open RTP sockets and start session

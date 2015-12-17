@@ -8,7 +8,8 @@ import com.limelight.binding.input.TouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.evdev.EvdevWatcher;
-import com.limelight.binding.video.ConfigurableDecoderRenderer;
+import com.limelight.binding.video.EnhancedDecoderRenderer;
+import com.limelight.binding.video.MediaCodecDecoderRenderer;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
@@ -92,7 +93,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean grabbedInput = true;
     private boolean grabComboDown = false;
 
-    private ConfigurableDecoderRenderer decoderRenderer;
+    private EnhancedDecoderRenderer decoderRenderer;
 
     private WifiManager.WifiLock wifiLock;
 
@@ -164,16 +165,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Read the stream preferences
         prefConfig = PreferenceConfiguration.readPreferences(this);
-        switch (prefConfig.decoder) {
-        case PreferenceConfiguration.FORCE_SOFTWARE_DECODER:
-            drFlags |= VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING;
-            break;
-        case PreferenceConfiguration.AUTOSELECT_DECODER:
-            break;
-        case PreferenceConfiguration.FORCE_HARDWARE_DECODER:
-            drFlags |= VideoDecoderRenderer.FLAG_FORCE_HARDWARE_DECODING;
-            break;
-        }
 
         if (prefConfig.stretchVideo) {
             drFlags |= VideoDecoderRenderer.FLAG_FILL_SCREEN;
@@ -207,8 +198,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return;
         }
 
-        decoderRenderer = new ConfigurableDecoderRenderer();
-        decoderRenderer.initializeWithFlags(drFlags, prefConfig.videoFormat);
+        decoderRenderer = new MediaCodecDecoderRenderer(prefConfig.videoFormat);
 
         // Display a message to the user if H.265 was forced on but we still didn't find a decoder
         if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
@@ -257,7 +247,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         SurfaceHolder sh = sv.getHolder();
-        if (prefConfig.stretchVideo || !decoderRenderer.isHardwareAccelerated() || aspectRatioMatch) {
+        if (prefConfig.stretchVideo || aspectRatioMatch) {
             // Set the surface to the size of the video
             sh.setFixedSize(prefConfig.width, prefConfig.height);
         }

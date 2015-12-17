@@ -8,7 +8,6 @@ import android.preference.PreferenceManager;
 
 public class PreferenceConfiguration {
     static final String RES_FPS_PREF_STRING = "list_resolution_fps";
-    private static final String DECODER_PREF_STRING = "list_decoders";
     static final String BITRATE_PREF_STRING = "seekbar_bitrate";
     private static final String STRETCH_PREF_STRING = "checkbox_stretch_video";
     private static final String SOPS_PREF_STRING = "checkbox_enable_sops";
@@ -31,7 +30,6 @@ public class PreferenceConfiguration {
     private static final int BITRATE_DEFAULT_4K_60 = 80;
 
     private static final String DEFAULT_RES_FPS = "720p60";
-    private static final String DEFAULT_DECODER = "auto";
     private static final int DEFAULT_BITRATE = BITRATE_DEFAULT_720_60;
     private static final boolean DEFAULT_STRETCH = false;
     private static final boolean DEFAULT_SOPS = true;
@@ -45,17 +43,13 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_USB_DRIVER = true;
     private static final String DEFAULT_VIDEO_FORMAT = "auto";
 
-    public static final int FORCE_HARDWARE_DECODER = -1;
-    public static final int AUTOSELECT_DECODER = 0;
-    public static final int FORCE_SOFTWARE_DECODER = 1;
-
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
     public static final int FORCE_H265_OFF = 1;
 
     public int width, height, fps;
     public int bitrate;
-    public int decoder, videoFormat;
+    public int videoFormat;
     public int deadzonePercentage;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
     public String language;
@@ -109,25 +103,6 @@ public class PreferenceConfiguration {
     public static int getDefaultBitrate(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return getDefaultBitrate(prefs.getString(RES_FPS_PREF_STRING, DEFAULT_RES_FPS));
-    }
-
-    private static int getDecoderValue(Context context) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-
-        String str = prefs.getString(DECODER_PREF_STRING, DEFAULT_DECODER);
-        if (str.equals("auto")) {
-            return AUTOSELECT_DECODER;
-        }
-        else if (str.equals("software")) {
-            return FORCE_SOFTWARE_DECODER;
-        }
-        else if (str.equals("hardware")) {
-            return FORCE_HARDWARE_DECODER;
-        }
-        else {
-            // Should never get here
-            return AUTOSELECT_DECODER;
-        }
     }
 
     private static int getVideoFormatValue(Context context) {
@@ -192,7 +167,6 @@ public class PreferenceConfiguration {
             config.fps = 60;
         }
 
-        config.decoder = getDecoderValue(context);
         config.videoFormat = getVideoFormatValue(context);
 
         config.deadzonePercentage = prefs.getInt(DEADZONE_PREF_STRING, DEFAULT_DEADZONE);

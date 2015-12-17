@@ -117,6 +117,11 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
     }
 
     @Override
+    public boolean isAvcSupported() {
+        return avcDecoderName != null;
+    }
+
+    @Override
     public boolean setup(VideoDecoderRenderer.VideoFormat format, int width, int height, int redrawRate, Object renderTarget, int drFlags) {
         this.initialWidth = width;
         this.initialHeight = height;

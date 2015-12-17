@@ -83,13 +83,6 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_advanced_settings">
         <ListPreference
-            android:key="list_decoders"
-            android:title="@string/title_decoder_list"
-            android:entries="@array/decoder_names"
-            android:entryValues="@array/decoder_values"
-            android:summary="@string/summary_decoder_list"
-            android:defaultValue="auto" />
-        <ListPreference
             android:key="video_format"
             android:title="@string/title_video_format"
             android:entries="@array/video_format_names"

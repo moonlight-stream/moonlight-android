@@ -121,8 +121,6 @@
     <string name="summary_checkbox_host_audio">Play audio from the computer and this device</string>
 
     <string name="category_advanced_settings">Advanced Settings</string>
-    <string name="title_decoder_list">Change decoder</string>
-    <string name="summary_decoder_list">Software decoding may improve video latency at lower streaming settings</string>
     <string name="title_video_format">Change H.265 settings</string>
     <string name="summary_video_format">H.265 lowers video bandwidth requirements but requires a very recent device.</string>
 

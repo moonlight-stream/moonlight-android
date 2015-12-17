@@ -29,8 +29,9 @@ public class MediaCodecHelper {
     private static final List<String> directSubmitPrefixes;
 	private static final List<String> constrainedHighProfilePrefixes;
 	private static final List<String> whitelistedHevcDecoders;
+	private static final List<String> hevcDeviceBlacklistingDecoderPrefixes;
 
-    static {
+	static {
         directSubmitPrefixes = new LinkedList<String>();
 
         // These decoders have low enough input buffer latency that they
@@ -43,6 +44,18 @@ public class MediaCodecHelper {
         directSubmitPrefixes.add("omx.TI");
         directSubmitPrefixes.add("omx.arc");
     }
+
+	static {
+		// If we find these decoders present at all, we don't enable HEVC
+		hevcDeviceBlacklistingDecoderPrefixes = new LinkedList<>();
+
+		// This decoder appears on some Qualcomm devices prior to Snapdragon 805. It appears
+		// to be so broken that it crashes some devices or at best shows no video. On these devices
+		// Qualcomm thought they'd be clever and also expose omx.qcom.video.decoder.hevc (same as
+		// real hw acceleration SoCs like 805). As a result, we need to blacklist HEVC for ALL codecs
+		// if we see this codec in the list.
+		hevcDeviceBlacklistingDecoderPrefixes.add("omx.qcom.video.decoder.hevchybrid");
+	}
 
 	static {
 		preferredDecoders = new LinkedList<String>();
@@ -163,6 +176,11 @@ public class MediaCodecHelper {
 			return false;
 		}
 
+		// Check for indications that this device has a broken HEVC codec
+		if (deviceIsHevcBlacklisted()) {
+			return false;
+		}
+
 		return isDecoderInList(whitelistedHevcDecoders, decoderName);
 	}
 	
@@ -227,6 +245,18 @@ public class MediaCodecHelper {
 		}
 		
 		return null;
+	}
+
+	public static boolean deviceIsHevcBlacklisted() {
+		for (MediaCodecInfo codecInfo : getMediaCodecList()) {
+			// Check for device-blacklisting codecs
+			if (isDecoderInList(hevcDeviceBlacklistingDecoderPrefixes, codecInfo.getName())) {
+				LimeLog.info("Decoder blacklists HEVC on entire device! "+codecInfo.getName());
+				return true;
+			}
+		}
+
+		return false;
 	}
 	
 	public static MediaCodecInfo findFirstDecoder(String mimeType) {

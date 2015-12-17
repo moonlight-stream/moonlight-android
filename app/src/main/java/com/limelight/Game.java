@@ -10,6 +10,7 @@ import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.evdev.EvdevWatcher;
 import com.limelight.binding.video.EnhancedDecoderRenderer;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
+import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
@@ -197,6 +198,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             finish();
             return;
         }
+
+        // Initialize the MediaCodec helper before creating the decoder
+        MediaCodecHelper.initializeWithContext(this);
 
         decoderRenderer = new MediaCodecDecoderRenderer(prefConfig.videoFormat);
 

@@ -10,6 +10,9 @@ import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.ActivityManager;
+import android.content.Context;
+import android.content.pm.ConfigurationInfo;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaCodecInfo.CodecCapabilities;
@@ -76,11 +79,31 @@ public class MediaCodecHelper {
 
 		whitelistedHevcDecoders = new LinkedList<>();
 		whitelistedHevcDecoders.add("omx.exynos");
-		whitelistedHevcDecoders.add("omx.qcom");
 		whitelistedHevcDecoders.add("omx.nvidia");
 		whitelistedHevcDecoders.add("omx.mtk");
 		whitelistedHevcDecoders.add("omx.amlogic");
 		whitelistedHevcDecoders.add("omx.rk");
+		// omx.qcom added conditionally during initialization
+	}
+
+	public static void initializeWithContext(Context context) {
+		ActivityManager activityManager =
+				(ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		ConfigurationInfo configInfo = activityManager.getDeviceConfigurationInfo();
+		if (configInfo.reqGlEsVersion != ConfigurationInfo.GL_ES_VERSION_UNDEFINED) {
+			// Qualcomm's early HEVC decoders break hard on our HEVC stream. The best check to
+			// tell the good from the bad decoders are the generation of Adreno GPU included:
+			// 3xx - bad
+			// 4xx - good
+			//
+			// Unfortunately, it's not that easy to get that information here, so I'll use an
+			// approximation by checking the GLES level (<= 3.0 is bad).
+			LimeLog.info("OpenGL ES version: "+configInfo.reqGlEsVersion);
+			if (configInfo.reqGlEsVersion > 0x30000) {
+				LimeLog.info("Added omx.qcom to supported decoders based on GLES 3.1+ support");
+				whitelistedHevcDecoders.add("omx.qcom");
+			}
+		}
 	}
 
 	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {

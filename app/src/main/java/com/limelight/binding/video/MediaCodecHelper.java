@@ -79,6 +79,8 @@ public class MediaCodecHelper {
 		whitelistedHevcDecoders.add("omx.qcom");
 		whitelistedHevcDecoders.add("omx.nvidia");
 		whitelistedHevcDecoders.add("omx.mtk");
+		whitelistedHevcDecoders.add("omx.amlogic");
+		whitelistedHevcDecoders.add("omx.rk");
 	}
 
 	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {

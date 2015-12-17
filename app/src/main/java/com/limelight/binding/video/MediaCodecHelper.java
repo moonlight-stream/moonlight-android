@@ -153,6 +153,14 @@ public class MediaCodecHelper {
 		if (Build.DEVICE.equalsIgnoreCase("shieldtablet")) {
 			return false;
 		}
+
+		// Google didn't have official support for HEVC (or more importantly, a CTS test) until
+		// Lollipop. I've seen some MediaTek devices on 4.4 crash when attempting to use HEVC,
+		// so I'm restricting HEVC usage to Lollipop and higher.
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+			return false;
+		}
+
 		return isDecoderInList(whitelistedHevcDecoders, decoderName);
 	}
 	

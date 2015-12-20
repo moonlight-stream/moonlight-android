@@ -24,10 +24,6 @@ public class EvdevEvent {
     public static final short BTN_FORWARD = 0x115;
     public static final short BTN_BACK = 0x116;
     public static final short BTN_TASK = 0x117;
-    public static final short BTN_GAMEPAD = 0x130;
-
-    /* Keys */
-    public static final short KEY_Q = 16;
 
     public final short type;
     public final short code;

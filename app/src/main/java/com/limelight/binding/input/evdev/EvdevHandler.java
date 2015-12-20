@@ -1,76 +1,71 @@
 package com.limelight.binding.input.evdev;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import android.content.Context;
 
-import com.limelight.LimeLog;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class EvdevHandler {
 
-    private final String absolutePath;
     private final EvdevListener listener;
+    private final String libraryPath;
+
     private boolean shutdown = false;
-    private int fd = -1;
+    private InputStream evdevIn;
+    private OutputStream evdevOut;
+    private Process reader;
+
+    private static final byte UNGRAB_REQUEST = 1;
+    private static final byte REGRAB_REQUEST = 2;
 
     private final Thread handlerThread = new Thread() {
         @Override
         public void run() {
-            // All the finally blocks here make this code look like a mess
-            // but it's important that we get this right to avoid causing
-            // system-wide input problems.
+            int deltaX = 0;
+            int deltaY = 0;
+            byte deltaScroll = 0;
 
-            // Open the /dev/input/eventX file
-            fd = EvdevReader.open(absolutePath);
-            if (fd == -1) {
-                LimeLog.warning("Unable to open "+absolutePath);
+            // Launch the evdev reader shell
+            ProcessBuilder builder = new ProcessBuilder("su", "-c", libraryPath+File.separatorChar+"libevdev_reader.so");
+            builder.redirectErrorStream(false);
+
+            try {
+                reader = builder.start();
+            } catch (IOException e) {
+                e.printStackTrace();
                 return;
             }
 
-            try {
-                // Check if it's a mouse or keyboard, but not a gamepad
-                if ((!EvdevReader.isMouse(fd) && !EvdevReader.isAlphaKeyboard(fd)) ||
-                    EvdevReader.isGamepad(fd)) {
-                    // We only handle keyboards and mice
-                    return;
-                }
+            evdevIn = reader.getInputStream();
+            evdevOut = reader.getOutputStream();
 
-                // Grab it for ourselves
-                if (!EvdevReader.grab(fd)) {
-                    LimeLog.warning("Unable to grab "+absolutePath);
-                    return;
-                }
-
-                LimeLog.info("Grabbed device for raw keyboard/mouse input: "+absolutePath);
-
-                ByteBuffer buffer = ByteBuffer.allocate(EvdevEvent.EVDEV_MAX_EVENT_SIZE).order(ByteOrder.nativeOrder());
-
+            while (!isInterrupted() && !shutdown) {
+                EvdevEvent event;
                 try {
-                    int deltaX = 0;
-                    int deltaY = 0;
-                    byte deltaScroll = 0;
+                    event = EvdevReader.read(evdevIn);
+                } catch (IOException e) {
+                    event = null;
+                }
+                if (event == null) {
+                    break;
+                }
 
-                    while (!isInterrupted() && !shutdown) {
-                        EvdevEvent event = EvdevReader.read(fd, buffer);
-                        if (event == null) {
-                            return;
+                switch (event.type) {
+                    case EvdevEvent.EV_SYN:
+                        if (deltaX != 0 || deltaY != 0) {
+                            listener.mouseMove(deltaX, deltaY);
+                            deltaX = deltaY = 0;
                         }
+                        if (deltaScroll != 0) {
+                            listener.mouseScroll(deltaScroll);
+                            deltaScroll = 0;
+                        }
+                        break;
 
-                        switch (event.type)
-                        {
-                        case EvdevEvent.EV_SYN:
-                            if (deltaX != 0 || deltaY != 0) {
-                                listener.mouseMove(deltaX, deltaY);
-                                deltaX = deltaY = 0;
-                            }
-                            if (deltaScroll != 0) {
-                                listener.mouseScroll(deltaScroll);
-                                deltaScroll = 0;
-                            }
-                            break;
-
-                        case EvdevEvent.EV_REL:
-                            switch (event.code)
-                            {
+                    case EvdevEvent.EV_REL:
+                        switch (event.code) {
                             case EvdevEvent.REL_X:
                                 deltaX = event.value;
                                 break;
@@ -80,12 +75,11 @@ public class EvdevHandler {
                             case EvdevEvent.REL_WHEEL:
                                 deltaScroll = (byte) event.value;
                                 break;
-                            }
-                            break;
+                        }
+                        break;
 
-                        case EvdevEvent.EV_KEY:
-                            switch (event.code)
-                            {
+                    case EvdevEvent.EV_KEY:
+                        switch (event.code) {
                             case EvdevEvent.BTN_LEFT:
                                 listener.mouseButtonEvent(EvdevListener.BUTTON_LEFT,
                                         event.value != 0);
@@ -118,27 +112,39 @@ public class EvdevHandler {
                                     listener.keyboardEvent(event.value != 0, keyCode);
                                 }
                                 break;
-                            }
-                            break;
-
-                        case EvdevEvent.EV_MSC:
-                            break;
                         }
-                    }
-                } finally {
-                    // Release our grab
-                    EvdevReader.ungrab(fd);
+                        break;
+
+                    case EvdevEvent.EV_MSC:
+                        break;
                 }
-            } finally {
-                // Close the file
-                EvdevReader.close(fd);
             }
         }
     };
 
-    public EvdevHandler(String absolutePath, EvdevListener listener) {
-        this.absolutePath = absolutePath;
+    public EvdevHandler(Context context, EvdevListener listener) {
         this.listener = listener;
+        this.libraryPath = context.getApplicationInfo().nativeLibraryDir;
+    }
+
+    public void regrabAll() {
+        if (!shutdown && evdevOut != null) {
+            try {
+                evdevOut.write(REGRAB_REQUEST);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void ungrabAll() {
+        if (!shutdown && evdevOut != null) {
+            try {
+                evdevOut.write(UNGRAB_REQUEST);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void start() {
@@ -146,11 +152,28 @@ public class EvdevHandler {
     }
 
     public void stop() {
-        // Close the fd. It doesn't matter if this races
-        // with the handler thread. We'll close this out from
-        // under the thread to wake it up
-        if (fd != -1) {
-            EvdevReader.close(fd);
+        // We need to stop the process in this context otherwise
+        // we could get stuck waiting on output from the process
+        // in order to terminate it.
+
+        if (evdevIn != null) {
+            try {
+                evdevIn.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (evdevOut != null) {
+            try {
+                evdevOut.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (reader != null) {
+            reader.destroy();
         }
 
         shutdown = true;
@@ -159,9 +182,5 @@ public class EvdevHandler {
         try {
             handlerThread.join();
         } catch (InterruptedException ignored) {}
-    }
-
-    public void notifyDeleted() {
-        stop();
     }
 }

@@ -6,8 +6,8 @@ import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.input.TouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
+import com.limelight.binding.input.evdev.EvdevHandler;
 import com.limelight.binding.input.evdev.EvdevListener;
-import com.limelight.binding.input.evdev.EvdevWatcher;
 import com.limelight.binding.video.EnhancedDecoderRenderer;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
 import com.limelight.binding.video.MediaCodecHelper;
@@ -89,7 +89,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean connected = false;
     private boolean deferredSurfaceResize = false;
 
-    private EvdevWatcher evdevWatcher;
+    private EvdevHandler evdevHandler;
     private int modifierFlags = 0;
     private boolean grabbedInput = true;
     private boolean grabComboDown = false;
@@ -280,8 +280,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (LimelightBuildProps.ROOT_BUILD) {
             // Start watching for raw input
-            evdevWatcher = new EvdevWatcher(this);
-            evdevWatcher.start();
+            evdevHandler = new EvdevHandler(this, this);
+            evdevHandler.start();
         }
 
         if (prefConfig.usbDriver) {
@@ -402,13 +402,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private final Runnable toggleGrab = new Runnable() {
         @Override
         public void run() {
-
-            if (evdevWatcher != null) {
+            if (evdevHandler != null) {
                 if (grabbedInput) {
-                    evdevWatcher.ungrabAll();
+                    evdevHandler.ungrabAll();
                 }
                 else {
-                    evdevWatcher.regrabAll();
+                    evdevHandler.regrabAll();
                 }
             }
 
@@ -796,10 +795,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             conn.stop();
         }
 
-        // Close the Evdev watcher to allow use of captured input devices
-        if (evdevWatcher != null) {
-            evdevWatcher.shutdown();
-            evdevWatcher = null;
+        // Close the Evdev reader to allow use of captured input devices
+        if (evdevHandler != null) {
+            evdevHandler.stop();
+            evdevHandler = null;
         }
     }
 

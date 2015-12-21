@@ -30,7 +30,6 @@ struct DeviceEntry {
 static struct DeviceEntry *DeviceListHead;
 static int grabbing = 1;
 static pthread_mutex_t DeviceListLock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t StdoutLock = PTHREAD_MUTEX_INITIALIZER;
 
 // This is a small executable that runs in a root shell. It reads input
 // devices and writes the evdev output packets to stdout. This allows
@@ -57,13 +56,13 @@ static int hasKey(int fd, short key) {
 }
 
 static void outputEvdevData(char *data, int dataSize) {
-    // We need to hold our StdoutLock to avoid garbling
-    // input data when multiple threads try to write at once.
-    pthread_mutex_lock(&StdoutLock);
+    // We need to lock stdout before writing to prevent
+    // interleaving of data between threads.
+    flockfile(stdout);
     fwrite(&dataSize, sizeof(dataSize), 1, stdout);
     fwrite(data, dataSize, 1, stdout);
     fflush(stdout);
-    pthread_mutex_unlock(&StdoutLock);
+    funlockfile(stdout);
 }
 
 void* pollThreadFunc(void* context) {

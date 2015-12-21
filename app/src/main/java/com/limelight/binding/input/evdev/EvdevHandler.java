@@ -156,6 +156,9 @@ public class EvdevHandler {
         // we could get stuck waiting on output from the process
         // in order to terminate it.
 
+        shutdown = true;
+        handlerThread.interrupt();
+
         if (evdevIn != null) {
             try {
                 evdevIn.close();
@@ -175,9 +178,6 @@ public class EvdevHandler {
         if (reader != null) {
             reader.destroy();
         }
-
-        shutdown = true;
-        handlerThread.interrupt();
 
         try {
             handlerThread.join();

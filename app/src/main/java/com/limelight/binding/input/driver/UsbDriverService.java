@@ -12,6 +12,8 @@ import android.hardware.usb.UsbManager;
 import android.os.Binder;
 import android.os.IBinder;
 
+import com.limelight.LimeLog;
+
 import java.util.ArrayList;
 
 public class UsbDriverService extends Service implements UsbDriverListener {
@@ -110,6 +112,10 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
             // Open the device
             UsbDeviceConnection connection = usbManager.openDevice(device);
+            if (connection == null) {
+                LimeLog.warning("Unable to open USB device: "+device.getDeviceName());
+                return;
+            }
 
             // Try to initialize it
             XboxOneController controller = new XboxOneController(device, connection, nextDeviceId++, this);

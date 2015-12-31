@@ -11,11 +11,16 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.hardware.wifi" android:required="false" />
     <uses-feature android:name="android.hardware.gamepad" android:required="false" />
+    <uses-feature android:name="android.hardware.usb.host" android:required="false" />
 
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:theme="@style/AppTheme" >
+
+        <!-- Samsung multi-window support -->
+        <uses-library android:name="com.sec.android.app.multiwindow" android:required="false" />
+        <meta-data android:name="com.sec.android.support.multiwindow" android:value="true" />
         
         <!-- Launcher for traditional devices -->
         <activity
@@ -24,6 +29,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
                 <category android:name="tv.ouya.intent.category.APP" />
             </intent-filter>
         </activity>
@@ -88,6 +94,9 @@
         <service
             android:name=".computers.ComputerManagerService"
             android:label="Computer Management Service" />
+        <service
+            android:name=".binding.input.driver.UsbDriverService"
+            android:label="Usb Driver Service" />
     </application>
 
 </manifest>

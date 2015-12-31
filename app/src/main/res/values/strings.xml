@@ -44,9 +44,9 @@
     <string name="conn_establishing_title">Establishing Connection</string>
     <string name="conn_establishing_msg">Starting connection</string>
     <string name="conn_metered">Warning: Your active network connection is metered!</string>
-    <string name="conn_client_latency">Average client-side frame latency:</string>
+    <string name="conn_client_latency">Average frame decoding latency:</string>
     <string name="conn_client_latency_hw">hardware decoder latency:</string>
-    <string name="conn_hardware_latency">Average hardware decoder latency:</string>
+    <string name="conn_hardware_latency">Average hardware decoding latency:</string>
     <string name="conn_starting">Starting</string>
     <string name="conn_error_title">Connection Error</string>
     <string name="conn_error_msg">Failed to start</string>
@@ -94,15 +94,21 @@
     <string name="title_checkbox_disable_warnings">Disable warning messages</string>
     <string name="summary_checkbox_disable_warnings">Disable on-screen connection warning messages while streaming</string>
 
+    <string name="category_audio_settings">Audio Settings</string>
+    <string name="title_checkbox_51_surround">Enable 5.1 surround sound</string>
+    <string name="summary_checkbox_51_surround">Uncheck if you experience audio issues. Requires GFE 2.7 or higher.</string>
+
     <string name="category_gamepad_settings">Gamepad Settings</string>
     <string name="title_checkbox_multi_controller">Multiple controller support</string>
     <string name="summary_checkbox_multi_controller">When unchecked, all controllers appear as one</string>
     <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>
     <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Xbox One controller driver</string>
+    <string name="summary_checkbox_xb1_driver">Enables a built-in USB driver for devices without native Xbox One controller support.</string>
 
     <string name="category_ui_settings">UI Settings</string>
     <string name="title_language_list">Language</string>
-    <string name="summary_language_list">Language to use for Limelight</string>
+    <string name="summary_language_list">Language to use for Moonlight</string>
     <string name="title_checkbox_list_mode">Use lists instead of grids</string>
     <string name="summary_checkbox_list_mode">Display apps and PCs in lists instead of grids</string>
     <string name="title_checkbox_small_icon_mode">Use small icons</string>
@@ -115,6 +121,7 @@
     <string name="summary_checkbox_host_audio">Play audio from the computer and this device</string>
 
     <string name="category_advanced_settings">Advanced Settings</string>
-    <string name="title_decoder_list">Change decoder</string>
-    <string name="summary_decoder_list">Software decoding may improve video latency at lower streaming settings</string>
+    <string name="title_video_format">Change H.265 settings</string>
+    <string name="summary_video_format">H.265 lowers video bandwidth requirements but requires a very recent device.</string>
+
 </resources>

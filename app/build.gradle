@@ -4,15 +4,15 @@ import org.apache.tools.ant.taskdefs.condition.Os
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 21
+        targetSdkVersion 23
 
-        versionName "3.1-beta2"
-        versionCode = 51
+        versionName "4.0.2"
+        versionCode = 79
     }
 
     productFlavors {
@@ -62,19 +62,14 @@ android {
 }
 
 dependencies {
-    compile group: 'org.jcodec', name: 'jcodec', version: '+'
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.52'
+    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.52'
 
-    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '+'
-    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '+'
+    compile group: 'com.squareup.okhttp', name: 'okhttp', version:'2.4.0'
+    compile group: 'com.squareup.okio', name:'okio', version:'1.5.0'
 
-    compile group: 'com.google.android', name: 'support-v4', version:'+'
-    compile group: 'com.koushikdutta.ion', name: 'ion', version:'+'
-    compile group: 'com.google.code.gson', name: 'gson', version:'+'
-
-    compile group: 'com.squareup.okhttp', name: 'okhttp', version:'+'
-    compile group: 'com.squareup.okio', name:'okio', version:'+'
-
-    compile files('libs/jmdns-fixed.jar')
+    compile files('libs/jmdns-3.4.2.jar')
     compile files('libs/limelight-common.jar')
     compile files('libs/tinyrtsp.jar')
+    compile files('libs/jcodec-0.1.9-patched.jar')
 }

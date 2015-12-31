@@ -2,5 +2,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Non-root application name -->
-    <application android:label="Limelight" />
+    <application android:label="Moonlight" />
 </manifest>

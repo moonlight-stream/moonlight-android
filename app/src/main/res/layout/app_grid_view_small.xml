@@ -9,5 +9,7 @@
         android:numColumns="auto_fit"
         android:columnWidth="105dp"
         android:stretchMode="spacingWidth"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:gravity="center"/>
 </LinearLayout>

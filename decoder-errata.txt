@@ -12,8 +12,8 @@ This file serves to document some of the decoder errata when using MediaCodec ha
 4. Some decoders require num_ref_frames=1 and max_dec_frame_buffering=1 to avoid crashing on SPS on first I-frame
 	- Affected decoders: Qualcomm in GS3 on 4.3+, Exynos 4 at 1080p only
 
-5. Some decoders will hang if max_dec_frame_buffering is not present
-	- Affected decoders: MediaTek decoder in Fire HD 7 (2014)
+5. Some decoders will hang or crash if max_dec_frame_buffering is not present and level_idc is >= 50
+	- Affected decoders: MediaTek decoder in Fire HD 6/7 (2014)
 	
 6. Some decoders will hang if max_dec_frame_buffering IS present
 	- Affected decoders: Exynos 5 in Galaxy Note 10.1 (2014)
@@ -21,5 +21,11 @@ This file serves to document some of the decoder errata when using MediaCodec ha
 7. Some decoders will not enter low latency mode if adaptive playback is enabled
 	- Affected decoders: Intel decoder in Nexus Player
 
-8. Some decoders will not enter low latency mode if the profile isn't baseline in the first SPS.
-	- Affected decoders: Intel decoder in Nexus Player
+8. Some decoders will not enter low latency mode if the profile isn't baseline in the first SPS because B-frames may be present.
+	- Affected decoders: Intel decoder in Nexus Player (prior to Android 6.0)
+
+9. Some decoders will not enter low latency mode if the profile isn't constrained high profile because B-frames may be present.
+	- Affected decoders: Intel decoder in Nexus Player (after Android 6.0)
+
+10. Some decoders actually suffer increased latency when max_dec_frame_buffering=1
+	- Affected decoders: MediaTek decoder in Fire TV 2015

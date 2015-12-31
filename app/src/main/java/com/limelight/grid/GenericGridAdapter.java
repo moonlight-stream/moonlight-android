@@ -13,11 +13,11 @@ import com.limelight.R;
 import java.util.ArrayList;
 
 public abstract class GenericGridAdapter<T> extends BaseAdapter {
-    protected Context context;
-    protected int defaultImageRes;
-    protected int layoutId;
-    protected ArrayList<T> itemList = new ArrayList<T>();
-    protected LayoutInflater inflater;
+    protected final Context context;
+    protected final int defaultImageRes;
+    protected final int layoutId;
+    protected final ArrayList<T> itemList = new ArrayList<T>();
+    protected final LayoutInflater inflater;
 
     public GenericGridAdapter(Context context, int layoutId, int defaultImageRes) {
         this.context = context;

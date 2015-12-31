@@ -1,5 +1,7 @@
 package com.limelight.utils;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -9,8 +11,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.util.Scanner;
 
 public class CacheHelper {
     private static File openPath(boolean createPath, File root, String... path) {
@@ -30,12 +30,37 @@ public class CacheHelper {
         return f;
     }
 
-    public static FileInputStream openCacheFileForInput(File root, String... path) throws FileNotFoundException {
-        return new FileInputStream(openPath(false, root, path));
+    public static long getFileSize(File root, String... path) {
+        return openPath(false, root, path).length();
     }
 
-    public static FileOutputStream openCacheFileForOutput(File root, String... path) throws FileNotFoundException {
-        return new FileOutputStream(openPath(true, root, path));
+    public static boolean deleteCacheFile(File root, String... path) {
+        return openPath(false, root, path).delete();
+    }
+
+    public static boolean cacheFileExists(File root, String... path) {
+        return openPath(false, root, path).exists();
+    }
+
+    public static InputStream openCacheFileForInput(File root, String... path) throws FileNotFoundException {
+        return new BufferedInputStream(new FileInputStream(openPath(false, root, path)));
+    }
+
+    public static OutputStream openCacheFileForOutput(File root, String... path) throws FileNotFoundException {
+        return new BufferedOutputStream(new FileOutputStream(openPath(true, root, path)));
+    }
+
+    public static void writeInputStreamToOutputStream(InputStream in, OutputStream out, long maxLength) throws IOException {
+        byte[] buf = new byte[4096];
+        int bytesRead;
+
+        while ((bytesRead = in.read(buf)) != -1) {
+            maxLength -= bytesRead;
+            if (maxLength <= 0) {
+                throw new IOException("Stream exceeded max size");
+            }
+            out.write(buf, 0, bytesRead);
+        }
     }
 
     public static String readInputStreamToString(InputStream in) throws IOException {
@@ -47,6 +72,10 @@ public class CacheHelper {
         while ((bytesRead = r.read(buf)) != -1) {
             sb.append(buf, 0, bytesRead);
         }
+
+        try {
+            in.close();
+        } catch (IOException ignored) {}
 
         return sb.toString();
     }

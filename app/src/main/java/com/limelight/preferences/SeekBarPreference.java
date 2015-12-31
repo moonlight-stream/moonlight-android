@@ -20,10 +20,14 @@ public class SeekBarPreference extends DialogPreference
 
     private SeekBar seekBar;
     private TextView valueText;
-    private Context context;
+    private final Context context;
 
-    private String dialogMessage, suffix;
-    private int defaultValue, maxValue, minValue, currentValue;
+    private final String dialogMessage;
+    private final String suffix;
+    private final int defaultValue;
+    private final int maxValue;
+    private final int minValue;
+    private int currentValue;
 
     public SeekBarPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -125,13 +129,6 @@ public class SeekBarPreference extends DialogPreference
         else {
             currentValue = (Integer) defaultValue;
         }
-    }
-
-    public void setMax(int max) {
-        this.maxValue = max;
-    }
-    public int getMax() {
-        return this.maxValue;
     }
 
     public void setProgress(int progress) {

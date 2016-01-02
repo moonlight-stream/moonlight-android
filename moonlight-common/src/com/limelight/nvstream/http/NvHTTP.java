@@ -36,6 +36,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import com.limelight.LimeLog;
 import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.http.PairingManager.PairState;
+import com.squareup.okhttp.ConnectionPool;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -95,6 +96,7 @@ public class NvHTTP {
 			public boolean verify(String hostname, SSLSession session) { return true; }
 		};
 		
+		httpClient.setConnectionPool(new ConnectionPool(0, 0));
 		httpClient.setHostnameVerifier(hv);
 		httpClient.setConnectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
 		

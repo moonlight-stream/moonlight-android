@@ -436,7 +436,7 @@ public class NvHTTP {
 	}
 	
 	public PairingManager.PairState pair(String pin) throws Exception {
-		return pm.pair(uniqueId, pin);
+		return pm.pair(pin);
 	}
 	
 	public static LinkedList<NvApp> getAppListByReader(Reader r) throws XmlPullParserException, IOException {

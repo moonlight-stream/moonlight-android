@@ -122,6 +122,10 @@ public class NvHTTP {
 		this.pm = new PairingManager(this, cryptoProvider);
 	}
 	
+	String buildUniqueIdUuidString() {
+		return "uniqueid="+uniqueId+"&uuid="+UUID.randomUUID();
+	}
+	
 	static String getXmlString(Reader r, String tagname) throws XmlPullParserException, IOException {
 		XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 		factory.setNamespaceAware(true);
@@ -498,7 +502,7 @@ public class NvHTTP {
 	}
 	
 	public String getAppListRaw() throws MalformedURLException, IOException {
-		return openHttpConnectionToString(baseUrlHttps + "/applist?uniqueid=" + uniqueId, true);
+		return openHttpConnectionToString(baseUrlHttps + "/applist?"+buildUniqueIdUuidString(), true);
 	}
 	
 	public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
@@ -507,7 +511,7 @@ public class NvHTTP {
 			return getAppListByReader(new StringReader(getAppListRaw()));
 		}
 		else {
-			ResponseBody resp = openHttpConnection(baseUrlHttps + "/applist?uniqueid=" + uniqueId, true);
+			ResponseBody resp = openHttpConnection(baseUrlHttps + "/applist?" + buildUniqueIdUuidString(), true);
 			LinkedList<NvApp> appList = getAppListByReader(new InputStreamReader(resp.byteStream()));
 			resp.close();
 			return appList;
@@ -515,11 +519,11 @@ public class NvHTTP {
 	}
 	
 	public void unpair() throws IOException {
-		openHttpConnectionToString(baseUrlHttps + "/unpair?uniqueid=" + uniqueId, true);
+		openHttpConnectionToString(baseUrlHttps + "/unpair?"+buildUniqueIdUuidString(), true);
 	}
 	
 	public InputStream getBoxArt(NvApp app) throws IOException {
-		ResponseBody resp = openHttpConnection(baseUrlHttps + "/appasset?uniqueid=" + uniqueId +
+		ResponseBody resp = openHttpConnection(baseUrlHttps + "/appasset?"+ buildUniqueIdUuidString() +
 				"&appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0", true);
 		return resp.byteStream();
 	}
@@ -537,7 +541,7 @@ public class NvHTTP {
 	
 	public boolean launchApp(ConnectionContext context, int appId) throws IOException, XmlPullParserException {
 		String xmlStr = openHttpConnectionToString(baseUrlHttps +
-			"/launch?uniqueid=" + uniqueId +
+			"/launch?" + buildUniqueIdUuidString() +
 			"&appid=" + appId +
 			"&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + context.negotiatedFps +
 			"&additionalStates=1&sops=" + (context.streamConfig.getSops() ? 1 : 0) +
@@ -549,7 +553,7 @@ public class NvHTTP {
 	}
 	
 	public boolean resumeApp(ConnectionContext context) throws IOException, XmlPullParserException {
-		String xmlStr = openHttpConnectionToString(baseUrlHttps + "/resume?uniqueid=" + uniqueId +
+		String xmlStr = openHttpConnectionToString(baseUrlHttps + "/resume?" + buildUniqueIdUuidString() +
 				"&rikey="+bytesToHex(context.riKey.getEncoded()) +
 				"&rikeyid="+context.riKeyId, false);
 		String resume = getXmlString(xmlStr, "resume");
@@ -557,7 +561,7 @@ public class NvHTTP {
 	}
 	
 	public boolean quitApp() throws IOException, XmlPullParserException {
-		String xmlStr = openHttpConnectionToString(baseUrlHttps + "/cancel?uniqueid=" + uniqueId, false);
+		String xmlStr = openHttpConnectionToString(baseUrlHttps + "/cancel?" + buildUniqueIdUuidString(), false);
 		String cancel = getXmlString(xmlStr, "cancel");
 		return Integer.parseInt(cancel) != 0;
 	}

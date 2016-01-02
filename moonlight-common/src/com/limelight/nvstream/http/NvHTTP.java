@@ -175,8 +175,15 @@ public class NvHTTP {
 	
 	public String getServerInfo() throws MalformedURLException, IOException, XmlPullParserException {
 		String resp;
+		
+		//
+		// TODO: Shield Hub uses HTTP for this and is able to get an accurate PairStatus with HTTP.
+		// For some reason, we always see PairStatus is 0 over HTTP and only 1 over HTTPS. It looks
+		// like there are extra request headers required to make this stuff work over HTTP.
+		//
+		
 		try {
-			resp = openHttpConnectionToString(baseUrlHttps + "/serverinfo?uniqueid=" + uniqueId, true);
+			resp = openHttpConnectionToString(baseUrlHttps + "/serverinfo?"+buildUniqueIdUuidString(), true);
 			
 			// This will throw an exception if the request came back with a failure status.
 			// We want this because it will throw us into the HTTP case if the client is unpaired.

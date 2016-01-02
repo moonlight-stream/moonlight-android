@@ -169,7 +169,7 @@ public class NvHTTP {
 		}
 	}
 	
-	public String getServerInfo(String uniqueId) throws MalformedURLException, IOException, XmlPullParserException {
+	public String getServerInfo() throws MalformedURLException, IOException, XmlPullParserException {
 		String resp;
 		try {
 			resp = openHttpConnectionToString(baseUrlHttps + "/serverinfo?uniqueid=" + uniqueId, true);
@@ -192,7 +192,7 @@ public class NvHTTP {
 	
 	public ComputerDetails getComputerDetails() throws MalformedURLException, IOException, XmlPullParserException {
 		ComputerDetails details = new ComputerDetails();
-		String serverInfo = getServerInfo(uniqueId);
+		String serverInfo = getServerInfo();
 		
 		details.name = getXmlString(serverInfo, "hostname").trim();
 		details.uuid = UUID.fromString(getXmlString(serverInfo, "uniqueid").trim());
@@ -328,7 +328,7 @@ public class NvHTTP {
 	}
 
 	public PairingManager.PairState getPairState() throws IOException, XmlPullParserException {
-		return pm.getPairState(getServerInfo(uniqueId));
+		return pm.getPairState(getServerInfo());
 	}
 
 	public PairingManager.PairState getPairState(String serverInfo) throws IOException, XmlPullParserException {

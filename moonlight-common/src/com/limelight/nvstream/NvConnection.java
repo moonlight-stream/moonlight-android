@@ -102,7 +102,7 @@ public class NvConnection {
 	{
 		NvHTTP h = new NvHTTP(context.serverAddress, uniqueId, null, cryptoProvider);
 		
-		String serverInfo = h.getServerInfo(uniqueId);
+		String serverInfo = h.getServerInfo();
 		String serverVersion = h.getServerVersion(serverInfo);
 		if (serverVersion == null || serverVersion.indexOf('.') < 0) {
 			context.connListener.displayMessage("Server major version not present");

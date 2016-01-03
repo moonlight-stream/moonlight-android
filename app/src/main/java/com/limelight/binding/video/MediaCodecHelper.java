@@ -76,14 +76,31 @@ public class MediaCodecHelper {
 
 		constrainedHighProfilePrefixes = new LinkedList<String>();
 		constrainedHighProfilePrefixes.add("omx.intel");
+	}
 
+	static {
 		whitelistedHevcDecoders = new LinkedList<>();
+
+		// Exynos seems to be the only HEVC decoder that works reliably
 		whitelistedHevcDecoders.add("omx.exynos");
-		// whitelistedHevcDecoders.add("omx.nvidia"); TODO: This needs a similar fixup to the Tegra 3
-		whitelistedHevcDecoders.add("omx.mtk");
-		whitelistedHevcDecoders.add("omx.amlogic");
-		whitelistedHevcDecoders.add("omx.rk");
-		// omx.qcom added conditionally during initialization
+
+		// TODO: This needs a similar fixup to the Tegra 3 otherwise it buffers 16 frames
+		//whitelistedHevcDecoders.add("omx.nvidia");
+
+		// Sony ATVs have broken MediaTek codecs (decoder hangs after rendering the first frame).
+		// I know the Fire TV 2 works, so I'll just whitelist Amazon devices which seem
+		// to actually be tested. Ugh...
+		if (Build.MANUFACTURER.equalsIgnoreCase("Amazon")) {
+			whitelistedHevcDecoders.add("omx.mtk");
+		}
+
+		// These theoretically have good HEVC decoding capabilities (potentially better than
+		// their AVC decoders), but haven't been tested enough
+		//whitelistedHevcDecoders.add("omx.amlogic");
+		//whitelistedHevcDecoders.add("omx.rk");
+
+		// Based on GPU attributes queried at runtime, the omx.qcom prefix will be added
+		// during initialization to avoid SoCs with broken HEVC decoders.
 	}
 
 	public static void initializeWithContext(Context context) {

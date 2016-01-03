@@ -188,7 +188,6 @@ public class PreferenceConfiguration {
         config.multiController = prefs.getBoolean(MULTI_CONTROLLER_PREF_STRING, DEFAULT_MULTI_CONTROLLER);
         config.enable51Surround = prefs.getBoolean(ENABLE_51_SURROUND_PREF_STRING, DEFAULT_ENABLE_51_SURROUND);
         config.usbDriver = prefs.getBoolean(USB_DRIVER_PREF_SRING, DEFAULT_USB_DRIVER);
-
         config.virtualController_enable = prefs.getBoolean(VIRTUAL_CONTROLLER_ENABLE, VIRTUAL_CONTROLLER_ENABLE_DEFAULT);
 
         return config;

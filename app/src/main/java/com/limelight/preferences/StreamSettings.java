@@ -11,8 +11,6 @@ import android.preference.PreferenceManager;
 
 import com.limelight.PcView;
 import com.limelight.R;
-import com.limelight.binding.input.virtual_controller.VirtualController;
-import com.limelight.binding.input.virtual_controller.VirtualControllerConfiguration;
 import com.limelight.utils.UiHelper;
 
 import java.util.Locale;
@@ -79,19 +77,6 @@ public class StreamSettings extends Activity {
                             .apply();
 
                     // Allow the original preference change to take place
-                    return true;
-                }
-            });
-
-            Preference siteVirtualControllerButton = (Preference)findPreference("button_open_virtual_controller_configuration");
-            siteVirtualControllerButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
-            {
-                @Override
-                public boolean onPreferenceClick(Preference arg0)
-                {
-                    Intent virtualControllerConfiguration = new Intent(getActivity(), VirtualControllerConfiguration.class);
-                    startActivity(virtualControllerConfiguration);
-
                     return true;
                 }
             });

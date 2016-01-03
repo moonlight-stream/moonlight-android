@@ -1,3 +1,7 @@
+/**
+ * Created by Karim Mreisi.
+ */
+
 package com.limelight.binding.input.virtual_controller;
 
 import android.content.Context;
@@ -13,14 +17,42 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * Created by Karim on 24.01.2015.
+ * This is a digital button on screen element. It is used to get click and double click user input.
  */
-public class DigitalButton extends VirtualControllerElement
-{
-	static List<DigitalButton> allButtonsList = new ArrayList<>();
+public class DigitalButton extends VirtualControllerElement {
 
-	List<DigitalButtonListener> listeners = new ArrayList<>();
-	OnTouchListener onTouchListener = null;
+    /**
+     * Listener interface to update registered observers.
+     */
+	public interface DigitalButtonListener {
+
+        /**
+         * onClick event will be fired on button click.
+         */
+		void onClick();
+
+        /**
+         * onLongClick event will be fired on button long click.
+         */
+		void onLongClick();
+
+        /**
+         * onRelease event will be fired on button unpress.
+         */
+		void onRelease();
+	}
+
+    /**
+     *
+     */
+	private class TimerLongClickTimerTask extends TimerTask {
+		@Override
+		public void run() {
+			onLongClickCallback();
+		}
+	}
+
+	private List<DigitalButtonListener> listeners = new ArrayList<DigitalButtonListener>();
 	private String text = "";
 	private int icon = -1;
 	private long timerLongClickTimeout = 3000;
@@ -30,17 +62,14 @@ public class DigitalButton extends VirtualControllerElement
 	private int layer;
 	private DigitalButton movingButton = null;
 
-	boolean inRange(float x, float y)
-	{
+	boolean inRange(float x, float y) {
 		return  (this.getX() < x && this.getX() + this.getWidth() > x) &&
 			(this.getY() < y && this.getY() + this.getHeight() > y);
 	}
 
-	public boolean checkMovement(float x, float y, DigitalButton movingButton)
-	{
+	public boolean checkMovement(float x, float y, DigitalButton movingButton) {
 		// check if the movement happened in the same layer
-		if (movingButton.layer != this.layer)
-		{
+		if (movingButton.layer != this.layer) {
 			return  false;
 		}
 
@@ -49,36 +78,27 @@ public class DigitalButton extends VirtualControllerElement
 
 		// check if the movement directly happened on the button
 		if ((this.movingButton == null || movingButton == this.movingButton)
-			&& this.inRange(x, y))
-		{
+			&& this.inRange(x, y)) {
 			// set button pressed state depending on moving button pressed state
-			if (this.isPressed() != movingButton.isPressed())
-			{
+			if (this.isPressed() != movingButton.isPressed()) {
 				this.setPressed(movingButton.isPressed());
 			}
 		}
-		// check  if the movement is outside of the range and the movement button
-		// is saved moving button
-		else if (movingButton == this.movingButton)
-		{
+		// check if the movement is outside of the range and the movement button
+		// is the saved moving button
+		else if (movingButton == this.movingButton) {
 			this.setPressed(false);
 		}
 
 		// check if a change occurred
-		if (wasPressed != isPressed())
-		{
-
-			if (isPressed())
-			{	// is pressed set moving button and emit click event
+		if (wasPressed != isPressed()) {
+			if (isPressed()) {
+			    // is pressed set moving button and emit click event
 				this.movingButton = movingButton;
-
 				onClickCallback();
-			}
-
-			else
-			{	// no longer pressed reset moving button and emit release event
+			} else {
+			    // no longer pressed reset moving button and emit release event
 				this.movingButton = null;
-
 				onReleaseCallback();
 			}
 
@@ -90,51 +110,35 @@ public class DigitalButton extends VirtualControllerElement
 		return  false;
 	}
 
-	private void checkMovementForAllButtons(float x, float y)
-	{
-		for (DigitalButton button : allButtonsList)
-		{
-			if (button != this)
-			{
-				button.checkMovement(x, y, this);
+	private void checkMovementForAllButtons(float x, float y) {
+		for (VirtualControllerElement element : virtualController.getElements()) {
+            if (element != this && element instanceof DigitalButton){
+                ((DigitalButton)element).checkMovement(x, y, this);
 			}
 		}
 	}
 
-	public DigitalButton(int layer, Context context)
-	{
-		super(context);
-
+	public DigitalButton(VirtualController controller, int layer, Context context) {
+		super(controller, context);
 		this.layer = layer;
+    }
 
-		allButtonsList.add(this);
+	public void addDigitalButtonListener(DigitalButtonListener listener) {
+        listeners.add(listener);
 	}
 
-	public void addDigitalButtonListener(DigitalButtonListener listener)
-	{
-		listeners.add(listener);
-	}
-
-	public void setOnTouchListener(OnTouchListener listener)
-	{
-		onTouchListener = listener;
-	}
-
-	public void setText(String text)
-	{
+	public void setText(String text) {
 		this.text = text;
 		invalidate();
 	}
 
-	public void setIcon(int id)
-	{
+	public void setIcon(int id) {
 		this.icon = id;
 		invalidate();
 	}
 
 	@Override
-	protected void onDraw(Canvas canvas)
-	{
+	protected void onElementDraw(Canvas canvas) {
 		// set transparent background
 		canvas.drawColor(Color.TRANSPARENT);
 
@@ -146,90 +150,58 @@ public class DigitalButton extends VirtualControllerElement
 
 		paint.setColor(isPressed() ? pressedColor : normalColor);
 		paint.setStyle(Paint.Style.STROKE);
-		canvas.drawRect(
-			1, 		1,
-			getWidth() - 1, getHeight() - 1,
-			paint
-		);
+		canvas.drawRect(1, 1, getWidth() - 1, getHeight() - 1, paint);
 
-		if (icon != -1)
-		{
+		if (icon != -1) {
 			Drawable d = getResources().getDrawable(icon);
 			d.setBounds(5, 5, getWidth() - 5, getHeight() - 5);
 			d.draw(canvas);
-		}
-		else
-		{
+		} else {
 			paint.setStyle(Paint.Style.FILL_AND_STROKE);
-			canvas.drawText(text,
-				getPercent(getWidth(), 50), getPercent(getHeight(), 73),
-				paint);
+			canvas.drawText(text, getPercent(getWidth(), 50), getPercent(getHeight(), 73), paint);
 		}
-
-		super.onDraw(canvas);
 	}
 
-	private void onClickCallback()
-	{
+	private void onClickCallback() {
 		_DBG("clicked");
-
 		// notify listeners
-		for (DigitalButtonListener listener : listeners)
-		{
+		for (DigitalButtonListener listener : listeners) {
 			listener.onClick();
 		}
 
 		timerLongClick = new Timer();
 		longClickTimerTask = new TimerLongClickTimerTask();
-
 		timerLongClick.schedule(longClickTimerTask, timerLongClickTimeout);
 	}
 
-	private void onLongClickCallback()
-	{
+	private void onLongClickCallback() {
 		_DBG("long click");
-
 		// notify listeners
-		for (DigitalButtonListener listener : listeners)
-		{
+		for (DigitalButtonListener listener : listeners) {
 			listener.onLongClick();
 		}
 	}
 
-	private void onReleaseCallback()
-	{
+	private void onReleaseCallback() {
 		_DBG("released");
-
 		// notify listeners
-		for (DigitalButtonListener listener : listeners)
-		{
+		for (DigitalButtonListener listener : listeners) {
 			listener.onRelease();
 		}
-
 		timerLongClick.cancel();
 		longClickTimerTask.cancel();
 	}
 
 	@Override
-	public boolean onTouchEvent(MotionEvent event)
-	{
-		/*
-		if (onTouchListener != null)
-		{
-		return onTouchListener.onTouch(this, event);
-		}
-		*/
+	public boolean onElementTouchEvent(MotionEvent event) {
 		// get masked (not specific to a pointer) action
-
 		float x = getX() + event.getX();
 		float y	= getY() + event.getY();
 		int action = event.getActionMasked();
 
-		switch (action)
-		{
+		switch (action) {
 			case MotionEvent.ACTION_DOWN:
-			case MotionEvent.ACTION_POINTER_DOWN:
-			{
+			case MotionEvent.ACTION_POINTER_DOWN: {
 				movingButton = null;
 				setPressed(true);
 				onClickCallback();
@@ -238,16 +210,14 @@ public class DigitalButton extends VirtualControllerElement
 
 				return true;
 			}
-			case MotionEvent.ACTION_MOVE:
-			{
+			case MotionEvent.ACTION_MOVE: {
 				checkMovementForAllButtons(x, y);
 
 				return  true;
 			}
 			case MotionEvent.ACTION_CANCEL:
 			case MotionEvent.ACTION_UP:
-			case MotionEvent.ACTION_POINTER_UP:
-			{
+			case MotionEvent.ACTION_POINTER_UP: {
 				setPressed(false);
 				onReleaseCallback();
 
@@ -257,29 +227,9 @@ public class DigitalButton extends VirtualControllerElement
 
 				return true;
 			}
-			default:
-			{
+			default: {
 			}
 		}
-
 		return true;
-	}
-
-	public interface DigitalButtonListener
-	{
-		void onClick();
-
-		void onLongClick();
-
-		void onRelease();
-	}
-
-	private class TimerLongClickTimerTask extends TimerTask
-	{
-		@Override
-		public void run()
-		{
-			onLongClickCallback();
-		}
 	}
 }

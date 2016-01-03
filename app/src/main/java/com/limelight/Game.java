@@ -287,9 +287,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             evdevHandler.start();
         }
 
-        if (prefConfig.virtualController_enable)
-        {
-            virtualController = new VirtualController(conn, (FrameLayout) findViewById(R.id.surfaceView).getParent(), getApplicationContext());
+        if (prefConfig.virtualController_enable) {
+            // create virtual onscreen controller
+            virtualController = new VirtualController(conn,
+                    (FrameLayout)findViewById(R.id.surfaceView).getParent(),
+                    this);
         }
 
         if (prefConfig.usbDriver) {
@@ -315,6 +317,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Apply the size change
         sv.setLayoutParams(lp);
+
+        // refresh virtual controller layout
+        if (virtualController != null) {
+            virtualController.refreshLayout();
+        }
     }
 
     private void checkDataConnection()

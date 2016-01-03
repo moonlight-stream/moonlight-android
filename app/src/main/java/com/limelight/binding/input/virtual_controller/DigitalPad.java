@@ -1,3 +1,7 @@
+/**
+ * Created by Karim Mreisi.
+ */
+
 package com.limelight.binding.input.virtual_controller;
 
 import android.content.Context;
@@ -9,11 +13,7 @@ import android.view.MotionEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by Karim Mreisi on 23.01.2015.
- */
-public class DigitalPad extends VirtualControllerElement
-{
+public class DigitalPad extends VirtualControllerElement {
 	public final static int DIGITAL_PAD_DIRECTION_NO_DIRECTION = 0;
 	int direction = DIGITAL_PAD_DIRECTION_NO_DIRECTION;
 	public final static int DIGITAL_PAD_DIRECTION_LEFT = 1;
@@ -21,26 +21,17 @@ public class DigitalPad extends VirtualControllerElement
 	public final static int DIGITAL_PAD_DIRECTION_RIGHT = 4;
 	public final static int DIGITAL_PAD_DIRECTION_DOWN = 8;
 	List<DigitalPadListener> listeners = new ArrayList<DigitalPadListener>();
-	OnTouchListener onTouchListener = null;
 
-	public DigitalPad(Context context)
-	{
-		super(context);
+	public DigitalPad(VirtualController controller, Context context) {
+		super(controller, context);
 	}
 
-	public void addDigitalPadListener(DigitalPadListener listener)
-	{
+	public void addDigitalPadListener(DigitalPadListener listener) {
 		listeners.add(listener);
 	}
 
-	public void setOnTouchListener(OnTouchListener listener)
-	{
-		onTouchListener = listener;
-	}
-
 	@Override
-	protected void onDraw(Canvas canvas)
-	{
+	protected void onElementDraw(Canvas canvas) {
 		// set transparent background
 		canvas.drawColor(Color.TRANSPARENT);
 
@@ -50,8 +41,7 @@ public class DigitalPad extends VirtualControllerElement
 		paint.setTextAlign(Paint.Align.CENTER);
 		paint.setStrokeWidth(3);
 
-		if (direction == DIGITAL_PAD_DIRECTION_NO_DIRECTION)
-		{
+		if (direction == DIGITAL_PAD_DIRECTION_NO_DIRECTION) {
 			// draw no direction rect
 			paint.setStyle(Paint.Style.STROKE);
 			paint.setColor(normalColor);
@@ -84,7 +74,7 @@ public class DigitalPad extends VirtualControllerElement
 		);
 		paint.setStyle(Paint.Style.STROKE);
 		canvas.drawLine(
-			0, getPercent(getWidth(), 33),
+			0, getPercent(getHeight(), 33),
 			getPercent(getWidth(), 33), 0,
 			paint
 		);
@@ -169,87 +159,60 @@ public class DigitalPad extends VirtualControllerElement
 			getPercent(getWidth(), 0), getPercent(getHeight(), 66),
 			paint
 		);
-
-		super.onDraw(canvas);
 	}
 
-	private void newDirectionCallback(int direction)
-	{
+	private void newDirectionCallback(int direction) {
 		_DBG("direction: " + direction);
 
 		// notify listeners
-		for (DigitalPadListener listener : listeners)
-		{
+		for (DigitalPadListener listener : listeners) {
 			listener.onDirectionChange(direction);
 		}
 	}
 
 	@Override
-	public boolean onTouchEvent(MotionEvent event)
-	{
-		if (onTouchListener != null)
-		{
-			return onTouchListener.onTouch(this, event);
-		}
-
+	public boolean onElementTouchEvent(MotionEvent event) {
 		// get masked (not specific to a pointer) action
-		int action = event.getActionMasked();
-
-		switch (action)
-		{
+		switch (event.getActionMasked()) {
 			case MotionEvent.ACTION_DOWN:
 			case MotionEvent.ACTION_POINTER_DOWN:
-			{
+			case MotionEvent.ACTION_MOVE: {
 				direction = 0;
 
-				if (event.getX() < getPercent(getWidth(), 33))
-				{
+				if (event.getX() < getPercent(getWidth(), 33)) {
 					direction |= DIGITAL_PAD_DIRECTION_LEFT;
 				}
-
-				if (event.getX() > getPercent(getWidth(), 66))
-				{
+				if (event.getX() > getPercent(getWidth(), 66)) {
 					direction |= DIGITAL_PAD_DIRECTION_RIGHT;
 				}
-
-				if (event.getY() > getPercent(getHeight(), 66))
-				{
+				if (event.getY() > getPercent(getHeight(), 66)) {
 					direction |= DIGITAL_PAD_DIRECTION_DOWN;
 				}
-
-				if (event.getY() < getPercent(getHeight(), 33))
-				{
+				if (event.getY() < getPercent(getHeight(), 33)) {
 					direction |= DIGITAL_PAD_DIRECTION_UP;
 				}
-
 				newDirectionCallback(direction);
-
 				invalidate();
 
 				return true;
 			}
 			case MotionEvent.ACTION_CANCEL:
 			case MotionEvent.ACTION_UP:
-			case MotionEvent.ACTION_POINTER_UP:
-			{
+			case MotionEvent.ACTION_POINTER_UP: {
 				direction = 0;
-
 				newDirectionCallback(direction);
-
 				invalidate();
 
 				return true;
 			}
-			default:
-			{
+			default: {
 			}
 		}
 
 		return true;
 	}
 
-	public interface DigitalPadListener
-	{
+	public interface DigitalPadListener {
 		void onDirectionChange(int direction);
 	}
 }

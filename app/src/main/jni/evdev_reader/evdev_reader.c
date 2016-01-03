@@ -269,6 +269,8 @@ int main(int argc, char* argv[]) {
     int pollres;
     struct pollfd pollinfo;
 
+    __android_log_print(ANDROID_LOG_INFO, "EvdevReader", "Entered main()");
+
     // Perform initial enumeration
     ret = enumerateDevices();
     if (ret < 0) {

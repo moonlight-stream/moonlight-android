@@ -166,15 +166,31 @@ public class NvConnection {
 		
 		// Determine whether we should request H.265 video
 		String gpuType = h.getGpuType(serverInfo);
-		if (context.streamConfig.getHevcSupported() && // Client wants it
-				h.getMaxLumaPixelsHEVC(serverInfo) > 0 && gpuType != null && // Check if GFE version supports it
-				gpuType.contains("GTX 9")) // Check if GPU can do it (only 900-series) - TODO: Find a better way to detect this
-		{
-			context.negotiatedVideoFormat = VideoFormat.H265;
-		}
-		else 
+		if (gpuType == null || h.getMaxLumaPixelsHEVC(serverInfo) <= 0)  // Check if GFE version supports it
 		{
 			context.negotiatedVideoFormat = VideoFormat.H264;
+		}
+		else
+		{
+			// Check if GPU can do it (only 900-series non-M)
+			//
+			// This check is pretty broken. It's not handling mobile GPUs, but it
+			// only has false negatives which is absolutely required to avoid breaking
+			// streaming on GPUs with an H.265 compatible client.
+			//
+			// TODO: I think the correct way to do this is by examining the SDP attributes which
+			// should contain parameter sets for HEVC if the GPU supports it.
+			
+			gpuType = gpuType.toUpperCase();
+			if (context.streamConfig.getHevcSupported() && // Client wants it
+					((gpuType.contains("GTX 9") || gpuType.contains("GTX TITAN X")) && !gpuType.contains("M")))
+			{
+				context.negotiatedVideoFormat = VideoFormat.H265;
+			}
+			else 
+			{
+				context.negotiatedVideoFormat = VideoFormat.H264;
+			}
 		}
 		
 		NvApp app = context.streamConfig.getApp();

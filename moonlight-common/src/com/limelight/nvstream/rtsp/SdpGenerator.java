@@ -87,6 +87,16 @@ public class SdpGenerator {
 	}
 	
 	public static String generateSdpFromContext(ConnectionContext context) {
+		// By now, we must have decided on a format
+		if (context.negotiatedVideoFormat == VideoFormat.Unknown) {
+			throw new IllegalStateException("Video format negotiation must be completed before generating SDP response");
+		}
+		
+		// Also, resolution and frame rate must be set
+		if (context.negotiatedWidth == 0 || context.negotiatedHeight == 0 || context.negotiatedFps == 0) {
+			throw new IllegalStateException("Video resolution/FPS negotiation must be completed before generating SDP response");
+		}
+		
 		StringBuilder config = new StringBuilder();
 		config.append("v=0").append("\r\n"); // SDP Version 0
 		config.append("o=android 0 "+RtspConnection.getRtspVersionFromContext(context)+" IN ");

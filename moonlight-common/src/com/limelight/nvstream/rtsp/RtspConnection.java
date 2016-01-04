@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.util.HashMap;
 
 import com.limelight.nvstream.ConnectionContext;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer.VideoFormat;
 import com.tinyrtsp.rtsp.message.RtspMessage;
 import com.tinyrtsp.rtsp.message.RtspRequest;
 import com.tinyrtsp.rtsp.message.RtspResponse;
@@ -106,6 +107,31 @@ public class RtspConnection {
 		return transactRtspMessage(m);
 	}
 	
+	private void processDescribeResponse(RtspResponse r) {
+		// The RTSP DESCRIBE reply will contain a collection of SDP media attributes that
+		// describe the various supported video stream formats and include the SPS, PPS,
+		// and VPS (if applicable). We will use this information to determine whether the
+		// server can support HEVC. For some reason, they still set the MIME type of the HEVC
+		// format to H264, so we can't just look for the HEVC MIME type. What we'll do instead is
+		// look for the base 64 encoded VPS NALU prefix that is unique to the HEVC bitstream.
+		String describeSdpContent = r.getPayload();
+		if (context.streamConfig.getHevcSupported() &&
+				describeSdpContent.contains("sprop-parameter-sets=AAAAAU")) {
+			context.negotiatedVideoFormat = VideoFormat.H265;
+		}
+		else {
+			context.negotiatedVideoFormat = VideoFormat.H264;
+		}
+	}
+	
+	private void processRtspSetupAudio(RtspResponse r) throws IOException {
+		try {
+			sessionId = Integer.parseInt(r.getOption("Session"));
+		} catch (NumberFormatException e) {
+			throw new IOException("RTSP SETUP response was malformed");
+		}
+	}
+	
 	public void doRtspHandshake() throws IOException {
 		RtspResponse r;
 		
@@ -119,16 +145,16 @@ public class RtspConnection {
 			throw new IOException("RTSP DESCRIBE request failed: "+r.getStatusCode());
 		}
 		
+		// Process the RTSP DESCRIBE response
+		processDescribeResponse(r);
+		
 		r = setupStream("audio");
 		if (r.getStatusCode() != 200) {
 			throw new IOException("RTSP SETUP request failed: "+r.getStatusCode());
 		}
 		
-		try {
-			sessionId = Integer.parseInt(r.getOption("Session"));
-		} catch (NumberFormatException e) {
-			throw new IOException("RTSP SETUP response was malformed");
-		}
+		// Process the RTSP SETUP streamid=audio response
+		processRtspSetupAudio(r);
 		
 		r = setupStream("video");
 		if (r.getStatusCode() != 200) {

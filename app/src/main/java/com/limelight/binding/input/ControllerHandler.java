@@ -362,7 +362,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
             // Samsung's face buttons appear as a non-virtual button so we'll explicitly ignore
             // back presses on this device
-            else if (devName.equals("sec_touchscreen")) {
+            else if (devName.equals("sec_touchscreen") || devName.equals("sec_touchkey")) {
                 context.ignoreBack = true;
             }
             // The Serval has a couple of unknown buttons that are start and select. It also has

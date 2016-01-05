@@ -57,6 +57,7 @@ public class RtspConnection {
 		try {
 			s.setTcpNoDelay(true);
 			s.connect(new InetSocketAddress(context.serverAddress, PORT), RTSP_TIMEOUT);
+			s.setSoTimeout(RTSP_TIMEOUT);
 			
 			RtspStream rtspStream = new RtspStream(s.getInputStream(), s.getOutputStream());
 			try {

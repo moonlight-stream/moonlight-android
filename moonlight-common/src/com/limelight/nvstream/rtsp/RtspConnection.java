@@ -15,7 +15,7 @@ import com.tinyrtsp.rtsp.parser.RtspStream;
 
 public class RtspConnection {
 	public static final int PORT = 48010;
-	public static final int RTSP_TIMEOUT = 5000;
+	public static final int RTSP_TIMEOUT = 10000;
 	
 	private int sequenceNumber = 1;
 	private int sessionId = 0;

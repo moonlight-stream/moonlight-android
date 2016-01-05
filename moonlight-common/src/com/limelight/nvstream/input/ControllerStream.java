@@ -22,7 +22,7 @@ public class ControllerStream {
 	
 	private final static int PORT = 35043;
 	
-	private final static int CONTROLLER_TIMEOUT = 3000;
+	private final static int CONTROLLER_TIMEOUT = 10000;
 	
 	private ConnectionContext context;
 	

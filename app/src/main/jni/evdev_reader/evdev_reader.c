@@ -14,6 +14,8 @@
 
 #include <android/log.h>
 
+#define EVDEV_MAX_EVENT_SIZE 24
+
 #define REL_X 0x00
 #define REL_Y 0x01
 #define KEY_Q 16
@@ -69,7 +71,7 @@ void* pollThreadFunc(void* context) {
     struct DeviceEntry *device = context;
     struct pollfd pollinfo;
     int pollres, ret;
-    char data[64];
+    char data[EVDEV_MAX_EVENT_SIZE];
 
     __android_log_print(ANDROID_LOG_INFO, "EvdevReader", "Polling /dev/input/%s", device->devName);
 
@@ -94,7 +96,7 @@ void* pollThreadFunc(void* context) {
 
         if (pollres > 0 && (pollinfo.revents & POLLIN)) {
             // We'll have data available now
-            ret = read(device->fd, data, sizeof(struct input_event));
+            ret = read(device->fd, data, EVDEV_MAX_EVENT_SIZE);
             if (ret < 0) {
                 __android_log_print(ANDROID_LOG_ERROR, "EvdevReader",
                                     "read() failed: %d", errno);

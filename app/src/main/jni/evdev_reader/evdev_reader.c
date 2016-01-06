@@ -295,33 +295,49 @@ int main(int argc, char* argv[]) {
         }
         while (pollres == 0);
 
-        ret = fread(&requestId, sizeof(requestId), 1, stdin);
-        if (ret < sizeof(requestId)) {
-            __android_log_print(ANDROID_LOG_ERROR, "EvdevReader", "Short read on input");
-            return errno;
-        }
-
-        if (requestId != UNGRAB_REQ && requestId != REGRAB_REQ) {
-            __android_log_print(ANDROID_LOG_ERROR, "EvdevReader", "Unknown request");
-            return requestId;
-        }
-
-        {
-            struct DeviceEntry *currentEntry;
-
-            pthread_mutex_lock(&DeviceListLock);
-
-            // Update state for future devices
-            grabbing = (requestId == REGRAB_REQ);
-
-            // Carry out the requested action on each device
-            currentEntry = DeviceListHead;
-            while (currentEntry != NULL) {
-                ioctl(currentEntry->fd, EVIOCGRAB, grabbing);
-                currentEntry = currentEntry->next;
+        if (pollres > 0 && (pollinfo.revents & POLLIN)) {
+            // We'll have data available now
+            ret = fread(&requestId, sizeof(requestId), 1, stdin);
+            if (ret < sizeof(requestId)) {
+                __android_log_print(ANDROID_LOG_ERROR, "EvdevReader", "Short read on input");
+                return errno;
             }
 
-            pthread_mutex_unlock(&DeviceListLock);
+            if (requestId != UNGRAB_REQ && requestId != REGRAB_REQ) {
+                __android_log_print(ANDROID_LOG_ERROR, "EvdevReader", "Unknown request");
+                return requestId;
+            }
+
+            {
+                struct DeviceEntry *currentEntry;
+
+                pthread_mutex_lock(&DeviceListLock);
+
+                // Update state for future devices
+                grabbing = (requestId == REGRAB_REQ);
+
+                // Carry out the requested action on each device
+                currentEntry = DeviceListHead;
+                while (currentEntry != NULL) {
+                    ioctl(currentEntry->fd, EVIOCGRAB, grabbing);
+                    currentEntry = currentEntry->next;
+                }
+
+                pthread_mutex_unlock(&DeviceListLock);
+            }
+        }
+        else {
+            // Terminate this thread
+            if (pollres < 0) {
+                __android_log_print(ANDROID_LOG_ERROR, "EvdevReader",
+                                    "Stdin poll() failed: %d", errno);
+            }
+            else {
+                __android_log_print(ANDROID_LOG_ERROR, "EvdevReader",
+                                    "Stdin unexpected revents: %d", pollinfo.revents);
+            }
+
+            return -1;
         }
     }
 }

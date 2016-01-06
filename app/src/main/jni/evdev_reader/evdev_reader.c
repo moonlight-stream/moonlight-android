@@ -260,6 +260,11 @@ static int enumerateDevices(void) {
             continue;
         }
 
+        if (strstr(dirEnt->d_name, "event") == NULL) {
+            // Skip non-event devices
+            continue;
+        }
+
         startPollForDevice(dirEnt->d_name);
     }
 

@@ -132,6 +132,9 @@ cleanup:
     {
         struct DeviceEntry *lastEntry;
 
+        // Lock the device list
+        pthread_mutex_lock(&DeviceListLock);
+
         if (DeviceListHead == device) {
             DeviceListHead = device->next;
         }
@@ -146,6 +149,9 @@ cleanup:
                 lastEntry = lastEntry->next;
             }
         }
+
+        // Unlock device list
+        pthread_mutex_unlock(&DeviceListLock);
     }
 
     // Free the context

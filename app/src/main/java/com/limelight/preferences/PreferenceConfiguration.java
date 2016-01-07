@@ -21,9 +21,7 @@ public class PreferenceConfiguration {
     private static final String ENABLE_51_SURROUND_PREF_STRING = "checkbox_51_surround";
     private static final String USB_DRIVER_PREF_SRING = "checkbox_usb_driver";
     private static final String VIDEO_FORMAT_PREF_STRING = "video_format";
-
-    private static final String VIRTUAL_CONTROLLER_ENABLE = "virtual_controller_checkbox_enable";
-    private static final Boolean VIRTUAL_CONTROLLER_ENABLE_DEFAULT = true;
+    private static final String ONSCREEN_CONTROLLER_PREF_STRING = "checkbox_onscreen_controller";
 
     private static final int BITRATE_DEFAULT_720_30 = 5;
     private static final int BITRATE_DEFAULT_720_60 = 10;
@@ -45,6 +43,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_ENABLE_51_SURROUND = false;
     private static final boolean DEFAULT_USB_DRIVER = true;
     private static final String DEFAULT_VIDEO_FORMAT = "auto";
+    private static final boolean ONSCREEN_CONTROLLER_DEFAULT = true;
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -57,8 +56,7 @@ public class PreferenceConfiguration {
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
     public String language;
     public boolean listMode, smallIconMode, multiController, enable51Surround, usbDriver;
-
-    public boolean virtualController_enable;
+    public boolean onscreenController;
 
     public static int getDefaultBitrate(String resFpsString) {
         if (resFpsString.equals("720p30")) {
@@ -188,7 +186,7 @@ public class PreferenceConfiguration {
         config.multiController = prefs.getBoolean(MULTI_CONTROLLER_PREF_STRING, DEFAULT_MULTI_CONTROLLER);
         config.enable51Surround = prefs.getBoolean(ENABLE_51_SURROUND_PREF_STRING, DEFAULT_ENABLE_51_SURROUND);
         config.usbDriver = prefs.getBoolean(USB_DRIVER_PREF_SRING, DEFAULT_USB_DRIVER);
-        config.virtualController_enable = prefs.getBoolean(VIRTUAL_CONTROLLER_ENABLE, VIRTUAL_CONTROLLER_ENABLE_DEFAULT);
+        config.onscreenController = prefs.getBoolean(ONSCREEN_CONTROLLER_PREF_STRING, ONSCREEN_CONTROLLER_DEFAULT);
 
         return config;
     }

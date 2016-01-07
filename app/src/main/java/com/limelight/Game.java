@@ -287,7 +287,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             evdevHandler.start();
         }
 
-        if (prefConfig.virtualController_enable) {
+        if (prefConfig.onscreenController) {
             // create virtual onscreen controller
             virtualController = new VirtualController(conn,
                     (FrameLayout)findViewById(R.id.surfaceView).getParent(),

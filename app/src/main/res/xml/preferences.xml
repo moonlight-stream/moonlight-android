@@ -51,9 +51,9 @@
             android:summary="@string/summary_checkbox_xb1_driver"
             android:defaultValue="true" />
         <CheckBoxPreference
-            android:key="virtual_controller_checkbox_enable"
-            android:title="Enable virtual onscreen controller"
-            android:summary="Show virtual controller overlay on game screen"
+            android:key="checkbox_onscreen_controller"
+            android:title="On-screen controls"
+            android:summary="Show virtual controller overlay on touchscreen"
             android:defaultValue="true"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">

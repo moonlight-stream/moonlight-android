@@ -292,6 +292,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             virtualController = new VirtualController(conn,
                     (FrameLayout)findViewById(R.id.surfaceView).getParent(),
                     this);
+            virtualController.refreshLayout();
         }
 
         if (prefConfig.usbDriver) {

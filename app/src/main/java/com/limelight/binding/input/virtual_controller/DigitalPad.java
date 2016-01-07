@@ -55,10 +55,6 @@ public class DigitalPad extends VirtualControllerElement {
         // draw left rect
         paint.setColor(
                 (direction & DIGITAL_PAD_DIRECTION_LEFT) > 0 ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.drawText("LF",
-                getPercent(getWidth(), 16.5f), getPercent(getHeight(), 56),
-                paint);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
                 0, getPercent(getHeight(), 33),
@@ -82,10 +78,6 @@ public class DigitalPad extends VirtualControllerElement {
         // draw up rect
         paint.setColor(
                 (direction & DIGITAL_PAD_DIRECTION_UP) > 0 ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.drawText("UP",
-                getPercent(getWidth(), 49.5f), getPercent(getHeight(), 23),
-                paint);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
                 getPercent(getWidth(), 33), 0,
@@ -109,10 +101,6 @@ public class DigitalPad extends VirtualControllerElement {
         // draw right rect
         paint.setColor(
                 (direction & DIGITAL_PAD_DIRECTION_RIGHT) > 0 ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.drawText("RI",
-                getPercent(getWidth(), 82.5f), getPercent(getHeight(), 56),
-                paint);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
                 getPercent(getWidth(), 66), getPercent(getHeight(), 33),
@@ -136,10 +124,6 @@ public class DigitalPad extends VirtualControllerElement {
         // draw down rect
         paint.setColor(
                 (direction & DIGITAL_PAD_DIRECTION_DOWN) > 0 ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.drawText("DW",
-                getPercent(getWidth(), 49.5f), getPercent(getHeight(), 89),
-                paint);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
                 getPercent(getWidth(), 33), getPercent(getHeight(), 66),

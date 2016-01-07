@@ -2,10 +2,15 @@ package com.limelight.binding.input.evdev;
 
 import android.content.Context;
 
+import com.limelight.LimeLog;
+
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 public class EvdevHandler {
 
@@ -15,7 +20,9 @@ public class EvdevHandler {
     private boolean shutdown = false;
     private InputStream evdevIn;
     private OutputStream evdevOut;
-    private Process reader;
+    private Process su;
+    private ServerSocket servSock;
+    private Socket evdevSock;
 
     private static final byte UNGRAB_REQUEST = 1;
     private static final byte REGRAB_REQUEST = 2;
@@ -27,19 +34,45 @@ public class EvdevHandler {
             int deltaY = 0;
             byte deltaScroll = 0;
 
-            // Launch the evdev reader shell
-            ProcessBuilder builder = new ProcessBuilder("su", "-c", libraryPath+File.separatorChar+"libevdev_reader.so");
-            builder.redirectErrorStream(false);
-
+            // Bind a local listening socket for evdevreader to connect to
             try {
-                reader = builder.start();
+                servSock = new ServerSocket(0, 1);
             } catch (IOException e) {
                 e.printStackTrace();
                 return;
             }
 
-            evdevIn = reader.getInputStream();
-            evdevOut = reader.getOutputStream();
+            // Launch a su shell
+            ProcessBuilder builder = new ProcessBuilder("su");
+            builder.redirectErrorStream(true);
+
+            try {
+                su = builder.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            // Start evdevreader
+            DataOutputStream suOut = new DataOutputStream(su.getOutputStream());
+            try {
+                suOut.writeChars(libraryPath+File.separatorChar+"libevdev_reader.so "+servSock.getLocalPort()+"\n");
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            // Wait for evdevreader's connection
+            LimeLog.info("Waiting for EvdevReader connection to port "+servSock.getLocalPort());
+            try {
+                evdevSock = servSock.accept();
+                evdevIn = evdevSock.getInputStream();
+                evdevOut = evdevSock.getOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            LimeLog.info("EvdevReader connected from port "+evdevSock.getPort());
 
             while (!isInterrupted() && !shutdown) {
                 EvdevEvent event;
@@ -159,6 +192,22 @@ public class EvdevHandler {
         shutdown = true;
         handlerThread.interrupt();
 
+        if (servSock != null) {
+            try {
+                servSock.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (evdevSock != null) {
+            try {
+                evdevSock.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         if (evdevIn != null) {
             try {
                 evdevIn.close();
@@ -175,8 +224,8 @@ public class EvdevHandler {
             }
         }
 
-        if (reader != null) {
-            reader.destroy();
+        if (su != null) {
+            su.destroy();
         }
 
         try {

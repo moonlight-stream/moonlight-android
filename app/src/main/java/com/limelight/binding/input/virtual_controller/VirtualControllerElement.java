@@ -13,10 +13,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 
-import org.json.JSONObject;
-
-//import yuku.ambilwarna.AmbilWarnaDialog;
-
 public abstract class VirtualControllerElement extends View {
     protected static boolean _PRINT_DEBUG_INFORMATION = false;
 

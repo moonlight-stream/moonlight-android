@@ -137,7 +137,6 @@ public class AnalogStick extends VirtualControllerElement {
     }
 
     private static double getAngle(float way_x, float way_y) {
-        double angle = 0;
         // prevent divisions by zero for corner cases
         if (way_x == 0) {
             return way_y < 0 ? Math.PI : 0;

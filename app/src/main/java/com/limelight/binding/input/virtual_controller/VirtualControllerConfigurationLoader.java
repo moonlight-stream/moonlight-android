@@ -4,19 +4,10 @@
 
 package com.limelight.binding.input.virtual_controller;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 
 import com.limelight.nvstream.input.ControllerPacket;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class VirtualControllerConfigurationLoader {
     private static final String PROFILE_PATH = "profiles";

@@ -14,6 +14,8 @@
 
 #include <android/log.h>
 
+#define EVDEV_MAX_EVENT_SIZE 24
+
 #define REL_X 0x00
 #define REL_Y 0x01
 #define KEY_Q 16
@@ -69,7 +71,7 @@ void* pollThreadFunc(void* context) {
     struct DeviceEntry *device = context;
     struct pollfd pollinfo;
     int pollres, ret;
-    char data[64];
+    char data[EVDEV_MAX_EVENT_SIZE];
 
     __android_log_print(ANDROID_LOG_INFO, "EvdevReader", "Polling /dev/input/%s", device->devName);
 
@@ -94,7 +96,7 @@ void* pollThreadFunc(void* context) {
 
         if (pollres > 0 && (pollinfo.revents & POLLIN)) {
             // We'll have data available now
-            ret = read(device->fd, data, sizeof(struct input_event));
+            ret = read(device->fd, data, EVDEV_MAX_EVENT_SIZE);
             if (ret < 0) {
                 __android_log_print(ANDROID_LOG_ERROR, "EvdevReader",
                                     "read() failed: %d", errno);
@@ -132,6 +134,9 @@ cleanup:
     {
         struct DeviceEntry *lastEntry;
 
+        // Lock the device list
+        pthread_mutex_lock(&DeviceListLock);
+
         if (DeviceListHead == device) {
             DeviceListHead = device->next;
         }
@@ -146,6 +151,9 @@ cleanup:
                 lastEntry = lastEntry->next;
             }
         }
+
+        // Unlock device list
+        pthread_mutex_unlock(&DeviceListLock);
     }
 
     // Free the context
@@ -254,6 +262,11 @@ static int enumerateDevices(void) {
             continue;
         }
 
+        if (strstr(dirEnt->d_name, "event") == NULL) {
+            // Skip non-event devices
+            continue;
+        }
+
         startPollForDevice(dirEnt->d_name);
     }
 
@@ -268,6 +281,8 @@ int main(int argc, char* argv[]) {
     int ret;
     int pollres;
     struct pollfd pollinfo;
+
+    __android_log_print(ANDROID_LOG_INFO, "EvdevReader", "Entered main()");
 
     // Perform initial enumeration
     ret = enumerateDevices();
@@ -293,33 +308,49 @@ int main(int argc, char* argv[]) {
         }
         while (pollres == 0);
 
-        ret = fread(&requestId, sizeof(requestId), 1, stdin);
-        if (ret < sizeof(requestId)) {
-            __android_log_print(ANDROID_LOG_ERROR, "EvdevReader", "Short read on input");
-            return errno;
-        }
-
-        if (requestId != UNGRAB_REQ && requestId != REGRAB_REQ) {
-            __android_log_print(ANDROID_LOG_ERROR, "EvdevReader", "Unknown request");
-            return requestId;
-        }
-
-        {
-            struct DeviceEntry *currentEntry;
-
-            pthread_mutex_lock(&DeviceListLock);
-
-            // Update state for future devices
-            grabbing = (requestId == REGRAB_REQ);
-
-            // Carry out the requested action on each device
-            currentEntry = DeviceListHead;
-            while (currentEntry != NULL) {
-                ioctl(currentEntry->fd, EVIOCGRAB, grabbing);
-                currentEntry = currentEntry->next;
+        if (pollres > 0 && (pollinfo.revents & POLLIN)) {
+            // We'll have data available now
+            ret = fread(&requestId, sizeof(requestId), 1, stdin);
+            if (ret < sizeof(requestId)) {
+                __android_log_print(ANDROID_LOG_ERROR, "EvdevReader", "Short read on input");
+                return errno;
             }
 
-            pthread_mutex_unlock(&DeviceListLock);
+            if (requestId != UNGRAB_REQ && requestId != REGRAB_REQ) {
+                __android_log_print(ANDROID_LOG_ERROR, "EvdevReader", "Unknown request");
+                return requestId;
+            }
+
+            {
+                struct DeviceEntry *currentEntry;
+
+                pthread_mutex_lock(&DeviceListLock);
+
+                // Update state for future devices
+                grabbing = (requestId == REGRAB_REQ);
+
+                // Carry out the requested action on each device
+                currentEntry = DeviceListHead;
+                while (currentEntry != NULL) {
+                    ioctl(currentEntry->fd, EVIOCGRAB, grabbing);
+                    currentEntry = currentEntry->next;
+                }
+
+                pthread_mutex_unlock(&DeviceListLock);
+            }
+        }
+        else {
+            // Terminate this thread
+            if (pollres < 0) {
+                __android_log_print(ANDROID_LOG_ERROR, "EvdevReader",
+                                    "Stdin poll() failed: %d", errno);
+            }
+            else {
+                __android_log_print(ANDROID_LOG_ERROR, "EvdevReader",
+                                    "Stdin unexpected revents: %d", pollinfo.revents);
+            }
+
+            return -1;
         }
     }
 }

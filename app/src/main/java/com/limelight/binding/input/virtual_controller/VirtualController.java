@@ -78,8 +78,8 @@ public class VirtualController {
     public void removeElements() {
         for (VirtualControllerElement element : elements) {
             relative_layout.removeView(element);
-            elements.remove(element);
         }
+        elements.clear();
     }
 
     public void addElement(VirtualControllerElement element, int x, int y, int width, int height) {

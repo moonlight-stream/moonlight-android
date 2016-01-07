@@ -212,7 +212,7 @@ public class VirtualControllerConfigurationLoader {
         );
 
         controller.addElement(createDigitalButton(
-                ControllerPacket.SPECIAL_BUTTON_FLAG, 0, 2, "SELECT", -1, controller, context),
+                ControllerPacket.BACK_FLAG, 0, 2, "SELECT", -1, controller, context),
                 getPercent(40, screen.widthPixels),
                 getPercent(90, screen.heightPixels),
                 getPercent(10, screen.widthPixels),
@@ -220,7 +220,7 @@ public class VirtualControllerConfigurationLoader {
         );
 
         controller.addElement(createDigitalButton(
-                ControllerPacket.PLAY_FLAG, 0, 3, "PLAY", -1, controller, context),
+                ControllerPacket.PLAY_FLAG, 0, 3, "START", -1, controller, context),
                 getPercent(50, screen.widthPixels),
                 getPercent(90, screen.heightPixels),
                 getPercent(10, screen.widthPixels),

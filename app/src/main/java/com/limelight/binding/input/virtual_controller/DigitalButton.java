@@ -59,6 +59,8 @@ public class DigitalButton extends VirtualControllerElement {
     private Timer timerLongClick = null;
     private TimerLongClickTimerTask longClickTimerTask = null;
 
+    private final Paint paint = new Paint();
+
     private int layer;
     private DigitalButton movingButton = null;
 
@@ -141,8 +143,6 @@ public class DigitalButton extends VirtualControllerElement {
     protected void onElementDraw(Canvas canvas) {
         // set transparent background
         canvas.drawColor(Color.TRANSPARENT);
-
-        Paint paint = new Paint();
 
         paint.setTextSize(getPercent(getCorrectWidth(), 50));
         paint.setTextAlign(Paint.Align.CENTER);

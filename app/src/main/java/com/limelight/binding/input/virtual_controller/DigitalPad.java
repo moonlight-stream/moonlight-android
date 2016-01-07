@@ -22,6 +22,8 @@ public class DigitalPad extends VirtualControllerElement {
     public final static int DIGITAL_PAD_DIRECTION_DOWN = 8;
     List<DigitalPadListener> listeners = new ArrayList<DigitalPadListener>();
 
+    private final Paint paint = new Paint();
+
     public DigitalPad(VirtualController controller, Context context) {
         super(controller, context);
     }
@@ -34,8 +36,6 @@ public class DigitalPad extends VirtualControllerElement {
     protected void onElementDraw(Canvas canvas) {
         // set transparent background
         canvas.drawColor(Color.TRANSPARENT);
-
-        Paint paint = new Paint();
 
         paint.setTextSize(getPercent(getCorrectWidth(), 20));
         paint.setTextAlign(Paint.Align.CENTER);

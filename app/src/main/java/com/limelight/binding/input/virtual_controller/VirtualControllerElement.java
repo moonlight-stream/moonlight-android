@@ -18,6 +18,8 @@ public abstract class VirtualControllerElement extends View {
 
     protected VirtualController virtualController;
 
+    private final Paint paint = new Paint();
+
     protected int normalColor = 0xF0888888;
     protected int pressedColor = 0xF00000FF;
 
@@ -71,8 +73,6 @@ public abstract class VirtualControllerElement extends View {
     protected void onDraw(Canvas canvas) {
         if (virtualController.getControllerMode() == VirtualController.ControllerMode.
                 Configuration) {
-            Paint paint = new Paint();
-
             paint.setColor(pressedColor);
             paint.setStrokeWidth(3);
             paint.setStyle(Paint.Style.STROKE);

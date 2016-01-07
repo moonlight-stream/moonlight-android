@@ -116,7 +116,7 @@ public class AnalogStick extends VirtualControllerElement {
     private float position_stick_x = 0;
     private float position_stick_y = 0;
 
-    private Paint paint = new Paint();
+    private final Paint paint = new Paint();
 
     private STICK_STATE stick_state = STICK_STATE.NO_MOVEMENT;
     private CLICK_STATE click_state = CLICK_STATE.SINGLE;

@@ -197,6 +197,22 @@ public class VirtualControllerConfigurationLoader {
                 getPercent(10, screen.heightPixels)
         );
 
+        controller.addElement(createDigitalButton(
+                ControllerPacket.LB_FLAG, 0, 1, "LB", -1, controller, context),
+                getPercent(65, screen.widthPixels),
+                getPercent(40, screen.heightPixels),
+                getPercent(10, screen.widthPixels),
+                getPercent(10, screen.heightPixels)
+        );
+
+        controller.addElement(createDigitalButton(
+                ControllerPacket.RB_FLAG, 0, 1, "RB", -1, controller, context),
+                getPercent(85, screen.widthPixels),
+                getPercent(40, screen.heightPixels),
+                getPercent(10, screen.widthPixels),
+                getPercent(10, screen.heightPixels)
+        );
+
         controller.addElement(createLeftStick(controller, context),
                 getPercent(5, screen.widthPixels),
                 getPercent(50, screen.heightPixels),

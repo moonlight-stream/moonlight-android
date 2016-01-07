@@ -43,7 +43,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_ENABLE_51_SURROUND = false;
     private static final boolean DEFAULT_USB_DRIVER = true;
     private static final String DEFAULT_VIDEO_FORMAT = "auto";
-    private static final boolean ONSCREEN_CONTROLLER_DEFAULT = true;
+    private static final boolean ONSCREEN_CONTROLLER_DEFAULT = false;
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;

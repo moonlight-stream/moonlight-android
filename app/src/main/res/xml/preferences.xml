@@ -54,7 +54,7 @@
             android:key="checkbox_onscreen_controller"
             android:title="On-screen controls"
             android:summary="Show virtual controller overlay on touchscreen"
-            android:defaultValue="true"/>
+            android:defaultValue="false"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">
         <CheckBoxPreference

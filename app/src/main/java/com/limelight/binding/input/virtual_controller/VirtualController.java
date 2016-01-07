@@ -18,132 +18,132 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VirtualController {
-	public class ControllerInputContext {
-		public short inputMap = 0x0000;
-		public byte leftTrigger = 0x00;
-		public byte rightTrigger = 0x00;
-		public short rightStickX = 0x0000;
-		public short rightStickY = 0x0000;
-		public short leftStickX = 0x0000;
-		public short leftStickY = 0x0000;
-	}
+    public class ControllerInputContext {
+        public short inputMap = 0x0000;
+        public byte leftTrigger = 0x00;
+        public byte rightTrigger = 0x00;
+        public short rightStickX = 0x0000;
+        public short rightStickY = 0x0000;
+        public short leftStickX = 0x0000;
+        public short leftStickY = 0x0000;
+    }
 
-	public enum ControllerMode {
-		Active,
-		Configuration
-	}
+    public enum ControllerMode {
+        Active,
+        Configuration
+    }
 
-	private static final boolean _PRINT_DEBUG_INFORMATION = true;
+    private static final boolean _PRINT_DEBUG_INFORMATION = true;
 
-	private NvConnection connection	= null;
-	private Context context = null;
+    private NvConnection connection = null;
+    private Context context = null;
 
-	private FrameLayout frame_layout = null;
-	private RelativeLayout relative_layout = null;
+    private FrameLayout frame_layout = null;
+    private RelativeLayout relative_layout = null;
 
-	ControllerMode currentMode = ControllerMode.Active;
-	ControllerInputContext inputContext = new ControllerInputContext();
+    ControllerMode currentMode = ControllerMode.Active;
+    ControllerInputContext inputContext = new ControllerInputContext();
 
-	private RelativeLayout.LayoutParams	layoutParamsButtonConfigure = null;
-	private Button buttonConfigure = null;
+    private RelativeLayout.LayoutParams layoutParamsButtonConfigure = null;
+    private Button buttonConfigure = null;
 
-	private List<VirtualControllerElement> elements = new ArrayList<VirtualControllerElement>();
+    private List<VirtualControllerElement> elements = new ArrayList<VirtualControllerElement>();
 
-	public VirtualController(final NvConnection conn, FrameLayout layout, final Context context) {
-		this.connection = conn;
-		this.frame_layout = layout;
-		this.context = context;
+    public VirtualController(final NvConnection conn, FrameLayout layout, final Context context) {
+        this.connection = conn;
+        this.frame_layout = layout;
+        this.context = context;
 
-		relative_layout = new RelativeLayout(context);
+        relative_layout = new RelativeLayout(context);
 
-		frame_layout.addView(relative_layout);
+        frame_layout.addView(relative_layout);
 
-		buttonConfigure = new Button(context);
-		buttonConfigure.setBackgroundResource(R.drawable.settings);
-		buttonConfigure.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (currentMode == ControllerMode.Configuration) {
-					currentMode = ControllerMode.Active;
-				} else {
-					currentMode = ControllerMode.Configuration;
-				}
-				Toast.makeText(context, "CHANGE MODE " + currentMode, Toast.LENGTH_SHORT).show();
+        buttonConfigure = new Button(context);
+        buttonConfigure.setBackgroundResource(R.drawable.settings);
+        buttonConfigure.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (currentMode == ControllerMode.Configuration) {
+                    currentMode = ControllerMode.Active;
+                } else {
+                    currentMode = ControllerMode.Configuration;
+                }
+                Toast.makeText(context, "CHANGE MODE " + currentMode, Toast.LENGTH_SHORT).show();
 
-				relative_layout.invalidate();
-			}
-		});
-	}
+                relative_layout.invalidate();
+            }
+        });
+    }
 
-	public void removeElements() {
-		for (VirtualControllerElement element : elements) {
-			relative_layout.removeView(element);
-			elements.remove(element);
-		}
-	}
+    public void removeElements() {
+        for (VirtualControllerElement element : elements) {
+            relative_layout.removeView(element);
+            elements.remove(element);
+        }
+    }
 
-	public void addElement(VirtualControllerElement element, int x, int y, int width, int height) {
-		elements.add(element);
-		RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(width, height);
-		layoutParams.setMargins(x, y, 0, 0);
+    public void addElement(VirtualControllerElement element, int x, int y, int width, int height) {
+        elements.add(element);
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(width, height);
+        layoutParams.setMargins(x, y, 0, 0);
 
-		relative_layout.addView(element, layoutParams);
-	}
+        relative_layout.addView(element, layoutParams);
+    }
 
-	public List<VirtualControllerElement> getElements() {
-		return elements;
-	}
+    public List<VirtualControllerElement> getElements() {
+        return elements;
+    }
 
-	private static final void _DBG(String text) {
-		if (_PRINT_DEBUG_INFORMATION) {
-			System.out.println("VirtualController: " + text);
-		}
-	}
+    private static final void _DBG(String text) {
+        if (_PRINT_DEBUG_INFORMATION) {
+            System.out.println("VirtualController: " + text);
+        }
+    }
 
-	public void refreshLayout() {
-		relative_layout.removeAllViews();
+    public void refreshLayout() {
+        relative_layout.removeAllViews();
         removeElements();
 
-		layoutParamsButtonConfigure = new RelativeLayout.LayoutParams(50, 50);
-		relative_layout.addView(buttonConfigure, layoutParamsButtonConfigure);
+        layoutParamsButtonConfigure = new RelativeLayout.LayoutParams(50, 50);
+        relative_layout.addView(buttonConfigure, layoutParamsButtonConfigure);
 
-		VirtualControllerConfigurationLoader.createDefaultLayout(this, context);
-	}
+        VirtualControllerConfigurationLoader.createDefaultLayout(this, context);
+    }
 
-	public ControllerMode getControllerMode () {
-		return currentMode;
-	}
+    public ControllerMode getControllerMode() {
+        return currentMode;
+    }
 
-	public ControllerInputContext getControllerInputContext () {
-		return inputContext;
-	}
+    public ControllerInputContext getControllerInputContext() {
+        return inputContext;
+    }
 
-	public void sendControllerInputContext() {
-		sendControllerInputPacket();
-	}
+    public void sendControllerInputContext() {
+        sendControllerInputPacket();
+    }
 
-	private void sendControllerInputPacket() {
-		try {
-			_DBG("INPUT_MAP + " + inputContext.inputMap);
-			_DBG("LEFT_TRIGGER " + inputContext.leftTrigger);
-			_DBG("RIGHT_TRIGGER " + inputContext.rightTrigger);
-			_DBG("LEFT STICK X: " + inputContext.leftStickX + " Y: " + inputContext.leftStickY);
-			_DBG("RIGHT STICK X: " + inputContext.rightStickX + " Y: " + inputContext.rightStickY);
-			_DBG("RIGHT STICK X: " + inputContext.rightStickX + " Y: " + inputContext.rightStickY);
+    private void sendControllerInputPacket() {
+        try {
+            _DBG("INPUT_MAP + " + inputContext.inputMap);
+            _DBG("LEFT_TRIGGER " + inputContext.leftTrigger);
+            _DBG("RIGHT_TRIGGER " + inputContext.rightTrigger);
+            _DBG("LEFT STICK X: " + inputContext.leftStickX + " Y: " + inputContext.leftStickY);
+            _DBG("RIGHT STICK X: " + inputContext.rightStickX + " Y: " + inputContext.rightStickY);
+            _DBG("RIGHT STICK X: " + inputContext.rightStickX + " Y: " + inputContext.rightStickY);
 
-			if (connection != null) {
-				connection.sendControllerInput(
-					inputContext.inputMap,
-					inputContext.leftTrigger,
-					inputContext.rightTrigger,
-					inputContext.leftStickX,
-					inputContext.leftStickY,
-					inputContext.rightStickX,
-					inputContext.rightStickY
-				);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+            if (connection != null) {
+                connection.sendControllerInput(
+                        inputContext.inputMap,
+                        inputContext.leftTrigger,
+                        inputContext.rightTrigger,
+                        inputContext.leftStickX,
+                        inputContext.leftStickY,
+                        inputContext.rightStickX,
+                        inputContext.rightStickY
+                );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

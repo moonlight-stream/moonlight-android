@@ -24,212 +24,212 @@ public class DigitalButton extends VirtualControllerElement {
     /**
      * Listener interface to update registered observers.
      */
-	public interface DigitalButtonListener {
+    public interface DigitalButtonListener {
 
         /**
          * onClick event will be fired on button click.
          */
-		void onClick();
+        void onClick();
 
         /**
          * onLongClick event will be fired on button long click.
          */
-		void onLongClick();
+        void onLongClick();
 
         /**
          * onRelease event will be fired on button unpress.
          */
-		void onRelease();
-	}
+        void onRelease();
+    }
 
     /**
      *
      */
-	private class TimerLongClickTimerTask extends TimerTask {
-		@Override
-		public void run() {
-			onLongClickCallback();
-		}
-	}
-
-	private List<DigitalButtonListener> listeners = new ArrayList<DigitalButtonListener>();
-	private String text = "";
-	private int icon = -1;
-	private long timerLongClickTimeout = 3000;
-	private Timer timerLongClick = null;
-	private TimerLongClickTimerTask longClickTimerTask = null;
-
-	private int layer;
-	private DigitalButton movingButton = null;
-
-	boolean inRange(float x, float y) {
-		return  (this.getX() < x && this.getX() + this.getWidth() > x) &&
-			(this.getY() < y && this.getY() + this.getHeight() > y);
-	}
-
-	public boolean checkMovement(float x, float y, DigitalButton movingButton) {
-		// check if the movement happened in the same layer
-		if (movingButton.layer != this.layer) {
-			return  false;
-		}
-
-		// save current pressed state
-		boolean wasPressed = isPressed();
-
-		// check if the movement directly happened on the button
-		if ((this.movingButton == null || movingButton == this.movingButton)
-			&& this.inRange(x, y)) {
-			// set button pressed state depending on moving button pressed state
-			if (this.isPressed() != movingButton.isPressed()) {
-				this.setPressed(movingButton.isPressed());
-			}
-		}
-		// check if the movement is outside of the range and the movement button
-		// is the saved moving button
-		else if (movingButton == this.movingButton) {
-			this.setPressed(false);
-		}
-
-		// check if a change occurred
-		if (wasPressed != isPressed()) {
-			if (isPressed()) {
-			    // is pressed set moving button and emit click event
-				this.movingButton = movingButton;
-				onClickCallback();
-			} else {
-			    // no longer pressed reset moving button and emit release event
-				this.movingButton = null;
-				onReleaseCallback();
-			}
-
-			invalidate();
-
-			return true;
-		}
-
-		return  false;
-	}
-
-	private void checkMovementForAllButtons(float x, float y) {
-		for (VirtualControllerElement element : virtualController.getElements()) {
-            if (element != this && element instanceof DigitalButton){
-                ((DigitalButton)element).checkMovement(x, y, this);
-			}
-		}
-	}
-
-	public DigitalButton(VirtualController controller, int layer, Context context) {
-		super(controller, context);
-		this.layer = layer;
+    private class TimerLongClickTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            onLongClickCallback();
+        }
     }
 
-	public void addDigitalButtonListener(DigitalButtonListener listener) {
+    private List<DigitalButtonListener> listeners = new ArrayList<DigitalButtonListener>();
+    private String text = "";
+    private int icon = -1;
+    private long timerLongClickTimeout = 3000;
+    private Timer timerLongClick = null;
+    private TimerLongClickTimerTask longClickTimerTask = null;
+
+    private int layer;
+    private DigitalButton movingButton = null;
+
+    boolean inRange(float x, float y) {
+        return (this.getX() < x && this.getX() + this.getWidth() > x) &&
+                (this.getY() < y && this.getY() + this.getHeight() > y);
+    }
+
+    public boolean checkMovement(float x, float y, DigitalButton movingButton) {
+        // check if the movement happened in the same layer
+        if (movingButton.layer != this.layer) {
+            return false;
+        }
+
+        // save current pressed state
+        boolean wasPressed = isPressed();
+
+        // check if the movement directly happened on the button
+        if ((this.movingButton == null || movingButton == this.movingButton)
+                && this.inRange(x, y)) {
+            // set button pressed state depending on moving button pressed state
+            if (this.isPressed() != movingButton.isPressed()) {
+                this.setPressed(movingButton.isPressed());
+            }
+        }
+        // check if the movement is outside of the range and the movement button
+        // is the saved moving button
+        else if (movingButton == this.movingButton) {
+            this.setPressed(false);
+        }
+
+        // check if a change occurred
+        if (wasPressed != isPressed()) {
+            if (isPressed()) {
+                // is pressed set moving button and emit click event
+                this.movingButton = movingButton;
+                onClickCallback();
+            } else {
+                // no longer pressed reset moving button and emit release event
+                this.movingButton = null;
+                onReleaseCallback();
+            }
+
+            invalidate();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void checkMovementForAllButtons(float x, float y) {
+        for (VirtualControllerElement element : virtualController.getElements()) {
+            if (element != this && element instanceof DigitalButton) {
+                ((DigitalButton) element).checkMovement(x, y, this);
+            }
+        }
+    }
+
+    public DigitalButton(VirtualController controller, int layer, Context context) {
+        super(controller, context);
+        this.layer = layer;
+    }
+
+    public void addDigitalButtonListener(DigitalButtonListener listener) {
         listeners.add(listener);
-	}
+    }
 
-	public void setText(String text) {
-		this.text = text;
-		invalidate();
-	}
+    public void setText(String text) {
+        this.text = text;
+        invalidate();
+    }
 
-	public void setIcon(int id) {
-		this.icon = id;
-		invalidate();
-	}
+    public void setIcon(int id) {
+        this.icon = id;
+        invalidate();
+    }
 
-	@Override
-	protected void onElementDraw(Canvas canvas) {
-		// set transparent background
-		canvas.drawColor(Color.TRANSPARENT);
+    @Override
+    protected void onElementDraw(Canvas canvas) {
+        // set transparent background
+        canvas.drawColor(Color.TRANSPARENT);
 
-		Paint paint = new Paint();
+        Paint paint = new Paint();
 
-		paint.setTextSize(getPercent(getCorrectWidth(), 50));
-		paint.setTextAlign(Paint.Align.CENTER);
-		paint.setStrokeWidth(3);
+        paint.setTextSize(getPercent(getCorrectWidth(), 50));
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setStrokeWidth(3);
 
-		paint.setColor(isPressed() ? pressedColor : normalColor);
-		paint.setStyle(Paint.Style.STROKE);
-		canvas.drawRect(1, 1, getWidth() - 1, getHeight() - 1, paint);
+        paint.setColor(isPressed() ? pressedColor : normalColor);
+        paint.setStyle(Paint.Style.STROKE);
+        canvas.drawRect(1, 1, getWidth() - 1, getHeight() - 1, paint);
 
-		if (icon != -1) {
-			Drawable d = getResources().getDrawable(icon);
-			d.setBounds(5, 5, getWidth() - 5, getHeight() - 5);
-			d.draw(canvas);
-		} else {
-			paint.setStyle(Paint.Style.FILL_AND_STROKE);
-			canvas.drawText(text, getPercent(getWidth(), 50), getPercent(getHeight(), 73), paint);
-		}
-	}
+        if (icon != -1) {
+            Drawable d = getResources().getDrawable(icon);
+            d.setBounds(5, 5, getWidth() - 5, getHeight() - 5);
+            d.draw(canvas);
+        } else {
+            paint.setStyle(Paint.Style.FILL_AND_STROKE);
+            canvas.drawText(text, getPercent(getWidth(), 50), getPercent(getHeight(), 73), paint);
+        }
+    }
 
-	private void onClickCallback() {
-		_DBG("clicked");
-		// notify listeners
-		for (DigitalButtonListener listener : listeners) {
-			listener.onClick();
-		}
+    private void onClickCallback() {
+        _DBG("clicked");
+        // notify listeners
+        for (DigitalButtonListener listener : listeners) {
+            listener.onClick();
+        }
 
-		timerLongClick = new Timer();
-		longClickTimerTask = new TimerLongClickTimerTask();
-		timerLongClick.schedule(longClickTimerTask, timerLongClickTimeout);
-	}
+        timerLongClick = new Timer();
+        longClickTimerTask = new TimerLongClickTimerTask();
+        timerLongClick.schedule(longClickTimerTask, timerLongClickTimeout);
+    }
 
-	private void onLongClickCallback() {
-		_DBG("long click");
-		// notify listeners
-		for (DigitalButtonListener listener : listeners) {
-			listener.onLongClick();
-		}
-	}
+    private void onLongClickCallback() {
+        _DBG("long click");
+        // notify listeners
+        for (DigitalButtonListener listener : listeners) {
+            listener.onLongClick();
+        }
+    }
 
-	private void onReleaseCallback() {
-		_DBG("released");
-		// notify listeners
-		for (DigitalButtonListener listener : listeners) {
-			listener.onRelease();
-		}
-		timerLongClick.cancel();
-		longClickTimerTask.cancel();
-	}
+    private void onReleaseCallback() {
+        _DBG("released");
+        // notify listeners
+        for (DigitalButtonListener listener : listeners) {
+            listener.onRelease();
+        }
+        timerLongClick.cancel();
+        longClickTimerTask.cancel();
+    }
 
-	@Override
-	public boolean onElementTouchEvent(MotionEvent event) {
-		// get masked (not specific to a pointer) action
-		float x = getX() + event.getX();
-		float y	= getY() + event.getY();
-		int action = event.getActionMasked();
+    @Override
+    public boolean onElementTouchEvent(MotionEvent event) {
+        // get masked (not specific to a pointer) action
+        float x = getX() + event.getX();
+        float y = getY() + event.getY();
+        int action = event.getActionMasked();
 
-		switch (action) {
-			case MotionEvent.ACTION_DOWN:
-			case MotionEvent.ACTION_POINTER_DOWN: {
-				movingButton = null;
-				setPressed(true);
-				onClickCallback();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN: {
+                movingButton = null;
+                setPressed(true);
+                onClickCallback();
 
-				invalidate();
+                invalidate();
 
-				return true;
-			}
-			case MotionEvent.ACTION_MOVE: {
-				checkMovementForAllButtons(x, y);
+                return true;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                checkMovementForAllButtons(x, y);
 
-				return  true;
-			}
-			case MotionEvent.ACTION_CANCEL:
-			case MotionEvent.ACTION_UP:
-			case MotionEvent.ACTION_POINTER_UP: {
-				setPressed(false);
-				onReleaseCallback();
+                return true;
+            }
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP: {
+                setPressed(false);
+                onReleaseCallback();
 
-				checkMovementForAllButtons(x, y);
+                checkMovementForAllButtons(x, y);
 
-				invalidate();
+                invalidate();
 
-				return true;
-			}
-			default: {
-			}
-		}
-		return true;
-	}
+                return true;
+            }
+            default: {
+            }
+        }
+        return true;
+    }
 }

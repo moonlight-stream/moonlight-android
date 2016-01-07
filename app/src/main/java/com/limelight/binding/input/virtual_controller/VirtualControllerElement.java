@@ -18,81 +18,81 @@ import org.json.JSONObject;
 //import yuku.ambilwarna.AmbilWarnaDialog;
 
 public abstract class VirtualControllerElement extends View {
-	protected static boolean _PRINT_DEBUG_INFORMATION = false;
+    protected static boolean _PRINT_DEBUG_INFORMATION = false;
 
-	protected VirtualController	virtualController;
+    protected VirtualController virtualController;
 
-	protected int normalColor = 0xF0888888;
-	protected int pressedColor = 0xF00000FF;
+    protected int normalColor = 0xF0888888;
+    protected int pressedColor = 0xF00000FF;
 
-	protected int startSize_x;
-	protected int startSize_y;
+    protected int startSize_x;
+    protected int startSize_y;
 
-	float position_pressed_x 	= 0;
-	float position_pressed_y 	= 0;
+    float position_pressed_x = 0;
+    float position_pressed_y = 0;
 
-	private enum Mode {
-		Normal,
-		Resize,
-		Move
-	}
+    private enum Mode {
+        Normal,
+        Resize,
+        Move
+    }
 
-	private Mode currentMode = Mode.Normal;
+    private Mode currentMode = Mode.Normal;
 
-	protected VirtualControllerElement(VirtualController controller, Context context) {
-		super(context);
+    protected VirtualControllerElement(VirtualController controller, Context context) {
+        super(context);
 
-		this.virtualController	= controller;
-	}
+        this.virtualController = controller;
+    }
 
-	protected void moveElement(int pressed_x, int pressed_y, int x, int y) {
-		int newPos_x = (int)getX() + x - pressed_x;
-		int newPos_y = (int)getY() + y - pressed_y;
+    protected void moveElement(int pressed_x, int pressed_y, int x, int y) {
+        int newPos_x = (int) getX() + x - pressed_x;
+        int newPos_y = (int) getY() + y - pressed_y;
 
-		RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) getLayoutParams();
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) getLayoutParams();
 
-		layoutParams.leftMargin = newPos_x > 0 ? newPos_x : 0;
-		layoutParams.topMargin = newPos_y > 0 ? newPos_y : 0;
-		layoutParams.rightMargin = 0;
-		layoutParams.bottomMargin = 0;
+        layoutParams.leftMargin = newPos_x > 0 ? newPos_x : 0;
+        layoutParams.topMargin = newPos_y > 0 ? newPos_y : 0;
+        layoutParams.rightMargin = 0;
+        layoutParams.bottomMargin = 0;
 
-		requestLayout();
-	}
+        requestLayout();
+    }
 
-	protected void resizeElement(int pressed_x, int pressed_y, int width, int height) {
-		RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) getLayoutParams();
+    protected void resizeElement(int pressed_x, int pressed_y, int width, int height) {
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) getLayoutParams();
 
-		int newHeight = height + (startSize_y - pressed_y);
-		int newWidth = width + (startSize_x - pressed_x);
+        int newHeight = height + (startSize_y - pressed_y);
+        int newWidth = width + (startSize_x - pressed_x);
 
-		layoutParams.height = newHeight > 20 ? newHeight : 20;
-		layoutParams.width = newWidth > 20 ? newWidth : 20;
+        layoutParams.height = newHeight > 20 ? newHeight : 20;
+        layoutParams.width = newWidth > 20 ? newWidth : 20;
 
-		requestLayout();
-	}
+        requestLayout();
+    }
 
-	@Override
-	protected void onDraw(Canvas canvas) {
-		if (virtualController.getControllerMode() == VirtualController.ControllerMode.
-				Configuration) {
-			Paint paint = new Paint();
+    @Override
+    protected void onDraw(Canvas canvas) {
+        if (virtualController.getControllerMode() == VirtualController.ControllerMode.
+                Configuration) {
+            Paint paint = new Paint();
 
-			paint.setColor(pressedColor);
-			paint.setStrokeWidth(3);
-			paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(pressedColor);
+            paint.setStrokeWidth(3);
+            paint.setStyle(Paint.Style.STROKE);
 
-			canvas.drawRect(0,  0,
+            canvas.drawRect(0, 0,
                     getWidth(), getHeight(),
                     paint);
-		}
+        }
 
-		onElementDraw(canvas);
+        onElementDraw(canvas);
 
-		super.onDraw(canvas);
-	}
+        super.onDraw(canvas);
+    }
 
     /*
-	protected void actionShowNormalColorChooser() {
+    protected void actionShowNormalColorChooser() {
 		AmbilWarnaDialog colorDialog = new AmbilWarnaDialog(getContext(), normalColor, true, new AmbilWarnaDialog.OnAmbilWarnaListener() {
 			@Override
 			public void onCancel(AmbilWarnaDialog dialog)
@@ -123,20 +123,20 @@ public abstract class VirtualControllerElement extends View {
 	}
     */
 
-	protected void actionEnableMove() {
-		currentMode = Mode.Move;
-	}
+    protected void actionEnableMove() {
+        currentMode = Mode.Move;
+    }
 
-	protected void actionEnableResize() {
-		currentMode = Mode.Resize;
-	}
+    protected void actionEnableResize() {
+        currentMode = Mode.Resize;
+    }
 
-	protected void actionCancel() {
-		currentMode = Mode.Normal;
-		invalidate();
-	}
+    protected void actionCancel() {
+        currentMode = Mode.Normal;
+        invalidate();
+    }
 
-	protected void showConfigurationDialog() {
+    protected void showConfigurationDialog() {
         try {
             AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getContext());
 
@@ -186,30 +186,30 @@ public abstract class VirtualControllerElement extends View {
             AlertDialog alert = alertBuilder.create();
             // show menu
             alert.show();
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-	}
+    }
 
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-		if (virtualController.getControllerMode() == VirtualController.ControllerMode.Active) {
-			return  onElementTouchEvent(event);
-		}
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (virtualController.getControllerMode() == VirtualController.ControllerMode.Active) {
+            return onElementTouchEvent(event);
+        }
 
-		switch (event.getActionMasked()) {
-			case MotionEvent.ACTION_DOWN:
-			case MotionEvent.ACTION_POINTER_DOWN: {
-				position_pressed_x = event.getX();
-				position_pressed_y = event.getY();
-				startSize_x = getWidth();
-				startSize_y = getHeight();
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN: {
+                position_pressed_x = event.getX();
+                position_pressed_y = event.getY();
+                startSize_x = getWidth();
+                startSize_y = getHeight();
 
-				return true;
-			}
-			case MotionEvent.ACTION_MOVE: {
-				switch (currentMode) {
-					case Move: {
+                return true;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                switch (currentMode) {
+                    case Move: {
                         moveElement(
                                 (int) position_pressed_x,
                                 (int) position_pressed_y,
@@ -217,7 +217,7 @@ public abstract class VirtualControllerElement extends View {
                                 (int) event.getY());
                         break;
                     }
-					case Resize: {
+                    case Resize: {
                         resizeElement(
                                 (int) position_pressed_x,
                                 (int) position_pressed_y,
@@ -225,56 +225,57 @@ public abstract class VirtualControllerElement extends View {
                                 (int) event.getY());
                         break;
                     }
-					case Normal: {
+                    case Normal: {
                         break;
                     }
-				}
-				return  true;
-			}
-			case MotionEvent.ACTION_CANCEL:
-			case MotionEvent.ACTION_UP:
-			case MotionEvent.ACTION_POINTER_UP: {
-				currentMode = Mode.Normal;
-				showConfigurationDialog();
-				return true;
-			}
-			default: {
-			}
-		}
-		return true;
-	}
+                }
+                return true;
+            }
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP: {
+                currentMode = Mode.Normal;
+                showConfigurationDialog();
+                return true;
+            }
+            default: {
+            }
+        }
+        return true;
+    }
 
-	abstract protected void onElementDraw(Canvas canvas);
-	abstract public boolean onElementTouchEvent(MotionEvent event);
+    abstract protected void onElementDraw(Canvas canvas);
 
-	protected static final void _DBG(String text) {
-		if (_PRINT_DEBUG_INFORMATION) {
-			System.out.println(text);
-		}
-	}
+    abstract public boolean onElementTouchEvent(MotionEvent event);
 
-	public void setColors(int normalColor, int pressedColor) {
-		this.normalColor = normalColor;
-		this.pressedColor = pressedColor;
+    protected static final void _DBG(String text) {
+        if (_PRINT_DEBUG_INFORMATION) {
+            System.out.println(text);
+        }
+    }
 
-		invalidate();
-	}
+    public void setColors(int normalColor, int pressedColor) {
+        this.normalColor = normalColor;
+        this.pressedColor = pressedColor;
 
-	protected final float getPercent(float value, float percent) {
-		return value / 100 * percent;
-	}
+        invalidate();
+    }
 
-	protected final int getCorrectWidth() {
+    protected final float getPercent(float value, float percent) {
+        return value / 100 * percent;
+    }
+
+    protected final int getCorrectWidth() {
         return getWidth() > getHeight() ? getHeight() : getWidth();
     }
 
     /**
-    public JSONObject getConfiguration () {
-        JSONObject configuration = new JSONObject();
-        return  configuration;
-    }
+     public JSONObject getConfiguration () {
+     JSONObject configuration = new JSONObject();
+     return  configuration;
+     }
 
-    public  void loadConfiguration (JSONObject configuration) {
+     public  void loadConfiguration (JSONObject configuration) {
      }
      */
 }

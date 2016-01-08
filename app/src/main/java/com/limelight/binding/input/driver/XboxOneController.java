@@ -129,6 +129,12 @@ public class XboxOneController {
                         // Read the next input state packet
                         long lastMillis = MediaCodecHelper.getMonotonicMillis();
                         res = connection.bulkTransfer(inEndpt, buffer, buffer.length, 3000);
+
+                        // If we get a zero length response, treat it as an error
+                        if (res == 0) {
+                            res = -1;
+                        }
+
                         if (res == -1 && MediaCodecHelper.getMonotonicMillis() - lastMillis < 1000) {
                             LimeLog.warning("Detected device I/O error");
                             XboxOneController.this.stop();

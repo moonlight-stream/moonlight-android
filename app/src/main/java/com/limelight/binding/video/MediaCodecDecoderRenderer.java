@@ -109,6 +109,20 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         else {
             LimeLog.info("No HEVC decoder found");
         }
+
+        // Set attributes that are queried in getCapabilities(). This must be done here
+        // because getCapabilities() may be called before setup() in current versions of the common
+        // library. The limitation of this is that we don't know whether we're using HEVC or AVC, so
+        // we just assume AVC. This isn't really a problem because the capabilities are usually
+        // shared between AVC and HEVC decoders on the same device.
+        if (avcDecoderName != null) {
+            directSubmit = MediaCodecHelper.decoderCanDirectSubmit(avcDecoderName);
+            adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(avcDecoderName);
+
+            if (directSubmit) {
+                LimeLog.info("Decoder "+avcDecoderName+" will use direct submit");
+            }
+        }
     }
 
     @Override
@@ -169,14 +183,6 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         else {
             // Unknown format
             return false;
-        }
-
-        // Set decoder-specific attributes
-        directSubmit = MediaCodecHelper.decoderCanDirectSubmit(selectedDecoderName);
-        adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(selectedDecoderName);
-
-        if (directSubmit) {
-            LimeLog.info("Decoder "+selectedDecoderName+" will use direct submit");
         }
 
         // Codecs have been known to throw all sorts of crazy runtime exceptions

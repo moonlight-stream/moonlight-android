@@ -556,7 +556,9 @@ public class NvHTTP {
 			"&additionalStates=1&sops=" + (context.streamConfig.getSops() ? 1 : 0) +
 			"&rikey="+bytesToHex(context.riKey.getEncoded()) +
 			"&rikeyid="+context.riKeyId +
-			"&localAudioPlayMode=" + (context.streamConfig.getPlayLocalAudio() ? 1 : 0), false);
+			"&localAudioPlayMode=" + (context.streamConfig.getPlayLocalAudio() ? 1 : 0) +
+			"&surroundAudioInfo=" + ((context.streamConfig.getAudioChannelMask() << 16) + context.streamConfig.getAudioChannelCount()),
+			false);
 		String gameSession = getXmlString(xmlStr, "gamesession");
 		return gameSession != null && !gameSession.equals("0");
 	}

@@ -69,7 +69,7 @@ public class StreamSettings extends Activity {
             if (!getActivity().getPackageManager().
                     hasSystemFeature("android.hardware.touchscreen")) {
                 PreferenceCategory category =
-                        (PreferenceCategory) findPreference("category_onscreen_controlls");
+                        (PreferenceCategory) findPreference("category_onscreen_controls");
                 screen.removePreference(category);
             }
 

@@ -50,11 +50,14 @@
             android:title="@string/title_checkbox_xb1_driver"
             android:summary="@string/summary_checkbox_xb1_driver"
             android:defaultValue="true" />
-        <!--CheckBoxPreference
-            android:key="checkbox_onscreen_controller"
-            android:title="On-screen controls"
-            android:summary="Show virtual controller overlay on touchscreen"
-            android:defaultValue="false"/-->
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/category_on_screen_controls_settings"
+        android:key="category_onscreen_controls">
+        <CheckBoxPreference
+            android:key="checkbox_show_onscreen_controls"
+            android:title="@string/title_checkbox_show_onscreen_controls"
+            android:summary="@string/summary_checkbox_show_onscreen_controls"
+            android:defaultValue="false"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">
         <CheckBoxPreference

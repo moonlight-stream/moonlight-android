@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- PC view menu entries -->
+    <string name="pcview_menu_app_list">Посмотреть список игр</string>
+    <string name="pcview_menu_pair_pc">Создать пару с PC</string>
+    <string name="pcview_menu_unpair_pc">Разорвать пару</string>
+    <string name="pcview_menu_send_wol">Отправить Wake-On-LAN запрос</string>
+    <string name="pcview_menu_delete_pc">Удалить PC</string>
+
+    <!-- Pair messages -->
+    <string name="pairing">Создание пары…</string>
+    <string name="pair_pc_offline">Компьютер выключен или находится не в сети</string>
+    <string name="pair_pc_ingame">Компьютер в данный момент находится в игре. Вы должны закрыть игру перед создание пары.</string>
+    <string name="pair_pairing_title">Создание пары</string>
+    <string name="pair_pairing_msg">Пожалуйста введите этот PIN на PC:</string>
+    <string name="pair_incorrect_pin">Неправильный PIN</string>
+    <string name="pair_fail">Создание пары не удалось</string>
+
+    <!-- WOL messages -->
+    <string name="wol_pc_online">Компьютер в сети</string>
+    <string name="wol_no_mac">Невозможно разбудить PC потому что GFE не отправило MAC адрес</string>
+    <string name="wol_waking_pc">Пробуждение PC…</string>
+    <string name="wol_waking_msg">Пробуждение PC может занять несколько секунд.
+	    Если этого не происходит, удостоверьтесь что Wake-On-LAN настроен правильно.
+    </string>
+    <string name="wol_fail">Ошибка при отправке Wake-On-LAN пакетов</string>
+
+    <!-- Unpair messages -->
+    <string name="unpairing">Разрыв пары…</string>
+    <string name="unpair_success">Разрыв пары закончился успешно.</string>
+    <string name="unpair_fail">Разрыв пары не удался</string>
+    <string name="unpair_error">Устройство не было спарено</string>
+
+    <!-- Errors -->
+    <string name="error_pc_offline">Компьютер выключен или находится не в сети</string>
+    <string name="error_manager_not_running">Сервис ComputerManager не запущен. Пожалуйста, подождите несколько секунд или перезапустите приложение.</string>
+    <string name="error_unknown_host">Не удалось найти хост</string>
+    <string name="error_404">GFE вернул ошибку HTTP 404. Убедитесь что ваш PC is испольщует поддерживаемый GPU.
+	    Использование программ для удалённого доступа также можнт вызывать эту ошибку. Попробуйте перезагрузить компьютер или переустановить GFE.
+    </string>
+
+    <!-- Start application messages -->
+    <string name="conn_establishing_title">Создание соединения.</string>
+    <string name="conn_establishing_msg">Подключение</string>
+    <string name="conn_metered">Внимание: Происходит измерение вашего сетевого соединения!</string>
+    <string name="conn_client_latency">Средняя задержка декодирования кадра: </string>
+    <string name="conn_client_latency_hw">задержка аппаратного декодирования:</string>
+    <string name="conn_hardware_latency">Средняя задержка апаратного декодирования:</string>
+    <string name="conn_starting">Запуск</string>
+    <string name="conn_error_title">Ошибка соединения</string>
+    <string name="conn_error_msg">Запуск не удался</string>
+    <string name="conn_terminated_title">Соединение прекращено</string>
+    <string name="conn_terminated_msg">Подключение было прервано</string>
+
+    <!-- General strings -->
+    <string name="ip_hint">IP адресс компьютера с GeForce</string>
+    <string name="searching_pc">Поиск компьютеров…</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="lost_connection">Потеряно соединение с PC</string>
+
+    <!-- AppList activity -->
+    <string name="title_applist">Приложения на</string>
+    <string name="applist_menu_resume">Возобновить сессию</string>
+    <string name="applist_menu_quit">Выйти из сессии</string>
+    <string name="applist_menu_quit_and_start">Выйти из текущей игры и запустить</string>
+    <string name="applist_menu_cancel">Отмена</string>
+    <string name="applist_refresh_title">Список приложений</string>
+    <string name="applist_refresh_msg">Обновление приложений…</string>
+    <string name="applist_refresh_error_title">Ошибка</string>
+    <string name="applist_refresh_error_msg">Ошибка при получении списка приложений</string>
+    <string name="applist_quit_app">Выход из</string>
+    <string name="applist_quit_success">Выход произошёл успешно из</string>
+    <string name="applist_quit_fail">Ошибка при выходе</string>
+    <string name="applist_quit_confirmation">Вы уверены, что хотите выйти из запущенного приложения? Все несохраненные данные будут потеряны.</string>
+
+    <!-- Add computer manually activity -->
+    <string name="title_add_pc">Добавление PC вручную</string>
+    <string name="msg_add_pc">Соединение с PC…</string>
+    <string name="addpc_fail">Не удалось подключиться к выбранному компьютеру. Удостоверьтесь, что необходимые порты разрешены в настройках брандмауэра.</string>
+    <string name="addpc_success">Компьютер добавлен успешно.</string>
+    <string name="addpc_unknown_host">Не удалось найти PC по указанному адресу. Убедитесь, что вы не совершили ошибок во время его написания.</string>
+    <string name="addpc_enter_ip">Вы должны ввести IP адрес</string>
+
+    <!-- Preferences -->
+    <string name="category_basic_settings">Базовые Настройки</string>
+    <string name="title_resolution_list">Выберите разрешение и частоту кадров.</string>
+    <string name="summary_resolution_list">Выбор слишком высокого значеня для своего устройства может вызвать тормоза или вылеты.</string>
+    <string name="title_seekbar_bitrate">Выберите битрейт видео.</string>
+    <string name="summary_seekbar_bitrate">Низкий битрейт уменьшит зависания. Увеличение битрейта улучшит качество изображения.</string>
+    <string name="suffix_seekbar_bitrate">Mbps</string>
+    <string name="title_checkbox_stretch_video">Растягивать видео на весь экран</string>
+    <string name="title_checkbox_disable_warnings">Отключить сообщения с предупреждениями</string>
+    <string name="summary_checkbox_disable_warnings">Выключить экранные предупреждения о соединении во время стрима.</string>
+
+    <string name="category_audio_settings">Аудио Настройки</string>
+    <string name="title_checkbox_51_surround">Включить объёмный звук 5.1</string>
+    <string name="summary_checkbox_51_surround">Отключите, если появляются аудио проблемы. Требуется GFE 2.7 или выше.</string>
+
+    <string name="category_gamepad_settings">Настройки Гемпада</string>
+    <string name="title_checkbox_multi_controller">Поддержка нескольких контроллеров</string>
+    <string name="summary_checkbox_multi_controller">Когда отключена, все контроллеры определяются как один. </string>
+    <string name="title_seekbar_deadzone">Регулировать мертвую зону аналогового стика.</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Драйвер контроллера от Xbox One</string>
+    <string name="summary_checkbox_xb1_driver">Включить встроенный USB драйвер для устройств без встроенной поддержки контроллера от Xbox One.</string>
+
+    <string name="category_ui_settings">Настройки Интерфейса</string>
+    <string name="title_language_list">Язык</string>
+    <string name="summary_language_list">Язык, который будет использоваться в Moonlight</string>
+    <string name="title_checkbox_list_mode">Использовать списки вместо сеток.</string>
+    <string name="summary_checkbox_list_mode">Выводить приложения и компьютеры списком, вместо использования сетки.</string>
+    <string name="title_checkbox_small_icon_mode">Использовать маленькие иконки</string>
+    <string name="summary_checkbox_small_icon_mode">Использовать маленькие иконки в сетки для увеличения числа элементов, отображаемых на экране.</string>
+
+    <string name="category_host_settings">Настройки Хоста</string>
+    <string name="title_checkbox_enable_sops">Оптимизировать игровые настройки</string>
+    <string name="summary_checkbox_enable_sops">Разрешить GFE изменять настройки игр для оптимальной потоковой передачи</string>
+    <string name="title_checkbox_host_audio">Проигрывать звук на PC</string>
+    <string name="summary_checkbox_host_audio">Проигрывать звук на компьютере и текущем устройстве.</string>
+
+    <string name="category_advanced_settings">Расширенные Настройки</string>
+    <string name="title_video_format">Изменить настройки H.265</string>
+    <string name="summary_video_format">H.265 снижает требования к пропускной способности, но требует очень свежих устройств.</string>
+
+</resources>

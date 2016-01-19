@@ -22,6 +22,7 @@ public abstract class VirtualControllerElement extends View {
 
     protected int normalColor = 0xF0888888;
     protected int pressedColor = 0xF00000FF;
+    protected int configSelectedColor = 0xF000FF00;
 
     protected int startSize_x;
     protected int startSize_y;
@@ -71,18 +72,17 @@ public abstract class VirtualControllerElement extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        onElementDraw(canvas);
-
-        if (virtualController.getControllerMode() == VirtualController.ControllerMode.
-                Configuration) {
-            paint.setColor(pressedColor);
-            paint.setStrokeWidth(3);
+        if (currentMode != Mode.Normal) {
+            paint.setColor(configSelectedColor);
+            paint.setStrokeWidth(10);
             paint.setStyle(Paint.Style.STROKE);
 
             canvas.drawRect(0, 0,
                     getWidth(), getHeight(),
                     paint);
         }
+
+        onElementDraw(canvas);
 
         super.onDraw(canvas);
     }

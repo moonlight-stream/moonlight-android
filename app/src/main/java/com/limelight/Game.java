@@ -666,6 +666,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // This case is for touch-based input devices
             else
             {
+                if (virtualController != null &&
+                        virtualController.getControllerMode() == VirtualController.ControllerMode.Configuration) {
+                    // Ignore presses when the virtual controller is in configuration mode
+                    return true;
+                }
+
                 int actionIndex = event.getActionIndex();
 
                 int eventX = (int)event.getX(actionIndex);

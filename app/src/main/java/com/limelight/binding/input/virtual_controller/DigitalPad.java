@@ -57,8 +57,39 @@ public class DigitalPad extends VirtualControllerElement {
                 (direction & DIGITAL_PAD_DIRECTION_LEFT) > 0 ? pressedColor : normalColor);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
-                0, getPercent(getHeight(), 33),
+                paint.getStrokeWidth(), getPercent(getHeight(), 33),
                 getPercent(getWidth(), 33), getPercent(getHeight(), 66),
+                paint
+        );
+
+
+        // draw up rect
+        paint.setColor(
+                (direction & DIGITAL_PAD_DIRECTION_UP) > 0 ? pressedColor : normalColor);
+        paint.setStyle(Paint.Style.STROKE);
+        canvas.drawRect(
+                getPercent(getWidth(), 33), paint.getStrokeWidth(),
+                getPercent(getWidth(), 66), getPercent(getHeight(), 33),
+                paint
+        );
+
+        // draw right rect
+        paint.setColor(
+                (direction & DIGITAL_PAD_DIRECTION_RIGHT) > 0 ? pressedColor : normalColor);
+        paint.setStyle(Paint.Style.STROKE);
+        canvas.drawRect(
+                getPercent(getWidth(), 66), getPercent(getHeight(), 33),
+                getWidth()-paint.getStrokeWidth(), getPercent(getHeight(), 66),
+                paint
+        );
+
+        // draw down rect
+        paint.setColor(
+                (direction & DIGITAL_PAD_DIRECTION_DOWN) > 0 ? pressedColor : normalColor);
+        paint.setStyle(Paint.Style.STROKE);
+        canvas.drawRect(
+                getPercent(getWidth(), 33), getPercent(getHeight(), 66),
+                getPercent(getWidth(), 66), getHeight()-paint.getStrokeWidth(),
                 paint
         );
 
@@ -70,18 +101,8 @@ public class DigitalPad extends VirtualControllerElement {
         );
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawLine(
-                0, getPercent(getHeight(), 33),
-                getPercent(getWidth(), 33), 0,
-                paint
-        );
-
-        // draw up rect
-        paint.setColor(
-                (direction & DIGITAL_PAD_DIRECTION_UP) > 0 ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(
-                getPercent(getWidth(), 33), 0,
-                getPercent(getWidth(), 66), getPercent(getHeight(), 33),
+                paint.getStrokeWidth(), getPercent(getHeight(), 33),
+                getPercent(getWidth(), 33), paint.getStrokeWidth(),
                 paint
         );
 
@@ -93,18 +114,8 @@ public class DigitalPad extends VirtualControllerElement {
         );
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawLine(
-                getPercent(getWidth(), 66), 0,
-                getPercent(getWidth(), 100), getPercent(getHeight(), 33),
-                paint
-        );
-
-        // draw right rect
-        paint.setColor(
-                (direction & DIGITAL_PAD_DIRECTION_RIGHT) > 0 ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(
-                getPercent(getWidth(), 66), getPercent(getHeight(), 33),
-                getPercent(getWidth(), 100), getPercent(getHeight(), 66),
+                getPercent(getWidth(), 66), paint.getStrokeWidth(),
+                getWidth() - paint.getStrokeWidth(), getPercent(getHeight(), 33),
                 paint
         );
 
@@ -116,18 +127,8 @@ public class DigitalPad extends VirtualControllerElement {
         );
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawLine(
-                getPercent(getWidth(), 100), getPercent(getHeight(), 66),
-                getPercent(getWidth(), 66), getPercent(getHeight(), 100),
-                paint
-        );
-
-        // draw down rect
-        paint.setColor(
-                (direction & DIGITAL_PAD_DIRECTION_DOWN) > 0 ? pressedColor : normalColor);
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(
-                getPercent(getWidth(), 33), getPercent(getHeight(), 66),
-                getPercent(getWidth(), 66), getPercent(getHeight(), 100),
+                getWidth()-paint.getStrokeWidth(), getPercent(getHeight(), 66),
+                getPercent(getWidth(), 66), getHeight()-paint.getStrokeWidth(),
                 paint
         );
 
@@ -139,8 +140,8 @@ public class DigitalPad extends VirtualControllerElement {
         );
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawLine(
-                getPercent(getWidth(), 33), getPercent(getHeight(), 100),
-                getPercent(getWidth(), 0), getPercent(getHeight(), 66),
+                getPercent(getWidth(), 33), getHeight()-paint.getStrokeWidth(),
+                paint.getStrokeWidth(), getPercent(getHeight(), 66),
                 paint
         );
     }

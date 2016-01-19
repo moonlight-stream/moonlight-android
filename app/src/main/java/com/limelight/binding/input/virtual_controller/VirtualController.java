@@ -33,7 +33,7 @@ public class VirtualController {
         Configuration
     }
 
-    private static final boolean _PRINT_DEBUG_INFORMATION = true;
+    private static final boolean _PRINT_DEBUG_INFORMATION = false;
 
     private NvConnection connection = null;
     private Context context = null;

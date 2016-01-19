@@ -63,12 +63,17 @@ public class VirtualController {
         buttonConfigure.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String message;
+
                 if (currentMode == ControllerMode.Configuration) {
                     currentMode = ControllerMode.Active;
+                    message = "Exiting configuration mode";
                 } else {
                     currentMode = ControllerMode.Configuration;
+                    message = "Entering configuration mode";
                 }
-                Toast.makeText(context, "CHANGE MODE " + currentMode, Toast.LENGTH_SHORT).show();
+
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 
                 relative_layout.invalidate();
             }

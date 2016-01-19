@@ -71,6 +71,8 @@ public abstract class VirtualControllerElement extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        onElementDraw(canvas);
+
         if (virtualController.getControllerMode() == VirtualController.ControllerMode.
                 Configuration) {
             paint.setColor(pressedColor);
@@ -81,8 +83,6 @@ public abstract class VirtualControllerElement extends View {
                     getWidth(), getHeight(),
                     paint);
         }
-
-        onElementDraw(canvas);
 
         super.onDraw(canvas);
     }

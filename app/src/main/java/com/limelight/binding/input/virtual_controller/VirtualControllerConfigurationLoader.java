@@ -233,7 +233,7 @@ public class VirtualControllerConfigurationLoader {
         );
 
         controller.addElement(createDigitalButton(
-                ControllerPacket.BACK_FLAG, 0, 2, "SELECT", -1, controller, context),
+                ControllerPacket.BACK_FLAG, 0, 2, "BACK", -1, controller, context),
                 getPercent(40, screen.widthPixels),
                 getPercent(90, screen.heightPixels),
                 getPercent(10, screen.widthPixels),

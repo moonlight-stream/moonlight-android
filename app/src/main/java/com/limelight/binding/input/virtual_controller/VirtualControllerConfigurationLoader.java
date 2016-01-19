@@ -139,7 +139,7 @@ public class VirtualControllerConfigurationLoader {
     }
 
     private static final int BUTTON_BASE_X = 65;
-    private static final int BUTTON_BASE_Y = 10;
+    private static final int BUTTON_BASE_Y = 5;
     private static final int BUTTON_WIDTH = getPercent(30, 33);
     private static final int BUTTON_HEIGHT = getPercent(40, 33);
 

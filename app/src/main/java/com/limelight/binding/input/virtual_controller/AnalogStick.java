@@ -210,11 +210,6 @@ public class AnalogStick extends VirtualControllerElement {
         }
     }
 
-    public void setColors(int normalColor, int pressedColor) {
-        this.normalColor = normalColor;
-        this.pressedColor = pressedColor;
-    }
-
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         // calculate new radius sizes depending
@@ -235,25 +230,25 @@ public class AnalogStick extends VirtualControllerElement {
 
         // draw outer circle
         if (!isPressed() || click_state == CLICK_STATE.SINGLE) {
-            paint.setColor(normalColor);
+            paint.setColor(getDefaultColor());
         } else {
             paint.setColor(pressedColor);
         }
         canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_complete, paint);
 
-        paint.setColor(normalColor);
+        paint.setColor(getDefaultColor());
         // draw dead zone
         canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_dead_zone, paint);
 
         // draw stick depending on state
         switch (stick_state) {
             case NO_MOVEMENT: {
-                paint.setColor(normalColor);
+                paint.setColor(getDefaultColor());
                 canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_analog_stick, paint);
                 break;
             }
             case MOVED_IN_DEAD_ZONE: {
-                paint.setColor(normalColor);
+                paint.setColor(getDefaultColor());
                 canvas.drawCircle(position_stick_x, position_stick_y, radius_analog_stick, paint);
 
                 break;

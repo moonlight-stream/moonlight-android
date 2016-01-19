@@ -77,6 +77,10 @@ public class VirtualController {
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 
                 relative_layout.invalidate();
+
+                for (VirtualControllerElement element : elements) {
+                    element.invalidate();
+                }
             }
         });
     }

@@ -20,9 +20,10 @@ public abstract class VirtualControllerElement extends View {
 
     private final Paint paint = new Paint();
 
-    protected int normalColor = 0xF0888888;
+    private int normalColor = 0xF0888888;
     protected int pressedColor = 0xF00000FF;
-    protected int configSelectedColor = 0xF000FF00;
+    private int configNormalColor = 0xF0FF0000;
+    private int configSelectedColor = 0xF000FF00;
 
     protected int startSize_x;
     protected int startSize_y;
@@ -130,6 +131,11 @@ public abstract class VirtualControllerElement extends View {
     protected void actionCancel() {
         currentMode = Mode.Normal;
         invalidate();
+    }
+
+    protected int getDefaultColor() {
+        return (virtualController.getControllerMode() == VirtualController.ControllerMode.Configuration) ?
+                configNormalColor : normalColor;
     }
 
     protected void showConfigurationDialog() {

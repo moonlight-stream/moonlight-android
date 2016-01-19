@@ -106,7 +106,7 @@
     <string name="title_checkbox_xb1_driver">Xbox One controller driver</string>
     <string name="summary_checkbox_xb1_driver">Enables a built-in USB driver for devices without native Xbox One controller support.</string>
 
-    <string name="category_on_screen_controls_settings">On-screen controls Settings</string>
+    <string name="category_on_screen_controls_settings">On-screen Controls Settings</string>
     <string name="title_checkbox_show_onscreen_controls">Show on-screen controls</string>
     <string name="summary_checkbox_show_onscreen_controls">Show virtual controller overlay on touchscreen</string>
 

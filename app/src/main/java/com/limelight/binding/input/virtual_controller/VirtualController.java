@@ -5,6 +5,7 @@
 package com.limelight.binding.input.virtual_controller;
 
 import android.content.Context;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -109,7 +110,10 @@ public class VirtualController {
         relative_layout.removeAllViews();
         removeElements();
 
-        layoutParamsButtonConfigure = new RelativeLayout.LayoutParams(50, 50);
+        DisplayMetrics screen = context.getResources().getDisplayMetrics();
+
+        int buttonSize = (int)(screen.heightPixels*0.05f);
+        layoutParamsButtonConfigure = new RelativeLayout.LayoutParams(buttonSize, buttonSize);
         relative_layout.addView(buttonConfigure, layoutParamsButtonConfigure);
 
         VirtualControllerConfigurationLoader.createDefaultLayout(this, context);

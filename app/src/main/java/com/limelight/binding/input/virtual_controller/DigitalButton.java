@@ -144,7 +144,7 @@ public class DigitalButton extends VirtualControllerElement {
         // set transparent background
         canvas.drawColor(Color.TRANSPARENT);
 
-        paint.setTextSize(getPercent(getCorrectWidth(), 50));
+        paint.setTextSize(getPercent(getWidth(), 30));
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setStrokeWidth(getDefaultStrokeWidth());
 
@@ -159,7 +159,8 @@ public class DigitalButton extends VirtualControllerElement {
             d.draw(canvas);
         } else {
             paint.setStyle(Paint.Style.FILL_AND_STROKE);
-            canvas.drawText(text, getPercent(getWidth(), 50), getPercent(getHeight(), 73), paint);
+            paint.setStrokeWidth(getDefaultStrokeWidth()/2);
+            canvas.drawText(text, getPercent(getWidth(), 50), getPercent(getHeight(), 63), paint);
         }
     }
 

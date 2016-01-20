@@ -239,12 +239,7 @@ public class AnalogStick extends VirtualControllerElement {
                 canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_analog_stick, paint);
                 break;
             }
-            case MOVED_IN_DEAD_ZONE: {
-                paint.setColor(getDefaultColor());
-                canvas.drawCircle(position_stick_x, position_stick_y, radius_analog_stick, paint);
-
-                break;
-            }
+            case MOVED_IN_DEAD_ZONE:
             case MOVED_ACTIVE: {
                 paint.setColor(pressedColor);
                 canvas.drawCircle(position_stick_x, position_stick_y, radius_analog_stick, paint);
@@ -265,8 +260,9 @@ public class AnalogStick extends VirtualControllerElement {
         position_stick_x = getWidth() / 2 - correlated_x;
         position_stick_y = getHeight() / 2 - correlated_y;
 
-        // set active depending on dead zone
-        stick_state = movement_radius > radius_dead_zone ?
+        // Stay active even if we're back in the deadzone because we know the user is actively
+        // giving analog stick input and we don't want to snap back into the deadzone.
+        stick_state = (stick_state == STICK_STATE.MOVED_ACTIVE || movement_radius > radius_dead_zone) ?
                 STICK_STATE.MOVED_ACTIVE : STICK_STATE.MOVED_IN_DEAD_ZONE;
 
         //  trigger move event if state active

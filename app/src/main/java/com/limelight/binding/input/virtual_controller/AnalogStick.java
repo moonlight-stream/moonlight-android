@@ -36,6 +36,11 @@ public class AnalogStick extends VirtualControllerElement {
     public final static long timeoutDoubleClick = 250;
 
     /**
+     * touch down time until the deadzone is lifted to allow precise movements with the analog sticks
+     */
+    public final static long timeoutDeadzone = 150;
+
+    /**
      * Listener interface to update registered observers.
      */
     public interface AnalogStickListener {
@@ -262,7 +267,11 @@ public class AnalogStick extends VirtualControllerElement {
 
         // Stay active even if we're back in the deadzone because we know the user is actively
         // giving analog stick input and we don't want to snap back into the deadzone.
-        stick_state = (stick_state == STICK_STATE.MOVED_ACTIVE || movement_radius > radius_dead_zone) ?
+        // We also release the deadzone if the user keeps the stick pressed for a bit to allow
+        // them to make precise movements.
+        stick_state = (stick_state == STICK_STATE.MOVED_ACTIVE ||
+                System.currentTimeMillis() - timeLastClick > timeoutDeadzone ||
+                movement_radius > radius_dead_zone) ?
                 STICK_STATE.MOVED_ACTIVE : STICK_STATE.MOVED_IN_DEAD_ZONE;
 
         //  trigger move event if state active

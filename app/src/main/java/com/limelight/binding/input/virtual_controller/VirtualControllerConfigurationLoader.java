@@ -224,14 +224,14 @@ public class VirtualControllerConfigurationLoader {
         controller.addElement(createLeftStick(controller, context),
                 getPercent(5, screen.widthPixels),
                 getPercent(50, screen.heightPixels),
-                getPercent(50, screen.heightPixels),
+                getPercent(40, screen.widthPixels),
                 getPercent(50, screen.heightPixels)
         );
 
         controller.addElement(createRightStick(controller, context),
-                getPercent(65, screen.widthPixels),
+                getPercent(55, screen.widthPixels),
                 getPercent(50, screen.heightPixels),
-                getPercent(50, screen.heightPixels),
+                getPercent(40, screen.widthPixels),
                 getPercent(50, screen.heightPixels)
         );
 

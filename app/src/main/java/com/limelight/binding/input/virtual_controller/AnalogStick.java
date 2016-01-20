@@ -33,7 +33,7 @@ public class AnalogStick extends VirtualControllerElement {
     /**
      * time frame for a double click
      */
-    public final static long timeoutDoubleClick = 250;
+    public final static long timeoutDoubleClick = 350;
 
     /**
      * touch down time until the deadzone is lifted to allow precise movements with the analog sticks

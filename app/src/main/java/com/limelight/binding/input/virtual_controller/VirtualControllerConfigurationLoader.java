@@ -147,6 +147,9 @@ public class VirtualControllerConfigurationLoader {
 
         DisplayMetrics screen = context.getResources().getDisplayMetrics();
 
+        // NOTE: Some of these getPercent() expressions seem like they can be combined
+        // into a single call. Due to floating point rounding, this isn't actually possible.
+
         controller.addElement(createDigitalPad(controller, context),
                 getPercent(5, screen.widthPixels),
                 getPercent(BUTTON_BASE_Y, screen.heightPixels),
@@ -156,16 +159,16 @@ public class VirtualControllerConfigurationLoader {
 
         controller.addElement(createDigitalButton(
                 ControllerPacket.A_FLAG, 0, 1, "A", -1, controller, context),
-                getPercent(BUTTON_BASE_X+BUTTON_WIDTH, screen.widthPixels),
-                getPercent(BUTTON_BASE_Y+2*BUTTON_HEIGHT, screen.heightPixels),
+                getPercent(BUTTON_BASE_X, screen.widthPixels)+getPercent(BUTTON_WIDTH, screen.widthPixels),
+                getPercent(BUTTON_BASE_Y, screen.heightPixels)+2*getPercent(BUTTON_HEIGHT, screen.heightPixels),
                 getPercent(BUTTON_WIDTH, screen.widthPixels),
                 getPercent(BUTTON_HEIGHT, screen.heightPixels)
         );
 
         controller.addElement(createDigitalButton(
                 ControllerPacket.B_FLAG, 0, 1, "B", -1, controller, context),
-                getPercent(BUTTON_BASE_X+2*BUTTON_WIDTH, screen.widthPixels),
-                getPercent(BUTTON_BASE_Y+BUTTON_HEIGHT, screen.heightPixels),
+                getPercent(BUTTON_BASE_X, screen.widthPixels)+2*getPercent(BUTTON_WIDTH, screen.widthPixels),
+                getPercent(BUTTON_BASE_Y, screen.heightPixels)+getPercent(BUTTON_HEIGHT, screen.heightPixels),
                 getPercent(BUTTON_WIDTH, screen.widthPixels),
                 getPercent(BUTTON_HEIGHT, screen.heightPixels)
         );
@@ -173,21 +176,21 @@ public class VirtualControllerConfigurationLoader {
         controller.addElement(createDigitalButton(
                 ControllerPacket.X_FLAG, 0, 1, "X", -1, controller, context),
                 getPercent(BUTTON_BASE_X, screen.widthPixels),
-                getPercent(BUTTON_BASE_Y+BUTTON_HEIGHT, screen.heightPixels),
+                getPercent(BUTTON_BASE_Y, screen.heightPixels)+getPercent(BUTTON_HEIGHT, screen.heightPixels),
                 getPercent(BUTTON_WIDTH, screen.widthPixels),
                 getPercent(BUTTON_HEIGHT, screen.heightPixels)
         );
 
         controller.addElement(createDigitalButton(
                 ControllerPacket.Y_FLAG, 0, 1, "Y", -1, controller, context),
-                getPercent(BUTTON_BASE_X+BUTTON_WIDTH, screen.widthPixels),
+                getPercent(BUTTON_BASE_X, screen.widthPixels)+getPercent(BUTTON_WIDTH, screen.widthPixels),
                 getPercent(BUTTON_BASE_Y, screen.heightPixels),
                 getPercent(BUTTON_WIDTH, screen.widthPixels),
                 getPercent(BUTTON_HEIGHT, screen.heightPixels)
         );
 
         controller.addElement(createLeftTrigger(
-                0, "LT", -1, controller, context),
+                        0, "LT", -1, controller, context),
                 getPercent(BUTTON_BASE_X, screen.widthPixels),
                 getPercent(BUTTON_BASE_Y, screen.heightPixels),
                 getPercent(BUTTON_WIDTH, screen.widthPixels),
@@ -196,7 +199,7 @@ public class VirtualControllerConfigurationLoader {
 
         controller.addElement(createRightTrigger(
                 0, "RT", -1, controller, context),
-                getPercent(BUTTON_BASE_X+2*BUTTON_WIDTH, screen.widthPixels),
+                getPercent(BUTTON_BASE_X, screen.widthPixels)+2*getPercent(BUTTON_WIDTH, screen.widthPixels),
                 getPercent(BUTTON_BASE_Y, screen.heightPixels),
                 getPercent(BUTTON_WIDTH, screen.widthPixels),
                 getPercent(BUTTON_HEIGHT, screen.heightPixels)
@@ -205,15 +208,15 @@ public class VirtualControllerConfigurationLoader {
         controller.addElement(createDigitalButton(
                 ControllerPacket.LB_FLAG, 0, 1, "LB", -1, controller, context),
                 getPercent(BUTTON_BASE_X, screen.widthPixels),
-                getPercent(BUTTON_BASE_Y+2*BUTTON_HEIGHT, screen.heightPixels),
+                getPercent(BUTTON_BASE_Y, screen.heightPixels)+2*getPercent(BUTTON_HEIGHT, screen.heightPixels),
                 getPercent(BUTTON_WIDTH, screen.widthPixels),
                 getPercent(BUTTON_HEIGHT, screen.heightPixels)
         );
 
         controller.addElement(createDigitalButton(
                 ControllerPacket.RB_FLAG, 0, 1, "RB", -1, controller, context),
-                getPercent(BUTTON_BASE_X+2*BUTTON_WIDTH, screen.widthPixels),
-                getPercent(BUTTON_BASE_Y+2*BUTTON_HEIGHT, screen.heightPixels),
+                getPercent(BUTTON_BASE_X, screen.widthPixels)+2*getPercent(BUTTON_WIDTH, screen.widthPixels),
+                getPercent(BUTTON_BASE_Y, screen.heightPixels)+2*getPercent(BUTTON_HEIGHT, screen.heightPixels),
                 getPercent(BUTTON_WIDTH, screen.widthPixels),
                 getPercent(BUTTON_HEIGHT, screen.heightPixels)
         );
@@ -242,7 +245,7 @@ public class VirtualControllerConfigurationLoader {
 
         controller.addElement(createDigitalButton(
                 ControllerPacket.PLAY_FLAG, 0, 3, "START", -1, controller, context),
-                getPercent(50, screen.widthPixels),
+                getPercent(40, screen.widthPixels)+getPercent(10, screen.widthPixels),
                 getPercent(90, screen.heightPixels),
                 getPercent(10, screen.widthPixels),
                 getPercent(10, screen.heightPixels)

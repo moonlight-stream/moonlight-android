@@ -150,7 +150,8 @@ public class DigitalButton extends VirtualControllerElement {
 
         paint.setColor(isPressed() ? pressedColor : getDefaultColor());
         paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(1, 1, getWidth() - 1, getHeight() - 1, paint);
+        canvas.drawRect(paint.getStrokeWidth(), paint.getStrokeWidth(),
+                getWidth() - paint.getStrokeWidth(), getHeight() - paint.getStrokeWidth(), paint);
 
         if (icon != -1) {
             Drawable d = getResources().getDrawable(icon);

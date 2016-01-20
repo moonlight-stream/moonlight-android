@@ -74,17 +74,17 @@ public abstract class VirtualControllerElement extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        onElementDraw(canvas);
+
         if (currentMode != Mode.Normal) {
             paint.setColor(configSelectedColor);
-            paint.setStrokeWidth(getDefaultStrokeWidth() * 2);
+            paint.setStrokeWidth(getDefaultStrokeWidth());
             paint.setStyle(Paint.Style.STROKE);
 
-            canvas.drawRect(0, 0,
-                    getWidth(), getHeight(),
+            canvas.drawRect(paint.getStrokeWidth(), paint.getStrokeWidth(),
+                    getWidth()-paint.getStrokeWidth(), getHeight()-paint.getStrokeWidth(),
                     paint);
         }
-
-        onElementDraw(canvas);
 
         super.onDraw(canvas);
     }

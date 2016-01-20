@@ -22,6 +22,8 @@ public class DigitalPad extends VirtualControllerElement {
     public final static int DIGITAL_PAD_DIRECTION_DOWN = 8;
     List<DigitalPadListener> listeners = new ArrayList<DigitalPadListener>();
 
+    private static final int DPAD_MARGIN = 5;
+
     private final Paint paint = new Paint();
 
     public DigitalPad(VirtualController controller, Context context) {
@@ -57,7 +59,7 @@ public class DigitalPad extends VirtualControllerElement {
                 (direction & DIGITAL_PAD_DIRECTION_LEFT) > 0 ? pressedColor : getDefaultColor());
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
-                paint.getStrokeWidth(), getPercent(getHeight(), 33),
+                paint.getStrokeWidth()+DPAD_MARGIN, getPercent(getHeight(), 33),
                 getPercent(getWidth(), 33), getPercent(getHeight(), 66),
                 paint
         );
@@ -68,7 +70,7 @@ public class DigitalPad extends VirtualControllerElement {
                 (direction & DIGITAL_PAD_DIRECTION_UP) > 0 ? pressedColor : getDefaultColor());
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
-                getPercent(getWidth(), 33), paint.getStrokeWidth(),
+                getPercent(getWidth(), 33), paint.getStrokeWidth()+DPAD_MARGIN,
                 getPercent(getWidth(), 66), getPercent(getHeight(), 33),
                 paint
         );
@@ -79,7 +81,7 @@ public class DigitalPad extends VirtualControllerElement {
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
                 getPercent(getWidth(), 66), getPercent(getHeight(), 33),
-                getWidth() - paint.getStrokeWidth(), getPercent(getHeight(), 66),
+                getWidth() - (paint.getStrokeWidth()+DPAD_MARGIN), getPercent(getHeight(), 66),
                 paint
         );
 
@@ -89,7 +91,7 @@ public class DigitalPad extends VirtualControllerElement {
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
                 getPercent(getWidth(), 33), getPercent(getHeight(), 66),
-                getPercent(getWidth(), 66), getHeight() - paint.getStrokeWidth(),
+                getPercent(getWidth(), 66), getHeight() - (paint.getStrokeWidth()+DPAD_MARGIN),
                 paint
         );
 
@@ -101,8 +103,8 @@ public class DigitalPad extends VirtualControllerElement {
         );
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawLine(
-                paint.getStrokeWidth(), getPercent(getHeight(), 33),
-                getPercent(getWidth(), 33), paint.getStrokeWidth(),
+                paint.getStrokeWidth()+DPAD_MARGIN, getPercent(getHeight(), 33),
+                getPercent(getWidth(), 33), paint.getStrokeWidth()+DPAD_MARGIN,
                 paint
         );
 
@@ -114,8 +116,8 @@ public class DigitalPad extends VirtualControllerElement {
         );
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawLine(
-                getPercent(getWidth(), 66), paint.getStrokeWidth(),
-                getWidth() - paint.getStrokeWidth(), getPercent(getHeight(), 33),
+                getPercent(getWidth(), 66), paint.getStrokeWidth()+DPAD_MARGIN,
+                getWidth() - (paint.getStrokeWidth()+DPAD_MARGIN), getPercent(getHeight(), 33),
                 paint
         );
 
@@ -128,7 +130,7 @@ public class DigitalPad extends VirtualControllerElement {
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawLine(
                 getWidth()-paint.getStrokeWidth(), getPercent(getHeight(), 66),
-                getPercent(getWidth(), 66), getHeight()-paint.getStrokeWidth(),
+                getPercent(getWidth(), 66), getHeight()-(paint.getStrokeWidth()+DPAD_MARGIN),
                 paint
         );
 
@@ -140,8 +142,8 @@ public class DigitalPad extends VirtualControllerElement {
         );
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawLine(
-                getPercent(getWidth(), 33), getHeight()-paint.getStrokeWidth(),
-                paint.getStrokeWidth(), getPercent(getHeight(), 66),
+                getPercent(getWidth(), 33), getHeight()-(paint.getStrokeWidth()+DPAD_MARGIN),
+                paint.getStrokeWidth()+DPAD_MARGIN, getPercent(getHeight(), 66),
                 paint
         );
     }

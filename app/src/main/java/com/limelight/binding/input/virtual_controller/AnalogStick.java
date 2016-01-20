@@ -218,7 +218,7 @@ public class AnalogStick extends VirtualControllerElement {
         canvas.drawColor(Color.TRANSPARENT);
 
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(getPercent(getCorrectWidth() / 2, 2));
+        paint.setStrokeWidth(getDefaultStrokeWidth());
 
         // draw outer circle
         if (!isPressed() || click_state == CLICK_STATE.SINGLE) {

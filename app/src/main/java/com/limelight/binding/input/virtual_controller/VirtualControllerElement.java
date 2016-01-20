@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -75,7 +76,7 @@ public abstract class VirtualControllerElement extends View {
     protected void onDraw(Canvas canvas) {
         if (currentMode != Mode.Normal) {
             paint.setColor(configSelectedColor);
-            paint.setStrokeWidth(10);
+            paint.setStrokeWidth(getDefaultStrokeWidth() * 2);
             paint.setStyle(Paint.Style.STROKE);
 
             canvas.drawRect(0, 0,
@@ -136,6 +137,11 @@ public abstract class VirtualControllerElement extends View {
     protected int getDefaultColor() {
         return (virtualController.getControllerMode() == VirtualController.ControllerMode.Configuration) ?
                 configNormalColor : normalColor;
+    }
+
+    protected int getDefaultStrokeWidth() {
+        DisplayMetrics screen = getResources().getDisplayMetrics();
+        return (int)(screen.heightPixels*0.004f);
     }
 
     protected void showConfigurationDialog() {

@@ -39,7 +39,7 @@ public class DigitalPad extends VirtualControllerElement {
 
         paint.setTextSize(getPercent(getCorrectWidth(), 20));
         paint.setTextAlign(Paint.Align.CENTER);
-        paint.setStrokeWidth(3);
+        paint.setStrokeWidth(getDefaultStrokeWidth());
 
         if (direction == DIGITAL_PAD_DIRECTION_NO_DIRECTION) {
             // draw no direction rect
@@ -79,7 +79,7 @@ public class DigitalPad extends VirtualControllerElement {
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
                 getPercent(getWidth(), 66), getPercent(getHeight(), 33),
-                getWidth()-paint.getStrokeWidth(), getPercent(getHeight(), 66),
+                getWidth() - paint.getStrokeWidth(), getPercent(getHeight(), 66),
                 paint
         );
 
@@ -89,7 +89,7 @@ public class DigitalPad extends VirtualControllerElement {
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
                 getPercent(getWidth(), 33), getPercent(getHeight(), 66),
-                getPercent(getWidth(), 66), getHeight()-paint.getStrokeWidth(),
+                getPercent(getWidth(), 66), getHeight() - paint.getStrokeWidth(),
                 paint
         );
 

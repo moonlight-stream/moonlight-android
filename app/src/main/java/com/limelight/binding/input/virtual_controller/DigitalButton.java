@@ -146,7 +146,7 @@ public class DigitalButton extends VirtualControllerElement {
 
         paint.setTextSize(getPercent(getCorrectWidth(), 50));
         paint.setTextAlign(Paint.Align.CENTER);
-        paint.setStrokeWidth(3);
+        paint.setStrokeWidth(getDefaultStrokeWidth());
 
         paint.setColor(isPressed() ? pressedColor : getDefaultColor());
         paint.setStyle(Paint.Style.STROKE);

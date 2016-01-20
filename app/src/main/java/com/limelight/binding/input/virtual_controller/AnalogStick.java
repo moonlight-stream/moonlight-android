@@ -125,14 +125,6 @@ public class AnalogStick extends VirtualControllerElement {
     private long timeLastClick = 0;
 
     private static double getMovementRadius(float x, float y) {
-        // corner cases
-        if (x == 0) {
-            return y > 0 ? y : -y;
-        }
-        if (y == 0) {
-            return x > 0 ? x : -x;
-        }
-        // return hypotenuse (pythagoras)
         return Math.sqrt(x * x + y * y);
     }
 
@@ -263,7 +255,7 @@ public class AnalogStick extends VirtualControllerElement {
 
     private void updatePosition() {
         // get 100% way
-        float complete = (radius_complete - radius_analog_stick - radius_dead_zone);
+        float complete = radius_complete - radius_analog_stick;
 
         // calculate relative way
         float correlated_y = (float) (Math.sin(Math.PI / 2 - movement_angle) * (movement_radius));
@@ -279,9 +271,7 @@ public class AnalogStick extends VirtualControllerElement {
 
         //  trigger move event if state active
         if (stick_state == STICK_STATE.MOVED_ACTIVE) {
-            notifyOnMovement(-(1 / complete) *
-                    (correlated_x - (correlated_x > 0 ? radius_dead_zone : -radius_dead_zone)), (1 / complete) *
-                    (correlated_y - (correlated_y > 0 ? radius_dead_zone : -radius_dead_zone)));
+            notifyOnMovement(-correlated_x / complete, correlated_y / complete);
         }
     }
 

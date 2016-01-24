@@ -37,6 +37,7 @@ public class ComputerManagerService extends Service {
     private static final int MDNS_QUERY_PERIOD_MS = 1000;
     private static final int FAST_POLL_TIMEOUT = 500;
     private static final int OFFLINE_POLL_TRIES = 5;
+    private static final int EMPTY_LIST_THRESHOLD = 3;
 
     private final ComputerManagerBinder binder = new ComputerManagerBinder();
 
@@ -661,6 +662,7 @@ public class ComputerManagerService extends Service {
             thread = new Thread() {
                 @Override
                 public void run() {
+                    int emptyAppListResponses = 0;
                     do {
                         InetAddress selectedAddr;
 
@@ -705,7 +707,15 @@ public class ComputerManagerService extends Service {
                             }
 
                             List<NvApp> list = NvHTTP.getAppListByReader(new StringReader(appList));
-                            if (appList != null && !appList.isEmpty() && !list.isEmpty()) {
+                            if (list.isEmpty()) {
+                                LimeLog.warning("Empty app list received from "+computer.uuid);
+
+                                // The app list might actually be empty, so if we get an empty response a few times
+                                // in a row, we'll go ahead and believe it.
+                                emptyAppListResponses++;
+                            }
+                            if (appList != null && !appList.isEmpty() &&
+                                    (!list.isEmpty() || emptyAppListResponses >= EMPTY_LIST_THRESHOLD)) {
                                 // Open the cache file
                                 OutputStream cacheOut = null;
                                 try {
@@ -721,6 +731,11 @@ public class ComputerManagerService extends Service {
                                     } catch (IOException ignored) {}
                                 }
 
+                                // Reset empty count if it wasn't empty this time
+                                if (!list.isEmpty()) {
+                                    emptyAppListResponses = 0;
+                                }
+
                                 // Update the computer
                                 computer.rawAppList = appList;
                                 receivedAppList = true;
@@ -731,8 +746,8 @@ public class ComputerManagerService extends Service {
                                     listener.notifyComputerUpdated(computer);
                                 }
                             }
-                            else {
-                                LimeLog.warning("Empty app list received from "+computer.uuid);
+                            else if (appList == null || appList.isEmpty()) {
+                                LimeLog.warning("Null app list received from "+computer.uuid);
                             }
                         } catch (IOException e) {
                             e.printStackTrace();

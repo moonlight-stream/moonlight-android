@@ -70,7 +70,7 @@ public class Xbox360Controller extends AbstractXboxController {
     @Override
     protected boolean handleRead(ByteBuffer buffer) {
         // Skip first byte
-        buffer.position(buffer.position()+1);
+        buffer.position(buffer.position() + 1);
 
         // DPAD
         byte b = buffer.get();
@@ -117,9 +117,24 @@ public class Xbox360Controller extends AbstractXboxController {
         return true;
     }
 
+    private boolean sendLedCommand(byte command) {
+        byte[] commandBuffer = {0x01, 0x03, command};
+
+        int res = connection.bulkTransfer(outEndpt, commandBuffer, commandBuffer.length, 3000);
+        if (res != commandBuffer.length) {
+            LimeLog.warning("LED set transfer failed: "+res);
+            return false;
+        }
+
+        return true;
+    }
+
     @Override
     protected boolean doInit() {
-        // Xbox 360 wired controller requires no initialization
+        // Turn the LED on corresponding to our device ID
+        sendLedCommand((byte)(2 + (getControllerId() % 4)));
+
+        // No need to fail init if the LED command fails
         return true;
     }
 

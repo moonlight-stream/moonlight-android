@@ -31,7 +31,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
     private final ArrayList<AbstractController> controllers = new ArrayList<>();
 
     private UsbDriverListener listener;
-    private static int nextDeviceId;
+    private int nextDeviceId;
 
     @Override
     public void reportControllerState(int controllerId, short buttonFlags, float leftStickX, float leftStickY, float rightStickX, float rightStickY, float leftTrigger, float rightTrigger) {

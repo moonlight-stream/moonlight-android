@@ -102,7 +102,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
     private void handleUsbDeviceState(UsbDevice device) {
         // Are we able to operate it?
-        if (XboxOneController.canClaimDevice(device)) {
+        if (XboxOneController.canClaimDevice(device) || Xbox360Controller.canClaimDevice(device)) {
             // Do we have permission yet?
             if (!usbManager.hasPermission(device)) {
                 // Let's ask for permission

@@ -67,10 +67,24 @@ public class Xbox360Controller extends AbstractXboxController {
         super(device, connection, deviceId, listener);
     }
 
+    private int unsignByte(byte b) {
+        if (b < 0) {
+            return b + 256;
+        }
+        else {
+            return b;
+        }
+    }
+
     @Override
     protected boolean handleRead(ByteBuffer buffer) {
-        // Skip first byte
-        buffer.position(buffer.position() + 1);
+        if (buffer.limit() < 14) {
+            LimeLog.severe("Read too small: "+buffer.limit());
+            return false;
+        }
+
+        // Skip first short
+        buffer.position(buffer.position() + 2);
 
         // DPAD
         byte b = buffer.get();
@@ -102,8 +116,8 @@ public class Xbox360Controller extends AbstractXboxController {
         setButtonFlag(ControllerPacket.SPECIAL_BUTTON_FLAG, b & 0x04);
 
         // Triggers
-        leftTrigger = buffer.get() / 255.0f;
-        rightTrigger = buffer.get() / 255.0f;
+        leftTrigger = unsignByte(buffer.get()) / 255.0f;
+        rightTrigger = unsignByte(buffer.get()) / 255.0f;
 
         // Left stick
         leftStickX = buffer.getShort() / 32767.0f;

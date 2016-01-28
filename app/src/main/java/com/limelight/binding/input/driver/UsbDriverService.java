@@ -10,7 +10,9 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
+import android.view.InputDevice;
 
 import com.limelight.LimeLog;
 
@@ -102,7 +104,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
     private void handleUsbDeviceState(UsbDevice device) {
         // Are we able to operate it?
-        if (XboxOneController.canClaimDevice(device) || Xbox360Controller.canClaimDevice(device)) {
+        if (shouldClaimDevice(device)) {
             // Do we have permission yet?
             if (!usbManager.hasPermission(device)) {
                 // Let's ask for permission
@@ -142,6 +144,34 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         }
     }
 
+    private boolean isRecognizedInputDevice(UsbDevice device) {
+        // On KitKat and later, we can determine if this VID and PID combo
+        // matches an existing input device and defer to the built-in controller
+        // support in that case. Prior to KitKat, we'll always return true to be safe.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            for (int id : InputDevice.getDeviceIds()) {
+                InputDevice inputDev = InputDevice.getDevice(id);
+
+                if (inputDev.getVendorId() == device.getVendorId() &&
+                        inputDev.getProductId() == device.getProductId()) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    private boolean shouldClaimDevice(UsbDevice device) {
+        // We always bind to XB1 controllers but only bind to XB360 controllers
+        // if we know the kernel isn't already driving this device.
+        return XboxOneController.canClaimDevice(device) ||
+                (!isRecognizedInputDevice(device) && Xbox360Controller.canClaimDevice(device));
+    }
+
     @Override
     public void onCreate() {
         this.usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
@@ -154,7 +184,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
         // Enumerate existing devices
         for (UsbDevice dev : usbManager.getDeviceList().values()) {
-            if (XboxOneController.canClaimDevice(dev) || Xbox360Controller.canClaimDevice(dev)) {
+            if (shouldClaimDevice(dev)) {
                 // Start the process of claiming this device
                 handleUsbDeviceState(dev);
             }

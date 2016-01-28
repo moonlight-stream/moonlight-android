@@ -103,8 +103,8 @@
     <string name="summary_checkbox_multi_controller">When unchecked, all controllers appear as one</string>
     <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>
     <string name="suffix_seekbar_deadzone">%</string>
-    <string name="title_checkbox_xb1_driver">Xbox One controller driver</string>
-    <string name="summary_checkbox_xb1_driver">Enables a built-in USB driver for devices without native Xbox One controller support.</string>
+    <string name="title_checkbox_xb1_driver">Xbox 360/One controller driver</string>
+    <string name="summary_checkbox_xb1_driver">Enables a built-in USB driver for devices without native Xbox controller support.</string>
 
     <string name="category_on_screen_controls_settings">On-screen Controls Settings</string>
     <string name="title_checkbox_show_onscreen_controls">Show on-screen controls</string>

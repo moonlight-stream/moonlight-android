@@ -888,10 +888,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         connecting = false;
         connected = true;
 
-        // Hide the mouse cursor now. Doing it before
-        // dismissing the spinner seems to be undone
-        // when the spinner gets displayed.
-        NvMouseHelper.setCursorVisibility(this, false);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Hide the mouse cursor now. Doing it before
+                // dismissing the spinner seems to be undone
+                // when the spinner gets displayed.
+                NvMouseHelper.setCursorVisibility(Game.this, false);
+            }
+        });
 
         hideSystemUi(1000);
     }

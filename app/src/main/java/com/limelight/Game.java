@@ -616,7 +616,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
         {
             // This case is for mice
-            if (event.getSource() == InputDevice.SOURCE_MOUSE)
+            if (event.getSource() == InputDevice.SOURCE_MOUSE ||
+                    (event.getPointerCount() >= 1 &&
+                            event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE))
             {
                 int changedButtons = event.getButtonState() ^ lastButtonState;
 

@@ -4,6 +4,7 @@ package com.limelight;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
+import com.limelight.binding.input.NvMouseHelper;
 import com.limelight.binding.input.TouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevHandler;
@@ -422,11 +423,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private final Runnable toggleGrab = new Runnable() {
         @Override
         public void run() {
-            if (evdevHandler != null) {
-                if (grabbedInput) {
+            if (grabbedInput) {
+                NvMouseHelper.setCursorVisibility(Game.this, true);
+                if (evdevHandler != null) {
                     evdevHandler.ungrabAll();
                 }
-                else {
+            }
+            else {
+                NvMouseHelper.setCursorVisibility(Game.this, false);
+                if (evdevHandler != null) {
                     evdevHandler.regrabAll();
                 }
             }
@@ -655,13 +660,26 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                 }
 
-                // First process the history
-                for (int i = 0; i < event.getHistorySize(); i++) {
-                    updateMousePosition((int)event.getHistoricalX(i), (int)event.getHistoricalY(i));
-                }
+                // Get relative axis values if we can
+                if (NvMouseHelper.eventHasRelativeMouseAxes(event)) {
+                    // Send the deltas straight from the motion event
+                    conn.sendMouseMove((short)NvMouseHelper.getRelativeAxisX(event),
+                            (short)NvMouseHelper.getRelativeAxisY(event));
 
-                // Now process the current values
-                updateMousePosition((int)event.getX(), (int)event.getY());
+                    // We have to also update the position Android thinks the cursor is at
+                    // in order to avoid jumping when we stop moving or click.
+                    lastMouseX = (int)event.getX();
+                    lastMouseY = (int)event.getY();
+                }
+                else {
+                    // First process the history
+                    for (int i = 0; i < event.getHistorySize(); i++) {
+                        updateMousePosition((int)event.getHistoricalX(i), (int)event.getHistoricalY(i));
+                    }
+
+                    // Now process the current values
+                    updateMousePosition((int)event.getX(), (int)event.getY());
+                }
 
                 lastButtonState = event.getButtonState();
             }
@@ -828,6 +846,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             evdevHandler.stop();
             evdevHandler = null;
         }
+
+        // Enable cursor visibility again
+        NvMouseHelper.setCursorVisibility(this, true);
     }
 
     @Override
@@ -866,6 +887,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         connecting = false;
         connected = true;
+
+        // Hide the mouse cursor now. Doing it before
+        // dismissing the spinner seems to be undone
+        // when the spinner gets displayed.
+        NvMouseHelper.setCursorVisibility(this, false);
 
         hideSystemUi(1000);
     }

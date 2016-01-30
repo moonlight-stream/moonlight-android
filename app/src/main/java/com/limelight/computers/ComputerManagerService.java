@@ -233,8 +233,10 @@ public class ComputerManagerService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        // Stop mDNS autodiscovery
-        discoveryBinder.stopDiscovery();
+        if (discoveryBinder != null) {
+            // Stop mDNS autodiscovery
+            discoveryBinder.stopDiscovery();
+        }
 
         // Stop polling
         pollingActive = false;

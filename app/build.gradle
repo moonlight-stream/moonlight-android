@@ -32,6 +32,13 @@ android {
         }
     }
 
+    // These lines are required to avoid dexing issues with the BouncyCastle library
+    // bundled with limelight-common.jar
+    packagingOptions {
+        exclude 'META-INF/BCKEY.SF'
+        exclude 'META-INF/BCKEY.DSA'
+    }
+
     sourceSets.main.jni.srcDirs = []
 
     //noinspection GroovyAssignabilityCheck,GroovyAssignabilityCheck

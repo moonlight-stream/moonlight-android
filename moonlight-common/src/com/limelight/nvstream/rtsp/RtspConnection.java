@@ -40,8 +40,10 @@ public class RtspConnection {
 		case ConnectionContext.SERVER_GENERATION_3:
 			return 10;
 		case ConnectionContext.SERVER_GENERATION_4:
-		default:
 			return 11;
+		case ConnectionContext.SERVER_GENERATION_5:
+		default:
+			return 12;
 		}
 	}
 

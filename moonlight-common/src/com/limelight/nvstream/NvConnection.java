@@ -116,7 +116,7 @@ public class NvConnection {
 				context.connListener.displayMessage("This app requires GeForce Experience 2.2.2 or later. Please upgrade GFE on your PC and try again.");
 				return false;
 			}
-			else if (majorVersion > 4) {
+			else if (majorVersion > 5) {
 				// Warn the user but allow them to continue
 				context.connListener.displayTransientMessage("This version of GFE is not currently supported. You may experience issues until this app is updated.");
 			}
@@ -126,8 +126,11 @@ public class NvConnection {
 				context.serverGeneration = ConnectionContext.SERVER_GENERATION_3;
 				break;
 			case 4:
-			default:
 				context.serverGeneration = ConnectionContext.SERVER_GENERATION_4;
+				break;
+			case 5:
+			default:
+				context.serverGeneration = ConnectionContext.SERVER_GENERATION_5;
 				break;
 			}
 			

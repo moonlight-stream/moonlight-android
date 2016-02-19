@@ -7,7 +7,9 @@ public interface ConnectionStatusListener {
 	
 	public void connectionSinkTooSlow(int firstLostFrame, int nextSuccessfulFrame);
 	
-	public void connectionReceivedFrame(int frameIndex);
+	public void connectionReceivedCompleteFrame(int frameIndex);
+	
+	public void connectionSawFrame(int frameIndex);
 	
 	public void connectionLostPackets(int lastReceivedPacket, int nextReceivedPacket);
 }

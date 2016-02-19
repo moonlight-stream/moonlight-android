@@ -3,6 +3,8 @@ package com.limelight.nvstream.input;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import com.limelight.nvstream.ConnectionContext;
+
 public class MouseButtonPacket extends InputPacket {
 	
 	byte buttonEventType;
@@ -20,7 +22,7 @@ public class MouseButtonPacket extends InputPacket {
 	public static final byte BUTTON_MIDDLE = 0x02;
 	public static final byte BUTTON_RIGHT = 0x03;
 	
-	public MouseButtonPacket(boolean buttonDown, byte mouseButton)
+	public MouseButtonPacket(ConnectionContext context, boolean buttonDown, byte mouseButton)
 	{
 		super(PACKET_TYPE);
 		
@@ -28,6 +30,11 @@ public class MouseButtonPacket extends InputPacket {
 				
 		buttonEventType = buttonDown ?
 				PRESS_EVENT : RELEASE_EVENT;
+		
+		// On Gen 5 servers, the button event codes are incremented by one
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+			buttonEventType++;
+		}
 	}
 
 	@Override

@@ -14,9 +14,9 @@ public class KeyboardPacket extends InputPacket {
 	public static final byte MODIFIER_CTRL = 0x02;
 	public static final byte MODIFIER_ALT = 0x04;
 	
-	short keyCode;
-	byte keyDirection;
-	byte modifier;
+	private short keyCode;
+	private byte keyDirection;
+	private byte modifier;
 	
 	public KeyboardPacket(short keyCode, byte keyDirection, byte modifier) {
 		super(PACKET_TYPE);

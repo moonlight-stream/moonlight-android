@@ -271,7 +271,7 @@ public class ControllerStream {
 		}
 		else {
 			// Use multi-controller packets for generation 4 and above
-			queuePacket(new MultiControllerPacket((short) 0, buttonFlags, leftTrigger,
+			queuePacket(new MultiControllerPacket(context, (short) 0, buttonFlags, leftTrigger,
 					rightTrigger, leftStickX, leftStickY,
 					rightStickX, rightStickY));
 		}
@@ -288,7 +288,7 @@ public class ControllerStream {
 		}
 		else {
 			// Use multi-controller packets for generation 4 and above
-			queuePacket(new MultiControllerPacket(controllerNumber, buttonFlags, leftTrigger,
+			queuePacket(new MultiControllerPacket(context, controllerNumber, buttonFlags, leftTrigger,
 					rightTrigger, leftStickX, leftStickY,
 					rightStickX, rightStickY));
 		}
@@ -296,17 +296,17 @@ public class ControllerStream {
 	
 	public void sendMouseButtonDown(byte mouseButton)
 	{
-		queuePacket(new MouseButtonPacket(true, mouseButton));
+		queuePacket(new MouseButtonPacket(context, true, mouseButton));
 	}
 	
 	public void sendMouseButtonUp(byte mouseButton)
 	{
-		queuePacket(new MouseButtonPacket(false, mouseButton));
+		queuePacket(new MouseButtonPacket(context, false, mouseButton));
 	}
 	
 	public void sendMouseMove(short deltaX, short deltaY)
 	{
-		queuePacket(new MouseMovePacket(deltaX, deltaY));
+		queuePacket(new MouseMovePacket(context, deltaX, deltaY));
 	}
 	
 	public void sendKeyboardInput(short keyMap, byte keyDirection, byte modifier) 
@@ -316,6 +316,6 @@ public class ControllerStream {
 	
 	public void sendMouseScroll(byte scrollClicks)
 	{
-		queuePacket(new MouseScrollPacket(scrollClicks));
+		queuePacket(new MouseScrollPacket(context, scrollClicks));
 	}
 }

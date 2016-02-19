@@ -53,37 +53,16 @@ public class SdpGenerator {
 	
 	private static void addGen4Attributes(StringBuilder config, ConnectionContext context) {
 		addSessionAttribute(config, "x-nv-general.serverAddress", "rtsp://"+context.serverAddress.getHostAddress()+":48010");
-
-		// If client and server are able, request HEVC
-		if (context.negotiatedVideoFormat == VideoFormat.H265) {
-			addSessionAttribute(config, "x-nv-clientSupportHevc", "1");
-			addSessionAttribute(config, "x-nv-vqos[0].bitStreamFormat", "1");
-			
-			// Disable slicing on HEVC
-			addSessionAttribute(config, "x-nv-video[0].videoEncoderSlicesPerFrame", "1");
-		}
-		else {
-			// Otherwise, use AVC
-			addSessionAttribute(config, "x-nv-clientSupportHevc", "0");
-			addSessionAttribute(config, "x-nv-vqos[0].bitStreamFormat", "0");
-			
-			// Use slicing for increased performance on some decoders
-			addSessionAttribute(config, "x-nv-video[0].videoEncoderSlicesPerFrame", "4");
-		}
 		
 		addSessionAttribute(config, "x-nv-video[0].rateControlMode", "4");
+	}
+	
+	private static void addGen5Attributes(StringBuilder config, ConnectionContext context) {
+		// We want to use the legacy TCP connections for control and input rather than the new UDP stuff
+		addSessionAttribute(config, "x-nv-general.useReliableUdp", "0");
+		addSessionAttribute(config, "x-nv-ri.useControlChannel", "0");
 		
-
-		
-		// Enable surround sound if configured for it
-		addSessionAttribute(config, "x-nv-audio.surround.numChannels", ""+context.streamConfig.getAudioChannelCount());
-		addSessionAttribute(config, "x-nv-audio.surround.channelMask", ""+context.streamConfig.getAudioChannelMask());
-		if (context.streamConfig.getAudioChannelCount() > 2) {
-			addSessionAttribute(config, "x-nv-audio.surround.enable", "1");
-		}
-		else {
-			addSessionAttribute(config, "x-nv-audio.surround.enable", "0");
-		}
+		addSessionAttribute(config, "x-nv-vqos[0].enableQec", "0");
 	}
 	
 	public static String generateSdpFromContext(ConnectionContext context) {
@@ -116,11 +95,6 @@ public class SdpGenerator {
 		
 		addSessionAttribute(config, "x-nv-video[0].packetSize", ""+context.streamConfig.getMaxPacketSize());
 		
-		if (context.streamConfig.getRemote()) {
-			addSessionAttribute(config, "x-nv-video[0].averageBitrate", "4");
-			addSessionAttribute(config, "x-nv-video[0].peakBitrate", "4");
-		}
-		
 		addSessionAttribute(config, "x-nv-video[0].timeoutLengthMs", "7000");
 		addSessionAttribute(config, "x-nv-video[0].framesWithInvalidRefThreshold", "0");
 		
@@ -135,11 +109,22 @@ public class SdpGenerator {
 			bitrate = context.streamConfig.getBitrate();
 		}
 		
-		// We don't support dynamic bitrate scaling properly (it tends to bounce between min and max and never
-		// settle on the optimal bitrate if it's somewhere in the middle), so we'll just latch the bitrate
-		// to the requested value.
-		addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+bitrate);
-		addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+bitrate);
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+			addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrateKbps", ""+bitrate);
+			addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrateKbps", ""+bitrate);
+		}
+		else {
+			if (context.streamConfig.getRemote()) {
+				addSessionAttribute(config, "x-nv-video[0].averageBitrate", "4");
+				addSessionAttribute(config, "x-nv-video[0].peakBitrate", "4");
+			}
+			
+			// We don't support dynamic bitrate scaling properly (it tends to bounce between min and max and never
+			// settle on the optimal bitrate if it's somewhere in the middle), so we'll just latch the bitrate
+			// to the requested value.
+			addSessionAttribute(config, "x-nv-vqos[0].bw.minimumBitrate", ""+bitrate);
+			addSessionAttribute(config, "x-nv-vqos[0].bw.maximumBitrate", ""+bitrate);
+		}
 		
 		// Using FEC turns padding on which makes us have to take the slow path
 		// in the depacketizer, not to mention exposing some ambiguous cases with
@@ -170,9 +155,42 @@ public class SdpGenerator {
 			break;
 			
 		case ConnectionContext.SERVER_GENERATION_4:
-		default:
 			addGen4Attributes(config, context);
 			break;
+		case ConnectionContext.SERVER_GENERATION_5:
+		default:
+			addGen5Attributes(config, context);
+			break;
+		}
+		
+		// Gen 4+ supports H.265 and surround sound
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_4) {
+			// If client and server are able, request HEVC
+			if (context.negotiatedVideoFormat == VideoFormat.H265) {
+				addSessionAttribute(config, "x-nv-clientSupportHevc", "1");
+				addSessionAttribute(config, "x-nv-vqos[0].bitStreamFormat", "1");
+				
+				// Disable slicing on HEVC
+				addSessionAttribute(config, "x-nv-video[0].videoEncoderSlicesPerFrame", "1");
+			}
+			else {
+				// Otherwise, use AVC
+				addSessionAttribute(config, "x-nv-clientSupportHevc", "0");
+				addSessionAttribute(config, "x-nv-vqos[0].bitStreamFormat", "0");
+				
+				// Use slicing for increased performance on some decoders
+				addSessionAttribute(config, "x-nv-video[0].videoEncoderSlicesPerFrame", "4");
+			}
+			
+			// Enable surround sound if configured for it
+			addSessionAttribute(config, "x-nv-audio.surround.numChannels", ""+context.streamConfig.getAudioChannelCount());
+			addSessionAttribute(config, "x-nv-audio.surround.channelMask", ""+context.streamConfig.getAudioChannelMask());
+			if (context.streamConfig.getAudioChannelCount() > 2) {
+				addSessionAttribute(config, "x-nv-audio.surround.enable", "1");
+			}
+			else {
+				addSessionAttribute(config, "x-nv-audio.surround.enable", "0");
+			}
 		}
 
 		config.append("t=0 0").append("\r\n");

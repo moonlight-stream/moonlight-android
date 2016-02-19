@@ -43,10 +43,21 @@ public class VideoDepacketizer {
 	private static final int DU_LIMIT = 15;
 	private AbstractPopulatedBufferList<DecodeUnit> decodedUnits;
 	
+	private final int frameHeaderOffset;
+	
 	public VideoDepacketizer(ConnectionContext context, ConnectionStatusListener controlListener, int nominalPacketSize)
 	{
 		this.controlListener = controlListener;
 		this.nominalPacketDataLength = nominalPacketSize - VideoPacket.HEADER_SIZE;
+		
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+			// Gen 5 servers have an 8 byte header in the data portion of the first
+			// packet of each frame
+			frameHeaderOffset = 8;
+		}
+		else {
+			frameHeaderOffset = 0;
+		}
 		
 		boolean unsynchronized;
 		if (context.videoDecoderRenderer != null) {
@@ -177,7 +188,7 @@ public class VideoDepacketizer {
 			// Packets now owned by the DU
 			backingPacketTail = backingPacketHead = null;
 			
-			controlListener.connectionReceivedFrame(frameNumber);
+			controlListener.connectionReceivedCompleteFrame(frameNumber);
 			
 			// Submit the DU to the consumer
 			decodedUnits.addPopulatedObject(du);
@@ -367,6 +378,9 @@ public class VideoDepacketizer {
 			return;
 		}
 		
+		// Notify the listener of the latest frame we've seen from the PC
+		controlListener.connectionSawFrame(frameIndex);
+		
 		// Look for a frame start before receiving a frame end
 		if (firstPacket && decodingFrame)
 		{
@@ -445,6 +459,12 @@ public class VideoDepacketizer {
 			controlListener.connectionLostPackets(lastPacketInStream, streamPacketIndex);
 		}
 		lastPacketInStream = streamPacketIndex;
+		
+		// If this is the first packet, skip the frame header (if one exists)
+		if (firstPacket) {
+			cachedReassemblyDesc.offset += frameHeaderOffset;
+			cachedReassemblyDesc.length -= frameHeaderOffset;
+		}
 		
 		if (firstPacket && isIdrFrameStart(cachedReassemblyDesc))
 		{

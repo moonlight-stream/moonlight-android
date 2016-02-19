@@ -14,6 +14,9 @@ public class ConnectionContext {
 	// Gen 4 servers are 2.2.2+
 	public static final int SERVER_GENERATION_4 = 4;	
 	
+	// Gen 5 servers are 2.10.2+
+	public static final int SERVER_GENERATION_5 = 5;
+	
 	public InetAddress serverAddress;
 	public StreamConfiguration streamConfig;
 	public VideoDecoderRenderer videoDecoderRenderer;

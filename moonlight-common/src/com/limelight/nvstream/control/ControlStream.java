@@ -41,6 +41,13 @@ public class ControlStream implements ConnectionStatusListener {
 		0x060a, // Loss Stats
 		0x0611, // Frame Stats (unused)
 	};
+	private static final short packetTypesGen5[] = {
+		0x0305, // Start A
+		0x0307, // Start B
+		0x0301, // Invalidate reference frames
+		0x0201, // Loss Stats
+		0x0204, // Frame Stats (unused)
+	};
 	
 	private static final short payloadLengthsGen3[] = {
 		-1, // Start A
@@ -55,6 +62,13 @@ public class ControlStream implements ConnectionStatusListener {
 		24, // Invalidate reference frames
 		32, // Loss Stats
 		64, // Frame Stats
+	};
+	private static final short payloadLengthsGen5[] = {
+		-1, // Start A
+		16, // Start B
+		24, // Invalidate reference frames
+		32, // Loss Stats
+		80, // Frame Stats
 	};
 	
 	private static final byte[] precontructedPayloadsGen3[] = {
@@ -71,10 +85,18 @@ public class ControlStream implements ConnectionStatusListener {
 		null, // Loss Stats
 		null, // Frame Stats
 	};
+	private static final byte[] precontructedPayloadsGen5[] = {
+		new byte[]{0, 0}, // Start A
+		null, // Start B
+		null, // Invalidate reference frames
+		null, // Loss Stats
+		null, // Frame Stats
+	};
 	
 	public static final int LOSS_REPORT_INTERVAL_MS = 50;
 	
-	private int currentFrame;
+	private int lastGoodFrame;
+	private int lastSeenFrame;
 	private int lossCountSinceLastReport;
 	
 	private ConnectionContext context;
@@ -121,10 +143,15 @@ public class ControlStream implements ConnectionStatusListener {
 			preconstructedPayloads = precontructedPayloadsGen3;
 			break;
 		case ConnectionContext.SERVER_GENERATION_4:
-		default:
 			packetTypes = packetTypesGen4;
 			payloadLengths = payloadLengthsGen4;
 			preconstructedPayloads = precontructedPayloadsGen4;
+			break;
+		case ConnectionContext.SERVER_GENERATION_5:
+		default:
+			packetTypes = packetTypesGen5;
+			payloadLengths = payloadLengthsGen5;
+			preconstructedPayloads = precontructedPayloadsGen5;
 			break;
 		}
 		
@@ -164,7 +191,7 @@ public class ControlStream implements ConnectionStatusListener {
 		bb.putInt(lossCountSinceLastReport); // Packet loss count
 		bb.putInt(LOSS_REPORT_INTERVAL_MS); // Time since last report in milliseconds
 		bb.putInt(1000);
-		bb.putLong(currentFrame); // Last successfully received frame
+		bb.putLong(lastGoodFrame); // Last successfully received frame
 		bb.putInt(0);
 		bb.putInt(0);
 		bb.putInt(0x14);
@@ -315,7 +342,8 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	private ControlStream.NvCtlResponse doStartB() throws IOException
 	{
-		if (context.serverGeneration == ConnectionContext.SERVER_GENERATION_3) {
+		// Gen 3 and 5 both use a packet of this form
+		if (context.serverGeneration != ConnectionContext.SERVER_GENERATION_4) {
 	        ByteBuffer payload = ByteBuffer.wrap(new byte[payloadLengths[IDX_START_B]]).order(ByteOrder.LITTLE_ENDIAN);
 	        
 	        payload.putInt(0);
@@ -334,16 +362,28 @@ public class ControlStream implements ConnectionStatusListener {
 	}
 	
 	private void requestIdrFrame() throws IOException {
-		// On Gen 3, we use the invalidate reference frames trick which works for about 5 hours of streaming at 60 FPS
+		// On Gen 3, we use the invalidate reference frames trick.
 		// On Gen 4+, we use the known IDR frame request packet
+		// On Gen 5, we're currently using the invalidate reference frames trick again.
 		
-		if (context.serverGeneration == ConnectionContext.SERVER_GENERATION_3) {
+		if (context.serverGeneration != ConnectionContext.SERVER_GENERATION_4) {
 			ByteBuffer conf = ByteBuffer.wrap(new byte[payloadLengths[IDX_INVALIDATE_REF_FRAMES]]).order(ByteOrder.LITTLE_ENDIAN);
 			
 			//conf.putLong(firstLostFrame);
 			//conf.putLong(nextSuccessfulFrame);
-			conf.putLong(0);
-			conf.putLong(0xFFFFF);
+			
+			// Early on, we'll use a special IDR sequence. Otherwise,
+			// we'll just say we lost the last 32 frames. This is larger
+			// than the number of buffered frames in the encoder (16) so
+			// it should trigger an IDR frame.
+			if (lastSeenFrame < 0x20) {
+				conf.putLong(0);
+				conf.putLong(0x20);
+			}
+			else {
+				conf.putLong(lastSeenFrame - 0x20);
+				conf.putLong(lastSeenFrame);
+			}
 			conf.putLong(0);
 			
 			sendAndGetReply(new NvCtlPacket(packetTypes[IDX_INVALIDATE_REF_FRAMES],
@@ -534,7 +574,7 @@ public class ControlStream implements ConnectionStatusListener {
 		
 		// Suppress connection warnings for the first 150 frames to allow the connection
 		// to stabilize
-		if (currentFrame < 150) {
+		if (lastGoodFrame < 150) {
 			return;
 		}
 		
@@ -569,7 +609,7 @@ public class ControlStream implements ConnectionStatusListener {
 		
 		// Suppress connection warnings for the first 150 frames to allow the connection
 		// to stabilize
-		if (currentFrame < 150) {
+		if (lastGoodFrame < 150) {
 			return;
 		}
 		
@@ -579,8 +619,12 @@ public class ControlStream implements ConnectionStatusListener {
 		}
 	}
 
-	public void connectionReceivedFrame(int frameIndex) {
-		currentFrame = frameIndex;
+	public void connectionReceivedCompleteFrame(int frameIndex) {
+		lastGoodFrame = frameIndex;
+	}
+	
+	public void connectionSawFrame(int frameIndex) {
+		lastSeenFrame = frameIndex;
 	}
 
 	public void connectionLostPackets(int lastReceivedPacket, int nextReceivedPacket) {

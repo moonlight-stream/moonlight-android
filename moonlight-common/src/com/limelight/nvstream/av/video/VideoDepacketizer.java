@@ -132,6 +132,26 @@ public class VideoDepacketizer {
 		frameDataLength = 0;
 	}
 	
+	private static boolean isReferencePictureNalu(byte nalType) {
+		switch (nalType) {
+		case 0x20:
+		case 0x22:
+		case 0x24:
+		case 0x26:
+		case 0x28:
+		case 0x2A:
+			// H265
+			return true;
+			
+		case 0x65:
+			// H264
+			return true;
+			
+		default:
+			return false;
+		}
+	}
+	
 	private void reassembleFrame(int frameNumber)
 	{
 		// This is the start of a new frame
@@ -148,18 +168,16 @@ public class VideoDepacketizer {
 				case 0x44: // PPS
 					flags |= DecodeUnit.DU_FLAG_CODEC_CONFIG;
 					break;
-				case 0x26: // I-frame
-					flags |= DecodeUnit.DU_FLAG_SYNC_FRAME;
-					break;
 				
 				// H264
 				case 0x67: // SPS
 				case 0x68: // PPS
 					flags |= DecodeUnit.DU_FLAG_CODEC_CONFIG;
 					break;
-				case 0x65: // I-frame
+				}
+				
+				if (isReferencePictureNalu(cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length])) {
 					flags |= DecodeUnit.DU_FLAG_SYNC_FRAME;
-					break;
 				}
 			}
 			
@@ -256,8 +274,7 @@ public class VideoDepacketizer {
 						// Reassemble any pending NAL
 						reassembleFrame(packet.getFrameIndex());
 						
-						if (cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x65 || // H264 I-Frame
-								cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length] == 0x26) { // H265 I-Frame
+						if (isReferencePictureNalu(cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length])) {
 							// This is the NALU code for I-frame data
 							waitingForIdrFrame = false;
 						}

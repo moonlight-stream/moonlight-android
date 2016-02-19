@@ -75,7 +75,7 @@ public class MultiControllerPacket extends InputPacket {
 			bb.putInt(0xd);
 			bb.putShort((short) 0x1a);
 			bb.putShort(controllerNumber);
-			bb.putShort((short) 0x07);
+			bb.putShort((short) 0x0f); // Active controller flags
 			bb.putShort((short) 0x14);
 			bb.putShort(buttonFlags);
 			bb.put(leftTrigger);

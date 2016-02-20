@@ -1,5 +1,6 @@
 package com.limelight.nvstream.mdns;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -120,6 +121,9 @@ public class MdnsDiscoveryAgent {
 						
 						if (resolver != null) {
 							resolver.removeServiceListener(SERVICE_TYPE, nvstreamListener);
+							try {
+								JmmDNS.Factory.close();
+							} catch (IOException e) {}
 							resolver = null;
 						}
 						return;

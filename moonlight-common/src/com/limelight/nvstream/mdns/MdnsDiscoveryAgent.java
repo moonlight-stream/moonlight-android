@@ -28,37 +28,48 @@ public class MdnsDiscoveryAgent {
 	private boolean stop;
 	private ServiceListener nvstreamListener = new ServiceListener() {
 		public void serviceAdded(ServiceEvent event) {
-			LimeLog.info("mDNS: Machine appeared: "+event.getInfo().getName());
-			
-			ServiceInfo[] infos = resolver.getServiceInfos(SERVICE_TYPE, event.getInfo().getName(), 500);
-			if (infos == null || infos.length == 0) {
-				// This machine is pending resolution
-				pendingResolution.add(event.getInfo().getName());
-				return;
+			synchronized (MdnsDiscoveryAgent.class) {
+				if (resolver == null) {
+					LimeLog.warning("mDNS callback invoked without a resolver!");
+					return;
+				}
+				
+				LimeLog.info("mDNS: Machine appeared: "+event.getInfo().getName());
+				
+				ServiceInfo[] infos = resolver.getServiceInfos(SERVICE_TYPE, event.getInfo().getName(), 500);
+				if (infos == null || infos.length == 0) {
+					// This machine is pending resolution
+					pendingResolution.add(event.getInfo().getName());
+					return;
+				}
+				
+				LimeLog.info("mDNS: Resolved (blocking) with "+infos.length+" service entries");
+				handleResolvedServiceInfo(infos[0]);
 			}
-			
-			LimeLog.info("mDNS: Resolved (blocking) with "+infos.length+" service entries");
-			handleResolvedServiceInfo(infos[0]);
 		}
 
 		public void serviceRemoved(ServiceEvent event) {
-			LimeLog.info("mDNS: Machine disappeared: "+event.getInfo().getName());
-			
-			Inet4Address addrs[] = event.getInfo().getInet4Addresses();
-			for (Inet4Address addr : addrs) {
-				synchronized (computers) {
-					MdnsComputer computer = computers.remove(addr);
-					if (computer != null) {
-						listener.notifyComputerRemoved(computer);
-						break;
+			synchronized (MdnsDiscoveryAgent.class) {
+				LimeLog.info("mDNS: Machine disappeared: "+event.getInfo().getName());
+				
+				Inet4Address addrs[] = event.getInfo().getInet4Addresses();
+				for (Inet4Address addr : addrs) {
+					synchronized (computers) {
+						MdnsComputer computer = computers.remove(addr);
+						if (computer != null) {
+							listener.notifyComputerRemoved(computer);
+							break;
+						}
 					}
 				}
 			}
 		}
 
 		public void serviceResolved(ServiceEvent event) {
-			LimeLog.info("mDNS: Machine resolved (callback): "+event.getInfo().getName());
-			handleResolvedServiceInfo(event.getInfo());
+			synchronized (MdnsDiscoveryAgent.class) {
+				LimeLog.info("mDNS: Machine resolved (callback): "+event.getInfo().getName());
+				handleResolvedServiceInfo(event.getInfo());
+			}
 		}
 	};
 	
@@ -113,7 +124,7 @@ public class MdnsDiscoveryAgent {
 		t.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				synchronized (MdnsDiscoveryAgent.this) {
+				synchronized (MdnsDiscoveryAgent.class) {
 					// Stop if requested
 					if (stop) {
 						// There will be no further timer invocations now

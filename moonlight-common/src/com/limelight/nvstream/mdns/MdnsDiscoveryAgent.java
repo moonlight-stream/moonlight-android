@@ -30,15 +30,15 @@ public class MdnsDiscoveryAgent {
 		public void serviceAdded(ServiceEvent event) {
 			LimeLog.info("mDNS: Machine appeared: "+event.getInfo().getName());
 			
-			ServiceInfo[] infos = resolver.getServiceInfos(SERVICE_TYPE, event.getInfo().getName(), 500);
-			if (infos == null || infos.length == 0) {
+			ServiceInfo info = event.getDNS().getServiceInfo(SERVICE_TYPE, event.getInfo().getName(), 500);
+			if (info == null) {
 				// This machine is pending resolution
 				pendingResolution.add(event.getInfo().getName());
 				return;
 			}
 			
-			LimeLog.info("mDNS: Resolved (blocking) with "+infos.length+" service entries");
-			handleResolvedServiceInfo(infos[0]);
+			LimeLog.info("mDNS: Resolved (blocking)");
+			handleResolvedServiceInfo(info);
 		}
 
 		public void serviceRemoved(ServiceEvent event) {

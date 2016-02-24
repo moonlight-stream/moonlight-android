@@ -50,6 +50,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private String lastRawApplist;
     private int lastRunningAppId;
     private boolean suspendGridUpdates;
+    private boolean inForeground;
 
     private final static int START_OR_RESUME_ID = 1;
     private final static int QUIT_ID = 2;
@@ -108,7 +109,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     };
 
     private void startComputerUpdates() {
-        if (managerBinder == null) {
+        // Don't start polling if we're not bound or in the foreground
+        if (managerBinder == null || !inForeground) {
             return;
         }
 
@@ -252,6 +254,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     protected void onResume() {
         super.onResume();
 
+        inForeground = true;
         startComputerUpdates();
     }
 
@@ -259,6 +262,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     protected void onPause() {
         super.onPause();
 
+        inForeground = false;
         stopComputerUpdates();
     }
 

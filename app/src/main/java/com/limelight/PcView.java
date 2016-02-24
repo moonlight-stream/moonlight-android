@@ -53,7 +53,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
-    private boolean freezeUpdates, runningPolling, hasResumed;
+    private boolean freezeUpdates, runningPolling, inForeground;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder binder) {
             final ComputerManagerService.ComputerManagerBinder localBinder =
@@ -161,11 +161,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     private void startComputerUpdates() {
-        if (managerBinder != null) {
-            if (runningPolling) {
-                return;
-            }
-
+        // Only allow polling to start if we're bound to CMS, polling is not already running,
+        // and our activity is in the foreground.
+        if (managerBinder != null && !runningPolling && inForeground) {
             freezeUpdates = false;
             managerBinder.startPolling(new ComputerManagerListener() {
                 @Override
@@ -215,7 +213,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     protected void onResume() {
         super.onResume();
 
-        hasResumed = true;
+        inForeground = true;
         startComputerUpdates();
     }
 
@@ -223,7 +221,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     protected void onPause() {
         super.onPause();
 
-        hasResumed = false;
+        inForeground = false;
         stopComputerUpdates(false);
     }
 
@@ -271,10 +269,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     @Override
     public void onContextMenuClosed(Menu menu) {
         // For some reason, this gets called again _after_ onPause() is called on this activity.
-        // We don't want to start computer updates again, so we need to keep track of whether we're paused.
-        if (hasResumed) {
-            startComputerUpdates();
-        }
+        // startComputerUpdates() manages this and won't actual start polling until the activity
+        // returns to the foreground.
+        startComputerUpdates();
     }
 
     private void doPair(final ComputerDetails computer) {
@@ -368,14 +365,15 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                         }
 
                         if (toastSuccess) {
-                            // Open the app list after a successful pairing attemp
+                            // Open the app list after a successful pairing attempt
                             doAppList(computer);
+                        }
+                        else {
+                            // Start polling again if we're still in the foreground
+                            startComputerUpdates();
                         }
                     }
                 });
-
-                // Start polling again
-                startComputerUpdates();
             }
         }).start();
     }

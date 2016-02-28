@@ -62,7 +62,7 @@ public class SdpGenerator {
 		addSessionAttribute(config, "x-nv-general.useReliableUdp", "0");
 		addSessionAttribute(config, "x-nv-ri.useControlChannel", "0");
 		
-		addSessionAttribute(config, "x-nv-vqos[0].enableQec", "0");
+		addSessionAttribute(config, "x-nv-vqos[0].drc.enable", "0");
 	}
 	
 	public static String generateSdpFromContext(ConnectionContext context) {

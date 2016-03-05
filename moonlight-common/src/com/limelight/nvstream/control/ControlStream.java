@@ -13,11 +13,13 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.av.ConnectionStatusListener;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.enet.EnetConnection;
 import com.limelight.utils.TimeHelper;
 
-public class ControlStream implements ConnectionStatusListener {
+public class ControlStream implements ConnectionStatusListener, InputPacketSender {
 	
-	private static final int PORT = 47995;
+	private static final int TCP_PORT = 47995;
+	private static final int UDP_PORT = 47999;
 	
 	private static final int CONTROL_TIMEOUT = 10000;
 	
@@ -117,6 +119,10 @@ public class ControlStream implements ConnectionStatusListener {
 
 	private int slowSinkCount;
 	
+	// Used on Gen 5 servers and above
+	private EnetConnection enetConnection;
+	
+	// Used on Gen 4 servers and below
 	private Socket s;
 	private InputStream in;
 	private OutputStream out;
@@ -163,26 +169,43 @@ public class ControlStream implements ConnectionStatusListener {
 	
 	public void initialize() throws IOException
 	{
-		s = new Socket();
-		s.setTcpNoDelay(true);
-		s.connect(new InetSocketAddress(context.serverAddress, PORT), CONTROL_TIMEOUT);
-		in = s.getInputStream();
-		out = s.getOutputStream();
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+			enetConnection = EnetConnection.connect(context.serverAddress.getHostAddress(), UDP_PORT, CONTROL_TIMEOUT);
+		}
+		else {
+			s = new Socket();
+			s.setTcpNoDelay(true);
+			s.connect(new InetSocketAddress(context.serverAddress, TCP_PORT), CONTROL_TIMEOUT);
+			in = s.getInputStream();
+			out = s.getOutputStream();
+		}
 	}
 	
 	private void sendPacket(NvCtlPacket packet) throws IOException
 	{
 		// Prevent multiple clients from writing to the stream at the same time
 		synchronized (this) {
-			packet.write(out);
-			out.flush();
+			if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+				packet.write(enetConnection);
+			}
+			else {
+				packet.write(out);
+				out.flush();
+			}
 		}
 	}
 	
-	private ControlStream.NvCtlResponse sendAndGetReply(NvCtlPacket packet) throws IOException
+	private void sendAndDiscardReply(NvCtlPacket packet) throws IOException
 	{
-		sendPacket(packet);
-		return new NvCtlResponse(in);
+		synchronized (this) {
+			sendPacket(packet);
+			if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+				enetConnection.readPacket(CONTROL_TIMEOUT);
+			}
+			else {
+				new NvCtlResponse(in);
+			}
+		}
 	}
 	
 	private void sendLossStats(ByteBuffer bb) throws IOException
@@ -200,6 +223,10 @@ public class ControlStream implements ConnectionStatusListener {
 				payloadLengths[IDX_LOSS_STATS], bb.array()));
 	}
 	
+	public void sendInputPacket(byte[] data, short length) throws IOException {
+		sendPacket(new NvCtlPacket((short) 0x0207, length, data));
+	}
+	
 	public void abort()
 	{
 		if (aborting) {
@@ -208,9 +235,17 @@ public class ControlStream implements ConnectionStatusListener {
 		
 		aborting = true;
 		
-		try {
-			s.close();
-		} catch (IOException e) {}
+		if (s != null) {
+			try {
+				s.close();
+			} catch (IOException e) {}
+		}
+		
+		if (enetConnection != null) {
+			try {
+				enetConnection.close();
+			} catch (IOException e) {}
+		}
 		
 		if (lossStatsThread != null) {
 			lossStatsThread.interrupt();
@@ -232,13 +267,17 @@ public class ControlStream implements ConnectionStatusListener {
 	public void start() throws IOException
 	{
 		// Use a finite timeout during the handshake process
-		s.setSoTimeout(CONTROL_TIMEOUT);
+		if (s != null) {
+			s.setSoTimeout(CONTROL_TIMEOUT);
+		}
 		
 		doStartA();
 		doStartB();
 		
 		// Return to an infinte read timeout after the initial control handshake
-		s.setSoTimeout(0);
+		if (s != null) {
+			s.setSoTimeout(0);
+		}
 		
 		lossStatsThread = new Thread() {
 			@Override
@@ -333,14 +372,14 @@ public class ControlStream implements ConnectionStatusListener {
 		resyncThread.start();
 	}
 	
-	private ControlStream.NvCtlResponse doStartA() throws IOException
+	private void doStartA() throws IOException
 	{
-		return sendAndGetReply(new NvCtlPacket(packetTypes[IDX_START_A],
+		sendAndDiscardReply(new NvCtlPacket(packetTypes[IDX_START_A],
 				(short) preconstructedPayloads[IDX_START_A].length,
 				preconstructedPayloads[IDX_START_A]));
 	}
 	
-	private ControlStream.NvCtlResponse doStartB() throws IOException
+	private void doStartB() throws IOException
 	{
 		// Gen 3 and 5 both use a packet of this form
 		if (context.serverGeneration != ConnectionContext.SERVER_GENERATION_4) {
@@ -351,11 +390,11 @@ public class ControlStream implements ConnectionStatusListener {
 	        payload.putInt(0);
 	        payload.putInt(0xa);
 	        
-	        return sendAndGetReply(new NvCtlPacket(packetTypes[IDX_START_B],
+	        sendAndDiscardReply(new NvCtlPacket(packetTypes[IDX_START_B],
 	        		payloadLengths[IDX_START_B], payload.array()));
 		}
 		else {
-			return sendAndGetReply(new NvCtlPacket(packetTypes[IDX_START_B],
+			sendAndDiscardReply(new NvCtlPacket(packetTypes[IDX_START_B],
 					 (short) preconstructedPayloads[IDX_START_B].length,
 					 preconstructedPayloads[IDX_START_B]));
 		}
@@ -386,11 +425,11 @@ public class ControlStream implements ConnectionStatusListener {
 			}
 			conf.putLong(0);
 			
-			sendAndGetReply(new NvCtlPacket(packetTypes[IDX_INVALIDATE_REF_FRAMES],
+			sendAndDiscardReply(new NvCtlPacket(packetTypes[IDX_INVALIDATE_REF_FRAMES],
 					payloadLengths[IDX_INVALIDATE_REF_FRAMES], conf.array()));
 		}
 		else {
-			sendAndGetReply(new NvCtlPacket(packetTypes[IDX_REQUEST_IDR_FRAME],
+			sendAndDiscardReply(new NvCtlPacket(packetTypes[IDX_REQUEST_IDR_FRAME],
 					(short) preconstructedPayloads[IDX_REQUEST_IDR_FRAME].length,
 					preconstructedPayloads[IDX_REQUEST_IDR_FRAME]));
 		}
@@ -407,7 +446,7 @@ public class ControlStream implements ConnectionStatusListener {
 		conf.putLong(nextSuccessfulFrame);
 		conf.putLong(0);
 		
-		sendAndGetReply(new NvCtlPacket(packetTypes[IDX_INVALIDATE_REF_FRAMES],
+		sendAndDiscardReply(new NvCtlPacket(packetTypes[IDX_INVALIDATE_REF_FRAMES],
 				payloadLengths[IDX_INVALIDATE_REF_FRAMES], conf.array()));
 		
 		LimeLog.warning("Reference frame invalidation sent");
@@ -419,7 +458,7 @@ public class ControlStream implements ConnectionStatusListener {
 		public byte[] payload;
 		
 		private static final ByteBuffer headerBuffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
-		private static final ByteBuffer serializationBuffer = ByteBuffer.allocate(128).order(ByteOrder.LITTLE_ENDIAN);
+		private static final ByteBuffer serializationBuffer = ByteBuffer.allocate(256).order(ByteOrder.LITTLE_ENDIAN);
 		
 		public NvCtlPacket(InputStream in) throws IOException
 		{
@@ -527,6 +566,18 @@ public class ControlStream implements ConnectionStatusListener {
 				serializationBuffer.put(payload);
 
 				out.write(serializationBuffer.array(), 0, serializationBuffer.position());
+			}
+		}
+		
+		public void write(EnetConnection conn) throws IOException
+		{
+			// Use the class's serialization buffer to construct the wireform to send
+			synchronized (serializationBuffer) {
+				serializationBuffer.rewind();
+				serializationBuffer.putShort(type);
+				serializationBuffer.put(payload);
+
+				conn.writePacket(serializationBuffer);
 			}
 		}
 	}

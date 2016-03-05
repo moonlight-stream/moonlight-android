@@ -292,7 +292,7 @@ public class NvConnection {
 		// This avoids the race where inputStream != null but inputStream.initialize()
 		// has not returned yet.
 		ControllerStream tempController = new ControllerStream(context);
-		tempController.initialize();
+		tempController.initialize(controlStream);
 		tempController.start();
 		inputStream = tempController;
 		return true;

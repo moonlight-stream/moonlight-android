@@ -17,6 +17,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 
 import com.limelight.nvstream.ConnectionContext;
+import com.limelight.nvstream.control.InputPacketSender;
 
 public class ControllerStream {
 	
@@ -26,8 +27,13 @@ public class ControllerStream {
 	
 	private ConnectionContext context;
 	
+	// Only used on Gen 4 or below servers
 	private Socket s;
 	private OutputStream out;
+	
+	// Used on Gen 5+ servers
+	private InputPacketSender controlSender;
+	
 	private Cipher riCipher;
 	
 	private Thread inputThread;
@@ -58,12 +64,19 @@ public class ControllerStream {
 		}
 	}
 	
-	public void initialize() throws IOException
+	public void initialize(InputPacketSender controlSender) throws IOException
 	{
-		s = new Socket();
-		s.connect(new InetSocketAddress(context.serverAddress, PORT), CONTROLLER_TIMEOUT);
-		s.setTcpNoDelay(true);
-		out = s.getOutputStream();
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+			// Gen 5 sends input over the control stream
+			this.controlSender = controlSender;
+		}
+		else {
+			// Gen 4 and below uses a separate TCP connection for input
+			s = new Socket();
+			s.connect(new InetSocketAddress(context.serverAddress, PORT), CONTROLLER_TIMEOUT);
+			s.setTcpNoDelay(true);
+			out = s.getOutputStream();	
+		}
 	}
 	
 	public void start()
@@ -197,9 +210,11 @@ public class ControllerStream {
 			} catch (InterruptedException e) {}
 		}
 		
-		try {
-			s.close();
-		} catch (IOException e) {}
+		if (s != null) {
+			try {
+				s.close();
+			} catch (IOException e) {}
+		}
 	}
 	
 	private static int getPaddedSize(int length) {
@@ -249,9 +264,15 @@ public class ControllerStream {
 			return;
 		}
 		
-		// Send the packet
-		out.write(sendBuffer.array(), 0, paddedLength + 4);
-		out.flush();
+		// Send the packet over the control stream on Gen 5+
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+			controlSender.sendInputPacket(sendBuffer.array(), (short) (paddedLength + 4));
+		}
+		else {
+			// Send the packet over the TCP connection on Gen 4 and below
+			out.write(sendBuffer.array(), 0, paddedLength + 4);
+			out.flush();
+		}
 	}
 	
 	private void queuePacket(InputPacket packet) {

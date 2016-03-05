@@ -58,10 +58,11 @@ public class SdpGenerator {
 	}
 	
 	private static void addGen5Attributes(StringBuilder config, ConnectionContext context) {
-		// We want to use the legacy TCP connections for control and input rather than the new UDP stuff
-		addSessionAttribute(config, "x-nv-general.useReliableUdp", "0");
-		addSessionAttribute(config, "x-nv-ri.useControlChannel", "0");
+		// We want to use the new ENet connections for control and input
+		addSessionAttribute(config, "x-nv-general.useReliableUdp", "1");
+		addSessionAttribute(config, "x-nv-ri.useControlChannel", "1");
 		
+		// Disable dynamic resolution switching
 		addSessionAttribute(config, "x-nv-vqos[0].drc.enable", "0");
 	}
 	

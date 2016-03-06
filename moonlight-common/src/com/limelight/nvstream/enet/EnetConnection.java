@@ -37,8 +37,8 @@ public class EnetConnection implements Closeable {
 		return conn;
 	}
 	
-	public ByteBuffer readPacket(int timeout) throws IOException {
-		ByteBuffer buffer = ByteBuffer.allocate(128);
+	public ByteBuffer readPacket(int maxSize, int timeout) throws IOException {
+		ByteBuffer buffer = ByteBuffer.allocate(maxSize);
 		
 		int readLength = readPacket(enetClient, buffer.array(), buffer.limit(), timeout);
 		if (readLength <= 0) {

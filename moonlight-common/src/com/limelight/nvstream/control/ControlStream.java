@@ -200,7 +200,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		synchronized (this) {
 			sendPacket(packet);
 			if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
-				enetConnection.readPacket(CONTROL_TIMEOUT);
+				enetConnection.readPacket(128, CONTROL_TIMEOUT);
 			}
 			else {
 				new NvCtlResponse(in);

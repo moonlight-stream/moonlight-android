@@ -4,13 +4,16 @@ import java.io.IOException;
 import java.net.Inet6Address;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer.VideoFormat;
+import com.limelight.nvstream.enet.EnetConnection;
 import com.tinyrtsp.rtsp.message.RtspMessage;
 import com.tinyrtsp.rtsp.message.RtspRequest;
 import com.tinyrtsp.rtsp.message.RtspResponse;
+import com.tinyrtsp.rtsp.parser.RtspParser;
 import com.tinyrtsp.rtsp.parser.RtspStream;
 
 public class RtspConnection {
@@ -19,6 +22,7 @@ public class RtspConnection {
 	
 	private int sequenceNumber = 1;
 	private int sessionId = 0;
+	private EnetConnection enetConnection;
 	
 	private ConnectionContext context;
 	private String hostStr;
@@ -54,7 +58,45 @@ public class RtspConnection {
 		return m;
 	}
 	
-	private RtspResponse transactRtspMessage(RtspMessage m) throws IOException {
+	private String byteBufferToString(byte[] bytes, int length) {
+		StringBuilder message = new StringBuilder();
+		
+		for (int i = 0; i < length; i++) {
+			message.append((char) bytes[i]);
+		}
+		
+		return message.toString();
+	}
+	
+	private RtspResponse transactRtspMessageEnet(RtspMessage m) throws IOException {
+		byte[] header, payload;
+		
+		header = m.toWireNoPayload();
+		payload = m.toWirePayloadOnly();
+		
+		// Send the RTSP header
+		enetConnection.writePacket(ByteBuffer.wrap(header));
+		
+		// Send payload in a separate packet if there's payload on this
+		if (payload != null) {
+			enetConnection.writePacket(ByteBuffer.wrap(payload));
+		}
+		
+		// Wait for a response
+		ByteBuffer responseHeader = enetConnection.readPacket(2048, RTSP_TIMEOUT);
+		
+		// Parse the response and determine whether it has a payload
+		RtspResponse message = (RtspResponse) RtspParser.parseMessageNoPayload(byteBufferToString(responseHeader.array(), responseHeader.limit()));
+		if (message.getOption("Content-Length") != null) {
+			// The payload should immediately follow the header, so only wait another second
+			ByteBuffer responsePayload = enetConnection.readPacket(65536, 1000);
+			message.setPayload(byteBufferToString(responsePayload.array(), responsePayload.limit()));
+		}
+		
+		return message;
+	}
+	
+	private RtspResponse transactRtspMessageTcp(RtspMessage m) throws IOException {
 		Socket s = new Socket();
 		try {
 			s.setTcpNoDelay(true);
@@ -70,6 +112,15 @@ public class RtspConnection {
 			}
 		} finally {
 			s.close();
+		}
+	}
+	
+	private RtspResponse transactRtspMessage(RtspMessage m) throws IOException {
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+			return transactRtspMessageEnet(m);
+		}
+		else {
+			return transactRtspMessageTcp(m);
 		}
 	}
 	
@@ -138,44 +189,56 @@ public class RtspConnection {
 	public void doRtspHandshake() throws IOException {
 		RtspResponse r;
 		
-		r = requestOptions();
-		if (r.getStatusCode() != 200) {
-			throw new IOException("RTSP OPTIONS request failed: "+r.getStatusCode());
+		// Gen 5+ servers do RTSP over ENet instead of TCP
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+			enetConnection = EnetConnection.connect(context.serverAddress.getHostAddress(), PORT, RTSP_TIMEOUT);
 		}
 		
-		r = requestDescribe();
-		if (r.getStatusCode() != 200) {
-			throw new IOException("RTSP DESCRIBE request failed: "+r.getStatusCode());
-		}
-		
-		// Process the RTSP DESCRIBE response
-		processDescribeResponse(r);
-		
-		r = setupStream("audio");
-		if (r.getStatusCode() != 200) {
-			throw new IOException("RTSP SETUP request failed: "+r.getStatusCode());
-		}
-		
-		// Process the RTSP SETUP streamid=audio response
-		processRtspSetupAudio(r);
-		
-		r = setupStream("video");
-		if (r.getStatusCode() != 200) {
-			throw new IOException("RTSP SETUP request failed: "+r.getStatusCode());
-		}
-		
-		r = sendVideoAnnounce();
-		if (r.getStatusCode() != 200) {
-			throw new IOException("RTSP ANNOUNCE request failed: "+r.getStatusCode());
-		}
-		
-		r = playStream("video");
-		if (r.getStatusCode() != 200) {
-			throw new IOException("RTSP PLAY request failed: "+r.getStatusCode());
-		}
-		r = playStream("audio");
-		if (r.getStatusCode() != 200) {
-			throw new IOException("RTSP PLAY request failed: "+r.getStatusCode());
+		try {
+			r = requestOptions();
+			if (r.getStatusCode() != 200) {
+				throw new IOException("RTSP OPTIONS request failed: "+r.getStatusCode());
+			}
+			
+			r = requestDescribe();
+			if (r.getStatusCode() != 200) {
+				throw new IOException("RTSP DESCRIBE request failed: "+r.getStatusCode());
+			}
+			
+			// Process the RTSP DESCRIBE response
+			processDescribeResponse(r);
+			
+			r = setupStream("audio");
+			if (r.getStatusCode() != 200) {
+				throw new IOException("RTSP SETUP request failed: "+r.getStatusCode());
+			}
+			
+			// Process the RTSP SETUP streamid=audio response
+			processRtspSetupAudio(r);
+			
+			r = setupStream("video");
+			if (r.getStatusCode() != 200) {
+				throw new IOException("RTSP SETUP request failed: "+r.getStatusCode());
+			}
+			
+			r = sendVideoAnnounce();
+			if (r.getStatusCode() != 200) {
+				throw new IOException("RTSP ANNOUNCE request failed: "+r.getStatusCode());
+			}
+			
+			r = playStream("video");
+			if (r.getStatusCode() != 200) {
+				throw new IOException("RTSP PLAY request failed: "+r.getStatusCode());
+			}
+			r = playStream("audio");
+			if (r.getStatusCode() != 200) {
+				throw new IOException("RTSP PLAY request failed: "+r.getStatusCode());
+			}
+		} finally {
+			if (enetConnection != null) {
+				enetConnection.close();
+				enetConnection = null;
+			}
 		}
 	}
 }

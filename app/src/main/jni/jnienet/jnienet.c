@@ -30,7 +30,7 @@ Java_com_limelight_nvstream_enet_EnetConnection_connectToPeer(JNIEnv *env, jobje
     // Initialize the ENet address
     addrStr = (*env)->GetStringUTFChars(env, address, 0);    
     enet_address_set_host(&enetAddress, addrStr);
-    enetAddress.port = port;
+    enet_address_set_port(&enetAddress, port);
     (*env)->ReleaseStringUTFChars(env, address, addrStr);
     
     // Start the connection
@@ -47,6 +47,9 @@ Java_com_limelight_nvstream_enet_EnetConnection_connectToPeer(JNIEnv *env, jobje
     
     // Ensure the connect verify ACK is sent immediately
     enet_host_flush(LONG_TO_CLIENT(client));
+
+    // Set the max peer timeout to 10 seconds
+    enet_peer_timeout(peer, ENET_PEER_TIMEOUT_LIMIT, ENET_PEER_TIMEOUT_MINIMUM, 10000);
     
     return PEER_TO_LONG(peer);
 }
@@ -68,7 +71,8 @@ Java_com_limelight_nvstream_enet_EnetConnection_readPacket(JNIEnv *env, jobject 
     
     // Check that the packet isn't too large
     if (event.packet->dataLength > length) {
-        return -1;
+        enet_packet_destroy(event.packet);
+        return event.packet->dataLength;
     }
     
     // Copy the packet data into the caller's buffer

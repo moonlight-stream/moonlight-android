@@ -37,21 +37,54 @@ public class EnetConnection implements Closeable {
 		return conn;
 	}
 	
+	public void pumpSocket() throws IOException {
+		int ret;
+		while ((ret = readPacket(enetClient, null, 0, 0)) > 0);
+		if (ret < 0) {
+			throw new IOException("ENet connection failed");
+		}
+	}
+	
 	public ByteBuffer readPacket(int maxSize, int timeout) throws IOException {
-		ByteBuffer buffer = ByteBuffer.allocate(maxSize);
+		ByteBuffer buffer;
+		byte[] array;
+		int length;
 		
-		int readLength = readPacket(enetClient, buffer.array(), buffer.limit(), timeout);
-		if (readLength <= 0) {
-			throw new IOException("Failed to receive ENet packet");
+		if (maxSize != 0) {
+			buffer = ByteBuffer.allocate(maxSize);
+			array = buffer.array();
+			length = buffer.limit();
+		}
+		else {
+			// The caller doesn't want the packet back
+			buffer = null;
+			array = null;
+			length = 0;
 		}
 		
-		buffer.limit(readLength);
-		
-		return buffer;
+		int readLength = readPacket(enetClient, array, length, timeout);
+		if (readLength > length && length != 0) {
+			// This is a packet that was unexpectedly large compared to
+			// what the caller was expected.
+			throw new IOException("Received ENet packet too large: "+readLength);
+		}
+		else if (readLength <= 0) {
+			// We either got nothing or a socket error
+			throw new IOException("Failed to receive ENet packet");
+		}
+		else if (length == 0) {
+			// We received a packet but the caller didn't want it back
+			return null;
+		}
+		else {
+			// A packet was received which matched the caller's expectations
+			buffer.limit(readLength);
+			return buffer;
+		}
 	}
 	
 	public void writePacket(ByteBuffer buffer) throws IOException {
-		if (!writePacket(enetClient, enetPeer, buffer.array(), buffer.position(), ENET_PACKET_FLAG_RELIABLE)) {
+		if (!writePacket(enetClient, enetPeer, buffer.array(), buffer.limit(), ENET_PACKET_FLAG_RELIABLE)) {
 			throw new IOException("Failed to send ENet packet");
 		}
 	}

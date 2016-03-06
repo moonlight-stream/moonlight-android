@@ -186,6 +186,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		// Prevent multiple clients from writing to the stream at the same time
 		synchronized (this) {
 			if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+				enetConnection.pumpSocket();
 				packet.write(enetConnection);
 			}
 			else {
@@ -200,7 +201,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		synchronized (this) {
 			sendPacket(packet);
 			if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
-				enetConnection.readPacket(128, CONTROL_TIMEOUT);
+				enetConnection.readPacket(0, CONTROL_TIMEOUT);
 			}
 			else {
 				new NvCtlResponse(in);
@@ -574,8 +575,10 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 			// Use the class's serialization buffer to construct the wireform to send
 			synchronized (serializationBuffer) {
 				serializationBuffer.rewind();
+				serializationBuffer.limit(serializationBuffer.capacity());
 				serializationBuffer.putShort(type);
 				serializationBuffer.put(payload);
+				serializationBuffer.limit(serializationBuffer.position());
 
 				conn.writePacket(serializationBuffer);
 			}

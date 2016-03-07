@@ -562,6 +562,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 			// Use the class's serialization buffer to construct the wireform to send
 			synchronized (serializationBuffer) {
 				serializationBuffer.rewind();
+				serializationBuffer.limit(serializationBuffer.capacity());
 				serializationBuffer.putShort(type);
 				serializationBuffer.putShort(paylen);
 				serializationBuffer.put(payload);

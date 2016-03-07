@@ -242,12 +242,6 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 			} catch (IOException e) {}
 		}
 		
-		if (enetConnection != null) {
-			try {
-				enetConnection.close();
-			} catch (IOException e) {}
-		}
-		
 		if (lossStatsThread != null) {
 			lossStatsThread.interrupt();
 			
@@ -262,6 +256,12 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 			try {
 				resyncThread.join();
 			} catch (InterruptedException e) {}
+		}
+		
+		if (enetConnection != null) {
+			try {
+				enetConnection.close();
+			} catch (IOException e) {}
 		}
 	}
 	

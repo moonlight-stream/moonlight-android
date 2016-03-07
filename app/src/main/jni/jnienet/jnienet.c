@@ -15,9 +15,21 @@ Java_com_limelight_nvstream_enet_EnetConnection_initializeEnet(JNIEnv *env, jobj
 }
 
 JNIEXPORT jlong JNICALL
-Java_com_limelight_nvstream_enet_EnetConnection_createClient(JNIEnv *env, jobject class) {
+Java_com_limelight_nvstream_enet_EnetConnection_createClient(JNIEnv *env, jobject class, jstring address) {
+    ENetAddress enetAddress;
+    const char *addrStr;
+    int err;
+    
+    // Perform a lookup on the address to determine the address family
+    addrStr = (*env)->GetStringUTFChars(env, address, 0);
+    err = enet_address_set_host(&enetAddress, addrStr);
+    (*env)->ReleaseStringUTFChars(env, address, addrStr);
+    if (err < 0) {
+        return CLIENT_TO_LONG(NULL);
+    }
+    
     // Create a client that can use 1 outgoing connection and 1 channel
-    return CLIENT_TO_LONG(enet_host_create(NULL, 1, 1, 0, 0));
+    return CLIENT_TO_LONG(enet_host_create(enetAddress.address.ss_family, NULL, 1, 1, 0, 0));
 }
 
 JNIEXPORT jlong JNICALL
@@ -26,12 +38,16 @@ Java_com_limelight_nvstream_enet_EnetConnection_connectToPeer(JNIEnv *env, jobje
     ENetAddress enetAddress;
     ENetEvent event;
     const char *addrStr;
+    int err;
 
     // Initialize the ENet address
     addrStr = (*env)->GetStringUTFChars(env, address, 0);    
-    enet_address_set_host(&enetAddress, addrStr);
+    err = enet_address_set_host(&enetAddress, addrStr);
     enet_address_set_port(&enetAddress, port);
     (*env)->ReleaseStringUTFChars(env, address, addrStr);
+    if (err < 0) {
+        return PEER_TO_LONG(NULL);
+    }
     
     // Start the connection
     peer = enet_host_connect(LONG_TO_CLIENT(client), &enetAddress, 1, 0);

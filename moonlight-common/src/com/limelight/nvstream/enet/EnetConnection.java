@@ -21,7 +21,7 @@ public class EnetConnection implements Closeable {
 	public static EnetConnection connect(String host, int port, int timeout) throws IOException {
 		EnetConnection conn = new EnetConnection();
 		
-		conn.enetClient = createClient();
+		conn.enetClient = createClient(host);
 		if (conn.enetClient == 0) {
 			throw new IOException("Unable to create ENet client");
 		}
@@ -103,7 +103,7 @@ public class EnetConnection implements Closeable {
 	}
 	
 	private static native int initializeEnet();
-	private static native long createClient();
+	private static native long createClient(String address);
 	private static native long connectToPeer(long client, String host, int port, int timeout);
 	private static native int readPacket(long client, byte[] data, int length, int timeout);
 	private static native boolean writePacket(long client, long peer, byte[] data, int length, int packetFlags);

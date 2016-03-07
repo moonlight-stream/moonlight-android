@@ -99,9 +99,16 @@ Java_com_limelight_nvstream_enet_EnetConnection_writePacket(JNIEnv *env, jobject
     packet = enet_packet_create(dataPtr, length, packetFlags);
     if (packet != NULL) {
         // Send the message to the peer
-        enet_peer_send(LONG_TO_PEER(peer), 0, packet);
-        enet_host_flush(LONG_TO_CLIENT(client));
-        ret = JNI_TRUE;
+        if (enet_peer_send(LONG_TO_PEER(peer), 0, packet) < 0) {
+            // This can fail if the peer has been disconnected
+            enet_packet_destroy(packet);
+            ret = JNI_FALSE;
+        }
+        else {
+            // Force the client to send the packet now
+            enet_host_flush(LONG_TO_CLIENT(client));
+            ret = JNI_TRUE;
+        }
     }
     else {
         ret = JNI_FALSE;

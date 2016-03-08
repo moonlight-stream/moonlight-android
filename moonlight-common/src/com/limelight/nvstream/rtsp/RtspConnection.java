@@ -88,8 +88,8 @@ public class RtspConnection {
 		// Parse the response and determine whether it has a payload
 		RtspResponse message = (RtspResponse) RtspParser.parseMessageNoPayload(byteBufferToString(responseHeader.array(), responseHeader.limit()));
 		if (message.getOption("Content-Length") != null) {
-			// The payload should immediately follow the header, so only wait another second
-			ByteBuffer responsePayload = enetConnection.readPacket(65536, 1000);
+			// The payload comes in a second packet
+			ByteBuffer responsePayload = enetConnection.readPacket(65536, RTSP_TIMEOUT);
 			message.setPayload(byteBufferToString(responsePayload.array(), responsePayload.limit()));
 		}
 		

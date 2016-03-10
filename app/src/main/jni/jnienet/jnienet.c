@@ -1,6 +1,8 @@
 #include "enet/enet.h"
 
 #include <stdlib.h>
+#include <string.h>
+
 #include <jni.h>
 
 #define CLIENT_TO_LONG(x) ((intptr_t)(x))
@@ -135,12 +137,12 @@ Java_com_limelight_nvstream_enet_EnetConnection_writePacket(JNIEnv *env, jobject
     return ret;
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_enet_EnetConnection_destroyClient(JNIEnv *env, jobject class, jlong client) {
     enet_host_destroy(LONG_TO_CLIENT(client));
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_enet_EnetConnection_disconnectPeer(JNIEnv *env, jobject class, jlong peer) {
     enet_peer_disconnect_now(LONG_TO_PEER(peer), 0);
 }

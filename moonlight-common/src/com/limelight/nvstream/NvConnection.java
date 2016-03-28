@@ -103,43 +103,43 @@ public class NvConnection {
 		NvHTTP h = new NvHTTP(context.serverAddress, uniqueId, null, cryptoProvider);
 		
 		String serverInfo = h.getServerInfo();
-		String serverVersion = h.getServerVersion(serverInfo);
-		if (serverVersion == null || serverVersion.indexOf('.') < 0) {
-			context.connListener.displayMessage("Server major version not present");
+		
+		int majorVersion = h.getServerMajorVersion(serverInfo);
+		LimeLog.info("Server major version: "+majorVersion);
+		
+		if (majorVersion == 0) {
+			context.connListener.displayMessage("Server version malformed");
 			return false;
 		}
-		
-		try {
-			int majorVersion = Integer.parseInt(serverVersion.substring(0, serverVersion.indexOf('.')));
-			if (majorVersion < 3) {
-				// Even though we support major version 3 (2.1.x), GFE 2.2.2 is preferred.
-				context.connListener.displayMessage("This app requires GeForce Experience 2.2.2 or later. Please upgrade GFE on your PC and try again.");
-				return false;
-			}
-			else if (majorVersion > 5) {
-				// Warn the user but allow them to continue
-				context.connListener.displayTransientMessage("This version of GFE is not currently supported. You may experience issues until this app is updated.");
-			}
-			
-			switch (majorVersion) {
-			case 3:
-				context.serverGeneration = ConnectionContext.SERVER_GENERATION_3;
-				break;
-			case 4:
-				context.serverGeneration = ConnectionContext.SERVER_GENERATION_4;
-				break;
-			case 5:
-			default:
-				context.serverGeneration = ConnectionContext.SERVER_GENERATION_5;
-				break;
-			}
-			
-			LimeLog.info("Server major version: "+majorVersion);
-		} catch (NumberFormatException e) {
-			context.connListener.displayMessage("Server version malformed: "+serverVersion);
+		else if (majorVersion < 3) {
+			// Even though we support major version 3 (2.1.x), GFE 2.2.2 is preferred.
+			context.connListener.displayMessage("This app requires GeForce Experience 2.2.2 or later. Please upgrade GFE on your PC and try again.");
 			return false;
 		}
+		else if (majorVersion > 7) {
+			// Warn the user but allow them to continue
+			context.connListener.displayTransientMessage("This version of GFE is not currently supported. You may experience issues until this app is updated.");
+		}
 		
+		switch (majorVersion) {
+		case 3:
+			context.serverGeneration = ConnectionContext.SERVER_GENERATION_3;
+			break;
+		case 4:
+			context.serverGeneration = ConnectionContext.SERVER_GENERATION_4;
+			break;
+		case 5:
+			context.serverGeneration = ConnectionContext.SERVER_GENERATION_5;
+			break;
+		case 6:
+			context.serverGeneration = ConnectionContext.SERVER_GENERATION_6;
+			break;
+		case 7:
+		default:
+			context.serverGeneration = ConnectionContext.SERVER_GENERATION_7;
+			break;
+		}
+				
 		if (h.getPairState(serverInfo) != PairingManager.PairState.PAIRED) {
 			context.connListener.displayMessage("Device not paired with computer");
 			return false;

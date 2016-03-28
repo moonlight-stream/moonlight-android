@@ -444,8 +444,8 @@ public class NvHTTP {
 		return null;
 	}
 	
-	public PairingManager.PairState pair(String pin) throws Exception {
-		return pm.pair(pin);
+	public PairingManager.PairState pair(String serverInfo, String pin) throws Exception {
+		return pm.pair(serverInfo, pin);
 	}
 	
 	public static LinkedList<NvApp> getAppListByReader(Reader r) throws XmlPullParserException, IOException {
@@ -535,6 +535,20 @@ public class NvHTTP {
 		ResponseBody resp = openHttpConnection(baseUrlHttps + "/appasset?"+ buildUniqueIdUuidString() +
 				"&appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0", true);
 		return resp.byteStream();
+	}
+	
+	public int getServerMajorVersion(String serverInfo) throws XmlPullParserException, IOException {
+		try {
+			String serverVersion = getServerVersion(serverInfo);
+			if (serverVersion == null || serverVersion.indexOf('.') < 0) {
+				LimeLog.warning("Malformed server version field");
+				return 0;
+			}
+			return Integer.parseInt(serverVersion.substring(0, serverVersion.indexOf('.')));
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			return 0;
+		}
 	}
 
 	final private static char[] hexArray = "0123456789ABCDEF".toCharArray();

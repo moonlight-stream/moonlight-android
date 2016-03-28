@@ -10,6 +10,8 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import com.limelight.LimeLog;
+
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.io.*;
@@ -86,18 +88,6 @@ public class PairingManager {
 		return saltedPin;
 	}
 	
-	private static byte[] toSHA1Bytes(byte[] data) {
-	    try {
-	    	MessageDigest md = MessageDigest.getInstance("SHA-1");
-		    return md.digest(data);
-	    }
-	    catch (NoSuchAlgorithmException e) {
-	        // Shouldn't ever happen
-	    	e.printStackTrace();
-	    	return null;
-	    } 
-	}
-	
 	private static boolean verifySignature(byte[] data, byte[] signature, Certificate cert) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
 		Signature sig = Signature.getInstance("SHA256withRSA");
 		sig.initVerify(cert.getPublicKey());
@@ -139,8 +129,8 @@ public class PairingManager {
 		return cipher.doFinal(blockRoundedData);
 	}
 	
-	private static SecretKey generateAesKey(byte[] keyData) {
-		byte[] aesTruncated = Arrays.copyOf(toSHA1Bytes(keyData), 16);
+	private static SecretKey generateAesKey(PairingHashAlgorithm hashAlgo, byte[] keyData) {
+		byte[] aesTruncated = Arrays.copyOf(hashAlgo.hashData(keyData), 16);
 		return new SecretKeySpec(aesTruncated, "AES");
 	}
 	
@@ -166,13 +156,26 @@ public class PairingManager {
 		return PairState.PAIRED;
 	}
 	
-	public PairState pair(String pin) throws MalformedURLException, IOException, XmlPullParserException, CertificateException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, ShortBufferException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException {
+	public PairState pair(String serverInfo, String pin) throws MalformedURLException, IOException, XmlPullParserException, CertificateException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, ShortBufferException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException {
+		PairingHashAlgorithm hashAlgo;
+		
+		int serverMajorVersion = http.getServerMajorVersion(serverInfo);
+		LimeLog.info("Pairing with server generation: "+serverMajorVersion);
+		if (serverMajorVersion >= 7) {
+			// Gen 7+ uses SHA-256 hashing
+			hashAlgo = new Sha256PairingHash();
+		}
+		else {
+			// Prior to Gen 7, SHA-1 is used
+			hashAlgo = new Sha1PairingHash();
+		}
+		
 		// Generate a salt for hashing the PIN
 		byte[] salt = generateRandomBytes(16);
 
 		// Combine the salt and pin, then create an AES key from them
 		byte[] saltAndPin = saltPin(salt, pin);
-		aesKey = generateAesKey(saltAndPin);
+		aesKey = generateAesKey(hashAlgo, saltAndPin);
 		
 		// Send the salt and get the server cert. This doesn't have a read timeout
 		// because the user must enter the PIN before the server responds
@@ -203,12 +206,12 @@ public class PairingManager {
 		byte[] encServerChallengeResponse = hexToBytes(NvHTTP.getXmlString(challengeResp, "challengeresponse"));
 		byte[] decServerChallengeResponse = decryptAes(encServerChallengeResponse, aesKey);
 		
-		byte[] serverResponse = Arrays.copyOfRange(decServerChallengeResponse, 0, 20);
-		byte[] serverChallenge = Arrays.copyOfRange(decServerChallengeResponse, 20, 36);
+		byte[] serverResponse = Arrays.copyOfRange(decServerChallengeResponse, 0, hashAlgo.getHashLength());
+		byte[] serverChallenge = Arrays.copyOfRange(decServerChallengeResponse, hashAlgo.getHashLength(), hashAlgo.getHashLength() + 16);
 		
 		// Using another 16 bytes secret, compute a challenge response hash using the secret, our cert sig, and the challenge
 		byte[] clientSecret = generateRandomBytes(16);
-		byte[] challengeRespHash = toSHA1Bytes(concatBytes(concatBytes(serverChallenge, cert.getSignature()), clientSecret));
+		byte[] challengeRespHash = hashAlgo.hashData(concatBytes(concatBytes(serverChallenge, cert.getSignature()), clientSecret));
 		byte[] challengeRespEncrypted = encryptAes(challengeRespHash, aesKey);
 		String secretResp = http.openHttpConnectionToString(http.baseUrlHttp +
 				"/pair?"+http.buildUniqueIdUuidString()+"&devicename=roth&updateState=1&serverchallengeresp="+bytesToHex(challengeRespEncrypted),
@@ -233,7 +236,7 @@ public class PairingManager {
 		}
 		
 		// Ensure the server challenge matched what we expected (aka the PIN was correct)
-		byte[] serverChallengeRespHash = toSHA1Bytes(concatBytes(concatBytes(randomChallenge, serverCert.getSignature()), serverSecret));
+		byte[] serverChallengeRespHash = hashAlgo.hashData(concatBytes(concatBytes(randomChallenge, serverCert.getSignature()), serverSecret));
 		if (!Arrays.equals(serverChallengeRespHash, serverResponse)) {
 			// Cancel the pairing process
 			http.openHttpConnectionToString(http.baseUrlHttp + "/unpair?"+http.buildUniqueIdUuidString(), true);
@@ -261,5 +264,46 @@ public class PairingManager {
 		}
 		
 		return PairState.PAIRED;
+	}
+	
+	private static interface PairingHashAlgorithm {
+		public int getHashLength();
+		public byte[] hashData(byte[] data);
+	}
+	
+	private static class Sha1PairingHash implements PairingHashAlgorithm {
+		public int getHashLength() {
+			return 20;
+		}
+		
+		public byte[] hashData(byte[] data) {
+		    try {
+		    	MessageDigest md = MessageDigest.getInstance("SHA-1");
+			    return md.digest(data);
+		    }
+		    catch (NoSuchAlgorithmException e) {
+		        // Shouldn't ever happen
+		    	e.printStackTrace();
+		    	return null;
+		    }
+		}
+	}
+	
+	private static class Sha256PairingHash implements PairingHashAlgorithm {
+		public int getHashLength() {
+			return 32;
+		}
+		
+		public byte[] hashData(byte[] data) {
+		    try {
+		    	MessageDigest md = MessageDigest.getInstance("SHA-256");
+			    return md.digest(data);
+		    }
+		    catch (NoSuchAlgorithmException e) {
+		        // Shouldn't ever happen
+		    	e.printStackTrace();
+		    	return null;
+		    }
+		}
 	}
 }

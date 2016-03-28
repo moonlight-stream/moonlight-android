@@ -17,6 +17,12 @@ public class ConnectionContext {
 	// Gen 5 servers are 2.10.2+
 	public static final int SERVER_GENERATION_5 = 5;
 	
+	// Gen 6 servers haven't been seen in the wild
+	public static final int SERVER_GENERATION_6 = 6;
+	
+	// Gen 7 servers are GFE 2.11.2.46+
+	public static final int SERVER_GENERATION_7 = 7;
+	
 	public InetAddress serverAddress;
 	public StreamConfiguration streamConfig;
 	public VideoDecoderRenderer videoDecoderRenderer;

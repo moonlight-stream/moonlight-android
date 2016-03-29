@@ -9,6 +9,7 @@ import java.nio.ByteOrder;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -239,6 +240,15 @@ public class ControllerStream {
 		// Send the packet over the control stream on Gen 5+
 		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
 			controlSender.sendInputPacket(sendBuffer.array(), (short) (paddedLength + 4));
+			
+			// For reasons that I can't understand, NVIDIA decides to use the last 16
+			// bytes of ciphertext in the most recent game controller packet as the IV for
+			// future encryption. I think it may be a buffer overrun on their end but we'll have
+			// to mimic it to work correctly.
+			if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_7 && paddedLength >= 32) {
+				cipher.initialize(context.riKey,
+						Arrays.copyOfRange(sendBuffer.array(), 4 + paddedLength - 16, 4 + paddedLength));
+			}
 		}
 		else {
 			// Send the packet over the TCP connection on Gen 4 and below

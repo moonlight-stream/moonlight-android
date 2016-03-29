@@ -38,6 +38,24 @@ public class RtspConnection {
 		}
 	}
 	
+	private String getRtspVideoStreamName() {
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+			return "video/0/0";
+		}
+		else {
+			return "video";
+		}
+	}
+	
+	private String getRtspAudioStreamName() {
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+			return "audio/0/0";
+		}
+		else {
+			return "video";
+		}
+	}
+	
 	public static int getRtspVersionFromContext(ConnectionContext context) {
 		switch (context.serverGeneration)
 		{
@@ -46,8 +64,13 @@ public class RtspConnection {
 		case ConnectionContext.SERVER_GENERATION_4:
 			return 11;
 		case ConnectionContext.SERVER_GENERATION_5:
-		default:
 			return 12;
+		case ConnectionContext.SERVER_GENERATION_6:
+			// Gen 6 has never been seen in the wild
+			return 13;
+		case ConnectionContext.SERVER_GENERATION_7:
+		default:
+			return 14;
 		}
 	}
 
@@ -141,7 +164,15 @@ public class RtspConnection {
 		if (sessionId != 0) {
 			m.setOption("Session", ""+sessionId);
 		}
-		m.setOption("Transport", " ");
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_6) {
+			// It looks like GFE doesn't care what we say our port is but
+			// we need to give it some port to successfully complete the
+			// handshake process.
+			m.setOption("Transport", "unicast;X-GS-ClientPort=50000-50001");
+		}
+		else {
+			m.setOption("Transport", " ");
+		}
 		m.setOption("If-Modified-Since", "Thu, 01 Jan 1970 00:00:00 GMT");
 		return transactRtspMessage(m);
 	}
@@ -208,7 +239,7 @@ public class RtspConnection {
 			// Process the RTSP DESCRIBE response
 			processDescribeResponse(r);
 			
-			r = setupStream("audio");
+			r = setupStream(getRtspAudioStreamName());
 			if (r.getStatusCode() != 200) {
 				throw new IOException("RTSP SETUP request failed: "+r.getStatusCode());
 			}
@@ -216,9 +247,16 @@ public class RtspConnection {
 			// Process the RTSP SETUP streamid=audio response
 			processRtspSetupAudio(r);
 			
-			r = setupStream("video");
+			r = setupStream(getRtspVideoStreamName());
 			if (r.getStatusCode() != 200) {
 				throw new IOException("RTSP SETUP request failed: "+r.getStatusCode());
+			}
+			
+			if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+				r = setupStream("control/1/0");
+				if (r.getStatusCode() != 200) {
+					throw new IOException("RTSP SETUP request failed: "+r.getStatusCode());
+				}
 			}
 			
 			r = sendVideoAnnounce();

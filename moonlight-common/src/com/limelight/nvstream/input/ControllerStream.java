@@ -12,8 +12,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.ShortBufferException;
 import javax.crypto.spec.IvParameterSpec;
 
 import com.limelight.nvstream.ConnectionContext;
@@ -34,7 +38,7 @@ public class ControllerStream {
 	// Used on Gen 5+ servers
 	private InputPacketSender controlSender;
 	
-	private Cipher riCipher;
+	private InputCipher cipher;
 	
 	private Thread inputThread;
 	private LinkedBlockingQueue<InputPacket> inputQueue = new LinkedBlockingQueue<InputPacket>();
@@ -45,23 +49,19 @@ public class ControllerStream {
 	public ControllerStream(ConnectionContext context)
 	{
 		this.context = context;
-		try {
-			// This cipher is guaranteed to be supported
-			this.riCipher = Cipher.getInstance("AES/CBC/NoPadding");
-			
-			ByteBuffer bb = ByteBuffer.allocate(16);
-			bb.putInt(context.riKeyId);
-			
-			this.riCipher.init(Cipher.ENCRYPT_MODE, context.riKey, new IvParameterSpec(bb.array()));
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (NoSuchPaddingException e) {
-			e.printStackTrace();
-		} catch (InvalidKeyException e) {
-			e.printStackTrace();
-		} catch (InvalidAlgorithmParameterException e) {
-			e.printStackTrace();
+		
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_7) {
+			// Newer GFE versions use AES GCM
+			cipher = new AesGcmCipher();
 		}
+		else {
+			// Older versions used AES CBC
+			cipher = new AesCbcCipher();
+		}
+		
+		ByteBuffer bb = ByteBuffer.allocate(16);
+		bb.putInt(context.riKeyId);
+		cipher.initialize(context.riKey, bb.array());
 	}
 	
 	public void initialize(InputPacketSender controlSender) throws IOException
@@ -217,47 +217,19 @@ public class ControllerStream {
 		}
 	}
 	
-	private static int getPaddedSize(int length) {
-		return ((length + 15) / 16) * 16;
-	}
-	
-	private static int inPlacePadData(byte[] data, int length) {
-		// This implements the PKCS7 padding algorithm
-		
-		if ((length % 16) == 0) {
-			// Already a multiple of 16
-			return length;
-		}
-		
-		int paddedLength = getPaddedSize(length);
-		byte paddingByte = (byte)(16 - (length % 16));
-		
-		for (int i = length; i < paddedLength; i++) {
-			data[i] = paddingByte;
-		}
-		
-		return paddedLength;
-	}
-	
-	private int encryptAesInputData(byte[] inputData, int inputLength, byte[] outputData, int outputOffset) throws Exception {
-		int encryptedLength = inPlacePadData(inputData, inputLength);
-		riCipher.update(inputData, 0, encryptedLength, outputData, outputOffset);
-		return encryptedLength;
-	}
-	
 	private void sendPacket(InputPacket packet) throws IOException {
 		// Store the packet in wire form in the byte buffer
 		packet.toWire(stagingBuffer);
 		int packetLen = packet.getPacketLength();
 		
-		// Pad to 16 byte chunks
-		int paddedLength = getPaddedSize(packetLen);
+		// Get final encrypted size of this block
+		int paddedLength = cipher.getEncryptedSize(packetLen);
 		
 		// Allocate a byte buffer to represent the final packet
 		sendBuffer.rewind();
 		sendBuffer.putInt(paddedLength);
 		try {
-			encryptAesInputData(stagingBuffer.array(), packetLen, sendBuffer.array(), 4);
+			cipher.encrypt(stagingBuffer.array(), packetLen, sendBuffer.array(), 4);
 		} catch (Exception e) {
 			// Should never happen
 			e.printStackTrace();
@@ -338,5 +310,108 @@ public class ControllerStream {
 	public void sendMouseScroll(byte scrollClicks)
 	{
 		queuePacket(new MouseScrollPacket(context, scrollClicks));
+	}
+	
+	private static interface InputCipher {
+		public void initialize(SecretKey key, byte[] iv);
+		public int getEncryptedSize(int plaintextSize);
+		public void encrypt(byte[] inputData, int inputLength, byte[] outputData, int outputOffset);
+	}
+	
+	private static class AesCbcCipher implements InputCipher {
+		private Cipher cipher;
+		
+		public void initialize(SecretKey key, byte[] iv) {
+			try {
+				cipher = Cipher.getInstance("AES/CBC/NoPadding");
+				cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			} catch (NoSuchPaddingException e) {
+				e.printStackTrace();
+			} catch (InvalidKeyException e) {
+				e.printStackTrace();
+			} catch (InvalidAlgorithmParameterException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		public int getEncryptedSize(int plaintextSize) {
+			// CBC requires padding to the next multiple of 16
+			return ((plaintextSize + 15) / 16) * 16;
+		}
+		
+		private int inPlacePadData(byte[] data, int length) {
+			// This implements the PKCS7 padding algorithm
+			
+			if ((length % 16) == 0) {
+				// Already a multiple of 16
+				return length;
+			}
+			
+			int paddedLength = getEncryptedSize(length);
+			byte paddingByte = (byte)(16 - (length % 16));
+			
+			for (int i = length; i < paddedLength; i++) {
+				data[i] = paddingByte;
+			}
+			
+			return paddedLength;
+		}
+		
+		public void encrypt(byte[] inputData, int inputLength, byte[] outputData, int outputOffset) {
+			int encryptedLength = inPlacePadData(inputData, inputLength);
+			try {
+				cipher.update(inputData, 0, encryptedLength, outputData, outputOffset);
+			} catch (ShortBufferException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private static class AesGcmCipher implements InputCipher {
+		private SecretKey key;
+		private byte[] iv;
+		
+		public int getEncryptedSize(int plaintextSize) {
+			// GCM uses no padding + 16 bytes tag for message authentication
+			return plaintextSize + 16;
+		}
+		
+		@Override
+		public void initialize(SecretKey key, byte[] iv) {
+			this.key = key;
+			this.iv = iv;
+		}
+
+		@Override
+		public void encrypt(byte[] inputData, int inputLength, byte[] outputData, int outputOffset) {
+			// Reconstructing the cipher on every invocation really sucks but we have to do it
+			// because of the way NVIDIA is using GCM where each message is tagged. Java doesn't
+			// have an easy way that I know of to get a tag out mid-stream.
+			Cipher cipher;
+			try {
+				cipher = Cipher.getInstance("AES/GCM/NoPadding");
+				cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
+				
+				// This is also non-ideal. Java gives us <ciphertext><tag> but we want to send <tag><ciphertext>
+				// so we'll take the output and arraycopy it into the right spot in the output buffer
+				byte[] rawCipherOut = cipher.doFinal(inputData, 0, inputLength);
+				System.arraycopy(rawCipherOut, inputLength, outputData, outputOffset, 16);
+				System.arraycopy(rawCipherOut, 0, outputData, outputOffset + 16, inputLength);
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			} catch (NoSuchPaddingException e) {
+				e.printStackTrace();
+			} catch (InvalidKeyException e) {
+				e.printStackTrace();
+			} catch (InvalidAlgorithmParameterException e) {
+				e.printStackTrace();
+			} catch (IllegalBlockSizeException e) {
+				e.printStackTrace();
+			} catch (BadPaddingException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

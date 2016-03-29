@@ -28,6 +28,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 	private static final int IDX_START_B = 1;
 	private static final int IDX_INVALIDATE_REF_FRAMES = 2;
 	private static final int IDX_LOSS_STATS = 3;
+	private static final int IDX_INPUT_DATA = 5;
 	
 	private static final short packetTypesGen3[] = {
 		0x140b, // Start A
@@ -35,6 +36,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		0x1404, // Invalidate reference frames
 		0x140c, // Loss Stats
 		0x1417, // Frame Stats (unused)
+		-1,     // Input data (unused)
 	};
 	private static final short packetTypesGen4[] = {
 		0x0606, // Request IDR frame
@@ -42,6 +44,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		0x0604, // Invalidate reference frames
 		0x060a, // Loss Stats
 		0x0611, // Frame Stats (unused)
+		-1,     // Input data (unused)
 	};
 	private static final short packetTypesGen5[] = {
 		0x0305, // Start A
@@ -49,6 +52,15 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		0x0301, // Invalidate reference frames
 		0x0201, // Loss Stats
 		0x0204, // Frame Stats (unused)
+		0x0207, // Input data
+	};
+	private static final short packetTypesGen7[] = {
+		0x0305, // Start A
+		0x0307, // Start B
+		0x0301, // Invalidate reference frames
+		0x0201, // Loss Stats
+		0x0204, // Frame Stats (unused)
+		0x0206, // Input data
 	};
 	
 	private static final short payloadLengthsGen3[] = {
@@ -57,6 +69,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		24, // Invalidate reference frames
 		32, // Loss Stats
 		64, // Frame Stats
+		-1, // Input Data
 	};
 	private static final short payloadLengthsGen4[] = {
 		-1, // Request IDR frame
@@ -64,6 +77,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		24, // Invalidate reference frames
 		32, // Loss Stats
 		64, // Frame Stats
+		-1, // Input Data
 	};
 	private static final short payloadLengthsGen5[] = {
 		-1, // Start A
@@ -71,6 +85,15 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		24, // Invalidate reference frames
 		32, // Loss Stats
 		80, // Frame Stats
+		-1, // Input Data
+	};
+	private static final short payloadLengthsGen7[] = {
+		-1, // Start A
+		16, // Start B
+		24, // Invalidate reference frames
+		32, // Loss Stats
+		80, // Frame Stats
+		-1, // Input Data
 	};
 	
 	private static final byte[] precontructedPayloadsGen3[] = {
@@ -79,6 +102,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		null, // Invalidate reference frames
 		null, // Loss Stats
 		null, // Frame Stats
+		null, // Input Data
 	};
 	private static final byte[] precontructedPayloadsGen4[] = {
 		new byte[]{0, 0}, // Request IDR frame
@@ -86,6 +110,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		null, // Invalidate reference frames
 		null, // Loss Stats
 		null, // Frame Stats
+		null, // Input Data
 	};
 	private static final byte[] precontructedPayloadsGen5[] = {
 		new byte[]{0, 0}, // Start A
@@ -93,6 +118,15 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		null, // Invalidate reference frames
 		null, // Loss Stats
 		null, // Frame Stats
+		null, // Input Data
+	};
+	private static final byte[] precontructedPayloadsGen7[] = {
+		new byte[]{0, 0}, // Start A
+		null, // Start B
+		null, // Invalidate reference frames
+		null, // Loss Stats
+		null, // Frame Stats
+		null, // Input Data
 	};
 	
 	public static final int LOSS_REPORT_INTERVAL_MS = 50;
@@ -154,10 +188,15 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 			preconstructedPayloads = precontructedPayloadsGen4;
 			break;
 		case ConnectionContext.SERVER_GENERATION_5:
-		default:
 			packetTypes = packetTypesGen5;
 			payloadLengths = payloadLengthsGen5;
 			preconstructedPayloads = precontructedPayloadsGen5;
+			break;
+		case ConnectionContext.SERVER_GENERATION_7:
+		default:
+			packetTypes = packetTypesGen7;
+			payloadLengths = payloadLengthsGen7;
+			preconstructedPayloads = precontructedPayloadsGen7;
 			break;
 		}
 		
@@ -225,7 +264,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 	}
 	
 	public void sendInputPacket(byte[] data, short length) throws IOException {
-		sendPacket(new NvCtlPacket((short) 0x0207, length, data));
+		sendPacket(new NvCtlPacket(packetTypes[IDX_INPUT_DATA], length, data));
 	}
 	
 	public void abort()
@@ -565,7 +604,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 				serializationBuffer.limit(serializationBuffer.capacity());
 				serializationBuffer.putShort(type);
 				serializationBuffer.putShort(paylen);
-				serializationBuffer.put(payload);
+				serializationBuffer.put(payload, 0, paylen);
 
 				out.write(serializationBuffer.array(), 0, serializationBuffer.position());
 			}
@@ -578,7 +617,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 				serializationBuffer.rewind();
 				serializationBuffer.limit(serializationBuffer.capacity());
 				serializationBuffer.putShort(type);
-				serializationBuffer.put(payload);
+				serializationBuffer.put(payload, 0, paylen);
 				serializationBuffer.limit(serializationBuffer.position());
 
 				conn.writePacket(serializationBuffer);

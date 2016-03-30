@@ -327,7 +327,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                         Dialog.displayDialog(PcView.this, getResources().getString(R.string.pair_pairing_title),
                                 getResources().getString(R.string.pair_pairing_msg)+" "+pinStr, false);
 
-                        PairingManager.PairState pairState = httpConn.pair(pinStr);
+                        PairingManager.PairState pairState = httpConn.pair(httpConn.getServerInfo(), pinStr);
                         if (pairState == PairingManager.PairState.PIN_WRONG) {
                             message = getResources().getString(R.string.pair_incorrect_pin);
                         }

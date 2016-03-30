@@ -52,7 +52,7 @@ public class RtspConnection {
 			return "audio/0/0";
 		}
 		else {
-			return "video";
+			return "audio";
 		}
 	}
 	

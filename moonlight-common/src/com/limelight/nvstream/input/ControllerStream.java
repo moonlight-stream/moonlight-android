@@ -19,6 +19,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.ShortBufferException;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 
 import com.limelight.nvstream.ConnectionContext;
@@ -402,7 +403,7 @@ public class ControllerStream {
 			Cipher cipher;
 			try {
 				cipher = Cipher.getInstance("AES/GCM/NoPadding");
-				cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
+				cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv));
 				
 				// This is also non-ideal. Java gives us <ciphertext><tag> but we want to send <tag><ciphertext>
 				// so we'll take the output and arraycopy it into the right spot in the output buffer

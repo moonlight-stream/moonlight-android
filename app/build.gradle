@@ -12,7 +12,7 @@ android {
         targetSdkVersion 23
 
         versionName "4.5.6"
-        versionCode = 94
+        versionCode = 95
     }
 
     productFlavors {

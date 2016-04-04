@@ -655,10 +655,6 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		}
 	}
 
-	public void connectionTerminated() {
-		abort();
-	}
-
 	private void resyncConnection(int firstLostFrame, int nextSuccessfulFrame) {
 		invalidReferenceFrameTuples.add(new int[]{firstLostFrame, nextSuccessfulFrame});
 	}

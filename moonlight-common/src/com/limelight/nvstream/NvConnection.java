@@ -81,20 +81,21 @@ public class NvConnection {
 	
 	public void stop()
 	{
-		if (videoStream != null) {
-			videoStream.abort();
+		if (inputStream != null) {
+			inputStream.abort();
+			inputStream = null;
 		}
+		
 		if (audioStream != null) {
 			audioStream.abort();
 		}
 		
+		if (videoStream != null) {
+			videoStream.abort();
+		}
+
 		if (controlStream != null) {
 			controlStream.abort();
-		}
-		
-		if (inputStream != null) {
-			inputStream.abort();
-			inputStream = null;
 		}
 	}
 	

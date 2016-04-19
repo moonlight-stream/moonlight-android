@@ -75,8 +75,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private final TouchContext[] touchContextMap = new TouchContext[2];
     private long threeFingerDownTime = 0;
 
-    private static final double REFERENCE_HORIZ_RES = 1280;
-    private static final double REFERENCE_VERT_RES = 720;
+    private static final int REFERENCE_HORIZ_RES = 1280;
+    private static final int REFERENCE_VERT_RES = 720;
 
     private static final int THREE_FINGER_TAP_THRESHOLD = 300;
 
@@ -85,7 +85,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private KeyboardTranslator keybTranslator;
 
     private PreferenceConfiguration prefConfig;
-    private final Point screenSize = new Point(0, 0);
 
     private NvConnection conn;
     private SpinnerDialog spinner;
@@ -97,6 +96,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private int modifierFlags = 0;
     private boolean grabbedInput = true;
     private boolean grabComboDown = false;
+    private StreamView streamView;
 
     private EnhancedDecoderRenderer decoderRenderer;
 
@@ -175,13 +175,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             drFlags |= VideoDecoderRenderer.FLAG_FILL_SCREEN;
         }
 
-        Display display = getWindowManager().getDefaultDisplay();
-        display.getSize(screenSize);
-
         // Listen for events on the game surface
-        StreamView sv = (StreamView) findViewById(R.id.surfaceView);
-        sv.setOnGenericMotionListener(this);
-        sv.setOnTouchListener(this);
+        streamView = (StreamView) findViewById(R.id.surfaceView);
+        streamView.setOnGenericMotionListener(this);
+        streamView.setOnTouchListener(this);
 
         // Warn the user if they're on a metered connection
         checkDataConnection();
@@ -258,6 +255,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // >= 4K screens have exactly 4K screens, so we'll be able to hit this good path
             // on these devices. On Marshmallow, we can start changing to 4K manually but no
             // 4K devices run 6.0 at the moment.
+            Display display = getWindowManager().getDefaultDisplay();
+            Point screenSize = new Point(0, 0);
+            display.getSize(screenSize);
+
             double screenAspectRatio = ((double)screenSize.y) / screenSize.x;
             double streamAspectRatio = ((double)prefConfig.height) / prefConfig.width;
             if (Math.abs(screenAspectRatio - streamAspectRatio) < 0.001) {
@@ -266,21 +267,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
         }
 
-        SurfaceHolder sh = sv.getHolder();
+        SurfaceHolder sh = streamView.getHolder();
         if (prefConfig.stretchVideo || aspectRatioMatch) {
             // Set the surface to the size of the video
             sh.setFixedSize(prefConfig.width, prefConfig.height);
         }
         else {
             // Set the surface to scale based on the aspect ratio of the stream
-            sv.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
+            streamView.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
         }
 
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
             touchContextMap[i] = new TouchContext(conn, i,
-                    (REFERENCE_HORIZ_RES / (double)screenSize.x),
-                    (REFERENCE_VERT_RES / (double)screenSize.y));
+                    REFERENCE_HORIZ_RES, REFERENCE_VERT_RES,
+                    streamView);
         }
 
         if (LimelightBuildProps.ROOT_BUILD) {
@@ -783,8 +784,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             // Scale the deltas if the device resolution is different
             // than the stream resolution
-            deltaX = (int)Math.round((double)deltaX * (REFERENCE_HORIZ_RES / (double)screenSize.x));
-            deltaY = (int)Math.round((double)deltaY * (REFERENCE_VERT_RES / (double)screenSize.y));
+            deltaX = (int)Math.round((double)deltaX * (REFERENCE_HORIZ_RES / (double)streamView.getWidth()));
+            deltaY = (int)Math.round((double)deltaY * (REFERENCE_VERT_RES / (double)streamView.getHeight()));
 
             conn.sendMouseMove((short)deltaX, (short)deltaY);
         }

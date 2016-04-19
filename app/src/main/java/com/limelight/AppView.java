@@ -108,6 +108,17 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         }
     };
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        getFragmentManager().beginTransaction()
+                .replace(R.id.appFragmentContainer, new AdapterFragment())
+                .commitAllowingStateLoss();
+
+        appGridAdapter.notifyDataSetChanged();
+    }
+
     private void startComputerUpdates() {
         // Don't start polling if we're not bound or in the foreground
         if (managerBinder == null || !inForeground) {

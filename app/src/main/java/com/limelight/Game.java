@@ -22,6 +22,7 @@ import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.GameGestures;
+import com.limelight.ui.StreamView;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 
@@ -91,7 +92,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
     private boolean connected = false;
-    private boolean deferredSurfaceResize = false;
 
     private EvdevHandler evdevHandler;
     private int modifierFlags = 0;
@@ -179,7 +179,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         display.getSize(screenSize);
 
         // Listen for events on the game surface
-        SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
+        StreamView sv = (StreamView) findViewById(R.id.surfaceView);
         sv.setOnGenericMotionListener(this);
         sv.setOnTouchListener(this);
 
@@ -272,7 +272,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             sh.setFixedSize(prefConfig.width, prefConfig.height);
         }
         else {
-            deferredSurfaceResize = true;
+            // Set the surface to scale based on the aspect ratio of the stream
+            sv.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
         }
 
         // Initialize touch contexts
@@ -304,26 +305,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // The connection will be started when the surface gets created
         sh.addCallback(this);
-    }
-
-    private void resizeSurfaceWithAspectRatio(SurfaceView sv, double vidWidth, double vidHeight)
-    {
-        // Get the visible width of the activity
-        double visibleWidth = getWindow().getDecorView().getWidth();
-
-        ViewGroup.LayoutParams lp = sv.getLayoutParams();
-
-        // Calculate the new size of the SurfaceView
-        lp.width = (int) visibleWidth;
-        lp.height = (int) ((vidHeight / vidWidth) * visibleWidth);
-
-        // Apply the size change
-        sv.setLayoutParams(lp);
-
-        // refresh virtual controller layout
-        if (virtualController != null) {
-            virtualController.refreshLayout();
-        }
     }
 
     private void checkDataConnection()
@@ -931,13 +912,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public void surfaceCreated(SurfaceHolder holder) {
         if (!connected && !connecting) {
             connecting = true;
-
-            // Resize the surface to match the aspect ratio of the video
-            // This must be done after the surface is created.
-            if (deferredSurfaceResize) {
-                resizeSurfaceWithAspectRatio((SurfaceView) findViewById(R.id.surfaceView),
-                        prefConfig.width, prefConfig.height);
-            }
 
             conn.start(PlatformBinding.getDeviceName(), holder, drFlags,
                     PlatformBinding.getAudioRenderer(), decoderRenderer);

@@ -96,9 +96,25 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     // Load the app grid with cached data (if possible)
                     populateAppGridWithCache();
 
-                    getFragmentManager().beginTransaction()
-                            .replace(R.id.appFragmentContainer, new AdapterFragment())
-                            .commitAllowingStateLoss();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (isFinishing() || isChangingConfigurations()) {
+                                return;
+                            }
+
+                            // Despite my best efforts to catch all conditions that could
+                            // cause the activity to be destroyed when we try to commit
+                            // I haven't been able to, so we have this try-catch block.
+                            try {
+                                getFragmentManager().beginTransaction()
+                                        .replace(R.id.appFragmentContainer, new AdapterFragment())
+                                        .commitAllowingStateLoss();
+                            } catch (IllegalStateException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
                 }
             }.start();
         }
@@ -107,17 +123,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             managerBinder = null;
         }
     };
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-        getFragmentManager().beginTransaction()
-                .replace(R.id.appFragmentContainer, new AdapterFragment())
-                .commitAllowingStateLoss();
-
-        appGridAdapter.notifyDataSetChanged();
-    }
 
     private void startComputerUpdates() {
         // Don't start polling if we're not bound or in the foreground

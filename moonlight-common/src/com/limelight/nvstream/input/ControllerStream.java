@@ -383,6 +383,23 @@ public class ControllerStream {
 	private static class AesGcmCipher implements InputCipher {
 		private SecretKey key;
 		private byte[] iv;
+		private static boolean useGcmParameterSpec;
+		
+		static {
+			try {
+				// GCMParameterSpec is a class specifically for initialize GCM ciphers. On some versions of
+				// Oracle's JVM, GCMParameterSpec is required to successfully initialize a GCM cipher,
+				// while other versions also support IvParameterSpec being used in GCM mode.
+				// On Android, GCMParameterSpec wasn't added until API 19, so we'll need to use IvParameterSpec
+				// on those versions. Android doesn't seem to care between IvParameterSpec and GCMParameterSpec on
+				// any version. To cover all of these cases, we'll use GCMParameterSpec if it's available in the
+				// class path, otherwise use IvParameterSpec.
+				Class.forName("javax.crypto.spec.GCMParameterSpec");
+				useGcmParameterSpec = true;
+			} catch (ClassNotFoundException e) {
+				useGcmParameterSpec = false;
+			}
+		}
 		
 		public int getEncryptedSize(int plaintextSize) {
 			// GCM uses no padding + 16 bytes tag for message authentication
@@ -403,7 +420,8 @@ public class ControllerStream {
 			Cipher cipher;
 			try {
 				cipher = Cipher.getInstance("AES/GCM/NoPadding");
-				cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv));
+				cipher.init(Cipher.ENCRYPT_MODE, key, useGcmParameterSpec ?
+						new GCMParameterSpec(128, iv) : new IvParameterSpec(iv));
 				
 				// This is also non-ideal. Java gives us <ciphertext><tag> but we want to send <tag><ciphertext>
 				// so we'll take the output and arraycopy it into the right spot in the output buffer

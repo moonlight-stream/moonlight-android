@@ -82,6 +82,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         defaultContext.leftTriggerAxis = MotionEvent.AXIS_BRAKE;
         defaultContext.rightTriggerAxis = MotionEvent.AXIS_GAS;
         defaultContext.controllerNumber = (short) 0;
+        defaultContext.assignedControllerNumber = true;
     }
 
     private static InputDevice.MotionRange getMotionRangeForJoystickAxis(InputDevice dev, int axis) {
@@ -398,12 +399,60 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return context;
     }
 
-    private void sendControllerInputPacket(GenericControllerContext context) {
-        assignControllerNumberIfNeeded(context);
-        conn.sendControllerInput(context.controllerNumber, context.inputMap,
-                context.leftTrigger, context.rightTrigger,
-                context.leftStickX, context.leftStickY,
-                context.rightStickX, context.rightStickY);
+    private void sendControllerInputPacket(GenericControllerContext originalContext) {
+        assignControllerNumberIfNeeded(originalContext);
+
+        // Take the context's controller number and fuse all inputs with the same number
+        short controllerNumber = originalContext.controllerNumber;
+        short inputMap = 0;
+        byte leftTrigger = 0;
+        byte rightTrigger = 0;
+        short leftStickX = 0;
+        short leftStickY = 0;
+        short rightStickX = 0;
+        short rightStickY = 0;
+
+        // In order to properly handle controllers that are split into multiple devices,
+        // we must aggregate all controllers with the same controller number into a single
+        // device before we send it.
+        for (int i = 0; i < inputDeviceContexts.size(); i++) {
+            GenericControllerContext context = inputDeviceContexts.valueAt(i);
+            if (context.assignedControllerNumber && context.controllerNumber == controllerNumber) {
+                inputMap |= context.inputMap;
+                leftTrigger |= context.leftTrigger;
+                rightTrigger |= context.rightTrigger;
+                leftStickX |= context.leftStickX;
+                leftStickY |= context.leftStickY;
+                rightStickX |= context.rightStickX;
+                rightStickY |= context.rightStickY;
+            }
+        }
+        for (int i = 0; i < usbDeviceContexts.size(); i++) {
+            GenericControllerContext context = usbDeviceContexts.valueAt(i);
+            if (context.assignedControllerNumber && context.controllerNumber == controllerNumber) {
+                inputMap |= context.inputMap;
+                leftTrigger |= context.leftTrigger;
+                rightTrigger |= context.rightTrigger;
+                leftStickX |= context.leftStickX;
+                leftStickY |= context.leftStickY;
+                rightStickX |= context.rightStickX;
+                rightStickY |= context.rightStickY;
+            }
+        }
+        if (defaultContext.controllerNumber == controllerNumber) {
+            inputMap |= defaultContext.inputMap;
+            leftTrigger |= defaultContext.leftTrigger;
+            rightTrigger |= defaultContext.rightTrigger;
+            leftStickX |= defaultContext.leftStickX;
+            leftStickY |= defaultContext.leftStickY;
+            rightStickX |= defaultContext.rightStickX;
+            rightStickY |= defaultContext.rightStickY;
+        }
+
+        conn.sendControllerInput(controllerNumber, inputMap,
+                leftTrigger, rightTrigger,
+                leftStickX, leftStickY,
+                rightStickX, rightStickY);
     }
 
     // Return a valid keycode, 0 to consume, or -1 to not consume the event

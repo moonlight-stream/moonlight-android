@@ -147,8 +147,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             InputDeviceContext devContext = (InputDeviceContext) context;
 
             LimeLog.info(devContext.name+" ("+context.id+") needs a controller number assigned");
-            if (devContext.name != null && devContext.name.contains("gpio-keys")) {
-                // This is the back button on Shield portable consoles
+            if (devContext.name != null &&
+                    (devContext.name.contains("gpio-keys") || // This is the back button on Shield portable consoles
+                            devContext.name.contains("joy_key"))) { // These are the gamepad buttons on the Archos Gamepad 2
                 LimeLog.info("Built-in buttons hardcoded as controller 0");
                 context.controllerNumber = 0;
             }

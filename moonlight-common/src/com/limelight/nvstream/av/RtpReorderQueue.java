@@ -127,7 +127,7 @@ public class RtpReorderQueue {
 	    // because this is validating that the queue will meet constraints _after_
 	    // the current packet is enqueued.
 		if (!dequeuePacket && queue.size() == maxSize - 1) {
-			LimeLog.info("Discarding RTP packet after queue overgrowth");
+			LimeLog.info("Returning RTP packet after queue overgrowth");
 			dequeuePacket = true;
 		}
 		

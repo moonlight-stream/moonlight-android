@@ -14,7 +14,6 @@ public class RtpReorderQueue {
 	private short nextRtpSequenceNumber;
 	
 	private long oldestQueuedTime;
-	private RtpQueueEntry oldestQueuedEntry;
 	
 	public enum RtpQueueStatus {
 		HANDLE_IMMEDIATELY,
@@ -65,7 +64,6 @@ public class RtpReorderQueue {
 		
 		if (oldestQueuedTime == Long.MAX_VALUE) {
 			oldestQueuedTime = entry.queueTime;
-			oldestQueuedEntry = entry;
 		}
 		
 		// Add a reference to the packet while it's in the queue
@@ -83,10 +81,8 @@ public class RtpReorderQueue {
 	
 	private void updateOldestQueued() {
 		oldestQueuedTime = Long.MAX_VALUE;
-		oldestQueuedEntry = null;
 		for (RtpQueueEntry entry : queue) {
 			if (entry.queueTime < oldestQueuedTime) {
-				oldestQueuedEntry = entry;
 				oldestQueuedTime = entry.queueTime;
 			}
 		}
@@ -114,36 +110,28 @@ public class RtpReorderQueue {
 		return lowestSeqEntry;
 	}
 	
-	private void removeEntry(RtpQueueEntry entry) {
-		queue.remove(entry);
-		entry.packet.dereferencePacket();
-	}
-	
 	private RtpQueueEntry validateQueueConstraints() {
 		if (queue.isEmpty()) {
 			return null;
 		}
 		
-		boolean needsUpdate = false;
+		boolean dequeuePacket = false;
 		
 		// Check that the queue's time constraint is satisfied
 		if (TimeHelper.getMonotonicMillis() - oldestQueuedTime > maxQueueTime) {
-			LimeLog.info("Discarding RTP packet queued for too long: "+(TimeHelper.getMonotonicMillis() - oldestQueuedTime));
-			removeEntry(oldestQueuedEntry);
-			needsUpdate = true;
+			LimeLog.info("Returning RTP packet queued for too long: "+(TimeHelper.getMonotonicMillis() - oldestQueuedTime));
+			dequeuePacket = true;
 		}
-		
-		// Check that the queue's size constraint is satisfied
-		if (queue.size() == maxSize) {
+
+	    // Check that the queue's size constraint is satisfied. We subtract one
+	    // because this is validating that the queue will meet constraints _after_
+	    // the current packet is enqueued.
+		if (!dequeuePacket && queue.size() == maxSize - 1) {
 			LimeLog.info("Discarding RTP packet after queue overgrowth");
-			removeEntry(oldestQueuedEntry);
-			needsUpdate = true;
+			dequeuePacket = true;
 		}
 		
-		if (needsUpdate) {
-			// Recalculate the oldest entry if needed
-			updateOldestQueued();
-			
+		if (dequeuePacket) {
 			// Return the lowest seq queued
 			return getEntryByLowestSeq();
 		}

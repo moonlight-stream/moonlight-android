@@ -57,6 +57,11 @@ public class MediaCodecHelper {
 		// Software decoders that don't support H264 high profile
 		blacklistedDecoderPrefixes.add("omx.google");
 		blacklistedDecoderPrefixes.add("AVCDecoder");
+
+		// Without bitstream fixups, we perform horribly on NVIDIA's HEVC
+		// decoder. While not strictly necessary, I'm going to fully blacklist this
+		// one to avoid users getting inaccurate impressions of Tegra X1/Moonlight performance.
+		blacklistedDecoderPrefixes.add("OMX.Nvidia.h265.decode");
 	}
 	
 	static {

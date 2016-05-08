@@ -400,6 +400,28 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return context;
     }
 
+    private byte maxByMagnitude(byte a, byte b) {
+        int absA = Math.abs(a);
+        int absB = Math.abs(b);
+        if (absA > absB) {
+            return a;
+        }
+        else {
+            return b;
+        }
+    }
+
+    private short maxByMagnitude(short a, short b) {
+        int absA = Math.abs(a);
+        int absB = Math.abs(b);
+        if (absA > absB) {
+            return a;
+        }
+        else {
+            return b;
+        }
+    }
+
     private void sendControllerInputPacket(GenericControllerContext originalContext) {
         assignControllerNumberIfNeeded(originalContext);
 
@@ -420,34 +442,34 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             GenericControllerContext context = inputDeviceContexts.valueAt(i);
             if (context.assignedControllerNumber && context.controllerNumber == controllerNumber) {
                 inputMap |= context.inputMap;
-                leftTrigger |= context.leftTrigger;
-                rightTrigger |= context.rightTrigger;
-                leftStickX |= context.leftStickX;
-                leftStickY |= context.leftStickY;
-                rightStickX |= context.rightStickX;
-                rightStickY |= context.rightStickY;
+                leftTrigger |= maxByMagnitude(leftTrigger, context.leftTrigger);
+                rightTrigger |= maxByMagnitude(rightTrigger, context.rightTrigger);
+                leftStickX |= maxByMagnitude(leftStickX, context.leftStickX);
+                leftStickY |= maxByMagnitude(leftStickY, context.leftStickY);
+                rightStickX |= maxByMagnitude(rightStickX, context.rightStickX);
+                rightStickY |= maxByMagnitude(rightStickY, context.rightStickY);
             }
         }
         for (int i = 0; i < usbDeviceContexts.size(); i++) {
             GenericControllerContext context = usbDeviceContexts.valueAt(i);
             if (context.assignedControllerNumber && context.controllerNumber == controllerNumber) {
                 inputMap |= context.inputMap;
-                leftTrigger |= context.leftTrigger;
-                rightTrigger |= context.rightTrigger;
-                leftStickX |= context.leftStickX;
-                leftStickY |= context.leftStickY;
-                rightStickX |= context.rightStickX;
-                rightStickY |= context.rightStickY;
+                leftTrigger |= maxByMagnitude(leftTrigger, context.leftTrigger);
+                rightTrigger |= maxByMagnitude(rightTrigger, context.rightTrigger);
+                leftStickX |= maxByMagnitude(leftStickX, context.leftStickX);
+                leftStickY |= maxByMagnitude(leftStickY, context.leftStickY);
+                rightStickX |= maxByMagnitude(rightStickX, context.rightStickX);
+                rightStickY |= maxByMagnitude(rightStickY, context.rightStickY);
             }
         }
         if (defaultContext.controllerNumber == controllerNumber) {
             inputMap |= defaultContext.inputMap;
-            leftTrigger |= defaultContext.leftTrigger;
-            rightTrigger |= defaultContext.rightTrigger;
-            leftStickX |= defaultContext.leftStickX;
-            leftStickY |= defaultContext.leftStickY;
-            rightStickX |= defaultContext.rightStickX;
-            rightStickY |= defaultContext.rightStickY;
+            leftTrigger |= maxByMagnitude(leftTrigger, defaultContext.leftTrigger);
+            rightTrigger |= maxByMagnitude(rightTrigger, defaultContext.rightTrigger);
+            leftStickX |= maxByMagnitude(leftStickX, defaultContext.leftStickX);
+            leftStickY |= maxByMagnitude(leftStickY, defaultContext.leftStickY);
+            rightStickX |= maxByMagnitude(rightStickX, defaultContext.rightStickX);
+            rightStickY |= maxByMagnitude(rightStickY, defaultContext.rightStickY);
         }
 
         conn.sendControllerInput(controllerNumber, inputMap,

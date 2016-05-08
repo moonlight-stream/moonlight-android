@@ -1,6 +1,7 @@
 package com.limelight.binding.input.evdev;
 
-import android.content.Context;
+import android.app.Activity;
+import android.widget.Toast;
 
 import com.limelight.LimeLog;
 
@@ -23,6 +24,7 @@ public class EvdevHandler {
     private Process su;
     private ServerSocket servSock;
     private Socket evdevSock;
+    private Activity activity;
 
     private static final byte UNGRAB_REQUEST = 1;
     private static final byte REGRAB_REQUEST = 2;
@@ -49,6 +51,12 @@ public class EvdevHandler {
             try {
                 su = builder.start();
             } catch (IOException e) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(activity, "This device is not rooted - Mouse capture is unavailable", Toast.LENGTH_LONG).show();
+                    }
+                });
                 e.printStackTrace();
                 return;
             }
@@ -155,9 +163,10 @@ public class EvdevHandler {
         }
     };
 
-    public EvdevHandler(Context context, EvdevListener listener) {
+    public EvdevHandler(Activity activity, EvdevListener listener) {
         this.listener = listener;
-        this.libraryPath = context.getApplicationInfo().nativeLibraryDir;
+        this.activity = activity;
+        this.libraryPath = activity.getApplicationInfo().nativeLibraryDir;
     }
 
     public void regrabAll() {

@@ -45,6 +45,12 @@ This project is being actively developed at [XDA Developers](http://forum.xda-de
 1. Fork us
 2. Write code
 3. Send Pull Requests
+Building
+
+##Buidling
+* Install Android Studio and the Android NDK
+* Run git submodule update --init --recursive from within moonlight-android/
+* Build the APK using Android Studio
 
 ##Authors
 

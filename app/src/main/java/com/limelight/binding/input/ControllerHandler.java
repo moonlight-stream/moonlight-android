@@ -214,6 +214,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         String devName = dev.getName();
 
         LimeLog.info("Creating controller context for device: "+devName);
+        LimeLog.info(dev.toString());
 
         context.name = devName;
         context.id = dev.getId();
@@ -231,6 +232,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         InputDevice.MotionRange rightTriggerRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RTRIGGER);
         InputDevice.MotionRange brakeRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_BRAKE);
         InputDevice.MotionRange gasRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_GAS);
+        InputDevice.MotionRange throttleRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_THROTTLE);
         if (leftTriggerRange != null && rightTriggerRange != null)
         {
             // Some controllers use LTRIGGER and RTRIGGER (like Ouya)
@@ -242,6 +244,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // Others use GAS and BRAKE (like Moga)
             context.leftTriggerAxis = MotionEvent.AXIS_BRAKE;
             context.rightTriggerAxis = MotionEvent.AXIS_GAS;
+        }
+        else if (brakeRange != null && throttleRange != null)
+        {
+            // Others use THROTTLE and BRAKE (like Xiaomi)
+            context.leftTriggerAxis = MotionEvent.AXIS_BRAKE;
+            context.rightTriggerAxis = MotionEvent.AXIS_THROTTLE;
         }
         else
         {
@@ -326,8 +334,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
             boolean[] hasSelectKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BACK, 0);
             if (hasSelectKey[0] && hasSelectKey[1]) {
-                LimeLog.info("Ignoring back button because select is present");
-                context.ignoreBack = true;
+                // Xiaomi gamepads claim to have both buttons then only send KEYCODE_BACK events
+                if (dev.getVendorId() != 0x2717) {
+                    LimeLog.info("Ignoring back button because select is present");
+                    context.ignoreBack = true;
+                }
             }
         }
 

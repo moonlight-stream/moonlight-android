@@ -277,6 +277,9 @@ public class VideoDepacketizer {
 						if (isReferencePictureNalu(cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length])) {
 							// This is the NALU code for I-frame data
 							waitingForIdrFrame = false;
+							
+							// Cancel any pending IDR frame request
+							waitingForNextSuccessfulFrame = false;
 						}
 					}
 

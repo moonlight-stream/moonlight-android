@@ -40,8 +40,8 @@
     </string-array>
 
     <string-array name="video_format_names">
-        <item>Use H.265 only if safe</item>
-        <item>Always use H.265 if available</item>
+        <item>Use H.265 only if stable</item>
+        <item>Always use H.265 (may crash)</item>
         <item>Never use H.265</item>
     </string-array>
     <string-array name="video_format_values" translatable="false">

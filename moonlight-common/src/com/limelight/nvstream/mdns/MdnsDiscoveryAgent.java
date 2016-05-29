@@ -106,41 +106,32 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 	}
 	
 	private void handleResolvedServiceInfo(ServiceInfo info) {
-		MdnsComputer computer;
-				
 		pendingResolution.remove(info.getName());
 		
 		try {
-			computer = parseServerInfo(info);
-			if (computer == null) {
-				LimeLog.info("mDNS: Invalid response for machine: "+info.getName());
-				return;
-			}
+			handleServiceInfo(info);
 		} catch (UnsupportedEncodingException e) {
 			// Invalid DNS response
 			LimeLog.info("mDNS: Invalid response for machine: "+info.getName());
 			return;
 		}
-		
-		synchronized (computers) {
-			if (computers.put(computer.getAddress(), computer) == null) {
-				// This was a new entry
-				listener.notifyComputerAdded(computer);
-			}
-		}
 	}
 	
-	private static MdnsComputer parseServerInfo(ServiceInfo info) throws UnsupportedEncodingException {	
+	private void handleServiceInfo(ServiceInfo info) throws UnsupportedEncodingException {	
 		Inet4Address addrs[] = info.getInet4Addresses();
-		if (addrs.length == 0) {
-			LimeLog.info("mDNS: "+info.getName()+" is missing addresses");
-			return null;
+		
+		LimeLog.info("mDNS: "+info.getName()+" has "+addrs.length+" addresses");
+		
+		// Add a computer object for each IPv4 address reported by the PC
+		for (Inet4Address addr : addrs) {
+			synchronized (computers) {
+				MdnsComputer computer = new MdnsComputer(info.getName(), addr);
+				if (computers.put(computer.getAddress(), computer) == null) {
+					// This was a new entry
+					listener.notifyComputerAdded(computer);
+				}
+			}
 		}
-		
-		Inet4Address address = addrs[0];
-		String name = info.getName();
-		
-		return new MdnsComputer(name, address);
 	}
 	
 	public void startDiscovery(final int discoveryIntervalMs) {
@@ -171,7 +162,9 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 							ServiceInfo[] infos = resolver.getServiceInfos(SERVICE_TYPE, name, 500);
 							if (infos != null && infos.length != 0) {
 								LimeLog.info("mDNS: Resolved (retry) with "+infos.length+" service entries");
-								handleResolvedServiceInfo(infos[0]);
+								for (ServiceInfo svcinfo : infos) {
+									handleResolvedServiceInfo(svcinfo);
+								}
 							}
 						}
 						

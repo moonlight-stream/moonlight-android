@@ -15,9 +15,16 @@ import java.nio.ByteOrder;
 
 public class XboxOneController extends AbstractXboxController {
 
-    private static final int MICROSOFT_VID = 0x045e;
     private static final int XB1_IFACE_SUBCLASS = 71;
     private static final int XB1_IFACE_PROTOCOL = 208;
+
+    private static final int[] SUPPORTED_VENDORS = {
+            0x045e, // Microsoft
+            0x0738, // Mad Catz
+            0x0e6f, // Unknown
+            0x0f0d, // Hori
+            0x24c6, // PowerA
+    };
 
     // FIXME: odata_serial
     private static final byte[] XB1_INIT_DATA = {0x05, 0x20, 0x00, 0x01, 0x00};
@@ -78,11 +85,17 @@ public class XboxOneController extends AbstractXboxController {
     }
 
     public static boolean canClaimDevice(UsbDevice device) {
-        return device.getVendorId() == MICROSOFT_VID &&
-                device.getInterfaceCount() >= 1 &&
-                device.getInterface(0).getInterfaceClass() == UsbConstants.USB_CLASS_VENDOR_SPEC &&
-                device.getInterface(0).getInterfaceSubclass() == XB1_IFACE_SUBCLASS &&
-                device.getInterface(0).getInterfaceProtocol() == XB1_IFACE_PROTOCOL;
+        for (int supportedVid : SUPPORTED_VENDORS) {
+            if (device.getVendorId() == supportedVid &&
+                    device.getInterfaceCount() >= 1 &&
+                    device.getInterface(0).getInterfaceClass() == UsbConstants.USB_CLASS_VENDOR_SPEC &&
+                    device.getInterface(0).getInterfaceSubclass() == XB1_IFACE_SUBCLASS &&
+                    device.getInterface(0).getInterfaceProtocol() == XB1_IFACE_PROTOCOL) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override

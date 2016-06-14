@@ -1,4 +1,4 @@
-package com.limelight.binding.input;
+package com.limelight.binding.input.capture;
 
 
 import android.content.Context;
@@ -18,11 +18,13 @@ import java.lang.reflect.Method;
 //
 // http://docs.nvidia.com/gameworks/index.html#technologies/mobile/game_controller_handling_mouse.htm
 
-public class NvMouseHelper {
+public class ShieldCaptureProvider extends InputCaptureProvider {
     private static boolean nvExtensionSupported;
     private static Method methodSetCursorVisibility;
     private static int AXIS_RELATIVE_X;
     private static int AXIS_RELATIVE_Y;
+
+    private Context context;
 
     static {
         try {
@@ -36,16 +38,19 @@ public class NvMouseHelper {
 
             nvExtensionSupported = true;
         } catch (Exception e) {
-            LimeLog.info("NvMouseHelper not supported");
             nvExtensionSupported = false;
         }
     }
 
-    public static boolean setCursorVisibility(Context context, boolean visible) {
-        if (!nvExtensionSupported) {
-            return false;
-        }
+    public ShieldCaptureProvider(Context context) {
+        this.context = context;
+    }
 
+    public static boolean isCaptureProviderSupported() {
+        return nvExtensionSupported;
+    }
+
+    private boolean setCursorVisibility(boolean visible) {
         try {
             methodSetCursorVisibility.invoke(context.getSystemService(Context.INPUT_SERVICE), visible);
             return true;
@@ -58,19 +63,29 @@ public class NvMouseHelper {
         return false;
     }
 
-    public static boolean eventHasRelativeMouseAxes(MotionEvent event) {
-        if (!nvExtensionSupported) {
-            return false;
-        }
+    @Override
+    public void enableCapture() {
+        setCursorVisibility(false);
+    }
+
+    @Override
+    public void disableCapture() {
+        setCursorVisibility(true);
+    }
+
+    @Override
+    public boolean eventHasRelativeMouseAxes(MotionEvent event) {
         return event.getAxisValue(AXIS_RELATIVE_X) != 0 ||
                 event.getAxisValue(AXIS_RELATIVE_Y) != 0;
     }
 
-    public static float getRelativeAxisX(MotionEvent event) {
+    @Override
+    public float getRelativeAxisX(MotionEvent event) {
         return event.getAxisValue(AXIS_RELATIVE_X);
     }
 
-    public static float getRelativeAxisY(MotionEvent event) {
+    @Override
+    public float getRelativeAxisY(MotionEvent event) {
         return event.getAxisValue(AXIS_RELATIVE_Y);
     }
 }

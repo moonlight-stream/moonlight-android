@@ -4,10 +4,12 @@ package com.limelight;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
-import com.limelight.binding.input.NvMouseHelper;
+import com.limelight.binding.input.capture.InputCaptureManager;
+import com.limelight.binding.input.capture.InputCaptureProvider;
+import com.limelight.binding.input.capture.ShieldCaptureProvider;
 import com.limelight.binding.input.TouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
-import com.limelight.binding.input.evdev.EvdevHandler;
+import com.limelight.binding.input.evdev.EvdevCaptureProvider;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.virtual_controller.VirtualController;
 import com.limelight.binding.video.EnhancedDecoderRenderer;
@@ -48,12 +50,10 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnGenericMotionListener;
 import android.view.View.OnSystemUiVisibilityChangeListener;
 import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
@@ -92,7 +92,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean connecting = false;
     private boolean connected = false;
 
-    private EvdevHandler evdevHandler;
+    private InputCaptureProvider inputCaptureProvider;
     private int modifierFlags = 0;
     private boolean grabbedInput = true;
     private boolean grabComboDown = false;
@@ -284,11 +284,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     streamView);
         }
 
-        if (LimelightBuildProps.ROOT_BUILD) {
-            // Start watching for raw input
-            evdevHandler = new EvdevHandler(this, this);
-            evdevHandler.start();
-        }
+        inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
 
         if (prefConfig.onscreenController) {
             // create virtual onscreen controller
@@ -406,16 +402,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         @Override
         public void run() {
             if (grabbedInput) {
-                NvMouseHelper.setCursorVisibility(Game.this, true);
-                if (evdevHandler != null) {
-                    evdevHandler.ungrabAll();
-                }
+                inputCaptureProvider.disableCapture();
             }
             else {
-                NvMouseHelper.setCursorVisibility(Game.this, false);
-                if (evdevHandler != null) {
-                    evdevHandler.regrabAll();
-                }
+                inputCaptureProvider.enableCapture();
             }
 
             grabbedInput = !grabbedInput;
@@ -638,10 +628,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 }
 
                 // Get relative axis values if we can
-                if (NvMouseHelper.eventHasRelativeMouseAxes(event)) {
+                if (inputCaptureProvider.eventHasRelativeMouseAxes(event)) {
                     // Send the deltas straight from the motion event
-                    conn.sendMouseMove((short)NvMouseHelper.getRelativeAxisX(event),
-                            (short)NvMouseHelper.getRelativeAxisY(event));
+                    conn.sendMouseMove((short) inputCaptureProvider.getRelativeAxisX(event),
+                            (short) inputCaptureProvider.getRelativeAxisY(event));
 
                     // We have to also update the position Android thinks the cursor is at
                     // in order to avoid jumping when we stop moving or click.
@@ -818,14 +808,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             conn.stop();
         }
 
-        // Close the Evdev reader to allow use of captured input devices
-        if (evdevHandler != null) {
-            evdevHandler.stop();
-            evdevHandler = null;
-        }
-
         // Enable cursor visibility again
-        NvMouseHelper.setCursorVisibility(this, true);
+        inputCaptureProvider.disableCapture();
+
+        // Destroy the capture provider
+        inputCaptureProvider.destroy();
     }
 
     @Override
@@ -871,7 +858,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // Hide the mouse cursor now. Doing it before
                 // dismissing the spinner seems to be undone
                 // when the spinner gets displayed.
-                NvMouseHelper.setCursorVisibility(Game.this, false);
+                inputCaptureProvider.enableCapture();
             }
         });
 

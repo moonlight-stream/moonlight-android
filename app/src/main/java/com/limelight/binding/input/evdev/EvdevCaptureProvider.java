@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.widget.Toast;
 
 import com.limelight.LimeLog;
+import com.limelight.LimelightBuildProps;
+import com.limelight.binding.input.capture.InputCaptureProvider;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -13,7 +15,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class EvdevHandler {
+public class EvdevCaptureProvider extends InputCaptureProvider {
 
     private final EvdevListener listener;
     private final String libraryPath;
@@ -25,6 +27,7 @@ public class EvdevHandler {
     private ServerSocket servSock;
     private Socket evdevSock;
     private Activity activity;
+    private boolean started = false;
 
     private static final byte UNGRAB_REQUEST = 1;
     private static final byte REGRAB_REQUEST = 2;
@@ -163,24 +166,39 @@ public class EvdevHandler {
         }
     };
 
-    public EvdevHandler(Activity activity, EvdevListener listener) {
+    public EvdevCaptureProvider(Activity activity, EvdevListener listener) {
         this.listener = listener;
         this.activity = activity;
         this.libraryPath = activity.getApplicationInfo().nativeLibraryDir;
     }
 
-    public void regrabAll() {
-        if (!shutdown && evdevOut != null) {
-            try {
-                evdevOut.write(REGRAB_REQUEST);
-            } catch (IOException e) {
-                e.printStackTrace();
+    public static boolean isCaptureProviderSupported() {
+        return LimelightBuildProps.ROOT_BUILD;
+    }
+
+    @Override
+    public void enableCapture() {
+        if (!started) {
+            // Start the handler thread if it's our first time
+            // capturing
+            handlerThread.start();
+            started = true;
+        }
+        else {
+            // Send a request to regrab if we're already capturing
+            if (!shutdown && evdevOut != null) {
+                try {
+                    evdevOut.write(REGRAB_REQUEST);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
 
-    public void ungrabAll() {
-        if (!shutdown && evdevOut != null) {
+    @Override
+    public void disableCapture() {
+        if (started && !shutdown && evdevOut != null) {
             try {
                 evdevOut.write(UNGRAB_REQUEST);
             } catch (IOException e) {
@@ -189,14 +207,15 @@ public class EvdevHandler {
         }
     }
 
-    public void start() {
-        handlerThread.start();
-    }
-
-    public void stop() {
+    @Override
+    public void destroy() {
         // We need to stop the process in this context otherwise
         // we could get stuck waiting on output from the process
         // in order to terminate it.
+
+        if (!started) {
+            return;
+        }
 
         shutdown = true;
         handlerThread.interrupt();

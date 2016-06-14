@@ -342,6 +342,17 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
+        // The ADT-1 controller needs a similar fixup to the ASUS Gamepad
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            // The device name provided is just "Gamepad" which is pretty useless, so we
+            // use VID/PID instead
+            if (dev.getVendorId() == 0x18d1 && dev.getProductId() == 0x2c40) {
+                context.backIsStart = true;
+                context.modeIsSelect = true;
+                context.triggerDeadzone = 0.30f;
+            }
+        }
+
         if (devName != null) {
             // For the Nexus Player (and probably other ATV devices), we should
             // use the back button as start since it doesn't have a start/menu button

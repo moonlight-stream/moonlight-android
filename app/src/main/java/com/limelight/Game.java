@@ -41,6 +41,7 @@ import android.hardware.input.InputManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -247,35 +248,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         inputManager.registerInputDeviceListener(controllerHandler, null);
 
-        boolean aspectRatioMatch = false;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-            // On KitKat and later (where we can use the whole screen via immersive mode), we'll
-            // calculate whether we need to scale by aspect ratio or not. If not, we'll use
-            // setFixedSize so we can handle 4K properly. The only known devices that have
-            // >= 4K screens have exactly 4K screens, so we'll be able to hit this good path
-            // on these devices. On Marshmallow, we can start changing to 4K manually but no
-            // 4K devices run 6.0 at the moment.
-            Display display = getWindowManager().getDefaultDisplay();
-            Point screenSize = new Point(0, 0);
-            display.getSize(screenSize);
-
-            double screenAspectRatio = ((double)screenSize.y) / screenSize.x;
-            double streamAspectRatio = ((double)prefConfig.height) / prefConfig.width;
-            if (Math.abs(screenAspectRatio - streamAspectRatio) < 0.001) {
-                LimeLog.info("Stream has compatible aspect ratio with output display");
-                aspectRatioMatch = true;
-            }
-        }
-
-        SurfaceHolder sh = streamView.getHolder();
-        if (prefConfig.stretchVideo || aspectRatioMatch) {
-            // Set the surface to the size of the video
-            sh.setFixedSize(prefConfig.width, prefConfig.height);
-        }
-        else {
-            // Set the surface to scale based on the aspect ratio of the stream
-            streamView.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
-        }
+        // Set to the optimal mode for streaming
+        prepareDisplayForRendering();
 
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
@@ -301,7 +275,96 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // The connection will be started when the surface gets created
-        sh.addCallback(this);
+        streamView.getHolder().addCallback(this);
+    }
+
+    private void prepareDisplayForRendering() {
+        Display display = getWindowManager().getDefaultDisplay();
+        WindowManager.LayoutParams windowLayoutParams = getWindow().getAttributes();
+
+        // On M, we can explicitly set the optimal display mode
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Display.Mode bestMode = display.getMode();
+            for (Display.Mode candidate : display.getSupportedModes()) {
+                boolean refreshRateOk = candidate.getRefreshRate() >= bestMode.getRefreshRate() &&
+                        candidate.getRefreshRate() < 63;
+                boolean resolutionOk = candidate.getPhysicalWidth() >= bestMode.getPhysicalWidth() &&
+                        candidate.getPhysicalHeight() >= bestMode.getPhysicalHeight() &&
+                        candidate.getPhysicalWidth() <= 4096;
+
+                LimeLog.info("Examining display mode: "+candidate.getPhysicalWidth()+"x"+
+                        candidate.getPhysicalHeight()+"x"+candidate.getRefreshRate());
+
+                // On non-4K streams, we force the resolution to never change
+                if (prefConfig.width < 3840) {
+                    if (display.getMode().getPhysicalWidth() != candidate.getPhysicalWidth() ||
+                            display.getMode().getPhysicalHeight() != candidate.getPhysicalHeight()) {
+                        continue;
+                    }
+                }
+
+                // Make sure the refresh rate doesn't regress
+                if (!refreshRateOk) {
+                    continue;
+                }
+
+                // Make sure the resolution doesn't regress
+                if (!resolutionOk) {
+                    continue;
+                }
+
+                bestMode = candidate;
+            }
+            LimeLog.info("Selected display mode: "+bestMode.getPhysicalWidth()+"x"+
+                    bestMode.getPhysicalHeight()+"x"+bestMode.getRefreshRate());
+            windowLayoutParams.preferredDisplayModeId = bestMode.getModeId();
+        }
+        // On L, we can at least tell the OS that we want 60 Hz
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            float bestRefreshRate = display.getRefreshRate();
+            for (float candidate : display.getSupportedRefreshRates()) {
+                if (candidate > bestRefreshRate && candidate < 63) {
+                    LimeLog.info("Examining refresh rate: "+candidate);
+                    bestRefreshRate = candidate;
+                }
+            }
+            LimeLog.info("Selected refresh rate: "+bestRefreshRate);
+            windowLayoutParams.preferredRefreshRate = bestRefreshRate;
+        }
+
+        // Apply the display mode change
+        getWindow().setAttributes(windowLayoutParams);
+
+        // From 4.4 to 5.1 we can't ask for a 4K display mode, so we'll
+        // need to hint the OS to provide one.
+        boolean aspectRatioMatch = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT &&
+                Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            // On KitKat and later (where we can use the whole screen via immersive mode), we'll
+            // calculate whether we need to scale by aspect ratio or not. If not, we'll use
+            // setFixedSize so we can handle 4K properly. The only known devices that have
+            // >= 4K screens have exactly 4K screens, so we'll be able to hit this good path
+            // on these devices. On Marshmallow, we can start changing to 4K manually but no
+            // 4K devices run 6.0 at the moment.
+            Point screenSize = new Point(0, 0);
+            display.getSize(screenSize);
+
+            double screenAspectRatio = ((double)screenSize.y) / screenSize.x;
+            double streamAspectRatio = ((double)prefConfig.height) / prefConfig.width;
+            if (Math.abs(screenAspectRatio - streamAspectRatio) < 0.001) {
+                LimeLog.info("Stream has compatible aspect ratio with output display");
+                aspectRatioMatch = true;
+            }
+        }
+
+        if (prefConfig.stretchVideo || aspectRatioMatch) {
+            // Set the surface to the size of the video
+            streamView.getHolder().setFixedSize(prefConfig.width, prefConfig.height);
+        }
+        else {
+            // Set the surface to scale based on the aspect ratio of the stream
+            streamView.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
+        }
     }
 
     private void checkDataConnection()

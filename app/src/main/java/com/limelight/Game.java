@@ -258,6 +258,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     streamView);
         }
 
+        // Use sustained performance mode on N+ to ensure consistent
+        // CPU availability
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            getWindow().setSustainedPerformanceMode(true);
+        }
+
         inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
 
         if (prefConfig.onscreenController) {

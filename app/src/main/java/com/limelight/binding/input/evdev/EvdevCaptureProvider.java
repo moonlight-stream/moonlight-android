@@ -54,12 +54,7 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
             try {
                 su = builder.start();
             } catch (IOException e) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(activity, "This device is not rooted - Mouse capture is unavailable", Toast.LENGTH_LONG).show();
-                    }
-                });
+                reportDeviceNotRooted();
                 e.printStackTrace();
                 return;
             }
@@ -69,6 +64,7 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
             try {
                 suOut.writeChars(libraryPath+File.separatorChar+"libevdev_reader.so "+servSock.getLocalPort()+"\n");
             } catch (IOException e) {
+                reportDeviceNotRooted();
                 e.printStackTrace();
                 return;
             }
@@ -174,6 +170,15 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
 
     public static boolean isCaptureProviderSupported() {
         return LimelightBuildProps.ROOT_BUILD;
+    }
+
+    private void reportDeviceNotRooted() {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(activity, "This device is not rooted - Mouse capture is unavailable", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override

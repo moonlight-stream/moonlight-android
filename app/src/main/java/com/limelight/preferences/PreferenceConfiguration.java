@@ -3,6 +3,7 @@ package com.limelight.preferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.preference.PreferenceManager;
 
@@ -100,7 +101,7 @@ public class PreferenceConfiguration {
         }
 
         // Use small mode on anything smaller than a 7" tablet
-        return context.getResources().getConfiguration().screenWidthDp < 600;
+        return context.getResources().getConfiguration().smallestScreenWidthDp < 500;
     }
 
     public static int getDefaultBitrate(Context context) {

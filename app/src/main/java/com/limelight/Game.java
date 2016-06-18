@@ -971,6 +971,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         if (connected) {
+            // HACK: Android is supposed to let you return from this function
+            // before throwing a fit if you access the surface again. Unfortunately,
+            // MediaCodec often tries to access the destroyed surface and triggers
+            // an IllegalStateException. To workaround this, we will invoke
+            // the DecoderRenderer's stop function ourselves, so it will hopefully
+            // happen early enough to not trigger the bug
+            decoderRenderer.stop();
+
             stopConnection();
         }
     }

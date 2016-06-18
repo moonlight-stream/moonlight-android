@@ -475,8 +475,8 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
             } catch (InterruptedException ignored) { }
         }
 
-        // Stop the decoder
-        videoDecoder.stop();
+        // We could stop the decoder here, but it seems to cause some problems
+        // so we'll just let release take care of it.
     }
 
     @Override

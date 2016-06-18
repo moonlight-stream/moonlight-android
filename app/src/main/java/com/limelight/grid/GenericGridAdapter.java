@@ -16,7 +16,7 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
     protected final Context context;
     protected final int defaultImageRes;
     protected final int layoutId;
-    protected final ArrayList<T> itemList = new ArrayList<T>();
+    protected final ArrayList<T> itemList = new ArrayList<>();
     protected final LayoutInflater inflater;
 
     public GenericGridAdapter(Context context, int layoutId, int defaultImageRes) {

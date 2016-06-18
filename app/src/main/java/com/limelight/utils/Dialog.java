@@ -14,7 +14,7 @@ public class Dialog implements Runnable {
 
     private AlertDialog alert;
 
-    private static final ArrayList<Dialog> rundownDialogs = new ArrayList<Dialog>();
+    private static final ArrayList<Dialog> rundownDialogs = new ArrayList<>();
 
     private Dialog(Activity activity, String title, String message, boolean endAfterDismiss)
     {

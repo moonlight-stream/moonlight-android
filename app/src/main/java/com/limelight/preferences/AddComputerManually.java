@@ -29,7 +29,7 @@ import android.widget.Toast;
 public class AddComputerManually extends Activity {
     private TextView hostText;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
-    private final LinkedBlockingQueue<String> computersToAdd = new LinkedBlockingQueue<String>();
+    private final LinkedBlockingQueue<String> computersToAdd = new LinkedBlockingQueue<>();
     private Thread addThread;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, final IBinder binder) {

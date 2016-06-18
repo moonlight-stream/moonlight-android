@@ -68,7 +68,7 @@ public class ComputerDatabaseManager {
 
     public List<ComputerDetails> getAllComputers() {
         Cursor c = computerDb.rawQuery("SELECT * FROM "+COMPUTER_TABLE_NAME, null);
-        LinkedList<ComputerDetails> computerList = new LinkedList<ComputerDetails>();
+        LinkedList<ComputerDetails> computerList = new LinkedList<>();
         while (c.moveToNext()) {
             ComputerDetails details = new ComputerDetails();
 

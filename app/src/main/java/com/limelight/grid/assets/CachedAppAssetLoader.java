@@ -135,7 +135,7 @@ public class CachedAppAssetLoader {
         private LoaderTuple tuple;
 
         public LoaderTask(ImageView imageView, boolean diskOnly) {
-            this.imageViewRef = new WeakReference<ImageView>(imageView);
+            this.imageViewRef = new WeakReference<>(imageView);
             this.diskOnly = diskOnly;
         }
 
@@ -213,7 +213,7 @@ public class CachedAppAssetLoader {
         public AsyncDrawable(Resources res, Bitmap bitmap,
                              LoaderTask loaderTask) {
             super(res, bitmap);
-            loaderTaskReference = new WeakReference<LoaderTask>(loaderTask);
+            loaderTaskReference = new WeakReference<>(loaderTask);
         }
 
         public LoaderTask getLoaderTask() {

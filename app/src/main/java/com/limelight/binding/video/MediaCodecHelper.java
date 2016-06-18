@@ -34,7 +34,7 @@ public class MediaCodecHelper {
 	private static final List<String> whitelistedHevcDecoders;
 
     static {
-        directSubmitPrefixes = new LinkedList<String>();
+        directSubmitPrefixes = new LinkedList<>();
 
         // These decoders have low enough input buffer latency that they
         // can be directly invoked from the receive thread
@@ -48,11 +48,11 @@ public class MediaCodecHelper {
     }
 
 	static {
-		preferredDecoders = new LinkedList<String>();
+		preferredDecoders = new LinkedList<>();
 	}
 	
 	static {
-		blacklistedDecoderPrefixes = new LinkedList<String>();
+		blacklistedDecoderPrefixes = new LinkedList<>();
 		
 		// Software decoders that don't support H264 high profile
 		blacklistedDecoderPrefixes.add("omx.google");
@@ -65,21 +65,21 @@ public class MediaCodecHelper {
 	}
 	
 	static {
-		spsFixupBitstreamFixupDecoderPrefixes = new LinkedList<String>();
+		spsFixupBitstreamFixupDecoderPrefixes = new LinkedList<>();
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.nvidia");
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.qcom");
         spsFixupBitstreamFixupDecoderPrefixes.add("omx.brcm");
 
-        baselineProfileHackPrefixes = new LinkedList<String>();
+        baselineProfileHackPrefixes = new LinkedList<>();
         baselineProfileHackPrefixes.add("omx.intel");
 
-		whitelistedAdaptiveResolutionPrefixes = new LinkedList<String>();
+		whitelistedAdaptiveResolutionPrefixes = new LinkedList<>();
 		whitelistedAdaptiveResolutionPrefixes.add("omx.nvidia");
 		whitelistedAdaptiveResolutionPrefixes.add("omx.qcom");
 		whitelistedAdaptiveResolutionPrefixes.add("omx.sec");
 		whitelistedAdaptiveResolutionPrefixes.add("omx.TI");
 
-		constrainedHighProfilePrefixes = new LinkedList<String>();
+		constrainedHighProfilePrefixes = new LinkedList<>();
 		constrainedHighProfilePrefixes.add("omx.intel");
 	}
 
@@ -218,7 +218,7 @@ public class MediaCodecHelper {
 	@SuppressWarnings("deprecation")
 	@SuppressLint("NewApi")
 	private static LinkedList<MediaCodecInfo> getMediaCodecList() {
-		LinkedList<MediaCodecInfo> infoList = new LinkedList<MediaCodecInfo>();
+		LinkedList<MediaCodecInfo> infoList = new LinkedList<>();
 		
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 			MediaCodecList mcl = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
@@ -376,7 +376,7 @@ public class MediaCodecHelper {
 					break;
 				cpuInfo.append((char)ch);
 			}
-			
+
 			return cpuInfo.toString();
 		} finally {
 			br.close();

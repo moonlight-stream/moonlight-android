@@ -299,7 +299,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     // Stop updates and wait while pairing
                     stopComputerUpdates(true);
 
-                    InetAddress addr = null;
+                    InetAddress addr;
                     if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
                         addr = computer.localIp;
                     }
@@ -429,7 +429,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 NvHTTP httpConn;
                 String message;
                 try {
-                    InetAddress addr = null;
+                    InetAddress addr;
                     if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
                         addr = computer.localIp;
                     }

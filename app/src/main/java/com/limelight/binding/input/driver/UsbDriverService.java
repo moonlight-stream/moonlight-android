@@ -72,14 +72,14 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
             // Initial attachment broadcast
             if (action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                 // Continue the state machine
                 handleUsbDeviceState(device);
             }
             // Subsequent permission dialog completion intent
             else if (action.equals(ACTION_USB_PERMISSION)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                 // If we got this far, we've already found we're able to handle this device
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {

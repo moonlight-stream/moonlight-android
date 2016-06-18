@@ -48,7 +48,7 @@ public class VirtualController {
     private RelativeLayout.LayoutParams layoutParamsButtonConfigure = null;
     private Button buttonConfigure = null;
 
-    private List<VirtualControllerElement> elements = new ArrayList<VirtualControllerElement>();
+    private List<VirtualControllerElement> elements = new ArrayList<>();
 
     public VirtualController(final NvConnection conn, FrameLayout layout, final Context context) {
         this.connection = conn;

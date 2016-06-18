@@ -3,15 +3,11 @@ package com.limelight.binding.input.driver;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbEndpoint;
-import android.hardware.usb.UsbInterface;
 
 import com.limelight.LimeLog;
-import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.nvstream.input.ControllerPacket;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class XboxOneController extends AbstractXboxController {
 

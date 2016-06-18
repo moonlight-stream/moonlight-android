@@ -20,7 +20,7 @@ public class DigitalPad extends VirtualControllerElement {
     public final static int DIGITAL_PAD_DIRECTION_UP = 2;
     public final static int DIGITAL_PAD_DIRECTION_RIGHT = 4;
     public final static int DIGITAL_PAD_DIRECTION_DOWN = 8;
-    List<DigitalPadListener> listeners = new ArrayList<DigitalPadListener>();
+    List<DigitalPadListener> listeners = new ArrayList<>();
 
     private static final int DPAD_MARGIN = 5;
 

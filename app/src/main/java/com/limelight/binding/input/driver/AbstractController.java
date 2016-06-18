@@ -1,13 +1,5 @@
 package com.limelight.binding.input.driver;
 
-import android.hardware.usb.UsbEndpoint;
-
-import com.limelight.LimeLog;
-import com.limelight.binding.video.MediaCodecHelper;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 public abstract class AbstractController {
 
     private final int deviceId;

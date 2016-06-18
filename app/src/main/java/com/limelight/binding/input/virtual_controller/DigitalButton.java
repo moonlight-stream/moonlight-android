@@ -52,7 +52,7 @@ public class DigitalButton extends VirtualControllerElement {
         }
     }
 
-    private List<DigitalButtonListener> listeners = new ArrayList<DigitalButtonListener>();
+    private List<DigitalButtonListener> listeners = new ArrayList<>();
     private String text = "";
     private int icon = -1;
     private long timerLongClickTimeout = 3000;

@@ -45,7 +45,7 @@ public class ComputerManagerService extends Service {
     private final AtomicInteger dbRefCount = new AtomicInteger(0);
 
     private IdentityManager idManager;
-    private final LinkedList<PollingTuple> pollingTuples = new LinkedList<PollingTuple>();
+    private final LinkedList<PollingTuple> pollingTuples = new LinkedList<>();
     private ComputerManagerListener listener = null;
     private final AtomicInteger activePolls = new AtomicInteger(0);
     private boolean pollingActive = false;

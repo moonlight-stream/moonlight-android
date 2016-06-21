@@ -8,13 +8,16 @@ import com.limelight.binding.input.evdev.EvdevListener;
 
 public class InputCaptureManager {
     public static InputCaptureProvider getInputCaptureProvider(Activity activity, EvdevListener rootListener) {
-        if (AndroidCaptureProvider.isCaptureProviderSupported()) {
-            LimeLog.info("Using Android N+ native mouse capture");
-            return new AndroidCaptureProvider(activity);
-        }
-        else if (ShieldCaptureProvider.isCaptureProviderSupported()) {
+        // Shield capture is preferred because it can capture when the cursor is over
+        // the system UI. Android N native capture can only capture over views owned
+        // by the application.
+        if (ShieldCaptureProvider.isCaptureProviderSupported()) {
             LimeLog.info("Using NVIDIA mouse capture extension");
             return new ShieldCaptureProvider(activity);
+        }
+        else if (AndroidCaptureProvider.isCaptureProviderSupported()) {
+            LimeLog.info("Using Android N+ native mouse capture");
+            return new AndroidCaptureProvider(activity);
         }
         else if (EvdevCaptureProvider.isCaptureProviderSupported()) {
             LimeLog.info("Using Evdev mouse capture");

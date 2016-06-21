@@ -66,14 +66,6 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         Collections.sort(itemList, new Comparator<AppView.AppObject>() {
             @Override
             public int compare(AppView.AppObject lhs, AppView.AppObject rhs) {
-                // Bubble the running app up to the top of the list
-                if (lhs.app.getIsRunning() && !rhs.app.getIsRunning()) {
-                    return -1;
-                }
-                else if (!lhs.app.getIsRunning() && rhs.app.getIsRunning()) {
-                    return 1;
-                }
-
                 return lhs.app.getAppName().compareTo(rhs.app.getAppName());
             }
         });

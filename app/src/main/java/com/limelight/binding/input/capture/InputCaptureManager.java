@@ -15,13 +15,13 @@ public class InputCaptureManager {
             LimeLog.info("Using NVIDIA mouse capture extension");
             return new ShieldCaptureProvider(activity);
         }
-        else if (AndroidCaptureProvider.isCaptureProviderSupported()) {
-            LimeLog.info("Using Android N+ native mouse capture");
-            return new AndroidCaptureProvider(activity);
-        }
         else if (EvdevCaptureProvider.isCaptureProviderSupported()) {
             LimeLog.info("Using Evdev mouse capture");
             return new EvdevCaptureProvider(activity, rootListener);
+        }
+        else if (AndroidCaptureProvider.isCaptureProviderSupported()) {
+            LimeLog.info("Using Android N+ native mouse capture");
+            return new AndroidCaptureProvider(activity);
         }
         else {
             LimeLog.info("Mouse capture not available");

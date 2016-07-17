@@ -21,13 +21,13 @@
             <item>Default</item>
             <item>English</item>
             <item>Italiano</item>
-	    <item>Japanese</item>
+            <item>Japanese</item>
     </string-array>
     <string-array name="language_values" translatable="false">
             <item>default</item>
             <item>en</item>
             <item>it</item>
-	    <item>ja</item>
+            <item>ja</item>
     </string-array>
 
     <string-array name="decoder_names">

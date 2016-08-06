@@ -21,6 +21,7 @@ import android.media.MediaFormat;
 import android.media.MediaCodec.BufferInfo;
 import android.media.MediaCodec.CodecException;
 import android.os.Build;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 
 public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
@@ -202,7 +203,15 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
             videoFormat.setInteger(MediaFormat.KEY_MAX_HEIGHT, height);
         }
 
-        videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
+
+        Surface surface = null;
+        if(renderTarget instanceof SurfaceHolder) {
+            surface = ((SurfaceHolder)renderTarget).getSurface();
+        } else if(renderTarget instanceof Surface){
+            surface = (Surface)renderTarget;
+        }
+
+        videoDecoder.configure(videoFormat, surface, null, 0);
         videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 
         LimeLog.info("Using codec "+selectedDecoderName+" for hardware decoding "+mimeType);

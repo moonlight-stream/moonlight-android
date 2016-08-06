@@ -4,7 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.widget.Toast;
 
-import com.limelight.Game;
+//import com.limelight.Game;
+import com.limelight.GameVr;
 import com.limelight.R;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.computers.ComputerManagerService;
@@ -25,14 +26,14 @@ public class ServerHelper {
 
     public static void doStart(Activity parent, NvApp app, ComputerDetails computer,
                                ComputerManagerService.ComputerManagerBinder managerBinder) {
-        Intent intent = new Intent(parent, Game.class);
-        intent.putExtra(Game.EXTRA_HOST,
+        Intent intent = new Intent(parent, GameVr.class);
+        intent.putExtra(GameVr.EXTRA_HOST,
                 computer.reachability == ComputerDetails.Reachability.LOCAL ?
                         computer.localIp.getHostAddress() : computer.remoteIp.getHostAddress());
-        intent.putExtra(Game.EXTRA_APP_NAME, app.getAppName());
-        intent.putExtra(Game.EXTRA_APP_ID, app.getAppId());
-        intent.putExtra(Game.EXTRA_UNIQUEID, managerBinder.getUniqueId());
-        intent.putExtra(Game.EXTRA_STREAMING_REMOTE,
+        intent.putExtra(GameVr.EXTRA_APP_NAME, app.getAppName());
+        intent.putExtra(GameVr.EXTRA_APP_ID, app.getAppId());
+        intent.putExtra(GameVr.EXTRA_UNIQUEID, managerBinder.getUniqueId());
+        intent.putExtra(GameVr.EXTRA_STREAMING_REMOTE,
                 computer.reachability != ComputerDetails.Reachability.LOCAL);
         parent.startActivity(intent);
     }

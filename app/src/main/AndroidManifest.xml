@@ -66,6 +66,26 @@
                 android:value="com.limelight.AppView" />
         </activity>
 
+        <activity
+            android:name=".GameVr"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/StreamTheme"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.limelight.AppView" />
+        </activity>
+
+        <activity
+            android:name=".TestOgl"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/StreamTheme"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.limelight.AppView" />
+        </activity>
+
         <service
             android:name=".discovery.DiscoveryService"
             android:label="mDNS PC Auto-Discovery Service" />

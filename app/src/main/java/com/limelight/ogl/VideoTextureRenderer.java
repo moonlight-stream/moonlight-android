@@ -1,3 +1,10 @@
+/*
+By Ahmed Hilali
+
+A derivative work based on: http://github.com/izacus/AndroidOpenGLVideoDemo/
+See LICENSE.txt
+ */
+
 package com.limelight.ogl;
 
 import android.content.Context;
@@ -26,31 +33,39 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
 
     private static final String fragmentShaderCode =
             "#extension GL_OES_EGL_image_external : require\n" +
-                    "precision mediump float;" +
+                    "precision highp float;" +
                     "uniform samplerExternalOES texture;" +
+                    "uniform float zoomFactor;" +
+                    "uniform float distFactor;" +
+                    "uniform float wrapEnabled;" +
                     "varying vec2 v_TexCoordinate;"
                     + " 		vec2 Warp(vec2 Tex)"
                     + " 		{ "
                     + " 		  vec2 newPos = Tex;"
-                    + " 		  float c = -81.0/10.0;"
-                    + " 		  float u = Tex.x*2.25 - 1.125;"
-                    + " 		  float v = Tex.y*3.2 - 1.6;"
+                    + " 		  float c = -distFactor/10.0;"
+                    + " 		  float zoomU = zoomFactor * 0.75;"
+                    + " 		  float u = Tex.x*zoomU - (zoomU / 2.0);"
+                    + " 		  float v = Tex.y*zoomFactor - (zoomFactor / 2.0);"
                     + " 		  newPos.x = c*u/(pow(v, 2.0) + c);"
                     + " 		  newPos.y = c*v/(pow(u, 2.0) + c);"
-                    + " 		  newPos.x = clamp((newPos.x + 1.0)*0.5, 0.01, 0.99);"
-                    + " 		  newPos.y = clamp((newPos.y + 1.0)*0.5, 0.01, 0.99);"
+                    + " 		    newPos.x = (newPos.x + 1.0)*0.5;"
+                    + " 		    newPos.y = (newPos.y + 1.0)*0.5;"
                     + " 		  return newPos; "
                     + " 		} "  +
 
                     "void main () {"
                     + " 			vec2 newPos = v_TexCoordinate; "
-                    + " 			if(newPos.x < 0.5)"
-                    + " 			{ "
+                    + " 			if(newPos.x < 0.5) {"
                     + " 				newPos.x = newPos.x * 2.0;"
                     + " 			} else { "
                     + " 				newPos.x = (newPos.x - 0.5) * 2.0;"
-                    + " 			} " +
-                    "    vec4 color = texture2D(texture, Warp(newPos));" +
+                    + " 			} "
+                    + "           newPos = Warp(newPos);"
+                    + "    vec4 color = texture2D(texture, newPos);"
+                    + " 		  if(wrapEnabled < 0.5) {"
+                    + "             vec2 borderStep = step(0.0, newPos) * step(newPos, vec2(1.0, 1.0));"
+                    + " 		    color *= borderStep.x * borderStep.y;"
+                    + " 		  }" +
                     "    gl_FragColor = color;" +
                     "}";
 
@@ -78,6 +93,10 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
     private FloatBuffer vertexBuffer;
     private ShortBuffer drawListBuffer;
 
+    private float zoomFactor = 3.2f;
+    private float distortionFactor = 81.0f;
+    private float wrapEnabled = 1.0f;
+    private boolean zoomedIn = false;
 
     private SurfaceTexture videoTexture;
     private float[] videoTextureTransform;
@@ -122,6 +141,13 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
 
     }
 
+    public boolean isZoomedIn() {
+        return zoomedIn;
+    }
+
+    public void setZoomedIn(boolean zoomedIn1) {
+        this.zoomedIn = zoomedIn1;
+    }
 
     private void setupVertexBuffer()
     {
@@ -193,6 +219,9 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
         int textureCoordinateHandle = GLES20.glGetAttribLocation(shaderProgram, "vTexCoordinate");
         int positionHandle = GLES20.glGetAttribLocation(shaderProgram, "vPosition");
         int textureTranformHandle = GLES20.glGetUniformLocation(shaderProgram, "textureTransform");
+        int zoomHandle = GLES20.glGetUniformLocation(shaderProgram, "zoomFactor");
+        int distHandle = GLES20.glGetUniformLocation(shaderProgram, "distFactor");
+        int wrapHandle = GLES20.glGetUniformLocation(shaderProgram, "wrapEnabled");
 
         GLES20.glEnableVertexAttribArray(positionHandle);
         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, 4 * 3, vertexBuffer);
@@ -206,11 +235,28 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
 
         GLES20.glUniformMatrix4fv(textureTranformHandle, 1, false, videoTextureTransform, 0);
 
+        float realZoomFactor = zoomedIn ? (zoomFactor * 1.8f) : zoomFactor;
+        GLES20.glUniform1f(zoomHandle, realZoomFactor);
+        GLES20.glUniform1f(distHandle, distortionFactor);
+        GLES20.glUniform1f(wrapHandle, wrapEnabled);
+
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length, GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(textureCoordinateHandle);
 
         return true;
+    }
+
+    public void setZoomFactor(float zoomFactor1) {
+        this.zoomFactor = zoomFactor1 / 15.625f;
+    }
+
+    public void setDistortionFactor(float distortionFactor1) {
+        this.distortionFactor = distortionFactor1;
+    }
+
+    public void setWrapEnabled(boolean enabled) {
+        this.wrapEnabled = enabled ? 1.0f : 0.0f;
     }
 
     private void adjustViewport()

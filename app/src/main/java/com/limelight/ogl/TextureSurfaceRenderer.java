@@ -1,3 +1,10 @@
+/*
+By Ahmed Hilali
+
+A derivative work based on: http://github.com/izacus/AndroidOpenGLVideoDemo/
+See LICENSE.txt
+ */
+
 package com.limelight.ogl;
 
 import android.graphics.SurfaceTexture;

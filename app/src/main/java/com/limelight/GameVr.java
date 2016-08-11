@@ -3,6 +3,7 @@ package com.limelight;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
@@ -12,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Display;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.TextureView;
@@ -19,6 +21,11 @@ import android.view.View;
 import android.view.View.OnSystemUiVisibilityChangeListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.limelight.binding.PlatformBinding;
@@ -54,8 +61,12 @@ public class GameVr extends Activity implements TextureView.SurfaceTextureListen
     private WifiManager.WifiLock wifiLock;
     private int drFlags = 0;
 
+    private boolean settingsVisible = false;
     private int surfaceWidth;
     private int surfaceHeight;
+
+    private SharedPreferences sharedpreferences;
+
 
     public static final String EXTRA_HOST = "Host";
     public static final String EXTRA_APP_NAME = "AppName";
@@ -155,9 +166,81 @@ public class GameVr extends Activity implements TextureView.SurfaceTextureListen
             getWindow().setSustainedPerformanceMode(true);
         }
 
+        final Button settingsButton = (Button)findViewById(R.id.settingsButton);
+        settingsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                settingsVisible = !settingsVisible;
+                LinearLayout settingsLayout = (LinearLayout)findViewById(R.id.settingsPanel);
+                settingsLayout.setVisibility(settingsVisible ? View.VISIBLE : View.GONE);
+            }
+        });
+
+        final SeekBar zoomBar = (SeekBar)findViewById(R.id.sizeSeek);
+        zoomBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if(GameVr.this.renderer != null) {
+                    renderer.setZoomFactor((float)(100 - i));
+                    SharedPreferences.Editor editor = sharedpreferences.edit();
+                    editor.putFloat("ZOOM_FACTOR", (float)(100 - i));
+                    editor.apply();
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        final SeekBar distBar = (SeekBar)findViewById(R.id.distSeek);
+        distBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if(GameVr.this.renderer != null) {
+                    renderer.setDistortionFactor((float)i);
+                    SharedPreferences.Editor editor = sharedpreferences.edit();
+                    editor.putFloat("DISTORTION_FACTOR", (float)i);
+                    editor.apply();
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        final CheckBox wrapCheckBox = (CheckBox)findViewById(R.id.wrapCheckbox);
+        wrapCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if(GameVr.this.renderer != null) {
+                    renderer.setWrapEnabled(b);
+                    SharedPreferences.Editor editor = sharedpreferences.edit();
+                    editor.putBoolean("WRAP_ENABLED", b);
+                    editor.apply();
+                }
+            }
+        });
+
+        sharedpreferences = getSharedPreferences("VR_PREFERENCES", Context.MODE_PRIVATE);
+
         // Listen for events on the game surface
         textureView = (TextureView) findViewById(R.id.surface);
         textureView.setSurfaceTextureListener(this);
+        textureView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(GameVr.this.renderer != null) {
+                    renderer.setZoomedIn(!renderer.isZoomedIn());
+                }
+            }
+        });
+
     }
 
     private void prepareDisplayForRendering() {
@@ -359,6 +442,10 @@ public class GameVr extends Activity implements TextureView.SurfaceTextureListen
 
             renderer = new VideoTextureRenderer(this, textureView.getSurfaceTexture(), surfaceWidth, surfaceHeight, this);
             renderer.setVideoSize(prefConfig.width, prefConfig.height);
+
+            renderer.setZoomFactor(sharedpreferences.getFloat("ZOOM_FACTOR", 50));
+            renderer.setDistortionFactor(sharedpreferences.getFloat("DISTORTION_FACTOR", 81));
+            renderer.setWrapEnabled(sharedpreferences.getBoolean("WRAP_ENABLED", true));
         }
     }
 

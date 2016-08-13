@@ -395,6 +395,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.isServal = true;
                 context.ignoreBack = true;
             }
+            // The Xbox One S Bluetooth controller has some mappings that need fixing up
+            else if (devName.equals("Xbox Wireless Controller")) {
+                context.isXboxBtController = true;
+            }
         }
 
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);
@@ -556,6 +560,30 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     return KeyEvent.KEYCODE_BUTTON_SELECT;
                 case 315:
                     return KeyEvent.KEYCODE_BUTTON_START;
+            }
+        }
+        else if (context.isXboxBtController) {
+            switch (event.getScanCode()) {
+                case 306:
+                    return KeyEvent.KEYCODE_BUTTON_X;
+                case 307:
+                    return KeyEvent.KEYCODE_BUTTON_Y;
+                case 308:
+                    return KeyEvent.KEYCODE_BUTTON_L1;
+                case 309:
+                    return KeyEvent.KEYCODE_BUTTON_R1;
+                case 310:
+                    return KeyEvent.KEYCODE_BUTTON_SELECT;
+                case 311:
+                    return KeyEvent.KEYCODE_BUTTON_START;
+                case 312:
+                    return KeyEvent.KEYCODE_BUTTON_THUMBL;
+                case 313:
+                    return KeyEvent.KEYCODE_BUTTON_THUMBR;
+                case 139:
+                    return KeyEvent.KEYCODE_BUTTON_MODE;
+                default:
+                    // Other buttons are mapped correctly
             }
         }
 
@@ -1047,6 +1075,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         public boolean isDualShock4;
         public boolean isXboxController;
+        public boolean isXboxBtController;
         public boolean isServal;
         public boolean backIsStart;
         public boolean modeIsSelect;

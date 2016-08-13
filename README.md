@@ -46,6 +46,12 @@ This project is being actively developed at [XDA Developers](http://forum.xda-de
 2. Write code
 3. Send Pull Requests
 
+##Building
+* Install Android Studio and the Android NDK
+* Run ‘git submodule update --init --recursive’ from within moonlight-android/
+* In moonlight-android/, create a file called ‘local.properties’. Add an ‘ndk.dir=’ property to the local.properties file and set it equal to your NDK directory.
+* Build the APK using Android Studio
+
 ##Authors
 
 * [Cameron Gutman](https://github.com/cgutman)  

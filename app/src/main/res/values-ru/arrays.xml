@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="resolution_names">
+        <item>720p 30 FPS</item>
+        <item>720p 60 FPS</item>
+        <item>1080p 30 FPS</item>
+        <item>1080p 60 FPS</item>
+        <item>4K 30 FPS</item>
+        <item>4K 60 FPS</item>
+    </string-array>
+
+    <string-array name="decoder_names">
+        <item>Автоматический выбор декодера</item>
+        <item>Принудительное программное декодирование</item>
+        <item>Принудительное аппаратное декодирование</item>
+    </string-array>
+
+    <string-array name="video_format_names">
+        <item>Использовать H.265 только если безопасно</item>
+        <item>Всегда использовать H.265 если доступно</item>
+        <item>Никогда не использовать H.265</item>
+    </string-array>
+
+
+</resources>

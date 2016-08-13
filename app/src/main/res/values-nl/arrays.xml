@@ -5,52 +5,35 @@
         <item>720p 60 FPS</item>
         <item>1080p 30 FPS</item>
         <item>1080p 60 FPS</item>
-        <item>4K 30 FPS</item>
-        <item>4K 60 FPS</item>
     </string-array>
     <string-array name="resolution_values" translatable="false">
         <item>720p30</item>
         <item>720p60</item>
         <item>1080p30</item>
         <item>1080p60</item>
-        <item>4K30</item>
-        <item>4K60</item>
     </string-array>
 
     <string-array name="language_names" translatable="false">
             <item>Default</item>
             <item>English</item>
             <item>Italiano</item>
-            <item>Japanese</item>
-            <item>Русский</item>
+            <item>Nederlands</item>
     </string-array>
     <string-array name="language_values" translatable="false">
             <item>default</item>
             <item>en</item>
             <item>it</item>
-            <item>ja</item>
-            <item>ru</item>
+            <item>nl</item>
     </string-array>
 
     <string-array name="decoder_names">
-        <item>Auto-select Decoder</item>
-        <item>Force Software Decoding</item>
-        <item>Force Hardware Decoding</item>
+        <item>Selecteer Decoder Automatisch</item>
+        <item>Forceer Software Decoderen</item>
+        <item>Forceer Hardware Decoderen</item>
     </string-array>
     <string-array name="decoder_values" translatable="false">
         <item>auto</item>
         <item>software</item>
         <item>hardware</item>
-    </string-array>
-
-    <string-array name="video_format_names">
-        <item>Use H.265 only if stable</item>
-        <item>Always use H.265 (may crash)</item>
-        <item>Never use H.265</item>
-    </string-array>
-    <string-array name="video_format_values" translatable="false">
-        <item>auto</item>
-        <item>forceh265</item>
-        <item>neverh265</item>
     </string-array>
 </resources>

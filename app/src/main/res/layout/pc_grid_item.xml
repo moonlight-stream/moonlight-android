@@ -13,16 +13,17 @@
             android:layout_width="150dp"
             android:layout_height="100dp">
         </ImageView>
-        <ImageView
-            android:id="@+id/grid_overlay"
+        <ProgressBar
+            android:id="@+id/grid_spinner"
             android:layout_marginTop="15dp"
             android:layout_marginLeft="65dp"
             android:layout_marginStart="65dp"
             android:layout_marginRight="20dp"
             android:layout_marginEnd="20dp"
             android:layout_width="50dp"
-            android:layout_height="50dp">
-        </ImageView>
+            android:layout_height="50dp"
+            android:indeterminate="true">
+        </ProgressBar>
     </RelativeLayout>
     <TextView
         android:id="@+id/grid_text"

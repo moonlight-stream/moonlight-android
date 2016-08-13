@@ -14,7 +14,7 @@ import java.util.Comparator;
 public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
     public PcGridAdapter(Context context, boolean listMode, boolean small) {
-        super(context, listMode ? R.layout.simple_row : (small ? R.layout.pc_grid_item_small : R.layout.pc_grid_item), R.drawable.computer);
+        super(context, listMode ? R.layout.simple_row : (small ? R.layout.pc_grid_item_small : R.layout.pc_grid_item));
     }
 
     public void addComputer(PcView.ComputerObject computer) {
@@ -37,20 +37,20 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
     @Override
     public boolean populateImageView(ImageView imgView, PcView.ComputerObject obj) {
-        if (obj.details.reachability != ComputerDetails.Reachability.OFFLINE) {
+        if (obj.details.state == ComputerDetails.State.ONLINE) {
             imgView.setAlpha(1.0f);
         }
         else {
             imgView.setAlpha(0.4f);
         }
 
-        // Return false to use the default drawable
-        return false;
+        imgView.setImageResource(R.drawable.computer);
+        return true;
     }
 
     @Override
     public boolean populateTextView(TextView txtView, PcView.ComputerObject obj) {
-        if (obj.details.reachability != ComputerDetails.Reachability.OFFLINE) {
+        if (obj.details.state == ComputerDetails.State.ONLINE) {
             txtView.setAlpha(1.0f);
         }
         else {
@@ -63,13 +63,13 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
     @Override
     public boolean populateOverlayView(ImageView overlayView, PcView.ComputerObject obj) {
-        if (obj.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
-            // Still refreshing this PC so display the overlay
-            overlayView.setImageResource(R.drawable.image_loading);
-            return true;
-        }
-
         // No overlay
         return false;
+    }
+
+    @Override
+    public boolean shouldShowProgressBar(PcView.ComputerObject obj) {
+        // Still refreshing this PC so display the progress bar
+        return obj.details.reachability == ComputerDetails.Reachability.UNKNOWN;
     }
 }

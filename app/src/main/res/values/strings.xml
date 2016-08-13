@@ -55,7 +55,7 @@
 
     <!-- General strings -->
     <string name="ip_hint">IP address of GeForce PC</string>
-    <string name="searching_pc">Searching for PCs…</string>
+    <string name="searching_pc">Searching for PCs with GeForce Experience running…</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="lost_connection">Lost connection to PC</string>

@@ -53,13 +53,13 @@ public class CachedAppAssetLoader {
 
     public CachedAppAssetLoader(ComputerDetails computer, double scalingDivider,
                                 NetworkAssetLoader networkLoader, MemoryAssetLoader memoryLoader,
-                                DiskAssetLoader diskLoader, Bitmap placeholderBitmap) {
+                                DiskAssetLoader diskLoader) {
         this.computer = computer;
         this.scalingDivider = scalingDivider;
         this.networkLoader = networkLoader;
         this.memoryLoader = memoryLoader;
         this.diskLoader = diskLoader;
-        this.placeholderBitmap = placeholderBitmap;
+        this.placeholderBitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
     }
 
     public void cancelBackgroundLoads() {
@@ -280,14 +280,14 @@ public class CachedAppAssetLoader {
         });
     }
 
-    public void populateImageView(NvApp app, ImageView view) {
+    public boolean populateImageView(NvApp app, ImageView view) {
         LoaderTuple tuple = new LoaderTuple(computer, app);
 
         // If there's already a task in progress for this view,
         // cancel it. If the task is already loading the same image,
         // we return and let that load finish.
         if (!cancelPendingLoad(tuple, view)) {
-            return;
+            return true;
         }
 
         // First, try the memory cache in the current context
@@ -296,7 +296,7 @@ public class CachedAppAssetLoader {
             // Show the bitmap immediately
             view.setAlpha(1.0f);
             view.setImageBitmap(bmp);
-            return;
+            return true;
         }
 
         // If it's not in memory, create an async task to load it. This task will be attached
@@ -308,6 +308,7 @@ public class CachedAppAssetLoader {
 
         // Run the task on our foreground executor
         task.executeOnExecutor(foregroundExecutor, tuple);
+        return false;
     }
 
     public class LoaderTuple {

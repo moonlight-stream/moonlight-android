@@ -26,7 +26,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     private final CachedAppAssetLoader loader;
 
     public AppGridAdapter(Activity activity, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) {
-        super(activity, listMode ? R.layout.simple_row : (small ? R.layout.app_grid_item_small : R.layout.app_grid_item), R.drawable.image_loading);
+        super(activity, listMode ? R.layout.simple_row : (small ? R.layout.app_grid_item_small : R.layout.app_grid_item));
 
         int dpi = activity.getResources().getDisplayMetrics().densityDpi;
         int dp;
@@ -51,9 +51,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         this.loader = new CachedAppAssetLoader(computer, scalingDivisor,
                 new NetworkAssetLoader(context, uniqueId),
                 new MemoryAssetLoader(),
-                new DiskAssetLoader(context.getCacheDir()),
-                BitmapFactory.decodeResource(activity.getResources(),
-                        R.drawable.image_loading, options));
+                new DiskAssetLoader(context.getCacheDir()));
     }
 
     public void cancelQueuedOperations() {
@@ -109,5 +107,10 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
         // No overlay
         return false;
+    }
+
+    @Override
+    public boolean shouldShowProgressBar(AppView.AppObject obj) {
+        return true;
     }
 }

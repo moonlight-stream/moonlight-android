@@ -8,6 +8,14 @@
         android:layout_centerHorizontal="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
+        <ProgressBar
+            android:id="@+id/grid_spinner"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:indeterminate="true">
+        </ProgressBar>
         <ImageView
             android:id="@+id/grid_image"
             android:cropToPadding="false"

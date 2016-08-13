@@ -10,16 +10,20 @@
         <ImageView
             android:id="@+id/grid_image"
             android:layout_centerHorizontal="true"
-            android:layout_width="150dp"
-            android:layout_height="100dp">
+            android:layout_width="125dp"
+            android:layout_height="125dp">
+        </ImageView>
+        <ImageView
+            android:id="@+id/grid_overlay"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="30dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp">
         </ImageView>
         <ProgressBar
             android:id="@+id/grid_spinner"
-            android:layout_marginTop="15dp"
-            android:layout_marginLeft="65dp"
-            android:layout_marginStart="65dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginEnd="20dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="30dp"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:indeterminate="true">
@@ -27,7 +31,7 @@
     </RelativeLayout>
     <TextView
         android:id="@+id/grid_text"
-        android:layout_width="150dp"
+        android:layout_width="125dp"
         android:layout_height="wrap_content"
         android:layout_below="@id/grid_image_layout"
         android:layout_marginTop="10dp"

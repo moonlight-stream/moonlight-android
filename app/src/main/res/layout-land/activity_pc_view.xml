@@ -55,7 +55,7 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:src="@drawable/settings"
+        android:src="@drawable/ic_settings"
         style="?android:attr/borderlessButtonStyle"/>
 
     <ImageButton
@@ -68,7 +68,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:src="@drawable/add_computer"
+        android:src="@drawable/ic_add"
         style="?android:attr/borderlessButtonStyle"/>
 
 </RelativeLayout>

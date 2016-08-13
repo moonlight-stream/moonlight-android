@@ -60,7 +60,7 @@ public class VirtualController {
         frame_layout.addView(relative_layout);
 
         buttonConfigure = new Button(context);
-        buttonConfigure.setBackgroundResource(R.drawable.settings);
+        buttonConfigure.setBackgroundResource(R.drawable.ic_settings);
         buttonConfigure.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

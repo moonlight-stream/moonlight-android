@@ -44,7 +44,7 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
             imgView.setAlpha(0.4f);
         }
 
-        imgView.setImageResource(R.drawable.computer);
+        imgView.setImageResource(R.drawable.ic_computer);
         return true;
     }
 
@@ -63,7 +63,11 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
     @Override
     public boolean populateOverlayView(ImageView overlayView, PcView.ComputerObject obj) {
-        // No overlay
+        if (obj.details.state == ComputerDetails.State.OFFLINE) {
+            overlayView.setImageResource(R.drawable.ic_pc_offline);
+            overlayView.setAlpha(0.4f);
+            return true;
+        }
         return false;
     }
 

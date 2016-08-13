@@ -387,12 +387,9 @@ public class NvHTTP {
 			return false;
 		}
 		
-		// GFE 2.8 released without 4K support, even though it claims to have such
-		// support using the SupportedDisplayMode element. We'll use the new ServerCodecModeSupport
-		// element to tell whether 4K is supported or not. For now, we just check the existence
-		// of this element. I'm hopeful that the production version that ships with 4K will
-		// also be the first production version that has this element.
-		if (getXmlString(serverInfo, "ServerCodecModeSupport") == null) {
+		// Only allow 4K on GFE 3.x
+		String gfeVersionStr = getXmlString(serverInfo, "GfeVersion");
+		if (gfeVersionStr == null || gfeVersionStr.startsWith("2.")) {
 			return false;
 		}
 		

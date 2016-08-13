@@ -1,39 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="resolution_names">
-        <item>720p 30 FPS</item>
-        <item>720p 60 FPS</item>
-        <item>1080p 30 FPS</item>
-        <item>1080p 60 FPS</item>
-    </string-array>
-    <string-array name="resolution_values" translatable="false">
-        <item>720p30</item>
-        <item>720p60</item>
-        <item>1080p30</item>
-        <item>1080p60</item>
-    </string-array>
-
-    <string-array name="language_names" translatable="false">
-            <item>Default</item>
-            <item>English</item>
-            <item>Italiano</item>
-            <item>Nederlands</item>
-    </string-array>
-    <string-array name="language_values" translatable="false">
-            <item>default</item>
-            <item>en</item>
-            <item>it</item>
-            <item>nl</item>
-    </string-array>
-
     <string-array name="decoder_names">
         <item>Selecteer Decoder Automatisch</item>
         <item>Forceer Software Decoderen</item>
         <item>Forceer Hardware Decoderen</item>
-    </string-array>
-    <string-array name="decoder_values" translatable="false">
-        <item>auto</item>
-        <item>software</item>
-        <item>hardware</item>
     </string-array>
 </resources>

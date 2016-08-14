@@ -4,11 +4,15 @@ package com.limelight;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
+import com.limelight.binding.input.capture.InputCaptureManager;
+import com.limelight.binding.input.capture.InputCaptureProvider;
 import com.limelight.binding.input.TouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
-import com.limelight.binding.input.evdev.EvdevWatcher;
-import com.limelight.binding.video.ConfigurableDecoderRenderer;
+import com.limelight.binding.input.virtual_controller.VirtualController;
+import com.limelight.binding.video.EnhancedDecoderRenderer;
+import com.limelight.binding.video.MediaCodecDecoderRenderer;
+import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
@@ -18,6 +22,7 @@ import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.GameGestures;
+import com.limelight.ui.StreamView;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 
@@ -34,6 +39,7 @@ import android.hardware.input.InputManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -43,14 +49,13 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnGenericMotionListener;
 import android.view.View.OnSystemUiVisibilityChangeListener;
 import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
@@ -69,30 +74,30 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private final TouchContext[] touchContextMap = new TouchContext[2];
     private long threeFingerDownTime = 0;
 
-    private static final double REFERENCE_HORIZ_RES = 1280;
-    private static final double REFERENCE_VERT_RES = 720;
+    private static final int REFERENCE_HORIZ_RES = 1280;
+    private static final int REFERENCE_VERT_RES = 720;
 
     private static final int THREE_FINGER_TAP_THRESHOLD = 300;
 
     private ControllerHandler controllerHandler;
+    private VirtualController virtualController;
     private KeyboardTranslator keybTranslator;
 
     private PreferenceConfiguration prefConfig;
-    private final Point screenSize = new Point(0, 0);
 
     private NvConnection conn;
     private SpinnerDialog spinner;
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
     private boolean connected = false;
-    private boolean deferredSurfaceResize = false;
 
-    private EvdevWatcher evdevWatcher;
+    private InputCaptureProvider inputCaptureProvider;
     private int modifierFlags = 0;
     private boolean grabbedInput = true;
     private boolean grabComboDown = false;
+    private StreamView streamView;
 
-    private ConfigurableDecoderRenderer decoderRenderer;
+    private EnhancedDecoderRenderer decoderRenderer;
 
     private WifiManager.WifiLock wifiLock;
 
@@ -164,28 +169,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Read the stream preferences
         prefConfig = PreferenceConfiguration.readPreferences(this);
-        switch (prefConfig.decoder) {
-        case PreferenceConfiguration.FORCE_SOFTWARE_DECODER:
-            drFlags |= VideoDecoderRenderer.FLAG_FORCE_SOFTWARE_DECODING;
-            break;
-        case PreferenceConfiguration.AUTOSELECT_DECODER:
-            break;
-        case PreferenceConfiguration.FORCE_HARDWARE_DECODER:
-            drFlags |= VideoDecoderRenderer.FLAG_FORCE_HARDWARE_DECODING;
-            break;
-        }
 
         if (prefConfig.stretchVideo) {
             drFlags |= VideoDecoderRenderer.FLAG_FILL_SCREEN;
         }
 
-        Display display = getWindowManager().getDefaultDisplay();
-        display.getSize(screenSize);
-
         // Listen for events on the game surface
-        SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
-        sv.setOnGenericMotionListener(this);
-        sv.setOnTouchListener(this);
+        streamView = (StreamView) findViewById(R.id.surfaceView);
+        streamView.setOnGenericMotionListener(this);
+        streamView.setOnTouchListener(this);
 
         // Warn the user if they're on a metered connection
         checkDataConnection();
@@ -207,8 +199,27 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return;
         }
 
-        decoderRenderer = new ConfigurableDecoderRenderer();
-        decoderRenderer.initializeWithFlags(drFlags);
+        // Initialize the MediaCodec helper before creating the decoder
+        MediaCodecHelper.initializeWithContext(this);
+
+        decoderRenderer = new MediaCodecDecoderRenderer(prefConfig.videoFormat);
+
+        // Display a message to the user if H.265 was forced on but we still didn't find a decoder
+        if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
+            Toast.makeText(this, "No H.265 decoder found.\nFalling back to H.264.", Toast.LENGTH_LONG).show();
+        }
+
+        if (!decoderRenderer.isAvcSupported()) {
+            if (spinner != null) {
+                spinner.dismiss();
+                spinner = null;
+            }
+
+            // If we can't find an AVC decoder, we can't proceed
+            Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title),
+                    "This device or ROM doesn't support hardware accelerated H.264 playback.", true);
+            return;
+        }
         
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
@@ -221,52 +232,44 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
                 .setMaxPacketSize(remote ? 1024 : 1292)
                 .setRemote(remote)
+                .setHevcSupported(decoderRenderer.isHevcSupported())
+                .setAudioConfiguration(prefConfig.enable51Surround ?
+                        StreamConfiguration.AUDIO_CONFIGURATION_5_1 :
+                        StreamConfiguration.AUDIO_CONFIGURATION_STEREO)
                 .build();
 
         // Initialize the connection
         conn = new NvConnection(host, uniqueId, Game.this, config, PlatformBinding.getCryptoProvider(this));
         keybTranslator = new KeyboardTranslator(conn);
-        controllerHandler = new ControllerHandler(conn, this, prefConfig.multiController, prefConfig.deadzonePercentage);
+        controllerHandler = new ControllerHandler(this, conn, this, prefConfig.multiController, prefConfig.deadzonePercentage);
 
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         inputManager.registerInputDeviceListener(controllerHandler, null);
 
-        boolean aspectRatioMatch = false;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-            // On KitKat and later (where we can use the whole screen via immersive mode), we'll
-            // calculate whether we need to scale by aspect ratio or not. If not, we'll use
-            // setFixedSize so we can handle 4K properly. The only known devices that have
-            // >= 4K screens have exactly 4K screens, so we'll be able to hit this good path
-            // on these devices. On Marshmallow, we can start changing to 4K manually but no
-            // 4K devices run 6.0 at the moment.
-            double screenAspectRatio = ((double)screenSize.y) / screenSize.x;
-            double streamAspectRatio = ((double)prefConfig.height) / prefConfig.width;
-            if (Math.abs(screenAspectRatio - streamAspectRatio) < 0.001) {
-                LimeLog.info("Stream has compatible aspect ratio with output display");
-                aspectRatioMatch = true;
-            }
-        }
-
-        SurfaceHolder sh = sv.getHolder();
-        if (prefConfig.stretchVideo || !decoderRenderer.isHardwareAccelerated() || aspectRatioMatch) {
-            // Set the surface to the size of the video
-            sh.setFixedSize(prefConfig.width, prefConfig.height);
-        }
-        else {
-            deferredSurfaceResize = true;
-        }
+        // Set to the optimal mode for streaming
+        prepareDisplayForRendering();
 
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
             touchContextMap[i] = new TouchContext(conn, i,
-                    (REFERENCE_HORIZ_RES / (double)screenSize.x),
-                    (REFERENCE_VERT_RES / (double)screenSize.y));
+                    REFERENCE_HORIZ_RES, REFERENCE_VERT_RES,
+                    streamView);
         }
 
-        if (LimelightBuildProps.ROOT_BUILD) {
-            // Start watching for raw input
-            evdevWatcher = new EvdevWatcher(this);
-            evdevWatcher.start();
+        // Use sustained performance mode on N+ to ensure consistent
+        // CPU availability
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            getWindow().setSustainedPerformanceMode(true);
+        }
+
+        inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
+
+        if (prefConfig.onscreenController) {
+            // create virtual onscreen controller
+            virtualController = new VirtualController(conn,
+                    (FrameLayout)findViewById(R.id.surfaceView).getParent(),
+                    this);
+            virtualController.refreshLayout();
         }
 
         if (prefConfig.usbDriver) {
@@ -276,22 +279,96 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // The connection will be started when the surface gets created
-        sh.addCallback(this);
+        streamView.getHolder().addCallback(this);
     }
 
-    private void resizeSurfaceWithAspectRatio(SurfaceView sv, double vidWidth, double vidHeight)
-    {
-        // Get the visible width of the activity
-        double visibleWidth = getWindow().getDecorView().getWidth();
+    private void prepareDisplayForRendering() {
+        Display display = getWindowManager().getDefaultDisplay();
+        WindowManager.LayoutParams windowLayoutParams = getWindow().getAttributes();
 
-        ViewGroup.LayoutParams lp = sv.getLayoutParams();
+        // On M, we can explicitly set the optimal display mode
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Display.Mode bestMode = display.getMode();
+            for (Display.Mode candidate : display.getSupportedModes()) {
+                boolean refreshRateOk = candidate.getRefreshRate() >= bestMode.getRefreshRate() &&
+                        candidate.getRefreshRate() < 63;
+                boolean resolutionOk = candidate.getPhysicalWidth() >= bestMode.getPhysicalWidth() &&
+                        candidate.getPhysicalHeight() >= bestMode.getPhysicalHeight() &&
+                        candidate.getPhysicalWidth() <= 4096;
 
-        // Calculate the new size of the SurfaceView
-        lp.width = (int) visibleWidth;
-        lp.height = (int) ((vidHeight / vidWidth) * visibleWidth);
+                LimeLog.info("Examining display mode: "+candidate.getPhysicalWidth()+"x"+
+                        candidate.getPhysicalHeight()+"x"+candidate.getRefreshRate());
 
-        // Apply the size change
-        sv.setLayoutParams(lp);
+                // On non-4K streams, we force the resolution to never change
+                if (prefConfig.width < 3840) {
+                    if (display.getMode().getPhysicalWidth() != candidate.getPhysicalWidth() ||
+                            display.getMode().getPhysicalHeight() != candidate.getPhysicalHeight()) {
+                        continue;
+                    }
+                }
+
+                // Make sure the refresh rate doesn't regress
+                if (!refreshRateOk) {
+                    continue;
+                }
+
+                // Make sure the resolution doesn't regress
+                if (!resolutionOk) {
+                    continue;
+                }
+
+                bestMode = candidate;
+            }
+            LimeLog.info("Selected display mode: "+bestMode.getPhysicalWidth()+"x"+
+                    bestMode.getPhysicalHeight()+"x"+bestMode.getRefreshRate());
+            windowLayoutParams.preferredDisplayModeId = bestMode.getModeId();
+        }
+        // On L, we can at least tell the OS that we want 60 Hz
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            float bestRefreshRate = display.getRefreshRate();
+            for (float candidate : display.getSupportedRefreshRates()) {
+                if (candidate > bestRefreshRate && candidate < 63) {
+                    LimeLog.info("Examining refresh rate: "+candidate);
+                    bestRefreshRate = candidate;
+                }
+            }
+            LimeLog.info("Selected refresh rate: "+bestRefreshRate);
+            windowLayoutParams.preferredRefreshRate = bestRefreshRate;
+        }
+
+        // Apply the display mode change
+        getWindow().setAttributes(windowLayoutParams);
+
+        // From 4.4 to 5.1 we can't ask for a 4K display mode, so we'll
+        // need to hint the OS to provide one.
+        boolean aspectRatioMatch = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT &&
+                Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            // On KitKat and later (where we can use the whole screen via immersive mode), we'll
+            // calculate whether we need to scale by aspect ratio or not. If not, we'll use
+            // setFixedSize so we can handle 4K properly. The only known devices that have
+            // >= 4K screens have exactly 4K screens, so we'll be able to hit this good path
+            // on these devices. On Marshmallow, we can start changing to 4K manually but no
+            // 4K devices run 6.0 at the moment.
+            Point screenSize = new Point(0, 0);
+            display.getSize(screenSize);
+
+            double screenAspectRatio = ((double)screenSize.y) / screenSize.x;
+            double streamAspectRatio = ((double)prefConfig.height) / prefConfig.width;
+            if (Math.abs(screenAspectRatio - streamAspectRatio) < 0.001) {
+                LimeLog.info("Stream has compatible aspect ratio with output display");
+                aspectRatioMatch = true;
+            }
+        }
+
+        if (prefConfig.stretchVideo || aspectRatioMatch) {
+            // Set the surface to the size of the video
+            streamView.getHolder().setFixedSize(prefConfig.width, prefConfig.height);
+        }
+        else {
+            // Set the surface to scale based on the aspect ratio of the stream
+            streamView.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
+        }
     }
 
     private void checkDataConnection()
@@ -339,8 +416,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         SpinnerDialog.closeDialogs(this);
         Dialog.closeDialogs();
 
-        InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
-        inputManager.unregisterInputDeviceListener(controllerHandler);
+        if (controllerHandler != null) {
+            InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
+            inputManager.unregisterInputDeviceListener(controllerHandler);
+        }
 
         wifiLock.release();
 
@@ -349,24 +428,38 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             unbindService(usbDriverServiceConnection);
         }
 
-        displayedFailureDialog = true;
-        stopConnection();
+        if (conn != null) {
+            VideoDecoderRenderer.VideoFormat videoFormat = conn.getActiveVideoFormat();
 
-        int averageEndToEndLat = decoderRenderer.getAverageEndToEndLatency();
-        int averageDecoderLat = decoderRenderer.getAverageDecoderLatency();
-        String message = null;
-        if (averageEndToEndLat > 0) {
-            message = getResources().getString(R.string.conn_client_latency)+" "+averageEndToEndLat+" ms";
-            if (averageDecoderLat > 0) {
-                message += " ("+getResources().getString(R.string.conn_client_latency_hw)+" "+averageDecoderLat+" ms)";
+            displayedFailureDialog = true;
+            stopConnection();
+
+            int averageEndToEndLat = decoderRenderer.getAverageEndToEndLatency();
+            int averageDecoderLat = decoderRenderer.getAverageDecoderLatency();
+            String message = null;
+            if (averageEndToEndLat > 0) {
+                message = getResources().getString(R.string.conn_client_latency)+" "+averageEndToEndLat+" ms";
+                if (averageDecoderLat > 0) {
+                    message += " ("+getResources().getString(R.string.conn_client_latency_hw)+" "+averageDecoderLat+" ms)";
+                }
             }
-        }
-        else if (averageDecoderLat > 0) {
-            message = getResources().getString(R.string.conn_hardware_latency)+" "+averageDecoderLat+" ms";
-        }
+            else if (averageDecoderLat > 0) {
+                message = getResources().getString(R.string.conn_hardware_latency)+" "+averageDecoderLat+" ms";
+            }
 
-        if (message != null) {
-            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+            // Add the video codec to the post-stream toast
+            if (message != null && videoFormat != VideoDecoderRenderer.VideoFormat.Unknown) {
+                if (videoFormat == VideoDecoderRenderer.VideoFormat.H265) {
+                    message += " [H.265]";
+                }
+                else {
+                    message += " [H.264]";
+                }
+            }
+
+            if (message != null) {
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+            }
         }
 
         finish();
@@ -375,14 +468,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private final Runnable toggleGrab = new Runnable() {
         @Override
         public void run() {
-
-            if (evdevWatcher != null) {
-                if (grabbedInput) {
-                    evdevWatcher.ungrabAll();
-                }
-                else {
-                    evdevWatcher.regrabAll();
-                }
+            if (grabbedInput) {
+                inputCaptureProvider.disableCapture();
+            }
+            else {
+                inputCaptureProvider.enableCapture();
             }
 
             grabbedInput = !grabbedInput;
@@ -489,11 +579,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return true;
             }
 
-            // Eat repeat down events
-            if (event.getRepeatCount() > 0) {
-                return true;
-            }
-
             // Pass through keyboard input if we're not grabbing
             if (!grabbedInput) {
                 return super.onKeyDown(keyCode, event);
@@ -570,7 +655,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
         {
             // This case is for mice
-            if (event.getSource() == InputDevice.SOURCE_MOUSE)
+            if (event.getSource() == InputDevice.SOURCE_MOUSE ||
+                    (event.getPointerCount() >= 1 &&
+                            event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE))
             {
                 int changedButtons = event.getButtonState() ^ lastButtonState;
 
@@ -607,19 +694,38 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                 }
 
-                // First process the history
-                for (int i = 0; i < event.getHistorySize(); i++) {
-                    updateMousePosition((int)event.getHistoricalX(i), (int)event.getHistoricalY(i));
-                }
+                // Get relative axis values if we can
+                if (inputCaptureProvider.eventHasRelativeMouseAxes(event)) {
+                    // Send the deltas straight from the motion event
+                    conn.sendMouseMove((short) inputCaptureProvider.getRelativeAxisX(event),
+                            (short) inputCaptureProvider.getRelativeAxisY(event));
 
-                // Now process the current values
-                updateMousePosition((int)event.getX(), (int)event.getY());
+                    // We have to also update the position Android thinks the cursor is at
+                    // in order to avoid jumping when we stop moving or click.
+                    lastMouseX = (int)event.getX();
+                    lastMouseY = (int)event.getY();
+                }
+                else {
+                    // First process the history
+                    for (int i = 0; i < event.getHistorySize(); i++) {
+                        updateMousePosition((int)event.getHistoricalX(i), (int)event.getHistoricalY(i));
+                    }
+
+                    // Now process the current values
+                    updateMousePosition((int)event.getX(), (int)event.getY());
+                }
 
                 lastButtonState = event.getButtonState();
             }
             // This case is for touch-based input devices
             else
             {
+                if (virtualController != null &&
+                        virtualController.getControllerMode() == VirtualController.ControllerMode.Configuration) {
+                    // Ignore presses when the virtual controller is in configuration mode
+                    return true;
+                }
+
                 int actionIndex = event.getActionIndex();
 
                 int eventX = (int)event.getX(actionIndex);
@@ -730,8 +836,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             // Scale the deltas if the device resolution is different
             // than the stream resolution
-            deltaX = (int)Math.round((double)deltaX * (REFERENCE_HORIZ_RES / (double)screenSize.x));
-            deltaY = (int)Math.round((double)deltaY * (REFERENCE_VERT_RES / (double)screenSize.y));
+            deltaX = (int)Math.round((double)deltaX * (REFERENCE_HORIZ_RES / (double)streamView.getWidth()));
+            deltaY = (int)Math.round((double)deltaY * (REFERENCE_VERT_RES / (double)streamView.getHeight()));
 
             conn.sendMouseMove((short)deltaX, (short)deltaY);
         }
@@ -769,11 +875,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             conn.stop();
         }
 
-        // Close the Evdev watcher to allow use of captured input devices
-        if (evdevWatcher != null) {
-            evdevWatcher.shutdown();
-            evdevWatcher = null;
-        }
+        // Enable cursor visibility again
+        inputCaptureProvider.disableCapture();
+
+        // Destroy the capture provider
+        inputCaptureProvider.destroy();
     }
 
     @Override
@@ -813,6 +919,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         connecting = false;
         connected = true;
 
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Hide the mouse cursor now. Doing it before
+                // dismissing the spinner seems to be undone
+                // when the spinner gets displayed.
+                inputCaptureProvider.enableCapture();
+            }
+        });
+
         hideSystemUi(1000);
     }
 
@@ -847,13 +963,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (!connected && !connecting) {
             connecting = true;
 
-            // Resize the surface to match the aspect ratio of the video
-            // This must be done after the surface is created.
-            if (deferredSurfaceResize) {
-                resizeSurfaceWithAspectRatio((SurfaceView) findViewById(R.id.surfaceView),
-                        prefConfig.width, prefConfig.height);
-            }
-
             conn.start(PlatformBinding.getDeviceName(), holder, drFlags,
                     PlatformBinding.getAudioRenderer(), decoderRenderer);
         }
@@ -862,6 +971,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         if (connected) {
+            // HACK: Android is supposed to let you return from this function
+            // before throwing a fit if you access the surface again. Unfortunately,
+            // MediaCodec often tries to access the destroyed surface and triggers
+            // an IllegalStateException. To workaround this, we will invoke
+            // the DecoderRenderer's stop function ourselves, so it will hopefully
+            // happen early enough to not trigger the bug
+            decoderRenderer.stop();
+
             stopConnection();
         }
     }

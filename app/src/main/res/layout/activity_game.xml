@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     tools:context=".Game" >
 
-    <SurfaceView
+    <com.limelight.ui.StreamView
         android:id="@+id/surfaceView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

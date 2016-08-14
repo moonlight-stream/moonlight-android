@@ -10,7 +10,11 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
+import android.view.InputDevice;
+
+import com.limelight.LimeLog;
 
 import java.util.ArrayList;
 
@@ -24,10 +28,10 @@ public class UsbDriverService extends Service implements UsbDriverListener {
     private final UsbEventReceiver receiver = new UsbEventReceiver();
     private final UsbDriverBinder binder = new UsbDriverBinder();
 
-    private final ArrayList<XboxOneController> controllers = new ArrayList<>();
+    private final ArrayList<AbstractController> controllers = new ArrayList<>();
 
     private UsbDriverListener listener;
-    private static int nextDeviceId;
+    private int nextDeviceId;
 
     @Override
     public void reportControllerState(int controllerId, short buttonFlags, float leftStickX, float leftStickY, float rightStickX, float rightStickY, float leftTrigger, float rightTrigger) {
@@ -40,7 +44,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
     @Override
     public void deviceRemoved(int controllerId) {
         // Remove the the controller from our list (if not removed already)
-        for (XboxOneController controller : controllers) {
+        for (AbstractController controller : controllers) {
             if (controller.getControllerId() == controllerId) {
                 controllers.remove(controller);
                 break;
@@ -68,14 +72,14 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
             // Initial attachment broadcast
             if (action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                 // Continue the state machine
                 handleUsbDeviceState(device);
             }
             // Subsequent permission dialog completion intent
             else if (action.equals(ACTION_USB_PERMISSION)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                 // If we got this far, we've already found we're able to handle this device
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
@@ -91,7 +95,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
             // Report all controllerMap that already exist
             if (listener != null) {
-                for (XboxOneController controller : controllers) {
+                for (AbstractController controller : controllers) {
                     listener.deviceAdded(controller.getControllerId());
                 }
             }
@@ -100,7 +104,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
     private void handleUsbDeviceState(UsbDevice device) {
         // Are we able to operate it?
-        if (XboxOneController.canClaimDevice(device)) {
+        if (shouldClaimDevice(device)) {
             // Do we have permission yet?
             if (!usbManager.hasPermission(device)) {
                 // Let's ask for permission
@@ -110,9 +114,26 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
             // Open the device
             UsbDeviceConnection connection = usbManager.openDevice(device);
+            if (connection == null) {
+                LimeLog.warning("Unable to open USB device: "+device.getDeviceName());
+                return;
+            }
 
-            // Try to initialize it
-            XboxOneController controller = new XboxOneController(device, connection, nextDeviceId++, this);
+
+            AbstractController controller;
+
+            if (XboxOneController.canClaimDevice(device)) {
+                controller = new XboxOneController(device, connection, nextDeviceId++, this);
+            }
+            else if (Xbox360Controller.canClaimDevice(device)) {
+                controller = new Xbox360Controller(device, connection, nextDeviceId++, this);
+            }
+            else {
+                // Unreachable
+                return;
+            }
+
+            // Start the controller
             if (!controller.start()) {
                 connection.close();
                 return;
@@ -121,6 +142,34 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             // Add this controller to the list
             controllers.add(controller);
         }
+    }
+
+    private boolean isRecognizedInputDevice(UsbDevice device) {
+        // On KitKat and later, we can determine if this VID and PID combo
+        // matches an existing input device and defer to the built-in controller
+        // support in that case. Prior to KitKat, we'll always return true to be safe.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            for (int id : InputDevice.getDeviceIds()) {
+                InputDevice inputDev = InputDevice.getDevice(id);
+
+                if (inputDev.getVendorId() == device.getVendorId() &&
+                        inputDev.getProductId() == device.getProductId()) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    private boolean shouldClaimDevice(UsbDevice device) {
+        // We always bind to XB1 controllers but only bind to XB360 controllers
+        // if we know the kernel isn't already driving this device.
+        return XboxOneController.canClaimDevice(device) ||
+                (!isRecognizedInputDevice(device) && Xbox360Controller.canClaimDevice(device));
     }
 
     @Override
@@ -135,7 +184,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
         // Enumerate existing devices
         for (UsbDevice dev : usbManager.getDeviceList().values()) {
-            if (XboxOneController.canClaimDevice(dev)) {
+            if (shouldClaimDevice(dev)) {
                 // Start the process of claiming this device
                 handleUsbDeviceState(dev);
             }

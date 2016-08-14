@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <string-array name="decoder_names">
+      <item>デコーダを自動選択</item>
+        <item>ソフトウェアデコードを強制</item>
+        <item>ハードウェアデコードを強制</item>
+    </string-array>
+
+    <string-array name="video_format_names">
+        <item>安定している場合にH.265を有効化</item>
+        <item>H.265を強制的に有効化(クラッシュする可能性があります)</item>
+        <item>H.265を無効化</item>
+    </string-array>
+</resources>

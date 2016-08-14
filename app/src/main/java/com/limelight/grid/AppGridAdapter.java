@@ -14,8 +14,6 @@ import com.limelight.grid.assets.MemoryAssetLoader;
 import com.limelight.grid.assets.NetworkAssetLoader;
 import com.limelight.nvstream.http.ComputerDetails;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -28,7 +26,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     private final CachedAppAssetLoader loader;
 
     public AppGridAdapter(Activity activity, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) {
-        super(activity, listMode ? R.layout.simple_row : (small ? R.layout.app_grid_item_small : R.layout.app_grid_item), R.drawable.image_loading);
+        super(activity, listMode ? R.layout.simple_row : (small ? R.layout.app_grid_item_small : R.layout.app_grid_item));
 
         int dpi = activity.getResources().getDisplayMetrics().densityDpi;
         int dp;
@@ -53,9 +51,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         this.loader = new CachedAppAssetLoader(computer, scalingDivisor,
                 new NetworkAssetLoader(context, uniqueId),
                 new MemoryAssetLoader(),
-                new DiskAssetLoader(context.getCacheDir()),
-                BitmapFactory.decodeResource(activity.getResources(),
-                        R.drawable.image_loading, options));
+                new DiskAssetLoader(context.getCacheDir()));
     }
 
     public void cancelQueuedOperations() {
@@ -105,11 +101,16 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     public boolean populateOverlayView(ImageView overlayView, AppView.AppObject obj) {
         if (obj.app.getIsRunning()) {
             // Show the play button overlay
-            overlayView.setImageResource(R.drawable.play);
+            overlayView.setImageResource(R.drawable.ic_play);
             return true;
         }
 
         // No overlay
         return false;
+    }
+
+    @Override
+    public boolean shouldShowProgressBar(AppView.AppObject obj) {
+        return true;
     }
 }

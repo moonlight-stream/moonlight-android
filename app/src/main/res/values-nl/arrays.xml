@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+<<<<<<< HEAD
     <string-array name="resolution_names">
         <item>720p 30 FPS</item>
         <item>720p 60 FPS</item>
@@ -26,14 +27,19 @@
             <item>nl</item>
     </string-array>
 
+=======
+>>>>>>> upstream/master
     <string-array name="decoder_names">
         <item>Selecteer Decoder Automatisch</item>
         <item>Forceer Software Decoderen</item>
         <item>Forceer Hardware Decoderen</item>
     </string-array>
+<<<<<<< HEAD
     <string-array name="decoder_values" translatable="false">
         <item>auto</item>
         <item>software</item>
         <item>hardware</item>
     </string-array>
+=======
+>>>>>>> upstream/master
 </resources>

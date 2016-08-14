@@ -1,5 +1,7 @@
 package com.limelight.binding.input;
 
+import android.view.View;
+
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.MouseButtonPacket;
 
@@ -17,23 +19,27 @@ public class TouchContext {
     private boolean confirmedDrag;
     private Timer dragTimer;
     private double distanceMoved;
+    private double xFactor, yFactor;
 
     private final NvConnection conn;
     private final int actionIndex;
-    private final double xFactor;
-    private final double yFactor;
+    private final int referenceWidth;
+    private final int referenceHeight;
+    private final View targetView;
 
     private static final int TAP_MOVEMENT_THRESHOLD = 20;
     private static final int TAP_DISTANCE_THRESHOLD = 25;
     private static final int TAP_TIME_THRESHOLD = 250;
     private static final int DRAG_TIME_THRESHOLD = 650;
 
-    public TouchContext(NvConnection conn, int actionIndex, double xFactor, double yFactor)
+    public TouchContext(NvConnection conn, int actionIndex,
+                        int referenceWidth, int referenceHeight, View view)
     {
         this.conn = conn;
         this.actionIndex = actionIndex;
-        this.xFactor = xFactor;
-        this.yFactor = yFactor;
+        this.referenceWidth = referenceWidth;
+        this.referenceHeight = referenceHeight;
+        this.targetView = view;
     }
 
     public int getActionIndex()
@@ -68,6 +74,10 @@ public class TouchContext {
 
     public boolean touchDownEvent(int eventX, int eventY)
     {
+        // Get the view dimensions to scale inputs on this touch
+        xFactor = referenceWidth / (double)targetView.getWidth();
+        yFactor = referenceHeight / (double)targetView.getHeight();
+
         originalTouchX = lastTouchX = eventX;
         originalTouchY = lastTouchY = eventY;
         originalTouchTime = System.currentTimeMillis();

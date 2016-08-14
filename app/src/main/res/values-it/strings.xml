@@ -115,6 +115,4 @@
     <string name="summary_checkbox_host_audio">Riproduci l\'audio sul computer e su questo dispositivo</string>
 
     <string name="category_advanced_settings">Impostazioni Avanzate</string>
-    <string name="title_decoder_list">Cambia decoder</string>
-    <string name="summary_decoder_list">Il decoder software può ridurre la latenza video quando si usano impostazioni streaming basse</string>
 </resources>

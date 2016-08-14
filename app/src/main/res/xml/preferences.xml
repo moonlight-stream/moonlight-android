@@ -26,6 +26,13 @@
             android:summary="@string/summary_checkbox_disable_warnings"
             android:defaultValue="false" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/category_audio_settings">
+        <CheckBoxPreference
+            android:key="checkbox_51_surround"
+            android:title="@string/title_checkbox_51_surround"
+            android:summary="@string/summary_checkbox_51_surround"
+            android:defaultValue="false" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_gamepad_settings">
         <!--com.limelight.preferences.SeekBarPreference
             android:key="seekbar_deadzone"
@@ -43,6 +50,14 @@
             android:title="@string/title_checkbox_xb1_driver"
             android:summary="@string/summary_checkbox_xb1_driver"
             android:defaultValue="true" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/category_on_screen_controls_settings"
+        android:key="category_onscreen_controls">
+        <CheckBoxPreference
+            android:key="checkbox_show_onscreen_controls"
+            android:title="@string/title_checkbox_show_onscreen_controls"
+            android:summary="@string/summary_checkbox_show_onscreen_controls"
+            android:defaultValue="false"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">
         <CheckBoxPreference
@@ -76,12 +91,11 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_advanced_settings">
         <ListPreference
-            android:key="list_decoders"
-            android:title="@string/title_decoder_list"
-            android:entries="@array/decoder_names"
-            android:entryValues="@array/decoder_values"
-            android:summary="@string/summary_decoder_list"
+            android:key="video_format"
+            android:title="@string/title_video_format"
+            android:entries="@array/video_format_names"
+            android:entryValues="@array/video_format_values"
+            android:summary="@string/summary_video_format"
             android:defaultValue="auto" />
     </PreferenceCategory>
-
 </PreferenceScreen>

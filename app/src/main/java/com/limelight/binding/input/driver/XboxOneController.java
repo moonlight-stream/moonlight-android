@@ -3,60 +3,30 @@ package com.limelight.binding.input.driver;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbEndpoint;
-import android.hardware.usb.UsbInterface;
 
 import com.limelight.LimeLog;
-import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.nvstream.input.ControllerPacket;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
-public class XboxOneController {
-    private final UsbDevice device;
-    private final UsbDeviceConnection connection;
-    private final int deviceId;
+public class XboxOneController extends AbstractXboxController {
 
-    private Thread inputThread;
-    private UsbDriverListener listener;
-    private boolean stopped;
-
-    private short buttonFlags;
-    private float leftTrigger, rightTrigger;
-    private float rightStickX, rightStickY;
-    private float leftStickX, leftStickY;
-
-    private static final int MICROSOFT_VID = 0x045e;
     private static final int XB1_IFACE_SUBCLASS = 71;
     private static final int XB1_IFACE_PROTOCOL = 208;
+
+    private static final int[] SUPPORTED_VENDORS = {
+            0x045e, // Microsoft
+            0x0738, // Mad Catz
+            0x0e6f, // Unknown
+            0x0f0d, // Hori
+            0x24c6, // PowerA
+    };
 
     // FIXME: odata_serial
     private static final byte[] XB1_INIT_DATA = {0x05, 0x20, 0x00, 0x01, 0x00};
 
     public XboxOneController(UsbDevice device, UsbDeviceConnection connection, int deviceId, UsbDriverListener listener) {
-        this.device = device;
-        this.connection = connection;
-        this.deviceId = deviceId;
-        this.listener = listener;
-    }
-
-    public int getControllerId() {
-        return this.deviceId;
-    }
-
-    private void setButtonFlag(int buttonFlag, int data) {
-        if (data != 0) {
-            buttonFlags |= buttonFlag;
-        }
-        else {
-            buttonFlags &= ~buttonFlag;
-        }
-    }
-
-    private void reportInput() {
-        listener.reportControllerState(deviceId, buttonFlags, leftStickX, leftStickY,
-                rightStickX, rightStickY, leftTrigger, rightTrigger);
+        super(device, connection, deviceId, listener);
     }
 
     private void processButtons(ByteBuffer buffer) {
@@ -90,103 +60,56 @@ public class XboxOneController {
 
         rightStickX = buffer.getShort() / 32767.0f;
         rightStickY = ~buffer.getShort() / 32767.0f;
-
-        reportInput();
     }
 
-    private void processPacket(ByteBuffer buffer) {
+    private void ackModeReport(byte seqNum) {
+        byte[] payload = {0x01, 0x20, seqNum, 0x09, 0x00, 0x07, 0x20, 0x02,
+                0x00, 0x00, 0x00, 0x00, 0x00};
+        connection.bulkTransfer(outEndpt, payload, payload.length, 3000);
+    }
+
+    @Override
+    protected boolean handleRead(ByteBuffer buffer) {
         switch (buffer.get())
         {
             case 0x20:
                 buffer.position(buffer.position()+3);
                 processButtons(buffer);
-                break;
+                return true;
 
             case 0x07:
-                buffer.position(buffer.position() + 3);
+                // The Xbox One S controller needs acks for mode reports otherwise
+                // it retransmits them forever.
+                if (buffer.get() == 0x30) {
+                    ackModeReport(buffer.get());
+                    buffer.position(buffer.position() + 1);
+                }
+                else {
+                    buffer.position(buffer.position() + 2);
+                }
                 setButtonFlag(ControllerPacket.SPECIAL_BUTTON_FLAG, buffer.get() & 0x01);
-                reportInput();
-                break;
+                return true;
         }
+
+        return false;
     }
 
-    private void startInputThread(final UsbEndpoint inEndpt) {
-        inputThread = new Thread() {
-            public void run() {
-                while (!isInterrupted() && !stopped) {
-                    byte[] buffer = new byte[64];
-
-                    int res;
-
-                    //
-                    // There's no way that I can tell to determine if a device has failed
-                    // or if the timeout has simply expired. We'll check how long the transfer
-                    // took to fail and assume the device failed if it happened before the timeout
-                    // expired.
-                    //
-
-                    do {
-                        // Read the next input state packet
-                        long lastMillis = MediaCodecHelper.getMonotonicMillis();
-                        res = connection.bulkTransfer(inEndpt, buffer, buffer.length, 3000);
-                        if (res == -1 && MediaCodecHelper.getMonotonicMillis() - lastMillis < 1000) {
-                            LimeLog.warning("Detected device I/O error");
-                            XboxOneController.this.stop();
-                            break;
-                        }
-                    } while (res == -1 && !isInterrupted() && !stopped);
-
-                    if (res == -1 || stopped) {
-                        break;
-                    }
-
-                    processPacket(ByteBuffer.wrap(buffer, 0, res).order(ByteOrder.LITTLE_ENDIAN));
-                }
+    public static boolean canClaimDevice(UsbDevice device) {
+        for (int supportedVid : SUPPORTED_VENDORS) {
+            if (device.getVendorId() == supportedVid &&
+                    device.getInterfaceCount() >= 1 &&
+                    device.getInterface(0).getInterfaceClass() == UsbConstants.USB_CLASS_VENDOR_SPEC &&
+                    device.getInterface(0).getInterfaceSubclass() == XB1_IFACE_SUBCLASS &&
+                    device.getInterface(0).getInterfaceProtocol() == XB1_IFACE_PROTOCOL) {
+                return true;
             }
-        };
-        inputThread.setName("Xbox One Controller - Input Thread");
-        inputThread.start();
+        }
+
+        return false;
     }
 
-    public boolean start() {
-        // Force claim all interfaces
-        for (int i = 0; i < device.getInterfaceCount(); i++) {
-            UsbInterface iface = device.getInterface(i);
-
-            if (!connection.claimInterface(iface, true)) {
-                LimeLog.warning("Failed to claim interfaces");
-                return false;
-            }
-        }
-
-        // Find the endpoints
-        UsbEndpoint outEndpt = null;
-        UsbEndpoint inEndpt = null;
-        UsbInterface iface = device.getInterface(0);
-        for (int i = 0; i < iface.getEndpointCount(); i++) {
-            UsbEndpoint endpt = iface.getEndpoint(i);
-            if (endpt.getDirection() == UsbConstants.USB_DIR_IN) {
-                if (inEndpt != null) {
-                    LimeLog.warning("Found duplicate IN endpoint");
-                    return false;
-                }
-                inEndpt = endpt;
-            }
-            else if (endpt.getDirection() == UsbConstants.USB_DIR_OUT) {
-                if (outEndpt != null) {
-                    LimeLog.warning("Found duplicate OUT endpoint");
-                    return false;
-                }
-                outEndpt = endpt;
-            }
-        }
-
-        // Make sure the required endpoints were present
-        if (inEndpt == null || outEndpt == null) {
-            LimeLog.warning("Missing required endpoint");
-            return false;
-        }
-
+    @Override
+    protected boolean doInit() {
         // Send the initialization packet
         int res = connection.bulkTransfer(outEndpt, XB1_INIT_DATA, XB1_INIT_DATA.length, 3000);
         if (res != XB1_INIT_DATA.length) {
@@ -194,40 +117,6 @@ public class XboxOneController {
             return false;
         }
 
-        // Start listening for controller input
-        startInputThread(inEndpt);
-
-        // Report this device added via the listener
-        listener.deviceAdded(deviceId);
-
         return true;
-    }
-
-    public void stop() {
-        if (stopped) {
-            return;
-        }
-
-        stopped = true;
-
-        // Stop the input thread
-        if (inputThread != null) {
-            inputThread.interrupt();
-            inputThread = null;
-        }
-
-        // Report the device removed
-        listener.deviceRemoved(deviceId);
-
-        // Close the USB connection
-        connection.close();
-    }
-
-    public static boolean canClaimDevice(UsbDevice device) {
-        return device.getVendorId() == MICROSOFT_VID &&
-                device.getInterfaceCount() >= 1 &&
-                device.getInterface(0).getInterfaceClass() == UsbConstants.USB_CLASS_VENDOR_SPEC &&
-                device.getInterface(0).getInterfaceSubclass() == XB1_IFACE_SUBCLASS &&
-                device.getInterface(0).getInterfaceProtocol() == XB1_IFACE_PROTOCOL;
     }
 }

@@ -4,15 +4,15 @@ import org.apache.tools.ant.taskdefs.condition.Os
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.1"
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 23
+        targetSdkVersion 24
 
-        versionName "3.1.13"
-        versionCode = 72
+        versionName "4.7"
+        versionCode = 104
     }
 
     productFlavors {
@@ -25,11 +25,22 @@ android {
         }
     }
 
+    lintOptions {
+        disable 'MissingTranslation'
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
+    }
+
+    // These lines are required to avoid dexing issues with the BouncyCastle library
+    // bundled with limelight-common.jar
+    packagingOptions {
+        exclude 'META-INF/BCKEY.SF'
+        exclude 'META-INF/BCKEY.DSA'
     }
 
     sourceSets.main.jni.srcDirs = []

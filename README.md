@@ -8,7 +8,7 @@ whether in your own home or over the internet.
 
 [Moonlight-pc](https://github.com/moonlight-stream/moonlight-pc) is also currently in development for Windows, OS X and Linux. Versions for [iOS](https://github.com/moonlight-stream/moonlight-ios) and [Windows and Windows Phone](https://github.com/moonlight-stream/moonlight-windows) are also in development.
 
-Check our [wiki](https://github.com/moonlight-stream/moonlight-android/wiki) for more detailed information or a troubleshooting guide. 
+Check our [wiki](https://github.com/moonlight-stream/moonlight-docs/wiki) for more detailed information or a troubleshooting guide. 
 
 ##Features
 
@@ -45,6 +45,12 @@ This project is being actively developed at [XDA Developers](http://forum.xda-de
 1. Fork us
 2. Write code
 3. Send Pull Requests
+
+##Building
+* Install Android Studio and the Android NDK
+* Run ‘git submodule update --init --recursive’ from within moonlight-android/
+* In moonlight-android/, create a file called ‘local.properties’. Add an ‘ndk.dir=’ property to the local.properties file and set it equal to your NDK directory.
+* Build the APK using Android Studio
 
 ##Authors
 

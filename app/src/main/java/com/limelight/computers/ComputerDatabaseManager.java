@@ -53,7 +53,7 @@ public class ComputerDatabaseManager {
     }
 
     public void deleteComputer(String name) {
-        computerDb.delete(COMPUTER_TABLE_NAME, COMPUTER_NAME_COLUMN_NAME+"='"+name+"'", null);
+        computerDb.delete(COMPUTER_TABLE_NAME, COMPUTER_NAME_COLUMN_NAME+"=?", new String[]{name});
     }
 
     public boolean updateComputer(ComputerDetails details) {
@@ -68,7 +68,7 @@ public class ComputerDatabaseManager {
 
     public List<ComputerDetails> getAllComputers() {
         Cursor c = computerDb.rawQuery("SELECT * FROM "+COMPUTER_TABLE_NAME, null);
-        LinkedList<ComputerDetails> computerList = new LinkedList<ComputerDetails>();
+        LinkedList<ComputerDetails> computerList = new LinkedList<>();
         while (c.moveToNext()) {
             ComputerDetails details = new ComputerDetails();
 
@@ -118,7 +118,7 @@ public class ComputerDatabaseManager {
     }
 
     public ComputerDetails getComputerByName(String name) {
-        Cursor c = computerDb.rawQuery("SELECT * FROM "+COMPUTER_TABLE_NAME+" WHERE "+COMPUTER_NAME_COLUMN_NAME+"='"+name+"'", null);
+        Cursor c = computerDb.query(COMPUTER_TABLE_NAME, null, COMPUTER_NAME_COLUMN_NAME+"=?", new String[]{name}, null, null, null);
         ComputerDetails details = new ComputerDetails();
         if (!c.moveToFirst()) {
             // No matching computer

@@ -50,8 +50,13 @@
     <string name="conn_starting">Starten</string>
     <string name="conn_error_title">Verbindingsprobleem</string>
     <string name="conn_error_msg">Starten mislukt</string>
+<<<<<<< HEAD
     <string name="conn_terminated_title">Verbinding be&euml;indigd</string>
     <string name="conn_terminated_msg">De verbinding is be&euml;indigd</string>
+=======
+    <string name="conn_terminated_title">Verbinding beëindigd</string>
+    <string name="conn_terminated_msg">De verbinding is beëindigd</string>
+>>>>>>> upstream/master
 
     <!-- General strings -->
     <string name="ip_hint">IP adres van GeForce PC</string>
@@ -96,7 +101,11 @@
 
     <string name="category_gamepad_settings">Gamepad Instellingen</string>
     <string name="title_checkbox_multi_controller">Multi-gamepad support</string>
+<<<<<<< HEAD
     <string name="summary_checkbox_multi_controller">Wanneer uitgevinkt, alle controllers verschijnen als &eacute;&eacute;n.</string>
+=======
+    <string name="summary_checkbox_multi_controller">Wanneer uitgevinkt, alle controllers verschijnen als één.</string>
+>>>>>>> upstream/master
     <string name="title_seekbar_deadzone">Pas analoge dodezone aan.</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Xbox One controller stuurprogramma</string>
@@ -117,6 +126,9 @@
     <string name="summary_checkbox_host_audio">Speel audio af op de computer en op dit apparaat</string>
 
     <string name="category_advanced_settings">Geavanceerde Instellingen</string>
+<<<<<<< HEAD
     <string name="title_decoder_list">Wijzig decoder</string>
     <string name="summary_decoder_list">Software decoding kan de video reactie tijd kunnen verbeteren bij lagere instellingen</string>
+=======
+>>>>>>> upstream/master
 </resources>

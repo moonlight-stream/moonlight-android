@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
   <!-- PC view menu entries -->
   <string name="pcview_menu_app_list">Toon Spel Lijst</string>
   <string name="pcview_menu_pair_pc">Koppel met PC</string>
@@ -33,7 +34,7 @@
 
   <!-- Errors -->
   <string name="error_pc_offline">Computer is offline</string>
-  <string name="error_manager_not_running">The ComputerManager service is niet gestart. Wacht een ogenblik of herstart de app.</string>
+  <string name="error_manager_not_running">De ComputerManager service is niet gestart. Wacht een ogenblik of herstart de app.</string>
   <string name="error_unknown_host">Host achterhalen mislukt.</string>
   <string name="error_404">GFE geeft een HTTP 404 fout. Kijk na of de PC een ondersteunde GPU heeft.
     Remote desktop software kan soms ook voor deze fout zorgen. Probeer de computer opnieuw op te starten of GFE te herinstalleren.
@@ -51,8 +52,6 @@
   <string name="conn_error_msg">Starten mislukt</string>
   <string name="conn_terminated_title">Verbinding be&euml;indigd</string>
   <string name="conn_terminated_msg">De verbinding is be&euml;indigd</string>
-  <string name="conn_terminated_title">Verbinding beëindigd</string>
-  <string name="conn_terminated_msg">De verbinding is beëindigd</string>
 
   <!-- General strings -->
   <string name="ip_hint">IP adres van GeForce PC</string>
@@ -95,13 +94,21 @@
   <string name="title_checkbox_disable_warnings">Verberg waarschuwingsberichten</string>
   <string name="summary_checkbox_disable_warnings">Verberg on-screen verbindingswaarschuwingen tijdens het streamen</string>
 
+  <string name="category_audio_settings">Geluidsinstellingen</string>
+  <string name="title_checkbox_51_surround">Gebruik 5.1 surround sound</string>
+  <string name="summary_checkbox_51_surround">Gebruik dit niet als er problemen zijn met de audio. Vereist GFE 2.7 of hoger.</string>
+
   <string name="category_gamepad_settings">Gamepad Instellingen</string>
   <string name="title_checkbox_multi_controller">Multi-gamepad support</string>
-  <string name="summary_checkbox_multi_controller">Wanneer uitgevinkt, alle controllers verschijnen als één.</string>
+  <string name="summary_checkbox_multi_controller">Wanneer uitgevinkt, alle controllers verschijnen als &eacute;&eacute;n.</string>
   <string name="title_seekbar_deadzone">Pas analoge dodezone aan.</string>
   <string name="suffix_seekbar_deadzone">%</string>
   <string name="title_checkbox_xb1_driver">Xbox 360/One controller stuurprogramma</string>
   <string name="summary_checkbox_xb1_driver">Gebruikt de ingebouwde USB stuurprogramma voor apparaten zonder Xbox controller ondersteuning.</string>
+
+  <string name="category_on_screen_controls_settings">On-screen Controller Instellingen</string>
+  <string name="title_checkbox_show_onscreen_controls">Laat on-screen controls zien</string>
+  <string name="summary_checkbox_show_onscreen_controls">Geeft een virtuele controller weer op het touchscreen.</string>
 
   <string name="category_ui_settings">UI Installingen</string>
   <string name="title_language_list">Taal</string>
@@ -118,8 +125,7 @@
   <string name="summary_checkbox_host_audio">Speel audio af op de computer en op dit apparaat</string>
 
   <string name="category_advanced_settings">Geavanceerde Instellingen</string>
-  <string name="title_decoder_list">Wijzig decoder</string>
-  <string name="summary_decoder_list">Software decoding kan de video reactie tijd kunnen verbeteren bij lagere instellingen</string>
   <string name="title_video_format">Verander H.265 instellingen</string>
   <string name="summary_video_format">H.265 verlaagt video bandbreedte vereisten maar benodigdt een recent apparaat.</string>
+
 </resources>

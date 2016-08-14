@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- PC view menu entries -->
+    <string name="pcview_menu_app_list">Ver lista de juegos</string>
+    <string name="pcview_menu_pair_pc">Emparejar con PC</string>
+    <string name="pcview_menu_unpair_pc">Desemparejar</string>
+    <string name="pcview_menu_send_wol">Enviar petición Wake-On-LAN</string>
+    <string name="pcview_menu_delete_pc">Eliminar PC</string>
+
+    <!-- Pair messages -->
+    <string name="pairing">Emparejando…</string>
+    <string name="pair_pc_offline">El ordenador está apagado</string>
+    <string name="pair_pc_ingame">El ordenador está actualmente en un juego. Debes cerrar el juego antes de emparejar.</string>
+    <string name="pair_pairing_title">Emparejando</string>
+    <string name="pair_pairing_msg">Por favor, introduce el siguiente PIN en el PC destino:</string>
+    <string name="pair_incorrect_pin">PIN incorrecto</string>
+    <string name="pair_fail">Fallo al emparejar</string>
+
+    <!-- WOL messages -->
+    <string name="wol_pc_online">Ordenador encendido</string>
+    <string name="wol_no_mac">Imposible iniciar PC porque GFE no ha enviado una dirección MAC</string>
+    <string name="wol_waking_pc">Iniciando PC…</string>
+    <string name="wol_waking_msg">Puede tomar algunos segundos iniciar tu PC.
+	    Si no se inicia asegúrate que está configurado correctamente para Wake-On-LAN.
+    </string>
+    <string name="wol_fail">Fallo al enviar paquetes Wake-On-LAN</string>
+
+    <!-- Unpair messages -->
+    <string name="unpairing">Desemparejando…</string>
+    <string name="unpair_success">Desemparejado con éxito</string>
+    <string name="unpair_fail">Error al desemparejar</string>
+    <string name="unpair_error">El dispositivo no estaba emparejado</string>
+
+    <!-- Errors -->
+    <string name="error_pc_offline">El ordenador está apagado</string>
+    <string name="error_manager_not_running">El servicio "ComputerManager" no está en ejecución. Por favor, espera unos segundos o reinicia la aplicación.</string>
+    <string name="error_unknown_host">Fallo al resolver el host</string>
+    <string name="error_404">GFE ha devuelto un error HTTP 404. Asegúrate que el PC tiene una GPU soportada.
+	    Usar software de Escritorio Remoto puede causar este error. Intenta reiniciar el equipo o reinstalar GFE.
+    </string>
+
+    <!-- Start application messages -->
+    <string name="conn_establishing_title">Estableciendo conexión</string>
+    <string name="conn_establishing_msg">Iniciando conexión</string>
+    <string name="conn_metered">Aviso: ¡Tu conexión de red está siendo medida!</string>
+    <string name="conn_client_latency">Latencia media decodificando frames:</string>
+    <string name="conn_client_latency_hw">latencia decodificación por hardware:</string>
+    <string name="conn_hardware_latency">Latencia media decodificando por hardware:</string>
+    <string name="conn_starting">Iniciando</string>
+    <string name="conn_error_title">Error de conexión</string>
+    <string name="conn_error_msg">Fallo al iniciar</string>
+    <string name="conn_terminated_title">Conexión finalizada</string>
+    <string name="conn_terminated_msg">La conexión ha finalizando</string>
+
+    <!-- General strings -->
+    <string name="ip_hint">Dirección IP del PC con GeForce</string>
+    <string name="searching_pc">Buscando por PCs con GeForce Experience ejecutándose…</string>
+    <string name="yes">Si</string>
+    <string name="no">No</string>
+    <string name="lost_connection">Conexión perdida</string>
+
+    <!-- AppList activity -->
+    <string name="title_applist">Aplicaciones en</string>
+    <string name="applist_menu_resume">Reanudar sesión</string>
+    <string name="applist_menu_quit">Cerrar sesión</string>
+    <string name="applist_menu_quit_and_start">Cerrar juego actual e iniciar</string>
+    <string name="applist_menu_cancel">Cancelar</string>
+    <string name="applist_refresh_title">Lista de aplicaciones</string>
+    <string name="applist_refresh_msg">Actualizando lista de aplicaciones…</string>
+    <string name="applist_refresh_error_title">Error</string>
+    <string name="applist_refresh_error_msg">Error al cargar lista de aplicaciones</string>
+    <string name="applist_quit_app">Cerrando</string>
+    <string name="applist_quit_success">Cerrado satisfactoriamente</string>
+    <string name="applist_quit_fail">Error al cerrar</string>
+    <string name="applist_quit_confirmation">¿Estás seguro que deseas quitar la aplicación en ejecución? Todo dato sin salvar se perderá.</string>
+
+    <!-- Add computer manually activity -->
+    <string name="title_add_pc">Añadir PC manualmente</string>
+    <string name="msg_add_pc">Conectando al PC…</string>
+    <string name="addpc_fail">Imposible conectar al ordenador indicado. Asegurate que los puertos necesarios están permitidos a través del firewall.</string>
+    <string name="addpc_success">Ordenador añadido satisfactoriamente</string>
+    <string name="addpc_unknown_host">Imposible resolver la dirección del PC. Asegúrate que no hay ningún error en la dirección.</string>
+    <string name="addpc_enter_ip">Debes introducir una dirección IP</string>
+
+    <!-- Preferences -->
+    <string name="category_basic_settings">Configuración básica</string>
+    <string name="title_resolution_list">Seleccionar resolución y FPS</string>
+    <string name="summary_resolution_list">Establecer unos valores demasiado altos puede causar lag o cierres inesperados</string>
+    <string name="title_seekbar_bitrate">Seleccionar bitrate de vídeo</string>
+    <string name="summary_seekbar_bitrate">Usa bitrate bajo para reducir "parpadeo". Incrementa el bitrate para mayor calidad de imagen.</string>
+    <string name="suffix_seekbar_bitrate">Mbps</string>
+    <string name="title_checkbox_stretch_video">Ajustar vídeo a pantalla completa</string>
+    <string name="title_checkbox_disable_warnings">Desactivar mensajes de advertencia</string>
+    <string name="summary_checkbox_disable_warnings">Desactivar mensajes de advertencia en pantalla durante la transmisión</string>
+
+    <string name="category_audio_settings">Configuración de audio</string>
+    <string name="title_checkbox_51_surround">Activar sonido 5.1 surround</string>
+    <string name="summary_checkbox_51_surround">Desmarcar si experimentas problemas de audio. Requiere GFE 2.7 o superior.</string>
+
+    <string name="category_gamepad_settings">Configuración de mando</string>
+    <string name="title_checkbox_multi_controller">Soporte para múltiples mandos</string>
+    <string name="summary_checkbox_multi_controller">Si no está marcado, todos los mandos aparecen como uno solo</string>
+    <string name="title_seekbar_deadzone">Ajustar zona muerta del stick analógico</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Driver para mando Xbox 360/One</string>
+    <string name="summary_checkbox_xb1_driver">Activa el driver USB incluido para dispositivos sin soporte nativo para mandos de Xbox.</string>
+
+    <string name="category_on_screen_controls_settings">Configuración de controles en pantalla</string>
+    <string name="title_checkbox_show_onscreen_controls">Mostrar controles en pantalla</string>
+    <string name="summary_checkbox_show_onscreen_controls">Muestra controles virtuales superpuestos en la pantalla táctil</string>
+
+    <string name="category_ui_settings">Configuración de la interfaz</string>
+    <string name="title_language_list">Idioma</string>
+    <string name="summary_language_list">Idioma a usar por Moonlight</string>
+    <string name="title_checkbox_list_mode">Usar listas en lugar de cuadrículas</string>
+    <string name="summary_checkbox_list_mode">Mostrar aplicaciones y PCs en listas en lugar de el cuadrículas</string>
+    <string name="title_checkbox_small_icon_mode">Usar iconos pequeños</string>
+    <string name="summary_checkbox_small_icon_mode">Usar iconos pequeños en las entradas de cuadrículas para permitir más entradas en la pantalla</string>
+
+    <string name="category_host_settings">Configuración de servidor</string>
+    <string name="title_checkbox_enable_sops">Optimizar configuración del juego</string>
+    <string name="summary_checkbox_enable_sops">Permitir que GFE modifique la configuración del juego para una transmisión óptima</string>
+    <string name="title_checkbox_host_audio">Reproducir audio en PC</string>
+    <string name="summary_checkbox_host_audio">Reproducir audio en el ordenador y en este dispositivo</string>
+
+    <string name="category_advanced_settings">Configuración avanzada</string>
+    <string name="title_video_format">Cambiar configuración H.265</string>
+    <string name="summary_video_format">H.265 reduce el ancho de banda de vídeo, pero requiere un dispositivo bastante actual.</string>
+
+</resources>

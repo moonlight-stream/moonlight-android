@@ -117,6 +117,4 @@
     <string name="summary_checkbox_host_audio">Speel audio af op de computer en op dit apparaat</string>
 
     <string name="category_advanced_settings">Geavanceerde Instellingen</string>
-    <string name="title_decoder_list">Wijzig decoder</string>
-    <string name="summary_decoder_list">Software decoding kan de video reactie tijd kunnen verbeteren bij lagere instellingen</string>
 </resources>

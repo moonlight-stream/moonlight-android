@@ -274,6 +274,9 @@ public class VideoDepacketizer {
 						// Reassemble any pending NAL
 						reassembleFrame(packet.getFrameIndex());
 						
+						// Reload cachedSpecialDesc after reassembleFrame overwrote it
+						NAL.getSpecialSequenceDescriptor(location, cachedSpecialDesc);
+						
 						if (isReferencePictureNalu(cachedSpecialDesc.data[cachedSpecialDesc.offset+cachedSpecialDesc.length])) {
 							// This is the NALU code for I-frame data
 							waitingForIdrFrame = false;

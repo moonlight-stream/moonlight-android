@@ -417,6 +417,19 @@ public class NvHTTP {
 		}
 	}
 	
+	public boolean isCurrentClient(String serverInfo) throws XmlPullParserException, IOException {
+		String currentClient = getXmlString(serverInfo, "CurrentClient");
+		if (currentClient != null) {
+			return !currentClient.trim().equals("0");
+		}
+		else {
+			// For versions of GFE that lack this field, we'll assume we are
+			// the current client. If we're not, we'll get a response error that
+			// will let us know.
+			return true;
+		}
+	}
+
 	public NvApp getAppById(int appId) throws IOException, XmlPullParserException {
 		LinkedList<NvApp> appList = getAppList();
 		for (NvApp appFromList : appList) {
@@ -583,6 +596,14 @@ public class NvHTTP {
 	}
 	
 	public boolean quitApp() throws IOException, XmlPullParserException {
+		// First check if this client is allowed to quit the app. Newer GFE versions
+		// will just return success even if quitting fails if we're not the original requestor.
+		if (!isCurrentClient(getServerInfo())) {
+			// Generate a synthetic GfeResponseException letting the caller know
+			// that they can't kill someone else's stream.
+			throw new GfeHttpResponseException(599, "");
+		}
+
 		String xmlStr = openHttpConnectionToString(baseUrlHttps + "/cancel?" + buildUniqueIdUuidString(), false);
 		String cancel = getXmlString(xmlStr, "cancel");
 		return Integer.parseInt(cancel) != 0;

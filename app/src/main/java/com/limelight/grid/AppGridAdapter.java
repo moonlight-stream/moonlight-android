@@ -3,6 +3,7 @@ package com.limelight.grid;
 import android.app.Activity;
 import android.graphics.BitmapFactory;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.limelight.AppView;
@@ -82,9 +83,10 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         itemList.remove(app);
     }
 
-    public boolean populateImageView(ImageView imgView, AppView.AppObject obj) {
+    @Override
+    public boolean populateImageView(ImageView imgView, ProgressBar prgView, AppView.AppObject obj) {
         // Let the cached asset loader handle it
-        loader.populateImageView(obj.app, imgView);
+        loader.populateImageView(obj.app, imgView, prgView);
         return true;
     }
 
@@ -107,10 +109,5 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
         // No overlay
         return false;
-    }
-
-    @Override
-    public boolean shouldShowProgressBar(AppView.AppObject obj) {
-        return true;
     }
 }

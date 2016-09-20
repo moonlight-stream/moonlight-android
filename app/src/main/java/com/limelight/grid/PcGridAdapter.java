@@ -1,7 +1,9 @@
 package com.limelight.grid;
 
 import android.content.Context;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.limelight.PcView;
@@ -36,12 +38,19 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
     }
 
     @Override
-    public boolean populateImageView(ImageView imgView, PcView.ComputerObject obj) {
+    public boolean populateImageView(ImageView imgView, ProgressBar prgView, PcView.ComputerObject obj) {
         if (obj.details.state == ComputerDetails.State.ONLINE) {
             imgView.setAlpha(1.0f);
         }
         else {
             imgView.setAlpha(0.4f);
+        }
+
+        if (obj.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
+            prgView.setVisibility(View.VISIBLE);
+        }
+        else {
+            prgView.setVisibility(View.INVISIBLE);
         }
 
         imgView.setImageResource(R.drawable.ic_computer);
@@ -69,11 +78,5 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public boolean shouldShowProgressBar(PcView.ComputerObject obj) {
-        // Still refreshing this PC so display the progress bar
-        return obj.details.reachability == ComputerDetails.Reachability.UNKNOWN;
     }
 }

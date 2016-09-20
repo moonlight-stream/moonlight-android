@@ -45,10 +45,9 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
         return i;
     }
 
-    public abstract boolean populateImageView(ImageView imgView, T obj);
+    public abstract boolean populateImageView(ImageView imgView, ProgressBar prgView, T obj);
     public abstract boolean populateTextView(TextView txtView, T obj);
     public abstract boolean populateOverlayView(ImageView overlayView, T obj);
-    public abstract boolean shouldShowProgressBar(T obj);
 
     @Override
     public View getView(int i, View convertView, ViewGroup viewGroup) {
@@ -61,16 +60,8 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
         TextView txtView = (TextView) convertView.findViewById(R.id.grid_text);
         ProgressBar prgView = (ProgressBar) convertView.findViewById(R.id.grid_spinner);
 
-        if (prgView != null) {
-            if (shouldShowProgressBar(itemList.get(i))) {
-                prgView.setVisibility(View.VISIBLE);
-            }
-            else {
-                prgView.setVisibility(View.INVISIBLE);
-            }
-        }
         if (imgView != null) {
-            if (!populateImageView(imgView, itemList.get(i))) {
+            if (!populateImageView(imgView, prgView, itemList.get(i))) {
                 imgView.setImageBitmap(null);
             }
         }

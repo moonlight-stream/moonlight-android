@@ -150,7 +150,7 @@ public class NvHTTP {
 				break;
 			case (XmlPullParser.TEXT):
 				if (currentTag.peek().equals(tagname)) {
-					return xpp.getText();
+					return xpp.getText().trim();
 				}
 				break;
 			}
@@ -207,9 +207,9 @@ public class NvHTTP {
 		ComputerDetails details = new ComputerDetails();
 		String serverInfo = getServerInfo();
 		
-		details.name = getXmlString(serverInfo, "hostname").trim();
-		details.uuid = UUID.fromString(getXmlString(serverInfo, "uniqueid").trim());
-		details.macAddress = getXmlString(serverInfo, "mac").trim();
+		details.name = getXmlString(serverInfo, "hostname");
+		details.uuid = UUID.fromString(getXmlString(serverInfo, "uniqueid"));
+		details.macAddress = getXmlString(serverInfo, "mac");
 
 		// If there's no LocalIP field, use the address we hit the server on
 		String localIpStr = getXmlString(serverInfo, "LocalIP");
@@ -223,11 +223,11 @@ public class NvHTTP {
 			externalIpStr = address.getHostAddress();
 		}
 		
-		details.localIp = InetAddress.getByName(localIpStr.trim());
-		details.remoteIp = InetAddress.getByName(externalIpStr.trim());
+		details.localIp = InetAddress.getByName(localIpStr);
+		details.remoteIp = InetAddress.getByName(externalIpStr);
 		
 		try {
-			details.pairState = Integer.parseInt(getXmlString(serverInfo, "PairStatus").trim()) == 1 ?
+			details.pairState = Integer.parseInt(getXmlString(serverInfo, "PairStatus")) == 1 ?
 					PairState.PAIRED : PairState.NOT_PAIRED;
 		} catch (NumberFormatException e) {
 			details.pairState = PairState.FAILED;
@@ -407,9 +407,9 @@ public class NvHTTP {
 		// GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
 		// has the semantics that its name would indicate. To contain the effects of this change as much
 		// as possible, we'll force the current game to zero if the server isn't in a streaming session.
-		String serverState = getXmlString(serverInfo, "state").trim();
+		String serverState = getXmlString(serverInfo, "state");
 		if (serverState != null && !serverState.endsWith("_SERVER_AVAILABLE")) {
-			String game = getXmlString(serverInfo, "currentgame").trim();
+			String game = getXmlString(serverInfo, "currentgame");
 			return Integer.parseInt(game);
 		}
 		else {
@@ -420,7 +420,7 @@ public class NvHTTP {
 	public boolean isCurrentClient(String serverInfo) throws XmlPullParserException, IOException {
 		String currentClient = getXmlString(serverInfo, "CurrentClient");
 		if (currentClient != null) {
-			return !currentClient.trim().equals("0");
+			return !currentClient.equals("0");
 		}
 		else {
 			// For versions of GFE that lack this field, we'll assume we are

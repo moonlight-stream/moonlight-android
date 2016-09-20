@@ -5,7 +5,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    buildToolsVersion "24.0.2"
 
     defaultConfig {
         minSdkVersion 16
@@ -18,10 +18,16 @@ android {
     productFlavors {
         root {
             applicationId "com.limelight.root"
+            ndk {
+                abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64", "mips", "mips64"
+            }
         }
 
         nonRoot {
             applicationId "com.limelight"
+            ndk {
+                abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64", "mips", "mips64"
+            }
         }
     }
 
@@ -43,32 +49,10 @@ android {
         exclude 'META-INF/BCKEY.DSA'
     }
 
-    sourceSets.main.jni.srcDirs = []
-
-    //noinspection GroovyAssignabilityCheck,GroovyAssignabilityCheck
-    task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
-        Properties properties = new Properties()
-        properties.load(project.rootProject.file('local.properties').newDataInputStream())
-        def ndkDir = properties.getProperty('ndk.dir')
-
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            commandLine "$ndkDir\\ndk-build.cmd",
-                    'NDK_PROJECT_PATH=build/intermediates/ndk',
-                    'NDK_LIBS_OUT=src/main/jniLibs',
-                    'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
-                    'NDK_APPLICATION_MK=src/main/jni/Application.mk'
+    externalNativeBuild {
+        ndkBuild {
+            path "src/main/jni/Android.mk"
         }
-        else {
-            commandLine "$ndkDir/ndk-build",
-                    'NDK_PROJECT_PATH=build/intermediates/ndk',
-                    'NDK_LIBS_OUT=src/main/jniLibs',
-                    'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
-                    'NDK_APPLICATION_MK=src/main/jni/Application.mk'
-        }
-    }
-
-    tasks.withType(JavaCompile) {
-        compileTask -> compileTask.dependsOn ndkBuild
     }
 }
 

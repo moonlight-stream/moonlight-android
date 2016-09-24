@@ -31,7 +31,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 	private static final int IDX_INPUT_DATA = 5;
 	
 	private static final short packetTypesGen3[] = {
-		0x140b, // Start A
+		0x1407, // Request IDR frame
 		0x1410, // Start B
 		0x1404, // Invalidate reference frames
 		0x140c, // Loss Stats
@@ -64,7 +64,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 	};
 	
 	private static final short payloadLengthsGen3[] = {
-		-1, // Start A
+		-1, // Request IDR frame
 		16, // Start B
 		24, // Invalidate reference frames
 		32, // Loss Stats
@@ -97,7 +97,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 	};
 	
 	private static final byte[] precontructedPayloadsGen3[] = {
-		new byte[]{0}, // Start A
+		new byte[]{0, 0}, // Request IDR frame
 		null, // Start B
 		null, // Invalidate reference frames
 		null, // Loss Stats
@@ -445,7 +445,7 @@ public class ControlStream implements ConnectionStatusListener, InputPacketSende
 		// On Gen 4+, we use the known IDR frame request packet
 		// On Gen 5, we're currently using the invalidate reference frames trick again.
 		
-		if (context.serverGeneration != ConnectionContext.SERVER_GENERATION_4) {
+		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
 			ByteBuffer conf = ByteBuffer.wrap(new byte[payloadLengths[IDX_INVALIDATE_REF_FRAMES]]).order(ByteOrder.LITTLE_ENDIAN);
 			
 			//conf.putLong(firstLostFrame);

@@ -105,7 +105,13 @@ public class NvConnection {
 		
 		String serverInfo = h.getServerInfo();
 		
-		int majorVersion = h.getServerMajorVersion(serverInfo);
+		context.serverAppVersion = h.getServerAppVersionQuad(serverInfo);
+		if (context.serverAppVersion == null) {
+			context.connListener.displayMessage("Server version malformed");
+			return false;
+		}
+
+		int majorVersion = context.serverAppVersion[0];
 		LimeLog.info("Server major version: "+majorVersion);
 		
 		if (majorVersion == 0) {
@@ -158,15 +164,22 @@ public class NvConnection {
 			// Lower resolution to 1080p
 			context.negotiatedWidth = 1920;
 			context.negotiatedHeight = 1080;
+			context.negotiatedFps = context.streamConfig.getRefreshRate();
+		}
+		else if (context.streamConfig.getHeight() >= 2160 && context.streamConfig.getRefreshRate() >= 60 && !h.supports4K60(serverInfo)) {
+			// Client wants 4K 60 FPS but the server can't do it
+			context.connListener.displayTransientMessage("Your GPU does not support 4K 60 FPS streaming. The stream will be 4K 30 FPS.");
+			
+			context.negotiatedWidth = context.streamConfig.getWidth();
+			context.negotiatedHeight = context.streamConfig.getHeight();
+			context.negotiatedFps = 30;
 		}
 		else {
 			// Take what the client wanted
 			context.negotiatedWidth = context.streamConfig.getWidth();
 			context.negotiatedHeight = context.streamConfig.getHeight();
+			context.negotiatedFps = context.streamConfig.getRefreshRate();
 		}
-		
-		// For now, always take the client's FPS request
-		context.negotiatedFps = context.streamConfig.getRefreshRate();
 		
 		//
 		// Video stream format will be decided during the RTSP handshake

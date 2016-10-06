@@ -32,6 +32,9 @@ public class ConnectionContext {
 	
 	public int serverGeneration;
 	
+	// This is the version quad from the appversion tag of /serverinfo
+	public int[] serverAppVersion;
+	
 	public VideoFormat negotiatedVideoFormat;
 	public int negotiatedWidth, negotiatedHeight;
 	public int negotiatedFps;

@@ -402,6 +402,30 @@ public class NvHTTP {
 		
 		return false;
 	}
+	
+	public boolean supports4K60(String serverInfo) throws XmlPullParserException, IOException {
+		// If we don't support 4K at all, bail early
+		if (!supports4K(serverInfo)) {
+			return false;
+		}
+		
+		// serverinfo returns supported resolutions in descending order, so getting the first
+		// refresh rate will give us whether we support 4K60. If this is 30, we don't support
+		// 4K 60 FPS.
+		String fpsStr = getXmlString(serverInfo, "RefreshRate");
+		if (fpsStr == null) {
+			return false;
+		}
+		
+		try {
+			if (Integer.parseInt(fpsStr) >= 60) {
+				// 4K supported and 60 FPS is the first entry
+				return true;
+			}
+		} catch (NumberFormatException ignored) {}
+		
+		return false;
+	}
 
 	public int getCurrentGame(String serverInfo) throws IOException, XmlPullParserException {
 		// GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
@@ -548,16 +572,35 @@ public class NvHTTP {
 	}
 	
 	public int getServerMajorVersion(String serverInfo) throws XmlPullParserException, IOException {
+		int[] appVersionQuad = getServerAppVersionQuad(serverInfo);
+		if (appVersionQuad != null) {
+			return appVersionQuad[0];
+		}
+		else {
+			return 0;
+		}
+	}
+	
+	public int[] getServerAppVersionQuad(String serverInfo) throws XmlPullParserException, IOException {
 		try {
 			String serverVersion = getServerVersion(serverInfo);
-			if (serverVersion == null || serverVersion.indexOf('.') < 0) {
-				LimeLog.warning("Malformed server version field");
-				return 0;
+			if (serverVersion == null) {
+				LimeLog.warning("Missing server version field");
+				return null;
 			}
-			return Integer.parseInt(serverVersion.substring(0, serverVersion.indexOf('.')));
+			String[] serverVersionSplit = serverVersion.split("\\.");
+			if (serverVersionSplit.length != 4) {
+				LimeLog.warning("Malformed server version field");
+				return null;
+			}
+			int[] ret = new int[serverVersionSplit.length];
+			for (int i = 0; i < ret.length; i++) {
+				ret[i] = Integer.parseInt(serverVersionSplit[i]);
+			}
+			return ret;
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
-			return 0;
+			return null;
 		}
 	}
 

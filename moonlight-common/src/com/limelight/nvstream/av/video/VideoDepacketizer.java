@@ -50,7 +50,13 @@ public class VideoDepacketizer {
 		this.controlListener = controlListener;
 		this.nominalPacketDataLength = nominalPacketSize - VideoPacket.HEADER_SIZE;
 		
-		if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
+		if ((context.serverAppVersion[0] > 7) ||
+			(context.serverAppVersion[0] == 7 && context.serverAppVersion[1] > 1) ||
+			(context.serverAppVersion[0] == 7 && context.serverAppVersion[1] == 1 && context.serverAppVersion[2] >= 320)) {
+			// Anything over 7.1.320 should use the 12 byte frame header
+			frameHeaderOffset = 12;
+		}
+		else if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
 			// Gen 5 servers have an 8 byte header in the data portion of the first
 			// packet of each frame
 			frameHeaderOffset = 8;

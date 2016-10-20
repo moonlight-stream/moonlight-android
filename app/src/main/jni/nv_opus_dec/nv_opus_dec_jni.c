@@ -19,7 +19,8 @@ Java_com_limelight_nvstream_av_audio_OpusDecoder_init(JNIEnv *env, jobject this,
 	ChannelCount = channelCount;
 
 	jni_mapping_data = (*env)->GetByteArrayElements(env, mapping, 0);
-	ret =  nv_opus_init(sampleRate, channelCount, streams, coupledStreams, jni_mapping_data);
+	ret =  nv_opus_init(sampleRate, channelCount, streams, coupledStreams,
+						(const unsigned char*)jni_mapping_data);
 	(*env)->ReleaseByteArrayElements(env, mapping, jni_mapping_data, JNI_ABORT);
 
 	return ret;
@@ -49,7 +50,8 @@ Java_com_limelight_nvstream_av_audio_OpusDecoder_decode(
 	if (indata != NULL) {
 		jni_input_data = (*env)->GetByteArrayElements(env, indata, 0);
 
-		ret = nv_opus_decode(&jni_input_data[inoff], inlen, (jshort*)jni_pcm_data, SamplesPerChannel);
+		ret = nv_opus_decode((unsigned char*)&jni_input_data[inoff], inlen,
+							 (jshort*)jni_pcm_data, SamplesPerChannel);
 
 		// The input data isn't changed so it can be safely aborted
 		(*env)->ReleaseByteArrayElements(env, indata, jni_input_data, JNI_ABORT);

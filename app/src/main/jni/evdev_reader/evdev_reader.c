@@ -15,6 +15,8 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
+#include <arpa/inet.h>
+
 #include <android/log.h>
 
 #define EVDEV_MAX_EVENT_SIZE 24

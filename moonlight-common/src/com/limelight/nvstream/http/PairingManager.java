@@ -35,7 +35,8 @@ public class PairingManager {
 		NOT_PAIRED,
 		PAIRED,
 		PIN_WRONG,
-		FAILED
+		FAILED,
+		ALREADY_IN_PROGRESS
 	}
 	
 	public PairingManager(NvHTTP http, LimelightCryptoProvider cryptoProvider) {
@@ -69,9 +70,14 @@ public class PairingManager {
 	private X509Certificate extractPlainCert(String text) throws XmlPullParserException, IOException, CertificateException
 	{
 		String certText = NvHTTP.getXmlString(text, "plaincert");
-		byte[] certBytes = hexToBytes(certText);
-		CertificateFactory cf = CertificateFactory.getInstance("X.509");
-	    return (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(certBytes));
+		if (certText != null) {
+			byte[] certBytes = hexToBytes(certText);
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			return (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(certBytes));
+		}
+		else {
+			return null;
+		}
 	}
 	
 	private byte[] generateRandomBytes(int length)
@@ -184,10 +190,14 @@ public class PairingManager {
 				bytesToHex(salt)+"&clientcert="+bytesToHex(pemCertBytes),
 				false);
 		if (!NvHTTP.getXmlString(getCert, "paired").equals("1")) {
-			http.openHttpConnectionToString(http.baseUrlHttp + "/unpair?"+http.buildUniqueIdUuidString(), true);
 			return PairState.FAILED;
 		}
 		X509Certificate serverCert = extractPlainCert(getCert);
+		if (serverCert == null) {
+			// Attempting to pair while another device is pairing will cause GFE
+			// to give an empty cert in the response.
+			return PairState.ALREADY_IN_PROGRESS;
+		}
 		
 		// Generate a random challenge and encrypt it with our AES key
 		byte[] randomChallenge = generateRandomBytes(16);

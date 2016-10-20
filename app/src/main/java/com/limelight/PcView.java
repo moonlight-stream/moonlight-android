@@ -24,6 +24,7 @@ import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.ServerHelper;
+import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
@@ -52,6 +53,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 public class PcView extends Activity implements AdapterFragmentCallbacks {
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
+    private ShortcutHelper shortcutHelper;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private boolean freezeUpdates, runningPolling, inForeground;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
@@ -141,6 +143,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        shortcutHelper = new ShortcutHelper(this);
 
         String locale = PreferenceConfiguration.readPreferences(this).language;
         if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
@@ -334,6 +338,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                         else if (pairState == PairingManager.PairState.FAILED) {
                             message = getResources().getString(R.string.pair_fail);
                         }
+                        else if (pairState == PairingManager.PairState.ALREADY_IN_PROGRESS) {
+                            message = getResources().getString(R.string.pair_already_in_progress);
+                        }
                         else if (pairState == PairingManager.PairState.PAIRED) {
                             // Just navigate to the app view without displaying a toast
                             message = null;
@@ -486,6 +493,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             return;
         }
 
+        shortcutHelper.createAppViewShortcut(computer.uuid.toString(), computer);
+
         Intent i = new Intent(this, AppView.class);
         i.putExtra(AppView.NAME_EXTRA, computer.name);
         i.putExtra(AppView.UUID_EXTRA, computer.uuid.toString());
@@ -558,6 +567,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(i);
 
             if (details.equals(computer.details)) {
+                // Disable or delete shortcuts referencing this PC
+                shortcutHelper.disableShortcut(details.uuid.toString(),
+                        getResources().getString(R.string.scut_deleted_pc));
+
                 pcGridAdapter.removeComputer(computer);
                 pcGridAdapter.notifyDataSetChanged();
 

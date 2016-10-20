@@ -11,12 +11,14 @@ import com.limelight.grid.AppGridAdapter;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
+import com.limelight.nvstream.http.PairingManager;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
 import com.limelight.utils.CacheHelper;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.ServerHelper;
+import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
@@ -43,14 +45,16 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 public class AppView extends Activity implements AdapterFragmentCallbacks {
     private AppGridAdapter appGridAdapter;
     private String uuidString;
+    private ShortcutHelper shortcutHelper;
 
     private ComputerDetails computer;
     private ComputerManagerService.ApplistPoller poller;
-    private SpinnerDialog blockingLoadSpinner;
+    private SpinnerDialog blockingLoadSpinner, blockingServerinfoSpinner;
     private String lastRawApplist;
     private int lastRunningAppId;
     private boolean suspendGridUpdates;
     private boolean inForeground;
+    private boolean launchedFromShortcut;
 
     private final static int START_OR_RESUME_ID = 1;
     private final static int QUIT_ID = 2;
@@ -59,6 +63,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
     public final static String NAME_EXTRA = "Name";
     public final static String UUID_EXTRA = "UUID";
+    public final static String SHORTCUT_EXTRA = "Shortcut";
 
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
@@ -132,7 +137,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
         managerBinder.startPolling(new ComputerManagerListener() {
             @Override
-            public void notifyComputerUpdated(ComputerDetails details) {
+            public void notifyComputerUpdated(final ComputerDetails details) {
                 // Do nothing if updates are suspended
                 if (suspendGridUpdates) {
                     return;
@@ -155,6 +160,48 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     });
 
                     return;
+                }
+
+                // Close immediately if the PC is no longer paired
+                if (details.state == ComputerDetails.State.ONLINE && details.pairState != PairingManager.PairState.PAIRED) {
+                    AppView.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Disable shortcuts referencing this PC for now
+                            shortcutHelper.disableShortcut(details.uuid.toString(),
+                                    getResources().getString(R.string.scut_not_paired));
+
+                            // Display a toast to the user and quit the activity
+                            Toast.makeText(AppView.this, getResources().getText(R.string.scut_not_paired), Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    });
+
+                    return;
+                }
+
+                if (launchedFromShortcut) {
+                    if (details.state == ComputerDetails.State.ONLINE) {
+                        if (blockingServerinfoSpinner != null) {
+                            blockingServerinfoSpinner.dismiss();
+                            blockingServerinfoSpinner = null;
+                        }
+
+                        if (details.runningGameId != 0) {
+                            AppView.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // We have to finish this activity here otherwise we'll get into a loop
+                                    // when the user hits back
+                                    finish();
+
+                                    // When launched from shortcut, resume the running game
+                                    ServerHelper.doStart(AppView.this, new NvApp("app", details.runningGameId), computer, managerBinder);
+                                }
+                            });
+                            return;
+                        }
+                    }
                 }
 
                 // App list is the same or empty
@@ -208,6 +255,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        shortcutHelper = new ShortcutHelper(this);
+
         String locale = PreferenceConfiguration.readPreferences(this).language;
         if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
             Configuration config = new Configuration(getResources().getConfiguration());
@@ -220,6 +269,15 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         UiHelper.notifyNewRootView(this);
 
         uuidString = getIntent().getStringExtra(UUID_EXTRA);
+
+        launchedFromShortcut = getIntent().getBooleanExtra(SHORTCUT_EXTRA, false);
+        if (launchedFromShortcut) {
+            // Display blocking loading spinner
+            blockingLoadSpinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.conn_establishing_title),
+                    getResources().getString(R.string.applist_connect_msg), true);
+        }
+
+        shortcutHelper.reportShortcutUsed(uuidString);
 
         String labelText = getResources().getString(R.string.title_applist)+" "+getIntent().getStringExtra(NAME_EXTRA);
         TextView label = (TextView) findViewById(R.id.appListText);

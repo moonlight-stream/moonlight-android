@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Shortcut strings -->
+    <string name="scut_deleted_pc">PC deleted</string>
+    <string name="scut_not_paired">PC not paired</string>
 
     <!-- PC view menu entries -->
     <string name="pcview_menu_app_list">View Game List</string>
@@ -16,6 +19,7 @@
     <string name="pair_pairing_msg">Please enter the following PIN on the target PC:</string>
     <string name="pair_incorrect_pin">Incorrect PIN</string>
     <string name="pair_fail">Pairing failed</string>
+    <string name="pair_already_in_progress">Pairing already in progress</string>
 
     <!-- WOL messages -->
     <string name="wol_pc_online">Computer is online</string>
@@ -63,6 +67,7 @@
 
     <!-- AppList activity -->
     <string name="title_applist">Apps on</string>
+    <string name="applist_connect_msg">Connecting to PC…</string>
     <string name="applist_menu_resume">Resume Session</string>
     <string name="applist_menu_quit">Quit Session</string>
     <string name="applist_menu_quit_and_start">Quit Current Game and Start</string>

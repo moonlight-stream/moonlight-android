@@ -340,27 +340,14 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         stopComputerUpdates();
     }
 
-    private int getRunningAppId() {
-        int runningAppId = -1;
-        for (int i = 0; i < appGridAdapter.getCount(); i++) {
-            AppObject app = (AppObject) appGridAdapter.getItem(i);
-            if (app.app.getIsRunning()) {
-                runningAppId = app.app.getAppId();
-                break;
-            }
-        }
-        return runningAppId;
-    }
-
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         AppObject selectedApp = (AppObject) appGridAdapter.getItem(info.position);
-        int runningAppId = getRunningAppId();
-        if (runningAppId != -1) {
-            if (runningAppId == selectedApp.app.getAppId()) {
+        if (lastRunningAppId != 0) {
+            if (lastRunningAppId == selectedApp.app.getAppId()) {
                 menu.add(Menu.NONE, START_OR_RESUME_ID, 1, getResources().getString(R.string.applist_menu_resume));
                 menu.add(Menu.NONE, QUIT_ID, 2, getResources().getString(R.string.applist_menu_quit));
             }
@@ -436,19 +423,19 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
 
                     // There can only be one or zero apps running.
-                    if (existingApp.app.getIsRunning() &&
+                    if (existingApp.isRunning &&
                             existingApp.app.getAppId() == details.runningGameId) {
                         // This app was running and still is, so we're done now
                         return;
                     }
                     else if (existingApp.app.getAppId() == details.runningGameId) {
                         // This app wasn't running but now is
-                        existingApp.app.setIsRunning(true);
+                        existingApp.isRunning = true;
                         updated = true;
                     }
-                    else if (existingApp.app.getIsRunning()) {
+                    else if (existingApp.isRunning) {
                         // This app was running but now isn't
-                        existingApp.app.setIsRunning(false);
+                        existingApp.isRunning = false;
                         updated = true;
                     }
                     else {
@@ -478,10 +465,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
                         if (existingApp.app.getAppId() == app.getAppId()) {
                             // Found the app; update its properties
-                            if (existingApp.app.getIsRunning() != app.getIsRunning()) {
-                                existingApp.app.setIsRunning(app.getIsRunning());
-                                updated = true;
-                            }
                             if (!existingApp.app.getAppName().equals(app.getAppName())) {
                                 existingApp.app.setAppName(app.getAppName());
                                 updated = true;
@@ -551,7 +534,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 AppObject app = (AppObject) appGridAdapter.getItem(pos);
 
                 // Only open the context menu if something is running, otherwise start it
-                if (getRunningAppId() != -1) {
+                if (lastRunningAppId != 0) {
                     openContextMenu(arg1);
                 } else {
                     ServerHelper.doStart(AppView.this, app.app, computer, managerBinder);
@@ -564,6 +547,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
     public class AppObject {
         public final NvApp app;
+        public boolean isRunning;
 
         public AppObject(NvApp app) {
             if (app == null) {

@@ -101,7 +101,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
     @Override
     public boolean populateOverlayView(ImageView overlayView, AppView.AppObject obj) {
-        if (obj.app.getIsRunning()) {
+        if (obj.isRunning) {
             // Show the play button overlay
             overlayView.setImageResource(R.drawable.ic_play);
             return true;

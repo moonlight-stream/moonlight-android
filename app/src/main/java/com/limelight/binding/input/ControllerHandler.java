@@ -627,6 +627,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 default:
                     // Other buttons are mapped correctly
             }
+
+            // The Xbox button is sent as MENU
+            if (event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
+                return KeyEvent.KEYCODE_BUTTON_MODE;
+            }
         }
 
         if (context.hatXAxis != -1 && context.hatYAxis != -1) {
@@ -886,7 +891,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             break;
         case KeyEvent.KEYCODE_BUTTON_START:
         case KeyEvent.KEYCODE_MENU:
-            if (SystemClock.uptimeMillis() - context.startDownTime > ControllerHandler.START_DOWN_TIME_MOUSE_MODE_MS) {
+            // Sometimes we'll get a spurious key up event on controller disconnect.
+            // Make sure it's real by checking that the key is actually down before taking
+            // any action.
+            if ((context.inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
+                SystemClock.uptimeMillis() - context.startDownTime > ControllerHandler.START_DOWN_TIME_MOUSE_MODE_MS) {
                 toggleMouseEmulation(context);
             }
             context.inputMap &= ~ControllerPacket.PLAY_FLAG;

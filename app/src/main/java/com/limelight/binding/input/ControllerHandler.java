@@ -642,7 +642,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
         else if (context.hatXAxis == -1 &&
                  context.hatYAxis == -1 &&
-                 context.isXboxController &&
+                 /* FIXME: There's no good way to know for sure if xpad is bound
+                    to this device, so we won't use the name to validate if these
+                    scancodes should be mapped to DPAD
+
+                    context.isXboxController &&
+                  */
                  event.getKeyCode() == KeyEvent.KEYCODE_UNKNOWN) {
             // If there's not a proper Xbox controller mapping, we'll translate the raw d-pad
             // scan codes into proper key codes

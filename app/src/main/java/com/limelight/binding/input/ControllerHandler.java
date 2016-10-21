@@ -5,6 +5,7 @@ import android.hardware.input.InputManager;
 import android.os.SystemClock;
 import android.util.SparseArray;
 import android.view.InputDevice;
+import android.view.InputEvent;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.Toast;
@@ -415,21 +416,27 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return context;
     }
 
-    private InputDeviceContext getContextForDevice(InputDevice dev) {
+    private InputDeviceContext getContextForEvent(InputEvent event) {
         // Unknown devices use the default context
-        if (dev == null) {
+        if (event.getDeviceId() == 0) {
             return defaultContext;
+        }
+        else if (event.getDevice() == null) {
+            // During device removal, sometimes we can get events after the
+            // input device has been destroyed. In this case we'll see a
+            // != 0 device ID but no device attached.
+            return null;
         }
 
         // Return the existing context if it exists
-        InputDeviceContext context = inputDeviceContexts.get(dev.getId());
+        InputDeviceContext context = inputDeviceContexts.get(event.getDeviceId());
         if (context != null) {
             return context;
         }
 
         // Otherwise create a new context
-        context = createInputDeviceContextForDevice(dev);
-        inputDeviceContexts.put(dev.getId(), context);
+        context = createInputDeviceContextForDevice(event.getDevice());
+        inputDeviceContexts.put(event.getDeviceId(), context);
 
         return context;
     }
@@ -794,7 +801,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public boolean handleMotionEvent(MotionEvent event) {
-        InputDeviceContext context = getContextForDevice(event.getDevice());
+        InputDeviceContext context = getContextForEvent(event);
+        if (context == null) {
+            return true;
+        }
+
         float lsX = 0, lsY = 0, rsX = 0, rsY = 0, rt = 0, lt = 0, hatX = 0, hatY = 0;
 
         // We purposefully ignore the historical values in the motion event as it makes
@@ -866,7 +877,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public boolean handleButtonUp(KeyEvent event) {
-        InputDeviceContext context = getContextForDevice(event.getDevice());
+        InputDeviceContext context = getContextForEvent(event);
+        if (context == null) {
+            return true;
+        }
 
         int keyCode = handleRemapping(context, event);
         if (keyCode == 0) {
@@ -993,7 +1007,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public boolean handleButtonDown(KeyEvent event) {
-        InputDeviceContext context = getContextForDevice(event.getDevice());
+        InputDeviceContext context = getContextForEvent(event);
+        if (context == null) {
+            return true;
+        }
 
         int keyCode = handleRemapping(context, event);
         if (keyCode == 0) {

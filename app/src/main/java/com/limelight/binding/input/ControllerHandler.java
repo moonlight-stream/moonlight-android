@@ -737,9 +737,23 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         if (context.leftTriggerAxis != -1 && context.rightTriggerAxis != -1) {
+            // Android sends an initial 0 value for trigger axes even if the trigger
+            // should be negative when idle. After the first touch, the axes will go back
+            // to normal behavior, so ignore triggersIdleNegative for each trigger until
+            // first touch.
+            if (lt != 0) {
+                context.leftTriggerUsed = true;
+            }
+            if (rt != 0) {
+                context.rightTriggerUsed = true;
+            }
             if (context.triggersIdleNegative) {
-                lt = (lt + 1) / 2;
-                rt = (rt + 1) / 2;
+                if (context.leftTriggerUsed) {
+                    lt = (lt + 1) / 2;
+                }
+                if (context.rightTriggerUsed) {
+                    rt = (rt + 1) / 2;
+                }
             }
 
             if (lt <= context.triggerDeadzone) {
@@ -1158,6 +1172,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public int leftTriggerAxis = -1;
         public int rightTriggerAxis = -1;
         public boolean triggersIdleNegative;
+        public boolean leftTriggerUsed, rightTriggerUsed;
 
         public int hatXAxis = -1;
         public int hatYAxis = -1;

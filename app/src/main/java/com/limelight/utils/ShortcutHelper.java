@@ -99,7 +99,7 @@ public class ShortcutHelper {
                 reapShortcutsForDynamicAdd();
 
                 // Add the new shortcut
-                sm.addDynamicShortcuts(Arrays.asList(sinfo));
+                //TODO: Testing and proper icon - sm.addDynamicShortcuts(Arrays.asList(sinfo));
             }
         }
     }

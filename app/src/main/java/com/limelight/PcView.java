@@ -373,6 +373,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
                         if (toastSuccess) {
                             // Open the app list after a successful pairing attempt
+                            computer.pairState = PairState.PAIRED;
                             doAppList(computer);
                         }
                         else {

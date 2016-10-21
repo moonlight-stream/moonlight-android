@@ -95,11 +95,14 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         return;
                     }
 
+                    // Load the app grid with cached data (if possible).
+                    // This must be done _before_ startComputerUpdates()
+                    // so the initial serverinfo response can update the running
+                    // icon.
+                    populateAppGridWithCache();
+
                     // Start updates
                     startComputerUpdates();
-
-                    // Load the app grid with cached data (if possible)
-                    populateAppGridWithCache();
 
                     runOnUiThread(new Runnable() {
                         @Override
@@ -222,6 +225,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
                 try {
                     updateUiWithAppList(NvHTTP.getAppListByReader(new StringReader(details.rawAppList)));
+                    updateUiWithServerinfo(details);
 
                     if (blockingLoadSpinner != null) {
                         blockingLoadSpinner.dismiss();

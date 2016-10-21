@@ -197,18 +197,15 @@ public class NvConnection {
 			}
 		}
 		
-		// Update the running status of the app
-		app.setIsRunning(h.getCurrentGame(serverInfo) == app.getAppId());
-		
 		// If there's a game running, resume it
 		if (h.getCurrentGame(serverInfo) != 0) {
 			try {
-				if (app.getIsRunning()) {
+				if (h.getCurrentGame(serverInfo) == app.getAppId()) {
 					if (!h.resumeApp(context)) {
 						context.connListener.displayMessage("Failed to resume existing session");
 						return false;
 					}
-				} else if (h.getCurrentGame(serverInfo) != app.getAppId()) {
+				} else {
 					return quitAndLaunch(h, app);
 				}
 			} catch (GfeHttpResponseException e) {

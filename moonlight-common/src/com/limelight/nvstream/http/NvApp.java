@@ -5,7 +5,6 @@ import com.limelight.LimeLog;
 public class NvApp {
 	private String appName = "";
 	private int appId;
-	private boolean isRunning;
 	private boolean initialized;
 	
 	public NvApp() {}
@@ -38,24 +37,12 @@ public class NvApp {
 		this.initialized = true;
 	}
 	
-	public void setIsRunning(String isRunning) {
-		this.isRunning = isRunning.equals("1");
-	}
-	
-	public void setIsRunning(boolean isRunning) {
-		this.isRunning = isRunning;
-	}
-	
 	public String getAppName() {
 		return this.appName;
 	}
 	
 	public int getAppId() {
 		return this.appId;
-	}
-	
-	public boolean getIsRunning() {
-		return this.isRunning;
 	}
 	
 	public boolean isInitialized() {

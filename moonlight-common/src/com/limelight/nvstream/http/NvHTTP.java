@@ -516,8 +516,6 @@ public class NvHTTP {
 					app.setAppName(xpp.getText().trim());
 				} else if (currentTag.peek().equals("ID")) {
 					app.setAppId(xpp.getText().trim());
-				} else if (currentTag.peek().equals("IsRunning")) {
-					app.setIsRunning(xpp.getText().trim());
 				}
 				break;
 			}
@@ -536,7 +534,7 @@ public class NvHTTP {
 			
 			// Remove uninitialized apps
 			if (!app.isInitialized()) {
-				LimeLog.warning("GFE returned incomplete app: "+app.getAppId()+" "+app.getAppName()+" "+app.getIsRunning());
+				LimeLog.warning("GFE returned incomplete app: "+app.getAppId()+" "+app.getAppName());
 				i.remove();
 			}
 		}

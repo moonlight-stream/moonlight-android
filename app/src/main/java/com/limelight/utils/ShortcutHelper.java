@@ -8,10 +8,9 @@ import android.content.pm.ShortcutManager;
 import android.os.Build;
 
 import com.limelight.AppView;
-import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,7 +21,7 @@ public class ShortcutHelper {
 
     public ShortcutHelper(Context context) {
         this.context = context;
-        if (Build.VERSION.SDK_INT >= 25) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             sm = context.getSystemService(ShortcutManager.class);
         }
         else {
@@ -30,7 +29,7 @@ public class ShortcutHelper {
         }
     }
 
-    @TargetApi(25)
+    @TargetApi(Build.VERSION_CODES.N_MR1)
     private void reapShortcutsForDynamicAdd() {
         List<ShortcutInfo> dynamicShortcuts = sm.getDynamicShortcuts();
         while (dynamicShortcuts.size() >= sm.getMaxShortcutCountPerActivity()) {
@@ -40,11 +39,11 @@ public class ShortcutHelper {
                     maxRankShortcut = scut;
                 }
             }
-            sm.removeDynamicShortcuts(Arrays.asList(maxRankShortcut.getId()));
+            sm.removeDynamicShortcuts(Collections.singletonList(maxRankShortcut.getId()));
         }
     }
 
-    @TargetApi(25)
+    @TargetApi(Build.VERSION_CODES.N_MR1)
     private List<ShortcutInfo> getAllShortcuts() {
         LinkedList<ShortcutInfo> list = new LinkedList<>();
         list.addAll(sm.getDynamicShortcuts());
@@ -52,7 +51,7 @@ public class ShortcutHelper {
         return list;
     }
 
-    @TargetApi(25)
+    @TargetApi(Build.VERSION_CODES.N_MR1)
     private ShortcutInfo getInfoForId(String id) {
         List<ShortcutInfo> shortcuts = getAllShortcuts();
 
@@ -66,7 +65,7 @@ public class ShortcutHelper {
     }
 
     public void reportShortcutUsed(String id) {
-        if (Build.VERSION.SDK_INT >= 25) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             ShortcutInfo sinfo = getInfoForId(id);
             if (sinfo != null) {
                 sm.reportShortcutUsed(id);
@@ -75,7 +74,7 @@ public class ShortcutHelper {
     }
 
     public void createAppViewShortcut(String id, ComputerDetails details) {
-        if (Build.VERSION.SDK_INT >= 25) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             Intent i = new Intent(context, AppView.class);
             i.putExtra(AppView.NAME_EXTRA, details.name);
             i.putExtra(AppView.UUID_EXTRA, details.uuid.toString());
@@ -91,8 +90,8 @@ public class ShortcutHelper {
             ShortcutInfo existingSinfo = getInfoForId(id);
             if (existingSinfo != null) {
                 // Update in place
-                sm.updateShortcuts(Arrays.asList(sinfo));
-                sm.enableShortcuts(Arrays.asList(id));
+                sm.updateShortcuts(Collections.singletonList(sinfo));
+                sm.enableShortcuts(Collections.singletonList(id));
             }
             else {
                 // Reap shortcuts to make space for this new one
@@ -105,10 +104,10 @@ public class ShortcutHelper {
     }
 
     public void disableShortcut(String id, CharSequence reason) {
-        if (Build.VERSION.SDK_INT >= 25) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             ShortcutInfo sinfo = getInfoForId(id);
             if (sinfo != null) {
-                sm.disableShortcuts(Arrays.asList(id), reason);
+                sm.disableShortcuts(Collections.singletonList(id), reason);
             }
         }
     }

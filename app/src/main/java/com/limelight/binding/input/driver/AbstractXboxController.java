@@ -114,12 +114,12 @@ public abstract class AbstractXboxController extends AbstractController {
             return false;
         }
 
+        // Report that we're added _before_ starting the input thread
+        notifyDeviceAdded();
+
         // Start listening for controller input
         inputThread = createInputThread();
         inputThread.start();
-
-        // Now report we're added
-        notifyDeviceAdded();
 
         return true;
     }
@@ -137,11 +137,11 @@ public abstract class AbstractXboxController extends AbstractController {
             inputThread = null;
         }
 
-        // Report the device removed
-        notifyDeviceRemoved();
-
         // Close the USB connection
         connection.close();
+
+        // Report the device removed
+        notifyDeviceRemoved();
     }
 
     protected abstract boolean handleRead(ByteBuffer buffer);

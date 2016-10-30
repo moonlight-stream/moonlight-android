@@ -1102,11 +1102,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.emulatingButtonFlags |= ControllerHandler.EMULATING_SPECIAL;
         }
 
-        // Send a new input packet if this is the first instance of a button down event
-        // or anytime if we're emulating a button
-        if (event.getRepeatCount() == 0 || context.emulatingButtonFlags != 0) {
-            sendControllerInputPacket(context);
-        }
+
+        // We don't need to send repeat key down events, but the platform
+        // sends us events that claim to be repeats but they're from different
+        // devices, so we just send them all and deal with some duplicates.
+        sendControllerInputPacket(context);
         return true;
     }
 

@@ -1,6 +1,7 @@
 package com.limelight.binding.input.evdev;
 
 import android.app.Activity;
+import android.os.Build;
 import android.widget.Toast;
 
 import com.limelight.LimeLog;
@@ -47,26 +48,42 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
                 return;
             }
 
-            // Launch a su shell
-            ProcessBuilder builder = new ProcessBuilder("su");
-            builder.redirectErrorStream(true);
+            final String evdevReaderCmd = libraryPath+File.separatorChar+"libevdev_reader.so "+servSock.getLocalPort();
 
-            try {
-                su = builder.start();
-            } catch (IOException e) {
-                reportDeviceNotRooted();
-                e.printStackTrace();
-                return;
+            // On Nougat and later, we'll need to pass the command directly to SU.
+            // Writing to SU's input stream after it has started doesn't seem to work anymore.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                // Launch evdev_reader directly via SU
+                try {
+                    su = Runtime.getRuntime().exec("su -c "+evdevReaderCmd);
+                } catch (IOException e) {
+                    reportDeviceNotRooted();
+                    e.printStackTrace();
+                    return;
+                }
             }
+            else {
+                // Launch a SU shell on Marshmallow and earlier
+                ProcessBuilder builder = new ProcessBuilder("su");
+                builder.redirectErrorStream(true);
 
-            // Start evdevreader
-            DataOutputStream suOut = new DataOutputStream(su.getOutputStream());
-            try {
-                suOut.writeChars(libraryPath+File.separatorChar+"libevdev_reader.so "+servSock.getLocalPort()+"\n");
-            } catch (IOException e) {
-                reportDeviceNotRooted();
-                e.printStackTrace();
-                return;
+                try {
+                    su = builder.start();
+                } catch (IOException e) {
+                    reportDeviceNotRooted();
+                    e.printStackTrace();
+                    return;
+                }
+
+                // Start evdevreader
+                DataOutputStream suOut = new DataOutputStream(su.getOutputStream());
+                try {
+                    suOut.writeChars(evdevReaderCmd+"\n");
+                } catch (IOException e) {
+                    reportDeviceNotRooted();
+                    e.printStackTrace();
+                    return;
+                }
             }
 
             // Wait for evdevreader's connection

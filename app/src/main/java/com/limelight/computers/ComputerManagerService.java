@@ -238,6 +238,21 @@ public class ComputerManagerService extends Service {
 
             return null;
         }
+
+        public void invalidateStateForComputer(UUID uuid) {
+            synchronized (pollingTuples) {
+                for (PollingTuple tuple : pollingTuples) {
+                    if (uuid.equals(tuple.computer.uuid)) {
+                        // We need the network lock to prevent a concurrent poll
+                        // from wiping this change out
+                        synchronized (tuple.networkLock) {
+                            tuple.computer.state = ComputerDetails.State.UNKNOWN;
+                            tuple.computer.reachability = ComputerDetails.Reachability.UNKNOWN;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Override

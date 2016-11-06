@@ -353,6 +353,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                             // Just navigate to the app view without displaying a toast
                             message = null;
                             success = true;
+
+                            // Invalidate reachability information after pairing to force
+                            // a refresh before reading pair state again
+                            managerBinder.invalidateStateForComputer(computer.uuid);
                         }
                         else {
                             // Should be no other values
@@ -381,7 +385,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
                         if (toastSuccess) {
                             // Open the app list after a successful pairing attempt
-                            computer.pairState = PairState.PAIRED;
                             doAppList(computer);
                         }
                         else {

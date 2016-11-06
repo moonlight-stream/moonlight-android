@@ -12,6 +12,7 @@ import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
+import com.limelight.utils.Dialog;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
@@ -58,20 +59,45 @@ public class AppViewShortcutTrampoline extends Activity {
                             }
 
                             if (details.state != ComputerDetails.State.UNKNOWN) {
-                                // Close this activity
-                                finish();
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        // Stop showing the spinner
+                                        if (blockingLoadSpinner != null) {
+                                            blockingLoadSpinner.dismiss();
+                                            blockingLoadSpinner = null;
+                                        }
 
-                                if (details.runningGameId != 0) {
-                                    // A game is running so launch straight to the game activity
-                                    ServerHelper.doStart(AppViewShortcutTrampoline.this,
-                                            new NvApp("app", details.runningGameId), details, managerBinder);
-                                }
-                                else {
-                                    // No game running or computer offline - launch to the AppView
-                                    Intent i = new Intent(getIntent());
-                                    i.setClass(AppViewShortcutTrampoline.this, AppView.class);
-                                    startActivity(i);
-                                }
+                                        if (details.state == ComputerDetails.State.ONLINE) {
+                                            // Close this activity
+                                            finish();
+
+                                            if (details.runningGameId != 0) {
+                                                // A game is running so launch straight to the game activity
+                                                ServerHelper.doStart(AppViewShortcutTrampoline.this,
+                                                        new NvApp("app", details.runningGameId), details, managerBinder);
+                                            }
+                                            else {
+                                                // No game running - launch to the AppView
+                                                Intent i = new Intent(getIntent());
+                                                i.setClass(AppViewShortcutTrampoline.this, AppView.class);
+                                                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                startActivity(i);
+                                            }
+                                        }
+                                        else if (details.state == ComputerDetails.State.OFFLINE) {
+                                            // Computer offline - display an error dialog
+                                            Dialog.displayDialog(AppViewShortcutTrampoline.this,
+                                                    getResources().getString(R.string.conn_error_title),
+                                                    getResources().getString(R.string.error_pc_offline),
+                                                    true);
+                                        }
+
+                                        // We don't want any more callbacks from now on
+                                        managerBinder.stopPolling();
+                                        managerBinder = null;
+                                    }
+                                });
                             }
                         }
                     });
@@ -104,7 +130,12 @@ public class AppViewShortcutTrampoline extends Activity {
     protected void onPause() {
         super.onPause();
 
-        blockingLoadSpinner.dismiss();
+        if (blockingLoadSpinner != null) {
+            blockingLoadSpinner.dismiss();
+            blockingLoadSpinner = null;
+        }
+
+        Dialog.closeDialogs();
 
         if (managerBinder != null) {
             unbindService(serviceConnection);

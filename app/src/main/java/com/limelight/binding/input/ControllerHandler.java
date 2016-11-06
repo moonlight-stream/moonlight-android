@@ -564,41 +564,38 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         if (context.isDualShock4) {
-            switch (event.getKeyCode()) {
-            case KeyEvent.KEYCODE_BUTTON_Y:
-                return KeyEvent.KEYCODE_BUTTON_L1;
-
-            case KeyEvent.KEYCODE_BUTTON_Z:
-                return KeyEvent.KEYCODE_BUTTON_R1;
-
-            case KeyEvent.KEYCODE_BUTTON_C:
-                return KeyEvent.KEYCODE_BUTTON_B;
-
-            case KeyEvent.KEYCODE_BUTTON_X:
-                return KeyEvent.KEYCODE_BUTTON_Y;
-
-            case KeyEvent.KEYCODE_BUTTON_B:
-                return KeyEvent.KEYCODE_BUTTON_A;
-
-            case KeyEvent.KEYCODE_BUTTON_A:
-                return KeyEvent.KEYCODE_BUTTON_X;
-
-            case KeyEvent.KEYCODE_BUTTON_SELECT:
-                return KeyEvent.KEYCODE_BUTTON_THUMBL;
-
-            case KeyEvent.KEYCODE_BUTTON_START:
-                return KeyEvent.KEYCODE_BUTTON_THUMBR;
-
-            case KeyEvent.KEYCODE_BUTTON_L2:
-                return KeyEvent.KEYCODE_BUTTON_SELECT;
-
-            case KeyEvent.KEYCODE_BUTTON_R2:
-                return KeyEvent.KEYCODE_BUTTON_START;
-
-            // These are duplicate trigger events
-            case KeyEvent.KEYCODE_BUTTON_R1:
-            case KeyEvent.KEYCODE_BUTTON_L1:
-                return 0;
+            switch (event.getScanCode()) {
+                case 304:
+                    return KeyEvent.KEYCODE_BUTTON_X;
+                case 305:
+                    return KeyEvent.KEYCODE_BUTTON_A;
+                case 306:
+                    return KeyEvent.KEYCODE_BUTTON_B;
+                case 307:
+                    return KeyEvent.KEYCODE_BUTTON_Y;
+                case 308:
+                    return KeyEvent.KEYCODE_BUTTON_L1;
+                case 309:
+                    return KeyEvent.KEYCODE_BUTTON_R1;
+                /*
+                **** Using analog triggers instead ****
+                case 310:
+                    return KeyEvent.KEYCODE_BUTTON_L2;
+                case 311:
+                    return KeyEvent.KEYCODE_BUTTON_R2;
+                */
+                case 312:
+                    return KeyEvent.KEYCODE_BUTTON_SELECT;
+                case 313:
+                    return KeyEvent.KEYCODE_BUTTON_START;
+                case 314:
+                    return KeyEvent.KEYCODE_BUTTON_THUMBL;
+                case 315:
+                    return KeyEvent.KEYCODE_BUTTON_THUMBR;
+                case 316:
+                    return KeyEvent.KEYCODE_BUTTON_MODE;
+                default:
+                    return 0;
             }
         }
         // If this is a Serval controller sending an unknown key code, it's probably

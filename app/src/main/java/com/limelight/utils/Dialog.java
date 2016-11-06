@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.widget.Button;
+
+import com.limelight.R;
 
 public class Dialog implements Runnable {
     private final String title;
@@ -55,7 +58,7 @@ public class Dialog implements Runnable {
         alert.setCancelable(false);
         alert.setCanceledOnTouchOutside(false);
  
-        alert.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+        alert.setButton(AlertDialog.BUTTON_POSITIVE, activity.getResources().getText(android.R.string.ok), new DialogInterface.OnClickListener() {
               public void onClick(DialogInterface dialog, int which) {
                   synchronized (rundownDialogs) {
                       rundownDialogs.remove(Dialog.this);
@@ -66,6 +69,31 @@ public class Dialog implements Runnable {
                       activity.finish();
                   }
               }
+        });
+        alert.setButton(AlertDialog.BUTTON_NEUTRAL, activity.getResources().getText(R.string.help), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                synchronized (rundownDialogs) {
+                    rundownDialogs.remove(Dialog.this);
+                    alert.dismiss();
+                }
+
+                if (endAfterDismiss) {
+                    activity.finish();
+                }
+
+                HelpLauncher.launchTroubleshooting(activity);
+            }
+        });
+        alert.setOnShowListener(new DialogInterface.OnShowListener(){
+
+            @Override
+            public void onShow(DialogInterface dialog) {
+                // Set focus to the OK button by default
+                Button button = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+                button.setFocusable(true);
+                button.setFocusableInTouchMode(true);
+                button.requestFocus();
+            }
         });
 
         synchronized (rundownDialogs) {

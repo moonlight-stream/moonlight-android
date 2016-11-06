@@ -23,6 +23,7 @@ import com.limelight.preferences.StreamSettings;
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
 import com.limelight.utils.Dialog;
+import com.limelight.utils.HelpLauncher;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.UiHelper;
@@ -111,6 +112,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         // Setup the list view
         ImageButton settingsButton = (ImageButton) findViewById(R.id.settingsButton);
         ImageButton addComputerButton = (ImageButton) findViewById(R.id.manuallyAddPc);
+        ImageButton helpButton = (ImageButton) findViewById(R.id.helpButton);
 
         settingsButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -123,6 +125,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             public void onClick(View v) {
                 Intent i = new Intent(PcView.this, AddComputerManually.class);
                 startActivity(i);
+            }
+        });
+        helpButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                HelpLauncher.launchSetupGuide(PcView.this);
             }
         });
 

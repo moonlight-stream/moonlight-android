@@ -38,6 +38,7 @@ public class ComputerManagerService extends Service {
     private static final int FAST_POLL_TIMEOUT = 500;
     private static final int OFFLINE_POLL_TRIES = 5;
     private static final int EMPTY_LIST_THRESHOLD = 3;
+    private static final int POLL_DATA_TTL_MS = 30000;
 
     private final ComputerManagerBinder binder = new ComputerManagerBinder();
 
@@ -136,6 +137,7 @@ public class ComputerManagerService extends Service {
                                 LimeLog.warning(tuple.computer.name + " is offline (try " + offlineCount + ")");
                                 offlineCount++;
                             } else {
+                                tuple.lastSuccessfulPollMs = System.currentTimeMillis();
                                 offlineCount = 0;
                             }
                         }
@@ -165,11 +167,18 @@ public class ComputerManagerService extends Service {
 
             synchronized (pollingTuples) {
                 for (PollingTuple tuple : pollingTuples) {
+                    // Enforce the poll data TTL
+                    if (System.currentTimeMillis() - tuple.lastSuccessfulPollMs > POLL_DATA_TTL_MS) {
+                        LimeLog.info("Timing out polled state for "+tuple.computer.name);
+                        tuple.computer.state = ComputerDetails.State.UNKNOWN;
+                        tuple.computer.reachability = ComputerDetails.Reachability.UNKNOWN;
+                    }
+
+                    // Report this computer initially
+                    listener.notifyComputerUpdated(tuple.computer);
+
                     // This polling thread might already be there
                     if (tuple.thread == null) {
-                        // Report this computer initially
-                        listener.notifyComputerUpdated(tuple.computer);
-
                         tuple.thread = createPollingThread(tuple);
                         tuple.thread.start();
                     }
@@ -778,6 +787,7 @@ class PollingTuple {
     public Thread thread;
     public final ComputerDetails computer;
     public final Object networkLock;
+    public long lastSuccessfulPollMs;
 
     public PollingTuple(ComputerDetails computer, Thread thread) {
         this.computer = computer;

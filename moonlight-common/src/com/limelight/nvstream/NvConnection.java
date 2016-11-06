@@ -362,6 +362,17 @@ public class NvConnection {
 			}
 		}
 		
+		// Move the mouse cursor very slightly to wake the screen up for
+		// gamepad-only scenarios
+		sendMouseMove((short) 1, (short) 1);
+		try {
+			Thread.sleep(10);
+		} catch (InterruptedException e) {}
+		sendMouseMove((short) -1, (short) -1);
+		try {
+			Thread.sleep(10);
+		} catch (InterruptedException e) {}
+
 		context.connListener.connectionStarted();
 	}
 

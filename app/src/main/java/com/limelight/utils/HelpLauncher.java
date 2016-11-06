@@ -4,25 +4,33 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 
 import com.limelight.HelpActivity;
 
 public class HelpLauncher {
 
     private static void launchUrl(Context context, String url) {
-        Intent i = new Intent(Intent.ACTION_VIEW);
-        i.setData(Uri.parse(url));
-
         // Try to launch the default browser
         try {
-            context.startActivity(i);
+            // Fire TV devices will lie and say they do have a browser
+            // even though the OS just shows an error dialog if we
+            // try to use it.
+            if (!"Amazon".equalsIgnoreCase(Build.MANUFACTURER)) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                context.startActivity(i);
+                return;
+            }
         } catch (ActivityNotFoundException e) {
-            // This platform has no browser (possibly a leanback device)
-            // We'll launch our WebView activity
-            i = new Intent(context, HelpActivity.class);
-            i.setData(Uri.parse(url));
-            context.startActivity(i);
+            // Fall through
         }
+
+        // This platform has no browser (possibly a leanback device)
+        // We'll launch our WebView activity
+        Intent i = new Intent(context, HelpActivity.class);
+        i.setData(Uri.parse(url));
+        context.startActivity(i);
     }
 
     public static void launchSetupGuide(Context context) {

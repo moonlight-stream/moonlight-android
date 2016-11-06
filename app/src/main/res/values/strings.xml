@@ -4,6 +4,10 @@
     <string name="scut_deleted_pc">PC deleted</string>
     <string name="scut_not_paired">PC not paired</string>
 
+    <!-- Help strings -->
+    <string name="help_loading_title">Help Viewer</string>
+    <string name="help_loading_msg">Loading help page…</string>
+
     <!-- PC view menu entries -->
     <string name="pcview_menu_app_list">View Game List</string>
     <string name="pcview_menu_pair_pc">Pair with PC</string>

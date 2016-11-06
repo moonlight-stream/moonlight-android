@@ -67,6 +67,17 @@ public class ShortcutHelper {
         return null;
     }
 
+    @TargetApi(Build.VERSION_CODES.N_MR1)
+    private boolean isExistingDynamicShortcut(String id) {
+        for (ShortcutInfo si : sm.getDynamicShortcuts()) {
+            if (si.getId().equals(id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void reportShortcutUsed(String id) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             ShortcutInfo sinfo = getInfoForId(id);
@@ -96,11 +107,12 @@ public class ShortcutHelper {
                 sm.updateShortcuts(Collections.singletonList(sinfo));
                 sm.enableShortcuts(Collections.singletonList(id));
             }
-            else {
-                // Reap shortcuts to make space for this new one
-                reapShortcutsForDynamicAdd();
 
-                // Add the new shortcut
+            // Reap shortcuts to make space for this if it's new
+            // NOTE: This CAN'T be an else on the above if, because it's
+            // possible that we have an existing shortcut but it's not a dynamic one.
+            if (!isExistingDynamicShortcut(id)) {
+                reapShortcutsForDynamicAdd();
                 sm.addDynamicShortcuts(Collections.singletonList(sinfo));
             }
         }

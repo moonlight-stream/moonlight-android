@@ -49,12 +49,11 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
     private ComputerDetails computer;
     private ComputerManagerService.ApplistPoller poller;
-    private SpinnerDialog blockingLoadSpinner, blockingServerinfoSpinner;
+    private SpinnerDialog blockingLoadSpinner;
     private String lastRawApplist;
     private int lastRunningAppId;
     private boolean suspendGridUpdates;
     private boolean inForeground;
-    private boolean launchedFromShortcut;
 
     private final static int START_OR_RESUME_ID = 1;
     private final static int QUIT_ID = 2;
@@ -63,7 +62,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
     public final static String NAME_EXTRA = "Name";
     public final static String UUID_EXTRA = "UUID";
-    public final static String SHORTCUT_EXTRA = "Shortcut";
 
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
@@ -183,30 +181,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     return;
                 }
 
-                if (launchedFromShortcut) {
-                    if (details.state == ComputerDetails.State.ONLINE) {
-                        if (blockingServerinfoSpinner != null) {
-                            blockingServerinfoSpinner.dismiss();
-                            blockingServerinfoSpinner = null;
-                        }
-
-                        if (details.runningGameId != 0) {
-                            AppView.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    // We have to finish this activity here otherwise we'll get into a loop
-                                    // when the user hits back
-                                    finish();
-
-                                    // When launched from shortcut, resume the running game
-                                    ServerHelper.doStart(AppView.this, new NvApp("app", details.runningGameId), computer, managerBinder);
-                                }
-                            });
-                            return;
-                        }
-                    }
-                }
-
                 // App list is the same or empty
                 if (details.rawAppList == null || details.rawAppList.equals(lastRawApplist)) {
 
@@ -273,13 +247,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         UiHelper.notifyNewRootView(this);
 
         uuidString = getIntent().getStringExtra(UUID_EXTRA);
-
-        launchedFromShortcut = getIntent().getBooleanExtra(SHORTCUT_EXTRA, false);
-        if (launchedFromShortcut) {
-            // Display blocking loading spinner
-            blockingLoadSpinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.conn_establishing_title),
-                    getResources().getString(R.string.applist_connect_msg), true);
-        }
 
         shortcutHelper.reportShortcutUsed(uuidString);
 

@@ -5,9 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 
 import com.limelight.AppView;
+import com.limelight.AppViewShortcutTrampoline;
+import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
 
 import java.util.Collections;
@@ -75,16 +78,16 @@ public class ShortcutHelper {
 
     public void createAppViewShortcut(String id, ComputerDetails details) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            Intent i = new Intent(context, AppView.class);
+            Intent i = new Intent(context, AppViewShortcutTrampoline.class);
             i.putExtra(AppView.NAME_EXTRA, details.name);
             i.putExtra(AppView.UUID_EXTRA, details.uuid.toString());
-            i.putExtra(AppView.SHORTCUT_EXTRA, true);
             i.setAction(Intent.ACTION_DEFAULT);
 
             ShortcutInfo sinfo = new ShortcutInfo.Builder(context, id)
                     .setIntent(i)
                     .setShortLabel(details.name)
                     .setLongLabel(details.name)
+                    .setIcon(Icon.createWithResource(context, R.mipmap.ic_pc_scut))
                     .build();
 
             ShortcutInfo existingSinfo = getInfoForId(id);
@@ -98,7 +101,7 @@ public class ShortcutHelper {
                 reapShortcutsForDynamicAdd();
 
                 // Add the new shortcut
-                //TODO: Testing and proper icon - sm.addDynamicShortcuts(Arrays.asList(sinfo));
+                sm.addDynamicShortcuts(Collections.singletonList(sinfo));
             }
         }
     }

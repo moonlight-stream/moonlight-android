@@ -17,6 +17,7 @@ import com.limelight.utils.ServerHelper;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class AppViewShortcutTrampoline extends Activity {
@@ -72,18 +73,29 @@ public class AppViewShortcutTrampoline extends Activity {
                                             // Close this activity
                                             finish();
 
+                                            // Create a new activity stack for this launch
+                                            ArrayList<Intent> intentStack = new ArrayList<>();
+                                            Intent i;
+
+                                            // Add the PC view at the back (and clear the task)
+                                            i = new Intent(AppViewShortcutTrampoline.this, PcView.class);
+                                            i.setAction(Intent.ACTION_MAIN);
+                                            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            intentStack.add(i);
+
+                                            // Take this intent's data and create an intent to start the app view
+                                            i = new Intent(getIntent());
+                                            i.setClass(AppViewShortcutTrampoline.this, AppView.class);
+                                            intentStack.add(i);
+
+                                            // If a game is running, we'll make the stream the top level activity
                                             if (details.runningGameId != 0) {
-                                                // A game is running so launch straight to the game activity
-                                                ServerHelper.doStart(AppViewShortcutTrampoline.this,
-                                                        new NvApp("app", details.runningGameId), details, managerBinder);
+                                                intentStack.add(ServerHelper.createStartIntent(AppViewShortcutTrampoline.this,
+                                                        new NvApp("app", details.runningGameId), details, managerBinder));
                                             }
-                                            else {
-                                                // No game running - launch to the AppView
-                                                Intent i = new Intent(getIntent());
-                                                i.setClass(AppViewShortcutTrampoline.this, AppView.class);
-                                                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                startActivity(i);
-                                            }
+
+                                            // Now start the activities
+                                            startActivities(intentStack.toArray(new Intent[]{}));
                                         }
                                         else if (details.state == ComputerDetails.State.OFFLINE) {
                                             // Computer offline - display an error dialog
@@ -93,9 +105,13 @@ public class AppViewShortcutTrampoline extends Activity {
                                                     true);
                                         }
 
-                                        // We don't want any more callbacks from now on
-                                        managerBinder.stopPolling();
-                                        managerBinder = null;
+                                        // We don't want any more callbacks from now on, so go ahead
+                                        // and unbind from the service
+                                        if (managerBinder != null) {
+                                            managerBinder.stopPolling();
+                                            unbindService(serviceConnection);
+                                            managerBinder = null;
+                                        }
                                     }
                                 });
                             }
@@ -138,11 +154,9 @@ public class AppViewShortcutTrampoline extends Activity {
         Dialog.closeDialogs();
 
         if (managerBinder != null) {
-            unbindService(serviceConnection);
-        }
-
-        if (managerBinder != null) {
             managerBinder.stopPolling();
+            unbindService(serviceConnection);
+            managerBinder = null;
         }
 
         finish();

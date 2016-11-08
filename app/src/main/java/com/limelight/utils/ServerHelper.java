@@ -23,8 +23,8 @@ public class ServerHelper {
                 computer.localIp : computer.remoteIp;
     }
 
-    public static void doStart(Activity parent, NvApp app, ComputerDetails computer,
-                               ComputerManagerService.ComputerManagerBinder managerBinder) {
+    public static Intent createStartIntent(Activity parent, NvApp app, ComputerDetails computer,
+                                           ComputerManagerService.ComputerManagerBinder managerBinder) {
         Intent intent = new Intent(parent, Game.class);
         intent.putExtra(Game.EXTRA_HOST,
                 computer.reachability == ComputerDetails.Reachability.LOCAL ?
@@ -34,7 +34,12 @@ public class ServerHelper {
         intent.putExtra(Game.EXTRA_UNIQUEID, managerBinder.getUniqueId());
         intent.putExtra(Game.EXTRA_STREAMING_REMOTE,
                 computer.reachability != ComputerDetails.Reachability.LOCAL);
-        parent.startActivity(intent);
+        return intent;
+    }
+
+    public static void doStart(Activity parent, NvApp app, ComputerDetails computer,
+                               ComputerManagerService.ComputerManagerBinder managerBinder) {
+        parent.startActivity(createStartIntent(parent, app, computer, managerBinder));
     }
 
     public static void doQuit(final Activity parent,

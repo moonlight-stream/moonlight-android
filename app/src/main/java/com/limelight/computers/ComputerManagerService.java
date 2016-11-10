@@ -37,6 +37,7 @@ public class ComputerManagerService extends Service {
     private static final int MDNS_QUERY_PERIOD_MS = 1000;
     private static final int FAST_POLL_TIMEOUT = 500;
     private static final int OFFLINE_POLL_TRIES = 5;
+    private static final int INITIAL_POLL_TRIES = 2;
     private static final int EMPTY_LIST_THRESHOLD = 3;
     private static final int POLL_DATA_TTL_MS = 30000;
 
@@ -77,12 +78,15 @@ public class ComputerManagerService extends Service {
             return false;
         }
 
+        final int pollTriesBeforeOffline = details.state == ComputerDetails.State.UNKNOWN ?
+                INITIAL_POLL_TRIES : OFFLINE_POLL_TRIES;
+
         activePolls.incrementAndGet();
 
         // Poll the machine
         try {
             if (!pollComputer(details)) {
-                if (!newPc && offlineCount < OFFLINE_POLL_TRIES) {
+                if (!newPc && offlineCount < pollTriesBeforeOffline) {
                     // Return without calling the listener
                     releaseLocalDatabaseReference();
                     return false;

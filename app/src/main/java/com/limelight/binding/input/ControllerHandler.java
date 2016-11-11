@@ -404,9 +404,19 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.isServal = true;
                 context.ignoreBack = true;
             }
-            // The Xbox One S Bluetooth controller has some mappings that need fixing up
+            // The Xbox One S Bluetooth controller has some mappings that need fixing up.
+            // However, Microsoft released a firmware update with no change to VID/PID
+            // or device name that fixed the mappings for Android. Since there's
+            // no good way to detect this, we'll use the presence of GAS/BRAKE axes
+            // that were added in the latest firmware. If those are present, the only
+            // required fixup is ignoring the select button.
             else if (devName.equals("Xbox Wireless Controller")) {
-                context.isXboxBtController = true;
+                if (gasRange == null) {
+                    context.isXboxBtController = true;
+                }
+                else {
+                    context.ignoreBack = false;
+                }
             }
         }
 

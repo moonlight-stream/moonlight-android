@@ -87,17 +87,17 @@ public class ShortcutHelper {
         }
     }
 
-    public void createAppViewShortcut(String id, ComputerDetails details) {
+    public void createAppViewShortcut(String id, String computerName, String computerUuid, boolean forceAdd) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             Intent i = new Intent(context, AppViewShortcutTrampoline.class);
-            i.putExtra(AppView.NAME_EXTRA, details.name);
-            i.putExtra(AppView.UUID_EXTRA, details.uuid.toString());
+            i.putExtra(AppView.NAME_EXTRA, computerName);
+            i.putExtra(AppView.UUID_EXTRA, computerUuid);
             i.setAction(Intent.ACTION_DEFAULT);
 
             ShortcutInfo sinfo = new ShortcutInfo.Builder(context, id)
                     .setIntent(i)
-                    .setShortLabel(details.name)
-                    .setLongLabel(details.name)
+                    .setShortLabel(computerName)
+                    .setLongLabel(computerName)
                     .setIcon(Icon.createWithResource(context, R.mipmap.ic_pc_scut))
                     .build();
 
@@ -112,10 +112,19 @@ public class ShortcutHelper {
             // NOTE: This CAN'T be an else on the above if, because it's
             // possible that we have an existing shortcut but it's not a dynamic one.
             if (!isExistingDynamicShortcut(id)) {
-                reapShortcutsForDynamicAdd();
-                sm.addDynamicShortcuts(Collections.singletonList(sinfo));
+                // To avoid a random carousel of shortcuts popping in and out based on polling status,
+                // we only add shortcuts if it's not at the limit or the user made a conscious action
+                // to interact with this PC.
+                if (forceAdd || sm.getDynamicShortcuts().size() < sm.getMaxShortcutCountPerActivity()) {
+                    reapShortcutsForDynamicAdd();
+                    sm.addDynamicShortcuts(Collections.singletonList(sinfo));
+                }
             }
         }
+    }
+
+    public void createAppViewShortcut(String id, ComputerDetails details, boolean forceAdd) {
+        createAppViewShortcut(id, details.name, details.uuid.toString(), forceAdd);
     }
 
     public void disableShortcut(String id, CharSequence reason) {

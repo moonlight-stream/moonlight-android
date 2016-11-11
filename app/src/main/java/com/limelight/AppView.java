@@ -248,12 +248,16 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
         uuidString = getIntent().getStringExtra(UUID_EXTRA);
 
-        shortcutHelper.reportShortcutUsed(uuidString);
+        String computerName = getIntent().getStringExtra(NAME_EXTRA);
 
-        String labelText = getResources().getString(R.string.title_applist)+" "+getIntent().getStringExtra(NAME_EXTRA);
+        String labelText = getResources().getString(R.string.title_applist)+" "+computerName;
         TextView label = (TextView) findViewById(R.id.appListText);
         setTitle(labelText);
         label.setText(labelText);
+
+        // Add a launcher shortcut for this PC (forced, since this is user interaction)
+        shortcutHelper.createAppViewShortcut(uuidString, computerName, uuidString, true);
+        shortcutHelper.reportShortcutUsed(uuidString);
 
         // Bind to the computer manager service
         bindService(new Intent(this, ComputerManagerService.class), serviceConnection,

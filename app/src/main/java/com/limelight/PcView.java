@@ -357,9 +357,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                             // Invalidate reachability information after pairing to force
                             // a refresh before reading pair state again
                             managerBinder.invalidateStateForComputer(computer.uuid);
-
-                            // Add a launcher shortcut for this PC
-                            shortcutHelper.createAppViewShortcut(computer.uuid.toString(), computer);
                         }
                         else {
                             // Should be no other values
@@ -612,7 +609,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         // Add a launcher shortcut for this PC
         if (details.pairState == PairState.PAIRED) {
-            shortcutHelper.createAppViewShortcut(details.uuid.toString(), details);
+            shortcutHelper.createAppViewShortcut(details.uuid.toString(), details, false);
         }
 
         if (existingEntry != null) {

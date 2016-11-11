@@ -24,6 +24,7 @@ import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.GameGestures;
 import com.limelight.ui.StreamView;
 import com.limelight.utils.Dialog;
+import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
 
 import android.annotation.SuppressLint;
@@ -97,6 +98,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean grabComboDown = false;
     private StreamView streamView;
 
+    private ShortcutHelper shortcutHelper;
+
     private EnhancedDecoderRenderer decoderRenderer;
 
     private WifiManager.WifiLock wifiLock;
@@ -123,10 +126,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public static final String EXTRA_APP_ID = "AppId";
     public static final String EXTRA_UNIQUEID = "UniqueId";
     public static final String EXTRA_STREAMING_REMOTE = "Remote";
+    public static final String EXTRA_PC_UUID = "UUID";
+    public static final String EXTRA_PC_NAME = "PcName";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        shortcutHelper = new ShortcutHelper(this);
 
         String locale = PreferenceConfiguration.readPreferences(this).language;
         if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
@@ -193,11 +200,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         int appId = Game.this.getIntent().getIntExtra(EXTRA_APP_ID, StreamConfiguration.INVALID_APP_ID);
         String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
         boolean remote = Game.this.getIntent().getBooleanExtra(EXTRA_STREAMING_REMOTE, false);
+        String uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
+        String pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
 
         if (appId == StreamConfiguration.INVALID_APP_ID) {
             finish();
             return;
         }
+
+        // Add a launcher shortcut for this PC (forced, since this is user interaction)
+        shortcutHelper.createAppViewShortcut(uuid, pcName, uuid, true);
+        shortcutHelper.reportShortcutUsed(uuid);
 
         // Initialize the MediaCodec helper before creating the decoder
         MediaCodecHelper.initializeWithContext(this);

@@ -202,6 +202,14 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
             videoFormat.setInteger(MediaFormat.KEY_MAX_HEIGHT, height);
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Operate at maximum rate to lower latency as much as possible on
+            // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
+            // but that will actually result in the decoder crashing if it can't satisfy
+            // our (ludicrous) operating rate requirement.
+            videoFormat.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
+        }
+
         videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
         videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 

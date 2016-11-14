@@ -22,7 +22,11 @@ public class HelpLauncher {
                 context.startActivity(i);
                 return;
             }
-        } catch (ActivityNotFoundException e) {
+        } catch (Exception e) {
+            // This is only supposed to throw ActivityNotFoundException but
+            // it can (at least) also throw SecurityException if a user's default
+            // browser is not exported. We'll catch everything to workaround this.
+
             // Fall through
         }
 

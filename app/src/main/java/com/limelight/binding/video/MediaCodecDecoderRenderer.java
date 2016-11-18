@@ -25,6 +25,8 @@ import android.view.SurfaceHolder;
 
 public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 
+    private static final boolean USE_FRAME_RENDER_TIME = false;
+
     // Used on versions < 5.0
     private ByteBuffer[] legacyInputBuffers;
 
@@ -213,6 +215,20 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
         videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 
+        if (USE_FRAME_RENDER_TIME && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            videoDecoder.setOnFrameRenderedListener(new MediaCodec.OnFrameRenderedListener() {
+                @Override
+                public void onFrameRendered(MediaCodec mediaCodec, long presentationTimeUs, long renderTimeNanos) {
+                    long delta = (renderTimeNanos / 1000000L) - (presentationTimeUs / 1000);
+                    if (delta >= 0 && delta < 1000) {
+                        if (USE_FRAME_RENDER_TIME) {
+                            totalTimeMs += delta;
+                        }
+                    }
+                }
+            }, null);
+        }
+
         LimeLog.info("Using codec "+selectedDecoderName+" for hardware decoding "+mimeType);
 
         return true;
@@ -273,7 +289,9 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                             long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
                             if (delta >= 0 && delta < 1000) {
                                 decoderTimeMs += delta;
-                                totalTimeMs += delta;
+                                if (!USE_FRAME_RENDER_TIME) {
+                                    totalTimeMs += delta;
+                                }
                             }
                         } else {
                             switch (outIndex) {
@@ -421,7 +439,9 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
                             long delta = MediaCodecHelper.getMonotonicMillis()-(presentationTimeUs/1000);
                             if (delta >= 0 && delta < 1000) {
                                 decoderTimeMs += delta;
-                                totalTimeMs += delta;
+                                if (!USE_FRAME_RENDER_TIME) {
+                                    totalTimeMs += delta;
+                                }
                             }
                         } else {
                             switch (outIndex) {

@@ -30,8 +30,8 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
     // Used on versions < 5.0
     private ByteBuffer[] legacyInputBuffers;
 
-    private String avcDecoderName;
-    private String hevcDecoderName;
+    private MediaCodecInfo avcDecoder;
+    private MediaCodecInfo hevcDecoder;
 
     private MediaCodec videoDecoder;
     private Thread rendererThread;
@@ -94,19 +94,17 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
     public MediaCodecDecoderRenderer(int videoFormat) {
         //dumpDecoders();
 
-        MediaCodecInfo avcDecoder = findAvcDecoder();
+        avcDecoder = findAvcDecoder();
         if (avcDecoder != null) {
-            avcDecoderName = avcDecoder.getName();
-            LimeLog.info("Selected AVC decoder: "+avcDecoderName);
+            LimeLog.info("Selected AVC decoder: "+avcDecoder.getName());
         }
         else {
             LimeLog.warning("No AVC decoder found");
         }
 
-        MediaCodecInfo hevcDecoder = findHevcDecoder(videoFormat);
+        hevcDecoder = findHevcDecoder(videoFormat);
         if (hevcDecoder != null) {
-            hevcDecoderName = hevcDecoder.getName();
-            LimeLog.info("Selected HEVC decoder: "+hevcDecoderName);
+            LimeLog.info("Selected HEVC decoder: "+hevcDecoder.getName());
         }
         else {
             LimeLog.info("No HEVC decoder found");
@@ -117,24 +115,24 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         // library. The limitation of this is that we don't know whether we're using HEVC or AVC, so
         // we just assume AVC. This isn't really a problem because the capabilities are usually
         // shared between AVC and HEVC decoders on the same device.
-        if (avcDecoderName != null) {
-            directSubmit = MediaCodecHelper.decoderCanDirectSubmit(avcDecoderName);
-            adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(avcDecoderName);
+        if (avcDecoder != null) {
+            directSubmit = MediaCodecHelper.decoderCanDirectSubmit(avcDecoder.getName());
+            adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(avcDecoder.getName());
 
             if (directSubmit) {
-                LimeLog.info("Decoder "+avcDecoderName+" will use direct submit");
+                LimeLog.info("Decoder "+avcDecoder.getName()+" will use direct submit");
             }
         }
     }
 
     @Override
     public boolean isHevcSupported() {
-        return hevcDecoderName != null;
+        return hevcDecoder != null;
     }
 
     @Override
     public boolean isAvcSupported() {
-        return avcDecoderName != null;
+        return avcDecoder != null;
     }
 
     @Override
@@ -148,9 +146,9 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 
         if (videoFormat == VideoFormat.H264) {
             mimeType = "video/avc";
-            selectedDecoderName = avcDecoderName;
+            selectedDecoderName = avcDecoder.getName();
 
-            if (avcDecoderName == null) {
+            if (avcDecoder == null) {
                 LimeLog.severe("No available AVC decoder!");
                 return false;
             }
@@ -175,9 +173,9 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
         }
         else if (videoFormat == VideoFormat.H265) {
             mimeType = "video/hevc";
-            selectedDecoderName = hevcDecoderName;
+            selectedDecoderName = hevcDecoder.getName();
 
-            if (hevcDecoderName == null) {
+            if (hevcDecoder == null) {
                 LimeLog.severe("No available HEVC decoder!");
                 return false;
             }
@@ -854,8 +852,8 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
             String str = "";
 
             str += "Format: "+renderer.videoFormat+"\n";
-            str += "AVC Decoder: "+renderer.avcDecoderName+"\n";
-            str += "HEVC Decoder: "+renderer.hevcDecoderName+"\n";
+            str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+"\n";
+            str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+"\n";
             str += "Initial video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+", "+renderer.numIframeIn+"\n";
             str += "Total frames: "+renderer.totalFrames+"\n";

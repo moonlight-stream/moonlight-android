@@ -810,11 +810,11 @@ public class MediaCodecDecoderRenderer extends EnhancedDecoderRenderer {
 
     @Override
     public void directSubmitDecodeUnit(DecodeUnit du) {
-        int inputIndex;
+        int inputIndex = -1;
 
         notifyDuReceived(du);
 
-        for (;;) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
                 inputIndex = dequeueInputBuffer(true, true);
                 break;

@@ -1,0 +1,12 @@
+<resources>
+
+    <!--
+      Use a black background to avoid the transparent background when switching apps.
+      android:windowBackgroundFallback is supposed to do this, but it wasn't working for
+      me as of Android 7.1
+    -->
+    <style name="StreamBaseTheme" parent="AppBaseTheme">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+
+</resources>

@@ -102,7 +102,13 @@
             android:name=".binding.input.driver.UsbDriverService"
             android:label="Usb Driver Service" />
 
-        <activity android:name=".HelpActivity"></activity>
+        <activity
+            android:name=".HelpActivity"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.limelight.PcView" />
+        </activity>
     </application>
 
 </manifest>

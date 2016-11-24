@@ -85,6 +85,7 @@
             android:name=".Game"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:screenOrientation="sensorLandscape"
+            android:noHistory="true"
             android:theme="@style/StreamTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

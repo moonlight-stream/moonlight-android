@@ -20,7 +20,7 @@ function p_h264raw.dissector(buf, pkt, root)
 
 	local i = 0
 	local data_start = -1
-    while i < buf:len do
+    while i < buf:len() do
 		-- Make sure we have a potential start sequence and type
         if buf:len() - i < 5 then
             -- We need more data

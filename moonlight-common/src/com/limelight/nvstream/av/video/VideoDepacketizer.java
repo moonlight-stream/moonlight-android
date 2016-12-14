@@ -52,13 +52,18 @@ public class VideoDepacketizer {
 		
 		if ((context.serverAppVersion[0] > 7) ||
 			(context.serverAppVersion[0] == 7 && context.serverAppVersion[1] > 1) ||
+			(context.serverAppVersion[0] == 7 && context.serverAppVersion[1] == 1 && context.serverAppVersion[2] >= 350)) {
+			// >= 7.1.350 should use the 8 byte header again
+			frameHeaderOffset = 8;
+		}
+		else if ((context.serverAppVersion[0] > 7) ||
+			(context.serverAppVersion[0] == 7 && context.serverAppVersion[1] > 1) ||
 			(context.serverAppVersion[0] == 7 && context.serverAppVersion[1] == 1 && context.serverAppVersion[2] >= 320)) {
-			// Anything over 7.1.320 should use the 12 byte frame header
+			// [7.1.320, 7.1.350) should use the 12 byte frame header
 			frameHeaderOffset = 12;
 		}
 		else if (context.serverGeneration >= ConnectionContext.SERVER_GENERATION_5) {
-			// Gen 5 servers have an 8 byte header in the data portion of the first
-			// packet of each frame
+			// [5.x, 7.1.320) should use the 8 byte header
 			frameHeaderOffset = 8;
 		}
 		else {

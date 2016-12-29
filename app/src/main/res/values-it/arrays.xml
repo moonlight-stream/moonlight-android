@@ -1,14 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="resolution_names">
-        <item>720p - 30 FPS</item>
-        <item>720p - 60 FPS</item>
-        <item>1080p - 30 FPS</item>
-        <item>1080p - 60 FPS</item>
-        <item>4K - 30 FPS</item>
-        <item>4K - 60 FPS</item>
-    </string-array>
-
     <string-array name="decoder_names">
         <item>Scegli decoder automaticamente</item>
         <item>Forza decoder software</item>

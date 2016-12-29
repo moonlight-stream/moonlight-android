@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.limelight.R;
@@ -14,15 +15,13 @@ import java.util.ArrayList;
 
 public abstract class GenericGridAdapter<T> extends BaseAdapter {
     protected final Context context;
-    protected final int defaultImageRes;
     protected final int layoutId;
     protected final ArrayList<T> itemList = new ArrayList<>();
     protected final LayoutInflater inflater;
 
-    public GenericGridAdapter(Context context, int layoutId, int defaultImageRes) {
+    public GenericGridAdapter(Context context, int layoutId) {
         this.context = context;
         this.layoutId = layoutId;
-        this.defaultImageRes = defaultImageRes;
 
         this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
@@ -46,7 +45,7 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
         return i;
     }
 
-    public abstract boolean populateImageView(ImageView imgView, T obj);
+    public abstract boolean populateImageView(ImageView imgView, ProgressBar prgView, T obj);
     public abstract boolean populateTextView(TextView txtView, T obj);
     public abstract boolean populateOverlayView(ImageView overlayView, T obj);
 
@@ -59,10 +58,11 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
         ImageView imgView = (ImageView) convertView.findViewById(R.id.grid_image);
         ImageView overlayView = (ImageView) convertView.findViewById(R.id.grid_overlay);
         TextView txtView = (TextView) convertView.findViewById(R.id.grid_text);
+        ProgressBar prgView = (ProgressBar) convertView.findViewById(R.id.grid_spinner);
 
         if (imgView != null) {
-            if (!populateImageView(imgView, itemList.get(i))) {
-                imgView.setImageResource(defaultImageRes);
+            if (!populateImageView(imgView, prgView, itemList.get(i))) {
+                imgView.setImageBitmap(null);
             }
         }
         if (!populateTextView(txtView, itemList.get(i))) {

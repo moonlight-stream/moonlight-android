@@ -1,24 +1,30 @@
 package com.limelight.binding.input;
 
+import android.content.Context;
 import android.hardware.input.InputManager;
 import android.os.SystemClock;
 import android.util.SparseArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 import com.limelight.LimeLog;
 import com.limelight.binding.input.driver.UsbDriverListener;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.ControllerPacket;
+import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.ui.GameGestures;
 import com.limelight.utils.Vector2d;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ControllerHandler implements InputManager.InputDeviceListener, UsbDriverListener {
 
     private static final int MAXIMUM_BUMPER_UP_DELAY_MS = 100;
 
-    private static final int START_DOWN_TIME_KEYB_MS = 750;
+    private static final int START_DOWN_TIME_MOUSE_MODE_MS = 750;
 
     private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 25;
 
@@ -34,6 +40,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final SparseArray<UsbDeviceContext> usbDeviceContexts = new SparseArray<>();
 
     private final NvConnection conn;
+    private final Context activityContext;
     private final double stickDeadzone;
     private final InputDeviceContext defaultContext = new InputDeviceContext();
     private final GameGestures gestures;
@@ -42,7 +49,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final boolean multiControllerEnabled;
     private short currentControllers;
 
-    public ControllerHandler(NvConnection conn, GameGestures gestures, boolean multiControllerEnabled, int deadzonePercentage) {
+    public ControllerHandler(Context activityContext, NvConnection conn, GameGestures gestures, boolean multiControllerEnabled, int deadzonePercentage) {
+        this.activityContext = activityContext;
         this.conn = conn;
         this.gestures = gestures;
         this.multiControllerEnabled = multiControllerEnabled;
@@ -395,6 +403,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.isServal = true;
                 context.ignoreBack = true;
             }
+            // The Xbox One S Bluetooth controller has some mappings that need fixing up
+            else if (devName.equals("Xbox Wireless Controller")) {
+                context.isXboxBtController = true;
+            }
         }
 
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);
@@ -462,7 +474,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // device before we send it.
         for (int i = 0; i < inputDeviceContexts.size(); i++) {
             GenericControllerContext context = inputDeviceContexts.valueAt(i);
-            if (context.assignedControllerNumber && context.controllerNumber == controllerNumber) {
+            if (context.assignedControllerNumber &&
+                    context.controllerNumber == controllerNumber &&
+                    context.mouseEmulationActive == originalContext.mouseEmulationActive) {
                 inputMap |= context.inputMap;
                 leftTrigger |= maxByMagnitude(leftTrigger, context.leftTrigger);
                 rightTrigger |= maxByMagnitude(rightTrigger, context.rightTrigger);
@@ -474,7 +488,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
         for (int i = 0; i < usbDeviceContexts.size(); i++) {
             GenericControllerContext context = usbDeviceContexts.valueAt(i);
-            if (context.assignedControllerNumber && context.controllerNumber == controllerNumber) {
+            if (context.assignedControllerNumber &&
+                    context.controllerNumber == controllerNumber &&
+                    context.mouseEmulationActive == originalContext.mouseEmulationActive) {
                 inputMap |= context.inputMap;
                 leftTrigger |= maxByMagnitude(leftTrigger, context.leftTrigger);
                 rightTrigger |= maxByMagnitude(rightTrigger, context.rightTrigger);
@@ -494,10 +510,40 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             rightStickY |= maxByMagnitude(rightStickY, defaultContext.rightStickY);
         }
 
-        conn.sendControllerInput(controllerNumber, inputMap,
-                leftTrigger, rightTrigger,
-                leftStickX, leftStickY,
-                rightStickX, rightStickY);
+        if (originalContext.mouseEmulationActive) {
+            int changedMask = inputMap ^  originalContext.mouseEmulationLastInputMap;
+
+            boolean aDown = (inputMap & ControllerPacket.A_FLAG) != 0;
+            boolean bDown = (inputMap & ControllerPacket.B_FLAG) != 0;
+
+            originalContext.mouseEmulationLastInputMap = inputMap;
+
+            if ((changedMask & ControllerPacket.A_FLAG) != 0) {
+                if (aDown) {
+                    conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_LEFT);
+                }
+                else {
+                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_LEFT);
+                }
+            }
+            if ((changedMask & ControllerPacket.B_FLAG) != 0) {
+                if (bDown) {
+                    conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
+                }
+                else {
+                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
+                }
+            }
+
+            conn.sendControllerInput(controllerNumber,
+                    (short)0, (byte)0, (byte)0, (short)0, (short)0, (short)0, (short)0);
+        }
+        else {
+            conn.sendControllerInput(controllerNumber, inputMap,
+                    leftTrigger, rightTrigger,
+                    leftStickX, leftStickY,
+                    rightStickX, rightStickY);
+        }
     }
 
     // Return a valid keycode, 0 to consume, or -1 to not consume the event
@@ -556,6 +602,30 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     return KeyEvent.KEYCODE_BUTTON_SELECT;
                 case 315:
                     return KeyEvent.KEYCODE_BUTTON_START;
+            }
+        }
+        else if (context.isXboxBtController) {
+            switch (event.getScanCode()) {
+                case 306:
+                    return KeyEvent.KEYCODE_BUTTON_X;
+                case 307:
+                    return KeyEvent.KEYCODE_BUTTON_Y;
+                case 308:
+                    return KeyEvent.KEYCODE_BUTTON_L1;
+                case 309:
+                    return KeyEvent.KEYCODE_BUTTON_R1;
+                case 310:
+                    return KeyEvent.KEYCODE_BUTTON_SELECT;
+                case 311:
+                    return KeyEvent.KEYCODE_BUTTON_START;
+                case 312:
+                    return KeyEvent.KEYCODE_BUTTON_THUMBL;
+                case 313:
+                    return KeyEvent.KEYCODE_BUTTON_THUMBR;
+                case 139:
+                    return KeyEvent.KEYCODE_BUTTON_MODE;
+                default:
+                    // Other buttons are mapped correctly
             }
         }
 
@@ -731,6 +801,46 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return true;
     }
 
+    private short scaleRawStickAxis(float stickValue) {
+        return (short)Math.pow(stickValue, 3);
+    }
+
+    private void sendEmulatedMouseEvent(short x, short y) {
+        Vector2d vector = new Vector2d();
+        vector.initialize(x, y);
+        vector.scalarMultiply(1 / 32766.0f);
+        vector.scalarMultiply(4);
+        if (vector.getMagnitude() > 0) {
+            // Move faster as the stick is pressed further from center
+            vector.scalarMultiply(Math.pow(vector.getMagnitude(), 2));
+            if (vector.getMagnitude() >= 1) {
+                conn.sendMouseMove((short)vector.getX(), (short)-vector.getY());
+            }
+        }
+    }
+
+    private void toggleMouseEmulation(final GenericControllerContext context) {
+        if (context.mouseEmulationTimer != null) {
+            context.mouseEmulationTimer.cancel();
+            context.mouseEmulationTimer = null;
+        }
+
+        context.mouseEmulationActive = !context.mouseEmulationActive;
+        Toast.makeText(activityContext, "Mouse emulation is: " + (context.mouseEmulationActive ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
+
+        if (context.mouseEmulationActive) {
+            context.mouseEmulationTimer = new Timer();
+            context.mouseEmulationTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    // Send mouse movement events from analog sticks
+                    sendEmulatedMouseEvent(context.leftStickX, context.leftStickY);
+                    sendEmulatedMouseEvent(context.rightStickX, context.rightStickY);
+                }
+            }, 50, 50);
+        }
+    }
+
     public boolean handleButtonUp(KeyEvent event) {
         InputDeviceContext context = getContextForDevice(event.getDevice());
 
@@ -757,10 +867,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             break;
         case KeyEvent.KEYCODE_BUTTON_START:
         case KeyEvent.KEYCODE_MENU:
-            if (SystemClock.uptimeMillis() - context.startDownTime > ControllerHandler.START_DOWN_TIME_KEYB_MS) {
-                // FIXME: The stock keyboard doesn't have controller focus so isn't usable. I'm not enabling this shortcut
-                // until we have a custom keyboard or some other fix
-                //gestures.showKeyboard();
+            if (SystemClock.uptimeMillis() - context.startDownTime > ControllerHandler.START_DOWN_TIME_MOUSE_MODE_MS) {
+                toggleMouseEmulation(context);
             }
             context.inputMap &= ~ControllerPacket.PLAY_FLAG;
             break;
@@ -1027,6 +1135,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public short rightStickY = 0x0000;
         public short leftStickX = 0x0000;
         public short leftStickY = 0x0000;
+
+        public boolean mouseEmulationActive;
+        public Timer mouseEmulationTimer;
+        public short mouseEmulationLastInputMap;
     }
 
     class InputDeviceContext extends GenericControllerContext {
@@ -1047,6 +1159,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         public boolean isDualShock4;
         public boolean isXboxController;
+        public boolean isXboxBtController;
         public boolean isServal;
         public boolean backIsStart;
         public boolean modeIsSelect;

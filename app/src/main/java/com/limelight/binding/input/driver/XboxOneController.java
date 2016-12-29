@@ -62,6 +62,12 @@ public class XboxOneController extends AbstractXboxController {
         rightStickY = ~buffer.getShort() / 32767.0f;
     }
 
+    private void ackModeReport(byte seqNum) {
+        byte[] payload = {0x01, 0x20, seqNum, 0x09, 0x00, 0x07, 0x20, 0x02,
+                0x00, 0x00, 0x00, 0x00, 0x00};
+        connection.bulkTransfer(outEndpt, payload, payload.length, 3000);
+    }
+
     @Override
     protected boolean handleRead(ByteBuffer buffer) {
         switch (buffer.get())
@@ -72,7 +78,15 @@ public class XboxOneController extends AbstractXboxController {
                 return true;
 
             case 0x07:
-                buffer.position(buffer.position() + 3);
+                // The Xbox One S controller needs acks for mode reports otherwise
+                // it retransmits them forever.
+                if (buffer.get() == 0x30) {
+                    ackModeReport(buffer.get());
+                    buffer.position(buffer.position() + 1);
+                }
+                else {
+                    buffer.position(buffer.position() + 2);
+                }
                 setButtonFlag(ControllerPacket.SPECIAL_BUTTON_FLAG, buffer.get() & 0x01);
                 return true;
         }

@@ -15,7 +15,7 @@
         android:layout_height="match_parent"
         android:id="@+id/settingsPanel"
         android:background="#80000000"
-        android:visibility="gone">
+        android:visibility="gone" >
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="horizontal"
@@ -68,6 +68,22 @@
                 android:layout_height="32dp"
                 android:id="@+id/wrapCheckbox"
                 android:checked="true"/>
+        </LinearLayout>
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:layout_width="200dp"
+                android:layout_height="60dp"
+                android:text="Single"
+                android:gravity="center" />
+            <CheckBox
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:id="@+id/singleView"
+                android:checked="false"/>
         </LinearLayout>
     </LinearLayout>
     <Button

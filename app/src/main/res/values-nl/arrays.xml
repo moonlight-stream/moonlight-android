@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="decoder_names">
+        <item>Selecteer Decoder Automatisch</item>
+        <item>Forceer Software Decoderen</item>
+        <item>Forceer Hardware Decoderen</item>
+    </string-array>
+</resources>

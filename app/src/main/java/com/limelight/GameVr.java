@@ -227,6 +227,19 @@ public class GameVr extends Activity implements TextureView.SurfaceTextureListen
             }
         });
 
+        final CheckBox singleView = (CheckBox)findViewById(R.id.singleView);
+        singleView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if(GameVr.this.renderer != null) {
+                    renderer.setSingleView(b);
+                    SharedPreferences.Editor editor = sharedpreferences.edit();
+                    editor.putBoolean("SINGLE_VIEW", b);
+                    editor.apply();
+                }
+            }
+        });
+
         sharedpreferences = getSharedPreferences("VR_PREFERENCES", Context.MODE_PRIVATE);
 
         // Listen for events on the game surface
@@ -446,6 +459,7 @@ public class GameVr extends Activity implements TextureView.SurfaceTextureListen
             renderer.setZoomFactor(sharedpreferences.getFloat("ZOOM_FACTOR", 50));
             renderer.setDistortionFactor(sharedpreferences.getFloat("DISTORTION_FACTOR", 81));
             renderer.setWrapEnabled(sharedpreferences.getBoolean("WRAP_ENABLED", true));
+            renderer.setSingleView(sharedpreferences.getBoolean("SINGLE_VIEW", false));
         }
     }
 

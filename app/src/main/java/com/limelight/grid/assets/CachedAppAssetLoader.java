@@ -5,7 +5,9 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
@@ -53,13 +55,13 @@ public class CachedAppAssetLoader {
 
     public CachedAppAssetLoader(ComputerDetails computer, double scalingDivider,
                                 NetworkAssetLoader networkLoader, MemoryAssetLoader memoryLoader,
-                                DiskAssetLoader diskLoader, Bitmap placeholderBitmap) {
+                                DiskAssetLoader diskLoader) {
         this.computer = computer;
         this.scalingDivider = scalingDivider;
         this.networkLoader = networkLoader;
         this.memoryLoader = memoryLoader;
         this.diskLoader = diskLoader;
-        this.placeholderBitmap = placeholderBitmap;
+        this.placeholderBitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
     }
 
     public void cancelBackgroundLoads() {
@@ -130,12 +132,14 @@ public class CachedAppAssetLoader {
 
     private class LoaderTask extends AsyncTask<LoaderTuple, Void, Bitmap> {
         private final WeakReference<ImageView> imageViewRef;
+        private final WeakReference<ProgressBar> progressViewRef;
         private final boolean diskOnly;
 
         private LoaderTuple tuple;
 
-        public LoaderTask(ImageView imageView, boolean diskOnly) {
+        public LoaderTask(ImageView imageView, ProgressBar prgView, boolean diskOnly) {
             this.imageViewRef = new WeakReference<>(imageView);
+            this.progressViewRef = new WeakReference<>(prgView);
             this.diskOnly = diskOnly;
         }
 
@@ -143,8 +147,8 @@ public class CachedAppAssetLoader {
         protected Bitmap doInBackground(LoaderTuple... params) {
             tuple = params[0];
 
-            // Check whether it has been cancelled or the image view is gone
-            if (isCancelled() || imageViewRef.get() == null) {
+            // Check whether it has been cancelled or the views are gone
+            if (isCancelled() || imageViewRef.get() == null || progressViewRef.get() == null) {
                 return null;
             }
 
@@ -177,11 +181,17 @@ public class CachedAppAssetLoader {
 
             // If the current loader task for this view isn't us, do nothing
             final ImageView imageView = imageViewRef.get();
+            final ProgressBar prgView = progressViewRef.get();
             if (getLoaderTask(imageView) == this) {
+                // Now display the progress bar since we have to hit the network
+                if (prgView != null) {
+                    prgView.setVisibility(View.VISIBLE);
+                }
+
                 // Set off another loader task on the network executor
-                LoaderTask task = new LoaderTask(imageView, false);
+                LoaderTask task = new LoaderTask(imageView, prgView, false);
                 AsyncDrawable asyncDrawable = new AsyncDrawable(imageView.getResources(), placeholderBitmap, task);
-                imageView.setAlpha(1.0f);
+                imageView.setVisibility(View.VISIBLE);
                 imageView.setImageDrawable(asyncDrawable);
                 task.executeOnExecutor(networkExecutor, tuple);
             }
@@ -195,14 +205,20 @@ public class CachedAppAssetLoader {
             }
 
             final ImageView imageView = imageViewRef.get();
+            final ProgressBar prgView = progressViewRef.get();
             if (getLoaderTask(imageView) == this) {
                 // Set the bitmap
                 if (bitmap != null) {
                     imageView.setImageBitmap(bitmap);
                 }
 
+                // Hide the progress bar
+                if (prgView != null) {
+                    prgView.setVisibility(View.INVISIBLE);
+                }
+
                 // Show the view
-                imageView.setAlpha(1.0f);
+                imageView.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -280,34 +296,38 @@ public class CachedAppAssetLoader {
         });
     }
 
-    public void populateImageView(NvApp app, ImageView view) {
+    public boolean populateImageView(NvApp app, ImageView imgView, ProgressBar prgView) {
         LoaderTuple tuple = new LoaderTuple(computer, app);
 
         // If there's already a task in progress for this view,
         // cancel it. If the task is already loading the same image,
         // we return and let that load finish.
-        if (!cancelPendingLoad(tuple, view)) {
-            return;
+        if (!cancelPendingLoad(tuple, imgView)) {
+            return true;
         }
+
+        // Hide the progress bar always on initial load
+        prgView.setVisibility(View.INVISIBLE);
 
         // First, try the memory cache in the current context
         Bitmap bmp = memoryLoader.loadBitmapFromCache(tuple);
         if (bmp != null) {
             // Show the bitmap immediately
-            view.setAlpha(1.0f);
-            view.setImageBitmap(bmp);
-            return;
+            imgView.setVisibility(View.VISIBLE);
+            imgView.setImageBitmap(bmp);
+            return true;
         }
 
         // If it's not in memory, create an async task to load it. This task will be attached
         // via AsyncDrawable to this view.
-        final LoaderTask task = new LoaderTask(view, true);
-        final AsyncDrawable asyncDrawable = new AsyncDrawable(view.getResources(), placeholderBitmap, task);
-        view.setAlpha(0.0f);
-        view.setImageDrawable(asyncDrawable);
+        final LoaderTask task = new LoaderTask(imgView, prgView, true);
+        final AsyncDrawable asyncDrawable = new AsyncDrawable(imgView.getResources(), placeholderBitmap, task);
+        imgView.setVisibility(View.INVISIBLE);
+        imgView.setImageDrawable(asyncDrawable);
 
         // Run the task on our foreground executor
         task.executeOnExecutor(foregroundExecutor, tuple);
+        return false;
     }
 
     public class LoaderTuple {

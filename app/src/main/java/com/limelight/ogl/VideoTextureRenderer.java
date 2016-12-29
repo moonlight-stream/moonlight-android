@@ -38,6 +38,7 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
                     "uniform float zoomFactor;" +
                     "uniform float distFactor;" +
                     "uniform float wrapEnabled;" +
+                    "uniform float singleView;" +
                     "varying vec2 v_TexCoordinate;"
                     + " 		vec2 Warp(vec2 Tex)"
                     + " 		{ "
@@ -54,20 +55,25 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
                     + " 		} "  +
 
                     "void main () {"
-                    + " 			vec2 newPos = v_TexCoordinate; "
-                    + " 			if(newPos.x < 0.5) {"
-                    + " 				newPos.x = newPos.x * 2.0;"
-                    + " 			} else { "
-                    + " 				newPos.x = (newPos.x - 0.5) * 2.0;"
-                    + " 			} "
-                    + "           newPos = Warp(newPos);"
-                    + "    vec4 color = texture2D(texture, newPos);"
-                    + " 		  if(wrapEnabled < 0.5) {"
-                    + "             vec2 borderStep = step(0.0, newPos) * step(newPos, vec2(1.0, 1.0));"
-                    + " 		    color *= borderStep.x * borderStep.y;"
-                    + " 		  }" +
-                    "    gl_FragColor = color;" +
-                    "}";
+                    + " 			if(singleView < 0.5) {"
+                    + " 			    vec2 newPos = v_TexCoordinate; "
+                    + " 			    if(newPos.x < 0.5) {"
+                    + " 			    	newPos.x = newPos.x * 2.0;"
+                    + " 			    } else { "
+                    + " 			    	newPos.x = (newPos.x - 0.5) * 2.0;"
+                    + " 			    } "
+                    + "                 newPos = Warp(newPos);"
+                    + "                 vec4 color = texture2D(texture, newPos);"
+                    + " 		        if(wrapEnabled < 0.5) {"
+                    + "                     vec2 borderStep = step(0.0, newPos) * step(newPos, vec2(1.0, 1.0));"
+                    + " 		            color *= borderStep.x * borderStep.y;"
+                    + " 		        }"
+                    + "                 gl_FragColor = color;"
+                    + "             } else {"
+                    + "                 float squeezeFactor = (distFactor / 100.0);"
+                    + "                 gl_FragColor = texture2D(texture, vec2(v_TexCoordinate.x, v_TexCoordinate.y * squeezeFactor - (squeezeFactor * 0.5)));"
+                    + "             }"
+                    + "}";
 
     private static float squareSize = 1.0f;
     private static float squareCoords[] = { -squareSize,  squareSize, 0.0f,   // top left
@@ -96,6 +102,7 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
     private float zoomFactor = 3.2f;
     private float distortionFactor = 81.0f;
     private float wrapEnabled = 1.0f;
+    private float singleView = 0.0f;
     private boolean zoomedIn = false;
 
     private SurfaceTexture videoTexture;
@@ -222,6 +229,7 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
         int zoomHandle = GLES20.glGetUniformLocation(shaderProgram, "zoomFactor");
         int distHandle = GLES20.glGetUniformLocation(shaderProgram, "distFactor");
         int wrapHandle = GLES20.glGetUniformLocation(shaderProgram, "wrapEnabled");
+        int singleHandle = GLES20.glGetUniformLocation(shaderProgram, "singleView");
 
         GLES20.glEnableVertexAttribArray(positionHandle);
         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, 4 * 3, vertexBuffer);
@@ -239,6 +247,7 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
         GLES20.glUniform1f(zoomHandle, realZoomFactor);
         GLES20.glUniform1f(distHandle, distortionFactor);
         GLES20.glUniform1f(wrapHandle, wrapEnabled);
+        GLES20.glUniform1f(singleHandle, singleView);
 
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length, GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
         GLES20.glDisableVertexAttribArray(positionHandle);
@@ -257,6 +266,10 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
 
     public void setWrapEnabled(boolean enabled) {
         this.wrapEnabled = enabled ? 1.0f : 0.0f;
+    }
+
+    public void setSingleView(boolean enabled) {
+        this.singleView = enabled ? 1.0f : 0.0f;
     }
 
     private void adjustViewport()

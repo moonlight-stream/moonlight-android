@@ -55,7 +55,8 @@
 
     <!-- General strings -->
     <string name="ip_hint">IP address of GeForce PC</string>
-    <string name="searching_pc">Searching for PCs…</string>
+    <string name="searching_pc">Searching for PCs with GameStream running…\n\n
+        Ensure GameStream is enabled in the GeForce Experience SHIELD settings.</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="lost_connection">Lost connection to PC</string>

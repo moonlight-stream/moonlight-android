@@ -339,18 +339,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
-        // Ignore the back buttonn if a controller has both buttons
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-            boolean[] hasSelectKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BACK, 0);
-            if (hasSelectKey[0] && hasSelectKey[1]) {
-                // Xiaomi gamepads claim to have both buttons then only send KEYCODE_BACK events
-                if (dev.getVendorId() != 0x2717) {
-                    LimeLog.info("Ignoring back button because select is present");
-                    context.ignoreBack = true;
-                }
-            }
-        }
-
         // The ADT-1 controller needs a similar fixup to the ASUS Gamepad
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
             // The device name provided is just "Gamepad" which is pretty useless, so we
@@ -413,9 +401,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             else if (devName.equals("Xbox Wireless Controller")) {
                 if (gasRange == null) {
                     context.isXboxBtController = true;
-                }
-                else {
-                    context.ignoreBack = false;
                 }
             }
         }

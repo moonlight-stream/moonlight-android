@@ -115,4 +115,8 @@
     <string name="summary_checkbox_host_audio">Riproduci l\'audio sul computer e su questo dispositivo</string>
 
     <string name="category_advanced_settings">Impostazioni Avanzate</string>
+
+    <string name="category_vr_settings">Virtual Reality settings</string>
+    <string name="title_checkbox_vr_mode">Enable VR mode</string>
+    <string name="summary_checkbox_vr_mode">Enable VR mode with Cardboard sdk</string>
 </resources>

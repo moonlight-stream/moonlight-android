@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="decoder_names">
+        <item>Selection auto du décodeur</item>
+        <item>Forcer le décodage Logiciel</item>
+        <item>Forcer le décodage Matériel</item>
+    </string-array>
+
+    <string-array name="video_format_names">
+        <item>Utiliser H.265 seulement si c\'est stable</item>
+        <item>Toujours utiliser H.265 (peut planter)</item>
+        <item>Ne jamais utiliser H.265</item>
+    </string-array>
+</resources>

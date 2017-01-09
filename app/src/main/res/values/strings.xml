@@ -139,4 +139,8 @@
     <string name="title_video_format">Change H.265 settings</string>
     <string name="summary_video_format">H.265 lowers video bandwidth requirements but requires a very recent device.</string>
 
+    <string name="category_vr_settings">Virtual Reality settings</string>
+    <string name="title_checkbox_vr_mode">Enable VR mode</string>
+    <string name="summary_checkbox_vr_mode">Enable VR mode with Cardboard sdk</string>
+
 </resources>

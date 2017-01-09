@@ -117,4 +117,8 @@
     <string name="summary_checkbox_host_audio">Speel audio af op de computer en op dit apparaat</string>
 
     <string name="category_advanced_settings">Geavanceerde Instellingen</string>
+
+    <string name="category_vr_settings">Virtual Reality settings</string>
+    <string name="title_checkbox_vr_mode">Enable VR mode</string>
+    <string name="summary_checkbox_vr_mode">Enable VR mode with Cardboard sdk</string>
 </resources>

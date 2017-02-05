@@ -132,7 +132,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private void releaseControllerNumber(GenericControllerContext context) {
         // If this device sent data as a gamepad, zero the values before removing
         if (context.assignedControllerNumber) {
-            conn.sendControllerInput(context.controllerNumber, (short) 0,
+            conn.sendControllerInput(context.controllerNumber, currentControllers,
+                    (short) 0,
                     (byte) 0, (byte) 0,
                     (short) 0, (short) 0,
                     (short) 0, (short) 0);
@@ -537,11 +538,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 }
             }
 
-            conn.sendControllerInput(controllerNumber,
+            conn.sendControllerInput(controllerNumber, currentControllers,
                     (short)0, (byte)0, (byte)0, (short)0, (short)0, (short)0, (short)0);
         }
         else {
-            conn.sendControllerInput(controllerNumber, inputMap,
+            conn.sendControllerInput(controllerNumber, currentControllers,
+                    inputMap,
                     leftTrigger, rightTrigger,
                     leftStickX, leftStickY,
                     rightStickX, rightStickY);

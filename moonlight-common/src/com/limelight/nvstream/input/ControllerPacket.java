@@ -50,7 +50,7 @@ public class ControllerPacket extends MultiControllerPacket {
 				 short leftStickX, short leftStickY,
 				 short rightStickX, short rightStickY)
 		{
-			super(PACKET_TYPE, (short) 0, buttonFlags, leftTrigger, rightTrigger, leftStickX,
+			super(PACKET_TYPE, (short) 0, (short) 0, buttonFlags, leftTrigger, rightTrigger, leftStickX,
 					leftStickY, rightStickX, rightStickY);
 			
 			this.buttonFlags = buttonFlags;

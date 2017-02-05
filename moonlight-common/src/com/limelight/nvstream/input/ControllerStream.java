@@ -274,13 +274,16 @@ public class ControllerStream {
 		}
 		else {
 			// Use multi-controller packets for generation 4 and above
-			queuePacket(new MultiControllerPacket(context, (short) 0, buttonFlags, leftTrigger,
+			queuePacket(new MultiControllerPacket(context,
+					(short) 0, (short) 0x1,
+					buttonFlags, leftTrigger,
 					rightTrigger, leftStickX, leftStickY,
 					rightStickX, rightStickY));
 		}
 	}
 	
-	public void sendControllerInput(short controllerNumber, short buttonFlags, byte leftTrigger, byte rightTrigger,
+	public void sendControllerInput(short controllerNumber, short activeGamepadMask,
+			short buttonFlags, byte leftTrigger, byte rightTrigger,
 			short leftStickX, short leftStickY, short rightStickX, short rightStickY)
 	{
 		if (context.serverGeneration == ConnectionContext.SERVER_GENERATION_3) {
@@ -291,7 +294,9 @@ public class ControllerStream {
 		}
 		else {
 			// Use multi-controller packets for generation 4 and above
-			queuePacket(new MultiControllerPacket(context, controllerNumber, buttonFlags, leftTrigger,
+			queuePacket(new MultiControllerPacket(context,
+					controllerNumber, activeGamepadMask,
+					buttonFlags, leftTrigger,
 					rightTrigger, leftStickX, leftStickY,
 					rightStickX, rightStickY));
 		}

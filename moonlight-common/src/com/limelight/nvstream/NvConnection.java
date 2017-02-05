@@ -422,7 +422,7 @@ public class NvConnection {
 	}
 	
 	public void sendControllerInput(final short controllerNumber,
-			final short buttonFlags,
+			final short activeGamepadMask, final short buttonFlags,
 			final byte leftTrigger, final byte rightTrigger,
 			final short leftStickX, final short leftStickY,
 			final short rightStickX, final short rightStickY)
@@ -430,7 +430,8 @@ public class NvConnection {
 		if (inputStream == null)
 			return;
 		
-		inputStream.sendControllerInput(controllerNumber, buttonFlags, leftTrigger,
+		inputStream.sendControllerInput(controllerNumber, activeGamepadMask,
+				buttonFlags, leftTrigger,
 				rightTrigger, leftStickX, leftStickY,
 				rightStickX, rightStickY);
 	}

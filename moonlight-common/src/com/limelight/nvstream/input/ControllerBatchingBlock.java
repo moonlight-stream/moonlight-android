@@ -12,9 +12,11 @@ public class ControllerBatchingBlock {
 	private short rightStickX;
 	private short rightStickY;
 	private short controllerNumber;
+	private short activeGamepadMask;
 	
 	public ControllerBatchingBlock(MultiControllerPacket initialPacket) {
 		this.controllerNumber = initialPacket.controllerNumber;
+		this.activeGamepadMask = initialPacket.activeGamepadMask;
 		this.buttonFlags = initialPacket.buttonFlags;
 		this.leftTrigger = initialPacket.leftTrigger;
 		this.rightTrigger = initialPacket.rightTrigger;
@@ -59,6 +61,7 @@ public class ControllerBatchingBlock {
 	public boolean submitNewPacket(MultiControllerPacket packet) {
 		if (buttonFlags != packet.buttonFlags ||
 			controllerNumber != packet.controllerNumber ||
+			activeGamepadMask != packet.activeGamepadMask ||
 			!checkDirs(leftTrigger, packet.leftTrigger, 0) ||
 			!checkDirs(rightTrigger, packet.rightTrigger, 1) ||
 			!checkDirs(leftStickX, packet.leftStickX, 2) ||
@@ -70,6 +73,7 @@ public class ControllerBatchingBlock {
 		}
 		
 		this.controllerNumber = packet.controllerNumber;
+		this.activeGamepadMask = packet.activeGamepadMask;
 		this.leftTrigger = packet.leftTrigger;
 		this.rightTrigger = packet.rightTrigger;
 		this.leftStickX = packet.leftStickX;
@@ -81,6 +85,7 @@ public class ControllerBatchingBlock {
 	
 	public void reinitializePacket(MultiControllerPacket packet) {
 		packet.controllerNumber = controllerNumber;
+		packet.activeGamepadMask = activeGamepadMask;
 		packet.buttonFlags = buttonFlags;
 		packet.leftTrigger = leftTrigger;
 		packet.rightTrigger = rightTrigger;

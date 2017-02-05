@@ -24,6 +24,7 @@ public class MultiControllerPacket extends InputPacket {
 				InputPacket.HEADER_LENGTH;
 		
 		short controllerNumber;
+		short activeGamepadMask;
 		short buttonFlags;
 		byte leftTrigger;
 		byte rightTrigger;
@@ -35,7 +36,8 @@ public class MultiControllerPacket extends InputPacket {
 		private int headerCode;
 		
 		public MultiControllerPacket(ConnectionContext context, 
-				short controllerNumber, short buttonFlags, byte leftTrigger, byte rightTrigger,
+				short controllerNumber, short activeGamepadMask,
+				short buttonFlags, byte leftTrigger, byte rightTrigger,
 				 short leftStickX, short leftStickY,
 				 short rightStickX, short rightStickY)
 		{
@@ -49,6 +51,7 @@ public class MultiControllerPacket extends InputPacket {
 			}
 			
 			this.controllerNumber = controllerNumber;
+			this.activeGamepadMask = activeGamepadMask;
 			
 			this.buttonFlags = buttonFlags;
 			this.leftTrigger = leftTrigger;
@@ -62,7 +65,8 @@ public class MultiControllerPacket extends InputPacket {
 		}
 		
 		public MultiControllerPacket(int packetType,
-				 short controllerNumber, short buttonFlags,
+				 short controllerNumber, short activeGamepadMask,
+				 short buttonFlags,
 				 byte leftTrigger, byte rightTrigger,
 				 short leftStickX, short leftStickY,
 				 short rightStickX, short rightStickY)
@@ -70,6 +74,7 @@ public class MultiControllerPacket extends InputPacket {
 			super(packetType);
 			
 			this.controllerNumber = controllerNumber;
+			this.activeGamepadMask = activeGamepadMask;
 			
 			this.buttonFlags = buttonFlags;
 			this.leftTrigger = leftTrigger;
@@ -88,7 +93,7 @@ public class MultiControllerPacket extends InputPacket {
 			bb.putInt(headerCode);
 			bb.putShort((short) 0x1a);
 			bb.putShort(controllerNumber);
-			bb.putShort((short) 0x0f); // Active controller flags
+			bb.putShort(activeGamepadMask);
 			bb.putShort((short) 0x14);
 			bb.putShort(buttonFlags);
 			bb.put(leftTrigger);

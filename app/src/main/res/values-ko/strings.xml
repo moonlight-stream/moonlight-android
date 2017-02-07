@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shortcut strings -->
+    <string name="scut_deleted_pc">PC 삭제됨</string>
+    <string name="scut_not_paired">PC와 페어링되지 않음</string>
+
+    <!-- Help strings -->
+    <string name="help_loading_title">도움말 뷰어</string>
+    <string name="help_loading_msg">도움말 페이지 로딩중...</string>
+
+    <!-- PC view menu entries -->
+    <string name="pcview_menu_app_list">게임 리스트 보이기</string>
+    <string name="pcview_menu_pair_pc">PC와 페어링</string>
+    <string name="pcview_menu_unpair_pc">페어링 해제</string>
+    <string name="pcview_menu_send_wol">Wake-On-LAN request 보내기</string>
+    <string name="pcview_menu_delete_pc">PC 삭제</string>
+
+    <!-- Pair messages -->
+    <string name="pairing">페어링 중...</string>
+    <string name="pair_pc_offline">컴퓨터가 오프라인입니다.</string>
+    <string name="pair_pc_ingame">컴퓨터가 아직 게임을 실행중입니다. 페어링 전 게임을 종료하세요.</string>
+    <string name="pair_pairing_title">페어링</string>
+    <string name="pair_pairing_msg">아래 PIN을 페어링 할 PC에 입력하세요:</string>
+    <string name="pair_incorrect_pin">PIN이 올바르지 않음</string>
+    <string name="pair_fail">페어링 실패</string>
+    <string name="pair_already_in_progress">페어링이 이미 진행중입니다</string>
+
+    <!-- WOL messages -->
+    <string name="wol_pc_online">컴퓨터가 온라인 상태입니다</string>
+    <string name="wol_no_mac">Geforce Experience가 MAC 주소를 보내지 않아 PC를 깨울 수 없습니다.</string>
+    <string name="wol_waking_pc">PC를 깨우는 중...</string>
+    <string name="wol_waking_msg">PC를 깨우는 데에 약간의 시간이 걸립니다.
+        PC가 깨워지지 않으면, Wake-On-Lan이 설정되어있는지 확인하세요.
+    </string>
+    <string name="wol_fail">Wake-On-LAN 패킷을 보내는 데에 실패했습니다</string>
+
+    <!-- Unpair messages -->
+    <string name="unpairing">페어링 해제중...</string>
+    <string name="unpair_success">페어링 해제 완료</string>
+    <string name="unpair_fail">페어링 해제 실패</string>
+    <string name="unpair_error">장치가 페어링되지 않음</string>
+
+    <!-- Errors -->
+    <string name="error_pc_offline">컴퓨터가 오프라인 상태입니다</string>
+    <string name="error_manager_not_running">ComputerManager 서비스가 실행되지 않고 있습니다. 몇 초 기다리거나 앱을 다시 시작하세요.</string>
+    <string name="error_unknown_host">호스트 응답에 실패함</string>
+    <string name="error_404">GFE가 HTTP 404에러를 보냈습니다. 지원되는 GPU가 설치되어 있는지 확인하세요.
+	    원격 데스트톱 응용 프로그램을 사용하는 것도 이 에러를 유발할 수 있습니다. PC를 다시 시작하거나 Geforce Experience를 다시 설치해보세요. 
+    </string>
+
+    <!-- Start application messages -->
+    <string name="conn_establishing_title">연결 수립중</string>
+    <string name="conn_establishing_msg">연결 시작</string>
+    <string name="conn_metered">경고: Your active network connection is metered!</string>
+    <string name="conn_client_latency">평균 프레임 디코딩 지연:</string>
+    <string name="conn_client_latency_hw">하드웨어 디코더 지연:</string>
+    <string name="conn_hardware_latency">평균 하드웨어 디코딩 지연:</string>
+    <string name="conn_starting">시작 중</string>
+    <string name="conn_error_title">연결 오류</string>
+    <string name="conn_error_msg">시작 실패</string>
+    <string name="conn_terminated_title">연결 종료 됨</string>
+    <string name="conn_terminated_msg">연결이 종료되었습니다</string>
+
+    <!-- General strings -->
+    <string name="ip_hint">GeForce PC의 IP 주소</string>
+    <string name="searching_pc">GameStream이 실행중인 PC를 검색중...\n\n
+        GameStream이 Geforce Experience 설정에서 활성화되어있는지 확인하세요.</string>
+    <string name="yes">예</string>
+    <string name="no">아니오</string>
+    <string name="lost_connection">PC 연결 끊김</string>
+    <string name="help">도움말</string>
+
+    <!-- AppList activity -->
+    <string name="title_applist">앱 사용 가능</string>
+    <string name="applist_connect_msg">PC에 연결중...</string>
+    <string name="applist_menu_resume">세션 계속</string>
+    <string name="applist_menu_quit">세션 종료</string>
+    <string name="applist_menu_quit_and_start">현재 게임 종료 후 시작</string>
+    <string name="applist_menu_cancel">취소</string>
+    <string name="applist_refresh_title">앱 리스트</string>
+    <string name="applist_refresh_msg">앱 다시 로드 중...</string>
+    <string name="applist_refresh_error_title">오류</string>
+    <string name="applist_refresh_error_msg">앱 리스트를 얻는데 실패함</string>
+    <string name="applist_quit_app">종료중</string>
+    <string name="applist_quit_success">종료됨</string>
+    <string name="applist_quit_fail">종료에 실패함</string>
+    <string name="applist_quit_confirmation">실행되고 있는 앱을 종료하길 원하시나요? 모든 저장되지 않은 데이터가 삭제됩니다</string>
+
+    <!-- Add computer manually activity -->
+    <string name="title_add_pc">고급 설정으로 PC 추가</string>
+    <string name="msg_add_pc">PC에 연결 중...</string>
+    <string name="addpc_fail">지정된 컴퓨터에 연결하는 데에 실패했습니다. PC의 방화벽과 적절한 포트 설정을 확인하세요.</string>
+    <string name="addpc_success">컴퓨터 추가 성공</string>
+    <string name="addpc_unknown_host">PC의 IP주소를 확인할 수 없습니다. Make sure you didn\'t make a typo in the address.</string>
+
+    <!-- Preferences -->
+    <string name="category_basic_settings">기본 설정</string>
+    <string name="title_resolution_list">해상도와 FPS 타겟 지정</string>
+    <string name="summary_resolution_list">세팅 값이 자신의 PC 성능보다 너무 높으면 렉이나 깨짐을 유발할 수 있습니다.</string>
+    <string name="title_seekbar_bitrate">비트레이트 타겟 지정</string>
+    <string name="summary_seekbar_bitrate">낮은 비트레이트는 끊김을 줄이고, 높은 비트레이트는 품질을 높입니다.</string>
+    <string name="suffix_seekbar_bitrate">Mbps</string>
+    <string name="title_checkbox_stretch_video">전체 화면으로 렌더링 스크린 늘이기</string>
+    <string name="title_checkbox_disable_warnings">경고 메세지 끄기</string>
+    <string name="summary_checkbox_disable_warnings">화면 상의 연결 경고 메세지를 스트리밍 중에 비활성화합니다.</string>
+
+    <string name="category_audio_settings">오디오 설정</string>
+    <string name="title_checkbox_51_surround">5.1 서라운드 사운드 활성화</string>
+    <string name="summary_checkbox_51_surround">오디오 문제가 발생한다면 체크를 해제하세요. GFE 2.7이나 그 이상 버전이 필요합니다.</string>
+
+    <string name="category_gamepad_settings">게임패드 설정</string>
+    <string name="title_checkbox_multi_controller">다중 컨트롤러 지원</string>
+    <string name="summary_checkbox_multi_controller">이 옵션을 선택하지 않으면 모든 컨트롤러가 하나로 표시됩니다</string>
+    <string name="title_seekbar_deadzone">아날로그 스틱 데드존 설정</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Xbox 360/One 컨트롤러 드라이버</string>
+    <string name="summary_checkbox_xb1_driver">네이티브 Xbox 컨트롤러 지원 없이 빌드인 USB드라이버를 활성화합니다.</string>
+
+    <string name="category_on_screen_controls_settings">화면 상의 컨트롤 설정</string>
+    <string name="title_checkbox_show_onscreen_controls">화면 위에 컨트롤러 표시</string>
+    <string name="summary_checkbox_show_onscreen_controls">터치스크린에 가상 컨트롤러 오버레이를 표시합니다.</string>
+
+    <string name="category_ui_settings">UI 설정</string>
+    <string name="title_language_list">언어</string>
+    <string name="summary_language_list">Moonlight에서 사용할 언어를 선택합니다.</string>
+    <string name="title_checkbox_list_mode">그리드(바둑판) 대신 리스트 뷰 사용</string>
+    <string name="summary_checkbox_list_mode">그리드 대신 리스트로 앱과 PC를 표시합니다.</string>
+    <string name="title_checkbox_small_icon_mode">작은 아이콘 사용</string>
+    <string name="summary_checkbox_small_icon_mode">더 많이 표시하기 위해 그리드 표시에서 작은 아이콘을 사용합니다.</string>
+
+    <string name="category_host_settings">호스트 설정</string>
+    <string name="title_checkbox_enable_sops">게임 설정 최적화</string>
+    <string name="summary_checkbox_enable_sops">최적의 스트리밍을 위해 Geforce Experience가 게임 설정을 수정하도록 허용합니다.</string>
+    <string name="title_checkbox_host_audio">PC에서 소리 재생</string>
+    <string name="summary_checkbox_host_audio">이 장치와 컴퓨터에서 소리를 재생합니다.</string>
+
+    <string name="category_advanced_settings">고급 설정</string>
+    <string name="title_video_format">H.265 설정 변경</string>
+    <string name="summary_video_format">H.265는 비디오 대역폭 요구사항을 낮추지만 최신 장치가 필요합니다.</string>
+
+</resources>

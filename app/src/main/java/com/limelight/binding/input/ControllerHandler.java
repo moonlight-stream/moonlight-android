@@ -132,7 +132,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private void releaseControllerNumber(GenericControllerContext context) {
         // If this device sent data as a gamepad, zero the values before removing
         if (context.assignedControllerNumber) {
-            conn.sendControllerInput(context.controllerNumber, currentControllers,
+            conn.sendControllerInput(context.controllerNumber, getActiveControllerMask(),
                     (short) 0,
                     (byte) 0, (byte) 0,
                     (short) 0, (short) 0,
@@ -459,6 +459,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
+    private short getActiveControllerMask() {
+        if (multiControllerEnabled) {
+            return currentControllers;
+        }
+        else {
+            // Only Player 1 is active with multi-controller disabled
+            return 1;
+        }
+    }
+
     private void sendControllerInputPacket(GenericControllerContext originalContext) {
         assignControllerNumberIfNeeded(originalContext);
 
@@ -538,11 +548,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 }
             }
 
-            conn.sendControllerInput(controllerNumber, currentControllers,
+            conn.sendControllerInput(controllerNumber, getActiveControllerMask(),
                     (short)0, (byte)0, (byte)0, (short)0, (short)0, (short)0, (short)0);
         }
         else {
-            conn.sendControllerInput(controllerNumber, currentControllers,
+            conn.sendControllerInput(controllerNumber, getActiveControllerMask(),
                     inputMap,
                     leftTrigger, rightTrigger,
                     leftStickX, leftStickY,

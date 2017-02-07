@@ -92,6 +92,7 @@
     <string name="addpc_fail">지정된 컴퓨터에 연결하는 데에 실패했습니다. PC의 방화벽과 적절한 포트 설정을 확인하세요.</string>
     <string name="addpc_success">컴퓨터 추가 성공</string>
     <string name="addpc_unknown_host">PC의 IP주소를 확인할 수 없습니다. Make sure you didn\'t make a typo in the address.</string>
+    <string name="addpc_enter_ip">반드시 IP주소를 입력해야 합니다.</string>
 
     <!-- Preferences -->
     <string name="category_basic_settings">기본 설정</string>

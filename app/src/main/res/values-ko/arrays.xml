@@ -7,7 +7,7 @@
     </string-array>
 
     <string-array name="video_format_names">
-        <item>Use H.265 only if stable</item>
+        <item>안정적인 경우에 H.265 사용</item>
         <item>항상 H.265 사용(깨질 가능성 있음)</item>
         <item>H.265 사용하지 않기</item>
     </string-array>

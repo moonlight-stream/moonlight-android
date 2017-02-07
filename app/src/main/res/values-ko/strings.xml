@@ -6,7 +6,7 @@
 
     <!-- Help strings -->
     <string name="help_loading_title">도움말 뷰어</string>
-    <string name="help_loading_msg">도움말 페이지 로딩중...</string>
+    <string name="help_loading_msg">도움말 페이지 로딩중…</string>
 
     <!-- PC view menu entries -->
     <string name="pcview_menu_app_list">게임 리스트 보이기</string>
@@ -16,7 +16,7 @@
     <string name="pcview_menu_delete_pc">PC 삭제</string>
 
     <!-- Pair messages -->
-    <string name="pairing">페어링 중...</string>
+    <string name="pairing">페어링 중…</string>
     <string name="pair_pc_offline">컴퓨터가 오프라인입니다.</string>
     <string name="pair_pc_ingame">컴퓨터가 아직 게임을 실행중입니다. 페어링 전 게임을 종료하세요.</string>
     <string name="pair_pairing_title">페어링</string>
@@ -28,14 +28,14 @@
     <!-- WOL messages -->
     <string name="wol_pc_online">컴퓨터가 온라인 상태입니다</string>
     <string name="wol_no_mac">Geforce Experience가 MAC 주소를 보내지 않아 PC를 깨울 수 없습니다.</string>
-    <string name="wol_waking_pc">PC를 깨우는 중...</string>
+    <string name="wol_waking_pc">PC를 깨우는 중…</string>
     <string name="wol_waking_msg">PC를 깨우는 데에 약간의 시간이 걸립니다.
         PC가 깨워지지 않으면, Wake-On-Lan이 설정되어있는지 확인하세요.
     </string>
     <string name="wol_fail">Wake-On-LAN 패킷을 보내는 데에 실패했습니다</string>
 
     <!-- Unpair messages -->
-    <string name="unpairing">페어링 해제중...</string>
+    <string name="unpairing">페어링 해제중…</string>
     <string name="unpair_success">페어링 해제 완료</string>
     <string name="unpair_fail">페어링 해제 실패</string>
     <string name="unpair_error">장치가 페어링되지 않음</string>
@@ -63,7 +63,7 @@
 
     <!-- General strings -->
     <string name="ip_hint">GeForce PC의 IP 주소</string>
-    <string name="searching_pc">GameStream이 실행중인 PC를 검색중...\n\n
+    <string name="searching_pc">GameStream이 실행중인 PC를 검색중…\n\n
         GameStream이 Geforce Experience 설정에서 활성화되어있는지 확인하세요.</string>
     <string name="yes">예</string>
     <string name="no">아니오</string>
@@ -72,13 +72,13 @@
 
     <!-- AppList activity -->
     <string name="title_applist">앱 사용 가능</string>
-    <string name="applist_connect_msg">PC에 연결중...</string>
+    <string name="applist_connect_msg">PC에 연결중…</string>
     <string name="applist_menu_resume">세션 계속</string>
     <string name="applist_menu_quit">세션 종료</string>
     <string name="applist_menu_quit_and_start">현재 게임 종료 후 시작</string>
     <string name="applist_menu_cancel">취소</string>
     <string name="applist_refresh_title">앱 리스트</string>
-    <string name="applist_refresh_msg">앱 다시 로드 중...</string>
+    <string name="applist_refresh_msg">앱 다시 로드 중…</string>
     <string name="applist_refresh_error_title">오류</string>
     <string name="applist_refresh_error_msg">앱 리스트를 얻는데 실패함</string>
     <string name="applist_quit_app">종료중</string>
@@ -88,7 +88,7 @@
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">고급 설정으로 PC 추가</string>
-    <string name="msg_add_pc">PC에 연결 중...</string>
+    <string name="msg_add_pc">PC에 연결 중…</string>
     <string name="addpc_fail">지정된 컴퓨터에 연결하는 데에 실패했습니다. PC의 방화벽과 적절한 포트 설정을 확인하세요.</string>
     <string name="addpc_success">컴퓨터 추가 성공</string>
     <string name="addpc_unknown_host">PC의 IP주소를 확인할 수 없습니다. Make sure you didn\'t make a typo in the address.</string>
@@ -137,6 +137,6 @@
 
     <string name="category_advanced_settings">고급 설정</string>
     <string name="title_video_format">H.265 설정 변경</string>
-    <string name="summary_video_format">H.265는 비디오 대역폭 요구사항을 낮추지만 최신 장치가 필요합니다.</string>
+    <string name="summary_video_format">H.265는 비디오 대역폭 요구사항을 낮춰주지만 최신 장치가 필요합니다.</string>
 
 </resources>

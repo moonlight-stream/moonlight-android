@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shortcut strings -->
+    <string name="scut_deleted_pc"> 电脑已删除 </string>
+    <string name="scut_not_paired"> 电脑没有配对成功 </string>
+
+    <!-- Help strings -->
+    <string name="help_loading_title"> 帮助查看器 </string>
+    <string name="help_loading_msg"> 加载帮助页面中…… </string>
+
+    <!-- PC view menu entries -->
+    <string name="pcview_menu_app_list"> 浏览游戏列表 </string>
+    <string name="pcview_menu_pair_pc"> 和电脑配对 </string>
+    <string name="pcview_menu_unpair_pc"> 取消配对 </string>
+    <string name="pcview_menu_send_wol"> 发送 Wake-On-LAN 请求 </string>
+    <string name="pcview_menu_delete_pc"> 删除电脑 </string>
+
+    <!-- Pair messages -->
+    <string name="pairing"> 配对中…… </string>
+    <string name="pair_pc_offline"> 电脑离线中 </string>
+    <string name="pair_pc_ingame"> 电脑正在游戏中，你必须在配对之前先退出游戏 </string>
+    <string name="pair_pairing_title"> 配对中 </string>
+    <string name="pair_pairing_msg"> 请在目标电脑上输入以下的PIN码： </string>
+    <string name="pair_incorrect_pin"> PIN码错误 </string>
+    <string name="pair_fail"> 配对失败 </string>
+    <string name="pair_already_in_progress"> 已经在配对中，请稍等 </string>
+
+    <!-- WOL messages -->
+    <string name="wol_pc_online"> 电脑在线中 </string>
+    <string name="wol_no_mac"> 由于GeForce Experience没有发送MAC地址过来因此无法唤醒电脑 </string>
+    <string name="wol_waking_pc"> 唤醒电脑中…… </string>
+    <string name="wol_waking_msg"> 远程唤醒电脑需要一些时间\n\n
+    	如果电脑没有唤醒，请确保Wake-On-LAN的设置无误
+    </string>
+    <string name="wol_fail"> 无法发送Wake-On-LAN数据包 </string>
+
+    <!-- Unpair messages -->
+    <string name="unpairing"> 取消配对中…… </string>
+    <string name="unpair_success"> 成功取消配对 </string>
+    <string name="unpair_fail"> 无法配对 </string>
+    <string name="unpair_error"> 设备没有配对过 </string>
+
+    <!-- Errors -->
+    <string name="error_pc_offline"> 电脑离线中 </string>
+    <string name="error_manager_not_running">ComputerManager服务不在运行中\n\n请稍等几秒或者直接重启Moonlight</string>
+    <string name="error_unknown_host"> 无法解析电脑地址 </string>
+    <string name="error_404"> GeForce Experience返回了HTTP 404 错误。确保你的显卡支持GAMESTREAM\n\n
+	    使用远程控制软件同样会引起此错误，请尝试重启电脑或者重新安装GeForce Experience
+    </string>
+
+    <!-- Start application messages -->
+    <string name="conn_establishing_title"> 建立连接中 </string>
+    <string name="conn_establishing_msg"> 启动连接中 </string>
+    <string name="conn_metered"> 警告: 你正在使用移动网络，继续使用将会产生大量流量费用！ </string>
+    <string name="conn_client_latency"> 每帧解码平均延迟:</string>
+    <string name="conn_client_latency_hw"> 硬解码器延迟:</string>
+    <string name="conn_hardware_latency"> 硬解码器平均延迟:</string>
+    <string name="conn_starting"> 启动中…… </string>
+    <string name="conn_error_title"> 连接错误 </string>
+    <string name="conn_error_msg"> 启动失败 </string>
+    <string name="conn_terminated_title"> 连接被终结 </string>
+    <string name="conn_terminated_msg"> 连接已被终结 </string>
+
+    <!-- General strings -->
+    <string name="ip_hint"> 串流电脑的IP地址 </string>
+    <string name="searching_pc"> 正在搜寻运行着GAMESTREAM的电脑…… \n\n
+        确保GeForce Experience里面SHIELD选项里面的GAMESTREAM开关是开着的 </string>
+    <string name="yes"> 是 </string>
+    <string name="no"> 否 </string>
+    <string name="lost_connection"> 失去了与电脑的连接 </string>
+    <string name="help">帮助</string>
+
+    <!-- AppList activity -->
+    <string name="title_applist">Apps on</string>
+    <string name="applist_connect_msg"> 连接到电脑中…… </string>
+    <string name="applist_menu_resume"> 恢复串流 </string>
+    <string name="applist_menu_quit"> 退出串流 </string>
+    <string name="applist_menu_quit_and_start"> 退出当前游戏并开始这个游戏 </string>
+    <string name="applist_menu_cancel"> 取消 </string>
+    <string name="applist_refresh_title"> 游戏列表 </string>
+    <string name="applist_refresh_msg"> 刷新中…… </string>
+    <string name="applist_refresh_error_title"> 错误 </string>
+    <string name="applist_refresh_error_msg"> 获取列表失败 </string>
+    <string name="applist_quit_app"> 退出中 </string>
+    <string name="applist_quit_success"> 成功退出串流 </string>
+    <string name="applist_quit_fail"> 退出串流失败 </string>
+    <string name="applist_quit_confirmation"> 您确定要退出当前游戏？\n\n所有未保存的数据将丢失 </string>
+
+    <!-- Add computer manually activity -->
+    <string name="title_add_pc"> 手动添加电脑 </string>
+    <string name="msg_add_pc"> 连接到电脑中…… </string>
+    <string name="addpc_fail"> 无法连接到指定的电脑。请确保指定的端口没有被防火墙阻止 </string>
+    <string name="addpc_success"> 成功添加电脑 </string>
+    <string name="addpc_unknown_host"> 无法解析电脑的IP地址，请确保IP地址输入无误 </string>
+    <string name="addpc_enter_ip"> 请输入一个IP地址！ </string>
+
+    <!-- Preferences -->
+    <string name="category_basic_settings"> 基本设置 </string>
+    <string name="title_resolution_list"> 选择目标分辨率和帧数 </string>
+    <string name="summary_resolution_list"> 过高的设定会引起串流卡顿甚至软件闪退 </string>
+    <string name="title_seekbar_bitrate"> 选择目标视频码率 </string>
+    <string name="summary_seekbar_bitrate"> 低码率减少卡顿，高码率提高画质 </string>
+    <string name="suffix_seekbar_bitrate">Mbps</string>
+    <string name="title_checkbox_stretch_video"> 将画面拉伸至全屏 </string>
+    <string name="title_checkbox_disable_warnings"> 禁用错误提示 </string>
+    <string name="summary_checkbox_disable_warnings"> 串流过程中禁用连接错误提示 </string>
+
+    <string name="category_audio_settings"> 音频设置 </string>
+    <string name="title_checkbox_51_surround"> 启用 5.1 环绕音效 </string>
+    <string name="summary_checkbox_51_surround"> 如果你的声音听起来有问题请禁用。\n\n需要GeForce Experience 2.7 或更高版本 </string>
+
+    <string name="category_gamepad_settings"> 手柄设置 </string>
+    <string name="title_checkbox_multi_controller"> 启用多手柄支持 </string>
+    <string name="summary_checkbox_multi_controller"> 如果禁用，所有手柄将会认作一个手柄 </string>
+    <string name="title_seekbar_deadzone"> 调整摇杆死区 </string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Xbox 360/One 手柄驱动 </string>
+    <string name="summary_checkbox_xb1_driver"> 若要在那些没有原生Xbox手柄驱动的设备上使用Xbox手柄，请勾上此复选框 </string>
+
+    <string name="category_on_screen_controls_settings"> 触屏设置 </string>
+    <string name="title_checkbox_show_onscreen_controls"> 启用虚拟手柄 </string>
+    <string name="summary_checkbox_show_onscreen_controls"> 将在串流画面上显示一层虚拟手柄 </string>
+
+    <string name="category_ui_settings"> 界面设置 </string>
+    <string name="title_language_list">语言</string>
+    <string name="summary_language_list"> 请选择您希望Moonlight使用的语言 </string>
+    <string name="title_checkbox_list_mode"> 使用列表代替图标 </string>
+    <string name="summary_checkbox_list_mode"> 将以列表来显示电脑和游戏 </string>
+    <string name="title_checkbox_small_icon_mode"> 使用小图标 </string>
+    <string name="summary_checkbox_small_icon_mode"> 使用小图标以在屏幕上显示更多项目 </string>
+
+    <string name="category_host_settings"> 主机设置 </string>
+    <string name="title_checkbox_enable_sops"> 优化游戏设置 </string>
+    <string name="summary_checkbox_enable_sops"> 允许GeForce Experience为最佳串流效果自动更改游戏设置 </string>
+    <string name="title_checkbox_host_audio"> 将声音输出到电脑上 </string>
+    <string name="summary_checkbox_host_audio"> 将在电脑和本设备同时输出声音 </string>
+
+    <string name="category_advanced_settings"> 高级设置 </string>
+    <string name="title_video_format"> H.265设置 </string>
+    <string name="summary_video_format">H.265能降低带宽需求，但是需要设备支持 </string>
+
+</resources>

@@ -19,23 +19,23 @@
 
     <string-array name="language_names" translatable="false">
             <item>Default</item>
-            <item>Chinese Simplified</item>
-            <item>Chinese Traditional</item>
             <item>English</item>
             <item>Italiano</item>
-            <item>Japanese</item>
+            <item>日本語</item>
             <item>Русский</item>
             <item>Nederlands</item>
+            <item>中文(简体)</item>
+            <item>中文(繁體)</item>
     </string-array>
     <string-array name="language_values" translatable="false">
             <item>default</item>
-            <item>zh-rCN</item>
-            <item>zh-rTW</item>
             <item>en</item>
             <item>it</item>
             <item>ja</item>
             <item>ru</item>
             <item>nl</item>
+            <item>zh-CN</item>
+            <item>zh-TW</item>            
     </string-array>
 
     <string-array name="decoder_names">

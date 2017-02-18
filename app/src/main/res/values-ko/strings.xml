@@ -51,7 +51,7 @@
     <!-- Start application messages -->
     <string name="conn_establishing_title">연결 수립중</string>
     <string name="conn_establishing_msg">연결 시작</string>
-    <string name="conn_metered">경고: Your active network connection is metered!</string>
+    <string name="conn_metered">경고: 데이터 요금이 부과될 수 있습니다.</string>
     <string name="conn_client_latency">평균 프레임 디코딩 지연:</string>
     <string name="conn_client_latency_hw">하드웨어 디코더 지연:</string>
     <string name="conn_hardware_latency">평균 하드웨어 디코딩 지연:</string>

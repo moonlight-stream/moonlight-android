@@ -42,7 +42,7 @@ public class DiscoveryService extends Service {
 
     @Override
     public void onCreate() {
-        WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         multicastLock = wifiMgr.createMulticastLock("Limelight mDNS");
         multicastLock.setReferenceCounted(false);
 

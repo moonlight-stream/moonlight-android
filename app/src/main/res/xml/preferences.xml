@@ -98,4 +98,11 @@
             android:summary="@string/summary_video_format"
             android:defaultValue="auto" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/category_virtual_reality">
+        <CheckBoxPreference
+            android:key="checkbox_list_mode"
+            android:title="@string/title_google_vr_mode"
+            android:summary="@string/summary_google_vr_mode"
+            android:defaultValue="false" />
+    </PreferenceCategory>
 </PreferenceScreen>

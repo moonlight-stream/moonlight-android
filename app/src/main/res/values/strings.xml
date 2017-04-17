@@ -139,4 +139,8 @@
     <string name="title_video_format">Change H.265 settings</string>
     <string name="summary_video_format">H.265 lowers video bandwidth requirements but requires a very recent device.</string>
 
+    <string name="category_virtual_reality">VR Settings</string>
+    <string name="title_google_vr_mode">Enable Google VR Virtual Monitor Mode</string>
+    <string name="summary_google_vr_mode">Shows the video stream on a virtual monitor in Google Cardboard</string>
+
 </resources>

@@ -26,9 +26,9 @@
 
     <application
         android:allowBackup="true"
-        android:isGame="true"
         android:banner="@drawable/atv_banner"
         android:icon="@drawable/ic_launcher"
+        android:isGame="true"
         android:theme="@style/AppTheme">
 
         <!-- Samsung multi-window support -->
@@ -55,8 +55,8 @@
         <!-- Small hack to support launcher shortcuts without relaunching over and over again when the back button is pressed -->
         <activity
             android:name=".AppViewShortcutTrampoline"
-            android:noHistory="true"
-            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
+            android:noHistory="true">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.limelight.PcView" />
@@ -85,8 +85,8 @@
         <activity
             android:name=".Game"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
-            android:screenOrientation="sensorLandscape"
             android:noHistory="true"
+            android:screenOrientation="sensorLandscape"
             android:theme="@style/StreamTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -110,6 +110,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.limelight.PcView" />
         </activity>
+        <activity android:name=".VirtualRealityGame"></activity>
     </application>
 
 </manifest>

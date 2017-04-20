@@ -134,7 +134,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         super.onCreate(savedInstanceState);
         boolean launchCardboardMode = PreferenceConfiguration.readPreferences(this).googleCardboardMode;
         if (launchCardboardMode) {
-            Intent intent = new Intent(Game.this, VirtualRealityGame.class);
+            Intent intent = new Intent(this, VirtualRealityGame.class);
+            intent.putExtras(Game.this.getIntent());
             startActivity(intent);
             finish();
         } else {

@@ -131,7 +131,7 @@
         </activity>
         <activity
             android:name=".VirtualRealityGame"
-            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:configChanges="orientation|keyboardHidden|screenSize|keyboard|navigation"
             android:screenOrientation="landscape"
             android:enableVrMode="@string/gvr_vr_mode_component">
             <meta-data

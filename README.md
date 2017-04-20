@@ -1,9 +1,9 @@
-#Moonlight-Android, Daydream VR/Google Cardboard Fork
+# Moonlight-Android, Daydream VR/Google Cardboard Fork
 
 This is a fork of Moonlight-Android which adds an option in the settings to stream the game to a
 virtual monitor to Daydream VR/Google Cardboard.
 
-##HOW TO ACTIVATE THE VIRTUAL MONITOR FEATURE
+## HOW TO ACTIVATE THE VIRTUAL MONITOR FEATURE
 In the settings menu reachable from the settings/gear icon on the top left of the screen, scroll all
 the way down and enable the "Enable Google VR Virtual Monitor Mode" checkbox.
 
@@ -22,25 +22,25 @@ whether in your own home or over the internet.
 
 Check our [wiki](https://github.com/moonlight-stream/moonlight-docs/wiki) for more detailed information or a troubleshooting guide. 
 
-##Features
+## Features
 
 * Streams any of your games from your PC to your Android device
 * Full gamepad support for MOGA, Xbox 360, PS3, OUYA, and Shield
 * Automatically finds GameStream-compatible PCs on your network
 
-##Installation
+## Installation
 
 * Download and install Moonlight for Android from
 [Google Play](https://play.google.com/store/apps/details?id=com.limelight), [Amazon App Store](http://www.amazon.com/gp/product/B00JK4MFN2), or directly from the [releases page](https://github.com/moonlight-stream/moonlight-android/releases)
 * Download [GeForce Experience](http://www.geforce.com/geforce-experience) and install on your Windows PC
 
-##Requirements
+## Requirements
 
 * [GameStream compatible](http://shield.nvidia.com/play-pc-games/) computer with GTX 600/700 series GPU
 * Android device running 4.1 (Jelly Bean) or higher
 * High-end wireless router (802.11n dual-band recommended)
 
-##Usage
+## Usage
 
 * Turn on GameStream in the GFE settings
 * If you are connecting from outside the same network, turn on internet
@@ -50,7 +50,7 @@ Check our [wiki](https://github.com/moonlight-stream/moonlight-docs/wiki) for mo
 * Tap your PC again to view the list of apps to stream
 * Play games!
 
-##Contribute
+## Contribute
 
 This project is being actively developed at [XDA Developers](http://forum.xda-developers.com/showthread.php?t=2505510)
 
@@ -58,13 +58,13 @@ This project is being actively developed at [XDA Developers](http://forum.xda-de
 2. Write code
 3. Send Pull Requests
 
-##Building
+## Building
 * Install Android Studio and the Android NDK
 * Run ‘git submodule update --init --recursive’ from within moonlight-android/
 * In moonlight-android/, create a file called ‘local.properties’. Add an ‘ndk.dir=’ property to the local.properties file and set it equal to your NDK directory.
 * Build the APK using Android Studio
 
-##Authors
+## Authors
 
 * [Cameron Gutman](https://github.com/cgutman)  
 * [Diego Waxemberg](https://github.com/dwaxemberg)  

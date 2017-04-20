@@ -2,6 +2,7 @@ import com.android.builder.model.ProductFlavor
 import org.apache.tools.ant.taskdefs.condition.Os
 
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 25
@@ -57,12 +58,17 @@ android {
 }
 
 dependencies {
-    compile 'org.bouncycastle:bcprov-jdk15on:1.52'
-    compile 'org.bouncycastle:bcpkix-jdk15on:1.52'
-    compile 'com.squareup.okhttp:okhttp:2.4.0'
-    compile 'com.squareup.okio:okio:1.5.0'
     compile files('libs/jmdns-3.4.2.jar')
     compile files('libs/limelight-common.jar')
     compile files('libs/tinyrtsp.jar')
     compile files('libs/jcodec-0.1.9-patched.jar')
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    compile 'org.bouncycastle:bcprov-jdk15on:1.52'
+    compile 'org.bouncycastle:bcpkix-jdk15on:1.52'
+    compile 'com.squareup.okhttp:okhttp:2.4.0'
+    compile 'com.squareup.okio:okio:1.5.0'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+}
+repositories {
+    mavenCentral()
 }

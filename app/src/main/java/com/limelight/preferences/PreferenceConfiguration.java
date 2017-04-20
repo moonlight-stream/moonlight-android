@@ -23,6 +23,8 @@ public class PreferenceConfiguration {
     private static final String USB_DRIVER_PREF_SRING = "checkbox_usb_driver";
     private static final String VIDEO_FORMAT_PREF_STRING = "video_format";
     private static final String ONSCREEN_CONTROLLER_PREF_STRING = "checkbox_show_onscreen_controls";
+    private static final String GOOGLE_VR_PREF_SRING = "checkbox_google_vr_mode";
+
 
     private static final int BITRATE_DEFAULT_720_30 = 5;
     private static final int BITRATE_DEFAULT_720_60 = 10;
@@ -45,6 +47,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_USB_DRIVER = true;
     private static final String DEFAULT_VIDEO_FORMAT = "auto";
     private static final boolean ONSCREEN_CONTROLLER_DEFAULT = false;
+    private static final boolean GOOGLE_CARDBOARD_MODE = false;
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -58,6 +61,7 @@ public class PreferenceConfiguration {
     public String language;
     public boolean listMode, smallIconMode, multiController, enable51Surround, usbDriver;
     public boolean onscreenController;
+    public boolean googleCardboardMode;
 
     public static int getDefaultBitrate(String resFpsString) {
         if (resFpsString.equals("720p30")) {
@@ -188,6 +192,7 @@ public class PreferenceConfiguration {
         config.enable51Surround = prefs.getBoolean(ENABLE_51_SURROUND_PREF_STRING, DEFAULT_ENABLE_51_SURROUND);
         config.usbDriver = prefs.getBoolean(USB_DRIVER_PREF_SRING, DEFAULT_USB_DRIVER);
         config.onscreenController = prefs.getBoolean(ONSCREEN_CONTROLLER_PREF_STRING, ONSCREEN_CONTROLLER_DEFAULT);
+        config.googleCardboardMode = prefs.getBoolean(GOOGLE_VR_PREF_SRING, GOOGLE_CARDBOARD_MODE);
 
         return config;
     }

@@ -8,6 +8,9 @@ to open new issues on Github about bugs you encounter.
 
 ## What works
 Controller input using a 360 controller connected directly to the phone.
+![Output0](http://i.imgur.com/kltFFUj.png)
+![Output1](http://i.imgur.com/vPkC0fo.jpg)
+![Output2](http://i.imgur.com/z19ZnJM.png)
 
 ## Activating the virtual monitor feature
 In the settings menu reachable from the settings/gear icon on the top left of the screen, scroll all

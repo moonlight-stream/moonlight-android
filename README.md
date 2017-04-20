@@ -3,7 +3,11 @@
 This is a fork of Moonlight-Android which adds an option in the settings to stream the game to a
 virtual monitor to Daydream VR/Google Cardboard.
 
-There may be issues, I've only tested this on my Google Pixel XL and Daydream VR headset.
+There may be issues, I've only tested this on my Google Pixel XL and Daydream VR headset. Feel free
+to open new issues on Github about bugs you encounter.
+
+## What works
+Controller input using a 360 controller connected directly to the phone.
 
 ## Activating the virtual monitor feature
 In the settings menu reachable from the settings/gear icon on the top left of the screen, scroll all

@@ -110,7 +110,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.limelight.PcView" />
         </activity>
-        <activity android:name=".VirtualRealityGame"></activity>
+        <activity
+            android:name=".VirtualRealityGame"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="landscape"
+            android:enableVrMode="@string/gvr_vr_mode_component">
+        </activity>
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="com.limelight.AppView" />
     </application>
 
 </manifest>

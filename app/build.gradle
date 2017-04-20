@@ -9,7 +9,7 @@ android {
     buildToolsVersion '25.0.2'
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 19
         targetSdkVersion 25
 
         versionName "4.8.3"
@@ -68,6 +68,7 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.4.0'
     compile 'com.squareup.okio:okio:1.5.0'
     compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.google.vr:sdk-base:1.40.0'
 }
 repositories {
     mavenCentral()

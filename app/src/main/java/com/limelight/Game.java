@@ -132,167 +132,174 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        shortcutHelper = new ShortcutHelper(this);
-
-        String locale = PreferenceConfiguration.readPreferences(this).language;
-        if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
-            Configuration config = new Configuration(getResources().getConfiguration());
-            config.locale = new Locale(locale);
-            getResources().updateConfiguration(config, getResources().getDisplayMetrics());
-        }
-
-        // We don't want a title bar
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        // Full-screen and don't let the display go off
-        getWindow().addFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN |
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        // If we're going to use immersive mode, we want to have
-        // the entire screen
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
-        }
-
-        // Listen for UI visibility events
-        getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(this);
-
-        // Change volume button behavior
-        setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
-        // Inflate the content
-        setContentView(R.layout.activity_game);
-
-        // Start the spinner
-        spinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.conn_establishing_title),
-                getResources().getString(R.string.conn_establishing_msg), true);
-
-        // Read the stream preferences
-        prefConfig = PreferenceConfiguration.readPreferences(this);
-
-        if (prefConfig.stretchVideo) {
-            drFlags |= VideoDecoderRenderer.FLAG_FILL_SCREEN;
-        }
-
-        // Listen for events on the game surface
-        streamView = (StreamView) findViewById(R.id.surfaceView);
-        streamView.setOnGenericMotionListener(this);
-        streamView.setOnTouchListener(this);
-
-        // Warn the user if they're on a metered connection
-        checkDataConnection();
-
-        // Make sure Wi-Fi is fully powered up
-        WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        wifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Limelight");
-        wifiLock.setReferenceCounted(false);
-        wifiLock.acquire();
-
-        String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
-        String appName = Game.this.getIntent().getStringExtra(EXTRA_APP_NAME);
-        int appId = Game.this.getIntent().getIntExtra(EXTRA_APP_ID, StreamConfiguration.INVALID_APP_ID);
-        String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
-        boolean remote = Game.this.getIntent().getBooleanExtra(EXTRA_STREAMING_REMOTE, false);
-        String uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
-        String pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
-
-        if (appId == StreamConfiguration.INVALID_APP_ID) {
+        boolean launchCardboardMode = PreferenceConfiguration.readPreferences(this).googleCardboardMode;
+        if (launchCardboardMode) {
+            Intent intent = new Intent(Game.this, VirtualRealityGame.class);
+            startActivity(intent);
             finish();
-            return;
-        }
+        } else {
 
-        // Add a launcher shortcut for this PC (forced, since this is user interaction)
-        shortcutHelper.createAppViewShortcut(uuid, pcName, uuid, true);
-        shortcutHelper.reportShortcutUsed(uuid);
+            shortcutHelper = new ShortcutHelper(this);
 
-        // Initialize the MediaCodec helper before creating the decoder
-        MediaCodecHelper.initializeWithContext(this);
-
-        decoderRenderer = new MediaCodecDecoderRenderer(prefConfig.videoFormat);
-
-        // Display a message to the user if H.265 was forced on but we still didn't find a decoder
-        if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
-            Toast.makeText(this, "No H.265 decoder found.\nFalling back to H.264.", Toast.LENGTH_LONG).show();
-        }
-
-        if (!decoderRenderer.isAvcSupported()) {
-            if (spinner != null) {
-                spinner.dismiss();
-                spinner = null;
+            String locale = PreferenceConfiguration.readPreferences(this).language;
+            if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
+                Configuration config = new Configuration(getResources().getConfiguration());
+                config.locale = new Locale(locale);
+                getResources().updateConfiguration(config, getResources().getDisplayMetrics());
             }
 
-            // If we can't find an AVC decoder, we can't proceed
-            Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title),
-                    "This device or ROM doesn't support hardware accelerated H.264 playback.", true);
-            return;
+            // We don't want a title bar
+            requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+            // Full-screen and don't let the display go off
+            getWindow().addFlags(
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN |
+                            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+            // If we're going to use immersive mode, we want to have
+            // the entire screen
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                getWindow().getDecorView().setSystemUiVisibility(
+                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+
+                getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
+            }
+
+            // Listen for UI visibility events
+            getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(this);
+
+            // Change volume button behavior
+            setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
+            // Inflate the content
+            setContentView(R.layout.activity_game);
+
+            // Start the spinner
+            spinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.conn_establishing_title),
+                    getResources().getString(R.string.conn_establishing_msg), true);
+
+            // Read the stream preferences
+            prefConfig = PreferenceConfiguration.readPreferences(this);
+
+            if (prefConfig.stretchVideo) {
+                drFlags |= VideoDecoderRenderer.FLAG_FILL_SCREEN;
+            }
+
+            // Listen for events on the game surface
+            streamView = (StreamView) findViewById(R.id.surfaceView);
+            streamView.setOnGenericMotionListener(this);
+            streamView.setOnTouchListener(this);
+
+            // Warn the user if they're on a metered connection
+            checkDataConnection();
+
+            // Make sure Wi-Fi is fully powered up
+            WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            wifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Limelight");
+            wifiLock.setReferenceCounted(false);
+            wifiLock.acquire();
+
+            String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
+            String appName = Game.this.getIntent().getStringExtra(EXTRA_APP_NAME);
+            int appId = Game.this.getIntent().getIntExtra(EXTRA_APP_ID, StreamConfiguration.INVALID_APP_ID);
+            String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
+            boolean remote = Game.this.getIntent().getBooleanExtra(EXTRA_STREAMING_REMOTE, false);
+            String uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
+            String pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
+
+            if (appId == StreamConfiguration.INVALID_APP_ID) {
+                finish();
+                return;
+            }
+
+            // Add a launcher shortcut for this PC (forced, since this is user interaction)
+            shortcutHelper.createAppViewShortcut(uuid, pcName, uuid, true);
+            shortcutHelper.reportShortcutUsed(uuid);
+
+            // Initialize the MediaCodec helper before creating the decoder
+            MediaCodecHelper.initializeWithContext(this);
+
+            decoderRenderer = new MediaCodecDecoderRenderer(prefConfig.videoFormat);
+
+            // Display a message to the user if H.265 was forced on but we still didn't find a decoder
+            if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
+                Toast.makeText(this, "No H.265 decoder found.\nFalling back to H.264.", Toast.LENGTH_LONG).show();
+            }
+
+            if (!decoderRenderer.isAvcSupported()) {
+                if (spinner != null) {
+                    spinner.dismiss();
+                    spinner = null;
+                }
+
+                // If we can't find an AVC decoder, we can't proceed
+                Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title),
+                        "This device or ROM doesn't support hardware accelerated H.264 playback.", true);
+                return;
+            }
+
+            StreamConfiguration config = new StreamConfiguration.Builder()
+                    .setResolution(prefConfig.width, prefConfig.height)
+                    .setRefreshRate(prefConfig.fps)
+                    .setApp(new NvApp(appName, appId))
+                    .setBitrate(prefConfig.bitrate * 1000)
+                    .setEnableSops(prefConfig.enableSops)
+                    .enableAdaptiveResolution((decoderRenderer.getCapabilities() &
+                            VideoDecoderRenderer.CAPABILITY_ADAPTIVE_RESOLUTION) != 0)
+                    .enableLocalAudioPlayback(prefConfig.playHostAudio)
+                    .setMaxPacketSize(remote ? 1024 : 1292)
+                    .setRemote(remote)
+                    .setHevcSupported(decoderRenderer.isHevcSupported())
+                    .setAudioConfiguration(prefConfig.enable51Surround ?
+                            StreamConfiguration.AUDIO_CONFIGURATION_5_1 :
+                            StreamConfiguration.AUDIO_CONFIGURATION_STEREO)
+                    .build();
+
+            // Initialize the connection
+            conn = new NvConnection(host, uniqueId, Game.this, config, PlatformBinding.getCryptoProvider(this));
+            keybTranslator = new KeyboardTranslator(conn);
+            controllerHandler = new ControllerHandler(this, conn, this, prefConfig.multiController, prefConfig.deadzonePercentage);
+
+            InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
+            inputManager.registerInputDeviceListener(controllerHandler, null);
+
+            // Set to the optimal mode for streaming
+            prepareDisplayForRendering();
+
+            // Initialize touch contexts
+            for (int i = 0; i < touchContextMap.length; i++) {
+                touchContextMap[i] = new TouchContext(conn, i,
+                        REFERENCE_HORIZ_RES, REFERENCE_VERT_RES,
+                        streamView);
+            }
+
+            // Use sustained performance mode on N+ to ensure consistent
+            // CPU availability
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                getWindow().setSustainedPerformanceMode(true);
+            }
+
+            inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
+
+            if (prefConfig.onscreenController) {
+                // create virtual onscreen controller
+                virtualController = new VirtualController(conn,
+                        (FrameLayout) findViewById(R.id.surfaceView).getParent(),
+                        this);
+                virtualController.refreshLayout();
+            }
+
+            if (prefConfig.usbDriver) {
+                // Start the USB driver
+                bindService(new Intent(this, UsbDriverService.class),
+                        usbDriverServiceConnection, Service.BIND_AUTO_CREATE);
+            }
+
+            // The connection will be started when the surface gets created
+            streamView.getHolder().addCallback(this);
         }
-        
-        StreamConfiguration config = new StreamConfiguration.Builder()
-                .setResolution(prefConfig.width, prefConfig.height)
-                .setRefreshRate(prefConfig.fps)
-                .setApp(new NvApp(appName, appId))
-                .setBitrate(prefConfig.bitrate * 1000)
-                .setEnableSops(prefConfig.enableSops)
-                .enableAdaptiveResolution((decoderRenderer.getCapabilities() &
-                        VideoDecoderRenderer.CAPABILITY_ADAPTIVE_RESOLUTION) != 0)
-                .enableLocalAudioPlayback(prefConfig.playHostAudio)
-                .setMaxPacketSize(remote ? 1024 : 1292)
-                .setRemote(remote)
-                .setHevcSupported(decoderRenderer.isHevcSupported())
-                .setAudioConfiguration(prefConfig.enable51Surround ?
-                        StreamConfiguration.AUDIO_CONFIGURATION_5_1 :
-                        StreamConfiguration.AUDIO_CONFIGURATION_STEREO)
-                .build();
-
-        // Initialize the connection
-        conn = new NvConnection(host, uniqueId, Game.this, config, PlatformBinding.getCryptoProvider(this));
-        keybTranslator = new KeyboardTranslator(conn);
-        controllerHandler = new ControllerHandler(this, conn, this, prefConfig.multiController, prefConfig.deadzonePercentage);
-
-        InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
-        inputManager.registerInputDeviceListener(controllerHandler, null);
-
-        // Set to the optimal mode for streaming
-        prepareDisplayForRendering();
-
-        // Initialize touch contexts
-        for (int i = 0; i < touchContextMap.length; i++) {
-            touchContextMap[i] = new TouchContext(conn, i,
-                    REFERENCE_HORIZ_RES, REFERENCE_VERT_RES,
-                    streamView);
-        }
-
-        // Use sustained performance mode on N+ to ensure consistent
-        // CPU availability
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            getWindow().setSustainedPerformanceMode(true);
-        }
-
-        inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
-
-        if (prefConfig.onscreenController) {
-            // create virtual onscreen controller
-            virtualController = new VirtualController(conn,
-                    (FrameLayout)findViewById(R.id.surfaceView).getParent(),
-                    this);
-            virtualController.refreshLayout();
-        }
-
-        if (prefConfig.usbDriver) {
-            // Start the USB driver
-            bindService(new Intent(this, UsbDriverService.class),
-                    usbDriverServiceConnection, Service.BIND_AUTO_CREATE);
-        }
-
-        // The connection will be started when the surface gets created
-        streamView.getHolder().addCallback(this);
     }
 
     private void prepareDisplayForRendering() {

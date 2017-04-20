@@ -3,14 +3,17 @@
 This is a fork of Moonlight-Android which adds an option in the settings to stream the game to a
 virtual monitor to Daydream VR/Google Cardboard.
 
-## HOW TO ACTIVATE THE VIRTUAL MONITOR FEATURE
+There may be issues, I've only tested this on my Google Pixel XL and Daydream VR headset.
+
+## Activating the virtual monitor feature
 In the settings menu reachable from the settings/gear icon on the top left of the screen, scroll all
 the way down and enable the "Enable Google VR Virtual Monitor Mode" checkbox.
 
-There may be issues, I've only tested this on my Google Pixel XL and Daydream VR headset.
-
+## Other notes about this fork
 Below is the normal readme. The steps for building this Daydream VR/Google Cardboard fork are the
 same as the original steps below.
+
+# Moonlight-Android
 
 [Moonlight](http://moonlight-stream.com) is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield.
 We reverse engineered the Shield streaming software and created a version that can be run on any Android device.

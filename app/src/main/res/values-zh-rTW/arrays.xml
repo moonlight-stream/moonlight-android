@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+   <string-array name="decoder_names">
+        <item>自動選擇解碼器</item>
+        <item>強制軟解</item>
+        <item>強制硬解</item>
+        </string-array>
+
+	 <string-array name="video_format_names">
+        <item>如果穩定才使用H.265</item>
+        <item>強制使用H.265（不穩定）</item>
+        <item>不使用H.265</item>
+    </string-array>
+</resources>

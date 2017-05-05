@@ -574,8 +574,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return super.onKeyDown(keyCode, event);
         }
 
-        // Try the controller handler first
-        boolean handled = controllerHandler.handleButtonDown(event);
+        boolean handled = false;
+        if (event.getDevice() == null ||
+                event.getDevice().getKeyboardType() != InputDevice.KEYBOARD_TYPE_ALPHABETIC) {
+            // Always try the controller handler first, unless it's an alphanumeric keyboard device.
+            // Otherwise, controller handler will eat keyboard d-pad events.
+            handled = controllerHandler.handleButtonDown(event);
+        }
+
         if (!handled) {
             // Try the keyboard handler
             short translated = keybTranslator.translate(event.getKeyCode());
@@ -607,8 +613,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return super.onKeyUp(keyCode, event);
         }
 
-        // Try the controller handler first
-        boolean handled = controllerHandler.handleButtonUp(event);
+        boolean handled = false;
+        if (event.getDevice() == null ||
+                event.getDevice().getKeyboardType() != InputDevice.KEYBOARD_TYPE_ALPHABETIC) {
+            // Always try the controller handler first, unless it's an alphanumeric keyboard device.
+            // Otherwise, controller handler will eat keyboard d-pad events.
+            handled = controllerHandler.handleButtonUp(event);
+        }
+
         if (!handled) {
             // Try the keyboard handler
             short translated = keybTranslator.translate(event.getKeyCode());

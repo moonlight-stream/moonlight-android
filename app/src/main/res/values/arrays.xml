@@ -20,6 +20,7 @@
     <string-array name="language_names" translatable="false">
             <item>Default</item>
             <item>English</item>
+			<item>French</item>
             <item>Italiano</item>
             <item>日本語</item>
             <item>Русский</item>
@@ -32,6 +33,7 @@
     <string-array name="language_values" translatable="false">
             <item>default</item>
             <item>en</item>
+			<item>fr</item>
             <item>it</item>
             <item>ja</item>
             <item>ru</item>

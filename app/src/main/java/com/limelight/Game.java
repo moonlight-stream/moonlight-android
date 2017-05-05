@@ -190,7 +190,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         checkDataConnection();
 
         // Make sure Wi-Fi is fully powered up
-        WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Limelight");
         wifiLock.setReferenceCounted(false);
         wifiLock.acquire();

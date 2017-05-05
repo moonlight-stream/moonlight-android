@@ -26,6 +26,7 @@
             <item>Nederlands</item>
             <item>中文(简体)</item>
             <item>中文(繁體)</item>
+            <item>Korean</item>
     </string-array>
     <string-array name="language_values" translatable="false">
             <item>default</item>
@@ -35,7 +36,8 @@
             <item>ru</item>
             <item>nl</item>
             <item>zh-CN</item>
-            <item>zh-TW</item>            
+            <item>zh-TW</item>
+            <item>ko</item>
     </string-array>
 
     <string-array name="decoder_names">

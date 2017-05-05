@@ -25,6 +25,7 @@
             <item>Русский</item>
             <item>Nederlands</item>
             <item>Korean</item>
+            <item>Español</item>
     </string-array>
     <string-array name="language_values" translatable="false">
             <item>default</item>
@@ -34,6 +35,7 @@
             <item>ru</item>
             <item>nl</item>
             <item>ko</item>
+            <item>es</item>
     </string-array>
 
     <string-array name="decoder_names">

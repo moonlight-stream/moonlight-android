@@ -9,12 +9,37 @@ import android.content.res.Configuration;
 import android.view.View;
 
 import com.limelight.R;
+import com.limelight.preferences.PreferenceConfiguration;
+
+import java.util.Locale;
 
 public class UiHelper {
 
     // Values from https://developer.android.com/training/tv/start/layouts.html
     private static final int TV_VERTICAL_PADDING_DP = 27;
     private static final int TV_HORIZONTAL_PADDING_DP = 48;
+
+    public static void setLocale(Activity activity)
+    {
+        String locale = PreferenceConfiguration.readPreferences(activity).language;
+        if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
+            Configuration config = new Configuration(activity.getResources().getConfiguration());
+
+            // Some locales include both language and country which must be separated
+            // before calling the Locale constructor.
+            if (locale.contains("-"))
+            {
+                config.locale = new Locale(locale.substring(0, locale.indexOf('-')),
+                        locale.substring(locale.indexOf('-') + 1));
+            }
+            else
+            {
+                config.locale = new Locale(locale);
+            }
+
+            activity.getResources().updateConfiguration(config, activity.getResources().getDisplayMetrics());
+        }
+    }
 
     public static void notifyNewRootView(Activity activity)
     {

@@ -26,11 +26,7 @@ public class StreamSettings extends Activity {
 
         previousPrefs = PreferenceConfiguration.readPreferences(this);
 
-        if (!previousPrefs.language.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
-            Configuration config = new Configuration(getResources().getConfiguration());
-            config.locale = new Locale(previousPrefs.language);
-            getResources().updateConfiguration(config, getResources().getDisplayMetrics());
-        }
+        UiHelper.setLocale(this);
 
         setContentView(R.layout.activity_stream_settings);
         getFragmentManager().beginTransaction().replace(

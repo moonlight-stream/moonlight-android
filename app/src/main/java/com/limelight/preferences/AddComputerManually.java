@@ -136,12 +136,7 @@ public class AddComputerManually extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        String locale = PreferenceConfiguration.readPreferences(this).language;
-        if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
-            Configuration config = new Configuration(getResources().getConfiguration());
-            config.locale = new Locale(locale);
-            getResources().updateConfiguration(config, getResources().getDisplayMetrics());
-        }
+        UiHelper.setLocale(this);
 
         setContentView(R.layout.activity_add_computer_manually);
 

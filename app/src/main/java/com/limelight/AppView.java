@@ -235,12 +235,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
         shortcutHelper = new ShortcutHelper(this);
 
-        String locale = PreferenceConfiguration.readPreferences(this).language;
-        if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
-            Configuration config = new Configuration(getResources().getConfiguration());
-            config.locale = new Locale(locale);
-            getResources().updateConfiguration(config, getResources().getDisplayMetrics());
-        }
+        UiHelper.setLocale(this);
 
         setContentView(R.layout.activity_app_view);
 

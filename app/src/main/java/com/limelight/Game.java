@@ -26,6 +26,7 @@ import com.limelight.ui.StreamView;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
+import com.limelight.utils.UiHelper;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -135,12 +136,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         shortcutHelper = new ShortcutHelper(this);
 
-        String locale = PreferenceConfiguration.readPreferences(this).language;
-        if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
-            Configuration config = new Configuration(getResources().getConfiguration());
-            config.locale = new Locale(locale);
-            getResources().updateConfiguration(config, getResources().getDisplayMetrics());
-        }
+        UiHelper.setLocale(this);
 
         // We don't want a title bar
         requestWindowFeature(Window.FEATURE_NO_TITLE);

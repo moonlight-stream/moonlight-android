@@ -7,8 +7,6 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 1
-        versionName "1.0"
     }
     buildTypes {
         release {
@@ -19,5 +17,7 @@ android {
 }
 
 dependencies {
+    compile 'com.squareup.okhttp:okhttp:2.4.0'
+    compile 'com.squareup.okio:okio:1.5.0'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

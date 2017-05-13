@@ -27,22 +27,10 @@ public abstract class VideoDecoderRenderer {
 	public int getCapabilities() {
 		return 0;
 	}
-	
-	public int getAverageEndToEndLatency() {
-		return 0;
-	}
-	
-	public int getAverageDecoderLatency() {
-		return 0;
-	}
-	
-	public void directSubmitDecodeUnit(DecodeUnit du) {
-		throw new UnsupportedOperationException("CAPABILITY_DIRECT_SUBMIT requires overriding directSubmitDecodeUnit()");
-	}
 
-	public abstract boolean setup(VideoFormat format, int width, int height, int redrawRate, Object renderTarget, int drFlags);
+	public abstract boolean setup(VideoFormat format, int width, int height, int redrawRate);
 	
-	public abstract boolean start(VideoDepacketizer depacketizer);
+	public abstract boolean start();
 	
 	public abstract void stop();
 	

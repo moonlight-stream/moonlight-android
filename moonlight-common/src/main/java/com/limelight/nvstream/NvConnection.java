@@ -12,19 +12,14 @@ import javax.crypto.SecretKey;
 import org.xmlpull.v1.XmlPullParserException;
 
 import com.limelight.LimeLog;
-import com.limelight.nvstream.av.audio.AudioStream;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer.VideoFormat;
-import com.limelight.nvstream.av.video.VideoStream;
-import com.limelight.nvstream.control.ControlStream;
 import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.LimelightCryptoProvider;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.http.PairingManager;
-import com.limelight.nvstream.input.ControllerStream;
-import com.limelight.nvstream.rtsp.RtspConnection;
 
 public class NvConnection {
 	// Context parameters
@@ -32,17 +27,6 @@ public class NvConnection {
 	private LimelightCryptoProvider cryptoProvider;
 	private String uniqueId;
 	private ConnectionContext context;
-	
-	// Stream objects
-	private ControlStream controlStream;
-	private ControllerStream inputStream;
-	private VideoStream videoStream;
-	private AudioStream audioStream;
-	
-	// Start parameters
-	private int drFlags;
-	private Object videoRenderTarget;
-	private AudioRenderer audioRenderer;
 	
 	public NvConnection(String host, String uniqueId, NvConnectionListener listener, StreamConfiguration config, LimelightCryptoProvider cryptoProvider)
 	{		
@@ -81,22 +65,7 @@ public class NvConnection {
 	
 	public void stop()
 	{
-		if (inputStream != null) {
-			inputStream.abort();
-			inputStream = null;
-		}
-		
-		if (audioStream != null) {
-			audioStream.abort();
-		}
-		
-		if (videoStream != null) {
-			videoStream.abort();
-		}
 
-		if (controlStream != null) {
-			controlStream.abort();
-		}
 	}
 	
 	private boolean startApp() throws XmlPullParserException, IOException
@@ -269,118 +238,24 @@ public class NvConnection {
 		return true;
 	}
 	
-	private boolean doRtspHandshake() throws IOException
-	{
-		RtspConnection r = new RtspConnection(context);
-		r.doRtspHandshake();
-		return true;
-	}
-	
-	private boolean startControlStream() throws IOException
-	{
-		controlStream = new ControlStream(context);
-		controlStream.initialize();
-		controlStream.start();
-		return true;
-	}
-	
-	private boolean startVideoStream() throws IOException
-	{
-		videoStream = new VideoStream(context, controlStream);
-		return videoStream.startVideoStream(videoRenderTarget, drFlags);
-	}
-	
-	private boolean startAudioStream() throws IOException
-	{
-		audioStream = new AudioStream(context, audioRenderer);
-		return audioStream.startAudioStream();
-	}
-	
-	private boolean startInputConnection() throws IOException
-	{
-		// Because input events can be delivered at any time, we must only assign
-		// it to the instance variable once the object is properly initialized.
-		// This avoids the race where inputStream != null but inputStream.initialize()
-		// has not returned yet.
-		ControllerStream tempController = new ControllerStream(context);
-		tempController.initialize(controlStream);
-		tempController.start();
-		inputStream = tempController;
-		return true;
-	}
-	
 	private void establishConnection() {
-		for (NvConnectionListener.Stage currentStage : NvConnectionListener.Stage.values())
-		{
-			boolean success = false;
+		String appName = context.streamConfig.getApp().getAppName();
 
-			if (currentStage == NvConnectionListener.Stage.LAUNCH_APP) {
-				// Display the app name instead of the stage name
-				currentStage.setName(context.streamConfig.getApp().getAppName());
-			}
-			
-			context.connListener.stageStarting(currentStage);
-			try {
-				switch (currentStage)
-				{
-				case LAUNCH_APP:
-					success = startApp();
-					break;
+		context.connListener.stageStarting(appName);
 
-				case RTSP_HANDSHAKE:
-					success = doRtspHandshake();
-					break;
-					
-				case CONTROL_START:
-					success = startControlStream();
-					break;
-					
-				case VIDEO_START:
-					success = startVideoStream();
-					break;
-					
-				case AUDIO_START:
-					success = startAudioStream();
-					break;
-					
-				case INPUT_START:
-					success = startInputConnection();
-					break;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				context.connListener.displayMessage(e.getMessage());
-				success = false;
-			}
-			
-			if (success) {
-				context.connListener.stageComplete(currentStage);
-			}
-			else {
-				context.connListener.stageFailed(currentStage);
-				return;
-			}
+		try {
+			startApp();
+			context.connListener.stageComplete(appName);
+		} catch (Exception e) {
+			e.printStackTrace();
+			context.connListener.displayMessage(e.getMessage());
+			context.connListener.stageFailed(appName);
+			return;
 		}
-		
-		// Move the mouse cursor very slightly to wake the screen up for
-		// gamepad-only scenarios
-		sendMouseMove((short) 1, (short) 1);
-		try {
-			Thread.sleep(10);
-		} catch (InterruptedException e) {}
-		sendMouseMove((short) -1, (short) -1);
-		try {
-			Thread.sleep(10);
-		} catch (InterruptedException e) {}
-
-		context.connListener.connectionStarted();
 	}
 
-	public void start(String localDeviceName, Object videoRenderTarget, int drFlags, AudioRenderer audioRenderer, VideoDecoderRenderer videoDecoderRenderer)
+	public void start(AudioRenderer audioRenderer, VideoDecoderRenderer videoDecoderRenderer)
 	{
-		this.drFlags = drFlags;
-		this.audioRenderer = audioRenderer;
-		this.videoRenderTarget = videoRenderTarget;
 		this.context.videoDecoderRenderer = videoDecoderRenderer;
 		
 		new Thread(new Runnable() {
@@ -399,26 +274,17 @@ public class NvConnection {
 	
 	public void sendMouseMove(final short deltaX, final short deltaY)
 	{
-		if (inputStream == null)
-			return;
-		
-		inputStream.sendMouseMove(deltaX, deltaY);
+
 	}
 	
 	public void sendMouseButtonDown(final byte mouseButton)
 	{
-		if (inputStream == null)
-			return;
-		
-		inputStream.sendMouseButtonDown(mouseButton);
+
 	}
 	
 	public void sendMouseButtonUp(final byte mouseButton)
 	{
-		if (inputStream == null)
-			return;
-		
-		inputStream.sendMouseButtonUp(mouseButton);
+
 	}
 	
 	public void sendControllerInput(final short controllerNumber,
@@ -427,13 +293,7 @@ public class NvConnection {
 			final short leftStickX, final short leftStickY,
 			final short rightStickX, final short rightStickY)
 	{
-		if (inputStream == null)
-			return;
-		
-		inputStream.sendControllerInput(controllerNumber, activeGamepadMask,
-				buttonFlags, leftTrigger,
-				rightTrigger, leftStickX, leftStickY,
-				rightStickX, rightStickY);
+
 	}
 	
 	public void sendControllerInput(final short buttonFlags,
@@ -441,26 +301,15 @@ public class NvConnection {
 			final short leftStickX, final short leftStickY,
 			final short rightStickX, final short rightStickY)
 	{
-		if (inputStream == null)
-			return;
-		
-		inputStream.sendControllerInput(buttonFlags, leftTrigger,
-				rightTrigger, leftStickX, leftStickY,
-				rightStickX, rightStickY);
+
 	}
 	
 	public void sendKeyboardInput(final short keyMap, final byte keyDirection, final byte modifier) {
-		if (inputStream == null)
-			return;
-		
-		inputStream.sendKeyboardInput(keyMap, keyDirection, modifier);
+
 	}
 	
 	public void sendMouseScroll(final byte scrollClicks) {
-		if (inputStream == null)
-			return;
-		
-		inputStream.sendMouseScroll(scrollClicks);
+
 	}
 	
 	public VideoFormat getActiveVideoFormat() {

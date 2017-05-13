@@ -1,3 +1,6 @@
 [submodule "app/src/main/jni/jnienet/enet"]
 	path = app/src/main/jni/jnienet/enet
 	url = https://github.com/cgutman/enet.git
+[submodule "moonlight-common"]
+	path = moonlight-common
+	url = git@github.com:moonlight-stream/moonlight-common.git

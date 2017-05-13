@@ -38,15 +38,8 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            proguardFiles getDefaultProguardFile('proguard-android.txt')
         }
-    }
-
-    // These lines are required to avoid dexing issues with the BouncyCastle library
-    // bundled with limelight-common.jar
-    packagingOptions {
-        exclude 'META-INF/BCKEY.SF'
-        exclude 'META-INF/BCKEY.DSA'
     }
 
     externalNativeBuild {
@@ -59,10 +52,6 @@ android {
 dependencies {
     compile 'org.bouncycastle:bcprov-jdk15on:1.52'
     compile 'org.bouncycastle:bcpkix-jdk15on:1.52'
-    compile 'com.squareup.okhttp:okhttp:2.4.0'
-    compile 'com.squareup.okio:okio:1.5.0'
-    compile files('libs/jmdns-3.4.2.jar')
-    compile files('libs/limelight-common.jar')
-    compile files('libs/tinyrtsp.jar')
+    compile project(':moonlight-common')
     compile files('libs/jcodec-0.1.9-patched.jar')
 }

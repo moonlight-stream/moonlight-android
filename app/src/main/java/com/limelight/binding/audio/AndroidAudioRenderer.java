@@ -6,34 +6,31 @@ import android.media.AudioTrack;
 
 import com.limelight.LimeLog;
 import com.limelight.nvstream.av.audio.AudioRenderer;
+import com.limelight.nvstream.jni.MoonBridge;
 
 public class AndroidAudioRenderer implements AudioRenderer {
 
     private AudioTrack track;
 
     @Override
-    public boolean streamInitialized(int channelCount, int channelMask, int samplesPerFrame, int sampleRate) {
+    public void setup(int audioConfiguration) {
         int channelConfig;
         int bufferSize;
-        int bytesPerFrame = (samplesPerFrame * 2);
+        int bytesPerFrame;
 
-        switch (channelCount)
+        switch (audioConfiguration)
         {
-        case 1:
-            channelConfig = AudioFormat.CHANNEL_OUT_MONO;
-            break;
-        case 2:
-            channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
-            break;
-        case 4:
-            channelConfig = AudioFormat.CHANNEL_OUT_QUAD;
-            break;
-        case 6:
-            channelConfig = AudioFormat.CHANNEL_OUT_5POINT1;
-            break;
-        default:
-            LimeLog.severe("Decoder returned unhandled channel count");
-            return false;
+            case MoonBridge.AUDIO_CONFIGURATION_STEREO:
+                channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
+                bytesPerFrame = 2 * 240 * 2;
+                break;
+            case MoonBridge.AUDIO_CONFIGURATION_51_SURROUND:
+                channelConfig = AudioFormat.CHANNEL_OUT_5POINT1;
+                bytesPerFrame = 6 * 240 * 2;
+                break;
+            default:
+                LimeLog.severe("Decoder returned unhandled channel count");
+                return;
         }
 
         // We're not supposed to request less than the minimum
@@ -46,7 +43,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
             bufferSize = bytesPerFrame * 2;
 
             track = new AudioTrack(AudioManager.STREAM_MUSIC,
-                    sampleRate,
+                    48000,
                     channelConfig,
                     AudioFormat.ENCODING_PCM_16BIT,
                     bufferSize,
@@ -61,7 +58,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
             } catch (Exception ignored) {}
 
             // Now try the larger buffer size
-            bufferSize = Math.max(AudioTrack.getMinBufferSize(sampleRate,
+            bufferSize = Math.max(AudioTrack.getMinBufferSize(48000,
                             channelConfig,
                             AudioFormat.ENCODING_PCM_16BIT),
                     bytesPerFrame * 2);
@@ -70,7 +67,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
             bufferSize = (((bufferSize + (bytesPerFrame - 1)) / bytesPerFrame) * bytesPerFrame);
 
             track = new AudioTrack(AudioManager.STREAM_MUSIC,
-                    sampleRate,
+                    48000,
                     channelConfig,
                     AudioFormat.ENCODING_PCM_16BIT,
                     bufferSize,
@@ -79,17 +76,15 @@ public class AndroidAudioRenderer implements AudioRenderer {
         }
 
         LimeLog.info("Audio track buffer size: "+bufferSize);
-
-        return true;
     }
 
     @Override
-    public void playDecodedAudio(byte[] audioData, int offset, int length) {
-        track.write(audioData, offset, length);
+    public void playDecodedAudio(byte[] audioData) {
+        track.write(audioData, 0, audioData.length);
     }
 
     @Override
-    public void streamClosing() {
+    public void cleanup() {
         if (track != null) {
             track.release();
         }

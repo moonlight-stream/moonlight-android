@@ -10,16 +10,15 @@ import com.limelight.binding.input.TouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.virtual_controller.VirtualController;
-import com.limelight.binding.video.EnhancedDecoderRenderer;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
 import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
-import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
+import com.limelight.nvstream.jni.MoonBridge;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.GameGestures;
 import com.limelight.ui.StreamView;
@@ -35,7 +34,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.Configuration;
 import android.graphics.Point;
 import android.hardware.input.InputManager;
 import android.media.AudioManager;
@@ -61,8 +59,6 @@ import android.widget.FrameLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
-import java.util.Locale;
-
 
 public class Game extends Activity implements SurfaceHolder.Callback,
     OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
@@ -83,7 +79,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     private ControllerHandler controllerHandler;
     private VirtualController virtualController;
-    private KeyboardTranslator keybTranslator;
 
     private PreferenceConfiguration prefConfig;
 
@@ -101,11 +96,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     private ShortcutHelper shortcutHelper;
 
-    private EnhancedDecoderRenderer decoderRenderer;
+    private MediaCodecDecoderRenderer decoderRenderer;
 
     private WifiManager.WifiLock wifiLock;
-
-    private int drFlags = 0;
 
     private boolean connectedToUsbDriverService = false;
     private ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
@@ -173,10 +166,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Read the stream preferences
         prefConfig = PreferenceConfiguration.readPreferences(this);
 
-        if (prefConfig.stretchVideo) {
-            drFlags |= VideoDecoderRenderer.FLAG_FILL_SCREEN;
-        }
-
         // Listen for events on the game surface
         streamView = (StreamView) findViewById(R.id.surfaceView);
         streamView.setOnGenericMotionListener(this);
@@ -236,8 +225,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setApp(new NvApp(appName, appId))
                 .setBitrate(prefConfig.bitrate * 1000)
                 .setEnableSops(prefConfig.enableSops)
-                .enableAdaptiveResolution((decoderRenderer.getCapabilities() &
-                        VideoDecoderRenderer.CAPABILITY_ADAPTIVE_RESOLUTION) != 0)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
                 .setMaxPacketSize(remote ? 1024 : 1292)
                 .setRemote(remote)
@@ -249,7 +236,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Initialize the connection
         conn = new NvConnection(host, uniqueId, Game.this, config, PlatformBinding.getCryptoProvider(this));
-        keybTranslator = new KeyboardTranslator(conn);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig.multiController, prefConfig.deadzonePercentage);
 
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
@@ -438,7 +424,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         if (conn != null) {
-            VideoDecoderRenderer.VideoFormat videoFormat = conn.getActiveVideoFormat();
+            int videoFormat = conn.getActiveVideoFormat();
 
             displayedFailureDialog = true;
             stopConnection();
@@ -457,11 +443,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
 
             // Add the video codec to the post-stream toast
-            if (message != null && videoFormat != VideoDecoderRenderer.VideoFormat.Unknown) {
-                if (videoFormat == VideoDecoderRenderer.VideoFormat.H265) {
+            if (message != null) {
+                if (videoFormat == MoonBridge.VIDEO_FORMAT_H265) {
                     message += " [H.265]";
                 }
-                else {
+                else if (videoFormat == MoonBridge.VIDEO_FORMAT_H264) {
                     message += " [H.264]";
                 }
             }
@@ -584,7 +570,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (!handled) {
             // Try the keyboard handler
-            short translated = keybTranslator.translate(event.getKeyCode());
+            short translated = KeyboardTranslator.translate(event.getKeyCode());
             if (translated == 0) {
                 return super.onKeyDown(keyCode, event);
             }
@@ -599,8 +585,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return super.onKeyDown(keyCode, event);
             }
 
-            keybTranslator.sendKeyDown(translated,
-                    getModifierState(event));
+            conn.sendKeyboardInput(translated, KeyboardPacket.KEY_DOWN, getModifierState());
         }
 
         return true;
@@ -623,7 +608,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (!handled) {
             // Try the keyboard handler
-            short translated = keybTranslator.translate(event.getKeyCode());
+            short translated = KeyboardTranslator.translate(event.getKeyCode());
             if (translated == 0) {
                 return super.onKeyUp(keyCode, event);
             }
@@ -637,8 +622,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return super.onKeyUp(keyCode, event);
             }
 
-            keybTranslator.sendKeyUp(translated,
-                    getModifierState(event));
+            conn.sendKeyboardInput(translated, KeyboardPacket.KEY_UP, getModifierState(event));
         }
 
         return true;
@@ -880,14 +864,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void stageStarting(Stage stage) {
+    public void stageStarting(String stage) {
         if (spinner != null) {
-            spinner.setMessage(getResources().getString(R.string.conn_starting)+" "+stage.getName());
+            spinner.setMessage(getResources().getString(R.string.conn_starting)+" "+stage);
         }
     }
 
     @Override
-    public void stageComplete(Stage stage) {
+    public void stageComplete(String stage) {
     }
 
     private void stopConnection() {
@@ -904,7 +888,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void stageFailed(Stage stage) {
+    public void stageFailed(String stage, long errorCode) {
         if (spinner != null) {
             spinner.dismiss();
             spinner = null;
@@ -912,17 +896,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (!displayedFailureDialog) {
             displayedFailureDialog = true;
+            LimeLog.severe(stage+" failed: "+errorCode);
+
             stopConnection();
             Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title),
-                    getResources().getString(R.string.conn_error_msg)+" "+stage.getName(), true);
+                    getResources().getString(R.string.conn_error_msg)+" "+stage, true);
         }
     }
 
     @Override
-    public void connectionTerminated(Exception e) {
+    public void connectionTerminated(long errorCode) {
         if (!displayedFailureDialog) {
             displayedFailureDialog = true;
-            e.printStackTrace();
+            LimeLog.severe("Connection terminated: "+errorCode);
 
             stopConnection();
             Dialog.displayDialog(this, getResources().getString(R.string.conn_terminated_title),
@@ -984,8 +970,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (!connected && !connecting) {
             connecting = true;
 
-            conn.start(PlatformBinding.getDeviceName(), holder, drFlags,
-                    PlatformBinding.getAudioRenderer(), decoderRenderer);
+            decoderRenderer.setRenderTarget(holder);
+            conn.start(PlatformBinding.getAudioRenderer(), decoderRenderer);
         }
     }
 
@@ -1044,17 +1030,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void keyboardEvent(boolean buttonDown, short keyCode) {
-        short keyMap = keybTranslator.translate(keyCode);
+        short keyMap = KeyboardTranslator.translate(keyCode);
         if (keyMap != 0) {
             if (handleSpecialKeys(keyMap, buttonDown)) {
                 return;
             }
 
             if (buttonDown) {
-                keybTranslator.sendKeyDown(keyMap, getModifierState());
+                conn.sendKeyboardInput(keyMap, KeyboardPacket.KEY_DOWN, getModifierState());
             }
             else {
-                keybTranslator.sendKeyUp(keyMap, getModifierState());
+                conn.sendKeyboardInput(keyMap, KeyboardPacket.KEY_UP, getModifierState());
             }
         }
     }

@@ -321,13 +321,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         rendererThread.start();
     }
 
-    private int dequeueInputBuffer(boolean wait, boolean infiniteWait) {
-        int index;
+    private int dequeueInputBuffer() {
+        int index = -1;
         long startTime, queueTime;
 
         startTime = MediaCodecHelper.getMonotonicMillis();
 
-        index = videoDecoder.dequeueInputBuffer(wait ? (infiniteWait ? -1 : 3000) : 0);
+        while (!rendererThread.isInterrupted() && index < 0) {
+            index = videoDecoder.dequeueInputBuffer(500);
+        }
+
         if (index < 0) {
             return index;
         }
@@ -430,7 +433,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
         lastTimestampUs = timestampUs;
 
-        int inputBufferIndex = dequeueInputBuffer(true, false);
+        int inputBufferIndex = dequeueInputBuffer();
+        if (inputBufferIndex < 0) {
+            // We're being torn down now
+            return MoonBridge.DR_OK;
+        }
+
         ByteBuffer buf = getEmptyInputBuffer(inputBufferIndex);
 
         int codecFlags = 0;
@@ -582,7 +590,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     }
 
     private void replaySps() {
-        int inputIndex = dequeueInputBuffer(true, true);
+        int inputIndex = dequeueInputBuffer();
         ByteBuffer inputBuffer = getEmptyInputBuffer(inputIndex);
 
         // Write the Annex B header

@@ -238,6 +238,8 @@ public class NvConnection {
 	public void start(AudioRenderer audioRenderer, VideoDecoderRenderer videoDecoderRenderer, NvConnectionListener connectionListener)
 	{
 		MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
+		context.connListener = connectionListener;
+
 		new Thread(new Runnable() {
 			public void run() {
 				try {

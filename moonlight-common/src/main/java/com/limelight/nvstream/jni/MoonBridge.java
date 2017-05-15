@@ -22,7 +22,7 @@ public class MoonBridge {
     private static NvConnectionListener connectionListener;
 
     static {
-        System.load("moonlight-core");
+        System.loadLibrary("moonlight-core");
         init();
     }
 
@@ -123,7 +123,7 @@ public class MoonBridge {
         MoonBridge.connectionListener = null;
     }
 
-    public static native void startConnection(String address, String appVersion, String gfeVersion,
+    public static native int startConnection(String address, String appVersion, String gfeVersion,
                                               int width, int height, int fps,
                                               int bitrate, boolean streamingRemotely,
                                               int audioConfiguration, boolean supportsHevc,

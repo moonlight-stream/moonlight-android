@@ -13,6 +13,7 @@ static OPUS_MULTISTREAM_CONFIGURATION OpusConfig;
 
 static JavaVM *JVM;
 static pthread_key_t JniEnvKey;
+static pthread_once_t JniEnvKeyInitOnce = PTHREAD_ONCE_INIT;
 static jclass GlobalBridgeClass;
 static jmethodID BridgeDrSetupMethod;
 static jmethodID BridgeDrCleanupMethod;
@@ -28,12 +29,27 @@ static jmethodID BridgeClConnectionTerminatedMethod;
 static jmethodID BridgeClDisplayMessageMethod;
 static jmethodID BridgeClDisplayTransientMessageMethod;
 
-static void DetachThread(void* context) {
+void DetachThread(void* context) {
     (*JVM)->DetachCurrentThread(JVM);
 }
 
-static JNIEnv* GetThreadEnv(void) {
+void JniEnvKeyInit(void) {
+    // Create a TLS slot for the JNIEnv. We aren't in
+    // a pthread during init, so we must wait until we
+    // are to initialize this.
+    pthread_key_create(&JniEnvKey, DetachThread);
+}
+
+JNIEnv* GetThreadEnv(void) {
     JNIEnv* env;
+
+    // First check if this is already attached to the JVM
+    if ((*JVM)->GetEnv(JVM, (void**)&env, JNI_VERSION_1_4) == JNI_OK) {
+        return env;
+    }
+
+    // Create the TLS slot now that we're safely in a pthread
+    pthread_once(&JniEnvKeyInitOnce, JniEnvKeyInit);
 
     // Try the TLS to see if we already have a JNIEnv
     env = pthread_getspecific(JniEnvKey);
@@ -51,6 +67,7 @@ static JNIEnv* GetThreadEnv(void) {
 
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jobject class) {
+    (*env)->GetJavaVM(env, &JVM);
     GlobalBridgeClass = (*env)->NewGlobalRef(env, (*env)->FindClass(env, "com/limelight/nvstream/jni/MoonBridge"));
     BridgeDrSetupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSetup", "(IIII)V");
     BridgeDrCleanupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrCleanup", "()V");
@@ -60,30 +77,40 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jobject class) {
     BridgeArPlaySampleMethod = (*env)->GetStaticMethodID(env, class, "bridgeArPlaySample", "([B)V");
     BridgeClStageStartingMethod = (*env)->GetStaticMethodID(env, class, "bridgeClStageStarting", "(I)V");
     BridgeClStageCompleteMethod = (*env)->GetStaticMethodID(env, class, "bridgeClStageComplete", "(I)V");
-    BridgeClStageFailedMethod = (*env)->GetStaticMethodID(env, class, "bridgeClStageFailed", "(IL)V");
+    BridgeClStageFailedMethod = (*env)->GetStaticMethodID(env, class, "bridgeClStageFailed", "(IJ)V");
     BridgeClConnectionStartedMethod = (*env)->GetStaticMethodID(env, class, "bridgeClConnectionStarted", "()V");
-    BridgeClConnectionTerminatedMethod = (*env)->GetStaticMethodID(env, class, "bridgeClConnectionTerminated", "(L)V");
+    BridgeClConnectionTerminatedMethod = (*env)->GetStaticMethodID(env, class, "bridgeClConnectionTerminated", "(J)V");
     BridgeClDisplayMessageMethod = (*env)->GetStaticMethodID(env, class, "bridgeClDisplayMessage", "(Ljava/lang/String;)V");
     BridgeClDisplayTransientMessageMethod = (*env)->GetStaticMethodID(env, class, "bridgeClDisplayTransientMessage", "(Ljava/lang/String;)V");
-
-    // Create a TLS slot for the JNIEnv
-    pthread_key_create(&JniEnvKey, DetachThread);
 }
 
-static void BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
+void BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
     JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeDrSetupMethod, videoFormat, width, height, redrawRate);
 }
 
-static void BridgeDrCleanup(void) {
+void BridgeDrCleanup(void) {
     JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeDrCleanupMethod);
 }
 
-static int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
+int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return DR_OK;
+    }
+
     jbyteArray dataRef = (*env)->NewByteArray(env, decodeUnit->fullLength);
     jbyte* data = (*env)->GetByteArrayElements(env, dataRef, 0);
     PLENTRY currentEntry;
@@ -107,9 +134,13 @@ static int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     return ret;
 }
 
-static void BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig) {
+void BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig) {
     JNIEnv* env = GetThreadEnv();
     int err;
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
 
     memcpy(&OpusConfig, opusConfig, sizeof(*opusConfig));
     Decoder = opus_multistream_decoder_create(opusConfig->sampleRate,
@@ -122,17 +153,26 @@ static void BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArInitMethod, audioConfiguration);
 }
 
-static void BridgeArCleanup() {
+void BridgeArCleanup() {
     JNIEnv* env = GetThreadEnv();
 
     opus_multistream_decoder_destroy(Decoder);
 
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
+
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArCleanupMethod);
 }
 
-static void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
+void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
     JNIEnv* env = GetThreadEnv();
-    jbyteArray decodedDataRef = (*env)->NewByteArray(env, OpusConfig.channelCount * 240);
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
+
+    jbyteArray decodedDataRef = (*env)->NewByteArray(env, OpusConfig.channelCount * PCM_FRAME_SIZE * sizeof(short));
     jbyte* decodedData = (*env)->GetByteArrayElements(env, decodedDataRef, 0);
 
     int decodeLen = opus_multistream_decode(Decoder,
@@ -155,44 +195,72 @@ static void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
     (*env)->DeleteLocalRef(env, decodedDataRef);
 }
 
-static void BridgeClStageStarting(int stage) {
+void BridgeClStageStarting(int stage) {
     JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClStageStartingMethod, stage);
 }
 
-static void BridgeClStageComplete(int stage) {
+void BridgeClStageComplete(int stage) {
     JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClStageCompleteMethod, stage);
 }
 
-static void BridgeClStageFailed(int stage, long errorCode) {
+void BridgeClStageFailed(int stage, long errorCode) {
     JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClStageFailedMethod, stage, errorCode);
 }
 
-static void BridgeClConnectionStarted(void) {
+void BridgeClConnectionStarted(void) {
     JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClConnectionStartedMethod, NULL);
 }
 
-static void BridgeClConnectionTerminated(long errorCode) {
+void BridgeClConnectionTerminated(long errorCode) {
     JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClConnectionTerminatedMethod, errorCode);
 }
 
-static void BridgeClDisplayMessage(const char* message) {
+void BridgeClDisplayMessage(const char* message) {
     JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClDisplayMessageMethod, (*env)->NewStringUTF(env, message));
 }
 
-static void BridgeClDisplayTransientMessage(const char* message) {
+void BridgeClDisplayTransientMessage(const char* message) {
     JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClDisplayTransientMessageMethod, (*env)->NewStringUTF(env, message));
 }
@@ -219,7 +287,7 @@ static CONNECTION_LISTENER_CALLBACKS BridgeConnListenerCallbacks = {
         .displayTransientMessage = BridgeClDisplayTransientMessage,
 };
 
-JNIEXPORT void JNICALL
+JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject class,
                                                            jstring address, jstring appVersion, jstring gfeVersion,
                                                            jint width, jint height, jint fps,
@@ -227,9 +295,9 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject 
                                                            jint audioConfiguration, jboolean supportsHevc,
                                                            jbyteArray riAesKey, jbyteArray riAesIv) {
     SERVER_INFORMATION serverInfo = {
-            .address = address,
-            .serverInfoAppVersion = appVersion,
-            .serverInfoGfeVersion = gfeVersion,
+            .address = (*env)->GetStringUTFChars(env, address, 0),
+            .serverInfoAppVersion = (*env)->GetStringUTFChars(env, appVersion, 0),
+            .serverInfoGfeVersion = (*env)->GetStringUTFChars(env, gfeVersion, 0),
     };
     STREAM_CONFIGURATION streamConfig = {
             .width = width,
@@ -249,5 +317,11 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject 
     memcpy(streamConfig.remoteInputAesIv, riAesIvBuf, sizeof(streamConfig.remoteInputAesIv));
     (*env)->ReleaseByteArrayElements(env, riAesIv, riAesIvBuf, JNI_ABORT);
 
-    LiStartConnection(&serverInfo, &streamConfig, &BridgeConnListenerCallbacks, &BridgeVideoRendererCallbacks, &BridgeAudioRendererCallbacks, NULL, 0);
+    int ret = LiStartConnection(&serverInfo, &streamConfig, &BridgeConnListenerCallbacks, &BridgeVideoRendererCallbacks, &BridgeAudioRendererCallbacks, NULL, 0);
+
+    (*env)->ReleaseStringUTFChars(env, address, serverInfo.address);
+    (*env)->ReleaseStringUTFChars(env, appVersion, serverInfo.serverInfoAppVersion);
+    (*env)->ReleaseStringUTFChars(env, gfeVersion, serverInfo.serverInfoGfeVersion);
+
+    return ret;
 }

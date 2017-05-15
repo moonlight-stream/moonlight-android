@@ -14,7 +14,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import com.limelight.LimeLog;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
-import com.limelight.nvstream.av.video.VideoDecoderRenderer.VideoFormat;
 import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.LimelightCryptoProvider;
 import com.limelight.nvstream.http.NvApp;
@@ -47,7 +46,7 @@ public class NvConnection {
 		
 		this.context.riKeyId = generateRiKeyId();
 		
-		this.context.negotiatedVideoFormat = VideoFormat.Unknown;
+		this.context.negotiatedVideoFormat = -1;
 	}
 	
 	private static SecretKey generateRiAesKey() throws NoSuchAlgorithmException {
@@ -249,7 +248,7 @@ public class NvConnection {
 		} catch (Exception e) {
 			e.printStackTrace();
 			context.connListener.displayMessage(e.getMessage());
-			context.connListener.stageFailed(appName);
+			context.connListener.stageFailed(appName, 0);
 			return;
 		}
 	}
@@ -263,7 +262,7 @@ public class NvConnection {
 				try {
 					context.serverAddress = InetAddress.getByName(host);
 				} catch (UnknownHostException e) {
-					context.connListener.connectionTerminated(e);
+					context.connListener.connectionTerminated(-1);
 					return;
 				}
 				
@@ -312,7 +311,7 @@ public class NvConnection {
 
 	}
 	
-	public VideoFormat getActiveVideoFormat() {
+	public int getActiveVideoFormat() {
 		return context.negotiatedVideoFormat;
 	}
 }

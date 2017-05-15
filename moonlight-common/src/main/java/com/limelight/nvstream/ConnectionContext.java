@@ -5,7 +5,6 @@ import java.net.InetAddress;
 import javax.crypto.SecretKey;
 
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
-import com.limelight.nvstream.av.video.VideoDecoderRenderer.VideoFormat;
 
 public class ConnectionContext {
 	// Gen 3 servers are 2.1.1 - 2.2.1
@@ -35,7 +34,7 @@ public class ConnectionContext {
 	// This is the version quad from the appversion tag of /serverinfo
 	public int[] serverAppVersion;
 	
-	public VideoFormat negotiatedVideoFormat;
+	public int negotiatedVideoFormat;
 	public int negotiatedWidth, negotiatedHeight;
 	public int negotiatedFps;
 }

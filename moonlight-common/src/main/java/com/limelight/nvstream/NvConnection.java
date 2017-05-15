@@ -19,6 +19,8 @@ import com.limelight.nvstream.http.LimelightCryptoProvider;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.http.PairingManager;
+import com.limelight.nvstream.input.MouseButtonPacket;
+import com.limelight.nvstream.jni.MoonBridge;
 
 public class NvConnection {
 	// Context parameters
@@ -27,14 +29,13 @@ public class NvConnection {
 	private String uniqueId;
 	private ConnectionContext context;
 	
-	public NvConnection(String host, String uniqueId, NvConnectionListener listener, StreamConfiguration config, LimelightCryptoProvider cryptoProvider)
+	public NvConnection(String host, String uniqueId, StreamConfiguration config, LimelightCryptoProvider cryptoProvider)
 	{		
 		this.host = host;
 		this.cryptoProvider = cryptoProvider;
 		this.uniqueId = uniqueId;
 		
 		this.context = new ConnectionContext();
-		this.context.connListener = listener;
 		this.context.streamConfig = config;
 		try {
 			// This is unique per connection
@@ -62,57 +63,27 @@ public class NvConnection {
 		return new SecureRandom().nextInt();
 	}
 	
-	public void stop()
-	{
-
+	public void stop() {
+		MoonBridge.stopConnection();
+		MoonBridge.cleanupBridge();
 	}
 	
 	private boolean startApp() throws XmlPullParserException, IOException
 	{
 		NvHTTP h = new NvHTTP(context.serverAddress, uniqueId, null, cryptoProvider);
-		
+
 		String serverInfo = h.getServerInfo();
 		
-		context.serverAppVersion = h.getServerAppVersionQuad(serverInfo);
+		context.serverAppVersion = h.getServerVersion(serverInfo);
 		if (context.serverAppVersion == null) {
 			context.connListener.displayMessage("Server version malformed");
 			return false;
 		}
 
-		int majorVersion = context.serverAppVersion[0];
-		LimeLog.info("Server major version: "+majorVersion);
-		
-		if (majorVersion == 0) {
-			context.connListener.displayMessage("Server version malformed");
+		context.serverGfeVersion = h.getGfeVersion(serverInfo);
+		if (context.serverGfeVersion == null) {
+			context.connListener.displayMessage("Server GFE version malformed");
 			return false;
-		}
-		else if (majorVersion < 3) {
-			// Even though we support major version 3 (2.1.x), GFE 2.2.2 is preferred.
-			context.connListener.displayMessage("This app requires GeForce Experience 2.2.2 or later. Please upgrade GFE on your PC and try again.");
-			return false;
-		}
-		else if (majorVersion > 7) {
-			// Warn the user but allow them to continue
-			context.connListener.displayTransientMessage("This version of GFE is not currently supported. You may experience issues until this app is updated.");
-		}
-		
-		switch (majorVersion) {
-		case 3:
-			context.serverGeneration = ConnectionContext.SERVER_GENERATION_3;
-			break;
-		case 4:
-			context.serverGeneration = ConnectionContext.SERVER_GENERATION_4;
-			break;
-		case 5:
-			context.serverGeneration = ConnectionContext.SERVER_GENERATION_5;
-			break;
-		case 6:
-			context.serverGeneration = ConnectionContext.SERVER_GENERATION_6;
-			break;
-		case 7:
-		default:
-			context.serverGeneration = ConnectionContext.SERVER_GENERATION_7;
-			break;
 		}
 				
 		if (h.getPairState(serverInfo) != PairingManager.PairState.PAIRED) {
@@ -251,12 +222,14 @@ public class NvConnection {
 			context.connListener.stageFailed(appName, 0);
 			return;
 		}
+
+		MoonBridge.startConnection(context.serverAddress.getHostAddress(),
+				context.serverAppVersion, context.serverGfeVersion);
 	}
 
-	public void start(AudioRenderer audioRenderer, VideoDecoderRenderer videoDecoderRenderer)
+	public void start(AudioRenderer audioRenderer, VideoDecoderRenderer videoDecoderRenderer, NvConnectionListener connectionListener)
 	{
-		this.context.videoDecoderRenderer = videoDecoderRenderer;
-		
+		MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
 		new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -273,17 +246,17 @@ public class NvConnection {
 	
 	public void sendMouseMove(final short deltaX, final short deltaY)
 	{
-
+		MoonBridge.sendMouseMove(deltaX, deltaY);
 	}
 	
 	public void sendMouseButtonDown(final byte mouseButton)
 	{
-
+		MoonBridge.sendMouseButton(MouseButtonPacket.PRESS_EVENT, mouseButton);
 	}
 	
 	public void sendMouseButtonUp(final byte mouseButton)
 	{
-
+		MoonBridge.sendMouseButton(MouseButtonPacket.RELEASE_EVENT, mouseButton);
 	}
 	
 	public void sendControllerInput(final short controllerNumber,
@@ -292,7 +265,7 @@ public class NvConnection {
 			final short leftStickX, final short leftStickY,
 			final short rightStickX, final short rightStickY)
 	{
-
+		MoonBridge.sendMultiControllerInput(controllerNumber, activeGamepadMask, buttonFlags, leftTrigger, rightTrigger, leftStickX, leftStickY, rightStickX, rightStickY);
 	}
 	
 	public void sendControllerInput(final short buttonFlags,
@@ -300,15 +273,15 @@ public class NvConnection {
 			final short leftStickX, final short leftStickY,
 			final short rightStickX, final short rightStickY)
 	{
-
+		MoonBridge.sendControllerInput(buttonFlags, leftTrigger, rightTrigger, leftStickX, leftStickY, rightStickX, rightStickY);
 	}
 	
 	public void sendKeyboardInput(final short keyMap, final byte keyDirection, final byte modifier) {
-
+		MoonBridge.sendKeyboardInput(keyMap, keyDirection, modifier);
 	}
 	
 	public void sendMouseScroll(final byte scrollClicks) {
-
+		MoonBridge.sendMouseScroll(scrollClicks);
 	}
 	
 	public int getActiveVideoFormat() {

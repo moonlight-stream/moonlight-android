@@ -377,6 +377,10 @@ public class NvHTTP {
 	public String getGpuType(String serverInfo) throws XmlPullParserException, IOException {
 		return getXmlString(serverInfo, "gputype");
 	}
+
+	public String getGfeVersion(String serverInfo) throws XmlPullParserException, IOException {
+		return getXmlString(serverInfo, "GfeVersion");
+	}
 	
 	public boolean supports4K(String serverInfo) throws XmlPullParserException, IOException {
 		// serverinfo returns supported resolutions in descending order, so getting the first

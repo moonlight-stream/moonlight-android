@@ -106,5 +106,40 @@ public class MoonBridge {
         }
     }
 
+    public static void setupBridge(VideoDecoderRenderer videoRenderer, AudioRenderer audioRenderer, NvConnectionListener connectionListener) {
+        MoonBridge.videoRenderer = videoRenderer;
+        MoonBridge.audioRenderer = audioRenderer;
+        MoonBridge.connectionListener = connectionListener;
+    }
+
+    public static void cleanupBridge() {
+        MoonBridge.videoRenderer = null;
+        MoonBridge.audioRenderer = null;
+        MoonBridge.connectionListener = null;
+    }
+
+    public static native void startConnection(String address, String serverInfoAppVersion, String serverInfoGfeVersion);
+
+    public static native void stopConnection();
+
+    public static native void sendMouseMove(short deltaX, short deltaY);
+
+    public static native void sendMouseButton(byte buttonEvent, byte mouseButton);
+
+    public static native void sendMultiControllerInput(short controllerNumber,
+                                    short activeGamepadMask, short buttonFlags,
+                                    byte leftTrigger, byte rightTrigger,
+                                    short leftStickX, short leftStickY,
+                                    short rightStickX, short rightStickY);
+
+    public static native void sendControllerInput(short buttonFlags,
+                                    byte leftTrigger, byte rightTrigger,
+                                    short leftStickX, short leftStickY,
+                                    short rightStickX, short rightStickY);
+
+    public static native void sendKeyboardInput(short keyMap, byte keyDirection, byte modifier);
+
+    public static native void sendMouseScroll(byte scrollClicks);
+
     public static native String getStageName(int stage);
 }

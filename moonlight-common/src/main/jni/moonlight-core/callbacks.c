@@ -269,6 +269,7 @@ static DECODER_RENDERER_CALLBACKS BridgeVideoRendererCallbacks = {
         .setup = BridgeDrSetup,
         .cleanup = BridgeDrCleanup,
         .submitDecodeUnit = BridgeDrSubmitDecodeUnit,
+        .capabilities = CAPABILITY_SLICES_PER_FRAME(4), // HACK: This was common-java's default
 };
 
 static AUDIO_RENDERER_CALLBACKS BridgeAudioRendererCallbacks = {

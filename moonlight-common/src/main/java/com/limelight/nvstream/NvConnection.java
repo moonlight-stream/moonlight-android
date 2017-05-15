@@ -3,6 +3,7 @@ package com.limelight.nvstream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
@@ -223,8 +224,15 @@ public class NvConnection {
 			return;
 		}
 
+		ByteBuffer ib = ByteBuffer.allocate(16);
+		ib.putInt(context.riKeyId);
+
 		MoonBridge.startConnection(context.serverAddress.getHostAddress(),
-				context.serverAppVersion, context.serverGfeVersion);
+				context.serverAppVersion, context.serverGfeVersion,
+				context.streamConfig.getWidth(), context.streamConfig.getHeight(),
+				context.streamConfig.getRefreshRate(), context.streamConfig.getBitrate(),
+				context.streamConfig.getRemote(), context.streamConfig.getAudioConfiguration(),
+				context.streamConfig.getHevcSupported(), context.riKey.getEncoded(), ib.array());
 	}
 
 	public void start(AudioRenderer audioRenderer, VideoDecoderRenderer videoDecoderRenderer, NvConnectionListener connectionListener)

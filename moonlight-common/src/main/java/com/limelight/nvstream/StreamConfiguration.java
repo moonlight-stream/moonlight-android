@@ -1,12 +1,10 @@
 package com.limelight.nvstream;
 
 import com.limelight.nvstream.http.NvApp;
+import com.limelight.nvstream.jni.MoonBridge;
 
 public class StreamConfiguration {
 	public static final int INVALID_APP_ID = 0;
-	
-	public static final int AUDIO_CONFIGURATION_STEREO = 1;
-	public static final int AUDIO_CONFIGURATION_5_1 = 2;
 	
 	private static final int CHANNEL_COUNT_STEREO = 2;
 	private static final int CHANNEL_COUNT_5_1 = 6;
@@ -25,6 +23,7 @@ public class StreamConfiguration {
 	private boolean remote;
 	private int audioChannelMask;
 	private int audioChannelCount;
+	private int audioConfiguration;
 	private boolean supportsHevc;
 	
 	public static class Builder {
@@ -77,17 +76,19 @@ public class StreamConfiguration {
 		}
 		
 		public StreamConfiguration.Builder setAudioConfiguration(int audioConfig) {
-			if (audioConfig == AUDIO_CONFIGURATION_STEREO) {
+			if (audioConfig == MoonBridge.AUDIO_CONFIGURATION_STEREO) {
 				config.audioChannelCount = CHANNEL_COUNT_STEREO;
 				config.audioChannelMask = CHANNEL_MASK_STEREO;
 			}
-			else if (audioConfig == AUDIO_CONFIGURATION_5_1) {
+			else if (audioConfig == MoonBridge.AUDIO_CONFIGURATION_51_SURROUND) {
 				config.audioChannelCount = CHANNEL_COUNT_5_1;
 				config.audioChannelMask = CHANNEL_MASK_5_1;
 			}
 			else {
 				throw new IllegalArgumentException("Invalid audio configuration");
 			}
+
+			config.audioConfiguration = audioConfig;
 
 			return this;
 		}
@@ -163,6 +164,10 @@ public class StreamConfiguration {
 	
 	public int getAudioChannelMask() {
 		return audioChannelMask;
+	}
+
+	public int getAudioConfiguration() {
+		return audioConfiguration;
 	}
 	
 	public boolean getHevcSupported() {

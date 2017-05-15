@@ -21,6 +21,11 @@ public class MoonBridge {
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;
 
+    static {
+        System.load("moonlight-core");
+        init();
+    }
+
     public static int CAPABILITY_SLICES_PER_FRAME(byte slices) {
         return slices << 24;
     }
@@ -118,7 +123,11 @@ public class MoonBridge {
         MoonBridge.connectionListener = null;
     }
 
-    public static native void startConnection(String address, String serverInfoAppVersion, String serverInfoGfeVersion);
+    public static native void startConnection(String address, String appVersion, String gfeVersion,
+                                              int width, int height, int fps,
+                                              int bitrate, boolean streamingRemotely,
+                                              int audioConfiguration, boolean supportsHevc,
+                                              byte[] riAesKey, byte[] riAesIv);
 
     public static native void stopConnection();
 
@@ -142,4 +151,6 @@ public class MoonBridge {
     public static native void sendMouseScroll(byte scrollClicks);
 
     public static native String getStageName(int stage);
+
+    public static native void init();
 }

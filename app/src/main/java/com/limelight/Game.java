@@ -230,12 +230,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setRemote(remote)
                 .setHevcSupported(decoderRenderer.isHevcSupported())
                 .setAudioConfiguration(prefConfig.enable51Surround ?
-                        StreamConfiguration.AUDIO_CONFIGURATION_5_1 :
-                        StreamConfiguration.AUDIO_CONFIGURATION_STEREO)
+                        MoonBridge.AUDIO_CONFIGURATION_51_SURROUND :
+                        MoonBridge.AUDIO_CONFIGURATION_STEREO)
                 .build();
 
         // Initialize the connection
-        conn = new NvConnection(host, uniqueId, Game.this, config, PlatformBinding.getCryptoProvider(this));
+        conn = new NvConnection(host, uniqueId, config, PlatformBinding.getCryptoProvider(this));
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig.multiController, prefConfig.deadzonePercentage);
 
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
@@ -971,7 +971,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             connecting = true;
 
             decoderRenderer.setRenderTarget(holder);
-            conn.start(PlatformBinding.getAudioRenderer(), decoderRenderer);
+            conn.start(PlatformBinding.getAudioRenderer(), decoderRenderer, Game.this);
         }
     }
 

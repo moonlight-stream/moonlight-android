@@ -611,16 +611,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         LimeLog.info("SPS replay complete");
     }
 
-    @Override
-    public int getCapabilities() {
-        int caps = 0;
-
-        caps |= directSubmit ?
-                MoonBridge.CAPABILITY_DIRECT_SUBMIT : 0;
-
-        return caps;
-    }
-
     public int getAverageEndToEndLatency() {
         if (totalFrames == 0) {
             return 0;

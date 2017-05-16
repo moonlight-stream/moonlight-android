@@ -12,7 +12,8 @@ public class MoonBridge {
     public static final int VIDEO_FORMAT_H265 = 2;
 
     public static final int CAPABILITY_DIRECT_SUBMIT = 1;
-    public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION = 2;
+    public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_AVC = 2;
+    public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_HEVC = 4;
 
     public static final int DR_OK = 0;
     public static final int DR_NEED_IDR = -1;

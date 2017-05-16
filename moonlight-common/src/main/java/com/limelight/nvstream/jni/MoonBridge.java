@@ -127,7 +127,8 @@ public class MoonBridge {
                                               int width, int height, int fps,
                                               int bitrate, boolean streamingRemotely,
                                               int audioConfiguration, boolean supportsHevc,
-                                              byte[] riAesKey, byte[] riAesIv);
+                                              byte[] riAesKey, byte[] riAesIv,
+                                              int videoCapabilities);
 
     public static native void stopConnection();
 

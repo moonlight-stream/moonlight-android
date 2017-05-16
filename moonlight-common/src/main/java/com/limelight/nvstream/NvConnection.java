@@ -230,13 +230,15 @@ public class NvConnection {
 				context.negotiatedWidth, context.negotiatedHeight,
 				context.negotiatedFps, context.streamConfig.getBitrate(),
 				context.streamConfig.getRemote(), context.streamConfig.getAudioConfiguration(),
-				context.streamConfig.getHevcSupported(), context.riKey.getEncoded(), ib.array());
+				context.streamConfig.getHevcSupported(), context.riKey.getEncoded(), ib.array(),
+                context.videoCapabilities);
 	}
 
 	public void start(AudioRenderer audioRenderer, VideoDecoderRenderer videoDecoderRenderer, NvConnectionListener connectionListener)
 	{
 		MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
 		context.connListener = connectionListener;
+        context.videoCapabilities = videoDecoderRenderer.getCapabilities();
 
 		new Thread(new Runnable() {
 			public void run() {

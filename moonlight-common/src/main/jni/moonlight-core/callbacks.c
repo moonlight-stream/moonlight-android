@@ -269,7 +269,6 @@ static DECODER_RENDERER_CALLBACKS BridgeVideoRendererCallbacks = {
         .setup = BridgeDrSetup,
         .cleanup = BridgeDrCleanup,
         .submitDecodeUnit = BridgeDrSubmitDecodeUnit,
-        .capabilities = CAPABILITY_SLICES_PER_FRAME(4), // HACK: This was common-java's default
 };
 
 static AUDIO_RENDERER_CALLBACKS BridgeAudioRendererCallbacks = {
@@ -294,7 +293,8 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject 
                                                            jint width, jint height, jint fps,
                                                            jint bitrate, jboolean streamingRemotely,
                                                            jint audioConfiguration, jboolean supportsHevc,
-                                                           jbyteArray riAesKey, jbyteArray riAesIv) {
+                                                           jbyteArray riAesKey, jbyteArray riAesIv,
+                                                           jint videoCapabilities) {
     SERVER_INFORMATION serverInfo = {
             .address = (*env)->GetStringUTFChars(env, address, 0),
             .serverInfoAppVersion = (*env)->GetStringUTFChars(env, appVersion, 0),
@@ -317,6 +317,8 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject 
     jbyte* riAesIvBuf = (*env)->GetByteArrayElements(env, riAesIv, NULL);
     memcpy(streamConfig.remoteInputAesIv, riAesIvBuf, sizeof(streamConfig.remoteInputAesIv));
     (*env)->ReleaseByteArrayElements(env, riAesIv, riAesIvBuf, JNI_ABORT);
+
+    BridgeVideoRendererCallbacks.capabilities = videoCapabilities;
 
     int ret = LiStartConnection(&serverInfo, &streamConfig, &BridgeConnListenerCallbacks, &BridgeVideoRendererCallbacks, &BridgeAudioRendererCallbacks, NULL, 0);
 

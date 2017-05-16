@@ -6,4 +6,6 @@ public abstract class VideoDecoderRenderer {
 	public abstract int submitDecodeUnit(byte[] frameData);
 	
 	public abstract void cleanup();
+
+	public abstract int getCapabilities();
 }

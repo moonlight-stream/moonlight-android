@@ -424,7 +424,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         if (conn != null) {
-            int videoFormat = conn.getActiveVideoFormat();
+            int videoFormat = decoderRenderer.getActiveVideoFormat();
 
             displayedFailureDialog = true;
             stopConnection();

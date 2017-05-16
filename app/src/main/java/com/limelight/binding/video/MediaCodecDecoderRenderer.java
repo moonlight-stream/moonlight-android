@@ -133,6 +133,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return avcDecoder != null;
     }
 
+    public int getActiveVideoFormat() {
+        return this.videoFormat;
+    }
+
     @Override
     public boolean setup(int format, int width, int height, int redrawRate) {
         this.initialWidth = width;
@@ -274,7 +278,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 while (!isInterrupted()) {
                     try {
                         // Try to output a frame
-                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 50000);
+                        int outIndex = videoDecoder.dequeueOutputBuffer(info,
+                                directSubmit ? 50000 : 0);
                         if (outIndex >= 0) {
                             long presentationTimeUs = info.presentationTimeUs;
                             int lastIndex = outIndex;
@@ -301,6 +306,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                         } else {
                             switch (outIndex) {
                                 case MediaCodec.INFO_TRY_AGAIN_LATER:
+                                    if (!directSubmit) {
+                                        Thread.yield();
+                                    }
                                     break;
                                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                                     LimeLog.info("Output format changed");
@@ -328,7 +336,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         startTime = MediaCodecHelper.getMonotonicMillis();
 
         while (rendererThread.isAlive() && index < 0) {
-            index = videoDecoder.dequeueInputBuffer(500);
+            index = videoDecoder.dequeueInputBuffer(10000);
         }
 
         if (index < 0) {

@@ -47,8 +47,6 @@ public class NvConnection {
 		}
 		
 		this.context.riKeyId = generateRiKeyId();
-		
-		this.context.negotiatedVideoFormat = -1;
 	}
 	
 	private static SecretKey generateRiAesKey() throws NoSuchAlgorithmException {
@@ -229,8 +227,8 @@ public class NvConnection {
 
 		MoonBridge.startConnection(context.serverAddress.getHostAddress(),
 				context.serverAppVersion, context.serverGfeVersion,
-				context.streamConfig.getWidth(), context.streamConfig.getHeight(),
-				context.streamConfig.getRefreshRate(), context.streamConfig.getBitrate(),
+				context.negotiatedWidth, context.negotiatedHeight,
+				context.negotiatedFps, context.streamConfig.getBitrate(),
 				context.streamConfig.getRemote(), context.streamConfig.getAudioConfiguration(),
 				context.streamConfig.getHevcSupported(), context.riKey.getEncoded(), ib.array());
 	}
@@ -292,9 +290,5 @@ public class NvConnection {
 	
 	public void sendMouseScroll(final byte scrollClicks) {
 		MoonBridge.sendMouseScroll(scrollClicks);
-	}
-	
-	public int getActiveVideoFormat() {
-		return context.negotiatedVideoFormat;
 	}
 }

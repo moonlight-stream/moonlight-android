@@ -17,7 +17,6 @@ public class ConnectionContext {
 	public String serverAppVersion;
 	public String serverGfeVersion;
 	
-	public int negotiatedVideoFormat;
 	public int negotiatedWidth, negotiatedHeight;
 	public int negotiatedFps;
 }

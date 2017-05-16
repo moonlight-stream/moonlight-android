@@ -35,6 +35,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private boolean needsSpsBitstreamFixup, isExynos4;
     private boolean adaptivePlayback, directSubmit;
     private boolean constrainedHighProfile;
+    private boolean refFrameInvalidationAvc, refFrameInvalidationHevc;
+    private boolean refFrameInvalidationActive;
     private int initialWidth, initialHeight;
     private int videoFormat;
     private Object renderTarget;
@@ -118,9 +120,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         if (avcDecoder != null) {
             directSubmit = MediaCodecHelper.decoderCanDirectSubmit(avcDecoder.getName());
             adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(avcDecoder.getName());
+            refFrameInvalidationAvc = MediaCodecHelper.decoderSupportsRefFrameInvalidationAvc(avcDecoder.getName());
+            refFrameInvalidationHevc = MediaCodecHelper.decoderSupportsRefFrameInvalidationHevc(avcDecoder.getName());
 
             if (directSubmit) {
                 LimeLog.info("Decoder "+avcDecoder.getName()+" will use direct submit");
+            }
+            if (refFrameInvalidationAvc) {
+                LimeLog.info("Decoder "+avcDecoder.getName()+" will use reference frame invalidation for AVC");
+            }
+            if (refFrameInvalidationHevc) {
+                LimeLog.info("Decoder "+avcDecoder.getName()+" will use reference frame invalidation for HEVC");
             }
         }
     }
@@ -172,6 +182,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             if (isExynos4) {
                 LimeLog.info("Decoder "+selectedDecoderName+" is on Exynos 4");
             }
+
+            refFrameInvalidationActive = refFrameInvalidationAvc;
         }
         else if (videoFormat == MoonBridge.VIDEO_FORMAT_H265) {
             mimeType = "video/hevc";
@@ -181,6 +193,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 LimeLog.severe("No available HEVC decoder!");
                 return false;
             }
+
+            refFrameInvalidationActive = refFrameInvalidationHevc;
         }
         else {
             // Unknown format
@@ -468,19 +482,22 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             // Some decoders rely on H264 level to decide how many buffers are needed
             // Since we only need one frame buffered, we'll set the level as low as we can
-            // for known resolution combinations
-            if (initialWidth == 1280 && initialHeight == 720) {
-                // Max 5 buffered frames at 1280x720x60
-                LimeLog.info("Patching level_idc to 32");
-                sps.level_idc = 32;
-            }
-            else if (initialWidth == 1920 && initialHeight == 1080) {
-                // Max 4 buffered frames at 1920x1080x64
-                LimeLog.info("Patching level_idc to 42");
-                sps.level_idc = 42;
-            }
-            else {
-                // Leave the profile alone (currently 5.0)
+            // for known resolution combinations. Reference frame invalidation may need
+            // these, so leave them be for those decoders.
+            if (!refFrameInvalidationActive) {
+                if (initialWidth == 1280 && initialHeight == 720) {
+                    // Max 5 buffered frames at 1280x720x60
+                    LimeLog.info("Patching level_idc to 32");
+                    sps.level_idc = 32;
+                }
+                else if (initialWidth == 1920 && initialHeight == 1080) {
+                    // Max 4 buffered frames at 1920x1080x64
+                    LimeLog.info("Patching level_idc to 42");
+                    sps.level_idc = 42;
+                }
+                else {
+                    // Leave the profile alone (currently 5.0)
+                }
             }
 
             // TI OMAP4 requires a reference frame count of 1 to decode successfully. Exynos 4
@@ -489,8 +506,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // I'm doing this fixup for all devices because I haven't seen any devices that
             // this causes issues for. At worst, it seems to do nothing and at best it fixes
             // issues with video lag, hangs, and crashes.
-            LimeLog.info("Patching num_ref_frames in SPS");
-            sps.num_ref_frames = 1;
+            //
+            // It does break reference frame invalidation, so we will not do that for decoders
+            // where we've enabled reference frame invalidation.
+            if (!refFrameInvalidationActive) {
+                LimeLog.info("Patching num_ref_frames in SPS");
+                sps.num_ref_frames = 1;
+            }
 
             // GFE 2.5.11 changed the SPS to add additional extensions
             // Some devices don't like these so we remove them here.
@@ -498,7 +520,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             sps.vuiParams.colour_description_present_flag = false;
             sps.vuiParams.chroma_loc_info_present_flag = false;
 
-            if (needsSpsBitstreamFixup || isExynos4) {
+            if ((needsSpsBitstreamFixup || isExynos4) && !refFrameInvalidationActive) {
                 // The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
                 // or max_dec_frame_buffering which increases decoding latency on Tegra.
 
@@ -625,6 +647,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
 
         LimeLog.info("SPS replay complete");
+    }
+
+    @Override
+    public int getCapabilities() {
+        int capabilities = 0;
+
+        // We always request 4 slices per frame to speed up decoding on some hardware
+        capabilities |= MoonBridge.CAPABILITY_SLICES_PER_FRAME((byte) 4);
+
+        // Enable reference frame invalidation on supported hardware
+        if (refFrameInvalidationAvc) {
+            capabilities |= MoonBridge.CAPABILITY_REFERENCE_FRAME_INVALIDATION_AVC;
+        }
+        if (refFrameInvalidationHevc) {
+            capabilities |= MoonBridge.CAPABILITY_REFERENCE_FRAME_INVALIDATION_HEVC;
+        }
+
+        return capabilities;
     }
 
     public int getAverageEndToEndLatency() {

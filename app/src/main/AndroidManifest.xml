@@ -40,8 +40,12 @@
             android:name="com.sec.android.support.multiwindow"
             android:value="true" />
 
+        <!-- Samsung DeX support requires explicit placement of android:resizeableActivity="true"
+             in each activity even though it is implied by targeting API 24+ -->
+
         <activity
             android:name=".PcView"
+            android:resizeableActivity="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -56,6 +60,7 @@
         <activity
             android:name=".AppViewShortcutTrampoline"
             android:noHistory="true"
+            android:resizeableActivity="true"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -63,6 +68,7 @@
         </activity>
         <activity
             android:name=".AppView"
+            android:resizeableActivity="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -70,6 +76,7 @@
         </activity>
         <activity
             android:name=".preferences.StreamSettings"
+            android:resizeableActivity="true"
             android:label="Streaming Settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -77,6 +84,7 @@
         </activity>
         <activity
             android:name=".preferences.AddComputerManually"
+            android:resizeableActivity="true"
             android:label="Add Computer Manually">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -87,6 +95,7 @@
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:screenOrientation="sensorLandscape"
             android:noHistory="true"
+            android:resizeableActivity="true"
             android:theme="@style/StreamTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -105,6 +114,7 @@
 
         <activity
             android:name=".HelpActivity"
+            android:resizeableActivity="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

@@ -2,6 +2,7 @@ package com.limelight.binding.input.evdev;
 
 import android.app.Activity;
 import android.os.Build;
+import android.os.Looper;
 import android.widget.Toast;
 
 import com.limelight.LimeLog;
@@ -198,6 +199,26 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
         });
     }
 
+    private void runInNetworkSafeContextSynchronously(Runnable runnable) {
+        // This function is used to avoid Android's strict NetworkOnMainThreadException.
+        // For our usage, it is highly unlikely to cause problems since we only do
+        // write operations and only to localhost sockets.
+        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
+            Thread t = new Thread(runnable);
+            t.start();
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                // The main thread should never be interrupted
+                e.printStackTrace();
+            }
+        }
+        else {
+            // Run the runnable directly
+            runnable.run();
+        }
+    }
+
     @Override
     public void enableCapture() {
         if (!started) {
@@ -207,26 +228,38 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
             started = true;
         }
         else {
-            // Send a request to regrab if we're already capturing
-            if (!shutdown && evdevOut != null) {
-                try {
-                    evdevOut.write(REGRAB_REQUEST);
-                } catch (IOException e) {
-                    e.printStackTrace();
+            // This may be called on the main thread
+            runInNetworkSafeContextSynchronously(new Runnable() {
+                @Override
+                public void run() {
+                    // Send a request to regrab if we're already capturing
+                    if (!shutdown && evdevOut != null) {
+                        try {
+                            evdevOut.write(REGRAB_REQUEST);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
-            }
+            });
         }
     }
 
     @Override
     public void disableCapture() {
-        if (started && !shutdown && evdevOut != null) {
-            try {
-                evdevOut.write(UNGRAB_REQUEST);
-            } catch (IOException e) {
-                e.printStackTrace();
+        // This may be called on the main thread
+        runInNetworkSafeContextSynchronously(new Runnable() {
+            @Override
+            public void run() {
+                if (started && !shutdown && evdevOut != null) {
+                    try {
+                        evdevOut.write(UNGRAB_REQUEST);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-        }
+        });
     }
 
     @Override
@@ -234,6 +267,8 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
         // We need to stop the process in this context otherwise
         // we could get stuck waiting on output from the process
         // in order to terminate it.
+        //
+        // This may be called on the main thread.
 
         if (!started) {
             return;
@@ -242,37 +277,42 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
         shutdown = true;
         handlerThread.interrupt();
 
-        if (servSock != null) {
-            try {
-                servSock.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        runInNetworkSafeContextSynchronously(new Runnable() {
+            @Override
+            public void run() {
+                if (servSock != null) {
+                    try {
+                        servSock.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
 
-        if (evdevSock != null) {
-            try {
-                evdevSock.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+                if (evdevSock != null) {
+                    try {
+                        evdevSock.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
 
-        if (evdevIn != null) {
-            try {
-                evdevIn.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+                if (evdevIn != null) {
+                    try {
+                        evdevIn.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
 
-        if (evdevOut != null) {
-            try {
-                evdevOut.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+                if (evdevOut != null) {
+                    try {
+                        evdevOut.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-        }
+        });
 
         if (su != null) {
             su.destroy();

@@ -81,6 +81,10 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
                     // Get the computer object
                     computer = managerBinder.getComputer(UUID.fromString(uuidString));
+                    if (computer == null) {
+                        finish();
+                        return;
+                    }
 
                     try {
                         appGridAdapter = new AppGridAdapter(AppView.this,

@@ -12,7 +12,7 @@ android {
         targetSdkVersion 25
 
         versionName "5.0.0"
-        versionCode = 120
+        versionCode = 121
     }
 
     productFlavors {

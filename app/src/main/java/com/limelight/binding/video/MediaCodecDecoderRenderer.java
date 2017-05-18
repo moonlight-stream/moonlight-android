@@ -358,8 +358,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         startTime = MediaCodecHelper.getMonotonicMillis();
 
-        while (rendererThread.isAlive() && index < 0 && !stopping) {
-            index = videoDecoder.dequeueInputBuffer(10000);
+        try {
+            while (rendererThread.isAlive() && index < 0 && !stopping) {
+                index = videoDecoder.dequeueInputBuffer(10000);
+            }
+        } catch (Exception e) {
+            handleDecoderException(e, null, 0);
+            return MediaCodec.INFO_TRY_AGAIN_LATER;
         }
 
         if (index < 0) {

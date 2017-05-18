@@ -48,9 +48,9 @@ public class MoonBridge {
         }
     }
 
-    public static int bridgeDrSubmitDecodeUnit(byte[] frameData) {
+    public static int bridgeDrSubmitDecodeUnit(byte[] frameData, int frameLength) {
         if (videoRenderer != null) {
-            return videoRenderer.submitDecodeUnit(frameData);
+            return videoRenderer.submitDecodeUnit(frameData, frameLength);
         }
         else {
             return DR_OK;

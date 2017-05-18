@@ -28,6 +28,8 @@ static jmethodID BridgeClConnectionStartedMethod;
 static jmethodID BridgeClConnectionTerminatedMethod;
 static jmethodID BridgeClDisplayMessageMethod;
 static jmethodID BridgeClDisplayTransientMessageMethod;
+static jbyteArray DecodedFrameBuffer;
+static jbyteArray DecodedAudioBuffer;
 
 void DetachThread(void* context) {
     (*JVM)->DetachCurrentThread(JVM);
@@ -71,7 +73,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jobject class) {
     GlobalBridgeClass = (*env)->NewGlobalRef(env, (*env)->FindClass(env, "com/limelight/nvstream/jni/MoonBridge"));
     BridgeDrSetupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSetup", "(IIII)I");
     BridgeDrCleanupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrCleanup", "()V");
-    BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSubmitDecodeUnit", "([B)I");
+    BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSubmitDecodeUnit", "([BI)I");
     BridgeArInitMethod = (*env)->GetStaticMethodID(env, class, "bridgeArInit", "(I)I");
     BridgeArCleanupMethod = (*env)->GetStaticMethodID(env, class, "bridgeArCleanup", "()V");
     BridgeArPlaySampleMethod = (*env)->GetStaticMethodID(env, class, "bridgeArPlaySample", "([B)V");
@@ -94,14 +96,22 @@ int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* 
 
     err = (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeDrSetupMethod, videoFormat, width, height, redrawRate);
     if ((*env)->ExceptionCheck(env)) {
-        err = -1;
+        return -1;
+    }
+    else if (err != 0) {
+        return err;
     }
 
-    return err;
+    // Use a 32K frame buffer that will increase if needed
+    DecodedFrameBuffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, 32768));
+
+    return 0;
 }
 
 void BridgeDrCleanup(void) {
     JNIEnv* env = GetThreadEnv();
+
+    (*env)->DeleteGlobalRef(env, DecodedFrameBuffer);
 
     if ((*env)->ExceptionCheck(env)) {
         return;
@@ -117,27 +127,25 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
         return DR_OK;
     }
 
-    jbyteArray dataRef = (*env)->NewByteArray(env, decodeUnit->fullLength);
-    jbyte* data = (*env)->GetByteArrayElements(env, dataRef, 0);
+    // Increase the size of our frame data buffer if our frame won't fit
+    if ((*env)->GetArrayLength(env, DecodedFrameBuffer) < decodeUnit->fullLength) {
+        (*env)->DeleteGlobalRef(env, DecodedFrameBuffer);
+        DecodedFrameBuffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, decodeUnit->fullLength));
+    }
+
     PLENTRY currentEntry;
     int offset;
 
     currentEntry = decodeUnit->bufferList;
     offset = 0;
     while (currentEntry != NULL) {
-        memcpy(&data[offset], currentEntry->data, currentEntry->length);
+        (*env)->SetByteArrayRegion(env, DecodedFrameBuffer, offset, currentEntry->length, (jbyte*)currentEntry->data);
         offset += currentEntry->length;
 
         currentEntry = currentEntry->next;
     }
 
-    // We must release the array elements first to ensure the data is copied before the callback
-    (*env)->ReleaseByteArrayElements(env, dataRef, data, 0);
-
-    int ret = (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeDrSubmitDecodeUnitMethod, dataRef);
-    (*env)->DeleteLocalRef(env, dataRef);
-
-    return ret;
+    return (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeDrSubmitDecodeUnitMethod, DecodedFrameBuffer, decodeUnit->fullLength);
 }
 
 int BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig) {
@@ -164,6 +172,9 @@ int BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusCon
             (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArCleanupMethod);
             return -1;
         }
+
+        // We know ahead of time what the buffer size will be for decoded audio, so pre-allocate it
+        DecodedAudioBuffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, opusConfig->channelCount * PCM_FRAME_SIZE * sizeof(short)));
     }
 
     return err;
@@ -172,10 +183,9 @@ int BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusCon
 void BridgeArCleanup() {
     JNIEnv* env = GetThreadEnv();
 
-    if (Decoder != NULL) {
-        opus_multistream_decoder_destroy(Decoder);
-        Decoder = NULL;
-    }
+    opus_multistream_decoder_destroy(Decoder);
+
+    (*env)->DeleteGlobalRef(env, DecodedAudioBuffer);
 
     if ((*env)->ExceptionCheck(env)) {
         return;
@@ -191,8 +201,7 @@ void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
         return;
     }
 
-    jbyteArray decodedDataRef = (*env)->NewByteArray(env, OpusConfig.channelCount * PCM_FRAME_SIZE * sizeof(short));
-    jbyte* decodedData = (*env)->GetByteArrayElements(env, decodedDataRef, 0);
+    jbyte* decodedData = (*env)->GetByteArrayElements(env, DecodedAudioBuffer, 0);
 
     int decodeLen = opus_multistream_decode(Decoder,
                                             (const unsigned char*)sampleData,
@@ -202,16 +211,14 @@ void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
                                             0);
     if (decodeLen > 0) {
         // We must release the array elements first to ensure the data is copied before the callback
-        (*env)->ReleaseByteArrayElements(env, decodedDataRef, decodedData, 0);
+        (*env)->ReleaseByteArrayElements(env, DecodedAudioBuffer, decodedData, 0);
 
-        (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArPlaySampleMethod, decodedDataRef);
+        (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArPlaySampleMethod, DecodedAudioBuffer);
     }
     else {
         // We can abort here to avoid the copy back since no data was modified
-        (*env)->ReleaseByteArrayElements(env, decodedDataRef, decodedData, JNI_ABORT);
+        (*env)->ReleaseByteArrayElements(env, DecodedAudioBuffer, decodedData, JNI_ABORT);
     }
-
-    (*env)->DeleteLocalRef(env, decodedDataRef);
 }
 
 void BridgeClStageStarting(int stage) {

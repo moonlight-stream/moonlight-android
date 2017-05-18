@@ -405,11 +405,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-
-        SpinnerDialog.closeDialogs(this);
-        Dialog.closeDialogs();
+    protected void onDestroy() {
+        super.onDestroy();
 
         if (controllerHandler != null) {
             InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
@@ -456,6 +453,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             }
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        SpinnerDialog.closeDialogs(this);
+        Dialog.closeDialogs();
 
         finish();
     }

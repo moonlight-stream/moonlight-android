@@ -40,6 +40,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private int initialWidth, initialHeight;
     private int videoFormat;
     private Object renderTarget;
+    private boolean stopping;
 
     private boolean needsBaselineSpsHack;
     private SeqParameterSet savedSps;
@@ -273,7 +274,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         // Only throw if this happens at the beginning of a stream
-        if (totalFrames < 60) {
+        // but not if we're stopping
+        if (totalFrames > 0 && totalFrames < 20 && !stopping) {
             if (buf != null || codecFlags != 0) {
                 throw new RendererException(this, e, buf, codecFlags);
             }
@@ -368,6 +370,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     // This method is used by the hack in Game, not called by the streaming core.
     public void stop() {
+        stopping = true;
+
         if (rendererThread != null) {
             // Halt the rendering thread
             rendererThread.interrupt();

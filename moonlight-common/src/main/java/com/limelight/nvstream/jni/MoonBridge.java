@@ -5,6 +5,8 @@ import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 
 public class MoonBridge {
+    /* See documentation in Limelight.h for information about these functions and constants */
+
     public static final int AUDIO_CONFIGURATION_STEREO = 0;
     public static final int AUDIO_CONFIGURATION_51_SURROUND = 1;
 
@@ -31,9 +33,12 @@ public class MoonBridge {
         return slices << 24;
     }
 
-    public static void bridgeDrSetup(int videoFormat, int width, int height, int redrawRate) {
+    public static int bridgeDrSetup(int videoFormat, int width, int height, int redrawRate) {
         if (videoRenderer != null) {
-            videoRenderer.setup(videoFormat, width, height, redrawRate);
+            return videoRenderer.setup(videoFormat, width, height, redrawRate);
+        }
+        else {
+            return -1;
         }
     }
 
@@ -52,9 +57,12 @@ public class MoonBridge {
         }
     }
 
-    public static void bridgeArInit(int audioConfiguration) {
+    public static int bridgeArInit(int audioConfiguration) {
         if (audioRenderer != null) {
-            audioRenderer.setup(audioConfiguration);
+            return audioRenderer.setup(audioConfiguration);
+        }
+        else {
+            return -1;
         }
     }
 

@@ -69,10 +69,10 @@ JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jobject class) {
     (*env)->GetJavaVM(env, &JVM);
     GlobalBridgeClass = (*env)->NewGlobalRef(env, (*env)->FindClass(env, "com/limelight/nvstream/jni/MoonBridge"));
-    BridgeDrSetupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSetup", "(IIII)V");
+    BridgeDrSetupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSetup", "(IIII)I");
     BridgeDrCleanupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrCleanup", "()V");
     BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSubmitDecodeUnit", "([B)I");
-    BridgeArInitMethod = (*env)->GetStaticMethodID(env, class, "bridgeArInit", "(I)V");
+    BridgeArInitMethod = (*env)->GetStaticMethodID(env, class, "bridgeArInit", "(I)I");
     BridgeArCleanupMethod = (*env)->GetStaticMethodID(env, class, "bridgeArCleanup", "()V");
     BridgeArPlaySampleMethod = (*env)->GetStaticMethodID(env, class, "bridgeArPlaySample", "([B)V");
     BridgeClStageStartingMethod = (*env)->GetStaticMethodID(env, class, "bridgeClStageStarting", "(I)V");
@@ -84,14 +84,20 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jobject class) {
     BridgeClDisplayTransientMessageMethod = (*env)->GetStaticMethodID(env, class, "bridgeClDisplayTransientMessage", "(Ljava/lang/String;)V");
 }
 
-void BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
+int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
     JNIEnv* env = GetThreadEnv();
+    int err;
 
     if ((*env)->ExceptionCheck(env)) {
-        return;
+        return -1;
     }
 
-    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeDrSetupMethod, videoFormat, width, height, redrawRate);
+    err = (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeDrSetupMethod, videoFormat, width, height, redrawRate);
+    if ((*env)->ExceptionCheck(env)) {
+        err = -1;
+    }
+
+    return err;
 }
 
 void BridgeDrCleanup(void) {
@@ -134,29 +140,42 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     return ret;
 }
 
-void BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig) {
+int BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig) {
     JNIEnv* env = GetThreadEnv();
     int err;
 
     if ((*env)->ExceptionCheck(env)) {
-        return;
+        return -1;
     }
 
-    memcpy(&OpusConfig, opusConfig, sizeof(*opusConfig));
-    Decoder = opus_multistream_decoder_create(opusConfig->sampleRate,
-                                              opusConfig->channelCount,
-                                              opusConfig->streams,
-                                              opusConfig->coupledStreams,
-                                              opusConfig->mapping,
-                                              &err);
+    err = (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeArInitMethod, audioConfiguration);
+    if ((*env)->ExceptionCheck(env)) {
+        err = -1;
+    }
+    if (err == 0) {
+        memcpy(&OpusConfig, opusConfig, sizeof(*opusConfig));
+        Decoder = opus_multistream_decoder_create(opusConfig->sampleRate,
+                                                  opusConfig->channelCount,
+                                                  opusConfig->streams,
+                                                  opusConfig->coupledStreams,
+                                                  opusConfig->mapping,
+                                                  &err);
+        if (Decoder == NULL) {
+            (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArCleanupMethod);
+            return -1;
+        }
+    }
 
-    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArInitMethod, audioConfiguration);
+    return err;
 }
 
 void BridgeArCleanup() {
     JNIEnv* env = GetThreadEnv();
 
-    opus_multistream_decoder_destroy(Decoder);
+    if (Decoder != NULL) {
+        opus_multistream_decoder_destroy(Decoder);
+        Decoder = NULL;
+    }
 
     if ((*env)->ExceptionCheck(env)) {
         return;

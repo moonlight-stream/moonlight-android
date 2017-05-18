@@ -1,7 +1,5 @@
-#Moonlight
+# Moonlight
 
-Moonlight-common contains common code between
-[moonlight-android](https://github.com/moonlight-stream/moonlight-android) and
-[moonlight-pc](https://github.com/moonlight-stream/moonlight-pc).
+Moonlight-common contains an Android library for [moonlight-android](https://github.com/moonlight-stream/moonlight-android) and other Android-based GameStream clients.
 
-It implements the actual GameStream protocol.
+It implements the actual GameStream protocol in an AAR library.

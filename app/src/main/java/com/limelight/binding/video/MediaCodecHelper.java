@@ -244,6 +244,16 @@ public class MediaCodecHelper {
 			return false;
 		}
 
+		//
+		// Software decoders are terrible and we never want to use them.
+		// We want to catch decoders like:
+		// OMX.qcom.video.decoder.hevcswvdec
+		// OMX.SEC.hevc.sw.dec
+		//
+		if (decoderName.contains("sw")) {
+			return false;
+		}
+
 		return isDecoderInList(whitelistedHevcDecoders, decoderName);
 	}
 	

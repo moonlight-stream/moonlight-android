@@ -469,7 +469,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int submitDecodeUnit(byte[] frameData) {
+    public int submitDecodeUnit(byte[] frameData, int frameLength) {
         totalFrames++;
 
         long timestampUs = System.nanoTime() / 1000;
@@ -594,7 +594,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             // The H264Utils.writeSPS function safely handles
             // Annex B NALUs (including NALUs with escape sequences)
-            ByteBuffer escapedNalu = H264Utils.writeSPS(sps, frameData.length);
+            ByteBuffer escapedNalu = H264Utils.writeSPS(sps, frameLength);
             buf.put(escapedNalu);
 
             if (queueInputBuffer(inputBufferIndex,
@@ -634,10 +634,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         // Copy data from our buffer list into the input buffer
-        buf.put(frameData);
+        buf.put(frameData, 0, frameLength);
 
         if (!queueInputBuffer(inputBufferIndex,
-                0, frameData.length,
+                0, frameLength,
                 timestampUs, codecFlags)) {
             return MoonBridge.DR_NEED_IDR;
         }

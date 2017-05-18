@@ -149,7 +149,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     }
 
     @Override
-    public boolean setup(int format, int width, int height, int redrawRate) {
+    public int setup(int format, int width, int height, int redrawRate) {
         this.initialWidth = width;
         this.initialHeight = height;
         this.videoFormat = format;
@@ -163,7 +163,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             if (avcDecoder == null) {
                 LimeLog.severe("No available AVC decoder!");
-                return false;
+                return -1;
             }
 
             // These fixups only apply to H264 decoders
@@ -192,14 +192,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             if (hevcDecoder == null) {
                 LimeLog.severe("No available HEVC decoder!");
-                return false;
+                return -2;
             }
 
             refFrameInvalidationActive = refFrameInvalidationHevc;
         }
         else {
             // Unknown format
-            return false;
+            LimeLog.severe("Unknown format");
+            return -3;
         }
 
         // Codecs have been known to throw all sorts of crazy runtime exceptions
@@ -207,7 +208,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         try {
             videoDecoder = MediaCodec.createByCodecName(selectedDecoderName);
         } catch (Exception e) {
-            return false;
+            e.printStackTrace();
+            return -4;
         }
 
         MediaFormat videoFormat = MediaFormat.createVideoFormat(mimeType, width, height);
@@ -227,35 +229,40 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             videoFormat.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
         }
 
-        videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
-        videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+        try {
+            videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
+            videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 
-        if (USE_FRAME_RENDER_TIME && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            videoDecoder.setOnFrameRenderedListener(new MediaCodec.OnFrameRenderedListener() {
-                @Override
-                public void onFrameRendered(MediaCodec mediaCodec, long presentationTimeUs, long renderTimeNanos) {
-                    long delta = (renderTimeNanos / 1000000L) - (presentationTimeUs / 1000);
-                    if (delta >= 0 && delta < 1000) {
-                        if (USE_FRAME_RENDER_TIME) {
-                            totalTimeMs += delta;
+            if (USE_FRAME_RENDER_TIME && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                videoDecoder.setOnFrameRenderedListener(new MediaCodec.OnFrameRenderedListener() {
+                    @Override
+                    public void onFrameRendered(MediaCodec mediaCodec, long presentationTimeUs, long renderTimeNanos) {
+                        long delta = (renderTimeNanos / 1000000L) - (presentationTimeUs / 1000);
+                        if (delta >= 0 && delta < 1000) {
+                            if (USE_FRAME_RENDER_TIME) {
+                                totalTimeMs += delta;
+                            }
                         }
                     }
-                }
-            }, null);
-        }
+                }, null);
+            }
 
-        LimeLog.info("Using codec "+selectedDecoderName+" for hardware decoding "+mimeType);
+            LimeLog.info("Using codec "+selectedDecoderName+" for hardware decoding "+mimeType);
 
-        // Start the decoder
-        videoDecoder.start();
+            // Start the decoder
+            videoDecoder.start();
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            legacyInputBuffers = videoDecoder.getInputBuffers();
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                legacyInputBuffers = videoDecoder.getInputBuffers();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -5;
         }
 
         startRendererThread();
 
-        return true;
+        return 0;
     }
 
     private void handleDecoderException(Exception e, ByteBuffer buf, int codecFlags) {
@@ -456,6 +463,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     }
 
     @SuppressWarnings("deprecation")
+    @Override
     public int submitDecodeUnit(byte[] frameData) {
         totalFrames++;
 

@@ -13,7 +13,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
     private AudioTrack track;
 
     @Override
-    public void setup(int audioConfiguration) {
+    public int setup(int audioConfiguration) {
         int channelConfig;
         int bufferSize;
         int bytesPerFrame;
@@ -30,7 +30,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
                 break;
             default:
                 LimeLog.severe("Decoder returned unhandled channel count");
-                return;
+                return -1;
         }
 
         // We're not supposed to request less than the minimum
@@ -76,6 +76,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
         }
 
         LimeLog.info("Audio track buffer size: "+bufferSize);
+        return 0;
     }
 
     @Override

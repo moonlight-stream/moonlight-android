@@ -351,7 +351,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         startTime = MediaCodecHelper.getMonotonicMillis();
 
-        while (rendererThread.isAlive() && index < 0) {
+        while (rendererThread.isAlive() && index < 0 && !stopping) {
             index = videoDecoder.dequeueInputBuffer(10000);
         }
 
@@ -390,7 +390,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
     }
 
-    private void queueInputBuffer(int inputBufferIndex, int offset, int length, long timestampUs, int codecFlags) {
+    private boolean queueInputBuffer(int inputBufferIndex, int offset, int length, long timestampUs, int codecFlags) {
         // Try 25 times to submit the input buffer before throwing a real exception
         int i;
         Exception lastException = null;
@@ -407,8 +407,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
         }
 
-        if (i == 25) {
+        if (i == 25 && totalFrames > 0 && totalFrames < 20 && !stopping) {
             throw new RendererException(this, lastException, null, codecFlags);
+        }
+        else if (i != 25) {
+            // Queued input buffer
+            return true;
+        }
+        else {
+            // Failed to queue
+            return false;
         }
     }
 
@@ -576,11 +584,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             ByteBuffer escapedNalu = H264Utils.writeSPS(sps, frameData.length);
             buf.put(escapedNalu);
 
-            queueInputBuffer(inputBufferIndex,
+            if (queueInputBuffer(inputBufferIndex,
                     0, buf.position(),
-                    timestampUs, codecFlags);
-
-            return MoonBridge.DR_OK;
+                    timestampUs, codecFlags)) {
+                return MoonBridge.DR_OK;
+            }
+            else {
+                return MoonBridge.DR_NEED_IDR;
+            }
 
             // H264 PPS
         } else if (frameData[4] == 0x68) {
@@ -612,19 +623,29 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // Copy data from our buffer list into the input buffer
         buf.put(frameData);
 
-        queueInputBuffer(inputBufferIndex,
+        if (!queueInputBuffer(inputBufferIndex,
                 0, frameData.length,
-                timestampUs, codecFlags);
+                timestampUs, codecFlags)) {
+            return MoonBridge.DR_NEED_IDR;
+        }
 
         if (needsSpsReplay) {
-            replaySps();
+            if (!replaySps()) {
+                return MoonBridge.DR_NEED_IDR;
+            }
+
+            LimeLog.info("SPS replay complete");
         }
 
         return MoonBridge.DR_OK;
     }
 
-    private void replaySps() {
+    private boolean replaySps() {
         int inputIndex = dequeueInputBuffer();
+        if (inputIndex < 0) {
+            return false;
+        }
+
         ByteBuffer inputBuffer = getEmptyInputBuffer(inputIndex);
 
         // Write the Annex B header
@@ -645,12 +666,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         savedSps = null;
 
         // Queue the new SPS
-        queueInputBuffer(inputIndex,
+        return queueInputBuffer(inputIndex,
                 0, inputBuffer.position(),
                 System.nanoTime() / 1000,
                 MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
-
-        LimeLog.info("SPS replay complete");
     }
 
     @Override

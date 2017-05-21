@@ -31,7 +31,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private MediaCodecInfo hevcDecoder;
 
     private MediaCodec videoDecoder;
-    private Thread rendererThread;
+    private Thread rendererThread, spinnerThread;
     private boolean needsSpsBitstreamFixup, isExynos4;
     private boolean adaptivePlayback, directSubmit;
     private boolean constrainedHighProfile;
@@ -299,8 +299,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 while (!isInterrupted()) {
                     try {
                         // Try to output a frame
-                        int outIndex = videoDecoder.dequeueOutputBuffer(info,
-                                directSubmit ? 50000 : 0);
+                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 50000);
                         if (outIndex >= 0) {
                             long presentationTimeUs = info.presentationTimeUs;
                             int lastIndex = outIndex;
@@ -327,9 +326,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                         } else {
                             switch (outIndex) {
                                 case MediaCodec.INFO_TRY_AGAIN_LATER:
-                                    if (!directSubmit) {
-                                        Thread.yield();
-                                    }
                                     break;
                                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                                     LimeLog.info("Output format changed");
@@ -348,6 +344,21 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         rendererThread.setName("Video - Renderer (MediaCodec)");
         rendererThread.setPriority(Thread.NORM_PRIORITY + 2);
         rendererThread.start();
+    }
+
+    private void startSpinnerThread() {
+        spinnerThread = new Thread() {
+            @Override
+            public void run() {
+                // This thread exists to keep the CPU at a higher DVFS state on devices
+                // where the governor scales clock speed sporadically, causing dropped frames.
+                while (!isInterrupted()) {
+                    Thread.yield();
+                }
+            }
+        };
+        spinnerThread.setPriority(Thread.MIN_PRIORITY);
+        spinnerThread.start();
     }
 
     private int dequeueInputBuffer() {
@@ -381,6 +392,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     @Override
     public void start() {
         startRendererThread();
+        startSpinnerThread();
     }
 
     @Override
@@ -391,6 +403,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         rendererThread.interrupt();
         try {
             rendererThread.join();
+        } catch (InterruptedException ignored) { }
+
+        // Halt the spinner thread
+        spinnerThread.interrupt();
+        try {
+            spinnerThread.join();
         } catch (InterruptedException ignored) { }
     }
 
@@ -695,6 +713,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
         if (refFrameInvalidationHevc) {
             capabilities |= MoonBridge.CAPABILITY_REFERENCE_FRAME_INVALIDATION_HEVC;
+        }
+
+        // Enable direct submit on supported hardware
+        if (directSubmit) {
+            capabilities |= MoonBridge.CAPABILITY_DIRECT_SUBMIT;
         }
 
         return capabilities;

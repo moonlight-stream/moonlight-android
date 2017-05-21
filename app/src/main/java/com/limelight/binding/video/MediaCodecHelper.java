@@ -135,6 +135,9 @@ public class MediaCodecHelper {
                 LimeLog.info("Added omx.qcom to AVC reference frame invalidation support list");
                 refFrameInvalidationAvcPrefixes.add("omx.qcom");
 
+				LimeLog.info("Added omx.intel to AVC reference frame invalidation support list");
+				refFrameInvalidationAvcPrefixes.add("omx.intel");
+
 				// Qualcomm's early HEVC decoders break hard on our HEVC stream. The best check to
 				// tell the good from the bad decoders are the generation of Adreno GPU included:
 				// 3xx - bad

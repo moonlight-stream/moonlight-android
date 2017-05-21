@@ -42,6 +42,18 @@ public class MoonBridge {
         }
     }
 
+    public static void bridgeDrStart() {
+        if (videoRenderer != null) {
+            videoRenderer.start();
+        }
+    }
+
+    public static void bridgeDrStop() {
+        if (videoRenderer != null) {
+            videoRenderer.stop();
+        }
+    }
+
     public static void bridgeDrCleanup() {
         if (videoRenderer != null) {
             videoRenderer.cleanup();
@@ -63,6 +75,18 @@ public class MoonBridge {
         }
         else {
             return -1;
+        }
+    }
+
+    public static void bridgeArStart() {
+        if (audioRenderer != null) {
+            audioRenderer.start();
+        }
+    }
+
+    public static void bridgeArStop() {
+        if (audioRenderer != null) {
+            audioRenderer.stop();
         }
     }
 

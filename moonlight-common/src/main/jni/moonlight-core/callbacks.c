@@ -16,9 +16,13 @@ static pthread_key_t JniEnvKey;
 static pthread_once_t JniEnvKeyInitOnce = PTHREAD_ONCE_INIT;
 static jclass GlobalBridgeClass;
 static jmethodID BridgeDrSetupMethod;
+static jmethodID BridgeDrStartMethod;
+static jmethodID BridgeDrStopMethod;
 static jmethodID BridgeDrCleanupMethod;
 static jmethodID BridgeDrSubmitDecodeUnitMethod;
 static jmethodID BridgeArInitMethod;
+static jmethodID BridgeArStartMethod;
+static jmethodID BridgeArStopMethod;
 static jmethodID BridgeArCleanupMethod;
 static jmethodID BridgeArPlaySampleMethod;
 static jmethodID BridgeClStageStartingMethod;
@@ -72,9 +76,13 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jobject class) {
     (*env)->GetJavaVM(env, &JVM);
     GlobalBridgeClass = (*env)->NewGlobalRef(env, (*env)->FindClass(env, "com/limelight/nvstream/jni/MoonBridge"));
     BridgeDrSetupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSetup", "(IIII)I");
+    BridgeDrStartMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrStart", "()V");
+    BridgeDrStopMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrStop", "()V");
     BridgeDrCleanupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrCleanup", "()V");
     BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSubmitDecodeUnit", "([BI)I");
     BridgeArInitMethod = (*env)->GetStaticMethodID(env, class, "bridgeArInit", "(I)I");
+    BridgeArStartMethod = (*env)->GetStaticMethodID(env, class, "bridgeArStart", "()V");
+    BridgeArStopMethod = (*env)->GetStaticMethodID(env, class, "bridgeArStop", "()V");
     BridgeArCleanupMethod = (*env)->GetStaticMethodID(env, class, "bridgeArCleanup", "()V");
     BridgeArPlaySampleMethod = (*env)->GetStaticMethodID(env, class, "bridgeArPlaySample", "([B)V");
     BridgeClStageStartingMethod = (*env)->GetStaticMethodID(env, class, "bridgeClStageStarting", "(I)V");
@@ -106,6 +114,26 @@ int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* 
     DecodedFrameBuffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, 32768));
 
     return 0;
+}
+
+void BridgeDrStart(void) {
+    JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
+
+    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeDrStartMethod);
+}
+
+void BridgeDrStop(void) {
+    JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
+
+    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeDrStopMethod);
 }
 
 void BridgeDrCleanup(void) {
@@ -178,6 +206,26 @@ int BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusCon
     }
 
     return err;
+}
+
+void BridgeArStart(void) {
+    JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
+
+    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArStartMethod);
+}
+
+void BridgeArStop(void) {
+    JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
+
+    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArStopMethod);
 }
 
 void BridgeArCleanup() {
@@ -293,12 +341,16 @@ void BridgeClDisplayTransientMessage(const char* message) {
 
 static DECODER_RENDERER_CALLBACKS BridgeVideoRendererCallbacks = {
         .setup = BridgeDrSetup,
+        .start = BridgeDrStart,
+        .stop = BridgeDrStop,
         .cleanup = BridgeDrCleanup,
         .submitDecodeUnit = BridgeDrSubmitDecodeUnit,
 };
 
 static AUDIO_RENDERER_CALLBACKS BridgeAudioRendererCallbacks = {
         .init = BridgeArInit,
+        .start = BridgeArStart,
+        .stop = BridgeArStop,
         .cleanup = BridgeArCleanup,
         .decodeAndPlaySample = BridgeArDecodeAndPlaySample,
 };

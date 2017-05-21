@@ -63,8 +63,12 @@ public class NvConnection {
 	}
 	
 	public void stop() {
-		MoonBridge.stopConnection();
-		MoonBridge.cleanupBridge();
+		// Moonlight-core is not thread-safe with respect to connection start and stop, so
+		// we must not invoke that functionality in parallel.
+		synchronized (MoonBridge.class) {
+			MoonBridge.stopConnection();
+			MoonBridge.cleanupBridge();
+		}
 	}
 	
 	private boolean startApp() throws XmlPullParserException, IOException
@@ -210,6 +214,13 @@ public class NvConnection {
 	private void establishConnection() {
 		String appName = context.streamConfig.getApp().getAppName();
 
+		try {
+			context.serverAddress = InetAddress.getByName(host);
+		} catch (UnknownHostException e) {
+			context.connListener.connectionTerminated(-1);
+			return;
+		}
+
 		context.connListener.stageStarting(appName);
 
 		try {
@@ -234,22 +245,19 @@ public class NvConnection {
                 context.videoCapabilities);
 	}
 
-	public void start(AudioRenderer audioRenderer, VideoDecoderRenderer videoDecoderRenderer, NvConnectionListener connectionListener)
+	public void start(final AudioRenderer audioRenderer, final VideoDecoderRenderer videoDecoderRenderer, final NvConnectionListener connectionListener)
 	{
-		MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
-		context.connListener = connectionListener;
-        context.videoCapabilities = videoDecoderRenderer.getCapabilities();
-
 		new Thread(new Runnable() {
 			public void run() {
-				try {
-					context.serverAddress = InetAddress.getByName(host);
-				} catch (UnknownHostException e) {
-					context.connListener.connectionTerminated(-1);
-					return;
+				// Moonlight-core is not thread-safe with respect to connection start and stop, so
+				// we must not invoke that functionality in parallel.
+				synchronized (MoonBridge.class) {
+					MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
+					context.connListener = connectionListener;
+					context.videoCapabilities = videoDecoderRenderer.getCapabilities();
+
+					establishConnection();
 				}
-				
-				establishConnection();
 			}
 		}).start();
 	}

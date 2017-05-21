@@ -85,9 +85,17 @@ public class AndroidAudioRenderer implements AudioRenderer {
     }
 
     @Override
+    public void start() {}
+
+    @Override
+    public void stop() {
+        // Immediately drop all pending data
+        track.pause();
+        track.flush();
+    }
+
+    @Override
     public void cleanup() {
-        if (track != null) {
-            track.release();
-        }
+        track.release();
     }
 }

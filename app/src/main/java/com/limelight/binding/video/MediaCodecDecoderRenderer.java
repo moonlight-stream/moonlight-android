@@ -260,8 +260,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return -5;
         }
 
-        startRendererThread();
-
         return 0;
     }
 
@@ -380,26 +378,25 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return index;
     }
 
-    // This method is used by the hack in Game, not called by the streaming core.
+    @Override
+    public void start() {
+        startRendererThread();
+    }
+
+    @Override
     public void stop() {
         stopping = true;
 
-        if (rendererThread != null) {
-            // Halt the rendering thread
-            rendererThread.interrupt();
-            try {
-                rendererThread.join();
-            } catch (InterruptedException ignored) { }
-        }
+        // Halt the rendering thread
+        rendererThread.interrupt();
+        try {
+            rendererThread.join();
+        } catch (InterruptedException ignored) { }
     }
 
     @Override
     public void cleanup() {
-        stop();
-
-        if (videoDecoder != null) {
-            videoDecoder.release();
-        }
+        videoDecoder.release();
     }
 
     private boolean queueInputBuffer(int inputBufferIndex, int offset, int length, long timestampUs, int codecFlags) {

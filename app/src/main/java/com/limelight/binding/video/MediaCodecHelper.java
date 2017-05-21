@@ -32,6 +32,8 @@ public class MediaCodecHelper {
     private static final List<String> directSubmitPrefixes;
 	private static final List<String> constrainedHighProfilePrefixes;
 	private static final List<String> whitelistedHevcDecoders;
+	private static final List<String> refFrameInvalidationAvcPrefixes;
+    private static final List<String> refFrameInvalidationHevcPrefixes;
 
     static {
         directSubmitPrefixes = new LinkedList<>();
@@ -45,7 +47,15 @@ public class MediaCodecHelper {
         directSubmitPrefixes.add("omx.brcm");
         directSubmitPrefixes.add("omx.TI");
         directSubmitPrefixes.add("omx.arc");
+		directSubmitPrefixes.add("omx.nvidia");
     }
+
+    static {
+        refFrameInvalidationAvcPrefixes = new LinkedList<>();
+        refFrameInvalidationHevcPrefixes = new LinkedList<>();
+
+		// Qualcomm and NVIDIA may be added at runtime
+	}
 
 	static {
 		preferredDecoders = new LinkedList<>();
@@ -65,6 +75,8 @@ public class MediaCodecHelper {
 	}
 	
 	static {
+		// If a decoder qualifies for reference frame invalidation,
+		// these entries will be ignored for those decoders.
 		spsFixupBitstreamFixupDecoderPrefixes = new LinkedList<>();
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.nvidia");
 		spsFixupBitstreamFixupDecoderPrefixes.add("omx.qcom");
@@ -113,20 +125,36 @@ public class MediaCodecHelper {
 				(ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		ConfigurationInfo configInfo = activityManager.getDeviceConfigurationInfo();
 		if (configInfo.reqGlEsVersion != ConfigurationInfo.GL_ES_VERSION_UNDEFINED) {
-			// Qualcomm's early HEVC decoders break hard on our HEVC stream. The best check to
-			// tell the good from the bad decoders are the generation of Adreno GPU included:
-			// 3xx - bad
-			// 4xx - good
-			//
-			// Unfortunately, it's not that easy to get that information here, so I'll use an
-			// approximation by checking the GLES level (<= 3.0 is bad).
 			LimeLog.info("OpenGL ES version: "+configInfo.reqGlEsVersion);
-			if (configInfo.reqGlEsVersion > 0x30000) {
-				LimeLog.info("Added omx.qcom to supported decoders based on GLES 3.1+ support");
-				whitelistedHevcDecoders.add("omx.qcom");
+
+			// Tegra K1 and later can do reference frame invalidation properly
+			if (configInfo.reqGlEsVersion >= 0x30000) {
+				LimeLog.info("Added omx.nvidia to AVC reference frame invalidation support list");
+				refFrameInvalidationAvcPrefixes.add("omx.nvidia");
+
+                LimeLog.info("Added omx.qcom to AVC reference frame invalidation support list");
+                refFrameInvalidationAvcPrefixes.add("omx.qcom");
+
+				LimeLog.info("Added omx.intel to AVC reference frame invalidation support list");
+				refFrameInvalidationAvcPrefixes.add("omx.intel");
+
+				// Qualcomm's early HEVC decoders break hard on our HEVC stream. The best check to
+				// tell the good from the bad decoders are the generation of Adreno GPU included:
+				// 3xx - bad
+				// 4xx - good
+				//
+				// Unfortunately, it's not that easy to get that information here, so I'll use an
+				// approximation by checking the GLES level (<= 3.0 is bad).
+				if (configInfo.reqGlEsVersion > 0x30000) {
+					// FIXME: We prefer reference frame invalidation support (which is only doable on AVC on
+					// older Qualcomm chips) vs. enabling HEVC by default. The user can override using the settings
+					// to force HEVC on.
+					//LimeLog.info("Added omx.qcom to supported HEVC decoders based on GLES 3.1+ support");
+					//whitelistedHevcDecoders.add("omx.qcom");
+				}
 			}
 		}
-	}
+    }
 
 	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
 		for (String badPrefix : decoderList) {
@@ -190,6 +218,14 @@ public class MediaCodecHelper {
         return isDecoderInList(baselineProfileHackPrefixes, decoderName);
     }
 
+    public static boolean decoderSupportsRefFrameInvalidationAvc(String decoderName) {
+		return isDecoderInList(refFrameInvalidationAvcPrefixes, decoderName);
+	}
+
+    public static boolean decoderSupportsRefFrameInvalidationHevc(String decoderName) {
+        return isDecoderInList(refFrameInvalidationHevcPrefixes, decoderName);
+    }
+
 	public static boolean decoderIsWhitelistedForHevc(String decoderName) {
 		// TODO: Shield Tablet K1/LTE?
 		//
@@ -209,6 +245,16 @@ public class MediaCodecHelper {
 		// Lollipop. I've seen some MediaTek devices on 4.4 crash when attempting to use HEVC,
 		// so I'm restricting HEVC usage to Lollipop and higher.
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+			return false;
+		}
+
+		//
+		// Software decoders are terrible and we never want to use them.
+		// We want to catch decoders like:
+		// OMX.qcom.video.decoder.hevcswvdec
+		// OMX.SEC.hevc.sw.dec
+		//
+		if (decoderName.contains("sw")) {
 			return false;
 		}
 

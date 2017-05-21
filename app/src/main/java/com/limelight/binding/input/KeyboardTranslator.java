@@ -3,14 +3,13 @@ package com.limelight.binding.input;
 import android.view.KeyEvent;
 
 import com.limelight.nvstream.NvConnection;
-import com.limelight.nvstream.input.KeycodeTranslator;
 
 /**
  * Class to translate a Android key code into the codes GFE is expecting
  * @author Diego Waxemberg
  * @author Cameron Gutman
  */
-public class KeyboardTranslator extends KeycodeTranslator {
+public class KeyboardTranslator {
 	
 	/**
 	 * GFE's prefix for every key code
@@ -60,20 +59,11 @@ public class KeyboardTranslator extends KeycodeTranslator {
 	public static final int VK_PAUSE = 19;
 	
 	/**
-	 * Constructs a new translator for the specified connection
-	 * @param conn the connection to which the translated codes are sent
-	 */
-	public KeyboardTranslator(NvConnection conn) {
-		super(conn);
-	}
-	
-	/**
 	 * Translates the given keycode and returns the GFE keycode
 	 * @param keycode the code to be translated
 	 * @return a GFE keycode for the given keycode
 	 */
-	@Override
-	public short translate(int keycode) {
+	public static short translate(int keycode) {
 		int translated;
 		
 		/* There seems to be no clean mapping between Android key codes

@@ -190,8 +190,14 @@ public class DigitalButton extends VirtualControllerElement {
         for (DigitalButtonListener listener : listeners) {
             listener.onRelease();
         }
-        timerLongClick.cancel();
-        longClickTimerTask.cancel();
+
+        // We may be called for a release without a prior click
+        if (timerLongClick != null) {
+            timerLongClick.cancel();
+        }
+        if (longClickTimerTask != null) {
+            longClickTimerTask.cancel();
+        }
     }
 
     @Override

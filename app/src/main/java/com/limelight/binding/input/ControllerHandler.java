@@ -1120,6 +1120,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                                       float rightStickX, float rightStickY,
                                       float leftTrigger, float rightTrigger) {
         UsbDeviceContext context = usbDeviceContexts.get(controllerId);
+        if (context == null) {
+            return;
+        }
 
         Vector2d leftStickVector = populateCachedVector(leftStickX, leftStickY);
 

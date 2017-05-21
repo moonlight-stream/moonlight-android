@@ -135,8 +135,12 @@ public class MediaCodecHelper {
                 LimeLog.info("Added omx.qcom to AVC reference frame invalidation support list");
                 refFrameInvalidationAvcPrefixes.add("omx.qcom");
 
-				LimeLog.info("Added omx.intel to AVC reference frame invalidation support list");
-				refFrameInvalidationAvcPrefixes.add("omx.intel");
+				// Prior to M, we were tricking the decoder into using baseline profile, which
+				// won't support RFI properly.
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+					LimeLog.info("Added omx.intel to AVC reference frame invalidation support list");
+					refFrameInvalidationAvcPrefixes.add("omx.intel");
+				}
 
 				// Qualcomm's early HEVC decoders break hard on our HEVC stream. The best check to
 				// tell the good from the bad decoders are the generation of Adreno GPU included:

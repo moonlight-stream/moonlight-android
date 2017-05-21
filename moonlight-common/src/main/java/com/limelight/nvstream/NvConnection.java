@@ -213,53 +213,49 @@ public class NvConnection {
 		
 		return true;
 	}
-	
-	private void establishConnection() {
-		String appName = context.streamConfig.getApp().getAppName();
-
-		try {
-			context.serverAddress = InetAddress.getByName(host);
-		} catch (UnknownHostException e) {
-			context.connListener.connectionTerminated(-1);
-			return;
-		}
-
-		context.connListener.stageStarting(appName);
-
-		try {
-			startApp();
-			context.connListener.stageComplete(appName);
-		} catch (Exception e) {
-			e.printStackTrace();
-			context.connListener.displayMessage(e.getMessage());
-			context.connListener.stageFailed(appName, 0);
-			return;
-		}
-
-		ByteBuffer ib = ByteBuffer.allocate(16);
-		ib.putInt(context.riKeyId);
-
-		MoonBridge.startConnection(context.serverAddress.getHostAddress(),
-				context.serverAppVersion, context.serverGfeVersion,
-				context.negotiatedWidth, context.negotiatedHeight,
-				context.negotiatedFps, context.streamConfig.getBitrate(),
-				context.streamConfig.getRemote(), context.streamConfig.getAudioConfiguration(),
-				context.streamConfig.getHevcSupported(), context.riKey.getEncoded(), ib.array(),
-                context.videoCapabilities);
-	}
 
 	public void start(final AudioRenderer audioRenderer, final VideoDecoderRenderer videoDecoderRenderer, final NvConnectionListener connectionListener)
 	{
 		new Thread(new Runnable() {
 			public void run() {
+				context.connListener = connectionListener;
+				context.videoCapabilities = videoDecoderRenderer.getCapabilities();
+
+				String appName = context.streamConfig.getApp().getAppName();
+
+				try {
+					context.serverAddress = InetAddress.getByName(host);
+				} catch (UnknownHostException e) {
+					context.connListener.connectionTerminated(-1);
+					return;
+				}
+
+				context.connListener.stageStarting(appName);
+
+				try {
+					startApp();
+					context.connListener.stageComplete(appName);
+				} catch (Exception e) {
+					e.printStackTrace();
+					context.connListener.displayMessage(e.getMessage());
+					context.connListener.stageFailed(appName, 0);
+					return;
+				}
+
+				ByteBuffer ib = ByteBuffer.allocate(16);
+				ib.putInt(context.riKeyId);
+
 				// Moonlight-core is not thread-safe with respect to connection start and stop, so
 				// we must not invoke that functionality in parallel.
 				synchronized (MoonBridge.class) {
 					MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
-					context.connListener = connectionListener;
-					context.videoCapabilities = videoDecoderRenderer.getCapabilities();
-
-					establishConnection();
+					MoonBridge.startConnection(context.serverAddress.getHostAddress(),
+							context.serverAppVersion, context.serverGfeVersion,
+							context.negotiatedWidth, context.negotiatedHeight,
+							context.negotiatedFps, context.streamConfig.getBitrate(),
+							context.streamConfig.getRemote(), context.streamConfig.getAudioConfiguration(),
+							context.streamConfig.getHevcSupported(), context.riKey.getEncoded(), ib.array(),
+							context.videoCapabilities);
 				}
 			}
 		}).start();

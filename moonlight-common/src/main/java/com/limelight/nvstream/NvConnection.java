@@ -63,6 +63,9 @@ public class NvConnection {
 	}
 	
 	public void stop() {
+		// Interrupt any pending connection. This is thread-safe.
+		MoonBridge.interruptConnection();
+
 		// Moonlight-core is not thread-safe with respect to connection start and stop, so
 		// we must not invoke that functionality in parallel.
 		synchronized (MoonBridge.class) {

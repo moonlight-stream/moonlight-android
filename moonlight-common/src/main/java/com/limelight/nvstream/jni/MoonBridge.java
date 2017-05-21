@@ -141,6 +141,8 @@ public class MoonBridge {
 
     public static native void stopConnection();
 
+    public static native void interruptConnection();
+
     public static native void sendMouseMove(short deltaX, short deltaY);
 
     public static native void sendMouseButton(byte buttonEvent, byte mouseButton);

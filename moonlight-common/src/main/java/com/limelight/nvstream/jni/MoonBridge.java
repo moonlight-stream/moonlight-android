@@ -158,7 +158,7 @@ public class MoonBridge {
 
     public static native int startConnection(String address, String appVersion, String gfeVersion,
                                               int width, int height, int fps,
-                                              int bitrate, boolean streamingRemotely,
+                                              int bitrate, int packetSize, boolean streamingRemotely,
                                               int audioConfiguration, boolean supportsHevc,
                                               byte[] riAesKey, byte[] riAesIv,
                                               int videoCapabilities);

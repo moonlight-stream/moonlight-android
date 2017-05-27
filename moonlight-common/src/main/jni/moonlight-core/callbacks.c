@@ -369,7 +369,7 @@ JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject class,
                                                            jstring address, jstring appVersion, jstring gfeVersion,
                                                            jint width, jint height, jint fps,
-                                                           jint bitrate, jboolean streamingRemotely,
+                                                           jint bitrate, jint packetSize, jboolean streamingRemotely,
                                                            jint audioConfiguration, jboolean supportsHevc,
                                                            jbyteArray riAesKey, jbyteArray riAesIv,
                                                            jint videoCapabilities) {
@@ -383,6 +383,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject 
             .height = height,
             .fps = fps,
             .bitrate = bitrate,
+            .packetSize = packetSize,
             .streamingRemotely = streamingRemotely,
             .audioConfiguration = audioConfiguration,
             .supportsHevc = supportsHevc,

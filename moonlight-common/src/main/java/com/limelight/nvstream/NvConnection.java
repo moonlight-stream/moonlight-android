@@ -253,6 +253,7 @@ public class NvConnection {
 							context.serverAppVersion, context.serverGfeVersion,
 							context.negotiatedWidth, context.negotiatedHeight,
 							context.negotiatedFps, context.streamConfig.getBitrate(),
+							context.streamConfig.getMaxPacketSize(),
 							context.streamConfig.getRemote(), context.streamConfig.getAudioConfiguration(),
 							context.streamConfig.getHevcSupported(), context.riKey.getEncoded(), ib.array(),
 							context.videoCapabilities);

@@ -31,7 +31,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private MediaCodecInfo hevcDecoder;
 
     private MediaCodec videoDecoder;
-    private Thread rendererThread, spinnerThread;
+    private Thread rendererThread;
+    private Thread[] spinnerThreads;
     private boolean needsSpsBitstreamFixup, isExynos4;
     private boolean adaptivePlayback, directSubmit;
     private boolean constrainedHighProfile;
@@ -96,6 +97,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     public MediaCodecDecoderRenderer(int videoFormat) {
         //dumpDecoders();
+
+        spinnerThreads = new Thread[Runtime.getRuntime().availableProcessors()];
 
         avcDecoder = findAvcDecoder();
         if (avcDecoder != null) {
@@ -346,19 +349,26 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         rendererThread.start();
     }
 
-    private void startSpinnerThread() {
-        spinnerThread = new Thread() {
-            @Override
-            public void run() {
-                // This thread exists to keep the CPU at a higher DVFS state on devices
-                // where the governor scales clock speed sporadically, causing dropped frames.
-                while (!isInterrupted()) {
-                    Thread.yield();
+    private void startSpinnerThreads() {
+        LimeLog.info("Using "+spinnerThreads.length+" spinner threads");
+        for (int i = 0; i < spinnerThreads.length; i++) {
+            spinnerThreads[i] = new Thread() {
+                @Override
+                public void run() {
+                    // This thread exists to keep the CPU at a higher DVFS state on devices
+                    // where the governor scales clock speed sporadically, causing dropped frames.
+                    while (!isInterrupted()) {
+                        try {
+                            Thread.sleep(0, 1);
+                        } catch (InterruptedException e) {
+                            break;
+                        }
+                    }
                 }
-            }
-        };
-        spinnerThread.setPriority(Thread.MIN_PRIORITY);
-        spinnerThread.start();
+            };
+            spinnerThreads[i].setPriority(Thread.MIN_PRIORITY);
+            spinnerThreads[i].start();
+        }
     }
 
     private int dequeueInputBuffer() {
@@ -392,7 +402,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     @Override
     public void start() {
         startRendererThread();
-        startSpinnerThread();
+        startSpinnerThreads();
     }
 
     @Override
@@ -405,11 +415,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             rendererThread.join();
         } catch (InterruptedException ignored) { }
 
-        // Halt the spinner thread
-        spinnerThread.interrupt();
-        try {
-            spinnerThread.join();
-        } catch (InterruptedException ignored) { }
+        // Halt the spinner threads
+        for (Thread t : spinnerThreads) {
+            t.interrupt();
+        }
+        for (Thread t : spinnerThreads) {
+            try {
+                t.join();
+            } catch (InterruptedException ignored) { }
+        }
     }
 
     @Override

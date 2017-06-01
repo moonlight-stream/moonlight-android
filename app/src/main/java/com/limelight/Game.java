@@ -171,10 +171,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView.setOnGenericMotionListener(this);
         streamView.setOnTouchListener(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            streamView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    inputCaptureProvider.enableCapture();
+                }
+            });
             streamView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
                 @Override
                 public boolean onCapturedPointer(View view, MotionEvent motionEvent) {
-                    return handleMotionEvent(motionEvent, true);
+                    return handleMotionEvent(motionEvent);
                 }
             });
         }
@@ -283,19 +289,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // The connection will be started when the surface gets created
         streamView.getHolder().addCallback(this);
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // If the window gains focus while we're grabbing input,
-            // we'll need to request for pointer capture again
-            if (grabbedInput) {
-                inputCaptureProvider.enableCapture();
-            }
-        }
     }
 
     private void prepareDisplayForRendering() {
@@ -680,12 +673,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
     }
 
-    private boolean handleMotionEvent(MotionEvent event) {
-        return handleMotionEvent(event, false);
-    }
-
     // Returns true if the event was consumed
-    private boolean handleMotionEvent(MotionEvent event, boolean capturedMouseCallback) {
+    private boolean handleMotionEvent(MotionEvent event) {
         // Pass through keyboard input if we're not grabbing
         if (!grabbedInput) {
             return false;
@@ -696,8 +685,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return true;
             }
         }
-        else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
+        else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0 ||
+                  event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE)
         {
+            // Ignore mouse input if we're not capturing from our input source
+            if (!inputCaptureProvider.isCapturing()) {
+                return false;
+            }
+
             // This case is for mice
             if (event.getSource() == InputDevice.SOURCE_MOUSE ||
                     (event.getPointerCount() >= 1 &&
@@ -739,7 +734,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 }
 
                 // Get relative axis values if we can
-                if (inputCaptureProvider.eventHasRelativeMouseAxes(event) || capturedMouseCallback) {
+                if (inputCaptureProvider.eventHasRelativeMouseAxes(event)) {
                     // Send the deltas straight from the motion event
                     conn.sendMouseMove((short) inputCaptureProvider.getRelativeAxisX(event),
                             (short) inputCaptureProvider.getRelativeAxisY(event));

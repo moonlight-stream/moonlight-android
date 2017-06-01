@@ -33,11 +33,13 @@ public class AndroidPointerIconCaptureProvider extends InputCaptureProvider {
 
     @Override
     public void enableCapture() {
+        super.enableCapture();
         setPointerIconOnAllViews(PointerIcon.getSystemIcon(context, PointerIcon.TYPE_NULL));
     }
 
     @Override
     public void disableCapture() {
+        super.disableCapture();
         setPointerIconOnAllViews(null);
     }
 

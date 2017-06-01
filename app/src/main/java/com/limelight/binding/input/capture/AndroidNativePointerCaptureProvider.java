@@ -21,17 +21,24 @@ public class AndroidNativePointerCaptureProvider extends InputCaptureProvider {
 
     @Override
     public void enableCapture() {
+        super.enableCapture();
         targetView.requestPointerCapture();
     }
 
     @Override
     public void disableCapture() {
+        super.disableCapture();
         targetView.releasePointerCapture();
     }
 
     @Override
+    public boolean isCapturing() {
+        return targetView.hasPointerCapture();
+    }
+
+    @Override
     public boolean eventHasRelativeMouseAxes(MotionEvent event) {
-        return (event.getSource() & InputDevice.SOURCE_MOUSE_RELATIVE) != 0;
+        return event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE;
     }
 
     @Override

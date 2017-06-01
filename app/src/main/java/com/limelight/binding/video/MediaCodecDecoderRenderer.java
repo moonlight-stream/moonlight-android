@@ -366,6 +366,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                     }
                 }
             };
+            spinnerThreads[i].setName("Spinner-"+i);
             spinnerThreads[i].setPriority(Thread.MIN_PRIORITY);
             spinnerThreads[i].start();
         }

@@ -568,8 +568,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         boolean handled = false;
 
         boolean detectedGamepad = event.getDevice() == null ? false :
-                ((event.getDevice().getSources() & InputDevice.SOURCE_JOYSTICK) != 0 ||
-                        (event.getDevice().getSources() & InputDevice.SOURCE_GAMEPAD) != 0);
+                ((event.getDevice().getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
+                        (event.getDevice().getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD);
         if (detectedGamepad || (event.getDevice() == null ||
                 event.getDevice().getKeyboardType() != InputDevice.KEYBOARD_TYPE_ALPHABETIC
         )) {
@@ -610,8 +610,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         boolean handled = false;
         boolean detectedGamepad = event.getDevice() == null ? false :
-                ((event.getDevice().getSources() & InputDevice.SOURCE_JOYSTICK) != 0 ||
-                        (event.getDevice().getSources() & InputDevice.SOURCE_GAMEPAD) != 0);
+                ((event.getDevice().getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
+                        (event.getDevice().getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD);
         if (detectedGamepad || (event.getDevice() == null ||
                 event.getDevice().getKeyboardType() != InputDevice.KEYBOARD_TYPE_ALPHABETIC
         )) {

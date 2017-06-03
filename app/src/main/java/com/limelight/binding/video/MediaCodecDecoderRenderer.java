@@ -30,6 +30,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private MediaCodecInfo avcDecoder;
     private MediaCodecInfo hevcDecoder;
 
+    // Used for HEVC only
+    private byte[] vpsBuffer;
+    private byte[] spsBuffer;
+
     private MediaCodec videoDecoder;
     private Thread rendererThread;
     private Thread[] spinnerThreads;
@@ -502,6 +506,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     public int submitDecodeUnit(byte[] frameData, int frameLength) {
         totalFrames++;
 
+        int inputBufferIndex;
+        ByteBuffer buf;
+
         long timestampUs = System.nanoTime() / 1000;
         if (timestampUs <= lastTimestampUs) {
             // We can't submit multiple buffers with the same timestamp
@@ -509,14 +516,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             timestampUs = lastTimestampUs + 1;
         }
         lastTimestampUs = timestampUs;
-
-        int inputBufferIndex = dequeueInputBuffer();
-        if (inputBufferIndex < 0) {
-            // We're being torn down now
-            return MoonBridge.DR_OK;
-        }
-
-        ByteBuffer buf = getEmptyInputBuffer(inputBufferIndex);
 
         int codecFlags = 0;
         boolean needsSpsReplay = false;
@@ -619,6 +618,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // Patch the SPS constraint flags
             doProfileSpecificSpsPatching(sps);
 
+            inputBufferIndex = dequeueInputBuffer();
+            if (inputBufferIndex < 0) {
+                // We're being torn down now
+                return MoonBridge.DR_OK;
+            }
+
+            buf = getEmptyInputBuffer(inputBufferIndex);
+
             // Write the annex B header
             buf.put(frameData, 0, 5);
 
@@ -641,6 +648,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             numPpsIn++;
             codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 
+            inputBufferIndex = dequeueInputBuffer();
+            if (inputBufferIndex < 0) {
+                // We're being torn down now
+                return MoonBridge.DR_OK;
+            }
+
+            buf = getEmptyInputBuffer(inputBufferIndex);
 
             if (needsBaselineSpsHack) {
                 LimeLog.info("Saw PPS; disabling SPS hack");
@@ -652,22 +666,58 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
         else if (frameData[4] == 0x40) {
             numVpsIn++;
-            codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+
+            // Batch this to submit together with SPS and PPS per AOSP docs
+            vpsBuffer = new byte[frameLength];
+            System.arraycopy(frameData, 0, vpsBuffer, 0, frameLength);
+            return MoonBridge.DR_OK;
         }
         else if (frameData[4] == 0x42) {
             numSpsIn++;
-            codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+
+            // Batch this to submit together with VPS and PPS per AOSP docs
+            spsBuffer = new byte[frameLength];
+            System.arraycopy(frameData, 0, spsBuffer, 0, frameLength);
+            return MoonBridge.DR_OK;
         }
         else if (frameData[4] == 0x44) {
             numPpsIn++;
+
+            inputBufferIndex = dequeueInputBuffer();
+            if (inputBufferIndex < 0) {
+                // We're being torn down now
+                return MoonBridge.DR_OK;
+            }
+
+            buf = getEmptyInputBuffer(inputBufferIndex);
+
+            // When we get the PPS, submit the VPS and SPS together with
+            // the PPS, as required by AOSP docs on use of HEVC and MediaCodec.
+            if (vpsBuffer != null) {
+                buf.put(vpsBuffer);
+            }
+            if (spsBuffer != null) {
+                buf.put(spsBuffer);
+            }
+
+            // This is the HEVC CSD blob
             codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+        }
+        else {
+            inputBufferIndex = dequeueInputBuffer();
+            if (inputBufferIndex < 0) {
+                // We're being torn down now
+                return MoonBridge.DR_OK;
+            }
+
+            buf = getEmptyInputBuffer(inputBufferIndex);
         }
 
         // Copy data from our buffer list into the input buffer
         buf.put(frameData, 0, frameLength);
 
         if (!queueInputBuffer(inputBufferIndex,
-                0, frameLength,
+                0, buf.position(),
                 timestampUs, codecFlags)) {
             return MoonBridge.DR_NEED_IDR;
         }

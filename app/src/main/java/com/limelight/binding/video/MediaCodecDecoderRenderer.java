@@ -24,6 +24,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private static final boolean USE_FRAME_RENDER_TIME = false;
 
+    // This value is added to the PTS for each frame to force frames delivered right at
+    // V-sync time to be delayed until the next V-sync rather than dropping the existing frame.
+    // To make matters worse, these frames often end up being displayed for 2 V-syncs because
+    // the next frame isn't ready at the next V-sync. So without this, we end up with a pattern of:
+    // F0 - Displayed | F1 - Dropped | F2 - Displayed | F2 - Displayed again | F3 - Displayed ...
+    // which can be very noticeable for some video content and users.
+    //
+    // This value is currently 6 ms, which means that a frame ready for display less than 6 ms from
+    // the next V-sync will be delayed until the following V-sync to ensure smooth frame pacing.
+    private static final int PTS_OFFSET_NS = 6 * 1000000;
+
     // Used on versions < 5.0
     private ByteBuffer[] legacyInputBuffers;
 
@@ -316,7 +327,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             }
 
                             // Render the last buffer
-                            videoDecoder.releaseOutputBuffer(lastIndex, true);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                // On L and later, we can fine tune our PTS right before rendering, so
+                                // we take advantage of that for frame pacing using the PTS offset. Using
+                                // this version of releaseOutputBuffer() also lets SurfaceFlinger drop extra
+                                // frames in the SurfaceView<->SurfaceFlinger BufferQueue that reduces
+                                // latency if an stray extra frame ends up in the output queue.
+                                videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime() + PTS_OFFSET_NS);
+                            }
+                            else {
+                                videoDecoder.releaseOutputBuffer(lastIndex, true);
+                            }
 
                             // Add delta time to the totals (excluding probable outliers)
                             long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);

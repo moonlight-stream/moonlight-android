@@ -4,15 +4,18 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
 import javax.jmdns.JmmDNS;
+import javax.jmdns.NetworkTopologyDiscovery;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
+import javax.jmdns.impl.NetworkTopologyDiscoveryImpl;
 
 import com.limelight.LimeLog;
 
@@ -77,7 +80,44 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 			}
 		}
 	};
-	
+
+	public static class MyNetworkTopologyDiscovery extends NetworkTopologyDiscoveryImpl {
+		@Override
+		public boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress) {
+			// This is an exact copy of jmDNS's implementation, except we omit the multicast check, since
+			// it seems at least some devices lie about interfaces not supporting multicast when they really do.
+			try {
+				if (!networkInterface.isUp()) {
+					return false;
+				}
+
+				/*
+				if (!networkInterface.supportsMulticast()) {
+					return false;
+				}
+				*/
+
+				if (networkInterface.isLoopback()) {
+					return false;
+				}
+
+				return true;
+			} catch (Exception exception) {
+				return false;
+			}
+		}
+	};
+
+	static {
+		// Override jmDNS's default topology discovery class with ours
+		NetworkTopologyDiscovery.Factory.setClassDelegate(new NetworkTopologyDiscovery.Factory.ClassDelegate() {
+			@Override
+			public NetworkTopologyDiscovery newNetworkTopologyDiscovery() {
+				return new MyNetworkTopologyDiscovery();
+			}
+		});
+	}
+
 	private static JmmDNS referenceResolver() {
 		synchronized (MdnsDiscoveryAgent.class) {
 			JmmDNS instance = JmmDNS.Factory.getInstance();

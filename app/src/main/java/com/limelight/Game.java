@@ -688,17 +688,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0 ||
                   event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE)
         {
-            // Ignore mouse input if we're not capturing from our input source
-            if (!inputCaptureProvider.isCapturing()) {
-                return false;
-            }
-
             // This case is for mice
             if (event.getSource() == InputDevice.SOURCE_MOUSE ||
                     (event.getPointerCount() >= 1 &&
                             event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE))
             {
                 int changedButtons = event.getButtonState() ^ lastButtonState;
+
+                // Ignore mouse input if we're not capturing from our input source
+                if (!inputCaptureProvider.isCapturing()) {
+                    return false;
+                }
 
                 if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) {
                     // Send the vertical scroll packet

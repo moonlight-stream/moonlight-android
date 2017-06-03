@@ -26,6 +26,7 @@
 
     <application
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
         android:isGame="true"
         android:banner="@drawable/atv_banner"
         android:icon="@drawable/ic_launcher"

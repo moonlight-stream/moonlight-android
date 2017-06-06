@@ -420,6 +420,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             unbindService(usbDriverServiceConnection);
         }
 
+        // Destroy the capture provider
+        inputCaptureProvider.destroy();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        SpinnerDialog.closeDialogs(this);
+        Dialog.closeDialogs();
+
         if (conn != null) {
             int videoFormat = decoderRenderer.getActiveVideoFormat();
 
@@ -453,14 +464,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             }
         }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        SpinnerDialog.closeDialogs(this);
-        Dialog.closeDialogs();
 
         finish();
     }
@@ -893,12 +896,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             connecting = connected = false;
             conn.stop();
         }
-
-        // Enable cursor visibility again
-        inputCaptureProvider.disableCapture();
-
-        // Destroy the capture provider
-        inputCaptureProvider.destroy();
     }
 
     @Override
@@ -908,11 +905,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             spinner = null;
         }
 
+        // Enable cursor visibility again
+        inputCaptureProvider.disableCapture();
+
         if (!displayedFailureDialog) {
             displayedFailureDialog = true;
             LimeLog.severe(stage+" failed: "+errorCode);
 
-            stopConnection();
             Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title),
                     getResources().getString(R.string.conn_error_msg)+" "+stage, true);
         }
@@ -920,11 +919,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void connectionTerminated(long errorCode) {
+        // Enable cursor visibility again
+        inputCaptureProvider.disableCapture();
+
         if (!displayedFailureDialog) {
             displayedFailureDialog = true;
             LimeLog.severe("Connection terminated: "+errorCode);
 
-            stopConnection();
             Dialog.displayDialog(this, getResources().getString(R.string.conn_terminated_title),
                     getResources().getString(R.string.conn_terminated_msg), true);
         }

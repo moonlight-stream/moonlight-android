@@ -287,7 +287,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         // Only throw if this happens at the beginning of a stream
         // but not if we're stopping
-        if (totalFrames > 0 && totalFrames < 20 && !stopping) {
+        if (totalFrames > 0 && !stopping) {
             if (buf != null || codecFlags != 0) {
                 throw new RendererException(this, e, buf, codecFlags);
             }
@@ -461,7 +461,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
         }
 
-        if (i == 25 && totalFrames > 0 && totalFrames < 20 && !stopping) {
+        if (i == 25 && totalFrames > 0 && !stopping) {
             throw new RendererException(this, lastException, null, codecFlags);
         }
         else if (i != 25) {

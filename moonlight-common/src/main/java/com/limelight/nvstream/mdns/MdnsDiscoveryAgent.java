@@ -3,6 +3,7 @@ package com.limelight.nvstream.mdns;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
@@ -84,8 +85,9 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 	public static class MyNetworkTopologyDiscovery extends NetworkTopologyDiscoveryImpl {
 		@Override
 		public boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress) {
-			// This is an exact copy of jmDNS's implementation, except we omit the multicast check, since
+			// This is an copy of jmDNS's implementation, except we omit the multicast check, since
 			// it seems at least some devices lie about interfaces not supporting multicast when they really do.
+			// We also will skip IPv6 addresses since GeForce Experience doesn't listen on IPv6 ports.
 			try {
 				if (!networkInterface.isUp()) {
 					return false;
@@ -96,6 +98,10 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 					return false;
 				}
 				*/
+
+				if (interfaceAddress instanceof Inet6Address) {
+					return false;
+				}
 
 				if (networkInterface.isLoopback()) {
 					return false;

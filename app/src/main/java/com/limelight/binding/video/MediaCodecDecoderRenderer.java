@@ -416,9 +416,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         // Halt the rendering thread
         rendererThread.interrupt();
+
+        // Invalidate pending decode buffers
+        videoDecoder.flush();
+
+        // Wait for the renderer thread to shut down
         try {
             rendererThread.join();
         } catch (InterruptedException ignored) { }
+
+        // Stop the video decoder
+        videoDecoder.stop();
 
         // Halt the spinner threads
         for (Thread t : spinnerThreads) {

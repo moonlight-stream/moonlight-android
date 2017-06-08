@@ -45,7 +45,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private int initialWidth, initialHeight;
     private int videoFormat;
     private Object renderTarget;
-    private boolean stopping;
+    private volatile boolean stopping;
 
     private boolean needsBaselineSpsHack;
     private SeqParameterSet savedSps;
@@ -410,6 +410,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         startSpinnerThreads();
     }
 
+    public void prepareForStop() {
+        // Let the decoding code know to ignore codec exceptions now
+        stopping = true;
+    }
+
     @Override
     public void stop() {
         stopping = true;
@@ -417,16 +422,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // Halt the rendering thread
         rendererThread.interrupt();
 
-        // Invalidate pending decode buffers
-        videoDecoder.flush();
+        try {
+            // Invalidate pending decode buffers
+            videoDecoder.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // Wait for the renderer thread to shut down
         try {
             rendererThread.join();
         } catch (InterruptedException ignored) { }
 
-        // Stop the video decoder
-        videoDecoder.stop();
+        try {
+            // Stop the video decoder
+            videoDecoder.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // Halt the spinner threads
         for (Thread t : spinnerThreads) {
@@ -480,7 +493,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         ByteBuffer buf;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            buf = videoDecoder.getInputBuffer(inputBufferIndex);
+            try {
+                buf = videoDecoder.getInputBuffer(inputBufferIndex);
+            } catch (Exception e) {
+                if (totalFrames > 0 && !stopping) {
+                    throw new RendererException(this, e, null, 0);
+                }
+                else {
+                    return null;
+                }
+            }
         }
         else {
             buf = legacyInputBuffers[inputBufferIndex];
@@ -633,6 +655,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             buf = getEmptyInputBuffer(inputBufferIndex);
+            if (buf == null) {
+                // We're being torn down now
+                return MoonBridge.DR_OK;
+            }
 
             // Write the annex B header
             buf.put(frameData, 0, 5);
@@ -663,6 +689,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             buf = getEmptyInputBuffer(inputBufferIndex);
+            if (buf == null) {
+                // We're being torn down now
+                return MoonBridge.DR_OK;
+            }
 
             if (needsBaselineSpsHack) {
                 LimeLog.info("Saw PPS; disabling SPS hack");
@@ -698,6 +728,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             buf = getEmptyInputBuffer(inputBufferIndex);
+            if (buf == null) {
+                // We're being torn down now
+                return MoonBridge.DR_OK;
+            }
 
             // When we get the PPS, submit the VPS and SPS together with
             // the PPS, as required by AOSP docs on use of HEVC and MediaCodec.
@@ -719,6 +753,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             buf = getEmptyInputBuffer(inputBufferIndex);
+            if (buf == null) {
+                // We're being torn down now
+                return MoonBridge.DR_OK;
+            }
         }
 
         // Copy data from our buffer list into the input buffer
@@ -748,6 +786,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         ByteBuffer inputBuffer = getEmptyInputBuffer(inputIndex);
+        if (inputBuffer == null) {
+            return false;
+        }
 
         // Write the Annex B header
         inputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});

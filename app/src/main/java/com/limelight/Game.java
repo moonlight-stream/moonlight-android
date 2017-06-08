@@ -992,6 +992,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        // Let the decoder know immediately that the surface is gone
+        decoderRenderer.prepareForStop();
+
         if (connected) {
             stopConnection();
         }

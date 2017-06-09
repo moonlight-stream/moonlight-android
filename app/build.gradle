@@ -17,6 +17,10 @@ android {
 
     productFlavors {
         root {
+            // Android O has native mouse capture, so don't show the rooted
+            // version to devices running O on the Play Store.
+            maxSdkVersion 25
+
             applicationId "com.limelight.root"
             ndk {
                 abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64", "mips", "mips64"

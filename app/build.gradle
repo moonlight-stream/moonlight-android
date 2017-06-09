@@ -56,6 +56,8 @@ android {
 dependencies {
     compile 'org.bouncycastle:bcprov-jdk15on:1.52'
     compile 'org.bouncycastle:bcpkix-jdk15on:1.52'
-    compile project(':moonlight-common')
     compile files('libs/jcodec-0.1.9-patched.jar')
+
+    debugCompile project(path:':moonlight-common', configuration:'debug')
+    releaseCompile project(path:':moonlight-common', configuration:'release')
 }

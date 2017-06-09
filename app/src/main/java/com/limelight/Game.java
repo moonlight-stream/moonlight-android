@@ -957,6 +957,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (!displayedFailureDialog) {
             displayedFailureDialog = true;
             LimeLog.severe("Connection terminated: "+errorCode);
+            stopConnection();
 
             Dialog.displayDialog(this, getResources().getString(R.string.conn_terminated_title),
                     getResources().getString(R.string.conn_terminated_msg), true);

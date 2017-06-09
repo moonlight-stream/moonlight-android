@@ -32,7 +32,7 @@ public class AndroidNativePointerCaptureProvider extends InputCaptureProvider {
     }
 
     @Override
-    public boolean isCapturing() {
+    public boolean isCapturingActive() {
         return targetView.hasPointerCapture();
     }
 

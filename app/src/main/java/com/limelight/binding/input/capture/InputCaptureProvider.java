@@ -14,7 +14,11 @@ public abstract class InputCaptureProvider {
 
     public void destroy() {}
 
-    public boolean isCapturing() {
+    public boolean isCapturingEnabled() {
+        return isCapturing;
+    }
+
+    public boolean isCapturingActive() {
         return isCapturing;
     }
 

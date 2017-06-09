@@ -170,20 +170,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView = (StreamView) findViewById(R.id.surfaceView);
         streamView.setOnGenericMotionListener(this);
         streamView.setOnTouchListener(this);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            streamView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    inputCaptureProvider.enableCapture();
-                }
-            });
-            streamView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
-                @Override
-                public boolean onCapturedPointer(View view, MotionEvent motionEvent) {
-                    return handleMotionEvent(motionEvent);
-                }
-            });
-        }
 
         // Warn the user if they're on a metered connection
         checkDataConnection();
@@ -273,6 +259,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // The view must be focusable for pointer capture to work.
+            streamView.setFocusable(true);
+            streamView.setDefaultFocusHighlightEnabled(false);
+            streamView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
+                @Override
+                public boolean onCapturedPointer(View view, MotionEvent motionEvent) {
+                    return handleMotionEvent(motionEvent);
+                }
+            });
+        }
+
         if (prefConfig.onscreenController) {
             // create virtual onscreen controller
             virtualController = new VirtualController(conn,
@@ -289,6 +287,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // The connection will be started when the surface gets created
         streamView.getHolder().addCallback(this);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Capture is lost when focus is lost, so it must be requested again
+            // when focus is regained.
+            if (inputCaptureProvider.isCapturingEnabled() && hasFocus) {
+                // Recapture the pointer if focus was regained
+                streamView.requestPointerCapture();
+            }
+        }
     }
 
     private void prepareDisplayForRendering() {
@@ -699,7 +711,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 int changedButtons = event.getButtonState() ^ lastButtonState;
 
                 // Ignore mouse input if we're not capturing from our input source
-                if (!inputCaptureProvider.isCapturing()) {
+                if (!inputCaptureProvider.isCapturingActive()) {
                     return false;
                 }
 

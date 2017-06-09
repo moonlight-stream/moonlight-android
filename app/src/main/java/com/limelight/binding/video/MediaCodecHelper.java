@@ -63,10 +63,13 @@ public class MediaCodecHelper {
 	
 	static {
 		blacklistedDecoderPrefixes = new LinkedList<>();
-		
-		// Software decoders that don't support H264 high profile
-		blacklistedDecoderPrefixes.add("omx.google");
-		blacklistedDecoderPrefixes.add("AVCDecoder");
+
+		// Blacklist software decoders that don't support H264 high profile,
+		// but exclude the official AOSP emulator from this restriction.
+		if (!Build.HARDWARE.equals("ranchu") || !Build.BRAND.equals("google")) {
+			blacklistedDecoderPrefixes.add("omx.google");
+			blacklistedDecoderPrefixes.add("AVCDecoder");
+		}
 
 		// Without bitstream fixups, we perform horribly on NVIDIA's HEVC
 		// decoder. While not strictly necessary, I'm going to fully blacklist this
@@ -103,6 +106,11 @@ public class MediaCodecHelper {
 
 	static {
 		whitelistedHevcDecoders = new LinkedList<>();
+
+		// Allow software HEVC decoding in the official AOSP emulator
+		if (Build.HARDWARE.equals("ranchu") && Build.BRAND.equals("google")) {
+			whitelistedHevcDecoders.add("omx.google");
+		}
 
 		// Exynos seems to be the only HEVC decoder that works reliably
 		whitelistedHevcDecoders.add("omx.exynos");

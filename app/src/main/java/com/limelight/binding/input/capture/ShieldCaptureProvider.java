@@ -63,11 +63,13 @@ public class ShieldCaptureProvider extends InputCaptureProvider {
 
     @Override
     public void enableCapture() {
+        super.enableCapture();
         setCursorVisibility(false);
     }
 
     @Override
     public void disableCapture() {
+        super.disableCapture();
         setCursorVisibility(true);
     }
 

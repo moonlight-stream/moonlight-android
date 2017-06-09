@@ -221,6 +221,7 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
 
     @Override
     public void enableCapture() {
+        super.enableCapture();
         if (!started) {
             // Start the handler thread if it's our first time
             // capturing
@@ -247,6 +248,7 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
 
     @Override
     public void disableCapture() {
+        super.disableCapture();
         // This may be called on the main thread
         runInNetworkSafeContextSynchronously(new Runnable() {
             @Override

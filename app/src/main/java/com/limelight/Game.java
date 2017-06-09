@@ -170,6 +170,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView = (StreamView) findViewById(R.id.surfaceView);
         streamView.setOnGenericMotionListener(this);
         streamView.setOnTouchListener(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            streamView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    inputCaptureProvider.enableCapture();
+                }
+            });
+            streamView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
+                @Override
+                public boolean onCapturedPointer(View view, MotionEvent motionEvent) {
+                    return handleMotionEvent(motionEvent);
+                }
+            });
+        }
 
         // Warn the user if they're on a metered connection
         checkDataConnection();
@@ -674,7 +688,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return true;
             }
         }
-        else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0)
+        else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0 ||
+                  event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE)
         {
             // This case is for mice
             if (event.getSource() == InputDevice.SOURCE_MOUSE ||
@@ -682,6 +697,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                             event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE))
             {
                 int changedButtons = event.getButtonState() ^ lastButtonState;
+
+                // Ignore mouse input if we're not capturing from our input source
+                if (!inputCaptureProvider.isCapturing()) {
+                    return false;
+                }
 
                 if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) {
                     // Send the vertical scroll packet

@@ -3,9 +3,20 @@ package com.limelight.binding.input.capture;
 import android.view.MotionEvent;
 
 public abstract class InputCaptureProvider {
-    public abstract void enableCapture();
-    public abstract void disableCapture();
+    protected boolean isCapturing;
+
+    public void enableCapture() {
+        isCapturing = true;
+    }
+    public void disableCapture() {
+        isCapturing = false;
+    }
+
     public void destroy() {}
+
+    public boolean isCapturing() {
+        return isCapturing;
+    }
 
     public boolean eventHasRelativeMouseAxes(MotionEvent event) {
         return false;

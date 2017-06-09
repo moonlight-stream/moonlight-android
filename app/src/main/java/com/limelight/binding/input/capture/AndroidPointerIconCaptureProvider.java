@@ -10,11 +10,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 @TargetApi(Build.VERSION_CODES.N)
-public class AndroidCaptureProvider extends InputCaptureProvider {
+public class AndroidPointerIconCaptureProvider extends InputCaptureProvider {
     private ViewGroup rootViewGroup;
     private Context context;
 
-    public AndroidCaptureProvider(Activity activity) {
+    public AndroidPointerIconCaptureProvider(Activity activity) {
         this.context = activity;
         this.rootViewGroup = (ViewGroup) activity.getWindow().getDecorView();
     }
@@ -33,11 +33,13 @@ public class AndroidCaptureProvider extends InputCaptureProvider {
 
     @Override
     public void enableCapture() {
+        super.enableCapture();
         setPointerIconOnAllViews(PointerIcon.getSystemIcon(context, PointerIcon.TYPE_NULL));
     }
 
     @Override
     public void disableCapture() {
+        super.disableCapture();
         setPointerIconOnAllViews(null);
     }
 

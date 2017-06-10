@@ -279,12 +279,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return 0;
     }
 
-    private void handleDecoderException(Exception e, ByteBuffer buf, int codecFlags) {
+    private void handleDecoderException(Exception e, ByteBuffer buf, int codecFlags, boolean throwOnTransient) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (e instanceof CodecException) {
                 CodecException codecExc = (CodecException) e;
 
-                if (codecExc.isTransient()) {
+                if (codecExc.isTransient() && !throwOnTransient) {
                     // We'll let transient exceptions go
                     LimeLog.warning(codecExc.getDiagnosticInfo());
                     return;
@@ -352,7 +352,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             }
                         }
                     } catch (Exception e) {
-                        handleDecoderException(e, null, 0);
+                        handleDecoderException(e, null, 0, false);
                     }
                 }
             }
@@ -392,11 +392,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         startTime = MediaCodecHelper.getMonotonicMillis();
 
         try {
-            while (rendererThread.isAlive() && index < 0 && !stopping) {
+            while (index < 0 && !stopping) {
                 index = videoDecoder.dequeueInputBuffer(10000);
             }
         } catch (Exception e) {
-            handleDecoderException(e, null, 0);
+            handleDecoderException(e, null, 0, true);
             return MediaCodec.INFO_TRY_AGAIN_LATER;
         }
 
@@ -467,31 +467,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     }
 
     private boolean queueInputBuffer(int inputBufferIndex, int offset, int length, long timestampUs, int codecFlags) {
-        // Try 25 times to submit the input buffer before throwing a real exception
-        int i;
-        Exception lastException = null;
-
-        for (i = 0; i < 25; i++) {
-            try {
-                videoDecoder.queueInputBuffer(inputBufferIndex,
-                        offset, length,
-                        timestampUs, codecFlags);
-                break;
-            } catch (Exception e) {
-                handleDecoderException(e, null, codecFlags);
-                lastException = e;
-            }
-        }
-
-        if (i == 25 && totalFrames > 0 && !stopping) {
-            throw new RendererException(this, lastException, null, codecFlags);
-        }
-        else if (i != 25) {
-            // Queued input buffer
+        try {
+            videoDecoder.queueInputBuffer(inputBufferIndex,
+                    offset, length,
+                    timestampUs, codecFlags);
             return true;
-        }
-        else {
-            // Failed to queue
+        } catch (Exception e) {
+            handleDecoderException(e, null, codecFlags, true);
             return false;
         }
     }
@@ -505,12 +487,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             try {
                 buf = videoDecoder.getInputBuffer(inputBufferIndex);
             } catch (Exception e) {
-                if (totalFrames > 0 && !stopping) {
-                    throw new RendererException(this, e, null, 0);
-                }
-                else {
-                    return null;
-                }
+                handleDecoderException(e, null, 0, true);
+                return null;
             }
         }
         else {

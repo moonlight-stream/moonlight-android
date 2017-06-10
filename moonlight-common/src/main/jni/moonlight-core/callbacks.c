@@ -79,7 +79,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jobject class) {
     BridgeDrStartMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrStart", "()V");
     BridgeDrStopMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrStop", "()V");
     BridgeDrCleanupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrCleanup", "()V");
-    BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSubmitDecodeUnit", "([BI)I");
+    BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSubmitDecodeUnit", "([BIIJ)I");
     BridgeArInitMethod = (*env)->GetStaticMethodID(env, class, "bridgeArInit", "(I)I");
     BridgeArStartMethod = (*env)->GetStaticMethodID(env, class, "bridgeArStart", "()V");
     BridgeArStopMethod = (*env)->GetStaticMethodID(env, class, "bridgeArStop", "()V");
@@ -173,7 +173,9 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
         currentEntry = currentEntry->next;
     }
 
-    return (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeDrSubmitDecodeUnitMethod, DecodedFrameBuffer, decodeUnit->fullLength);
+    return (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeDrSubmitDecodeUnitMethod,
+                                       DecodedFrameBuffer, decodeUnit->fullLength, decodeUnit->frameNumber,
+                                       decodeUnit->receiveTimeMs);
 }
 
 int BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig) {

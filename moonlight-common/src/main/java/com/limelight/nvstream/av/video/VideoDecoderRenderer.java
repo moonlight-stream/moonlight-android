@@ -7,7 +7,7 @@ public abstract class VideoDecoderRenderer {
 
 	public abstract void stop();
 
-	public abstract int submitDecodeUnit(byte[] frameData, int frameLength);
+	public abstract int submitDecodeUnit(byte[] frameData, int frameLength, int frameNumber, long receiveTimeMs);
 	
 	public abstract void cleanup();
 

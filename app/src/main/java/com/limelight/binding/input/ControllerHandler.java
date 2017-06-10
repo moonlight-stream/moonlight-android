@@ -63,6 +63,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         int[] ids = InputDevice.getDeviceIds();
         for (int id : ids) {
             InputDevice dev = InputDevice.getDevice(id);
+            if (dev == null) {
+                // This device was removed during enumeration
+                continue;
+            }
             if ((dev.getSources() & InputDevice.SOURCE_JOYSTICK) != 0 ||
                     (dev.getSources() & InputDevice.SOURCE_GAMEPAD) != 0) {
                 // This looks like a gamepad, but we'll check X and Y to be sure

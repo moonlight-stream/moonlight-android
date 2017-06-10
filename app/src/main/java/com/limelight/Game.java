@@ -171,6 +171,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView.setOnGenericMotionListener(this);
         streamView.setOnTouchListener(this);
 
+        inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // The view must be focusable for pointer capture to work.
+            streamView.setFocusable(true);
+            streamView.setDefaultFocusHighlightEnabled(false);
+            streamView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
+                @Override
+                public boolean onCapturedPointer(View view, MotionEvent motionEvent) {
+                    return handleMotionEvent(motionEvent);
+                }
+            });
+        }
+
         // Warn the user if they're on a metered connection
         checkDataConnection();
 
@@ -255,20 +269,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // CPU availability
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             getWindow().setSustainedPerformanceMode(true);
-        }
-
-        inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // The view must be focusable for pointer capture to work.
-            streamView.setFocusable(true);
-            streamView.setDefaultFocusHighlightEnabled(false);
-            streamView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
-                @Override
-                public boolean onCapturedPointer(View view, MotionEvent motionEvent) {
-                    return handleMotionEvent(motionEvent);
-                }
-            });
         }
 
         if (prefConfig.onscreenController) {

@@ -23,6 +23,7 @@ import android.view.SurfaceHolder;
 public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private static final boolean USE_FRAME_RENDER_TIME = false;
+    private static final boolean FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
 
     // Used on versions < 5.0
     private ByteBuffer[] legacyInputBuffers;
@@ -54,6 +55,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private long decoderTimeMs;
     private long totalTimeMs;
     private int totalFrames;
+    private int frameLossEvents;
+    private int framesLost;
+    private int lastFrameNumber;
+    private int refreshRate;
+    private int bitrate;
 
     private int numSpsIn;
     private int numPpsIn;
@@ -99,8 +105,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.renderTarget = renderTarget;
     }
 
-    public MediaCodecDecoderRenderer(int videoFormat) {
+    public MediaCodecDecoderRenderer(int videoFormat, int bitrate) {
         //dumpDecoders();
+
+        this.bitrate = bitrate;
 
         spinnerThreads = new Thread[Runtime.getRuntime().availableProcessors()];
 
@@ -160,6 +168,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.initialWidth = width;
         this.initialHeight = height;
         this.videoFormat = format;
+        this.refreshRate = redrawRate;
 
         String mimeType;
         String selectedDecoderName;
@@ -533,18 +542,34 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int submitDecodeUnit(byte[] frameData, int frameLength) {
+    public int submitDecodeUnit(byte[] frameData, int frameLength, int frameNumber, long receiveTimeMs) {
         totalFrames++;
+
+        // We can receive the same "frame" multiple times if it's an IDR frame.
+        // In that case, each frame start NALU is submitted independently.
+        if (frameNumber != lastFrameNumber && frameNumber != lastFrameNumber + 1) {
+            framesLost += frameNumber - lastFrameNumber - 1;
+            frameLossEvents++;
+        }
+
+        lastFrameNumber = frameNumber;
 
         int inputBufferIndex;
         ByteBuffer buf;
 
         long timestampUs = System.nanoTime() / 1000;
+
+        if (!FRAME_RENDER_TIME_ONLY) {
+            // Count time from first packet received to decode start
+            totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
+        }
+
         if (timestampUs <= lastTimestampUs) {
             // We can't submit multiple buffers with the same timestamp
             // so bump it up by one before queuing
             timestampUs = lastTimestampUs + 1;
         }
+
         lastTimestampUs = timestampUs;
 
         int codecFlags = 0;
@@ -878,8 +903,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+"\n";
             str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+"\n";
             str += "Initial video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
+            str += "FPS target: "+renderer.refreshRate+"\n";
+            str += "Bitrate: "+renderer.bitrate+" Mbps \n";
             str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
             str += "Total frames: "+renderer.totalFrames+"\n";
+            str += "Frame losses: "+renderer.framesLost+" in "+frameLossEvents+" loss events\n";
             str += "Average end-to-end client latency: "+getAverageEndToEndLatency()+"ms\n";
             str += "Average hardware decoder latency: "+getAverageDecoderLatency()+"ms\n";
 
@@ -894,13 +922,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             str += "Is Exynos 4: "+renderer.isExynos4+"\n";
-
-            str += "/proc/cpuinfo:\n";
-            try {
-                str += MediaCodecHelper.readCpuinfo();
-            } catch (Exception e) {
-                str += e.getMessage();
-            }
 
             str += "Full decoder dump:\n";
             try {

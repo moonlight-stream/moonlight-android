@@ -214,7 +214,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Initialize the MediaCodec helper before creating the decoder
         MediaCodecHelper.initializeWithContext(this);
 
-        decoderRenderer = new MediaCodecDecoderRenderer(prefConfig.videoFormat);
+        decoderRenderer = new MediaCodecDecoderRenderer(prefConfig.videoFormat, prefConfig.bitrate);
 
         // Display a message to the user if H.265 was forced on but we still didn't find a decoder
         if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {

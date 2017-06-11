@@ -45,7 +45,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private boolean refFrameInvalidationActive;
     private int initialWidth, initialHeight;
     private int videoFormat;
-    private Object renderTarget;
+    private SurfaceHolder renderTarget;
     private volatile boolean stopping;
 
     private boolean needsBaselineSpsHack;
@@ -101,7 +101,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return decoderInfo;
     }
 
-    public void setRenderTarget(Object renderTarget) {
+    public void setRenderTarget(SurfaceHolder renderTarget) {
         this.renderTarget = renderTarget;
     }
 
@@ -246,7 +246,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         try {
-            videoDecoder.configure(videoFormat, ((SurfaceHolder)renderTarget).getSurface(), null, 0);
+            videoDecoder.configure(videoFormat, renderTarget.getSurface(), null, 0);
             videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 
             if (USE_FRAME_RENDER_TIME && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -294,9 +294,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
         }
 
-        // Only throw if this happens at the beginning of a stream
-        // but not if we're stopping
-        if (totalFrames > 0 && !stopping) {
+        // Only throw if the surface is still around and we're not stopping
+        if (!stopping && renderTarget.getSurface().isValid()) {
             if (buf != null || codecFlags != 0) {
                 throw new RendererException(this, e, buf, codecFlags);
             }

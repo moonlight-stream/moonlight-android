@@ -5,6 +5,7 @@
 #include <Limelight.h>
 
 #include <opus_multistream.h>
+#include <android/log.h>
 
 #define PCM_FRAME_SIZE 240
 
@@ -178,7 +179,7 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
                                        decodeUnit->receiveTimeMs);
 }
 
-int BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig) {
+int BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig, void* context, int flags) {
     JNIEnv* env = GetThreadEnv();
     int err;
 
@@ -341,6 +342,13 @@ void BridgeClDisplayTransientMessage(const char* message) {
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClDisplayTransientMessageMethod, (*env)->NewStringUTF(env, message));
 }
 
+void BridgeClLogMessage(const char* format, ...) {
+    va_list va;
+    va_start(va, format);
+    __android_log_vprint(ANDROID_LOG_INFO, "moonlight-common-c", format, va);
+    va_end(va);
+}
+
 static DECODER_RENDERER_CALLBACKS BridgeVideoRendererCallbacks = {
         .setup = BridgeDrSetup,
         .start = BridgeDrStart,
@@ -365,6 +373,7 @@ static CONNECTION_LISTENER_CALLBACKS BridgeConnListenerCallbacks = {
         .connectionTerminated = BridgeClConnectionTerminated,
         .displayMessage = BridgeClDisplayMessage,
         .displayTransientMessage = BridgeClDisplayTransientMessage,
+        .logMessage = BridgeClLogMessage,
 };
 
 JNIEXPORT jint JNICALL
@@ -401,7 +410,13 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject 
 
     BridgeVideoRendererCallbacks.capabilities = videoCapabilities;
 
-    int ret = LiStartConnection(&serverInfo, &streamConfig, &BridgeConnListenerCallbacks, &BridgeVideoRendererCallbacks, &BridgeAudioRendererCallbacks, NULL, 0);
+    int ret = LiStartConnection(&serverInfo,
+                                &streamConfig,
+                                &BridgeConnListenerCallbacks,
+                                &BridgeVideoRendererCallbacks,
+                                &BridgeAudioRendererCallbacks,
+                                NULL, 0,
+                                NULL, 0);
 
     (*env)->ReleaseStringUTFChars(env, address, serverInfo.address);
     (*env)->ReleaseStringUTFChars(env, appVersion, serverInfo.serverInfoAppVersion);

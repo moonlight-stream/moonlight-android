@@ -11,8 +11,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 26
 
-        versionName "5.0.2"
-        versionCode = 126
+        versionName "5.1"
+        versionCode = 128
     }
 
     productFlavors {

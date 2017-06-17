@@ -21,9 +21,9 @@
             android:title="@string/title_checkbox_stretch_video"
             android:defaultValue="false" />
         <CheckBoxPreference
-            android:key="checkbox_disable_warnings"
-            android:title="@string/title_checkbox_disable_warnings"
-            android:summary="@string/summary_checkbox_disable_warnings"
+            android:key="checkbox_battery_saver"
+            android:title="@string/title_checkbox_battery_saver"
+            android:summary="@string/summary_checkbox_battery_saver"
             android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_audio_settings">

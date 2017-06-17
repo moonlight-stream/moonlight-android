@@ -109,12 +109,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.renderTarget = renderTarget;
     }
 
-    public MediaCodecDecoderRenderer(int videoFormat, int bitrate) {
+    public MediaCodecDecoderRenderer(int videoFormat, int bitrate, boolean batterySaver) {
         //dumpDecoders();
 
         this.bitrate = bitrate;
 
-        spinnerThreads = new Thread[Runtime.getRuntime().availableProcessors()];
+        // Disable spinner threads in battery saver mode
+        if (batterySaver) {
+            spinnerThreads = new Thread[0];
+        }
+        else {
+            spinnerThreads = new Thread[Runtime.getRuntime().availableProcessors()];
+        }
 
         avcDecoder = findAvcDecoder();
         if (avcDecoder != null) {

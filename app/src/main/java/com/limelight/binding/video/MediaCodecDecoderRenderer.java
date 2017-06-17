@@ -294,8 +294,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
         }
 
-        // Only throw if the surface is still around and we're not stopping
-        if (!stopping && renderTarget.getSurface().isValid()) {
+        // Only throw if we're not stopping
+        if (!stopping) {
             if (buf != null || codecFlags != 0) {
                 throw new RendererException(this, e, buf, codecFlags);
             }
@@ -311,7 +311,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             @Override
             public void run() {
                 BufferInfo info = new BufferInfo();
-                while (!isInterrupted()) {
+                while (!stopping) {
                     try {
                         // Try to output a frame
                         int outIndex = videoDecoder.dequeueOutputBuffer(info, 50000);
@@ -369,7 +369,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 public void run() {
                     // This thread exists to keep the CPU at a higher DVFS state on devices
                     // where the governor scales clock speed sporadically, causing dropped frames.
-                    while (!isInterrupted()) {
+                    while (!stopping) {
                         try {
                             Thread.sleep(0, 1);
                         } catch (InterruptedException e) {
@@ -421,14 +421,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     public void prepareForStop() {
         // Let the decoding code know to ignore codec exceptions now
         stopping = true;
+
+        // Halt the rendering thread
+        rendererThread.interrupt();
     }
 
     @Override
     public void stop() {
-        stopping = true;
-
-        // Halt the rendering thread
-        rendererThread.interrupt();
+        // May be called already, but we'll call it now to be safe
+        prepareForStop();
 
         try {
             // Invalidate pending decode buffers
@@ -653,13 +654,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             inputBufferIndex = dequeueInputBuffer();
             if (inputBufferIndex < 0) {
                 // We're being torn down now
-                return MoonBridge.DR_OK;
+                return MoonBridge.DR_NEED_IDR;
             }
 
             buf = getEmptyInputBuffer(inputBufferIndex);
             if (buf == null) {
                 // We're being torn down now
-                return MoonBridge.DR_OK;
+                return MoonBridge.DR_NEED_IDR;
             }
 
             // Write the annex B header
@@ -687,13 +688,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             inputBufferIndex = dequeueInputBuffer();
             if (inputBufferIndex < 0) {
                 // We're being torn down now
-                return MoonBridge.DR_OK;
+                return MoonBridge.DR_NEED_IDR;
             }
 
             buf = getEmptyInputBuffer(inputBufferIndex);
             if (buf == null) {
                 // We're being torn down now
-                return MoonBridge.DR_OK;
+                return MoonBridge.DR_NEED_IDR;
             }
 
             if (needsBaselineSpsHack) {
@@ -726,13 +727,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             inputBufferIndex = dequeueInputBuffer();
             if (inputBufferIndex < 0) {
                 // We're being torn down now
-                return MoonBridge.DR_OK;
+                return MoonBridge.DR_NEED_IDR;
             }
 
             buf = getEmptyInputBuffer(inputBufferIndex);
             if (buf == null) {
                 // We're being torn down now
-                return MoonBridge.DR_OK;
+                return MoonBridge.DR_NEED_IDR;
             }
 
             // When we get the PPS, submit the VPS and SPS together with
@@ -751,13 +752,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             inputBufferIndex = dequeueInputBuffer();
             if (inputBufferIndex < 0) {
                 // We're being torn down now
-                return MoonBridge.DR_OK;
+                return MoonBridge.DR_NEED_IDR;
             }
 
             buf = getEmptyInputBuffer(inputBufferIndex);
             if (buf == null) {
                 // We're being torn down now
-                return MoonBridge.DR_OK;
+                return MoonBridge.DR_NEED_IDR;
             }
         }
 

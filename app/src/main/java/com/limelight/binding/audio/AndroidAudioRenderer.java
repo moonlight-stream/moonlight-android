@@ -26,6 +26,11 @@ public class AndroidAudioRenderer implements AudioRenderer {
         else {
             AudioAttributes.Builder attributesBuilder = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_GAME);
+            AudioFormat format = new AudioFormat.Builder()
+                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                    .setSampleRate(48000)
+                    .setChannelMask(channelConfig)
+                    .build();
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
                 // Use FLAG_LOW_LATENCY on L through N
@@ -34,24 +39,27 @@ public class AndroidAudioRenderer implements AudioRenderer {
                 }
             }
 
-            AudioTrack.Builder trackBuilder = new AudioTrack.Builder()
-                    .setAudioFormat(new AudioFormat.Builder()
-                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                            .setSampleRate(48000)
-                            .setChannelMask(channelConfig)
-                            .build())
-                    .setAudioAttributes(attributesBuilder.build())
-                    .setTransferMode(AudioTrack.MODE_STREAM)
-                    .setBufferSizeInBytes(bufferSize);
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                AudioTrack.Builder trackBuilder = new AudioTrack.Builder()
+                        .setAudioFormat(format)
+                        .setAudioAttributes(attributesBuilder.build())
+                        .setTransferMode(AudioTrack.MODE_STREAM)
+                        .setBufferSizeInBytes(bufferSize);
+
                 // Use PERFORMANCE_MODE_LOW_LATENCY on O and later
                 if (lowLatency) {
                     trackBuilder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY);
                 }
-            }
 
-            return trackBuilder.build();
+                return trackBuilder.build();
+            }
+            else {
+                return new AudioTrack(attributesBuilder.build(),
+                        format,
+                        bufferSize,
+                        AudioTrack.MODE_STREAM,
+                        AudioManager.AUDIO_SESSION_ID_GENERATE);
+            }
         }
     }
 

@@ -51,6 +51,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private boolean needsBaselineSpsHack;
     private SeqParameterSet savedSps;
 
+    private RendererException initialException;
+    private long initialExceptionTimestamp;
+    private static final int EXCEPTION_REPORT_DELAY_MS = 3000;
+
     private long lastTimestampUs;
     private long decoderTimeMs;
     private long totalTimeMs;
@@ -296,11 +300,29 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         // Only throw if we're not stopping
         if (!stopping) {
-            if (buf != null || codecFlags != 0) {
-                throw new RendererException(this, e, buf, codecFlags);
+            //
+            // There seems to be a race condition with decoder/surface teardown causing some
+            // decoders to to throw IllegalStateExceptions even before 'stopping' is set.
+            // To workaround this while allowing real exceptions to propagate, we will eat the
+            // first exception. If we are still receiving exceptions 3 seconds later, we will
+            // throw the original exception again.
+            //
+            if (initialException != null) {
+                // This isn't the first time we've had an exception processing video
+                if (System.currentTimeMillis() - initialExceptionTimestamp >= EXCEPTION_REPORT_DELAY_MS) {
+                    // It's been over 3 seconds and we're still getting exceptions. Throw the original now.
+                    throw initialException;
+                }
             }
             else {
-                throw new RendererException(this, e);
+                // This is the first exception we've hit
+                if (buf != null || codecFlags != 0) {
+                    initialException = new RendererException(this, e, buf, codecFlags);
+                }
+                else {
+                    initialException = new RendererException(this, e);
+                }
+                initialExceptionTimestamp = System.currentTimeMillis();
             }
         }
     }
@@ -900,6 +922,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             str += "Is Exynos 4: "+renderer.isExynos4+"\n";
+
+            str += "/proc/cpuinfo:\n";
+            try {
+                str += MediaCodecHelper.readCpuinfo();
+            } catch (Exception e) {
+                str += e.getMessage();
+            }
 
             str += "Full decoder dump:\n";
             try {

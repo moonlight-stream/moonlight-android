@@ -102,6 +102,8 @@
     <string name="summary_seekbar_bitrate">Lower bitrate to reduce stuttering. Raise bitrate to increase image quality.</string>
     <string name="suffix_seekbar_bitrate">Mbps</string>
     <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
+    <string name="title_checkbox_disable_warnings">Disable warning messages</string>
+    <string name="summary_checkbox_disable_warnings">Disable on-screen connection warning messages while streaming</string>
     <string name="title_checkbox_battery_saver">Battery saver</string>
     <string name="summary_checkbox_battery_saver">Uses less battery, but may increase stuttering</string>
 

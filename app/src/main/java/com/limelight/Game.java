@@ -944,6 +944,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             displayedFailureDialog = true;
             LimeLog.severe(stage+" failed: "+errorCode);
 
+            // If video initialization failed and the surface is still valid, display extra information for the user
+            if (stage.contains("video") && streamView.getHolder().getSurface().isValid()) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(Game.this, "Video decoder failed to initialize. Your device may not support the selected resolution.", Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+
             Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title),
                     getResources().getString(R.string.conn_error_msg)+" "+stage, true);
         }

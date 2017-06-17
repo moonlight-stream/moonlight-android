@@ -440,12 +440,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         startSpinnerThreads();
     }
 
+    // !!! May be called even if setup()/start() fails !!!
     public void prepareForStop() {
         // Let the decoding code know to ignore codec exceptions now
         stopping = true;
 
         // Halt the rendering thread
-        rendererThread.interrupt();
+        if (rendererThread != null) {
+            rendererThread.interrupt();
+        }
     }
 
     @Override

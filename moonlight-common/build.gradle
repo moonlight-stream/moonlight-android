@@ -4,9 +4,6 @@ android {
     compileSdkVersion 26
     buildToolsVersion "26.0.0"
 
-    // Build release and debug libs
-    publishNonDefault true
-
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 26
@@ -31,7 +28,13 @@ android {
 }
 
 dependencies {
-    compile 'com.squareup.okhttp:okhttp:2.4.0'
-    compile 'com.squareup.okio:okio:1.5.0'
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.squareup.okhttp:okhttp:2.4.0'
+    implementation 'com.squareup.okio:okio:1.5.0'
+
+    implementation files('libs/tinyrtsp.jar')
+
+    // We expose an interface containing a jmDNS class
+    // so we need to expose the jmDNS library to users
+    // at compile time.
+    api files('libs/jmdns-3.4.2.jar')
 }

@@ -15,6 +15,8 @@ android {
         versionCode = 129
     }
 
+    flavorDimensions "root"
+
     productFlavors {
         root {
             // Android O has native mouse capture, so don't show the rooted
@@ -25,6 +27,8 @@ android {
             ndk {
                 abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64", "mips", "mips64"
             }
+
+            dimension "root"
         }
 
         nonRoot {
@@ -32,6 +36,8 @@ android {
             ndk {
                 abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64", "mips", "mips64"
             }
+
+            dimension "root"
         }
     }
 
@@ -54,10 +60,9 @@ android {
 }
 
 dependencies {
-    compile 'org.bouncycastle:bcprov-jdk15on:1.52'
-    compile 'org.bouncycastle:bcpkix-jdk15on:1.52'
-    compile files('libs/jcodec-0.1.9-patched.jar')
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.52'
+    implementation 'org.bouncycastle:bcpkix-jdk15on:1.52'
+    implementation files('libs/jcodec-0.1.9-patched.jar')
 
-    debugCompile project(path:':moonlight-common', configuration:'debug')
-    releaseCompile project(path:':moonlight-common', configuration:'release')
+    implementation project(':moonlight-common')
 }

@@ -24,7 +24,7 @@ Check our [wiki](https://github.com/moonlight-stream/moonlight-docs/wiki) for mo
 
 ##Requirements
 
-* [GameStream compatible](http://shield.nvidia.com/play-pc-games/) computer with GTX 600/700 series GPU
+* [GameStream compatible](http://shield.nvidia.com/play-pc-games/) computer with GTX 600/700 series GPU or higher
 * Android device running 4.1 (Jelly Bean) or higher
 * High-end wireless router (802.11n dual-band recommended)
 
@@ -34,7 +34,7 @@ Check our [wiki](https://github.com/moonlight-stream/moonlight-docs/wiki) for mo
 * If you are connecting from outside the same network, turn on internet
   streaming
 * When on the same network as your PC, open Moonlight and tap on your PC in the list
-* Accept the pairing confirmation on your PC
+* Accept the pairing confirmation on your PC and add the PIN if needed
 * Tap your PC again to view the list of apps to stream
 * Play games!
 

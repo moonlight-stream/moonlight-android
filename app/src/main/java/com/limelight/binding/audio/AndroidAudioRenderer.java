@@ -149,6 +149,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
                 break;
             } catch (Exception e) {
                 // Try to release the AudioTrack if we got far enough
+                e.printStackTrace();
                 try {
                     if (track != null) {
                         track.release();
@@ -156,6 +157,11 @@ public class AndroidAudioRenderer implements AudioRenderer {
                     }
                 } catch (Exception ignored) {}
             }
+        }
+
+        if (track == null) {
+            // Couldn't create any audio track for playback
+            return -2;
         }
 
         return 0;

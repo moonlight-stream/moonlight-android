@@ -19,6 +19,7 @@ public class XboxOneController extends AbstractXboxController {
             0x0738, // Mad Catz
             0x0e6f, // Unknown
             0x0f0d, // Hori
+            0x1532, // Razer Wildcat
             0x24c6, // PowerA
     };
 

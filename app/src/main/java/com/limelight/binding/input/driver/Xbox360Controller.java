@@ -17,18 +17,22 @@ public class Xbox360Controller extends AbstractXboxController {
             0x044f, // Thrustmaster
             0x045e, // Microsoft
             0x046d, // Logitech
+            0x056e, // Elecom
+            0x06a3, // Saitek
             0x0738, // Mad Catz
+            0x07ff, // Mad Catz
             0x0e6f, // Unknown
+            0x0f0d, // Hori
+            0x11c9, // Nacon
             0x12ab, // Unknown
             0x1430, // RedOctane
             0x146b, // BigBen
-            0x1bad, // Harmonix
-            0x0f0d, // Hori
-            0x1689, // Razer Onza
-            0x24c6, // PowerA
             0x1532, // Razer Sabertooth
             0x15e4, // Numark
             0x162e, // Joytech
+            0x1689, // Razer Onza
+            0x1bad, // Harmonix
+            0x24c6, // PowerA
     };
 
     public static boolean canClaimDevice(UsbDevice device) {

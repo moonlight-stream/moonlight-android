@@ -24,6 +24,11 @@
         android:name="android.software.leanback"
         android:required="false" />
 
+    <!-- Disable legacy input emulation on ChromeOS -->
+    <uses-feature
+        android:name="android.hardware.type.pc"
+        android:required="false"/>
+
     <application
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_rules"

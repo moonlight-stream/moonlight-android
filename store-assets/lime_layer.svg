@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   width="546.083726pt"
+   height="546.155759pt"
+   viewBox="0 0 546.083726 546.155759"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg4059"
+   sodipodi:docname="lime_layer.svg"
+   inkscape:version="0.92.2 5c3e80d, 2017-08-06">
+  <defs
+     id="defs4063" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="951"
+     id="namedview4061"
+     showgrid="false"
+     inkscape:zoom="0.32408337"
+     inkscape:cx="364.05583"
+     inkscape:cy="364.10384"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4059" />
+  <metadata
+     id="metadata4039">
+Created by potrace 1.12, written by Peter Selinger 2001-2015
+<rdf:RDF>
+  <cc:Work
+     rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type
+       rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+    <dc:title></dc:title>
+  </cc:Work>
+</rdf:RDF>
+</metadata>
+  <g
+     transform="translate(-202.416274,747.655759) scale(0.100000,-0.100000)"
+     fill="#000000"
+     stroke="none"
+     id="g4057"
+     style="fill:#ffffff">
+    <path
+       d="M4550 7473 c-582 -48 -1123 -271 -1568 -646 l-84 -70 869 -869 c477 -477 871 -868 876 -868 4 0 6 552 5 1228 l-3 1227 -25 1 c-14 0 -45 -1 -70 -3z"
+       id="path4041"
+       style="fill:#ffffff" />
+    <path
+       d="M4867 7473 c-10 -9 -9 -2453 1 -2453 4 0 398 391 875 868 l869 869 -84 70 c-344 290 -749 492 -1178 587 -166 36 -469 74 -483 59z"
+       id="path4043"
+       style="fill:#ffffff" />
+    <path
+       d="M2673 6518 c-241 -285 -412 -595 -526 -953 -63 -196 -111 -458 -119 -640 l-3 -70 1228 -3 c675 -1 1227 1 1227 5 0 5 -391 399 -868 876 l-869 869 -70 -84z"
+       id="path4045"
+       style="fill:#ffffff" />
+    <path
+       d="M5898 5733 c-478 -477 -868 -871 -868 -876 0 -4 552 -6 1228 -5 l1227 3 -3 70 c-14 326 -124 729 -287 1055 -91 182 -259 430 -387 573 l-43 48 -867 -868z"
+       id="path4047"
+       style="fill:#ffffff" />
+    <path
+       d="M2026 4631 c-7 -11 10 -198 30 -321 76 -486 291 -952 617 -1338 l70 -84 869 869 c477 477 868 871 868 875 0 11 -2448 10 -2454 -1z"
+       id="path4049"
+       style="fill:#ffffff" />
+    <path
+       d="M5030 4633 c0 -5 391 -399 868 -876 l869 -869 70 84 c241 285 412 595 526 953 63 196 111 458 119 640 l3 70 -1227 3 c-676 1 -1228 -1 -1228 -5z"
+       id="path4051"
+       style="fill:#ffffff" />
+    <path
+       d="M3767 3602 l-869 -869 84 -70 c285 -241 595 -412 953 -526 196 -63 458 -111 640 -119 l70 -3 3 1228 c1 675 -1 1227 -5 1227 -5 0 -399 -391 -876 -868z"
+       id="path4053"
+       style="fill:#ffffff" />
+    <path
+       d="M4862 3243 l3 -1228 70 3 c182 8 444 56 640 119 358 114 668 285 953 526 l84 70 -869 869 c-477 477 -871 868 -876 868 -4 0 -6 -552 -5 -1227z"
+       id="path4055"
+       style="fill:#ffffff" />
+  </g>
+</svg>

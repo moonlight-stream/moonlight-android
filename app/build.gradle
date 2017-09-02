@@ -60,8 +60,8 @@ android {
 }
 
 dependencies {
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.52'
-    implementation 'org.bouncycastle:bcpkix-jdk15on:1.52'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.57'
+    implementation 'org.bouncycastle:bcpkix-jdk15on:1.57'
     implementation files('libs/jcodec-0.1.9-patched.jar')
 
     implementation project(':moonlight-common')

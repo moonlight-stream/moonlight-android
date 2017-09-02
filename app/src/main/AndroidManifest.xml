@@ -34,6 +34,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:isGame="true"
         android:banner="@drawable/atv_banner"
+        android:appCategory="game"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/AppTheme">

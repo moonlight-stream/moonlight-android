@@ -210,8 +210,8 @@ public class ComputerManagerService extends Service {
             }
         }
 
-        public boolean addComputerBlocking(String addr) {
-            return ComputerManagerService.this.addComputerBlocking(addr);
+        public boolean addComputerBlocking(String addr, boolean manuallyAdded) {
+            return ComputerManagerService.this.addComputerBlocking(addr, manuallyAdded);
         }
 
         public void removeComputer(String name) {
@@ -289,7 +289,7 @@ public class ComputerManagerService extends Service {
             @Override
             public void notifyComputerAdded(MdnsComputer computer) {
                 // Kick off a serverinfo poll on this machine
-                addComputerBlocking(computer.getAddress().getHostAddress());
+                addComputerBlocking(computer.getAddress().getHostAddress(), false);
             }
 
             @Override
@@ -305,15 +305,22 @@ public class ComputerManagerService extends Service {
         };
     }
 
-    private void addTuple(ComputerDetails details) {
+    private void addTuple(ComputerDetails details, boolean manuallyAdded) {
         synchronized (pollingTuples) {
             for (PollingTuple tuple : pollingTuples) {
                 // Check if this is the same computer
                 if (tuple.computer.uuid.equals(details.uuid)) {
-                    // Update details anyway in case this machine has been re-added by IP
-                    // after not being reachable by our existing information
-                    tuple.computer.localAddress = details.localAddress;
-                    tuple.computer.remoteAddress = details.remoteAddress;
+                    if (manuallyAdded) {
+                        // Update details anyway in case this machine has been re-added by IP
+                        // after not being reachable by our existing information
+                        tuple.computer.localAddress = details.localAddress;
+                        tuple.computer.remoteAddress = details.remoteAddress;
+                    }
+                    else {
+                        // This indicates that mDNS discovered this address, so we
+                        // should only apply the local address.
+                        tuple.computer.localAddress = details.localAddress;
+                    }
 
                     // Start a polling thread if polling is active
                     if (pollingActive && tuple.thread == null) {
@@ -338,7 +345,7 @@ public class ComputerManagerService extends Service {
         }
     }
 
-    public boolean addComputerBlocking(String addr) {
+    public boolean addComputerBlocking(String addr, boolean manuallyAdded) {
         // Setup a placeholder
         ComputerDetails fakeDetails = new ComputerDetails();
         fakeDetails.localAddress = addr;
@@ -356,7 +363,7 @@ public class ComputerManagerService extends Service {
             LimeLog.info("New PC ("+fakeDetails.name+") is UUID "+fakeDetails.uuid);
 
             // Start a polling thread for this machine
-            addTuple(fakeDetails);
+            addTuple(fakeDetails, manuallyAdded);
             return true;
         }
         else {
@@ -616,7 +623,7 @@ public class ComputerManagerService extends Service {
 
         for (ComputerDetails computer : dbManager.getAllComputers()) {
             // Add tuples for each computer
-            addTuple(computer);
+            addTuple(computer, true);
         }
 
         releaseLocalDatabaseReference();

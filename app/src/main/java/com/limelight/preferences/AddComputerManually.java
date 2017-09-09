@@ -46,7 +46,7 @@ public class AddComputerManually extends Activity {
         SpinnerDialog dialog = SpinnerDialog.displayDialog(this, getResources().getString(R.string.title_add_pc),
             getResources().getString(R.string.msg_add_pc), false);
 
-        if (!managerBinder.addComputerBlocking(host)){
+        if (!managerBinder.addComputerBlocking(host, true)){
             msg = getResources().getString(R.string.addpc_fail);
         }
         else {

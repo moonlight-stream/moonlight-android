@@ -20,7 +20,7 @@ import java.net.UnknownHostException;
 public class ServerHelper {
     public static InetAddress getCurrentAddressFromComputer(ComputerDetails computer) {
         return computer.reachability == ComputerDetails.Reachability.LOCAL ?
-                computer.localIp : computer.remoteIp;
+                computer.localAddress : computer.remoteAddress;
     }
 
     public static Intent createStartIntent(Activity parent, NvApp app, ComputerDetails computer,

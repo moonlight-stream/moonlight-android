@@ -155,7 +155,7 @@ public class ComputerManagerService extends Service {
                 }
             }
         };
-        t.setName("Polling thread for " + tuple.computer.localIp.getHostAddress());
+        t.setName("Polling thread for " + tuple.computer.localAddress.getHostAddress());
         return t;
     }
 
@@ -313,8 +313,8 @@ public class ComputerManagerService extends Service {
                 if (tuple.computer.uuid.equals(details.uuid)) {
                     // Update details anyway in case this machine has been re-added by IP
                     // after not being reachable by our existing information
-                    tuple.computer.localIp = details.localIp;
-                    tuple.computer.remoteIp = details.remoteIp;
+                    tuple.computer.localAddress = details.localAddress;
+                    tuple.computer.remoteAddress = details.remoteAddress;
 
                     // Start a polling thread if polling is active
                     if (pollingActive && tuple.thread == null) {
@@ -342,8 +342,8 @@ public class ComputerManagerService extends Service {
     public boolean addComputerBlocking(InetAddress addr) {
         // Setup a placeholder
         ComputerDetails fakeDetails = new ComputerDetails();
-        fakeDetails.localIp = addr;
-        fakeDetails.remoteIp = addr;
+        fakeDetails.localAddress = addr;
+        fakeDetails.remoteAddress = addr;
 
         // Block while we try to fill the details
         try {
@@ -500,13 +500,13 @@ public class ComputerManagerService extends Service {
 
         // If the local address is routable across the Internet,
         // always consider this PC remote to be conservative
-        if (details.localIp.equals(details.remoteIp)) {
+        if (details.localAddress.equals(details.remoteAddress)) {
             reachability = ComputerDetails.Reachability.REMOTE;
         }
         else {
             // Do a TCP-level connection to the HTTP server to see if it's listening
-            LimeLog.info("Starting fast poll for "+details.name+" ("+details.localIp+", "+details.remoteIp+")");
-            reachability = fastPollPc(details.localIp, details.remoteIp);
+            LimeLog.info("Starting fast poll for "+details.name+" ("+details.localAddress +", "+details.remoteAddress +")");
+            reachability = fastPollPc(details.localAddress, details.remoteAddress);
             LimeLog.info("Fast poll for "+details.name+" returned "+reachability.toString());
 
             // If no connection could be established to either IP address, there's nothing we can do
@@ -518,39 +518,39 @@ public class ComputerManagerService extends Service {
         boolean localFirst = (reachability == ComputerDetails.Reachability.LOCAL);
 
         if (localFirst) {
-            polledDetails = tryPollIp(details, details.localIp);
+            polledDetails = tryPollIp(details, details.localAddress);
         }
         else {
-            polledDetails = tryPollIp(details, details.remoteIp);
+            polledDetails = tryPollIp(details, details.remoteAddress);
         }
 
         InetAddress reachableAddr = null;
-        if (polledDetails == null && !details.localIp.equals(details.remoteIp)) {
+        if (polledDetails == null && !details.localAddress.equals(details.remoteAddress)) {
             // Failed, so let's try the fallback
             if (!localFirst) {
-                polledDetails = tryPollIp(details, details.localIp);
+                polledDetails = tryPollIp(details, details.localAddress);
             }
             else {
-                polledDetails = tryPollIp(details, details.remoteIp);
+                polledDetails = tryPollIp(details, details.remoteAddress);
             }
 
             if (polledDetails != null) {
                 // The fallback poll worked
-                reachableAddr = !localFirst ? details.localIp : details.remoteIp;
+                reachableAddr = !localFirst ? details.localAddress : details.remoteAddress;
             }
         }
         else if (polledDetails != null) {
-            reachableAddr = localFirst ? details.localIp : details.remoteIp;
+            reachableAddr = localFirst ? details.localAddress : details.remoteAddress;
         }
 
         if (reachableAddr == null) {
             return null;
         }
 
-        if (polledDetails.remoteIp.equals(reachableAddr)) {
+        if (polledDetails.remoteAddress.equals(reachableAddr)) {
             polledDetails.reachability = ComputerDetails.Reachability.REMOTE;
         }
-        else if (polledDetails.localIp.equals(reachableAddr)) {
+        else if (polledDetails.localAddress.equals(reachableAddr)) {
             polledDetails.reachability = ComputerDetails.Reachability.LOCAL;
         }
         else {
@@ -572,7 +572,7 @@ public class ComputerManagerService extends Service {
             ReachabilityTuple confirmationReachTuple = pollForReachability(initialReachTuple.computer);
             if (confirmationReachTuple == null) {
                 // Neither of those seem to work, so we'll hold onto the address that did work
-                initialReachTuple.computer.localIp = initialReachTuple.reachableAddress;
+                initialReachTuple.computer.localAddress = initialReachTuple.reachableAddress;
                 initialReachTuple.computer.reachability = ComputerDetails.Reachability.LOCAL;
             }
             else {

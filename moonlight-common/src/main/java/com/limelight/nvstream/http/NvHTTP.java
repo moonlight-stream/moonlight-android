@@ -223,8 +223,8 @@ public class NvHTTP {
 			externalIpStr = address.getHostAddress();
 		}
 		
-		details.localIp = InetAddress.getByName(localIpStr);
-		details.remoteIp = InetAddress.getByName(externalIpStr);
+		details.localAddress = InetAddress.getByName(localIpStr);
+		details.remoteAddress = InetAddress.getByName(externalIpStr);
 		
 		try {
 			details.pairState = Integer.parseInt(getXmlString(serverInfo, "PairStatus")) == 1 ?

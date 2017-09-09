@@ -16,8 +16,8 @@ public class ComputerDetails {
 	public Reachability reachability;
 	public String name;
 	public UUID uuid;
-	public InetAddress localIp;
-	public InetAddress remoteIp;
+	public InetAddress localAddress;
+	public InetAddress remoteAddress;
 	public PairingManager.PairState pairState;
 	public String macAddress;
 	public int runningGameId;
@@ -39,8 +39,8 @@ public class ComputerDetails {
 		this.reachability = details.reachability;
 		this.name = details.name;
 		this.uuid = details.uuid;
-		this.localIp = details.localIp;
-		this.remoteIp = details.remoteIp;
+		this.localAddress = details.localAddress;
+		this.remoteAddress = details.remoteAddress;
 		this.macAddress = details.macAddress;
 		this.pairState = details.pairState;
 		this.runningGameId = details.runningGameId;
@@ -54,8 +54,8 @@ public class ComputerDetails {
 		str.append("Reachability: ").append(reachability).append("\n");
 		str.append("Name: ").append(name).append("\n");
 		str.append("UUID: ").append(uuid).append("\n");
-		str.append("Local IP: ").append(localIp).append("\n");
-		str.append("Remote IP: ").append(remoteIp).append("\n");
+		str.append("Local IP: ").append(localAddress).append("\n");
+		str.append("Remote IP: ").append(remoteAddress).append("\n");
 		str.append("MAC Address: ").append(macAddress).append("\n");
 		str.append("Pair State: ").append(pairState).append("\n");
 		str.append("Running Game ID: ").append(runningGameId).append("\n");

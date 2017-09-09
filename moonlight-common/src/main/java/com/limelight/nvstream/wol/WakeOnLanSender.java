@@ -23,10 +23,10 @@ public class WakeOnLanSender {
 		for (int i = 0; i < 2; i++) {
 			InetAddress addr;
 			if (i == 0) {
-				addr = computer.localIp;
+				addr = computer.localAddress;
 			}
 			else {
-				addr = computer.remoteIp;
+				addr = computer.remoteAddress;
 			}
 			
 			// Try all the ports for each address

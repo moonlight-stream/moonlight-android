@@ -620,6 +620,14 @@ public class ComputerManagerService extends Service {
                 // Neither IP address match. Let's restore the remote address to be safe.
                 details.remoteAddress = savedRemoteAddress;
             }
+
+            // Now update the reachability so the correct address is used
+            if (details.localAddress.equals(initialReachTuple.reachableAddress)) {
+                details.reachability = ComputerDetails.Reachability.LOCAL;
+            }
+            else {
+                details.reachability = ComputerDetails.Reachability.REMOTE;
+            }
         }
 
         return true;

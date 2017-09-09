@@ -4,8 +4,8 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 
 public interface LimelightCryptoProvider {
-	public X509Certificate getClientCertificate();
-	public RSAPrivateKey getClientPrivateKey();
-	public byte[] getPemEncodedClientCertificate();
-	public String encodeBase64String(byte[] data);
+	X509Certificate getClientCertificate();
+	RSAPrivateKey getClientPrivateKey();
+	byte[] getPemEncodedClientCertificate();
+	String encodeBase64String(byte[] data);
 }

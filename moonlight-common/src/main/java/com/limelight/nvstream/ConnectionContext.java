@@ -1,10 +1,6 @@
 package com.limelight.nvstream;
 
-import java.net.InetAddress;
-
 import javax.crypto.SecretKey;
-
-import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 
 public class ConnectionContext {
 	public String serverAddress;

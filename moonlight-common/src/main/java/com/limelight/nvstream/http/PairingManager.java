@@ -13,7 +13,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import com.limelight.LimeLog;
 
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.security.*;
@@ -276,9 +275,9 @@ public class PairingManager {
 		return PairState.PAIRED;
 	}
 	
-	private static interface PairingHashAlgorithm {
-		public int getHashLength();
-		public byte[] hashData(byte[] data);
+	private interface PairingHashAlgorithm {
+		int getHashLength();
+		byte[] hashData(byte[] data);
 	}
 	
 	private static class Sha1PairingHash implements PairingHashAlgorithm {

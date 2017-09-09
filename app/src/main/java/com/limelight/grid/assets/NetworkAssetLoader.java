@@ -6,6 +6,7 @@ import com.limelight.LimeLog;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvHTTP;
+import com.limelight.utils.ServerHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +22,7 @@ public class NetworkAssetLoader {
     }
 
     public InputStream getBitmapStream(CachedAppAssetLoader.LoaderTuple tuple) {
-        NvHTTP http = new NvHTTP(getCurrentAddress(tuple.computer), uniqueId, null, PlatformBinding.getCryptoProvider(context));
+        NvHTTP http = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(tuple.computer), uniqueId, null, PlatformBinding.getCryptoProvider(context));
 
         InputStream in = null;
         try {
@@ -36,14 +37,5 @@ public class NetworkAssetLoader {
         }
 
         return in;
-    }
-
-    private static InetAddress getCurrentAddress(ComputerDetails computer) {
-        if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
-            return computer.localIp;
-        }
-        else {
-            return computer.remoteIp;
-        }
     }
 }

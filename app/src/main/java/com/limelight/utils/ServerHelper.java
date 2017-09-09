@@ -27,8 +27,7 @@ public class ServerHelper {
                                            ComputerManagerService.ComputerManagerBinder managerBinder) {
         Intent intent = new Intent(parent, Game.class);
         intent.putExtra(Game.EXTRA_HOST,
-                computer.reachability == ComputerDetails.Reachability.LOCAL ?
-                        computer.localIp.getHostAddress() : computer.remoteIp.getHostAddress());
+                getCurrentAddressFromComputer(computer).getHostAddress());
         intent.putExtra(Game.EXTRA_APP_NAME, app.getAppName());
         intent.putExtra(Game.EXTRA_APP_ID, app.getAppId());
         intent.putExtra(Game.EXTRA_UNIQUEID, managerBinder.getUniqueId());

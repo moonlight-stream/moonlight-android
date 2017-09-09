@@ -306,19 +306,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     // Stop updates and wait while pairing
                     stopComputerUpdates(true);
 
-                    InetAddress addr;
-                    if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
-                        addr = computer.localIp;
-                    }
-                    else if (computer.reachability == ComputerDetails.Reachability.REMOTE) {
-                        addr = computer.remoteIp;
-                    }
-                    else {
-                        LimeLog.warning("Unknown reachability - using local IP");
-                        addr = computer.localIp;
-                    }
-
-                    httpConn = new NvHTTP(addr,
+                    httpConn = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer),
                             managerBinder.getUniqueId(),
                             PlatformBinding.getDeviceName(),
                             PlatformBinding.getCryptoProvider(PcView.this));
@@ -443,19 +431,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 NvHTTP httpConn;
                 String message;
                 try {
-                    InetAddress addr;
-                    if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
-                        addr = computer.localIp;
-                    }
-                    else if (computer.reachability == ComputerDetails.Reachability.REMOTE) {
-                        addr = computer.remoteIp;
-                    }
-                    else {
-                        LimeLog.warning("Unknown reachability - using local IP");
-                        addr = computer.localIp;
-                    }
-
-                    httpConn = new NvHTTP(addr,
+                    httpConn = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer),
                             managerBinder.getUniqueId(),
                             PlatformBinding.getDeviceName(),
                             PlatformBinding.getCryptoProvider(PcView.this));

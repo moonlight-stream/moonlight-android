@@ -20,6 +20,7 @@ import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.mdns.MdnsComputer;
 import com.limelight.nvstream.mdns.MdnsDiscoveryListener;
 import com.limelight.utils.CacheHelper;
+import com.limelight.utils.ServerHelper;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -694,8 +695,6 @@ public class ComputerManagerService extends Service {
                 public void run() {
                     int emptyAppListResponses = 0;
                     do {
-                        InetAddress selectedAddr;
-
                         // Can't poll if it's not online
                         if (computer.state != ComputerDetails.State.ONLINE) {
                             if (listener != null) {
@@ -709,14 +708,7 @@ public class ComputerManagerService extends Service {
                             continue;
                         }
 
-                        if (computer.reachability == ComputerDetails.Reachability.LOCAL) {
-                            selectedAddr = computer.localIp;
-                        }
-                        else {
-                            selectedAddr = computer.remoteIp;
-                        }
-
-                        NvHTTP http = new NvHTTP(selectedAddr, idManager.getUniqueId(),
+                        NvHTTP http = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer), idManager.getUniqueId(),
                                 null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
                         PollingTuple tuple = getPollingTuple(computer);

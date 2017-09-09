@@ -16,8 +16,8 @@ public class ComputerDetails {
 	public Reachability reachability;
 	public String name;
 	public UUID uuid;
-	public InetAddress localAddress;
-	public InetAddress remoteAddress;
+	public String localAddress;
+	public String remoteAddress;
 	public PairingManager.PairState pairState;
 	public String macAddress;
 	public int runningGameId;

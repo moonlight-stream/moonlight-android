@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 
 import com.limelight.LimeLog;
@@ -17,28 +18,41 @@ public class WakeOnLanSender {
 	
 	public static void sendWolPacket(ComputerDetails computer) throws IOException {
 		DatagramSocket sock = new DatagramSocket(0);
-		
 		byte[] payload = createWolPayload(computer);
-		// Try both remote and local addresses
-		for (int i = 0; i < 2; i++) {
-			InetAddress addr;
-			if (i == 0) {
-				addr = computer.localAddress;
+		IOException lastException = null;
+		boolean sentWolPacket = false;
+
+		try {
+			// Try all resolved remote and local addresses
+			for (String unresolvedAddress : new String[] {computer.localAddress, computer.remoteAddress}) {
+				try {
+					for (InetAddress resolvedAddress : InetAddress.getAllByName(unresolvedAddress)) {
+						// Try all the ports for each resolved address
+						for (int port : PORTS_TO_TRY) {
+							DatagramPacket dp = new DatagramPacket(payload, payload.length);
+							dp.setAddress(resolvedAddress);
+							dp.setPort(port);
+							sock.send(dp);
+							sentWolPacket = true;
+						}
+					}
+				} catch (IOException e) {
+					// We may have addresses that don't resolve on this subnet,
+					// but don't throw and exit the whole function if that happens.
+					// We'll throw it at the end if we didn't send a single packet.
+					e.printStackTrace();
+					lastException = e;
+				}
 			}
-			else {
-				addr = computer.remoteAddress;
-			}
-			
-			// Try all the ports for each address
-			for (int port : PORTS_TO_TRY) {
-				DatagramPacket dp = new DatagramPacket(payload, payload.length);
-				dp.setAddress(addr);
-				dp.setPort(port);
-				sock.send(dp);
-			}
+		} finally {
+			sock.close();
 		}
-		
-		sock.close();
+
+		// Propagate the DNS resolution exception if we didn't
+		// manage to get a single packet out to the host.
+		if (!sentWolPacket && lastException != null) {
+			throw lastException;
+		}
 	}
 	
 	private static byte[] macStringToBytes(String macAddress) {

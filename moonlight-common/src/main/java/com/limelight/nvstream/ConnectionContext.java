@@ -7,7 +7,7 @@ import javax.crypto.SecretKey;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 
 public class ConnectionContext {
-	public InetAddress serverAddress;
+	public String serverAddress;
 	public StreamConfiguration streamConfig;
 	public NvConnectionListener connListener;
 	public SecretKey riKey;

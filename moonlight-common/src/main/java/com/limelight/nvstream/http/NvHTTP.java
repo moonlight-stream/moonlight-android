@@ -10,6 +10,8 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -46,7 +48,7 @@ import com.squareup.okhttp.ResponseBody;
 public class NvHTTP {
 	private String uniqueId;
 	private PairingManager pm;
-	private InetAddress address;
+	private String address;
 
 	public static final int HTTPS_PORT = 47984;
 	public static final int HTTP_PORT = 47989;
@@ -104,23 +106,21 @@ public class NvHTTP {
 		httpClientWithReadTimeout.setReadTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS);
 	}
 	
-	public NvHTTP(InetAddress host, String uniqueId, String deviceName, LimelightCryptoProvider cryptoProvider) {
+	public NvHTTP(String address, String uniqueId, String deviceName, LimelightCryptoProvider cryptoProvider) throws IOException {
 		this.uniqueId = uniqueId;
-		this.address = host;
-		
-		String safeAddress;
-		if (host instanceof Inet6Address) {
-			// RFC2732-formatted IPv6 address for use in URL
-			safeAddress = "["+host.getHostAddress()+"]";
-		}
-		else {
-			safeAddress = host.getHostAddress();
-		}
+		this.address = address;
 		
 		initializeHttpState(cryptoProvider);
-		
-		this.baseUrlHttps = "https://" + safeAddress + ":" + HTTPS_PORT;
-		this.baseUrlHttp = "http://" + safeAddress + ":" + HTTP_PORT;
+
+		try {
+			// The URI constructor takes care of escaping IPv6 literals
+			this.baseUrlHttps = new URI("https", null, address, HTTPS_PORT, null, null, null).toString();
+			this.baseUrlHttp = new URI("http", null, address, HTTP_PORT, null, null, null).toString();
+		} catch (URISyntaxException e) {
+			// Encapsulate URISyntaxException into IOException for callers to handle more easily
+			throw new IOException(e);
+		}
+
 		this.pm = new PairingManager(this, cryptoProvider);
 	}
 	
@@ -212,19 +212,16 @@ public class NvHTTP {
 		details.macAddress = getXmlString(serverInfo, "mac");
 
 		// If there's no LocalIP field, use the address we hit the server on
-		String localIpStr = getXmlString(serverInfo, "LocalIP");
-		if (localIpStr == null) {
-			localIpStr = address.getHostAddress();
+		details.localAddress = getXmlString(serverInfo, "LocalIP");
+		if (details.localAddress == null) {
+			details.localAddress = address;
 		}
 		
 		// If there's no ExternalIP field, use the address we hit the server on
-		String externalIpStr = getXmlString(serverInfo, "ExternalIP");
-		if (externalIpStr == null) {
-			externalIpStr = address.getHostAddress();
+		details.remoteAddress = getXmlString(serverInfo, "ExternalIP");
+		if (details.remoteAddress == null) {
+			details.remoteAddress = address;
 		}
-		
-		details.localAddress = InetAddress.getByName(localIpStr);
-		details.remoteAddress = InetAddress.getByName(externalIpStr);
 		
 		try {
 			details.pairState = Integer.parseInt(getXmlString(serverInfo, "PairStatus")) == 1 ?

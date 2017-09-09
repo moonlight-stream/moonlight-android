@@ -223,13 +223,7 @@ public class NvConnection {
 
 				String appName = context.streamConfig.getApp().getAppName();
 
-				try {
-					context.serverAddress = InetAddress.getByName(host);
-				} catch (UnknownHostException e) {
-					context.connListener.connectionTerminated(-1);
-					return;
-				}
-
+				context.serverAddress = host;
 				context.connListener.stageStarting(appName);
 
 				try {
@@ -249,7 +243,7 @@ public class NvConnection {
 				// we must not invoke that functionality in parallel.
 				synchronized (MoonBridge.class) {
 					MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
-					MoonBridge.startConnection(context.serverAddress.getHostAddress(),
+					MoonBridge.startConnection(context.serverAddress,
 							context.serverAppVersion, context.serverGfeVersion,
 							context.negotiatedWidth, context.negotiatedHeight,
 							context.negotiatedFps, context.streamConfig.getBitrate(),

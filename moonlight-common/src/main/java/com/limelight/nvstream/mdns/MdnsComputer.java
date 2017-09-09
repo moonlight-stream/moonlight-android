@@ -1,12 +1,12 @@
 package com.limelight.nvstream.mdns;
 
-import java.net.InetAddress;
+import java.net.Inet4Address;
 
 public class MdnsComputer {
-	private InetAddress ipAddr;
+	private Inet4Address ipAddr;
 	private String name;
 	
-	public MdnsComputer(String name, InetAddress addr) {
+	public MdnsComputer(String name, Inet4Address addr) {
 		this.name = name;
 		this.ipAddr = addr;
 	}
@@ -15,7 +15,7 @@ public class MdnsComputer {
 		return name;
 	}
 	
-	public InetAddress getAddress() {
+	public Inet4Address getAddress() {
 		return ipAddr;
 	}
 	

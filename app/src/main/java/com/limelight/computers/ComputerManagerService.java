@@ -588,8 +588,11 @@ public class ComputerManagerService extends Service {
             }
         }
 
-        // Save the old MAC address
+        // Save some details about the old state of the PC that we may wish
+        // to restore later.
         String savedMacAddress = details.macAddress;
+        String savedLocalAddress = details.localAddress;
+        String savedRemoteAddress = details.remoteAddress;
 
         // If we got here, it's reachable
         details.update(initialReachTuple.computer);
@@ -598,6 +601,25 @@ public class ComputerManagerService extends Service {
         if (details.macAddress.equals("00:00:00:00:00:00") && savedMacAddress != null) {
             LimeLog.info("MAC address was empty; using existing value: "+savedMacAddress);
             details.macAddress = savedMacAddress;
+        }
+
+        // We never want to lose IP addresses by polling server info. If we get a poll back
+        // where localAddress == remoteAddress but savedLocalAddress != savedRemoteAddress,
+        // then we've lost an address in the polling and we should restore the one that's missing.
+        if (details.localAddress.equals(details.remoteAddress) &&
+                !savedLocalAddress.equals(savedRemoteAddress)) {
+            if (details.localAddress.equals(savedLocalAddress)) {
+                // Local addresses are identical, so put the old remote address back
+                details.remoteAddress = savedRemoteAddress;
+            }
+            else if (details.remoteAddress.equals(savedRemoteAddress)) {
+                // Remote addresses are identical, so put the old local address back
+                details.localAddress = savedLocalAddress;
+            }
+            else {
+                // Neither IP address match. Let's restore the remote address to be safe.
+                details.remoteAddress = savedRemoteAddress;
+            }
         }
 
         return true;

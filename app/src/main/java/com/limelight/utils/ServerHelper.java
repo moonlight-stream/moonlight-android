@@ -18,7 +18,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class ServerHelper {
-    public static InetAddress getCurrentAddressFromComputer(ComputerDetails computer) {
+    public static String getCurrentAddressFromComputer(ComputerDetails computer) {
         return computer.reachability == ComputerDetails.Reachability.LOCAL ?
                 computer.localAddress : computer.remoteAddress;
     }
@@ -26,8 +26,7 @@ public class ServerHelper {
     public static Intent createStartIntent(Activity parent, NvApp app, ComputerDetails computer,
                                            ComputerManagerService.ComputerManagerBinder managerBinder) {
         Intent intent = new Intent(parent, Game.class);
-        intent.putExtra(Game.EXTRA_HOST,
-                getCurrentAddressFromComputer(computer).getHostAddress());
+        intent.putExtra(Game.EXTRA_HOST, getCurrentAddressFromComputer(computer));
         intent.putExtra(Game.EXTRA_APP_NAME, app.getAppName());
         intent.putExtra(Game.EXTRA_APP_ID, app.getAppId());
         intent.putExtra(Game.EXTRA_UNIQUEID, managerBinder.getUniqueId());
@@ -44,7 +43,7 @@ public class ServerHelper {
     }
 
     public static void doQuit(final Activity parent,
-                              final InetAddress address,
+                              final String address,
                               final NvApp app,
                               final ComputerManagerService.ComputerManagerBinder managerBinder,
                               final Runnable onComplete) {

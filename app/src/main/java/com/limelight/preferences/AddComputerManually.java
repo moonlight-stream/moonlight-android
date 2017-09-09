@@ -50,18 +50,12 @@ public class AddComputerManually extends Activity {
         SpinnerDialog dialog = SpinnerDialog.displayDialog(this, getResources().getString(R.string.title_add_pc),
             getResources().getString(R.string.msg_add_pc), false);
 
-        try {
-            InetAddress addr = InetAddress.getByName(host);
-
-            if (!managerBinder.addComputerBlocking(addr)){
-                msg = getResources().getString(R.string.addpc_fail);
-            }
-            else {
-                msg = getResources().getString(R.string.addpc_success);
-                finish = true;
-            }
-        } catch (UnknownHostException e) {
-            msg = getResources().getString(R.string.addpc_unknown_host);
+        if (!managerBinder.addComputerBlocking(host)){
+            msg = getResources().getString(R.string.addpc_fail);
+        }
+        else {
+            msg = getResources().getString(R.string.addpc_success);
+            finish = true;
         }
 
         dialog.dismiss();

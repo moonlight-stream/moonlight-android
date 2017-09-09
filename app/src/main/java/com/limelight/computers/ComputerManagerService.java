@@ -155,7 +155,7 @@ public class ComputerManagerService extends Service {
                 }
             }
         };
-        t.setName("Polling thread for " + tuple.computer.localAddress.getHostAddress());
+        t.setName("Polling thread for " + tuple.computer.localAddress);
         return t;
     }
 
@@ -211,7 +211,7 @@ public class ComputerManagerService extends Service {
             }
         }
 
-        public boolean addComputerBlocking(InetAddress addr) {
+        public boolean addComputerBlocking(String addr) {
             return ComputerManagerService.this.addComputerBlocking(addr);
         }
 
@@ -290,7 +290,7 @@ public class ComputerManagerService extends Service {
             @Override
             public void notifyComputerAdded(MdnsComputer computer) {
                 // Kick off a serverinfo poll on this machine
-                addComputerBlocking(computer.getAddress());
+                addComputerBlocking(computer.getAddress().getHostAddress());
             }
 
             @Override
@@ -339,7 +339,7 @@ public class ComputerManagerService extends Service {
         }
     }
 
-    public boolean addComputerBlocking(InetAddress addr) {
+    public boolean addComputerBlocking(String addr) {
         // Setup a placeholder
         ComputerDetails fakeDetails = new ComputerDetails();
         fakeDetails.localAddress = addr;
@@ -405,14 +405,14 @@ public class ComputerManagerService extends Service {
         }
     }
 
-    private ComputerDetails tryPollIp(ComputerDetails details, InetAddress ipAddr) {
+    private ComputerDetails tryPollIp(ComputerDetails details, String address) {
         // Fast poll this address first to determine if we can connect at the TCP layer
-        if (!fastPollIp(ipAddr)) {
+        if (!fastPollIp(address)) {
             return null;
         }
 
         try {
-            NvHTTP http = new NvHTTP(ipAddr, idManager.getUniqueId(),
+            NvHTTP http = new NvHTTP(address, idManager.getUniqueId(),
                     null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
             ComputerDetails newDetails = http.getComputerDetails();
@@ -433,10 +433,10 @@ public class ComputerManagerService extends Service {
 
     // Just try to establish a TCP connection to speculatively detect a running
     // GFE server
-    private boolean fastPollIp(InetAddress addr) {
+    private boolean fastPollIp(String address) {
         Socket s = new Socket();
         try {
-            s.connect(new InetSocketAddress(addr, NvHTTP.HTTPS_PORT), FAST_POLL_TIMEOUT);
+            s.connect(new InetSocketAddress(address, NvHTTP.HTTPS_PORT), FAST_POLL_TIMEOUT);
             s.close();
             return true;
         } catch (IOException e) {
@@ -444,11 +444,11 @@ public class ComputerManagerService extends Service {
         }
     }
 
-    private void startFastPollThread(final InetAddress addr, final boolean[] info) {
+    private void startFastPollThread(final String address, final boolean[] info) {
         Thread t = new Thread() {
             @Override
             public void run() {
-                boolean pollRes = fastPollIp(addr);
+                boolean pollRes = fastPollIp(address);
 
                 synchronized (info) {
                     info[0] = true; // Done
@@ -458,16 +458,16 @@ public class ComputerManagerService extends Service {
                 }
             }
         };
-        t.setName("Fast Poll - "+addr.getHostAddress());
+        t.setName("Fast Poll - "+address);
         t.start();
     }
 
-    private ComputerDetails.Reachability fastPollPc(final InetAddress local, final InetAddress remote) throws InterruptedException {
+    private ComputerDetails.Reachability fastPollPc(final String localAddress, final String remoteAddress) throws InterruptedException {
         final boolean[] remoteInfo = new boolean[2];
         final boolean[] localInfo = new boolean[2];
 
-        startFastPollThread(local, localInfo);
-        startFastPollThread(remote, remoteInfo);
+        startFastPollThread(localAddress, localInfo);
+        startFastPollThread(remoteAddress, remoteInfo);
 
         // Check local first
         synchronized (localInfo) {
@@ -524,7 +524,7 @@ public class ComputerManagerService extends Service {
             polledDetails = tryPollIp(details, details.remoteAddress);
         }
 
-        InetAddress reachableAddr = null;
+        String reachableAddr = null;
         if (polledDetails == null && !details.localAddress.equals(details.remoteAddress)) {
             // Failed, so let's try the fallback
             if (!localFirst) {
@@ -708,12 +708,12 @@ public class ComputerManagerService extends Service {
                             continue;
                         }
 
-                        NvHTTP http = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer), idManager.getUniqueId(),
-                                null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
-
                         PollingTuple tuple = getPollingTuple(computer);
 
                         try {
+                            NvHTTP http = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer), idManager.getUniqueId(),
+                                    null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
+
                             String appList;
                             if (tuple != null) {
                                 // If we're polling this machine too, grab the network lock
@@ -808,10 +808,10 @@ class PollingTuple {
 }
 
 class ReachabilityTuple {
-    public final InetAddress reachableAddress;
+    public final String reachableAddress;
     public final ComputerDetails computer;
 
-    public ReachabilityTuple(ComputerDetails computer, InetAddress reachableAddress) {
+    public ReachabilityTuple(ComputerDetails computer, String reachableAddress) {
         this.computer = computer;
         this.reachableAddress = reachableAddress;
     }

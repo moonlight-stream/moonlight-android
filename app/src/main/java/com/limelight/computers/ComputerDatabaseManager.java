@@ -62,8 +62,8 @@ public class ComputerDatabaseManager {
         ContentValues values = new ContentValues();
         values.put(COMPUTER_NAME_COLUMN_NAME, details.name);
         values.put(COMPUTER_UUID_COLUMN_NAME, details.uuid.toString());
-        values.put(LOCAL_IP_COLUMN_NAME, ADDRESS_PREFIX+details.localAddress.getHostAddress());
-        values.put(REMOTE_IP_COLUMN_NAME, ADDRESS_PREFIX+details.remoteAddress.getHostAddress());
+        values.put(LOCAL_IP_COLUMN_NAME, ADDRESS_PREFIX+details.localAddress);
+        values.put(REMOTE_IP_COLUMN_NAME, ADDRESS_PREFIX+details.remoteAddress);
         values.put(MAC_COLUMN_NAME, details.macAddress);
         return -1 != computerDb.insertWithOnConflict(COMPUTER_TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
     }
@@ -86,17 +86,13 @@ public class ComputerDatabaseManager {
         // too. To disambiguate, we'll need to prefix them with a string
         // greater than the allowable IP address length.
         try {
-            details.localAddress = InetAddress.getByAddress(c.getBlob(2));
+            details.localAddress = InetAddress.getByAddress(c.getBlob(2)).getHostAddress();
             LimeLog.warning("DB: Legacy local address for "+details.name);
         } catch (UnknownHostException e) {
             // This is probably a hostname/address with the prefix string
             String stringData = c.getString(2);
             if (stringData.startsWith(ADDRESS_PREFIX)) {
-                try {
-                    details.localAddress = InetAddress.getByName(c.getString(2).substring(ADDRESS_PREFIX.length()));
-                } catch (UnknownHostException e1) {
-                    e1.printStackTrace();
-                }
+                details.localAddress = c.getString(2).substring(ADDRESS_PREFIX.length());
             }
             else {
                 LimeLog.severe("DB: Corrupted local address for "+details.name);
@@ -104,17 +100,13 @@ public class ComputerDatabaseManager {
         }
 
         try {
-            details.remoteAddress = InetAddress.getByAddress(c.getBlob(3));
+            details.remoteAddress = InetAddress.getByAddress(c.getBlob(3)).getHostAddress();
             LimeLog.warning("DB: Legacy remote address for "+details.name);
         } catch (UnknownHostException e) {
             // This is probably a hostname/address with the prefix string
             String stringData = c.getString(3);
             if (stringData.startsWith(ADDRESS_PREFIX)) {
-                try {
-                    details.remoteAddress = InetAddress.getByName(c.getString(3).substring(ADDRESS_PREFIX.length()));
-                } catch (UnknownHostException e1) {
-                    e1.printStackTrace();
-                }
+                details.remoteAddress = c.getString(3).substring(ADDRESS_PREFIX.length());
             }
             else {
                 LimeLog.severe("DB: Corrupted local address for "+details.name);

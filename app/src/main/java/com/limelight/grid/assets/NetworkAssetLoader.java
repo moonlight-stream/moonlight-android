@@ -22,10 +22,9 @@ public class NetworkAssetLoader {
     }
 
     public InputStream getBitmapStream(CachedAppAssetLoader.LoaderTuple tuple) {
-        NvHTTP http = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(tuple.computer), uniqueId, null, PlatformBinding.getCryptoProvider(context));
-
         InputStream in = null;
         try {
+            NvHTTP http = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(tuple.computer), uniqueId, null, PlatformBinding.getCryptoProvider(context));
             in = http.getBoxArt(tuple.app);
         } catch (IOException ignored) {}
 

@@ -55,10 +55,10 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
             convertView = inflater.inflate(layoutId, viewGroup, false);
         }
 
-        ImageView imgView = (ImageView) convertView.findViewById(R.id.grid_image);
-        ImageView overlayView = (ImageView) convertView.findViewById(R.id.grid_overlay);
-        TextView txtView = (TextView) convertView.findViewById(R.id.grid_text);
-        ProgressBar prgView = (ProgressBar) convertView.findViewById(R.id.grid_spinner);
+        ImageView imgView = convertView.findViewById(R.id.grid_image);
+        ImageView overlayView = convertView.findViewById(R.id.grid_overlay);
+        TextView txtView = convertView.findViewById(R.id.grid_text);
+        ProgressBar prgView = convertView.findViewById(R.id.grid_spinner);
 
         if (imgView != null) {
             if (!populateImageView(imgView, prgView, itemList.get(i))) {

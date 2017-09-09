@@ -2,9 +2,7 @@ package com.limelight;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Locale;
 
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.crypto.AndroidCryptoProvider;
@@ -110,9 +108,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         // Setup the list view
-        ImageButton settingsButton = (ImageButton) findViewById(R.id.settingsButton);
-        ImageButton addComputerButton = (ImageButton) findViewById(R.id.manuallyAddPc);
-        ImageButton helpButton = (ImageButton) findViewById(R.id.helpButton);
+        ImageButton settingsButton = findViewById(R.id.settingsButton);
+        ImageButton addComputerButton = findViewById(R.id.manuallyAddPc);
+        ImageButton helpButton = findViewById(R.id.helpButton);
 
         settingsButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -138,7 +136,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             .replace(R.id.pcFragmentContainer, new AdapterFragment())
             .commitAllowingStateLoss();
 
-        noPcFoundLayout = (RelativeLayout) findViewById(R.id.no_pc_found_layout);
+        noPcFoundLayout = findViewById(R.id.no_pc_found_layout);
         if (pcGridAdapter.getCount() == 0) {
             noPcFoundLayout.setVisibility(View.VISIBLE);
         }

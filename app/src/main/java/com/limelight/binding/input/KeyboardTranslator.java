@@ -2,8 +2,6 @@ package com.limelight.binding.input;
 
 import android.view.KeyEvent;
 
-import com.limelight.nvstream.NvConnection;
-
 /**
  * Class to translate a Android key code into the codes GFE is expecting
  * @author Diego Waxemberg

@@ -14,7 +14,6 @@ import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 
 import java.io.FileNotFoundException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class ServerHelper {

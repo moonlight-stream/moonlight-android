@@ -167,7 +167,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         prefConfig = PreferenceConfiguration.readPreferences(this);
 
         // Listen for events on the game surface
-        streamView = (StreamView) findViewById(R.id.surfaceView);
+        streamView = findViewById(R.id.surfaceView);
         streamView.setOnGenericMotionListener(this);
         streamView.setOnTouchListener(this);
 
@@ -274,7 +274,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (prefConfig.onscreenController) {
             // create virtual onscreen controller
             virtualController = new VirtualController(conn,
-                    (FrameLayout)findViewById(R.id.surfaceView).getParent(),
+                    (FrameLayout)streamView.getParent(),
                     this);
             virtualController.refreshLayout();
         }
@@ -596,9 +596,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         boolean handled = false;
 
-        boolean detectedGamepad = event.getDevice() == null ? false :
-                ((event.getDevice().getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
-                        (event.getDevice().getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD);
+        boolean detectedGamepad = event.getDevice() != null && ((event.getDevice().getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
+                (event.getDevice().getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD);
         if (detectedGamepad || (event.getDevice() == null ||
                 event.getDevice().getKeyboardType() != InputDevice.KEYBOARD_TYPE_ALPHABETIC
         )) {
@@ -638,9 +637,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         boolean handled = false;
-        boolean detectedGamepad = event.getDevice() == null ? false :
-                ((event.getDevice().getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
-                        (event.getDevice().getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD);
+        boolean detectedGamepad = event.getDevice() != null && ((event.getDevice().getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
+                (event.getDevice().getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD);
         if (detectedGamepad || (event.getDevice() == null ||
                 event.getDevice().getKeyboardType() != InputDevice.KEYBOARD_TYPE_ALPHABETIC
         )) {

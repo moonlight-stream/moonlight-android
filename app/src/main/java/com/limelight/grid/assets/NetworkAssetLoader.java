@@ -4,13 +4,11 @@ import android.content.Context;
 
 import com.limelight.LimeLog;
 import com.limelight.binding.PlatformBinding;
-import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.utils.ServerHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
 
 public class NetworkAssetLoader {
     private final Context context;

@@ -1,8 +1,5 @@
 package com.limelight.preferences;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.computers.ComputerManagerService;
@@ -17,7 +14,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.KeyEvent;
@@ -136,7 +132,7 @@ public class AddComputerManually extends Activity {
 
         UiHelper.notifyNewRootView(this);
 
-        this.hostText = (TextView) findViewById(R.id.hostTextView);
+        this.hostText = findViewById(R.id.hostTextView);
         hostText.setImeOptions(EditorInfo.IME_ACTION_DONE);
         hostText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override

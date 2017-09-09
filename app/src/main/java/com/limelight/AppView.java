@@ -2,7 +2,6 @@ package com.limelight;
 
 import java.io.StringReader;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 import com.limelight.computers.ComputerManagerListener;
@@ -27,7 +26,6 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.ContextMenu;
@@ -250,7 +248,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         String computerName = getIntent().getStringExtra(NAME_EXTRA);
 
         String labelText = getResources().getString(R.string.title_applist)+" "+computerName;
-        TextView label = (TextView) findViewById(R.id.appListText);
+        TextView label = findViewById(R.id.appListText);
         setTitle(labelText);
         label.setText(labelText);
 

@@ -51,14 +51,8 @@ public class HelpActivity extends Activity {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.toUpperCase().startsWith("https://github.com/moonlight-stream/moonlight-docs/wiki/".toUpperCase()) ||
-                        url.toUpperCase().startsWith("http://github.com/moonlight-stream/moonlight-docs/wiki/".toUpperCase())) {
-                    // Allow navigation to Moonlight docs
-                    return false;
-                }
-                else {
-                    return true;
-                }
+                return !(url.toUpperCase().startsWith("https://github.com/moonlight-stream/moonlight-docs/wiki/".toUpperCase()) ||
+                        url.toUpperCase().startsWith("http://github.com/moonlight-stream/moonlight-docs/wiki/".toUpperCase()));
             }
         });
 

@@ -1,5 +1,6 @@
 package com.limelight.computers;
 
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
@@ -24,6 +25,8 @@ public class ComputerDatabaseManager {
     private static final String LOCAL_IP_COLUMN_NAME = "LocalIp";
     private static final String REMOTE_IP_COLUMN_NAME = "RemoteIp";
     private static final String MAC_COLUMN_NAME = "Mac";
+
+    private static final String ADDRESS_PREFIX = "ADDRESS_PREFIX__";
 
     private SQLiteDatabase computerDb;
 
@@ -60,47 +63,79 @@ public class ComputerDatabaseManager {
         ContentValues values = new ContentValues();
         values.put(COMPUTER_NAME_COLUMN_NAME, details.name);
         values.put(COMPUTER_UUID_COLUMN_NAME, details.uuid.toString());
-        values.put(LOCAL_IP_COLUMN_NAME, details.localIp.getAddress());
-        values.put(REMOTE_IP_COLUMN_NAME, details.remoteIp.getAddress());
+        values.put(LOCAL_IP_COLUMN_NAME, ADDRESS_PREFIX+details.localIp.getHostAddress());
+        values.put(REMOTE_IP_COLUMN_NAME, ADDRESS_PREFIX+details.remoteIp.getHostAddress());
         values.put(MAC_COLUMN_NAME, details.macAddress);
         return -1 != computerDb.insertWithOnConflict(COMPUTER_TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    private ComputerDetails getComputerFromCursor(Cursor c) {
+        ComputerDetails details = new ComputerDetails();
+
+        details.name = c.getString(0);
+
+        String uuidStr = c.getString(1);
+        try {
+            details.uuid = UUID.fromString(uuidStr);
+        } catch (IllegalArgumentException e) {
+            // We'll delete this entry
+            LimeLog.severe("DB: Corrupted UUID for "+details.name);
+        }
+
+        // An earlier schema defined addresses as byte blobs. We'll
+        // gracefully migrate those to strings so we can store DNS names
+        // too. To disambiguate, we'll need to prefix them with a string
+        // greater than the allowable IP address length.
+        try {
+            details.localIp = InetAddress.getByAddress(c.getBlob(2));
+            LimeLog.warning("DB: Legacy local address for "+details.name);
+        } catch (UnknownHostException e) {
+            // This is probably a hostname/address with the prefix string
+            String stringData = c.getString(2);
+            if (stringData.startsWith(ADDRESS_PREFIX)) {
+                try {
+                    details.localIp = InetAddress.getByName(c.getString(2).substring(ADDRESS_PREFIX.length()));
+                } catch (UnknownHostException e1) {
+                    e1.printStackTrace();
+                }
+            }
+            else {
+                LimeLog.severe("DB: Corrupted local address for "+details.name);
+            }
+        }
+
+        try {
+            details.remoteIp = InetAddress.getByAddress(c.getBlob(3));
+            LimeLog.warning("DB: Legacy remote address for "+details.name);
+        } catch (UnknownHostException e) {
+            // This is probably a hostname/address with the prefix string
+            String stringData = c.getString(3);
+            if (stringData.startsWith(ADDRESS_PREFIX)) {
+                try {
+                    details.remoteIp = InetAddress.getByName(c.getString(3).substring(ADDRESS_PREFIX.length()));
+                } catch (UnknownHostException e1) {
+                    e1.printStackTrace();
+                }
+            }
+            else {
+                LimeLog.severe("DB: Corrupted local address for "+details.name);
+            }
+        }
+
+        details.macAddress = c.getString(4);
+
+        // This signifies we don't have dynamic state (like pair state)
+        details.state = ComputerDetails.State.UNKNOWN;
+        details.reachability = ComputerDetails.Reachability.UNKNOWN;
+
+        return details;
     }
 
     public List<ComputerDetails> getAllComputers() {
         Cursor c = computerDb.rawQuery("SELECT * FROM "+COMPUTER_TABLE_NAME, null);
         LinkedList<ComputerDetails> computerList = new LinkedList<>();
         while (c.moveToNext()) {
-            ComputerDetails details = new ComputerDetails();
-
-            details.name = c.getString(0);
-
-            String uuidStr = c.getString(1);
-            try {
-                details.uuid = UUID.fromString(uuidStr);
-            } catch (IllegalArgumentException e) {
-                // We'll delete this entry
-                LimeLog.severe("DB: Corrupted UUID for "+details.name);
-            }
-
-            try {
-                details.localIp = InetAddress.getByAddress(c.getBlob(2));
-            } catch (UnknownHostException e) {
-                // We'll delete this entry
-                LimeLog.severe("DB: Corrupted local IP for "+details.name);
-            }
-
-            try {
-                details.remoteIp = InetAddress.getByAddress(c.getBlob(3));
-            } catch (UnknownHostException e) {
-                // We'll delete this entry
-                LimeLog.severe("DB: Corrupted remote IP for "+details.name);
-            }
-
-            details.macAddress = c.getString(4);
-
-            // This signifies we don't have dynamic state (like pair state)
-            details.state = ComputerDetails.State.UNKNOWN;
-            details.reachability = ComputerDetails.Reachability.UNKNOWN;
+            ComputerDetails details = getComputerFromCursor(c);
 
             // If a field is corrupt or missing, skip the database entry
             if (details.uuid == null || details.localIp == null || details.remoteIp == null ||
@@ -119,43 +154,14 @@ public class ComputerDatabaseManager {
 
     public ComputerDetails getComputerByName(String name) {
         Cursor c = computerDb.query(COMPUTER_TABLE_NAME, null, COMPUTER_NAME_COLUMN_NAME+"=?", new String[]{name}, null, null, null);
-        ComputerDetails details = new ComputerDetails();
         if (!c.moveToFirst()) {
             // No matching computer
             c.close();
             return null;
         }
 
-        details.name = c.getString(0);
-
-        String uuidStr = c.getString(1);
-        try {
-            details.uuid = UUID.fromString(uuidStr);
-        } catch (IllegalArgumentException e) {
-            // We'll delete this entry
-            LimeLog.severe("DB: Corrupted UUID for "+details.name);
-        }
-
-        try {
-            details.localIp = InetAddress.getByAddress(c.getBlob(2));
-        } catch (UnknownHostException e) {
-            // We'll delete this entry
-            LimeLog.severe("DB: Corrupted local IP for "+details.name);
-        }
-
-        try {
-            details.remoteIp = InetAddress.getByAddress(c.getBlob(3));
-        } catch (UnknownHostException e) {
-            // We'll delete this entry
-            LimeLog.severe("DB: Corrupted remote IP for "+details.name);
-        }
-
-        details.macAddress = c.getString(4);
-
+        ComputerDetails details = getComputerFromCursor(c);
         c.close();
-
-        details.state = ComputerDetails.State.UNKNOWN;
-        details.reachability = ComputerDetails.Reachability.UNKNOWN;
 
         // If a field is corrupt or missing, delete the database entry
         if (details.uuid == null || details.localIp == null || details.remoteIp == null ||

@@ -36,6 +36,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import com.limelight.LimeLog;
 import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.http.PairingManager.PairState;
+import com.moonlight_stream.moonlight_common.BuildConfig;
 import com.squareup.okhttp.ConnectionPool;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -52,8 +53,9 @@ public class NvHTTP {
 	public static final int HTTP_PORT = 47989;
 	public static final int CONNECTION_TIMEOUT = 3000;
 	public static final int READ_TIMEOUT = 5000;
-	
-	private static boolean verbose = false;
+
+	// Print URL and content to logcat on debug builds
+	private static boolean verbose = BuildConfig.DEBUG;
 
 	public String baseUrlHttps;
 	public String baseUrlHttp;

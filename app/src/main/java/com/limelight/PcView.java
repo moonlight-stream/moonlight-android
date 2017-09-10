@@ -167,19 +167,28 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         SharedPreferences prefs = getSharedPreferences("DecoderTombstone", 0);
         int crashCount = prefs.getInt("CrashCount", 0);
-        if (crashCount == 3) {
-            // At 3 consecutive crashes, we'll forcefully reset their settings
-            PreferenceConfiguration.resetStreamingSettings(this);
-            Dialog.displayDialog(this,
-                    getResources().getString(R.string.title_decoding_reset),
-                    getResources().getString(R.string.message_decoding_reset),
-                    false);
-        }
-        else if (crashCount >= 1) {
-            Dialog.displayDialog(this,
-                    getResources().getString(R.string.title_decoding_error),
-                    getResources().getString(R.string.message_decoding_error),
-                    false);
+        int lastNotifiedCrashCount = prefs.getInt("LastNotifiedCrashCount", 0);
+
+        // Remember the last crash count we notified at, so we don't
+        // display the crash dialog every time the app is started until
+        // they stream again
+        if (crashCount != 0 && crashCount != lastNotifiedCrashCount) {
+            if (crashCount % 3 == 0) {
+                // At 3 consecutive crashes, we'll forcefully reset their settings
+                PreferenceConfiguration.resetStreamingSettings(this);
+                Dialog.displayDialog(this,
+                        getResources().getString(R.string.title_decoding_reset),
+                        getResources().getString(R.string.message_decoding_reset),
+                        false);
+            }
+            else {
+                Dialog.displayDialog(this,
+                        getResources().getString(R.string.title_decoding_error),
+                        getResources().getString(R.string.message_decoding_error),
+                        false);
+            }
+
+            prefs.edit().putInt("LastNotifiedCrashCount", crashCount).apply();
         }
     }
 

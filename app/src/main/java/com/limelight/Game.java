@@ -231,7 +231,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         // We must use commit because the app will crash when we return from this function
                         tombstonePrefs.edit().putInt("CrashCount", tombstonePrefs.getInt("CrashCount", 0) + 1).commit();
                     }
-                });
+                },
+                tombstonePrefs.getInt("CrashCount", 0));
 
         // Display a message to the user if H.265 was forced on but we still didn't find a decoder
         if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
@@ -465,11 +466,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Destroy the capture provider
         inputCaptureProvider.destroy();
-
-        // Clear the tombstone count
-        if (tombstonePrefs.getInt("CrashCount", 0) != 0) {
-            tombstonePrefs.edit().putInt("CrashCount", 0).apply();
-        }
     }
 
     @Override
@@ -510,6 +506,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             if (message != null) {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+            }
+
+            // Clear the tombstone count
+            if (tombstonePrefs.getInt("CrashCount", 0) != 0) {
+                tombstonePrefs.edit().putInt("CrashCount", 0).apply();
             }
         }
 

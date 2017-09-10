@@ -10,6 +10,7 @@ import com.limelight.binding.input.TouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.virtual_controller.VirtualController;
+import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
 import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.nvstream.NvConnection;
@@ -34,6 +35,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.hardware.input.InputManager;
 import android.media.AudioManager;
@@ -81,6 +83,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private VirtualController virtualController;
 
     private PreferenceConfiguration prefConfig;
+    private SharedPreferences tombstonePrefs;
 
     private NvConnection conn;
     private SpinnerDialog spinner;
@@ -165,6 +168,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Read the stream preferences
         prefConfig = PreferenceConfiguration.readPreferences(this);
+        tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
+
 
         // Listen for events on the game surface
         streamView = findViewById(R.id.surfaceView);
@@ -214,7 +219,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Initialize the MediaCodec helper before creating the decoder
         MediaCodecHelper.initializeWithContext(this);
 
-        decoderRenderer = new MediaCodecDecoderRenderer(prefConfig.videoFormat, prefConfig.bitrate, prefConfig.batterySaver);
+        decoderRenderer = new MediaCodecDecoderRenderer(prefConfig.videoFormat,
+                prefConfig.bitrate,
+                prefConfig.batterySaver,
+                new CrashListener() {
+                    @Override
+                    public void notifyCrash(Exception e) {
+                        // The MediaCodec instance is going down due to a crash
+                        // let's tell the user something when they open the app again
+
+                        // We must use commit because the app will crash when we return from this function
+                        tombstonePrefs.edit().putInt("CrashCount", tombstonePrefs.getInt("CrashCount", 0) + 1).commit();
+                    }
+                });
 
         // Display a message to the user if H.265 was forced on but we still didn't find a decoder
         if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
@@ -448,6 +465,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Destroy the capture provider
         inputCaptureProvider.destroy();
+
+        // Clear the tombstone count
+        if (tombstonePrefs.getInt("CrashCount", 0) != 0) {
+            tombstonePrefs.edit().putInt("CrashCount", 0).apply();
+        }
     }
 
     @Override

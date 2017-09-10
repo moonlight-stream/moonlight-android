@@ -130,6 +130,16 @@ public class PreferenceConfiguration {
         }
     }
 
+    public static void resetStreamingSettings(Context context) {
+        // We consider resolution, FPS, bitrate, and video format as "streaming settings" here
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.edit()
+                .remove(BITRATE_PREF_STRING)
+                .remove(RES_FPS_PREF_STRING)
+                .remove(VIDEO_FORMAT_PREF_STRING)
+                .apply();
+    }
+
     public static PreferenceConfiguration readPreferences(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         PreferenceConfiguration config = new PreferenceConfiguration();

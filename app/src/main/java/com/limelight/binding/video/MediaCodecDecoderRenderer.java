@@ -12,6 +12,7 @@ import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.jni.MoonBridge;
 import com.limelight.preferences.PreferenceConfiguration;
 
+import android.content.SharedPreferences;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -47,6 +48,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private int videoFormat;
     private SurfaceHolder renderTarget;
     private volatile boolean stopping;
+    private CrashListener crashListener;
 
     private boolean needsBaselineSpsHack;
     private SeqParameterSet savedSps;
@@ -109,10 +111,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.renderTarget = renderTarget;
     }
 
-    public MediaCodecDecoderRenderer(int videoFormat, int bitrate, boolean batterySaver) {
+    public MediaCodecDecoderRenderer(int videoFormat, int bitrate, boolean batterySaver, CrashListener crashListener) {
         //dumpDecoders();
 
         this.bitrate = bitrate;
+        this.crashListener = crashListener;
 
         // Disable spinner threads in battery saver mode
         if (batterySaver) {
@@ -317,6 +320,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 // This isn't the first time we've had an exception processing video
                 if (System.currentTimeMillis() - initialExceptionTimestamp >= EXCEPTION_REPORT_DELAY_MS) {
                     // It's been over 3 seconds and we're still getting exceptions. Throw the original now.
+                    crashListener.notifyCrash(initialException);
                     throw initialException;
                 }
             }
@@ -911,6 +915,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Format: "+renderer.videoFormat+"\n";
             str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+"\n";
             str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+"\n";
+            str += "Build fingerprint: "+Build.FINGERPRINT+"\n";
             str += "Initial video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.bitrate+" Mbps \n";

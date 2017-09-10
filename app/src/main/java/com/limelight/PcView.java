@@ -31,6 +31,7 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -163,6 +164,23 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 PreferenceConfiguration.readPreferences(this).smallIconMode);
 
         initializeViews();
+
+        SharedPreferences prefs = getSharedPreferences("DecoderTombstone", 0);
+        int crashCount = prefs.getInt("CrashCount", 0);
+        if (crashCount == 3) {
+            // At 3 consecutive crashes, we'll forcefully reset their settings
+            PreferenceConfiguration.resetStreamingSettings(this);
+            Dialog.displayDialog(this,
+                    getResources().getString(R.string.title_decoding_reset),
+                    getResources().getString(R.string.message_decoding_reset),
+                    false);
+        }
+        else if (crashCount >= 1) {
+            Dialog.displayDialog(this,
+                    getResources().getString(R.string.title_decoding_error),
+                    getResources().getString(R.string.message_decoding_error),
+                    false);
+        }
     }
 
     private void startComputerUpdates() {

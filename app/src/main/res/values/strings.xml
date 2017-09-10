@@ -47,6 +47,10 @@
     <string name="error_404">GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU.
 	    Using remote desktop software can also cause this error. Try rebooting your machine or reinstalling GFE.
     </string>
+    <string name="title_decoding_error">Video Decoder Crashed</string>
+    <string name="message_decoding_error">Moonlight has crashed due to a issue with this device\'s video decoder. Try adjusting the streaming settings if the crashes continue.</string>
+    <string name="title_decoding_reset">Video Settings Reset</string>
+    <string name="message_decoding_reset">Your device\'s video decoder continues to crash at your selected streaming settings. Your streaming settings have been reset to default.</string>
 
     <!-- Start application messages -->
     <string name="conn_establishing_title">Establishing Connection</string>

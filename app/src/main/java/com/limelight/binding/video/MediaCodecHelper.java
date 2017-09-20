@@ -155,21 +155,24 @@ public class MediaCodecHelper {
 					LimeLog.info("Added omx.intel to AVC reference frame invalidation support list");
 					refFrameInvalidationAvcPrefixes.add("omx.intel");
 				}
+			}
 
-				// Qualcomm's early HEVC decoders break hard on our HEVC stream. The best check to
-				// tell the good from the bad decoders are the generation of Adreno GPU included:
-				// 3xx - bad
-				// 4xx - good
-				//
-				// Unfortunately, it's not that easy to get that information here, so I'll use an
-				// approximation by checking the GLES level (<= 3.0 is bad).
-				if (configInfo.reqGlEsVersion > 0x30000) {
-					// FIXME: We prefer reference frame invalidation support (which is only doable on AVC on
-					// older Qualcomm chips) vs. enabling HEVC by default. The user can override using the settings
-					// to force HEVC on.
-					//LimeLog.info("Added omx.qcom to supported HEVC decoders based on GLES 3.1+ support");
-					//whitelistedHevcDecoders.add("omx.qcom");
-				}
+			// Qualcomm's early HEVC decoders break hard on our HEVC stream. The best check to
+			// tell the good from the bad decoders are the generation of Adreno GPU included:
+			// 3xx - bad
+			// 4xx - good
+			//
+			// Unfortunately, it's not that easy to get that information here, so I'll use an
+			// approximation by checking the GLES level (<= 3.0 is bad).
+			if (configInfo.reqGlEsVersion > 0x30000) {
+				// FIXME: We prefer reference frame invalidation support (which is only doable on AVC on
+				// older Qualcomm chips) vs. enabling HEVC by default. The user can override using the settings
+				// to force HEVC on.
+				//LimeLog.info("Added omx.qcom to supported HEVC decoders based on GLES 3.1+ support");
+				//whitelistedHevcDecoders.add("omx.qcom");
+			}
+			else {
+				blacklistedDecoderPrefixes.add("OMX.qcom.video.decoder.hevc");
 			}
 		}
     }

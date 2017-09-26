@@ -25,6 +25,7 @@ public class StreamConfiguration {
 	private int audioChannelCount;
 	private int audioConfiguration;
 	private boolean supportsHevc;
+	private int hevcBitratePercentageMultiplier;
 	
 	public static class Builder {
 		private StreamConfiguration config = new StreamConfiguration();
@@ -72,6 +73,11 @@ public class StreamConfiguration {
 		
 		public StreamConfiguration.Builder setMaxPacketSize(int maxPacketSize) {
 			config.maxPacketSize = maxPacketSize;
+			return this;
+		}
+
+		public StreamConfiguration.Builder setHevcBitratePercentageMultiplier(int multiplier) {
+			config.hevcBitratePercentageMultiplier = multiplier;
 			return this;
 		}
 		
@@ -172,5 +178,9 @@ public class StreamConfiguration {
 	
 	public boolean getHevcSupported() {
 		return supportsHevc;
+	}
+
+	public int getHevcBitratePercentageMultiplier() {
+		return hevcBitratePercentageMultiplier;
 	}
 }

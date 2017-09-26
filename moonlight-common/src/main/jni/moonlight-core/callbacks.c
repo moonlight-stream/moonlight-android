@@ -382,6 +382,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject 
                                                            jint width, jint height, jint fps,
                                                            jint bitrate, jint packetSize, jboolean streamingRemotely,
                                                            jint audioConfiguration, jboolean supportsHevc,
+                                                           jint hevcBitratePercentageMultiplier,
                                                            jbyteArray riAesKey, jbyteArray riAesIv,
                                                            jint videoCapabilities) {
     SERVER_INFORMATION serverInfo = {
@@ -398,6 +399,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject 
             .streamingRemotely = streamingRemotely,
             .audioConfiguration = audioConfiguration,
             .supportsHevc = supportsHevc,
+            .hevcBitratePercentageMultiplier = hevcBitratePercentageMultiplier,
     };
 
     jbyte* riAesKeyBuf = (*env)->GetByteArrayElements(env, riAesKey, NULL);

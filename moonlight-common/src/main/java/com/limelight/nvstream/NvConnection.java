@@ -247,7 +247,9 @@ public class NvConnection {
 							context.negotiatedFps, context.streamConfig.getBitrate(),
 							context.streamConfig.getMaxPacketSize(),
 							context.streamConfig.getRemote(), context.streamConfig.getAudioConfiguration(),
-							context.streamConfig.getHevcSupported(), context.riKey.getEncoded(), ib.array(),
+							context.streamConfig.getHevcSupported(),
+							context.streamConfig.getHevcBitratePercentageMultiplier(),
+							context.riKey.getEncoded(), ib.array(),
 							context.videoCapabilities);
 				}
 			}

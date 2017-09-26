@@ -160,6 +160,7 @@ public class MoonBridge {
                                               int width, int height, int fps,
                                               int bitrate, int packetSize, boolean streamingRemotely,
                                               int audioConfiguration, boolean supportsHevc,
+                                              int hevcBitratePercentageMultiplier,
                                               byte[] riAesKey, byte[] riAesIv,
                                               int videoCapabilities);
 

@@ -260,6 +260,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
                 .setMaxPacketSize(remote ? 1024 : 1292)
                 .setRemote(remote)
+                .setHevcBitratePercentageMultiplier(75)
                 .setHevcSupported(decoderRenderer.isHevcSupported())
                 .setAudioConfiguration(prefConfig.enable51Surround ?
                         MoonBridge.AUDIO_CONFIGURATION_51_SURROUND :

@@ -109,6 +109,8 @@
     <string name="category_on_screen_controls_settings">Configuración de controles en pantalla</string>
     <string name="title_checkbox_show_onscreen_controls">Mostrar controles en pantalla</string>
     <string name="summary_checkbox_show_onscreen_controls">Muestra controles virtuales superpuestos en la pantalla táctil</string>
+    <string name="title_only_l3r3">Solo muestra L3 y R3</string>
+    <string name="summary_only_l3r3">Ocultar todo excepto L3 y R3</string>
 
     <string name="category_ui_settings">Configuración de la interfaz</string>
     <string name="title_language_list">Idioma</string>

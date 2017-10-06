@@ -22,6 +22,7 @@ public class PreferenceConfiguration {
     private static final String USB_DRIVER_PREF_SRING = "checkbox_usb_driver";
     private static final String VIDEO_FORMAT_PREF_STRING = "video_format";
     private static final String ONSCREEN_CONTROLLER_PREF_STRING = "checkbox_show_onscreen_controls";
+    private static final String ONLY_L3_R3_PREF_STRING = "checkbox_only_show_L3R3";
     private static final String BATTERY_SAVER_PREF_STRING = "checkbox_battery_saver";
 
     private static final int BITRATE_DEFAULT_720_30 = 5;
@@ -45,6 +46,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_USB_DRIVER = true;
     private static final String DEFAULT_VIDEO_FORMAT = "auto";
     private static final boolean ONSCREEN_CONTROLLER_DEFAULT = false;
+    private static final boolean ONLY_L3_R3_DEFAULT = false;
     private static final boolean DEFAULT_BATTERY_SAVER = false;
 
     public static final int FORCE_H265_ON = -1;
@@ -59,6 +61,7 @@ public class PreferenceConfiguration {
     public String language;
     public boolean listMode, smallIconMode, multiController, enable51Surround, usbDriver;
     public boolean onscreenController;
+    public boolean onlyL3R3;
     public boolean batterySaver;
 
     public static int getDefaultBitrate(String resFpsString) {
@@ -200,6 +203,7 @@ public class PreferenceConfiguration {
         config.enable51Surround = prefs.getBoolean(ENABLE_51_SURROUND_PREF_STRING, DEFAULT_ENABLE_51_SURROUND);
         config.usbDriver = prefs.getBoolean(USB_DRIVER_PREF_SRING, DEFAULT_USB_DRIVER);
         config.onscreenController = prefs.getBoolean(ONSCREEN_CONTROLLER_PREF_STRING, ONSCREEN_CONTROLLER_DEFAULT);
+        config.onlyL3R3 = prefs.getBoolean(ONLY_L3_R3_PREF_STRING, ONLY_L3_R3_DEFAULT);
         config.batterySaver = prefs.getBoolean(BATTERY_SAVER_PREF_STRING, DEFAULT_BATTERY_SAVER);
 
         return config;

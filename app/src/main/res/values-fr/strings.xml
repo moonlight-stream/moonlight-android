@@ -120,6 +120,8 @@
     <string name="category_on_screen_controls_settings">Paramètres des contrôles à l\'écran</string>
     <string name="title_checkbox_show_onscreen_controls">Afficher les commandes à l\'écran</string>
     <string name="summary_checkbox_show_onscreen_controls">Afficher la superposition du contrôleur virtuel sur l\'écran tactile</string>
+    <string name="title_only_l3r3">Montre seulement L3 et R3</string>
+    <string name="summary_only_l3r3">Cacher tout sauf L3 et R3</string>
 
     <string name="category_ui_settings">Paramètres de l\'interface utilisateur</string>
     <string name="title_language_list">Langue</string>

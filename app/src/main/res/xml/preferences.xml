@@ -54,10 +54,17 @@
     <PreferenceCategory android:title="@string/category_on_screen_controls_settings"
         android:key="category_onscreen_controls">
         <CheckBoxPreference
-            android:key="checkbox_show_onscreen_controls"
-            android:title="@string/title_checkbox_show_onscreen_controls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultValue="false"
+            android:key="check_box_preference_1"
             android:summary="@string/summary_checkbox_show_onscreen_controls"
-            android:defaultValue="false"/>
+            android:title="@string/title_checkbox_show_onscreen_controls" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="checkbox_only_show_L3R3"
+            android:summary="@string/summary_only_l3r3"
+            android:title="@string/title_only_l3r3" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">
         <CheckBoxPreference

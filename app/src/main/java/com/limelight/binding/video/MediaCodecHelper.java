@@ -71,11 +71,6 @@ public class MediaCodecHelper {
 			blacklistedDecoderPrefixes.add("AVCDecoder");
 		}
 
-		// Without bitstream fixups, we perform horribly on NVIDIA's HEVC
-		// decoder. While not strictly necessary, I'm going to fully blacklist this
-		// one to avoid users getting inaccurate impressions of Tegra X1/Moonlight performance.
-		blacklistedDecoderPrefixes.add("OMX.Nvidia.h265.decode");
-
 		// Force these decoders disabled because:
 		// 1) They are software decoders, so the performance is terrible
 		// 2) They crash with our HEVC stream anyway (at least prior to CSD batching)

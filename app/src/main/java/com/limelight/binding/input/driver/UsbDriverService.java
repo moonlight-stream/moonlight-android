@@ -151,6 +151,10 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             for (int id : InputDevice.getDeviceIds()) {
                 InputDevice inputDev = InputDevice.getDevice(id);
+                if (inputDev == null) {
+                    // Device was removed while looping
+                    continue;
+                }
 
                 if (inputDev.getVendorId() == device.getVendorId() &&
                         inputDev.getProductId() == device.getProductId()) {

@@ -433,25 +433,12 @@ public class NvHTTP {
 		// has the semantics that its name would indicate. To contain the effects of this change as much
 		// as possible, we'll force the current game to zero if the server isn't in a streaming session.
 		String serverState = getXmlString(serverInfo, "state");
-		if (serverState != null && !serverState.endsWith("_SERVER_AVAILABLE")) {
+		if (serverState != null && serverState.endsWith("_SERVER_BUSY")) {
 			String game = getXmlString(serverInfo, "currentgame");
 			return Integer.parseInt(game);
 		}
 		else {
 			return 0;
-		}
-	}
-	
-	public boolean isCurrentClient(String serverInfo) throws XmlPullParserException, IOException {
-		String currentClient = getXmlString(serverInfo, "CurrentClient");
-		if (currentClient != null) {
-			return !currentClient.equals("0");
-		}
-		else {
-			// For versions of GFE that lack this field, we'll assume we are
-			// the current client. If we're not, we'll get a response error that
-			// will let us know.
-			return true;
 		}
 	}
 
@@ -638,16 +625,20 @@ public class NvHTTP {
 	}
 	
 	public boolean quitApp() throws IOException, XmlPullParserException {
-		// First check if this client is allowed to quit the app. Newer GFE versions
-		// will just return success even if quitting fails if we're not the original requestor.
-		if (!isCurrentClient(getServerInfo())) {
+		String xmlStr = openHttpConnectionToString(baseUrlHttps + "/cancel?" + buildUniqueIdUuidString(), false);
+		String cancel = getXmlString(xmlStr, "cancel");
+		if (Integer.parseInt(cancel) == 0) {
+			return false;
+		}
+
+		// Newer GFE versions will just return success even if quitting fails
+		// if we're not the original requestor.
+		if (getCurrentGame(getServerInfo()) != 0) {
 			// Generate a synthetic GfeResponseException letting the caller know
 			// that they can't kill someone else's stream.
 			throw new GfeHttpResponseException(599, "");
 		}
 
-		String xmlStr = openHttpConnectionToString(baseUrlHttps + "/cancel?" + buildUniqueIdUuidString(), false);
-		String cancel = getXmlString(xmlStr, "cancel");
-		return Integer.parseInt(cancel) != 0;
+		return true;
 	}
 }

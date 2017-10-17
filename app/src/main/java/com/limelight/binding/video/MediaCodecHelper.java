@@ -71,6 +71,9 @@ public class MediaCodecHelper {
 			blacklistedDecoderPrefixes.add("AVCDecoder");
 		}
 
+		// Never use ffmpeg decoders since they're software decoders
+		blacklistedDecoderPrefixes.add("OMX.ffmpeg");
+
 		// Without bitstream fixups, we perform horribly on NVIDIA's HEVC
 		// decoder. While not strictly necessary, I'm going to fully blacklist this
 		// one to avoid users getting inaccurate impressions of Tegra X1/Moonlight performance.

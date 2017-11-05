@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.concurrent.Semaphore;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -27,6 +28,7 @@ public class NvConnection {
 	private LimelightCryptoProvider cryptoProvider;
 	private String uniqueId;
 	private ConnectionContext context;
+	private static Semaphore connectionAllowed = new Semaphore(1);
 	
 	public NvConnection(String host, String uniqueId, StreamConfiguration config, LimelightCryptoProvider cryptoProvider)
 	{		
@@ -59,7 +61,7 @@ public class NvConnection {
 	private static int generateRiKeyId() {
 		return new SecureRandom().nextInt();
 	}
-	
+
 	public void stop() {
 		// Interrupt any pending connection. This is thread-safe.
 		MoonBridge.interruptConnection();
@@ -70,6 +72,9 @@ public class NvConnection {
 			MoonBridge.stopConnection();
 			MoonBridge.cleanupBridge();
 		}
+
+		// Now a pending connection can be processed
+		connectionAllowed.release();
 	}
 	
 	private boolean startApp() throws XmlPullParserException, IOException
@@ -237,11 +242,21 @@ public class NvConnection {
 				ByteBuffer ib = ByteBuffer.allocate(16);
 				ib.putInt(context.riKeyId);
 
+				// Acquire the connection semaphore to ensure we only have one
+				// connection going at once.
+				try {
+					connectionAllowed.acquire();
+				} catch (InterruptedException e) {
+					context.connListener.displayMessage(e.getMessage());
+					context.connListener.stageFailed(appName, 0);
+					return;
+				}
+
 				// Moonlight-core is not thread-safe with respect to connection start and stop, so
 				// we must not invoke that functionality in parallel.
 				synchronized (MoonBridge.class) {
 					MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
-					MoonBridge.startConnection(context.serverAddress,
+					int ret = MoonBridge.startConnection(context.serverAddress,
 							context.serverAppVersion, context.serverGfeVersion,
 							context.negotiatedWidth, context.negotiatedHeight,
 							context.negotiatedFps, context.streamConfig.getBitrate(),
@@ -251,6 +266,12 @@ public class NvConnection {
 							context.streamConfig.getHevcBitratePercentageMultiplier(),
 							context.riKey.getEncoded(), ib.array(),
 							context.videoCapabilities);
+					if (ret != 0) {
+						// LiStartConnection() failed, so the caller is not expected
+						// to stop the connection themselves. We need to release their
+						// semaphore count for them.
+						connectionAllowed.release();
+					}
 				}
 			}
 		}).start();

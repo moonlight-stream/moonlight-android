@@ -421,8 +421,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private final Runnable hideSystemUi = new Runnable() {
             @Override
             public void run() {
+                // In multi-window mode on N+, we need to drop our layout flags or we'll
+                // be drawing underneath the system UI.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode()) {
+                    Game.this.getWindow().getDecorView().setSystemUiVisibility(
+                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+                }
                 // Use immersive mode on 4.4+ or standard low profile on previous builds
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     Game.this.getWindow().getDecorView().setSystemUiVisibility(
                             View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
@@ -445,6 +451,23 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             h.removeCallbacks(hideSystemUi);
             h.postDelayed(hideSystemUi, delay);
         }
+    }
+
+    @Override
+    public void onMultiWindowModeChanged(boolean isInMultiWindowMode) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode);
+
+        // In multi-window, we don't want to use the full-screen layout
+        // flag. It will cause us to collide with the system UI.
+        if (isInMultiWindowMode) {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
+        else {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
+
+        // Correct the system UI visibility flags
+        hideSystemUi(50);
     }
 
     @Override

@@ -969,7 +969,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private void stopConnection() {
         if (connecting || connected) {
             connecting = connected = false;
-            conn.stop();
+
+            // Stop may take a few hundred ms to do some network I/O to tell
+            // the server we're going away and clean up. Let it run in a separate
+            // thread to keep things smooth for the UI. Inside moonlight-common,
+            // we prevent another thread from starting a connection before and
+            // during the process of stopping this one.
+            new Thread() {
+                public void run() {
+                    conn.stop();
+                }
+            }.start();
         }
     }
 

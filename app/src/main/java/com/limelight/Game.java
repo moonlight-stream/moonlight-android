@@ -219,9 +219,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Initialize the MediaCodec helper before creating the decoder
         MediaCodecHelper.initializeWithContext(this);
 
-        decoderRenderer = new MediaCodecDecoderRenderer(prefConfig.videoFormat,
-                prefConfig.bitrate,
-                prefConfig.batterySaver,
+        decoderRenderer = new MediaCodecDecoderRenderer(prefConfig,
                 new CrashListener() {
                     @Override
                     public void notifyCrash(Exception e) {

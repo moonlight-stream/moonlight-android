@@ -12,7 +12,6 @@ import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.jni.MoonBridge;
 import com.limelight.preferences.PreferenceConfiguration;
 
-import android.content.SharedPreferences;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -67,7 +66,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private int framesLost;
     private int lastFrameNumber;
     private int refreshRate;
-    private int bitrate;
+    private PreferenceConfiguration prefs;
 
     private int numSpsIn;
     private int numPpsIn;
@@ -113,16 +112,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.renderTarget = renderTarget;
     }
 
-    public MediaCodecDecoderRenderer(int videoFormat, int bitrate, boolean batterySaver,
+    public MediaCodecDecoderRenderer(PreferenceConfiguration prefs,
                                      CrashListener crashListener, int consecutiveCrashCount) {
         //dumpDecoders();
 
-        this.bitrate = bitrate;
+        this.prefs = prefs;
         this.crashListener = crashListener;
         this.consecutiveCrashCount = consecutiveCrashCount;
 
         // Disable spinner threads in battery saver mode
-        if (batterySaver) {
+        if (prefs.batterySaver) {
             spinnerThreads = new Thread[0];
         }
         else {
@@ -137,7 +136,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             LimeLog.warning("No AVC decoder found");
         }
 
-        hevcDecoder = findHevcDecoder(videoFormat);
+        hevcDecoder = findHevcDecoder(prefs.videoFormat);
         if (hevcDecoder != null) {
             LimeLog.info("Selected HEVC decoder: "+hevcDecoder.getName());
         }
@@ -367,7 +366,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             }
 
                             // Render the last buffer
-                            videoDecoder.releaseOutputBuffer(lastIndex, true);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && prefs.disableFrameDrop) {
+                                // Use a PTS that will cause this frame to never be dropped if frame dropping
+                                // is disabled
+                                videoDecoder.releaseOutputBuffer(lastIndex, 0);
+                            }
+                            else {
+                                videoDecoder.releaseOutputBuffer(lastIndex, true);
+                            }
 
                             // Add delta time to the totals (excluding probable outliers)
                             long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
@@ -926,7 +932,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";
             str += "Initial video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
-            str += "Bitrate: "+renderer.bitrate+" Mbps \n";
+            str += "Bitrate: "+renderer.prefs.bitrate+" Mbps \n";
             str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
             str += "Total frames: "+renderer.totalFrames+"\n";
             str += "Frame losses: "+renderer.framesLost+" in "+frameLossEvents+" loss events\n";

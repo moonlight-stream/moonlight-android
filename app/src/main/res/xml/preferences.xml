@@ -97,5 +97,10 @@
             android:entryValues="@array/video_format_values"
             android:summary="@string/summary_video_format"
             android:defaultValue="auto" />
+        <CheckBoxPreference
+            android:key="checkbox_disable_frame_drop"
+            android:title="@string/title_disable_frame_drop"
+            android:summary="@string/summary_disable_frame_drop"
+            android:defaultValue="false" />
     </PreferenceCategory>
 </PreferenceScreen>

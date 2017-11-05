@@ -142,7 +142,9 @@
     <string name="summary_checkbox_host_audio">Play audio from the computer and this device</string>
 
     <string name="category_advanced_settings">Advanced Settings</string>
+    <string name="title_disable_frame_drop">Never drop frames</string>
+    <string name="summary_disable_frame_drop">May reduce micro-stuttering on some devices, but can increase latency</string>
     <string name="title_video_format">Change H.265 settings</string>
-    <string name="summary_video_format">H.265 lowers video bandwidth requirements but requires a very recent device.</string>
+    <string name="summary_video_format">H.265 lowers video bandwidth requirements but requires a very recent device</string>
 
 </resources>

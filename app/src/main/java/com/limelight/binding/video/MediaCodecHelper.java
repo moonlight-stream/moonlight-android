@@ -28,6 +28,7 @@ public class MediaCodecHelper {
 	private static final List<String> blacklistedDecoderPrefixes;
 	private static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
 	private static final List<String> whitelistedAdaptiveResolutionPrefixes;
+	private static final List<String> deprioritizedHevcDecoders;
     private static final List<String> baselineProfileHackPrefixes;
     private static final List<String> directSubmitPrefixes;
 	private static final List<String> constrainedHighProfilePrefixes;
@@ -113,8 +114,14 @@ public class MediaCodecHelper {
 		// Exynos seems to be the only HEVC decoder that works reliably
 		whitelistedHevcDecoders.add("omx.exynos");
 
-		// TODO: This needs a similar fixup to the Tegra 3 otherwise it buffers 16 frames
-		//whitelistedHevcDecoders.add("omx.nvidia");
+		// On Darcy (Shield 2017), HEVC runs fine with no fixups required.
+		// For some reason, other X1 implementations require bitstream fixups.
+		if (Build.DEVICE.equalsIgnoreCase("darcy")) {
+			whitelistedHevcDecoders.add("omx.nvidia");
+		}
+		else {
+			// TODO: This needs a similar fixup to the Tegra 3 otherwise it buffers 16 frames
+		}
 
 		// Sony ATVs have broken MediaTek codecs (decoder hangs after rendering the first frame).
 		// I know the Fire TV 2 works, so I'll just whitelist Amazon devices which seem
@@ -130,6 +137,14 @@ public class MediaCodecHelper {
 
 		// Based on GPU attributes queried at runtime, the omx.qcom prefix will be added
 		// during initialization to avoid SoCs with broken HEVC decoders.
+	}
+
+	static {
+		deprioritizedHevcDecoders = new LinkedList<>();
+
+		// These are decoders that work but aren't used by default for various reasons.
+
+		// Qualcomm is currently the only decoders in this group.
 	}
 
 	public static void initializeWithContext(Context context) {
@@ -163,11 +178,12 @@ public class MediaCodecHelper {
 			// Unfortunately, it's not that easy to get that information here, so I'll use an
 			// approximation by checking the GLES level (<= 3.0 is bad).
 			if (configInfo.reqGlEsVersion > 0x30000) {
-				// FIXME: We prefer reference frame invalidation support (which is only doable on AVC on
+				// We prefer reference frame invalidation support (which is only doable on AVC on
 				// older Qualcomm chips) vs. enabling HEVC by default. The user can override using the settings
-				// to force HEVC on.
-				//LimeLog.info("Added omx.qcom to supported HEVC decoders based on GLES 3.1+ support");
-				//whitelistedHevcDecoders.add("omx.qcom");
+				// to force HEVC on. If HDR or mobile data will be used, we'll override this and use
+				// HEVC anyway.
+				LimeLog.info("Added omx.qcom to deprioritized HEVC decoders based on GLES 3.1+ support");
+				deprioritizedHevcDecoders.add("omx.qcom");
 			}
 			else {
 				blacklistedDecoderPrefixes.add("OMX.qcom.video.decoder.hevc");
@@ -245,7 +261,7 @@ public class MediaCodecHelper {
         return isDecoderInList(refFrameInvalidationHevcPrefixes, decoderName);
     }
 
-	public static boolean decoderIsWhitelistedForHevc(String decoderName) {
+	public static boolean decoderIsWhitelistedForHevc(String decoderName, boolean meteredData, boolean willStreamHdr) {
 		// TODO: Shield Tablet K1/LTE?
 		//
 		// NVIDIA does partial HEVC acceleration on the Shield Tablet. I don't know
@@ -275,6 +291,15 @@ public class MediaCodecHelper {
 		//
 		if (decoderName.contains("sw")) {
 			return false;
+		}
+
+		// Some devices have HEVC decoders that we prefer not to use
+		// typically because it can't support reference frame invalidation.
+		// However, we will use it for HDR and for streaming over mobile networks
+		// since it works fine otherwise.
+		if ((meteredData || willStreamHdr) && isDecoderInList(deprioritizedHevcDecoders, decoderName)) {
+			LimeLog.info("Selected deprioritized decoder");
+			return true;
 		}
 
 		return isDecoderInList(whitelistedHevcDecoders, decoderName);

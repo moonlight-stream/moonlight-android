@@ -125,6 +125,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public static final String EXTRA_STREAMING_REMOTE = "Remote";
     public static final String EXTRA_PC_UUID = "UUID";
     public static final String EXTRA_PC_NAME = "PcName";
+    public static final String EXTRA_APP_HDR = "HDR";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,7 +192,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Warn the user if they're on a metered connection
-        checkDataConnection();
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connMgr.isActiveNetworkMetered()) {
+            displayTransientMessage(getResources().getString(R.string.conn_metered));
+        }
 
         // Make sure Wi-Fi is fully powered up
         WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -206,6 +210,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         boolean remote = Game.this.getIntent().getBooleanExtra(EXTRA_STREAMING_REMOTE, false);
         String uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
         String pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
+        boolean willStreamHdr = Game.this.getIntent().getBooleanExtra(EXTRA_APP_HDR, false);
 
         if (appId == StreamConfiguration.INVALID_APP_ID) {
             finish();
@@ -219,6 +224,42 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Initialize the MediaCodec helper before creating the decoder
         MediaCodecHelper.initializeWithContext(this);
 
+        // Check if the user has enabled HDR
+        if (prefConfig.enableHdr) {
+            // Check if the app supports it
+            if (!willStreamHdr) {
+                Toast.makeText(this, "This game does not support HDR10", Toast.LENGTH_SHORT).show();
+            }
+            // It does, so start our HDR checklist
+            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                // We already know the app supports HDR if willStreamHdr is set.
+                Display display = getWindowManager().getDefaultDisplay();
+                Display.HdrCapabilities hdrCaps = display.getHdrCapabilities();
+
+                // We must now ensure our display is compatible with HDR10
+                boolean foundHdr10 = false;
+                for (int hdrType : hdrCaps.getSupportedHdrTypes()) {
+                    if (hdrType == Display.HdrCapabilities.HDR_TYPE_HDR10) {
+                        LimeLog.info("Display supports HDR10");
+                        foundHdr10 = true;
+                    }
+                }
+
+                if (!foundHdr10) {
+                    // Nope, no HDR for us :(
+                    willStreamHdr = false;
+                    Toast.makeText(this, "Display does not support HDR10", Toast.LENGTH_LONG).show();
+                }
+            }
+            else {
+                Toast.makeText(this, "HDR requires Android 7.0 or later", Toast.LENGTH_LONG).show();
+                willStreamHdr = false;
+            }
+        }
+        else {
+            willStreamHdr = false;
+        }
+
         decoderRenderer = new MediaCodecDecoderRenderer(prefConfig,
                 new CrashListener() {
                     @Override
@@ -230,7 +271,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         tombstonePrefs.edit().putInt("CrashCount", tombstonePrefs.getInt("CrashCount", 0) + 1).commit();
                     }
                 },
-                tombstonePrefs.getInt("CrashCount", 0));
+                tombstonePrefs.getInt("CrashCount", 0),
+                connMgr.isActiveNetworkMetered(),
+                willStreamHdr
+                );
+
+        // Don't stream HDR if the decoder can't support it
+        if (willStreamHdr && !decoderRenderer.isHevcMain10Hdr10Supported()) {
+            willStreamHdr = false;
+            Toast.makeText(this, "Decoder does not support HEVC Main10HDR10", Toast.LENGTH_LONG).show();
+        }
 
         // Display a message to the user if H.265 was forced on but we still didn't find a decoder
         if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
@@ -252,7 +302,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
                 .setRefreshRate(prefConfig.fps)
-                .setApp(new NvApp(appName, appId))
+                .setApp(new NvApp(appName, appId, willStreamHdr))
                 .setBitrate(prefConfig.bitrate * 1000)
                 .setEnableSops(prefConfig.enableSops)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
@@ -260,6 +310,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setRemote(remote)
                 .setHevcBitratePercentageMultiplier(75)
                 .setHevcSupported(decoderRenderer.isHevcSupported())
+                .setEnableHdr(willStreamHdr)
                 .setAudioConfiguration(prefConfig.enable51Surround ?
                         MoonBridge.AUDIO_CONFIGURATION_51_SURROUND :
                         MoonBridge.AUDIO_CONFIGURATION_STEREO)
@@ -406,14 +457,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         else {
             // Set the surface to scale based on the aspect ratio of the stream
             streamView.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
-        }
-    }
-
-    private void checkDataConnection()
-    {
-        ConnectivityManager mgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (mgr.isActiveNetworkMetered()) {
-            displayTransientMessage(getResources().getString(R.string.conn_metered));
         }
     }
 

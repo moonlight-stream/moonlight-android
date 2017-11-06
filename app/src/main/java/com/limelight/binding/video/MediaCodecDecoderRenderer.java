@@ -80,9 +80,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return decoder;
     }
 
-    private MediaCodecInfo findHevcDecoder(int videoFormat) {
+    private MediaCodecInfo findHevcDecoder(PreferenceConfiguration prefs, boolean meteredNetwork, boolean requestedHdr) {
         // Don't return anything if H.265 is forced off
-        if (videoFormat == PreferenceConfiguration.FORCE_H265_OFF) {
+        if (prefs.videoFormat == PreferenceConfiguration.FORCE_H265_OFF) {
             return null;
         }
 
@@ -93,10 +93,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // for even required levels of HEVC.
         MediaCodecInfo decoderInfo = MediaCodecHelper.findProbableSafeDecoder("video/hevc", -1);
         if (decoderInfo != null) {
-            if (!MediaCodecHelper.decoderIsWhitelistedForHevc(decoderInfo.getName())) {
+            if (!MediaCodecHelper.decoderIsWhitelistedForHevc(decoderInfo.getName(), meteredNetwork, requestedHdr)) {
                 LimeLog.info("Found HEVC decoder, but it's not whitelisted - "+decoderInfo.getName());
 
-                if (videoFormat == PreferenceConfiguration.FORCE_H265_ON) {
+                if (prefs.videoFormat == PreferenceConfiguration.FORCE_H265_ON) {
                     LimeLog.info("Forcing H265 enabled despite non-whitelisted decoder");
                 }
                 else {
@@ -113,7 +113,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     }
 
     public MediaCodecDecoderRenderer(PreferenceConfiguration prefs,
-                                     CrashListener crashListener, int consecutiveCrashCount) {
+                                     CrashListener crashListener, int consecutiveCrashCount,
+                                     boolean meteredData, boolean requestedHdr) {
         //dumpDecoders();
 
         this.prefs = prefs;
@@ -136,7 +137,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             LimeLog.warning("No AVC decoder found");
         }
 
-        hevcDecoder = findHevcDecoder(prefs.videoFormat);
+        hevcDecoder = findHevcDecoder(prefs, meteredData, requestedHdr);
         if (hevcDecoder != null) {
             LimeLog.info("Selected HEVC decoder: "+hevcDecoder.getName());
         }
@@ -173,6 +174,21 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     public boolean isAvcSupported() {
         return avcDecoder != null;
+    }
+
+    public boolean isHevcMain10Hdr10Supported() {
+        if (hevcDecoder == null) {
+            return false;
+        }
+
+        for (MediaCodecInfo.CodecProfileLevel profileLevel : hevcDecoder.getCapabilitiesForType("video/hevc").profileLevels) {
+            if (profileLevel.profile == MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10HDR10) {
+                LimeLog.info("HEVC decoder "+hevcDecoder.getName()+" supports HEVC Main10 HDR10");
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public int getActiveVideoFormat() {

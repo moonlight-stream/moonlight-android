@@ -109,5 +109,10 @@
             android:title="@string/title_disable_frame_drop"
             android:summary="@string/summary_disable_frame_drop"
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_enable_hdr"
+            android:title="@string/title_enable_hdr"
+            android:summary="@string/summary_enable_hdr"
+            android:defaultValue="false" />
     </PreferenceCategory>
 </PreferenceScreen>

@@ -28,6 +28,7 @@ public class ServerHelper {
         intent.putExtra(Game.EXTRA_HOST, getCurrentAddressFromComputer(computer));
         intent.putExtra(Game.EXTRA_APP_NAME, app.getAppName());
         intent.putExtra(Game.EXTRA_APP_ID, app.getAppId());
+        intent.putExtra(Game.EXTRA_APP_HDR, app.isHdrSupported());
         intent.putExtra(Game.EXTRA_UNIQUEID, managerBinder.getUniqueId());
         intent.putExtra(Game.EXTRA_STREAMING_REMOTE,
                 computer.reachability != ComputerDetails.Reachability.LOCAL);

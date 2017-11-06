@@ -543,7 +543,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     return true;
                 }
 
-                ServerHelper.doStart(this, new NvApp("app", computer.details.runningGameId), computer.details, managerBinder);
+                ServerHelper.doStart(this, new NvApp("app", computer.details.runningGameId, false), computer.details, managerBinder);
                 return true;
 
             case QUIT_ID:
@@ -558,7 +558,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     public void run() {
                         ServerHelper.doQuit(PcView.this,
                                 ServerHelper.getCurrentAddressFromComputer(computer.details),
-                                new NvApp("app", 0), managerBinder, null);
+                                new NvApp("app", 0, false), managerBinder, null);
                     }
                 }, null);
                 return true;

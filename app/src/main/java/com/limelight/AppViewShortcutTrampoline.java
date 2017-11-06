@@ -91,7 +91,7 @@ public class AppViewShortcutTrampoline extends Activity {
                                             // If a game is running, we'll make the stream the top level activity
                                             if (details.runningGameId != 0) {
                                                 intentStack.add(ServerHelper.createStartIntent(AppViewShortcutTrampoline.this,
-                                                        new NvApp("app", details.runningGameId), details, managerBinder));
+                                                        new NvApp("app", details.runningGameId, false), details, managerBinder));
                                             }
 
                                             // Now start the activities

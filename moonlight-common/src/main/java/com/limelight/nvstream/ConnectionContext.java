@@ -15,6 +15,7 @@ public class ConnectionContext {
 	
 	public int negotiatedWidth, negotiatedHeight;
 	public int negotiatedFps;
+	public boolean negotiatedHdr;
 
     public int videoCapabilities;
 }

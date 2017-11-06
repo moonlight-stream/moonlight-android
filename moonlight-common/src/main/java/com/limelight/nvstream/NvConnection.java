@@ -99,6 +99,12 @@ public class NvConnection {
 			context.connListener.displayMessage("Device not paired with computer");
 			return false;
 		}
+
+		context.negotiatedHdr = context.streamConfig.getEnableHdr();
+		if ((h.getServerCodecModeSupport(serverInfo) & 0x200) == 0 && context.negotiatedHdr) {
+			context.connListener.displayTransientMessage("Your GPU does not support streaming HDR. The stream will be SDR.");
+			context.negotiatedHdr = false;
+		}
 		
 		//
 		// Decide on negotiated stream parameters now
@@ -154,7 +160,7 @@ public class NvConnection {
 						return false;
 					}
 				} else {
-					return quitAndLaunch(h, app);
+					return quitAndLaunch(h, context);
 				}
 			} catch (GfeHttpResponseException e) {
 				if (e.getErrorCode() == 470) {
@@ -178,11 +184,11 @@ public class NvConnection {
 			return true;
 		}
 		else {
-			return launchNotRunningApp(h, app);
+			return launchNotRunningApp(h, context);
 		}
 	}
 
-	protected boolean quitAndLaunch(NvHTTP h, NvApp app) throws IOException,
+	protected boolean quitAndLaunch(NvHTTP h, ConnectionContext context) throws IOException,
 			XmlPullParserException {
 		try {
 			if (!h.quitApp()) {
@@ -201,13 +207,13 @@ public class NvConnection {
 			}
 		}
 
-		return launchNotRunningApp(h, app);
+		return launchNotRunningApp(h, context);
 	}
 	
-	private boolean launchNotRunningApp(NvHTTP h, NvApp app) 
+	private boolean launchNotRunningApp(NvHTTP h, ConnectionContext context)
 			throws IOException, XmlPullParserException {
 		// Launch the app since it's not running
-		if (!h.launchApp(context, app.getAppId())) {
+		if (!h.launchApp(context, context.streamConfig.getApp().getAppId(), context.negotiatedHdr)) {
 			context.connListener.displayMessage("Failed to launch application");
 			return false;
 		}
@@ -263,6 +269,7 @@ public class NvConnection {
 							context.streamConfig.getMaxPacketSize(),
 							context.streamConfig.getRemote(), context.streamConfig.getAudioConfiguration(),
 							context.streamConfig.getHevcSupported(),
+							context.negotiatedHdr,
 							context.streamConfig.getHevcBitratePercentageMultiplier(),
 							context.riKey.getEncoded(), ib.array(),
 							context.videoCapabilities);

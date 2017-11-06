@@ -370,6 +370,27 @@ public class NvHTTP {
 			return 0;
 		}
 	}
+
+	// Possible meaning of bits
+	// Bit 0: H.264 Baseline
+	// Bit 1: H.264 High
+	// ----
+	// Bit 8: HEVC Main
+	// Bit 9: HEVC Main10
+	// Bit 10: HEVC Main10 4:4:4
+	// Bit 11: ???
+	public long getServerCodecModeSupport(String serverInfo) throws XmlPullParserException, IOException {
+		String str = getXmlString(serverInfo, "ServerCodecModeSupport");
+		if (str != null) {
+			try {
+				return Long.parseLong(str);
+			} catch (NumberFormatException e) {
+				return 0;
+			}
+		} else {
+			return 0;
+		}
+	}
 	
 	public String getGpuType(String serverInfo) throws XmlPullParserException, IOException {
 		return getXmlString(serverInfo, "gputype");
@@ -504,6 +525,8 @@ public class NvHTTP {
 					app.setAppName(xpp.getText().trim());
 				} else if (currentTag.peek().equals("ID")) {
 					app.setAppId(xpp.getText().trim());
+				} else if (currentTag.peek().equals("IsHdrSupported")) {
+					app.setHdrSupported(xpp.getText().trim().equals("1"));
 				}
 				break;
 			}
@@ -601,7 +624,7 @@ public class NvHTTP {
 	    return new String(hexChars);
 	}
 	
-	public boolean launchApp(ConnectionContext context, int appId) throws IOException, XmlPullParserException {
+	public boolean launchApp(ConnectionContext context, int appId, boolean enableHdr) throws IOException, XmlPullParserException {
 		String xmlStr = openHttpConnectionToString(baseUrlHttps +
 			"/launch?" + buildUniqueIdUuidString() +
 			"&appid=" + appId +
@@ -609,6 +632,7 @@ public class NvHTTP {
 			"&additionalStates=1&sops=" + (context.streamConfig.getSops() ? 1 : 0) +
 			"&rikey="+bytesToHex(context.riKey.getEncoded()) +
 			"&rikeyid="+context.riKeyId +
+			(!enableHdr ? "" : "&hdrMode=1&clientHdrCapVersion=0&clientHdrCapSupportedFlagsInUint32=0&clientHdrCapMetaDataId=NV_STATIC_METADATA_TYPE_1&clientHdrCapDisplayData=0x0x0x0x0x0x0x0x0x0x0") +
 			"&localAudioPlayMode=" + (context.streamConfig.getPlayLocalAudio() ? 1 : 0) +
 			"&surroundAudioInfo=" + ((context.streamConfig.getAudioChannelMask() << 16) + context.streamConfig.getAudioChannelCount()),
 			false);

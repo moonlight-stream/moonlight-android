@@ -26,6 +26,7 @@ public class StreamConfiguration {
 	private int audioConfiguration;
 	private boolean supportsHevc;
 	private int hevcBitratePercentageMultiplier;
+	private boolean enableHdr;
 	
 	public static class Builder {
 		private StreamConfiguration config = new StreamConfiguration();
@@ -80,6 +81,11 @@ public class StreamConfiguration {
 			config.hevcBitratePercentageMultiplier = multiplier;
 			return this;
 		}
+
+		public StreamConfiguration.Builder setEnableHdr(boolean enableHdr) {
+			config.enableHdr = enableHdr;
+			return this;
+		}
 		
 		public StreamConfiguration.Builder setAudioConfiguration(int audioConfig) {
 			if (audioConfig == MoonBridge.AUDIO_CONFIGURATION_STEREO) {
@@ -122,6 +128,7 @@ public class StreamConfiguration {
 		this.audioChannelCount = CHANNEL_COUNT_STEREO;
 		this.audioChannelMask = CHANNEL_MASK_STEREO;
 		this.supportsHevc = false;
+		this.enableHdr = false;
 	}
 	
 	public int getWidth() {
@@ -182,5 +189,9 @@ public class StreamConfiguration {
 
 	public int getHevcBitratePercentageMultiplier() {
 		return hevcBitratePercentageMultiplier;
+	}
+
+	public boolean getEnableHdr() {
+		return enableHdr;
 	}
 }

@@ -382,6 +382,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject 
                                                            jint width, jint height, jint fps,
                                                            jint bitrate, jint packetSize, jboolean streamingRemotely,
                                                            jint audioConfiguration, jboolean supportsHevc,
+                                                           jboolean enableHdr,
                                                            jint hevcBitratePercentageMultiplier,
                                                            jbyteArray riAesKey, jbyteArray riAesIv,
                                                            jint videoCapabilities) {
@@ -399,6 +400,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject 
             .streamingRemotely = streamingRemotely,
             .audioConfiguration = audioConfiguration,
             .supportsHevc = supportsHevc,
+            .enableHdr = enableHdr,
             .hevcBitratePercentageMultiplier = hevcBitratePercentageMultiplier,
     };
 

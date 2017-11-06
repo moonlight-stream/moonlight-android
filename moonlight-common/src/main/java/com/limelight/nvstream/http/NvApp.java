@@ -6,6 +6,7 @@ public class NvApp {
 	private String appName = "";
 	private int appId;
 	private boolean initialized;
+	private boolean hdrSupported;
 	
 	public NvApp() {}
 	
@@ -13,9 +14,10 @@ public class NvApp {
 		this.appName = appName;
 	}
 	
-	public NvApp(String appName, int appId) {
+	public NvApp(String appName, int appId, boolean hdrSupported) {
 		this.appName = appName;
 		this.appId = appId;
+		this.hdrSupported = hdrSupported;
 		this.initialized = true;
 	}
 	
@@ -36,6 +38,10 @@ public class NvApp {
 		this.appId = appId;
 		this.initialized = true;
 	}
+
+	public void setHdrSupported(boolean hdrSupported) {
+		this.hdrSupported = hdrSupported;
+	}
 	
 	public String getAppName() {
 		return this.appName;
@@ -43,6 +49,10 @@ public class NvApp {
 	
 	public int getAppId() {
 		return this.appId;
+	}
+
+	public boolean isHdrSupported() {
+		return this.hdrSupported;
 	}
 	
 	public boolean isInitialized() {

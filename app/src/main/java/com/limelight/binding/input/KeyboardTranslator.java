@@ -18,22 +18,15 @@ public class KeyboardTranslator {
 	public static final int VK_9 = 57;
 	public static final int VK_A = 65;
 	public static final int VK_Z = 90;
-	public static final int VK_ALT = 18;
 	public static final int VK_NUMPAD0 = 96;
     public static final int VK_BACK_SLASH = 92;
     public static final int VK_CAPS_LOCK = 20;
 	public static final int VK_CLEAR = 12;
 	public static final int VK_COMMA = 44;
-	public static final int VK_CONTROL = 17;
 	public static final int VK_BACK_SPACE = 8;
 	public static final int VK_EQUALS = 61;
 	public static final int VK_ESCAPE = 27;
 	public static final int VK_F1 = 112;
-	public static final int VK_PERIOD = 46;
-	public static final int VK_INSERT = 155;
-	public static final int VK_OPEN_BRACKET = 91;
-	public static final int VK_WINDOWS = 524;
-	public static final int VK_MINUS = 45;
 	public static final int VK_END = 35;
 	public static final int VK_HOME = 36;
 	public static final int VK_NUM_LOCK = 144;
@@ -43,7 +36,6 @@ public class KeyboardTranslator {
 	public static final int VK_CLOSE_BRACKET = 93;
 	public static final int VK_SCROLL_LOCK = 145;
 	public static final int VK_SEMICOLON = 59;
-	public static final int VK_SHIFT = 16;
 	public static final int VK_SLASH = 47;
 	public static final int VK_SPACE = 32;
 	public static final int VK_PRINTSCREEN = 154;
@@ -64,10 +56,9 @@ public class KeyboardTranslator {
 	public static short translate(int keycode) {
 		int translated;
 		
-		/* There seems to be no clean mapping between Android key codes
-		 * and what Nvidia sends over the wire. If someone finds one,
-		 * I'll happily delete this code :)
-		 */
+		// This is a poor man's mapping between Android key codes
+		// and Windows VK_* codes. For all defined VK_ codes, see:
+		// https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
 		if (keycode >= KeyEvent.KEYCODE_0 &&
 			keycode <= KeyEvent.KEYCODE_9) {
 			translated = (keycode - KeyEvent.KEYCODE_0) + VK_0;
@@ -87,8 +78,11 @@ public class KeyboardTranslator {
 		else {
 			switch (keycode) {
 			case KeyEvent.KEYCODE_ALT_LEFT:
+				translated = 0xA4;
+				break;
+
 			case KeyEvent.KEYCODE_ALT_RIGHT:
-				translated = VK_ALT;
+				translated = 0xA5;
 				break;
 				
 			case KeyEvent.KEYCODE_BACKSLASH:
@@ -108,8 +102,11 @@ public class KeyboardTranslator {
 				break;
 				
 			case KeyEvent.KEYCODE_CTRL_LEFT:
+				translated = 0xA2;
+				break;
+
 			case KeyEvent.KEYCODE_CTRL_RIGHT:
-				translated = VK_CONTROL;
+				translated = 0xA3;
 				break;
 				
 			case KeyEvent.KEYCODE_DEL:
@@ -129,23 +126,25 @@ public class KeyboardTranslator {
 				break;
 				
 			case KeyEvent.KEYCODE_FORWARD_DEL:
-				// Nvidia maps period to delete
-				translated = VK_PERIOD;
+				translated = 0x2e;
 				break;
 				
 			case KeyEvent.KEYCODE_INSERT:
-				translated = -1;
+				translated = 0x2d;
 				break;
 				
 			case KeyEvent.KEYCODE_LEFT_BRACKET:
 				translated = 0xdb;
 				break;
-				
+
 			case KeyEvent.KEYCODE_META_LEFT:
-			case KeyEvent.KEYCODE_META_RIGHT:
-				translated = VK_WINDOWS;
+				translated = 0x5b;
 				break;
-				
+
+			case KeyEvent.KEYCODE_META_RIGHT:
+				translated = 0x5c;
+				break;
+
 			case KeyEvent.KEYCODE_MINUS:
 				translated = 0xbd;
 				break;
@@ -187,8 +186,11 @@ public class KeyboardTranslator {
 				break;
 				
 			case KeyEvent.KEYCODE_SHIFT_LEFT:
+				translated = 0xA0;
+				break;
+
 			case KeyEvent.KEYCODE_SHIFT_RIGHT:
-				translated = VK_SHIFT;
+				translated = 0xA1;
 				break;
 				
 			case KeyEvent.KEYCODE_SLASH:

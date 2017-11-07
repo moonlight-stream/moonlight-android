@@ -597,19 +597,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     };
 
     // Returns true if the key stroke was consumed
-    private boolean handleSpecialKeys(short translatedKey, boolean down) {
+    private boolean handleSpecialKeys(int androidKeyCode, boolean down) {
         int modifierMask = 0;
 
-        // Mask off the high byte
-        translatedKey &= 0xff;
-
-        if (translatedKey == KeyboardTranslator.VK_CONTROL) {
+        if (androidKeyCode == KeyEvent.KEYCODE_CTRL_LEFT ||
+            androidKeyCode == KeyEvent.KEYCODE_CTRL_RIGHT) {
             modifierMask = KeyboardPacket.MODIFIER_CTRL;
         }
-        else if (translatedKey == KeyboardTranslator.VK_SHIFT) {
+        else if (androidKeyCode == KeyEvent.KEYCODE_SHIFT_LEFT ||
+                 androidKeyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) {
             modifierMask = KeyboardPacket.MODIFIER_SHIFT;
         }
-        else if (translatedKey == KeyboardTranslator.VK_ALT) {
+        else if (androidKeyCode == KeyEvent.KEYCODE_ALT_LEFT ||
+                 androidKeyCode == KeyEvent.KEYCODE_ALT_RIGHT) {
             modifierMask = KeyboardPacket.MODIFIER_ALT;
         }
 
@@ -621,7 +621,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Check if Ctrl+Shift+Z is pressed
-        if (translatedKey == KeyboardTranslator.VK_Z &&
+        if (androidKeyCode == KeyEvent.KEYCODE_Z &&
             (modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_SHIFT)) ==
                 (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_SHIFT))
         {
@@ -702,7 +702,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
 
             // Let this method take duplicate key down events
-            if (handleSpecialKeys(translated, true)) {
+            if (handleSpecialKeys(keyCode, true)) {
                 return true;
             }
 
@@ -742,7 +742,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return super.onKeyUp(keyCode, event);
             }
 
-            if (handleSpecialKeys(translated, false)) {
+            if (handleSpecialKeys(keyCode, false)) {
                 return true;
             }
 
@@ -1181,7 +1181,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public void keyboardEvent(boolean buttonDown, short keyCode) {
         short keyMap = KeyboardTranslator.translate(keyCode);
         if (keyMap != 0) {
-            if (handleSpecialKeys(keyMap, buttonDown)) {
+            // handleSpecialKeys() takes the Android keycode
+            if (handleSpecialKeys(keyCode, buttonDown)) {
                 return;
             }
 

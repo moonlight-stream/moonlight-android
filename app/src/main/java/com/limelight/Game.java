@@ -711,7 +711,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return super.onKeyDown(keyCode, event);
             }
 
-            conn.sendKeyboardInput(translated, KeyboardPacket.KEY_DOWN, getModifierState());
+            conn.sendKeyboardInput(translated, KeyboardPacket.KEY_DOWN, getModifierState(event));
         }
 
         return true;

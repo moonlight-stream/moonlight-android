@@ -375,7 +375,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.triggerDeadzone = 0.30f;
             }
             // Classify this device as a remote by name
-            else if (devName.contains("Fire TV Remote") || devName.contains("Nexus Remote")) {
+            else if (devName.toLowerCase().contains("remote")) {
                 // It's only a remote if it doesn't any sticks
                 if (!context.hasJoystickAxes) {
                     context.ignoreBack = true;

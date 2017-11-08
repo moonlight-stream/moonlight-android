@@ -237,6 +237,26 @@ public class KeyboardTranslator {
 			case KeyEvent.KEYCODE_BREAK:
 				translated = VK_PAUSE;
 				break;
+
+			case KeyEvent.KEYCODE_NUMPAD_DIVIDE:
+				translated = 0x6F;
+				break;
+
+			case KeyEvent.KEYCODE_NUMPAD_MULTIPLY:
+				translated = 0x6A;
+				break;
+
+			case KeyEvent.KEYCODE_NUMPAD_SUBTRACT:
+				translated = 0x6D;
+				break;
+
+			case KeyEvent.KEYCODE_NUMPAD_ADD:
+				translated = 0x6B;
+				break;
+
+			case KeyEvent.KEYCODE_NUMPAD_DOT:
+				translated = 0x6E;
+				break;
 				
 			default:
 				System.out.println("No key for "+keycode);

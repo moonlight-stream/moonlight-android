@@ -966,9 +966,17 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.inputMap &= ~ControllerPacket.RS_CLK_FLAG;
             break;
         case KeyEvent.KEYCODE_BUTTON_L2:
+            if (context.leftTriggerAxis >= 0) {
+                // Suppress this digital event if an analog trigger is present
+                return true;
+            }
             context.leftTrigger = 0;
             break;
         case KeyEvent.KEYCODE_BUTTON_R2:
+            if (context.rightTriggerAxis >= 0) {
+                // Suppress this digital event if an analog trigger is present
+                return true;
+            }
             context.rightTrigger = 0;
             break;
         default:
@@ -1078,9 +1086,17 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.inputMap |= ControllerPacket.RS_CLK_FLAG;
             break;
         case KeyEvent.KEYCODE_BUTTON_L2:
+            if (context.leftTriggerAxis >= 0) {
+                // Suppress this digital event if an analog trigger is present
+                return true;
+            }
             context.leftTrigger = (byte)0xFF;
             break;
         case KeyEvent.KEYCODE_BUTTON_R2:
+            if (context.rightTriggerAxis >= 0) {
+                // Suppress this digital event if an analog trigger is present
+                return true;
+            }
             context.rightTrigger = (byte)0xFF;
             break;
         default:

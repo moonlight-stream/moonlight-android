@@ -11,6 +11,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.view.InputDevice;
 
@@ -72,10 +73,22 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
             // Initial attachment broadcast
             if (action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
-                UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                final UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-                // Continue the state machine
-                handleUsbDeviceState(device);
+                // shouldClaimDevice() looks at the kernel's enumerated input
+                // devices to make its decision about whether to prompt to take
+                // control of the device. The kernel bringing up the input stack
+                // may race with this callback and cause us to prompt when the
+                // kernel is capable of running the device. Let's post a delayed
+                // message to process this state change to allow the kernel
+                // some time to bring up the stack.
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Continue the state machine
+                        handleUsbDeviceState(device);
+                    }
+                }, 1000);
             }
             // Subsequent permission dialog completion intent
             else if (action.equals(ACTION_USB_PERMISSION)) {

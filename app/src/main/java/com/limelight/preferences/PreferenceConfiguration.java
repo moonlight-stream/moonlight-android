@@ -26,6 +26,7 @@ public class PreferenceConfiguration {
     private static final String BATTERY_SAVER_PREF_STRING = "checkbox_battery_saver";
     private static final String DISABLE_FRAME_DROP_PREF_STRING = "checkbox_disable_frame_drop";
     private static final String ENABLE_HDR_PREF_STRING = "checkbox_enable_hdr";
+    private static final String ENABLE_PIP_PREF_STRING = "checkbox_enable_pip";
 
     private static final int BITRATE_DEFAULT_720_30 = 5;
     private static final int BITRATE_DEFAULT_720_60 = 10;
@@ -52,6 +53,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_BATTERY_SAVER = false;
     private static final boolean DEFAULT_DISABLE_FRAME_DROP = false;
     private static final boolean DEFAULT_ENABLE_HDR = false;
+    private static final boolean DEFAULT_ENABLE_PIP = false;
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -69,6 +71,7 @@ public class PreferenceConfiguration {
     public boolean batterySaver;
     public boolean disableFrameDrop;
     public boolean enableHdr;
+    public boolean enablePip;
 
     public static int getDefaultBitrate(String resFpsString) {
         if (resFpsString.equals("720p30")) {
@@ -213,6 +216,7 @@ public class PreferenceConfiguration {
         config.batterySaver = prefs.getBoolean(BATTERY_SAVER_PREF_STRING, DEFAULT_BATTERY_SAVER);
         config.disableFrameDrop = prefs.getBoolean(DISABLE_FRAME_DROP_PREF_STRING, DEFAULT_DISABLE_FRAME_DROP);
         config.enableHdr = prefs.getBoolean(ENABLE_HDR_PREF_STRING, DEFAULT_ENABLE_HDR);
+        config.enablePip = prefs.getBoolean(ENABLE_PIP_PREF_STRING, DEFAULT_ENABLE_PIP);
 
         return config;
     }

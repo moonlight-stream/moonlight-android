@@ -68,6 +68,13 @@ public class StreamSettings extends Activity {
                 screen.removePreference(category);
             }
 
+            // Remove PiP mode on devices pre-Oreo
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_basic_settings");
+                category.removePreference(findPreference("checkbox_enable_pip"));
+            }
+
             // Remove HDR preference for devices below Nougat
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
                 LimeLog.info("Excluding HDR toggle based on OS");

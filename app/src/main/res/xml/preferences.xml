@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="@string/category_basic_settings">
+    <PreferenceCategory android:title="@string/category_basic_settings"
+        android:key="category_basic_settings">
         <ListPreference
             android:key="list_resolution_fps"
             android:title="@string/title_resolution_list"
@@ -24,6 +25,11 @@
             android:key="checkbox_battery_saver"
             android:title="@string/title_checkbox_battery_saver"
             android:summary="@string/summary_checkbox_battery_saver"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_enable_pip"
+            android:title="@string/title_checkbox_enable_pip"
+            android:summary="@string/summary_checkbox_enable_pip"
             android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_audio_settings">

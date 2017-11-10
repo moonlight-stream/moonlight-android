@@ -30,6 +30,7 @@ import com.limelight.utils.UiHelper;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.PictureInPictureParams;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -46,6 +47,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.util.Rational;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -355,6 +357,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // The connection will be started when the surface gets created
         streamView.getHolder().addCallback(this);
+    }
+
+    @Override
+    public void onUserLeaveHint() {
+        super.onUserLeaveHint();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (prefConfig.enablePip && connected) {
+                enterPictureInPictureMode(
+                        new PictureInPictureParams.Builder()
+                                .setAspectRatio(new Rational(prefConfig.width, prefConfig.height))
+                                .build());
+            }
+        }
     }
 
     @Override

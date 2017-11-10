@@ -2,6 +2,7 @@ package com.limelight.preferences;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
 import android.preference.Preference;
@@ -9,7 +10,9 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.view.Display;
 
+import com.limelight.LimeLog;
 import com.limelight.PcView;
 import com.limelight.R;
 import com.limelight.utils.UiHelper;
@@ -63,6 +66,33 @@ public class StreamSettings extends Activity {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_onscreen_controls");
                 screen.removePreference(category);
+            }
+
+            // Remove HDR preference for devices below Nougat
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                LimeLog.info("Excluding HDR toggle based on OS");
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_advanced_settings");
+                category.removePreference(findPreference("checkbox_enable_hdr"));
+            }
+            else {
+                Display display = getActivity().getWindowManager().getDefaultDisplay();
+                Display.HdrCapabilities hdrCaps = display.getHdrCapabilities();
+
+                // We must now ensure our display is compatible with HDR10
+                boolean foundHdr10 = false;
+                for (int hdrType : hdrCaps.getSupportedHdrTypes()) {
+                    if (hdrType == Display.HdrCapabilities.HDR_TYPE_HDR10) {
+                        foundHdr10 = true;
+                    }
+                }
+
+                if (!foundHdr10) {
+                    LimeLog.info("Excluding HDR toggle based on display capabilities");
+                    PreferenceCategory category =
+                            (PreferenceCategory) findPreference("category_advanced_settings");
+                    category.removePreference(findPreference("checkbox_enable_hdr"));
+                }
             }
 
             // Add a listener to the FPS and resolution preference

@@ -96,7 +96,8 @@
             android:summary="@string/summary_checkbox_list_mode"
             android:defaultValue="false" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/category_advanced_settings">
+    <PreferenceCategory android:title="@string/category_advanced_settings"
+        android:key="category_advanced_settings">
         <ListPreference
             android:key="video_format"
             android:title="@string/title_video_format"

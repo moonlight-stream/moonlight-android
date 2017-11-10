@@ -149,6 +149,6 @@
     <string name="title_video_format">Change H.265 settings</string>
     <string name="summary_video_format">H.265 lowers video bandwidth requirements but requires a very recent device</string>
     <string name="title_enable_hdr">Enable HDR (Experimental)</string>
-    <string name="summary_enable_hdr">Stream HDR when the game, client display, decoder, and GPU support it</string>
+    <string name="summary_enable_hdr">Stream HDR when the game and PC GPU support it. HDR requires a GTX 1000 series GPU or later.</string>
 
 </resources>

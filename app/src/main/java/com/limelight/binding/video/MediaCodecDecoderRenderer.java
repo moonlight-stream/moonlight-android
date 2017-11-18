@@ -584,7 +584,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int submitDecodeUnit(byte[] frameData, int frameLength, int frameNumber, long receiveTimeMs) {
+    public int submitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
+                                int frameNumber, long receiveTimeMs) {
         totalFrames++;
 
         // We can receive the same "frame" multiple times if it's an IDR frame.
@@ -618,11 +619,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         boolean needsSpsReplay = false;
 
         // H264 SPS
-        if (frameData[4] == 0x67) {
+        if (decodeUnitData[4] == 0x67) {
             numSpsIn++;
             codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 
-            ByteBuffer spsBuf = ByteBuffer.wrap(frameData);
+            ByteBuffer spsBuf = ByteBuffer.wrap(decodeUnitData);
 
             // Skip to the start of the NALU data
             spsBuf.position(5);
@@ -728,11 +729,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             // Write the annex B header
-            buf.put(frameData, 0, 5);
+            buf.put(decodeUnitData, 0, 5);
 
             // The H264Utils.writeSPS function safely handles
             // Annex B NALUs (including NALUs with escape sequences)
-            ByteBuffer escapedNalu = H264Utils.writeSPS(sps, frameLength);
+            ByteBuffer escapedNalu = H264Utils.writeSPS(sps, decodeUnitLength);
             buf.put(escapedNalu);
 
             if (queueInputBuffer(inputBufferIndex,
@@ -745,7 +746,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             // H264 PPS
-        } else if (frameData[4] == 0x68) {
+        } else if (decodeUnitData[4] == 0x68) {
             numPpsIn++;
             codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 
@@ -769,23 +770,23 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 needsSpsReplay = true;
             }
         }
-        else if (frameData[4] == 0x40) {
+        else if (decodeUnitData[4] == 0x40) {
             numVpsIn++;
 
             // Batch this to submit together with SPS and PPS per AOSP docs
-            vpsBuffer = new byte[frameLength];
-            System.arraycopy(frameData, 0, vpsBuffer, 0, frameLength);
+            vpsBuffer = new byte[decodeUnitLength];
+            System.arraycopy(decodeUnitData, 0, vpsBuffer, 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
-        else if (frameData[4] == 0x42) {
+        else if (decodeUnitData[4] == 0x42) {
             numSpsIn++;
 
             // Batch this to submit together with VPS and PPS per AOSP docs
-            spsBuffer = new byte[frameLength];
-            System.arraycopy(frameData, 0, spsBuffer, 0, frameLength);
+            spsBuffer = new byte[decodeUnitLength];
+            System.arraycopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
-        else if (frameData[4] == 0x44) {
+        else if (decodeUnitData[4] == 0x44) {
             numPpsIn++;
 
             inputBufferIndex = dequeueInputBuffer();
@@ -827,7 +828,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         // Copy data from our buffer list into the input buffer
-        buf.put(frameData, 0, frameLength);
+        buf.put(decodeUnitData, 0, decodeUnitLength);
 
         if (!queueInputBuffer(inputBufferIndex,
                 0, buf.position(),

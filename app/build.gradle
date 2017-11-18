@@ -24,19 +24,11 @@ android {
             maxSdkVersion 25
 
             applicationId "com.limelight.root"
-            ndk {
-                abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64", "mips", "mips64"
-            }
-
             dimension "root"
         }
 
         nonRoot {
             applicationId "com.limelight"
-            ndk {
-                abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64", "mips", "mips64"
-            }
-
             dimension "root"
         }
     }

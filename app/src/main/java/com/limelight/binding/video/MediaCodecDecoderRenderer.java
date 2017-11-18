@@ -31,7 +31,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private MediaCodecInfo avcDecoder;
     private MediaCodecInfo hevcDecoder;
 
-    // Used for HEVC only
     private byte[] vpsBuffer;
     private byte[] spsBuffer;
 
@@ -616,12 +615,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         lastTimestampUs = timestampUs;
 
         int codecFlags = 0;
-        boolean needsSpsReplay = false;
 
         // H264 SPS
         if (decodeUnitData[4] == 0x67) {
             numSpsIn++;
-            codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 
             ByteBuffer spsBuf = ByteBuffer.wrap(decodeUnitData);
 
@@ -716,61 +713,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // Patch the SPS constraint flags
             doProfileSpecificSpsPatching(sps);
 
-            inputBufferIndex = dequeueInputBuffer();
-            if (inputBufferIndex < 0) {
-                // We're being torn down now
-                return MoonBridge.DR_NEED_IDR;
-            }
-
-            buf = getEmptyInputBuffer(inputBufferIndex);
-            if (buf == null) {
-                // We're being torn down now
-                return MoonBridge.DR_NEED_IDR;
-            }
-
-            // Write the annex B header
-            buf.put(decodeUnitData, 0, 5);
-
             // The H264Utils.writeSPS function safely handles
             // Annex B NALUs (including NALUs with escape sequences)
             ByteBuffer escapedNalu = H264Utils.writeSPS(sps, decodeUnitLength);
-            buf.put(escapedNalu);
 
-            if (queueInputBuffer(inputBufferIndex,
-                    0, buf.position(),
-                    timestampUs, codecFlags)) {
-                return MoonBridge.DR_OK;
-            }
-            else {
-                return MoonBridge.DR_NEED_IDR;
-            }
-
-            // H264 PPS
-        } else if (decodeUnitData[4] == 0x68) {
-            numPpsIn++;
-            codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-
-            inputBufferIndex = dequeueInputBuffer();
-            if (inputBufferIndex < 0) {
-                // We're being torn down now
-                return MoonBridge.DR_NEED_IDR;
-            }
-
-            buf = getEmptyInputBuffer(inputBufferIndex);
-            if (buf == null) {
-                // We're being torn down now
-                return MoonBridge.DR_NEED_IDR;
-            }
-
-            if (needsBaselineSpsHack) {
-                LimeLog.info("Saw PPS; disabling SPS hack");
-                needsBaselineSpsHack = false;
-
-                // Give the decoder the SPS again with the proper profile now
-                needsSpsReplay = true;
-            }
+            // Batch this to submit together with PPS
+            spsBuffer = new byte[5 + escapedNalu.limit()];
+            System.arraycopy(decodeUnitData, 0, spsBuffer, 0, 5);
+            escapedNalu.get(spsBuffer, 5, escapedNalu.limit());
+            return MoonBridge.DR_OK;
         }
-        else if (decodeUnitData[4] == 0x40) {
+        else if (decodeUnitType == MoonBridge.BUFFER_TYPE_VPS) {
             numVpsIn++;
 
             // Batch this to submit together with SPS and PPS per AOSP docs
@@ -778,7 +731,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             System.arraycopy(decodeUnitData, 0, vpsBuffer, 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
-        else if (decodeUnitData[4] == 0x42) {
+        // Only the HEVC SPS hits this path (H.264 is handled above)
+        else if (decodeUnitType == MoonBridge.BUFFER_TYPE_SPS) {
             numSpsIn++;
 
             // Batch this to submit together with VPS and PPS per AOSP docs
@@ -786,7 +740,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             System.arraycopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
-        else if (decodeUnitData[4] == 0x44) {
+        else if (decodeUnitType == MoonBridge.BUFFER_TYPE_PPS) {
             numPpsIn++;
 
             inputBufferIndex = dequeueInputBuffer();
@@ -802,7 +756,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             // When we get the PPS, submit the VPS and SPS together with
-            // the PPS, as required by AOSP docs on use of HEVC and MediaCodec.
+            // the PPS, as required by AOSP docs on use of MediaCodec.
             if (vpsBuffer != null) {
                 buf.put(vpsBuffer);
             }
@@ -810,7 +764,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 buf.put(spsBuffer);
             }
 
-            // This is the HEVC CSD blob
+            // This is the CSD blob
             codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
         }
         else {
@@ -836,7 +790,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return MoonBridge.DR_NEED_IDR;
         }
 
-        if (needsSpsReplay) {
+        if (needsBaselineSpsHack) {
+            needsBaselineSpsHack = false;
+
             if (!replaySps()) {
                 return MoonBridge.DR_NEED_IDR;
             }

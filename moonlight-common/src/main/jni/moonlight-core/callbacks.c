@@ -1,6 +1,7 @@
 #include <jni.h>
 
 #include <pthread.h>
+#include <string.h>
 
 #include <Limelight.h>
 

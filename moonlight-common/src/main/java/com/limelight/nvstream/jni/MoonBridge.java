@@ -13,6 +13,11 @@ public class MoonBridge {
     public static final int VIDEO_FORMAT_H264 = 1;
     public static final int VIDEO_FORMAT_H265 = 2;
 
+    public static final int BUFFER_TYPE_PICDATA = 0;
+    public static final int BUFFER_TYPE_SPS = 1;
+    public static final int BUFFER_TYPE_PPS = 2;
+    public static final int BUFFER_TYPE_VPS = 3;
+
     public static final int CAPABILITY_DIRECT_SUBMIT = 1;
     public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_AVC = 2;
     public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_HEVC = 4;
@@ -60,9 +65,12 @@ public class MoonBridge {
         }
     }
 
-    public static int bridgeDrSubmitDecodeUnit(byte[] frameData, int frameLength, int frameNumber, long receiveTimeMs) {
+    public static int bridgeDrSubmitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength,
+                                               int decodeUnitType,
+                                               int frameNumber, long receiveTimeMs) {
         if (videoRenderer != null) {
-            return videoRenderer.submitDecodeUnit(frameData, frameLength, frameNumber, receiveTimeMs);
+            return videoRenderer.submitDecodeUnit(decodeUnitData, decodeUnitLength,
+                    decodeUnitType, frameNumber, receiveTimeMs);
         }
         else {
             return DR_OK;

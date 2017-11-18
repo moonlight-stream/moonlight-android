@@ -81,7 +81,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jobject class) {
     BridgeDrStartMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrStart", "()V");
     BridgeDrStopMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrStop", "()V");
     BridgeDrCleanupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrCleanup", "()V");
-    BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSubmitDecodeUnit", "([BIIJ)I");
+    BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSubmitDecodeUnit", "([BIIIJ)I");
     BridgeArInitMethod = (*env)->GetStaticMethodID(env, class, "bridgeArInit", "(I)I");
     BridgeArStartMethod = (*env)->GetStaticMethodID(env, class, "bridgeArStart", "()V");
     BridgeArStopMethod = (*env)->GetStaticMethodID(env, class, "bridgeArStop", "()V");
@@ -152,6 +152,7 @@ void BridgeDrCleanup(void) {
 
 int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     JNIEnv* env = GetThreadEnv();
+    int ret;
 
     if ((*env)->ExceptionCheck(env)) {
         return DR_OK;
@@ -169,14 +170,33 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     currentEntry = decodeUnit->bufferList;
     offset = 0;
     while (currentEntry != NULL) {
-        (*env)->SetByteArrayRegion(env, DecodedFrameBuffer, offset, currentEntry->length, (jbyte*)currentEntry->data);
-        offset += currentEntry->length;
+        // Submit parameter set NALUs separately from picture data
+        if (currentEntry->bufferType != BUFFER_TYPE_PICDATA) {
+            // Use the beginning of the buffer each time since this is a separate
+            // invocation of the decoder each time.
+            (*env)->SetByteArrayRegion(env, DecodedFrameBuffer, 0, currentEntry->length, (jbyte*)currentEntry->data);
+
+            ret = (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeDrSubmitDecodeUnitMethod,
+                                              DecodedFrameBuffer, currentEntry->length, currentEntry->bufferType,
+                                              decodeUnit->frameNumber, decodeUnit->receiveTimeMs);
+            if ((*env)->ExceptionCheck(env)) {
+                return DR_OK;
+            }
+            else if (ret != DR_OK) {
+                return ret;
+            }
+        }
+        else {
+            (*env)->SetByteArrayRegion(env, DecodedFrameBuffer, offset, currentEntry->length, (jbyte*)currentEntry->data);
+            offset += currentEntry->length;
+        }
 
         currentEntry = currentEntry->next;
     }
 
     return (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeDrSubmitDecodeUnitMethod,
-                                       DecodedFrameBuffer, decodeUnit->fullLength, decodeUnit->frameNumber,
+                                       DecodedFrameBuffer, offset, BUFFER_TYPE_PICDATA,
+                                       decodeUnit->frameNumber,
                                        decodeUnit->receiveTimeMs);
 }
 

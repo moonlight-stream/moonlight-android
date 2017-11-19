@@ -986,6 +986,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Format: "+renderer.videoFormat+"\n";
             str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+"\n";
             str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+"\n";
+            str += "Adaptive playback: "+renderer.adaptivePlayback+"\n";
             str += "Build fingerprint: "+Build.FINGERPRINT+"\n";
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";
             str += "Initial video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";

@@ -1,6 +1,7 @@
 package com.limelight.binding.video;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Locale;
 
 import org.jcodec.codecs.h264.H264Utils;
@@ -123,8 +124,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.crashListener = crashListener;
         this.consecutiveCrashCount = consecutiveCrashCount;
 
-        // Disable spinner threads in battery saver mode
-        if (prefs.batterySaver) {
+        // Disable spinner threads in battery saver mode or 4K
+        if (prefs.batterySaver || prefs.height >= 2160) {
             spinnerThreads = new Thread[0];
         }
         else {
@@ -191,6 +192,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         return false;
+    }
+
+    public void notifyVideoForeground() {
+        startSpinnerThreads();
+    }
+
+    public void notifyVideoBackground() {
+        // Signal the spinner threads to stop but
+        // don't wait for them to terminate to avoid
+        // delaying the state transition
+        signalSpinnerStop();
     }
 
     public int getActiveVideoFormat() {
@@ -424,26 +436,70 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         rendererThread.start();
     }
 
+    private void startSpinnerThread(final int i) {
+        spinnerThreads[i] = new Thread() {
+            @Override
+            public void run() {
+                // This thread exists to keep the CPU at a higher DVFS state on devices
+                // where the governor scales clock speed sporadically, causing dropped frames.
+                //
+                // Run until we notice our thread has been removed from the spinner threads
+                // array. Even if we don't notice immediately, we'll notice soon enough.
+                // This will also ensure we terminate even if someone has restarted spinning
+                // before we realized we should stop.
+                while (this == spinnerThreads[i]) {
+                    try {
+                        Thread.sleep(0, 1);
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                }
+            }
+        };
+        spinnerThreads[i].setName("Spinner-"+i);
+        spinnerThreads[i].setPriority(Thread.MIN_PRIORITY);
+        spinnerThreads[i].start();
+    }
+
     private void startSpinnerThreads() {
         LimeLog.info("Using "+spinnerThreads.length+" spinner threads");
         for (int i = 0; i < spinnerThreads.length; i++) {
-            spinnerThreads[i] = new Thread() {
-                @Override
-                public void run() {
-                    // This thread exists to keep the CPU at a higher DVFS state on devices
-                    // where the governor scales clock speed sporadically, causing dropped frames.
-                    while (!stopping) {
-                        try {
-                            Thread.sleep(0, 1);
-                        } catch (InterruptedException e) {
-                            break;
-                        }
-                    }
-                }
-            };
-            spinnerThreads[i].setName("Spinner-"+i);
-            spinnerThreads[i].setPriority(Thread.MIN_PRIORITY);
-            spinnerThreads[i].start();
+            if (spinnerThreads[i] != null) {
+                continue;
+            }
+
+            startSpinnerThread(i);
+        }
+    }
+
+    private Thread[] signalSpinnerStop() {
+        // Capture current running threads
+        Thread[] runningThreads = Arrays.copyOf(spinnerThreads, spinnerThreads.length);
+
+        // Clear the spinner threads to signal their termination
+        for (int i = 0; i < spinnerThreads.length; i++) {
+            spinnerThreads[i] = null;
+        }
+
+        // Interrupt the threads
+        for (int i = 0; i < runningThreads.length; i++) {
+            if (runningThreads[i] != null) {
+                runningThreads[i].interrupt();
+            }
+        }
+
+        return runningThreads;
+    }
+
+    private void stopSpinnerThreads() {
+        // Signal and wait for the threads to stop
+        Thread[] runningThreads = signalSpinnerStop();
+        for (int i = 0; i < runningThreads.length; i++) {
+            if (runningThreads[i] != null) {
+                try {
+                    runningThreads[i].join();
+                } catch (InterruptedException ignored) { }
+            }
         }
     }
 
@@ -517,14 +573,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         // Halt the spinner threads
-        for (Thread t : spinnerThreads) {
-            t.interrupt();
-        }
-        for (Thread t : spinnerThreads) {
-            try {
-                t.join();
-            } catch (InterruptedException ignored) { }
-        }
+        stopSpinnerThreads();
     }
 
     @Override

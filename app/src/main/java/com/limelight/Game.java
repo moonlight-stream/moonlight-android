@@ -29,6 +29,7 @@ import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.PictureInPictureParams;
 import android.app.Service;
@@ -517,16 +518,27 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
+    @TargetApi(Build.VERSION_CODES.N)
     public void onMultiWindowModeChanged(boolean isInMultiWindowMode) {
         super.onMultiWindowModeChanged(isInMultiWindowMode);
 
         // In multi-window, we don't want to use the full-screen layout
         // flag. It will cause us to collide with the system UI.
+        // This function will also be called for PiP so we can cover
+        // that case here too.
         if (isInMultiWindowMode) {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+            // Disable performance optimizations for foreground
+            getWindow().setSustainedPerformanceMode(false);
+            decoderRenderer.notifyVideoBackground();
         }
         else {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+            // Enable performance optimizations for foreground
+            getWindow().setSustainedPerformanceMode(true);
+            decoderRenderer.notifyVideoForeground();
         }
 
         // Correct the system UI visibility flags

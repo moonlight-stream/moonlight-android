@@ -27,7 +27,7 @@ public class MediaCodecHelper {
 
 	private static final List<String> blacklistedDecoderPrefixes;
 	private static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
-	private static final List<String> whitelistedAdaptiveResolutionPrefixes;
+	private static final List<String> blacklistedAdaptivePlaybackPrefixes;
 	private static final List<String> deprioritizedHevcDecoders;
     private static final List<String> baselineProfileHackPrefixes;
     private static final List<String> directSubmitPrefixes;
@@ -93,11 +93,10 @@ public class MediaCodecHelper {
         baselineProfileHackPrefixes = new LinkedList<>();
         baselineProfileHackPrefixes.add("omx.intel");
 
-		whitelistedAdaptiveResolutionPrefixes = new LinkedList<>();
-		whitelistedAdaptiveResolutionPrefixes.add("omx.nvidia");
-		whitelistedAdaptiveResolutionPrefixes.add("omx.qcom");
-		whitelistedAdaptiveResolutionPrefixes.add("omx.sec");
-		whitelistedAdaptiveResolutionPrefixes.add("omx.TI");
+		// The Intel decoder on Lollipop on Nexus Player would increase latency badly
+		// if adaptive playback was enabled so let's avoid it to be safe.
+		blacklistedAdaptivePlaybackPrefixes = new LinkedList<>();
+		blacklistedAdaptivePlaybackPrefixes.add("omx.intel");
 
 		constrainedHighProfilePrefixes = new LinkedList<>();
 		constrainedHighProfilePrefixes.add("omx.intel");
@@ -208,19 +207,14 @@ public class MediaCodecHelper {
 		return System.nanoTime() / 1000000L;
 	}
 	
-	@TargetApi(Build.VERSION_CODES.KITKAT)
-	public static boolean decoderSupportsAdaptivePlayback(String decoderName) {
-		/*
-        FIXME: Intel's decoder on Nexus Player forces the high latency path if adaptive playback is enabled
-        so we'll keep it off for now, since we don't know whether other devices also do the same
-
-		if (isDecoderInList(whitelistedAdaptiveResolutionPrefixes, decoderName)) {
-			LimeLog.info("Adaptive playback supported (whitelist)");
-			return true;
-		}
-		
+	public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo) {
 		// Possibly enable adaptive playback on KitKat and above
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			if (isDecoderInList(blacklistedAdaptivePlaybackPrefixes, decoderInfo.getName())) {
+				LimeLog.info("Decoder blacklisted for adaptive playback");
+				return false;
+			}
+
 			try {
 				if (decoderInfo.getCapabilitiesForType("video/avc").
 						isFeatureSupported(CodecCapabilities.FEATURE_AdaptivePlayback))
@@ -232,7 +226,7 @@ public class MediaCodecHelper {
 			} catch (Exception e) {
 				// Tolerate buggy codecs
 			}
-		}*/
+		}
 		
 		return false;
 	}

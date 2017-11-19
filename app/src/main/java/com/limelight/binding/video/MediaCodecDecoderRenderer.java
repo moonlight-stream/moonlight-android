@@ -33,6 +33,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private byte[] vpsBuffer;
     private byte[] spsBuffer;
+    private byte[] ppsBuffer;
+    private boolean submittedCsd;
+    private boolean submitCsdNextCall;
 
     private MediaCodec videoDecoder;
     private Thread rendererThread;
@@ -151,7 +154,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // shared between AVC and HEVC decoders on the same device.
         if (avcDecoder != null) {
             directSubmit = MediaCodecHelper.decoderCanDirectSubmit(avcDecoder.getName());
-            adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(avcDecoder.getName());
+            adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(avcDecoder);
             refFrameInvalidationAvc = MediaCodecHelper.decoderSupportsRefFrameInvalidationAvc(avcDecoder.getName());
             refFrameInvalidationHevc = MediaCodecHelper.decoderSupportsRefFrameInvalidationHevc(avcDecoder.getName());
 
@@ -743,29 +746,44 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         else if (decodeUnitType == MoonBridge.BUFFER_TYPE_PPS) {
             numPpsIn++;
 
-            inputBufferIndex = dequeueInputBuffer();
-            if (inputBufferIndex < 0) {
-                // We're being torn down now
-                return MoonBridge.DR_NEED_IDR;
-            }
+            // If this is the first CSD blob or we aren't supporting
+            // adaptive playback, we will submit the CSD blob in a
+            // separate input buffer.
+            if (!submittedCsd || !adaptivePlayback) {
+                inputBufferIndex = dequeueInputBuffer();
+                if (inputBufferIndex < 0) {
+                    // We're being torn down now
+                    return MoonBridge.DR_NEED_IDR;
+                }
 
-            buf = getEmptyInputBuffer(inputBufferIndex);
-            if (buf == null) {
-                // We're being torn down now
-                return MoonBridge.DR_NEED_IDR;
-            }
+                buf = getEmptyInputBuffer(inputBufferIndex);
+                if (buf == null) {
+                    // We're being torn down now
+                    return MoonBridge.DR_NEED_IDR;
+                }
 
-            // When we get the PPS, submit the VPS and SPS together with
-            // the PPS, as required by AOSP docs on use of MediaCodec.
-            if (vpsBuffer != null) {
-                buf.put(vpsBuffer);
-            }
-            if (spsBuffer != null) {
-                buf.put(spsBuffer);
-            }
+                // When we get the PPS, submit the VPS and SPS together with
+                // the PPS, as required by AOSP docs on use of MediaCodec.
+                if (vpsBuffer != null) {
+                    buf.put(vpsBuffer);
+                }
+                if (spsBuffer != null) {
+                    buf.put(spsBuffer);
+                }
 
-            // This is the CSD blob
-            codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+                // This is the CSD blob
+                codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+            }
+            else {
+                // Batch this to submit together with the next I-frame
+                ppsBuffer = new byte[decodeUnitLength];
+                System.arraycopy(decodeUnitData, 0, ppsBuffer, 0, decodeUnitLength);
+
+                // Next call will be I-frame data
+                submitCsdNextCall = true;
+
+                return MoonBridge.DR_OK;
+            }
         }
         else {
             inputBufferIndex = dequeueInputBuffer();
@@ -779,6 +797,20 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 // We're being torn down now
                 return MoonBridge.DR_NEED_IDR;
             }
+
+            if (submitCsdNextCall) {
+                if (vpsBuffer != null) {
+                    buf.put(vpsBuffer);
+                }
+                if (spsBuffer != null) {
+                    buf.put(spsBuffer);
+                }
+                if (ppsBuffer != null) {
+                    buf.put(ppsBuffer);
+                }
+
+                submitCsdNextCall = false;
+            }
         }
 
         // Copy data from our buffer list into the input buffer
@@ -790,14 +822,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return MoonBridge.DR_NEED_IDR;
         }
 
-        if (needsBaselineSpsHack) {
-            needsBaselineSpsHack = false;
+        if ((codecFlags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+            submittedCsd = true;
 
-            if (!replaySps()) {
-                return MoonBridge.DR_NEED_IDR;
+            if (needsBaselineSpsHack) {
+                needsBaselineSpsHack = false;
+
+                if (!replaySps()) {
+                    return MoonBridge.DR_NEED_IDR;
+                }
+
+                LimeLog.info("SPS replay complete");
             }
-
-            LimeLog.info("SPS replay complete");
         }
 
         return MoonBridge.DR_OK;

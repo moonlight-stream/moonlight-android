@@ -19,6 +19,7 @@ import android.media.MediaFormat;
 import android.media.MediaCodec.BufferInfo;
 import android.media.MediaCodec.CodecException;
 import android.os.Build;
+import android.util.Range;
 import android.view.SurfaceHolder;
 
 public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
@@ -986,6 +987,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Format: "+renderer.videoFormat+"\n";
             str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+"\n";
             str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+"\n";
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && renderer.avcDecoder != null) {
+                Range<Integer> avcWidthRange = renderer.avcDecoder.getCapabilitiesForType("video/avc").getVideoCapabilities().getSupportedWidths();
+                str += "AVC supported width range: "+avcWidthRange.getLower()+" - "+avcWidthRange.getUpper()+"\n";
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && renderer.hevcDecoder != null) {
+                Range<Integer> hevcWidthRange = renderer.hevcDecoder.getCapabilitiesForType("video/hevc").getVideoCapabilities().getSupportedWidths();
+                str += "HEVC supported width range: "+hevcWidthRange.getLower()+" - "+hevcWidthRange.getUpper()+"\n";
+            }
             str += "Adaptive playback: "+renderer.adaptivePlayback+"\n";
             str += "Build fingerprint: "+Build.FINGERPRINT+"\n";
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";

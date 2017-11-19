@@ -2,19 +2,23 @@ package com.limelight.preferences;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaCodecInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.util.Range;
 import android.view.Display;
 
 import com.limelight.LimeLog;
 import com.limelight.PcView;
 import com.limelight.R;
+import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.utils.UiHelper;
 
 public class StreamSettings extends Activity {
@@ -53,6 +57,37 @@ public class StreamSettings extends Activity {
     }
 
     public static class SettingsFragment extends PreferenceFragment {
+
+        private static void removeResolution(ListPreference pref, String prefix) {
+            int matchingCount = 0;
+
+            // Count the number of matching entries we'll be removing
+            for (CharSequence seq : pref.getEntryValues()) {
+                if (seq.toString().startsWith(prefix)) {
+                    matchingCount++;
+                }
+            }
+
+            // Create the new arrays
+            CharSequence[] entries = new CharSequence[pref.getEntries().length-matchingCount];
+            CharSequence[] entryValues = new CharSequence[pref.getEntryValues().length-matchingCount];
+            int outIndex = 0;
+            for (int i = 0; i < pref.getEntryValues().length; i++) {
+                if (pref.getEntryValues()[i].toString().startsWith(prefix)) {
+                    // Skip matching prefixes
+                    continue;
+                }
+
+                entries[outIndex] = pref.getEntries()[i];
+                entryValues[outIndex] = pref.getEntryValues()[i];
+                outIndex++;
+            }
+
+            // Update the preference with the new list
+            pref.setEntries(entries);
+            pref.setEntryValues(entryValues);
+        }
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -73,6 +108,77 @@ public class StreamSettings extends Activity {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_basic_settings");
                 category.removePreference(findPreference("checkbox_enable_pip"));
+            }
+
+            // Hide non-supported resolution/FPS combinations
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Display display = getActivity().getWindowManager().getDefaultDisplay();
+
+                int maxSupportedResW = 0;
+
+                for (Display.Mode candidate : display.getSupportedModes()) {
+                    if (candidate.getPhysicalWidth() >= 3840) {
+                        // Always include 4K if the display is physically large enough
+                        maxSupportedResW = candidate.getPhysicalWidth();
+                        break;
+                    }
+                }
+
+                MediaCodecInfo avcDecoder = MediaCodecHelper.findProbableSafeDecoder("video/avc", -1);
+                MediaCodecInfo hevcDecoder = MediaCodecHelper.findProbableSafeDecoder("video/hevc", -1);
+
+                if (avcDecoder != null) {
+                    Range<Integer> avcWidthRange = avcDecoder.getCapabilitiesForType("video/avc").getVideoCapabilities().getSupportedWidths();
+
+                    LimeLog.info("AVC supported width range: "+avcWidthRange.getLower()+" - "+avcWidthRange.getUpper());
+
+                    // If 720p is not reported as supported, ignore all results from this API
+                    if (avcWidthRange.contains(1280)) {
+                        if (avcWidthRange.contains(3840) && maxSupportedResW < 3840) {
+                            maxSupportedResW = 3840;
+                        }
+                        else if (avcWidthRange.contains(1920) && maxSupportedResW < 1920) {
+                            maxSupportedResW = 1920;
+                        }
+                        else if (maxSupportedResW < 1280) {
+                            maxSupportedResW = 1280;
+                        }
+                    }
+                }
+
+                if (hevcDecoder != null) {
+                    Range<Integer> hevcWidthRange = hevcDecoder.getCapabilitiesForType("video/hevc").getVideoCapabilities().getSupportedWidths();
+
+                    LimeLog.info("HEVC supported width range: "+hevcWidthRange.getLower()+" - "+hevcWidthRange.getUpper());
+
+                    // If 720p is not reported as supported, ignore all results from this API
+                    if (hevcWidthRange.contains(1280)) {
+                        if (hevcWidthRange.contains(3840) && maxSupportedResW < 3840) {
+                            maxSupportedResW = 3840;
+                        }
+                        else if (hevcWidthRange.contains(1920) && maxSupportedResW < 1920) {
+                            maxSupportedResW = 1920;
+                        }
+                        else if (maxSupportedResW < 1280) {
+                            maxSupportedResW = 1280;
+                        }
+                    }
+                }
+
+                LimeLog.info("Maximum resolution slot: "+maxSupportedResW);
+
+                ListPreference resPref = (ListPreference) findPreference("list_resolution_fps");
+                if (maxSupportedResW != 0) {
+                    if (maxSupportedResW < 3840) {
+                        // 4K is unsupported
+                        removeResolution(resPref, "4K");
+                    }
+                    if (maxSupportedResW < 1920) {
+                        // 1080p is unsupported
+                        removeResolution(resPref, "1080p");
+                    }
+                    // Never remove 720p
+                }
             }
 
             // Remove HDR preference for devices below Nougat

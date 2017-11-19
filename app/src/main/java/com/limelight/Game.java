@@ -38,6 +38,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.hardware.input.InputManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
@@ -368,6 +369,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 enterPictureInPictureMode(
                         new PictureInPictureParams.Builder()
                                 .setAspectRatio(new Rational(prefConfig.width, prefConfig.height))
+                                .setSourceRectHint(new Rect(
+                                        streamView.getLeft(), streamView.getTop(),
+                                        streamView.getRight(), streamView.getBottom()))
                                 .build());
             }
         }

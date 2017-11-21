@@ -96,6 +96,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         defaultContext.rightTriggerAxis = MotionEvent.AXIS_GAS;
         defaultContext.controllerNumber = (short) 0;
         defaultContext.assignedControllerNumber = true;
+
+        // Some devices (GPD XD) have a back button which sends input events
+        // with device ID == 0. This hits the default context which would normally
+        // consume these. Instead, let's ignore them since that's probably the
+        // most likely case.
+        defaultContext.ignoreBack = true;
     }
 
     private static InputDevice.MotionRange getMotionRangeForJoystickAxis(InputDevice dev, int axis) {

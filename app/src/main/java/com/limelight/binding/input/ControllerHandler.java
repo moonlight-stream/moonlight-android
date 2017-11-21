@@ -387,8 +387,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.rightStickDeadzoneRadius = 0.07f;
             }
             // Samsung's face buttons appear as a non-virtual button so we'll explicitly ignore
-            // back presses on this device
-            else if (devName.equals("sec_touchscreen") || devName.equals("sec_touchkey")) {
+            // back presses on this device. The Goodix buttons on the Nokia 6 also appear
+            // non-virtual so we'll ignore those too.
+            else if (devName.equals("sec_touchscreen") || devName.equals("sec_touchkey") ||
+                    devName.equals("goodix_fp")) {
                 context.ignoreBack = true;
             }
             // The Serval has a couple of unknown buttons that are start and select. It also has

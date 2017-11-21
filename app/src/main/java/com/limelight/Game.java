@@ -226,7 +226,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         shortcutHelper.reportShortcutUsed(uuid);
 
         // Initialize the MediaCodec helper before creating the decoder
-        MediaCodecHelper.initialize(this, GlPreferences.readPreferences(this).glRenderer);
+        GlPreferences glPrefs = GlPreferences.readPreferences(this);
+        MediaCodecHelper.initialize(this, glPrefs.glRenderer);
 
         // Check if the user has enabled HDR
         if (prefConfig.enableHdr) {
@@ -277,7 +278,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 },
                 tombstonePrefs.getInt("CrashCount", 0),
                 connMgr.isActiveNetworkMetered(),
-                willStreamHdr
+                willStreamHdr,
+                glPrefs.glRenderer
                 );
 
         // Don't stream HDR if the decoder can't support it

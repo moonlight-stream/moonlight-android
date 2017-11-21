@@ -54,6 +54,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private CrashListener crashListener;
     private boolean reportedCrash;
     private int consecutiveCrashCount;
+    private String glRenderer;
 
     private boolean needsBaselineSpsHack;
     private SeqParameterSet savedSps;
@@ -118,12 +119,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     public MediaCodecDecoderRenderer(PreferenceConfiguration prefs,
                                      CrashListener crashListener, int consecutiveCrashCount,
-                                     boolean meteredData, boolean requestedHdr) {
+                                     boolean meteredData, boolean requestedHdr,
+                                     String glRenderer) {
         //dumpDecoders();
 
         this.prefs = prefs;
         this.crashListener = crashListener;
         this.consecutiveCrashCount = consecutiveCrashCount;
+        this.glRenderer = glRenderer;
 
         // Disable spinner threads in battery saver mode or 4K
         if (prefs.batterySaver || prefs.height >= 2160) {
@@ -961,7 +964,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return (int)(decoderTimeMs / totalFrames);
     }
 
-    public class RendererException extends RuntimeException {
+    public static class RendererException extends RuntimeException {
         private static final long serialVersionUID = 8985937536997012406L;
 
         private final Exception originalException;
@@ -969,12 +972,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         private ByteBuffer currentBuffer;
         private int currentCodecFlags;
 
-        public RendererException(MediaCodecDecoderRenderer renderer, Exception e) {
+        RendererException(MediaCodecDecoderRenderer renderer, Exception e) {
             this.renderer = renderer;
             this.originalException = e;
         }
 
-        public RendererException(MediaCodecDecoderRenderer renderer, Exception e, ByteBuffer currentBuffer, int currentCodecFlags) {
+        RendererException(MediaCodecDecoderRenderer renderer, Exception e, ByteBuffer currentBuffer, int currentCodecFlags) {
             this.renderer = renderer;
             this.originalException = e;
             this.currentBuffer = currentBuffer;
@@ -996,6 +999,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 str += "HEVC supported width range: "+hevcWidthRange.getLower()+" - "+hevcWidthRange.getUpper()+"\n";
             }
             str += "Adaptive playback: "+renderer.adaptivePlayback+"\n";
+            str += "GL Renderer: "+renderer.glRenderer+"\n";
             str += "Build fingerprint: "+Build.FINGERPRINT+"\n";
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";
             str += "Initial video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
@@ -1003,9 +1007,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Bitrate: "+renderer.prefs.bitrate+" Mbps \n";
             str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
             str += "Total frames: "+renderer.totalFrames+"\n";
-            str += "Frame losses: "+renderer.framesLost+" in "+frameLossEvents+" loss events\n";
-            str += "Average end-to-end client latency: "+getAverageEndToEndLatency()+"ms\n";
-            str += "Average hardware decoder latency: "+getAverageDecoderLatency()+"ms\n";
+            str += "Frame losses: "+renderer.framesLost+" in "+renderer.frameLossEvents+" loss events\n";
+            str += "Average end-to-end client latency: "+renderer.getAverageEndToEndLatency()+"ms\n";
+            str += "Average hardware decoder latency: "+renderer.getAverageDecoderLatency()+"ms\n";
 
             if (currentBuffer != null) {
                 str += "Current buffer: ";

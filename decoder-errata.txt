@@ -29,3 +29,6 @@ This file serves to document some of the decoder errata when using MediaCodec ha
 
 10. Some decoders actually suffer increased latency when max_dec_frame_buffering=1
 	- Affected decoders: MediaTek decoder in Fire TV 2015
+
+11. Attempting to use reference picture invalidation at 1080p causes the decoder to crash on low-end Snapdragon SoCs. 720p is unaffected.
+	- Affected decoders: Snapdragon 200, 410, 415, 430, 435, 616

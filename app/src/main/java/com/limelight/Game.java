@@ -44,6 +44,7 @@ import android.hardware.input.InputManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
+import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -64,6 +65,9 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
+
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
 
 
 public class Game extends Activity implements SurfaceHolder.Callback,
@@ -104,6 +108,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private ShortcutHelper shortcutHelper;
 
     private MediaCodecDecoderRenderer decoderRenderer;
+    private String glRenderer;
 
     private WifiManager.WifiLock wifiLock;
 
@@ -135,8 +140,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        shortcutHelper = new ShortcutHelper(this);
-
         UiHelper.setLocale(this);
 
         // We don't want a title bar
@@ -164,6 +167,33 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Change volume button behavior
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
+        // We first construct a GLSurfaceView to probe for GL
+        // properties to pass to MediaCodecHelper. After this completes,
+        // we'll construct the activity like normal.
+        GLSurfaceView surfaceView = new GLSurfaceView(this);
+        surfaceView.setRenderer(new GLSurfaceView.Renderer() {
+            @Override
+            public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
+                glRenderer = gl10.glGetString(GL10.GL_RENDERER);
+                LimeLog.info("GL Renderer: "+glRenderer);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        completeOnCreate();
+                    }
+                });
+            }
+
+            @Override
+            public void onSurfaceChanged(GL10 gl10, int i, int i1) {}
+
+            @Override
+            public void onDrawFrame(GL10 gl10) {}
+        });
+        setContentView(surfaceView);
+    }
+
+    private void completeOnCreate() {
         // Inflate the content
         setContentView(R.layout.activity_game);
 
@@ -222,11 +252,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Add a launcher shortcut for this PC (forced, since this is user interaction)
+        shortcutHelper = new ShortcutHelper(this);
         shortcutHelper.createAppViewShortcut(uuid, pcName, uuid, true);
         shortcutHelper.reportShortcutUsed(uuid);
 
         // Initialize the MediaCodec helper before creating the decoder
-        MediaCodecHelper.initializeWithContext(this);
+        MediaCodecHelper.initialize(this, glRenderer);
 
         // Check if the user has enabled HDR
         if (prefConfig.enableHdr) {

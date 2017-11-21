@@ -157,7 +157,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         if (avcDecoder != null) {
             directSubmit = MediaCodecHelper.decoderCanDirectSubmit(avcDecoder.getName());
             adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(avcDecoder);
-            refFrameInvalidationAvc = MediaCodecHelper.decoderSupportsRefFrameInvalidationAvc(avcDecoder.getName());
+            refFrameInvalidationAvc = MediaCodecHelper.decoderSupportsRefFrameInvalidationAvc(avcDecoder.getName(), prefs.height);
             refFrameInvalidationHevc = MediaCodecHelper.decoderSupportsRefFrameInvalidationHevc(avcDecoder.getName());
 
             if (directSubmit) {

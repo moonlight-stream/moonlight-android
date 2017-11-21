@@ -7,9 +7,10 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ConfigurationInfo;
@@ -35,6 +36,8 @@ public class MediaCodecHelper {
 	private static final List<String> whitelistedHevcDecoders;
 	private static final List<String> refFrameInvalidationAvcPrefixes;
     private static final List<String> refFrameInvalidationHevcPrefixes;
+
+    private static boolean isLowEndSnapdragon = false;
 
     static {
         directSubmitPrefixes = new LinkedList<>();
@@ -146,20 +149,43 @@ public class MediaCodecHelper {
 		// Qualcomm is currently the only decoders in this group.
 	}
 
-	public static void initializeWithContext(Context context) {
+	private static boolean isLowEndSnapdragonRenderer(String glRenderer) {
+		glRenderer = glRenderer.toLowerCase().trim();
+
+		if (!glRenderer.contains("adreno")) {
+			return false;
+		}
+
+		Pattern modelNumberPattern = Pattern.compile("(.*)([0-9]{3})(.*)");
+
+		Matcher matcher = modelNumberPattern.matcher(glRenderer);
+		if (!matcher.matches()) {
+			return false;
+		}
+
+		String modelNumber = matcher.group(2);
+		LimeLog.info("Found Adreno GPU: "+modelNumber);
+
+		// The current logic is to identify low-end SoCs based on a zero in the x0x place.
+		return modelNumber.charAt(1) == '0';
+	}
+
+	public static void initialize(Context context, String glRenderer) {
 		ActivityManager activityManager =
 				(ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		ConfigurationInfo configInfo = activityManager.getDeviceConfigurationInfo();
 		if (configInfo.reqGlEsVersion != ConfigurationInfo.GL_ES_VERSION_UNDEFINED) {
 			LimeLog.info("OpenGL ES version: "+configInfo.reqGlEsVersion);
 
+			isLowEndSnapdragon = isLowEndSnapdragonRenderer(glRenderer);
+
 			// Tegra K1 and later can do reference frame invalidation properly
 			if (configInfo.reqGlEsVersion >= 0x30000) {
 				LimeLog.info("Added omx.nvidia to AVC reference frame invalidation support list");
 				refFrameInvalidationAvcPrefixes.add("omx.nvidia");
 
-                LimeLog.info("Added omx.qcom to AVC reference frame invalidation support list");
-                refFrameInvalidationAvcPrefixes.add("omx.qcom");
+				LimeLog.info("Added omx.qcom to AVC reference frame invalidation support list");
+				refFrameInvalidationAvcPrefixes.add("omx.qcom");
 
 				// Prior to M, we were tricking the decoder into using baseline profile, which
 				// won't support RFI properly.
@@ -247,7 +273,11 @@ public class MediaCodecHelper {
         return isDecoderInList(baselineProfileHackPrefixes, decoderName);
     }
 
-    public static boolean decoderSupportsRefFrameInvalidationAvc(String decoderName) {
+	public static boolean decoderSupportsRefFrameInvalidationAvc(String decoderName, int videoHeight) {
+		// Reference frame invalidation is broken on low-end Snapdragon SoCs at 1080p.
+		if (videoHeight > 720 && isLowEndSnapdragon) {
+			return false;
+		}
 		return isDecoderInList(refFrameInvalidationAvcPrefixes, decoderName);
 	}
 

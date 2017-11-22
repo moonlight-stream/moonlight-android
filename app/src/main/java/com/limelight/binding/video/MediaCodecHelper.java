@@ -38,6 +38,7 @@ public class MediaCodecHelper {
     private static final List<String> refFrameInvalidationHevcPrefixes;
 
     private static boolean isLowEndSnapdragon = false;
+    private static boolean initialized = false;
 
     static {
         directSubmitPrefixes = new LinkedList<>();
@@ -171,6 +172,10 @@ public class MediaCodecHelper {
 	}
 
 	public static void initialize(Context context, String glRenderer) {
+		if (initialized) {
+			return;
+		}
+
 		ActivityManager activityManager =
 				(ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		ConfigurationInfo configInfo = activityManager.getDeviceConfigurationInfo();
@@ -214,9 +219,15 @@ public class MediaCodecHelper {
 				blacklistedDecoderPrefixes.add("OMX.qcom.video.decoder.hevc");
 			}
 		}
+
+		initialized = true;
     }
 
 	private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
+		if (!initialized) {
+			throw new IllegalStateException("MediaCodecHelper must be initialized before use");
+		}
+
 		for (String badPrefix : decoderList) {
 			if (decoderName.length() >= badPrefix.length()) {
 				String prefix = decoderName.substring(0, badPrefix.length());
@@ -373,6 +384,10 @@ public class MediaCodecHelper {
 		// This is a different algorithm than the other findXXXDecoder functions,
 		// because we want to evaluate the decoders in our list's order
 		// rather than MediaCodecList's order
+
+		if (!initialized) {
+			throw new IllegalStateException("MediaCodecHelper must be initialized before use");
+		}
 		
 		for (String preferredDecoder : preferredDecoders) {
 			for (MediaCodecInfo codecInfo : getMediaCodecList()) {

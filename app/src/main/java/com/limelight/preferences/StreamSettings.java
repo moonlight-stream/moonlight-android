@@ -116,11 +116,21 @@ public class StreamSettings extends Activity {
 
                 int maxSupportedResW = 0;
 
+                // Always allow resolutions that are smaller or equal to the active
+                // display resolution because decoders can report total non-sense to us.
+                // For example, a p201 device reports:
+                // AVC Decoder: OMX.amlogic.avc.decoder.awesome
+                // HEVC Decoder: OMX.amlogic.hevc.decoder.awesome
+                // AVC supported width range: 64 - 384
+                // HEVC supported width range: 64 - 544
                 for (Display.Mode candidate : display.getSupportedModes()) {
-                    if (candidate.getPhysicalWidth() >= 3840) {
-                        // Always include 4K if the display is physically large enough
-                        maxSupportedResW = candidate.getPhysicalWidth();
-                        break;
+                    if ((candidate.getPhysicalWidth() >= 3840 || candidate.getPhysicalHeight() >= 2160) &&
+                            maxSupportedResW < 3840) {
+                        maxSupportedResW = 3840;
+                    }
+                    else if ((candidate.getPhysicalWidth() >= 1920 || candidate.getPhysicalHeight() >= 1080) &&
+                            maxSupportedResW < 1920) {
+                        maxSupportedResW = 1920;
                     }
                 }
 

@@ -124,12 +124,17 @@ public class StreamSettings extends Activity {
                 // AVC supported width range: 64 - 384
                 // HEVC supported width range: 64 - 544
                 for (Display.Mode candidate : display.getSupportedModes()) {
-                    if ((candidate.getPhysicalWidth() >= 3840 || candidate.getPhysicalHeight() >= 2160) &&
-                            maxSupportedResW < 3840) {
+                    // Some devices report their dimensions in the portrait orientation
+                    // where height > width. Normalize these to the conventional width > height
+                    // arrangement before we process them.
+
+                    int width = Math.max(candidate.getPhysicalWidth(), candidate.getPhysicalHeight());
+                    int height = Math.min(candidate.getPhysicalWidth(), candidate.getPhysicalHeight());
+
+                    if ((width >= 3840 || height >= 2160) && maxSupportedResW < 3840) {
                         maxSupportedResW = 3840;
                     }
-                    else if ((candidate.getPhysicalWidth() >= 1920 || candidate.getPhysicalHeight() >= 1080) &&
-                            maxSupportedResW < 1920) {
+                    else if ((width >= 1920 || height >= 1080) && maxSupportedResW < 1920) {
                         maxSupportedResW = 1920;
                     }
                 }

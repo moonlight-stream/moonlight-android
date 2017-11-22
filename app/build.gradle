@@ -12,7 +12,7 @@ android {
         targetSdkVersion 27
 
         versionName "5.6"
-        versionCode = 135
+        versionCode = 136
     }
 
     flavorDimensions "root"

@@ -61,7 +61,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private PcGridAdapter pcGridAdapter;
     private ShortcutHelper shortcutHelper;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
-    private boolean freezeUpdates, runningPolling, inForeground;
+    private boolean freezeUpdates, runningPolling, inForeground, completeOnCreateCalled;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder binder) {
             final ComputerManagerService.ComputerManagerBinder localBinder =
@@ -91,11 +91,19 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }
     };
 
+    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
-        // Reinitialize views just in case orientation changed
-        initializeViews();
+        // Only reinitialize views if completeOnCreate() was called
+        // before this callback. If it was not, completeOnCreate() will
+        // handle initializing views with the config change accounted for.
+        // This is not prone to races because both callbacks are invoked
+        // in the main thread.
+        if (completeOnCreateCalled) {
+            // Reinitialize views just in case orientation changed
+            initializeViews();
+        }
     }
 
     private final static int APP_LIST_ID = 1;
@@ -197,6 +205,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     private void completeOnCreate() {
+        completeOnCreateCalled = true;
+
         shortcutHelper = new ShortcutHelper(this);
 
         UiHelper.setLocale(this);

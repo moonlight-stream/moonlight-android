@@ -165,6 +165,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Assume we're in the foreground when created to avoid a race
+        // between binding to CMS and onResume()
+        inForeground = true;
+
         // Create a GLSurfaceView to fetch GLRenderer unless we have
         // a cached result already.
         final GlPreferences glPrefs = GlPreferences.readPreferences(this);

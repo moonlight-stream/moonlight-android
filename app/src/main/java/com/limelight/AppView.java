@@ -235,6 +235,10 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Assume we're in the foreground when created to avoid a race
+        // between binding to CMS and onResume()
+        inForeground = true;
+
         shortcutHelper = new ShortcutHelper(this);
 
         UiHelper.setLocale(this);

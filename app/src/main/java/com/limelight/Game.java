@@ -294,18 +294,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
             Toast.makeText(this, "No H.265 decoder found.\nFalling back to H.264.", Toast.LENGTH_LONG).show();
         }
-
-        if (!decoderRenderer.isAvcSupported()) {
-            if (spinner != null) {
-                spinner.dismiss();
-                spinner = null;
-            }
-
-            // If we can't find an AVC decoder, we can't proceed
-            Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title),
-                    "This device or ROM doesn't support hardware accelerated H.264 playback.", true);
-            return;
-        }
         
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
@@ -359,6 +347,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Start the USB driver
             bindService(new Intent(this, UsbDriverService.class),
                     usbDriverServiceConnection, Service.BIND_AUTO_CREATE);
+        }
+
+        if (!decoderRenderer.isAvcSupported()) {
+            if (spinner != null) {
+                spinner.dismiss();
+                spinner = null;
+            }
+
+            // If we can't find an AVC decoder, we can't proceed
+            Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title),
+                    "This device or ROM doesn't support hardware accelerated H.264 playback.", true);
+            return;
         }
 
         // The connection will be started when the surface gets created

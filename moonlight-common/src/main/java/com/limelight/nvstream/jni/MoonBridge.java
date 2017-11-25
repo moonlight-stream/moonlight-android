@@ -10,8 +10,12 @@ public class MoonBridge {
     public static final int AUDIO_CONFIGURATION_STEREO = 0;
     public static final int AUDIO_CONFIGURATION_51_SURROUND = 1;
 
-    public static final int VIDEO_FORMAT_H264 = 1;
-    public static final int VIDEO_FORMAT_H265 = 2;
+    public static final int VIDEO_FORMAT_H264 = 0x0001;
+    public static final int VIDEO_FORMAT_H265 = 0x0100;
+    public static final int VIDEO_FORMAT_H265_MAIN10 = 0x0200;
+
+    public static final int VIDEO_FORMAT_MASK_H264 = 0x00FF;
+    public static final int VIDEO_FORMAT_MASK_H265 = 0xFF00;
 
     public static final int BUFFER_TYPE_PICDATA = 0;
     public static final int BUFFER_TYPE_SPS = 1;

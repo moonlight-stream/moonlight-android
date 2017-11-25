@@ -66,7 +66,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private long lastTimestampUs;
     private long decoderTimeMs;
     private long totalTimeMs;
-    private int totalFrames;
+    private int totalFramesReceived;
+    private int totalFramesRendered;
     private int frameLossEvents;
     private int framesLost;
     private int lastFrameNumber;
@@ -409,6 +410,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                 videoDecoder.releaseOutputBuffer(lastIndex, true);
                             }
 
+                            totalFramesRendered++;
+
                             // Add delta time to the totals (excluding probable outliers)
                             long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
                             if (delta >= 0 && delta < 1000) {
@@ -641,7 +644,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     @Override
     public int submitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {
-        totalFrames++;
+        totalFramesReceived++;
 
         // We can receive the same "frame" multiple times if it's an IDR frame.
         // In that case, each frame start NALU is submitted independently.
@@ -951,17 +954,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     }
 
     public int getAverageEndToEndLatency() {
-        if (totalFrames == 0) {
+        if (totalFramesReceived == 0) {
             return 0;
         }
-        return (int)(totalTimeMs / totalFrames);
+        return (int)(totalTimeMs / totalFramesReceived);
     }
 
     public int getAverageDecoderLatency() {
-        if (totalFrames == 0) {
+        if (totalFramesReceived == 0) {
             return 0;
         }
-        return (int)(decoderTimeMs / totalFrames);
+        return (int)(decoderTimeMs / totalFramesReceived);
     }
 
     public static class RendererException extends RuntimeException {
@@ -1006,7 +1009,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Mbps \n";
             str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
-            str += "Total frames: "+renderer.totalFrames+"\n";
+            str += "Total frames received: "+renderer.totalFramesReceived+"\n";
+            str += "Total frames rendered: "+renderer.totalFramesRendered+"\n";
             str += "Frame losses: "+renderer.framesLost+" in "+renderer.frameLossEvents+" loss events\n";
             str += "Average end-to-end client latency: "+renderer.getAverageEndToEndLatency()+"ms\n";
             str += "Average hardware decoder latency: "+renderer.getAverageDecoderLatency()+"ms\n";

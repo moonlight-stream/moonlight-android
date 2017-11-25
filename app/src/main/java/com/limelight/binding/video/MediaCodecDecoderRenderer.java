@@ -55,6 +55,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private boolean reportedCrash;
     private int consecutiveCrashCount;
     private String glRenderer;
+    private boolean foreground = true;
 
     private boolean needsBaselineSpsHack;
     private SeqParameterSet savedSps;
@@ -201,6 +202,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     public void notifyVideoForeground() {
         startSpinnerThreads();
+        foreground = true;
     }
 
     public void notifyVideoBackground() {
@@ -208,6 +210,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // don't wait for them to terminate to avoid
         // delaying the state transition
         signalSpinnerStop();
+        foreground = false;
     }
 
     public int getActiveVideoFormat() {
@@ -224,7 +227,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         String mimeType;
         String selectedDecoderName;
 
-        if (videoFormat == MoonBridge.VIDEO_FORMAT_H264) {
+        if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
             mimeType = "video/avc";
             selectedDecoderName = avcDecoder.getName();
 
@@ -253,7 +256,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             refFrameInvalidationActive = refFrameInvalidationAvc;
         }
-        else if (videoFormat == MoonBridge.VIDEO_FORMAT_H265) {
+        else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
             mimeType = "video/hevc";
             selectedDecoderName = hevcDecoder.getName();
 
@@ -970,27 +973,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     public static class RendererException extends RuntimeException {
         private static final long serialVersionUID = 8985937536997012406L;
 
-        private final Exception originalException;
-        private final MediaCodecDecoderRenderer renderer;
-        private ByteBuffer currentBuffer;
-        private int currentCodecFlags;
+        private String text;
 
         RendererException(MediaCodecDecoderRenderer renderer, Exception e) {
-            this.renderer = renderer;
-            this.originalException = e;
+            this.text = generateText(renderer, e, null, 0);
         }
 
         RendererException(MediaCodecDecoderRenderer renderer, Exception e, ByteBuffer currentBuffer, int currentCodecFlags) {
-            this.renderer = renderer;
-            this.originalException = e;
-            this.currentBuffer = currentBuffer;
-            this.currentCodecFlags = currentCodecFlags;
+            this.text = generateText(renderer, e, currentBuffer, currentCodecFlags);
         }
 
         public String toString() {
+            return text;
+        }
+
+        private String generateText(MediaCodecDecoderRenderer renderer, Exception originalException, ByteBuffer currentBuffer, int currentCodecFlags) {
             String str = "";
 
-            str += "Format: "+renderer.videoFormat+"\n";
+            str += "Format: "+String.format("%x", renderer.videoFormat)+"\n";
             str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+"\n";
             str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+"\n";
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && renderer.avcDecoder != null) {
@@ -1004,8 +1004,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Adaptive playback: "+renderer.adaptivePlayback+"\n";
             str += "GL Renderer: "+renderer.glRenderer+"\n";
             str += "Build fingerprint: "+Build.FINGERPRINT+"\n";
+            str += "Foreground: "+renderer.foreground+"\n";
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";
-            str += "Initial video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
+            str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Mbps \n";
             str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
@@ -1026,6 +1027,20 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             str += "Is Exynos 4: "+renderer.isExynos4+"\n";
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (originalException instanceof CodecException) {
+                    CodecException ce = (CodecException) originalException;
+
+                    str += "Diagnostic Info: "+ce.getDiagnosticInfo()+"\n";
+                    str += "Recoverable: "+ce.isRecoverable()+"\n";
+                    str += "Transient: "+ce.isTransient()+"\n";
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        str += "Codec Error Code: "+ce.getErrorCode()+"\n";
+                    }
+                }
+            }
 
             str += "/proc/cpuinfo:\n";
             try {

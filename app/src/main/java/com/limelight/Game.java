@@ -595,7 +595,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             // Add the video codec to the post-stream toast
             if (message != null) {
-                if (videoFormat == MoonBridge.VIDEO_FORMAT_H265) {
+                if (videoFormat == MoonBridge.VIDEO_FORMAT_H265_MAIN10) {
+                    message += " [H.265 HDR]";
+                }
+                else if (videoFormat == MoonBridge.VIDEO_FORMAT_H265) {
                     message += " [H.265]";
                 }
                 else if (videoFormat == MoonBridge.VIDEO_FORMAT_H264) {

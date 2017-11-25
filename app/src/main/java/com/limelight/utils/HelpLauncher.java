@@ -2,22 +2,42 @@ package com.limelight.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
-import android.os.Build;
 
 import com.limelight.HelpActivity;
 
 public class HelpLauncher {
 
+    private static boolean isKnownBrowser(Context context, Intent i) {
+        ResolveInfo resolvedActivity = context.getPackageManager().resolveActivity(i, PackageManager.MATCH_DEFAULT_ONLY);
+        if (resolvedActivity == null) {
+            // No browser
+            return false;
+        }
+
+        String name = resolvedActivity.activityInfo.name;
+        if (name == null) {
+            return false;
+        }
+
+        name = name.toLowerCase();
+        return name.contains("chrome") || name.contains("firefox");
+    }
+
     private static void launchUrl(Context context, String url) {
         // Try to launch the default browser
         try {
-            // Fire TV devices will lie and say they do have a browser
-            // even though the OS just shows an error dialog if we
-            // try to use it.
-            if (!"Amazon".equalsIgnoreCase(Build.MANUFACTURER)) {
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse(url));
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setData(Uri.parse(url));
+
+            // Several Android TV devices will lie and say they do have a browser
+            // even though the OS just shows an error dialog if we try to use it. We need to
+            // be a bit more clever on these devices and detect if the browser is a legitimate
+            // browser or just a fake error message activity.
+            if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK) ||
+                    isKnownBrowser(context, i)) {
                 context.startActivity(i);
                 return;
             }

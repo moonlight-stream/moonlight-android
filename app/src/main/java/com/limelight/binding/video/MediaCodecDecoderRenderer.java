@@ -515,7 +515,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private int dequeueInputBuffer() {
         int index = -1;
-        long startTime, queueTime;
+        long startTime;
 
         startTime = MediaCodecHelper.getMonotonicMillis();
 
@@ -528,14 +528,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return MediaCodec.INFO_TRY_AGAIN_LATER;
         }
 
-        if (index < 0) {
-            return index;
+        int deltaMs = (int)(MediaCodecHelper.getMonotonicMillis() - startTime);
+
+        if (deltaMs >= 20) {
+            LimeLog.warning("Dequeue input buffer ran long: " + deltaMs + " ms");
         }
 
-        queueTime = MediaCodecHelper.getMonotonicMillis();
-
-        if (queueTime - startTime >= 20) {
-            LimeLog.warning("Queue input buffer ran long: " + (queueTime - startTime) + " ms");
+        if (index < 0) {
+            // We've been hung for 5 seconds and no other exception was reported,
+            // so generate a decoder hung exception
+            if (deltaMs >= 5000 && initialException == null) {
+                DecoderHungException decoderHungException = new DecoderHungException(deltaMs);
+                if (!reportedCrash) {
+                    reportedCrash = true;
+                    crashListener.notifyCrash(decoderHungException);
+                }
+                throw new RendererException(this, decoderHungException);
+            }
+            return index;
         }
 
         return index;
@@ -970,7 +980,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return (int)(decoderTimeMs / totalFramesReceived);
     }
 
-    public static class RendererException extends RuntimeException {
+    static class DecoderHungException extends RuntimeException {
+        private int hangTimeMs;
+
+        DecoderHungException(int hangTimeMs) {
+            this.hangTimeMs = hangTimeMs;
+        }
+
+        public String toString() {
+            String str = "";
+
+            str += "Hang time: "+hangTimeMs+" ms\n";
+            str += super.toString();
+
+            return str;
+        }
+    }
+
+    static class RendererException extends RuntimeException {
         private static final long serialVersionUID = 8985937536997012406L;
 
         private String text;

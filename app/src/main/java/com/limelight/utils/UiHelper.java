@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.UiModeManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.view.View;
 
@@ -55,6 +56,44 @@ public class UiHelper {
 
             rootView.setPadding(horizontalPaddingPixels, verticalPaddingPixels,
                     horizontalPaddingPixels, verticalPaddingPixels);
+        }
+    }
+
+    public static void showDecoderCrashDialog(Activity activity) {
+        final SharedPreferences prefs = activity.getSharedPreferences("DecoderTombstone", 0);
+        final int crashCount = prefs.getInt("CrashCount", 0);
+        int lastNotifiedCrashCount = prefs.getInt("LastNotifiedCrashCount", 0);
+
+        // Remember the last crash count we notified at, so we don't
+        // display the crash dialog every time the app is started until
+        // they stream again
+        if (crashCount != 0 && crashCount != lastNotifiedCrashCount) {
+            if (crashCount % 3 == 0) {
+                // At 3 consecutive crashes, we'll forcefully reset their settings
+                PreferenceConfiguration.resetStreamingSettings(activity);
+                Dialog.displayDialog(activity,
+                        activity.getResources().getString(R.string.title_decoding_reset),
+                        activity.getResources().getString(R.string.message_decoding_reset),
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                // Mark notification as acknowledged on dismissal
+                                prefs.edit().putInt("LastNotifiedCrashCount", crashCount).apply();
+                            }
+                        });
+            }
+            else {
+                Dialog.displayDialog(activity,
+                        activity.getResources().getString(R.string.title_decoding_error),
+                        activity.getResources().getString(R.string.message_decoding_error),
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                // Mark notification as acknowledged on dismissal
+                                prefs.edit().putInt("LastNotifiedCrashCount", crashCount).apply();
+                            }
+                        });
+            }
         }
     }
 

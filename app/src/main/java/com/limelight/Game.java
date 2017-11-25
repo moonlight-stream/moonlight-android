@@ -105,6 +105,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private ShortcutHelper shortcutHelper;
 
     private MediaCodecDecoderRenderer decoderRenderer;
+    private boolean reportedCrash;
 
     private WifiManager.WifiLock wifiLock;
 
@@ -274,6 +275,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                         // We must use commit because the app will crash when we return from this function
                         tombstonePrefs.edit().putInt("CrashCount", tombstonePrefs.getInt("CrashCount", 0) + 1).commit();
+                        reportedCrash = true;
                     }
                 },
                 tombstonePrefs.getInt("CrashCount", 0),
@@ -610,9 +612,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             }
 
-            // Clear the tombstone count
-            if (tombstonePrefs.getInt("CrashCount", 0) != 0) {
-                tombstonePrefs.edit().putInt("CrashCount", 0).apply();
+            // Clear the tombstone count if we terminated normally
+            if (!reportedCrash && tombstonePrefs.getInt("CrashCount", 0) != 0) {
+                tombstonePrefs.edit()
+                        .putInt("CrashCount", 0)
+                        .putInt("LastNotifiedCrashCount", 0)
+                        .apply();
             }
         }
 

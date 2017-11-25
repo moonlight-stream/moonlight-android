@@ -13,18 +13,18 @@ public class Dialog implements Runnable {
     private final String title;
     private final String message;
     private final Activity activity;
-    private final boolean endAfterDismiss;
+    private final Runnable runOnDismiss;
 
     private AlertDialog alert;
 
     private static final ArrayList<Dialog> rundownDialogs = new ArrayList<>();
 
-    private Dialog(Activity activity, String title, String message, boolean endAfterDismiss)
+    private Dialog(Activity activity, String title, String message, Runnable runOnDismiss)
     {
         this.activity = activity;
         this.title = title;
         this.message = message;
-        this.endAfterDismiss = endAfterDismiss;
+        this.runOnDismiss = runOnDismiss;
     }
 
     public static void closeDialogs()
@@ -40,9 +40,21 @@ public class Dialog implements Runnable {
         }
     }
 
-    public static void displayDialog(Activity activity, String title, String message, boolean endAfterDismiss)
+    public static void displayDialog(final Activity activity, String title, String message, final boolean endAfterDismiss)
     {
-        activity.runOnUiThread(new Dialog(activity, title, message, endAfterDismiss));
+        activity.runOnUiThread(new Dialog(activity, title, message, new Runnable() {
+            @Override
+            public void run() {
+                if (endAfterDismiss) {
+                    activity.finish();
+                }
+            }
+        }));
+    }
+
+    public static void displayDialog(Activity activity, String title, String message, Runnable runOnDismiss)
+    {
+        activity.runOnUiThread(new Dialog(activity, title, message, runOnDismiss));
     }
 
     @Override
@@ -65,9 +77,7 @@ public class Dialog implements Runnable {
                       alert.dismiss();
                   }
 
-                  if (endAfterDismiss) {
-                      activity.finish();
-                  }
+                  runOnDismiss.run();
               }
         });
         alert.setButton(AlertDialog.BUTTON_NEUTRAL, activity.getResources().getText(R.string.help), new DialogInterface.OnClickListener() {
@@ -77,9 +87,7 @@ public class Dialog implements Runnable {
                     alert.dismiss();
                 }
 
-                if (endAfterDismiss) {
-                    activity.finish();
-                }
+                runOnDismiss.run();
 
                 HelpLauncher.launchTroubleshooting(activity);
             }

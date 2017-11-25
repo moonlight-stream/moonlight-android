@@ -304,6 +304,9 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     protected void onResume() {
         super.onResume();
 
+        // Display a decoder crash notification if we've returned after a crash
+        UiHelper.showDecoderCrashDialog(this);
+
         inForeground = true;
         startComputerUpdates();
     }

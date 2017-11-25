@@ -32,7 +32,6 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
@@ -224,32 +223,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 PreferenceConfiguration.readPreferences(this).smallIconMode);
 
         initializeViews();
-
-        SharedPreferences prefs = getSharedPreferences("DecoderTombstone", 0);
-        int crashCount = prefs.getInt("CrashCount", 0);
-        int lastNotifiedCrashCount = prefs.getInt("LastNotifiedCrashCount", 0);
-
-        // Remember the last crash count we notified at, so we don't
-        // display the crash dialog every time the app is started until
-        // they stream again
-        if (crashCount != 0 && crashCount != lastNotifiedCrashCount) {
-            if (crashCount % 3 == 0) {
-                // At 3 consecutive crashes, we'll forcefully reset their settings
-                PreferenceConfiguration.resetStreamingSettings(this);
-                Dialog.displayDialog(this,
-                        getResources().getString(R.string.title_decoding_reset),
-                        getResources().getString(R.string.message_decoding_reset),
-                        false);
-            }
-            else {
-                Dialog.displayDialog(this,
-                        getResources().getString(R.string.title_decoding_error),
-                        getResources().getString(R.string.message_decoding_error),
-                        false);
-            }
-
-            prefs.edit().putInt("LastNotifiedCrashCount", crashCount).apply();
-        }
     }
 
     private void startComputerUpdates() {
@@ -304,6 +277,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Display a decoder crash notification if we've returned after a crash
+        UiHelper.showDecoderCrashDialog(this);
 
         inForeground = true;
         startComputerUpdates();

@@ -882,6 +882,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
         }
 
+        if (decodeUnitLength > buf.limit() - buf.position()) {
+            IllegalArgumentException exception = new IllegalArgumentException(
+                    "Decode unit length "+decodeUnitLength+" too large for input buffer "+buf.limit());
+            if (!reportedCrash) {
+                reportedCrash = true;
+                crashListener.notifyCrash(exception);
+            }
+            throw new RendererException(this, exception);
+        }
+
         // Copy data from our buffer list into the input buffer
         buf.put(decodeUnitData, 0, decodeUnitLength);
 

@@ -97,10 +97,13 @@ public class MediaCodecHelper {
         baselineProfileHackPrefixes = new LinkedList<>();
         baselineProfileHackPrefixes.add("omx.intel");
 
+		blacklistedAdaptivePlaybackPrefixes = new LinkedList<>();
 		// The Intel decoder on Lollipop on Nexus Player would increase latency badly
 		// if adaptive playback was enabled so let's avoid it to be safe.
-		blacklistedAdaptivePlaybackPrefixes = new LinkedList<>();
 		blacklistedAdaptivePlaybackPrefixes.add("omx.intel");
+		// The MediaTek decoder crashes at 1080p when adaptive playback is enabled
+		// on some Android TV devices with H.265 only.
+		blacklistedAdaptivePlaybackPrefixes.add("omx.mtk");
 
 		constrainedHighProfilePrefixes = new LinkedList<>();
 		constrainedHighProfilePrefixes.add("omx.intel");

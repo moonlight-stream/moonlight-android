@@ -32,3 +32,6 @@ This file serves to document some of the decoder errata when using MediaCodec ha
 
 11. Attempting to use reference picture invalidation at 1080p causes the decoder to crash on low-end Snapdragon SoCs. 720p is unaffected.
 	- Affected decoders: Snapdragon 200, 410, 415, 430, 435, 616
+
+12. Enabling adaptive playback causes H.265 1080p and 4K playback to fail on some MediaTek SoCs.
+	- Affected decoders: MT5832 in Sony BRAVIA 4K GB (BRAVIA_ATV2) and MT5890 in Phillips 55PUS6501

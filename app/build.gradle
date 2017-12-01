@@ -23,11 +23,23 @@ android {
             // version to devices running O on the Play Store.
             maxSdkVersion 25
 
+            externalNativeBuild {
+                ndkBuild {
+                    arguments "PRODUCT_FLAVOR=root"
+                }
+            }
+
             applicationId "com.limelight.root"
             dimension "root"
         }
 
         nonRoot {
+            externalNativeBuild {
+                ndkBuild {
+                    arguments "PRODUCT_FLAVOR=nonRoot"
+                }
+            }
+
             applicationId "com.limelight"
             dimension "root"
         }

@@ -35,3 +35,9 @@ This file serves to document some of the decoder errata when using MediaCodec ha
 
 12. Enabling adaptive playback causes H.265 1080p and 4K playback to fail on some MediaTek SoCs.
 	- Affected decoders: MT5832 in Sony BRAVIA 4K GB (BRAVIA_ATV2) and MT5890 in Phillips 55PUS6501
+
+13. Some HEVC decoders hang when receiving a stream with 16 reference frames
+	- Affected decoders: Amlogic S905Z in Fire TV 3
+
+14. Some HEVC decoders lag when receiving a stream with 16 reference frames
+	- Affected decoders: Tegra X1 in Pixel C (but NOT in SHIELD TV darcy)

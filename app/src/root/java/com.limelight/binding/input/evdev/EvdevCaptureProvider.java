@@ -6,7 +6,6 @@ import android.os.Looper;
 import android.widget.Toast;
 
 import com.limelight.LimeLog;
-import com.limelight.LimelightBuildProps;
 import com.limelight.binding.input.capture.InputCaptureProvider;
 
 import java.io.DataOutputStream;
@@ -184,10 +183,6 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
         this.listener = listener;
         this.activity = activity;
         this.libraryPath = activity.getApplicationInfo().nativeLibraryDir;
-    }
-
-    public static boolean isCaptureProviderSupported() {
-        return LimelightBuildProps.ROOT_BUILD;
     }
 
     private void reportDeviceNotRooted() {

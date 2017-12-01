@@ -4,7 +4,7 @@ import android.app.Activity;
 
 import com.limelight.LimeLog;
 import com.limelight.R;
-import com.limelight.binding.input.evdev.EvdevCaptureProvider;
+import com.limelight.binding.input.evdev.EvdevCaptureProviderShim;
 import com.limelight.binding.input.evdev.EvdevListener;
 
 public class InputCaptureManager {
@@ -17,9 +17,9 @@ public class InputCaptureManager {
             LimeLog.info("Using NVIDIA mouse capture extension");
             return new ShieldCaptureProvider(activity);
         }
-        else if (EvdevCaptureProvider.isCaptureProviderSupported()) {
+        else if (EvdevCaptureProviderShim.isCaptureProviderSupported()) {
             LimeLog.info("Using Evdev mouse capture");
-            return new EvdevCaptureProvider(activity, rootListener);
+            return EvdevCaptureProviderShim.createEvdevCaptureProvider(activity, rootListener);
         }
         else if (AndroidPointerIconCaptureProvider.isCaptureProviderSupported()) {
             // Android N's native capture can't capture over system UI elements

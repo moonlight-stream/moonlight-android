@@ -573,24 +573,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // May be called already, but we'll call it now to be safe
         prepareForStop();
 
-        try {
-            // Invalidate pending decode buffers
-            videoDecoder.flush();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         // Wait for the renderer thread to shut down
         try {
             rendererThread.join();
         } catch (InterruptedException ignored) { }
-
-        try {
-            // Stop the video decoder
-            videoDecoder.stop();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         // Halt the spinner threads
         stopSpinnerThreads();
@@ -657,6 +643,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     @Override
     public int submitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {
+        if (stopping) {
+            // Don't bother if we're stopping
+            return MoonBridge.DR_OK;
+        }
+
         totalFramesReceived++;
 
         // We can receive the same "frame" multiple times if it's an IDR frame.

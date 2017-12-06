@@ -299,7 +299,7 @@ public class MediaCodecHelper {
         return isDecoderInList(refFrameInvalidationHevcPrefixes, decoderName);
     }
 
-	public static boolean decoderIsWhitelistedForHevc(String decoderName, boolean meteredData, boolean willStreamHdr) {
+	public static boolean decoderIsWhitelistedForHevc(String decoderName, boolean meteredData) {
 		// TODO: Shield Tablet K1/LTE?
 		//
 		// NVIDIA does partial HEVC acceleration on the Shield Tablet. I don't know
@@ -335,7 +335,7 @@ public class MediaCodecHelper {
 		// typically because it can't support reference frame invalidation.
 		// However, we will use it for HDR and for streaming over mobile networks
 		// since it works fine otherwise.
-		if ((meteredData || willStreamHdr) && isDecoderInList(deprioritizedHevcDecoders, decoderName)) {
+		if (meteredData && isDecoderInList(deprioritizedHevcDecoders, decoderName)) {
 			LimeLog.info("Selected deprioritized decoder");
 			return true;
 		}

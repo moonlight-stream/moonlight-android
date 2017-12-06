@@ -152,8 +152,10 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 	}
 	
 	private void handleResolvedServiceInfo(ServiceInfo info) {
-		pendingResolution.remove(info.getName());
-		
+		synchronized (pendingResolution) {
+			pendingResolution.remove(info.getName());
+		}
+
 		try {
 			handleServiceInfo(info);
 		} catch (UnsupportedEncodingException e) {
@@ -202,7 +204,10 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 						resolver.requestServiceInfo(SERVICE_TYPE, null, discoveryIntervalMs);
 						
 						// Run service resolution again for pending machines
-						ArrayList<String> pendingNames = new ArrayList<String>(pendingResolution);
+						ArrayList<String> pendingNames;
+						synchronized (pendingResolution) {
+							pendingNames = new ArrayList<String>(pendingResolution);
+						}
 						for (String name : pendingNames) {
 							LimeLog.info("mDNS: Retrying service resolution for machine: "+name);
 							ServiceInfo[] infos = resolver.getServiceInfos(SERVICE_TYPE, name, 500);
@@ -258,7 +263,9 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 		ServiceInfo info = event.getDNS().getServiceInfo(SERVICE_TYPE, event.getInfo().getName(), 500);
 		if (info == null) {
 			// This machine is pending resolution
-			pendingResolution.add(event.getInfo().getName());
+			synchronized (pendingResolution) {
+				pendingResolution.add(event.getInfo().getName());
+			}
 			return;
 		}
 		

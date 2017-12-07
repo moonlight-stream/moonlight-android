@@ -176,14 +176,14 @@ public class AndroidAudioRenderer implements AudioRenderer {
     public void start() {}
 
     @Override
-    public void stop() {
-        // Immediately drop all pending data
-        track.pause();
-        track.flush();
-    }
+    public void stop() {}
 
     @Override
     public void cleanup() {
+        // Immediately drop all pending data
+        track.pause();
+        track.flush();
+
         track.release();
     }
 }

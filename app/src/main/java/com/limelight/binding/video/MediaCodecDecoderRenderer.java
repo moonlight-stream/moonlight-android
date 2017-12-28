@@ -166,6 +166,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             refFrameInvalidationAvc = MediaCodecHelper.decoderSupportsRefFrameInvalidationAvc(avcDecoder.getName(), prefs.height);
             refFrameInvalidationHevc = MediaCodecHelper.decoderSupportsRefFrameInvalidationHevc(avcDecoder.getName());
 
+            if (consecutiveCrashCount % 2 == 1) {
+                refFrameInvalidationAvc = refFrameInvalidationHevc = false;
+                LimeLog.warning("Disabling RFI due to previous crash");
+            }
+
             if (directSubmit) {
                 LimeLog.info("Decoder "+avcDecoder.getName()+" will use direct submit");
             }
@@ -1035,6 +1040,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Build fingerprint: "+Build.FINGERPRINT+"\n";
             str += "Foreground: "+renderer.foreground+"\n";
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";
+            str += "RFI active: "+renderer.refFrameInvalidationActive+"\n";
             str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Mbps \n";

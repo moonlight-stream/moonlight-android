@@ -292,6 +292,13 @@ public class MediaCodecHelper {
 		if (videoHeight > 720 && isLowEndSnapdragon) {
 			return false;
 		}
+
+		// This device seems to crash constantly at 720p, so try disabling
+		// RFI to see if we can get that under control.
+		if (Build.PRODUCT.equalsIgnoreCase("b3_att_us")) {
+			return false;
+		}
+
 		return isDecoderInList(refFrameInvalidationAvcPrefixes, decoderName);
 	}
 

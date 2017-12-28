@@ -13,7 +13,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 
 public class CacheHelper {
-    private static File openPath(boolean createPath, File root, String... path) {
+    public static File openPath(boolean createPath, File root, String... path) {
         File f = root;
         for (int i = 0; i < path.length; i++) {
             String component = path[i];

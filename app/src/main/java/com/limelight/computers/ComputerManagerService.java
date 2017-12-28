@@ -3,8 +3,10 @@ package com.limelight.computers;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -500,14 +502,25 @@ public class ComputerManagerService extends Service {
         return ComputerDetails.Reachability.OFFLINE;
     }
 
+    private static boolean isAddressLikelyLocal(String str) {
+        try {
+            // This will tend to be wrong for IPv6 but falling back to
+            // remote will be fine in that case. For IPv4, it should be
+            // pretty accurate due to NAT prevalence.
+            return InetAddress.getByName(str).isSiteLocalAddress();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     private ReachabilityTuple pollForReachability(ComputerDetails details) throws InterruptedException {
         ComputerDetails polledDetails;
         ComputerDetails.Reachability reachability;
 
-        // If the local address is routable across the Internet,
-        // always consider this PC remote to be conservative
         if (details.localAddress.equals(details.remoteAddress)) {
-            reachability = ComputerDetails.Reachability.REMOTE;
+            reachability = isAddressLikelyLocal(details.localAddress) ?
+                    ComputerDetails.Reachability.LOCAL : ComputerDetails.Reachability.REMOTE;
         }
         else {
             // Do a TCP-level connection to the HTTP server to see if it's listening
@@ -553,7 +566,14 @@ public class ComputerManagerService extends Service {
             return null;
         }
 
-        if (polledDetails.remoteAddress.equals(reachableAddr)) {
+        // If both addresses are the same, guess whether we're local based on
+        // IP address heuristics.
+        if (reachableAddr.equals(polledDetails.localAddress) &&
+                reachableAddr.equals(polledDetails.remoteAddress)) {
+            polledDetails.reachability = isAddressLikelyLocal(reachableAddr) ?
+                    ComputerDetails.Reachability.LOCAL : ComputerDetails.Reachability.REMOTE;
+        }
+        else if (polledDetails.remoteAddress.equals(reachableAddr)) {
             polledDetails.reachability = ComputerDetails.Reachability.REMOTE;
         }
         else if (polledDetails.localAddress.equals(reachableAddr)) {

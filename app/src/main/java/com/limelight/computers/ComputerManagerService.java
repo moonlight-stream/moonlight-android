@@ -511,7 +511,8 @@ public class ComputerManagerService extends Service {
             // This will tend to be wrong for IPv6 but falling back to
             // remote will be fine in that case. For IPv4, it should be
             // pretty accurate due to NAT prevalence.
-            return InetAddress.getByName(str).isSiteLocalAddress();
+            InetAddress addr = InetAddress.getByName(str);
+            return addr.isSiteLocalAddress() || addr.isLinkLocalAddress();
         } catch (UnknownHostException e) {
             e.printStackTrace();
             return false;

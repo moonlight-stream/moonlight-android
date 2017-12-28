@@ -2,5 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Non-root application name -->
-    <application android:label="Moonlight" />
+    <!-- No need to extract libraries for the non-root version -->
+    <application
+        android:label="Moonlight"
+        android:extractNativeLibs="false" />
 </manifest>

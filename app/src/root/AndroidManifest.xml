@@ -2,5 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Root application name -->
-    <application android:label="Moonlight (Root)" />
+    <!-- Ensure native libraries are always extracted for root builds,
+         since we must invoke the evdev_reader binary ourselves -->
+    <application
+        android:label="Moonlight (Root)"
+        android:extractNativeLibs="true" />
 </manifest>

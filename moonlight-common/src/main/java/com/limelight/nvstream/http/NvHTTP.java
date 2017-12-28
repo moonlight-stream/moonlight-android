@@ -208,6 +208,10 @@ public class NvHTTP {
 		String serverInfo = getServerInfo();
 		
 		details.name = getXmlString(serverInfo, "hostname");
+		if (details.name == null || details.name.isEmpty()) {
+			details.name = "UNKNOWN";
+		}
+
 		details.uuid = UUID.fromString(getXmlString(serverInfo, "uniqueid"));
 		details.macAddress = getXmlString(serverInfo, "mac");
 

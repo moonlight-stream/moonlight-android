@@ -134,7 +134,7 @@ public class ComputerManagerService extends Service {
             public void run() {
 
                 int offlineCount = 0;
-                while (!isInterrupted() && pollingActive) {
+                while (!isInterrupted() && pollingActive && tuple.thread == this) {
                     try {
                         // Only allow one request to the machine at a time
                         synchronized (tuple.networkLock) {
@@ -392,6 +392,7 @@ public class ComputerManagerService extends Service {
                     if (tuple.thread != null) {
                         // Interrupt the thread on this entry
                         tuple.thread.interrupt();
+                        tuple.thread = null;
                     }
                     pollingTuples.remove(tuple);
                     break;
@@ -840,6 +841,7 @@ public class ComputerManagerService extends Service {
                     } while (waitPollingDelay());
                 }
             };
+            thread.setName("App list polling thread for " + computer.localAddress);
             thread.start();
         }
 

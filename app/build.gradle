@@ -5,14 +5,14 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.2'
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 27
 
         versionName "5.6.3"
-        versionCode = 141
+        versionCode = 142
     }
 
     flavorDimensions "root"

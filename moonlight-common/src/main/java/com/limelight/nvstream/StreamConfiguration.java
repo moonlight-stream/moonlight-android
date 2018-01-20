@@ -27,7 +27,8 @@ public class StreamConfiguration {
 	private boolean supportsHevc;
 	private int hevcBitratePercentageMultiplier;
 	private boolean enableHdr;
-	
+	private int attachedGamepadMask;
+
 	public static class Builder {
 		private StreamConfiguration config = new StreamConfiguration();
 		
@@ -86,6 +87,21 @@ public class StreamConfiguration {
 			config.enableHdr = enableHdr;
 			return this;
 		}
+
+		public StreamConfiguration.Builder setAttachedGamepadMask(int attachedGamepadMask) {
+			config.attachedGamepadMask = attachedGamepadMask;
+			return this;
+		}
+
+		public StreamConfiguration.Builder setAttachedGamepadMaskByCount(int gamepadCount) {
+			config.attachedGamepadMask = 0;
+			for (int i = 0; i < 4; i++) {
+				if (gamepadCount > i) {
+					config.attachedGamepadMask |= 1 << i;
+				}
+			}
+			return this;
+		}
 		
 		public StreamConfiguration.Builder setAudioConfiguration(int audioConfig) {
 			if (audioConfig == MoonBridge.AUDIO_CONFIGURATION_STEREO) {
@@ -129,6 +145,7 @@ public class StreamConfiguration {
 		this.audioChannelMask = CHANNEL_MASK_STEREO;
 		this.supportsHevc = false;
 		this.enableHdr = false;
+		this.attachedGamepadMask = 0;
 	}
 	
 	public int getWidth() {
@@ -193,5 +210,9 @@ public class StreamConfiguration {
 
 	public boolean getEnableHdr() {
 		return enableHdr;
+	}
+
+	public int getAttachedGamepadMask() {
+		return attachedGamepadMask;
 	}
 }

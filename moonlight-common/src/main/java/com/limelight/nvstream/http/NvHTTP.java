@@ -647,7 +647,9 @@ public class NvHTTP {
 	public boolean resumeApp(ConnectionContext context) throws IOException, XmlPullParserException {
 		String xmlStr = openHttpConnectionToString(baseUrlHttps + "/resume?" + buildUniqueIdUuidString() +
 				"&rikey="+bytesToHex(context.riKey.getEncoded()) +
-				"&rikeyid="+context.riKeyId, false);
+				"&rikeyid="+context.riKeyId +
+				"&surroundAudioInfo=" + ((context.streamConfig.getAudioChannelMask() << 16) + context.streamConfig.getAudioChannelCount()),
+				false);
 		String resume = getXmlString(xmlStr, "resume");
 		return Integer.parseInt(resume) != 0;
 	}

@@ -157,7 +157,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         }
     }
 
-    private boolean isRecognizedInputDevice(UsbDevice device) {
+    private static boolean isRecognizedInputDevice(UsbDevice device) {
         // On KitKat and later, we can determine if this VID and PID combo
         // matches an existing input device and defer to the built-in controller
         // support in that case. Prior to KitKat, we'll always return true to be safe.
@@ -182,7 +182,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         }
     }
 
-    private boolean shouldClaimDevice(UsbDevice device) {
+    public static boolean shouldClaimDevice(UsbDevice device) {
         // We always bind to XB1 controllers but only bind to XB360 controllers
         // if we know the kernel isn't already driving this device.
         return XboxOneController.canClaimDevice(device) ||

@@ -2,6 +2,8 @@ package com.limelight.binding.input;
 
 import android.content.Context;
 import android.hardware.input.InputManager;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.os.SystemClock;
 import android.util.SparseArray;
 import android.view.InputDevice;
@@ -12,6 +14,7 @@ import android.widget.Toast;
 
 import com.limelight.LimeLog;
 import com.limelight.binding.input.driver.UsbDriverListener;
+import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
@@ -48,7 +51,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private boolean hasGameController;
 
     private final boolean multiControllerEnabled;
-    private short currentControllers;
+    private short currentControllers, initialControllers;
 
     public ControllerHandler(Context activityContext, NvConnection conn, GameGestures gestures, boolean multiControllerEnabled, int deadzonePercentage) {
         this.activityContext = activityContext;
@@ -102,6 +105,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // consume these. Instead, let's ignore them since that's probably the
         // most likely case.
         defaultContext.ignoreBack = true;
+
+        // Get the initially attached set of gamepads. As each gamepad receives
+        // its initial InputEvent, we will move these from this set onto the
+        // currentControllers set which will allow them to properly unplug
+        // if they are removed.
+        initialControllers = getAttachedControllerMask(activityContext);
     }
 
     private static InputDevice.MotionRange getMotionRangeForJoystickAxis(InputDevice dev, int axis) {
@@ -139,20 +148,53 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         onInputDeviceAdded(deviceId);
     }
 
+    public static short getAttachedControllerMask(Context context) {
+        int count = 0;
+        short mask = 0;
+
+        // Count all input devices that are gamepads
+        InputManager im = (InputManager) context.getSystemService(Context.INPUT_SERVICE);
+        for (int id : im.getInputDeviceIds()) {
+            InputDevice dev = im.getInputDevice(id);
+            if (dev == null) {
+                continue;
+            }
+
+            if ((dev.getSources() & InputDevice.SOURCE_JOYSTICK) != 0) {
+                LimeLog.info("Counting InputDevice: "+dev.getName());
+                mask |= 1 << count++;
+            }
+        }
+
+        // Count all USB devices that match our drivers
+        UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+        for (UsbDevice dev : usbManager.getDeviceList().values()) {
+            if (UsbDriverService.shouldClaimDevice(dev)) {
+                LimeLog.info("Counting UsbDevice: "+dev.getDeviceName());
+                mask |= 1 << count++;
+            }
+        }
+
+        LimeLog.info("Enumerated "+count+" gamepads");
+        return mask;
+    }
+
     private void releaseControllerNumber(GenericControllerContext context) {
-        // If this device sent data as a gamepad, zero the values before removing
+        // If we reserved a controller number, remove that reservation
+        if (context.reservedControllerNumber) {
+            LimeLog.info("Controller number "+context.controllerNumber+" is now available");
+            currentControllers &= ~(1 << context.controllerNumber);
+        }
+
+        // If this device sent data as a gamepad, zero the values before removing.
+        // We must do this after clearing the currentControllers entry so this
+        // causes the device to be removed on the server PC.
         if (context.assignedControllerNumber) {
             conn.sendControllerInput(context.controllerNumber, getActiveControllerMask(),
                     (short) 0,
                     (byte) 0, (byte) 0,
                     (short) 0, (short) 0,
                     (short) 0, (short) 0);
-        }
-
-        // If we reserved a controller number, remove that reservation
-        if (context.reservedControllerNumber) {
-            LimeLog.info("Controller number "+context.controllerNumber+" is now available");
-            currentControllers &= ~(1 << context.controllerNumber);
         }
     }
 
@@ -181,6 +223,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     if ((currentControllers & (1 << i)) == 0) {
                         // Found an unused controller value
                         currentControllers |= (1 << i);
+
+                        // Take this value out of the initial gamepad set
+                        initialControllers &= ~(1 << i);
+
                         context.controllerNumber = i;
                         context.reservedControllerNumber = true;
                         break;
@@ -201,6 +247,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     if ((currentControllers & (1 << i)) == 0) {
                         // Found an unused controller value
                         currentControllers |= (1 << i);
+
+                        // Take this value out of the initial gamepad set
+                        initialControllers &= ~(1 << i);
+
                         context.controllerNumber = i;
                         context.reservedControllerNumber = true;
                         break;
@@ -473,7 +523,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     private short getActiveControllerMask() {
         if (multiControllerEnabled) {
-            return currentControllers;
+            return (short)(currentControllers | initialControllers);
         }
         else {
             // Only Player 1 is active with multi-controller disabled

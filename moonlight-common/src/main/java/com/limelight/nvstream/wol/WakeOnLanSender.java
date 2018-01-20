@@ -22,8 +22,12 @@ public class WakeOnLanSender {
 		boolean sentWolPacket = false;
 
 		try {
-			// Try all resolved remote and local addresses
-			for (String unresolvedAddress : new String[] {computer.localAddress, computer.remoteAddress}) {
+			// Try all resolved remote and local addresses and IPv4 broadcast address.
+			// The broadcast address is required to avoid stale ARP cache entries
+			// making the sleeping machine unreachable.
+			for (String unresolvedAddress : new String[] {
+					computer.localAddress, computer.remoteAddress, "255.255.255.255"
+			}) {
 				try {
 					for (InetAddress resolvedAddress : InetAddress.getAllByName(unresolvedAddress)) {
 						// Try all the ports for each resolved address

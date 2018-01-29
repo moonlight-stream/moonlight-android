@@ -153,25 +153,49 @@ public class MediaCodecHelper {
 		// Qualcomm is currently the only decoders in this group.
 	}
 
-	private static boolean isLowEndSnapdragonRenderer(String glRenderer) {
+	private static String getAdrenoVersionString(String glRenderer) {
 		glRenderer = glRenderer.toLowerCase().trim();
 
 		if (!glRenderer.contains("adreno")) {
-			return false;
+			return null;
 		}
 
 		Pattern modelNumberPattern = Pattern.compile("(.*)([0-9]{3})(.*)");
 
 		Matcher matcher = modelNumberPattern.matcher(glRenderer);
 		if (!matcher.matches()) {
-			return false;
+			return null;
 		}
 
 		String modelNumber = matcher.group(2);
 		LimeLog.info("Found Adreno GPU: "+modelNumber);
+		return modelNumber;
+	}
+
+	private static boolean isLowEndSnapdragonRenderer(String glRenderer) {
+		String modelNumber = getAdrenoVersionString(glRenderer);
+		if (modelNumber == null) {
+			// Not an Adreno GPU
+			return false;
+		}
 
 		// The current logic is to identify low-end SoCs based on a zero in the x0x place.
 		return modelNumber.charAt(1) == '0';
+	}
+
+	// This is a workaround for some broken devices that report
+	// only GLES 3.0 even though the GPU is an Adreno 4xx series part.
+	// An example of such a device is the Huawei Honor 5x with the
+	// Snapdragon 616 SoC (Adreno 405).
+	private static boolean isGLES31SnapdragonRenderer(String glRenderer) {
+		String modelNumber = getAdrenoVersionString(glRenderer);
+		if (modelNumber == null) {
+			// Not an Adreno GPU
+			return false;
+		}
+
+		// Snapdragon 4xx and higher support GLES 3.1
+		return modelNumber.charAt(0) >= '4';
 	}
 
 	public static void initialize(Context context, String glRenderer) {
@@ -208,9 +232,10 @@ public class MediaCodecHelper {
 			// 3xx - bad
 			// 4xx - good
 			//
-			// Unfortunately, it's not that easy to get that information here, so I'll use an
-			// approximation by checking the GLES level (<= 3.0 is bad).
-			if (configInfo.reqGlEsVersion > 0x30000) {
+			// The "good" GPUs support GLES 3.1, but we can't just check that directly
+			// (see comment on isGLES31SnapdragonRenderer).
+			//
+			if (isGLES31SnapdragonRenderer(glRenderer)) {
 				// We prefer reference frame invalidation support (which is only doable on AVC on
 				// older Qualcomm chips) vs. enabling HEVC by default. The user can override using the settings
 				// to force HEVC on. If HDR or mobile data will be used, we'll override this and use

@@ -54,6 +54,38 @@ android {
             applicationIdSuffix ".debug"
         }
         release {
+            // To whomever is releasing/using an APK in release mode with
+            // Moonlight's official application ID, please stop. I see every
+            // single one of your crashes in my Play Console and it makes
+            // Moonlight's reliability look worse and makes it more difficult
+            // to distinguish real crashes from your crashy VR app. Seriously,
+            // 44 of the *same* native crash in 72 hours and a few each of
+            // several other crashes.
+            //
+            // This is technically not your fault. I would have hoped Google
+            // would validate the signature of the APK before attributing
+            // the crash to it. I asked their Play Store support about this
+            // and they said they don't and don't have plans to, so that sucks.
+            //
+            // In any case, it's bad form to release an APK using someone
+            // else's application ID. There is no legitimate reason, that
+            // anyone would need to comment out the following line, except me
+            // when I release an official signed Moonlight build. If you feel
+            // like doing so would solve something, I can tell you it will not.
+            // You can't upgrade an app while retaining data without having the
+            // same signature as the official version. Nor can you post it on
+            // the Play Store, since that application ID is already taken.
+            // Reputable APK hosting websites similarly validate the signature
+            // is consistent with the Play Store and won't allow an APK that
+            // isn't signed the same as the original.
+            //
+            // I wish any and all people using Moonlight as the basis of other
+            // cool projects the best of luck with their efforts. All I ask
+            // is to please change the applicationId before you publish.
+            //
+            // TL;DR: Leave the following line alone!
+            applicationIdSuffix ".unofficial"
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
         }

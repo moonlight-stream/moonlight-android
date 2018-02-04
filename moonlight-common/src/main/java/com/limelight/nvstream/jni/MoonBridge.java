@@ -174,6 +174,7 @@ public class MoonBridge {
                                               int audioConfiguration, boolean supportsHevc,
                                               boolean enableHdr,
                                               int hevcBitratePercentageMultiplier,
+                                              int clientRefreshRateX100,
                                               byte[] riAesKey, byte[] riAesIv,
                                               int videoCapabilities);
 

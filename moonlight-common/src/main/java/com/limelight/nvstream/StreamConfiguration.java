@@ -15,6 +15,7 @@ public class StreamConfiguration {
 	private NvApp app;
 	private int width, height;
 	private int refreshRate;
+	private int clientRefreshRateX100;
 	private int bitrate;
 	private boolean sops;
 	private boolean enableAdaptiveResolution;
@@ -100,6 +101,11 @@ public class StreamConfiguration {
 					config.attachedGamepadMask |= 1 << i;
 				}
 			}
+			return this;
+		}
+
+		public StreamConfiguration.Builder setClientRefreshRateX100(int refreshRateX100) {
+			config.clientRefreshRateX100 = refreshRateX100;
 			return this;
 		}
 		
@@ -214,5 +220,9 @@ public class StreamConfiguration {
 
 	public int getAttachedGamepadMask() {
 		return attachedGamepadMask;
+	}
+
+	public int getClientRefreshRateX100() {
+		return clientRefreshRateX100;
 	}
 }

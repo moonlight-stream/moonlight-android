@@ -271,6 +271,7 @@ public class NvConnection {
 							context.streamConfig.getHevcSupported(),
 							context.negotiatedHdr,
 							context.streamConfig.getHevcBitratePercentageMultiplier(),
+							context.streamConfig.getClientRefreshRateX100(),
 							context.riKey.getEncoded(), ib.array(),
 							context.videoCapabilities);
 					if (ret != 0) {

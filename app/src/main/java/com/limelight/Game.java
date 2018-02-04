@@ -304,6 +304,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // If we're using OSC, always set at least gamepad 1.
             gamepadMask |= 1;
         }
+
+        // Set to the optimal mode for streaming
+        float displayRefreshRate = prepareDisplayForRendering();
+        LimeLog.info("Display refresh rate: "+displayRefreshRate);
         
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
@@ -318,6 +322,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setHevcSupported(decoderRenderer.isHevcSupported())
                 .setEnableHdr(willStreamHdr)
                 .setAttachedGamepadMask(gamepadMask)
+                .setClientRefreshRateX100((int)(displayRefreshRate * 100))
                 .setAudioConfiguration(prefConfig.enable51Surround ?
                         MoonBridge.AUDIO_CONFIGURATION_51_SURROUND :
                         MoonBridge.AUDIO_CONFIGURATION_STEREO)
@@ -329,9 +334,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         inputManager.registerInputDeviceListener(controllerHandler, null);
-
-        // Set to the optimal mode for streaming
-        prepareDisplayForRendering();
 
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
@@ -407,9 +409,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
-    private void prepareDisplayForRendering() {
+    private float prepareDisplayForRendering() {
         Display display = getWindowManager().getDefaultDisplay();
         WindowManager.LayoutParams windowLayoutParams = getWindow().getAttributes();
+        float displayRefreshRate;
 
         // On M, we can explicitly set the optimal display mode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -447,6 +450,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             LimeLog.info("Selected display mode: "+bestMode.getPhysicalWidth()+"x"+
                     bestMode.getPhysicalHeight()+"x"+bestMode.getRefreshRate());
             windowLayoutParams.preferredDisplayModeId = bestMode.getModeId();
+            displayRefreshRate = bestMode.getRefreshRate();
         }
         // On L, we can at least tell the OS that we want 60 Hz
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -459,6 +463,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
             LimeLog.info("Selected refresh rate: "+bestRefreshRate);
             windowLayoutParams.preferredRefreshRate = bestRefreshRate;
+            displayRefreshRate = bestRefreshRate;
+        }
+        else {
+            // Otherwise, the active display refresh rate is just
+            // whatever is currently in use.
+            displayRefreshRate = display.getRefreshRate();
         }
 
         // Apply the display mode change
@@ -494,6 +504,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Set the surface to scale based on the aspect ratio of the stream
             streamView.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
         }
+
+        return displayRefreshRate;
     }
 
     @SuppressLint("InlinedApi")

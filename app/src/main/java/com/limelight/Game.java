@@ -329,6 +329,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Hopefully, we can get rid of this once someone comes up with a better way
         // to track the state of the pipeline and time frames.
         int roundedRefreshRate = Math.round(displayRefreshRate);
+        if (roundedRefreshRate <= 49) {
+            // Let's avoid clearly bogus refresh rates
+            roundedRefreshRate = 60;
+        }
         if (!prefConfig.disableFrameDrop && prefConfig.fps >= roundedRefreshRate) {
             prefConfig.fps = roundedRefreshRate - 1;
             LimeLog.info("Adjusting FPS target for screen to "+prefConfig.fps);

@@ -308,7 +308,32 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Set to the optimal mode for streaming
         float displayRefreshRate = prepareDisplayForRendering();
         LimeLog.info("Display refresh rate: "+displayRefreshRate);
-        
+
+        // HACK: Despite many efforts to ensure low latency consistent frame
+        // delivery, the best non-lossy mechanism is to buffer 1 extra frame
+        // in the output pipeline. Android does some buffering on its end
+        // in SurfaceFlinger and it's difficult (impossible?) to inspect
+        // the precise state of the buffer queue to the screen after we
+        // release a frame for rendering.
+        //
+        // Since buffering a frame adds latency and we are primarily a
+        // latency-optimized client, rather than one designed for picture-perfect
+        // accuracy, we will synthetically induce a negative pressure on the display
+        // output pipeline by driving the decoder input pipeline under the speed
+        // that the display can refresh. This ensures a constant negative pressure
+        // to keep latency down but does induce a periodic frame loss. However, this
+        // periodic frame loss is *way* less than what we'd already get in Marshmallow's
+        // display pipeline where frames are dropped outside of our control if they land
+        // on the same V-sync.
+        //
+        // Hopefully, we can get rid of this once someone comes up with a better way
+        // to track the state of the pipeline and time frames.
+        int roundedRefreshRate = Math.round(displayRefreshRate);
+        if (!prefConfig.disableFrameDrop && prefConfig.fps >= roundedRefreshRate) {
+            prefConfig.fps = roundedRefreshRate - 1;
+            LimeLog.info("Adjusting FPS target for screen to "+prefConfig.fps);
+        }
+
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
                 .setRefreshRate(prefConfig.fps)

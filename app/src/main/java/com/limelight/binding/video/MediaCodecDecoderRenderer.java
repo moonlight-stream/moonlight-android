@@ -410,7 +410,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             }
 
                             // Render the last buffer
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && prefs.disableFrameDrop) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                 // Use a PTS that will cause this frame to never be dropped if frame dropping
                                 // is disabled
                                 videoDecoder.releaseOutputBuffer(lastIndex, 0);

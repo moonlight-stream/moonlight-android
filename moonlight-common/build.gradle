@@ -24,8 +24,8 @@ android {
 }
 
 dependencies {
-    implementation 'com.squareup.okhttp:okhttp:2.4.0'
-    implementation 'com.squareup.okio:okio:1.5.0'
+    implementation 'com.squareup.okhttp:okhttp:2.7.5'
+    implementation 'com.squareup.okio:okio:1.13.0'
 
     implementation files('libs/tinyrtsp.jar')
 

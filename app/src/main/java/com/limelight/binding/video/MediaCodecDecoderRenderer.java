@@ -633,15 +633,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // High Profile which allows the decoder to assume there will be no B-frames and
         // reduce delay and buffering accordingly. Some devices (Marvell, Exynos 4) don't
         // like it so we only set them on devices that are confirmed to benefit from it.
-        if (sps.profile_idc == 100 && constrainedHighProfile) {
+        if (sps.profileIdc == 100 && constrainedHighProfile) {
             LimeLog.info("Setting constraint set flags for constrained high profile");
-            sps.constraint_set_4_flag = true;
-            sps.constraint_set_5_flag = true;
+            sps.constraintSet4Flag = true;
+            sps.constraintSet5Flag = true;
         }
         else {
             // Force the constraints unset otherwise (some may be set by default)
-            sps.constraint_set_4_flag = false;
-            sps.constraint_set_5_flag = false;
+            sps.constraintSet4Flag = false;
+            sps.constraintSet5Flag = false;
         }
     }
 
@@ -706,12 +706,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 if (initialWidth == 1280 && initialHeight == 720) {
                     // Max 5 buffered frames at 1280x720x60
                     LimeLog.info("Patching level_idc to 32");
-                    sps.level_idc = 32;
+                    sps.levelIdc = 32;
                 }
                 else if (initialWidth == 1920 && initialHeight == 1080) {
                     // Max 4 buffered frames at 1920x1080x64
                     LimeLog.info("Patching level_idc to 42");
-                    sps.level_idc = 42;
+                    sps.levelIdc = 42;
                 }
                 else {
                     // Leave the profile alone (currently 5.0)
@@ -729,14 +729,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // where we've enabled reference frame invalidation.
             if (!refFrameInvalidationActive) {
                 LimeLog.info("Patching num_ref_frames in SPS");
-                sps.num_ref_frames = 1;
+                sps.numRefFrames = 1;
             }
 
             // GFE 2.5.11 changed the SPS to add additional extensions
             // Some devices don't like these so we remove them here.
-            sps.vuiParams.video_signal_type_present_flag = false;
-            sps.vuiParams.colour_description_present_flag = false;
-            sps.vuiParams.chroma_loc_info_present_flag = false;
+            sps.vuiParams.videoSignalTypePresentFlag = false;
+            sps.vuiParams.colourDescriptionPresentFlag = false;
+            sps.vuiParams.chromaLocInfoPresentFlag = false;
 
             if ((needsSpsBitstreamFixup || isExynos4) && !refFrameInvalidationActive) {
                 // The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
@@ -746,22 +746,22 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 if (sps.vuiParams.bitstreamRestriction == null) {
                     LimeLog.info("Adding bitstream restrictions");
                     sps.vuiParams.bitstreamRestriction = new VUIParameters.BitstreamRestriction();
-                    sps.vuiParams.bitstreamRestriction.motion_vectors_over_pic_boundaries_flag = true;
-                    sps.vuiParams.bitstreamRestriction.log2_max_mv_length_horizontal = 16;
-                    sps.vuiParams.bitstreamRestriction.log2_max_mv_length_vertical = 16;
-                    sps.vuiParams.bitstreamRestriction.num_reorder_frames = 0;
+                    sps.vuiParams.bitstreamRestriction.motionVectorsOverPicBoundariesFlag = true;
+                    sps.vuiParams.bitstreamRestriction.log2MaxMvLengthHorizontal = 16;
+                    sps.vuiParams.bitstreamRestriction.log2MaxMvLengthVertical = 16;
+                    sps.vuiParams.bitstreamRestriction.numReorderFrames = 0;
                 }
                 else {
                     LimeLog.info("Patching bitstream restrictions");
                 }
 
-                // Some devices throw errors if max_dec_frame_buffering < num_ref_frames
-                sps.vuiParams.bitstreamRestriction.max_dec_frame_buffering = sps.num_ref_frames;
+                // Some devices throw errors if maxDecFrameBuffering < numRefFrames
+                sps.vuiParams.bitstreamRestriction.maxDecFrameBuffering = sps.numRefFrames;
 
                 // These values are the defaults for the fields, but they are more aggressive
                 // than what GFE sends in 2.5.11, but it doesn't seem to cause picture problems.
-                sps.vuiParams.bitstreamRestriction.max_bytes_per_pic_denom = 2;
-                sps.vuiParams.bitstreamRestriction.max_bits_per_mb_denom = 1;
+                sps.vuiParams.bitstreamRestriction.maxBytesPerPicDenom = 2;
+                sps.vuiParams.bitstreamRestriction.maxBitsPerMbDenom = 1;
 
                 // log2_max_mv_length_horizontal and log2_max_mv_length_vertical are set to more
                 // conservative values by GFE 2.5.11. We'll let those values stand.
@@ -775,7 +775,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // If we need to hack this SPS to say we're baseline, do so now
             if (needsBaselineSpsHack) {
                 LimeLog.info("Hacking SPS to baseline");
-                sps.profile_idc = 66;
+                sps.profileIdc = 66;
                 savedSps = sps;
             }
 
@@ -930,7 +930,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         inputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
 
         // Switch the H264 profile back to high
-        savedSps.profile_idc = 100;
+        savedSps.profileIdc = 100;
 
         // Patch the SPS constraint flags
         doProfileSpecificSpsPatching(savedSps);

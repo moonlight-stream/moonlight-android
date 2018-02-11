@@ -56,6 +56,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private int consecutiveCrashCount;
     private String glRenderer;
     private boolean foreground = true;
+    private boolean legacyFrameDropRendering = false;
 
     private boolean needsBaselineSpsHack;
     private SeqParameterSet savedSps;
@@ -189,6 +190,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     public boolean isAvcSupported() {
         return avcDecoder != null;
+    }
+
+    public boolean is49FpsBlacklisted() {
+        return avcDecoder != null && MediaCodecHelper.decoderBlacklistedFor49Fps(avcDecoder.getName());
+    }
+
+    public void enableLegacyFrameDropRendering() {
+        LimeLog.info("Legacy frame drop rendering enabled");
+        legacyFrameDropRendering = true;
     }
 
     public boolean isHevcMain10Hdr10Supported() {
@@ -410,7 +420,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             }
 
                             // Render the last buffer
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !legacyFrameDropRendering) {
                                 // Use a PTS that will cause this frame to never be dropped if frame dropping
                                 // is disabled
                                 videoDecoder.releaseOutputBuffer(lastIndex, 0);

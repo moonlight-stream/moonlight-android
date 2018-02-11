@@ -36,6 +36,7 @@ public class MediaCodecHelper {
 	private static final List<String> whitelistedHevcDecoders;
 	private static final List<String> refFrameInvalidationAvcPrefixes;
     private static final List<String> refFrameInvalidationHevcPrefixes;
+    private static final List<String> blacklisted49FpsDecoderPrefixes;
 
     private static boolean isLowEndSnapdragon = false;
     private static boolean initialized = false;
@@ -151,6 +152,17 @@ public class MediaCodecHelper {
 		// These are decoders that work but aren't used by default for various reasons.
 
 		// Qualcomm is currently the only decoders in this group.
+	}
+
+	static {
+		blacklisted49FpsDecoderPrefixes = new LinkedList<>();
+
+		// We see a bunch of crashes on MediaTek Android TVs running
+		// at 49 FPS (PAL 50 Hz - 1). Blacklist this frame rate for
+		// these devices and hope they fix it in Oreo.
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+			blacklisted49FpsDecoderPrefixes.add("omx.mtk");
+		}
 	}
 
 	private static String getAdrenoVersionString(String glRenderer) {
@@ -271,7 +283,7 @@ public class MediaCodecHelper {
 	public static long getMonotonicMillis() {
 		return System.nanoTime() / 1000000L;
 	}
-	
+
 	public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo) {
 		// Possibly enable adaptive playback on KitKat and above
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -311,6 +323,10 @@ public class MediaCodecHelper {
     public static boolean decoderNeedsBaselineSpsHack(String decoderName) {
         return isDecoderInList(baselineProfileHackPrefixes, decoderName);
     }
+
+	public static boolean decoderBlacklistedFor49Fps(String decoderName) {
+		return isDecoderInList(blacklisted49FpsDecoderPrefixes, decoderName);
+	}
 
 	public static boolean decoderSupportsRefFrameInvalidationAvc(String decoderName, int videoHeight) {
 		// Reference frame invalidation is broken on low-end Snapdragon SoCs at 1080p.

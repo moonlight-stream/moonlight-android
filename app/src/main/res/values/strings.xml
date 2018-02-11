@@ -51,6 +51,7 @@
     <string name="message_decoding_error">Moonlight has crashed due to a problem with this device\'s video decoder. Try adjusting the streaming settings if the crashes continue.</string>
     <string name="title_decoding_reset">Video Settings Reset</string>
     <string name="message_decoding_reset">Your device\'s video decoder continues to crash at your selected streaming settings. Your streaming settings have been reset to default.</string>
+    <string name="error_usb_prohibited">USB access is prohibited by your device administrator. Check your Knox or MDM settings.</string>
 
     <!-- Start application messages -->
     <string name="conn_establishing_title">Establishing Connection</string>

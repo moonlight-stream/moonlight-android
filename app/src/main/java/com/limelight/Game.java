@@ -784,6 +784,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return super.onKeyDown(keyCode, event);
         }
 
+        // Handle a synthetic back button event that some Android OS versions
+        // create as a result of a right-click.
+        if (event.getSource() == InputDevice.SOURCE_MOUSE && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
+            return true;
+        }
+
         boolean handled = false;
 
         boolean detectedGamepad = event.getDevice() != null && ((event.getDevice().getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
@@ -824,6 +831,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return super.onKeyUp(keyCode, event);
+        }
+
+        // Handle a synthetic back button event that some Android OS versions
+        // create as a result of a right-click.
+        if (event.getSource() == InputDevice.SOURCE_MOUSE && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
+            return true;
         }
 
         boolean handled = false;

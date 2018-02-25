@@ -18,6 +18,7 @@ import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
+import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.GameGestures;
 import com.limelight.utils.Vector2d;
 
@@ -50,18 +51,18 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final GameGestures gestures;
     private boolean hasGameController;
 
-    private final boolean multiControllerEnabled;
+    private final PreferenceConfiguration prefConfig;
     private short currentControllers, initialControllers;
 
-    public ControllerHandler(Context activityContext, NvConnection conn, GameGestures gestures, boolean multiControllerEnabled, int deadzonePercentage) {
+    public ControllerHandler(Context activityContext, NvConnection conn, GameGestures gestures, PreferenceConfiguration prefConfig) {
         this.activityContext = activityContext;
         this.conn = conn;
         this.gestures = gestures;
-        this.multiControllerEnabled = multiControllerEnabled;
+        this.prefConfig = prefConfig;
 
         // HACK: For now we're hardcoding a 10% deadzone. Some deadzone
         // is required for controller batching support to work.
-        deadzonePercentage = 10;
+        int deadzonePercentage = 10;
 
         int[] ids = InputDevice.getDeviceIds();
         for (int id : ids) {
@@ -167,11 +168,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         // Count all USB devices that match our drivers
-        UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-        for (UsbDevice dev : usbManager.getDeviceList().values()) {
-            if (UsbDriverService.shouldClaimDevice(dev)) {
-                LimeLog.info("Counting UsbDevice: "+dev.getDeviceName());
-                mask |= 1 << count++;
+        if (PreferenceConfiguration.readPreferences(context).usbDriver) {
+            UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+            for (UsbDevice dev : usbManager.getDeviceList().values()) {
+                // We explicitly ask not to claim devices that appear as InputDevices
+                // otherwise we will double count them.
+                if (UsbDriverService.shouldClaimDevice(dev, false)) {
+                    LimeLog.info("Counting UsbDevice: "+dev.getDeviceName());
+                    mask |= 1 << count++;
+                }
             }
         }
 
@@ -215,7 +220,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 LimeLog.info("Built-in buttons hardcoded as controller 0");
                 context.controllerNumber = 0;
             }
-            else if (multiControllerEnabled && devContext.hasJoystickAxes) {
+            else if (prefConfig.multiController && devContext.hasJoystickAxes) {
                 context.controllerNumber = 0;
 
                 LimeLog.info("Reserving the next available controller number");
@@ -239,7 +244,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
         else {
-            if (multiControllerEnabled) {
+            if (prefConfig.multiController) {
                 context.controllerNumber = 0;
 
                 LimeLog.info("Reserving the next available controller number");
@@ -522,7 +527,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     private short getActiveControllerMask() {
-        if (multiControllerEnabled) {
+        if (prefConfig.multiController) {
             return (short)(currentControllers | initialControllers);
         }
         else {
@@ -985,7 +990,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // Make sure it's real by checking that the key is actually down before taking
             // any action.
             if ((context.inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
-                SystemClock.uptimeMillis() - context.startDownTime > ControllerHandler.START_DOWN_TIME_MOUSE_MODE_MS) {
+                    SystemClock.uptimeMillis() - context.startDownTime > ControllerHandler.START_DOWN_TIME_MOUSE_MODE_MS &&
+                    prefConfig.mouseEmulation) {
                 toggleMouseEmulation(context);
             }
             context.inputMap &= ~ControllerPacket.PLAY_FLAG;

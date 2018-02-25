@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.limelight.LimeLog;
 import com.limelight.R;
+import com.limelight.preferences.PreferenceConfiguration;
 
 import java.util.ArrayList;
 
@@ -27,6 +28,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             "com.limelight.USB_PERMISSION";
 
     private UsbManager usbManager;
+    private PreferenceConfiguration prefConfig;
 
     private final UsbEventReceiver receiver = new UsbEventReceiver();
     private final UsbDriverBinder binder = new UsbDriverBinder();
@@ -119,7 +121,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
     private void handleUsbDeviceState(UsbDevice device) {
         // Are we able to operate it?
-        if (shouldClaimDevice(device)) {
+        if (shouldClaimDevice(device, prefConfig.bindAllUsb)) {
             // Do we have permission yet?
             if (!usbManager.hasPermission(device)) {
                 // Let's ask for permission
@@ -194,16 +196,17 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         }
     }
 
-    public static boolean shouldClaimDevice(UsbDevice device) {
+    public static boolean shouldClaimDevice(UsbDevice device, boolean claimAllAvailable) {
         // We always bind to XB1 controllers but only bind to XB360 controllers
         // if we know the kernel isn't already driving this device.
         return XboxOneController.canClaimDevice(device) ||
-                (!isRecognizedInputDevice(device) && Xbox360Controller.canClaimDevice(device));
+                ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360Controller.canClaimDevice(device));
     }
 
     @Override
     public void onCreate() {
         this.usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        this.prefConfig = PreferenceConfiguration.readPreferences(this);
 
         // Register for USB attach broadcasts and permission completions
         IntentFilter filter = new IntentFilter();
@@ -213,7 +216,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
         // Enumerate existing devices
         for (UsbDevice dev : usbManager.getDeviceList().values()) {
-            if (shouldClaimDevice(dev)) {
+            if (shouldClaimDevice(dev, prefConfig.bindAllUsb)) {
                 // Start the process of claiming this device
                 handleUsbDeviceState(dev);
             }

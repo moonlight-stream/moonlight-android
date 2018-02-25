@@ -367,7 +367,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Initialize the connection
         conn = new NvConnection(host, uniqueId, config, PlatformBinding.getCryptoProvider(this));
-        controllerHandler = new ControllerHandler(this, conn, this, prefConfig.multiController, prefConfig.deadzonePercentage);
+        controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
 
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         inputManager.registerInputDeviceListener(controllerHandler, null);

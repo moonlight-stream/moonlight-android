@@ -4,14 +4,19 @@
 
 package com.limelight.binding.input.virtual_controller;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.DisplayMetrics;
 
 import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.preferences.PreferenceConfiguration;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class VirtualControllerConfigurationLoader {
-    private static final String PROFILE_PATH = "profiles";
+    public static final String OSC_PREFERENCE = "OSC";
 
     private static int getPercent(
             int percent,
@@ -59,6 +64,7 @@ public class VirtualControllerConfigurationLoader {
     }
 
     private static DigitalButton createDigitalButton(
+            final int elementId,
             final int keyShort,
             final int keyLong,
             final int layer,
@@ -66,7 +72,7 @@ public class VirtualControllerConfigurationLoader {
             final int icon,
             final VirtualController controller,
             final Context context) {
-        DigitalButton button = new DigitalButton(controller, layer, context);
+        DigitalButton button = new DigitalButton(controller, elementId, layer, context);
         button.setText(text);
         button.setIcon(icon);
 
@@ -162,6 +168,7 @@ public class VirtualControllerConfigurationLoader {
             );
 
             controller.addElement(createDigitalButton(
+                    VirtualControllerElement.EID_A,
                     ControllerPacket.A_FLAG, 0, 1, "A", -1, controller, context),
                     getPercent(BUTTON_BASE_X, screen.widthPixels) + getPercent(BUTTON_WIDTH, screen.widthPixels),
                     getPercent(BUTTON_BASE_Y, screen.heightPixels) + 2 * getPercent(BUTTON_HEIGHT, screen.heightPixels),
@@ -170,6 +177,7 @@ public class VirtualControllerConfigurationLoader {
             );
 
             controller.addElement(createDigitalButton(
+                    VirtualControllerElement.EID_B,
                     ControllerPacket.B_FLAG, 0, 1, "B", -1, controller, context),
                     getPercent(BUTTON_BASE_X, screen.widthPixels) + 2 * getPercent(BUTTON_WIDTH, screen.widthPixels),
                     getPercent(BUTTON_BASE_Y, screen.heightPixels) + getPercent(BUTTON_HEIGHT, screen.heightPixels),
@@ -178,6 +186,7 @@ public class VirtualControllerConfigurationLoader {
             );
 
             controller.addElement(createDigitalButton(
+                    VirtualControllerElement.EID_X,
                     ControllerPacket.X_FLAG, 0, 1, "X", -1, controller, context),
                     getPercent(BUTTON_BASE_X, screen.widthPixels),
                     getPercent(BUTTON_BASE_Y, screen.heightPixels) + getPercent(BUTTON_HEIGHT, screen.heightPixels),
@@ -186,6 +195,7 @@ public class VirtualControllerConfigurationLoader {
             );
 
             controller.addElement(createDigitalButton(
+                    VirtualControllerElement.EID_Y,
                     ControllerPacket.Y_FLAG, 0, 1, "Y", -1, controller, context),
                     getPercent(BUTTON_BASE_X, screen.widthPixels) + getPercent(BUTTON_WIDTH, screen.widthPixels),
                     getPercent(BUTTON_BASE_Y, screen.heightPixels),
@@ -210,6 +220,7 @@ public class VirtualControllerConfigurationLoader {
             );
 
             controller.addElement(createDigitalButton(
+                    VirtualControllerElement.EID_LB,
                     ControllerPacket.LB_FLAG, 0, 1, "LB", -1, controller, context),
                     getPercent(BUTTON_BASE_X, screen.widthPixels),
                     getPercent(BUTTON_BASE_Y, screen.heightPixels) + 2 * getPercent(BUTTON_HEIGHT, screen.heightPixels),
@@ -218,6 +229,7 @@ public class VirtualControllerConfigurationLoader {
             );
 
             controller.addElement(createDigitalButton(
+                    VirtualControllerElement.EID_RB,
                     ControllerPacket.RB_FLAG, 0, 1, "RB", -1, controller, context),
                     getPercent(BUTTON_BASE_X, screen.widthPixels) + 2 * getPercent(BUTTON_WIDTH, screen.widthPixels),
                     getPercent(BUTTON_BASE_Y, screen.heightPixels) + 2 * getPercent(BUTTON_HEIGHT, screen.heightPixels),
@@ -240,6 +252,7 @@ public class VirtualControllerConfigurationLoader {
             );
 
             controller.addElement(createDigitalButton(
+                    VirtualControllerElement.EID_BACK,
                     ControllerPacket.BACK_FLAG, 0, 2, "BACK", -1, controller, context),
                     getPercent(40, screen.widthPixels),
                     getPercent(90, screen.heightPixels),
@@ -248,6 +261,7 @@ public class VirtualControllerConfigurationLoader {
             );
 
             controller.addElement(createDigitalButton(
+                    VirtualControllerElement.EID_START,
                     ControllerPacket.PLAY_FLAG, 0, 3, "START", -1, controller, context),
                     getPercent(40, screen.widthPixels) + getPercent(10, screen.widthPixels),
                     getPercent(90, screen.heightPixels),
@@ -257,6 +271,7 @@ public class VirtualControllerConfigurationLoader {
         }
         else {
             controller.addElement(createDigitalButton(
+                    VirtualControllerElement.EID_LSB,
                     ControllerPacket.LS_CLK_FLAG, 0, 1, "L3", -1, controller, context),
                     getPercent(2, screen.widthPixels),
                     getPercent(80, screen.heightPixels),
@@ -265,6 +280,7 @@ public class VirtualControllerConfigurationLoader {
             );
 
             controller.addElement(createDigitalButton(
+                    VirtualControllerElement.EID_RSB,
                     ControllerPacket.RS_CLK_FLAG, 0, 1, "R3", -1, controller, context),
                     getPercent(89, screen.widthPixels),
                     getPercent(80, screen.heightPixels),
@@ -274,34 +290,39 @@ public class VirtualControllerConfigurationLoader {
         }
     }
 
-    /*
-    NOT IMPLEMENTED YET,
-    this should later be used to store and load a profile for the virtual controller
-    public static void saveProfile(final String name,
-                                   final VirtualController controller,
+    public static void saveProfile(final VirtualController controller,
                                    final Context context) {
+        SharedPreferences.Editor prefEditor = context.getSharedPreferences(OSC_PREFERENCE, Activity.MODE_PRIVATE).edit();
 
-        SharedPreferences preferences = context.getSharedPreferences(PROFILE_PATH + "/" +
-                name, Activity.MODE_PRIVATE);
-
-        JSONArray elementConfigurations = new JSONArray();
         for (VirtualControllerElement element : controller.getElements()) {
-            JSONObject elementConfiguration = new JSONObject();
+            String prefKey = ""+element.elementId;
             try {
-                elementConfiguration.put("TYPE", element.getClass().getName());
-                elementConfiguration.put("CONFIGURATION", element.getConfiguration());
-                elementConfigurations.put(elementConfiguration);
-            } catch (Exception e) {
+                prefEditor.putString(prefKey, element.getConfiguration().toString());
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
 
-        SharedPreferences.Editor editor= preferences.edit();
-        editor.putString("ELEMENTS", elementConfigurations.toString());
+        prefEditor.apply();
     }
 
-	public static void loadFromPreferences(final VirtualController controller) {
+	public static void loadFromPreferences(final VirtualController controller, final Context context) {
+        SharedPreferences pref = context.getSharedPreferences(OSC_PREFERENCE, Activity.MODE_PRIVATE);
 
+        for (VirtualControllerElement element : controller.getElements()) {
+            String prefKey = ""+element.elementId;
+
+            String jsonConfig = pref.getString(prefKey, null);
+            if (jsonConfig != null) {
+                try {
+                    element.loadConfiguration(new JSONObject(jsonConfig));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+
+                    // Remove the corrupt element from the preferences
+                    pref.edit().remove(prefKey).apply();
+                }
+            }
+        }
 	}
-	*/
 }

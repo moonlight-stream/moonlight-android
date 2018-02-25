@@ -164,8 +164,8 @@ public class AnalogStick extends VirtualControllerElement {
         }
     }
 
-    public AnalogStick(VirtualController controller, Context context) {
-        super(controller, context);
+    public AnalogStick(VirtualController controller, Context context, int elementId) {
+        super(controller, context, elementId);
         // reset stick position
         position_stick_x = getWidth() / 2;
         position_stick_y = getHeight() / 2;

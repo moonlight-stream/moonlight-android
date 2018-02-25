@@ -14,10 +14,30 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public abstract class VirtualControllerElement extends View {
     protected static boolean _PRINT_DEBUG_INFORMATION = false;
 
+    public static final int EID_DPAD = 1;
+    public static final int EID_LT = 2;
+    public static final int EID_RT = 3;
+    public static final int EID_LB = 4;
+    public static final int EID_RB = 5;
+    public static final int EID_A = 6;
+    public static final int EID_B = 7;
+    public static final int EID_X = 8;
+    public static final int EID_Y = 9;
+    public static final int EID_BACK = 10;
+    public static final int EID_START = 11;
+    public static final int EID_LS = 12;
+    public static final int EID_RS = 13;
+    public static final int EID_LSB = 14;
+    public static final int EID_RSB = 15;
+
     protected VirtualController virtualController;
+    protected final int elementId;
 
     private final Paint paint = new Paint();
 
@@ -40,10 +60,11 @@ public abstract class VirtualControllerElement extends View {
 
     private Mode currentMode = Mode.Normal;
 
-    protected VirtualControllerElement(VirtualController controller, Context context) {
+    protected VirtualControllerElement(VirtualController controller, Context context, int elementId) {
         super(context);
 
         this.virtualController = controller;
+        this.elementId = elementId;
     }
 
     protected void moveElement(int pressed_x, int pressed_y, int x, int y) {
@@ -278,13 +299,28 @@ public abstract class VirtualControllerElement extends View {
         return getWidth() > getHeight() ? getHeight() : getWidth();
     }
 
-    /**
-     public JSONObject getConfiguration () {
-     JSONObject configuration = new JSONObject();
-     return  configuration;
-     }
 
-     public  void loadConfiguration (JSONObject configuration) {
-     }
-     */
+    public JSONObject getConfiguration() throws JSONException {
+        JSONObject configuration = new JSONObject();
+
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) getLayoutParams();
+
+        configuration.put("LEFT", layoutParams.leftMargin);
+        configuration.put("TOP", layoutParams.topMargin);
+        configuration.put("WIDTH", layoutParams.width);
+        configuration.put("HEIGHT", layoutParams.height);
+
+        return configuration;
+    }
+
+    public void loadConfiguration(JSONObject configuration) throws JSONException {
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) getLayoutParams();
+
+        layoutParams.leftMargin = configuration.getInt("LEFT");
+        layoutParams.topMargin = configuration.getInt("TOP");
+        layoutParams.width = configuration.getInt("WIDTH");
+        layoutParams.height = configuration.getInt("HEIGHT");
+
+        requestLayout();
+    }
 }

@@ -10,7 +10,7 @@ import com.limelight.nvstream.input.ControllerPacket;
 
 public class LeftAnalogStick extends AnalogStick {
     public LeftAnalogStick(final VirtualController controller, final Context context) {
-        super(controller, context);
+        super(controller, context, EID_LS);
 
         addAnalogStickListener(new AnalogStick.AnalogStickListener() {
             @Override

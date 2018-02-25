@@ -68,6 +68,7 @@ public class VirtualController {
 
                 if (currentMode == ControllerMode.Configuration) {
                     currentMode = ControllerMode.Active;
+                    VirtualControllerConfigurationLoader.saveProfile(VirtualController.this, context);
                     message = "Exiting configuration mode";
                 } else {
                     currentMode = ControllerMode.Configuration;
@@ -124,7 +125,11 @@ public class VirtualController {
         params.topMargin = 15;
         relative_layout.addView(buttonConfigure, params);
 
+        // Start with the default layout
         VirtualControllerConfigurationLoader.createDefaultLayout(this, context);
+
+        // Apply user preferences onto the default layout
+        VirtualControllerConfigurationLoader.loadFromPreferences(this, context);
     }
 
     public ControllerMode getControllerMode() {

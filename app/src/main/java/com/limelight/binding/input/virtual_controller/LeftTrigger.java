@@ -8,7 +8,7 @@ import android.content.Context;
 
 public class LeftTrigger extends DigitalButton {
     public LeftTrigger(final VirtualController controller, final int layer, final Context context) {
-        super(controller, layer, context);
+        super(controller, EID_LT, layer, context);
         addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
             @Override
             public void onClick() {

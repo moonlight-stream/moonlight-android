@@ -120,8 +120,8 @@ public class DigitalButton extends VirtualControllerElement {
         }
     }
 
-    public DigitalButton(VirtualController controller, int layer, Context context) {
-        super(controller, context);
+    public DigitalButton(VirtualController controller, int elementId, int layer, Context context) {
+        super(controller, context, elementId);
         this.layer = layer;
     }
 

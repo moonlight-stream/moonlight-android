@@ -84,6 +84,15 @@
             android:key="checkbox_only_show_L3R3"
             android:summary="@string/summary_only_l3r3"
             android:title="@string/title_only_l3r3" />
+        <com.limelight.preferences.ConfirmDeleteOscPreference
+            android:title="@string/title_reset_osc"
+            android:summary="@string/summary_reset_osc"
+            android:dialogTitle="@string/dialog_title_reset_osc"
+            android:dialogMessage="@string/dialog_text_reset_osc"
+            android:positiveButtonText="@string/yes"
+            android:negativeButtonText="@string/no"
+            />
+
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">
         <CheckBoxPreference

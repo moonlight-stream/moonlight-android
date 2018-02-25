@@ -136,6 +136,11 @@
     <string name="summary_checkbox_show_onscreen_controls">Show virtual controller overlay on touchscreen</string>
     <string name="title_only_l3r3">Only show L3 and R3</string>
     <string name="summary_only_l3r3">Hide all virtual buttons except L3 and R3</string>
+    <string name="title_reset_osc">Clear saved on-screen controls layout</string>
+    <string name="summary_reset_osc">Resets all on-screen controls to their default size and position</string>
+    <string name="dialog_title_reset_osc">Reset Layout</string>
+    <string name="dialog_text_reset_osc">Are you sure you want to delete your saved on-screen controls layout?</string>
+    <string name="toast_reset_osc_success">On-screen controls reset to default</string>
 
     <string name="category_ui_settings">UI Settings</string>
     <string name="title_language_list">Language</string>

@@ -11,8 +11,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 27
 
-        versionName "5.6.7"
-        versionCode = 147
+        versionName "5.7"
+        versionCode = 148
     }
 
     flavorDimensions "root"

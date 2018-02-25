@@ -45,7 +45,6 @@ public class VirtualController {
     ControllerMode currentMode = ControllerMode.Active;
     ControllerInputContext inputContext = new ControllerInputContext();
 
-    private RelativeLayout.LayoutParams layoutParamsButtonConfigure = null;
     private Button buttonConfigure = null;
 
     private List<VirtualControllerElement> elements = new ArrayList<>();
@@ -116,9 +115,13 @@ public class VirtualController {
 
         DisplayMetrics screen = context.getResources().getDisplayMetrics();
 
-        int buttonSize = (int)(screen.heightPixels*0.05f);
-        layoutParamsButtonConfigure = new RelativeLayout.LayoutParams(buttonSize, buttonSize);
-        relative_layout.addView(buttonConfigure, layoutParamsButtonConfigure);
+        int buttonSize = (int)(screen.heightPixels*0.06f);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(buttonSize, buttonSize);
+        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
+        params.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+        params.leftMargin = 15;
+        params.topMargin = 15;
+        relative_layout.addView(buttonConfigure, params);
 
         VirtualControllerConfigurationLoader.createDefaultLayout(this, context);
     }

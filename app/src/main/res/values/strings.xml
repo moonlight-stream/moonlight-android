@@ -129,7 +129,7 @@
     <string name="title_checkbox_usb_bind_all">Override Android controller support</string>
     <string name="summary_checkbox_usb_bind_all">Forces Moonlight\'s USB driver to take over all supported Xbox gamepads</string>
     <string name="title_checkbox_mouse_emulation">Mouse emulation via gamepad</string>
-    <string name="summary_checkbox_mouse_emulation">Long pressing the Start button will put the gamepad into mouse mode</string>
+    <string name="summary_checkbox_mouse_emulation">Long pressing the Start button will switch the gamepad into mouse mode</string>
 
     <string name="category_on_screen_controls_settings">On-screen Controls Settings</string>
     <string name="title_checkbox_show_onscreen_controls">Show on-screen controls</string>

@@ -89,7 +89,7 @@
   <string name="summary_resolution_list">Te hoge instellingen kunnen crashes en haperingen veroorzaken.</string>
   <string name="title_seekbar_bitrate">Selecteer doel video bitsnelheid</string>
   <string name="summary_seekbar_bitrate">Verlaag bitsnelheid om haperingen te verminderen. Verhoog de bitsnelheid voor een betere videokwaliteit.</string>
-  <string name="suffix_seekbar_bitrate">Mbps</string>
+  <string name="suffix_seekbar_bitrate">Kbps</string>
   <string name="title_checkbox_stretch_video">Rek video uit tot volledig scherm</string>
   <string name="title_checkbox_disable_warnings">Verberg waarschuwingsberichten</string>
   <string name="summary_checkbox_disable_warnings">Verberg on-screen verbindingswaarschuwingen tijdens het streamen</string>

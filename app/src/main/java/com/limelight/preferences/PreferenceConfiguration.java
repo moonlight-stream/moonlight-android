@@ -8,7 +8,8 @@ import android.preference.PreferenceManager;
 
 public class PreferenceConfiguration {
     static final String RES_FPS_PREF_STRING = "list_resolution_fps";
-    static final String BITRATE_PREF_STRING = "seekbar_bitrate";
+    static final String BITRATE_PREF_STRING = "seekbar_bitrate_kbps";
+    private static final String BITRATE_PREF_OLD_STRING = "seekbar_bitrate";
     private static final String STRETCH_PREF_STRING = "checkbox_stretch_video";
     private static final String SOPS_PREF_STRING = "checkbox_enable_sops";
     private static final String DISABLE_TOASTS_PREF_STRING = "checkbox_disable_warnings";
@@ -30,12 +31,14 @@ public class PreferenceConfiguration {
     private static final String BIND_ALL_USB_STRING = "checkbox_usb_bind_all";
     private static final String MOUSE_EMULATION_STRING = "checkbox_mouse_emulation";
 
-    private static final int BITRATE_DEFAULT_720_30 = 5;
-    private static final int BITRATE_DEFAULT_720_60 = 10;
-    private static final int BITRATE_DEFAULT_1080_30 = 10;
-    private static final int BITRATE_DEFAULT_1080_60 = 20;
-    private static final int BITRATE_DEFAULT_4K_30 = 40;
-    private static final int BITRATE_DEFAULT_4K_60 = 80;
+    private static final int BITRATE_DEFAULT_360_30 = 1000;
+    private static final int BITRATE_DEFAULT_360_60 = 2000;
+    private static final int BITRATE_DEFAULT_720_30 = 5000;
+    private static final int BITRATE_DEFAULT_720_60 = 10000;
+    private static final int BITRATE_DEFAULT_1080_30 = 10000;
+    private static final int BITRATE_DEFAULT_1080_60 = 20000;
+    private static final int BITRATE_DEFAULT_4K_30 = 40000;
+    private static final int BITRATE_DEFAULT_4K_60 = 80000;
 
     private static final String DEFAULT_RES_FPS = "720p60";
     private static final int DEFAULT_BITRATE = BITRATE_DEFAULT_720_60;
@@ -80,7 +83,13 @@ public class PreferenceConfiguration {
     public boolean mouseEmulation;
 
     public static int getDefaultBitrate(String resFpsString) {
-        if (resFpsString.equals("720p30")) {
+        if (resFpsString.equals("360p30")) {
+            return BITRATE_DEFAULT_360_30;
+        }
+        else if (resFpsString.equals("360p60")) {
+            return BITRATE_DEFAULT_360_60;
+        }
+        else if (resFpsString.equals("720p30")) {
             return BITRATE_DEFAULT_720_30;
         }
         else if (resFpsString.equals("720p60")) {
@@ -153,6 +162,7 @@ public class PreferenceConfiguration {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit()
                 .remove(BITRATE_PREF_STRING)
+                .remove(BITRATE_PREF_OLD_STRING)
                 .remove(RES_FPS_PREF_STRING)
                 .remove(VIDEO_FORMAT_PREF_STRING)
                 .remove(ENABLE_HDR_PREF_STRING)
@@ -163,9 +173,23 @@ public class PreferenceConfiguration {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         PreferenceConfiguration config = new PreferenceConfiguration();
 
-        config.bitrate = prefs.getInt(BITRATE_PREF_STRING, getDefaultBitrate(context));
+        config.bitrate = prefs.getInt(BITRATE_PREF_STRING, prefs.getInt(BITRATE_PREF_OLD_STRING, 0) * 1000);
+        if (config.bitrate == 0) {
+            config.bitrate = getDefaultBitrate(context);
+        }
+
         String str = prefs.getString(RES_FPS_PREF_STRING, DEFAULT_RES_FPS);
-        if (str.equals("720p30")) {
+        if (str.equals("360p30")) {
+            config.width = 640;
+            config.height = 360;
+            config.fps = 30;
+        }
+        else if (str.equals("360p60")) {
+            config.width = 640;
+            config.height = 360;
+            config.fps = 60;
+        }
+        else if (str.equals("720p30")) {
             config.width = 1280;
             config.height = 720;
             config.fps = 30;

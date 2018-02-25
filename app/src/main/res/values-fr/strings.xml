@@ -100,7 +100,7 @@
     <string name="summary_resolution_list">Le réglage de valeurs trop élevées pour votre appareil peut provoquer un retard ou un plantage</string>
     <string name="title_seekbar_bitrate">Sélectionnez le bitrate vidéo à obtenir</string>
     <string name="summary_seekbar_bitrate">Bitrate inférieur pour réduire la saccade. Augmentez le bitrate pour augmenter la qualité de l\'image.</string>
-    <string name="suffix_seekbar_bitrate">Mbps</string>
+    <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_checkbox_stretch_video">Étirez la vidéo en plein écran</string>
     <string name="title_checkbox_disable_warnings">Désactiver les messages d\'avertissement</string>
     <string name="summary_checkbox_disable_warnings">Désactiver les messages d\'avertissement de connexion à l\'écran pendant le streaming</string>

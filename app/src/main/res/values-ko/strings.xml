@@ -100,7 +100,7 @@
     <string name="summary_resolution_list">세팅 값이 자신의 PC 성능보다 너무 높으면 렉이나 깨짐을 유발할 수 있습니다.</string>
     <string name="title_seekbar_bitrate">비트레이트 타겟 지정</string>
     <string name="summary_seekbar_bitrate">낮은 비트레이트는 끊김을 줄이고, 높은 비트레이트는 품질을 높입니다.</string>
-    <string name="suffix_seekbar_bitrate">Mbps</string>
+    <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_checkbox_stretch_video">전체 화면으로 렌더링 스크린 늘이기</string>
     <string name="title_checkbox_disable_warnings">경고 메세지 끄기</string>
     <string name="summary_checkbox_disable_warnings">화면 상의 연결 경고 메세지를 스트리밍 중에 비활성화합니다.</string>

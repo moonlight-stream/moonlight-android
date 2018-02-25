@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:seekbar="http://schemas.moonlight-stream.com/apk/res/seekbar">
 
     <PreferenceCategory android:title="@string/category_basic_settings"
         android:key="category_basic_settings">
@@ -11,9 +12,11 @@
             android:entryValues="@array/resolution_values"
             android:defaultValue="720p60" />
         <com.limelight.preferences.SeekBarPreference
-            android:key="seekbar_bitrate"
+            android:key="seekbar_bitrate_kbps"
             android:dialogMessage="@string/summary_seekbar_bitrate"
-            android:max="100"
+            seekbar:min="500"
+            seekbar:step="500"
+            android:max="100000"
             android:summary="@string/summary_seekbar_bitrate"
             android:text="@string/suffix_seekbar_bitrate"
             android:title="@string/title_seekbar_bitrate" />

@@ -100,7 +100,7 @@
     <string name="summary_resolution_list"> 過高的設定會引起串流卡頓甚至軟體閃退 </string>
     <string name="title_seekbar_bitrate"> 選擇目標視頻碼率 </string>
     <string name="summary_seekbar_bitrate"> 低碼率減少卡頓，高碼率提高畫質 </string>
-    <string name="suffix_seekbar_bitrate">Mbps</string>
+    <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_checkbox_stretch_video"> 將畫面拉伸至全屏 </string>
     <string name="title_checkbox_disable_warnings"> 禁用錯誤提示 </string>
     <string name="summary_checkbox_disable_warnings"> 串流過程中禁用連接錯誤提示 </string>

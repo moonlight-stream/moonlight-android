@@ -350,7 +350,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setResolution(prefConfig.width, prefConfig.height)
                 .setRefreshRate(prefConfig.fps)
                 .setApp(new NvApp(appName, appId, willStreamHdr))
-                .setBitrate(prefConfig.bitrate * 1000)
+                .setBitrate(prefConfig.bitrate)
                 .setEnableSops(prefConfig.enableSops)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
                 .setMaxPacketSize((remote || prefConfig.width <= 1920) ? 1024 : 1292)

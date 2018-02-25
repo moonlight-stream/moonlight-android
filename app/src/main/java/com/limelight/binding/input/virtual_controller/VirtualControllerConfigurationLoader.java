@@ -255,22 +255,23 @@ public class VirtualControllerConfigurationLoader {
                     getPercent(10, screen.heightPixels)
             );
         }
+        else {
+            controller.addElement(createDigitalButton(
+                    ControllerPacket.LS_CLK_FLAG, 0, 1, "L3", -1, controller, context),
+                    getPercent(2, screen.widthPixels),
+                    getPercent(80, screen.heightPixels),
+                    getPercent(BUTTON_WIDTH, screen.widthPixels),
+                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+            );
 
-        controller.addElement(createDigitalButton(
-                ControllerPacket.LS_CLK_FLAG, 0, 1, "L3", -1, controller, context),
-                getPercent(2, screen.widthPixels),
-                getPercent(80, screen.heightPixels),
-                getPercent(BUTTON_WIDTH, screen.widthPixels),
-                getPercent(BUTTON_HEIGHT, screen.heightPixels)
-        );
-
-        controller.addElement(createDigitalButton(
-                ControllerPacket.RS_CLK_FLAG, 0, 1, "R3", -1, controller, context),
-                getPercent(89, screen.widthPixels),
-                getPercent(80, screen.heightPixels),
-                getPercent(BUTTON_WIDTH, screen.widthPixels),
-                getPercent(BUTTON_HEIGHT, screen.heightPixels)
-        );
+            controller.addElement(createDigitalButton(
+                    ControllerPacket.RS_CLK_FLAG, 0, 1, "R3", -1, controller, context),
+                    getPercent(89, screen.widthPixels),
+                    getPercent(80, screen.heightPixels),
+                    getPercent(BUTTON_WIDTH, screen.widthPixels),
+                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+            );
+        }
     }
 
     /*

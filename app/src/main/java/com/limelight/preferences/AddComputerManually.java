@@ -1,5 +1,12 @@
 package com.limelight.preferences;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Collections;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.computers.ComputerManagerService;
@@ -39,36 +46,84 @@ public class AddComputerManually extends Activity {
         }
     };
 
+    private boolean isWrongSubnetSiteLocalAddress(String address) {
+        try {
+            InetAddress targetAddress = InetAddress.getByName(address);
+            if (!(targetAddress instanceof Inet4Address) || !targetAddress.isSiteLocalAddress()) {
+                return false;
+            }
+
+            // We have a site-local address. Look for a matching local interface.
+            for (NetworkInterface iface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+                for (InterfaceAddress addr : iface.getInterfaceAddresses()) {
+                    if (!(addr.getAddress() instanceof Inet4Address) || !addr.getAddress().isSiteLocalAddress()) {
+                        // Skip non-site-local or non-IPv4 addresses
+                        continue;
+                    }
+
+                    byte[] targetAddrBytes = targetAddress.getAddress();
+                    byte[] ifaceAddrBytes = addr.getAddress().getAddress();
+
+                    // Compare prefix to ensure it's the same
+                    boolean addressMatches = true;
+                    for (int i = 0; i < addr.getNetworkPrefixLength(); i++) {
+                        if ((ifaceAddrBytes[i / 8] & (1 << (i % 8))) != (targetAddrBytes[i / 8] & (1 << (i % 8)))) {
+                            addressMatches = false;
+                            break;
+                        }
+                    }
+
+                    if (addressMatches) {
+                        return false;
+                    }
+                }
+            }
+
+            // Couldn't find a matching interface
+            return true;
+        } catch (SocketException e) {
+            e.printStackTrace();
+            return false;
+        } catch (UnknownHostException e) {
+            return false;
+        }
+    }
+
     private void doAddPc(String host) {
         String msg;
-        boolean finish = false;
+        boolean wrongSiteLocal = false;
+        boolean success;
 
         SpinnerDialog dialog = SpinnerDialog.displayDialog(this, getResources().getString(R.string.title_add_pc),
             getResources().getString(R.string.msg_add_pc), false);
 
-        if (!managerBinder.addComputerBlocking(host, true)){
-            msg = getResources().getString(R.string.addpc_fail);
-        }
-        else {
-            msg = getResources().getString(R.string.addpc_success);
-            finish = true;
+        success = managerBinder.addComputerBlocking(host, true);
+        if (!success){
+            wrongSiteLocal = isWrongSubnetSiteLocalAddress(host);
         }
 
         dialog.dismiss();
 
-        final boolean toastFinish = finish;
-        final String toastMsg = msg;
-        AddComputerManually.this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(AddComputerManually.this, toastMsg, Toast.LENGTH_LONG).show();
+        if (wrongSiteLocal) {
+            Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title), getResources().getString(R.string.addpc_wrong_sitelocal), false);
+        }
+        else if (!success) {
+            Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title), getResources().getString(R.string.addpc_fail), false);
+        }
+        else {
+            AddComputerManually.this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                Toast.makeText(AddComputerManually.this, getResources().getString(R.string.addpc_success), Toast.LENGTH_LONG).show();
 
-                if (toastFinish && !isFinishing()) {
+                if (!isFinishing()) {
                     // Close the activity
                     AddComputerManually.this.finish();
                 }
-            }
-        });
+                }
+            });
+        }
+
     }
 
     private void startAddThread() {

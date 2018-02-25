@@ -98,6 +98,7 @@
     <string name="addpc_success">Successfully added computer</string>
     <string name="addpc_unknown_host">Unable to resolve PC address. Make sure you didn\'t make a typo in the address.</string>
     <string name="addpc_enter_ip">You must enter an IP address</string>
+    <string name="addpc_wrong_sitelocal">That address doesn\'t look right. You must your router\'s public IP address for streaming over the Internet.</string>
 
     <!-- Preferences -->
     <string name="category_basic_settings">Basic Settings</string>

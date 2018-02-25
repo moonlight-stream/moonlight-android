@@ -61,6 +61,7 @@
             android:defaultValue="true" />
         <CheckBoxPreference
             android:key="checkbox_usb_bind_all"
+            android:dependency="checkbox_usb_driver"
             android:title="@string/title_checkbox_usb_bind_all"
             android:summary="@string/summary_checkbox_usb_bind_all"
             android:defaultValue="false" />
@@ -73,14 +74,13 @@
     <PreferenceCategory android:title="@string/category_on_screen_controls_settings"
         android:key="category_onscreen_controls">
         <CheckBoxPreference
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:defaultValue="false"
             android:key="checkbox_show_onscreen_controls"
             android:summary="@string/summary_checkbox_show_onscreen_controls"
             android:title="@string/title_checkbox_show_onscreen_controls" />
         <CheckBoxPreference
             android:defaultValue="false"
+            android:dependency="checkbox_show_onscreen_controls"
             android:key="checkbox_only_show_L3R3"
             android:summary="@string/summary_only_l3r3"
             android:title="@string/title_only_l3r3" />

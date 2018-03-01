@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Shortcut strings -->
+    <string name="scut_deleted_pc">PC eliminato</string>
+    <string name="scut_not_paired">PC non accoppiato</string>
 
+    <!-- Help strings -->
+    <string name="help_loading_title">Visualizza assistenza</string>
+    <string name="help_loading_msg">Caricamento pagina di assistenza…</string>
+	
     <!-- PC view menu entries -->
     <string name="pcview_menu_app_list">Lista applicazioni</string>
     <string name="pcview_menu_pair_pc">Accoppia PC</string>
@@ -10,21 +17,22 @@
 
     <!-- Pair messages -->
     <string name="pairing">Accoppiamento…</string>
-    <string name="pair_pc_offline">PC offline</string>
+    <string name="pair_pc_offline">Il PC è offline</string>
     <string name="pair_pc_ingame">PC con applicazione avviata. Devi chiudere l\'applicazione prima dell\'accoppiamento.</string>
     <string name="pair_pairing_title">Accoppiamento</string>
     <string name="pair_pairing_msg">Inserisci il seguente PIN sul PC:</string>
     <string name="pair_incorrect_pin">PIN non corretto</string>
     <string name="pair_fail">Accoppiamento fallito</string>
+    <string name="pair_already_in_progress">Accoppiamento già in corso</string>
 
     <!-- WOL messages -->
     <string name="wol_pc_online">PC già avviato</string>
-    <string name="wol_no_mac">Impossibile risvegliare il PC perchè GFE non ha inviato nessun indirizzo MAC</string>
+    <string name="wol_no_mac">Impossibile risvegliare il PC perché GFE non ha inviato nessun indirizzo MAC</string>
     <string name="wol_waking_pc">Risveglio PC…</string>
     <string name="wol_waking_msg">Il PC potrebbe impiegare qualche secondo per risvegliarsi.
-	    Se non succede niente, assicurati che l\'opzione Wake-On-LAN sia configurata correttamente.
+        Se non succede niente, assicurati che l\'opzione Wake-On-LAN sia configurata correttamente.
     </string>
-    <string name="wol_fail">Invio pacchetto Wake-On-LAN fallito</string>
+    <string name="wol_fail">Invio pacchetti Wake-On-LAN fallito</string>
 
     <!-- Unpair messages -->
     <string name="unpairing">Disaccoppiamento…</string>
@@ -37,33 +45,41 @@
     <string name="error_manager_not_running">Il servizio ComputerManager non è avviato. Attendi qualche secondo o riavvia l\'applicazione.</string>
     <string name="error_unknown_host">Risoluzione nome host fallita</string>
     <string name="error_404">GFE ha ritornato un errore HTTP 404 error. Assicurati che il PC stia usando una GPU supportata.
-	    Usare un software di remote-desktop può causare questo errore. Prova a riavviare il PC o a reinstallare GFE.
+        Usare un software di desktop remoto può causare questo errore. Prova a riavviare il PC o a reinstallare GFE.
     </string>
+    <string name="title_decoding_error">Il decodificatore video ha smesso di funzionare</string>
+    <string name="message_decoding_error">Moonlight ha smesso di funzionare per colpa di un problema al decodificatore video di questo dispositivo. Prova a modificare le impostazioni di stream se il problema persiste.</string>
+    <string name="title_decoding_reset">Ripristino impostazioni video</string>
+    <string name="message_decoding_reset">Il decodificatore video del dispositivo continua a funzionare in modo anomalo con le impostazioni di streaming selezionate. Le impostazioni di streaming sono state ripristinate ai valori predefiniti.</string>
+    <string name="error_usb_prohibited">L\'accesso USB è vietato dall\'amministratore del dispositivo. Verifica le impostazioni Knox o MDM.</string>
 
     <!-- Start application messages -->
-    <string name="conn_establishing_title">Connessione</string>
-    <string name="conn_establishing_msg">Connessione in corso</string>
+    <string name="conn_establishing_title">Connessione in corso</string>
+    <string name="conn_establishing_msg">Avvio connessione</string>
     <string name="conn_metered">Attenzione: la rete attiva prevede costi aggiuntivi in base all\'utilizzo!</string>
-    <string name="conn_client_latency">Latenza frame media client-side:</string>
-    <string name="conn_client_latency_hw">latenza decoder hardware:</string>
-    <string name="conn_hardware_latency">Latenza decoder hardware media:</string>
+    <string name="conn_client_latency">Latenza decodifica fotogrammi media:</string>
+    <string name="conn_client_latency_hw">latenza decodificatore hardware:</string>
+    <string name="conn_hardware_latency">Latenza decodificatore hardware media:</string>
     <string name="conn_starting">Avvio in corso…</string>
     <string name="conn_error_title">Errore connessione</string>
     <string name="conn_error_msg">Avvio fallito</string>
-    <string name="conn_terminated_title">Connessione terminata</string>
+    <string name="conn_terminated_title">Connessione interrotta</string>
     <string name="conn_terminated_msg">La connessione è stata interrotta</string>
 
     <!-- General strings -->
     <string name="ip_hint">Indirizzo IP del PC</string>
-    <string name="searching_pc">Ricerca PC in corso…</string>
+    <string name="searching_pc">Ricerca di PC con GameStream avviato…\n\n
+        Assicurati che GameStream sia abilitato nelle impostazioni SHIELD di GeForce Experience.</string>
     <string name="yes">Sì</string>
     <string name="no">No</string>
     <string name="lost_connection">Connessione con il PC persa</string>
+    <string name="help">Assistenza</string>
 
     <!-- AppList activity -->
     <string name="title_applist">Applicazioni su</string>
-    <string name="applist_menu_resume">Riprendi Sessione</string>
-    <string name="applist_menu_quit">Chiudi Sessione</string>
+    <string name="applist_connect_msg">Connessione al PC in corso…</string>
+    <string name="applist_menu_resume">Riprendi sessione</string>
+    <string name="applist_menu_quit">Chiudi sessione</string>
     <string name="applist_menu_quit_and_start">Chiudi sessione corrente e avvia</string>
     <string name="applist_menu_cancel">Annulla</string>
     <string name="applist_refresh_title">Lista applicazioni</string>
@@ -76,43 +92,76 @@
     <string name="applist_quit_confirmation">Sei sicuro di voler chiudere l\'applicazione avviata? Tutti i dati non salvati saranno persi.</string>
 
     <!-- Add computer manually activity -->
-    <string name="title_add_pc">Aggiungi PC Manualmente</string>
+    <string name="title_add_pc">Aggiungi PC manualmente</string>
     <string name="msg_add_pc">Connessione al PC in corso…</string>
-    <string name="addpc_fail">Impossibile connettersi al PC. Assicurati che il firewall del PC sia configurato correttamente.</string>
+    <string name="addpc_fail">Impossibile connettersi al PC specificato. Assicurati che le porte nel firewall del PC siano configurate correttamente.</string>
     <string name="addpc_success">PC aggiunto con successo</string>
     <string name="addpc_unknown_host">Impossibile risovere l\'indirizzo del PC. Assicurati di aver scritto correttamente l\'indirizzo.</string>
     <string name="addpc_enter_ip">Devi inserire un indirizzo IP</string>
+    <string name="addpc_wrong_sitelocal">Quell\'indirizzo non sembra corretto. È necessario utilizzare l\'indirizzo IP pubblico del router per lo streaming su Internet.</string>
 
     <!-- Preferences -->
-    <string name="category_basic_settings">Impostazioni Base</string>
+    <string name="category_basic_settings">Impostazioni generali</string>
     <string name="title_resolution_list">Risoluzione e FPS</string>
     <string name="summary_resolution_list">Valori troppo elevati possono causare lag o crash</string>
-    <string name="title_seekbar_bitrate">Bitrate video</string>
-    <string name="summary_seekbar_bitrate">Abbassa il bitrate per ridurre lo stuttering; alza il bitrate per aumenteare la qualità dell\'immagine</string>
+    <string name="title_seekbar_bitrate">Velocità di trasmissione video</string>
+    <string name="summary_seekbar_bitrate">Abbassa la velocità di trasmissione per ridurre lo stuttering; alzala per migliorare la qualità dell\'immagine</string>
     <string name="suffix_seekbar_bitrate">Kbps</string>
-    <string name="title_checkbox_stretch_video">Forza video in full-screen</string>
+    <string name="title_checkbox_stretch_video">Forza video a schermo intero</string>
     <string name="title_checkbox_disable_warnings">Disabilita messaggi di warning</string>
     <string name="summary_checkbox_disable_warnings">Disabilita i messaggi di warning sullo schermo durante lo streaming</string>
+    <string name="title_checkbox_battery_saver">Risparmio batteria</string>
+    <string name="summary_checkbox_battery_saver">Usa meno batteria, ma può aumentare lo stuttering</string>
+    <string name="title_checkbox_enable_pip">Abilita modalità spettatore Picture-in-Picture</string>
+    <string name="summary_checkbox_enable_pip">Permette di osservare (ma non di controllare) la stream in multitasking</string>
 
-    <string name="category_gamepad_settings">Impostazioni Gamepad</string>
-    <string name="title_checkbox_multi_controller">Supporto controller multipli</string>
-    <string name="summary_checkbox_multi_controller">Quando disabilitato, tutti i controllers appaiono come uno solo</string>
-    <string name="title_seekbar_deadzone">Aggiusta deadzone degli stick analogici</string>
+    <string name="category_audio_settings">Impostazioni audio</string>
+    <string name="title_checkbox_51_surround">Abilita l\'audio 5.1 surround</string>
+    <string name="summary_checkbox_51_surround">Se riscontri problemi, disabilitalo. Richiede GFE 2.7 o versioni sucessive.</string>
+
+    <string name="category_gamepad_settings">Impostazioni controller</string>
+    <string name="title_checkbox_multi_controller">Supporto a più controller</string>
+    <string name="summary_checkbox_multi_controller">Quando disabilitato, tutti i controller appaiono come uno solo</string>
+    <string name="title_seekbar_deadzone">Regola i punti morti degli stick analogici</string>
     <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Driver del controller Xbox 360/One</string>
+    <string name="summary_checkbox_xb1_driver">Abilita un driver USB integrato per dispositivi senza supporto al controller Xbox nativo</string>
+    <string name="title_checkbox_usb_bind_all">Sovrascrivi il supporto ai controller su Android</string>
+    <string name="summary_checkbox_usb_bind_all">Forza i driver USB di Moonlight di assumere il controllo su tutti i controller Xbox supportati</string>
+    <string name="title_checkbox_mouse_emulation">Emulazione del mouse tramite controller</string>
+    <string name="summary_checkbox_mouse_emulation">Tenendo premuto il pulsante Start, il controller passerà alla modalità mouse</string>
+	
+    <string name="category_on_screen_controls_settings">Impostazioni dei controlli a schermo</string>
+    <string name="title_checkbox_show_onscreen_controls">Mostra controlli a schermo</string>
+    <string name="summary_checkbox_show_onscreen_controls">Mostra l\'overlay virtuale del controller su schermo</string>
+    <string name="title_only_l3r3">Mostra solo L3 e R3</string>
+    <string name="summary_only_l3r3">Nasconde tutti i pulsanti virtuali tranne L3 e R3</string>
+    <string name="title_reset_osc">Ripristina il layout personalizzato dei controlli a schermo</string>
+    <string name="summary_reset_osc">Ripristina tutti i controlli a schermo nelle loro posizioni e dimensioni predefinite</string>
+    <string name="dialog_title_reset_osc">Ripristino del layout</string>
+    <string name="dialog_text_reset_osc">Sei sicuro di voler ripristinare ai valori predefiniti i layout dei controlli a schermo?</string>
+    <string name="toast_reset_osc_success">I controlli a schermo sono stati ripristinati</string>
 
-    <string name="category_ui_settings">Impostazioni Interfaccia</string>
+    <string name="category_ui_settings">Impostazioni dell\'interfaccia</string>
     <string name="title_language_list">Lingua</string>
     <string name="summary_language_list">Lingua da usare in Moonlight</string>
     <string name="title_checkbox_list_mode">Usa lista invece della griglia</string>
-    <string name="summary_checkbox_list_mode">Visualizza applicazioni e computers in una lista invece di una griglia</string>
+    <string name="summary_checkbox_list_mode">Visualizza le applicazioni e i PC in una lista invece di una griglia</string>
     <string name="title_checkbox_small_icon_mode">Usa icone piccole</string>
-    <string name="summary_checkbox_small_icon_mode">Usa icone piccole nella vista a griglia per avere più oggetti sullo schermo</string>
+    <string name="summary_checkbox_small_icon_mode">Usa icone piccole nella griglia per avere più oggetti a schermo</string>
 
-    <string name="category_host_settings">Impostazioni Host</string>
+    <string name="category_host_settings">Impostazioni del PC host</string>
     <string name="title_checkbox_enable_sops">Ottimizza le impostazioni dei giochi</string>
     <string name="summary_checkbox_enable_sops">Permetti a GFE di modificare le impostazioni dei giochi per uno streaming ottimale</string>
     <string name="title_checkbox_host_audio">Riproduci audio sul PC</string>
-    <string name="summary_checkbox_host_audio">Riproduci l\'audio sul computer e su questo dispositivo</string>
+    <string name="summary_checkbox_host_audio">Riproduce l\'audio sul PC e su questo dispositivo</string>
 
-    <string name="category_advanced_settings">Impostazioni Avanzate</string>
+    <string name="category_advanced_settings">Impostazioni avanzate</string>
+    <string name="title_disable_frame_drop">Non saltare i fotogrammi</string>
+    <string name="summary_disable_frame_drop">Potrebbe ridurre il micro-stuttering su alcuni dispositivi, ma può aumentare la latenza</string>
+    <string name="title_video_format">Modifica impostazioni H.265</string>
+    <string name="summary_video_format">H.265 riduce i requisiti di larghezza di banda video ma richiede un dispositivo molto recente</string>
+    <string name="title_enable_hdr">Abilita HDR (sperimentale)</string>
+    <string name="summary_enable_hdr">Utilizza l\'HDR quando il gioco e la scheda video del PC lo supportano. L\'HDR richiede una scheda video serie GTX 1000 o sucessive.</string>
+	
 </resources>

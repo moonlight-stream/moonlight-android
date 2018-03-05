@@ -5,6 +5,6 @@
     <!-- Ensure native libraries are always extracted for root builds,
          since we must invoke the evdev_reader binary ourselves -->
     <application
-        android:label="Moonlight (Root)"
+        android:label="@string/app_label_root"
         android:extractNativeLibs="true" />
 </manifest>

@@ -28,7 +28,7 @@
 
     <!-- Unpair messages -->
     <string name="unpairing">Разрыв пары…</string>
-    <string name="unpair_success">Разрыв пары закончился успешно.</string>
+    <string name="unpair_success">Разрыв пары закончился успешно</string>
     <string name="unpair_fail">Разрыв пары не удался</string>
     <string name="unpair_error">Устройство не было спарено</string>
 
@@ -36,12 +36,12 @@
     <string name="error_pc_offline">Компьютер выключен или находится не в сети</string>
     <string name="error_manager_not_running">Сервис ComputerManager не запущен. Пожалуйста, подождите несколько секунд или перезапустите приложение.</string>
     <string name="error_unknown_host">Не удалось найти хост</string>
-    <string name="error_404">GFE вернул ошибку HTTP 404. Убедитесь что ваш PC is испольщует поддерживаемый GPU.
-	    Использование программ для удалённого доступа также можнт вызывать эту ошибку. Попробуйте перезагрузить компьютер или переустановить GFE.
+    <string name="error_404">GFE вернул ошибку HTTP 404. Убедитесь что ваш PC использует поддерживаемый GPU.
+	    Использование программ для удалённого доступа также может вызывать эту ошибку. Попробуйте перезагрузить компьютер или переустановить GFE.
     </string>
 
     <!-- Start application messages -->
-    <string name="conn_establishing_title">Создание соединения.</string>
+    <string name="conn_establishing_title">Создание соединения</string>
     <string name="conn_establishing_msg">Подключение</string>
     <string name="conn_metered">Внимание: Происходит измерение вашего сетевого соединения!</string>
     <string name="conn_client_latency">Средняя задержка декодирования кадра: </string>
@@ -55,7 +55,8 @@
 
     <!-- General strings -->
     <string name="ip_hint">IP адресс компьютера с GeForce</string>
-    <string name="searching_pc">Поиск компьютеров…</string>
+    <string name="searching_pc">Поиск компьютеров с запущенным GameStream…\n\n
+        Убедитесь что GameStream включен в настройках GeForce Experience в разделе SHIELD.</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="lost_connection">Потеряно соединение с PC</string>
@@ -79,49 +80,49 @@
     <string name="title_add_pc">Добавление PC вручную</string>
     <string name="msg_add_pc">Соединение с PC…</string>
     <string name="addpc_fail">Не удалось подключиться к выбранному компьютеру. Удостоверьтесь, что необходимые порты разрешены в настройках брандмауэра.</string>
-    <string name="addpc_success">Компьютер добавлен успешно.</string>
-    <string name="addpc_unknown_host">Не удалось найти PC по указанному адресу. Убедитесь, что вы не совершили ошибок во время его написания.</string>
+    <string name="addpc_success">Компьютер добавлен успешно</string>
+    <string name="addpc_unknown_host">Не удалось найти PC по указанному адресу. Убедитесь, что Вы не совершили ошибок во время его написания.</string>
     <string name="addpc_enter_ip">Вы должны ввести IP адрес</string>
 
     <!-- Preferences -->
-    <string name="category_basic_settings">Базовые Настройки</string>
-    <string name="title_resolution_list">Выберите разрешение и частоту кадров.</string>
-    <string name="summary_resolution_list">Выбор слишком высокого значеня для своего устройства может вызвать тормоза или вылеты.</string>
-    <string name="title_seekbar_bitrate">Выберите битрейт видео.</string>
+    <string name="category_basic_settings">Общие Настройки</string>
+    <string name="title_resolution_list">Выберите разрешение и частоту кадров</string>
+    <string name="summary_resolution_list">Выбор слишком высокого значеня для своего устройства может вызвать тормоза или вылеты</string>
+    <string name="title_seekbar_bitrate">Выберите битрейт видео</string>
     <string name="summary_seekbar_bitrate">Низкий битрейт уменьшит зависания. Увеличение битрейта улучшит качество изображения.</string>
     <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_checkbox_stretch_video">Растягивать видео на весь экран</string>
     <string name="title_checkbox_disable_warnings">Отключить сообщения с предупреждениями</string>
-    <string name="summary_checkbox_disable_warnings">Выключить экранные предупреждения о соединении во время стрима.</string>
+    <string name="summary_checkbox_disable_warnings">Выключить экранные предупреждения о соединении во время стрима</string>
 
     <string name="category_audio_settings">Аудио Настройки</string>
     <string name="title_checkbox_51_surround">Включить объёмный звук 5.1</string>
     <string name="summary_checkbox_51_surround">Отключите, если появляются аудио проблемы. Требуется GFE 2.7 или выше.</string>
 
-    <string name="category_gamepad_settings">Настройки Гемпада</string>
+    <string name="category_gamepad_settings">Настройки Геймпада</string>
     <string name="title_checkbox_multi_controller">Поддержка нескольких контроллеров</string>
-    <string name="summary_checkbox_multi_controller">Когда отключена, все контроллеры определяются как один. </string>
-    <string name="title_seekbar_deadzone">Регулировать мертвую зону аналогового стика.</string>
+    <string name="summary_checkbox_multi_controller">Когда отключена, все контроллеры определяются как один</string>
+    <string name="title_seekbar_deadzone">Регулировать мертвую зону аналогового стика</string>
     <string name="suffix_seekbar_deadzone">%</string>
-    <string name="title_checkbox_xb1_driver">Драйвер контроллера от Xbox One</string>
-    <string name="summary_checkbox_xb1_driver">Включить встроенный USB драйвер для устройств без встроенной поддержки контроллера от Xbox One.</string>
+    <string name="title_checkbox_xb1_driver">Драйвер контроллеров Xbox 360/One</string>
+    <string name="summary_checkbox_xb1_driver">Включить встроенный USB драйвер для устройств без встроенной поддержки контроллеров Xbox</string>
 
     <string name="category_ui_settings">Настройки Интерфейса</string>
     <string name="title_language_list">Язык</string>
     <string name="summary_language_list">Язык, который будет использоваться в Moonlight</string>
-    <string name="title_checkbox_list_mode">Использовать списки вместо сеток.</string>
-    <string name="summary_checkbox_list_mode">Выводить приложения и компьютеры списком, вместо использования сетки.</string>
+    <string name="title_checkbox_list_mode">Использовать списки вместо сеток</string>
+    <string name="summary_checkbox_list_mode">Выводить приложения и компьютеры списком, вместо использования сетки</string>
     <string name="title_checkbox_small_icon_mode">Использовать маленькие иконки</string>
-    <string name="summary_checkbox_small_icon_mode">Использовать маленькие иконки в сетки для увеличения числа элементов, отображаемых на экране.</string>
+    <string name="summary_checkbox_small_icon_mode">Использовать маленькие иконки в сетке для отображения большего числа элементов на экране</string>
 
     <string name="category_host_settings">Настройки Хоста</string>
     <string name="title_checkbox_enable_sops">Оптимизировать игровые настройки</string>
     <string name="summary_checkbox_enable_sops">Разрешить GFE изменять настройки игр для оптимальной потоковой передачи</string>
     <string name="title_checkbox_host_audio">Проигрывать звук на PC</string>
-    <string name="summary_checkbox_host_audio">Проигрывать звук на компьютере и текущем устройстве.</string>
+    <string name="summary_checkbox_host_audio">Проигрывать звук на компьютере и текущем устройстве</string>
 
     <string name="category_advanced_settings">Расширенные Настройки</string>
     <string name="title_video_format">Изменить настройки H.265</string>
-    <string name="summary_video_format">H.265 снижает требования к пропускной способности, но требует очень свежих устройств.</string>
+    <string name="summary_video_format">H.265 снижает требования к пропускной способности, но требует очень нового устройства</string>
 
 </resources>

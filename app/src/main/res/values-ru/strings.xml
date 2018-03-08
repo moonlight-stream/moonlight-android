@@ -28,7 +28,7 @@
 
     <!-- Unpair messages -->
     <string name="unpairing">Разрыв пары…</string>
-    <string name="unpair_success">Разрыв пары закончился успешно.</string>
+    <string name="unpair_success">Разрыв пары закончился успешно</string>
     <string name="unpair_fail">Разрыв пары не удался</string>
     <string name="unpair_error">Устройство не было спарено</string>
 
@@ -36,14 +36,14 @@
     <string name="error_pc_offline">Компьютер выключен или находится не в сети</string>
     <string name="error_manager_not_running">Сервис ComputerManager не запущен. Пожалуйста, подождите несколько секунд или перезапустите приложение.</string>
     <string name="error_unknown_host">Не удалось найти хост</string>
-    <string name="error_404">GFE вернул ошибку HTTP 404. Убедитесь что ваш PC is испольщует поддерживаемый GPU.
-	    Использование программ для удалённого доступа также можнт вызывать эту ошибку. Попробуйте перезагрузить компьютер или переустановить GFE.
+    <string name="error_404">GFE вернул ошибку HTTP 404. Убедитесь что Ваш PC использует поддерживаемый GPU.
+	    Использование программ для удалённого доступа также может вызывать эту ошибку. Попробуйте перезагрузить компьютер или переустановить GFE.
     </string>
 
     <!-- Start application messages -->
-    <string name="conn_establishing_title">Создание соединения.</string>
+    <string name="conn_establishing_title">Создание соединения</string>
     <string name="conn_establishing_msg">Подключение</string>
-    <string name="conn_metered">Внимание: Происходит измерение вашего сетевого соединения!</string>
+    <string name="conn_metered">Внимание: Происходит измерение Вашего сетевого соединения!</string>
     <string name="conn_client_latency">Средняя задержка декодирования кадра: </string>
     <string name="conn_client_latency_hw">задержка аппаратного декодирования:</string>
     <string name="conn_hardware_latency">Средняя задержка апаратного декодирования:</string>
@@ -54,8 +54,9 @@
     <string name="conn_terminated_msg">Подключение было прервано</string>
 
     <!-- General strings -->
-    <string name="ip_hint">IP адресс компьютера с GeForce</string>
-    <string name="searching_pc">Поиск компьютеров…</string>
+    <string name="ip_hint">IP-адрес компьютера с GeForce</string>
+    <string name="searching_pc">Поиск компьютеров с запущенным GameStream…\n\n
+        Убедитесь что GameStream включен в настройках GeForce Experience в разделе SHIELD.</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="lost_connection">Потеряно соединение с PC</string>
@@ -79,49 +80,84 @@
     <string name="title_add_pc">Добавление PC вручную</string>
     <string name="msg_add_pc">Соединение с PC…</string>
     <string name="addpc_fail">Не удалось подключиться к выбранному компьютеру. Удостоверьтесь, что необходимые порты разрешены в настройках брандмауэра.</string>
-    <string name="addpc_success">Компьютер добавлен успешно.</string>
-    <string name="addpc_unknown_host">Не удалось найти PC по указанному адресу. Убедитесь, что вы не совершили ошибок во время его написания.</string>
+    <string name="addpc_success">Компьютер добавлен успешно</string>
+    <string name="addpc_unknown_host">Не удалось найти PC по указанному адресу. Убедитесь, что Вы не совершили ошибок во время его написания.</string>
     <string name="addpc_enter_ip">Вы должны ввести IP адрес</string>
 
     <!-- Preferences -->
-    <string name="category_basic_settings">Базовые Настройки</string>
-    <string name="title_resolution_list">Выберите разрешение и частоту кадров.</string>
-    <string name="summary_resolution_list">Выбор слишком высокого значеня для своего устройства может вызвать тормоза или вылеты.</string>
-    <string name="title_seekbar_bitrate">Выберите битрейт видео.</string>
+    <string name="category_basic_settings">Общие Настройки</string>
+    <string name="title_resolution_list">Выберите разрешение и частоту кадров</string>
+    <string name="summary_resolution_list">Выбор слишком высокого значеня для своего устройства может вызвать тормоза или вылеты</string>
+    <string name="title_seekbar_bitrate">Выберите битрейт видео</string>
     <string name="summary_seekbar_bitrate">Низкий битрейт уменьшит зависания. Увеличение битрейта улучшит качество изображения.</string>
     <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_checkbox_stretch_video">Растягивать видео на весь экран</string>
     <string name="title_checkbox_disable_warnings">Отключить сообщения с предупреждениями</string>
-    <string name="summary_checkbox_disable_warnings">Выключить экранные предупреждения о соединении во время стрима.</string>
+    <string name="summary_checkbox_disable_warnings">Выключить экранные предупреждения о соединении во время трансляции</string>
 
     <string name="category_audio_settings">Аудио Настройки</string>
     <string name="title_checkbox_51_surround">Включить объёмный звук 5.1</string>
     <string name="summary_checkbox_51_surround">Отключите, если появляются аудио проблемы. Требуется GFE 2.7 или выше.</string>
 
-    <string name="category_gamepad_settings">Настройки Гемпада</string>
+    <string name="category_gamepad_settings">Настройки Геймпада</string>
     <string name="title_checkbox_multi_controller">Поддержка нескольких контроллеров</string>
-    <string name="summary_checkbox_multi_controller">Когда отключена, все контроллеры определяются как один. </string>
-    <string name="title_seekbar_deadzone">Регулировать мертвую зону аналогового стика.</string>
+    <string name="summary_checkbox_multi_controller">Когда отключена, все контроллеры определяются как один</string>
+    <string name="title_seekbar_deadzone">Регулировать мертвую зону аналогового стика</string>
     <string name="suffix_seekbar_deadzone">%</string>
-    <string name="title_checkbox_xb1_driver">Драйвер контроллера от Xbox One</string>
-    <string name="summary_checkbox_xb1_driver">Включить встроенный USB драйвер для устройств без встроенной поддержки контроллера от Xbox One.</string>
+    <string name="title_checkbox_xb1_driver">Драйвер контроллеров Xbox 360/One</string>
+    <string name="summary_checkbox_xb1_driver">Включить встроенный USB драйвер для устройств без собственной поддержки контроллеров Xbox</string>
 
     <string name="category_ui_settings">Настройки Интерфейса</string>
     <string name="title_language_list">Язык</string>
     <string name="summary_language_list">Язык, который будет использоваться в Moonlight</string>
-    <string name="title_checkbox_list_mode">Использовать списки вместо сеток.</string>
-    <string name="summary_checkbox_list_mode">Выводить приложения и компьютеры списком, вместо использования сетки.</string>
+    <string name="title_checkbox_list_mode">Использовать списки вместо сеток</string>
+    <string name="summary_checkbox_list_mode">Выводить приложения и компьютеры списком, вместо использования сетки</string>
     <string name="title_checkbox_small_icon_mode">Использовать маленькие иконки</string>
-    <string name="summary_checkbox_small_icon_mode">Использовать маленькие иконки в сетки для увеличения числа элементов, отображаемых на экране.</string>
+    <string name="summary_checkbox_small_icon_mode">Использовать маленькие иконки в сетке для отображения большего числа элементов на экране</string>
 
     <string name="category_host_settings">Настройки Хоста</string>
     <string name="title_checkbox_enable_sops">Оптимизировать игровые настройки</string>
-    <string name="summary_checkbox_enable_sops">Разрешить GFE изменять настройки игр для оптимальной потоковой передачи</string>
+    <string name="summary_checkbox_enable_sops">Разрешить GFE изменять настройки игр для оптимальной трансляции</string>
     <string name="title_checkbox_host_audio">Проигрывать звук на PC</string>
-    <string name="summary_checkbox_host_audio">Проигрывать звук на компьютере и текущем устройстве.</string>
+    <string name="summary_checkbox_host_audio">Проигрывать звук на компьютере и текущем устройстве</string>
 
     <string name="category_advanced_settings">Расширенные Настройки</string>
     <string name="title_video_format">Изменить настройки H.265</string>
-    <string name="summary_video_format">H.265 снижает требования к пропускной способности, но требует очень свежих устройств.</string>
+    <string name="summary_video_format">H.265 снижает требования к пропускной способности, но требует очень нового устройства</string>
+    <string name="category_on_screen_controls_settings">Настройки Экранных Кнопок</string>
+    <string name="title_checkbox_show_onscreen_controls">Показывать экранные кнопки</string>
+    <string name="summary_checkbox_show_onscreen_controls">Отображать оверлей виртуального контроллера на сенсорном экране</string>
+    <string name="title_only_l3r3">Показывать только L3 и R3</string>
+    <string name="summary_only_l3r3">Скрывать все экранные кнопки кроме L3 и R3</string>
+    <string name="scut_deleted_pc">PC удален</string>
+    <string name="scut_not_paired">PC не сопряжен</string>
+    <string name="help_loading_title">Просмотр Помощи</string>
+    <string name="help_loading_msg">Загрузка страницы помощи…</string>
+    <string name="pair_already_in_progress">Сопряжение уже в процессе</string>
+    <string name="help">Помощь</string>
+    <string name="applist_connect_msg">Подключение к PC…</string>
+    <string name="title_decoding_error">Сбой Видео Декодера</string>
+    <string name="message_decoding_error">Произошел сбой Moonlight из-за проблем с видео декодером данного устройства. Попробуйте изменить настройки трансляции если сбои будут продолжаться.</string>
+    <string name="title_decoding_reset">Видео Настройки Сброшены</string>
+    <string name="message_decoding_reset">Видео декодер Вашего устройства давал сбои с выбранными настройками. Настройки трансляции были сброшены до значений по умолчанию.</string>
+    <string name="error_usb_prohibited">USB доступ запрещен администратором устройства. Проверьте настройки Knox или MDM.</string>
+    <string name="addpc_wrong_sitelocal">Адрес указан неверно. Вы должны ввести публичный IP-адрес Вашего роутера для передачи через интернет.</string>
+    <string name="title_checkbox_battery_saver">Экономия батареи</string>
+    <string name="summary_checkbox_battery_saver">Использует меньше заряда батареи, но может увеличить зависания</string>
+    <string name="title_checkbox_enable_pip">Включить просмотр в режиме \"Картинка в картинке\"</string>
+    <string name="summary_checkbox_enable_pip">Позволяет просматривать трансляцию (но не управлять ей) во время работы в других приложениях</string>
+    <string name="title_checkbox_usb_bind_all">Переопределить поддержку контроллеров Android</string>
+    <string name="summary_checkbox_usb_bind_all">Заставляет USB драйвер Moonlight взять на себя работу со всеми поддерживаемыми Xbox геймпадами</string>
+    <string name="title_checkbox_mouse_emulation">Эмуляция мыши на геймпаде</string>
+    <string name="summary_checkbox_mouse_emulation">Долгое нажатие кнопки Start переключит геймпад в режим мыши</string>
+    <string name="title_reset_osc">Сбросить схему расположения экранных кнопок</string>
+    <string name="summary_reset_osc">Возвращает все экранные элементы управления к их расположениям по умолчанию</string>
+    <string name="dialog_title_reset_osc">Сбросить Схему</string>
+    <string name="dialog_text_reset_osc">Вы уверены что хотите удалить сохранненную схему расположения кнопок?</string>
+    <string name="toast_reset_osc_success">Экранные элементы управления возвращены к положениям по умолчанию</string>
+    <string name="title_disable_frame_drop">Никогда не пропускать кадры</string>
+    <string name="summary_disable_frame_drop">Может уменьшить микрозависания на некоторых устройствах, но также увеличить задержку</string>
+    <string name="title_enable_hdr">Включить HDR (Экспериментально)</string>
+    <string name="summary_enable_hdr">Транслировать в HDR если игра и GPU компьютера поддерживают это. HDR требует видеокарты GTX 1000 серии или более новой.</string>
 
 </resources>

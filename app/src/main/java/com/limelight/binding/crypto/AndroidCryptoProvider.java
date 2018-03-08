@@ -13,8 +13,8 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.Provider;
 import java.security.SecureRandom;
-import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -54,10 +54,7 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 
     private static final Object globalCryptoLock = new Object();
 
-    static {
-        // Install the Bouncy Castle provider
-        Security.addProvider(new BouncyCastleProvider());
-    }
+    private static final Provider bcProvider = new BouncyCastleProvider();
 
     public AndroidCryptoProvider(Context c) {
         String dataPath = c.getFilesDir().getAbsolutePath();
@@ -96,10 +93,10 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
         }
 
         try {
-            CertificateFactory certFactory = CertificateFactory.getInstance("X.509", "BC");
+            CertificateFactory certFactory = CertificateFactory.getInstance("X.509", bcProvider);
             cert = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(certBytes));
             pemCertBytes = certBytes;
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA", "BC");
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA", bcProvider);
             key = (RSAPrivateKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
         } catch (CertificateException e) {
             // May happen if the cert is corrupt
@@ -113,10 +110,6 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
             // May happen if the key is corrupt
             LimeLog.warning("Corrupted key");
             return false;
-        } catch (NoSuchProviderException e) {
-            // Should never happen
-            e.printStackTrace();
-            return false;
         }
 
         return true;
@@ -129,16 +122,12 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
 
         KeyPair keyPair;
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC");
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", bcProvider);
             keyPairGenerator.initialize(2048);
             keyPair = keyPairGenerator.generateKeyPair();
         } catch (NoSuchAlgorithmException e1) {
             // Should never happen
             e1.printStackTrace();
-            return false;
-        } catch (NoSuchProviderException e) {
-            // Should never happen
-            e.printStackTrace();
             return false;
         }
 
@@ -160,8 +149,8 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
             SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
 
         try {
-            ContentSigner sigGen = new JcaContentSignerBuilder("SHA1withRSA").setProvider(BouncyCastleProvider.PROVIDER_NAME).build(keyPair.getPrivate());
-            cert = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(certBuilder.build(sigGen));
+            ContentSigner sigGen = new JcaContentSignerBuilder("SHA1withRSA").setProvider(bcProvider).build(keyPair.getPrivate());
+            cert = new JcaX509CertificateConverter().setProvider(bcProvider).getCertificate(certBuilder.build(sigGen));
             key = (RSAPrivateKey) keyPair.getPrivate();
         } catch (Exception e) {
             // Nothing should go wrong here

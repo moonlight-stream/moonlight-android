@@ -39,6 +39,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.input.InputManager;
@@ -156,6 +157,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
+        }
+
+        // We specified userLandscape in the manifest which isn't supported until 4.3,
+        // so we must fall back at runtime to sensorLandscape.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
 
         // Listen for UI visibility events

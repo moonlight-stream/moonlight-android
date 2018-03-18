@@ -718,7 +718,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                     LimeLog.info("Patching level_idc to 31");
                     sps.levelIdc = 31;
                 }
-                if (initialWidth <= 1280 && initialHeight <= 720) {
+                else if (initialWidth <= 1280 && initialHeight <= 720) {
                     // Max 5 buffered frames at 1280x720x60
                     LimeLog.info("Patching level_idc to 32");
                     sps.levelIdc = 32;

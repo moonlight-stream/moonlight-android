@@ -161,7 +161,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 continue;
             }
 
-            if ((dev.getSources() & InputDevice.SOURCE_JOYSTICK) != 0) {
+            if ((dev.getSources() & InputDevice.SOURCE_JOYSTICK) != 0 &&
+                    getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_X) != null &&
+                    getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_Y) != null) {
                 LimeLog.info("Counting InputDevice: "+dev.getName());
                 mask |= 1 << count++;
             }

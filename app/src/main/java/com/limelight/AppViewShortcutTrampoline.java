@@ -69,6 +69,13 @@ public class AppViewShortcutTrampoline extends Activity {
                                             blockingLoadSpinner = null;
                                         }
 
+                                        // If the managerBinder was destroyed before this callback,
+                                        // just finish the activity.
+                                        if (managerBinder == null) {
+                                            finish();
+                                            return;
+                                        }
+
                                         if (details.state == ComputerDetails.State.ONLINE) {
                                             // Close this activity
                                             finish();

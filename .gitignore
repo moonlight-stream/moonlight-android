@@ -30,7 +30,7 @@ Thumbs.db
 #.idea/workspace.xml - remove # and delete .idea if it better suit your needs.
 .gradle
 build/
-app/app.iml
+*.iml
 
 # Compiled JNI libraries folder
 **/jniLibs

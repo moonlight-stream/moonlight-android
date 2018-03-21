@@ -970,6 +970,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     lastMouseX = (int)event.getX();
                     lastMouseY = (int)event.getY();
                 }
+                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    // We get a normal (non-relative) MotionEvent when starting pointer capture to synchronize the
+                    // location of the cursor with our app. We don't want this, so we must discard this event.
+                    lastMouseX = (int)event.getX();
+                    lastMouseY = (int)event.getY();
+                }
                 else {
                     // First process the history
                     for (int i = 0; i < event.getHistorySize(); i++) {

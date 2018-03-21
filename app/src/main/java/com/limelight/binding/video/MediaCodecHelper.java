@@ -336,7 +336,7 @@ public class MediaCodecHelper {
 
 		// This device seems to crash constantly at 720p, so try disabling
 		// RFI to see if we can get that under control.
-		if (Build.PRODUCT.equalsIgnoreCase("b3_att_us")) {
+		if (Build.BRAND.toLowerCase().equals("lge") && Build.PRODUCT.toLowerCase().startsWith("b3_")) {
 			return false;
 		}
 

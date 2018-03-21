@@ -96,6 +96,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
     private boolean connected = false;
+    private boolean surfaceCreated = false;
+    private boolean attemptedConnection = false;
 
     private InputCaptureProvider inputCaptureProvider;
     private int modifierFlags = 0;
@@ -1200,8 +1202,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             spinner = null;
         }
 
-        connecting = false;
         connected = true;
+        connecting = false;
 
         runOnUiThread(new Runnable() {
             @Override
@@ -1240,12 +1242,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    }
+        if (!surfaceCreated) {
+            throw new IllegalStateException("Surface changed before creation!");
+        }
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        if (!connected && !connecting) {
-            connecting = true;
+        if (!attemptedConnection) {
+            attemptedConnection = true;
 
             decoderRenderer.setRenderTarget(holder);
             conn.start(PlatformBinding.getAudioRenderer(), decoderRenderer, Game.this);
@@ -1253,12 +1255,23 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        // Let the decoder know immediately that the surface is gone
-        decoderRenderer.prepareForStop();
+    public void surfaceCreated(SurfaceHolder holder) {
+        surfaceCreated = true;
+    }
 
-        if (connected) {
-            stopConnection();
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        if (!surfaceCreated) {
+            throw new IllegalStateException("Surface destroyed before creation!");
+        }
+
+        if (attemptedConnection) {
+            // Let the decoder know immediately that the surface is gone
+            decoderRenderer.prepareForStop();
+
+            if (connected) {
+                stopConnection();
+            }
         }
     }
 

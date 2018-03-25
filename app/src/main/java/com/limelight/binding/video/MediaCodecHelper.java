@@ -135,6 +135,7 @@ public class MediaCodecHelper {
 		// to actually be tested. Ugh...
 		if (Build.MANUFACTURER.equalsIgnoreCase("Amazon")) {
 			whitelistedHevcDecoders.add("omx.mtk");
+			whitelistedHevcDecoders.add("omx.amlogic");
 		}
 
 		// These theoretically have good HEVC decoding capabilities (potentially better than

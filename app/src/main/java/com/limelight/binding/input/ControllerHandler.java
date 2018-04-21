@@ -837,16 +837,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // to normal behavior, so ignore triggersIdleNegative for each trigger until
             // first touch.
             if (lt != 0) {
-                context.leftTriggerUsed = true;
+                context.leftTriggerAxisUsed = true;
             }
             if (rt != 0) {
-                context.rightTriggerUsed = true;
+                context.rightTriggerAxisUsed = true;
             }
             if (context.triggersIdleNegative) {
-                if (context.leftTriggerUsed) {
+                if (context.leftTriggerAxisUsed) {
                     lt = (lt + 1) / 2;
                 }
-                if (context.rightTriggerUsed) {
+                if (context.rightTriggerAxisUsed) {
                     rt = (rt + 1) / 2;
                 }
             }
@@ -1042,15 +1042,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.inputMap &= ~ControllerPacket.RS_CLK_FLAG;
             break;
         case KeyEvent.KEYCODE_BUTTON_L2:
-            if (context.leftTriggerAxis >= 0) {
-                // Suppress this digital event if an analog trigger is present
+            if (context.leftTriggerAxisUsed) {
+                // Suppress this digital event if an analog trigger is active
                 return true;
             }
             context.leftTrigger = 0;
             break;
         case KeyEvent.KEYCODE_BUTTON_R2:
-            if (context.rightTriggerAxis >= 0) {
-                // Suppress this digital event if an analog trigger is present
+            if (context.rightTriggerAxisUsed) {
+                // Suppress this digital event if an analog trigger is active
                 return true;
             }
             context.rightTrigger = 0;
@@ -1162,15 +1162,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.inputMap |= ControllerPacket.RS_CLK_FLAG;
             break;
         case KeyEvent.KEYCODE_BUTTON_L2:
-            if (context.leftTriggerAxis >= 0) {
-                // Suppress this digital event if an analog trigger is present
+            if (context.leftTriggerAxisUsed) {
+                // Suppress this digital event if an analog trigger is active
                 return true;
             }
             context.leftTrigger = (byte)0xFF;
             break;
         case KeyEvent.KEYCODE_BUTTON_R2:
-            if (context.rightTriggerAxis >= 0) {
-                // Suppress this digital event if an analog trigger is present
+            if (context.rightTriggerAxisUsed) {
+                // Suppress this digital event if an analog trigger is active
                 return true;
             }
             context.rightTrigger = (byte)0xFF;
@@ -1301,7 +1301,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public int leftTriggerAxis = -1;
         public int rightTriggerAxis = -1;
         public boolean triggersIdleNegative;
-        public boolean leftTriggerUsed, rightTriggerUsed;
+        public boolean leftTriggerAxisUsed, rightTriggerAxisUsed;
 
         public int hatXAxis = -1;
         public int hatYAxis = -1;

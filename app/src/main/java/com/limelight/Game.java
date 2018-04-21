@@ -70,7 +70,7 @@ import android.widget.Toast;
 
 public class Game extends Activity implements SurfaceHolder.Callback,
     OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
-    OnSystemUiVisibilityChangeListener, GameGestures
+    OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks
 {
     private int lastMouseX = Integer.MIN_VALUE;
     private int lastMouseY = Integer.MIN_VALUE;
@@ -189,6 +189,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView = findViewById(R.id.surfaceView);
         streamView.setOnGenericMotionListener(this);
         streamView.setOnTouchListener(this);
+        streamView.setInputCallbacks(this);
 
         inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
 
@@ -788,9 +789,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return handleKeyDown(event) || super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean handleKeyDown(KeyEvent event) {
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
-            return super.onKeyDown(keyCode, event);
+            return false;
         }
 
         // Handle a synthetic back button event that some Android OS versions
@@ -802,11 +808,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         boolean handled = false;
 
-        boolean detectedGamepad = event.getDevice() != null && ((event.getDevice().getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
-                (event.getDevice().getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD);
-        if (detectedGamepad || (event.getDevice() == null ||
-                event.getDevice().getKeyboardType() != InputDevice.KEYBOARD_TYPE_ALPHABETIC
-        )) {
+        if (ControllerHandler.isGameControllerDevice(event.getDevice())) {
             // Always try the controller handler first, unless it's an alphanumeric keyboard device.
             // Otherwise, controller handler will eat keyboard d-pad events.
             handled = controllerHandler.handleButtonDown(event);
@@ -816,17 +818,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Try the keyboard handler
             short translated = KeyboardTranslator.translate(event.getKeyCode());
             if (translated == 0) {
-                return super.onKeyDown(keyCode, event);
+                return false;
             }
 
             // Let this method take duplicate key down events
-            if (handleSpecialKeys(keyCode, true)) {
+            if (handleSpecialKeys(event.getKeyCode(), true)) {
                 return true;
             }
 
             // Pass through keyboard input if we're not grabbing
             if (!grabbedInput) {
-                return super.onKeyDown(keyCode, event);
+                return false;
             }
 
             conn.sendKeyboardInput(translated, KeyboardPacket.KEY_DOWN, getModifierState(event));
@@ -837,9 +839,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
+        return handleKeyUp(event) || super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    public boolean handleKeyUp(KeyEvent event) {
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
-            return super.onKeyUp(keyCode, event);
+            return false;
         }
 
         // Handle a synthetic back button event that some Android OS versions
@@ -850,11 +857,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         boolean handled = false;
-        boolean detectedGamepad = event.getDevice() != null && ((event.getDevice().getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
-                (event.getDevice().getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD);
-        if (detectedGamepad || (event.getDevice() == null ||
-                event.getDevice().getKeyboardType() != InputDevice.KEYBOARD_TYPE_ALPHABETIC
-        )) {
+        if (ControllerHandler.isGameControllerDevice(event.getDevice())) {
             // Always try the controller handler first, unless it's an alphanumeric keyboard device.
             // Otherwise, controller handler will eat keyboard d-pad events.
             handled = controllerHandler.handleButtonUp(event);
@@ -864,16 +867,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Try the keyboard handler
             short translated = KeyboardTranslator.translate(event.getKeyCode());
             if (translated == 0) {
-                return super.onKeyUp(keyCode, event);
+                return false;
             }
 
-            if (handleSpecialKeys(keyCode, false)) {
+            if (handleSpecialKeys(event.getKeyCode(), false)) {
                 return true;
             }
 
             // Pass through keyboard input if we're not grabbing
             if (!grabbedInput) {
-                return super.onKeyUp(keyCode, event);
+                return false;
             }
 
             conn.sendKeyboardInput(translated, KeyboardPacket.KEY_UP, getModifierState(event));

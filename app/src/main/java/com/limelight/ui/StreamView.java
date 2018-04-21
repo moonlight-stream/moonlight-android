@@ -3,13 +3,19 @@ package com.limelight.ui;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.KeyEvent;
 import android.view.SurfaceView;
 
 public class StreamView extends SurfaceView {
     private double desiredAspectRatio;
+    private InputCallbacks inputCallbacks;
 
     public void setDesiredAspectRatio(double aspectRatio) {
         this.desiredAspectRatio = aspectRatio;
+    }
+
+    public void setInputCallbacks(InputCallbacks callbacks) {
+        this.inputCallbacks = callbacks;
     }
 
     public StreamView(Context context) {
@@ -51,5 +57,31 @@ public class StreamView extends SurfaceView {
         }
 
         setMeasuredDimension(measuredWidth, measuredHeight);
+    }
+
+    @Override
+    public boolean onKeyPreIme(int keyCode, KeyEvent event) {
+        // This callbacks allows us to override dumb IME behavior like when
+        // Samsung's default keyboard consumes Shift+Space. We'll process
+        // the input event directly if any modifier keys are down.
+        if (inputCallbacks != null && event.getModifiers() != 0) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (inputCallbacks.handleKeyDown(event)) {
+                    return true;
+                }
+            }
+            else if (event.getAction() == KeyEvent.ACTION_UP) {
+                if (inputCallbacks.handleKeyUp(event)) {
+                    return true;
+                }
+            }
+        }
+
+        return super.onKeyPreIme(keyCode, event);
+    }
+
+    public interface InputCallbacks {
+        boolean handleKeyUp(KeyEvent event);
+        boolean handleKeyDown(KeyEvent event);
     }
 }

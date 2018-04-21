@@ -149,6 +149,30 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         onInputDeviceAdded(deviceId);
     }
 
+    private static boolean hasJoystickAxes(InputDevice device) {
+        return (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK &&
+                getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_X) != null &&
+                getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_Y) != null;
+    }
+
+    private static boolean hasGamepadButtons(InputDevice device) {
+        return (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD;
+    }
+
+    public static boolean isGameControllerDevice(InputDevice device) {
+        if (device == null) {
+            return true;
+        }
+
+        if (hasJoystickAxes(device) || hasGamepadButtons(device)) {
+            // Has real joystick axes or gamepad buttons
+            return true;
+        }
+
+        // Otherwise, we'll try anything that claims to be a non-alphabetic keyboard
+        return device.getKeyboardType() != InputDevice.KEYBOARD_TYPE_ALPHABETIC;
+    }
+
     public static short getAttachedControllerMask(Context context) {
         int count = 0;
         short mask = 0;
@@ -161,9 +185,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 continue;
             }
 
-            if ((dev.getSources() & InputDevice.SOURCE_JOYSTICK) != 0 &&
-                    getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_X) != null &&
-                    getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_Y) != null) {
+            if (hasJoystickAxes(dev)) {
                 LimeLog.info("Counting InputDevice: "+dev.getName());
                 mask |= 1 << count++;
             }

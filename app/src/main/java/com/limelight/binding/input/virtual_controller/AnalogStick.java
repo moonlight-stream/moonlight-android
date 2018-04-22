@@ -210,7 +210,7 @@ public class AnalogStick extends VirtualControllerElement {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         // calculate new radius sizes depending
-        radius_complete = getPercent(getCorrectWidth() / 2, 90);
+        radius_complete = getPercent(getCorrectWidth() / 2, 100);
         radius_dead_zone = getPercent(getCorrectWidth() / 2, 30);
         radius_analog_stick = getPercent(getCorrectWidth() / 2, 20);
 

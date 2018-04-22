@@ -86,6 +86,14 @@ public class VirtualController {
         });
     }
 
+    public void hide() {
+        relative_layout.setVisibility(View.INVISIBLE);
+    }
+
+    public void show() {
+        relative_layout.setVisibility(View.VISIBLE);
+    }
+
     public void removeElements() {
         for (VirtualControllerElement element : elements) {
             relative_layout.removeView(element);

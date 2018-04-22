@@ -40,6 +40,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.input.InputManager;
@@ -423,6 +424,26 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // The connection will be started when the surface gets created
         streamView.getHolder().addCallback(this);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        if (virtualController != null) {
+            // Refresh layout of OSC for possible new screen size
+            virtualController.refreshLayout();
+
+            // Hide OSC in PiP
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (isInPictureInPictureMode()) {
+                    virtualController.hide();
+                }
+                else {
+                    virtualController.show();
+                }
+            }
+        }
     }
 
     @Override

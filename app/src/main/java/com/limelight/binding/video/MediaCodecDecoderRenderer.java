@@ -1,7 +1,6 @@
 package com.limelight.binding.video;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Locale;
 
 import org.jcodec.codecs.h264.H264Utils;
@@ -41,7 +40,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private MediaCodec videoDecoder;
     private Thread rendererThread;
-    private Thread[] spinnerThreads;
     private boolean needsSpsBitstreamFixup, isExynos4;
     private boolean adaptivePlayback, directSubmit;
     private boolean constrainedHighProfile;
@@ -132,14 +130,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.consecutiveCrashCount = consecutiveCrashCount;
         this.glRenderer = glRenderer;
 
-        // Disable spinner threads in battery saver mode or 4K
-        if (prefs.batterySaver || prefs.height >= 2160) {
-            spinnerThreads = new Thread[0];
-        }
-        else {
-            spinnerThreads = new Thread[Runtime.getRuntime().availableProcessors()];
-        }
-
         avcDecoder = findAvcDecoder();
         if (avcDecoder != null) {
             LimeLog.info("Selected AVC decoder: "+avcDecoder.getName());
@@ -217,15 +207,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     }
 
     public void notifyVideoForeground() {
-        startSpinnerThreads();
         foreground = true;
     }
 
     public void notifyVideoBackground() {
-        // Signal the spinner threads to stop but
-        // don't wait for them to terminate to avoid
-        // delaying the state transition
-        signalSpinnerStop();
         foreground = false;
     }
 
@@ -462,73 +447,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         rendererThread.start();
     }
 
-    private void startSpinnerThread(final int i) {
-        spinnerThreads[i] = new Thread() {
-            @Override
-            public void run() {
-                // This thread exists to keep the CPU at a higher DVFS state on devices
-                // where the governor scales clock speed sporadically, causing dropped frames.
-                //
-                // Run until we notice our thread has been removed from the spinner threads
-                // array. Even if we don't notice immediately, we'll notice soon enough.
-                // This will also ensure we terminate even if someone has restarted spinning
-                // before we realized we should stop.
-                while (this == spinnerThreads[i]) {
-                    try {
-                        Thread.sleep(0, 1);
-                    } catch (InterruptedException e) {
-                        break;
-                    }
-                }
-            }
-        };
-        spinnerThreads[i].setName("Spinner-"+i);
-        spinnerThreads[i].setPriority(Thread.MIN_PRIORITY);
-        spinnerThreads[i].start();
-    }
-
-    private void startSpinnerThreads() {
-        LimeLog.info("Using "+spinnerThreads.length+" spinner threads");
-        for (int i = 0; i < spinnerThreads.length; i++) {
-            if (spinnerThreads[i] != null) {
-                continue;
-            }
-
-            startSpinnerThread(i);
-        }
-    }
-
-    private Thread[] signalSpinnerStop() {
-        // Capture current running threads
-        Thread[] runningThreads = Arrays.copyOf(spinnerThreads, spinnerThreads.length);
-
-        // Clear the spinner threads to signal their termination
-        for (int i = 0; i < spinnerThreads.length; i++) {
-            spinnerThreads[i] = null;
-        }
-
-        // Interrupt the threads
-        for (int i = 0; i < runningThreads.length; i++) {
-            if (runningThreads[i] != null) {
-                runningThreads[i].interrupt();
-            }
-        }
-
-        return runningThreads;
-    }
-
-    private void stopSpinnerThreads() {
-        // Signal and wait for the threads to stop
-        Thread[] runningThreads = signalSpinnerStop();
-        for (int i = 0; i < runningThreads.length; i++) {
-            if (runningThreads[i] != null) {
-                try {
-                    runningThreads[i].join();
-                } catch (InterruptedException ignored) { }
-            }
-        }
-    }
-
     private int dequeueInputBuffer() {
         int index = -1;
         long startTime;
@@ -570,7 +488,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     @Override
     public void start() {
         startRendererThread();
-        startSpinnerThreads();
     }
 
     // !!! May be called even if setup()/start() fails !!!
@@ -593,9 +510,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         try {
             rendererThread.join();
         } catch (InterruptedException ignored) { }
-
-        // Halt the spinner threads
-        stopSpinnerThreads();
     }
 
     @Override

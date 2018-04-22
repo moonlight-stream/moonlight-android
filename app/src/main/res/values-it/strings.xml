@@ -110,8 +110,6 @@
     <string name="title_checkbox_stretch_video">Forza video a schermo intero</string>
     <string name="title_checkbox_disable_warnings">Disabilita messaggi di warning</string>
     <string name="summary_checkbox_disable_warnings">Disabilita i messaggi di warning sullo schermo durante lo streaming</string>
-    <string name="title_checkbox_battery_saver">Risparmio batteria</string>
-    <string name="summary_checkbox_battery_saver">Usa meno batteria, ma può aumentare lo stuttering</string>
     <string name="title_checkbox_enable_pip">Abilita modalità spettatore Picture-in-Picture</string>
     <string name="summary_checkbox_enable_pip">Permette di osservare (ma non di controllare) la stream in multitasking</string>
 

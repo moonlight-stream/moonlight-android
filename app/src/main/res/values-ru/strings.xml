@@ -142,8 +142,6 @@
     <string name="message_decoding_reset">Видео декодер Вашего устройства давал сбои с выбранными настройками. Настройки трансляции были сброшены до значений по умолчанию.</string>
     <string name="error_usb_prohibited">USB доступ запрещен администратором устройства. Проверьте настройки Knox или MDM.</string>
     <string name="addpc_wrong_sitelocal">Адрес указан неверно. Вы должны ввести публичный IP-адрес Вашего роутера для передачи через интернет.</string>
-    <string name="title_checkbox_battery_saver">Экономия батареи</string>
-    <string name="summary_checkbox_battery_saver">Использует меньше заряда батареи, но может увеличить зависания</string>
     <string name="title_checkbox_enable_pip">Включить просмотр в режиме \"Картинка в картинке\"</string>
     <string name="summary_checkbox_enable_pip">Позволяет просматривать трансляцию (но не управлять ей) во время работы в других приложениях</string>
     <string name="title_checkbox_usb_bind_all">Переопределить поддержку контроллеров Android</string>

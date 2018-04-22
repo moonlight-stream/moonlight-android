@@ -25,11 +25,6 @@
             android:title="@string/title_checkbox_stretch_video"
             android:defaultValue="false" />
         <CheckBoxPreference
-            android:key="checkbox_battery_saver"
-            android:title="@string/title_checkbox_battery_saver"
-            android:summary="@string/summary_checkbox_battery_saver"
-            android:defaultValue="false" />
-        <CheckBoxPreference
             android:key="checkbox_enable_pip"
             android:title="@string/title_checkbox_enable_pip"
             android:summary="@string/summary_checkbox_enable_pip"

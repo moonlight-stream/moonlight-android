@@ -24,7 +24,6 @@ public class PreferenceConfiguration {
     private static final String VIDEO_FORMAT_PREF_STRING = "video_format";
     private static final String ONSCREEN_CONTROLLER_PREF_STRING = "checkbox_show_onscreen_controls";
     private static final String ONLY_L3_R3_PREF_STRING = "checkbox_only_show_L3R3";
-    private static final String BATTERY_SAVER_PREF_STRING = "checkbox_battery_saver";
     private static final String DISABLE_FRAME_DROP_PREF_STRING = "checkbox_disable_frame_drop";
     private static final String ENABLE_HDR_PREF_STRING = "checkbox_enable_hdr";
     private static final String ENABLE_PIP_PREF_STRING = "checkbox_enable_pip";
@@ -75,7 +74,6 @@ public class PreferenceConfiguration {
     public boolean listMode, smallIconMode, multiController, enable51Surround, usbDriver;
     public boolean onscreenController;
     public boolean onlyL3R3;
-    public boolean batterySaver;
     public boolean disableFrameDrop;
     public boolean enableHdr;
     public boolean enablePip;
@@ -244,7 +242,6 @@ public class PreferenceConfiguration {
         config.usbDriver = prefs.getBoolean(USB_DRIVER_PREF_SRING, DEFAULT_USB_DRIVER);
         config.onscreenController = prefs.getBoolean(ONSCREEN_CONTROLLER_PREF_STRING, ONSCREEN_CONTROLLER_DEFAULT);
         config.onlyL3R3 = prefs.getBoolean(ONLY_L3_R3_PREF_STRING, ONLY_L3_R3_DEFAULT);
-        config.batterySaver = prefs.getBoolean(BATTERY_SAVER_PREF_STRING, DEFAULT_BATTERY_SAVER);
         config.disableFrameDrop = prefs.getBoolean(DISABLE_FRAME_DROP_PREF_STRING, DEFAULT_DISABLE_FRAME_DROP);
         config.enableHdr = prefs.getBoolean(ENABLE_HDR_PREF_STRING, DEFAULT_ENABLE_HDR);
         config.enablePip = prefs.getBoolean(ENABLE_PIP_PREF_STRING, DEFAULT_ENABLE_PIP);

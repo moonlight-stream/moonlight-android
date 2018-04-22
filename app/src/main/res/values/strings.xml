@@ -113,8 +113,6 @@
     <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
     <string name="title_checkbox_disable_warnings">Disable warning messages</string>
     <string name="summary_checkbox_disable_warnings">Disable on-screen connection warning messages while streaming</string>
-    <string name="title_checkbox_battery_saver">Battery saver</string>
-    <string name="summary_checkbox_battery_saver">Uses less battery, but may increase stuttering</string>
     <string name="title_checkbox_enable_pip">Enable Picture-in-Picture observer mode</string>
     <string name="summary_checkbox_enable_pip">Allows the stream to be viewed (but not controlled) while multitasking</string>
 

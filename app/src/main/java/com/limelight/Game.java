@@ -431,13 +431,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (prefConfig.enablePip && connected) {
-                enterPictureInPictureMode(
-                        new PictureInPictureParams.Builder()
-                                .setAspectRatio(new Rational(prefConfig.width, prefConfig.height))
-                                .setSourceRectHint(new Rect(
-                                        streamView.getLeft(), streamView.getTop(),
-                                        streamView.getRight(), streamView.getBottom()))
-                                .build());
+                try {
+                    // This has thrown all sorts of weird exceptions on Samsung devices
+                    // running Oreo. Just eat them and close gracefully on leave, rather
+                    // than crashing.
+                    enterPictureInPictureMode(
+                            new PictureInPictureParams.Builder()
+                                    .setAspectRatio(new Rational(prefConfig.width, prefConfig.height))
+                                    .setSourceRectHint(new Rect(
+                                            streamView.getLeft(), streamView.getTop(),
+                                            streamView.getRight(), streamView.getBottom()))
+                                    .build());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

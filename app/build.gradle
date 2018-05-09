@@ -45,6 +45,14 @@ android {
         disable 'MissingTranslation'
     }
 
+    bundle {
+        language {
+            // Avoid splitting by language, since we allow users
+            // to manually switch language in settings.
+            enableSplit = false
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix ".debug"

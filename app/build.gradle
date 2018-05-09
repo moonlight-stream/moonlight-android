@@ -48,6 +48,10 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
+
+            minifyEnabled true
+            useProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
             // To whomever is releasing/using an APK in release mode with
@@ -82,8 +86,8 @@ android {
             // TL;DR: Leave the following line alone!
             applicationIdSuffix ".unofficial"
 
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt')
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 

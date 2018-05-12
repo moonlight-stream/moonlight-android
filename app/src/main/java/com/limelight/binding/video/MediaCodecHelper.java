@@ -71,8 +71,8 @@ public class MediaCodecHelper {
 		blacklistedDecoderPrefixes = new LinkedList<>();
 
 		// Blacklist software decoders that don't support H264 high profile,
-		// but exclude the official AOSP emulator from this restriction.
-		if (!Build.HARDWARE.equals("ranchu") || !Build.BRAND.equals("google")) {
+		// but exclude the official AOSP and CrOS emulator from this restriction.
+		if (!Build.HARDWARE.equals("ranchu") && !Build.HARDWARE.equals("cheets")) {
 			blacklistedDecoderPrefixes.add("omx.google");
 			blacklistedDecoderPrefixes.add("AVCDecoder");
 		}

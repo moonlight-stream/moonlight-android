@@ -307,8 +307,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         int gamepadMask = ControllerHandler.getAttachedControllerMask(this);
-        if (!prefConfig.multiController && gamepadMask != 0) {
-            // If any gamepads are present in non-MC mode, set only gamepad 1.
+        if (!prefConfig.multiController) {
+            // Always set gamepad 1 present for when multi-controller is
+            // disabled for games that don't properly support detection
+            // of gamepads removed and replugged at runtime.
             gamepadMask = 1;
         }
         if (prefConfig.onscreenController) {

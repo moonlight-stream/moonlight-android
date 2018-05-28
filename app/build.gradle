@@ -8,7 +8,7 @@ android {
         targetSdkVersion 27
 
         versionName "5.8"
-        versionCode = 161
+        versionCode = 162
     }
 
     flavorDimensions "root"

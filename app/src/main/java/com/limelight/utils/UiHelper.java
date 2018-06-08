@@ -7,7 +7,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.view.View;
+import android.view.WindowManager;
 
 import com.limelight.R;
 import com.limelight.preferences.PreferenceConfiguration;
@@ -56,6 +58,16 @@ public class UiHelper {
 
             rootView.setPadding(horizontalPaddingPixels, verticalPaddingPixels,
                     horizontalPaddingPixels, verticalPaddingPixels);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // Allow this non-streaming activity to layout under notches.
+            //
+            // We should NOT do this for the Game activity unless
+            // the user specifically opts in, because it can obscure
+            // parts of the streaming surface.
+            activity.getWindow().getAttributes().layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
         }
     }
 

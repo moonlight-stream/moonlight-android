@@ -185,6 +185,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         prefConfig = PreferenceConfiguration.readPreferences(this);
         tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && prefConfig.stretchVideo) {
+            // Allow the activity to layout under notches if the fill-screen option
+            // was turned on by the user
+            getWindow().getAttributes().layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        }
 
         // Listen for events on the game surface
         streamView = findViewById(R.id.surfaceView);

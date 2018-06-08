@@ -52,6 +52,12 @@ android {
             // to manually switch language in settings.
             enableSplit = false
         }
+        density {
+            // FIXME: This should not be neccessary but we get
+            // weird crashes due to missing drawable resources
+            // when this split is enabled.
+            enableSplit = false
+        }
     }
 
     buildTypes {

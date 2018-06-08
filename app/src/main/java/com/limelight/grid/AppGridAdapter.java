@@ -1,7 +1,6 @@
 package com.limelight.grid;
 
 import android.app.Activity;
-import android.graphics.BitmapFactory;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -46,13 +45,10 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
         LimeLog.info("Art scaling divisor: " + scalingDivisor);
 
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inSampleSize = (int) scalingDivisor;
-
         this.loader = new CachedAppAssetLoader(computer, scalingDivisor,
                 new NetworkAssetLoader(context, uniqueId),
                 new MemoryAssetLoader(),
-                new DiskAssetLoader(context.getCacheDir()));
+                new DiskAssetLoader(context));
     }
 
     public void cancelQueuedOperations() {

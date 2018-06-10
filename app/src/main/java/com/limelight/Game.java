@@ -146,10 +146,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // We don't want a title bar
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        // Full-screen and don't let the display go off
-        getWindow().addFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN |
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // Full-screen
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         // If we're going to use immersive mode, we want to have
         // the entire screen
@@ -1169,10 +1167,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void stageStarting(String stage) {
-        if (spinner != null) {
-            spinner.setMessage(getResources().getString(R.string.conn_starting)+" "+stage);
-        }
+    public void stageStarting(final String stage) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (spinner != null) {
+                    spinner.setMessage(getResources().getString(R.string.conn_starting) + " " + stage);
+                }
+            }
+        });
     }
 
     @Override
@@ -1197,70 +1200,78 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void stageFailed(String stage, long errorCode) {
-        if (spinner != null) {
-            spinner.dismiss();
-            spinner = null;
-        }
+    public void stageFailed(final String stage, final long errorCode) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (spinner != null) {
+                    spinner.dismiss();
+                    spinner = null;
+                }
 
-        // Enable cursor visibility again
-        inputCaptureProvider.disableCapture();
+                if (!displayedFailureDialog) {
+                    displayedFailureDialog = true;
+                    LimeLog.severe(stage + " failed: " + errorCode);
 
-        if (!displayedFailureDialog) {
-            displayedFailureDialog = true;
-            LimeLog.severe(stage+" failed: "+errorCode);
-
-            // If video initialization failed and the surface is still valid, display extra information for the user
-            if (stage.contains("video") && streamView.getHolder().getSurface().isValid()) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                    // If video initialization failed and the surface is still valid, display extra information for the user
+                    if (stage.contains("video") && streamView.getHolder().getSurface().isValid()) {
                         Toast.makeText(Game.this, "Video decoder failed to initialize. Your device may not support the selected resolution.", Toast.LENGTH_LONG).show();
                     }
-                });
-            }
 
-            Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title),
-                    getResources().getString(R.string.conn_error_msg)+" "+stage, true);
-        }
+                    Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_error_title),
+                            getResources().getString(R.string.conn_error_msg) + " " + stage, true);
+                }
+            }
+        });
     }
 
     @Override
-    public void connectionTerminated(long errorCode) {
-        // Enable cursor visibility again
-        inputCaptureProvider.disableCapture();
+    public void connectionTerminated(final long errorCode) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Let the display go to sleep now
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        if (!displayedFailureDialog) {
-            displayedFailureDialog = true;
-            LimeLog.severe("Connection terminated: "+errorCode);
-            stopConnection();
+                // Enable cursor visibility again
+                inputCaptureProvider.disableCapture();
 
-            Dialog.displayDialog(this, getResources().getString(R.string.conn_terminated_title),
-                    getResources().getString(R.string.conn_terminated_msg), true);
-        }
+                if (!displayedFailureDialog) {
+                    displayedFailureDialog = true;
+                    LimeLog.severe("Connection terminated: " + errorCode);
+                    stopConnection();
+
+                    Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_terminated_title),
+                            getResources().getString(R.string.conn_terminated_msg), true);
+                }
+            }
+        });
     }
 
     @Override
     public void connectionStarted() {
-        if (spinner != null) {
-            spinner.dismiss();
-            spinner = null;
-        }
-
-        connected = true;
-        connecting = false;
-
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (spinner != null) {
+                    spinner.dismiss();
+                    spinner = null;
+                }
+
+                connected = true;
+                connecting = false;
+
                 // Hide the mouse cursor now. Doing it before
                 // dismissing the spinner seems to be undone
                 // when the spinner gets displayed.
                 inputCaptureProvider.enableCapture();
+
+                // Keep the display on
+                getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+                hideSystemUi(1000);
             }
         });
-
-        hideSystemUi(1000);
     }
 
     @Override

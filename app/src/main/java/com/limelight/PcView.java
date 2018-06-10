@@ -452,7 +452,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             return;
         }
 
-        Toast.makeText(PcView.this, getResources().getString(R.string.wol_waking_pc), Toast.LENGTH_SHORT).show();
         new Thread(new Runnable() {
             @Override
             public void run() {

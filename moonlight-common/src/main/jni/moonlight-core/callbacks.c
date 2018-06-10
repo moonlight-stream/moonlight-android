@@ -74,26 +74,26 @@ JNIEnv* GetThreadEnv(void) {
 }
 
 JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jobject class) {
+Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jclass clazz) {
     (*env)->GetJavaVM(env, &JVM);
     GlobalBridgeClass = (*env)->NewGlobalRef(env, (*env)->FindClass(env, "com/limelight/nvstream/jni/MoonBridge"));
-    BridgeDrSetupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSetup", "(IIII)I");
-    BridgeDrStartMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrStart", "()V");
-    BridgeDrStopMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrStop", "()V");
-    BridgeDrCleanupMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrCleanup", "()V");
-    BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, class, "bridgeDrSubmitDecodeUnit", "([BIIIJ)I");
-    BridgeArInitMethod = (*env)->GetStaticMethodID(env, class, "bridgeArInit", "(I)I");
-    BridgeArStartMethod = (*env)->GetStaticMethodID(env, class, "bridgeArStart", "()V");
-    BridgeArStopMethod = (*env)->GetStaticMethodID(env, class, "bridgeArStop", "()V");
-    BridgeArCleanupMethod = (*env)->GetStaticMethodID(env, class, "bridgeArCleanup", "()V");
-    BridgeArPlaySampleMethod = (*env)->GetStaticMethodID(env, class, "bridgeArPlaySample", "([B)V");
-    BridgeClStageStartingMethod = (*env)->GetStaticMethodID(env, class, "bridgeClStageStarting", "(I)V");
-    BridgeClStageCompleteMethod = (*env)->GetStaticMethodID(env, class, "bridgeClStageComplete", "(I)V");
-    BridgeClStageFailedMethod = (*env)->GetStaticMethodID(env, class, "bridgeClStageFailed", "(IJ)V");
-    BridgeClConnectionStartedMethod = (*env)->GetStaticMethodID(env, class, "bridgeClConnectionStarted", "()V");
-    BridgeClConnectionTerminatedMethod = (*env)->GetStaticMethodID(env, class, "bridgeClConnectionTerminated", "(J)V");
-    BridgeClDisplayMessageMethod = (*env)->GetStaticMethodID(env, class, "bridgeClDisplayMessage", "(Ljava/lang/String;)V");
-    BridgeClDisplayTransientMessageMethod = (*env)->GetStaticMethodID(env, class, "bridgeClDisplayTransientMessage", "(Ljava/lang/String;)V");
+    BridgeDrSetupMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrSetup", "(IIII)I");
+    BridgeDrStartMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrStart", "()V");
+    BridgeDrStopMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrStop", "()V");
+    BridgeDrCleanupMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrCleanup", "()V");
+    BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrSubmitDecodeUnit", "([BIIIJ)I");
+    BridgeArInitMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArInit", "(I)I");
+    BridgeArStartMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArStart", "()V");
+    BridgeArStopMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArStop", "()V");
+    BridgeArCleanupMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArCleanup", "()V");
+    BridgeArPlaySampleMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArPlaySample", "([B)V");
+    BridgeClStageStartingMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClStageStarting", "(I)V");
+    BridgeClStageCompleteMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClStageComplete", "(I)V");
+    BridgeClStageFailedMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClStageFailed", "(IJ)V");
+    BridgeClConnectionStartedMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClConnectionStarted", "()V");
+    BridgeClConnectionTerminatedMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClConnectionTerminated", "(J)V");
+    BridgeClDisplayMessageMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClDisplayMessage", "(Ljava/lang/String;)V");
+    BridgeClDisplayTransientMessageMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClDisplayTransientMessage", "(Ljava/lang/String;)V");
 }
 
 int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
@@ -398,7 +398,7 @@ static CONNECTION_LISTENER_CALLBACKS BridgeConnListenerCallbacks = {
 };
 
 JNIEXPORT jint JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jobject class,
+Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jclass clazz,
                                                            jstring address, jstring appVersion, jstring gfeVersion,
                                                            jint width, jint height, jint fps,
                                                            jint bitrate, jint packetSize, jboolean streamingRemotely,

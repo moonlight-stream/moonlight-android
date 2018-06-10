@@ -22,11 +22,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/manuallyAddPcText"
+        android:layout_toLeftOf="@+id/addPcButton"
+        android:layout_toStartOf="@+id/addPcButton"
         android:layout_marginTop="25dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
         android:ems="10"
         android:singleLine="true"
         android:inputType="textNoSuggestions"
@@ -34,5 +34,15 @@
         
         <requestFocus />
     </EditText>
+
+    <Button
+        android:id="@+id/addPcButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:layout_below="@+id/manuallyAddPcText"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:text="@android:string/ok"/>
 	
 </RelativeLayout>

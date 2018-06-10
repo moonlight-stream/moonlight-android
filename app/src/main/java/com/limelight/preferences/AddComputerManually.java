@@ -24,6 +24,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
@@ -196,12 +197,7 @@ public class AddComputerManually extends Activity {
                         (keyEvent != null &&
                                 keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
                                 keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
-                    if (hostText.getText().length() == 0) {
-                        Toast.makeText(AddComputerManually.this, getResources().getString(R.string.addpc_enter_ip), Toast.LENGTH_LONG).show();
-                        return true;
-                    }
-
-                    computersToAdd.add(hostText.getText().toString().trim());
+                    return handleDoneEvent();
                 }
                 else if (actionId == EditorInfo.IME_ACTION_PREVIOUS) {
                     // This is how the Fire TV dismisses the keyboard
@@ -214,8 +210,28 @@ public class AddComputerManually extends Activity {
             }
         });
 
+        findViewById(R.id.addPcButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                handleDoneEvent();
+            }
+        });
+
         // Bind to the ComputerManager service
         bindService(new Intent(AddComputerManually.this,
                     ComputerManagerService.class), serviceConnection, Service.BIND_AUTO_CREATE);
+    }
+
+    // Returns true if the event should be eaten
+    private boolean handleDoneEvent() {
+        String hostAddress = hostText.getText().toString().trim();
+
+        if (hostAddress.length() == 0) {
+            Toast.makeText(AddComputerManually.this, getResources().getString(R.string.addpc_enter_ip), Toast.LENGTH_LONG).show();
+            return true;
+        }
+
+        computersToAdd.add(hostAddress);
+        return false;
     }
 }

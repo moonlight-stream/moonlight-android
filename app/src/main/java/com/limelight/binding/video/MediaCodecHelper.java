@@ -131,8 +131,8 @@ public class MediaCodecHelper {
 		}
 
 		// Sony ATVs have broken MediaTek codecs (decoder hangs after rendering the first frame).
-		// I know the Fire TV 2 works, so I'll just whitelist Amazon devices which seem
-		// to actually be tested. Ugh...
+		// I know the Fire TV 2 and 3 works, so I'll just whitelist Amazon devices which seem
+		// to actually be tested.
 		if (Build.MANUFACTURER.equalsIgnoreCase("Amazon")) {
 			whitelistedHevcDecoders.add("omx.mtk");
 			whitelistedHevcDecoders.add("omx.amlogic");
@@ -164,6 +164,10 @@ public class MediaCodecHelper {
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
 			blacklisted49FpsDecoderPrefixes.add("omx.mtk");
 		}
+	}
+
+	private static boolean isPowerVR(String glRenderer) {
+		return glRenderer.toLowerCase().contains("powervr");
 	}
 
 	private static String getAdrenoVersionString(String glRenderer) {
@@ -258,6 +262,16 @@ public class MediaCodecHelper {
 			}
 			else {
 				blacklistedDecoderPrefixes.add("OMX.qcom.video.decoder.hevc");
+			}
+
+			// Older MediaTek SoCs have issues with HEVC rendering but the newer chips with
+			// PowerVR GPUs have good HEVC support.
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isPowerVR(glRenderer)) {
+				LimeLog.info("Added omx.mtk to HEVC decoders based on PowerVR GPU");
+				whitelistedHevcDecoders.add("omx.mtk");
+
+				LimeLog.info("Added omx.mtk to RFI list for HEVC");
+				refFrameInvalidationHevcPrefixes.add("omx.mtk");
 			}
 		}
 

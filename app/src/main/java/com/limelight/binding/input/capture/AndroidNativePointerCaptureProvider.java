@@ -43,11 +43,19 @@ public class AndroidNativePointerCaptureProvider extends InputCaptureProvider {
 
     @Override
     public float getRelativeAxisX(MotionEvent event) {
-        return event.getX();
+        float x = event.getX();
+        for (int i = 0; i < event.getHistorySize(); i++) {
+            x += event.getHistoricalX(i);
+        }
+        return x;
     }
 
     @Override
     public float getRelativeAxisY(MotionEvent event) {
-        return event.getY();
+        float y = event.getY();
+        for (int i = 0; i < event.getHistorySize(); i++) {
+            y += event.getHistoricalY(i);
+        }
+        return y;
     }
 }

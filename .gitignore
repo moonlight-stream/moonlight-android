@@ -1,6 +1,9 @@
-#built application files
+# built application files
 *.apk
 *.ap_
+*.aab
+output.json
+out/
 
 # files for the dex VM
 *.dex

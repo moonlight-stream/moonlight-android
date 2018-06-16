@@ -1019,12 +1019,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     lastMouseY = (int)event.getY();
                 }
                 else {
-                    // First process the history
-                    for (int i = 0; i < event.getHistorySize(); i++) {
-                        updateMousePosition((int)event.getHistoricalX(i), (int)event.getHistoricalY(i));
-                    }
-
-                    // Now process the current values
+                    // Don't process the history. We just want the current position now.
                     updateMousePosition((int)event.getX(), (int)event.getY());
                 }
 

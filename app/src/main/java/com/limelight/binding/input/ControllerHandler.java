@@ -4,6 +4,7 @@ import android.content.Context;
 import android.hardware.input.InputManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.os.Build;
 import android.os.SystemClock;
 import android.util.SparseArray;
 import android.view.InputDevice;
@@ -22,6 +23,7 @@ import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.GameGestures;
 import com.limelight.utils.Vector2d;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -308,6 +310,79 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return context;
     }
 
+    private static boolean isExternal(InputDevice dev) {
+        try {
+            // Landroid/view/InputDevice;->isExternal()Z is on the light graylist in Android P
+            return (Boolean)dev.getClass().getMethod("isExternal").invoke(dev);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+        }
+
+        // Answer true if we don't know
+        return true;
+    }
+
+    private boolean shouldIgnoreBack(InputDevice dev) {
+        String devName = dev.getName();
+
+        // The Serval has a Select button but the framework doesn't
+        // know about that because it uses a non-standard scancode.
+        if (devName.contains("Razer Serval")) {
+            return true;
+        }
+
+        // Classify this device as a remote by name if it has no joystick axes
+        if (getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_X) == null &&
+                getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_Y) == null &&
+                devName.toLowerCase().contains("remote")) {
+            return true;
+        }
+
+        // Otherwise, dynamically try to determine whether we should allow this
+        // back button to function for navigation.
+        //
+        // First, check if this is an internal device we're being called on.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && !isExternal(dev)) {
+            InputManager im = (InputManager) activityContext.getSystemService(Context.INPUT_SERVICE);
+
+            boolean foundInternalGamepad = false;
+            boolean foundInternalSelect = false;
+            for (int id : im.getInputDeviceIds()) {
+                InputDevice currentDev = im.getInputDevice(id);
+
+                // Ignore external devices
+                if (currentDev == null || isExternal(currentDev)) {
+                    continue;
+                }
+
+                // Note that we are explicitly NOT excluding the current device we're examining here,
+                // since the other gamepad buttons may be on our current device and that's fine.
+                boolean[] keys = currentDev.hasKeys(KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BUTTON_A);
+                if (keys[0]) {
+                    foundInternalSelect = true;
+                }
+                if (keys[1]) {
+                    foundInternalGamepad = true;
+                }
+            }
+
+            // Allow the back button to function for navigation if we either:
+            // a) have no internal gamepad (most phones)
+            // b) have an internal gamepad but also have an internal select button (GPD XD)
+            // but not:
+            // c) have an internal gamepad but no internal select button (NVIDIA SHIELD Portable)
+            return !foundInternalGamepad || foundInternalSelect;
+        }
+
+        return false;
+    }
+
     private InputDeviceContext createInputDeviceContextForDevice(InputDevice dev) {
         InputDeviceContext context = new InputDeviceContext();
         String devName = dev.getName();
@@ -440,6 +515,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
+        context.ignoreBack = shouldIgnoreBack(dev);
+
         if (devName != null) {
             // For the Nexus Player (and probably other ATV devices), we should
             // use the back button as start since it doesn't have a start/menu button
@@ -459,30 +536,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 // so we increase the deadzone on them to minimize this
                 context.triggerDeadzone = 0.30f;
             }
-            // Classify this device as a remote by name
-            else if (devName.toLowerCase().contains("remote")) {
-                // It's only a remote if it doesn't any sticks
-                if (!context.hasJoystickAxes) {
-                    context.ignoreBack = true;
-                }
-            }
             // SHIELD controllers will use small stick deadzones
             else if (devName.contains("SHIELD")) {
                 context.leftStickDeadzoneRadius = 0.07f;
                 context.rightStickDeadzoneRadius = 0.07f;
             }
-            // Samsung's face buttons appear as a non-virtual button so we'll explicitly ignore
-            // back presses on this device. The Goodix buttons on the Nokia 6 also appear
-            // non-virtual so we'll ignore those too.
-            else if (devName.equals("sec_touchscreen") || devName.equals("sec_touchkey") ||
-                    devName.equals("goodix_fp")) {
-                context.ignoreBack = true;
-            }
             // The Serval has a couple of unknown buttons that are start and select. It also has
             // a back button which we want to ignore since there's already a select button.
             else if (devName.contains("Razer Serval")) {
                 context.isServal = true;
-                context.ignoreBack = true;
             }
             // The Xbox One S Bluetooth controller has some mappings that need fixing up.
             // However, Microsoft released a firmware update with no change to VID/PID

@@ -835,7 +835,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Handle a synthetic back button event that some Android OS versions
         // create as a result of a right-click.
-        if (event.getSource() == InputDevice.SOURCE_MOUSE && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+        if ((event.getSource() == InputDevice.SOURCE_MOUSE ||
+                event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
             return true;
         }
@@ -885,7 +887,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Handle a synthetic back button event that some Android OS versions
         // create as a result of a right-click.
-        if (event.getSource() == InputDevice.SOURCE_MOUSE && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+        if ((event.getSource() == InputDevice.SOURCE_MOUSE ||
+                event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
             return true;
         }
@@ -953,6 +957,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         {
             // This case is for mice
             if (event.getSource() == InputDevice.SOURCE_MOUSE ||
+                    event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE ||
                     (event.getPointerCount() >= 1 &&
                             event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE))
             {

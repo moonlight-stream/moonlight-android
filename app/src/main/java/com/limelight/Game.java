@@ -834,10 +834,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Handle a synthetic back button event that some Android OS versions
-        // create as a result of a right-click.
+        // create as a result of a right-click. This event WILL repeat if
+        // the right mouse button is held down, so we ignore those.
         if ((event.getSource() == InputDevice.SOURCE_MOUSE ||
                 event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) &&
-                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK &&
+                event.getRepeatCount() == 0) {
             conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
             return true;
         }
@@ -972,6 +974,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     // Send the vertical scroll packet
                     byte vScrollClicks = (byte) event.getAxisValue(MotionEvent.AXIS_VSCROLL);
                     conn.sendMouseScroll(vScrollClicks);
+                }
+                else if (event.getActionMasked() == MotionEvent.ACTION_HOVER_ENTER ||
+                         event.getActionMasked() == MotionEvent.ACTION_HOVER_EXIT) {
+                    // On some devices (Galaxy S8 without Oreo pointer capture), we can
+                    // get spurious ACTION_HOVER_ENTER events when right clicking with
+                    // incorrect X and Y coordinates. Just eat this event without processing it.
+                    return true;
                 }
 
                 if ((changedButtons & MotionEvent.BUTTON_PRIMARY) != 0) {

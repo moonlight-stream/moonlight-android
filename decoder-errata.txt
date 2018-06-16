@@ -3,8 +3,8 @@ This file serves to document some of the decoder errata when using MediaCodec ha
 1. num_ref_frames is set to 16 by NVENC which causes decoders to allocate 16+ buffers. This can cause an error or lag on some devices.
 	- Affected decoders: TI OMAP4, Allwinner A20
 	
-2. Some decoders have a huge per-frame latency with the unmodified SPS sent from NVENC. Setting max_dec_frame_buffering fixes this latency issue.
-	- Affected decoders: NVIDIA Tegra 3 and 4, Broadcom VideoCore IV
+2. Some H.264 decoders have a huge per-frame latency with the unmodified SPS sent from NVENC. Setting max_dec_frame_buffering=1 fixes this latency issue.
+	- Affected decoders: NVIDIA Tegra 3 and 4, Broadcom VideoCore IV, MT8176 (HEVC not affected)
 
 3. Some decoders strictly require that you pass BUFFER_FLAG_CODEC_CONFIG and crash upon the IDR frame if you don't
 	- Affected decoders: TI OMAP4

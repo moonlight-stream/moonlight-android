@@ -270,6 +270,8 @@ public class MediaCodecHelper {
 				LimeLog.info("Added omx.mtk to HEVC decoders based on PowerVR GPU");
 				whitelistedHevcDecoders.add("omx.mtk");
 
+				// This SoC (MT8176 in GPD XD+) supports AVC RFI too, but the maxNumReferenceFrames setting
+				// required to make it work adds a huge amount of latency.
 				LimeLog.info("Added omx.mtk to RFI list for HEVC");
 				refFrameInvalidationHevcPrefixes.add("omx.mtk");
 			}

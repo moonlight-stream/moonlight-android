@@ -28,6 +28,7 @@ import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -560,6 +561,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 return true;
 
             case DELETE_ID:
+                if (ActivityManager.isUserAMonkey()) {
+                    LimeLog.info("Ignoring delete PC request from monkey");
+                    return true;
+                }
                 if (managerBinder == null) {
                     Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
                     return true;

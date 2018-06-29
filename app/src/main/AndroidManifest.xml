@@ -76,6 +76,15 @@
                 android:value="com.limelight.PcView" />
         </activity>
         <activity
+            android:name=".GameViewShortcutTrampoline"
+            android:noHistory="true"
+            android:resizeableActivity="true"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.limelight.AppView" />
+        </activity>
+        <activity
             android:name=".AppView"
             android:resizeableActivity="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">

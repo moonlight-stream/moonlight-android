@@ -335,7 +335,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             // it with delete which actually work
             menu.add(Menu.NONE, DELETE_ID, 4, getResources().getString(R.string.pcview_menu_delete_pc));
         }
-        menu.add(Menu.NONE, VIEW_DETAILS_ID, 5, "View Details");
+        menu.add(Menu.NONE, VIEW_DETAILS_ID, 5,  getResources().getString(R.string.pcview_menu_details));
     }
 
     @Override

@@ -52,8 +52,8 @@ public class ShortcutTrampoline extends Activity {
 
                     if(computer == null) {
                         Dialog.displayDialog(ShortcutTrampoline.this,
-                                "Unable to find computer",
-                                "Unable to find computer",
+                                getResources().getString(R.string.conn_error_title),
+                                getResources().getString(R.string.scut_pc_not_found),
                                 true);
                     }
 
@@ -154,7 +154,7 @@ public class ShortcutTrampoline extends Activity {
                                                     getResources().getString(R.string.error_pc_offline),
                                                     true);
                                         } else if (details.pairState != PairingManager.PairState.PAIRED) {
-                                            // Computer not apried - display an error dialog
+                                            // Computer not paired - display an error dialog
                                             Dialog.displayDialog(ShortcutTrampoline.this,
                                                     getResources().getString(R.string.conn_error_title),
                                                     getResources().getString(R.string.scut_not_paired),
@@ -189,7 +189,7 @@ public class ShortcutTrampoline extends Activity {
         } catch (IllegalArgumentException ex) {
             Dialog.displayDialog(ShortcutTrampoline.this,
                     getResources().getString(R.string.conn_error_title),
-                    "Provided UUID is not valid.",
+                    getResources().getString(R.string.scut_invalid_uuid),
                     true);
             return false;
         }
@@ -201,7 +201,7 @@ public class ShortcutTrampoline extends Activity {
             } catch (NumberFormatException ex) {
                 Dialog.displayDialog(ShortcutTrampoline.this,
                         getResources().getString(R.string.conn_error_title),
-                        "Provided App ID is not valid.",
+                        getResources().getString(R.string.scut_invalid_app_id),
                         true);
                 return false;
             }

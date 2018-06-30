@@ -74,7 +74,7 @@
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.limelight.AppView" />
+                android:value="com.limelight.PcView" />
         </activity>
         <activity
             android:name=".AppView"

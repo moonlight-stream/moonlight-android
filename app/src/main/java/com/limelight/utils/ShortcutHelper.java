@@ -82,8 +82,7 @@ public class ShortcutHelper {
 
     public void reportShortcutUsed(String id) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            ShortcutInfo sinfo = getInfoForId(id);
-            if (sinfo != null) {
+            if (getInfoForId(id) != null) {
                 sm.reportShortcutUsed(id);
             }
         }
@@ -132,28 +131,25 @@ public class ShortcutHelper {
     @TargetApi(Build.VERSION_CODES.O)
     public boolean createPinnedGameShortcut(String id, Bitmap iconBits, String computerName, String computerUuid, String appName, String appId) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && sm.isRequestPinShortcutSupported()) {
+            Icon appIcon;
             Intent i = new Intent(context, ShortcutTrampoline.class);
+
             i.putExtra(AppView.NAME_EXTRA, computerName);
             i.putExtra(AppView.UUID_EXTRA, computerUuid);
             i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, appId);
             i.setAction(Intent.ACTION_DEFAULT);
-            ShortcutInfo.Builder sBuilder = new ShortcutInfo.Builder(context, id);
-            Icon appIcon;
 
             if(iconBits != null) {
-                //Crop to Center of Bitmap
                 appIcon = Icon.createWithAdaptiveBitmap(iconBits);
             } else {
                 appIcon = Icon.createWithResource(context, R.mipmap.ic_pc_scut);
             }
 
-            if (getInfoForId(id) == null) {
-                sBuilder.setIntent(i)
-                        .setShortLabel(appName + " (" + computerName + ")")
-                        .setIcon(appIcon)
-                        .build();
-            }
-            ShortcutInfo sInfo = sBuilder.build();
+            ShortcutInfo sInfo = new ShortcutInfo.Builder(context, id)
+                .setIntent(i)
+                .setShortLabel(appName + " (" + computerName + ")")
+                .setIcon(appIcon)
+                .build();
 
             return sm.requestPinShortcut(sInfo, null);
         } else {
@@ -167,8 +163,7 @@ public class ShortcutHelper {
 
     public void disableShortcut(String id, CharSequence reason) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            ShortcutInfo sinfo = getInfoForId(id);
-            if (sinfo != null) {
+            if (getInfoForId(id) != null) {
                 sm.disableShortcuts(Collections.singletonList(id), reason);
             }
         }

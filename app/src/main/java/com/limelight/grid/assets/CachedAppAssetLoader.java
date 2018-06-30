@@ -1,19 +1,27 @@
 package com.limelight.grid.assets;
 
+import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
+import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 
+import org.jcodec.api.NotSupportedException;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Target;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;

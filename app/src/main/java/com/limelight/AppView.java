@@ -1,6 +1,7 @@
 package com.limelight;
 
 import java.io.StringReader;
+import java.security.cert.CRLException;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,10 +23,15 @@ import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Service;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.ContextMenu;
@@ -36,6 +42,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
@@ -57,6 +64,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private final static int QUIT_ID = 2;
     private final static int CANCEL_ID = 3;
     private final static int START_WTIH_QUIT = 4;
+    private final static int VIEW_DETAILS_ID = 5;
+    private final static int CREATE_SHORTCUT_ID = 6;
 
     public final static String NAME_EXTRA = "Name";
     public final static String UUID_EXTRA = "UUID";
@@ -335,6 +344,11 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 menu.add(Menu.NONE, CANCEL_ID, 2, getResources().getString(R.string.applist_menu_cancel));
             }
         }
+        menu.add(Menu.NONE, VIEW_DETAILS_ID, 3, "View Details");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            menu.add(Menu.NONE, CREATE_SHORTCUT_ID, 4, "Create Shortcut");
+        }
     }
 
     @Override
@@ -384,6 +398,20 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 return true;
 
             case CANCEL_ID:
+                return true;
+
+            case VIEW_DETAILS_ID:
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage("ID: " + app.app.getAppId())
+                        .show();
+                return true;
+
+            case CREATE_SHORTCUT_ID:
+                ImageView appImageView = (ImageView)info.targetView.findViewById(R.id.grid_image);
+                Bitmap appBits = ((BitmapDrawable)appImageView.getDrawable()).getBitmap();
+                if(!shortcutHelper.createPinnedGameShortcut(uuidString + Integer.valueOf(app.app.getAppId()).toString(), appBits, computer, app.app)) {
+                    Toast.makeText(AppView.this, "Sorry, pinned shortcuts are not supported by your current launcher.", Toast.LENGTH_LONG).show();
+                }
                 return true;
 
             default:

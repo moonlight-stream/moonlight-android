@@ -29,6 +29,7 @@ import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -113,6 +114,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private final static int DELETE_ID = 5;
     private final static int RESUME_ID = 6;
     private final static int QUIT_ID = 7;
+    private final static int VIEW_DETAILS_ID = 8;
 
     private void initializeViews() {
         setContentView(R.layout.activity_pc_view);
@@ -333,6 +335,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             // it with delete which actually work
             menu.add(Menu.NONE, DELETE_ID, 4, getResources().getString(R.string.pcview_menu_delete_pc));
         }
+        menu.add(Menu.NONE, VIEW_DETAILS_ID, 5, "View Details");
     }
 
     @Override
@@ -601,6 +604,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                                 new NvApp("app", 0, false), managerBinder, null);
                     }
                 }, null);
+                return true;
+
+            case VIEW_DETAILS_ID:
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage(computer.details.toString())
+                        .show();
                 return true;
 
             default:

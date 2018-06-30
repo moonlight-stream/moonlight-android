@@ -67,17 +67,9 @@
         </activity>
         <!-- Small hack to support launcher shortcuts without relaunching over and over again when the back button is pressed -->
         <activity
-            android:name=".AppViewShortcutTrampoline"
+            android:name=".ShortcutTrampoline"
             android:noHistory="true"
-            android:resizeableActivity="true"
-            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.limelight.PcView" />
-        </activity>
-        <activity
-            android:name=".GameViewShortcutTrampoline"
-            android:noHistory="true"
+            android:exported="true"
             android:resizeableActivity="true"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <meta-data

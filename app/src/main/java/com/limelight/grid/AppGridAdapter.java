@@ -1,6 +1,8 @@
 package com.limelight.grid;
 
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.drawable.Icon;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;

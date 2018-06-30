@@ -21,7 +21,7 @@ import com.limelight.utils.UiHelper;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class GameViewShortcutTrampoline extends Activity {
+public class ShortcutTrampoline extends Activity {
     private String uuidString;
     private String appIdString;
     private ArrayList<Intent> intentStack = new ArrayList<>();
@@ -29,8 +29,7 @@ public class GameViewShortcutTrampoline extends Activity {
     private ComputerDetails computer;
     private SpinnerDialog blockingLoadSpinner;
 
-    public final static String UUID_EXTRA = "UUID";
-    public final static String APP_ID_EXTRA = "APPID";
+    public final static String APP_ID_EXTRA = "AppId";
 
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
@@ -50,6 +49,13 @@ public class GameViewShortcutTrampoline extends Activity {
 
                     // Get the computer object
                     computer = managerBinder.getComputer(UUID.fromString(uuidString));
+
+                    if(computer == null) {
+                        Dialog.displayDialog(ShortcutTrampoline.this,
+                                "Unable to find computer",
+                                "Unable to find computer",
+                                true);
+                    }
 
                     // Force CMS to repoll this machine
                     managerBinder.invalidateStateForComputer(computer.uuid);
@@ -81,51 +87,76 @@ public class GameViewShortcutTrampoline extends Activity {
                                         }
 
                                         if (details.state == ComputerDetails.State.ONLINE && details.pairState == PairingManager.PairState.PAIRED) {
-                                            // Close this activity
-                                            finish();
-                                            Intent i;
+                                            
+                                            //Launch game if provided app ID, otherwise launch app view
+                                            if(appIdString != null && appIdString.length() > 0) {
+                                                if (details.runningGameId == 0 || details.runningGameId == Integer.parseInt(appIdString)) {
+                                                    intentStack.add(ServerHelper.createStartIntent(ShortcutTrampoline.this,
+                                                            new NvApp("app", Integer.parseInt(appIdString), false), details, managerBinder));
 
-                                            // Add the PC view at the back (and clear the task)
-                                            i = new Intent(GameViewShortcutTrampoline.this, PcView.class);
-                                            i.setAction(Intent.ACTION_MAIN);
-                                            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                            intentStack.add(i);
+                                                    // Close this activity
+                                                    finish();
 
-                                            // Take this intent's data and create an intent to start the app view
-                                            i = new Intent(getIntent());
-                                            i.setClass(GameViewShortcutTrampoline.this, AppView.class);
-                                            intentStack.add(i);
+                                                    // Now start the activities
+                                                    startActivities(intentStack.toArray(new Intent[]{}));
+                                                } else {
+                                                    UiHelper.displayQuitConfirmationDialog(ShortcutTrampoline.this, new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            intentStack.add(ServerHelper.createStartIntent(ShortcutTrampoline.this,
+                                                                    new NvApp("app", Integer.parseInt(appIdString), false), details, managerBinder));
 
-                                            // If a game is running, we'll make the stream the top level activity
-                                            if (details.runningGameId == 0 || details.runningGameId == Integer.parseInt(appIdString)) {
-                                                intentStack.add(ServerHelper.createStartIntent(GameViewShortcutTrampoline.this,
-                                                        new NvApp("app", details.runningGameId, false), details, managerBinder));
+                                                            // Close this activity
+                                                            finish();
+
+                                                            // Now start the activities
+                                                            startActivities(intentStack.toArray(new Intent[]{}));
+                                                        }
+                                                    }, new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            // Close this activity
+                                                            finish();
+                                                        }
+                                                    });
+                                                }
+                                            } else {
+                                                // Close this activity
+                                                finish();
+
+                                                // Add the PC view at the back (and clear the task)
+                                                Intent i;
+                                                i = new Intent(ShortcutTrampoline.this, PcView.class);
+                                                i.setAction(Intent.ACTION_MAIN);
+                                                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                intentStack.add(i);
+
+                                                // Take this intent's data and create an intent to start the app view
+                                                i = new Intent(getIntent());
+                                                i.setClass(ShortcutTrampoline.this, AppView.class);
+                                                intentStack.add(i);
+
+                                                // If a game is running, we'll make the stream the top level activity
+                                                if (details.runningGameId != 0) {
+                                                    intentStack.add(ServerHelper.createStartIntent(ShortcutTrampoline.this,
+                                                            new NvApp("app", details.runningGameId, false), details, managerBinder));
+                                                }
 
                                                 // Now start the activities
                                                 startActivities(intentStack.toArray(new Intent[]{}));
-                                            } else {
-                                                UiHelper.displayQuitConfirmationDialog(GameViewShortcutTrampoline.this, new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        intentStack.add(ServerHelper.createStartIntent(GameViewShortcutTrampoline.this,
-                                                                new NvApp("app", details.runningGameId, false), details, managerBinder));
-
-                                                        // Now start the activities
-                                                        startActivities(intentStack.toArray(new Intent[]{}));
-                                                    }
-                                                }, null);
                                             }
+                                            
                                         }
                                         else if (details.state == ComputerDetails.State.OFFLINE) {
                                             // Computer offline - display an error dialog
-                                            Dialog.displayDialog(GameViewShortcutTrampoline.this,
+                                            Dialog.displayDialog(ShortcutTrampoline.this,
                                                     getResources().getString(R.string.conn_error_title),
                                                     getResources().getString(R.string.error_pc_offline),
                                                     true);
                                         } else if (details.pairState != PairingManager.PairState.PAIRED) {
                                             // Computer not apried - display an error dialog
-                                            Dialog.displayDialog(GameViewShortcutTrampoline.this,
-                                                    getResources().getString(R.string.scut_not_paired),
+                                            Dialog.displayDialog(ShortcutTrampoline.this,
+                                                    getResources().getString(R.string.conn_error_title),
                                                     getResources().getString(R.string.scut_not_paired),
                                                     true);
                                         }
@@ -151,21 +182,29 @@ public class GameViewShortcutTrampoline extends Activity {
         }
     };
 
-    protected void launchApp() {
-
-    }
-
     protected boolean validateInput() {
         //Validate UUID
         try {
             UUID.fromString(uuidString);
         } catch (IllegalArgumentException ex) {
+            Dialog.displayDialog(ShortcutTrampoline.this,
+                    getResources().getString(R.string.conn_error_title),
+                    "Provided UUID is not valid.",
+                    true);
             return false;
         }
 
-        //Validate App ID
-        if(appIdString == null || appIdString.isEmpty()) {
-            return false;
+        //Validate App ID (if provided)
+        if(appIdString != null && appIdString.isEmpty()) {
+            try {
+                Integer.parseInt(appIdString);
+            } catch (NumberFormatException ex) {
+                Dialog.displayDialog(ShortcutTrampoline.this,
+                        getResources().getString(R.string.conn_error_title),
+                        "Provided App ID is not valid.",
+                        true);
+                return false;
+            }
         }
 
         return true;
@@ -177,7 +216,7 @@ public class GameViewShortcutTrampoline extends Activity {
 
         UiHelper.notifyNewRootView(this);
 
-        uuidString = getIntent().getStringExtra(UUID_EXTRA);
+        uuidString = getIntent().getStringExtra(AppView.UUID_EXTRA);
         appIdString = getIntent().getStringExtra(APP_ID_EXTRA);
 
         if(validateInput()) {
@@ -188,7 +227,7 @@ public class GameViewShortcutTrampoline extends Activity {
             blockingLoadSpinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.conn_establishing_title),
                     getResources().getString(R.string.applist_connect_msg), true);
         } else {
-            //Display error somehow
+            finish();
         }
     }
 

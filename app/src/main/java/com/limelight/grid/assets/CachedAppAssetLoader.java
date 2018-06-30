@@ -12,7 +12,6 @@ import android.widget.ProgressBar;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;

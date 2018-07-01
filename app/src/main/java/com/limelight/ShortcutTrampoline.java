@@ -55,6 +55,18 @@ public class ShortcutTrampoline extends Activity {
                                 getResources().getString(R.string.conn_error_title),
                                 getResources().getString(R.string.scut_pc_not_found),
                                 true);
+
+                        if (blockingLoadSpinner != null) {
+                            blockingLoadSpinner.dismiss();
+                            blockingLoadSpinner = null;
+                        }
+
+                        if (managerBinder != null) {
+                            unbindService(serviceConnection);
+                            managerBinder = null;
+                        }
+
+                        return;
                     }
 
                     // Force CMS to repoll this machine
@@ -88,7 +100,7 @@ public class ShortcutTrampoline extends Activity {
 
                                         if (details.state == ComputerDetails.State.ONLINE && details.pairState == PairingManager.PairState.PAIRED) {
                                             
-                                            //Launch game if provided app ID, otherwise launch app view
+                                            // Launch game if provided app ID, otherwise launch app view
                                             if(appIdString != null && appIdString.length() > 0) {
                                                 if (details.runningGameId == 0 || details.runningGameId == Integer.parseInt(appIdString)) {
                                                     intentStack.add(ServerHelper.createStartIntent(ShortcutTrampoline.this,
@@ -183,7 +195,7 @@ public class ShortcutTrampoline extends Activity {
     };
 
     protected boolean validateInput() {
-        //Validate UUID
+        // Validate UUID
         try {
             UUID.fromString(uuidString);
         } catch (IllegalArgumentException ex) {
@@ -194,8 +206,8 @@ public class ShortcutTrampoline extends Activity {
             return false;
         }
 
-        //Validate App ID (if provided)
-        if(appIdString != null && appIdString.isEmpty()) {
+        // Validate App ID (if provided)
+        if(appIdString != null && !appIdString.isEmpty()) {
             try {
                 Integer.parseInt(appIdString);
             } catch (NumberFormatException ex) {
@@ -226,8 +238,6 @@ public class ShortcutTrampoline extends Activity {
 
             blockingLoadSpinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.conn_establishing_title),
                     getResources().getString(R.string.applist_connect_msg), true);
-        } else {
-            finish();
         }
     }
 

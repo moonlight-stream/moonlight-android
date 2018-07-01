@@ -130,7 +130,7 @@ public class ShortcutHelper {
 
     @TargetApi(Build.VERSION_CODES.O)
     public boolean createPinnedGameShortcut(String id, Bitmap iconBits, String computerName, String computerUuid, String appName, String appId) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && sm.isRequestPinShortcutSupported()) {
+        if (sm.isRequestPinShortcutSupported()) {
             Icon appIcon;
             Intent i = new Intent(context, ShortcutTrampoline.class);
 

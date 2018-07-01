@@ -400,7 +400,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
             case VIEW_DETAILS_ID:
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage("App Id: " + app.app.getAppId())
+                builder.setMessage(getResources().getString(R.string.applist_details_id) + " " + app.app.getAppId())
                         .show();
                 return true;
 

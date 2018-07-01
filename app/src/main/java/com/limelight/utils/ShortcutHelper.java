@@ -139,7 +139,7 @@ public class ShortcutHelper {
             i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, appId);
             i.setAction(Intent.ACTION_DEFAULT);
 
-            if(iconBits != null) {
+            if (iconBits != null) {
                 appIcon = Icon.createWithAdaptiveBitmap(iconBits);
             } else {
                 appIcon = Icon.createWithResource(context, R.mipmap.ic_pc_scut);

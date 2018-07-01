@@ -407,7 +407,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             case CREATE_SHORTCUT_ID:
                 ImageView appImageView = info.targetView.findViewById(R.id.grid_image);
                 Bitmap appBits = ((BitmapDrawable)appImageView.getDrawable()).getBitmap();
-                if(!shortcutHelper.createPinnedGameShortcut(uuidString + Integer.valueOf(app.app.getAppId()).toString(), appBits, computer, app.app)) {
+                if (!shortcutHelper.createPinnedGameShortcut(uuidString + Integer.valueOf(app.app.getAppId()).toString(), appBits, computer, app.app)) {
                     Toast.makeText(AppView.this, getResources().getString(R.string.unable_to_pin_shortcut), Toast.LENGTH_LONG).show();
                 }
                 return true;

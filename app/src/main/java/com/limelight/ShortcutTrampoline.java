@@ -50,7 +50,7 @@ public class ShortcutTrampoline extends Activity {
                     // Get the computer object
                     computer = managerBinder.getComputer(UUID.fromString(uuidString));
 
-                    if(computer == null) {
+                    if (computer == null) {
                         Dialog.displayDialog(ShortcutTrampoline.this,
                                 getResources().getString(R.string.conn_error_title),
                                 getResources().getString(R.string.scut_pc_not_found),
@@ -101,7 +101,7 @@ public class ShortcutTrampoline extends Activity {
                                         if (details.state == ComputerDetails.State.ONLINE && details.pairState == PairingManager.PairState.PAIRED) {
                                             
                                             // Launch game if provided app ID, otherwise launch app view
-                                            if(appIdString != null && appIdString.length() > 0) {
+                                            if (appIdString != null && appIdString.length() > 0) {
                                                 if (details.runningGameId == 0 || details.runningGameId == Integer.parseInt(appIdString)) {
                                                     intentStack.add(ServerHelper.createStartIntent(ShortcutTrampoline.this,
                                                             new NvApp("app", Integer.parseInt(appIdString), false), details, managerBinder));
@@ -207,7 +207,7 @@ public class ShortcutTrampoline extends Activity {
         }
 
         // Validate App ID (if provided)
-        if(appIdString != null && !appIdString.isEmpty()) {
+        if (appIdString != null && !appIdString.isEmpty()) {
             try {
                 Integer.parseInt(appIdString);
             } catch (NumberFormatException ex) {
@@ -231,7 +231,7 @@ public class ShortcutTrampoline extends Activity {
         uuidString = getIntent().getStringExtra(AppView.UUID_EXTRA);
         appIdString = getIntent().getStringExtra(APP_ID_EXTRA);
 
-        if(validateInput()) {
+        if (validateInput()) {
             // Bind to the computer manager service
             bindService(new Intent(this, ComputerManagerService.class), serviceConnection,
                     Service.BIND_AUTO_CREATE);

@@ -22,7 +22,6 @@ import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -399,9 +398,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 return true;
 
             case VIEW_DETAILS_ID:
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage(getResources().getString(R.string.applist_details_id) + " " + app.app.getAppId())
-                        .show();
+                Dialog.displayDialog(AppView.this, getResources().getString(R.string.title_details),
+                        getResources().getString(R.string.applist_details_id) + " " + app.app.getAppId(), false);
                 return true;
 
             case CREATE_SHORTCUT_ID:

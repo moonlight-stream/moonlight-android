@@ -81,6 +81,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="lost_connection">Lost connection to PC</string>
+    <string name="title_details">Details</string>
     <string name="help">Help</string>
 
     <!-- AppList activity -->

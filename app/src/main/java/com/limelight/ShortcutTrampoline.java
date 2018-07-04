@@ -242,8 +242,8 @@ public class ShortcutTrampoline extends Activity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
 
         if (blockingLoadSpinner != null) {
             blockingLoadSpinner.dismiss();

@@ -5,13 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Icon;
 import android.os.Build;
 
 import com.limelight.AppView;
-import com.limelight.AppViewShortcutTrampoline;
+import com.limelight.ShortcutTrampoline;
 import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.NvApp;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -80,8 +82,7 @@ public class ShortcutHelper {
 
     public void reportShortcutUsed(String id) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            ShortcutInfo sinfo = getInfoForId(id);
-            if (sinfo != null) {
+            if (getInfoForId(id) != null) {
                 sm.reportShortcutUsed(id);
             }
         }
@@ -89,7 +90,7 @@ public class ShortcutHelper {
 
     public void createAppViewShortcut(String id, String computerName, String computerUuid, boolean forceAdd) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            Intent i = new Intent(context, AppViewShortcutTrampoline.class);
+            Intent i = new Intent(context, ShortcutTrampoline.class);
             i.putExtra(AppView.NAME_EXTRA, computerName);
             i.putExtra(AppView.UUID_EXTRA, computerUuid);
             i.setAction(Intent.ACTION_DEFAULT);
@@ -127,10 +128,42 @@ public class ShortcutHelper {
         createAppViewShortcut(id, details.name, details.uuid.toString(), forceAdd);
     }
 
+    @TargetApi(Build.VERSION_CODES.O)
+    public boolean createPinnedGameShortcut(String id, Bitmap iconBits, String computerName, String computerUuid, String appName, String appId) {
+        if (sm.isRequestPinShortcutSupported()) {
+            Icon appIcon;
+            Intent i = new Intent(context, ShortcutTrampoline.class);
+
+            i.putExtra(AppView.NAME_EXTRA, computerName);
+            i.putExtra(AppView.UUID_EXTRA, computerUuid);
+            i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, appId);
+            i.setAction(Intent.ACTION_DEFAULT);
+
+            if (iconBits != null) {
+                appIcon = Icon.createWithAdaptiveBitmap(iconBits);
+            } else {
+                appIcon = Icon.createWithResource(context, R.mipmap.ic_pc_scut);
+            }
+
+            ShortcutInfo sInfo = new ShortcutInfo.Builder(context, id)
+                .setIntent(i)
+                .setShortLabel(appName + " (" + computerName + ")")
+                .setIcon(appIcon)
+                .build();
+
+            return sm.requestPinShortcut(sInfo, null);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean createPinnedGameShortcut(String id, Bitmap iconBits, ComputerDetails cDetails, NvApp app) {
+        return createPinnedGameShortcut(id, iconBits, cDetails.name, cDetails.uuid.toString(), app.getAppName(), Integer.valueOf(app.getAppId()).toString());
+    }
+
     public void disableShortcut(String id, CharSequence reason) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            ShortcutInfo sinfo = getInfoForId(id);
-            if (sinfo != null) {
+            if (getInfoForId(id) != null) {
                 sm.disableShortcuts(Collections.singletonList(id), reason);
             }
         }

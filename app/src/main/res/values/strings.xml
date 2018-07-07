@@ -6,6 +6,9 @@
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc">PC deleted</string>
     <string name="scut_not_paired">PC not paired</string>
+    <string name="scut_pc_not_found">PC not found</string>
+    <string name="scut_invalid_uuid">Provided PC is not valid</string>
+    <string name="scut_invalid_app_id">Provided App is not valid</string>
 
     <!-- Help strings -->
     <string name="help_loading_title">Help Viewer</string>
@@ -17,6 +20,7 @@
     <string name="pcview_menu_unpair_pc">Unpair</string>
     <string name="pcview_menu_send_wol">Send Wake-On-LAN request</string>
     <string name="pcview_menu_delete_pc">Delete PC</string>
+    <string name="pcview_menu_details">View Details</string>
 
     <!-- Pair messages -->
     <string name="pairing">Pairing…</string>
@@ -55,6 +59,7 @@
     <string name="title_decoding_reset">Video Settings Reset</string>
     <string name="message_decoding_reset">Your device\'s video decoder continues to crash at your selected streaming settings. Your streaming settings have been reset to default.</string>
     <string name="error_usb_prohibited">USB access is prohibited by your device administrator. Check your Knox or MDM settings.</string>
+    <string name="unable_to_pin_shortcut">Your current launcher does not allow for creating pinned shortcuts.</string>
 
     <!-- Start application messages -->
     <string name="conn_establishing_title">Establishing Connection</string>
@@ -76,6 +81,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="lost_connection">Lost connection to PC</string>
+    <string name="title_details">Details</string>
     <string name="help">Help</string>
 
     <!-- AppList activity -->
@@ -85,6 +91,8 @@
     <string name="applist_menu_quit">Quit Session</string>
     <string name="applist_menu_quit_and_start">Quit Current Game and Start</string>
     <string name="applist_menu_cancel">Cancel</string>
+    <string name="applist_menu_details">View Details</string>
+    <string name="applist_menu_scut">Create Shortcut</string>
     <string name="applist_refresh_title">App List</string>
     <string name="applist_refresh_msg">Refreshing apps…</string>
     <string name="applist_refresh_error_title">Error</string>
@@ -93,6 +101,7 @@
     <string name="applist_quit_success">Successfully quit</string>
     <string name="applist_quit_fail">Failed to quit</string>
     <string name="applist_quit_confirmation">Are you sure you want to quit the running app? All unsaved data will be lost.</string>
+    <string name="applist_details_id">App ID:</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>

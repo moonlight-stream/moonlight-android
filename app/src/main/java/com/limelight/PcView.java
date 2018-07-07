@@ -113,6 +113,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private final static int DELETE_ID = 5;
     private final static int RESUME_ID = 6;
     private final static int QUIT_ID = 7;
+    private final static int VIEW_DETAILS_ID = 8;
 
     private void initializeViews() {
         setContentView(R.layout.activity_pc_view);
@@ -333,6 +334,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             // it with delete which actually work
             menu.add(Menu.NONE, DELETE_ID, 4, getResources().getString(R.string.pcview_menu_delete_pc));
         }
+        menu.add(Menu.NONE, VIEW_DETAILS_ID, 5,  getResources().getString(R.string.pcview_menu_details));
     }
 
     @Override
@@ -601,6 +603,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                                 new NvApp("app", 0, false), managerBinder, null);
                     }
                 }, null);
+                return true;
+
+            case VIEW_DETAILS_ID:
+                Dialog.displayDialog(PcView.this, getResources().getString(R.string.title_details), computer.details.toString(), false);
                 return true;
 
             default:

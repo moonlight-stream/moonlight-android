@@ -26,6 +26,9 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.ContextMenu;
@@ -36,6 +39,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
@@ -56,7 +60,9 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private final static int START_OR_RESUME_ID = 1;
     private final static int QUIT_ID = 2;
     private final static int CANCEL_ID = 3;
-    private final static int START_WTIH_QUIT = 4;
+    private final static int START_WITH_QUIT = 4;
+    private final static int VIEW_DETAILS_ID = 5;
+    private final static int CREATE_SHORTCUT_ID = 6;
 
     public final static String NAME_EXTRA = "Name";
     public final static String UUID_EXTRA = "UUID";
@@ -331,9 +337,14 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 menu.add(Menu.NONE, QUIT_ID, 2, getResources().getString(R.string.applist_menu_quit));
             }
             else {
-                menu.add(Menu.NONE, START_WTIH_QUIT, 1, getResources().getString(R.string.applist_menu_quit_and_start));
+                menu.add(Menu.NONE, START_WITH_QUIT, 1, getResources().getString(R.string.applist_menu_quit_and_start));
                 menu.add(Menu.NONE, CANCEL_ID, 2, getResources().getString(R.string.applist_menu_cancel));
             }
+        }
+        menu.add(Menu.NONE, VIEW_DETAILS_ID, 3, getResources().getString(R.string.applist_menu_details));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            menu.add(Menu.NONE, CREATE_SHORTCUT_ID, 4, getResources().getString(R.string.applist_menu_scut));
         }
     }
 
@@ -346,7 +357,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
         final AppObject app = (AppObject) appGridAdapter.getItem(info.position);
         switch (item.getItemId()) {
-            case START_WTIH_QUIT:
+            case START_WITH_QUIT:
                 // Display a confirmation dialog first
                 UiHelper.displayQuitConfirmationDialog(this, new Runnable() {
                     @Override
@@ -384,6 +395,19 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 return true;
 
             case CANCEL_ID:
+                return true;
+
+            case VIEW_DETAILS_ID:
+                Dialog.displayDialog(AppView.this, getResources().getString(R.string.title_details),
+                        getResources().getString(R.string.applist_details_id) + " " + app.app.getAppId(), false);
+                return true;
+
+            case CREATE_SHORTCUT_ID:
+                ImageView appImageView = info.targetView.findViewById(R.id.grid_image);
+                Bitmap appBits = ((BitmapDrawable)appImageView.getDrawable()).getBitmap();
+                if (!shortcutHelper.createPinnedGameShortcut(uuidString + Integer.valueOf(app.app.getAppId()).toString(), appBits, computer, app.app)) {
+                    Toast.makeText(AppView.this, getResources().getString(R.string.unable_to_pin_shortcut), Toast.LENGTH_LONG).show();
+                }
                 return true;
 
             default:

@@ -240,7 +240,10 @@ public class NvConnection {
 				context.connListener.stageStarting(appName);
 
 				try {
-					startApp();
+					if (!startApp()) {
+						context.connListener.stageFailed(appName, 0);
+						return;
+					}
 					context.connListener.stageComplete(appName);
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -7,6 +7,8 @@
     -->
     <style name="AppBaseTheme" parent="android:Theme.Material">
         <!-- API 21 theme customizations can go here. -->
+        <item name="android:statusBarColor">#212121</item>
+        <item name="android:navigationBarColor">#212121</item>
     </style>
 
 </resources>

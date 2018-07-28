@@ -112,11 +112,15 @@ public class ShortcutTrampoline extends Activity {
                                                     // Now start the activities
                                                     startActivities(intentStack.toArray(new Intent[]{}));
                                                 } else {
+                                                    // Create the start intent immediately, so we can safely unbind the managerBinder
+                                                    // below before we return.
+                                                    final Intent startIntent = ServerHelper.createStartIntent(ShortcutTrampoline.this,
+                                                            new NvApp("app", Integer.parseInt(appIdString), false), details, managerBinder);
+
                                                     UiHelper.displayQuitConfirmationDialog(ShortcutTrampoline.this, new Runnable() {
                                                         @Override
                                                         public void run() {
-                                                            intentStack.add(ServerHelper.createStartIntent(ShortcutTrampoline.this,
-                                                                    new NvApp("app", Integer.parseInt(appIdString), false), details, managerBinder));
+                                                            intentStack.add(startIntent);
 
                                                             // Close this activity
                                                             finish();

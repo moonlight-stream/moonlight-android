@@ -57,7 +57,6 @@
     <string name="lost_connection">コンピュータとの接続が失われました</string>
 
     <!-- AppList activity -->
-    <string name="title_applist">ゲーム</string>
     <string name="applist_menu_resume">セッションを続ける</string>
     <string name="applist_menu_quit">セッションを終了する</string>
     <string name="applist_menu_quit_and_start">現在のゲームを終了して新しいゲームを始める</string>

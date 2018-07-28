@@ -71,7 +71,6 @@
     <string name="help">幫助</string>
 
     <!-- AppList activity -->
-    <string name="title_applist">Apps on</string>
     <string name="applist_connect_msg"> 連接到電腦中…… </string>
     <string name="applist_menu_resume"> 恢復串流 </string>
     <string name="applist_menu_quit"> 退出串流 </string>

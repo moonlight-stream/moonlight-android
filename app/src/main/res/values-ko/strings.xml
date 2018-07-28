@@ -71,7 +71,6 @@
     <string name="help">도움말</string>
 
     <!-- AppList activity -->
-    <string name="title_applist">앱 사용 가능</string>
     <string name="applist_connect_msg">PC에 연결중…</string>
     <string name="applist_menu_resume">세션 계속</string>
     <string name="applist_menu_quit">세션 종료</string>

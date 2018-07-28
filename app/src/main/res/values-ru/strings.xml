@@ -62,7 +62,6 @@
     <string name="lost_connection">Потеряно соединение с PC</string>
 
     <!-- AppList activity -->
-    <string name="title_applist">Приложения на</string>
     <string name="applist_menu_resume">Возобновить сессию</string>
     <string name="applist_menu_quit">Выйти из сессии</string>
     <string name="applist_menu_quit_and_start">Выйти из текущей игры и запустить</string>

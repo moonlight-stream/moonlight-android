@@ -76,7 +76,6 @@
     <string name="help">Assistenza</string>
 
     <!-- AppList activity -->
-    <string name="title_applist">Applicazioni su</string>
     <string name="applist_connect_msg">Connessione al PC in corso…</string>
     <string name="applist_menu_resume">Riprendi sessione</string>
     <string name="applist_menu_quit">Chiudi sessione</string>

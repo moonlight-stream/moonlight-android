@@ -85,7 +85,6 @@
     <string name="help">Help</string>
 
     <!-- AppList activity -->
-    <string name="title_applist">Apps on</string>
     <string name="applist_connect_msg">Connecting to PC…</string>
     <string name="applist_menu_resume">Resume Session</string>
     <string name="applist_menu_quit">Quit Session</string>

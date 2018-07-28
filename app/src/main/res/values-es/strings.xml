@@ -61,7 +61,6 @@
     <string name="lost_connection">Conexión perdida</string>
 
     <!-- AppList activity -->
-    <string name="title_applist">Aplicaciones en</string>
     <string name="applist_menu_resume">Reanudar sesión</string>
     <string name="applist_menu_quit">Cerrar sesión</string>
     <string name="applist_menu_quit_and_start">Cerrar juego actual e iniciar</string>

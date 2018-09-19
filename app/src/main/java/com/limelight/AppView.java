@@ -28,6 +28,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -343,7 +344,12 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         menu.add(Menu.NONE, VIEW_DETAILS_ID, 3, getResources().getString(R.string.applist_menu_details));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            menu.add(Menu.NONE, CREATE_SHORTCUT_ID, 4, getResources().getString(R.string.applist_menu_scut));
+            // Only add an option to create shortcut if box art is loaded
+            ImageView appImageView = info.targetView.findViewById(R.id.grid_image);
+            BitmapDrawable drawable = (BitmapDrawable)appImageView.getDrawable();
+            if (drawable != null && drawable.getBitmap() != null) {
+                menu.add(Menu.NONE, CREATE_SHORTCUT_ID, 4, getResources().getString(R.string.applist_menu_scut));
+            }
         }
     }
 

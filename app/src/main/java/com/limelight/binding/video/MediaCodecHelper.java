@@ -72,7 +72,9 @@ public class MediaCodecHelper {
 
 		// Blacklist software decoders that don't support H264 high profile,
 		// but exclude the official AOSP and CrOS emulator from this restriction.
-		if (!Build.HARDWARE.equals("ranchu") && !Build.HARDWARE.equals("cheets")) {
+		// also exclude Android x68_64 , Android x86, as well as android TV built on Fugu for compatibility with Android-x86 open source Project
+		if (!Build.HARDWARE.equals("ranchu") && !Build.HARDWARE.equals("cheets") && !Build.HARDWARE.equals("x86_64") &&
+				!Build.HARDWARE.equals("fugu") && !Build.HARDWARE.equals("android_x86") && !Build.HARDWARE.equals("cm_android_x86_64")) {
 			blacklistedDecoderPrefixes.add("omx.google");
 			blacklistedDecoderPrefixes.add("AVCDecoder");
 		}

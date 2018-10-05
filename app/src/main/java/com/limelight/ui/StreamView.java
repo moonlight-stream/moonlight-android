@@ -62,9 +62,8 @@ public class StreamView extends SurfaceView {
     @Override
     public boolean onKeyPreIme(int keyCode, KeyEvent event) {
         // This callbacks allows us to override dumb IME behavior like when
-        // Samsung's default keyboard consumes Shift+Space. We'll process
-        // the input event directly if any modifier keys are down.
-        if (inputCallbacks != null && event.getModifiers() != 0) {
+        // Samsung's default keyboard consumes Shift+Space.
+        if (inputCallbacks != null) {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 if (inputCallbacks.handleKeyDown(event)) {
                     return true;

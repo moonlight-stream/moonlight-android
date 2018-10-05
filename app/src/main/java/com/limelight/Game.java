@@ -1010,6 +1010,24 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                 }
 
+                if ((changedButtons & MotionEvent.BUTTON_BACK) != 0) {
+                    if ((event.getButtonState() & MotionEvent.BUTTON_BACK) != 0) {
+                        conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_X1);
+                    }
+                    else {
+                        conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_X1);
+                    }
+                }
+
+                if ((changedButtons & MotionEvent.BUTTON_FORWARD) != 0) {
+                    if ((event.getButtonState() & MotionEvent.BUTTON_FORWARD) != 0) {
+                        conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_X2);
+                    }
+                    else {
+                        conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_X2);
+                    }
+                }
+
                 // Get relative axis values if we can
                 if (inputCaptureProvider.eventHasRelativeMouseAxes(event)) {
                     // Send the deltas straight from the motion event
@@ -1359,6 +1377,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             break;
         case EvdevListener.BUTTON_RIGHT:
             buttonIndex = MouseButtonPacket.BUTTON_RIGHT;
+            break;
+        case EvdevListener.BUTTON_X1:
+            buttonIndex = MouseButtonPacket.BUTTON_X1;
+            break;
+        case EvdevListener.BUTTON_X2:
+            buttonIndex = MouseButtonPacket.BUTTON_X2;
             break;
         default:
             LimeLog.warning("Unhandled button: "+buttonId);

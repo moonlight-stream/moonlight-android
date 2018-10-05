@@ -151,7 +151,15 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
                                 break;
 
                             case EvdevEvent.BTN_SIDE:
-                            case EvdevEvent.BTN_EXTRA:
+                                listener.mouseButtonEvent(EvdevListener.BUTTON_X1,
+                                        event.value != 0);
+                                break;
+
+                            case EvdevEVent.BTN_EXTRA:
+                                listener.mouseButtonEvent(EvdevListener.BUTTON_X2,
+                                        event.value != 0);
+                                break;
+
                             case EvdevEvent.BTN_FORWARD:
                             case EvdevEvent.BTN_BACK:
                             case EvdevEvent.BTN_TASK:

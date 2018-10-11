@@ -55,7 +55,7 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 // Launch evdev_reader directly via SU
                 try {
-                    su = Runtime.getRuntime().exec("su -c "+evdevReaderCmd);
+                    su = new ProcessBuilder("su", "-c", evdevReaderCmd).start();
                 } catch (IOException e) {
                     reportDeviceNotRooted();
                     e.printStackTrace();

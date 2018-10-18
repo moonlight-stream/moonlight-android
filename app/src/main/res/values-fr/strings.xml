@@ -168,6 +168,6 @@
     <string name="title_video_format">Modifier les paramètres H.265</string>
     <string name="summary_video_format">H.265 réduit les besoins en bande passante vidéo mais nécessite un périphérique très récent</string>
     <string name="title_enable_hdr">Activer le HDR (expérimental)</string>
-    <string name="summary_enable_hdr">Diffusez du HDR lorsque le jeu et le processeur graphique du PC le prennent en charge. HDR nécessite un GPU série GTX 1000 ou une version ultérieure.</string>
+    <string name="summary_enable_hdr">Diffuser du HDR lorsque le jeu et le processeur graphique du PC le prennent en charge. HDR nécessite un GPU série GTX 1000 ou une version ultérieure.</string>
     
 </resources>

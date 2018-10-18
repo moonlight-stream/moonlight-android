@@ -5,7 +5,7 @@
     <string name="scut_not_paired">PC non appairé</string>
     <string name="scut_pc_not_found">PC non trouvé</string>
     <string name="scut_invalid_uuid">Le PC fourni n'est pas valide</string>
-    <string name="scut_invalid_app_id">L'application fournie n'est pas valide</string>
+    <string name="scut_invalid_app_id">L\'application fournie n'est pas valide</string>
 
     <!-- Help strings -->
     <string name="help_loading_title">Visionneuse d\'aide</string>

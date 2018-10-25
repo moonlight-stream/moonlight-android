@@ -3,6 +3,9 @@
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc">PC supprimé</string>
     <string name="scut_not_paired">PC non appairé</string>
+    <string name="scut_pc_not_found">PC non trouvé</string>
+    <string name="scut_invalid_uuid">Le PC fourni n'est pas valide</string>
+    <string name="scut_invalid_app_id">L\'application fournie n'est pas valide</string>
 
     <!-- Help strings -->
     <string name="help_loading_title">Visionneuse d\'aide</string>
@@ -14,6 +17,7 @@
     <string name="pcview_menu_unpair_pc">Désappairer</string>
     <string name="pcview_menu_send_wol">Envoyer la requête Wake-On-LAN</string>
     <string name="pcview_menu_delete_pc">Supprimer PC</string>
+    <string name="pcview_menu_details">Voir les détails</string>
 
     <!-- Pair messages -->
     <string name="pairing">Appariement…</string>
@@ -47,6 +51,12 @@
     <string name="error_404">GFE renvoi une erreur HTTP 404. Assurez-vous que votre PC exécute un GPU pris en charge.
         L\'utilisation d\'un logiciel de bureau à distance peut également provoquer cette erreur. Essayez de redémarrer votre machine ou de réinstaller GFE.
     </string>
+    <string name="title_decoding_error">Le décodeur vidéo s'est écrasé</string>
+    <string name="message_decoding_error">Moonlight s'est écrasé en raison d'une incompatibilité avec le décodeur vidéo de cet appareil. Assurez-vous que GeForce Experience soit mis à jour vers la dernière version sur votre PC. Essayez de régler les paramètres de diffusion si les plantages continuent.</string>
+    <string name="title_decoding_reset">Paramètres vidéo réinitialiser</string>
+    <string name="message_decoding_reset">Le décodeur vidéo de votre appareil continue de planter avec les paramètres de diffusion sélectionnés. Vos paramètres de diffusion ont été réinitialisés par défaut.</string>
+    <string name="error_usb_prohibited">L\'accès USB est interdit par votre appareil. Vérifiez vos paramètres Knox ou MDM.</string>
+    <string name="unable_to_pin_shortcut">Votre lanceur actuel ne permet pas de créer des raccourcis épinglés.</string>
 
     <!-- Start application messages -->
     <string name="conn_establishing_title">Établissement de la connexion</string>
@@ -68,6 +78,7 @@
     <string name="yes">Oui</string>
     <string name="no">Non</string>
     <string name="lost_connection">Perte de connexion avec le PC</string>
+    <string name="title_details">Détails</string>
     <string name="help">Aide</string>
 
     <!-- AppList activity -->
@@ -76,6 +87,8 @@
     <string name="applist_menu_quit">Quitter la session</string>
     <string name="applist_menu_quit_and_start">Quitter le jeu actuel et démarrer</string>
     <string name="applist_menu_cancel">Annuler</string>
+    <string name="applist_menu_details">Voir les détails</string>
+    <string name="applist_menu_scut">Créer un raccourci</string>
     <string name="applist_refresh_title">Liste des applications</string>
     <string name="applist_refresh_msg">Actualisation des applications…</string>
     <string name="applist_refresh_error_title">Erreur</string>
@@ -84,6 +97,7 @@
     <string name="applist_quit_success">Fermeture avec succès</string>
     <string name="applist_quit_fail">Échec de la fermeture</string>
     <string name="applist_quit_confirmation">Voulez-vous vraiment quitter l\'application en cours d\'exécution? Toutes les données non enregistrées seront perdues.</string>
+    <string name="applist_details_id">ID app:</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Ajouter un PC manuellement</string>
@@ -92,6 +106,7 @@
     <string name="addpc_success">Ajouté avec succès de l\'ordinateur</string>
     <string name="addpc_unknown_host">Impossible de résoudre l\'adresse du PC. Assurez-vous que vous n\'avez pas fait une faute de frappe dans l\'adresse.</string>
     <string name="addpc_enter_ip">Vous devez entrer une adresse IP</string>
+    <string name="addpc_wrong_sitelocal">Cette adresse ne semble pas correcte. Vous devez utiliser l\'adresse IP publique de votre routeur pour la diffusion en continu sur Internet..</string>
 
     <!-- Preferences -->
     <string name="category_basic_settings">Paramètres de base</string>
@@ -103,6 +118,8 @@
     <string name="title_checkbox_stretch_video">Étirez la vidéo en plein écran</string>
     <string name="title_checkbox_disable_warnings">Désactiver les messages d\'avertissement</string>
     <string name="summary_checkbox_disable_warnings">Désactiver les messages d\'avertissement de connexion à l\'écran pendant le streaming</string>
+    <string name="title_checkbox_enable_pip">Activer le mode observateur dans l\'image</string>
+    <string name="summary_checkbox_enable_pip">Permet de visualiser le flux (sans le contrôleur) tout en multitâche</string>
 
     <string name="category_audio_settings">Paramètres audio</string>
     <string name="title_checkbox_51_surround">Activer son surround 5.1</string>
@@ -115,12 +132,21 @@
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Pilote de contrôleur Xbox 360/One</string>
     <string name="summary_checkbox_xb1_driver">Active un pilote USB intégré pour les périphériques sans prise en charge du contrôleur Xbox natif.</string>
+    <string name="title_checkbox_usb_bind_all">Ignorer le support du contrôleur Android</string>
+    <string name="summary_checkbox_usb_bind_all">Force le pilote USB de Moonlight à prendre en charge tous les gamepads Xbox pris en charge</string>
+    <string name="title_checkbox_mouse_emulation">Emulation de la souris via le gamepad</string>
+    <string name="summary_checkbox_mouse_emulation">Appuyez longuement sur le bouton Start pour faire basculer la manette de jeu en mode souris.</string>
 
     <string name="category_on_screen_controls_settings">Paramètres des contrôles à l\'écran</string>
     <string name="title_checkbox_show_onscreen_controls">Afficher les commandes à l\'écran</string>
     <string name="summary_checkbox_show_onscreen_controls">Afficher la superposition du contrôleur virtuel sur l\'écran tactile</string>
     <string name="title_only_l3r3">Montre seulement L3 et R3</string>
     <string name="summary_only_l3r3">Cacher tout sauf L3 et R3</string>
+    <string name="title_reset_osc">Effacer la disposition des commandes à l\'écran sauvegardée</string>
+    <string name="summary_reset_osc">Rétablit la taille et la position par défaut de tous les contrôles à l\'écran</string>
+    <string name="dialog_title_reset_osc">Réinitialiser la mise en page</string>
+    <string name="dialog_text_reset_osc">Êtes-vous sûr de vouloir supprimer la disposition des commandes à l\'écran que vous avez sauvegardée?</string>
+    <string name="toast_reset_osc_success">Les contrôles à l\'écran sont réinitialisés</string>
 
     <string name="category_ui_settings">Paramètres de l\'interface utilisateur</string>
     <string name="title_language_list">Langue</string>
@@ -139,4 +165,9 @@
     <string name="category_advanced_settings">Réglages avancés</string>
     <string name="title_video_format">Modifier les paramètres H.265</string>
     <string name="summary_video_format">H.265 réduit les exigences de bande passante vidéo, mais requiert un périphérique très récent.</string>
+    <string name="title_video_format">Modifier les paramètres H.265</string>
+    <string name="summary_video_format">H.265 réduit les besoins en bande passante vidéo mais nécessite un périphérique très récent</string>
+    <string name="title_enable_hdr">Activer le HDR (expérimental)</string>
+    <string name="summary_enable_hdr">Diffuser du HDR lorsque le jeu et le processeur graphique du PC le prennent en charge. HDR nécessite un GPU série GTX 1000 ou une version ultérieure.</string>
+    
 </resources>

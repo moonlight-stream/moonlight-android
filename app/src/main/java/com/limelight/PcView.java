@@ -567,12 +567,17 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     LimeLog.info("Ignoring delete PC request from monkey");
                     return true;
                 }
-                if (managerBinder == null) {
-                    Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
-                    return true;
-                }
-                managerBinder.removeComputer(computer.details.name);
-                removeComputer(computer.details);
+                UiHelper.displayDeletePcConfirmationDialog(this, computer.details, new Runnable() {
+                    @Override
+                    public void run() {
+                        if (managerBinder == null) {
+                            Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        managerBinder.removeComputer(computer.details.name);
+                        removeComputer(computer.details);
+                    }
+                }, null);
                 return true;
 
             case APP_LIST_ID:

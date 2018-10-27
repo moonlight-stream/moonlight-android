@@ -215,18 +215,10 @@ public class NvHTTP {
 
 		details.uuid = UUID.fromString(getXmlString(serverInfo, "uniqueid"));
 		details.macAddress = getXmlString(serverInfo, "mac");
-
-		// If there's no LocalIP field, use the address we hit the server on
 		details.localAddress = getXmlString(serverInfo, "LocalIP");
-		if (details.localAddress == null) {
-			details.localAddress = address;
-		}
-		
-		// If there's no ExternalIP field, use the address we hit the server on
+
+		// This may be null, but that's okay
 		details.remoteAddress = getXmlString(serverInfo, "ExternalIP");
-		if (details.remoteAddress == null) {
-			details.remoteAddress = address;
-		}
 		
 		try {
 			details.pairState = Integer.parseInt(getXmlString(serverInfo, "PairStatus")) == 1 ?

@@ -26,8 +26,12 @@ public class WakeOnLanSender {
 			// The broadcast address is required to avoid stale ARP cache entries
 			// making the sleeping machine unreachable.
 			for (String unresolvedAddress : new String[] {
-					computer.localAddress, computer.remoteAddress, "255.255.255.255"
+					computer.localAddress, computer.remoteAddress, computer.manualAddress, "255.255.255.255"
 			}) {
+                if (unresolvedAddress == null) {
+                    continue;
+                }
+
 				try {
 					for (InetAddress resolvedAddress : InetAddress.getAllByName(unresolvedAddress)) {
 						// Try all the ports for each resolved address

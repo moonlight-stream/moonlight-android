@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.limelight.LimeLog;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.discovery.DiscoveryService;
+import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
@@ -344,6 +345,11 @@ public class ComputerManagerService extends Service {
         else {
             // mDNS
             fakeDetails.localAddress = addr;
+
+            // Since we're on the same network, we can use STUN to find
+            // our WAN address, which is also very likely the WAN address
+            // of the PC. We can use this later to connect remotely.
+            fakeDetails.remoteAddress = NvConnection.findExternalAddressForMdns();
         }
 
         // Block while we try to fill the details

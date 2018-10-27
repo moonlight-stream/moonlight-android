@@ -347,4 +347,8 @@ public class NvConnection {
 			MoonBridge.sendMouseScroll(scrollClicks);
 		}
 	}
+
+	public static String findExternalAddressForMdns() {
+		return MoonBridge.findExternalAddressIP4("stun.stunprotocol.org", 3478);
+	}
 }

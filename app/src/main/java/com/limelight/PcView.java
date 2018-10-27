@@ -313,8 +313,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
 
         // Inflate the context menu
-        if (computer.details.reachability == ComputerDetails.Reachability.OFFLINE ||
-            computer.details.reachability == ComputerDetails.Reachability.UNKNOWN) {
+        if (computer.details.state == ComputerDetails.State.OFFLINE ||
+            computer.details.state == ComputerDetails.State.UNKNOWN) {
             menu.add(Menu.NONE, WOL_ID, 1, getResources().getString(R.string.pcview_menu_send_wol));
             menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
         }
@@ -346,7 +346,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     private void doPair(final ComputerDetails computer) {
-        if (computer.reachability == ComputerDetails.Reachability.OFFLINE) {
+        if (computer.state == ComputerDetails.State.OFFLINE) {
             Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -478,7 +478,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     private void doUnpair(final ComputerDetails computer) {
-        if (computer.reachability == ComputerDetails.Reachability.OFFLINE) {
+        if (computer.state == ComputerDetails.State.OFFLINE) {
             Toast.makeText(PcView.this, getResources().getString(R.string.error_pc_offline), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -530,7 +530,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     private void doAppList(ComputerDetails computer) {
-        if (computer.reachability == ComputerDetails.Reachability.OFFLINE) {
+        if (computer.state == ComputerDetails.State.OFFLINE) {
             Toast.makeText(PcView.this, getResources().getString(R.string.error_pc_offline), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -690,8 +690,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
                                     long id) {
                 ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
-                if (computer.details.reachability == ComputerDetails.Reachability.UNKNOWN ||
-                    computer.details.reachability == ComputerDetails.Reachability.OFFLINE) {
+                if (computer.details.state == ComputerDetails.State.UNKNOWN ||
+                    computer.details.state == ComputerDetails.State.OFFLINE) {
                     // Open the context menu if a PC is offline or refreshing
                     openContextMenu(arg1);
                 } else if (computer.details.pairState != PairState.PAIRED) {

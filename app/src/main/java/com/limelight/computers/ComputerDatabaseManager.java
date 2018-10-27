@@ -1,7 +1,5 @@
 package com.limelight.computers;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -17,15 +15,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
 public class ComputerDatabaseManager {
-    private static final String COMPUTER_DB_NAME = "computers.db";
+    private static final String COMPUTER_DB_NAME = "computers2.db";
     private static final String COMPUTER_TABLE_NAME = "Computers";
-    private static final String COMPUTER_NAME_COLUMN_NAME = "ComputerName";
     private static final String COMPUTER_UUID_COLUMN_NAME = "UUID";
-    private static final String LOCAL_IP_COLUMN_NAME = "LocalIp";
-    private static final String REMOTE_IP_COLUMN_NAME = "RemoteIp";
-    private static final String MAC_COLUMN_NAME = "Mac";
-
-    private static final String ADDRESS_PREFIX = "ADDRESS_PREFIX__";
+    private static final String COMPUTER_NAME_COLUMN_NAME = "ComputerName";
+    private static final String LOCAL_ADDRESS_COLUMN_NAME = "LocalAddress";
+    private static final String REMOTE_ADDRESS_COLUMN_NAME = "RemoteAddress";
+    private static final String MANUAL_ADDRESS_COLUMN_NAME = "ManualAddress";
+    private static final String MAC_ADDRESS_COLUMN_NAME = "MacAddress";
 
     private SQLiteDatabase computerDb;
 
@@ -38,20 +35,27 @@ public class ComputerDatabaseManager {
             c.deleteDatabase(COMPUTER_DB_NAME);
             computerDb = c.openOrCreateDatabase(COMPUTER_DB_NAME, 0, null);
         }
-        initializeDb();
+        initializeDb(c);
     }
 
     public void close() {
         computerDb.close();
     }
 
-    private void initializeDb() {
+    private void initializeDb(Context c) {
         // Create tables if they aren't already there
-        computerDb.execSQL(String.format((Locale)null, "CREATE TABLE IF NOT EXISTS %s(%s TEXT PRIMARY KEY," +
-                " %s TEXT NOT NULL, %s TEXT NOT NULL, %s TEXT NOT NULL, %s TEXT NOT NULL)",
+        computerDb.execSQL(String.format((Locale)null,
+                "CREATE TABLE IF NOT EXISTS %s(%s TEXT PRIMARY KEY, %s TEXT NOT NULL, %s TEXT, %s TEXT, %s TEXT, %s TEXT)",
                 COMPUTER_TABLE_NAME,
-                COMPUTER_NAME_COLUMN_NAME, COMPUTER_UUID_COLUMN_NAME, LOCAL_IP_COLUMN_NAME,
-                REMOTE_IP_COLUMN_NAME, MAC_COLUMN_NAME));
+                COMPUTER_UUID_COLUMN_NAME, COMPUTER_NAME_COLUMN_NAME,
+                LOCAL_ADDRESS_COLUMN_NAME, REMOTE_ADDRESS_COLUMN_NAME, MANUAL_ADDRESS_COLUMN_NAME,
+                MAC_ADDRESS_COLUMN_NAME));
+
+        // Move all computers from the old DB (if any) to the new one
+        List<ComputerDetails> oldComputers = LegacyDatabaseReader.migrateAllComputers(c);
+        for (ComputerDetails computer : oldComputers) {
+            updateComputer(computer);
+        }
     }
 
     public void deleteComputer(String name) {
@@ -60,20 +64,19 @@ public class ComputerDatabaseManager {
 
     public boolean updateComputer(ComputerDetails details) {
         ContentValues values = new ContentValues();
-        values.put(COMPUTER_NAME_COLUMN_NAME, details.name);
         values.put(COMPUTER_UUID_COLUMN_NAME, details.uuid.toString());
-        values.put(LOCAL_IP_COLUMN_NAME, ADDRESS_PREFIX+details.localAddress);
-        values.put(REMOTE_IP_COLUMN_NAME, ADDRESS_PREFIX+details.remoteAddress);
-        values.put(MAC_COLUMN_NAME, details.macAddress);
+        values.put(COMPUTER_NAME_COLUMN_NAME, details.name);
+        values.put(LOCAL_ADDRESS_COLUMN_NAME, details.localAddress);
+        values.put(REMOTE_ADDRESS_COLUMN_NAME, details.remoteAddress);
+        values.put(MANUAL_ADDRESS_COLUMN_NAME, details.manualAddress);
+        values.put(MAC_ADDRESS_COLUMN_NAME, details.macAddress);
         return -1 != computerDb.insertWithOnConflict(COMPUTER_TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
     }
 
     private ComputerDetails getComputerFromCursor(Cursor c) {
         ComputerDetails details = new ComputerDetails();
 
-        details.name = c.getString(0);
-
-        String uuidStr = c.getString(1);
+        String uuidStr = c.getString(0);
         try {
             details.uuid = UUID.fromString(uuidStr);
         } catch (IllegalArgumentException e) {
@@ -81,43 +84,14 @@ public class ComputerDatabaseManager {
             LimeLog.severe("DB: Corrupted UUID for "+details.name);
         }
 
-        // An earlier schema defined addresses as byte blobs. We'll
-        // gracefully migrate those to strings so we can store DNS names
-        // too. To disambiguate, we'll need to prefix them with a string
-        // greater than the allowable IP address length.
-        try {
-            details.localAddress = InetAddress.getByAddress(c.getBlob(2)).getHostAddress();
-            LimeLog.warning("DB: Legacy local address for "+details.name);
-        } catch (UnknownHostException e) {
-            // This is probably a hostname/address with the prefix string
-            String stringData = c.getString(2);
-            if (stringData.startsWith(ADDRESS_PREFIX)) {
-                details.localAddress = c.getString(2).substring(ADDRESS_PREFIX.length());
-            }
-            else {
-                LimeLog.severe("DB: Corrupted local address for "+details.name);
-            }
-        }
-
-        try {
-            details.remoteAddress = InetAddress.getByAddress(c.getBlob(3)).getHostAddress();
-            LimeLog.warning("DB: Legacy remote address for "+details.name);
-        } catch (UnknownHostException e) {
-            // This is probably a hostname/address with the prefix string
-            String stringData = c.getString(3);
-            if (stringData.startsWith(ADDRESS_PREFIX)) {
-                details.remoteAddress = c.getString(3).substring(ADDRESS_PREFIX.length());
-            }
-            else {
-                LimeLog.severe("DB: Corrupted local address for "+details.name);
-            }
-        }
-
-        details.macAddress = c.getString(4);
+        details.name = c.getString(1);
+        details.localAddress = c.getString(2);
+        details.remoteAddress = c.getString(3);
+        details.manualAddress = c.getString(4);
+        details.macAddress = c.getString(5);
 
         // This signifies we don't have dynamic state (like pair state)
         details.state = ComputerDetails.State.UNKNOWN;
-        details.reachability = ComputerDetails.Reachability.UNKNOWN;
 
         return details;
     }
@@ -128,12 +102,10 @@ public class ComputerDatabaseManager {
         while (c.moveToNext()) {
             ComputerDetails details = getComputerFromCursor(c);
 
-            // If a field is corrupt or missing, skip the database entry
-            if (details.uuid == null || details.localAddress == null || details.remoteAddress == null ||
-                    details.macAddress == null) {
+            // If a critical field is corrupt or missing, skip the database entry
+            if (details.uuid == null) {
                 continue;
             }
-
 
             computerList.add(details);
         }
@@ -143,8 +115,8 @@ public class ComputerDatabaseManager {
         return computerList;
     }
 
-    public ComputerDetails getComputerByName(String name) {
-        Cursor c = computerDb.query(COMPUTER_TABLE_NAME, null, COMPUTER_NAME_COLUMN_NAME+"=?", new String[]{name}, null, null, null);
+    public ComputerDetails getComputerByUUID(UUID uuid) {
+        Cursor c = computerDb.query(COMPUTER_TABLE_NAME, null, COMPUTER_UUID_COLUMN_NAME+"=?", new String[]{ uuid.toString() }, null, null, null);
         if (!c.moveToFirst()) {
             // No matching computer
             c.close();
@@ -154,9 +126,8 @@ public class ComputerDatabaseManager {
         ComputerDetails details = getComputerFromCursor(c);
         c.close();
 
-        // If a field is corrupt or missing, delete the database entry
-        if (details.uuid == null || details.localAddress == null || details.remoteAddress == null ||
-                details.macAddress == null) {
+        // If a critical field is corrupt or missing, delete the database entry
+        if (details.uuid == null) {
             deleteComputer(details.name);
             return null;
         }

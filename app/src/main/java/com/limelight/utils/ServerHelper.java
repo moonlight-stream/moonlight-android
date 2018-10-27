@@ -18,8 +18,7 @@ import java.net.UnknownHostException;
 
 public class ServerHelper {
     public static String getCurrentAddressFromComputer(ComputerDetails computer) {
-        return computer.reachability == ComputerDetails.Reachability.LOCAL ?
-                computer.localAddress : computer.remoteAddress;
+        return computer.activeAddress;
     }
 
     public static Intent createStartIntent(Activity parent, NvApp app, ComputerDetails computer,
@@ -30,8 +29,7 @@ public class ServerHelper {
         intent.putExtra(Game.EXTRA_APP_ID, app.getAppId());
         intent.putExtra(Game.EXTRA_APP_HDR, app.isHdrSupported());
         intent.putExtra(Game.EXTRA_UNIQUEID, managerBinder.getUniqueId());
-        intent.putExtra(Game.EXTRA_STREAMING_REMOTE,
-                computer.reachability != ComputerDetails.Reachability.LOCAL);
+        intent.putExtra(Game.EXTRA_STREAMING_REMOTE, getCurrentAddressFromComputer(computer).equals(computer.remoteAddress));
         intent.putExtra(Game.EXTRA_PC_UUID, computer.uuid.toString());
         intent.putExtra(Game.EXTRA_PC_NAME, computer.name);
         return intent;

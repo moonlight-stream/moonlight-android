@@ -3,10 +3,8 @@ package com.limelight.computers;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -95,7 +93,6 @@ public class ComputerManagerService extends Service {
                 }
 
                 details.state = ComputerDetails.State.OFFLINE;
-                details.reachability = ComputerDetails.Reachability.OFFLINE;
             }
         } catch (InterruptedException e) {
             releaseLocalDatabaseReference();
@@ -109,7 +106,7 @@ public class ComputerManagerService extends Service {
             if (!newPc) {
                 // Check if it's in the database because it could have been
                 // removed after this was issued
-                if (dbManager.getComputerByName(details.name) == null) {
+                if (dbManager.getComputerByUUID(details.uuid) == null) {
                     // It's gone
                     releaseLocalDatabaseReference();
                     return false;
@@ -156,7 +153,7 @@ public class ComputerManagerService extends Service {
                 }
             }
         };
-        t.setName("Polling thread for " + tuple.computer.localAddress);
+        t.setName("Polling thread for " + tuple.computer.name);
         return t;
     }
 
@@ -177,7 +174,6 @@ public class ComputerManagerService extends Service {
                     if (System.currentTimeMillis() - tuple.lastSuccessfulPollMs > POLL_DATA_TTL_MS) {
                         LimeLog.info("Timing out polled state for "+tuple.computer.name);
                         tuple.computer.state = ComputerDetails.State.UNKNOWN;
-                        tuple.computer.reachability = ComputerDetails.Reachability.UNKNOWN;
                     }
 
                     // Report this computer initially
@@ -253,7 +249,6 @@ public class ComputerManagerService extends Service {
                         // from wiping this change out
                         synchronized (tuple.networkLock) {
                             tuple.computer.state = ComputerDetails.State.UNKNOWN;
-                            tuple.computer.reachability = ComputerDetails.Reachability.UNKNOWN;
                         }
                     }
                 }
@@ -312,17 +307,8 @@ public class ComputerManagerService extends Service {
             for (PollingTuple tuple : pollingTuples) {
                 // Check if this is the same computer
                 if (tuple.computer.uuid.equals(details.uuid)) {
-                    if (manuallyAdded) {
-                        // Update details anyway in case this machine has been re-added by IP
-                        // after not being reachable by our existing information
-                        tuple.computer.localAddress = details.localAddress;
-                        tuple.computer.remoteAddress = details.remoteAddress;
-                    }
-                    else {
-                        // This indicates that mDNS discovered this address, so we
-                        // should only apply the local address.
-                        tuple.computer.localAddress = details.localAddress;
-                    }
+                    // Update the saved computer with potentially new details
+                    tuple.computer.update(details);
 
                     // Start a polling thread if polling is active
                     if (pollingActive && tuple.thread == null) {
@@ -350,8 +336,15 @@ public class ComputerManagerService extends Service {
     public boolean addComputerBlocking(String addr, boolean manuallyAdded) {
         // Setup a placeholder
         ComputerDetails fakeDetails = new ComputerDetails();
-        fakeDetails.localAddress = addr;
-        fakeDetails.remoteAddress = addr;
+
+        if (manuallyAdded) {
+            // Add PC UI
+            fakeDetails.manualAddress = addr;
+        }
+        else {
+            // mDNS
+            fakeDetails.localAddress = addr;
+        }
 
         // Block while we try to fill the details
         try {
@@ -438,6 +431,9 @@ public class ComputerManagerService extends Service {
                 return null;
             }
 
+            // Set the new active address
+            newDetails.activeAddress = address;
+
             return newDetails;
         } catch (Exception e) {
             return null;
@@ -447,6 +443,11 @@ public class ComputerManagerService extends Service {
     // Just try to establish a TCP connection to speculatively detect a running
     // GFE server
     private boolean fastPollIp(String address) {
+        if (address == null) {
+            // Don't bother if our address is null
+            return false;
+        }
+
         Socket s = new Socket();
         try {
             s.connect(new InetSocketAddress(address, NvHTTP.HTTPS_PORT), FAST_POLL_TIMEOUT);
@@ -475,12 +476,14 @@ public class ComputerManagerService extends Service {
         t.start();
     }
 
-    private ComputerDetails.Reachability fastPollPc(final String localAddress, final String remoteAddress) throws InterruptedException {
+    private String fastPollPc(final String localAddress, final String remoteAddress, final String manualAddress) throws InterruptedException {
         final boolean[] remoteInfo = new boolean[2];
         final boolean[] localInfo = new boolean[2];
+        final boolean[] manualInfo = new boolean[2];
 
         startFastPollThread(localAddress, localInfo);
         startFastPollThread(remoteAddress, remoteInfo);
+        startFastPollThread(manualAddress, manualInfo);
 
         // Check local first
         synchronized (localInfo) {
@@ -489,174 +492,67 @@ public class ComputerManagerService extends Service {
             }
 
             if (localInfo[1]) {
-                return ComputerDetails.Reachability.LOCAL;
+                return localAddress;
             }
         }
 
-        // Now remote
+        // Now manual
+        synchronized (manualInfo) {
+            while (!manualInfo[0]) {
+                manualInfo.wait(500);
+            }
+
+            if (manualInfo[1]) {
+                return manualAddress;
+            }
+        }
+
+        // And finally, remote
         synchronized (remoteInfo) {
             while (!remoteInfo[0]) {
                 remoteInfo.wait(500);
             }
 
             if (remoteInfo[1]) {
-                return ComputerDetails.Reachability.REMOTE;
+                return remoteAddress;
             }
         }
 
-        return ComputerDetails.Reachability.OFFLINE;
-    }
-
-    private static boolean isAddressLikelyLocal(String str) {
-        try {
-            // This will tend to be wrong for IPv6 but falling back to
-            // remote will be fine in that case. For IPv4, it should be
-            // pretty accurate due to NAT prevalence.
-            InetAddress addr = InetAddress.getByName(str);
-            return addr.isSiteLocalAddress() || addr.isLinkLocalAddress();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    private ReachabilityTuple pollForReachability(ComputerDetails details) throws InterruptedException {
-        ComputerDetails polledDetails;
-        ComputerDetails.Reachability reachability;
-
-        if (details.localAddress.equals(details.remoteAddress)) {
-            reachability = isAddressLikelyLocal(details.localAddress) ?
-                    ComputerDetails.Reachability.LOCAL : ComputerDetails.Reachability.REMOTE;
-        }
-        else {
-            // Do a TCP-level connection to the HTTP server to see if it's listening
-            LimeLog.info("Starting fast poll for "+details.name+" ("+details.localAddress +", "+details.remoteAddress +")");
-            reachability = fastPollPc(details.localAddress, details.remoteAddress);
-            LimeLog.info("Fast poll for "+details.name+" returned "+reachability.toString());
-
-            // If no connection could be established to either IP address, there's nothing we can do
-            if (reachability == ComputerDetails.Reachability.OFFLINE) {
-                return null;
-            }
-        }
-
-        boolean localFirst = (reachability == ComputerDetails.Reachability.LOCAL);
-
-        if (localFirst) {
-            polledDetails = tryPollIp(details, details.localAddress);
-        }
-        else {
-            polledDetails = tryPollIp(details, details.remoteAddress);
-        }
-
-        String reachableAddr = null;
-        if (polledDetails == null && !details.localAddress.equals(details.remoteAddress)) {
-            // Failed, so let's try the fallback
-            if (!localFirst) {
-                polledDetails = tryPollIp(details, details.localAddress);
-            }
-            else {
-                polledDetails = tryPollIp(details, details.remoteAddress);
-            }
-
-            if (polledDetails != null) {
-                // The fallback poll worked
-                reachableAddr = !localFirst ? details.localAddress : details.remoteAddress;
-            }
-        }
-        else if (polledDetails != null) {
-            reachableAddr = localFirst ? details.localAddress : details.remoteAddress;
-        }
-
-        if (reachableAddr == null) {
-            return null;
-        }
-
-        // If both addresses are the same, guess whether we're local based on
-        // IP address heuristics.
-        if (reachableAddr.equals(polledDetails.localAddress) &&
-                reachableAddr.equals(polledDetails.remoteAddress)) {
-            polledDetails.reachability = isAddressLikelyLocal(reachableAddr) ?
-                    ComputerDetails.Reachability.LOCAL : ComputerDetails.Reachability.REMOTE;
-        }
-        else if (polledDetails.remoteAddress.equals(reachableAddr)) {
-            polledDetails.reachability = ComputerDetails.Reachability.REMOTE;
-        }
-        else if (polledDetails.localAddress.equals(reachableAddr)) {
-            polledDetails.reachability = ComputerDetails.Reachability.LOCAL;
-        }
-        else {
-            polledDetails.reachability = ComputerDetails.Reachability.UNKNOWN;
-        }
-
-        return new ReachabilityTuple(polledDetails, reachableAddr);
+        return null;
     }
 
     private boolean pollComputer(ComputerDetails details) throws InterruptedException {
-        ReachabilityTuple initialReachTuple = pollForReachability(details);
-        if (initialReachTuple == null) {
+        ComputerDetails polledDetails;
+
+        // Do a TCP-level connection to the HTTP server to see if it's listening
+        LimeLog.info("Starting fast poll for "+details.name+" ("+details.localAddress +", "+details.remoteAddress +", "+details.manualAddress +")");
+        details.activeAddress = fastPollPc(details.localAddress, details.remoteAddress, details.manualAddress);
+        LimeLog.info("Fast poll for "+details.name+" returned active address: "+details.activeAddress);
+
+        // If no connection could be established to either IP address, there's nothing we can do
+        if (details.activeAddress == null) {
             return false;
         }
 
-        if (initialReachTuple.computer.reachability == ComputerDetails.Reachability.UNKNOWN) {
-            // Neither IP address reported in the serverinfo response was the one we used.
-            // Poll again to see if we can contact this machine on either of its reported addresses.
-            ReachabilityTuple confirmationReachTuple = pollForReachability(initialReachTuple.computer);
-            if (confirmationReachTuple == null) {
-                // Neither of those seem to work, so we'll hold onto the address that did work
-                initialReachTuple.computer.localAddress = initialReachTuple.reachableAddress;
-                initialReachTuple.computer.reachability = ComputerDetails.Reachability.LOCAL;
-            }
-            else {
-                // We got it on one of the returned addresses; replace the original reach tuple
-                // with the new one
-                initialReachTuple = confirmationReachTuple;
-            }
+        // Try using the active address from fast-poll
+        polledDetails = tryPollIp(details, details.activeAddress);
+        if (polledDetails == null && details.localAddress != null && !details.localAddress.equals(details.activeAddress)) {
+            polledDetails = tryPollIp(details, details.localAddress);
+        }
+        if (polledDetails == null && details.manualAddress != null && !details.manualAddress.equals(details.activeAddress)) {
+            polledDetails = tryPollIp(details, details.manualAddress);
+        }
+        if (polledDetails == null && details.remoteAddress != null && !details.remoteAddress.equals(details.activeAddress)) {
+            polledDetails = tryPollIp(details, details.remoteAddress);
         }
 
-        // Save some details about the old state of the PC that we may wish
-        // to restore later.
-        String savedMacAddress = details.macAddress;
-        String savedLocalAddress = details.localAddress;
-        String savedRemoteAddress = details.remoteAddress;
-
-        // If we got here, it's reachable
-        details.update(initialReachTuple.computer);
-
-        // If the new MAC address is empty, restore the old one (workaround for GFE bug)
-        if (details.macAddress.equals("00:00:00:00:00:00") && savedMacAddress != null) {
-            LimeLog.info("MAC address was empty; using existing value: "+savedMacAddress);
-            details.macAddress = savedMacAddress;
+        if (polledDetails != null) {
+            details.update(polledDetails);
+            return true;
         }
-
-        // We never want to lose IP addresses by polling server info. If we get a poll back
-        // where localAddress == remoteAddress but savedLocalAddress != savedRemoteAddress,
-        // then we've lost an address in the polling and we should restore the one that's missing.
-        if (details.localAddress.equals(details.remoteAddress) &&
-                !savedLocalAddress.equals(savedRemoteAddress)) {
-            if (details.localAddress.equals(savedLocalAddress)) {
-                // Local addresses are identical, so put the old remote address back
-                details.remoteAddress = savedRemoteAddress;
-            }
-            else if (details.remoteAddress.equals(savedRemoteAddress)) {
-                // Remote addresses are identical, so put the old local address back
-                details.localAddress = savedLocalAddress;
-            }
-            else {
-                // Neither IP address match. Let's restore the remote address to be safe.
-                details.remoteAddress = savedRemoteAddress;
-            }
-
-            // Now update the reachability so the correct address is used
-            if (details.localAddress.equals(initialReachTuple.reachableAddress)) {
-                details.reachability = ComputerDetails.Reachability.LOCAL;
-            }
-            else {
-                details.reachability = ComputerDetails.Reachability.REMOTE;
-            }
+        else {
+            return false;
         }
-
-        return true;
     }
 
     @Override
@@ -841,7 +737,7 @@ public class ComputerManagerService extends Service {
                     } while (waitPollingDelay());
                 }
             };
-            thread.setName("App list polling thread for " + computer.localAddress);
+            thread.setName("App list polling thread for " + computer.name);
             thread.start();
         }
 

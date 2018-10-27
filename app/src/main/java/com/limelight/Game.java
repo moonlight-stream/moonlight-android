@@ -1031,17 +1031,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                 }
 
-                if ((changedButtons & MotionEvent.BUTTON_BACK) != 0) {
-                    if ((event.getButtonState() & MotionEvent.BUTTON_BACK) != 0) {
-                        conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_X1);
-                    }
-                    else {
-                        conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_X1);
-                    }
+                // HACK: Disable mouse back button press on Xiaomi due to reported
+                // issues with right clicks triggering it.
+                if (!("Xiaomi".equalsIgnoreCase(Build.MANUFACTURER))) {
+                    if ((changedButtons & MotionEvent.BUTTON_BACK) != 0) {
+                        if ((event.getButtonState() & MotionEvent.BUTTON_BACK) != 0) {
+                            conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_X1);
+                        }
+                        else {
+                            conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_X1);
+                        }
 
-                    // Don't use the KEYCODE_BACK hack. That will cause this
-                    // button press to trigger a right-click.
-                    gotBackPointerEvent = true;
+                        // Don't use the KEYCODE_BACK hack. That will cause this
+                        // button press to trigger a right-click.
+                        gotBackPointerEvent = true;
+                    }
                 }
 
                 if ((changedButtons & MotionEvent.BUTTON_FORWARD) != 0) {

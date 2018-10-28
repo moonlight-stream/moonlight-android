@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -530,26 +531,37 @@ public class ComputerManagerService extends Service {
     private boolean pollComputer(ComputerDetails details) throws InterruptedException {
         ComputerDetails polledDetails;
 
-        // Do a TCP-level connection to the HTTP server to see if it's listening
+        // Do a TCP-level connection to the HTTP server to see if it's listening.
+        // Do not write this address to details.activeAddress because:
+        // a) it's only a candidate and may be wrong (multiple PCs behind a single router)
+        // b) if it's null, it will be unexpectedly nulling the activeAddress of a possibly online PC
         LimeLog.info("Starting fast poll for "+details.name+" ("+details.localAddress +", "+details.remoteAddress +", "+details.manualAddress +")");
-        details.activeAddress = fastPollPc(details.localAddress, details.remoteAddress, details.manualAddress);
+        String candidateAddress = fastPollPc(details.localAddress, details.remoteAddress, details.manualAddress);
         LimeLog.info("Fast poll for "+details.name+" returned active address: "+details.activeAddress);
 
         // If no connection could be established to either IP address, there's nothing we can do
-        if (details.activeAddress == null) {
+        if (candidateAddress == null) {
             return false;
         }
 
         // Try using the active address from fast-poll
-        polledDetails = tryPollIp(details, details.activeAddress);
-        if (polledDetails == null && details.localAddress != null && !details.localAddress.equals(details.activeAddress)) {
-            polledDetails = tryPollIp(details, details.localAddress);
-        }
-        if (polledDetails == null && details.manualAddress != null && !details.manualAddress.equals(details.activeAddress)) {
-            polledDetails = tryPollIp(details, details.manualAddress);
-        }
-        if (polledDetails == null && details.remoteAddress != null && !details.remoteAddress.equals(details.activeAddress)) {
-            polledDetails = tryPollIp(details, details.remoteAddress);
+        polledDetails = tryPollIp(details, candidateAddress);
+        if (polledDetails == null) {
+            // If that failed, try all unique addresses except what we've
+            // already tried
+            HashSet<String> uniqueAddresses = new HashSet<>();
+            uniqueAddresses.add(details.localAddress);
+            uniqueAddresses.add(details.remoteAddress);
+            uniqueAddresses.add(details.manualAddress);
+            for (String addr : uniqueAddresses) {
+                if (addr == null || addr.equals(candidateAddress)) {
+                    continue;
+                }
+                polledDetails = tryPollIp(details, addr);
+                if (polledDetails != null) {
+                    break;
+                }
+            }
         }
 
         if (polledDetails != null) {

@@ -213,9 +213,12 @@ public class StreamSettings extends Activity {
 
                 // We must now ensure our display is compatible with HDR10
                 boolean foundHdr10 = false;
-                for (int hdrType : hdrCaps.getSupportedHdrTypes()) {
-                    if (hdrType == Display.HdrCapabilities.HDR_TYPE_HDR10) {
-                        foundHdr10 = true;
+                if (hdrCaps != null) {
+                    // getHdrCapabilities() returns null on Lenovo Lenovo Mirage Solo (vega), Android 8.0
+                    for (int hdrType : hdrCaps.getSupportedHdrTypes()) {
+                        if (hdrType == Display.HdrCapabilities.HDR_TYPE_HDR10) {
+                            foundHdr10 = true;
+                        }
                     }
                 }
 

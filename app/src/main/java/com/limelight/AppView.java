@@ -81,11 +81,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     // Wait for the binder to be ready
                     localBinder.waitForReady();
 
-                    // Now make the binder visible
-                    managerBinder = localBinder;
-
                     // Get the computer object
-                    computer = managerBinder.getComputer(UUID.fromString(uuidString));
+                    computer = localBinder.getComputer(UUID.fromString(uuidString));
                     if (computer == null) {
                         finish();
                         return;
@@ -95,12 +92,17 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         appGridAdapter = new AppGridAdapter(AppView.this,
                                 PreferenceConfiguration.readPreferences(AppView.this).listMode,
                                 PreferenceConfiguration.readPreferences(AppView.this).smallIconMode,
-                                computer, managerBinder.getUniqueId());
+                                computer, localBinder.getUniqueId());
                     } catch (Exception e) {
                         e.printStackTrace();
                         finish();
                         return;
                     }
+
+                    // Now make the binder visible. We must do this after appGridAdapter
+                    // is set to prevent us from reaching updateUiWithServerinfo() and
+                    // touching the appGridAdapter prior to initialization.
+                    managerBinder = localBinder;
 
                     // Load the app grid with cached data (if possible).
                     // This must be done _before_ startComputerUpdates()

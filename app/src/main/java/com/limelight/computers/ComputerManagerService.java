@@ -105,17 +105,27 @@ public class ComputerManagerService extends Service {
 
         // If it's online, update our persistent state
         if (details.state == ComputerDetails.State.ONLINE) {
-            if (!newPc) {
-                // Check if it's in the database because it could have been
-                // removed after this was issued
-                if (dbManager.getComputerByUUID(details.uuid) == null) {
-                    // It's gone
-                    releaseLocalDatabaseReference();
-                    return false;
-                }
+            ComputerDetails existingComputer = dbManager.getComputerByUUID(details.uuid);
+
+            // Check if it's in the database because it could have been
+            // removed after this was issued
+            if (!newPc && existingComputer == null) {
+                // It's gone
+                releaseLocalDatabaseReference();
+                return false;
             }
 
-            dbManager.updateComputer(details);
+            // If we already have an entry for this computer in the DB, we must
+            // combine the existing data with this new data (which may be partially available
+            // due to detecting the PC via mDNS) without the saved external address. If we
+            // write to the DB without doing this first, we can overwrite our existing data.
+            if (existingComputer != null) {
+                existingComputer.update(details);
+                dbManager.updateComputer(existingComputer);
+            }
+            else {
+                dbManager.updateComputer(details);
+            }
         }
 
         // Don't call the listener if this is a failed lookup of a new PC
@@ -304,7 +314,7 @@ public class ComputerManagerService extends Service {
         };
     }
 
-    private void addTuple(ComputerDetails details, boolean manuallyAdded) {
+    private void addTuple(ComputerDetails details) {
         synchronized (pollingTuples) {
             for (PollingTuple tuple : pollingTuples) {
                 // Check if this is the same computer
@@ -365,7 +375,7 @@ public class ComputerManagerService extends Service {
             LimeLog.info("New PC ("+fakeDetails.name+") is UUID "+fakeDetails.uuid);
 
             // Start a polling thread for this machine
-            addTuple(fakeDetails, manuallyAdded);
+            addTuple(fakeDetails);
             return true;
         }
         else {
@@ -537,7 +547,7 @@ public class ComputerManagerService extends Service {
         // b) if it's null, it will be unexpectedly nulling the activeAddress of a possibly online PC
         LimeLog.info("Starting fast poll for "+details.name+" ("+details.localAddress +", "+details.remoteAddress +", "+details.manualAddress +")");
         String candidateAddress = fastPollPc(details.localAddress, details.remoteAddress, details.manualAddress);
-        LimeLog.info("Fast poll for "+details.name+" returned active address: "+details.activeAddress);
+        LimeLog.info("Fast poll for "+details.name+" returned candidate address: "+candidateAddress);
 
         // If no connection could be established to either IP address, there's nothing we can do
         if (candidateAddress == null) {
@@ -593,7 +603,7 @@ public class ComputerManagerService extends Service {
 
         for (ComputerDetails computer : dbManager.getAllComputers()) {
             // Add tuples for each computer
-            addTuple(computer, true);
+            addTuple(computer);
         }
 
         releaseLocalDatabaseReference();

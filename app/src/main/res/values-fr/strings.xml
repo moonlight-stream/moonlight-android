@@ -164,7 +164,7 @@
     <string name="summary_checkbox_host_audio">Lire l\'audio de l\'ordinateur et de ce périphérique</string>
 
     <string name="category_advanced_settings">Réglages avancés</string>
-    <string name="title_disable_frame_drop">Désactiver la suppression d'image</string>
+    <string name="title_disable_frame_drop">Désactiver la suppression d\'image</string>
     <string name="summary_disable_frame_drop">Peut réduire les micro-saccades sur certains appareils, mais peut augmenter la latence</string>
     <string name="title_video_format">Modifier les paramètres H.265</string>
     <string name="summary_video_format">H.265 réduit les besoins en bande passante vidéo mais nécessite un périphérique très récent</string>

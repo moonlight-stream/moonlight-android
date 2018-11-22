@@ -401,7 +401,7 @@ JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jclass clazz,
                                                            jstring address, jstring appVersion, jstring gfeVersion,
                                                            jint width, jint height, jint fps,
-                                                           jint bitrate, jint packetSize, jboolean streamingRemotely,
+                                                           jint bitrate, jint packetSize, jint streamingRemotely,
                                                            jint audioConfiguration, jboolean supportsHevc,
                                                            jboolean enableHdr,
                                                            jint hevcBitratePercentageMultiplier,

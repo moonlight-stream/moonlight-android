@@ -5,7 +5,11 @@ import com.limelight.nvstream.jni.MoonBridge;
 
 public class StreamConfiguration {
 	public static final int INVALID_APP_ID = 0;
-	
+
+	public static final int STREAM_CFG_LOCAL = 0;
+	public static final int STREAM_CFG_REMOTE = 1;
+	public static final int STREAM_CFG_AUTO = 2;
+
 	private static final int CHANNEL_COUNT_STEREO = 2;
 	private static final int CHANNEL_COUNT_5_1 = 6;
 	
@@ -21,7 +25,7 @@ public class StreamConfiguration {
 	private boolean enableAdaptiveResolution;
 	private boolean playLocalAudio;
 	private int maxPacketSize;
-	private boolean remote;
+	private int remote;
 	private int audioChannelMask;
 	private int audioChannelCount;
 	private int audioConfiguration;
@@ -38,7 +42,7 @@ public class StreamConfiguration {
 			return this;
 		}
 		
-		public StreamConfiguration.Builder setRemote(boolean remote) {
+		public StreamConfiguration.Builder setRemoteConfiguration(int remote) {
 			config.remote = remote;
 			return this;
 		}
@@ -145,6 +149,7 @@ public class StreamConfiguration {
 		this.refreshRate = 60;
 		this.bitrate = 10000;
 		this.maxPacketSize = 1024;
+		this.remote = STREAM_CFG_AUTO;
 		this.sops = true;
 		this.enableAdaptiveResolution = false;
 		this.audioChannelCount = CHANNEL_COUNT_STEREO;
@@ -190,7 +195,7 @@ public class StreamConfiguration {
 		return playLocalAudio;
 	}
 	
-	public boolean getRemote() {
+	public int getRemote() {
 		return remote;
 	}
 	

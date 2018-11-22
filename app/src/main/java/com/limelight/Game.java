@@ -134,7 +134,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public static final String EXTRA_APP_NAME = "AppName";
     public static final String EXTRA_APP_ID = "AppId";
     public static final String EXTRA_UNIQUEID = "UniqueId";
-    public static final String EXTRA_STREAMING_REMOTE = "Remote";
     public static final String EXTRA_PC_UUID = "UUID";
     public static final String EXTRA_PC_NAME = "PcName";
     public static final String EXTRA_APP_HDR = "HDR";
@@ -228,7 +227,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         String appName = Game.this.getIntent().getStringExtra(EXTRA_APP_NAME);
         int appId = Game.this.getIntent().getIntExtra(EXTRA_APP_ID, StreamConfiguration.INVALID_APP_ID);
         String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
-        boolean remote = Game.this.getIntent().getBooleanExtra(EXTRA_STREAMING_REMOTE, false);
         String uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
         String pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
         boolean willStreamHdr = Game.this.getIntent().getBooleanExtra(EXTRA_APP_HDR, false);
@@ -372,8 +370,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setBitrate(prefConfig.bitrate)
                 .setEnableSops(prefConfig.enableSops)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
-                .setMaxPacketSize((remote || prefConfig.width <= 1920) ? 1024 : 1292)
-                .setRemote(remote)
+                .setMaxPacketSize(1392)
+                .setRemoteConfiguration(StreamConfiguration.STREAM_CFG_AUTO)
                 .setHevcBitratePercentageMultiplier(75)
                 .setHevcSupported(decoderRenderer.isHevcSupported())
                 .setEnableHdr(willStreamHdr)

@@ -398,52 +398,13 @@ public class NvHTTP {
 	}
 	
 	public boolean supports4K(String serverInfo) throws XmlPullParserException, IOException {
-		// serverinfo returns supported resolutions in descending order, so getting the first
-		// height will give us whether we support 4K. If this is not present, we don't support
-		// 4K.
-		String heightStr = getXmlString(serverInfo, "Height");
-		if (heightStr == null) {
-			return false;
-		}
-		
 		// Only allow 4K on GFE 3.x
 		String gfeVersionStr = getXmlString(serverInfo, "GfeVersion");
 		if (gfeVersionStr == null || gfeVersionStr.startsWith("2.")) {
 			return false;
 		}
-		
-		try {
-			if (Integer.parseInt(heightStr) >= 2160) {
-				// Found a 4K resolution in the list
-				return true;
-			}
-		} catch (NumberFormatException ignored) {}
-		
-		return false;
-	}
-	
-	public boolean supports4K60(String serverInfo) throws XmlPullParserException, IOException {
-		// If we don't support 4K at all, bail early
-		if (!supports4K(serverInfo)) {
-			return false;
-		}
-		
-		// serverinfo returns supported resolutions in descending order, so getting the first
-		// refresh rate will give us whether we support 4K60. If this is 30, we don't support
-		// 4K 60 FPS.
-		String fpsStr = getXmlString(serverInfo, "RefreshRate");
-		if (fpsStr == null) {
-			return false;
-		}
-		
-		try {
-			if (Integer.parseInt(fpsStr) >= 60) {
-				// 4K supported and 60 FPS is the first entry
-				return true;
-			}
-		} catch (NumberFormatException ignored) {}
-		
-		return false;
+
+		return true;
 	}
 
 	public int getCurrentGame(String serverInfo) throws IOException, XmlPullParserException {

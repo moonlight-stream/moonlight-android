@@ -117,20 +117,12 @@ public class NvConnection {
 		// Check for a supported stream resolution
 		if (context.streamConfig.getHeight() >= 2160 && !h.supports4K(serverInfo)) {
 			// Client wants 4K but the server can't do it
-			context.connListener.displayTransientMessage("Your PC does not have a supported GPU or GFE version for 4K streaming. The stream will be 1080p.");
+			context.connListener.displayTransientMessage("You must update GeForce Experience to stream in 4K. The stream will be 1080p.");
 			
 			// Lower resolution to 1080p
 			context.negotiatedWidth = 1920;
 			context.negotiatedHeight = 1080;
 			context.negotiatedFps = context.streamConfig.getRefreshRate();
-		}
-		else if (context.streamConfig.getHeight() >= 2160 && context.streamConfig.getRefreshRate() >= 60 && !h.supports4K60(serverInfo)) {
-			// Client wants 4K 60 FPS but the server can't do it
-			context.connListener.displayTransientMessage("Your GPU does not support 4K 60 FPS streaming. The stream will be 4K 30 FPS.");
-			
-			context.negotiatedWidth = context.streamConfig.getWidth();
-			context.negotiatedHeight = context.streamConfig.getHeight();
-			context.negotiatedFps = 30;
 		}
 		else {
 			// Take what the client wanted

@@ -5,12 +5,19 @@
     <PreferenceCategory android:title="@string/category_basic_settings"
         android:key="category_basic_settings">
         <ListPreference
-            android:key="list_resolution_fps"
+            android:key="list_resolution"
             android:title="@string/title_resolution_list"
             android:summary="@string/summary_resolution_list"
             android:entries="@array/resolution_names"
             android:entryValues="@array/resolution_values"
-            android:defaultValue="720p60" />
+            android:defaultValue="720p" />
+        <ListPreference
+            android:key="list_fps"
+            android:title="@string/title_fps_list"
+            android:summary="@string/summary_fps_list"
+            android:entries="@array/fps_names"
+            android:entryValues="@array/fps_values"
+            android:defaultValue="60" />
         <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_bitrate_kbps"
             android:dialogMessage="@string/summary_seekbar_bitrate"

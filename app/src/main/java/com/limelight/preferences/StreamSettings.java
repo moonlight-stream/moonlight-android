@@ -58,12 +58,12 @@ public class StreamSettings extends Activity {
 
     public static class SettingsFragment extends PreferenceFragment {
 
-        private static void removeResolution(ListPreference pref, String prefix) {
+        private static void removeValue(ListPreference pref, String value) {
             int matchingCount = 0;
 
             // Count the number of matching entries we'll be removing
             for (CharSequence seq : pref.getEntryValues()) {
-                if (seq.toString().startsWith(prefix)) {
+                if (seq.toString().equalsIgnoreCase(value)) {
                     matchingCount++;
                 }
             }
@@ -73,8 +73,8 @@ public class StreamSettings extends Activity {
             CharSequence[] entryValues = new CharSequence[pref.getEntryValues().length-matchingCount];
             int outIndex = 0;
             for (int i = 0; i < pref.getEntryValues().length; i++) {
-                if (pref.getEntryValues()[i].toString().startsWith(prefix)) {
-                    // Skip matching prefixes
+                if (pref.getEntryValues()[i].toString().equalsIgnoreCase(value)) {
+                    // Skip matching values
                     continue;
                 }
 
@@ -110,6 +110,8 @@ public class StreamSettings extends Activity {
                 category.removePreference(findPreference("checkbox_enable_pip"));
             }
 
+            int maxSupportedFps = 0;
+
             // Hide non-supported resolution/FPS combinations
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 Display display = getActivity().getWindowManager().getDefaultDisplay();
@@ -134,8 +136,15 @@ public class StreamSettings extends Activity {
                     if ((width >= 3840 || height >= 2160) && maxSupportedResW < 3840) {
                         maxSupportedResW = 3840;
                     }
+                    else if ((width >= 2560 || height >= 1440) && maxSupportedResW < 2560) {
+                        maxSupportedResW = 2560;
+                    }
                     else if ((width >= 1920 || height >= 1080) && maxSupportedResW < 1920) {
                         maxSupportedResW = 1920;
+                    }
+
+                    if (candidate.getRefreshRate() > maxSupportedFps) {
+                        maxSupportedFps = (int)candidate.getRefreshRate();
                     }
                 }
 
@@ -186,19 +195,34 @@ public class StreamSettings extends Activity {
 
                 LimeLog.info("Maximum resolution slot: "+maxSupportedResW);
 
-                ListPreference resPref = (ListPreference) findPreference("list_resolution_fps");
+                ListPreference resPref = (ListPreference) findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING);
                 if (maxSupportedResW != 0) {
                     if (maxSupportedResW < 3840) {
                         // 4K is unsupported
-                        removeResolution(resPref, "4K");
+                        removeValue(resPref, "4K");
+                    }
+                    if (maxSupportedResW < 2560) {
+                        // 1440p is unsupported
+                        removeValue(resPref, "1440p");
                     }
                     if (maxSupportedResW < 1920) {
                         // 1080p is unsupported
-                        removeResolution(resPref, "1080p");
+                        removeValue(resPref, "1080p");
                     }
                     // Never remove 720p
                 }
             }
+
+            ListPreference fpsPref = (ListPreference) findPreference(PreferenceConfiguration.FPS_PREF_STRING);
+            // We give some extra room in case the FPS is rounded down
+            if (maxSupportedFps < 118) {
+                removeValue(fpsPref, "120");
+            }
+            if (maxSupportedFps < 88) {
+                // 1080p is unsupported
+                removeValue(fpsPref, "90");
+            }
+            // Never remove 30 FPS or 60 FPS
 
             // Remove HDR preference for devices below Nougat
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -232,8 +256,7 @@ public class StreamSettings extends Activity {
 
             // Add a listener to the FPS and resolution preference
             // so the bitrate can be auto-adjusted
-            Preference pref = findPreference(PreferenceConfiguration.RES_FPS_PREF_STRING);
-            pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING).setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
@@ -242,7 +265,27 @@ public class StreamSettings extends Activity {
                     // Write the new bitrate value
                     prefs.edit()
                             .putInt(PreferenceConfiguration.BITRATE_PREF_STRING,
-                                    PreferenceConfiguration.getDefaultBitrate(valueStr))
+                                    PreferenceConfiguration.getDefaultBitrate(valueStr,
+                                            prefs.getString(PreferenceConfiguration.FPS_PREF_STRING,
+                                                    PreferenceConfiguration.DEFAULT_FPS)))
+                            .apply();
+
+                    // Allow the original preference change to take place
+                    return true;
+                }
+            });
+            findPreference(PreferenceConfiguration.FPS_PREF_STRING).setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                    String valueStr = (String) newValue;
+
+                    // Write the new bitrate value
+                    prefs.edit()
+                            .putInt(PreferenceConfiguration.BITRATE_PREF_STRING,
+                                    PreferenceConfiguration.getDefaultBitrate(
+                                            prefs.getString(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION),
+                                            valueStr))
                             .apply();
 
                     // Allow the original preference change to take place

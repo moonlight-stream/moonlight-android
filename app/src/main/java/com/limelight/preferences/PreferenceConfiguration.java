@@ -7,7 +7,11 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 
 public class PreferenceConfiguration {
-    static final String RES_FPS_PREF_STRING = "list_resolution_fps";
+    private static final String LEGACY_RES_FPS_PREF_STRING = "list_resolution_fps";
+
+
+    static final String RESOLUTION_PREF_STRING = "list_resolution";
+    static final String FPS_PREF_STRING = "list_fps";
     static final String BITRATE_PREF_STRING = "seekbar_bitrate_kbps";
     private static final String BITRATE_PREF_OLD_STRING = "seekbar_bitrate";
     private static final String STRETCH_PREF_STRING = "checkbox_stretch_video";
@@ -30,17 +34,8 @@ public class PreferenceConfiguration {
     private static final String BIND_ALL_USB_STRING = "checkbox_usb_bind_all";
     private static final String MOUSE_EMULATION_STRING = "checkbox_mouse_emulation";
 
-    private static final int BITRATE_DEFAULT_360_30 = 1000;
-    private static final int BITRATE_DEFAULT_360_60 = 2000;
-    private static final int BITRATE_DEFAULT_720_30 = 5000;
-    private static final int BITRATE_DEFAULT_720_60 = 10000;
-    private static final int BITRATE_DEFAULT_1080_30 = 10000;
-    private static final int BITRATE_DEFAULT_1080_60 = 20000;
-    private static final int BITRATE_DEFAULT_4K_30 = 40000;
-    private static final int BITRATE_DEFAULT_4K_60 = 80000;
-
-    private static final String DEFAULT_RES_FPS = "720p60";
-    private static final int DEFAULT_BITRATE = BITRATE_DEFAULT_720_60;
+    static final String DEFAULT_RESOLUTION = "720p";
+    static final String DEFAULT_FPS = "60";
     private static final boolean DEFAULT_STRETCH = false;
     private static final boolean DEFAULT_SOPS = true;
     private static final boolean DEFAULT_DISABLE_TOASTS = false;
@@ -54,7 +49,6 @@ public class PreferenceConfiguration {
     private static final String DEFAULT_VIDEO_FORMAT = "auto";
     private static final boolean ONSCREEN_CONTROLLER_DEFAULT = false;
     private static final boolean ONLY_L3_R3_DEFAULT = false;
-    private static final boolean DEFAULT_BATTERY_SAVER = false;
     private static final boolean DEFAULT_DISABLE_FRAME_DROP = false;
     private static final boolean DEFAULT_ENABLE_HDR = false;
     private static final boolean DEFAULT_ENABLE_PIP = false;
@@ -80,34 +74,77 @@ public class PreferenceConfiguration {
     public boolean bindAllUsb;
     public boolean mouseEmulation;
 
-    public static int getDefaultBitrate(String resFpsString) {
-        if (resFpsString.equals("360p30")) {
-            return BITRATE_DEFAULT_360_30;
+    private static int getHeightFromResolutionString(String resString) {
+        if (resString.equalsIgnoreCase("360p")) {
+            return 360;
         }
-        else if (resFpsString.equals("360p60")) {
-            return BITRATE_DEFAULT_360_60;
+        else if (resString.equalsIgnoreCase("720p")) {
+            return 720;
         }
-        else if (resFpsString.equals("720p30")) {
-            return BITRATE_DEFAULT_720_30;
+        else if (resString.equalsIgnoreCase("1080p")) {
+            return 1080;
         }
-        else if (resFpsString.equals("720p60")) {
-            return BITRATE_DEFAULT_720_60;
+        else if (resString.equalsIgnoreCase("1440p")) {
+            return 1440;
         }
-        else if (resFpsString.equals("1080p30")) {
-            return BITRATE_DEFAULT_1080_30;
-        }
-        else if (resFpsString.equals("1080p60")) {
-            return BITRATE_DEFAULT_1080_60;
-        }
-        else if (resFpsString.equals("4K30")) {
-            return BITRATE_DEFAULT_4K_30;
-        }
-        else if (resFpsString.equals("4K60")) {
-            return BITRATE_DEFAULT_4K_60;
+        else if (resString.equalsIgnoreCase("4K")) {
+            return 3840;
         }
         else {
-            // Should never get here
-            return DEFAULT_BITRATE;
+            // Should be unreachable
+            return 720;
+        }
+    }
+
+    private static int getWidthFromResolutionString(String resString) {
+        return (getHeightFromResolutionString(resString) * 16) / 9;
+    }
+
+    private static String getResolutionString(int width, int height) {
+        switch (height) {
+            case 360:
+                return "360p";
+            default:
+            case 720:
+                return "720p";
+            case 1080:
+                return "1080p";
+            case 1440:
+                return "1440p";
+            case 3840:
+                return "4K";
+
+        }
+    }
+
+    public static int getDefaultBitrate(String resString, String fpsString) {
+        int width = getWidthFromResolutionString(resString);
+        int height = getHeightFromResolutionString(resString);
+        int fps = Integer.parseInt(fpsString);
+
+        // This table prefers 16:10 resolutions because they are
+        // only slightly more pixels than the 16:9 equivalents, so
+        // we don't want to bump those 16:10 resolutions up to the
+        // next 16:9 slot.
+        //
+        // This logic is shamelessly stolen from Moonlight Qt:
+        // https://github.com/moonlight-stream/moonlight-qt/blob/master/app/settings/streamingpreferences.cpp
+
+        if (width * height <= 640 * 360) {
+            return (int)(1000 * (fps / 30.0));
+        }
+        // This covers 1280x720 and 1280x800 too
+        else if (width * height <= 1366 * 768) {
+            return (int)(5000 * (fps / 30.0));
+        }
+        else if (width * height <= 1920 * 1200) {
+            return (int)(10000 * (fps / 30.0));
+        }
+        else if (width * height <= 2560 * 1600) {
+            return (int)(20000 * (fps / 30.0));
+        }
+        else /* if (width * height <= 3840 * 2160) */ {
+            return (int)(40000 * (fps / 30.0));
         }
     }
 
@@ -133,7 +170,9 @@ public class PreferenceConfiguration {
 
     public static int getDefaultBitrate(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        return getDefaultBitrate(prefs.getString(RES_FPS_PREF_STRING, DEFAULT_RES_FPS));
+        return getDefaultBitrate(
+                prefs.getString(RESOLUTION_PREF_STRING, DEFAULT_RESOLUTION),
+                prefs.getString(FPS_PREF_STRING, DEFAULT_FPS));
     }
 
     private static int getVideoFormatValue(Context context) {
@@ -161,7 +200,9 @@ public class PreferenceConfiguration {
         prefs.edit()
                 .remove(BITRATE_PREF_STRING)
                 .remove(BITRATE_PREF_OLD_STRING)
-                .remove(RES_FPS_PREF_STRING)
+                .remove(LEGACY_RES_FPS_PREF_STRING)
+                .remove(RESOLUTION_PREF_STRING)
+                .remove(FPS_PREF_STRING)
                 .remove(VIDEO_FORMAT_PREF_STRING)
                 .remove(ENABLE_HDR_PREF_STRING)
                 .apply();
@@ -171,57 +212,74 @@ public class PreferenceConfiguration {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         PreferenceConfiguration config = new PreferenceConfiguration();
 
+        // Migrate legacy preferences to the new locations
+        String str = prefs.getString(LEGACY_RES_FPS_PREF_STRING, null);
+        if (str != null) {
+            if (str.equals("360p30")) {
+                config.width = 640;
+                config.height = 360;
+                config.fps = 30;
+            }
+            else if (str.equals("360p60")) {
+                config.width = 640;
+                config.height = 360;
+                config.fps = 60;
+            }
+            else if (str.equals("720p30")) {
+                config.width = 1280;
+                config.height = 720;
+                config.fps = 30;
+            }
+            else if (str.equals("720p60")) {
+                config.width = 1280;
+                config.height = 720;
+                config.fps = 60;
+            }
+            else if (str.equals("1080p30")) {
+                config.width = 1920;
+                config.height = 1080;
+                config.fps = 30;
+            }
+            else if (str.equals("1080p60")) {
+                config.width = 1920;
+                config.height = 1080;
+                config.fps = 60;
+            }
+            else if (str.equals("4K30")) {
+                config.width = 3840;
+                config.height = 2160;
+                config.fps = 30;
+            }
+            else if (str.equals("4K60")) {
+                config.width = 3840;
+                config.height = 2160;
+                config.fps = 60;
+            }
+            else {
+                // Should never get here
+                config.width = 1280;
+                config.height = 720;
+                config.fps = 60;
+            }
+
+            prefs.edit()
+                    .remove(LEGACY_RES_FPS_PREF_STRING)
+                    .putString(RESOLUTION_PREF_STRING, getResolutionString(config.width, config.height))
+                    .putString(FPS_PREF_STRING, ""+config.fps)
+                    .apply();
+        }
+        else {
+            // Use the new preference location
+            String resStr = prefs.getString(RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION);
+            config.width = PreferenceConfiguration.getWidthFromResolutionString(resStr);
+            config.height = PreferenceConfiguration.getHeightFromResolutionString(resStr);
+            config.fps = Integer.parseInt(prefs.getString(FPS_PREF_STRING, PreferenceConfiguration.DEFAULT_FPS));
+        }
+
+        // This must happen after the preferences migration to ensure the preferences are populated
         config.bitrate = prefs.getInt(BITRATE_PREF_STRING, prefs.getInt(BITRATE_PREF_OLD_STRING, 0) * 1000);
         if (config.bitrate == 0) {
             config.bitrate = getDefaultBitrate(context);
-        }
-
-        String str = prefs.getString(RES_FPS_PREF_STRING, DEFAULT_RES_FPS);
-        if (str.equals("360p30")) {
-            config.width = 640;
-            config.height = 360;
-            config.fps = 30;
-        }
-        else if (str.equals("360p60")) {
-            config.width = 640;
-            config.height = 360;
-            config.fps = 60;
-        }
-        else if (str.equals("720p30")) {
-            config.width = 1280;
-            config.height = 720;
-            config.fps = 30;
-        }
-        else if (str.equals("720p60")) {
-            config.width = 1280;
-            config.height = 720;
-            config.fps = 60;
-        }
-        else if (str.equals("1080p30")) {
-            config.width = 1920;
-            config.height = 1080;
-            config.fps = 30;
-        }
-        else if (str.equals("1080p60")) {
-            config.width = 1920;
-            config.height = 1080;
-            config.fps = 60;
-        }
-        else if (str.equals("4K30")) {
-            config.width = 3840;
-            config.height = 2160;
-            config.fps = 30;
-        }
-        else if (str.equals("4K60")) {
-            config.width = 3840;
-            config.height = 2160;
-            config.fps = 60;
-        }
-        else {
-            // Should never get here
-            config.width = 1280;
-            config.height = 720;
-            config.fps = 60;
         }
 
         config.videoFormat = getVideoFormatValue(context);

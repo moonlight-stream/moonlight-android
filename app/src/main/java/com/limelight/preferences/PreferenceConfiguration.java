@@ -91,7 +91,7 @@ public class PreferenceConfiguration {
             return 1440;
         }
         else if (resString.equalsIgnoreCase("4K")) {
-            return 3840;
+            return 2160;
         }
         else {
             // Should be unreachable
@@ -114,7 +114,7 @@ public class PreferenceConfiguration {
                 return "1080p";
             case 1440:
                 return "1440p";
-            case 3840:
+            case 2160:
                 return "4K";
 
         }

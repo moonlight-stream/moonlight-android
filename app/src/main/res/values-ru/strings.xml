@@ -98,7 +98,6 @@
     <string name="title_checkbox_51_surround">Включить объёмный звук 5.1</string>
     <string name="summary_checkbox_51_surround">Отключите, если появляются аудио проблемы. Требуется GFE 2.7 или выше.</string>
 
-    <string name="category_gamepad_settings">Настройки Геймпада</string>
     <string name="title_checkbox_multi_controller">Поддержка нескольких контроллеров</string>
     <string name="summary_checkbox_multi_controller">Когда отключена, все контроллеры определяются как один</string>
     <string name="title_seekbar_deadzone">Регулировать мертвую зону аналогового стика</string>

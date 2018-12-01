@@ -126,7 +126,6 @@
     <string name="title_checkbox_51_surround">Activer son surround 5.1</string>
     <string name="summary_checkbox_51_surround">Décochez si vous rencontrez des problèmes audio. Nécessite GFE 2.7 ou supérieur.</string>
 
-    <string name="category_gamepad_settings">Paramètres du gamepad</string>
     <string name="title_checkbox_multi_controller">Prise en charge de plusieurs contrôleurs</string>
     <string name="summary_checkbox_multi_controller">Lorsqu\'elle n\'est pas cochée, tous les contrôleurs sont regroupés</string>
     <string name="title_seekbar_deadzone">Régler la zone morte du stick analogique</string>

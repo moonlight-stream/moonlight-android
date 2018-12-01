@@ -93,7 +93,6 @@
     <string name="title_checkbox_51_surround">5.1chサラウンド</string>
     <string name="summary_checkbox_51_surround">音声に問題が生じる場合はチェックを外してください。バージョン2.7以降のGFEが必要です</string>
 
-    <string name="category_gamepad_settings">ゲームコントローラ</string>
     <string name="title_checkbox_multi_controller">複数のゲームコントローラ</string>
     <string name="summary_checkbox_multi_controller">チェックを外すと、全てのゲームコントローラが単一の物として認識されます</string>
     <string name="title_seekbar_deadzone">アナログゲームコントローラのデッドゾーン</string>

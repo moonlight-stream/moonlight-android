@@ -116,7 +116,6 @@
     <string name="title_checkbox_51_surround">Abilita l\'audio 5.1 surround</string>
     <string name="summary_checkbox_51_surround">Se riscontri problemi, disabilitalo. Richiede GFE 2.7 o versioni sucessive.</string>
 
-    <string name="category_gamepad_settings">Impostazioni controller</string>
     <string name="title_checkbox_multi_controller">Supporto a più controller</string>
     <string name="summary_checkbox_multi_controller">Quando disabilitato, tutti i controller appaiono come uno solo</string>
     <string name="title_seekbar_deadzone">Regola i punti morti degli stick analogici</string>

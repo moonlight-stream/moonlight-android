@@ -97,7 +97,6 @@
   <string name="title_checkbox_51_surround">Gebruik 5.1 surround sound</string>
   <string name="summary_checkbox_51_surround">Gebruik dit niet als er problemen zijn met de audio. Vereist GFE 2.7 of hoger.</string>
 
-  <string name="category_gamepad_settings">Gamepad Instellingen</string>
   <string name="title_checkbox_multi_controller">Multi-gamepad support</string>
   <string name="summary_checkbox_multi_controller">Wanneer uitgevinkt, alle controllers verschijnen als één.</string>
   <string name="title_seekbar_deadzone">Pas analoge dodezone aan.</string>

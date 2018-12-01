@@ -108,7 +108,6 @@
     <string name="title_checkbox_51_surround"> 启用 5.1 环绕音效 </string>
     <string name="summary_checkbox_51_surround"> 如果你的声音听起来有问题请禁用。\n\n需要GeForce Experience 2.7 或更高版本 </string>
 
-    <string name="category_gamepad_settings"> 手柄设置 </string>
     <string name="title_checkbox_multi_controller"> 启用多手柄支持 </string>
     <string name="summary_checkbox_multi_controller"> 如果禁用，所有手柄将会认作一个手柄 </string>
     <string name="title_seekbar_deadzone"> 调整摇杆死区 </string>

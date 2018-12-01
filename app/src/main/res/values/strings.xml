@@ -121,6 +121,8 @@
     <string name="title_seekbar_bitrate">Video bitrate</string>
     <string name="summary_seekbar_bitrate">Increase for better image quality. Decrease to improve performance on slower connections.</string>
     <string name="suffix_seekbar_bitrate">Kbps</string>
+    <string name="title_unlock_fps">Unlock all possible frame rates</string>
+    <string name="summary_unlock_fps">Streaming at 90 or 120 FPS may reduce latency on high-end devices but can cause lag or crashes on devices that can\'t support it</string>
     <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
     <string name="title_checkbox_disable_warnings">Disable warning messages</string>
     <string name="summary_checkbox_disable_warnings">Disable on-screen connection warning messages while streaming</string>
@@ -175,8 +177,6 @@
     <string name="summary_disable_frame_drop">May reduce micro-stuttering on some devices, but can increase latency</string>
     <string name="title_video_format">Change H.265 settings</string>
     <string name="summary_video_format">H.265 lowers video bandwidth requirements but requires a very recent device</string>
-    <string name="title_unlock_fps">Unlock all FPS values</string>
-    <string name="summary_unlock_fps">Streaming at 90 or 120 FPS may reduce latency on high-end devices but can cause lag or crashes on devices that can\'t support it</string>
     <string name="title_enable_hdr">Enable HDR (Experimental)</string>
     <string name="summary_enable_hdr">Stream HDR when the game and PC GPU support it. HDR requires a GTX 1000 series GPU or later.</string>
 

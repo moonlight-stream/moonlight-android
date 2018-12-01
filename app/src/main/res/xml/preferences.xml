@@ -28,6 +28,11 @@
             android:text="@string/suffix_seekbar_bitrate"
             android:title="@string/title_seekbar_bitrate" />
         <CheckBoxPreference
+            android:key="checkbox_unlock_fps"
+            android:title="@string/title_unlock_fps"
+            android:summary="@string/summary_unlock_fps"
+            android:defaultValue="false" />
+        <CheckBoxPreference
             android:key="checkbox_stretch_video"
             android:title="@string/title_checkbox_stretch_video"
             android:defaultValue="false" />
@@ -140,11 +145,6 @@
             android:entryValues="@array/video_format_values"
             android:summary="@string/summary_video_format"
             android:defaultValue="auto" />
-        <CheckBoxPreference
-            android:key="checkbox_unlock_fps"
-            android:title="@string/title_unlock_fps"
-            android:summary="@string/summary_unlock_fps"
-            android:defaultValue="false" />
         <CheckBoxPreference
             android:key="checkbox_disable_frame_drop"
             android:title="@string/title_disable_frame_drop"

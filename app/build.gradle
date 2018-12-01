@@ -9,7 +9,7 @@ android {
         targetSdkVersion 28
 
         versionName "6.0"
-        versionCode = 179
+        versionCode = 180
     }
 
     flavorDimensions "root"

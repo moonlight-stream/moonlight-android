@@ -497,8 +497,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Display.Mode bestMode = display.getMode();
             for (Display.Mode candidate : display.getSupportedModes()) {
-                boolean refreshRateOk = candidate.getRefreshRate() >= bestMode.getRefreshRate() &&
-                        candidate.getRefreshRate() < 63;
+                boolean refreshRateOk = candidate.getRefreshRate() >= bestMode.getRefreshRate();
                 boolean resolutionOk = candidate.getPhysicalWidth() >= bestMode.getPhysicalWidth() &&
                         candidate.getPhysicalHeight() >= bestMode.getPhysicalHeight() &&
                         candidate.getPhysicalWidth() <= 4096;
@@ -510,6 +509,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 if (prefConfig.width < 3840) {
                     if (display.getMode().getPhysicalWidth() != candidate.getPhysicalWidth() ||
                             display.getMode().getPhysicalHeight() != candidate.getPhysicalHeight()) {
+                        continue;
+                    }
+                }
+
+                // Ensure the frame rate stays around 60 Hz for <= 60 FPS streams
+                if (prefConfig.fps <= 60) {
+                    if (candidate.getRefreshRate() >= 63) {
                         continue;
                     }
                 }
@@ -531,12 +537,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             windowLayoutParams.preferredDisplayModeId = bestMode.getModeId();
             displayRefreshRate = bestMode.getRefreshRate();
         }
-        // On L, we can at least tell the OS that we want 60 Hz
+        // On L, we can at least tell the OS that we want a refresh rate
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             float bestRefreshRate = display.getRefreshRate();
             for (float candidate : display.getSupportedRefreshRates()) {
-                if (candidate > bestRefreshRate && candidate < 63) {
+                if (candidate > bestRefreshRate) {
                     LimeLog.info("Examining refresh rate: "+candidate);
+
+                    // Ensure the frame rate stays around 60 Hz for <= 60 FPS streams
+                    if (prefConfig.fps <= 60) {
+                        if (candidate >= 63) {
+                            continue;
+                        }
+                    }
+
                     bestRefreshRate = candidate;
                 }
             }

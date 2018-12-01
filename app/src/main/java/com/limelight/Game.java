@@ -344,8 +344,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Hopefully, we can get rid of this once someone comes up with a better way
         // to track the state of the pipeline and time frames.
         int roundedRefreshRate = Math.round(displayRefreshRate);
-        if (!prefConfig.disableFrameDrop && prefConfig.fps >= roundedRefreshRate) {
-            if (roundedRefreshRate <= 49) {
+        if ((!prefConfig.disableFrameDrop || prefConfig.unlockFps) && prefConfig.fps >= roundedRefreshRate) {
+            if (prefConfig.unlockFps) {
+                // Use frame drops when rendering above the screen frame rate
+                decoderRenderer.enableLegacyFrameDropRendering();
+                LimeLog.info("Using drop mode for FPS > Hz");
+            }
+            else if (roundedRefreshRate <= 49) {
                 // Let's avoid clearly bogus refresh rates and fall back to legacy rendering
                 decoderRenderer.enableLegacyFrameDropRendering();
                 LimeLog.info("Bogus refresh rate: "+roundedRefreshRate);

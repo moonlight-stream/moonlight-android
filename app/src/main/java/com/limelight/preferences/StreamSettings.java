@@ -6,6 +6,7 @@ import android.media.MediaCodecInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.Handler;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
@@ -24,6 +25,12 @@ import com.limelight.utils.UiHelper;
 public class StreamSettings extends Activity {
     private PreferenceConfiguration previousPrefs;
 
+    void reloadSettings() {
+        getFragmentManager().beginTransaction().replace(
+                R.id.stream_settings, new SettingsFragment()
+        ).commit();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,9 +40,7 @@ public class StreamSettings extends Activity {
         UiHelper.setLocale(this);
 
         setContentView(R.layout.activity_stream_settings);
-        getFragmentManager().beginTransaction().replace(
-                R.id.stream_settings, new SettingsFragment()
-        ).commit();
+        reloadSettings();
 
         UiHelper.notifyNewRootView(this);
     }
@@ -58,8 +63,16 @@ public class StreamSettings extends Activity {
 
     public static class SettingsFragment extends PreferenceFragment {
 
-        private static void removeValue(ListPreference pref, String value) {
+        private void setValue(String preferenceKey, String value) {
+            ListPreference pref = (ListPreference) findPreference(preferenceKey);
+
+            pref.setValue(value);
+        }
+
+        private void removeValue(String preferenceKey, String value, Runnable onMatched) {
             int matchingCount = 0;
+
+            ListPreference pref = (ListPreference) findPreference(preferenceKey);
 
             // Count the number of matching entries we'll be removing
             for (CharSequence seq : pref.getEntryValues()) {
@@ -83,15 +96,34 @@ public class StreamSettings extends Activity {
                 outIndex++;
             }
 
+            if (pref.getValue().equalsIgnoreCase(value)) {
+                onMatched.run();
+            }
+
             // Update the preference with the new list
             pref.setEntries(entries);
             pref.setEntryValues(entryValues);
         }
 
+
+
+        private void resetBitrateToDefault(SharedPreferences prefs, String res, String fps) {
+            if (res == null) {
+                res = prefs.getString(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION);
+            }
+            if (fps == null) {
+                fps = prefs.getString(PreferenceConfiguration.FPS_PREF_STRING, PreferenceConfiguration.DEFAULT_FPS);
+            }
+
+            prefs.edit()
+                    .putInt(PreferenceConfiguration.BITRATE_PREF_STRING,
+                            PreferenceConfiguration.getDefaultBitrate(res, fps))
+                    .apply();
+        }
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-
             addPreferencesFromResource(R.xml.preferences);
             PreferenceScreen screen = getPreferenceScreen();
 
@@ -195,34 +227,69 @@ public class StreamSettings extends Activity {
 
                 LimeLog.info("Maximum resolution slot: "+maxSupportedResW);
 
-                ListPreference resPref = (ListPreference) findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING);
                 if (maxSupportedResW != 0) {
                     if (maxSupportedResW < 3840) {
                         // 4K is unsupported
-                        removeValue(resPref, "4K");
+                        removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "4K", new Runnable() {
+                            @Override
+                            public void run() {
+                                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "1440p");
+                                resetBitrateToDefault(prefs, null, null);
+                            }
+                        });
                     }
                     if (maxSupportedResW < 2560) {
                         // 1440p is unsupported
-                        removeValue(resPref, "1440p");
+                        removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "1440p", new Runnable() {
+                            @Override
+                            public void run() {
+                                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "1080p");
+                                resetBitrateToDefault(prefs, null, null);
+                            }
+                        });
                     }
                     if (maxSupportedResW < 1920) {
                         // 1080p is unsupported
-                        removeValue(resPref, "1080p");
+                        removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "1080p", new Runnable() {
+                            @Override
+                            public void run() {
+                                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "720p");
+                                resetBitrateToDefault(prefs, null, null);
+                            }
+                        });
                     }
                     // Never remove 720p
                 }
             }
 
-            ListPreference fpsPref = (ListPreference) findPreference(PreferenceConfiguration.FPS_PREF_STRING);
-            // We give some extra room in case the FPS is rounded down
-            if (maxSupportedFps < 118) {
-                removeValue(fpsPref, "120");
+            if (!PreferenceConfiguration.readPreferences(this.getActivity()).unlockFps) {
+                // We give some extra room in case the FPS is rounded down
+                if (maxSupportedFps < 118) {
+                    removeValue(PreferenceConfiguration.FPS_PREF_STRING, "120", new Runnable() {
+                        @Override
+                        public void run() {
+                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                            setValue(PreferenceConfiguration.FPS_PREF_STRING, "90");
+                            resetBitrateToDefault(prefs, null, null);
+                        }
+                    });
+                }
+                if (maxSupportedFps < 88) {
+                    // 1080p is unsupported
+                    removeValue(PreferenceConfiguration.FPS_PREF_STRING, "90", new Runnable() {
+                        @Override
+                        public void run() {
+                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                            setValue(PreferenceConfiguration.FPS_PREF_STRING, "60");
+                            resetBitrateToDefault(prefs, null, null);
+                        }
+                    });
+                }
+                // Never remove 30 FPS or 60 FPS
             }
-            if (maxSupportedFps < 88) {
-                // 1080p is unsupported
-                removeValue(fpsPref, "90");
-            }
-            // Never remove 30 FPS or 60 FPS
 
             // Remove HDR preference for devices below Nougat
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -263,12 +330,7 @@ public class StreamSettings extends Activity {
                     String valueStr = (String) newValue;
 
                     // Write the new bitrate value
-                    prefs.edit()
-                            .putInt(PreferenceConfiguration.BITRATE_PREF_STRING,
-                                    PreferenceConfiguration.getDefaultBitrate(valueStr,
-                                            prefs.getString(PreferenceConfiguration.FPS_PREF_STRING,
-                                                    PreferenceConfiguration.DEFAULT_FPS)))
-                            .apply();
+                    resetBitrateToDefault(prefs, valueStr, null);
 
                     // Allow the original preference change to take place
                     return true;
@@ -281,12 +343,24 @@ public class StreamSettings extends Activity {
                     String valueStr = (String) newValue;
 
                     // Write the new bitrate value
-                    prefs.edit()
-                            .putInt(PreferenceConfiguration.BITRATE_PREF_STRING,
-                                    PreferenceConfiguration.getDefaultBitrate(
-                                            prefs.getString(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION),
-                                            valueStr))
-                            .apply();
+                    resetBitrateToDefault(prefs, null, valueStr);
+
+                    // Allow the original preference change to take place
+                    return true;
+                }
+            });
+            findPreference(PreferenceConfiguration.UNLOCK_FPS_STRING).setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    // HACK: We need to let the preference change succeed before reinitializing to ensure
+                    // it's reflected in the new layout.
+                    final Handler h = new Handler();
+                    h.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            ((StreamSettings)SettingsFragment.this.getActivity()).reloadSettings();
+                        }
+                    }, 500);
 
                     // Allow the original preference change to take place
                     return true;

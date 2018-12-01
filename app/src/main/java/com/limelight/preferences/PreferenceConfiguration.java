@@ -34,6 +34,7 @@ public class PreferenceConfiguration {
     private static final String BIND_ALL_USB_STRING = "checkbox_usb_bind_all";
     private static final String MOUSE_EMULATION_STRING = "checkbox_mouse_emulation";
     private static final String MOUSE_NAV_BUTTONS_STRING = "checkbox_mouse_nav_buttons";
+    static final String UNLOCK_FPS_STRING = "checkbox_unlock_fps";
 
     static final String DEFAULT_RESOLUTION = "720p";
     static final String DEFAULT_FPS = "60";
@@ -56,6 +57,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_BIND_ALL_USB = false;
     private static final boolean DEFAULT_MOUSE_EMULATION = true;
     private static final boolean DEFAULT_MOUSE_NAV_BUTTONS = false;
+    private static final boolean DEFAULT_UNLOCK_FPS = false;
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -76,6 +78,7 @@ public class PreferenceConfiguration {
     public boolean bindAllUsb;
     public boolean mouseEmulation;
     public boolean mouseNavButtons;
+    public boolean unlockFps;
 
     private static int getHeightFromResolutionString(String resString) {
         if (resString.equalsIgnoreCase("360p")) {
@@ -208,6 +211,7 @@ public class PreferenceConfiguration {
                 .remove(FPS_PREF_STRING)
                 .remove(VIDEO_FORMAT_PREF_STRING)
                 .remove(ENABLE_HDR_PREF_STRING)
+                .remove(UNLOCK_FPS_STRING)
                 .apply();
     }
 
@@ -309,6 +313,7 @@ public class PreferenceConfiguration {
         config.bindAllUsb = prefs.getBoolean(BIND_ALL_USB_STRING, DEFAULT_BIND_ALL_USB);
         config.mouseEmulation = prefs.getBoolean(MOUSE_EMULATION_STRING, DEFAULT_MOUSE_EMULATION);
         config.mouseNavButtons = prefs.getBoolean(MOUSE_NAV_BUTTONS_STRING, DEFAULT_MOUSE_NAV_BUTTONS);
+        config.unlockFps = prefs.getBoolean(UNLOCK_FPS_STRING, DEFAULT_UNLOCK_FPS);
 
         return config;
     }

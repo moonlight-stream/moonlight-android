@@ -17,6 +17,8 @@ import com.limelight.nvstream.NvConnection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class VirtualController {
     public class ControllerInputContext {
@@ -41,6 +43,8 @@ public class VirtualController {
 
     private FrameLayout frame_layout = null;
     private RelativeLayout relative_layout = null;
+
+    private Timer retransmitTimer;
 
     ControllerMode currentMode = ControllerMode.Active;
     ControllerInputContext inputContext = new ControllerInputContext();
@@ -88,11 +92,24 @@ public class VirtualController {
     }
 
     public void hide() {
+        retransmitTimer.cancel();
         relative_layout.setVisibility(View.INVISIBLE);
     }
 
     public void show() {
         relative_layout.setVisibility(View.VISIBLE);
+
+        // HACK: GFE sometimes discards gamepad packets when they are received
+        // very shortly after another. This can be critical if an axis zeroing packet
+        // is lost and causes an analog stick to get stuck. To avoid this, we send
+        // a gamepad input packet every 100 ms to ensure any loss can be recovered.
+        retransmitTimer = new Timer("OSC timer", true);
+        retransmitTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                sendControllerInputContext();
+            }
+        }, 100, 100);
     }
 
     public void removeElements() {
@@ -149,17 +166,12 @@ public class VirtualController {
         return inputContext;
     }
 
-    public void sendControllerInputContext() {
-        sendControllerInputPacket();
-    }
-
-    private void sendControllerInputPacket() {
+    void sendControllerInputContext() {
         try {
             _DBG("INPUT_MAP + " + inputContext.inputMap);
             _DBG("LEFT_TRIGGER " + inputContext.leftTrigger);
             _DBG("RIGHT_TRIGGER " + inputContext.rightTrigger);
             _DBG("LEFT STICK X: " + inputContext.leftStickX + " Y: " + inputContext.leftStickY);
-            _DBG("RIGHT STICK X: " + inputContext.rightStickX + " Y: " + inputContext.rightStickY);
             _DBG("RIGHT STICK X: " + inputContext.rightStickX + " Y: " + inputContext.rightStickY);
 
             if (connection != null) {

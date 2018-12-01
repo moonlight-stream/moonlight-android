@@ -339,15 +339,6 @@ public class AnalogStick extends VirtualControllerElement {
             stick_state = STICK_STATE.NO_MOVEMENT;
             notifyOnRevoke();
 
-            // HACK: We can sometimes generate back-to-back controller events
-            // that cause GFE to drop newer data. Dropping zeroing events would
-            // be disastrous because we may not get a follow-up joystick event to
-            // correct the dropped zeroing packet. Delay 5 ms when raising the
-            // analog stick to ensure this doesn't happen.
-            try {
-                Thread.sleep(5);
-            } catch (InterruptedException e) {}
-
             // not longer pressed reset analog stick
             notifyOnMovement(0, 0);
         }

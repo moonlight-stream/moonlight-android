@@ -132,8 +132,8 @@
     <string name="summary_checkbox_51_surround">Uncheck if you experience audio issues. Requires GFE 2.7 or higher.</string>
 
     <string name="category_gamepad_settings">Gamepad Settings</string>
-    <string name="title_checkbox_multi_controller">Multiple controller support</string>
-    <string name="summary_checkbox_multi_controller">Uncheck for games with controller detection issues</string>
+    <string name="title_checkbox_multi_controller">Automatic gamepad presence detection</string>
+    <string name="summary_checkbox_multi_controller">Unchecking this option forces a gamepad to always be present</string>
     <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One controller driver</string>

@@ -44,7 +44,7 @@
             android:summary="@string/summary_checkbox_51_surround"
             android:defaultValue="false" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/category_gamepad_settings">
+    <PreferenceCategory android:title="@string/category_input_settings">
         <!--com.limelight.preferences.SeekBarPreference
             android:key="seekbar_deadzone"
             android:defaultValue="15"
@@ -56,6 +56,11 @@
             android:title="@string/title_checkbox_multi_controller"
             android:summary="@string/summary_checkbox_multi_controller"
             android:defaultValue="true" />
+        <CheckBoxPreference
+            android:key="checkbox_mouse_nav_buttons"
+            android:title="@string/title_checkbox_mouse_nav_buttons"
+            android:summary="@string/summary_checkbox_mouse_nav_buttons"
+            android:defaultValue="false" />
         <CheckBoxPreference
             android:key="checkbox_usb_driver"
             android:title="@string/title_checkbox_xb1_driver"

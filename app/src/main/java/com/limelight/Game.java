@@ -105,8 +105,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean grabbedInput = true;
     private boolean grabComboDown = false;
     private StreamView streamView;
-    private boolean gotBackPointerEvent = false;
-    private boolean syntheticBackDown = false;
 
     private ShortcutHelper shortcutHelper;
 
@@ -836,16 +834,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Handle a synthetic back button event that some Android OS versions
         // create as a result of a right-click. This event WILL repeat if
         // the right mouse button is held down, so we ignore those.
-        if ((event.getSource() == InputDevice.SOURCE_MOUSE ||
+        if (!prefConfig.mouseNavButtons &&
+                (event.getSource() == InputDevice.SOURCE_MOUSE ||
                 event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) &&
                 event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            // It appears this may get turned into a right-click pointer event
-            // if we don't return true to indicate that we handled it on
-            // some devices. https://github.com/moonlight-stream/moonlight-android/issues/634
-            if (event.getRepeatCount() == 0 && !gotBackPointerEvent) {
-                syntheticBackDown = true;
-                conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
-            }
+            conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
             return true;
         }
 
@@ -894,19 +887,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Handle a synthetic back button event that some Android OS versions
         // create as a result of a right-click.
-        if ((event.getSource() == InputDevice.SOURCE_MOUSE ||
+        if (!prefConfig.mouseNavButtons &&
+                (event.getSource() == InputDevice.SOURCE_MOUSE ||
                 event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) &&
                 event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            // It appears this may get turned into a right-click pointer event
-            // if we don't return true to indicate that we handled it on
-            // some devices. https://github.com/moonlight-stream/moonlight-android/issues/634
-            if (!gotBackPointerEvent || syntheticBackDown) {
-                // We need to raise the button if gotBackPointerEvent is true
-                // in the case where it transitioned to true after we already
-                // sent the right click down event.
-                syntheticBackDown = false;
-                conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
-            }
+            conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
             return true;
         }
 
@@ -1013,11 +998,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     else {
                         conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
                     }
-
-                    // Don't use the KEYCODE_BACK hack (which interferes with mice
-                    // with actual back buttons) since we're getting right clicks
-                    // using this callback.
-                    gotBackPointerEvent = true;
                 }
 
                 if ((changedButtons & MotionEvent.BUTTON_TERTIARY) != 0) {
@@ -1029,9 +1009,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                 }
 
-                // HACK: Disable mouse back button press on Xiaomi due to reported
-                // issues with right clicks triggering it.
-                if (!("Xiaomi".equalsIgnoreCase(Build.MANUFACTURER))) {
+                if (prefConfig.mouseNavButtons) {
                     if ((changedButtons & MotionEvent.BUTTON_BACK) != 0) {
                         if ((event.getButtonState() & MotionEvent.BUTTON_BACK) != 0) {
                             conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_X1);
@@ -1039,19 +1017,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         else {
                             conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_X1);
                         }
-
-                        // Don't use the KEYCODE_BACK hack. That will cause this
-                        // button press to trigger a right-click.
-                        gotBackPointerEvent = true;
                     }
-                }
 
-                if ((changedButtons & MotionEvent.BUTTON_FORWARD) != 0) {
-                    if ((event.getButtonState() & MotionEvent.BUTTON_FORWARD) != 0) {
-                        conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_X2);
-                    }
-                    else {
-                        conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_X2);
+                    if ((changedButtons & MotionEvent.BUTTON_FORWARD) != 0) {
+                        if ((event.getButtonState() & MotionEvent.BUTTON_FORWARD) != 0) {
+                            conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_X2);
+                        }
+                        else {
+                            conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_X2);
+                        }
                     }
                 }
 

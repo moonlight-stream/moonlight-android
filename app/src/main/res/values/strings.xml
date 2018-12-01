@@ -131,7 +131,7 @@
     <string name="title_checkbox_51_surround">Enable 5.1 surround sound</string>
     <string name="summary_checkbox_51_surround">Uncheck if you experience audio issues. Requires GFE 2.7 or higher.</string>
 
-    <string name="category_gamepad_settings">Gamepad Settings</string>
+    <string name="category_input_settings">Input Settings</string>
     <string name="title_checkbox_multi_controller">Automatic gamepad presence detection</string>
     <string name="summary_checkbox_multi_controller">Unchecking this option forces a gamepad to always be present</string>
     <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>
@@ -142,6 +142,8 @@
     <string name="summary_checkbox_usb_bind_all">Forces Moonlight\'s USB driver to take over all supported Xbox gamepads</string>
     <string name="title_checkbox_mouse_emulation">Mouse emulation via gamepad</string>
     <string name="summary_checkbox_mouse_emulation">Long pressing the Start button will switch the gamepad into mouse mode</string>
+    <string name="title_checkbox_mouse_nav_buttons">Enable back and forward mouse buttons</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Enabling this option may break right clicking on some buggy devices</string>
 
     <string name="category_on_screen_controls_settings">On-screen Controls Settings</string>
     <string name="title_checkbox_show_onscreen_controls">Show on-screen controls</string>

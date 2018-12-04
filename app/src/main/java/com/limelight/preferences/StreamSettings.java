@@ -291,6 +291,38 @@ public class StreamSettings extends Activity {
                 // Never remove 30 FPS or 60 FPS
             }
 
+            // Android L introduces the drop duplicate behavior of releaseOutputBuffer()
+            // that the unlock FPS option relies on to not massively increase latency.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                LimeLog.info("Excluding unlock FPS toggle based on OS");
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_basic_settings");
+                category.removePreference(findPreference("checkbox_unlock_fps"));
+            }
+            else {
+                findPreference(PreferenceConfiguration.UNLOCK_FPS_STRING).setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                    @Override
+                    public boolean onPreferenceChange(Preference preference, Object newValue) {
+                        // HACK: We need to let the preference change succeed before reinitializing to ensure
+                        // it's reflected in the new layout.
+                        final Handler h = new Handler();
+                        h.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Ensure the activity is still open when this timeout expires
+                                StreamSettings settingsActivity = (StreamSettings)SettingsFragment.this.getActivity();
+                                if (settingsActivity != null) {
+                                    settingsActivity.reloadSettings();
+                                }
+                            }
+                        }, 500);
+
+                        // Allow the original preference change to take place
+                        return true;
+                    }
+                });
+            }
+
             // Remove HDR preference for devices below Nougat
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
                 LimeLog.info("Excluding HDR toggle based on OS");
@@ -344,23 +376,6 @@ public class StreamSettings extends Activity {
 
                     // Write the new bitrate value
                     resetBitrateToDefault(prefs, null, valueStr);
-
-                    // Allow the original preference change to take place
-                    return true;
-                }
-            });
-            findPreference(PreferenceConfiguration.UNLOCK_FPS_STRING).setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                @Override
-                public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    // HACK: We need to let the preference change succeed before reinitializing to ensure
-                    // it's reflected in the new layout.
-                    final Handler h = new Handler();
-                    h.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            ((StreamSettings)SettingsFragment.this.getActivity()).reloadSettings();
-                        }
-                    }, 500);
 
                     // Allow the original preference change to take place
                     return true;

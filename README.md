@@ -1,6 +1,6 @@
 # Moonlight Android
 
-[Moonlight](http://moonlight-stream.com) is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield.
+[Moonlight](https://moonlight-stream.org) is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield.
 We reverse engineered the Shield streaming software and created a version that can be run on any Android device.
 
 Moonlight will allow you to stream your full collection of games from your Windows PC to your Android device,

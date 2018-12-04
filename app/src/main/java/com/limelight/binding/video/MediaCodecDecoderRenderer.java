@@ -405,10 +405,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             }
 
                             // Render the last buffer
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !legacyFrameDropRendering) {
-                                // Use a PTS that will cause this frame to never be dropped if frame dropping
-                                // is disabled
-                                videoDecoder.releaseOutputBuffer(lastIndex, 0);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                if (legacyFrameDropRendering) {
+                                    // Use a PTS that will cause this frame to be dropped if another comes in within
+                                    // the same V-sync period
+                                    videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
+                                }
+                                else {
+                                    // Use a PTS that will cause this frame to never be dropped if frame dropping
+                                    // is disabled
+                                    videoDecoder.releaseOutputBuffer(lastIndex, 0);
+                                }
                             }
                             else {
                                 videoDecoder.releaseOutputBuffer(lastIndex, true);

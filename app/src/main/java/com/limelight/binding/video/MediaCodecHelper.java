@@ -160,8 +160,8 @@ public class MediaCodecHelper {
 
 		// We see a bunch of crashes on MediaTek Android TVs running
 		// at 49 FPS (PAL 50 Hz - 1). Blacklist this frame rate for
-		// these devices and hope they fix it in Oreo.
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+		// these devices and hope they fix it in Pie.
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
 			blacklisted49FpsDecoderPrefixes.add("omx.mtk");
 		}
 	}

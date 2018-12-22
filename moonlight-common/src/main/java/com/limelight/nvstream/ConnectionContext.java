@@ -1,9 +1,12 @@
 package com.limelight.nvstream;
 
+import java.security.cert.X509Certificate;
+
 import javax.crypto.SecretKey;
 
 public class ConnectionContext {
 	public String serverAddress;
+	public X509Certificate serverCert;
 	public StreamConfiguration streamConfig;
 	public NvConnectionListener connListener;
 	public SecretKey riKey;

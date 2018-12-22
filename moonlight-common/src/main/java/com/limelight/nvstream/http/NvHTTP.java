@@ -13,6 +13,7 @@ import java.net.URISyntaxException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
@@ -47,7 +49,6 @@ import com.squareup.okhttp.ResponseBody;
 public class NvHTTP {
 	private String uniqueId;
 	private PairingManager pm;
-	private String address;
 
 	public static final int HTTPS_PORT = 47984;
 	public static final int HTTP_PORT = 47989;
@@ -63,20 +64,31 @@ public class NvHTTP {
 	private OkHttpClient httpClient = new OkHttpClient();
 	private OkHttpClient httpClientWithReadTimeout;
 		
-	private TrustManager[] trustAllCerts;
-	private KeyManager[] ourKeyman;
+	private TrustManager[] trustManager;
+	private KeyManager[] keyManager;
 	
-	private void initializeHttpState(final LimelightCryptoProvider cryptoProvider) {
-		trustAllCerts = new TrustManager[] { 
+	private void initializeHttpState(final X509Certificate serverCert, final LimelightCryptoProvider cryptoProvider) {
+		trustManager = new TrustManager[] {
 				new X509TrustManager() {
 					public X509Certificate[] getAcceptedIssuers() { 
 						return new X509Certificate[0]; 
 					}
-					public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-					public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+					public void checkClientTrusted(X509Certificate[] certs, String authType) {
+						throw new IllegalStateException("Should never be called");
+					}
+					public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+						if (certs.length != 1) {
+							throw new CertificateException("Invalid certificate chain length: "+certs.length);
+						}
+
+						// Check the server certificate if we've paired to this host
+						if (serverCert != null && !certs[0].equals(serverCert)) {
+							throw new CertificateException("Certificate mismatch");
+						}
+					}
 				}};
 
-		ourKeyman = new KeyManager[] {
+		keyManager = new KeyManager[] {
 				new X509KeyManager() {
 					public String chooseClientAlias(String[] keyTypes,
 							Principal[] issuers, Socket socket) { return "Limelight-RSA"; }
@@ -107,11 +119,10 @@ public class NvHTTP {
 		httpClientWithReadTimeout.setReadTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS);
 	}
 	
-	public NvHTTP(String address, String uniqueId, String deviceName, LimelightCryptoProvider cryptoProvider) throws IOException {
+	public NvHTTP(String address, String uniqueId, X509Certificate serverCert, LimelightCryptoProvider cryptoProvider) throws IOException {
 		this.uniqueId = uniqueId;
-		this.address = address;
-		
-		initializeHttpState(cryptoProvider);
+
+		initializeHttpState(serverCert, cryptoProvider);
 
 		try {
 			// The URI constructor takes care of escaping IPv6 literals
@@ -186,8 +197,20 @@ public class NvHTTP {
 		//
 		
 		try {
-			resp = openHttpConnectionToString(baseUrlHttps + "/serverinfo?"+buildUniqueIdUuidString(), true);
-			
+			try {
+				resp = openHttpConnectionToString(baseUrlHttps + "/serverinfo?"+buildUniqueIdUuidString(), true);
+			} catch (SSLHandshakeException e) {
+			    // Detect if we failed due to a server cert mismatch
+				if (e.getCause() instanceof CertificateException) {
+                    // Jump to the GfeHttpResponseException exception handler to retry
+                    // over HTTP which will allow us to pair again to update the cert
+                    throw new GfeHttpResponseException(401, "Server certificate mismatch");
+                }
+                else {
+				    throw e;
+                }
+			}
+
 			// This will throw an exception if the request came back with a failure status.
 			// We want this because it will throw us into the HTTP case if the client is unpaired.
 			getServerVersion(resp);
@@ -246,7 +269,7 @@ public class NvHTTP {
 		// to avoid the SSLv3 fallback that causes connection failures
 		try {
 			SSLContext sc = SSLContext.getInstance("TLSv1");
-			sc.init(ourKeyman, trustAllCerts, new SecureRandom());
+			sc.init(keyManager, trustManager, new SecureRandom());
 			
 			client.setSslSocketFactory(sc.getSocketFactory());
 		} catch (Exception e) {
@@ -444,9 +467,9 @@ public class NvHTTP {
 		}
 		return null;
 	}
-	
-	public PairingManager.PairState pair(String serverInfo, String pin) throws Exception {
-		return pm.pair(serverInfo, pin);
+
+	public PairingManager getPairingManager() {
+		return pm;
 	}
 	
 	public static LinkedList<NvApp> getAppListByReader(Reader r) throws XmlPullParserException, IOException {

@@ -1,5 +1,6 @@
 package com.limelight.nvstream.http;
 
+import java.security.cert.X509Certificate;
 import java.util.UUID;
 
 
@@ -15,6 +16,7 @@ public class ComputerDetails {
 	public String remoteAddress;
 	public String manualAddress;
 	public String macAddress;
+	public X509Certificate serverCert;
 
 	// Transient attributes
 	public State state;
@@ -51,6 +53,9 @@ public class ComputerDetails {
 		}
 		if (details.macAddress != null && !details.macAddress.equals("00:00:00:00:00:00")) {
 			this.macAddress = details.macAddress;
+		}
+		if (details.serverCert != null) {
+			this.serverCert = details.serverCert;
 		}
 		this.pairState = details.pairState;
 		this.runningGameId = details.runningGameId;

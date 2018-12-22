@@ -29,6 +29,8 @@ public class PairingManager {
 	private X509Certificate cert;
 	private SecretKey aesKey;
 	private byte[] pemCertBytes;
+
+	private X509Certificate serverCert;
 	
 	public enum PairState {
 		NOT_PAIRED,
@@ -160,10 +162,14 @@ public class PairingManager {
 		
 		return PairState.PAIRED;
 	}
+
+	public X509Certificate getPairedCert() {
+		return serverCert;
+	}
 	
 	public PairState pair(String serverInfo, String pin) throws MalformedURLException, IOException, XmlPullParserException, CertificateException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, ShortBufferException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException {
 		PairingHashAlgorithm hashAlgo;
-		
+
 		int serverMajorVersion = http.getServerMajorVersion(serverInfo);
 		LimeLog.info("Pairing with server generation: "+serverMajorVersion);
 		if (serverMajorVersion >= 7) {
@@ -191,7 +197,9 @@ public class PairingManager {
 		if (!NvHTTP.getXmlString(getCert, "paired").equals("1")) {
 			return PairState.FAILED;
 		}
-		X509Certificate serverCert = extractPlainCert(getCert);
+
+		// Save this cert for retrieval later for pinning
+		serverCert = extractPlainCert(getCert);
 		if (serverCert == null) {
 			// Attempting to pair while another device is pairing will cause GFE
 			// to give an empty cert in the response.
@@ -271,7 +279,7 @@ public class PairingManager {
 			http.openHttpConnectionToString(http.baseUrlHttp + "/unpair?"+http.buildUniqueIdUuidString(), true);
 			return PairState.FAILED;
 		}
-		
+
 		return PairState.PAIRED;
 	}
 	

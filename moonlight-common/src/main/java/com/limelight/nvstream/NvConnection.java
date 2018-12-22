@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.Semaphore;
 
 import javax.crypto.KeyGenerator;
@@ -33,14 +34,15 @@ public class NvConnection {
 	private static Semaphore connectionAllowed = new Semaphore(1);
 	private final boolean isMonkey;
 	
-	public NvConnection(String host, String uniqueId, StreamConfiguration config, LimelightCryptoProvider cryptoProvider)
+	public NvConnection(String host, String uniqueId, StreamConfiguration config, LimelightCryptoProvider cryptoProvider, X509Certificate serverCert)
 	{		
 		this.host = host;
 		this.cryptoProvider = cryptoProvider;
 		this.uniqueId = uniqueId;
-		
+
 		this.context = new ConnectionContext();
 		this.context.streamConfig = config;
+		this.context.serverCert = serverCert;
 		try {
 			// This is unique per connection
 			this.context.riKey = generateRiAesKey();
@@ -83,7 +85,7 @@ public class NvConnection {
 	
 	private boolean startApp() throws XmlPullParserException, IOException
 	{
-		NvHTTP h = new NvHTTP(context.serverAddress, uniqueId, null, cryptoProvider);
+		NvHTTP h = new NvHTTP(context.serverAddress, uniqueId, context.serverCert, cryptoProvider);
 
 		String serverInfo = h.getServerInfo();
 		

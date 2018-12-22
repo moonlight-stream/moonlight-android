@@ -435,8 +435,8 @@ public class ComputerManagerService extends Service {
         }
 
         try {
-            NvHTTP http = new NvHTTP(address, idManager.getUniqueId(),
-                    null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
+            NvHTTP http = new NvHTTP(address, idManager.getUniqueId(), details.serverCert,
+                    PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
             ComputerDetails newDetails = http.getComputerDetails();
 
@@ -698,7 +698,7 @@ public class ComputerManagerService extends Service {
 
                         try {
                             NvHTTP http = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer), idManager.getUniqueId(),
-                                    null, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
+                                    computer.serverCert, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
                             String appList;
                             if (tuple != null) {

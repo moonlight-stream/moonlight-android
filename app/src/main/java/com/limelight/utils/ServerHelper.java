@@ -15,6 +15,7 @@ import com.limelight.nvstream.http.NvHTTP;
 
 import java.io.FileNotFoundException;
 import java.net.UnknownHostException;
+import java.security.cert.CertificateEncodingException;
 
 public class ServerHelper {
     public static String getCurrentAddressFromComputer(ComputerDetails computer) {
@@ -31,6 +32,13 @@ public class ServerHelper {
         intent.putExtra(Game.EXTRA_UNIQUEID, managerBinder.getUniqueId());
         intent.putExtra(Game.EXTRA_PC_UUID, computer.uuid.toString());
         intent.putExtra(Game.EXTRA_PC_NAME, computer.name);
+        try {
+            if (computer.serverCert != null) {
+                intent.putExtra(Game.EXTRA_SERVER_CERT, computer.serverCert.getEncoded());
+            }
+        } catch (CertificateEncodingException e) {
+            e.printStackTrace();
+        }
         return intent;
     }
 
@@ -45,7 +53,7 @@ public class ServerHelper {
     }
 
     public static void doQuit(final Activity parent,
-                              final String address,
+                              final ComputerDetails computer,
                               final NvApp app,
                               final ComputerManagerService.ComputerManagerBinder managerBinder,
                               final Runnable onComplete) {
@@ -56,8 +64,8 @@ public class ServerHelper {
                 NvHTTP httpConn;
                 String message;
                 try {
-                    httpConn = new NvHTTP(address,
-                            managerBinder.getUniqueId(), null, PlatformBinding.getCryptoProvider(parent));
+                    httpConn = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer),
+                            managerBinder.getUniqueId(), computer.serverCert, PlatformBinding.getCryptoProvider(parent));
                     if (httpConn.quitApp()) {
                         message = parent.getResources().getString(R.string.applist_quit_success) + " " + app.getAppName();
                     } else {

@@ -373,9 +373,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
                     httpConn = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer),
                             managerBinder.getUniqueId(),
-                            PlatformBinding.getDeviceName(),
+                            computer.serverCert,
                             PlatformBinding.getCryptoProvider(PcView.this));
-                    if (httpConn.getPairState() == PairingManager.PairState.PAIRED) {
+                    if (httpConn.getPairState() == PairState.PAIRED) {
                         // Don't display any toast, but open the app list
                         message = null;
                         success = true;
@@ -387,20 +387,25 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                         Dialog.displayDialog(PcView.this, getResources().getString(R.string.pair_pairing_title),
                                 getResources().getString(R.string.pair_pairing_msg)+" "+pinStr, false);
 
-                        PairingManager.PairState pairState = httpConn.pair(httpConn.getServerInfo(), pinStr);
-                        if (pairState == PairingManager.PairState.PIN_WRONG) {
+                        PairingManager pm = httpConn.getPairingManager();
+
+                        PairState pairState = pm.pair(httpConn.getServerInfo(), pinStr);
+                        if (pairState == PairState.PIN_WRONG) {
                             message = getResources().getString(R.string.pair_incorrect_pin);
                         }
-                        else if (pairState == PairingManager.PairState.FAILED) {
+                        else if (pairState == PairState.FAILED) {
                             message = getResources().getString(R.string.pair_fail);
                         }
-                        else if (pairState == PairingManager.PairState.ALREADY_IN_PROGRESS) {
+                        else if (pairState == PairState.ALREADY_IN_PROGRESS) {
                             message = getResources().getString(R.string.pair_already_in_progress);
                         }
-                        else if (pairState == PairingManager.PairState.PAIRED) {
+                        else if (pairState == PairState.PAIRED) {
                             // Just navigate to the app view without displaying a toast
                             message = null;
                             success = true;
+
+                            // Pin this certificate for later HTTPS use
+                            managerBinder.getComputer(computer.uuid).serverCert = pm.getPairedCert();
 
                             // Invalidate reachability information after pairing to force
                             // a refresh before reading pair state again
@@ -498,7 +503,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 try {
                     httpConn = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer),
                             managerBinder.getUniqueId(),
-                            PlatformBinding.getDeviceName(),
+                            computer.serverCert,
                             PlatformBinding.getCryptoProvider(PcView.this));
                     if (httpConn.getPairState() == PairingManager.PairState.PAIRED) {
                         httpConn.unpair();
@@ -605,8 +610,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 UiHelper.displayQuitConfirmationDialog(this, new Runnable() {
                     @Override
                     public void run() {
-                        ServerHelper.doQuit(PcView.this,
-                                ServerHelper.getCurrentAddressFromComputer(computer.details),
+                        ServerHelper.doQuit(PcView.this, computer.details,
                                 new NvApp("app", 0, false), managerBinder, null);
                     }
                 }, null);

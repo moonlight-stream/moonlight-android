@@ -68,6 +68,11 @@ import android.widget.FrameLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
+import java.io.ByteArrayInputStream;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+
 
 public class Game extends Activity implements SurfaceHolder.Callback,
     OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
@@ -135,6 +140,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public static final String EXTRA_PC_UUID = "UUID";
     public static final String EXTRA_PC_NAME = "PcName";
     public static final String EXTRA_APP_HDR = "HDR";
+    public static final String EXTRA_SERVER_CERT = "ServerCert";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -228,6 +234,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         String uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
         String pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
         boolean willStreamHdr = Game.this.getIntent().getBooleanExtra(EXTRA_APP_HDR, false);
+        byte[] derCertData = Game.this.getIntent().getByteArrayExtra(EXTRA_SERVER_CERT);
+
+        X509Certificate serverCert = null;
+        try {
+            if (derCertData != null) {
+                serverCert = (X509Certificate) CertificateFactory.getInstance("X.509")
+                        .generateCertificate(new ByteArrayInputStream(derCertData));
+            }
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        }
 
         if (appId == StreamConfiguration.INVALID_APP_ID) {
             finish();
@@ -386,7 +403,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .build();
 
         // Initialize the connection
-        conn = new NvConnection(host, uniqueId, config, PlatformBinding.getCryptoProvider(this));
+        conn = new NvConnection(host, uniqueId, config, PlatformBinding.getCryptoProvider(this), serverCert);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
 
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);

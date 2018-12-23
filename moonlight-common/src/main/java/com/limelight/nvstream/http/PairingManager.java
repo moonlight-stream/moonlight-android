@@ -198,13 +198,16 @@ public class PairingManager {
 			return PairState.FAILED;
 		}
 
-		// Save this cert for retrieval later for pinning
+		// Save this cert for retrieval later
 		serverCert = extractPlainCert(getCert);
 		if (serverCert == null) {
 			// Attempting to pair while another device is pairing will cause GFE
 			// to give an empty cert in the response.
 			return PairState.ALREADY_IN_PROGRESS;
 		}
+
+		// Require this cert for TLS to this host
+		http.setServerCert(serverCert);
 		
 		// Generate a random challenge and encrypt it with our AES key
 		byte[] randomChallenge = generateRandomBytes(16);

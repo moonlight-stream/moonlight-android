@@ -66,27 +66,36 @@ public class NvHTTP {
 		
 	private TrustManager[] trustManager;
 	private KeyManager[] keyManager;
-	
-	private void initializeHttpState(final X509Certificate serverCert, final LimelightCryptoProvider cryptoProvider) {
-		trustManager = new TrustManager[] {
-				new X509TrustManager() {
-					public X509Certificate[] getAcceptedIssuers() { 
-						return new X509Certificate[0]; 
-					}
-					public void checkClientTrusted(X509Certificate[] certs, String authType) {
-						throw new IllegalStateException("Should never be called");
-					}
-					public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
-						if (certs.length != 1) {
-							throw new CertificateException("Invalid certificate chain length: "+certs.length);
-						}
+	private X509Certificate serverCert;
 
-						// Check the server certificate if we've paired to this host
-						if (serverCert != null && !certs[0].equals(serverCert)) {
-							throw new CertificateException("Certificate mismatch");
-						}
+	void setServerCert(final X509Certificate serverCert) {
+		this.serverCert = serverCert;
+
+		trustManager = new TrustManager[] {
+			new X509TrustManager() {
+				public X509Certificate[] getAcceptedIssuers() {
+					return new X509Certificate[0];
+				}
+				public void checkClientTrusted(X509Certificate[] certs, String authType) {
+					throw new IllegalStateException("Should never be called");
+				}
+				public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+					if (certs.length != 1) {
+						throw new CertificateException("Invalid certificate chain length: "+certs.length);
 					}
-				}};
+
+					// Check the server certificate if we've paired to this host
+					if (!certs[0].equals(serverCert)) {
+						throw new CertificateException("Certificate mismatch");
+					}
+				}
+			}
+		};
+	}
+
+	private void initializeHttpState(final X509Certificate serverCert, final LimelightCryptoProvider cryptoProvider) {
+		// Set up TrustManager
+		setServerCert(serverCert);
 
 		keyManager = new KeyManager[] {
 				new X509KeyManager() {
@@ -187,7 +196,7 @@ public class NvHTTP {
 		}
 	}
 	
-	public String getServerInfo() throws MalformedURLException, IOException, XmlPullParserException {
+	public String getServerInfo() throws IOException, XmlPullParserException {
 		String resp;
 		
 		//
@@ -195,39 +204,47 @@ public class NvHTTP {
 		// For some reason, we always see PairStatus is 0 over HTTP and only 1 over HTTPS. It looks
 		// like there are extra request headers required to make this stuff work over HTTP.
 		//
-		
-		try {
+
+		// When we have a pinned cert, use HTTPS to fetch serverinfo and fall back on cert mismatch
+		if (serverCert != null) {
 			try {
-				resp = openHttpConnectionToString(baseUrlHttps + "/serverinfo?"+buildUniqueIdUuidString(), true);
-			} catch (SSLHandshakeException e) {
-			    // Detect if we failed due to a server cert mismatch
-				if (e.getCause() instanceof CertificateException) {
-                    // Jump to the GfeHttpResponseException exception handler to retry
-                    // over HTTP which will allow us to pair again to update the cert
-                    throw new GfeHttpResponseException(401, "Server certificate mismatch");
-                }
-                else {
-				    throw e;
-                }
+				try {
+					resp = openHttpConnectionToString(baseUrlHttps + "/serverinfo?"+buildUniqueIdUuidString(), true);
+				} catch (SSLHandshakeException e) {
+					// Detect if we failed due to a server cert mismatch
+					if (e.getCause() instanceof CertificateException) {
+						// Jump to the GfeHttpResponseException exception handler to retry
+						// over HTTP which will allow us to pair again to update the cert
+						throw new GfeHttpResponseException(401, "Server certificate mismatch");
+					}
+					else {
+						throw e;
+					}
+				}
+
+				// This will throw an exception if the request came back with a failure status.
+				// We want this because it will throw us into the HTTP case if the client is unpaired.
+				getServerVersion(resp);
+			}
+			catch (GfeHttpResponseException e) {
+				if (e.getErrorCode() == 401) {
+					// Cert validation error - fall back to HTTP
+					return openHttpConnectionToString(baseUrlHttp + "/serverinfo", true);
+				}
+
+				// If it's not a cert validation error, throw it
+				throw e;
 			}
 
-			// This will throw an exception if the request came back with a failure status.
-			// We want this because it will throw us into the HTTP case if the client is unpaired.
-			getServerVersion(resp);
+			return resp;
 		}
-		catch (GfeHttpResponseException e) {
-			if (e.getErrorCode() == 401) {
-				// Cert validation error - fall back to HTTP
-				return openHttpConnectionToString(baseUrlHttp + "/serverinfo", true);
-			}
-			
-			// If it's not a cert validation error, throw it
-			throw e;
+		else {
+			// No pinned cert, so use HTTP
+			return openHttpConnectionToString(baseUrlHttp + "/serverinfo", true);
 		}
-		return resp;
 	}
 	
-	public ComputerDetails getComputerDetails() throws MalformedURLException, IOException, XmlPullParserException {
+	public ComputerDetails getComputerDetails() throws IOException, XmlPullParserException {
 		ComputerDetails details = new ComputerDetails();
 		String serverInfo = getServerInfo();
 		
@@ -284,6 +301,10 @@ public class NvHTTP {
 	private ResponseBody openHttpConnection(String url, boolean enableReadTimeout) throws IOException {
 		Request request = new Request.Builder().url(url).build();
 		Response response;
+
+		if (serverCert == null && !url.startsWith(baseUrlHttp)) {
+			throw new IllegalStateException("Attempted HTTPS fetch without pinned cert");
+		}
 		
 		if (enableReadTimeout) {
 			performAndroidTlsHack(httpClientWithReadTimeout);
@@ -552,7 +573,7 @@ public class NvHTTP {
 	}
 	
 	public void unpair() throws IOException {
-		openHttpConnectionToString(baseUrlHttps + "/unpair?"+buildUniqueIdUuidString(), true);
+		openHttpConnectionToString(baseUrlHttp + "/unpair?"+buildUniqueIdUuidString(), true);
 	}
 	
 	public InputStream getBoxArt(NvApp app) throws IOException {

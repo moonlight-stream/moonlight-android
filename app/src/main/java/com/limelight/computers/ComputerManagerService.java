@@ -366,6 +366,22 @@ public class ComputerManagerService extends Service {
         // Block while we try to fill the details
         try {
             runPoll(fakeDetails, true, 0);
+            if (fakeDetails.state == ComputerDetails.State.ONLINE) {
+                // See if we have record of this PC to pull its pinned cert
+                synchronized (pollingTuples) {
+                    for (PollingTuple tuple : pollingTuples) {
+                        if (tuple.computer.uuid.equals(fakeDetails.uuid)) {
+                            fakeDetails.serverCert = tuple.computer.serverCert;
+                            break;
+                        }
+                    }
+                }
+
+                if (fakeDetails.serverCert != null) {
+                    // Poll again with the pinned cert to get accurate pairing information
+                    runPoll(fakeDetails, true, 0);
+                }
+            }
         } catch (InterruptedException e) {
             return false;
         }

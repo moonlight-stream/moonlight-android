@@ -255,7 +255,7 @@ public class NvHTTP {
 			details.name = "UNKNOWN";
 		}
 
-		details.uuid = UUID.fromString(getXmlString(serverInfo, "uniqueid"));
+		details.uuid = getXmlString(serverInfo, "uniqueid");
 		details.macAddress = getXmlString(serverInfo, "mac");
 		details.localAddress = getXmlString(serverInfo, "LocalIP");
 

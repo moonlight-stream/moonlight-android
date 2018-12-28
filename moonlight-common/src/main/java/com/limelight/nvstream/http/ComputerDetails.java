@@ -1,7 +1,6 @@
 package com.limelight.nvstream.http;
 
 import java.security.cert.X509Certificate;
-import java.util.UUID;
 
 
 public class ComputerDetails {
@@ -10,7 +9,7 @@ public class ComputerDetails {
 	}
 
 	// Persistent attributes
-	public UUID uuid;
+	public String uuid;
 	public String name;
 	public String localAddress;
 	public String remoteAddress;

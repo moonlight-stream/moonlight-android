@@ -81,6 +81,14 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
     @Override
     public boolean populateImageView(ImageView imgView, ProgressBar prgView, AppView.AppObject obj) {
+        //Set cover alpha to hidden apps
+        if (obj.isHidden) {
+            imgView.setAlpha(0.3f);
+        }
+        else
+        {
+            imgView.setAlpha(1.0f);
+        }
         // Let the cached asset loader handle it
         loader.populateImageView(obj.app, imgView, prgView);
         return true;
@@ -88,6 +96,14 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
     @Override
     public boolean populateTextView(TextView txtView, AppView.AppObject obj) {
+        //Set text alpha to hidden apps
+        if (obj.isHidden) {
+            txtView.setAlpha(0.3f);
+        }
+        else
+        {
+            txtView.setAlpha(1.0f);
+        }
         // Select the text view so it starts marquee mode
         txtView.setSelected(true);
 

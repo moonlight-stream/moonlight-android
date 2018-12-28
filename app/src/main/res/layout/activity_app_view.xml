@@ -30,5 +30,14 @@
         android:paddingTop="0dp"
         android:paddingBottom="10dp"
         android:textSize="28sp"/>
-
+    <CheckBox
+        android:id="@+id/appCheckboxShowHide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:gravity="center"
+        android:paddingTop="0dp"
+        android:paddingBottom="0dp"
+        android:textSize="10sp"/>
 </RelativeLayout>

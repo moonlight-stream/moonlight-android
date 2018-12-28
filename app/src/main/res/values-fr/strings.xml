@@ -99,6 +99,9 @@
     <string name="applist_quit_fail">Échec de la fermeture</string>
     <string name="applist_quit_confirmation">Voulez-vous vraiment quitter l\'application en cours d\'exécution? Toutes les données non enregistrées seront perdues.</string>
     <string name="applist_details_id">ID app:</string>
+    <string name="applist_menu_hide">Masquer</string>
+    <string name="applist_menu_show">Afficher</string>
+    <string name="applist_checkbox_showhiden">Afficher les applications cachées</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Ajouter un PC manuellement</string>

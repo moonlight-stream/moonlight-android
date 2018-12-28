@@ -102,6 +102,9 @@
     <string name="applist_quit_fail">Failed to quit</string>
     <string name="applist_quit_confirmation">Are you sure you want to quit the running app? All unsaved data will be lost.</string>
     <string name="applist_details_id">App ID:</string>
+    <string name="applist_menu_hide">Hide App</string>
+    <string name="applist_menu_show">Show App</string>
+    <string name="applist_checkbox_showhiden">Show Hidden Apps</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>

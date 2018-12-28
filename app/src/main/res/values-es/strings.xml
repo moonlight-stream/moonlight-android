@@ -73,6 +73,9 @@
     <string name="applist_quit_success">Cerrado satisfactoriamente</string>
     <string name="applist_quit_fail">Error al cerrar</string>
     <string name="applist_quit_confirmation">¿Estás seguro que deseas quitar la aplicación en ejecución? Todo dato sin salvar se perderá.</string>
+    <string name="applist_menu_hide">Esconder</string>
+    <string name="applist_menu_show">Mostrar</string>
+    <string name="applist_checkbox_showhiden">Mostrar aplicaciones ocultas</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Añadir PC manualmente</string>

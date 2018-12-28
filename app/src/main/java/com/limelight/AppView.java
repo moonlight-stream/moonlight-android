@@ -1,5 +1,7 @@
 package com.limelight;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.util.List;
 import java.util.UUID;
@@ -45,6 +47,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import android.text.TextUtils;
+import android.widget.CheckBox;
+
 public class AppView extends Activity implements AdapterFragmentCallbacks {
     private AppGridAdapter appGridAdapter;
     private String uuidString;
@@ -57,6 +64,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private int lastRunningAppId;
     private boolean suspendGridUpdates;
     private boolean inForeground;
+    private boolean showAllApps = false;
 
     private final static int START_OR_RESUME_ID = 1;
     private final static int QUIT_ID = 2;
@@ -64,6 +72,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private final static int START_WITH_QUIT = 4;
     private final static int VIEW_DETAILS_ID = 5;
     private final static int CREATE_SHORTCUT_ID = 6;
+    private final static int HIDE_APP_ID = 7;
+    private final static int SHOW_APP_ID = 8;
 
     public final static String NAME_EXTRA = "Name";
     public final static String UUID_EXTRA = "UUID";
@@ -264,6 +274,23 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         setTitle(computerName);
         label.setText(computerName);
 
+        //Add a checkbox to show hidden apps
+        CheckBox checkBox = ( CheckBox ) findViewById(R.id.appCheckboxShowHide);
+        checkBox.setText(getResources().getString(R.string.applist_checkbox_showhiden));
+        checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if ( ((CheckBox)v).isChecked() ) {
+                    showAllApps = true;
+                }
+                else
+                {
+                    showAllApps = false;
+                }
+                populateAppGridWithCache();
+            }
+        });
+
         // Add a launcher shortcut for this PC (forced, since this is user interaction)
         shortcutHelper.createAppViewShortcut(uuidString, computerName, uuidString, true);
         shortcutHelper.reportShortcutUsed(uuidString);
@@ -345,6 +372,13 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         }
         menu.add(Menu.NONE, VIEW_DETAILS_ID, 3, getResources().getString(R.string.applist_menu_details));
 
+        if(!selectedApp.isHidden) {
+            menu.add(Menu.NONE, HIDE_APP_ID, 4, getResources().getString(R.string.applist_menu_hide));
+        }
+        else{
+            menu.add(Menu.NONE, SHOW_APP_ID, 4, getResources().getString(R.string.applist_menu_show));
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Only add an option to create shortcut if box art is loaded
             // and when we're in grid-mode (not list-mode).
@@ -354,7 +388,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 BitmapDrawable drawable = (BitmapDrawable)appImageView.getDrawable();
                 if (drawable != null && drawable.getBitmap() != null) {
                     // We have a bitmap loaded too
-                    menu.add(Menu.NONE, CREATE_SHORTCUT_ID, 4, getResources().getString(R.string.applist_menu_scut));
+                    menu.add(Menu.NONE, CREATE_SHORTCUT_ID, 5, getResources().getString(R.string.applist_menu_scut));
                 }
             }
         }
@@ -413,6 +447,16 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         getResources().getString(R.string.applist_details_id) + " " + app.app.getAppId(), false);
                 return true;
 
+            case HIDE_APP_ID:
+                app.isHidden = true;
+                saveHideStatus(app);
+                return true;
+
+            case SHOW_APP_ID:
+                app.isHidden = false;
+                saveHideStatus(app);
+                return true;
+
             case CREATE_SHORTCUT_ID:
                 ImageView appImageView = info.targetView.findViewById(R.id.grid_image);
                 Bitmap appBits = ((BitmapDrawable)appImageView.getDrawable()).getBitmap();
@@ -469,6 +513,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             @Override
             public void run() {
                 boolean updated = false;
+                List<String> hiddenAppsList = getHideStatus();
 
                 // First handle app updates and additions
                 for (NvApp app : appList) {
@@ -496,11 +541,22 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     }
                 }
 
-                // Next handle app removals
+                // Next handle app removals and hidden apps
                 int i = 0;
                 while (i < appGridAdapter.getCount()) {
                     boolean foundExistingApp = false;
                     AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
+                    //Check cached hidden status
+                    if(!showAllApps && hiddenAppsList.contains(String.valueOf(existingApp.app.getAppId()))){
+                        existingApp.isHidden = true;
+                        appGridAdapter.removeApp(existingApp);
+                        updated = true;
+                        continue;
+                    }
+
+                    if(showAllApps && hiddenAppsList.contains(String.valueOf(existingApp.app.getAppId()))) {
+                        existingApp.isHidden = true;
+                    }
 
                     // Check if this app is in the latest list
                     for (NvApp app : appList) {
@@ -529,6 +585,68 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 }
             }
         });
+    }
+
+    //Saves the status of the application
+    //Removes the app from the view if the "Show hidden Apps" is not checked
+    private void saveHideStatus(AppObject app)
+    {
+        List<String> appObjects = getHideStatus();
+
+        if(!app.isHidden && appObjects.contains(String.valueOf(app.app.getAppId()))){
+            appObjects.remove(String.valueOf(app.app.getAppId()));
+            if(!showAllApps)
+            {
+                appGridAdapter.addApp(app);
+            }
+            appGridAdapter.notifyDataSetChanged();
+        }
+        else if (app.isHidden && !appObjects.contains(String.valueOf(app.app.getAppId())) ){
+            appObjects.add(String.valueOf(app.app.getAppId()));
+            if(!showAllApps)
+            {
+                appGridAdapter.removeApp(app);
+
+            }
+            appGridAdapter.notifyDataSetChanged();
+        }
+
+        String joined = TextUtils.join(",", appObjects);
+
+        OutputStream cacheOut = null;
+        try {
+            cacheOut = CacheHelper.openCacheFileForOutput(getCacheDir(), "hiddenappslist", uuidString);
+            CacheHelper.writeStringToOutputStream(cacheOut, joined);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (cacheOut != null) {
+                    cacheOut.close();
+                }
+            } catch (IOException ignored) {}
+        }
+    }
+
+    //Retrieves the list of application ID's that should be hidden from Cache
+    private List<String> getHideStatus(){
+        List<String> applist = new ArrayList<String>();
+        try {
+            // Try to load from cache
+            String hideAppListString;
+            hideAppListString = CacheHelper.readInputStreamToString(CacheHelper.openCacheFileForInput(getCacheDir(), "hiddenappslist", uuidString));
+
+            applist = new ArrayList<String>(Arrays.asList(hideAppListString.split(",")));
+            LimeLog.info("Loaded hiddenappslist from cache");
+            return applist;
+        } catch (Exception e) {
+            if (lastRawApplist != null) {
+                LimeLog.warning("Saved hiddenappslist corrupted: "+lastRawApplist);
+                e.printStackTrace();
+            }
+            // return empy list
+            return applist;
+        }
     }
 
     @Override
@@ -562,6 +680,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     public class AppObject {
         public final NvApp app;
         public boolean isRunning;
+        public boolean isHidden;
 
         public AppObject(NvApp app) {
             if (app == null) {

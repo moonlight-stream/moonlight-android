@@ -1,7 +1,6 @@
 package com.limelight.computers;
 
 import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -9,9 +8,7 @@ import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 
-import com.limelight.LimeLog;
 import com.limelight.nvstream.http.ComputerDetails;
 
 import android.content.ContentValues;
@@ -79,7 +76,7 @@ public class ComputerDatabaseManager {
 
     public boolean updateComputer(ComputerDetails details) {
         ContentValues values = new ContentValues();
-        values.put(COMPUTER_UUID_COLUMN_NAME, details.uuid.toString());
+        values.put(COMPUTER_UUID_COLUMN_NAME, details.uuid);
         values.put(COMPUTER_NAME_COLUMN_NAME, details.name);
         values.put(LOCAL_ADDRESS_COLUMN_NAME, details.localAddress);
         values.put(REMOTE_ADDRESS_COLUMN_NAME, details.remoteAddress);
@@ -102,14 +99,7 @@ public class ComputerDatabaseManager {
     private ComputerDetails getComputerFromCursor(Cursor c) {
         ComputerDetails details = new ComputerDetails();
 
-        String uuidStr = c.getString(0);
-        try {
-            details.uuid = UUID.fromString(uuidStr);
-        } catch (IllegalArgumentException e) {
-            // We'll delete this entry
-            LimeLog.severe("DB: Corrupted UUID for "+details.name);
-        }
-
+        details.uuid = c.getString(0);
         details.name = c.getString(1);
         details.localAddress = c.getString(2);
         details.remoteAddress = c.getString(3);
@@ -152,8 +142,8 @@ public class ComputerDatabaseManager {
         return computerList;
     }
 
-    public ComputerDetails getComputerByUUID(UUID uuid) {
-        Cursor c = computerDb.query(COMPUTER_TABLE_NAME, null, COMPUTER_UUID_COLUMN_NAME+"=?", new String[]{ uuid.toString() }, null, null, null);
+    public ComputerDetails getComputerByUUID(String uuid) {
+        Cursor c = computerDb.query(COMPUTER_TABLE_NAME, null, COMPUTER_UUID_COLUMN_NAME+"=?", new String[]{ uuid }, null, null, null);
         if (!c.moveToFirst()) {
             // No matching computer
             c.close();

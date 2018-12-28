@@ -2,7 +2,6 @@ package com.limelight;
 
 import java.io.StringReader;
 import java.util.List;
-import java.util.UUID;
 
 import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
@@ -28,7 +27,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -82,7 +80,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     localBinder.waitForReady();
 
                     // Get the computer object
-                    computer = localBinder.getComputer(UUID.fromString(uuidString));
+                    computer = localBinder.getComputer(uuidString);
                     if (computer == null) {
                         finish();
                         return;
@@ -156,7 +154,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 }
 
                 // Don't care about other computers
-                if (!details.uuid.toString().equalsIgnoreCase(uuidString)) {
+                if (!details.uuid.equalsIgnoreCase(uuidString)) {
                     return;
                 }
 
@@ -180,7 +178,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         @Override
                         public void run() {
                             // Disable shortcuts referencing this PC for now
-                            shortcutHelper.disableShortcut(details.uuid.toString(),
+                            shortcutHelper.disableShortcut(details.uuid,
                                     getResources().getString(R.string.scut_not_paired));
 
                             // Display a toast to the user and quit the activity

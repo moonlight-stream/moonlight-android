@@ -8,7 +8,6 @@ import java.net.Socket;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.limelight.LimeLog;
@@ -241,7 +240,7 @@ public class ComputerManagerService extends Service {
             return idManager.getUniqueId();
         }
 
-        public ComputerDetails getComputer(UUID uuid) {
+        public ComputerDetails getComputer(String uuid) {
             synchronized (pollingTuples) {
                 for (PollingTuple tuple : pollingTuples) {
                     if (uuid.equals(tuple.computer.uuid)) {
@@ -253,7 +252,7 @@ public class ComputerManagerService extends Service {
             return null;
         }
 
-        public void invalidateStateForComputer(UUID uuid) {
+        public void invalidateStateForComputer(String uuid) {
             synchronized (pollingTuples) {
                 for (PollingTuple tuple : pollingTuples) {
                     if (uuid.equals(tuple.computer.uuid)) {
@@ -469,6 +468,7 @@ public class ComputerManagerService extends Service {
 
             return newDetails;
         } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
@@ -743,7 +743,7 @@ public class ComputerManagerService extends Service {
                                 // Open the cache file
                                 OutputStream cacheOut = null;
                                 try {
-                                    cacheOut = CacheHelper.openCacheFileForOutput(getCacheDir(), "applist", computer.uuid.toString());
+                                    cacheOut = CacheHelper.openCacheFileForOutput(getCacheDir(), "applist", computer.uuid);
                                     CacheHelper.writeStringToOutputStream(cacheOut, appList);
                                 } catch (IOException e) {
                                     e.printStackTrace();

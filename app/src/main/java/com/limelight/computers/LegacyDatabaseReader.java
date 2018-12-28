@@ -12,7 +12,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 
 public class LegacyDatabaseReader {
     private static final String COMPUTER_DB_NAME = "computers.db";
@@ -24,14 +23,7 @@ public class LegacyDatabaseReader {
         ComputerDetails details = new ComputerDetails();
 
         details.name = c.getString(0);
-
-        String uuidStr = c.getString(1);
-        try {
-            details.uuid = UUID.fromString(uuidStr);
-        } catch (IllegalArgumentException e) {
-            // We'll delete this entry
-            LimeLog.severe("DB: Corrupted UUID for " + details.name);
-        }
+        details.uuid = c.getString(1);
 
         // An earlier schema defined addresses as byte blobs. We'll
         // gracefully migrate those to strings so we can store DNS names

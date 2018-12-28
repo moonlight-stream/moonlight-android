@@ -48,7 +48,7 @@ public class ShortcutTrampoline extends Activity {
                     managerBinder = localBinder;
 
                     // Get the computer object
-                    computer = managerBinder.getComputer(UUID.fromString(uuidString));
+                    computer = managerBinder.getComputer(uuidString);
 
                     if (computer == null) {
                         Dialog.displayDialog(ShortcutTrampoline.this,
@@ -77,7 +77,7 @@ public class ShortcutTrampoline extends Activity {
                         @Override
                         public void notifyComputerUpdated(final ComputerDetails details) {
                             // Don't care about other computers
-                            if (!details.uuid.toString().equalsIgnoreCase(uuidString)) {
+                            if (!details.uuid.equalsIgnoreCase(uuidString)) {
                                 return;
                             }
 

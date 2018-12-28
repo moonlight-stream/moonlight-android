@@ -39,7 +39,7 @@ public class DiskAssetLoader {
     }
 
     public boolean checkCacheExists(CachedAppAssetLoader.LoaderTuple tuple) {
-        return CacheHelper.cacheFileExists(cacheDir, "boxart", tuple.computer.uuid.toString(), tuple.app.getAppId() + ".png");
+        return CacheHelper.cacheFileExists(cacheDir, "boxart", tuple.computer.uuid, tuple.app.getAppId() + ".png");
     }
 
     // https://developer.android.com/topic/performance/graphics/load-bitmap.html
@@ -65,7 +65,7 @@ public class DiskAssetLoader {
     }
 
     public Bitmap loadBitmapFromCache(CachedAppAssetLoader.LoaderTuple tuple, int sampleSize) {
-        File file = CacheHelper.openPath(false, cacheDir, "boxart", tuple.computer.uuid.toString(), tuple.app.getAppId() + ".png");
+        File file = CacheHelper.openPath(false, cacheDir, "boxart", tuple.computer.uuid, tuple.app.getAppId() + ".png");
 
         // Don't bother with anything if it doesn't exist
         if (!file.exists()) {
@@ -137,7 +137,7 @@ public class DiskAssetLoader {
         OutputStream out = null;
         boolean success = false;
         try {
-            out = CacheHelper.openCacheFileForOutput(cacheDir, "boxart", tuple.computer.uuid.toString(), tuple.app.getAppId() + ".png");
+            out = CacheHelper.openCacheFileForOutput(cacheDir, "boxart", tuple.computer.uuid, tuple.app.getAppId() + ".png");
             CacheHelper.writeInputStreamToOutputStream(input, out, MAX_ASSET_SIZE);
             success = true;
         } catch (IOException e) {
@@ -151,7 +151,7 @@ public class DiskAssetLoader {
 
             if (!success) {
                 LimeLog.warning("Unable to populate cache with tuple: "+tuple);
-                CacheHelper.deleteCacheFile(cacheDir, "boxart", tuple.computer.uuid.toString(), tuple.app.getAppId() + ".png");
+                CacheHelper.deleteCacheFile(cacheDir, "boxart", tuple.computer.uuid, tuple.app.getAppId() + ".png");
             }
         }
     }

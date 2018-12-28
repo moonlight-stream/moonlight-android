@@ -16,7 +16,7 @@ public class MemoryAssetLoader {
     };
 
     private static String constructKey(CachedAppAssetLoader.LoaderTuple tuple) {
-        return tuple.computer.uuid.toString()+"-"+tuple.app.getAppId();
+        return tuple.computer.uuid+"-"+tuple.app.getAppId();
     }
 
     public Bitmap loadBitmapFromCache(CachedAppAssetLoader.LoaderTuple tuple) {

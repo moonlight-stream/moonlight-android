@@ -548,7 +548,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         Intent i = new Intent(this, AppView.class);
         i.putExtra(AppView.NAME_EXTRA, computer.name);
-        i.putExtra(AppView.UUID_EXTRA, computer.uuid.toString());
+        i.putExtra(AppView.UUID_EXTRA, computer.uuid);
         startActivity(i);
     }
 
@@ -631,7 +631,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
             if (details.equals(computer.details)) {
                 // Disable or delete shortcuts referencing this PC
-                shortcutHelper.disableShortcut(details.uuid.toString(),
+                shortcutHelper.disableShortcut(details.uuid,
                         getResources().getString(R.string.scut_deleted_pc));
 
                 pcGridAdapter.removeComputer(computer);
@@ -662,7 +662,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         // Add a launcher shortcut for this PC
         if (details.pairState == PairState.PAIRED) {
-            shortcutHelper.createAppViewShortcut(details.uuid.toString(), details, false);
+            shortcutHelper.createAppViewShortcut(details.uuid, details, false);
         }
 
         if (existingEntry != null) {

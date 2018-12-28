@@ -125,7 +125,7 @@ public class ShortcutHelper {
     }
 
     public void createAppViewShortcut(String id, ComputerDetails details, boolean forceAdd) {
-        createAppViewShortcut(id, details.name, details.uuid.toString(), forceAdd);
+        createAppViewShortcut(id, details.name, details.uuid, forceAdd);
     }
 
     @TargetApi(Build.VERSION_CODES.O)
@@ -158,7 +158,7 @@ public class ShortcutHelper {
     }
 
     public boolean createPinnedGameShortcut(String id, Bitmap iconBits, ComputerDetails cDetails, NvApp app) {
-        return createPinnedGameShortcut(id, iconBits, cDetails.name, cDetails.uuid.toString(), app.getAppName(), Integer.valueOf(app.getAppId()).toString());
+        return createPinnedGameShortcut(id, iconBits, cDetails.name, cDetails.uuid, app.getAppName(), Integer.valueOf(app.getAppId()).toString());
     }
 
     public void disableShortcut(String id, CharSequence reason) {

@@ -17,6 +17,7 @@ import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
+import com.limelight.nvstream.http.PairingManager;
 import com.limelight.nvstream.mdns.MdnsComputer;
 import com.limelight.nvstream.mdns.MdnsDiscoveryListener;
 import com.limelight.utils.CacheHelper;
@@ -697,8 +698,9 @@ public class ComputerManagerService extends Service {
                 public void run() {
                     int emptyAppListResponses = 0;
                     do {
-                        // Can't poll if it's not online
-                        if (computer.state != ComputerDetails.State.ONLINE) {
+                        // Can't poll if it's not online or paired
+                        if (computer.state != ComputerDetails.State.ONLINE ||
+                                computer.pairState != PairingManager.PairState.PAIRED) {
                             if (listener != null) {
                                 listener.notifyComputerUpdated(computer);
                             }
@@ -738,7 +740,7 @@ public class ComputerManagerService extends Service {
                                 // in a row, we'll go ahead and believe it.
                                 emptyAppListResponses++;
                             }
-                            if (appList != null && !appList.isEmpty() &&
+                            if (!appList.isEmpty() &&
                                     (!list.isEmpty() || emptyAppListResponses >= EMPTY_LIST_THRESHOLD)) {
                                 // Open the cache file
                                 OutputStream cacheOut = null;
@@ -770,7 +772,7 @@ public class ComputerManagerService extends Service {
                                     listener.notifyComputerUpdated(computer);
                                 }
                             }
-                            else if (appList == null || appList.isEmpty()) {
+                            else if (appList.isEmpty()) {
                                 LimeLog.warning("Null app list received from "+computer.uuid);
                             }
                         } catch (IOException e) {

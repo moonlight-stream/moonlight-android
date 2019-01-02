@@ -457,8 +457,11 @@ public class ComputerManagerService extends Service {
             ComputerDetails newDetails = http.getComputerDetails();
 
             // Check if this is the PC we expected
-            if (details.uuid != null && newDetails.uuid != null &&
-                    !details.uuid.equals(newDetails.uuid)) {
+            if (newDetails.uuid == null) {
+                LimeLog.severe("Polling returned no UUID!");
+                return null;
+            }
+            else if (!details.uuid.equals(newDetails.uuid)) {
                 // We got the wrong PC!
                 LimeLog.info("Polling returned the wrong PC!");
                 return null;

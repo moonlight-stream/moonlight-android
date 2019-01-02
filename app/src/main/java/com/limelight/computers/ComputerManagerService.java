@@ -471,7 +471,7 @@ public class ComputerManagerService extends Service {
             newDetails.activeAddress = address;
 
             return newDetails;
-        } catch (Exception e) {
+        } catch (XmlPullParserException | IOException e) {
             e.printStackTrace();
             return null;
         }

@@ -167,26 +167,22 @@ public class VirtualController {
     }
 
     void sendControllerInputContext() {
-        try {
-            _DBG("INPUT_MAP + " + inputContext.inputMap);
-            _DBG("LEFT_TRIGGER " + inputContext.leftTrigger);
-            _DBG("RIGHT_TRIGGER " + inputContext.rightTrigger);
-            _DBG("LEFT STICK X: " + inputContext.leftStickX + " Y: " + inputContext.leftStickY);
-            _DBG("RIGHT STICK X: " + inputContext.rightStickX + " Y: " + inputContext.rightStickY);
+        _DBG("INPUT_MAP + " + inputContext.inputMap);
+        _DBG("LEFT_TRIGGER " + inputContext.leftTrigger);
+        _DBG("RIGHT_TRIGGER " + inputContext.rightTrigger);
+        _DBG("LEFT STICK X: " + inputContext.leftStickX + " Y: " + inputContext.leftStickY);
+        _DBG("RIGHT STICK X: " + inputContext.rightStickX + " Y: " + inputContext.rightStickY);
 
-            if (connection != null) {
-                connection.sendControllerInput(
-                        inputContext.inputMap,
-                        inputContext.leftTrigger,
-                        inputContext.rightTrigger,
-                        inputContext.leftStickX,
-                        inputContext.leftStickY,
-                        inputContext.rightStickX,
-                        inputContext.rightStickY
-                );
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (connection != null) {
+            connection.sendControllerInput(
+                    inputContext.inputMap,
+                    inputContext.leftTrigger,
+                    inputContext.rightTrigger,
+                    inputContext.leftStickX,
+                    inputContext.leftStickY,
+                    inputContext.rightStickX,
+                    inputContext.rightStickY
+            );
         }
     }
 }

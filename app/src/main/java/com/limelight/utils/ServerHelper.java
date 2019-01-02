@@ -13,7 +13,10 @@ import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 
+import org.xmlpull.v1.XmlPullParserException;
+
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.security.cert.CertificateEncodingException;
 
@@ -84,8 +87,9 @@ public class ServerHelper {
                     message = parent.getResources().getString(R.string.error_unknown_host);
                 } catch (FileNotFoundException e) {
                     message = parent.getResources().getString(R.string.error_404);
-                } catch (Exception e) {
+                } catch (IOException | XmlPullParserException e) {
                     message = e.getMessage();
+                    e.printStackTrace();
                 } finally {
                     if (onComplete != null) {
                         onComplete.run();

@@ -154,7 +154,7 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
         } catch (Exception e) {
             // Nothing should go wrong here
             e.printStackTrace();
-            return false;
+            throw new RuntimeException(e);
         }
 
         LimeLog.info("Generated a new key pair");

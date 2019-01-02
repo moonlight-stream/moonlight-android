@@ -1,5 +1,6 @@
 package com.limelight;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
 
@@ -42,6 +43,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+
+import org.xmlpull.v1.XmlPullParserException;
 
 public class AppView extends Activity implements AdapterFragmentCallbacks {
     private AppGridAdapter appGridAdapter;
@@ -214,7 +217,9 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         blockingLoadSpinner.dismiss();
                         blockingLoadSpinner = null;
                     }
-                } catch (Exception ignored) {}
+                } catch (XmlPullParserException | IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -278,7 +283,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             List<NvApp> applist = NvHTTP.getAppListByReader(new StringReader(lastRawApplist));
             updateUiWithAppList(applist);
             LimeLog.info("Loaded applist from cache");
-        } catch (Exception e) {
+        } catch (IOException | XmlPullParserException e) {
             if (lastRawApplist != null) {
                 LimeLog.warning("Saved applist corrupted: "+lastRawApplist);
                 e.printStackTrace();

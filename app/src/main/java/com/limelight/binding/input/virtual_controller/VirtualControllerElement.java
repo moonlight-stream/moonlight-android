@@ -166,58 +166,54 @@ public abstract class VirtualControllerElement extends View {
     }
 
     protected void showConfigurationDialog() {
-        try {
-            AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getContext());
 
-            alertBuilder.setTitle("Configuration");
+        alertBuilder.setTitle("Configuration");
 
-            CharSequence functions[] = new CharSequence[]{
-                    "Move",
-                    "Resize",
-                /*election
-                "Set n
-                Disable color sormal color",
-                "Set pressed color",
+        CharSequence functions[] = new CharSequence[]{
+                "Move",
+                "Resize",
+            /*election
+            "Set n
+            Disable color sormal color",
+            "Set pressed color",
+            */
+                "Cancel"
+        };
+
+        alertBuilder.setItems(functions, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0: { // move
+                        actionEnableMove();
+                        break;
+                    }
+                    case 1: { // resize
+                        actionEnableResize();
+                        break;
+                    }
+                /*
+                case 2:	{ // set default color
+                    actionShowNormalColorChooser();
+                    break;
+                }
+                case 3:	{ // set pressed color
+                    actionShowPressedColorChooser();
+                    break;
+                }
                 */
-                    "Cancel"
-            };
-
-            alertBuilder.setItems(functions, new DialogInterface.OnClickListener() {
-
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    switch (which) {
-                        case 0: { // move
-                            actionEnableMove();
-                            break;
-                        }
-                        case 1: { // resize
-                            actionEnableResize();
-                            break;
-                        }
-                    /*
-                    case 2:	{ // set default color
-                        actionShowNormalColorChooser();
+                    default: { // cancel
+                        actionCancel();
                         break;
-                    }
-                    case 3:	{ // set pressed color
-                        actionShowPressedColorChooser();
-                        break;
-                    }
-                    */
-                        default: { // cancel
-                            actionCancel();
-                            break;
-                        }
                     }
                 }
-            });
-            AlertDialog alert = alertBuilder.create();
-            // show menu
-            alert.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            }
+        });
+        AlertDialog alert = alertBuilder.create();
+        // show menu
+        alert.show();
     }
 
     @Override

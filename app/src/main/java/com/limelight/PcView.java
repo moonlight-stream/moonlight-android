@@ -53,6 +53,8 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
+import org.xmlpull.v1.XmlPullParserException;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -420,7 +422,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     message = getResources().getString(R.string.error_unknown_host);
                 } catch (FileNotFoundException e) {
                     message = getResources().getString(R.string.error_404);
-                } catch (Exception e) {
+                } catch (XmlPullParserException | IOException e) {
                     e.printStackTrace();
                     message = e.getMessage();
                 }
@@ -521,8 +523,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     message = getResources().getString(R.string.error_unknown_host);
                 } catch (FileNotFoundException e) {
                     message = getResources().getString(R.string.error_404);
-                } catch (Exception e) {
+                } catch (XmlPullParserException | IOException e) {
                     message = e.getMessage();
+                    e.printStackTrace();
                 }
 
                 final String toastMessage = message;

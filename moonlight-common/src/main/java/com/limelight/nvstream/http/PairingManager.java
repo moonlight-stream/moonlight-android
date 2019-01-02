@@ -14,7 +14,6 @@ import com.limelight.LimeLog;
 
 import java.security.cert.Certificate;
 import java.io.*;
-import java.net.MalformedURLException;
 import java.security.*;
 import java.security.cert.*;
 import java.util.Arrays;
@@ -68,13 +67,19 @@ public class PairingManager {
 	    return data;
 	}
 	
-	private X509Certificate extractPlainCert(String text) throws XmlPullParserException, IOException, CertificateException
+	private X509Certificate extractPlainCert(String text) throws XmlPullParserException, IOException
 	{
 		String certText = NvHTTP.getXmlString(text, "plaincert");
 		if (certText != null) {
 			byte[] certBytes = hexToBytes(certText);
-			CertificateFactory cf = CertificateFactory.getInstance("X.509");
-			return (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(certBytes));
+
+			try {
+				CertificateFactory cf = CertificateFactory.getInstance("X.509");
+				return (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(certBytes));
+			} catch (CertificateException e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
 		else {
 			return null;
@@ -95,45 +100,63 @@ public class PairingManager {
 		return saltedPin;
 	}
 	
-	private static boolean verifySignature(byte[] data, byte[] signature, Certificate cert) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
-		Signature sig = Signature.getInstance("SHA256withRSA");
-		sig.initVerify(cert.getPublicKey());
-		sig.update(data);
-		return sig.verify(signature);
+	private static boolean verifySignature(byte[] data, byte[] signature, Certificate cert) {
+		try {
+			Signature sig = Signature.getInstance("SHA256withRSA");
+			sig.initVerify(cert.getPublicKey());
+			sig.update(data);
+			return sig.verify(signature);
+		} catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 	
-	private static byte[] signData(byte[] data, PrivateKey key) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
-		Signature sig = Signature.getInstance("SHA256withRSA");
-		sig.initSign(key);
-		sig.update(data);
-		byte[] signature = new byte[256];
-		sig.sign(signature, 0, signature.length);
-		return signature;
+	private static byte[] signData(byte[] data, PrivateKey key) {
+		try {
+			Signature sig = Signature.getInstance("SHA256withRSA");
+			sig.initSign(key);
+			sig.update(data);
+			byte[] signature = new byte[256];
+			sig.sign(signature, 0, signature.length);
+			return signature;
+		} catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 	
-	private static byte[] decryptAes(byte[] encryptedData, SecretKey secretKey) throws NoSuchAlgorithmException, SignatureException,
-	InvalidKeyException, ShortBufferException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException {
-		Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+	private static byte[] decryptAes(byte[] encryptedData, SecretKey secretKey) {
+		try {
+			Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
 		
-		int blockRoundedSize = ((encryptedData.length + 15) / 16) * 16;
-		byte[] blockRoundedEncrypted = Arrays.copyOf(encryptedData, blockRoundedSize);
-		byte[] fullDecrypted = new byte[blockRoundedSize];
+			int blockRoundedSize = ((encryptedData.length + 15) / 16) * 16;
+			byte[] blockRoundedEncrypted = Arrays.copyOf(encryptedData, blockRoundedSize);
+			byte[] fullDecrypted = new byte[blockRoundedSize];
 
-		cipher.init(Cipher.DECRYPT_MODE, secretKey);
-		cipher.doFinal(blockRoundedEncrypted, 0,
-				blockRoundedSize, fullDecrypted);
-		return fullDecrypted;
+			cipher.init(Cipher.DECRYPT_MODE, secretKey);
+			cipher.doFinal(blockRoundedEncrypted, 0,
+					blockRoundedSize, fullDecrypted);
+			return fullDecrypted;
+		} catch (GeneralSecurityException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 	
-	private static byte[] encryptAes(byte[] data, SecretKey secretKey) throws NoSuchAlgorithmException, SignatureException,
-	InvalidKeyException, ShortBufferException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException {
-		Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+	private static byte[] encryptAes(byte[] data, SecretKey secretKey) {
+		try {
+			Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
 		
-		int blockRoundedSize = ((data.length + 15) / 16) * 16;
-		byte[] blockRoundedData = Arrays.copyOf(data, blockRoundedSize);
-		
-		cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-		return cipher.doFinal(blockRoundedData);
+			int blockRoundedSize = ((data.length + 15) / 16) * 16;
+			byte[] blockRoundedData = Arrays.copyOf(data, blockRoundedSize);
+
+			cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+			return cipher.doFinal(blockRoundedData);
+		} catch (GeneralSecurityException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 	
 	private static SecretKey generateAesKey(PairingHashAlgorithm hashAlgo, byte[] keyData) {
@@ -155,7 +178,7 @@ public class PairingManager {
 				r.nextInt(10), r.nextInt(10));
 	}
 	
-	public PairState getPairState(String serverInfo) throws MalformedURLException, IOException, XmlPullParserException  {
+	public PairState getPairState(String serverInfo) throws IOException, XmlPullParserException  {
 		if (!NvHTTP.getXmlString(serverInfo, "PairStatus").equals("1")) {
 			return PairState.NOT_PAIRED;
 		}
@@ -167,7 +190,7 @@ public class PairingManager {
 		return serverCert;
 	}
 	
-	public PairState pair(String serverInfo, String pin) throws MalformedURLException, IOException, XmlPullParserException, CertificateException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, ShortBufferException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException {
+	public PairState pair(String serverInfo, String pin) throws IOException, XmlPullParserException {
 		PairingHashAlgorithm hashAlgo;
 
 		int serverMajorVersion = http.getServerMajorVersion(serverInfo);

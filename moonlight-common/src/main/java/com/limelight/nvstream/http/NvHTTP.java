@@ -288,6 +288,7 @@ public class NvHTTP {
 			client.setSslSocketFactory(sc.getSocketFactory());
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 

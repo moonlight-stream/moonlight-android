@@ -239,7 +239,7 @@ public class NvConnection {
 						return;
 					}
 					context.connListener.stageComplete(appName);
-				} catch (Exception e) {
+				} catch (XmlPullParserException | IOException e) {
 					e.printStackTrace();
 					context.connListener.displayMessage(e.getMessage());
 					context.connListener.stageFailed(appName, 0);

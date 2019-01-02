@@ -17,7 +17,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 import java.util.ListIterator;
-import java.util.Scanner;
 import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -187,10 +186,6 @@ public class NvHTTP {
 		return getXmlString(new StringReader(str), tagname);
 	}
 	
-	static String getXmlString(InputStream in, String tagname) throws XmlPullParserException, IOException {
-		return getXmlString(new InputStreamReader(in), tagname);
-	}
-	
 	private static void verifyResponseStatus(XmlPullParser xpp) throws GfeHttpResponseException {
 		int statusCode = Integer.parseInt(xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_code"));
 		if (statusCode != 200) {
@@ -301,7 +296,7 @@ public class NvHTTP {
 	// The initial pair query does require outside action (user entering a PIN) but subsequent pairing
 	// queries do not.
 	private ResponseBody openHttpConnection(String url, boolean enableReadTimeout) throws IOException {
-		Request request = new Request.Builder().url(url).build();
+		Request request = new Request.Builder().url(url).get().build();
 		Response response;
 
 		if (serverCert == null && !url.startsWith(baseUrlHttp)) {
@@ -338,14 +333,20 @@ public class NvHTTP {
 		}
 	}
 	
-	String openHttpConnectionToString(String url, boolean enableReadTimeout) throws MalformedURLException, IOException {
-		if (verbose) {
-			LimeLog.info("Requesting URL: "+url);
-		}
-		
-		ResponseBody resp;
+	String openHttpConnectionToString(String url, boolean enableReadTimeout) throws IOException {
 		try {
-			resp = openHttpConnection(url, enableReadTimeout);
+			if (verbose) {
+				LimeLog.info("Requesting URL: "+url);
+			}
+
+			ResponseBody resp = openHttpConnection(url, enableReadTimeout);
+			String respString = resp.string();
+
+			if (verbose) {
+				LimeLog.info(url+" -> "+respString);
+			}
+
+			return respString;
 		} catch (IOException e) {
 			if (verbose) {
 				e.printStackTrace();
@@ -353,27 +354,6 @@ public class NvHTTP {
 			
 			throw e;
 		}
-		
-		StringBuilder strb = new StringBuilder();
-		try {
-			Scanner s = new Scanner(resp.byteStream());
-			try {
-				while (s.hasNext()) {
-					strb.append(s.next());
-					strb.append(' ');
-				}
-			} finally {
-				s.close();
-			}
-		} finally {
-			resp.close();
-		}
-		
-		if (verbose) {
-			LimeLog.info(url+" -> "+strb.toString());
-		}
-		
-		return strb.toString();
 	}
 
 	public String getServerVersion(String serverInfo) throws XmlPullParserException, IOException {

@@ -360,7 +360,7 @@ public class ComputerManagerService extends Service {
             // Since we're on the same network, we can use STUN to find
             // our WAN address, which is also very likely the WAN address
             // of the PC. We can use this later to connect remotely.
-            fakeDetails.remoteAddress = NvConnection.findExternalAddressForMdns();
+            fakeDetails.remoteAddress = NvConnection.findExternalAddressForMdns("stun.moonlight-stream.org", 3478);
         }
 
         // Block while we try to fill the details

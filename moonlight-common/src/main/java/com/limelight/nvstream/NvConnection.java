@@ -342,7 +342,7 @@ public class NvConnection {
 		}
 	}
 
-	public static String findExternalAddressForMdns() {
-		return MoonBridge.findExternalAddressIP4("stun.stunprotocol.org", 3478);
+	public static String findExternalAddressForMdns(String stunHostname, int stunPort) {
+		return MoonBridge.findExternalAddressIP4(stunHostname, stunPort);
 	}
 }

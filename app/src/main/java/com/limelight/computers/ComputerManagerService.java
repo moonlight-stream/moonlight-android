@@ -365,8 +365,9 @@ public class ComputerManagerService extends Service {
 
         // Block while we try to fill the details
         try {
-            runPoll(fakeDetails, true, 0);
-            if (fakeDetails.state == ComputerDetails.State.ONLINE) {
+            // We cannot use runPoll() here because it will attempt to persist the state of the machine
+            // in the database, which would be bad because we don't have our pinned cert loaded yet.
+            if (pollComputer(fakeDetails)) {
                 // See if we have record of this PC to pull its pinned cert
                 synchronized (pollingTuples) {
                     for (PollingTuple tuple : pollingTuples) {
@@ -377,10 +378,9 @@ public class ComputerManagerService extends Service {
                     }
                 }
 
-                if (fakeDetails.serverCert != null) {
-                    // Poll again with the pinned cert to get accurate pairing information
-                    runPoll(fakeDetails, true, 0);
-                }
+                // Poll again, possibly with the pinned cert, to get accurate pairing information.
+                // This will insert the host into the database too.
+                runPoll(fakeDetails, true, 0);
             }
         } catch (InterruptedException e) {
             return false;

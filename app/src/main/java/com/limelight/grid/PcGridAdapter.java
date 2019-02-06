@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.limelight.PcView;
 import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.PairingManager;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -75,6 +76,11 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
         if (obj.details.state == ComputerDetails.State.OFFLINE) {
             overlayView.setImageResource(R.drawable.ic_pc_offline);
             overlayView.setAlpha(0.4f);
+            return true;
+        }
+        else if (obj.details.pairState == PairingManager.PairState.NOT_PAIRED) {
+            overlayView.setImageResource(R.drawable.ic_lock);
+            overlayView.setAlpha(1.0f);
             return true;
         }
         return false;

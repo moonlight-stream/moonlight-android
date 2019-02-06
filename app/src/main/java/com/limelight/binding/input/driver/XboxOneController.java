@@ -8,6 +8,7 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.input.ControllerPacket;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class XboxOneController extends AbstractXboxController {
 
@@ -23,8 +24,30 @@ public class XboxOneController extends AbstractXboxController {
             0x24c6, // PowerA
     };
 
-    // FIXME: odata_serial
-    private static final byte[] XB1_INIT_DATA = {0x05, 0x20, 0x00, 0x01, 0x00};
+    private static final byte[] FW2015_INIT = {0x05, 0x20, 0x00, 0x01, 0x00};
+    private static final byte[] HORI_INIT = {0x01, 0x20, 0x00, 0x09, 0x00, 0x04, 0x20, 0x3a,
+            0x00, 0x00, 0x00, (byte)0x80, 0x00};
+    private static final byte[] PDP_INIT1 = {0x0a, 0x20, 0x00, 0x03, 0x00, 0x01, 0x14};
+    private static final byte[] PDP_INIT2 = {0x06, 0x20, 0x00, 0x02, 0x01, 0x00};
+    private static final byte[] RUMBLE_INIT1 = {0x09, 0x00, 0x00, 0x09, 0x00, 0x0F, 0x00, 0x00,
+            0x1D, 0x1D, (byte)0xFF, 0x00, 0x00};
+    private static final byte[] RUMBLE_INIT2 = {0x09, 0x00, 0x00, 0x09, 0x00, 0x0F, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00};
+
+    private static InitPacket[] INIT_PKTS = {
+            new InitPacket(0x0e6f, 0x0165, HORI_INIT),
+            new InitPacket(0x0f0d, 0x0067, HORI_INIT),
+            new InitPacket(0x0000, 0x0000, FW2015_INIT),
+            new InitPacket(0x0e6f, 0x0000, PDP_INIT1),
+            new InitPacket(0x0e6f, 0x0000, PDP_INIT2),
+            new InitPacket(0x24c6, 0x541a, RUMBLE_INIT1),
+            new InitPacket(0x24c6, 0x542a, RUMBLE_INIT1),
+            new InitPacket(0x24c6, 0x543a, RUMBLE_INIT1),
+            new InitPacket(0x24c6, 0x541a, RUMBLE_INIT2),
+            new InitPacket(0x24c6, 0x542a, RUMBLE_INIT2),
+            new InitPacket(0x24c6, 0x543a, RUMBLE_INIT2),
+    };
+
 
     public XboxOneController(UsbDevice device, UsbDeviceConnection connection, int deviceId, UsbDriverListener listener) {
         super(device, connection, deviceId, listener);
@@ -111,13 +134,43 @@ public class XboxOneController extends AbstractXboxController {
 
     @Override
     protected boolean doInit() {
-        // Send the initialization packet
-        int res = connection.bulkTransfer(outEndpt, XB1_INIT_DATA, XB1_INIT_DATA.length, 3000);
-        if (res != XB1_INIT_DATA.length) {
-            LimeLog.warning("Initialization transfer failed: "+res);
-            return false;
+        byte seqNum = 0;
+
+        // Send all applicable init packets
+        for (InitPacket pkt : INIT_PKTS) {
+            if (pkt.vendorId != 0 && device.getVendorId() != pkt.vendorId) {
+                continue;
+            }
+
+            if (pkt.productId != 0 && device.getProductId() != pkt.productId) {
+                continue;
+            }
+
+            byte[] data = Arrays.copyOf(pkt.data, pkt.data.length);
+
+            // Populate sequence number
+            data[2] = seqNum++;
+
+            // Send the initialization packet
+            int res = connection.bulkTransfer(outEndpt, data, data.length, 3000);
+            if (res != data.length) {
+                LimeLog.warning("Initialization transfer failed: "+res);
+                return false;
+            }
         }
 
         return true;
+    }
+
+    private static class InitPacket {
+        final int vendorId;
+        final int productId;
+        final byte[] data;
+
+        InitPacket(int vendorId, int productId, byte[] data) {
+            this.vendorId = vendorId;
+            this.productId = productId;
+            this.data = data;
+        }
     }
 }

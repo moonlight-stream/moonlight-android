@@ -14,6 +14,7 @@ public class Xbox360Controller extends AbstractXboxController {
     private static final int XB360_IFACE_PROTOCOL = 1; // Wired only
 
     private static final int[] SUPPORTED_VENDORS = {
+            0x0079, // GPD Win 2
             0x044f, // Thrustmaster
             0x045e, // Microsoft
             0x046d, // Logitech
@@ -23,6 +24,7 @@ public class Xbox360Controller extends AbstractXboxController {
             0x07ff, // Mad Catz
             0x0e6f, // Unknown
             0x0f0d, // Hori
+            0x1038, // SteelSeries
             0x11c9, // Nacon
             0x12ab, // Unknown
             0x1430, // RedOctane

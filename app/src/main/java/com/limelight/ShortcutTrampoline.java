@@ -200,6 +200,14 @@ public class ShortcutTrampoline extends Activity {
 
     protected boolean validateInput() {
         // Validate UUID
+        if (uuidString == null) {
+            Dialog.displayDialog(ShortcutTrampoline.this,
+                    getResources().getString(R.string.conn_error_title),
+                    getResources().getString(R.string.scut_invalid_uuid),
+                    true);
+            return false;
+        }
+
         try {
             UUID.fromString(uuidString);
         } catch (IllegalArgumentException ex) {

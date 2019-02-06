@@ -91,14 +91,20 @@ public class AddComputerManually extends Activity {
     }
 
     private void doAddPc(String host) {
-        String msg;
         boolean wrongSiteLocal = false;
         boolean success;
 
         SpinnerDialog dialog = SpinnerDialog.displayDialog(this, getResources().getString(R.string.title_add_pc),
             getResources().getString(R.string.msg_add_pc), false);
 
-        success = managerBinder.addComputerBlocking(host, true);
+        try {
+            success = managerBinder.addComputerBlocking(host, true);
+        } catch (IllegalArgumentException e) {
+            // This can be thrown from OkHttp if the host fails to canonicalize to a valid name.
+            // https://github.com/square/okhttp/blob/okhttp_27/okhttp/src/main/java/com/squareup/okhttp/HttpUrl.java#L705
+            e.printStackTrace();
+            success = false;
+        }
         if (!success){
             wrongSiteLocal = isWrongSubnetSiteLocalAddress(host);
         }

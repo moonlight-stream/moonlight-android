@@ -47,7 +47,21 @@ public class KeyboardTranslator {
 	public static final int VK_BACK_QUOTE = 192;
 	public static final int VK_QUOTE = 222;
 	public static final int VK_PAUSE = 19;
-	
+
+	public static boolean needsShift(int keycode) {
+		switch (keycode)
+		{
+			case KeyEvent.KEYCODE_AT:
+			case KeyEvent.KEYCODE_POUND:
+			case KeyEvent.KEYCODE_PLUS:
+			case KeyEvent.KEYCODE_STAR:
+				return true;
+
+			default:
+				return false;
+		}
+	}
+
 	/**
 	 * Translates the given keycode and returns the GFE keycode
 	 * @param keycode the code to be translated
@@ -116,7 +130,8 @@ public class KeyboardTranslator {
 			case KeyEvent.KEYCODE_ENTER:
 				translated = 0x0d;
 				break;
-				
+
+			case KeyEvent.KEYCODE_PLUS:
 			case KeyEvent.KEYCODE_EQUALS:
 				translated = 0xbb;
 				break;
@@ -257,7 +272,19 @@ public class KeyboardTranslator {
 			case KeyEvent.KEYCODE_NUMPAD_DOT:
 				translated = 0x6E;
 				break;
-				
+
+			case KeyEvent.KEYCODE_AT:
+				translated = 2 + VK_0;
+				break;
+
+			case KeyEvent.KEYCODE_POUND:
+				translated = 3 + VK_0;
+				break;
+
+			case KeyEvent.KEYCODE_STAR:
+				translated = 8 + VK_0;
+				break;
+
 			default:
 				System.out.println("No key for "+keycode);
 				return 0;

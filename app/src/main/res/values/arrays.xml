@@ -2,6 +2,7 @@
 <resources>
     <string-array name="resolution_names">
         <item>360p</item>
+        <item>480p</item>
         <item>720p</item>
         <item>1080p</item>
         <item>1440p</item>
@@ -9,6 +10,7 @@
     </string-array>
     <string-array name="resolution_values" translatable="false">
         <item>360p</item>
+        <item>480p</item>
         <item>720p</item>
         <item>1080p</item>
         <item>1440p</item>

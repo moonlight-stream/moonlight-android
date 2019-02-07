@@ -84,6 +84,9 @@ public class PreferenceConfiguration {
         if (resString.equalsIgnoreCase("360p")) {
             return 360;
         }
+        else if (resString.equalsIgnoreCase("480p")) {
+            return 480;
+        }
         else if (resString.equalsIgnoreCase("720p")) {
             return 720;
         }
@@ -103,13 +106,22 @@ public class PreferenceConfiguration {
     }
 
     private static int getWidthFromResolutionString(String resString) {
-        return (getHeightFromResolutionString(resString) * 16) / 9;
+        int height = getHeightFromResolutionString(resString);
+        if (height == 480) {
+            // This isn't an exact 16:9 resolution
+            return 854;
+        }
+        else {
+            return (height * 16) / 9;
+        }
     }
 
     private static String getResolutionString(int width, int height) {
         switch (height) {
             case 360:
                 return "360p";
+            case 480:
+                return "480p";
             default:
             case 720:
                 return "720p";
@@ -138,6 +150,9 @@ public class PreferenceConfiguration {
 
         if (width * height <= 640 * 360) {
             return (int)(1000 * (fps / 30.0));
+        }
+        else if (width * height <= 854 * 480) {
+            return (int)(1500 * (fps / 30.0));
         }
         // This covers 1280x720 and 1280x800 too
         else if (width * height <= 1366 * 768) {

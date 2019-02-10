@@ -610,11 +610,29 @@ public class NvHTTP {
 	}
 	
 	public boolean launchApp(ConnectionContext context, int appId, boolean enableHdr) throws IOException, XmlPullParserException {
+		// Using an FPS value over 60 causes SOPS to default to 720p60,
+		// so force it to 60 when starting. This won't impact our ability
+		// to get > 60 FPS while actually streaming though.
+		int fps = context.negotiatedFps > 60 ? 60 : context.negotiatedFps;
+
+		// Using an unsupported resolution (not 720p, 1080p, or 4K) causes
+		// GFE to force SOPS to 720p60. This is fine for < 720p resolutions like
+		// 360p or 480p, but it is not ideal for 1440p and other resolutions.
+		// When we detect an unsupported resolution, disable SOPS unless it's under 720p.
+		// FIXME: Detect support resolutions using the serverinfo response, not a hardcoded list
+		boolean enableSops = context.streamConfig.getSops();
+		if (context.negotiatedWidth * context.negotiatedHeight > 1280 * 720 &&
+				context.negotiatedWidth * context.negotiatedHeight != 1920 * 1080 &&
+				context.negotiatedWidth * context.negotiatedHeight != 3840 * 2160) {
+			LimeLog.info("Disabling SOPS due to non-standard resolution: "+context.negotiatedWidth+"x"+context.negotiatedHeight);
+			enableSops = false;
+		}
+
 		String xmlStr = openHttpConnectionToString(baseUrlHttps +
 			"/launch?" + buildUniqueIdUuidString() +
 			"&appid=" + appId +
-			"&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + context.negotiatedFps +
-			"&additionalStates=1&sops=" + (context.streamConfig.getSops() ? 1 : 0) +
+			"&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + fps +
+			"&additionalStates=1&sops=" + (enableSops ? 1 : 0) +
 			"&rikey="+bytesToHex(context.riKey.getEncoded()) +
 			"&rikeyid="+context.riKeyId +
 			(!enableHdr ? "" : "&hdrMode=1&clientHdrCapVersion=0&clientHdrCapSupportedFlagsInUint32=0&clientHdrCapMetaDataId=NV_STATIC_METADATA_TYPE_1&clientHdrCapDisplayData=0x0x0x0x0x0x0x0x0x0x0") +

@@ -1322,8 +1322,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     LimeLog.severe("Connection terminated: " + errorCode);
                     stopConnection();
 
-                    Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_terminated_title),
-                            getResources().getString(R.string.conn_terminated_msg), true);
+                    // Display the error dialog if it was an unexpected termination.
+                    // Otherwise, just finish the activity immediately.
+                    if (errorCode != 0) {
+                        Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_terminated_title),
+                                getResources().getString(R.string.conn_terminated_msg), true);
+                    }
+                    else {
+                        finish();
+                    }
                 }
             }
         });

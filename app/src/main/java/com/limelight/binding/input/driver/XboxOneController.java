@@ -48,6 +48,7 @@ public class XboxOneController extends AbstractXboxController {
             new InitPacket(0x24c6, 0x543a, RUMBLE_INIT2),
     };
 
+    private byte seqNum = 0;
 
     public XboxOneController(UsbDevice device, UsbDeviceConnection connection, int deviceId, UsbDriverListener listener) {
         super(device, connection, deviceId, listener);
@@ -134,8 +135,6 @@ public class XboxOneController extends AbstractXboxController {
 
     @Override
     protected boolean doInit() {
-        byte seqNum = 0;
-
         // Send all applicable init packets
         for (InitPacket pkt : INIT_PKTS) {
             if (pkt.vendorId != 0 && device.getVendorId() != pkt.vendorId) {
@@ -160,6 +159,20 @@ public class XboxOneController extends AbstractXboxController {
         }
 
         return true;
+    }
+
+    @Override
+    public void rumble(short lowFreqMotor, short highFreqMotor) {
+        byte[] data = {
+                0x09, 0x00, seqNum++, 0x09, 0x00,
+                0x0F, 0x00, 0x00,
+                (byte)(lowFreqMotor >> 9), (byte)(highFreqMotor >> 9),
+                (byte)0xFF, 0x00, (byte)0xFF
+        };
+        int res = connection.bulkTransfer(outEndpt, data, data.length, 100);
+        if (res != data.length) {
+            LimeLog.warning("Rumble transfer failed: "+res);
+        }
     }
 
     private static class InitPacket {

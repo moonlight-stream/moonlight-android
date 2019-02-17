@@ -47,26 +47,21 @@ public class UsbDriverService extends Service implements UsbDriverListener {
     }
 
     @Override
-    public void deviceRemoved(int controllerId) {
+    public void deviceRemoved(AbstractController controller) {
         // Remove the the controller from our list (if not removed already)
-        for (AbstractController controller : controllers) {
-            if (controller.getControllerId() == controllerId) {
-                controllers.remove(controller);
-                break;
-            }
-        }
+        controllers.remove(controller);
 
         // Call through to the client's listener
         if (listener != null) {
-            listener.deviceRemoved(controllerId);
+            listener.deviceRemoved(controller);
         }
     }
 
     @Override
-    public void deviceAdded(int controllerId) {
+    public void deviceAdded(AbstractController controller) {
         // Call through to the client's listener
         if (listener != null) {
-            listener.deviceAdded(controllerId);
+            listener.deviceAdded(controller);
         }
     }
 
@@ -113,7 +108,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             // Report all controllerMap that already exist
             if (listener != null) {
                 for (AbstractController controller : controllers) {
-                    listener.deviceAdded(controller.getControllerId());
+                    listener.deviceAdded(controller);
                 }
             }
         }

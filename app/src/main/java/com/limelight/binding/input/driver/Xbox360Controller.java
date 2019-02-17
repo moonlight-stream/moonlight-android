@@ -139,4 +139,17 @@ public class Xbox360Controller extends AbstractXboxController {
         // No need to fail init if the LED command fails
         return true;
     }
+
+    @Override
+    public void rumble(short lowFreqMotor, short highFreqMotor) {
+        byte[] data = {
+                0x00, 0x08, 0x00,
+                (byte)(lowFreqMotor >> 8), (byte)(highFreqMotor >> 8),
+                0x00, 0x00, 0x00
+        };
+        int res = connection.bulkTransfer(outEndpt, data, data.length, 100);
+        if (res != data.length) {
+            LimeLog.warning("Rumble transfer failed: "+res);
+        }
+    }
 }

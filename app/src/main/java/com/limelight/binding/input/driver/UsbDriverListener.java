@@ -6,6 +6,6 @@ public interface UsbDriverListener {
                                float rightStickX, float rightStickY,
                                float leftTrigger, float rightTrigger);
 
-    void deviceRemoved(int controllerId);
-    void deviceAdded(int controllerId);
+    void deviceRemoved(AbstractController controller);
+    void deviceAdded(AbstractController controller);
 }

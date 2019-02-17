@@ -6,6 +6,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.SystemClock;
+import android.os.Vibrator;
 import android.util.SparseArray;
 import android.view.InputDevice;
 import android.view.InputEvent;
@@ -14,6 +15,7 @@ import android.view.MotionEvent;
 import android.widget.Toast;
 
 import com.limelight.LimeLog;
+import com.limelight.binding.input.driver.AbstractController;
 import com.limelight.binding.input.driver.UsbDriverListener;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.nvstream.NvConnection;
@@ -298,10 +300,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         context.assignedControllerNumber = true;
     }
 
-    private UsbDeviceContext createUsbDeviceContextForDevice(int deviceId) {
+    private UsbDeviceContext createUsbDeviceContextForDevice(AbstractController device) {
         UsbDeviceContext context = new UsbDeviceContext();
 
-        context.id = deviceId;
+        context.id = device.getControllerId();
+        context.device = device;
 
         context.leftStickDeadzoneRadius = (float) stickDeadzone;
         context.rightStickDeadzoneRadius = (float) stickDeadzone;
@@ -392,6 +395,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         context.name = devName;
         context.id = dev.getId();
+
+        if (dev.getVibrator().hasVibrator()) {
+            context.vibrator = dev.getVibrator();
+        }
 
         context.leftStickXAxis = MotionEvent.AXIS_X;
         context.leftStickYAxis = MotionEvent.AXIS_Y;
@@ -1043,6 +1050,28 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
+    private void rumbleVibrator(Vibrator vibrator, short lowFreqMotor, short highFreqMotor) {
+
+    }
+
+    public void handleRumble(short controllerNumber, short lowFreqMotor, short highFreqMotor) {
+        for (int i = 0; i < inputDeviceContexts.size(); i++) {
+            InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
+
+            if (deviceContext.controllerNumber == controllerNumber && deviceContext.vibrator != null) {
+                rumbleVibrator(deviceContext.vibrator, lowFreqMotor, highFreqMotor);
+            }
+        }
+
+        for (int i = 0; i < usbDeviceContexts.size(); i++) {
+            UsbDeviceContext deviceContext = usbDeviceContexts.valueAt(i);
+
+            if (deviceContext.controllerNumber == controllerNumber) {
+                deviceContext.device.rumble(lowFreqMotor, highFreqMotor);
+            }
+        }
+    }
+
     public boolean handleButtonUp(KeyEvent event) {
         InputDeviceContext context = getContextForEvent(event);
         if (context == null) {
@@ -1334,19 +1363,19 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     @Override
-    public void deviceRemoved(int controllerId) {
-        UsbDeviceContext context = usbDeviceContexts.get(controllerId);
+    public void deviceRemoved(AbstractController controller) {
+        UsbDeviceContext context = usbDeviceContexts.get(controller.getControllerId());
         if (context != null) {
-            LimeLog.info("Removed controller: "+controllerId);
+            LimeLog.info("Removed controller: "+controller.getControllerId());
             releaseControllerNumber(context);
-            usbDeviceContexts.remove(controllerId);
+            usbDeviceContexts.remove(controller.getControllerId());
         }
     }
 
     @Override
-    public void deviceAdded(int controllerId) {
-        UsbDeviceContext context = createUsbDeviceContextForDevice(controllerId);
-        usbDeviceContexts.put(controllerId, context);
+    public void deviceAdded(AbstractController controller) {
+        UsbDeviceContext context = createUsbDeviceContextForDevice(controller);
+        usbDeviceContexts.put(controller.getControllerId(), context);
     }
 
     class GenericControllerContext {
@@ -1375,6 +1404,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     class InputDeviceContext extends GenericControllerContext {
         public String name;
+        public Vibrator vibrator;
 
         public int leftStickXAxis = -1;
         public int leftStickYAxis = -1;
@@ -1412,5 +1442,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public long startDownTime = 0;
     }
 
-    class UsbDeviceContext extends GenericControllerContext {}
+    class UsbDeviceContext extends GenericControllerContext {
+        public AbstractController device;
+    }
 }

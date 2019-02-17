@@ -72,6 +72,7 @@ import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Locale;
 
 
 public class Game extends Activity implements SurfaceHolder.Callback,
@@ -1382,6 +1383,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 }
             });
         }
+    }
+
+    @Override
+    public void rumble(short controllerNumber, short lowFreqMotor, short highFreqMotor) {
+        LimeLog.info(String.format((Locale)null, "Rumble on gamepad %d: %04x %04x", controllerNumber, lowFreqMotor, highFreqMotor));
+
+        controllerHandler.handleRumble(controllerNumber, lowFreqMotor, highFreqMotor);
     }
 
     @Override

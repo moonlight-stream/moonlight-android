@@ -37,11 +37,13 @@ public abstract class AbstractController {
         this.listener = listener;
     }
 
+    public abstract void rumble(short lowFreqMotor, short highFreqMotor);
+
     protected void notifyDeviceRemoved() {
-        listener.deviceRemoved(deviceId);
+        listener.deviceRemoved(this);
     }
 
     protected void notifyDeviceAdded() {
-        listener.deviceAdded(deviceId);
+        listener.deviceAdded(this);
     }
 }

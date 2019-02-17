@@ -131,6 +131,9 @@ public abstract class AbstractXboxController extends AbstractController {
 
         stopped = true;
 
+        // Cancel any rumble effects
+        rumble((short)0, (short)0);
+
         // Stop the input thread
         if (inputThread != null) {
             inputThread.interrupt();

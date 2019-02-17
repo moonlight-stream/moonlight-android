@@ -155,6 +155,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         onInputDeviceAdded(deviceId);
     }
 
+    public void stop() {
+        for (int i = 0; i < inputDeviceContexts.size(); i++) {
+            InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
+
+            if (deviceContext.vibrator != null) {
+                deviceContext.vibrator.cancel();
+            }
+        }
+    }
+
     private static boolean hasJoystickAxes(InputDevice device) {
         return (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK &&
                 getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_X) != null &&

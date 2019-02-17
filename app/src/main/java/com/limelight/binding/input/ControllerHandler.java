@@ -55,6 +55,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final double stickDeadzone;
     private final InputDeviceContext defaultContext = new InputDeviceContext();
     private final GameGestures gestures;
+    private final Vibrator deviceVibrator;
     private boolean hasGameController;
 
     private final PreferenceConfiguration prefConfig;
@@ -65,6 +66,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         this.conn = conn;
         this.gestures = gestures;
         this.prefConfig = prefConfig;
+        this.deviceVibrator = (Vibrator) activityContext.getSystemService(Context.VIBRATOR_SERVICE);
 
         // HACK: For now we're hardcoding a 10% deadzone. Some deadzone
         // is required for controller batching support to work.
@@ -163,6 +165,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 deviceContext.vibrator.cancel();
             }
         }
+
+        deviceVibrator.cancel();
     }
 
     private static boolean hasJoystickAxes(InputDevice device) {
@@ -218,6 +222,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     mask |= 1 << count++;
                 }
             }
+        }
+
+        if (PreferenceConfiguration.readPreferences(context).onscreenController) {
+            LimeLog.info("Counting OSC gamepad");
+            mask |= 1;
         }
 
         LimeLog.info("Enumerated "+count+" gamepads");
@@ -633,7 +642,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     private short getActiveControllerMask() {
         if (prefConfig.multiController) {
-            return (short)(currentControllers | initialControllers);
+            return (short)(currentControllers | initialControllers | (prefConfig.onscreenController ? 1 : 0));
         }
         else {
             // Only Player 1 is active with multi-controller disabled
@@ -1072,13 +1081,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // Since we can only use a single amplitude value, compute the desired amplitude
         // by taking 75% of the big motor and 25% of the small motor.
         // NB: This value is now 0-255 as required by VibrationEffect.
-        int simulatedAmplitude = (int)(((lowFreqMotor >> 8) * 0.75) + ((highFreqMotor >> 8) * 0.25));
+        short lowFreqMotorMSB = (short)((lowFreqMotor >> 8) & 0xFF);
+        short highFreqMotorMSB = (short)((lowFreqMotor >> 8) & 0xFF);
+        int simulatedAmplitude = (int)((lowFreqMotorMSB * 0.75) + (highFreqMotorMSB * 0.25));
 
         // Attempt to use amplitude-based control if we're on Oreo and the device
         // supports amplitude-based vibration control.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (vibrator.hasAmplitudeControl()) {
-                VibrationEffect effect = VibrationEffect.createOneShot(Long.MAX_VALUE, simulatedAmplitude);
+                VibrationEffect effect = VibrationEffect.createOneShot(60000, simulatedAmplitude);
                 AudioAttributes audioAttributes = new AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_GAME)
                         .build();
@@ -1089,18 +1100,26 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         // If we reach this point, we don't have amplitude controls available, so
         // we must emulate it by PWMing the vibration. Ick.
-        long pwmPeriod = 50;
+        long pwmPeriod = 20;
         long onTime = (long)((simulatedAmplitude / 255.0) * pwmPeriod);
         long offTime = pwmPeriod - onTime;
-        vibrator.vibrate(new long[]{offTime, onTime}, 0);
+        vibrator.vibrate(new long[]{0, onTime, offTime}, 0);
     }
 
     public void handleRumble(short controllerNumber, short lowFreqMotor, short highFreqMotor) {
+        boolean foundMatchingDevice = false;
+        boolean vibrated = false;
+
         for (int i = 0; i < inputDeviceContexts.size(); i++) {
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
 
-            if (deviceContext.controllerNumber == controllerNumber && deviceContext.vibrator != null) {
-                rumbleVibrator(deviceContext.vibrator, lowFreqMotor, highFreqMotor);
+            if (deviceContext.controllerNumber == controllerNumber) {
+                foundMatchingDevice = true;
+
+                if (deviceContext.vibrator != null) {
+                    vibrated = true;
+                    rumbleVibrator(deviceContext.vibrator, lowFreqMotor, highFreqMotor);
+                }
             }
         }
 
@@ -1108,7 +1127,23 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             UsbDeviceContext deviceContext = usbDeviceContexts.valueAt(i);
 
             if (deviceContext.controllerNumber == controllerNumber) {
-                deviceContext.device.rumble(lowFreqMotor, highFreqMotor);
+                foundMatchingDevice = vibrated = true;
+                deviceContext.device.rumble((short)lowFreqMotor, (short)highFreqMotor);
+            }
+        }
+
+        // We may decide to rumble the device for player 1
+        if (controllerNumber == 0) {
+            // If we didn't find a matching device, it must be the on-screen
+            // controls that triggered the rumble. Vibrate the device if
+            // the user has requested that behavior.
+            if (!foundMatchingDevice && prefConfig.onscreenController && !prefConfig.onlyL3R3 && prefConfig.vibrateOsc) {
+                rumbleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
+            }
+            else if (foundMatchingDevice && !vibrated && prefConfig.vibrateFallbackToDevice) {
+                // We found a device to vibrate but it didn't have rumble support. The user
+                // has requested us to vibrate the device in this case.
+                rumbleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
             }
         }
     }

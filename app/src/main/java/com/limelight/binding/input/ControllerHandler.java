@@ -4,8 +4,10 @@ import android.content.Context;
 import android.hardware.input.InputManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.media.AudioAttributes;
 import android.os.Build;
 import android.os.SystemClock;
+import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.SparseArray;
 import android.view.InputDevice;
@@ -1051,7 +1053,36 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     private void rumbleVibrator(Vibrator vibrator, short lowFreqMotor, short highFreqMotor) {
+        if (lowFreqMotor == 0 && highFreqMotor == 0) {
+            // This case is easy - just cancel and get out
+            vibrator.cancel();
+            return;
+        }
 
+        // Since we can only use a single amplitude value, compute the desired amplitude
+        // by taking 75% of the big motor and 25% of the small motor.
+        // NB: This value is now 0-255 as required by VibrationEffect.
+        int simulatedAmplitude = (int)(((lowFreqMotor >> 8) * 0.75) + ((highFreqMotor >> 8) * 0.25));
+
+        // Attempt to use amplitude-based control if we're on Oreo and the device
+        // supports amplitude-based vibration control.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (vibrator.hasAmplitudeControl()) {
+                VibrationEffect effect = VibrationEffect.createOneShot(Long.MAX_VALUE, simulatedAmplitude);
+                AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_GAME)
+                        .build();
+                vibrator.vibrate(effect, audioAttributes);
+                return;
+            }
+        }
+
+        // If we reach this point, we don't have amplitude controls available, so
+        // we must emulate it by PWMing the vibration. Ick.
+        long pwmPeriod = 50;
+        long onTime = (long)((simulatedAmplitude / 255.0) * pwmPeriod);
+        long offTime = pwmPeriod - onTime;
+        vibrator.vibrate(new long[]{offTime, onTime}, 0);
     }
 
     public void handleRumble(short controllerNumber, short lowFreqMotor, short highFreqMotor) {

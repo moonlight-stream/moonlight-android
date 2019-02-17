@@ -156,6 +156,12 @@ public class MoonBridge {
         }
     }
 
+    public static void bridgeClRumble(short controllerNumber, short lowFreqMotor, short highFreqMotor) {
+        if (connectionListener != null) {
+            connectionListener.rumble(controllerNumber, lowFreqMotor, highFreqMotor);
+        }
+    }
+
     public static void setupBridge(VideoDecoderRenderer videoRenderer, AudioRenderer audioRenderer, NvConnectionListener connectionListener) {
         MoonBridge.videoRenderer = videoRenderer;
         MoonBridge.audioRenderer = audioRenderer;

@@ -10,4 +10,6 @@ public interface NvConnectionListener {
 	
 	void displayMessage(String message);
 	void displayTransientMessage(String message);
+
+	void rumble(short controllerNumber, short lowFreqMotor, short highFreqMotor);
 }

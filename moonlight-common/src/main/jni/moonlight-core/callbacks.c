@@ -34,6 +34,7 @@ static jmethodID BridgeClConnectionStartedMethod;
 static jmethodID BridgeClConnectionTerminatedMethod;
 static jmethodID BridgeClDisplayMessageMethod;
 static jmethodID BridgeClDisplayTransientMessageMethod;
+static jmethodID BridgeClRumbleMethod;
 static jbyteArray DecodedFrameBuffer;
 static jbyteArray DecodedAudioBuffer;
 
@@ -94,6 +95,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jclass clazz) {
     BridgeClConnectionTerminatedMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClConnectionTerminated", "(J)V");
     BridgeClDisplayMessageMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClDisplayMessage", "(Ljava/lang/String;)V");
     BridgeClDisplayTransientMessageMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClDisplayTransientMessage", "(Ljava/lang/String;)V");
+    BridgeClRumbleMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClRumble", "(SSS)V");
 }
 
 int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
@@ -363,6 +365,16 @@ void BridgeClDisplayTransientMessage(const char* message) {
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClDisplayTransientMessageMethod, (*env)->NewStringUTF(env, message));
 }
 
+void BridgeClRumble(short controllerNumber, short lowFreqMotor, short highFreqMotor) {
+    JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
+
+    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClRumbleMethod, controllerNumber, lowFreqMotor, highFreqMotor);
+}
+
 void BridgeClLogMessage(const char* format, ...) {
     va_list va;
     va_start(va, format);
@@ -395,6 +407,7 @@ static CONNECTION_LISTENER_CALLBACKS BridgeConnListenerCallbacks = {
         .displayMessage = BridgeClDisplayMessage,
         .displayTransientMessage = BridgeClDisplayTransientMessage,
         .logMessage = BridgeClLogMessage,
+        .rumble = BridgeClRumble
 };
 
 JNIEXPORT jint JNICALL

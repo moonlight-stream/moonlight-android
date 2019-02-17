@@ -1323,12 +1323,30 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return true;
     }
 
+    public void reportOscState(short buttonFlags,
+                               short leftStickX, short leftStickY,
+                               short rightStickX, short rightStickY,
+                               byte leftTrigger, byte rightTrigger) {
+        defaultContext.leftStickX = leftStickX;
+        defaultContext.leftStickY = leftStickY;
+
+        defaultContext.rightStickX = rightStickX;
+        defaultContext.rightStickY = rightStickY;
+
+        defaultContext.leftTrigger = leftTrigger;
+        defaultContext.rightTrigger = rightTrigger;
+
+        defaultContext.inputMap = buttonFlags;
+
+        sendControllerInputPacket(defaultContext);
+    }
+
     @Override
     public void reportControllerState(int controllerId, short buttonFlags,
                                       float leftStickX, float leftStickY,
                                       float rightStickX, float rightStickY,
                                       float leftTrigger, float rightTrigger) {
-        UsbDeviceContext context = usbDeviceContexts.get(controllerId);
+        GenericControllerContext context = usbDeviceContexts.get(controllerId);
         if (context == null) {
             return;
         }

@@ -425,7 +425,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (prefConfig.onscreenController) {
             // create virtual onscreen controller
-            virtualController = new VirtualController(conn,
+            virtualController = new VirtualController(controllerHandler,
                     (FrameLayout)streamView.getParent(),
                     this);
             virtualController.refreshLayout();

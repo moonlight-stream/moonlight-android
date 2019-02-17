@@ -13,6 +13,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.limelight.R;
+import com.limelight.binding.input.ControllerHandler;
 import com.limelight.nvstream.NvConnection;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class VirtualController {
 
     private static final boolean _PRINT_DEBUG_INFORMATION = false;
 
-    private NvConnection connection = null;
+    private ControllerHandler controllerHandler;
     private Context context = null;
 
     private FrameLayout frame_layout = null;
@@ -53,8 +54,8 @@ public class VirtualController {
 
     private List<VirtualControllerElement> elements = new ArrayList<>();
 
-    public VirtualController(final NvConnection conn, FrameLayout layout, final Context context) {
-        this.connection = conn;
+    public VirtualController(final ControllerHandler controllerHandler, FrameLayout layout, final Context context) {
+        this.controllerHandler = controllerHandler;
         this.frame_layout = layout;
         this.context = context;
 
@@ -173,15 +174,15 @@ public class VirtualController {
         _DBG("LEFT STICK X: " + inputContext.leftStickX + " Y: " + inputContext.leftStickY);
         _DBG("RIGHT STICK X: " + inputContext.rightStickX + " Y: " + inputContext.rightStickY);
 
-        if (connection != null) {
-            connection.sendControllerInput(
+        if (controllerHandler != null) {
+            controllerHandler.reportOscState(
                     inputContext.inputMap,
-                    inputContext.leftTrigger,
-                    inputContext.rightTrigger,
                     inputContext.leftStickX,
                     inputContext.leftStickY,
                     inputContext.rightStickX,
-                    inputContext.rightStickY
+                    inputContext.rightStickY,
+                    inputContext.leftTrigger,
+                    inputContext.rightTrigger
             );
         }
     }

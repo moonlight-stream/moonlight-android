@@ -1072,18 +1072,21 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     private void rumbleVibrator(Vibrator vibrator, short lowFreqMotor, short highFreqMotor) {
-        if (lowFreqMotor == 0 && highFreqMotor == 0) {
-            // This case is easy - just cancel and get out
-            vibrator.cancel();
-            return;
-        }
-
         // Since we can only use a single amplitude value, compute the desired amplitude
         // by taking 75% of the big motor and 25% of the small motor.
         // NB: This value is now 0-255 as required by VibrationEffect.
         short lowFreqMotorMSB = (short)((lowFreqMotor >> 8) & 0xFF);
-        short highFreqMotorMSB = (short)((lowFreqMotor >> 8) & 0xFF);
+        short highFreqMotorMSB = (short)((highFreqMotor >> 8) & 0xFF);
         int simulatedAmplitude = (int)((lowFreqMotorMSB * 0.75) + (highFreqMotorMSB * 0.25));
+
+        if (simulatedAmplitude == 0) {
+            // This case is easy - just cancel the current effect and get out.
+            // NB: We cannot simply check lowFreqMotor == highFreqMotor == 0
+            // because our simulatedAmplitude could be 0 even though our inputs
+            // are not (ex: lowFreqMotor == 0 && highFreqMotor == 1).
+            vibrator.cancel();
+            return;
+        }
 
         // Attempt to use amplitude-based control if we're on Oreo and the device
         // supports amplitude-based vibration control.

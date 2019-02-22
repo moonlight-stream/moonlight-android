@@ -134,7 +134,7 @@
     <string name="category_input_settings">Paramètres d\'entrée</string>
     <string name="title_checkbox_multi_controller">Prise en charge de plusieurs contrôleurs</string>
     <string name="summary_checkbox_multi_controller">Lorsqu\'elle n\'est pas cochée, tous les contrôleurs sont regroupés</string>
-    <string name="title_checkbox_vibrate_fallback">Emulez le support de vibration</string>
+    <string name="title_checkbox_vibrate_fallback">Emuler le support de vibration</string>
     <string name="summary_checkbox_vibrate_fallback">Vibre si votre appareil émule une vibration si votre manette de jeu ne le prend pas en charge</string>
     <string name="title_seekbar_deadzone">Régler la zone morte du stick analogique</string>
     <string name="suffix_seekbar_deadzone">%</string>

@@ -68,9 +68,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         this.prefConfig = prefConfig;
         this.deviceVibrator = (Vibrator) activityContext.getSystemService(Context.VIBRATOR_SERVICE);
 
-        // HACK: For now we're hardcoding a 10% deadzone. Some deadzone
+        // HACK: For now we're hardcoding a 7% deadzone. Some deadzone
         // is required for controller batching support to work.
-        int deadzonePercentage = 10;
+        int deadzonePercentage = 7;
 
         int[] ids = InputDevice.getDeviceIds();
         for (int id : ids) {

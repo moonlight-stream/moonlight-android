@@ -1106,7 +1106,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         long pwmPeriod = 20;
         long onTime = (long)((simulatedAmplitude / 255.0) * pwmPeriod);
         long offTime = pwmPeriod - onTime;
-        vibrator.vibrate(new long[]{0, onTime, offTime}, 0);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_GAME)
+                    .build();
+            vibrator.vibrate(new long[]{0, onTime, offTime}, 0, audioAttributes);
+        }
+        else {
+            vibrator.vibrate(new long[]{0, onTime, offTime}, 0);
+        }
     }
 
     public void handleRumble(short controllerNumber, short lowFreqMotor, short highFreqMotor) {

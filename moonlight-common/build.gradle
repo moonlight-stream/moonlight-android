@@ -32,5 +32,5 @@ dependencies {
     // We expose an interface containing a jmDNS class
     // so we need to expose the jmDNS library to users
     // at compile time.
-    api files('libs/jmdns-3.4.2.jar')
+    api 'org.jmdns:jmdns:3.5.5'
 }

@@ -25,3 +25,4 @@
 
 # jMDNS
 -dontwarn javax.jmdns.impl.DNSCache
+-dontwarn org.slf4j.**

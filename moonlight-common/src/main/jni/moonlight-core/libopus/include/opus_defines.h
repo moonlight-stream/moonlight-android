@@ -65,7 +65,7 @@ extern "C" {
 
 #ifndef OPUS_EXPORT
 # if defined(WIN32)
-#  ifdef OPUS_BUILD
+#  if defined(OPUS_BUILD) && defined(DLL_EXPORT)
 #   define OPUS_EXPORT __declspec(dllexport)
 #  else
 #   define OPUS_EXPORT
@@ -165,8 +165,12 @@ extern "C" {
 #define OPUS_GET_EXPERT_FRAME_DURATION_REQUEST 4041
 #define OPUS_SET_PREDICTION_DISABLED_REQUEST 4042
 #define OPUS_GET_PREDICTION_DISABLED_REQUEST 4043
-
 /* Don't use 4045, it's already taken by OPUS_GET_GAIN_REQUEST */
+#define OPUS_SET_PHASE_INVERSION_DISABLED_REQUEST 4046
+#define OPUS_GET_PHASE_INVERSION_DISABLED_REQUEST 4047
+
+/** Defines for the presence of extended APIs. */
+#define OPUS_HAVE_OPUS_PROJECTION_H
 
 /* Macros to trigger compilation errors when the wrong types are provided to a CTL */
 #define __opus_check_int(x) (((void)((x) == (opus_int32)0)), (opus_int32)(x))
@@ -208,6 +212,9 @@ extern "C" {
 #define OPUS_FRAMESIZE_20_MS                 5004 /**< Use 20 ms frames */
 #define OPUS_FRAMESIZE_40_MS                 5005 /**< Use 40 ms frames */
 #define OPUS_FRAMESIZE_60_MS                 5006 /**< Use 60 ms frames */
+#define OPUS_FRAMESIZE_80_MS                 5007 /**< Use 80 ms frames */
+#define OPUS_FRAMESIZE_100_MS                5008 /**< Use 100 ms frames */
+#define OPUS_FRAMESIZE_120_MS                5009 /**< Use 120 ms frames */
 
 /**@}*/
 
@@ -274,7 +281,6 @@ extern "C" {
 /** Enables or disables variable bitrate (VBR) in the encoder.
   * The configured bitrate may not be met exactly because frames must
   * be an integer number of bytes in length.
-  * @warning Only the MDCT mode of Opus can provide hard CBR behavior.
   * @see OPUS_GET_VBR
   * @see OPUS_SET_VBR_CONSTRAINT
   * @param[in] x <tt>opus_int32</tt>: Allowed values:
@@ -490,9 +496,9 @@ extern "C" {
 #define OPUS_GET_INBAND_FEC(x) OPUS_GET_INBAND_FEC_REQUEST, __opus_check_int_ptr(x)
 
 /** Configures the encoder's expected packet loss percentage.
-  * Higher values with trigger progressively more loss resistant behavior in the encoder
-  * at the expense of quality at a given bitrate in the lossless case, but greater quality
-  * under loss.
+  * Higher values trigger progressively more loss resistant behavior in the encoder
+  * at the expense of quality at a given bitrate in the absence of packet loss, but
+  * greater quality under loss.
   * @see OPUS_GET_PACKET_LOSS_PERC
   * @param[in] x <tt>opus_int32</tt>:   Loss percentage in the range 0-100, inclusive (default: 0).
   * @hideinitializer */
@@ -524,7 +530,19 @@ extern "C" {
   * @hideinitializer */
 #define OPUS_GET_DTX(x) OPUS_GET_DTX_REQUEST, __opus_check_int_ptr(x)
 /** Configures the depth of signal being encoded.
+  *
   * This is a hint which helps the encoder identify silence and near-silence.
+  * It represents the number of significant bits of linear intensity below
+  * which the signal contains ignorable quantization or other noise.
+  *
+  * For example, OPUS_SET_LSB_DEPTH(14) would be an appropriate setting
+  * for G.711 u-law input. OPUS_SET_LSB_DEPTH(16) would be appropriate
+  * for 16-bit linear pcm input with opus_encode_float().
+  *
+  * When using opus_encode() instead of opus_encode_float(), or when libopus
+  * is compiled for fixed-point, the encoder uses the minimum of the value
+  * set here and the value 16.
+  *
   * @see OPUS_GET_LSB_DEPTH
   * @param[in] x <tt>opus_int32</tt>: Input precision in bits, between 8 and 24
   *                                   (default: 24).
@@ -545,41 +563,57 @@ extern "C" {
   * packet. The part of the audio that was not encoded needs to be resent to the
   * encoder for the next call. Do not use this option unless you <b>really</b>
   * know what you are doing.
-  * @see OPUS_GET_EXPERT_VARIABLE_DURATION
+  * @see OPUS_GET_EXPERT_FRAME_DURATION
   * @param[in] x <tt>opus_int32</tt>: Allowed values:
   * <dl>
   * <dt>OPUS_FRAMESIZE_ARG</dt><dd>Select frame size from the argument (default).</dd>
   * <dt>OPUS_FRAMESIZE_2_5_MS</dt><dd>Use 2.5 ms frames.</dd>
-  * <dt>OPUS_FRAMESIZE_5_MS</dt><dd>Use 2.5 ms frames.</dd>
+  * <dt>OPUS_FRAMESIZE_5_MS</dt><dd>Use 5 ms frames.</dd>
   * <dt>OPUS_FRAMESIZE_10_MS</dt><dd>Use 10 ms frames.</dd>
   * <dt>OPUS_FRAMESIZE_20_MS</dt><dd>Use 20 ms frames.</dd>
   * <dt>OPUS_FRAMESIZE_40_MS</dt><dd>Use 40 ms frames.</dd>
   * <dt>OPUS_FRAMESIZE_60_MS</dt><dd>Use 60 ms frames.</dd>
-  * <dt>OPUS_FRAMESIZE_VARIABLE</dt><dd>Optimize the frame size dynamically.</dd>
+  * <dt>OPUS_FRAMESIZE_80_MS</dt><dd>Use 80 ms frames.</dd>
+  * <dt>OPUS_FRAMESIZE_100_MS</dt><dd>Use 100 ms frames.</dd>
+  * <dt>OPUS_FRAMESIZE_120_MS</dt><dd>Use 120 ms frames.</dd>
   * </dl>
   * @hideinitializer */
 #define OPUS_SET_EXPERT_FRAME_DURATION(x) OPUS_SET_EXPERT_FRAME_DURATION_REQUEST, __opus_check_int(x)
 /** Gets the encoder's configured use of variable duration frames.
-  * @see OPUS_SET_EXPERT_VARIABLE_DURATION
+  * @see OPUS_SET_EXPERT_FRAME_DURATION
   * @param[out] x <tt>opus_int32 *</tt>: Returns one of the following values:
   * <dl>
   * <dt>OPUS_FRAMESIZE_ARG</dt><dd>Select frame size from the argument (default).</dd>
   * <dt>OPUS_FRAMESIZE_2_5_MS</dt><dd>Use 2.5 ms frames.</dd>
-  * <dt>OPUS_FRAMESIZE_5_MS</dt><dd>Use 2.5 ms frames.</dd>
+  * <dt>OPUS_FRAMESIZE_5_MS</dt><dd>Use 5 ms frames.</dd>
   * <dt>OPUS_FRAMESIZE_10_MS</dt><dd>Use 10 ms frames.</dd>
   * <dt>OPUS_FRAMESIZE_20_MS</dt><dd>Use 20 ms frames.</dd>
   * <dt>OPUS_FRAMESIZE_40_MS</dt><dd>Use 40 ms frames.</dd>
   * <dt>OPUS_FRAMESIZE_60_MS</dt><dd>Use 60 ms frames.</dd>
-  * <dt>OPUS_FRAMESIZE_VARIABLE</dt><dd>Optimize the frame size dynamically.</dd>
+  * <dt>OPUS_FRAMESIZE_80_MS</dt><dd>Use 80 ms frames.</dd>
+  * <dt>OPUS_FRAMESIZE_100_MS</dt><dd>Use 100 ms frames.</dd>
+  * <dt>OPUS_FRAMESIZE_120_MS</dt><dd>Use 120 ms frames.</dd>
   * </dl>
   * @hideinitializer */
 #define OPUS_GET_EXPERT_FRAME_DURATION(x) OPUS_GET_EXPERT_FRAME_DURATION_REQUEST, __opus_check_int_ptr(x)
 
 /** If set to 1, disables almost all use of prediction, making frames almost
-    completely independent. This reduces quality. (default : 0)
+  * completely independent. This reduces quality.
+  * @see OPUS_GET_PREDICTION_DISABLED
+  * @param[in] x <tt>opus_int32</tt>: Allowed values:
+  * <dl>
+  * <dt>0</dt><dd>Enable prediction (default).</dd>
+  * <dt>1</dt><dd>Disable prediction.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_SET_PREDICTION_DISABLED(x) OPUS_SET_PREDICTION_DISABLED_REQUEST, __opus_check_int(x)
 /** Gets the encoder's configured prediction status.
+  * @see OPUS_SET_PREDICTION_DISABLED
+  * @param[out] x <tt>opus_int32 *</tt>: Returns one of the following values:
+  * <dl>
+  * <dt>0</dt><dd>Prediction enabled (default).</dd>
+  * <dt>1</dt><dd>Prediction disabled.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_GET_PREDICTION_DISABLED(x) OPUS_GET_PREDICTION_DISABLED_REQUEST, __opus_check_int_ptr(x)
 
@@ -658,6 +692,30 @@ extern "C" {
   */
 #define OPUS_GET_SAMPLE_RATE(x) OPUS_GET_SAMPLE_RATE_REQUEST, __opus_check_int_ptr(x)
 
+/** If set to 1, disables the use of phase inversion for intensity stereo,
+  * improving the quality of mono downmixes, but slightly reducing normal
+  * stereo quality. Disabling phase inversion in the decoder does not comply
+  * with RFC 6716, although it does not cause any interoperability issue and
+  * is expected to become part of the Opus standard once RFC 6716 is updated
+  * by draft-ietf-codec-opus-update.
+  * @see OPUS_GET_PHASE_INVERSION_DISABLED
+  * @param[in] x <tt>opus_int32</tt>: Allowed values:
+  * <dl>
+  * <dt>0</dt><dd>Enable phase inversion (default).</dd>
+  * <dt>1</dt><dd>Disable phase inversion.</dd>
+  * </dl>
+  * @hideinitializer */
+#define OPUS_SET_PHASE_INVERSION_DISABLED(x) OPUS_SET_PHASE_INVERSION_DISABLED_REQUEST, __opus_check_int(x)
+/** Gets the encoder's configured phase inversion status.
+  * @see OPUS_SET_PHASE_INVERSION_DISABLED
+  * @param[out] x <tt>opus_int32 *</tt>: Returns one of the following values:
+  * <dl>
+  * <dt>0</dt><dd>Stereo phase inversion enabled (default).</dd>
+  * <dt>1</dt><dd>Stereo phase inversion disabled.</dd>
+  * </dl>
+  * @hideinitializer */
+#define OPUS_GET_PHASE_INVERSION_DISABLED(x) OPUS_GET_PHASE_INVERSION_DISABLED_REQUEST, __opus_check_int_ptr(x)
+
 /**@}*/
 
 /** @defgroup opus_decoderctls Decoder related CTLs
@@ -713,6 +771,10 @@ extern "C" {
 OPUS_EXPORT const char *opus_strerror(int error);
 
 /** Gets the libopus version string.
+  *
+  * Applications may look for the substring "-fixed" in the version string to
+  * determine whether they have a fixed-point or floating-point build at
+  * runtime.
   *
   * @returns Version string
   */

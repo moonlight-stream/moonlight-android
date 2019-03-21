@@ -7,6 +7,7 @@ public interface NvConnectionListener {
 	
 	void connectionStarted();
 	void connectionTerminated(long errorCode);
+	void connectionStatusUpdate(int connectionStatus);
 	
 	void displayMessage(String message);
 	void displayTransientMessage(String message);

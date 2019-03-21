@@ -32,9 +32,8 @@ static jmethodID BridgeClStageCompleteMethod;
 static jmethodID BridgeClStageFailedMethod;
 static jmethodID BridgeClConnectionStartedMethod;
 static jmethodID BridgeClConnectionTerminatedMethod;
-static jmethodID BridgeClDisplayMessageMethod;
-static jmethodID BridgeClDisplayTransientMessageMethod;
 static jmethodID BridgeClRumbleMethod;
+static jmethodID BridgeClConnectionStatusUpdateMethod;
 static jbyteArray DecodedFrameBuffer;
 static jbyteArray DecodedAudioBuffer;
 
@@ -93,9 +92,8 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jclass clazz) {
     BridgeClStageFailedMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClStageFailed", "(IJ)V");
     BridgeClConnectionStartedMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClConnectionStarted", "()V");
     BridgeClConnectionTerminatedMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClConnectionTerminated", "(J)V");
-    BridgeClDisplayMessageMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClDisplayMessage", "(Ljava/lang/String;)V");
-    BridgeClDisplayTransientMessageMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClDisplayTransientMessage", "(Ljava/lang/String;)V");
     BridgeClRumbleMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClRumble", "(SSS)V");
+    BridgeClConnectionStatusUpdateMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClConnectionStatusUpdate", "(I)V");
 }
 
 int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
@@ -345,27 +343,7 @@ void BridgeClConnectionTerminated(long errorCode) {
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClConnectionTerminatedMethod, errorCode);
 }
 
-void BridgeClDisplayMessage(const char* message) {
-    JNIEnv* env = GetThreadEnv();
-
-    if ((*env)->ExceptionCheck(env)) {
-        return;
-    }
-
-    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClDisplayMessageMethod, (*env)->NewStringUTF(env, message));
-}
-
-void BridgeClDisplayTransientMessage(const char* message) {
-    JNIEnv* env = GetThreadEnv();
-
-    if ((*env)->ExceptionCheck(env)) {
-        return;
-    }
-
-    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClDisplayTransientMessageMethod, (*env)->NewStringUTF(env, message));
-}
-
-void BridgeClRumble(short controllerNumber, short lowFreqMotor, short highFreqMotor) {
+void BridgeClRumble(unsigned short controllerNumber, unsigned short lowFreqMotor, unsigned short highFreqMotor) {
     JNIEnv* env = GetThreadEnv();
 
     if ((*env)->ExceptionCheck(env)) {
@@ -373,6 +351,16 @@ void BridgeClRumble(short controllerNumber, short lowFreqMotor, short highFreqMo
     }
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClRumbleMethod, controllerNumber, lowFreqMotor, highFreqMotor);
+}
+
+void BridgeClConnectionStatusUpdate(int connectionStatus) {
+    JNIEnv* env = GetThreadEnv();
+
+    if ((*env)->ExceptionCheck(env)) {
+        return;
+    }
+
+    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClConnectionStatusUpdateMethod, connectionStatus);
 }
 
 void BridgeClLogMessage(const char* format, ...) {
@@ -404,10 +392,9 @@ static CONNECTION_LISTENER_CALLBACKS BridgeConnListenerCallbacks = {
         .stageFailed = BridgeClStageFailed,
         .connectionStarted = BridgeClConnectionStarted,
         .connectionTerminated = BridgeClConnectionTerminated,
-        .displayMessage = BridgeClDisplayMessage,
-        .displayTransientMessage = BridgeClDisplayTransientMessage,
         .logMessage = BridgeClLogMessage,
-        .rumble = BridgeClRumble
+        .rumble = BridgeClRumble,
+        .connectionStatusUpdate = BridgeClConnectionStatusUpdate,
 };
 
 JNIEXPORT jint JNICALL

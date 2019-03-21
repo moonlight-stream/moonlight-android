@@ -29,6 +29,9 @@ public class MoonBridge {
     public static final int DR_OK = 0;
     public static final int DR_NEED_IDR = -1;
 
+    public static final int CONN_STATUS_OKAY = 0;
+    public static final int CONN_STATUS_POOR = 1;
+
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;
@@ -144,21 +147,15 @@ public class MoonBridge {
         }
     }
 
-    public static void bridgeClDisplayMessage(String message) {
-        if (connectionListener != null) {
-            connectionListener.displayMessage(message);
-        }
-    }
-
-    public static void bridgeClDisplayTransientMessage(String message) {
-        if (connectionListener != null) {
-            connectionListener.displayTransientMessage(message);
-        }
-    }
-
     public static void bridgeClRumble(short controllerNumber, short lowFreqMotor, short highFreqMotor) {
         if (connectionListener != null) {
             connectionListener.rumble(controllerNumber, lowFreqMotor, highFreqMotor);
+        }
+    }
+
+    public static void bridgeClConnectionStatusUpdate(int connectionStatus) {
+        if (connectionListener != null) {
+            connectionListener.connectionStatusUpdate(connectionStatus);
         }
     }
 

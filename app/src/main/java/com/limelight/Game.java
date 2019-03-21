@@ -1340,6 +1340,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
+    public void connectionStatusUpdate(int connectionStatus) {
+        // TODO
+    }
+
+    @Override
     public void connectionStarted() {
         runOnUiThread(new Runnable() {
             @Override

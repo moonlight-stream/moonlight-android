@@ -84,6 +84,8 @@
     <string name="title_details">Details</string>
     <string name="help">Help</string>
     <string name="delete_pc_msg">Are you sure you want to delete this PC?</string>
+    <string name="slow_connection_msg">Slow connection to PC\nReduce your bitrate</string>
+    <string name="poor_connection_msg">Poor connection to PC</string>
 
     <!-- AppList activity -->
     <string name="applist_connect_msg">Connecting to PC…</string>

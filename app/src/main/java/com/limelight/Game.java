@@ -66,6 +66,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
@@ -111,6 +112,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean grabbedInput = true;
     private boolean grabComboDown = false;
     private StreamView streamView;
+    private TextView notificationOverlayView;
 
     private ShortcutHelper shortcutHelper;
 
@@ -201,6 +203,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView.setOnGenericMotionListener(this);
         streamView.setOnTouchListener(this);
         streamView.setInputCallbacks(this);
+
+        notificationOverlayView = findViewById(R.id.notificationOverlay);
 
         inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
 
@@ -1340,8 +1344,29 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void connectionStatusUpdate(int connectionStatus) {
-        // TODO
+    public void connectionStatusUpdate(final int connectionStatus) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (prefConfig.disableWarnings) {
+                    return;
+                }
+
+                if (connectionStatus == MoonBridge.CONN_STATUS_POOR) {
+                    if (prefConfig.bitrate > 5000) {
+                        notificationOverlayView.setText(getResources().getString(R.string.slow_connection_msg));
+                    }
+                    else {
+                        notificationOverlayView.setText(getResources().getString(R.string.poor_connection_msg));
+                    }
+
+                    notificationOverlayView.setVisibility(View.VISIBLE);
+                }
+                else if (connectionStatus == MoonBridge.CONN_STATUS_OKAY) {
+                    notificationOverlayView.setVisibility(View.GONE);
+                }
+            }
+        });
     }
 
     @Override

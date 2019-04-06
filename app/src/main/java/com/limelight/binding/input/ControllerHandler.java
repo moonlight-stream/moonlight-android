@@ -1073,11 +1073,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     private void rumbleVibrator(Vibrator vibrator, short lowFreqMotor, short highFreqMotor) {
         // Since we can only use a single amplitude value, compute the desired amplitude
-        // by taking 75% of the big motor and 25% of the small motor.
+        // by taking 80% of the big motor and 33% of the small motor, then capping to 255.
         // NB: This value is now 0-255 as required by VibrationEffect.
         short lowFreqMotorMSB = (short)((lowFreqMotor >> 8) & 0xFF);
         short highFreqMotorMSB = (short)((highFreqMotor >> 8) & 0xFF);
-        int simulatedAmplitude = (int)((lowFreqMotorMSB * 0.75) + (highFreqMotorMSB * 0.25));
+        int simulatedAmplitude = Math.min(255, (int)((lowFreqMotorMSB * 0.80) + (highFreqMotorMSB * 0.33)));
 
         if (simulatedAmplitude == 0) {
             // This case is easy - just cancel the current effect and get out.

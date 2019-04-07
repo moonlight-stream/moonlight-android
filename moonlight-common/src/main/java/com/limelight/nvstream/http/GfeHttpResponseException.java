@@ -23,6 +23,6 @@ public class GfeHttpResponseException extends IOException {
 	
 	@Override
 	public String getMessage() {
-		return "GFE error: "+errorMsg+" (Error code: "+errorCode+")";
+		return "GeForce Experience returned error: "+errorMsg+" (Error code: "+errorCode+")";
 	}
 }

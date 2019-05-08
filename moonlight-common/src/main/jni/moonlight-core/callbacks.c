@@ -33,7 +33,7 @@ static jmethodID BridgeClConnectionTerminatedMethod;
 static jmethodID BridgeClRumbleMethod;
 static jmethodID BridgeClConnectionStatusUpdateMethod;
 static jbyteArray DecodedFrameBuffer;
-static jbyteArray DecodedAudioBuffer;
+static jshortArray DecodedAudioBuffer;
 
 void DetachThread(void* context) {
     (*JVM)->DetachCurrentThread(JVM);
@@ -84,7 +84,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jclass clazz) {
     BridgeArStartMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArStart", "()V");
     BridgeArStopMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArStop", "()V");
     BridgeArCleanupMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArCleanup", "()V");
-    BridgeArPlaySampleMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArPlaySample", "([B)V");
+    BridgeArPlaySampleMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArPlaySample", "([S)V");
     BridgeClStageStartingMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClStageStarting", "(I)V");
     BridgeClStageCompleteMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClStageComplete", "(I)V");
     BridgeClStageFailedMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClStageFailed", "(IJ)V");
@@ -224,7 +224,7 @@ int BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusCon
         }
 
         // We know ahead of time what the buffer size will be for decoded audio, so pre-allocate it
-        DecodedAudioBuffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, opusConfig->channelCount * opusConfig->samplesPerFrame * sizeof(short)));
+        DecodedAudioBuffer = (*env)->NewGlobalRef(env, (*env)->NewShortArray(env, opusConfig->channelCount * opusConfig->samplesPerFrame));
     }
 
     return err;
@@ -271,23 +271,23 @@ void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
         return;
     }
 
-    jbyte* decodedData = (*env)->GetByteArrayElements(env, DecodedAudioBuffer, 0);
+    jshort* decodedData = (*env)->GetShortArrayElements(env, DecodedAudioBuffer, 0);
 
     int decodeLen = opus_multistream_decode(Decoder,
                                             (const unsigned char*)sampleData,
                                             sampleLength,
-                                            (opus_int16*)decodedData,
+                                            decodedData,
                                             OpusConfig.samplesPerFrame,
                                             0);
     if (decodeLen > 0) {
         // We must release the array elements first to ensure the data is copied before the callback
-        (*env)->ReleaseByteArrayElements(env, DecodedAudioBuffer, decodedData, 0);
+        (*env)->ReleaseShortArrayElements(env, DecodedAudioBuffer, decodedData, 0);
 
         (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArPlaySampleMethod, DecodedAudioBuffer);
     }
     else {
         // We can abort here to avoid the copy back since no data was modified
-        (*env)->ReleaseByteArrayElements(env, DecodedAudioBuffer, decodedData, JNI_ABORT);
+        (*env)->ReleaseShortArrayElements(env, DecodedAudioBuffer, decodedData, JNI_ABORT);
     }
 }
 

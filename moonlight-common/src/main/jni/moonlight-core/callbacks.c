@@ -8,8 +8,6 @@
 #include <opus_multistream.h>
 #include <android/log.h>
 
-#define PCM_FRAME_SIZE 240
-
 static OpusMSDecoder* Decoder;
 static OPUS_MULTISTREAM_CONFIGURATION OpusConfig;
 
@@ -226,7 +224,7 @@ int BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusCon
         }
 
         // We know ahead of time what the buffer size will be for decoded audio, so pre-allocate it
-        DecodedAudioBuffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, opusConfig->channelCount * PCM_FRAME_SIZE * sizeof(short)));
+        DecodedAudioBuffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, opusConfig->channelCount * opusConfig->samplesPerFrame * sizeof(short)));
     }
 
     return err;
@@ -279,7 +277,7 @@ void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
                                             (const unsigned char*)sampleData,
                                             sampleLength,
                                             (opus_int16*)decodedData,
-                                            PCM_FRAME_SIZE,
+                                            OpusConfig.samplesPerFrame,
                                             0);
     if (decodeLen > 0) {
         // We must release the array elements first to ensure the data is copied before the callback

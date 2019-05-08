@@ -81,3 +81,13 @@ Java_com_limelight_nvstream_jni_MoonBridge_findExternalAddressIP4(JNIEnv *env, j
         return NULL;
     }
 }
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_getPendingAudioFrames(JNIEnv *env, jclass clazz) {
+    return LiGetPendingAudioFrames();
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_getPendingVideoFrames(JNIEnv *env, jclass clazz) {
+    return LiGetPendingVideoFrames();
+}

@@ -1382,10 +1382,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 connected = true;
                 connecting = false;
 
-                // Hide the mouse cursor now. Doing it before
-                // dismissing the spinner seems to be undone
-                // when the spinner gets displayed.
-                inputCaptureProvider.enableCapture();
+                // Hide the mouse cursor now after a short delay.
+                // Doing it before dismissing the spinner seems to be undone
+                // when the spinner gets displayed. On Android Q, even now
+                // is too early to capture. We will delay a second to allow
+                // the spinner to dismiss before capturing.
+                Handler h = new Handler();
+                h.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        inputCaptureProvider.enableCapture();
+                    }
+                }, 1000);
 
                 // Keep the display on
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

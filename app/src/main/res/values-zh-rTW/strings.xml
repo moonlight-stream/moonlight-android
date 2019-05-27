@@ -97,27 +97,51 @@
     <string name="category_basic_settings"> 基本設置 </string>
     <string name="title_resolution_list"> 選擇目標解析度和幀數 </string>
     <string name="summary_resolution_list"> 過高的設定會引起串流卡頓甚至軟體閃退 </string>
-    <string name="title_seekbar_bitrate"> 選擇目標視頻碼率 </string>
+    <string name="title_fps_list">影像幀數</string>
+    <string name="summary_fps_list">增加以提供更流暢的影像串流. 減少以在較低的配備上獲得較好的效能.</string>
+    <string name="title_seekbar_bitrate"> 選擇目標影像碼率 </string>
     <string name="summary_seekbar_bitrate"> 低碼率減少卡頓，高碼率提高畫質 </string>
     <string name="suffix_seekbar_bitrate">Kbps</string>
+    <string name="title_unlock_fps">解鎖所有可使用的幀率</string>
+    <string name="summary_unlock_fps">串流於90或120幀下可以減少高級配備的延遲, 但可能導致無法支持的配備出現延遲或崩潰</string>
     <string name="title_checkbox_stretch_video"> 將畫面拉伸至全屏 </string>
     <string name="title_checkbox_disable_warnings"> 禁用錯誤提示 </string>
     <string name="summary_checkbox_disable_warnings"> 串流過程中禁用連接錯誤提示 </string>
+    <string name="title_checkbox_enable_pip">啟用子母畫面</string>
+    <string name="summary_checkbox_enable_pip">當多工處理時, 允許觀看串流畫面(無法控制)</string>
 
     <string name="category_audio_settings"> 音頻設置 </string>
     <string name="title_checkbox_51_surround"> 啟用 5.1 環繞音效 </string>
     <string name="summary_checkbox_51_surround"> 如果你的聲音聽起來有問題請禁用。\n\n需要GeForce Experience 2.7 或更高版本 </string>
 
+    <string name="category_input_settings">輸入設定</string>
     <string name="title_checkbox_multi_controller"> 啟用多手柄支持 </string>
     <string name="summary_checkbox_multi_controller"> 如果禁用，所有手柄將會認作一個手柄 </string>
-    <string name="title_seekbar_deadzone"> 調整搖桿死區 </string>
+    <string name="title_checkbox_vibrate_fallback">以手機模擬手柄震動</string>
+    <string name="summary_checkbox_vibrate_fallback">當手柄不支援震動時, 以手機來模擬</string>
+    <string name="title_seekbar_deadzone"> 調整手柄死區 </string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One 手柄驅動 </string>
     <string name="summary_checkbox_xb1_driver"> 若要在那些沒有原生Xbox手柄驅動的設備上使用Xbox手柄，請勾上此複選框 </string>
+    <string name="title_checkbox_usb_bind_all">覆蓋Android控制器支援</string>
+    <string name="summary_checkbox_usb_bind_all">強制 Moonlight USB驅動程式接管所有支持的Xbox手柄</string>
+    <string name="title_checkbox_mouse_emulation">透過手柄模擬滑鼠</string>
+    <string name="summary_checkbox_mouse_emulation">長按 [Start] 鍵將會切換至滑鼠模式</string>
+    <string name="title_checkbox_mouse_nav_buttons">Enable back and forward mouse buttons</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Enabling this option may break right clicking on some buggy devices</string>
 
-    <string name="category_on_screen_controls_settings"> 觸屏設置 </string>
+    <string name="category_on_screen_controls_settings"> 觸控設置 </string>
     <string name="title_checkbox_show_onscreen_controls"> 啟用虛擬手柄 </string>
     <string name="summary_checkbox_show_onscreen_controls"> 將在串流畫面上顯示一層虛擬手柄 </string>
+    <string name="title_checkbox_vibrate_osc">啟用震動</string>
+    <string name="summary_checkbox_vibrate_osc">在手機上模擬搖桿震動</string>
+    <string name="title_only_l3r3">只顯示[L3]及[R3]</string>
+    <string name="summary_only_l3r3">隱藏所有虛擬按鈕除了L3和R3</string>
+    <string name="title_reset_osc">重設已經保存的觸控按鈕布局</string>
+    <string name="summary_reset_osc">將所有觸控按鈕重設為默認之大小和位置</string>
+    <string name="dialog_title_reset_osc">重設按鈕布局</string>
+    <string name="dialog_text_reset_osc">你確定要刪除所保存的按鈕布局嗎?</string>
+    <string name="toast_reset_osc_success">按鈕布局已經重設</string>
 
     <string name="category_ui_settings"> 界面設置 </string>
     <string name="title_language_list">語言</string>
@@ -134,7 +158,10 @@
     <string name="summary_checkbox_host_audio"> 將在電腦和本設備同時輸出聲音 </string>
 
     <string name="category_advanced_settings"> 高級設置 </string>
+    <string name="title_disable_frame_drop">永遠不掉幀</string>
+    <string name="summary_disable_frame_drop">在一些手機上可能可以減少micro-stuttering, 但可能導致延遲</string>
     <string name="title_video_format"> H.265設置 </string>
-    <string name="summary_video_format">H.265能降低帶寬需求，但是需要設備支持 </string>
-
+    <string name="summary_video_format">H.265能降低頻寬需求，但是需要設備支持 </string>
+    <string name="title_enable_hdr">啟用 HDR (實驗中)</string>
+    <string name="summary_enable_hdr">啟用 HDR 當遊戲與電腦的顯示卡支援時. HDR 需要 GTX 1000 系列之顯示卡或更高.</string>
 </resources>

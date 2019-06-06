@@ -517,8 +517,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Capture is lost when focus is lost, so it must be requested again
             // when focus is regained.
             if (inputCaptureProvider.isCapturingEnabled() && hasFocus) {
-                // Recapture the pointer if focus was regained
-                streamView.requestPointerCapture();
+                // Recapture the pointer if focus was regained. On Android Q,
+                // we have to delay a bit before requesting capture because otherwise
+                // we'll hit the "requestPointerCapture called for a window that has no focus"
+                // error and it will not actually capture the cursor.
+                Handler h = new Handler();
+                h.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        streamView.requestPointerCapture();
+                    }
+                }, 500);
             }
         }
     }
@@ -1405,7 +1414,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     public void run() {
                         inputCaptureProvider.enableCapture();
                     }
-                }, 1000);
+                }, 500);
 
                 // Keep the display on
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

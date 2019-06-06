@@ -335,17 +335,23 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     private static boolean isExternal(InputDevice dev) {
-        try {
-            // Landroid/view/InputDevice;->isExternal()Z is on the light graylist in Android P
-            return (Boolean)dev.getClass().getMethod("isExternal").invoke(dev);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (ClassCastException e) {
-            e.printStackTrace();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Landroid/view/InputDevice;->isExternal()Z is officially public on Android Q
+            return dev.isExternal();
+        }
+        else {
+            try {
+                // Landroid/view/InputDevice;->isExternal()Z is on the light graylist in Android P
+                return (Boolean)dev.getClass().getMethod("isExternal").invoke(dev);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (ClassCastException e) {
+                e.printStackTrace();
+            }
         }
 
         // Answer true if we don't know

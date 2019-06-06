@@ -474,6 +474,24 @@ public class MediaCodecHelper {
 		
 		return null;
 	}
+
+	private static boolean isCodecBlacklisted(MediaCodecInfo codecInfo) {
+		// Use the new isSoftwareOnly() function on Android Q
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+			if (codecInfo.isSoftwareOnly()) {
+				LimeLog.info("Skipping software-only decoder: "+codecInfo.getName());
+				return true;
+			}
+		}
+
+		// Check for explicitly blacklisted decoders
+		if (isDecoderInList(blacklistedDecoderPrefixes, codecInfo.getName())) {
+			LimeLog.info("Skipping blacklisted decoder: "+codecInfo.getName());
+			return true;
+		}
+
+		return false;
+	}
 	
 	public static MediaCodecInfo findFirstDecoder(String mimeType) {
 		for (MediaCodecInfo codecInfo : getMediaCodecList()) {
@@ -482,15 +500,14 @@ public class MediaCodecHelper {
 				continue;
 			}
 			
-			// Check for explicitly blacklisted decoders
-			if (isDecoderInList(blacklistedDecoderPrefixes, codecInfo.getName())) {
-				LimeLog.info("Skipping blacklisted decoder: "+codecInfo.getName());
-				continue;
-			}
-			
 			// Find a decoder that supports the specified video format
 			for (String mime : codecInfo.getSupportedTypes()) {
 				if (mime.equalsIgnoreCase(mimeType)) {
+					// Skip blacklisted codecs
+					if (isCodecBlacklisted(codecInfo)) {
+						continue;
+					}
+
 					LimeLog.info("First decoder choice is "+codecInfo.getName());
 					return codecInfo;
 				}
@@ -530,16 +547,15 @@ public class MediaCodecHelper {
 				continue;
 			}
 			
-			// Check for explicitly blacklisted decoders
-			if (isDecoderInList(blacklistedDecoderPrefixes, codecInfo.getName())) {
-				LimeLog.info("Skipping blacklisted decoder: "+codecInfo.getName());
-				continue;
-			}
-			
 			// Find a decoder that supports the requested video format
 			for (String mime : codecInfo.getSupportedTypes()) {
 				if (mime.equalsIgnoreCase(mimeType)) {
 					LimeLog.info("Examining decoder capabilities of "+codecInfo.getName());
+
+					// Skip blacklisted codecs
+					if (isCodecBlacklisted(codecInfo)) {
+						//continue;
+					}
 
 					CodecCapabilities caps = codecInfo.getCapabilitiesForType(mime);
 

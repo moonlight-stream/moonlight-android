@@ -30,6 +30,18 @@ public abstract class AbstractXboxController extends AbstractController {
     private Thread createInputThread() {
         return new Thread() {
             public void run() {
+                try {
+                    // Delay for a moment before reporting the new gamepad and
+                    // accepting new input. This allows time for the old InputDevice
+                    // to go away before we reclaim its spot. If the old device is still
+                    // around when we call notifyDeviceAdded(), we won't be able to claim
+                    // the controller number used by the original InputDevice.
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {}
+
+                // Report that we're added _before_ reporting input
+                notifyDeviceAdded();
+
                 while (!isInterrupted() && !stopped) {
                     byte[] buffer = new byte[64];
 
@@ -113,9 +125,6 @@ public abstract class AbstractXboxController extends AbstractController {
         if (!doInit()) {
             return false;
         }
-
-        // Report that we're added _before_ starting the input thread
-        notifyDeviceAdded();
 
         // Start listening for controller input
         inputThread = createInputThread();

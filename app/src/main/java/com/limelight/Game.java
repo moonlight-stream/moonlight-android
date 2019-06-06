@@ -119,7 +119,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private MediaCodecDecoderRenderer decoderRenderer;
     private boolean reportedCrash;
 
-    private WifiManager.WifiLock wifiLock;
+    private WifiManager.WifiLock highPerfWifiLock;
+    private WifiManager.WifiLock lowLatencyWifiLock;
 
     private boolean connectedToUsbDriverService = false;
     private ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
@@ -228,9 +229,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Make sure Wi-Fi is fully powered up
         WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        wifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Limelight");
-        wifiLock.setReferenceCounted(false);
-        wifiLock.acquire();
+        highPerfWifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Moonlight High Perf Lock");
+        highPerfWifiLock.setReferenceCounted(false);
+        highPerfWifiLock.acquire();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            lowLatencyWifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "Moonlight Low Latency Lock");
+            lowLatencyWifiLock.setReferenceCounted(false);
+            lowLatencyWifiLock.acquire();
+        }
 
         String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
         String appName = Game.this.getIntent().getStringExtra(EXTRA_APP_NAME);
@@ -702,7 +709,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             inputManager.unregisterInputDeviceListener(controllerHandler);
         }
 
-        wifiLock.release();
+        if (lowLatencyWifiLock != null) {
+            lowLatencyWifiLock.release();
+        }
+        if (highPerfWifiLock != null) {
+            highPerfWifiLock.release();
+        }
 
         if (connectedToUsbDriverService) {
             // Unbind from the discovery service

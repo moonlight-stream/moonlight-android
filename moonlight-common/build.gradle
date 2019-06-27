@@ -27,8 +27,6 @@ dependencies {
     implementation 'com.squareup.okhttp:okhttp:2.7.5'
     implementation 'com.squareup.okio:okio:1.13.0'
 
-    implementation files('libs/tinyrtsp.jar')
-
     // We expose an interface containing a jmDNS class
     // so we need to expose the jmDNS library to users
     // at compile time.

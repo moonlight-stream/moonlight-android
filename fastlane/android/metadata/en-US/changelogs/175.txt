@@ -1,0 +1,5 @@
+- Updated to target Android Q SDK
+- Requested low latency WiFi behavior on Android Q
+- Fixed mouse capture in multi-window mode on Android Q
+- Updated visual styles to match gesture navigation on Android Q
+- Fixed USB driver issue that could cause player numbers to be wrong

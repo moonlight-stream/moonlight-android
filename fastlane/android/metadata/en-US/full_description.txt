@@ -1,0 +1,46 @@
+This app streams games, programs, or your full desktop from an NVIDIA GameStream-compatible PC on your local network or the Internet using NVIDIA GeForce Experience. Mouse, keyboard, and controller input is sent from your Android device to the PC.
+
+Streaming performance may vary based on your client device and network setup. HDR requires an HDR10-capable device, GTX 1000-series GPU, and HDR10-enabled game.
+
+<b>Features</b>
+&bull; Open-source and completely free (no ads, IAPs, or "Pro")
+&bull; Streams games purchased from any store
+&bull; Works on your home network or over the Internet/LTE
+&bull; Up to 4K 120 FPS HDR streaming with 5.1 surround sound
+&bull; Keyboard and mouse support (with Android 8.0 or rooted device)
+&bull; Supports PS3, PS4, Xbox 360, Xbox One, and Android gamepads
+&bull; Force feedback support
+&bull; Local co-op with up to 4 connected controllers
+&bull; Mouse control via gamepad by long-pressing Start
+
+<b>PC Requirements</b>
+&bull; NVIDIA GeForce GTX/RTX series GPU (<i>GT-series and AMD GPUs aren't supported by NVIDIA GameStream</i>)
+&bull; NVIDIA GeForce Experience (GFE) 2.2.2 or later
+
+<b>Quick Setup Instructions</b>
+&bull; Make sure GeForce Experience is open on your PC. Turn on GameStream in the SHIELD settings page.
+&bull; Tap on the PC in Moonlight and type the PIN on your PC
+&bull; Start streaming!
+
+To have a good experience, you need a mid to high-end wireless router with a good wireless connection to your Android device (5 GHz highly recommended) and a good connection from your PC to your router (Ethernet highly recommended).
+
+<b>Detailed Setup Instructions</b>
+See the full setup guide https://bit.ly/1skHFjN for:
+&bull; Adding a PC manually (if your PC is not detected)
+&bull; Streaming over the Internet or LTE
+&bull; Using a controller connected directly to your PC
+&bull; Streaming your full desktop
+&bull; Adding custom apps to stream
+
+<b>Troubleshooting</b>
+A detailed troubleshooting guide is available here: https://bit.ly/1TO2NLq
+If you still can't solve your issue or just have a question, feel free to send me an email using the address at the bottom of the app listing page.
+
+Disclaimer: This app is not affiliated with NVIDIA Corporation. Please do not contact them for support. Instead, use the troubleshooting link at the bottom of the app description.
+
+For more details on Moonlight, check out the wiki here: https://bit.ly/1X6fySw
+To report issues on our GitHub project, use the bug tracker here: https://bit.ly/1Udghu0
+
+This app is open-source under the GPL. The code can be found here: https://github.com/moonlight-stream/moonlight-android
+
+Legal: All trademarks cited here are the property of their respective owners.

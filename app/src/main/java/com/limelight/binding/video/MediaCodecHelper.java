@@ -554,7 +554,7 @@ public class MediaCodecHelper {
 
 					// Skip blacklisted codecs
 					if (isCodecBlacklisted(codecInfo)) {
-						//continue;
+						continue;
 					}
 
 					CodecCapabilities caps = codecInfo.getCapabilitiesForType(mime);

@@ -95,11 +95,8 @@ public class NvConnection {
 			return false;
 		}
 
+		// May be missing for older servers
 		context.serverGfeVersion = h.getGfeVersion(serverInfo);
-		if (context.serverGfeVersion == null) {
-			context.connListener.displayMessage("Server GFE version malformed");
-			return false;
-		}
 				
 		if (h.getPairState(serverInfo) != PairingManager.PairState.PAIRED) {
 			context.connListener.displayMessage("Device not paired with computer");

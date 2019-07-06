@@ -1,11 +1,7 @@
 package com.limelight.nvstream.http;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.ShortBufferException;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -176,14 +172,6 @@ public class PairingManager {
 		return String.format((Locale)null, "%d%d%d%d",
 				r.nextInt(10), r.nextInt(10),
 				r.nextInt(10), r.nextInt(10));
-	}
-	
-	public PairState getPairState(String serverInfo) throws IOException, XmlPullParserException  {
-		if (!NvHTTP.getXmlString(serverInfo, "PairStatus").equals("1")) {
-			return PairState.NOT_PAIRED;
-		}
-		
-		return PairState.PAIRED;
 	}
 
 	public X509Certificate getPairedCert() {

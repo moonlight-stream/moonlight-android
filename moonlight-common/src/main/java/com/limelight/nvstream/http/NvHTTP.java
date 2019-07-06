@@ -256,13 +256,9 @@ public class NvHTTP {
 
 		// This may be null, but that's okay
 		details.remoteAddress = getXmlString(serverInfo, "ExternalIP");
-		
-		try {
-			details.pairState = Integer.parseInt(getXmlString(serverInfo, "PairStatus")) == 1 ?
-					PairState.PAIRED : PairState.NOT_PAIRED;
-		} catch (NumberFormatException e) {
-			details.pairState = PairState.FAILED;
-		}
+
+		// This has some extra logic to always report unpaired if the pinned cert isn't there
+		details.pairState = getPairState(serverInfo);
 		
 		try {
 			details.runningGameId = getCurrentGame(serverInfo);
@@ -362,11 +358,20 @@ public class NvHTTP {
 	}
 
 	public PairingManager.PairState getPairState() throws IOException, XmlPullParserException {
-		return pm.getPairState(getServerInfo());
+		return getPairState(getServerInfo());
 	}
 
 	public PairingManager.PairState getPairState(String serverInfo) throws IOException, XmlPullParserException {
-		return pm.getPairState(serverInfo);
+		// If we don't have a server cert, we can't be paired even if the host thinks we are
+		if (serverCert == null) {
+			return PairState.NOT_PAIRED;
+		}
+
+		if (!NvHTTP.getXmlString(serverInfo, "PairStatus").equals("1")) {
+			return PairState.NOT_PAIRED;
+		}
+
+		return PairState.PAIRED;
 	}
 	
 	public long getMaxLumaPixelsH264(String serverInfo) throws XmlPullParserException, IOException {

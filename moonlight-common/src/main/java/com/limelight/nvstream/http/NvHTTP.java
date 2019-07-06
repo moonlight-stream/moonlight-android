@@ -278,7 +278,7 @@ public class NvHTTP {
 		// Doing this each time we create a socket is required
 		// to avoid the SSLv3 fallback that causes connection failures
 		try {
-			SSLContext sc = SSLContext.getInstance("TLSv1");
+			SSLContext sc = SSLContext.getInstance("TLS");
 			sc.init(keyManager, trustManager, new SecureRandom());
 			
 			client.setSslSocketFactory(sc.getSocketFactory());

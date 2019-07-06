@@ -148,7 +148,7 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
             SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
 
         try {
-            ContentSigner sigGen = new JcaContentSignerBuilder("SHA1withRSA").setProvider(bcProvider).build(keyPair.getPrivate());
+            ContentSigner sigGen = new JcaContentSignerBuilder("SHA256withRSA").setProvider(bcProvider).build(keyPair.getPrivate());
             cert = new JcaX509CertificateConverter().setProvider(bcProvider).getCertificate(certBuilder.build(sigGen));
             key = (RSAPrivateKey) keyPair.getPrivate();
         } catch (Exception e) {

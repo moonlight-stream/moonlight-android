@@ -8,10 +8,12 @@ import org.jcodec.codecs.h264.io.model.SeqParameterSet;
 import org.jcodec.codecs.h264.io.model.VUIParameters;
 
 import com.limelight.LimeLog;
+import com.limelight.R;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.jni.MoonBridge;
 import com.limelight.preferences.PreferenceConfiguration;
 
+import android.content.Context;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -38,6 +40,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private boolean submittedCsd;
     private boolean submitCsdNextCall;
 
+    private Context context;
     private MediaCodec videoDecoder;
     private Thread rendererThread;
     private boolean needsSpsBitstreamFixup, isExynos4;
@@ -55,6 +58,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private String glRenderer;
     private boolean foreground = true;
     private boolean legacyFrameDropRendering = false;
+    private PerfOverlayListener perfListener;
 
     private boolean needsBaselineSpsHack;
     private SeqParameterSet savedSps;
@@ -63,13 +67,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private long initialExceptionTimestamp;
     private static final int EXCEPTION_REPORT_DELAY_MS = 3000;
 
+    private VideoStats activeWindowVideoStats;
+    private VideoStats lastWindowVideoStats;
+    private VideoStats globalVideoStats;
+
     private long lastTimestampUs;
-    private long decoderTimeMs;
-    private long totalTimeMs;
-    private int totalFramesReceived;
-    private int totalFramesRendered;
-    private int frameLossEvents;
-    private int framesLost;
     private int lastFrameNumber;
     private int refreshRate;
     private PreferenceConfiguration prefs;
@@ -119,16 +121,22 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.renderTarget = renderTarget;
     }
 
-    public MediaCodecDecoderRenderer(PreferenceConfiguration prefs,
+    public MediaCodecDecoderRenderer(Context context, PreferenceConfiguration prefs,
                                      CrashListener crashListener, int consecutiveCrashCount,
                                      boolean meteredData, boolean requestedHdr,
-                                     String glRenderer) {
+                                     String glRenderer, PerfOverlayListener perfListener) {
         //dumpDecoders();
 
+        this.context = context;
         this.prefs = prefs;
         this.crashListener = crashListener;
         this.consecutiveCrashCount = consecutiveCrashCount;
         this.glRenderer = glRenderer;
+        this.perfListener = perfListener;
+
+        this.activeWindowVideoStats = new VideoStats();
+        this.lastWindowVideoStats = new VideoStats();
+        this.globalVideoStats = new VideoStats();
 
         avcDecoder = findAvcDecoder();
         if (avcDecoder != null) {
@@ -311,7 +319,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                         long delta = (renderTimeNanos / 1000000L) - (presentationTimeUs / 1000);
                         if (delta >= 0 && delta < 1000) {
                             if (USE_FRAME_RENDER_TIME) {
-                                totalTimeMs += delta;
+                                activeWindowVideoStats.totalTimeMs += delta;
                             }
                         }
                     }
@@ -421,14 +429,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                 videoDecoder.releaseOutputBuffer(lastIndex, true);
                             }
 
-                            totalFramesRendered++;
+                            activeWindowVideoStats.totalFramesRendered++;
 
                             // Add delta time to the totals (excluding probable outliers)
                             long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
                             if (delta >= 0 && delta < 1000) {
-                                decoderTimeMs += delta;
+                                activeWindowVideoStats.decoderTimeMs += delta;
                                 if (!USE_FRAME_RENDER_TIME) {
-                                    totalTimeMs += delta;
+                                    activeWindowVideoStats.totalTimeMs += delta;
                                 }
                             }
                         } else {
@@ -585,16 +593,56 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return MoonBridge.DR_OK;
         }
 
-        totalFramesReceived++;
-
-        // We can receive the same "frame" multiple times if it's an IDR frame.
-        // In that case, each frame start NALU is submitted independently.
-        if (frameNumber != lastFrameNumber && frameNumber != lastFrameNumber + 1) {
-            framesLost += frameNumber - lastFrameNumber - 1;
-            frameLossEvents++;
+        if (lastFrameNumber == 0) {
+            activeWindowVideoStats.measurementStartTimestamp = System.currentTimeMillis();
+        } else if (frameNumber != lastFrameNumber && frameNumber != lastFrameNumber + 1) {
+            // We can receive the same "frame" multiple times if it's an IDR frame.
+            // In that case, each frame start NALU is submitted independently.
+            activeWindowVideoStats.framesLost += frameNumber - lastFrameNumber - 1;
+            activeWindowVideoStats.totalFrames += frameNumber - lastFrameNumber - 1;
+            activeWindowVideoStats.frameLossEvents++;
         }
 
         lastFrameNumber = frameNumber;
+
+        // Flip stats windows roughly every second
+        if (System.currentTimeMillis() >= activeWindowVideoStats.measurementStartTimestamp + 1000) {
+            if (prefs.enablePerfOverlay) {
+                VideoStats lastTwo = new VideoStats();
+                lastTwo.add(lastWindowVideoStats);
+                lastTwo.add(activeWindowVideoStats);
+                VideoStatsFps fps = lastTwo.getFps();
+                String decoder;
+
+                if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
+                    decoder = avcDecoder.getName();
+                } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
+                    decoder = hevcDecoder.getName();
+                } else {
+                    decoder = "(unknown)";
+                }
+
+                String perfText = context.getString(
+                        R.string.perf_overlay_text,
+                        initialWidth + "x" + initialHeight,
+                        decoder,
+                        fps.totalFps,
+                        fps.receivedFps,
+                        fps.renderedFps,
+                        (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
+                        (float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived,
+                        (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived);
+                perfListener.onPerfUpdate(perfText);
+            }
+
+            globalVideoStats.add(activeWindowVideoStats);
+            lastWindowVideoStats.copy(activeWindowVideoStats);
+            activeWindowVideoStats.clear();
+            activeWindowVideoStats.measurementStartTimestamp = System.currentTimeMillis();
+        }
+
+        activeWindowVideoStats.totalFramesReceived++;
+        activeWindowVideoStats.totalFrames++;
 
         int inputBufferIndex;
         ByteBuffer buf;
@@ -603,7 +651,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         if (!FRAME_RENDER_TIME_ONLY) {
             // Count time from first packet received to decode start
-            totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
+            activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
         }
 
         if (timestampUs <= lastTimestampUs) {
@@ -910,17 +958,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     }
 
     public int getAverageEndToEndLatency() {
-        if (totalFramesReceived == 0) {
+        if (globalVideoStats.totalFramesReceived == 0) {
             return 0;
         }
-        return (int)(totalTimeMs / totalFramesReceived);
+        return (int)(globalVideoStats.totalTimeMs / globalVideoStats.totalFramesReceived);
     }
 
     public int getAverageDecoderLatency() {
-        if (totalFramesReceived == 0) {
+        if (globalVideoStats.totalFramesReceived == 0) {
             return 0;
         }
-        return (int)(decoderTimeMs / totalFramesReceived);
+        return (int)(globalVideoStats.decoderTimeMs / globalVideoStats.totalFramesReceived);
     }
 
     static class DecoderHungException extends RuntimeException {
@@ -981,9 +1029,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Kbps \n";
             str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
-            str += "Total frames received: "+renderer.totalFramesReceived+"\n";
-            str += "Total frames rendered: "+renderer.totalFramesRendered+"\n";
-            str += "Frame losses: "+renderer.framesLost+" in "+renderer.frameLossEvents+" loss events\n";
+            str += "Total frames received: "+renderer.globalVideoStats.totalFramesReceived+"\n";
+            str += "Total frames rendered: "+renderer.globalVideoStats.totalFramesRendered+"\n";
+            str += "Frame losses: "+renderer.globalVideoStats.framesLost+" in "+renderer.globalVideoStats.frameLossEvents+" loss events\n";
             str += "Average end-to-end client latency: "+renderer.getAverageEndToEndLatency()+"ms\n";
             str += "Average hardware decoder latency: "+renderer.getAverageDecoderLatency()+"ms\n";
 

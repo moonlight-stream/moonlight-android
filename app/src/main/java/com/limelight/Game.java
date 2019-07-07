@@ -13,6 +13,7 @@ import com.limelight.binding.input.virtual_controller.VirtualController;
 import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
 import com.limelight.binding.video.MediaCodecHelper;
+import com.limelight.binding.video.PerfOverlayListener;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
@@ -78,7 +79,8 @@ import java.util.Locale;
 
 public class Game extends Activity implements SurfaceHolder.Callback,
     OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
-    OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks
+    OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
+    PerfOverlayListener
 {
     private int lastMouseX = Integer.MIN_VALUE;
     private int lastMouseY = Integer.MIN_VALUE;
@@ -113,6 +115,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean grabComboDown = false;
     private StreamView streamView;
     private TextView notificationOverlayView;
+    private TextView performanceOverlayView;
 
     private ShortcutHelper shortcutHelper;
 
@@ -206,6 +209,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView.setInputCallbacks(this);
 
         notificationOverlayView = findViewById(R.id.notificationOverlay);
+
+        performanceOverlayView = findViewById(R.id.performanceOverlay);
 
         inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
 
@@ -310,7 +315,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             willStreamHdr = false;
         }
 
-        decoderRenderer = new MediaCodecDecoderRenderer(prefConfig,
+        // Check if the user has enabled performance stats overlay
+        if (prefConfig.enablePerfOverlay) {
+            performanceOverlayView.setVisibility(View.VISIBLE);
+        }
+
+        decoderRenderer = new MediaCodecDecoderRenderer(
+                this,
+                prefConfig,
                 new CrashListener() {
                     @Override
                     public void notifyCrash(Exception e) {
@@ -325,8 +337,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 tombstonePrefs.getInt("CrashCount", 0),
                 connMgr.isActiveNetworkMetered(),
                 willStreamHdr,
-                glPrefs.glRenderer
-                );
+                glPrefs.glRenderer,
+                this);
 
         // Don't stream HDR if the decoder can't support it
         if (willStreamHdr && !decoderRenderer.isHevcMain10Hdr10Supported()) {
@@ -1573,5 +1585,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                  (visibility & View.SYSTEM_UI_FLAG_LOW_PROFILE) == 0) {
             hideSystemUi(2000);
         }
+    }
+
+    @Override
+    public void onPerfUpdate(final String text) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                performanceOverlayView.setText(text);
+            }
+        });
     }
 }

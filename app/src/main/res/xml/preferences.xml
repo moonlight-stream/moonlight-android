@@ -171,5 +171,10 @@
             android:title="@string/title_enable_hdr"
             android:summary="@string/summary_enable_hdr"
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_enable_perf_overlay"
+            android:title="@string/title_enable_perf_overlay"
+            android:summary="@string/summary_enable_perf_overlay"
+            android:defaultValue="false"/>
     </PreferenceCategory>
 </PreferenceScreen>

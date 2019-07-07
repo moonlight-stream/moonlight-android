@@ -19,6 +19,7 @@ import com.limelight.utils.Dialog;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
+import com.limelight.utils.TvChannelHelper;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
@@ -50,6 +51,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private AppGridAdapter appGridAdapter;
     private String uuidString;
     private ShortcutHelper shortcutHelper;
+    private TvChannelHelper tvChannelHelper;
 
     private ComputerDetails computer;
     private ComputerManagerService.ApplistPoller poller;
@@ -65,6 +67,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private final static int START_WITH_QUIT = 4;
     private final static int VIEW_DETAILS_ID = 5;
     private final static int CREATE_SHORTCUT_ID = 6;
+    private final static int ADD_TO_TV_CHANNEL = 7;
 
     public final static String NAME_EXTRA = "Name";
     public final static String UUID_EXTRA = "UUID";
@@ -184,6 +187,9 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                             shortcutHelper.disableShortcut(details.uuid,
                                     getResources().getString(R.string.scut_not_paired));
 
+                            //Delete channel of PC for now
+                            tvChannelHelper.deleteChannel(details.uuid);
+
                             // Display a toast to the user and quit the activity
                             Toast.makeText(AppView.this, getResources().getText(R.string.scut_not_paired), Toast.LENGTH_SHORT).show();
                             finish();
@@ -252,6 +258,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         inForeground = true;
 
         shortcutHelper = new ShortcutHelper(this);
+        tvChannelHelper = new TvChannelHelper(this);
 
         UiHelper.setLocale(this);
 
@@ -270,6 +277,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         // Add a launcher shortcut for this PC (forced, since this is user interaction)
         shortcutHelper.createAppViewShortcut(uuidString, computerName, uuidString, true);
         shortcutHelper.reportShortcutUsed(uuidString);
+        tvChannelHelper.createTvChannel(uuidString, computerName);
 
         // Bind to the computer manager service
         bindService(new Intent(this, ComputerManagerService.class), serviceConnection,
@@ -348,7 +356,9 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         }
         menu.add(Menu.NONE, VIEW_DETAILS_ID, 3, getResources().getString(R.string.applist_menu_details));
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (tvChannelHelper.isSupport()) {
+            menu.add(Menu.NONE, ADD_TO_TV_CHANNEL, 4, getResources().getString(R.string.applist_menu_tv_channel));
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Only add an option to create shortcut if box art is loaded
             // and when we're in grid-mode (not list-mode).
             ImageView appImageView = info.targetView.findViewById(R.id.grid_image);
@@ -422,6 +432,10 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 if (!shortcutHelper.createPinnedGameShortcut(uuidString + Integer.valueOf(app.app.getAppId()).toString(), appBits, computer, app.app)) {
                     Toast.makeText(AppView.this, getResources().getString(R.string.unable_to_pin_shortcut), Toast.LENGTH_LONG).show();
                 }
+                return true;
+
+            case ADD_TO_TV_CHANNEL:
+                tvChannelHelper.addGameToChannel(computer, app.app);
                 return true;
 
             default:

@@ -15,7 +15,7 @@ Streaming performance may vary based on your client device and network setup. HD
 
 <b>PC Requirements</b>
 &bull; NVIDIA GeForce GTX/RTX series GPU (<i>GT-series and AMD GPUs aren't supported by NVIDIA GameStream</i>)
-&bull; NVIDIA GeForce Experience (GFE) 2.2.2 or later
+&bull; NVIDIA GeForce Experience (GFE) 2.2.2 or later (requires Microsoft Windows)
 
 <b>Quick Setup Instructions</b>
 &bull; Make sure GeForce Experience is open on your PC. Turn on GameStream in the SHIELD settings page.

@@ -86,7 +86,7 @@
     <string name="delete_pc_msg">Are you sure you want to delete this PC?</string>
     <string name="slow_connection_msg">Slow connection to PC\nReduce your bitrate</string>
     <string name="poor_connection_msg">Poor connection to PC</string>
-    <string name="perf_overlay_text">Video dimensions: %1$s\nDecoder: %2$s\nEstimated host PC frame rate: %3$.2f FPS\nIncoming frame rate from network: %4$.2f FPS\nRendering frame rate: %5$.2f FPS\nFrames dropped by your network connection: %6$.2f%%\nAverage frame time: %7$.2f ms\nAverage decoding time: %8$.2f ms</string>
+    <string name="perf_overlay_text">Video dimensions: %1$s\nDecoder: %2$s\nEstimated host PC frame rate: %3$.2f FPS\nIncoming frame rate from network: %4$.2f FPS\nRendering frame rate: %5$.2f FPS\nFrames dropped by your network connection: %6$.2f%%\nAverage receive time: %7$.2f ms\nAverage decoding time: %8$.2f ms</string>
 
     <!-- AppList activity -->
     <string name="applist_connect_msg">Connecting to PC…</string>
@@ -187,6 +187,6 @@
     <string name="title_enable_hdr">Enable HDR (Experimental)</string>
     <string name="summary_enable_hdr">Stream HDR when the game and PC GPU support it. HDR requires a GTX 1000 series GPU or later.</string>
     <string name="title_enable_perf_overlay">Enable performance overlay</string>
-    <string name="summary_enable_perf_overlay">Display performance stats overlay</string>
+    <string name="summary_enable_perf_overlay">Display an on-screen overlay with real-time performance information while streaming</string>
 
 </resources>

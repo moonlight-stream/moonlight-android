@@ -622,6 +622,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                     decoder = "(unknown)";
                 }
 
+                float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
                 String perfText = context.getString(
                         R.string.perf_overlay_text,
                         initialWidth + "x" + initialHeight,
@@ -630,8 +631,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                         fps.receivedFps,
                         fps.renderedFps,
                         (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
-                        (float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived,
-                        (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived);
+                        ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
+                        decodeTimeMs);
                 perfListener.onPerfUpdate(perfText);
             }
 

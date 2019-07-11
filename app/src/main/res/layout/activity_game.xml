@@ -11,6 +11,17 @@
         android:layout_gravity="center" />
 
     <TextView
+        android:id="@+id/performanceOverlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="3dp"
+        android:layout_gravity="left"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textSize="@dimen/font_size_tiny"
+        android:gravity="left"
+        android:visibility="gone" />
+
+    <TextView
         android:id="@+id/notificationOverlay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -25,6 +25,7 @@ import com.limelight.utils.Dialog;
 import com.limelight.utils.HelpLauncher;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
+import com.limelight.utils.TvChannelHelper;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
@@ -62,6 +63,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
     private ShortcutHelper shortcutHelper;
+    private TvChannelHelper tvChannelHelper;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private boolean freezeUpdates, runningPolling, inForeground, completeOnCreateCalled;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
@@ -215,6 +217,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         completeOnCreateCalled = true;
 
         shortcutHelper = new ShortcutHelper(this);
+        tvChannelHelper = new TvChannelHelper(this);
 
         UiHelper.setLocale(this);
 
@@ -636,6 +639,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 // Disable or delete shortcuts referencing this PC
                 shortcutHelper.disableShortcut(details.uuid,
                         getResources().getString(R.string.scut_deleted_pc));
+
+                //Delete channel of PC
+                tvChannelHelper.deleteChannel(details.uuid);
 
                 pcGridAdapter.removeComputer(computer);
                 pcGridAdapter.notifyDataSetChanged();

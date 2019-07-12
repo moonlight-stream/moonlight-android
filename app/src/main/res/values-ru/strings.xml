@@ -66,6 +66,7 @@
     <string name="applist_menu_quit">Выйти из сессии</string>
     <string name="applist_menu_quit_and_start">Выйти из текущей игры и запустить</string>
     <string name="applist_menu_cancel">Отмена</string>
+    <string name="applist_menu_tv_channel">Добавать на канал</string>
     <string name="applist_refresh_title">Список приложений</string>
     <string name="applist_refresh_msg">Обновление приложений…</string>
     <string name="applist_refresh_error_title">Ошибка</string>

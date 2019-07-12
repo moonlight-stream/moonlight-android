@@ -1,12 +1,12 @@
 package com.limelight.utils;
 
 import android.annotation.TargetApi;
-import android.app.UiModeManager;
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
@@ -21,97 +21,89 @@ import com.limelight.LimeLog;
 import com.limelight.PosterContentProvider;
 import com.limelight.R;
 import com.limelight.ShortcutTrampoline;
-import com.limelight.nvstream.http.ComputerDetails;
-import com.limelight.nvstream.http.NvApp;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-@TargetApi(Build.VERSION_CODES.O)
 public class TvChannelHelper {
 
     private static final int ASPECT_RATIO_MOVIE_POSTER = 5;
     private static final int TYPE_GAME = 12;
-    public static final String[] CHANNEL_PROJECTION = {TvContract.Channels._ID, TvContract.Channels.COLUMN_INTERNAL_PROVIDER_ID};
-    public static final int INTERNAL_PROVIDER_ID_INDEX = 1;
-    public static final int ID_INDEX = 0;
-    private Context context;
+    private static final int INTERNAL_PROVIDER_ID_INDEX = 1;
+    private static final int ID_INDEX = 0;
+    private Activity context;
 
-    public TvChannelHelper(Context context) {
+    public TvChannelHelper(Activity context) {
         this.context = context;
     }
 
-    public boolean createTvChannel(String computerUuid, String computerName) {
-        if (!isSupport()) {
-            return false;
+    void requestChannelOnHomeScreen(String computerUuid) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!isAndroidTV()) {
+                return;
+            }
+
+            Long channelId = getChannelId(computerUuid);
+            if (channelId == null) {
+                return;
+            }
+
+            Intent intent = new Intent(TvContract.ACTION_REQUEST_CHANNEL_BROWSABLE);
+            intent.putExtra(TvContract.EXTRA_CHANNEL_ID, getChannelId(computerUuid));
+            try {
+                context.startActivityForResult(intent, 0);
+            } catch (ActivityNotFoundException e) {
+            }
         }
-
-        Intent i = new Intent(context, ShortcutTrampoline.class);
-        i.putExtra(AppView.NAME_EXTRA, computerName);
-        i.putExtra(AppView.UUID_EXTRA, computerUuid);
-        i.setAction(Intent.ACTION_DEFAULT);
-        ChannelBuilder builder = new ChannelBuilder()
-                .setType(TvContract.Channels.TYPE_PREVIEW)
-                .setDisplayName(computerName)
-                .setInternalProviderId(computerUuid)
-                .setAppLinkIntent(i);
-
-        Long channelId = getChannelId(computerUuid);
-
-
-        if (channelId != null) {
-            context.getContentResolver().update(TvContract.buildChannelUri(channelId),
-                    builder.toContentValues(), null, null);
-            return false;
-        }
-
-
-        Uri channelUri = context.getContentResolver().insert(
-                TvContract.Channels.CONTENT_URI, builder.toContentValues());
-
-
-        if (channelUri != null) {
-            long id = ContentUris.parseId(channelUri);
-            updateChannelIcon(id);
-            return true;
-        }
-        return false;
     }
 
-    private void updateChannelIcon(long id) {
-        Bitmap bitmap = drawableToBitmap(context.getResources().getDrawable(R.drawable.ic_channel));
+    void createTvChannel(String computerUuid, String computerName) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!isAndroidTV()) {
+                return;
+            }
+
+            Intent i = new Intent(context, ShortcutTrampoline.class);
+            i.putExtra(AppView.NAME_EXTRA, computerName);
+            i.putExtra(AppView.UUID_EXTRA, computerUuid);
+            i.setAction(Intent.ACTION_DEFAULT);
+            ChannelBuilder builder = new ChannelBuilder()
+                    .setType(TvContract.Channels.TYPE_PREVIEW)
+                    .setDisplayName(computerName)
+                    .setInternalProviderId(computerUuid)
+                    .setAppLinkIntent(i);
+
+            Long channelId = getChannelId(computerUuid);
+            if (channelId != null) {
+                context.getContentResolver().update(TvContract.buildChannelUri(channelId),
+                        builder.toContentValues(), null, null);
+                return;
+            }
+
+            Uri channelUri = context.getContentResolver().insert(
+                    TvContract.Channels.CONTENT_URI, builder.toContentValues());
+            if (channelUri != null) {
+                long id = ContentUris.parseId(channelUri);
+                updateChannelIcon(id);
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private void updateChannelIcon(long channelId) {
+        Bitmap logo = drawableToBitmap(context.getResources().getDrawable(R.drawable.ic_channel));
         try {
-            storeChannelLogo(id, bitmap);
+            Uri localUri = TvContract.buildChannelLogoUri(channelId);
+            try (OutputStream outputStream = context.getContentResolver().openOutputStream(localUri)) {
+                logo.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+                outputStream.flush();
+            } catch (SQLiteException | IOException e) {
+                LimeLog.warning("Failed to store the logo to the system content provider.");
+                e.printStackTrace();
+            }
         } finally {
-            bitmap.recycle();
+            logo.recycle();
         }
-    }
-
-
-    /**
-     * Stores the given channel logo {@link Bitmap} in the system content provider and associate
-     * it with the given channel ID.
-     *
-     * @param channelId the ID of the target channel with which the given logo should be associated
-     * @param logo      the logo image to be stored
-     * @return {@code true} if successfully stored the logo in the system content provider,
-     * otherwise {@code false}.
-     */
-    private boolean storeChannelLogo(long channelId,
-                                     Bitmap logo) {
-        if (!isSupport()) {
-            return false;
-        }
-        boolean result = false;
-        Uri localUri = TvContract.buildChannelLogoUri(channelId);
-        try (OutputStream outputStream = context.getContentResolver().openOutputStream(localUri)) {
-            result = logo.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
-            outputStream.flush();
-        } catch (SQLiteException | IOException e) {
-            LimeLog.warning("Failed to store the logo to the system content provider.");
-            e.printStackTrace();
-        }
-        return result;
     }
 
     private Bitmap drawableToBitmap(Drawable drawable) {
@@ -125,59 +117,62 @@ public class TvChannelHelper {
         return bitmap;
     }
 
+    void addGameToChannel(String computerUuid, String computerName, String appId, String appName) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!isAndroidTV()) {
+                return;
+            }
 
-    public boolean addGameToChannel(String computerUuid, String computerName, String appId, String appName) {
-        if (!isSupport()) {
-            return false;
+            PreviewProgramBuilder builder = new PreviewProgramBuilder();
+            Intent i = new Intent(context, ShortcutTrampoline.class);
+
+            i.putExtra(AppView.NAME_EXTRA, computerName);
+            i.putExtra(AppView.UUID_EXTRA, computerUuid);
+            i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, appId);
+            i.setAction(Intent.ACTION_DEFAULT);
+
+            Uri resourceURI = PosterContentProvider.createBoxArtUri(computerUuid, appId);
+
+            Long channelId = getChannelId(computerUuid);
+            if (channelId == null) {
+                return;
+            }
+
+            builder.setChannelId(channelId)
+                    .setType(TYPE_GAME)
+                    .setTitle(appName)
+                    .setPosterArtAspectRatio(ASPECT_RATIO_MOVIE_POSTER)
+                    .setPosterArtUri(resourceURI)
+                    .setIntent(i)
+                    .setInternalProviderId(appId);
+
+            context.getContentResolver().insert(TvContract.PreviewPrograms.CONTENT_URI,
+                    builder.toContentValues());
+
+            TvContract.requestChannelBrowsable(context, channelId);
         }
-
-        PreviewProgramBuilder builder = new PreviewProgramBuilder();
-        Intent i = new Intent(context, ShortcutTrampoline.class);
-
-        i.putExtra(AppView.NAME_EXTRA, computerName);
-        i.putExtra(AppView.UUID_EXTRA, computerUuid);
-        i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, appId);
-        i.setAction(Intent.ACTION_DEFAULT);
-
-        Uri resourceURI = PosterContentProvider.createBoxArtUri(computerUuid, appId);
-
-        Long channelId = getChannelId(computerUuid);
-
-
-        if (channelId == null) {
-            return false;
-        }
-        builder.setChannelId(channelId)
-                .setType(TYPE_GAME)
-                .setTitle(appName)
-                .setPosterArtAspectRatio(ASPECT_RATIO_MOVIE_POSTER)
-                .setPosterArtUri(resourceURI)
-                .setIntent(i)
-                .setInternalProviderId(appId);
-        Uri programUri = context.getContentResolver().insert(TvContract.PreviewPrograms.CONTENT_URI,
-                builder.toContentValues());
-
-
-        TvContract.requestChannelBrowsable(context, channelId);
-        return programUri != null;
     }
 
-    public boolean deleteChannel(String computerUuid) {
-        if (!isSupport()) {
-            return false;
-        }
-        Long channelId = getChannelId(computerUuid);
-        if (channelId == null) {
-            return false;
-        }
-        Uri uri = TvContract.buildChannelUri(channelId);
-        return context.getContentResolver().delete(uri, null, null) > 0;
+    void deleteChannel(String computerUuid) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!isAndroidTV()) {
+                return;
+            }
 
+            Long channelId = getChannelId(computerUuid);
+            if (channelId == null) {
+                return;
+            }
+            Uri uri = TvContract.buildChannelUri(channelId);
+            context.getContentResolver().delete(uri, null, null);
+        }
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @TargetApi(Build.VERSION_CODES.O)
     private Long getChannelId(String computerUuid) {
         Uri uri = TvContract.Channels.CONTENT_URI;
+        final String[] CHANNEL_PROJECTION = {TvContract.Channels._ID, TvContract.Channels.COLUMN_INTERNAL_PROVIDER_ID};
+
         Cursor cursor = context.getContentResolver().query(uri,
                 CHANNEL_PROJECTION,
                 null,
@@ -202,11 +197,6 @@ public class TvChannelHelper {
         }
     }
 
-
-    public void addGameToChannel(ComputerDetails computer, NvApp app) {
-        addGameToChannel(computer.uuid, computer.name, String.valueOf(app.getAppId()), app.getAppName());
-    }
-
     private static <T> String toValueString(T value) {
         return value == null ? null : value.toString();
     }
@@ -215,15 +205,12 @@ public class TvChannelHelper {
         return intent == null ? null : intent.toUri(Intent.URI_INTENT_SCHEME);
     }
 
-    public boolean isSupport() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return false;
-        }
-
-        UiModeManager uiModeManager = (UiModeManager) context.getSystemService(Context.UI_MODE_SERVICE);
-        return uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
+    @TargetApi(Build.VERSION_CODES.O)
+    public boolean isAndroidTV() {
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
     }
 
+    @TargetApi(Build.VERSION_CODES.O)
     private static class PreviewProgramBuilder {
 
         private ContentValues mValues = new ContentValues();
@@ -275,6 +262,7 @@ public class TvChannelHelper {
 
     }
 
+    @TargetApi(Build.VERSION_CODES.O)
     private static class ChannelBuilder {
 
         private ContentValues mValues = new ContentValues();

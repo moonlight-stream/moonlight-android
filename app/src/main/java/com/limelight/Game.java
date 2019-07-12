@@ -268,10 +268,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return;
         }
 
-        // Add a launcher shortcut for this PC (forced, since this is user interaction)
+        // Report this shortcut being used
         shortcutHelper = new ShortcutHelper(this);
-        shortcutHelper.createAppViewShortcut(uuid, pcName, uuid, true);
         shortcutHelper.reportShortcutUsed(uuid);
+        if (appName != null) {
+            shortcutHelper.reportGameLaunched(uuid, pcName, ""+appId, appName);
+        }
 
         // Initialize the MediaCodec helper before creating the decoder
         GlPreferences glPrefs = GlPreferences.readPreferences(this);
@@ -412,7 +414,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
                 .setRefreshRate(prefConfig.fps)
-                .setApp(new NvApp(appName, appId, willStreamHdr))
+                .setApp(new NvApp(appName != null ? appName : "app", appId, willStreamHdr))
                 .setBitrate(prefConfig.bitrate)
                 .setEnableSops(prefConfig.enableSops)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)

@@ -1,7 +1,7 @@
 package com.limelight.utils;
 
 import android.annotation.TargetApi;
-import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
@@ -22,9 +22,10 @@ import java.util.List;
 public class ShortcutHelper {
 
     private final ShortcutManager sm;
-    private final Context context;
+    private final Activity context;
+    private final TvChannelHelper tvChannelHelper;
 
-    public ShortcutHelper(Context context) {
+    public ShortcutHelper(Activity context) {
         this.context = context;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             sm = context.getSystemService(ShortcutManager.class);
@@ -32,6 +33,7 @@ public class ShortcutHelper {
         else {
             sm = null;
         }
+        this.tvChannelHelper = new TvChannelHelper(context);
     }
 
     @TargetApi(Build.VERSION_CODES.N_MR1)
@@ -80,15 +82,20 @@ public class ShortcutHelper {
         return false;
     }
 
-    public void reportShortcutUsed(String id) {
+    public void reportShortcutUsed(String computerUuid) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            if (getInfoForId(id) != null) {
-                sm.reportShortcutUsed(id);
+            if (getInfoForId(computerUuid) != null) {
+                sm.reportShortcutUsed(computerUuid);
             }
         }
     }
 
-    public void createAppViewShortcut(String id, String computerName, String computerUuid, boolean forceAdd) {
+    public void reportGameLaunched(String computerUuid, String computerName, String appId, String appName) {
+        tvChannelHelper.createTvChannel(computerUuid, computerName);
+        tvChannelHelper.addGameToChannel(computerUuid, computerName, appId, appName);
+    }
+
+    public void createAppViewShortcut(String id, String computerName, String computerUuid, boolean forceAdd, boolean newlyPaired) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             Intent i = new Intent(context, ShortcutTrampoline.class);
             i.putExtra(AppView.NAME_EXTRA, computerName);
@@ -122,10 +129,16 @@ public class ShortcutHelper {
                 }
             }
         }
+
+        if (newlyPaired) {
+            // Avoid hammering the channel API for each computer poll because it will throttle us
+            tvChannelHelper.createTvChannel(computerUuid, computerName);
+            tvChannelHelper.requestChannelOnHomeScreen(computerUuid);
+        }
     }
 
-    public void createAppViewShortcut(String id, ComputerDetails details, boolean forceAdd) {
-        createAppViewShortcut(id, details.name, details.uuid, forceAdd);
+    public void createAppViewShortcutForOnlineHost(ComputerDetails details) {
+        createAppViewShortcut(details.uuid, details.name, details.uuid, false, false);
     }
 
     @TargetApi(Build.VERSION_CODES.O)
@@ -161,10 +174,11 @@ public class ShortcutHelper {
         return createPinnedGameShortcut(id, iconBits, cDetails.name, cDetails.uuid, app.getAppName(), Integer.valueOf(app.getAppId()).toString());
     }
 
-    public void disableShortcut(String id, CharSequence reason) {
+    public void disableShortcut(String uuid, CharSequence reason) {
+        tvChannelHelper.deleteChannel(uuid);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            if (getInfoForId(id) != null) {
-                sm.disableShortcuts(Collections.singletonList(id), reason);
+            if (getInfoForId(uuid) != null) {
+                sm.disableShortcuts(Collections.singletonList(uuid), reason);
             }
         }
     }

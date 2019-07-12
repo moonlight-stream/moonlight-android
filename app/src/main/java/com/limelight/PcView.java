@@ -25,7 +25,6 @@ import com.limelight.utils.Dialog;
 import com.limelight.utils.HelpLauncher;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
-import com.limelight.utils.TvChannelHelper;
 import com.limelight.utils.UiHelper;
 
 import android.app.Activity;
@@ -63,7 +62,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
     private ShortcutHelper shortcutHelper;
-    private TvChannelHelper tvChannelHelper;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private boolean freezeUpdates, runningPolling, inForeground, completeOnCreateCalled;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
@@ -217,7 +215,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         completeOnCreateCalled = true;
 
         shortcutHelper = new ShortcutHelper(this);
-        tvChannelHelper = new TvChannelHelper(this);
 
         UiHelper.setLocale(this);
 
@@ -443,7 +440,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
                         if (toastSuccess) {
                             // Open the app list after a successful pairing attempt
-                            doAppList(computer);
+                            doAppList(computer, true);
                         }
                         else {
                             // Start polling again if we're still in the foreground
@@ -542,7 +539,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }).start();
     }
 
-    private void doAppList(ComputerDetails computer) {
+    private void doAppList(ComputerDetails computer, boolean newlyPaired) {
         if (computer.state == ComputerDetails.State.OFFLINE) {
             Toast.makeText(PcView.this, getResources().getString(R.string.error_pc_offline), Toast.LENGTH_SHORT).show();
             return;
@@ -555,6 +552,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         Intent i = new Intent(this, AppView.class);
         i.putExtra(AppView.NAME_EXTRA, computer.name);
         i.putExtra(AppView.UUID_EXTRA, computer.uuid);
+        i.putExtra(AppView.NEW_PAIR_EXTRA, newlyPaired);
         startActivity(i);
     }
 
@@ -594,7 +592,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 return true;
 
             case APP_LIST_ID:
-                doAppList(computer.details);
+                doAppList(computer.details, false);
                 return true;
 
             case RESUME_ID:
@@ -640,9 +638,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 shortcutHelper.disableShortcut(details.uuid,
                         getResources().getString(R.string.scut_deleted_pc));
 
-                //Delete channel of PC
-                tvChannelHelper.deleteChannel(details.uuid);
-
                 pcGridAdapter.removeComputer(computer);
                 pcGridAdapter.notifyDataSetChanged();
 
@@ -671,7 +666,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         // Add a launcher shortcut for this PC
         if (details.pairState == PairState.PAIRED) {
-            shortcutHelper.createAppViewShortcut(details.uuid, details, false);
+            shortcutHelper.createAppViewShortcutForOnlineHost(details);
         }
 
         if (existingEntry != null) {
@@ -713,7 +708,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     // Pair an unpaired machine by default
                     doPair(computer.details);
                 } else {
-                    doAppList(computer.details);
+                    doAppList(computer.details, false);
                 }
             }
         });

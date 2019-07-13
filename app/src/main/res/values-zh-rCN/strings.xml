@@ -136,5 +136,28 @@
     <string name="category_advanced_settings"> 高级设置 </string>
     <string name="title_video_format"> H.265设置 </string>
     <string name="summary_video_format">H.265能降低带宽需求，但是需要设备支持 </string>
+    <string name="applist_menu_scut">创建快捷方式</string>
+    <string name="category_input_settings">输入设置</string>
+    <string name="applist_menu_details">查看详情</string>
+    <string name="dialog_text_reset_osc">你确定要删除所保存的按钮布局吗?</string>
+    <string name="dialog_title_reset_osc">重置按钮布局</string>
+    <string name="delete_pc_msg">你确定要删除这台电脑?</string>
+    <string name="pcview_menu_details">查看详情</string>
+    <string name="scut_pc_not_found">电脑无法找到</string>
+    <string name="toast_reset_osc_success">按钮布局已经重置</string>
+    <string name="title_fps_list">视频帧数</string>
+    <string name="title_unlock_fps">解锁所有可用帧数</string>
+    <string name="title_only_l3r3">只显示[L3]和[R3]</string>
+    <string name="title_reset_osc">重置已经保存的触摸按钮布局</string>
+    <string name="title_disable_frame_drop">永不掉帧</string>
+    <string name="title_enable_hdr">启用 HDR (实验)</string>
+    <string name="title_checkbox_vibrate_osc">启动震动</string>
+    <string name="title_details">详情</string>
+    <string name="title_decoding_reset">重置视频设置</string>
+    <string name="title_checkbox_mouse_emulation">通过手柄模拟鼠标</string>
+    <string name="summary_only_l3r3">隐藏所有虚拟按钮除了L3和R3</string>
+    <string name="title_enable_perf_overlay">启用性能信息</string>
+    <string name="summary_enable_perf_overlay">在串流中显示实时性能信息</string>
+    <string name="perf_overlay_text">视频分辨率: %1$s\n解码器: %2$s\n估计主机帧数: %3$.2f FPS\n网络接收帧数: %4$.2f FPS\n渲染帧数: %5$.2f FPS\n网络丢失帧: %6$.2f%%\n平均接收时间: %7$.2f ms\n平均解码时间: %8$.2f ms</string>
 
 </resources>

@@ -302,15 +302,15 @@ public class ComputerManagerService extends Service {
                 // Populate the computer template with mDNS info
                 if (computer.getAddressV4() != null) {
                     details.localAddress = computer.getAddressV4().getHostAddress();
+
+                    // Since we're on the same network, we can use STUN to find
+                    // our WAN address, which is also very likely the WAN address
+                    // of the PC. We can use this later to connect remotely.
+                    details.remoteAddress = NvConnection.findExternalAddressForMdns("stun.moonlight-stream.org", 3478);
                 }
                 if (computer.getAddressV6() != null) {
                     details.ipv6Address = computer.getAddressV6().getHostAddress();
                 }
-
-                // Since we're on the same network, we can use STUN to find
-                // our WAN address, which is also very likely the WAN address
-                // of the PC. We can use this later to connect remotely.
-                details.remoteAddress = NvConnection.findExternalAddressForMdns("stun.moonlight-stream.org", 3478);
 
                 // Kick off a serverinfo poll on this machine
                 if (!addComputerBlocking(details)) {

@@ -11,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.R;
+import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
@@ -98,7 +99,9 @@ public class AddComputerManually extends Activity {
             getResources().getString(R.string.msg_add_pc), false);
 
         try {
-            success = managerBinder.addComputerBlocking(host, true);
+            ComputerDetails details = new ComputerDetails();
+            details.manualAddress = host;
+            success = managerBinder.addComputerBlocking(details);
         } catch (IllegalArgumentException e) {
             // This can be thrown from OkHttp if the host fails to canonicalize to a valid name.
             // https://github.com/square/okhttp/blob/okhttp_27/okhttp/src/main/java/com/squareup/okhttp/HttpUrl.java#L705

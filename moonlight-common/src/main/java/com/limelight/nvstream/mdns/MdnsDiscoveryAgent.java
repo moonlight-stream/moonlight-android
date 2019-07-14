@@ -87,7 +87,6 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 		public boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress) {
 			// This is an copy of jmDNS's implementation, except we omit the multicast check, since
 			// it seems at least some devices lie about interfaces not supporting multicast when they really do.
-			// We also will skip IPv6 addresses since GeForce Experience doesn't listen on IPv6 ports.
 			try {
 				if (!networkInterface.isUp()) {
 					return false;
@@ -98,10 +97,6 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 					return false;
 				}
 				*/
-
-				if (interfaceAddress instanceof Inet6Address) {
-					return false;
-				}
 
 				if (networkInterface.isLoopback()) {
 					return false;
@@ -136,7 +131,7 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 			return instance;
 		}
 	}
-	
+
 	private static void dereferenceResolver() {
 		synchronized (MdnsDiscoveryAgent.class) {
 			if (--resolverRefCount == 0) {
@@ -146,11 +141,11 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 			}
 		}
 	}
-	
+
 	public MdnsDiscoveryAgent(MdnsDiscoveryListener listener) {
 		this.listener = listener;
 	}
-	
+
 	private void handleResolvedServiceInfo(ServiceInfo info) {
 		synchronized (pendingResolution) {
 			pendingResolution.remove(info.getName());
@@ -164,17 +159,85 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 			return;
 		}
 	}
-	
-	private void handleServiceInfo(ServiceInfo info) throws UnsupportedEncodingException {	
+
+	private Inet6Address getBestIpv6Address(Inet6Address[] addresses) {
+		// First try to find a link local address, so we can match the interface identifier
+		// with a global address (this will work for SLAAC but not DHCPv6).
+		Inet6Address linkLocalAddr = null;
+		for (Inet6Address addr : addresses) {
+			if (addr.isLinkLocalAddress()) {
+				LimeLog.info("Found link-local address: "+addr.getHostAddress());
+				linkLocalAddr = addr;
+				break;
+			}
+		}
+
+		// We will try once to match a SLAAC interface suffix, then
+		// pick the first matching address
+		for (int tries = 0; tries < 2; tries++) {
+			// We assume the addresses are already sorted in descending order
+			// of preference from Bonjour.
+			for (Inet6Address addr : addresses) {
+				if (addr.isLinkLocalAddress() || addr.isSiteLocalAddress() || addr.isLoopbackAddress()) {
+					// Link-local, site-local, and loopback aren't global
+					LimeLog.info("Ignoring non-global address: "+addr.getHostAddress());
+					continue;
+				}
+
+				byte[] addrBytes = addr.getAddress();
+
+				// 2002::/16
+				if (addrBytes[0] == 0x20 && addrBytes[1] == 0x02) {
+					// 6to4 has horrible performance
+					LimeLog.info("Ignoring 6to4 address: "+addr.getHostAddress());
+					continue;
+				}
+				// 2001::/32
+				else if (addrBytes[0] == 0x20 && addrBytes[1] == 0x01 && addrBytes[2] == 0x00 && addrBytes[3] == 0x00) {
+					// Teredo also has horrible performance
+					LimeLog.info("Ignoring Teredo address: "+addr.getHostAddress());
+					continue;
+				}
+
+				// Compare the final 64-bit interface identifier and skip the address
+				// if it doesn't match our link-local address.
+				if (linkLocalAddr != null && tries == 0) {
+					boolean matched = true;
+
+					for (int i = 8; i < 16; i++) {
+						if (linkLocalAddr.getAddress()[i] != addr.getAddress()[i]) {
+							matched = false;
+							break;
+						}
+					}
+
+					if (!matched) {
+						LimeLog.info("Ignoring non-matching global address: "+addr.getHostAddress());
+						continue;
+					}
+				}
+
+				return addr;
+			}
+		}
+
+		return null;
+	}
+
+	private void handleServiceInfo(ServiceInfo info) throws UnsupportedEncodingException {
 		Inet4Address addrs[] = info.getInet4Addresses();
-		
-		LimeLog.info("mDNS: "+info.getName()+" has "+addrs.length+" addresses");
-		
+		Inet6Address v6Addrs[] = info.getInet6Addresses();
+
+		LimeLog.info("mDNS: "+info.getName()+" has "+addrs.length+" IPv4 addresses");
+		LimeLog.info("mDNS: "+info.getName()+" has "+v6Addrs.length+" IPv6 addresses");
+
+		Inet6Address v6Addr = getBestIpv6Address(v6Addrs);
+
 		// Add a computer object for each IPv4 address reported by the PC
-		for (Inet4Address addr : addrs) {
+		for (Inet4Address v4Addr : addrs) {
 			synchronized (computers) {
-				MdnsComputer computer = new MdnsComputer(info.getName(), addr);
-				if (computers.put(computer.getAddress(), computer) == null) {
+				MdnsComputer computer = new MdnsComputer(info.getName(), v4Addr, v6Addr);
+				if (computers.put(computer.getAddressV4(), computer) == null) {
 					// This was a new entry
 					listener.notifyComputerAdded(computer);
 				}

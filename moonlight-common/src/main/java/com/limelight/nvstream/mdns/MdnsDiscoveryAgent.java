@@ -160,17 +160,21 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 		}
 	}
 
-	private Inet6Address getBestIpv6Address(Inet6Address[] addresses) {
-		// First try to find a link local address, so we can match the interface identifier
-		// with a global address (this will work for SLAAC but not DHCPv6).
-		Inet6Address linkLocalAddr = null;
+	private Inet6Address getLinkLocalAddress(Inet6Address[] addresses) {
 		for (Inet6Address addr : addresses) {
 			if (addr.isLinkLocalAddress()) {
 				LimeLog.info("Found link-local address: "+addr.getHostAddress());
-				linkLocalAddr = addr;
-				break;
+				return addr;
 			}
 		}
+
+		return null;
+	}
+
+	private Inet6Address getBestIpv6Address(Inet6Address[] addresses) {
+		// First try to find a link local address, so we can match the interface identifier
+		// with a global address (this will work for SLAAC but not DHCPv6).
+		Inet6Address linkLocalAddr = getLinkLocalAddress(addresses);
 
 		// We will try once to match a SLAAC interface suffix, then
 		// pick the first matching address
@@ -225,21 +229,44 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 	}
 
 	private void handleServiceInfo(ServiceInfo info) throws UnsupportedEncodingException {
-		Inet4Address addrs[] = info.getInet4Addresses();
+		Inet4Address v4Addrs[] = info.getInet4Addresses();
 		Inet6Address v6Addrs[] = info.getInet6Addresses();
 
-		LimeLog.info("mDNS: "+info.getName()+" has "+addrs.length+" IPv4 addresses");
+		LimeLog.info("mDNS: "+info.getName()+" has "+v4Addrs.length+" IPv4 addresses");
 		LimeLog.info("mDNS: "+info.getName()+" has "+v6Addrs.length+" IPv6 addresses");
 
-		Inet6Address v6Addr = getBestIpv6Address(v6Addrs);
+		Inet6Address v6GlobalAddr = getBestIpv6Address(v6Addrs);
 
 		// Add a computer object for each IPv4 address reported by the PC
-		for (Inet4Address v4Addr : addrs) {
+		for (Inet4Address v4Addr : v4Addrs) {
 			synchronized (computers) {
-				MdnsComputer computer = new MdnsComputer(info.getName(), v4Addr, v6Addr);
+				MdnsComputer computer = new MdnsComputer(info.getName(), v4Addr, v6GlobalAddr);
 				if (computers.put(computer.getAddressV4(), computer) == null) {
 					// This was a new entry
 					listener.notifyComputerAdded(computer);
+				}
+			}
+		}
+
+		// If there were no IPv4 addresses, use IPv6 for registration
+		if (v4Addrs.length == 0) {
+			// Prefer a global address
+			if (v6GlobalAddr != null) {
+				MdnsComputer computer = new MdnsComputer(info.getName(), null, v6GlobalAddr);
+				if (computers.put(computer.getAddressV6(), computer) == null) {
+					// This was a new entry
+					listener.notifyComputerAdded(computer);
+				}
+			}
+			else {
+				// Use link-local if we have no other option
+				Inet6Address v6LinkLocalAddr = getLinkLocalAddress(v6Addrs);
+				if (v6LinkLocalAddr != null) {
+					MdnsComputer computer = new MdnsComputer(info.getName(), null, v6LinkLocalAddr);
+					if (computers.put(computer.getAddressV6(), computer) == null) {
+						// This was a new entry
+						listener.notifyComputerAdded(computer);
+					}
 				}
 			}
 		}
@@ -339,9 +366,20 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 	@Override
 	public void serviceRemoved(ServiceEvent event) {
 		LimeLog.info("mDNS: Machine disappeared: "+event.getInfo().getName());
-		
-		Inet4Address addrs[] = event.getInfo().getInet4Addresses();
-		for (Inet4Address addr : addrs) {
+
+		Inet4Address v4Addrs[] = event.getInfo().getInet4Addresses();
+		for (Inet4Address addr : v4Addrs) {
+			synchronized (computers) {
+				MdnsComputer computer = computers.remove(addr);
+				if (computer != null) {
+					listener.notifyComputerRemoved(computer);
+					break;
+				}
+			}
+		}
+
+		Inet6Address v6Addrs[] = event.getInfo().getInet6Addresses();
+		for (Inet6Address addr : v6Addrs) {
 			synchronized (computers) {
 				MdnsComputer computer = computers.remove(addr);
 				if (computer != null) {

@@ -23,8 +23,8 @@ android {
 }
 
 dependencies {
-    implementation 'com.squareup.okhttp:okhttp:2.7.5'
-    implementation 'com.squareup.okio:okio:1.13.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.3'
+    implementation 'com.squareup.okio:okio:1.17.4'
 
     // We expose an interface containing a jmDNS class
     // so we need to expose the jmDNS library to users

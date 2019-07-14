@@ -10,6 +10,8 @@ import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -38,11 +40,12 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.http.PairingManager.PairState;
 import com.moonlight_stream.moonlight_common.BuildConfig;
-import com.squareup.okhttp.ConnectionPool;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
-import com.squareup.okhttp.ResponseBody;
+
+import okhttp3.ConnectionPool;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 
 public class NvHTTP {
@@ -60,33 +63,31 @@ public class NvHTTP {
 	public String baseUrlHttps;
 	public String baseUrlHttp;
 	
-	private OkHttpClient httpClient = new OkHttpClient();
+	private OkHttpClient httpClient;
 	private OkHttpClient httpClientWithReadTimeout;
 		
-	private TrustManager[] trustManager;
-	private KeyManager[] keyManager;
+	private X509TrustManager trustManager;
+	private X509KeyManager keyManager;
 	private X509Certificate serverCert;
 
-	void setServerCert(final X509Certificate serverCert) {
+	void setServerCert(X509Certificate serverCert) {
 		this.serverCert = serverCert;
 
-		trustManager = new TrustManager[] {
-			new X509TrustManager() {
-				public X509Certificate[] getAcceptedIssuers() {
-					return new X509Certificate[0];
+		trustManager = new X509TrustManager() {
+			public X509Certificate[] getAcceptedIssuers() {
+				return new X509Certificate[0];
+			}
+			public void checkClientTrusted(X509Certificate[] certs, String authType) {
+				throw new IllegalStateException("Should never be called");
+			}
+			public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+				if (certs.length != 1) {
+					throw new CertificateException("Invalid certificate chain length: "+certs.length);
 				}
-				public void checkClientTrusted(X509Certificate[] certs, String authType) {
-					throw new IllegalStateException("Should never be called");
-				}
-				public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
-					if (certs.length != 1) {
-						throw new CertificateException("Invalid certificate chain length: "+certs.length);
-					}
 
-					// Check the server certificate if we've paired to this host
-					if (!certs[0].equals(serverCert)) {
-						throw new CertificateException("Certificate mismatch");
-					}
+				// Check the server certificate if we've paired to this host
+				if (!certs[0].equals(NvHTTP.this.serverCert)) {
+					throw new CertificateException("Certificate mismatch");
 				}
 			}
 		};
@@ -96,35 +97,36 @@ public class NvHTTP {
 		// Set up TrustManager
 		setServerCert(serverCert);
 
-		keyManager = new KeyManager[] {
-				new X509KeyManager() {
-					public String chooseClientAlias(String[] keyTypes,
-							Principal[] issuers, Socket socket) { return "Limelight-RSA"; }
-					public String chooseServerAlias(String keyType, Principal[] issuers,
-							Socket socket) { return null; }
-					public X509Certificate[] getCertificateChain(String alias) {
-						return new X509Certificate[] {cryptoProvider.getClientCertificate()};
-					}
-					public String[] getClientAliases(String keyType, Principal[] issuers) { return null; }
-					public PrivateKey getPrivateKey(String alias) {
-						return cryptoProvider.getClientPrivateKey();
-					}
-					public String[] getServerAliases(String keyType, Principal[] issuers) { return null; }
-				}
+		keyManager = new X509KeyManager() {
+			public String chooseClientAlias(String[] keyTypes,
+					Principal[] issuers, Socket socket) { return "Limelight-RSA"; }
+			public String chooseServerAlias(String keyType, Principal[] issuers,
+					Socket socket) { return null; }
+			public X509Certificate[] getCertificateChain(String alias) {
+				return new X509Certificate[] {cryptoProvider.getClientCertificate()};
+			}
+			public String[] getClientAliases(String keyType, Principal[] issuers) { return null; }
+			public PrivateKey getPrivateKey(String alias) {
+				return cryptoProvider.getClientPrivateKey();
+			}
+			public String[] getServerAliases(String keyType, Principal[] issuers) { return null; }
 		};
 
 		// Ignore differences between given hostname and certificate hostname
 		HostnameVerifier hv = new HostnameVerifier() {
 			public boolean verify(String hostname, SSLSession session) { return true; }
 		};
+
+		httpClient = new OkHttpClient.Builder()
+				.connectionPool(new ConnectionPool(0, 1, TimeUnit.MILLISECONDS))
+				.hostnameVerifier(hv)
+				.readTimeout(0, TimeUnit.MILLISECONDS)
+				.connectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
+				.build();
 		
-		httpClient.setConnectionPool(new ConnectionPool(0, 1));
-		httpClient.setHostnameVerifier(hv);
-		httpClient.setReadTimeout(0, TimeUnit.MILLISECONDS);
-		httpClient.setConnectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
-		
-		httpClientWithReadTimeout = httpClient.clone();
-		httpClientWithReadTimeout.setReadTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS);
+		httpClientWithReadTimeout = httpClient.newBuilder()
+				.readTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS)
+				.build();
 	}
 	
 	public NvHTTP(String address, String uniqueId, X509Certificate serverCert, LimelightCryptoProvider cryptoProvider) throws IOException {
@@ -271,22 +273,21 @@ public class NvHTTP {
 		
 		return details;
 	}
-	
+
 	// This hack is Android-specific but we do it on all platforms
 	// because it doesn't really matter
-	private void performAndroidTlsHack(OkHttpClient client) {
+	private OkHttpClient performAndroidTlsHack(OkHttpClient client) {
 		// Doing this each time we create a socket is required
 		// to avoid the SSLv3 fallback that causes connection failures
 		try {
 			SSLContext sc = SSLContext.getInstance("TLS");
-			sc.init(keyManager, trustManager, new SecureRandom());
-			
-			client.setSslSocketFactory(sc.getSocketFactory());
-		} catch (Exception e) {
-			e.printStackTrace();
+			sc.init(new KeyManager[] { keyManager }, new TrustManager[] { trustManager }, new SecureRandom());
+			return client.newBuilder().sslSocketFactory(sc.getSocketFactory(), trustManager).build();
+		} catch (NoSuchAlgorithmException | KeyManagementException e) {
 			throw new RuntimeException(e);
 		}
 	}
+
 
 	// Read timeout should be enabled for any HTTP query that requires no outside action
 	// on the GFE server. Examples of queries that DO require outside action are launch, resume, and quit.
@@ -299,16 +300,14 @@ public class NvHTTP {
 		if (serverCert == null && !url.startsWith(baseUrlHttp)) {
 			throw new IllegalStateException("Attempted HTTPS fetch without pinned cert");
 		}
-		
+
 		if (enableReadTimeout) {
-			performAndroidTlsHack(httpClientWithReadTimeout);
-			response = httpClientWithReadTimeout.newCall(request).execute();
+			response = performAndroidTlsHack(httpClientWithReadTimeout).newCall(request).execute();
 		}
 		else {
-			performAndroidTlsHack(httpClient);
-			response = httpClient.newCall(request).execute();
+			response = performAndroidTlsHack(httpClient).newCall(request).execute();
 		}
-		
+
 		ResponseBody body = response.body();
 		
 		if (response.isSuccessful()) {
@@ -316,11 +315,9 @@ public class NvHTTP {
 		}
 		
 		// Unsuccessful, so close the response body
-		try {
-			if (body != null) {
-				body.close();
-			}
-		} catch (IOException e) {}
+		if (body != null) {
+			body.close();
+		}
 		
 		if (response.code() == 404) {
 			throw new FileNotFoundException(url);
@@ -338,6 +335,7 @@ public class NvHTTP {
 
 			ResponseBody resp = openHttpConnection(url, enableReadTimeout);
 			String respString = resp.string();
+			resp.close();
 
 			if (verbose) {
 				LimeLog.info(url+" -> "+respString);

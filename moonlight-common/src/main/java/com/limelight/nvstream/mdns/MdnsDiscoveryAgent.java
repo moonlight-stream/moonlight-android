@@ -202,6 +202,12 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 					LimeLog.info("Ignoring Teredo address: "+addr.getHostAddress());
 					continue;
 				}
+				// fc00::/7
+				else if ((addrBytes[0] & 0xfe) == 0xfc) {
+					// ULAs aren't global
+					LimeLog.info("Ignoring ULA: "+addr.getHostAddress());
+					continue;
+				}
 
 				// Compare the final 64-bit interface identifier and skip the address
 				// if it doesn't match our link-local address.

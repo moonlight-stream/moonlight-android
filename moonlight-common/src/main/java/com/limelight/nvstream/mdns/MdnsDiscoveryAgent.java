@@ -354,7 +354,6 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 
 	@Override
 	public void serviceResolved(ServiceEvent event) {
-		LimeLog.info("mDNS: Machine resolved (callback): "+event.getInfo().getName());
-		handleResolvedServiceInfo(event.getInfo());
+		// We handle this synchronously
 	}
 }

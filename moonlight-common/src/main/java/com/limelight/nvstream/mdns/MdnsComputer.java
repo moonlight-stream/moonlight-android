@@ -1,16 +1,16 @@
 package com.limelight.nvstream.mdns;
 
-import java.net.Inet4Address;
 import java.net.Inet6Address;
+import java.net.InetAddress;
 
 public class MdnsComputer {
-	private Inet4Address v4Addr;
+	private InetAddress localAddr;
 	private Inet6Address v6Addr;
 	private String name;
 
-	public MdnsComputer(String name, Inet4Address v4Addr, Inet6Address v6Addr) {
+	public MdnsComputer(String name, InetAddress localAddress, Inet6Address v6Addr) {
 		this.name = name;
-		this.v4Addr = v4Addr;
+		this.localAddr = localAddress;
 		this.v6Addr = v6Addr;
 	}
 
@@ -18,11 +18,11 @@ public class MdnsComputer {
 		return name;
 	}
 
-	public Inet4Address getAddressV4() {
-		return v4Addr;
+	public InetAddress getLocalAddress() {
+		return localAddr;
 	}
 
-	public Inet6Address getAddressV6() {
+	public Inet6Address getIpv6Address() {
 		return v6Addr;
 	}
 
@@ -40,9 +40,9 @@ public class MdnsComputer {
 				return false;
 			}
 
-			if ((other.v4Addr != null && v4Addr == null) ||
-					(other.v4Addr == null && v4Addr != null) ||
-					(other.v4Addr != null && !other.v4Addr.equals(v4Addr))) {
+			if ((other.localAddr != null && localAddr == null) ||
+					(other.localAddr == null && localAddr != null) ||
+					(other.localAddr != null && !other.localAddr.equals(localAddr))) {
 				return false;
 			}
 
@@ -60,6 +60,6 @@ public class MdnsComputer {
 
 	@Override
 	public String toString() {
-		return "["+name+" - "+v4Addr+" - "+v6Addr+"]";
+		return "["+name+" - "+localAddr+" - "+v6Addr+"]";
 	}
 }

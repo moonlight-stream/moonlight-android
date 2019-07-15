@@ -160,6 +160,20 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 		}
 	}
 
+	private Inet6Address getLocalAddress(Inet6Address[] addresses) {
+		for (Inet6Address addr : addresses) {
+			if (addr.isLinkLocalAddress() || addr.isSiteLocalAddress()) {
+				return addr;
+			}
+			// fc00::/7 - ULAs
+			else if ((addr.getAddress()[0] & 0xfe) == 0xfc) {
+				return addr;
+			}
+		}
+
+		return null;
+	}
+
 	private Inet6Address getLinkLocalAddress(Inet6Address[] addresses) {
 		for (Inet6Address addr : addresses) {
 			if (addr.isLinkLocalAddress()) {
@@ -247,7 +261,7 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 		for (Inet4Address v4Addr : v4Addrs) {
 			synchronized (computers) {
 				MdnsComputer computer = new MdnsComputer(info.getName(), v4Addr, v6GlobalAddr);
-				if (computers.put(computer.getAddressV4(), computer) == null) {
+				if (computers.put(computer.getLocalAddress(), computer) == null) {
 					// This was a new entry
 					listener.notifyComputerAdded(computer);
 				}
@@ -256,23 +270,14 @@ public class MdnsDiscoveryAgent implements ServiceListener {
 
 		// If there were no IPv4 addresses, use IPv6 for registration
 		if (v4Addrs.length == 0) {
-			// Prefer a global address
-			if (v6GlobalAddr != null) {
-				MdnsComputer computer = new MdnsComputer(info.getName(), null, v6GlobalAddr);
-				if (computers.put(computer.getAddressV6(), computer) == null) {
+			Inet6Address v6LocalAddr = getLocalAddress(v6Addrs);
+
+			if (v6LocalAddr != null || v6GlobalAddr != null) {
+				MdnsComputer computer = new MdnsComputer(info.getName(), v6LocalAddr, v6GlobalAddr);
+				if (computers.put(v6LocalAddr != null ?
+						computer.getLocalAddress() : computer.getIpv6Address(), computer) == null) {
 					// This was a new entry
 					listener.notifyComputerAdded(computer);
-				}
-			}
-			else {
-				// Use link-local if we have no other option
-				Inet6Address v6LinkLocalAddr = getLinkLocalAddress(v6Addrs);
-				if (v6LinkLocalAddr != null) {
-					MdnsComputer computer = new MdnsComputer(info.getName(), null, v6LinkLocalAddr);
-					if (computers.put(computer.getAddressV6(), computer) == null) {
-						// This was a new entry
-						listener.notifyComputerAdded(computer);
-					}
 				}
 			}
 		}

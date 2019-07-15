@@ -42,7 +42,8 @@ public class ComputerDetails {
 		if (details.activeAddress != null) {
 			this.activeAddress = details.activeAddress;
 		}
-		if (details.localAddress != null) {
+		// We can get IPv4 loopback addresses with GS IPv6 Forwarder
+		if (details.localAddress != null && !details.localAddress.startsWith("127.")) {
 			this.localAddress = details.localAddress;
 		}
 		if (details.remoteAddress != null) {

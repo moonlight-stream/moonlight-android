@@ -3,6 +3,7 @@ package com.limelight.computers;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashSet;
@@ -300,16 +301,18 @@ public class ComputerManagerService extends Service {
                 ComputerDetails details = new ComputerDetails();
 
                 // Populate the computer template with mDNS info
-                if (computer.getAddressV4() != null) {
-                    details.localAddress = computer.getAddressV4().getHostAddress();
+                if (computer.getLocalAddress() != null) {
+                    details.localAddress = computer.getLocalAddress().getHostAddress();
 
                     // Since we're on the same network, we can use STUN to find
                     // our WAN address, which is also very likely the WAN address
                     // of the PC. We can use this later to connect remotely.
-                    details.remoteAddress = NvConnection.findExternalAddressForMdns("stun.moonlight-stream.org", 3478);
+                    if (computer.getLocalAddress() instanceof Inet4Address) {
+                        details.remoteAddress = NvConnection.findExternalAddressForMdns("stun.moonlight-stream.org", 3478);
+                    }
                 }
-                if (computer.getAddressV6() != null) {
-                    details.ipv6Address = computer.getAddressV6().getHostAddress();
+                if (computer.getIpv6Address() != null) {
+                    details.ipv6Address = computer.getIpv6Address().getHostAddress();
                 }
 
                 // Kick off a serverinfo poll on this machine

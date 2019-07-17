@@ -144,7 +144,16 @@ public class TvChannelHelper {
                     .setPosterArtAspectRatio(ASPECT_RATIO_MOVIE_POSTER)
                     .setPosterArtUri(resourceURI)
                     .setIntent(i)
-                    .setInternalProviderId(appId);
+                    .setInternalProviderId(appId)
+                    // Weight should increase each time we run the game
+                    .setWeight((int)((System.currentTimeMillis() - 1500000000000L) / 1000));
+
+            Long programId = getProgramId(channelId, appId);
+            if (programId != null) {
+                context.getContentResolver().update(TvContract.buildPreviewProgramUri(programId),
+                        builder.toContentValues(), null, null);
+                return;
+            }
 
             context.getContentResolver().insert(TvContract.PreviewPrograms.CONTENT_URI,
                     builder.toContentValues());
@@ -170,16 +179,13 @@ public class TvChannelHelper {
 
     @TargetApi(Build.VERSION_CODES.O)
     private Long getChannelId(String computerUuid) {
-        Uri uri = TvContract.Channels.CONTENT_URI;
-        final String[] CHANNEL_PROJECTION = {TvContract.Channels._ID, TvContract.Channels.COLUMN_INTERNAL_PROVIDER_ID};
-
-        Cursor cursor = context.getContentResolver().query(uri,
-                CHANNEL_PROJECTION,
+        try (Cursor cursor = context.getContentResolver().query(
+                TvContract.Channels.CONTENT_URI,
+                new String[] {TvContract.Channels._ID, TvContract.Channels.COLUMN_INTERNAL_PROVIDER_ID},
                 null,
                 null,
-                null);
-        try {
-            if (cursor == null) {
+                null)) {
+            if (cursor == null || cursor.getCount() == 0) {
                 return null;
             }
             while (cursor.moveToNext()) {
@@ -190,10 +196,28 @@ public class TvChannelHelper {
             }
 
             return null;
-        } finally {
-            if (cursor != null) {
-                cursor.close();
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private Long getProgramId(long channelId, String appId) {
+        try (Cursor cursor = context.getContentResolver().query(
+                TvContract.buildPreviewProgramsUriForChannel(channelId),
+                new String[] {TvContract.PreviewPrograms._ID, TvContract.PreviewPrograms.COLUMN_INTERNAL_PROVIDER_ID},
+                null,
+                null,
+                null)) {
+            if (cursor == null || cursor.getCount() == 0) {
+                return null;
             }
+            while (cursor.moveToNext()) {
+                String internalProviderId = cursor.getString(INTERNAL_PROVIDER_ID_INDEX);
+                if (appId.equals(internalProviderId)) {
+                    return cursor.getLong(ID_INDEX);
+                }
+            }
+
+            return null;
         }
     }
 
@@ -206,7 +230,7 @@ public class TvChannelHelper {
     }
 
     @TargetApi(Build.VERSION_CODES.O)
-    public boolean isAndroidTV() {
+    private boolean isAndroidTV() {
         return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
     }
 
@@ -253,6 +277,11 @@ public class TvChannelHelper {
 
         public PreviewProgramBuilder setPosterArtUri(Uri uri) {
             mValues.put(TvContract.PreviewPrograms.COLUMN_POSTER_ART_URI, toValueString(uri));
+            return this;
+        }
+
+        public PreviewProgramBuilder setWeight(int weight) {
+            mValues.put(TvContract.PreviewPrograms.COLUMN_WEIGHT, weight);
             return this;
         }
 

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Shortcut strings -->
+    <string name="scut_deleted_pc">PC gelöscht</string>
+    <string name="scut_not_paired">PC nicht verbunden</string>
+    <string name="scut_pc_not_found">PC nicht gefunden</string>
+    <string name="scut_invalid_uuid">Angegebener PC ist unzulässig</string>
+    <string name="scut_invalid_app_id">Angegebene App ist unzulässig</string>
+
+    <!-- Help strings -->
+    <string name="help_loading_title">Hilfsanzeige</string>
+    <string name="help_loading_msg">Lade Hilfesanzeige…</string>
+
+    <!-- PC view menu entries -->
+    <string name="pcview_menu_app_list">Spiele List anzeigen</string>
+    <string name="pcview_menu_pair_pc">Mit PC verbinden</string>
+    <string name="pcview_menu_unpair_pc">Verbindung beenden</string>
+    <string name="pcview_menu_send_wol">Wake-On-LAN Anfrage senden</string>
+    <string name="pcview_menu_delete_pc">PC löschen</string>
+    <string name="pcview_menu_details">Details anzeigen</string>
+
+    <!-- Pair messages -->
+    <string name="pairing">Verbinden…</string>
+    <string name="pair_pc_offline">Computer ist offline</string>
+    <string name="pair_pc_ingame">Am Computer ist bereits ein Spiel aktiv. Sie müssen das Spiel beenden bevor sie sich koppeln können.</string>
+    <string name="pair_pairing_title">Verbinden</string>
+    <string name="pair_pairing_msg">Bitte geben sie folgenden PIN auf ihrem PC ein:</string>
+    <string name="pair_incorrect_pin">PIN inkorrekt</string>
+    <string name="pair_fail">Verbindung fehlgeschlagen</string>
+    <string name="pair_already_in_progress">Verbindungsaufbau rebreits im gange</string>
+
+    <!-- WOL messages -->
+    <string name="wol_pc_online">Computer ist online</string>
+    <string name="wol_no_mac">PC konnte nicht geweckt werden, da GFE keine MAC-Adresse gesendet hat.</string>
+    <string name="wol_waking_pc">PC wird geweckt…</string>
+    <string name="wol_waking_msg">Es kann einige Momente dauert ihren PC zu wecken.
+        Sollte dies fehlschlagen stellen sie bitte sicher, dass Wake-On-LAN korrekt konfiguriert ist.
+    </string>
+    <string name="wol_fail">Sender der Wake-On-LAN Pakete ist fehlgeschlagen</string>
+
+    <!-- Unpair messages -->
+    <string name="unpairing">Trenne Verbindung…</string>
+    <string name="unpair_success">Verbindung erfolgreich getrennt</string>
+    <string name="unpair_fail">Trennung der Verbindung fehlgeschlagen</string>
+    <string name="unpair_error">Gerät wurde nicht verbunden</string>
+
+    <!-- Errors -->
+    <string name="error_pc_offline">Computer ist offline</string>
+    <string name="error_manager_not_running">Der ComputerManager Service läuft nicht. Bitte warten sie ein paar Sekunden oder starten sie Die App neu.</string>
+    <string name="error_unknown_host">Host konnte nicht aufgelößt werden.</string>
+    <string name="error_404">GFE ist auf einen HTTP 404 Fehler gestoßen. Stellen sie sicher, dass die GPU ihres PCs unterstützt wird.
+	  Die verwendung von Remote-Desktop Software kann ebenso diesen Fehler verursachen. Starten sie ihren Computer neu oder reinstallieren sie GFE.
+    </string>
+    <string name="title_decoding_error">Video Decoder ist gecrashed</string>
+    <string name="message_decoding_error">Moonlight ist wegen einer Inkompatibilität zu dem Video-Decoder ihres Gerätes gecrasht. Stellen sie sicher, dass GeForce Experience Version auf ihrem PC auf dem neuesten Stand ist. Sollten weiterin Crashes auftreten, versuchen sie ihre Stream Einstellungen zu justieren.</string>
+    <string name="title_decoding_reset">Video Einstellungen zurücksetzen</string>
+    <string name="message_decoding_reset">Der Video-Decoder ihres Geärts ist wiederholt mit den ausgewählten Einstellungen gecrasht. Ihre streaming einstellungen wurden zurückgesetzt.</string>
+    <string name="error_usb_prohibited">USB Zugriff ist administrativ unterbunden. Bitte überprüfen sie ihre Knox oder MDM Einstellungen.</string>
+    <string name="unable_to_pin_shortcut">Die zur Zeit aktive Launcher App ünterstützt das erstellen angehefteter Shortcuts nicht.</string>
+
+    <!-- Start application messages -->
+    <string name="conn_establishing_title">Verbindung herstellen</string>
+    <string name="conn_establishing_msg">Verbindung starten</string>
+    <string name="conn_metered">Warnung: Das Datentransfairvolument ihrer Netzwerkverbindung ist limitiert!</string>
+    <string name="conn_client_latency">Durchschnittliche Frame-Dekodierungslatenz:</string>
+    <string name="conn_client_latency_hw">Hardware-Dekodierungslatenz:</string>
+    <string name="conn_hardware_latency">Durchschnittliche Hardware-Dekodierungslatenz:</string>
+    <string name="conn_starting">Startet</string>
+    <string name="conn_error_title">Verbindingsfehler</string>
+    <string name="conn_error_msg">Start fehlgeschlagen</string>
+    <string name="conn_terminated_title">Verbindung beendet</string>
+    <string name="conn_terminated_msg">Die verbinding wurde beendet</string>
+
+    <!-- General strings -->
+    <string name="ip_hint">IP-Adresse des GeForce PCs</string>
+    <string name="searching_pc">Suche nach PCs wo GeForce Experience aktiv ist…</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
+    <string name="lost_connection">Verbindung zum PC verloren</string>
+    <string name="title_details">Details</string>
+    <string name="help">Hilfe</string>
+    <string name="delete_pc_msg">Sind sie sicher, dass sie diesen PC löschen möchten?</string>
+    <string name="slow_connection_msg">Langsame Verbindung zum PC\nReduzieren sie die Bitrate</string>
+    <string name="poor_connection_msg">Sehr langsame Verbindung zum PC</string>
+    <string name="perf_overlay_text">Videodimensionen: %1$s\nDecoder: %2$s\nGeschätzte PC Bildwiederholrate: %3$.2f FPS\nBildwiederholrate der Netzwerkübertragung: %4$.2f FPS\nWiedergabe-Bildwiederholungsrate: %5$.2f FPS\nWegen Netzwerkübertraung ausgelassene Frames: %6$.2f%%\nDurchschnittliche Übertragunsdauer: %7$.2f ms\nDurchschnittliche decoding dauer: %8$.2f ms</string>
+
+    <!-- AppList activity -->
+    <string name="applist_connect_msg">Verbinde mit PC…</string>
+    <string name="applist_menu_resume">Sitzung Wiederherstellen</string>
+    <string name="applist_menu_quit">Sitzung Beenden</string>
+    <string name="applist_menu_quit_and_start">Aktuelles Spiel beenden und Starte</string>
+    <string name="applist_menu_cancel">Abbrechen</string>
+    <string name="applist_menu_details">Details anzeigen</string>
+    <string name="applist_menu_scut">Shortcut erstellen</string>
+    <string name="applist_menu_tv_channel">Zu Kanal hinzufügen</string>
+    <string name="applist_refresh_title">App Liste</string>
+    <string name="applist_refresh_msg">Aktualisiere Apps…</string>
+    <string name="applist_refresh_error_title">Fehler</string>
+    <string name="applist_refresh_error_msg">Abfrage der App-Liste fehlgeschlagen</string>
+    <string name="applist_quit_app">Beenden</string>
+    <string name="applist_quit_success">Erfolgreich Beendet</string>
+    <string name="applist_quit_fail">Beenden fehlgeschlagen</string>
+    <string name="applist_quit_confirmation">Sind sie sicher, dass die die laufende App schließen möchten? Ungespeicherte Daten gehen verloren.</string>
+    <string name="applist_details_id">App ID:</string>
+
+    <!-- Add computer manually activity -->
+    <string name="title_add_pc">PC manuell hinzufügen</string>
+    <string name="msg_add_pc">Verbinde zum PC…</string>
+    <string name="addpc_fail">Verbindung fehlgeschlagen. Stellen sie sicher, dass die benötigten ports von einer Firewall gefiltert werden.</string>
+    <string name="addpc_success">Computer erfolgreich hinzugefügt</string>
+    <string name="addpc_unknown_host">Auflößen der PC-Adresse fehlgeschlagen. Stellen sie sicher, dass die Adresse keine Tippfehler beinhaltet.</string>
+    <string name="addpc_enter_ip">Sie müssen eine IP-Addresse eingeben.</string>
+    <string name="addpc_wrong_sitelocal">Diese Adresse sieht falsch aus. Sie müssen die öffentliche IP-Adresse ihreres Routers benutzen um über das Internet zu streamen.</string>
+
+    <!-- Preferences -->
+    <string name="category_basic_settings">Allgemeine Einstellungen</string>
+    <string name="title_resolution_list">Videoauflösung</string>
+    <string name="summary_resolution_list">Ehöhen für klarere Bilder. Reduzieren für flüssigere Darstellung auf langsameren Geräten und Netzwerken.</string>
+    <string name="title_fps_list">Bildwiederholungsrate</string>
+    <string name="summary_fps_list">Erhöhen für einen gleichmäßigeren Video-Stream. Verringern um auf langsameren Geräten eine bessere Performance zu erzielen.</string>
+    <string name="title_seekbar_bitrate">Video bitrate</string>
+    <string name="summary_seekbar_bitrate">Erhöhen für einen schärferen Video-Stream. Verringern um auf langsameren Geräten eine bessere Performance zu erzielen.</string>
+    <string name="suffix_seekbar_bitrate">Kbps</string>
+    <string name="title_unlock_fps">Alle Bildwiederholungsraten freigeben</string>
+    <string name="summary_unlock_fps">Streaming mit 90 oder 120 FPS reduziert gegebenfalls die Latenz auf High-End Geräten, für jedoch zu Crashes oder Lag auf Geräten die dies nicht untersützen können.</string>
+    <string name="title_checkbox_stretch_video">Video auf den ganzen Bildschirm ausdehnen</string>
+    <string name="title_checkbox_disable_warnings">Warnhinweise deaktivieren</string>
+    <string name="summary_checkbox_disable_warnings">Verbindungswarnungen nicht als Overlay wärend des Streamens anzeigen</string>
+    <string name="title_checkbox_enable_pip">Bild-in-Bild Überwachungsmodus aktivieren</string>
+    <string name="summary_checkbox_enable_pip">Stream auch während des Multitaskings anzeigen (ohne Steuerung)</string>
+
+    <string name="category_audio_settings">Audio Einstellungen</string>
+    <string name="title_checkbox_51_surround">5.1 Surround Sound aktivieren</string>
+    <string name="summary_checkbox_51_surround">Deaktivieren wenn die Audiowiedergabe fehlerhaft ist. Setzt GFE 2.7 oder neuer voraus.</string>
+
+    <string name="category_input_settings">Eingabe Einstellungen</string>
+    <string name="title_checkbox_multi_controller">Automatische GamePad-Erkennung</string>
+    <string name="summary_checkbox_multi_controller">Abwählen dieser Option erzwingt dass immer ein GamePad present ist</string>
+    <string name="title_checkbox_vibrate_fallback">Vibrationsemulation aktivieren</string>
+    <string name="summary_checkbox_vibrate_fallback">Lässt das Gerät vibrieren falls das GamePad keine Vibration unterstütz</string>
+    <string name="title_seekbar_deadzone">Tot Bereich des Analogsticks</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Xbox 360/One GamePad Treiber</string>
+    <string name="summary_checkbox_xb1_driver">Aktiviert eingebauten USB Treiber für Geräte die keinen Xbox GamePad-Unterstützung haben</string>
+    <string name="title_checkbox_usb_bind_all">Android GamePad Unterstütung überlagern</string>
+    <string name="summary_checkbox_usb_bind_all">Erzwingt die Vernwedung von Moonlight\'s USB Treiber für alle Xbox kompatiblen GamePads</string>
+    <string name="title_checkbox_mouse_emulation">Maus Emulation via GamePad</string>
+    <string name="summary_checkbox_mouse_emulation">Langes gedrückt halten der Start-Taste wechselt in den Maus Modus</string>
+    <string name="title_checkbox_mouse_nav_buttons">Vor- und Zurück-Tasten aktivieren</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Aktivierung dieser Option kann auf fehleranfälligen Geräten Rechts-Clicks verunmöglichen</string>
+
+    <string name="category_on_screen_controls_settings">On-Screen Steuerungseinstellungen</string>
+    <string name="title_checkbox_show_onscreen_controls">Zeige On-Screen Steuerung</string>
+    <string name="summary_checkbox_show_onscreen_controls">Zeige virtuelle Steuerelemente als Overlay auf dem Touchscreen</string>
+    <string name="title_checkbox_vibrate_osc">Vibrationen aktivieren</string>
+    <string name="summary_checkbox_vibrate_osc">Vibrieren als haptisches Feedback für die On-Screen Steuerelemente</string>
+    <string name="title_only_l3r3">Nur L3 und R3 anzeigen</string>
+    <string name="summary_only_l3r3">Alle virtuellen Steuerelemente außer L3 und R3 verbregen.</string>
+    <string name="title_reset_osc">Gespeicherte On-Screen Steuerungelemente zurücksetzen</string>
+    <string name="summary_reset_osc">Alle On-Screen Steuerelemente auf ihre Vorgabegröße und Position zurück setzen</string>
+    <string name="dialog_title_reset_osc">Layout Zurücksetzen</string>
+    <string name="dialog_text_reset_osc">Sind sie sicher, dass sie das gepseicherte on-screen Layout der Steuerelemte löschen wollen?</string>
+    <string name="toast_reset_osc_success">On-Screen Steuerelemente wurden zurückgesetzt</string>
+
+    <string name="category_ui_settings">UI Einstellungen</string>
+    <string name="title_language_list">Sprache</string>
+    <string name="summary_language_list">Sprache die Moonlight verwenden soll</string>
+    <string name="title_checkbox_list_mode">Zeige Listen anstelle von Rastern.</string>
+    <string name="summary_checkbox_list_mode">Zeige Apps und PCs als Liste anstelle eines Rasters</string>
+    <string name="title_checkbox_small_icon_mode">Verwende kleine Icons</string>
+    <string name="summary_checkbox_small_icon_mode">Verwende kleine Icons in der Rasteransicht, um mehr gleichzeitig anzeigen zu können</string>
+
+    <string name="category_host_settings">Host Einstellungen</string>
+    <string name="title_checkbox_enable_sops">Spieleinstellungen optimieren</string>
+    <string name="summary_checkbox_enable_sops">GFE erlauben die die Spieleinstellungen zu optimieren.</string>
+    <string name="title_checkbox_host_audio">Audio auf dem PC wiedergeben</string>
+    <string name="summary_checkbox_host_audio">Audio auf dem PC und auf diesem Gerät wiedergeben</string>
+
+    <string name="category_advanced_settings">Erweiterte Einstellungen</string>
+    <string name="title_disable_frame_drop">Nie Frames Überspringen</string>
+    <string name="summary_disable_frame_drop">Kann potentiell das Mikro-Ruckeln auf einigen Geräten reduzieren, allerdings erhöt dies gleichzeitig die Latenz</string>
+    <string name="title_video_format">Ändere H.265 Einstellungen</string>
+    <string name="summary_video_format">H.265 verringerd die Video-Bandbreitenanforderung, funktioniert allerdings nur auf sehr neuen Geräten</string>
+    <string name="title_enable_hdr">HDR aktivieren (experimentell)</string>
+    <string name="summary_enable_hdr">HDR-Streaming sofern dies von der PC GPU unterstützt wird. HDR erfordert eine GPU der GTX 1000 Serie oder neuer.</string>
+    <string name="title_enable_perf_overlay">Performance Overlay aktivieren</string>
+    <string name="summary_enable_perf_overlay">Leistungsmerkmale während des Streamens in Echtzeit einblenden.</string>
+
+</resources>

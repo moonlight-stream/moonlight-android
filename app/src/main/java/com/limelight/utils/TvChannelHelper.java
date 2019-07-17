@@ -21,6 +21,8 @@ import com.limelight.LimeLog;
 import com.limelight.PosterContentProvider;
 import com.limelight.R;
 import com.limelight.ShortcutTrampoline;
+import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.NvApp;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -37,19 +39,19 @@ public class TvChannelHelper {
         this.context = context;
     }
 
-    void requestChannelOnHomeScreen(String computerUuid) {
+    void requestChannelOnHomeScreen(ComputerDetails computer) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!isAndroidTV()) {
                 return;
             }
 
-            Long channelId = getChannelId(computerUuid);
+            Long channelId = getChannelId(computer.uuid);
             if (channelId == null) {
                 return;
             }
 
             Intent intent = new Intent(TvContract.ACTION_REQUEST_CHANNEL_BROWSABLE);
-            intent.putExtra(TvContract.EXTRA_CHANNEL_ID, getChannelId(computerUuid));
+            intent.putExtra(TvContract.EXTRA_CHANNEL_ID, getChannelId(computer.uuid));
             try {
                 context.startActivityForResult(intent, 0);
             } catch (ActivityNotFoundException e) {
@@ -57,23 +59,23 @@ public class TvChannelHelper {
         }
     }
 
-    void createTvChannel(String computerUuid, String computerName) {
+    void createTvChannel(ComputerDetails computer) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!isAndroidTV()) {
                 return;
             }
 
             Intent i = new Intent(context, ShortcutTrampoline.class);
-            i.putExtra(AppView.NAME_EXTRA, computerName);
-            i.putExtra(AppView.UUID_EXTRA, computerUuid);
+            i.putExtra(AppView.NAME_EXTRA, computer.name);
+            i.putExtra(AppView.UUID_EXTRA, computer.uuid);
             i.setAction(Intent.ACTION_DEFAULT);
             ChannelBuilder builder = new ChannelBuilder()
                     .setType(TvContract.Channels.TYPE_PREVIEW)
-                    .setDisplayName(computerName)
-                    .setInternalProviderId(computerUuid)
+                    .setDisplayName(computer.name)
+                    .setInternalProviderId(computer.uuid)
                     .setAppLinkIntent(i);
 
-            Long channelId = getChannelId(computerUuid);
+            Long channelId = getChannelId(computer.uuid);
             if (channelId != null) {
                 context.getContentResolver().update(TvContract.buildChannelUri(channelId),
                         builder.toContentValues(), null, null);
@@ -117,7 +119,7 @@ public class TvChannelHelper {
         return bitmap;
     }
 
-    void addGameToChannel(String computerUuid, String computerName, String appId, String appName) {
+    void addGameToChannel(ComputerDetails computer, NvApp app) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!isAndroidTV()) {
                 return;
@@ -126,29 +128,29 @@ public class TvChannelHelper {
             PreviewProgramBuilder builder = new PreviewProgramBuilder();
             Intent i = new Intent(context, ShortcutTrampoline.class);
 
-            i.putExtra(AppView.NAME_EXTRA, computerName);
-            i.putExtra(AppView.UUID_EXTRA, computerUuid);
-            i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, appId);
+            i.putExtra(AppView.NAME_EXTRA, computer.name);
+            i.putExtra(AppView.UUID_EXTRA, computer.uuid);
+            i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, ""+app.getAppId());
             i.setAction(Intent.ACTION_DEFAULT);
 
-            Uri resourceURI = PosterContentProvider.createBoxArtUri(computerUuid, appId);
+            Uri resourceURI = PosterContentProvider.createBoxArtUri(computer.uuid, ""+app.getAppId());
 
-            Long channelId = getChannelId(computerUuid);
+            Long channelId = getChannelId(computer.uuid);
             if (channelId == null) {
                 return;
             }
 
             builder.setChannelId(channelId)
                     .setType(TYPE_GAME)
-                    .setTitle(appName)
+                    .setTitle(app.getAppName())
                     .setPosterArtAspectRatio(ASPECT_RATIO_MOVIE_POSTER)
                     .setPosterArtUri(resourceURI)
                     .setIntent(i)
-                    .setInternalProviderId(appId)
+                    .setInternalProviderId(""+app.getAppId())
                     // Weight should increase each time we run the game
                     .setWeight((int)((System.currentTimeMillis() - 1500000000000L) / 1000));
 
-            Long programId = getProgramId(channelId, appId);
+            Long programId = getProgramId(channelId, ""+app.getAppId());
             if (programId != null) {
                 context.getContentResolver().update(TvContract.buildPreviewProgramUri(programId),
                         builder.toContentValues(), null, null);
@@ -162,18 +164,39 @@ public class TvChannelHelper {
         }
     }
 
-    void deleteChannel(String computerUuid) {
+    void deleteChannel(ComputerDetails computer) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!isAndroidTV()) {
                 return;
             }
 
-            Long channelId = getChannelId(computerUuid);
+            Long channelId = getChannelId(computer.uuid);
             if (channelId == null) {
                 return;
             }
-            Uri uri = TvContract.buildChannelUri(channelId);
-            context.getContentResolver().delete(uri, null, null);
+
+            context.getContentResolver().delete(TvContract.buildChannelUri(channelId), null, null);
+        }
+    }
+
+    void deleteProgram(ComputerDetails computer, NvApp app) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!isAndroidTV()) {
+                return;
+            }
+
+            Long channelId = getChannelId(computer.uuid);
+            if (channelId == null) {
+                return;
+            }
+
+
+            Long programId = getProgramId(channelId, ""+app.getAppId());
+            if (programId == null) {
+                return;
+            }
+
+            context.getContentResolver().delete(TvContract.buildPreviewProgramUri(programId), null, null);
         }
     }
 

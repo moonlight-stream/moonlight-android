@@ -90,6 +90,10 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         return;
                     }
 
+                    // Add a launcher shortcut for this PC (forced, since this is user interaction)
+                    shortcutHelper.createAppViewShortcut(computer, true, getIntent().getBooleanExtra(NEW_PAIR_EXTRA, false));
+                    shortcutHelper.reportComputerShortcutUsed(computer);
+
                     try {
                         appGridAdapter = new AppGridAdapter(AppView.this,
                                 PreferenceConfiguration.readPreferences(AppView.this).listMode,
@@ -182,7 +186,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         @Override
                         public void run() {
                             // Disable shortcuts referencing this PC for now
-                            shortcutHelper.disableShortcut(details.uuid,
+                            shortcutHelper.disableComputerShortcut(details,
                                     getResources().getString(R.string.scut_not_paired));
 
                             // Display a toast to the user and quit the activity
@@ -267,10 +271,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         TextView label = findViewById(R.id.appListText);
         setTitle(computerName);
         label.setText(computerName);
-
-        // Add a launcher shortcut for this PC (forced, since this is user interaction)
-        shortcutHelper.createAppViewShortcut(uuidString, computerName, uuidString, true, getIntent().getBooleanExtra(NEW_PAIR_EXTRA, false));
-        shortcutHelper.reportShortcutUsed(uuidString);
 
         // Bind to the computer manager service
         bindService(new Intent(this, ComputerManagerService.class), serviceConnection,
@@ -420,7 +420,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             case CREATE_SHORTCUT_ID:
                 ImageView appImageView = info.targetView.findViewById(R.id.grid_image);
                 Bitmap appBits = ((BitmapDrawable)appImageView.getDrawable()).getBitmap();
-                if (!shortcutHelper.createPinnedGameShortcut(uuidString + Integer.valueOf(app.app.getAppId()).toString(), appBits, computer, app.app)) {
+                if (!shortcutHelper.createPinnedGameShortcut(computer, app.app, appBits)) {
                     Toast.makeText(AppView.this, getResources().getString(R.string.unable_to_pin_shortcut), Toast.LENGTH_LONG).show();
                 }
                 return true;
@@ -516,6 +516,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
                     // This app was removed in the latest app list
                     if (!foundExistingApp) {
+                        shortcutHelper.disableAppShortcut(computer, existingApp.app, "App removed from PC");
                         appGridAdapter.removeApp(existingApp);
                         updated = true;
 

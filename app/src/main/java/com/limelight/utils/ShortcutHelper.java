@@ -82,44 +82,44 @@ public class ShortcutHelper {
         return false;
     }
 
-    public void reportShortcutUsed(String computerUuid) {
+    public void reportComputerShortcutUsed(ComputerDetails computer) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            if (getInfoForId(computerUuid) != null) {
-                sm.reportShortcutUsed(computerUuid);
+            if (getInfoForId(computer.uuid) != null) {
+                sm.reportShortcutUsed(computer.uuid);
             }
         }
     }
 
-    public void reportGameLaunched(String computerUuid, String computerName, String appId, String appName) {
-        tvChannelHelper.createTvChannel(computerUuid, computerName);
-        tvChannelHelper.addGameToChannel(computerUuid, computerName, appId, appName);
+    public void reportGameLaunched(ComputerDetails computer, NvApp app) {
+        tvChannelHelper.createTvChannel(computer);
+        tvChannelHelper.addGameToChannel(computer, app);
     }
 
-    public void createAppViewShortcut(String id, String computerName, String computerUuid, boolean forceAdd, boolean newlyPaired) {
+    public void createAppViewShortcut(ComputerDetails computer, boolean forceAdd, boolean newlyPaired) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             Intent i = new Intent(context, ShortcutTrampoline.class);
-            i.putExtra(AppView.NAME_EXTRA, computerName);
-            i.putExtra(AppView.UUID_EXTRA, computerUuid);
+            i.putExtra(AppView.NAME_EXTRA, computer.name);
+            i.putExtra(AppView.UUID_EXTRA, computer.uuid);
             i.setAction(Intent.ACTION_DEFAULT);
 
-            ShortcutInfo sinfo = new ShortcutInfo.Builder(context, id)
+            ShortcutInfo sinfo = new ShortcutInfo.Builder(context, computer.uuid)
                     .setIntent(i)
-                    .setShortLabel(computerName)
-                    .setLongLabel(computerName)
+                    .setShortLabel(computer.name)
+                    .setLongLabel(computer.name)
                     .setIcon(Icon.createWithResource(context, R.mipmap.ic_pc_scut))
                     .build();
 
-            ShortcutInfo existingSinfo = getInfoForId(id);
+            ShortcutInfo existingSinfo = getInfoForId(computer.uuid);
             if (existingSinfo != null) {
                 // Update in place
                 sm.updateShortcuts(Collections.singletonList(sinfo));
-                sm.enableShortcuts(Collections.singletonList(id));
+                sm.enableShortcuts(Collections.singletonList(computer.uuid));
             }
 
             // Reap shortcuts to make space for this if it's new
             // NOTE: This CAN'T be an else on the above if, because it's
             // possible that we have an existing shortcut but it's not a dynamic one.
-            if (!isExistingDynamicShortcut(id)) {
+            if (!isExistingDynamicShortcut(computer.uuid)) {
                 // To avoid a random carousel of shortcuts popping in and out based on polling status,
                 // we only add shortcuts if it's not at the limit or the user made a conscious action
                 // to interact with this PC.
@@ -132,24 +132,28 @@ public class ShortcutHelper {
 
         if (newlyPaired) {
             // Avoid hammering the channel API for each computer poll because it will throttle us
-            tvChannelHelper.createTvChannel(computerUuid, computerName);
-            tvChannelHelper.requestChannelOnHomeScreen(computerUuid);
+            tvChannelHelper.createTvChannel(computer);
+            tvChannelHelper.requestChannelOnHomeScreen(computer);
         }
     }
 
     public void createAppViewShortcutForOnlineHost(ComputerDetails details) {
-        createAppViewShortcut(details.uuid, details.name, details.uuid, false, false);
+        createAppViewShortcut(details, false, false);
+    }
+
+    private String getShortcutIdForGame(ComputerDetails computer, NvApp app) {
+        return computer.uuid + app.getAppId();
     }
 
     @TargetApi(Build.VERSION_CODES.O)
-    public boolean createPinnedGameShortcut(String id, Bitmap iconBits, String computerName, String computerUuid, String appName, String appId) {
+    public boolean createPinnedGameShortcut(ComputerDetails computer, NvApp app, Bitmap iconBits) {
         if (sm.isRequestPinShortcutSupported()) {
             Icon appIcon;
             Intent i = new Intent(context, ShortcutTrampoline.class);
 
-            i.putExtra(AppView.NAME_EXTRA, computerName);
-            i.putExtra(AppView.UUID_EXTRA, computerUuid);
-            i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, appId);
+            i.putExtra(AppView.NAME_EXTRA, computer.name);
+            i.putExtra(AppView.UUID_EXTRA, computer.uuid);
+            i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, ""+app.getAppId());
             i.setAction(Intent.ACTION_DEFAULT);
 
             if (iconBits != null) {
@@ -158,9 +162,9 @@ public class ShortcutHelper {
                 appIcon = Icon.createWithResource(context, R.mipmap.ic_pc_scut);
             }
 
-            ShortcutInfo sInfo = new ShortcutInfo.Builder(context, id)
+            ShortcutInfo sInfo = new ShortcutInfo.Builder(context, getShortcutIdForGame(computer, app))
                 .setIntent(i)
-                .setShortLabel(appName + " (" + computerName + ")")
+                .setShortLabel(app.getAppName() + " (" + computer.name + ")")
                 .setIcon(appIcon)
                 .build();
 
@@ -170,15 +174,32 @@ public class ShortcutHelper {
         }
     }
 
-    public boolean createPinnedGameShortcut(String id, Bitmap iconBits, ComputerDetails cDetails, NvApp app) {
-        return createPinnedGameShortcut(id, iconBits, cDetails.name, cDetails.uuid, app.getAppName(), Integer.valueOf(app.getAppId()).toString());
+    public void disableComputerShortcut(ComputerDetails computer, CharSequence reason) {
+        tvChannelHelper.deleteChannel(computer);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            // Delete the computer shortcut itself
+            if (getInfoForId(computer.uuid) != null) {
+                sm.disableShortcuts(Collections.singletonList(computer.uuid), reason);
+            }
+
+            // Delete all associated app shortcuts too
+            List<ShortcutInfo> shortcuts = getAllShortcuts();
+            LinkedList<String> appShortcutIds = new LinkedList<>();
+            for (ShortcutInfo info : shortcuts) {
+                if (info.getId().startsWith(computer.uuid)) {
+                    appShortcutIds.add(info.getId());
+                }
+            }
+            sm.disableShortcuts(appShortcutIds, reason);
+        }
     }
 
-    public void disableShortcut(String uuid, CharSequence reason) {
-        tvChannelHelper.deleteChannel(uuid);
+    public void disableAppShortcut(ComputerDetails computer, NvApp app, CharSequence reason) {
+        tvChannelHelper.deleteProgram(computer, app);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            if (getInfoForId(uuid) != null) {
-                sm.disableShortcuts(Collections.singletonList(uuid), reason);
+            String id = getShortcutIdForGame(computer, app);
+            if (getInfoForId(id) != null) {
+                sm.disableShortcuts(Collections.singletonList(id), reason);
             }
         }
     }

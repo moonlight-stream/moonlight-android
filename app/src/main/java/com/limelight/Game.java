@@ -17,6 +17,7 @@ import com.limelight.binding.video.PerfOverlayListener;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
+import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
@@ -269,10 +270,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Report this shortcut being used
+        ComputerDetails computer = new ComputerDetails();
+        computer.name = pcName;
+        computer.uuid = uuid;
         shortcutHelper = new ShortcutHelper(this);
-        shortcutHelper.reportShortcutUsed(uuid);
+        shortcutHelper.reportComputerShortcutUsed(computer);
         if (appName != null) {
-            shortcutHelper.reportGameLaunched(uuid, pcName, ""+appId, appName);
+            NvApp app = new NvApp();
+            app.setAppId(appId);
+            app.setAppName(appName);
+            shortcutHelper.reportGameLaunched(computer, app);
         }
 
         // Initialize the MediaCodec helper before creating the decoder

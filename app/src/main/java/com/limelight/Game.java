@@ -276,10 +276,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         shortcutHelper = new ShortcutHelper(this);
         shortcutHelper.reportComputerShortcutUsed(computer);
         if (appName != null) {
-            NvApp app = new NvApp();
-            app.setAppId(appId);
-            app.setAppName(appName);
-            shortcutHelper.reportGameLaunched(computer, app);
+            // This may be null if launched from the "Resume Session" PC context menu item
+            shortcutHelper.reportGameLaunched(computer, new NvApp(appName, appId, willStreamHdr));
         }
 
         // Initialize the MediaCodec helper before creating the decoder

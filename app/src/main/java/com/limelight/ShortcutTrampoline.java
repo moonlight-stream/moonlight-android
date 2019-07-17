@@ -24,11 +24,13 @@ import java.util.UUID;
 public class ShortcutTrampoline extends Activity {
     private String uuidString;
     private String appIdString;
+    private String appNameString;
     private ArrayList<Intent> intentStack = new ArrayList<>();
 
     private ComputerDetails computer;
     private SpinnerDialog blockingLoadSpinner;
 
+    public final static String APP_NAME_EXTRA = "AppName";
     public final static String APP_ID_EXTRA = "AppId";
 
     private ComputerManagerService.ComputerManagerBinder managerBinder;
@@ -104,7 +106,7 @@ public class ShortcutTrampoline extends Activity {
                                             if (appIdString != null && appIdString.length() > 0) {
                                                 if (details.runningGameId == 0 || details.runningGameId == Integer.parseInt(appIdString)) {
                                                     intentStack.add(ServerHelper.createStartIntent(ShortcutTrampoline.this,
-                                                            new NvApp(null, Integer.parseInt(appIdString), false), details, managerBinder));
+                                                            new NvApp(appNameString, Integer.parseInt(appIdString), false), details, managerBinder));
 
                                                     // Close this activity
                                                     finish();
@@ -115,7 +117,7 @@ public class ShortcutTrampoline extends Activity {
                                                     // Create the start intent immediately, so we can safely unbind the managerBinder
                                                     // below before we return.
                                                     final Intent startIntent = ServerHelper.createStartIntent(ShortcutTrampoline.this,
-                                                            new NvApp(null, Integer.parseInt(appIdString), false), details, managerBinder);
+                                                            new NvApp(appNameString, Integer.parseInt(appIdString), false), details, managerBinder);
 
                                                     UiHelper.displayQuitConfirmationDialog(ShortcutTrampoline.this, new Runnable() {
                                                         @Override
@@ -242,6 +244,9 @@ public class ShortcutTrampoline extends Activity {
 
         uuidString = getIntent().getStringExtra(AppView.UUID_EXTRA);
         appIdString = getIntent().getStringExtra(APP_ID_EXTRA);
+
+        // Optional - may be null
+        appNameString = getIntent().getStringExtra(APP_NAME_EXTRA);
 
         if (validateInput()) {
             // Bind to the computer manager service

@@ -153,6 +153,7 @@ public class ShortcutHelper {
 
             i.putExtra(AppView.NAME_EXTRA, computer.name);
             i.putExtra(AppView.UUID_EXTRA, computer.uuid);
+            i.putExtra(ShortcutTrampoline.APP_NAME_EXTRA, app.getAppName());
             i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, ""+app.getAppId());
             i.setAction(Intent.ACTION_DEFAULT);
 

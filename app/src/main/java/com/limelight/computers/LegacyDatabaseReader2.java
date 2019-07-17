@@ -28,15 +28,18 @@ public class LegacyDatabaseReader2 {
         details.manualAddress = c.getString(4);
         details.macAddress = c.getString(5);
 
-        try {
-            byte[] derCertData = c.getBlob(6);
+        // This column wasn't always present in the old schema
+        if (c.getColumnCount() >= 7) {
+            try {
+                byte[] derCertData = c.getBlob(6);
 
-            if (derCertData != null) {
-                details.serverCert = (X509Certificate) CertificateFactory.getInstance("X.509")
-                        .generateCertificate(new ByteArrayInputStream(derCertData));
+                if (derCertData != null) {
+                    details.serverCert = (X509Certificate) CertificateFactory.getInstance("X.509")
+                            .generateCertificate(new ByteArrayInputStream(derCertData));
+                }
+            } catch (CertificateException e) {
+                e.printStackTrace();
             }
-        } catch (CertificateException e) {
-            e.printStackTrace();
         }
 
         // This signifies we don't have dynamic state (like pair state)

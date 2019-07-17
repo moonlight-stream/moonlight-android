@@ -65,15 +65,11 @@ public class TvChannelHelper {
                 return;
             }
 
-            Intent i = new Intent(context, ShortcutTrampoline.class);
-            i.putExtra(AppView.NAME_EXTRA, computer.name);
-            i.putExtra(AppView.UUID_EXTRA, computer.uuid);
-            i.setAction(Intent.ACTION_DEFAULT);
             ChannelBuilder builder = new ChannelBuilder()
                     .setType(TvContract.Channels.TYPE_PREVIEW)
                     .setDisplayName(computer.name)
                     .setInternalProviderId(computer.uuid)
-                    .setAppLinkIntent(i);
+                    .setAppLinkIntent(ServerHelper.createPcShortcutIntent(context, computer));
 
             Long channelId = getChannelId(computer.uuid);
             if (channelId != null) {
@@ -125,28 +121,19 @@ public class TvChannelHelper {
                 return;
             }
 
-            PreviewProgramBuilder builder = new PreviewProgramBuilder();
-            Intent i = new Intent(context, ShortcutTrampoline.class);
-
-            i.putExtra(AppView.NAME_EXTRA, computer.name);
-            i.putExtra(AppView.UUID_EXTRA, computer.uuid);
-            i.putExtra(ShortcutTrampoline.APP_NAME_EXTRA, app.getAppName());
-            i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, ""+app.getAppId());
-            i.setAction(Intent.ACTION_DEFAULT);
-
-            Uri resourceURI = PosterContentProvider.createBoxArtUri(computer.uuid, ""+app.getAppId());
 
             Long channelId = getChannelId(computer.uuid);
             if (channelId == null) {
                 return;
             }
 
-            builder.setChannelId(channelId)
+            PreviewProgramBuilder builder = new PreviewProgramBuilder()
+                    .setChannelId(channelId)
                     .setType(TYPE_GAME)
                     .setTitle(app.getAppName())
                     .setPosterArtAspectRatio(ASPECT_RATIO_MOVIE_POSTER)
-                    .setPosterArtUri(resourceURI)
-                    .setIntent(i)
+                    .setPosterArtUri(PosterContentProvider.createBoxArtUri(computer.uuid, ""+app.getAppId()))
+                    .setIntent(ServerHelper.createAppShortcutIntent(context, computer, app))
                     .setInternalProviderId(""+app.getAppId())
                     // Weight should increase each time we run the game
                     .setWeight((int)((System.currentTimeMillis() - 1500000000000L) / 1000));

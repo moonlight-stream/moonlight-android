@@ -97,13 +97,8 @@ public class ShortcutHelper {
 
     public void createAppViewShortcut(ComputerDetails computer, boolean forceAdd, boolean newlyPaired) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            Intent i = new Intent(context, ShortcutTrampoline.class);
-            i.putExtra(AppView.NAME_EXTRA, computer.name);
-            i.putExtra(AppView.UUID_EXTRA, computer.uuid);
-            i.setAction(Intent.ACTION_DEFAULT);
-
             ShortcutInfo sinfo = new ShortcutInfo.Builder(context, computer.uuid)
-                    .setIntent(i)
+                    .setIntent(ServerHelper.createPcShortcutIntent(context, computer))
                     .setShortLabel(computer.name)
                     .setLongLabel(computer.name)
                     .setIcon(Icon.createWithResource(context, R.mipmap.ic_pc_scut))
@@ -149,13 +144,6 @@ public class ShortcutHelper {
     public boolean createPinnedGameShortcut(ComputerDetails computer, NvApp app, Bitmap iconBits) {
         if (sm.isRequestPinShortcutSupported()) {
             Icon appIcon;
-            Intent i = new Intent(context, ShortcutTrampoline.class);
-
-            i.putExtra(AppView.NAME_EXTRA, computer.name);
-            i.putExtra(AppView.UUID_EXTRA, computer.uuid);
-            i.putExtra(ShortcutTrampoline.APP_NAME_EXTRA, app.getAppName());
-            i.putExtra(ShortcutTrampoline.APP_ID_EXTRA, ""+app.getAppId());
-            i.setAction(Intent.ACTION_DEFAULT);
 
             if (iconBits != null) {
                 appIcon = Icon.createWithAdaptiveBitmap(iconBits);
@@ -164,7 +152,7 @@ public class ShortcutHelper {
             }
 
             ShortcutInfo sInfo = new ShortcutInfo.Builder(context, getShortcutIdForGame(computer, app))
-                .setIntent(i)
+                .setIntent(ServerHelper.createAppShortcutIntent(context, computer, app))
                 .setShortLabel(app.getAppName() + " (" + computer.name + ")")
                 .setIcon(appIcon)
                 .build();

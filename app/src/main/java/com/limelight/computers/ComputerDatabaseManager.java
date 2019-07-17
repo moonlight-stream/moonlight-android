@@ -65,8 +65,8 @@ public class ComputerDatabaseManager {
         }
     }
 
-    public void deleteComputer(String name) {
-        computerDb.delete(COMPUTER_TABLE_NAME, COMPUTER_NAME_COLUMN_NAME+"=?", new String[]{name});
+    public void deleteComputer(ComputerDetails details) {
+        computerDb.delete(COMPUTER_TABLE_NAME, COMPUTER_UUID_COLUMN_NAME+"=?", new String[]{details.uuid});
     }
 
     public boolean updateComputer(ComputerDetails details) {
@@ -140,14 +140,7 @@ public class ComputerDatabaseManager {
         Cursor c = computerDb.rawQuery("SELECT * FROM "+COMPUTER_TABLE_NAME, null);
         LinkedList<ComputerDetails> computerList = new LinkedList<>();
         while (c.moveToNext()) {
-            ComputerDetails details = getComputerFromCursor(c);
-
-            // If a critical field is corrupt or missing, skip the database entry
-            if (details.uuid == null) {
-                continue;
-            }
-
-            computerList.add(details);
+            computerList.add(getComputerFromCursor(c));
         }
 
         c.close();
@@ -165,12 +158,6 @@ public class ComputerDatabaseManager {
 
         ComputerDetails details = getComputerFromCursor(c);
         c.close();
-
-        // If a critical field is corrupt or missing, delete the database entry
-        if (details.uuid == null) {
-            deleteComputer(details.name);
-            return null;
-        }
 
         return details;
     }

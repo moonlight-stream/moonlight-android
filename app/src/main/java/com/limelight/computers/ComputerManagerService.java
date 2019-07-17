@@ -225,8 +225,8 @@ public class ComputerManagerService extends Service {
             return ComputerManagerService.this.addComputerBlocking(fakeDetails);
         }
 
-        public void removeComputer(String name) {
-            ComputerManagerService.this.removeComputer(name);
+        public void removeComputer(ComputerDetails computer) {
+            ComputerManagerService.this.removeComputer(computer);
         }
 
         public void stopPolling() {
@@ -402,18 +402,18 @@ public class ComputerManagerService extends Service {
         }
     }
 
-    public void removeComputer(String name) {
+    public void removeComputer(ComputerDetails computer) {
         if (!getLocalDatabaseReference()) {
             return;
         }
 
         // Remove it from the database
-        dbManager.deleteComputer(name);
+        dbManager.deleteComputer(computer);
 
         synchronized (pollingTuples) {
             // Remove the computer from the computer list
             for (PollingTuple tuple : pollingTuples) {
-                if (tuple.computer.name.equals(name)) {
+                if (tuple.computer.uuid.equals(computer.uuid)) {
                     if (tuple.thread != null) {
                         // Interrupt the thread on this entry
                         tuple.thread.interrupt();

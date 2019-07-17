@@ -585,7 +585,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                             Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
                             return;
                         }
-                        managerBinder.removeComputer(computer.details.name);
                         removeComputer(computer.details);
                     }
                 }, null);
@@ -630,6 +629,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
     
     private void removeComputer(ComputerDetails details) {
+        managerBinder.removeComputer(details);
+
         for (int i = 0; i < pcGridAdapter.getCount(); i++) {
             ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(i);
 

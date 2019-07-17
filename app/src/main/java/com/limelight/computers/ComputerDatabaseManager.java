@@ -8,7 +8,6 @@ import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Scanner;
 
 import com.limelight.nvstream.http.ComputerDetails;
 
@@ -75,10 +74,10 @@ public class ComputerDatabaseManager {
         values.put(COMPUTER_NAME_COLUMN_NAME, details.name);
 
         StringBuilder addresses = new StringBuilder();
-        addresses.append(details.localAddress != null ? details.localAddress : "").append(ADDRESS_DELIMITER);
-        addresses.append(details.remoteAddress != null ? details.remoteAddress : "").append(ADDRESS_DELIMITER);
-        addresses.append(details.manualAddress != null ? details.manualAddress : "").append(ADDRESS_DELIMITER);
-        addresses.append(details.ipv6Address != null ? details.ipv6Address : "").append(ADDRESS_DELIMITER);
+        addresses.append(details.localAddress != null ? details.localAddress : "");
+        addresses.append(ADDRESS_DELIMITER).append(details.remoteAddress != null ? details.remoteAddress : "");
+        addresses.append(ADDRESS_DELIMITER).append(details.manualAddress != null ? details.manualAddress : "");
+        addresses.append(ADDRESS_DELIMITER).append(details.ipv6Address != null ? details.ipv6Address : "");
 
         values.put(ADDRESSES_COLUMN_NAME, addresses.toString());
         values.put(MAC_ADDRESS_COLUMN_NAME, details.macAddress);
@@ -110,12 +109,12 @@ public class ComputerDatabaseManager {
         details.uuid = c.getString(0);
         details.name = c.getString(1);
 
-        Scanner s = new Scanner(c.getString(2)).useDelimiter(""+ADDRESS_DELIMITER);
+        String[] addresses = c.getString(2).split(""+ADDRESS_DELIMITER, -1);
 
-        details.localAddress = readNonEmptyString(s.next());
-        details.remoteAddress = readNonEmptyString(s.next());
-        details.manualAddress = readNonEmptyString(s.next());
-        details.ipv6Address = readNonEmptyString(s.next());
+        details.localAddress = readNonEmptyString(addresses[0]);
+        details.remoteAddress = readNonEmptyString(addresses[1]);
+        details.manualAddress = readNonEmptyString(addresses[2]);
+        details.ipv6Address = readNonEmptyString(addresses[3]);
 
         details.macAddress = c.getString(3);
 

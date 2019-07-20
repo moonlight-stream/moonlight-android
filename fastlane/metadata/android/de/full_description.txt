@@ -2,46 +2,33 @@ Diese App streamt Spiele, Programme oder den kompletten Desktop von NVIDIA GameS
 
 Die Streamingqualität kann aufgrund des verwendeten Android Geräts und der Netzwerkgegebenheiten variieren. HDR Unterstützung setzt ein HRD10-fähiges Gerät, eine GTX-1000-series GPU und HDR10-kompatibles Spiele voraus.
 
-<b>Merkmale</b>
-&bull; Open-source und komplett freie Software (keine Werbung, InApp-Käufe, oder "Pro" Version)
-&bull; Streamt Spiele unabhängig davon in welchem Store diese gekauft wurden
-$bull; Funktioniert im Heimnetzwerk oder über eine Internet bzw. LTE-Verbindung
-&bull; Bis zu 4K HDR Streaming mit 120 FPS und 5.1 Sourround Sound
-&bull; Tastatur- und Mausznterstützung (mit Android 8.0 oder mit Root-Rechten)
-&bull; Unterstützt PS3, PS4, Xbox 360, Xbox One und Android Gamepads
-&bull; Force Feedback Unterstützung
-&bull; Kooperatives lokales Spielen mit bis zu 4 verbundenen Eingabegeräten
-&bull; Maussteuerung via Gamepad durch langes gedrückt halten der Starttaste
+'''Merkmale'''
+* Open-source und komplett freie Software (keine Werbung, InApp-Käufe, oder "Pro" Version)
+* Streamt Spiele unabhängig davon in welchem Store diese gekauft wurden
+* Funktioniert im Heimnetzwerk oder über eine Internet bzw. LTE-Verbindung
+* Bis zu 4K HDR Streaming mit 120 FPS und 5.1 Sourround Sound
+* Tastatur- und Mausznterstützung (mit Android 8.0 oder mit Root-Rechten)
+* Unterstützt PS3, PS4, Xbox 360, Xbox One und Android Gamepads
+* Force Feedback Unterstützung
+* Kooperatives lokales Spielen mit bis zu 4 verbundenen Eingabegeräten
+* Maussteuerung via Gamepad durch langes gedrückt halten der Starttaste
 
-<b>PC Anforderungen</b>
-&bull; NVIDIA GeForce GTX/RTX Serie GPU (<i>GT-Serie und AMD GPUs werden nicht von NVIDIA GameStream unterstützt</i>)
-&bull; Windows 7 oder neuer
-&bull; NVIDIA GeForce Experience (GFE) 2.2.2 oder neuer
+'''PC Anforderungen'''
+* NVIDIA GeForce GTX/RTX Serie GPU (''GT-Serie und AMD GPUs werden nicht von NVIDIA GameStream unterstützt'')
+* Windows 7 oder neuer
+* NVIDIA GeForce Experience (GFE) 2.2.2 oder neuer
 
-<b>Anleitung zur Schnellkonfiguration</b>
-&bull; Stellen sie sicher dass GeForce Experience auf ihrem PC installiert ist. Aktivieren sie GameStream in den SHIELD Einstellungen.
-&bull; Wählen Sie den PC in Moonlight aus und tippen sie den PIN auf ihrem PC ein.
-&bull; Streamen sie los!
+'''Anleitung zur Schnellkonfiguration'''
+# Stellen sie sicher dass GeForce Experience auf ihrem PC installiert ist. Aktivieren sie GameStream in den SHIELD Einstellungen.
+# Wählen Sie den PC in Moonlight aus und tippen sie den PIN auf ihrem PC ein.
+# Streamen sie los!
 
 Für eine gutes Benutzungserlebnis benötigen sie einen mid- bist high-end WLAN-Router mit einer ungestörten Verbindung zu ihrem Android Gerät (5 GHz wird empfohlen) sowie eine gute Verbindung von ihrem PC zum Router (Ethernet empfohlen).
 
-<b>detaillierte  Konfigurationsanleitung</b>
+'''detaillierte  Konfigurationsanleitung'''
 Besuchen die die vollständige Konfigurationsanleitung https://bit.ly/1skHFjN (Englisch) um:
-&bull; Einen PC manuell hinzuzufügen (falls ihr PC nicht automatisch erkannt werden sollte)
-&bull; Über das Internet bzw. LTE zu streamen
-&bull; Eine Eingabegerät das direkt mit dem PC verbunden ist zu nutzen
-&bull; Den kompletten Desktop zu streamen
-&bull; Individuelle Apps zum Streamen hinzuzufügen
-
-<b>Fehlerbehebung</b>
-Hier finden sie eine detaillierte Fehlerbehebungsanleitung: https://bit.ly/1TO2NLq (Englisch)
-Sollten die Fehlerbehebung trotz Anleitung nicht möglich sein, können sie sich an die EMail-Adresse am Ende des Dokumentes wenden.
-
-Klarstellung: Diese App wird in keinster Weise von NVIDIA angeboten. Bitte kontaktieren sie diese nicht um Hilfestellung für diese App zu erhalten. Folgen sie stattdessen unserer Anleitung zur Fehlerbehebung.
-
-Weitere Details über Moonlight finden sie in diesem Wiki: https://bit.ly/1X6fySw
-Bitte benutzen sie den Issue-Tracker unseres GitHub Projekts um Fehler zu melden: https://bit.ly/1Udghu0
-
-Diese App ist Open-Source und steh unter der GPL. Der Source-Code wird hier veröffentlicht: https://github.com/moonlight-stream/moonlight-android
-
-Rechtlicher Hinweis: Alle hier zitieren Markenzeichen befinden sich im Eigentum der jeweiligen Besitzer.
+* Einen PC manuell hinzuzufügen (falls ihr PC nicht automatisch erkannt werden sollte)
+* Über das Internet bzw. LTE zu streamen
+* Eine Eingabegerät das direkt mit dem PC verbunden ist zu nutzen
+* Den kompletten Desktop zu streamen
+* Individuelle Apps zum Streamen hinzuzufügen

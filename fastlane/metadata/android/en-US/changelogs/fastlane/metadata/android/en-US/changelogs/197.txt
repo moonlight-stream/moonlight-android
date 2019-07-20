@@ -1,0 +1,7 @@
+- Added a performance overlay for real-time performance data
+- Added support for launching games directly from the Android TV homescreen
+- Added support for zero-configuration Internet streaming on IPv6 networks
+- Improved handling of home screen PC and game shortcuts
+- Fixed streaming from very old versions of GeForce Experience
+- Fixed deleting PCs with duplicate names
+- Updated Simplified Chinese translation

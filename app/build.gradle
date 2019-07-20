@@ -8,7 +8,7 @@ android {
         targetSdkVersion 29
 
         versionName "8.0"
-        versionCode = 196
+        versionCode = 197
     }
 
     flavorDimensions "root"

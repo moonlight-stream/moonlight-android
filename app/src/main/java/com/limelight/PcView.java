@@ -9,6 +9,7 @@ import com.limelight.binding.crypto.AndroidCryptoProvider;
 import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.grid.PcGridAdapter;
+import com.limelight.grid.assets.DiskAssetLoader;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
@@ -630,6 +631,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     
     private void removeComputer(ComputerDetails details) {
         managerBinder.removeComputer(details);
+
+        new DiskAssetLoader(this).deleteAssetsForComputer(details.uuid);
 
         for (int i = 0; i < pcGridAdapter.getCount(); i++) {
             ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(i);

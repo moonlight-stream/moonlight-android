@@ -137,6 +137,16 @@ public class DiskAssetLoader {
         return CacheHelper.openPath(false, cacheDir, "boxart", computerUuid, appId + ".png");
     }
 
+    public void deleteAssetsForComputer(String computerUuid) {
+        File dir = CacheHelper.openPath(false, cacheDir, "boxart", computerUuid);
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                f.delete();
+            }
+        }
+    }
+
     public void populateCacheWithStream(CachedAppAssetLoader.LoaderTuple tuple, InputStream input) {
         OutputStream out = null;
         boolean success = false;

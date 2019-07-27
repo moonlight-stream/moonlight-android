@@ -115,7 +115,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean grabbedInput = true;
     private boolean grabComboDown = false;
     private StreamView streamView;
+
+    private boolean isHidingOverlays;
     private TextView notificationOverlayView;
+    private int requestedNotificationOverlayVisibility = View.GONE;
     private TextView performanceOverlayView;
 
     private ShortcutHelper shortcutHelper;
@@ -494,13 +497,28 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Refresh layout of OSC for possible new screen size
             virtualController.refreshLayout();
 
-            // Hide OSC in PiP
+            // Hide on-screen overlays in PiP mode
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (isInPictureInPictureMode()) {
+                    isHidingOverlays = true;
+
                     virtualController.hide();
+
+                    performanceOverlayView.setVisibility(View.GONE);
+                    notificationOverlayView.setVisibility(View.GONE);
                 }
                 else {
+                    isHidingOverlays = false;
+
                     virtualController.show();
+
+                    // Restore overlays to previous state when leaving PiP
+
+                    if (prefConfig.enablePerfOverlay) {
+                        performanceOverlayView.setVisibility(View.VISIBLE);
+                    }
+
+                    notificationOverlayView.setVisibility(requestedNotificationOverlayVisibility);
                 }
             }
         }
@@ -1402,10 +1420,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         notificationOverlayView.setText(getResources().getString(R.string.poor_connection_msg));
                     }
 
-                    notificationOverlayView.setVisibility(View.VISIBLE);
+                    requestedNotificationOverlayVisibility = View.VISIBLE;
                 }
                 else if (connectionStatus == MoonBridge.CONN_STATUS_OKAY) {
-                    notificationOverlayView.setVisibility(View.GONE);
+                    requestedNotificationOverlayVisibility = View.GONE;
+                }
+
+                if (!isHidingOverlays) {
+                    notificationOverlayView.setVisibility(requestedNotificationOverlayVisibility);
                 }
             }
         });

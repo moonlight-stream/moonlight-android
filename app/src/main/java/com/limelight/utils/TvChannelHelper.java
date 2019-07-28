@@ -16,11 +16,9 @@ import android.media.tv.TvContract;
 import android.net.Uri;
 import android.os.Build;
 
-import com.limelight.AppView;
 import com.limelight.LimeLog;
 import com.limelight.PosterContentProvider;
 import com.limelight.R;
-import com.limelight.ShortcutTrampoline;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 
@@ -32,6 +30,7 @@ public class TvChannelHelper {
     private static final int ASPECT_RATIO_MOVIE_POSTER = 5;
     private static final int TYPE_GAME = 12;
     private static final int INTERNAL_PROVIDER_ID_INDEX = 1;
+    private static final int PROGRAM_BROWSABLE_INDEX = 2;
     private static final int ID_INDEX = 0;
     private Activity context;
 
@@ -214,7 +213,7 @@ public class TvChannelHelper {
     private Long getProgramId(long channelId, String appId) {
         try (Cursor cursor = context.getContentResolver().query(
                 TvContract.buildPreviewProgramsUriForChannel(channelId),
-                new String[] {TvContract.PreviewPrograms._ID, TvContract.PreviewPrograms.COLUMN_INTERNAL_PROVIDER_ID},
+                new String[] {TvContract.PreviewPrograms._ID, TvContract.PreviewPrograms.COLUMN_INTERNAL_PROVIDER_ID, TvContract.PreviewPrograms.COLUMN_BROWSABLE},
                 null,
                 null,
                 null)) {
@@ -224,7 +223,18 @@ public class TvChannelHelper {
             while (cursor.moveToNext()) {
                 String internalProviderId = cursor.getString(INTERNAL_PROVIDER_ID_INDEX);
                 if (appId.equals(internalProviderId)) {
-                    return cursor.getLong(ID_INDEX);
+                    long id = cursor.getLong(ID_INDEX);
+                    int browsable = cursor.getInt(PROGRAM_BROWSABLE_INDEX);
+                    if (browsable != 0) {
+                        return id;
+                    } else {
+                        int countDeleted = context.getContentResolver().delete(TvContract.buildPreviewProgramUri(id), null, null);
+                        if (countDeleted > 0) {
+                            LimeLog.info("Preview program has been deleted");
+                        } else {
+                            LimeLog.warning("Preview program has not been deleted");
+                        }
+                    }
                 }
             }
 

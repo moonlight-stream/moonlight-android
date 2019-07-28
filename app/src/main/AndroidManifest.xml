@@ -41,6 +41,7 @@
         android:appCategory="game"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
+        android:installLocation="auto"
         android:theme="@style/AppTheme">
         <provider
             android:name=".PosterContentProvider"

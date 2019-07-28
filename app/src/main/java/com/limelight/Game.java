@@ -496,30 +496,34 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (virtualController != null) {
             // Refresh layout of OSC for possible new screen size
             virtualController.refreshLayout();
+        }
 
-            // Hide on-screen overlays in PiP mode
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (isInPictureInPictureMode()) {
-                    isHidingOverlays = true;
+        // Hide on-screen overlays in PiP mode
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (isInPictureInPictureMode()) {
+                isHidingOverlays = true;
 
+                if (virtualController != null) {
                     virtualController.hide();
-
-                    performanceOverlayView.setVisibility(View.GONE);
-                    notificationOverlayView.setVisibility(View.GONE);
                 }
-                else {
-                    isHidingOverlays = false;
 
+                performanceOverlayView.setVisibility(View.GONE);
+                notificationOverlayView.setVisibility(View.GONE);
+            }
+            else {
+                isHidingOverlays = false;
+
+                // Restore overlays to previous state when leaving PiP
+
+                if (virtualController != null) {
                     virtualController.show();
-
-                    // Restore overlays to previous state when leaving PiP
-
-                    if (prefConfig.enablePerfOverlay) {
-                        performanceOverlayView.setVisibility(View.VISIBLE);
-                    }
-
-                    notificationOverlayView.setVisibility(requestedNotificationOverlayVisibility);
                 }
+
+                if (prefConfig.enablePerfOverlay) {
+                    performanceOverlayView.setVisibility(View.VISIBLE);
+                }
+
+                notificationOverlayView.setVisibility(requestedNotificationOverlayVisibility);
             }
         }
     }

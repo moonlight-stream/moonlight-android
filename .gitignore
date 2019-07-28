@@ -38,3 +38,6 @@ build/
 # Compiled JNI libraries folder
 **/jniLibs
 app/.externalNativeBuild/
+
+# NDK stuff
+.cxx/

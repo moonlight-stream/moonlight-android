@@ -1,0 +1,15 @@
+language: android
+dist: trusty
+
+git:
+  depth: 1
+
+android:
+  components:
+    - tools
+    - platform-tools
+    - build-tools-29.0.1
+    - android-29
+
+install:
+  - yes | sdkmanager "ndk-bundle"

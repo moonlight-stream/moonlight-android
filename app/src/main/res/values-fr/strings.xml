@@ -84,7 +84,7 @@
     <string name="delete_pc_msg">Êtes-vous sûr de vouloir supprimer ce PC?</string>
     <string name="slow_connection_msg">Connexion lente au PC\nRéduisez votre débit</string>
     <string name="poor_connection_msg">Mauvaise connexion au PC</string>
-    <string name="perf_overlay_text">Video dimensions: %1$s\nDécodeur: %2$s\nEstimation de la fréquence d'images de l'ordinateur hôte: %3$.2f FPS\nFréquence d'images entrantes du réseau: %4$.2f FPS\nTaux de rendu: %5$.2f FPS\nImages envoyé par votre connexion réseau: %6$.2f%%\nTemps moyen de réception: %7$.2f ms\nTemps de décodage moyen: %8$.2f ms</string>
+    <string name="perf_overlay_text">Video dimensions: %1$s\nDécodeur: %2$s\nEstimation de la fréquence d\'images de l\'ordinateur hôte: %3$.2f FPS\nFréquence d\'images entrantes du réseau: %4$.2f FPS\nTaux de rendu: %5$.2f FPS\nImages envoyé par votre connexion réseau: %6$.2f%%\nTemps moyen de réception: %7$.2f ms\nTemps de décodage moyen: %8$.2f ms</string>
 
     <!-- AppList activity -->
     <string name="applist_connect_msg">Connexion au PC…</string>
@@ -186,6 +186,6 @@
     <string name="title_enable_hdr">Activer le HDR (expérimental)</string>
     <string name="summary_enable_hdr">Diffuser du HDR lorsque le jeu et le processeur graphique du PC le prennent en charge. HDR nécessite un GPU série GTX 1000 ou une version ultérieure.</string>
     <string name="title_enable_perf_overlay">Activer la superposition de performance</string>
-    <string name="summary_enable_perf_overlay">Afficher une superposition à l'écran avec des informations de performance en temps réel pendant la lecture en continu</string>
+    <string name="summary_enable_perf_overlay">Afficher une superposition à l\'écran avec des informations de performance en temps réel pendant la lecture en continu</string>
 
 </resources>

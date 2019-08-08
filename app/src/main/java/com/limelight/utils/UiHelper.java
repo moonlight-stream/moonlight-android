@@ -2,13 +2,12 @@ package com.limelight.utils;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.UiModeManager;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.view.View;
+import android.view.WindowInsets;
 import android.view.WindowManager;
 
 import com.limelight.R;
@@ -18,10 +17,6 @@ import com.limelight.preferences.PreferenceConfiguration;
 import java.util.Locale;
 
 public class UiHelper {
-
-    // Values from https://developer.android.com/training/tv/start/layouts.html
-    private static final int TV_VERTICAL_PADDING_DP = 27;
-    private static final int TV_HORIZONTAL_PADDING_DP = 48;
 
     public static void setLocale(Activity activity)
     {
@@ -55,6 +50,23 @@ public class UiHelper {
             // parts of the streaming surface.
             activity.getWindow().getAttributes().layoutInDisplayCutoutMode =
                     WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Draw under the status bar on Android Q devices
+
+            activity.getWindow().getDecorView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+                @Override
+                public WindowInsets onApplyWindowInsets(View view, WindowInsets windowInsets) {
+                    view.setPadding(windowInsets.getSystemWindowInsetLeft(),
+                            windowInsets.getSystemWindowInsetTop(),
+                            windowInsets.getSystemWindowInsetRight(),
+                            0);
+                    return windowInsets;
+                }
+            });
+
+            activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         }
     }
 

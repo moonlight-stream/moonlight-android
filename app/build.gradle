@@ -7,8 +7,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 29
 
-        versionName "8.0"
-        versionCode = 197
+        versionName "8.1"
+        versionCode = 198
     }
 
     flavorDimensions "root"

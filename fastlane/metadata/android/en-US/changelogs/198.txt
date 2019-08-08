@@ -1,0 +1,8 @@
+- Optimized edge-to-edge layout for Android Q
+- Fixed 5.1 surround sound not always working over the Internet
+- Fixed Android TV app icon on Android Pie
+- Improved reliability of public IP address detection
+- Enabled installation on external storage
+- Fixed on-screen overlays covering stream when in PiP mode
+- Fixed games never reappearing on Android TV channel if deleted once
+- Updated Russian and French translations

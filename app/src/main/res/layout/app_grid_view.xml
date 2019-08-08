@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <GridView
-        android:id="@+id/fragmentView"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:numColumns="auto_fit"
-        android:columnWidth="160dp"
-        android:stretchMode="spacingWidth"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:gravity="center"/>
-</LinearLayout>
+<GridView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fragmentView"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:numColumns="auto_fit"
+    android:columnWidth="160dp"
+    android:stretchMode="spacingWidth"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:gravity="center"/>

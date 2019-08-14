@@ -9,4 +9,5 @@
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:nextFocusLeft="@id/settingsButton"
+    android:clipToPadding="false"
     android:gravity="center"/>

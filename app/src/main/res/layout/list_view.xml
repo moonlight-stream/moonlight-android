@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <ListView
-        android:id="@+id/fragmentView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/list_view_unselected"
-        android:fastScrollEnabled="true"
-        android:longClickable="false"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:stackFromBottom="false" >
-
-    </ListView>
-
-</LinearLayout>
+<ListView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fragmentView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fastScrollEnabled="true"
+    android:longClickable="false"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:stackFromBottom="false"
+    android:clipToPadding="false"/>

@@ -716,6 +716,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 }
             }
         });
+        UiHelper.applyStatusBarPadding(listView);
         registerForContextMenu(listView);
     }
 

@@ -560,6 +560,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 }
             }
         });
+        UiHelper.applyStatusBarPadding(listView);
         registerForContextMenu(listView);
         listView.requestFocus();
     }

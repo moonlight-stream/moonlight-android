@@ -15,6 +15,9 @@ import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.util.Range;
 import android.view.Display;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.limelight.LimeLog;
 import com.limelight.PcView;
@@ -122,8 +125,16 @@ public class StreamSettings extends Activity {
         }
 
         @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            View view = super.onCreateView(inflater, container, savedInstanceState);
+            UiHelper.applyStatusBarPadding(view);
+            return view;
+        }
+
+        @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+
             addPreferencesFromResource(R.xml.preferences);
             PreferenceScreen screen = getPreferenceScreen();
 

@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Insets;
 import android.os.Build;
 import android.view.View;
 import android.view.WindowInsets;
@@ -40,7 +41,24 @@ public class UiHelper {
         }
     }
 
-    public static void notifyNewRootView(Activity activity)
+    public static void applyStatusBarPadding(View view) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // This applies the padding that we omitted in notifyNewRootView() on Q
+            view.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+                @Override
+                public WindowInsets onApplyWindowInsets(View view, WindowInsets windowInsets) {
+                    view.setPadding(view.getPaddingLeft(),
+                            view.getPaddingTop(),
+                            view.getPaddingRight(),
+                            windowInsets.getTappableElementInsets().bottom);
+                    return windowInsets;
+                }
+            });
+            view.requestApplyInsets();
+        }
+    }
+
+    public static void notifyNewRootView(final Activity activity)
     {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // Allow this non-streaming activity to layout under notches.
@@ -55,13 +73,25 @@ public class UiHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Draw under the status bar on Android Q devices
 
-            activity.getWindow().getDecorView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+            // Using getDecorView() here breaks the translucent status/navigation bar when gestures are disabled
+            activity.findViewById(android.R.id.content).setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
                 @Override
                 public WindowInsets onApplyWindowInsets(View view, WindowInsets windowInsets) {
-                    view.setPadding(windowInsets.getSystemWindowInsetLeft(),
-                            windowInsets.getSystemWindowInsetTop(),
-                            windowInsets.getSystemWindowInsetRight(),
+                    // Use the tappable insets so we can draw under the status bar in gesture mode
+                    Insets tappableInsets = windowInsets.getTappableElementInsets();
+                    view.setPadding(tappableInsets.left,
+                            tappableInsets.top,
+                            tappableInsets.right,
                             0);
+
+                    // Show a translucent navigation bar if we can't tap there
+                    if (tappableInsets.bottom != 0) {
+                        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+                    }
+                    else {
+                        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+                    }
+
                     return windowInsets;
                 }
             });

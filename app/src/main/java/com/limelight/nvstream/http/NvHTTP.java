@@ -36,10 +36,10 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import com.limelight.BuildConfig;
 import com.limelight.LimeLog;
 import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.http.PairingManager.PairState;
-import com.moonlight_stream.moonlight_common.BuildConfig;
 
 import okhttp3.ConnectionPool;
 import okhttp3.Handshake;

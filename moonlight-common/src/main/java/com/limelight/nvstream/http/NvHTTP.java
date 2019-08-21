@@ -42,6 +42,7 @@ import com.limelight.nvstream.http.PairingManager.PairState;
 import com.moonlight_stream.moonlight_common.BuildConfig;
 
 import okhttp3.ConnectionPool;
+import okhttp3.Handshake;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -81,10 +82,6 @@ public class NvHTTP {
 				throw new IllegalStateException("Should never be called");
 			}
 			public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
-				if (certs.length != 1) {
-					throw new CertificateException("Invalid certificate chain length: "+certs.length);
-				}
-
 				// Check the server certificate if we've paired to this host
 				if (!certs[0].equals(NvHTTP.this.serverCert)) {
 					throw new CertificateException("Certificate mismatch");
@@ -288,6 +285,17 @@ public class NvHTTP {
 		}
 	}
 
+	public X509Certificate getCertificateIfTrusted() {
+		try {
+			Response resp = httpClient.newCall(new Request.Builder().url(baseUrlHttps).get().build()).execute();
+			Handshake handshake = resp.handshake();
+			if (handshake != null) {
+				return (X509Certificate)handshake.peerCertificates().get(0);
+			}
+		} catch (IOException ignored) {}
+
+		return null;
+	}
 
 	// Read timeout should be enabled for any HTTP query that requires no outside action
 	// on the GFE server. Examples of queries that DO require outside action are launch, resume, and quit.

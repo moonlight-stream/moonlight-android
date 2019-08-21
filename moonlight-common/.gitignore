@@ -1,0 +1,4 @@
+/build
+*.iml
+.externalNativeBuild/
+.cxx/

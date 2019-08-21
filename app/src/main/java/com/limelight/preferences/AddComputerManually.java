@@ -1,5 +1,6 @@
 package com.limelight.preferences;
 
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
@@ -9,9 +10,11 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.limelight.binding.PlatformBinding;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
@@ -101,6 +104,12 @@ public class AddComputerManually extends Activity {
         try {
             ComputerDetails details = new ComputerDetails();
             details.manualAddress = host;
+
+            try {
+                NvHTTP http = new NvHTTP(host, managerBinder.getUniqueId(), null, PlatformBinding.getCryptoProvider(this));
+                details.serverCert = http.getCertificateIfTrusted();
+            } catch (IOException ignored) {}
+
             success = managerBinder.addComputerBlocking(details);
         } catch (IllegalArgumentException e) {
             // This can be thrown from OkHttp if the host fails to canonicalize to a valid name.

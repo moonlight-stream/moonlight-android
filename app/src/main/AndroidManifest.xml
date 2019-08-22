@@ -104,6 +104,7 @@
         <activity
             android:name=".preferences.AddComputerManually"
             android:resizeableActivity="true"
+            android:windowSoftInputMode="stateVisible"
             android:label="Add Computer Manually">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

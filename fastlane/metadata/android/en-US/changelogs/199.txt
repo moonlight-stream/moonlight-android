@@ -1,0 +1,3 @@
+- Fix items being blocked by the navigation bar on Android Q with gesture navigation disabled
+- Restore some overscan padding for Android TV
+- Display keyboard when opening Add PC page

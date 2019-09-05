@@ -367,6 +367,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             return true;
         }
 
+        //The Xbox controller has a select button that registers as a back button
+        if (devName.contains("Xbox")) {
+            return false;
+        }
+
         // Classify this device as a remote by name if it has no joystick axes
         if (getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_X) == null &&
                 getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_Y) == null &&

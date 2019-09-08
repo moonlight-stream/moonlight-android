@@ -26,6 +26,7 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
@@ -96,8 +97,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
                     try {
                         appGridAdapter = new AppGridAdapter(AppView.this,
-                                PreferenceConfiguration.readPreferences(AppView.this).listMode,
-                                PreferenceConfiguration.readPreferences(AppView.this).smallIconMode,
+                                PreferenceConfiguration.readPreferences(AppView.this),
                                 computer, localBinder.getUniqueId());
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -146,6 +146,27 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             managerBinder = null;
         }
     };
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // If appGridAdapter is initialized, let it know about the configuration change.
+        // If not, it will pick it up when it initializes.
+        if (appGridAdapter != null) {
+            // Update the app grid adapter to create grid items with the correct layout
+            appGridAdapter.updateLayoutWithPreferences(this, PreferenceConfiguration.readPreferences(this));
+
+            try {
+                // Reinflate the app grid itself to pick up the layout change
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.appFragmentContainer, new AdapterFragment())
+                        .commitAllowingStateLoss();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     private void startComputerUpdates() {
         // Don't start polling if we're not bound or in the foreground

@@ -10,14 +10,32 @@ import com.limelight.PcView;
 import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.PairingManager;
+import com.limelight.preferences.PreferenceConfiguration;
 
 import java.util.Collections;
 import java.util.Comparator;
 
 public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
-    public PcGridAdapter(Context context, boolean listMode, boolean small) {
-        super(context, listMode ? R.layout.simple_row : (small ? R.layout.pc_grid_item_small : R.layout.pc_grid_item));
+    public PcGridAdapter(Context context, PreferenceConfiguration prefs) {
+        super(context, getLayoutIdForPreferences(prefs));
+    }
+
+    private static int getLayoutIdForPreferences(PreferenceConfiguration prefs) {
+        if (prefs.listMode) {
+            return R.layout.simple_row;
+        }
+        else if (prefs.smallIconMode) {
+            return R.layout.pc_grid_item_small;
+        }
+        else {
+            return R.layout.pc_grid_item;
+        }
+    }
+
+    public void updateLayoutWithPreferences(Context context, PreferenceConfiguration prefs) {
+        // This will trigger the view to reload with the new layout
+        setLayoutId(getLayoutIdForPreferences(prefs));
     }
 
     public void addComputer(PcView.ComputerObject computer) {

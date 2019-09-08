@@ -10,20 +10,30 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.limelight.R;
+import com.limelight.preferences.PreferenceConfiguration;
 
 import java.util.ArrayList;
 
 public abstract class GenericGridAdapter<T> extends BaseAdapter {
     protected final Context context;
-    protected final int layoutId;
-    protected final ArrayList<T> itemList = new ArrayList<>();
-    protected final LayoutInflater inflater;
+    private int layoutId;
+    final ArrayList<T> itemList = new ArrayList<>();
+    private final LayoutInflater inflater;
 
-    public GenericGridAdapter(Context context, int layoutId) {
+    GenericGridAdapter(Context context, int layoutId) {
         this.context = context;
         this.layoutId = layoutId;
 
         this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    }
+
+    void setLayoutId(int layoutId) {
+        if (layoutId != this.layoutId) {
+            this.layoutId = layoutId;
+
+            // Force the view to be redrawn with the new layout
+            notifyDataSetInvalidated();
+        }
     }
 
     public void clear() {

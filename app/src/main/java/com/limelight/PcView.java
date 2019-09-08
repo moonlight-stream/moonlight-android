@@ -126,6 +126,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         // Set default preferences if we've never been run
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
+        // Set the correct layout for the PC grid
+        pcGridAdapter.updateLayoutWithPreferences(this, PreferenceConfiguration.readPreferences(this));
+
         // Setup the list view
         ImageButton settingsButton = findViewById(R.id.settingsButton);
         ImageButton addComputerButton = findViewById(R.id.manuallyAddPc);
@@ -223,9 +226,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         bindService(new Intent(PcView.this, ComputerManagerService.class), serviceConnection,
                 Service.BIND_AUTO_CREATE);
 
-        pcGridAdapter = new PcGridAdapter(this,
-                PreferenceConfiguration.readPreferences(this).listMode,
-                PreferenceConfiguration.readPreferences(this).smallIconMode);
+        pcGridAdapter = new PcGridAdapter(this, PreferenceConfiguration.readPreferences(this));
 
         initializeViews();
     }

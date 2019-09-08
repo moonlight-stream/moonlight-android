@@ -1,6 +1,6 @@
 package com.limelight.grid;
 
-import android.app.Activity;
+import android.content.Context;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -13,6 +13,7 @@ import com.limelight.grid.assets.DiskAssetLoader;
 import com.limelight.grid.assets.MemoryAssetLoader;
 import com.limelight.grid.assets.NetworkAssetLoader;
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.preferences.PreferenceConfiguration;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,15 +24,37 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     private static final int SMALL_WIDTH_DP = 100;
     private static final int LARGE_WIDTH_DP = 150;
 
-    private final CachedAppAssetLoader loader;
+    private final ComputerDetails computer;
+    private final String uniqueId;
 
-    public AppGridAdapter(Activity activity, boolean listMode, boolean small, ComputerDetails computer, String uniqueId) {
-        super(activity, listMode ? R.layout.simple_row : (small ? R.layout.app_grid_item_small : R.layout.app_grid_item));
+    private CachedAppAssetLoader loader;
 
-        int dpi = activity.getResources().getDisplayMetrics().densityDpi;
+    public AppGridAdapter(Context context, PreferenceConfiguration prefs, ComputerDetails computer, String uniqueId) {
+        super(context, getLayoutIdForPreferences(prefs));
+
+        this.computer = computer;
+        this.uniqueId = uniqueId;
+
+        updateLayoutWithPreferences(context, prefs);
+    }
+
+    private static int getLayoutIdForPreferences(PreferenceConfiguration prefs) {
+        if (prefs.listMode) {
+            return R.layout.simple_row;
+        }
+        else if (prefs.smallIconMode) {
+            return R.layout.app_grid_item_small;
+        }
+        else {
+            return R.layout.app_grid_item;
+        }
+    }
+
+    public void updateLayoutWithPreferences(Context context, PreferenceConfiguration prefs) {
+        int dpi = context.getResources().getDisplayMetrics().densityDpi;
         int dp;
 
-        if (small) {
+        if (prefs.smallIconMode) {
             dp = SMALL_WIDTH_DP;
         }
         else {
@@ -45,10 +68,18 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
         LimeLog.info("Art scaling divisor: " + scalingDivisor);
 
+        if (loader != null) {
+            // Cancel operations on the old loader
+            cancelQueuedOperations();
+        }
+
         this.loader = new CachedAppAssetLoader(computer, scalingDivisor,
                 new NetworkAssetLoader(context, uniqueId),
                 new MemoryAssetLoader(),
                 new DiskAssetLoader(context));
+
+        // This will trigger the view to reload with the new layout
+        setLayoutId(getLayoutIdForPreferences(prefs));
     }
 
     public void cancelQueuedOperations() {

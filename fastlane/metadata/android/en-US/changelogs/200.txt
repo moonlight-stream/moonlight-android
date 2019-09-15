@@ -1,0 +1,4 @@
+- Fixed various UI bugs on foldable Android devices
+- Fixed connecting to a PC with multiple network connections
+- Fixed overscan padding on Android TV 10
+- Fixed gamepad back buttons not working on the ASUS Tinker Board

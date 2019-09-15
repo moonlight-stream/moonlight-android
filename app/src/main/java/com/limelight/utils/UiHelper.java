@@ -68,17 +68,6 @@ public class UiHelper {
         View rootView = activity.findViewById(android.R.id.content);
         UiModeManager modeMgr = (UiModeManager) activity.getSystemService(Context.UI_MODE_SERVICE);
 
-        if (modeMgr.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION)
-        {
-            // Increase view padding on TVs
-            float scale = activity.getResources().getDisplayMetrics().density;
-            int verticalPaddingPixels = (int) (TV_VERTICAL_PADDING_DP*scale + 0.5f);
-            int horizontalPaddingPixels = (int) (TV_HORIZONTAL_PADDING_DP*scale + 0.5f);
-
-            rootView.setPadding(horizontalPaddingPixels, verticalPaddingPixels,
-                    horizontalPaddingPixels, verticalPaddingPixels);
-        }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // Allow this non-streaming activity to layout under notches.
             //
@@ -89,7 +78,16 @@ public class UiHelper {
                     WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (modeMgr.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION) {
+            // Increase view padding on TVs
+            float scale = activity.getResources().getDisplayMetrics().density;
+            int verticalPaddingPixels = (int) (TV_VERTICAL_PADDING_DP*scale + 0.5f);
+            int horizontalPaddingPixels = (int) (TV_HORIZONTAL_PADDING_DP*scale + 0.5f);
+
+            rootView.setPadding(horizontalPaddingPixels, verticalPaddingPixels,
+                    horizontalPaddingPixels, verticalPaddingPixels);
+        }
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Draw under the status bar on Android Q devices
 
             // Using getDecorView() here breaks the translucent status/navigation bar when gestures are disabled

@@ -335,6 +335,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     private static boolean isExternal(InputDevice dev) {
+        // The ASUS Tinker Board inaccurately reports Bluetooth gamepads as internal,
+        // causing shouldIgnoreBack() to believe it should pass through back as a
+        // navigation event for any attached gamepads.
+        if (Build.MODEL.equals("Tinker Board")) {
+            return true;
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Landroid/view/InputDevice;->isExternal()Z is officially public on Android Q
             return dev.isExternal();

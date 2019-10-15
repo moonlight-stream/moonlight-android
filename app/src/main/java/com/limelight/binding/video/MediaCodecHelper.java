@@ -77,8 +77,12 @@ public class MediaCodecHelper {
 			blacklistedDecoderPrefixes.add("AVCDecoder");
 		}
 
-		// Never use ffmpeg decoders since they're software decoders
-		blacklistedDecoderPrefixes.add("OMX.ffmpeg");
+		// We want to avoid ffmpeg decoders since they're software decoders,
+		// but on Android-x86 they might be all we have (and also relatively
+		// performant on a modern x86 processor).
+		if (!Build.BRAND.equals("Android-x86")) {
+			blacklistedDecoderPrefixes.add("OMX.ffmpeg");
+		}
 
 		// Force these decoders disabled because:
 		// 1) They are software decoders, so the performance is terrible

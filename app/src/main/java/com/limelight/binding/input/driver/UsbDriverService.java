@@ -191,10 +191,32 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         }
     }
 
+    public static boolean kernelSupportsXboxOne() {
+        String kernelVersion = System.getProperty("os.version");
+        LimeLog.info("Kernel Version: "+kernelVersion);
+
+        if (kernelVersion == null) {
+            // We'll assume this is some newer version of Android
+            // that doesn't let you read the kernel version this way.
+            return true;
+        }
+        else if (kernelVersion.startsWith("2.") || kernelVersion.startsWith("3.")) {
+            // These are old kernels that definitely don't support Xbox One controllers properly
+            return false;
+        }
+        else if (kernelVersion.startsWith("4.4.") || kernelVersion.startsWith("4.9.")) {
+            // These aren't guaranteed to have backported kernel patches for proper Xbox One
+            // support (though some devices will).
+            return false;
+        }
+        else {
+            // The next AOSP common kernel is 4.14 which has working Xbox One controller support
+            return true;
+        }
+    }
+
     public static boolean shouldClaimDevice(UsbDevice device, boolean claimAllAvailable) {
-        // We always bind to XB1 controllers but only bind to XB360 controllers
-        // if we know the kernel isn't already driving this device.
-        return XboxOneController.canClaimDevice(device) ||
+        return ((!kernelSupportsXboxOne() || !isRecognizedInputDevice(device) || claimAllAvailable) && XboxOneController.canClaimDevice(device)) ||
                 ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360Controller.canClaimDevice(device));
     }
 

@@ -487,7 +487,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                         }
                     }
                 }
-                else if (devName.contains("Sony")) {
+                else if (!devName.contains("Xbox") && !devName.contains("XBox") && !devName.contains("X-Box")) {
                     LimeLog.info("Assuming non-standard DualShock 4 mapping on < 4.4");
                     context.isNonStandardDualShock4 = true;
                 }

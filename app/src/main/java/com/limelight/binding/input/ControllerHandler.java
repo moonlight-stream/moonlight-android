@@ -425,6 +425,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         String devName = dev.getName();
 
         LimeLog.info("Creating controller context for device: "+devName);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            LimeLog.info("Vendor ID: "+dev.getVendorId());
+            LimeLog.info("Product ID: "+dev.getProductId());
+        }
         LimeLog.info(dev.toString());
 
         context.name = devName;
@@ -471,25 +475,39 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             InputDevice.MotionRange rxRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RX);
             InputDevice.MotionRange ryRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RY);
             if (rxRange != null && ryRange != null && devName != null) {
-                if (devName.contains("Xbox") || devName.contains("XBox") || devName.contains("X-Box")) {
-                    // Xbox controllers use RX and RY for right stick
-                    context.rightStickXAxis = MotionEvent.AXIS_RX;
-                    context.rightStickYAxis = MotionEvent.AXIS_RY;
-
-                    // Xbox controllers use Z and RZ for triggers
-                    context.leftTriggerAxis = MotionEvent.AXIS_Z;
-                    context.rightTriggerAxis = MotionEvent.AXIS_RZ;
-                    context.triggersIdleNegative = true;
-                    context.isXboxController = true;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                    if (dev.getVendorId() == 0x054c) { // Sony
+                        if (dev.hasKeys(KeyEvent.KEYCODE_BUTTON_C)[0]) {
+                            LimeLog.info("Detected non-standard DualShock 4 mapping");
+                            context.isNonStandardDualShock4 = true;
+                        }
+                        else {
+                            LimeLog.info("Detected DualShock 4 (Linux standard mapping)");
+                            context.usesLinuxGamepadStandardFaceButtons = true;
+                        }
+                    }
                 }
-                else {
-                    // DS4 controller uses RX and RY for triggers
+                else if (devName.contains("Sony")) {
+                    LimeLog.info("Assuming non-standard DualShock 4 mapping on < 4.4");
+                    context.isNonStandardDualShock4 = true;
+                }
+
+                if (context.isNonStandardDualShock4) {
+                    // The old DS4 driver uses RX and RY for triggers
                     context.leftTriggerAxis = MotionEvent.AXIS_RX;
                     context.rightTriggerAxis = MotionEvent.AXIS_RY;
-                    context.triggersIdleNegative = true;
-
-                    context.isDualShock4 = true;
                 }
+                else {
+                    // If it's not a non-standard DS4 controller, it's probably an Xbox controller or
+                    // other sane controller that uses RX and RY for right stick and Z and RZ for triggers.
+                    context.rightStickXAxis = MotionEvent.AXIS_RX;
+                    context.rightStickYAxis = MotionEvent.AXIS_RY;
+                    context.leftTriggerAxis = MotionEvent.AXIS_Z;
+                    context.rightTriggerAxis = MotionEvent.AXIS_RZ;
+                }
+
+                // Triggers always idle negative on axes that are centered at zero
+                context.triggersIdleNegative = true;
             }
         }
 
@@ -595,7 +613,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // required fixup is ignoring the select button.
             else if (devName.equals("Xbox Wireless Controller")) {
                 if (gasRange == null) {
-                    context.isXboxBtController = true;
+                    context.isNonStandardXboxBtController = true;
                 }
             }
         }
@@ -774,7 +792,21 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
-        if (context.isDualShock4) {
+        if (context.usesLinuxGamepadStandardFaceButtons) {
+            // Android's Generic.kl swaps BTN_NORTH and BTN_WEST
+            switch (event.getScanCode()) {
+                case 304:
+                    return KeyEvent.KEYCODE_BUTTON_A;
+                case 305:
+                    return KeyEvent.KEYCODE_BUTTON_B;
+                case 307:
+                    return KeyEvent.KEYCODE_BUTTON_Y;
+                case 308:
+                    return KeyEvent.KEYCODE_BUTTON_X;
+            }
+        }
+
+        if (context.isNonStandardDualShock4) {
             switch (event.getScanCode()) {
                 case 304:
                     return KeyEvent.KEYCODE_BUTTON_X;
@@ -819,7 +851,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     return KeyEvent.KEYCODE_BUTTON_START;
             }
         }
-        else if (context.isXboxBtController) {
+        else if (context.isNonStandardXboxBtController) {
             switch (event.getScanCode()) {
                 case 306:
                     return KeyEvent.KEYCODE_BUTTON_X;
@@ -1538,9 +1570,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public int hatXAxis = -1;
         public int hatYAxis = -1;
 
-        public boolean isDualShock4;
-        public boolean isXboxController;
-        public boolean isXboxBtController;
+        public boolean isNonStandardDualShock4;
+        public boolean usesLinuxGamepadStandardFaceButtons;
+        public boolean isNonStandardXboxBtController;
         public boolean isServal;
         public boolean backIsStart;
         public boolean modeIsSelect;

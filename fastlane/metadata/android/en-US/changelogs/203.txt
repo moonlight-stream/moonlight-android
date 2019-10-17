@@ -1,0 +1,4 @@
+- Fixed DualShock 4 mapping on devices running 4.14+ kernels
+- Improved support for wired Xbox 360/One controllers
+- Fixed crash using certain controllers without analog triggers
+- Enabled streaming on Android-x86

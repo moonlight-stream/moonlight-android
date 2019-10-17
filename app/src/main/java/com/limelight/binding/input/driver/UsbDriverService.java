@@ -166,7 +166,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         }
     }
 
-    private static boolean isRecognizedInputDevice(UsbDevice device) {
+    public static boolean isRecognizedInputDevice(UsbDevice device) {
         // On KitKat and later, we can determine if this VID and PID combo
         // matches an existing input device and defer to the built-in controller
         // support in that case. Prior to KitKat, we'll always return true to be safe.

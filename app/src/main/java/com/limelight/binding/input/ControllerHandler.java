@@ -502,8 +502,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     // other sane controller that uses RX and RY for right stick and Z and RZ for triggers.
                     context.rightStickXAxis = MotionEvent.AXIS_RX;
                     context.rightStickYAxis = MotionEvent.AXIS_RY;
-                    context.leftTriggerAxis = MotionEvent.AXIS_Z;
-                    context.rightTriggerAxis = MotionEvent.AXIS_RZ;
+
+                    // While it's likely that Z and RZ are triggers, we may have digital trigger buttons
+                    // instead. We must check that we actually have Z and RZ axes before assigning them.
+                    if (getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_Z) != null &&
+                            getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RZ) != null) {
+                        context.leftTriggerAxis = MotionEvent.AXIS_Z;
+                        context.rightTriggerAxis = MotionEvent.AXIS_RZ;
+                    }
                 }
 
                 // Triggers always idle negative on axes that are centered at zero

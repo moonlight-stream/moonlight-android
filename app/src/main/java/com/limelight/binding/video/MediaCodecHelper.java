@@ -37,6 +37,7 @@ public class MediaCodecHelper {
     private static final List<String> refFrameInvalidationAvcPrefixes;
     private static final List<String> refFrameInvalidationHevcPrefixes;
     private static final List<String> blacklisted49FpsDecoderPrefixes;
+    private static final List<String> blacklisted59FpsDecoderPrefixes;
 
     private static boolean isLowEndSnapdragon = false;
     private static boolean initialized = false;
@@ -161,12 +162,19 @@ public class MediaCodecHelper {
 
     static {
         blacklisted49FpsDecoderPrefixes = new LinkedList<>();
+        blacklisted59FpsDecoderPrefixes = new LinkedList<>();
 
         // We see a bunch of crashes on MediaTek Android TVs running
         // at 49 FPS (PAL 50 Hz - 1). Blacklist this frame rate for
         // these devices and hope they fix it in Pie.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             blacklisted49FpsDecoderPrefixes.add("omx.mtk");
+
+            // 59 FPS also seems to crash on the Sony Bravia TV ATV3 model.
+            // Blacklist that frame rate on these devices too.
+            if (Build.DEVICE.startsWith("BRAVIA_ATV3")) {
+                blacklisted59FpsDecoderPrefixes.add("omx.mtk");
+            }
         }
     }
 
@@ -345,8 +353,16 @@ public class MediaCodecHelper {
         return isDecoderInList(baselineProfileHackPrefixes, decoderName);
     }
 
-    public static boolean decoderBlacklistedFor49Fps(String decoderName) {
-        return isDecoderInList(blacklisted49FpsDecoderPrefixes, decoderName);
+    public static boolean decoderBlacklistedForFrameRate(String decoderName, int fps) {
+        if (fps == 49) {
+            return isDecoderInList(blacklisted49FpsDecoderPrefixes, decoderName);
+        }
+        else if (fps == 59) {
+            return isDecoderInList(blacklisted59FpsDecoderPrefixes, decoderName);
+        }
+        else {
+            return false;
+        }
     }
 
     public static boolean decoderSupportsRefFrameInvalidationAvc(String decoderName, int videoHeight) {

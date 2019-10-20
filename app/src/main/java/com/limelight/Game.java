@@ -409,7 +409,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 LimeLog.info("Bogus refresh rate: "+roundedRefreshRate);
             }
             // HACK: Avoid crashing on some MTK devices
-            else if (roundedRefreshRate == 50 && decoderRenderer.is49FpsBlacklisted()) {
+            else if (decoderRenderer.isBlacklistedForFrameRate(roundedRefreshRate - 1)) {
                 // Use the old rendering strategy on these broken devices
                 decoderRenderer.enableLegacyFrameDropRendering();
             }

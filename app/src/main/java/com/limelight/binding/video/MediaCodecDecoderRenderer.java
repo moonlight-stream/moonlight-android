@@ -190,8 +190,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return avcDecoder != null;
     }
 
-    public boolean is49FpsBlacklisted() {
-        return avcDecoder != null && MediaCodecHelper.decoderBlacklistedFor49Fps(avcDecoder.getName());
+    public boolean isBlacklistedForFrameRate(int frameRate) {
+        return avcDecoder != null && MediaCodecHelper.decoderBlacklistedForFrameRate(avcDecoder.getName(), frameRate);
     }
 
     public void enableLegacyFrameDropRendering() {

@@ -1,13 +1,13 @@
 package com.limelight.nvstream.av.audio;
 
 public interface AudioRenderer {
-	int setup(int audioConfiguration);
+    int setup(int audioConfiguration);
 
-	void start();
+    void start();
 
-	void stop();
-	
-	void playDecodedAudio(short[] audioData);
-	
-	void cleanup();
+    void stop();
+    
+    void playDecodedAudio(short[] audioData);
+    
+    void cleanup();
 }

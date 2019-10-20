@@ -112,34 +112,34 @@ public abstract class VirtualControllerElement extends View {
 
     /*
     protected void actionShowNormalColorChooser() {
-		AmbilWarnaDialog colorDialog = new AmbilWarnaDialog(getContext(), normalColor, true, new AmbilWarnaDialog.OnAmbilWarnaListener() {
-			@Override
-			public void onCancel(AmbilWarnaDialog dialog)
-			{}
+        AmbilWarnaDialog colorDialog = new AmbilWarnaDialog(getContext(), normalColor, true, new AmbilWarnaDialog.OnAmbilWarnaListener() {
+            @Override
+            public void onCancel(AmbilWarnaDialog dialog)
+            {}
 
-			@Override
-			public void onOk(AmbilWarnaDialog dialog, int color) {
-				normalColor = color;
-				invalidate();
-			}
-		});
-		colorDialog.show();
-	}
+            @Override
+            public void onOk(AmbilWarnaDialog dialog, int color) {
+                normalColor = color;
+                invalidate();
+            }
+        });
+        colorDialog.show();
+    }
 
-	protected void actionShowPressedColorChooser() {
-		AmbilWarnaDialog colorDialog = new AmbilWarnaDialog(getContext(), normalColor, true, new AmbilWarnaDialog.OnAmbilWarnaListener() {
-			@Override
-			public void onCancel(AmbilWarnaDialog dialog) {
-			}
+    protected void actionShowPressedColorChooser() {
+        AmbilWarnaDialog colorDialog = new AmbilWarnaDialog(getContext(), normalColor, true, new AmbilWarnaDialog.OnAmbilWarnaListener() {
+            @Override
+            public void onCancel(AmbilWarnaDialog dialog) {
+            }
 
-			@Override
-			public void onOk(AmbilWarnaDialog dialog, int color) {
-				pressedColor = color;
-				invalidate();
-			}
-		});
-		colorDialog.show();
-	}
+            @Override
+            public void onOk(AmbilWarnaDialog dialog, int color) {
+                pressedColor = color;
+                invalidate();
+            }
+        });
+        colorDialog.show();
+    }
     */
 
     protected void actionEnableMove() {
@@ -195,11 +195,11 @@ public abstract class VirtualControllerElement extends View {
                         break;
                     }
                 /*
-                case 2:	{ // set default color
+                case 2: { // set default color
                     actionShowNormalColorChooser();
                     break;
                 }
-                case 3:	{ // set pressed color
+                case 3: { // set pressed color
                     actionShowPressedColorChooser();
                     break;
                 }

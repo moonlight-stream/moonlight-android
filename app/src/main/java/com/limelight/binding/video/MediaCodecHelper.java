@@ -48,6 +48,7 @@ public class MediaCodecHelper {
         // These decoders have low enough input buffer latency that they
         // can be directly invoked from the receive thread
         directSubmitPrefixes.add("omx.qcom");
+        directSubmitPrefixes.add("c2.qti");
         directSubmitPrefixes.add("omx.sec");
         directSubmitPrefixes.add("omx.exynos");
         directSubmitPrefixes.add("omx.intel");
@@ -148,7 +149,7 @@ public class MediaCodecHelper {
         //whitelistedHevcDecoders.add("omx.amlogic");
         //whitelistedHevcDecoders.add("omx.rk");
 
-        // Based on GPU attributes queried at runtime, the omx.qcom prefix will be added
+        // Based on GPU attributes queried at runtime, the omx.qcom/c2.qti prefix will be added
         // during initialization to avoid SoCs with broken HEVC decoders.
     }
 
@@ -245,8 +246,9 @@ public class MediaCodecHelper {
                 LimeLog.info("Added omx.nvidia to AVC reference frame invalidation support list");
                 refFrameInvalidationAvcPrefixes.add("omx.nvidia");
 
-                LimeLog.info("Added omx.qcom to AVC reference frame invalidation support list");
+                LimeLog.info("Added omx.qcom/c2.qti to AVC reference frame invalidation support list");
                 refFrameInvalidationAvcPrefixes.add("omx.qcom");
+                refFrameInvalidationAvcPrefixes.add("c2.qti");
 
                 // Prior to M, we were tricking the decoder into using baseline profile, which
                 // won't support RFI properly.
@@ -269,11 +271,13 @@ public class MediaCodecHelper {
                 // older Qualcomm chips) vs. enabling HEVC by default. The user can override using the settings
                 // to force HEVC on. If HDR or mobile data will be used, we'll override this and use
                 // HEVC anyway.
-                LimeLog.info("Added omx.qcom to deprioritized HEVC decoders based on GLES 3.1+ support");
+                LimeLog.info("Added omx.qcom/c2.qti to deprioritized HEVC decoders based on GLES 3.1+ support");
                 deprioritizedHevcDecoders.add("omx.qcom");
+                deprioritizedHevcDecoders.add("c2.qti");
             }
             else {
                 blacklistedDecoderPrefixes.add("OMX.qcom.video.decoder.hevc");
+                blacklistedDecoderPrefixes.add("c2.qti.hevc.decoder");
             }
 
             // Older MediaTek SoCs have issues with HEVC rendering but the newer chips with
@@ -483,6 +487,13 @@ public class MediaCodecHelper {
                 if (codecInfo.isEncoder()) {
                     continue;
                 }
+
+                // Skip compatibility aliases on Q+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    if (codecInfo.isAlias()) {
+                        continue;
+                    }
+                }
                 
                 // Check for preferred decoders
                 if (preferredDecoder.equalsIgnoreCase(codecInfo.getName())) {
@@ -518,6 +529,13 @@ public class MediaCodecHelper {
             // Skip encoders
             if (codecInfo.isEncoder()) {
                 continue;
+            }
+
+            // Skip compatibility aliases on Q+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (codecInfo.isAlias()) {
+                    continue;
+                }
             }
             
             // Find a decoder that supports the specified video format
@@ -565,6 +583,13 @@ public class MediaCodecHelper {
             // Skip encoders
             if (codecInfo.isEncoder()) {
                 continue;
+            }
+
+            // Skip compatibility aliases on Q+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (codecInfo.isAlias()) {
+                    continue;
+                }
             }
             
             // Find a decoder that supports the requested video format

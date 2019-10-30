@@ -1,0 +1,4 @@
+- Optimized for new devices launching with Android 10
+- Added a workaround to avoid video lag on the Pixel 4
+- Fixed duplicate gamepads being created when using a USB Xbox One gamepad
+- Fixed crashes on Sony Bravia Android TV devices

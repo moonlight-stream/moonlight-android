@@ -397,25 +397,34 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Hopefully, we can get rid of this once someone comes up with a better way
         // to track the state of the pipeline and time frames.
         int roundedRefreshRate = Math.round(displayRefreshRate);
-        if ((!prefConfig.disableFrameDrop || prefConfig.unlockFps) && prefConfig.fps >= roundedRefreshRate) {
-            if (prefConfig.unlockFps) {
-                // Use frame drops when rendering above the screen frame rate
-                decoderRenderer.enableLegacyFrameDropRendering();
-                LimeLog.info("Using drop mode for FPS > Hz");
+        if (!prefConfig.disableFrameDrop || prefConfig.unlockFps) {
+            if (Build.DEVICE.equals("coral") || Build.DEVICE.equals("flame")) {
+                // HACK: Pixel 4 (XL) ignores the preferred display mode and lowers refresh rate,
+                // causing frame pacing issues. See https://issuetracker.google.com/issues/143401475
+                // To work around this, use frame drop mode if we want to stream at >= 60 FPS.
+                if (prefConfig.fps >= 60) {
+                    LimeLog.info("Using Pixel 4 rendering hack");
+                    decoderRenderer.enableLegacyFrameDropRendering();
+                }
             }
-            else if (roundedRefreshRate <= 49) {
-                // Let's avoid clearly bogus refresh rates and fall back to legacy rendering
-                decoderRenderer.enableLegacyFrameDropRendering();
-                LimeLog.info("Bogus refresh rate: "+roundedRefreshRate);
-            }
-            // HACK: Avoid crashing on some MTK devices
-            else if (decoderRenderer.isBlacklistedForFrameRate(roundedRefreshRate - 1)) {
-                // Use the old rendering strategy on these broken devices
-                decoderRenderer.enableLegacyFrameDropRendering();
-            }
-            else {
-                prefConfig.fps = roundedRefreshRate - 1;
-                LimeLog.info("Adjusting FPS target for screen to "+prefConfig.fps);
+            else if (prefConfig.fps >= roundedRefreshRate) {
+                if (prefConfig.unlockFps) {
+                    // Use frame drops when rendering above the screen frame rate
+                    decoderRenderer.enableLegacyFrameDropRendering();
+                    LimeLog.info("Using drop mode for FPS > Hz");
+                } else if (roundedRefreshRate <= 49) {
+                    // Let's avoid clearly bogus refresh rates and fall back to legacy rendering
+                    decoderRenderer.enableLegacyFrameDropRendering();
+                    LimeLog.info("Bogus refresh rate: " + roundedRefreshRate);
+                }
+                // HACK: Avoid crashing on some MTK devices
+                else if (decoderRenderer.isBlacklistedForFrameRate(roundedRefreshRate - 1)) {
+                    // Use the old rendering strategy on these broken devices
+                    decoderRenderer.enableLegacyFrameDropRendering();
+                } else {
+                    prefConfig.fps = roundedRefreshRate - 1;
+                    LimeLog.info("Adjusting FPS target for screen to " + prefConfig.fps);
+                }
             }
         }
 

@@ -52,15 +52,17 @@ public class CachedAppAssetLoader {
     private final MemoryAssetLoader memoryLoader;
     private final DiskAssetLoader diskLoader;
     private final Bitmap placeholderBitmap;
+    private final Bitmap noAppImageBitmap;
 
     public CachedAppAssetLoader(ComputerDetails computer, double scalingDivider,
                                 NetworkAssetLoader networkLoader, MemoryAssetLoader memoryLoader,
-                                DiskAssetLoader diskLoader) {
+                                DiskAssetLoader diskLoader, Bitmap noAppImageBitmap) {
         this.computer = computer;
         this.scalingDivider = scalingDivider;
         this.networkLoader = networkLoader;
         this.memoryLoader = memoryLoader;
         this.diskLoader = diskLoader;
+        this.noAppImageBitmap = noAppImageBitmap;
         this.placeholderBitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
     }
 
@@ -188,9 +190,10 @@ public class CachedAppAssetLoader {
                     prgView.setVisibility(View.VISIBLE);
                 }
 
-                // Set off another loader task on the network executor
+                // Set off another loader task on the network executor. This time our AsyncDrawable
+                // will use the app image placeholder bitmap, rather than an empty bitmap.
                 LoaderTask task = new LoaderTask(imageView, prgView, false);
-                AsyncDrawable asyncDrawable = new AsyncDrawable(imageView.getResources(), placeholderBitmap, task);
+                AsyncDrawable asyncDrawable = new AsyncDrawable(imageView.getResources(), noAppImageBitmap, task);
                 imageView.setVisibility(View.VISIBLE);
                 imageView.setImageDrawable(asyncDrawable);
                 task.executeOnExecutor(networkExecutor, tuple);

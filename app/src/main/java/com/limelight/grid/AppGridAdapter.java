@@ -1,6 +1,7 @@
 package com.limelight.grid;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -76,7 +77,8 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         this.loader = new CachedAppAssetLoader(computer, scalingDivisor,
                 new NetworkAssetLoader(context, uniqueId),
                 new MemoryAssetLoader(),
-                new DiskAssetLoader(context));
+                new DiskAssetLoader(context),
+                BitmapFactory.decodeResource(context.getResources(), R.drawable.no_app_image));
 
         // This will trigger the view to reload with the new layout
         setLayoutId(getLayoutIdForPreferences(prefs));

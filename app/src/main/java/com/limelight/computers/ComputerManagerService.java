@@ -312,7 +312,7 @@ public class ComputerManagerService extends Service {
                 }
             }
         }
-        else {
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
             if (activeNetworkInfo != null) {
                 return activeNetworkInfo.getType() == ConnectivityManager.TYPE_VPN;

@@ -587,7 +587,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private float prepareDisplayForRendering() {
         Display display = getWindowManager().getDefaultDisplay();
         WindowManager.LayoutParams windowLayoutParams = getWindow().getAttributes();
-        float displayRefreshRate;
 
         // On M, we can explicitly set the optimal display mode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -631,7 +630,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             LimeLog.info("Selected display mode: "+bestMode.getPhysicalWidth()+"x"+
                     bestMode.getPhysicalHeight()+"x"+bestMode.getRefreshRate());
             windowLayoutParams.preferredDisplayModeId = bestMode.getModeId();
-            displayRefreshRate = bestMode.getRefreshRate();
         }
         // On L, we can at least tell the OS that we want a refresh rate
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -652,12 +650,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
             LimeLog.info("Selected refresh rate: "+bestRefreshRate);
             windowLayoutParams.preferredRefreshRate = bestRefreshRate;
-            displayRefreshRate = bestRefreshRate;
         }
         else {
             // Otherwise, the active display refresh rate is just
             // whatever is currently in use.
-            displayRefreshRate = display.getRefreshRate();
         }
 
         // Apply the display mode change
@@ -694,7 +690,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             streamView.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
         }
 
-        return displayRefreshRate;
+        // Use the actual refresh rate of the display, since the preferred refresh rate or mode
+        // may not actually be applied (ex: Pixel 4 with Smooth Display disabled).
+        return getWindowManager().getDefaultDisplay().getRefreshRate();
     }
 
     @SuppressLint("InlinedApi")

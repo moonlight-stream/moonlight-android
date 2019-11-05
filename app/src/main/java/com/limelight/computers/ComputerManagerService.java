@@ -26,9 +26,15 @@ import com.limelight.utils.ServerHelper;
 
 import android.app.Service;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -294,6 +300,28 @@ public class ComputerManagerService extends Service {
         return false;
     }
 
+    private boolean isActiveNetworkVpn() {
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Network activeNetwork = connMgr.getActiveNetwork();
+            if (activeNetwork != null) {
+                NetworkCapabilities netCaps = connMgr.getNetworkCapabilities(activeNetwork);
+                if (netCaps != null) {
+                    return netCaps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) ||
+                            !netCaps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN);
+                }
+            }
+        }
+        else {
+            NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
+            if (activeNetworkInfo != null) {
+                return activeNetworkInfo.getType() == ConnectivityManager.TYPE_VPN;
+            }
+        }
+
+        return false;
+    }
+
     private MdnsDiscoveryListener createDiscoveryListener() {
         return new MdnsDiscoveryListener() {
             @Override
@@ -308,7 +336,13 @@ public class ComputerManagerService extends Service {
                     // our WAN address, which is also very likely the WAN address
                     // of the PC. We can use this later to connect remotely.
                     if (computer.getLocalAddress() instanceof Inet4Address) {
-                        details.remoteAddress = NvConnection.findExternalAddressForMdns("stun.moonlight-stream.org", 3478);
+                        // Don't update the external address if we're currently connected
+                        // to a VPN. We may have gotten an mDNS response from the LAN, but our
+                        // STUN request will most likely go out via the VPN and get the wrong
+                        // external IPv4 address.
+                        if (!isActiveNetworkVpn()) {
+                            details.remoteAddress = NvConnection.findExternalAddressForMdns("stun.moonlight-stream.org", 3478);
+                        }
                     }
                 }
                 if (computer.getIpv6Address() != null) {

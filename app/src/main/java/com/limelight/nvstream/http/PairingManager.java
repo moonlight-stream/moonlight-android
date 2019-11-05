@@ -214,6 +214,7 @@ public class PairingManager {
         if (serverCert == null) {
             // Attempting to pair while another device is pairing will cause GFE
             // to give an empty cert in the response.
+            http.openHttpConnectionToString(http.baseUrlHttp + "/unpair?"+http.buildUniqueIdUuidString(), true);
             return PairState.ALREADY_IN_PROGRESS;
         }
 

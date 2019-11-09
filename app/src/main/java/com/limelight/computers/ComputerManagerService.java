@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.limelight.LimeLog;
 import com.limelight.binding.PlatformBinding;
@@ -60,6 +62,7 @@ public class ComputerManagerService extends Service {
     private ComputerManagerListener listener = null;
     private final AtomicInteger activePolls = new AtomicInteger(0);
     private boolean pollingActive = false;
+    private final Lock defaultNetworkLock = new ReentrantLock();
 
     private DiscoveryService.DiscoveryBinder discoveryBinder;
     private final ServiceConnection discoveryServiceConnection = new ServiceConnection() {
@@ -322,6 +325,66 @@ public class ComputerManagerService extends Service {
         return false;
     }
 
+    private void populateExternalAddress(ComputerDetails details) {
+        boolean boundToNetwork = false;
+        boolean activeNetworkIsVpn = isActiveNetworkVpn();
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        // Check if we're currently connected to a VPN which may send our
+        // STUN request from an unexpected interface
+        if (activeNetworkIsVpn) {
+            // Acquire the default network lock since we could be changing global process state
+            defaultNetworkLock.lock();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                // On Lollipop or later, we can bind our process to the underlying interface
+                // to ensure our STUN request goes out on that interface or not at all (which is
+                // preferable to getting a VPN endpoint address back).
+                Network[] networks = connMgr.getAllNetworks();
+                for (Network net : networks) {
+                    NetworkCapabilities netCaps = connMgr.getNetworkCapabilities(net);
+                    if (netCaps != null) {
+                        if (!netCaps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) &&
+                                !netCaps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+                            // This network looks like an underlying multicast-capable transport,
+                            // so let's guess that it's probably where our mDNS response came from.
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                if (connMgr.bindProcessToNetwork(net)) {
+                                    boundToNetwork = true;
+                                    break;
+                                }
+                            }
+                            else if (ConnectivityManager.setProcessDefaultNetwork(net)) {
+                                boundToNetwork = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Perform the STUN request if we're not on a VPN or if we bound to a network
+        if (!activeNetworkIsVpn || boundToNetwork) {
+            details.remoteAddress = NvConnection.findExternalAddressForMdns("stun.moonlight-stream.org", 3478);
+        }
+
+        // Unbind from the network
+        if (boundToNetwork) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                connMgr.bindProcessToNetwork(null);
+            }
+            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                ConnectivityManager.setProcessDefaultNetwork(null);
+            }
+        }
+
+        // Unlock the network state
+        if (activeNetworkIsVpn) {
+            defaultNetworkLock.unlock();
+        }
+    }
+
     private MdnsDiscoveryListener createDiscoveryListener() {
         return new MdnsDiscoveryListener() {
             @Override
@@ -336,13 +399,7 @@ public class ComputerManagerService extends Service {
                     // our WAN address, which is also very likely the WAN address
                     // of the PC. We can use this later to connect remotely.
                     if (computer.getLocalAddress() instanceof Inet4Address) {
-                        // Don't update the external address if we're currently connected
-                        // to a VPN. We may have gotten an mDNS response from the LAN, but our
-                        // STUN request will most likely go out via the VPN and get the wrong
-                        // external IPv4 address.
-                        if (!isActiveNetworkVpn()) {
-                            details.remoteAddress = NvConnection.findExternalAddressForMdns("stun.moonlight-stream.org", 3478);
-                        }
+                        populateExternalAddress(details);
                     }
                 }
                 if (computer.getIpv6Address() != null) {

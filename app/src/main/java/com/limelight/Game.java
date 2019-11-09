@@ -1264,6 +1264,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         }
                     }
                     break;
+                case MotionEvent.ACTION_CANCEL:
+                    for (TouchContext aTouchContext : touchContextMap) {
+                        aTouchContext.cancelTouch();
+                    }
+                    break;
                 default:
                     return false;
                 }

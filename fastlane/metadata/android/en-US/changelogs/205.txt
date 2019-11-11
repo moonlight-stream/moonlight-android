@@ -1,0 +1,3 @@
+- Fixed false touch events when using the back gesture on Android 10
+- Fixed external IP address detection with certain VPN apps
+- Display a placeholder image when box art is loading

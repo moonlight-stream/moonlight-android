@@ -683,17 +683,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // for known resolution combinations. Reference frame invalidation may need
             // these, so leave them be for those decoders.
             if (!refFrameInvalidationActive) {
-                if (initialWidth <= 720 && initialHeight <= 480) {
+                if (initialWidth <= 720 && initialHeight <= 480 && refreshRate <= 60) {
                     // Max 5 buffered frames at 720x480x60
                     LimeLog.info("Patching level_idc to 31");
                     sps.levelIdc = 31;
                 }
-                else if (initialWidth <= 1280 && initialHeight <= 720) {
+                else if (initialWidth <= 1280 && initialHeight <= 720 && refreshRate <= 60) {
                     // Max 5 buffered frames at 1280x720x60
                     LimeLog.info("Patching level_idc to 32");
                     sps.levelIdc = 32;
                 }
-                else if (initialWidth <= 1920 && initialHeight <= 1080) {
+                else if (initialWidth <= 1920 && initialHeight <= 1080 && refreshRate <= 60) {
                     // Max 4 buffered frames at 1920x1080x64
                     LimeLog.info("Patching level_idc to 42");
                     sps.levelIdc = 42;

@@ -294,12 +294,12 @@ public class AnalogStick extends VirtualControllerElement {
         movement_angle = getAngle(relative_x, relative_y);
 
         // chop radius if out of outer circle and already pressed
-        if (movement_radius > (radius_complete - radius_analog_stick)) {
+        if (movement_radius > radius_complete) {
             // not pressed already, so ignore event from outer circle
             if (!isPressed()) {
                 return false;
             }
-            movement_radius = radius_complete - radius_analog_stick;
+            movement_radius = radius_complete;
         }
 
         // handle event depending on action

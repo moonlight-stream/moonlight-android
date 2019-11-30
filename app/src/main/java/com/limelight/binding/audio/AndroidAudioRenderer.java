@@ -14,10 +14,10 @@ public class AndroidAudioRenderer implements AudioRenderer {
 
     private AudioTrack track;
 
-    private AudioTrack createAudioTrack(int channelConfig, int bufferSize, boolean lowLatency) {
+    private AudioTrack createAudioTrack(int channelConfig, int sampleRate, int bufferSize, boolean lowLatency) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             return new AudioTrack(AudioManager.STREAM_MUSIC,
-                    48000,
+                    sampleRate,
                     channelConfig,
                     AudioFormat.ENCODING_PCM_16BIT,
                     bufferSize,
@@ -28,7 +28,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
                     .setUsage(AudioAttributes.USAGE_GAME);
             AudioFormat format = new AudioFormat.Builder()
                     .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                    .setSampleRate(48000)
+                    .setSampleRate(sampleRate)
                     .setChannelMask(channelConfig)
                     .build();
 
@@ -64,7 +64,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
     }
 
     @Override
-    public int setup(int audioConfiguration) {
+    public int setup(int audioConfiguration, int sampleRate, int samplesPerFrame) {
         int channelConfig;
         int bytesPerFrame;
 
@@ -72,11 +72,11 @@ public class AndroidAudioRenderer implements AudioRenderer {
         {
             case MoonBridge.AUDIO_CONFIGURATION_STEREO:
                 channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
-                bytesPerFrame = 2 * 240 * 2;
+                bytesPerFrame = 2 * samplesPerFrame * 2;
                 break;
             case MoonBridge.AUDIO_CONFIGURATION_51_SURROUND:
                 channelConfig = AudioFormat.CHANNEL_OUT_5POINT1;
-                bytesPerFrame = 6 * 240 * 2;
+                bytesPerFrame = 6 * samplesPerFrame * 2;
                 break;
             default:
                 LimeLog.severe("Decoder returned unhandled channel count");
@@ -122,7 +122,7 @@ public class AndroidAudioRenderer implements AudioRenderer {
                 case 1:
                 case 3:
                     // Try the larger buffer size
-                    bufferSize = Math.max(AudioTrack.getMinBufferSize(48000,
+                    bufferSize = Math.max(AudioTrack.getMinBufferSize(sampleRate,
                             channelConfig,
                             AudioFormat.ENCODING_PCM_16BIT),
                             bytesPerFrame * 2);
@@ -135,13 +135,13 @@ public class AndroidAudioRenderer implements AudioRenderer {
                     throw new IllegalStateException();
             }
 
-            // Skip low latency options if hardware sample rate isn't 48000Hz
-            if (AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) != 48000 && lowLatency) {
+            // Skip low latency options if hardware sample rate doesn't match the content
+            if (AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) != sampleRate && lowLatency) {
                 continue;
             }
 
             try {
-                track = createAudioTrack(channelConfig, bufferSize, lowLatency);
+                track = createAudioTrack(channelConfig, sampleRate, bufferSize, lowLatency);
                 track.play();
 
                 // Successfully created working AudioTrack. We're done here.

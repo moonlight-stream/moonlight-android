@@ -84,9 +84,9 @@ public class MoonBridge {
         }
     }
 
-    public static int bridgeArInit(int audioConfiguration) {
+    public static int bridgeArInit(int audioConfiguration, int sampleRate, int samplesPerFrame) {
         if (audioRenderer != null) {
-            return audioRenderer.setup(audioConfiguration);
+            return audioRenderer.setup(audioConfiguration, sampleRate, samplesPerFrame);
         }
         else {
             return -1;

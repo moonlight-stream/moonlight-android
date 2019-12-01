@@ -208,7 +208,7 @@ public class MoonBridge {
 
     public static native String findExternalAddressIP4(String stunHostName, int stunPort);
 
-    public static native int getPendingAudioFrames();
+    public static native int getPendingAudioDuration();
 
     public static native int getPendingVideoFrames();
 

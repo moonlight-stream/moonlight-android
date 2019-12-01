@@ -83,8 +83,8 @@ Java_com_limelight_nvstream_jni_MoonBridge_findExternalAddressIP4(JNIEnv *env, j
 }
 
 JNIEXPORT jint JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_getPendingAudioFrames(JNIEnv *env, jclass clazz) {
-    return LiGetPendingAudioFrames();
+Java_com_limelight_nvstream_jni_MoonBridge_getPendingAudioDuration(JNIEnv *env, jclass clazz) {
+    return LiGetPendingAudioDuration();
 }
 
 JNIEXPORT jint JNICALL

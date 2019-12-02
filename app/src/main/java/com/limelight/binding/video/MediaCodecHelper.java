@@ -48,7 +48,6 @@ public class MediaCodecHelper {
         // These decoders have low enough input buffer latency that they
         // can be directly invoked from the receive thread
         directSubmitPrefixes.add("omx.qcom");
-        directSubmitPrefixes.add("c2.qti");
         directSubmitPrefixes.add("omx.sec");
         directSubmitPrefixes.add("omx.exynos");
         directSubmitPrefixes.add("omx.intel");
@@ -56,6 +55,9 @@ public class MediaCodecHelper {
         directSubmitPrefixes.add("omx.TI");
         directSubmitPrefixes.add("omx.arc");
         directSubmitPrefixes.add("omx.nvidia");
+
+        // All Codec2 decoders
+        directSubmitPrefixes.add("c2.");
     }
 
     static {
@@ -148,6 +150,9 @@ public class MediaCodecHelper {
         // their AVC decoders), but haven't been tested enough
         //whitelistedHevcDecoders.add("omx.amlogic");
         //whitelistedHevcDecoders.add("omx.rk");
+
+        // Let's see if HEVC decoders are finally stable with C2
+        whitelistedHevcDecoders.add("c2.");
 
         // Based on GPU attributes queried at runtime, the omx.qcom/c2.qti prefix will be added
         // during initialization to avoid SoCs with broken HEVC decoders.
@@ -277,7 +282,6 @@ public class MediaCodecHelper {
             }
             else {
                 blacklistedDecoderPrefixes.add("OMX.qcom.video.decoder.hevc");
-                blacklistedDecoderPrefixes.add("c2.qti.hevc.decoder");
             }
 
             // Older MediaTek SoCs have issues with HEVC rendering but the newer chips with
@@ -424,9 +428,14 @@ public class MediaCodecHelper {
         // typically because it can't support reference frame invalidation.
         // However, we will use it for HDR and for streaming over mobile networks
         // since it works fine otherwise.
-        if (meteredData && isDecoderInList(deprioritizedHevcDecoders, decoderName)) {
-            LimeLog.info("Selected deprioritized decoder");
-            return true;
+        if (isDecoderInList(deprioritizedHevcDecoders, decoderName)) {
+            if (meteredData) {
+                LimeLog.info("Selected deprioritized decoder");
+                return true;
+            }
+            else {
+                return false;
+            }
         }
 
         return isDecoderInList(whitelistedHevcDecoders, decoderName);

@@ -24,6 +24,7 @@ import com.limelight.nvstream.http.PairingManager;
 import com.limelight.nvstream.mdns.MdnsComputer;
 import com.limelight.nvstream.mdns.MdnsDiscoveryListener;
 import com.limelight.utils.CacheHelper;
+import com.limelight.utils.NetHelper;
 import com.limelight.utils.ServerHelper;
 
 import android.app.Service;
@@ -34,7 +35,6 @@ import android.content.ServiceConnection;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
@@ -303,31 +303,9 @@ public class ComputerManagerService extends Service {
         return false;
     }
 
-    private boolean isActiveNetworkVpn() {
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Network activeNetwork = connMgr.getActiveNetwork();
-            if (activeNetwork != null) {
-                NetworkCapabilities netCaps = connMgr.getNetworkCapabilities(activeNetwork);
-                if (netCaps != null) {
-                    return netCaps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) ||
-                            !netCaps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN);
-                }
-            }
-        }
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
-            if (activeNetworkInfo != null) {
-                return activeNetworkInfo.getType() == ConnectivityManager.TYPE_VPN;
-            }
-        }
-
-        return false;
-    }
-
     private void populateExternalAddress(ComputerDetails details) {
         boolean boundToNetwork = false;
-        boolean activeNetworkIsVpn = isActiveNetworkVpn();
+        boolean activeNetworkIsVpn = NetHelper.isActiveNetworkVpn(this);
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
         // Check if we're currently connected to a VPN which may send our

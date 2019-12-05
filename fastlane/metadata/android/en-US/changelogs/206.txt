@@ -1,0 +1,4 @@
+- Fixed RTSP handshake error when streaming from certain networks
+- Improved performance when streaming over a VPN
+- Reduced audio bandwidth usage when streaming over low speed connections
+- Fixed hitbox of on-screen analog sticks

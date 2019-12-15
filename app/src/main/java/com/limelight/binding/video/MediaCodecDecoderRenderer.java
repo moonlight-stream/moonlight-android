@@ -718,12 +718,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             // GFE 2.5.11 changed the SPS to add additional extensions
-            // Some devices don't like these so we remove them here.
-            sps.vuiParams.videoSignalTypePresentFlag = false;
-            sps.vuiParams.colourDescriptionPresentFlag = false;
-            sps.vuiParams.chromaLocInfoPresentFlag = false;
+            // Some devices don't like these so we remove them here on old devices.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                sps.vuiParams.videoSignalTypePresentFlag = false;
+                sps.vuiParams.colourDescriptionPresentFlag = false;
+                sps.vuiParams.chromaLocInfoPresentFlag = false;
+            }
 
-            if ((needsSpsBitstreamFixup || isExynos4) && !refFrameInvalidationActive) {
+            // Some older devices used to choke on a bitstream restrictions, so we won't provide them
+            // unless explicitly whitelisted. For newer devices, leave the bitstream restrictions present.
+            if (needsSpsBitstreamFixup || isExynos4 || Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 // The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
                 // or max_dec_frame_buffering which increases decoding latency on Tegra.
 
@@ -1026,6 +1030,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Foreground: "+renderer.foreground+"\n";
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";
             str += "RFI active: "+renderer.refFrameInvalidationActive+"\n";
+            str += "Using modern SPS patching: "+(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)+"\n";
             str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Kbps \n";

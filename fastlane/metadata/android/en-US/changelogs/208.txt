@@ -1,0 +1,3 @@
+- Pass-through H.264 colorspace data on Android 8.0 and later
+- Fix hangs using HEVC on some MediaTek-based devices
+- Default to HEVC on Sony Bravia TVs running Android 8.0 or later

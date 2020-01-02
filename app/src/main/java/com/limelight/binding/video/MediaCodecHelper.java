@@ -296,9 +296,13 @@ public class MediaCodecHelper {
                 whitelistedHevcDecoders.add("omx.mtk");
 
                 // This SoC (MT8176 in GPD XD+) supports AVC RFI too, but the maxNumReferenceFrames setting
-                // required to make it work adds a huge amount of latency.
-                LimeLog.info("Added omx.mtk to RFI list for HEVC");
-                refFrameInvalidationHevcPrefixes.add("omx.mtk");
+                // required to make it work adds a huge amount of latency. However, RFI on HEVC causes
+                // decoder hangs on the newer GE8100, GE8300, and GE8320 GPUs, so we limit it to the
+                // Series6XT GPUs where we know it works.
+                if (glRenderer.contains("GX6")) {
+                    LimeLog.info("Added omx.mtk to RFI list for HEVC");
+                    refFrameInvalidationHevcPrefixes.add("omx.mtk");
+                }
             }
         }
 

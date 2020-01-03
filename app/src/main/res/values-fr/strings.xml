@@ -139,7 +139,7 @@
     <string name="title_checkbox_multi_controller">Prise en charge de plusieurs contrôleurs</string>
     <string name="summary_checkbox_multi_controller">Lorsqu\'elle n\'est pas cochée, tous les contrôleurs sont regroupés</string>
     <string name="title_checkbox_vibrate_fallback">Emuler le support de vibration</string>
-    <string name="summary_checkbox_vibrate_fallback">Emuler une vibration si votre manette ne le prend pas en charge</string>
+    <string name="summary_checkbox_vibrate_fallback">Emuler des tremblements si votre manette ne le supporte pas</string>
     <string name="title_seekbar_deadzone">Régler la zone morte du stick analogique</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Pilote de contrôleur Xbox 360/One</string>
@@ -155,7 +155,7 @@
     <string name="title_checkbox_show_onscreen_controls">Afficher les commandes à l\'écran</string>
     <string name="summary_checkbox_show_onscreen_controls">Afficher la superposition du contrôleur virtuel sur l\'écran tactile</string>
     <string name="title_checkbox_vibrate_osc">Activer les vibrations</string>
-    <string name="summary_checkbox_vibrate_osc">Emuler une vibration des commandes à l\'écran</string>
+    <string name="summary_checkbox_vibrate_osc">Emuler des tremblements pour les commandes à l\'écran</string>
     <string name="title_only_l3r3">Montre seulement L3 et R3</string>
     <string name="summary_only_l3r3">Cacher tout sauf L3 et R3</string>
     <string name="title_reset_osc">Effacer la disposition des commandes à l\'écran sauvegardée</string>

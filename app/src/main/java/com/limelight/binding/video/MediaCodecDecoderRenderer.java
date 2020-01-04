@@ -719,7 +719,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             // GFE 2.5.11 changed the SPS to add additional extensions
             // Some devices don't like these so we remove them here on old devices.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
                 sps.vuiParams.videoSignalTypePresentFlag = false;
                 sps.vuiParams.colourDescriptionPresentFlag = false;
                 sps.vuiParams.chromaLocInfoPresentFlag = false;

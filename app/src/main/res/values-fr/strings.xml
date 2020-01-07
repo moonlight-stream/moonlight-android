@@ -138,8 +138,8 @@
     <string name="category_input_settings">Paramètres d\'entrée</string>
     <string name="title_checkbox_multi_controller">Prise en charge de plusieurs contrôleurs</string>
     <string name="summary_checkbox_multi_controller">Lorsqu\'elle n\'est pas cochée, tous les contrôleurs sont regroupés</string>
-    <string name="title_checkbox_vibrate_fallback">Emuler le support de vibration</string>
-    <string name="summary_checkbox_vibrate_fallback">Emuler des tremblements si votre manette ne le supporte pas</string>
+    <string name="title_checkbox_vibrate_fallback">Emuler support vibration de secours</string>
+    <string name="summary_checkbox_vibrate_fallback">Emuler des tremblements si votre manette ne le prend pas en charge</string>
     <string name="title_seekbar_deadzone">Régler la zone morte du stick analogique</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Pilote de contrôleur Xbox 360/One</string>

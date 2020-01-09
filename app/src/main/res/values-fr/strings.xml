@@ -155,7 +155,7 @@
     <string name="title_checkbox_show_onscreen_controls">Afficher les commandes à l\'écran</string>
     <string name="summary_checkbox_show_onscreen_controls">Afficher la superposition du contrôleur virtuel sur l\'écran tactile</string>
     <string name="title_checkbox_vibrate_osc">Activer les vibrations</string>
-    <string name="summary_checkbox_vibrate_osc">Emuler des tremblements pour les commandes à l\'écran</string>
+    <string name="summary_checkbox_vibrate_osc">Emuler des tremblements des commandes à l\'écran</string>
     <string name="title_only_l3r3">Montre seulement L3 et R3</string>
     <string name="summary_only_l3r3">Cacher tout sauf L3 et R3</string>
     <string name="title_reset_osc">Effacer la disposition des commandes à l\'écran sauvegardée</string>

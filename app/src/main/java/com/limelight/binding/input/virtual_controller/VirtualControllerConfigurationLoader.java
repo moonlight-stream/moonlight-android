@@ -24,6 +24,11 @@ public class VirtualControllerConfigurationLoader {
         return (int) (((float) total / (float) 100) * (float) percent);
     }
 
+    // The default controls are specified using a grid of 128*72 cells at 16:9
+    private static int screenScale(int units, int height) {
+        return (int) (((float) height / (float) 72) * (float) units);
+    }
+
     private static DigitalPad createDigitalPad(
             final VirtualController controller,
             final Context context) {
@@ -145,15 +150,44 @@ public class VirtualControllerConfigurationLoader {
         return new RightAnalogStick(controller, context);
     }
 
-    private static final int BUTTON_BASE_X = 65;
-    private static final int BUTTON_BASE_Y = 5;
-    private static final int BUTTON_WIDTH = getPercent(30, 33);
-    private static final int BUTTON_HEIGHT = getPercent(40, 33);
+
+    private static final int TRIGGER_L_BASE_X = 1;
+    private static final int TRIGGER_R_BASE_X = 92;
+    private static final int TRIGGER_DISTANCE = 23;
+    private static final int TRIGGER_BASE_Y = 31;
+    private static final int TRIGGER_WIDTH = 12;
+    private static final int TRIGGER_HEIGHT = 9;
+
+    // Face buttons are defined based on the Y button (button number 9)
+    private static final int BUTTON_BASE_X = 106;
+    private static final int BUTTON_BASE_Y = 1;
+    private static final int BUTTON_SIZE = 10;
+
+    private static final int DPAD_BASE_X = 4;
+    private static final int DPAD_BASE_Y = 41;
+    private static final int DPAD_SIZE = 30;
+
+    private static final int ANALOG_L_BASE_X = 4;
+    private static final int ANALOG_L_BASE_Y = 1;
+    private static final int ANALOG_R_BASE_X = 96;
+    private static final int ANALOG_R_BASE_Y = 42;
+    private static final int ANALOG_SIZE = 28;
+
+    private static final int START_X = 83;
+    private static final int BACK_X = 34;
+    private static final int START_BACK_Y = 64;
+    private static final int START_BACK_WIDTH = 12;
+    private static final int START_BACK_HEIGHT = 7;
 
     public static void createDefaultLayout(final VirtualController controller, final Context context) {
 
         DisplayMetrics screen = context.getResources().getDisplayMetrics();
         PreferenceConfiguration config = PreferenceConfiguration.readPreferences(context);
+
+        // Displace controls on the right by this amount of pixels to account for different aspect ratios
+        int rightDisplacement = screen.widthPixels - screen.heightPixels * 16 / 9;
+
+        int height = screen.heightPixels;
 
         // NOTE: Some of these getPercent() expressions seem like they can be combined
         // into a single call. Due to floating point rounding, this isn't actually possible.
@@ -161,131 +195,131 @@ public class VirtualControllerConfigurationLoader {
         if (!config.onlyL3R3)
         {
             controller.addElement(createDigitalPad(controller, context),
-                    getPercent(5, screen.widthPixels),
-                    getPercent(BUTTON_BASE_Y, screen.heightPixels),
-                    getPercent(30, screen.widthPixels),
-                    getPercent(40, screen.heightPixels)
+                    screenScale(DPAD_BASE_X, height),
+                    screenScale(DPAD_BASE_Y, height),
+                    screenScale(DPAD_SIZE, height),
+                    screenScale(DPAD_SIZE, height)
             );
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_A,
                     ControllerPacket.A_FLAG, 0, 1, "A", -1, controller, context),
-                    getPercent(BUTTON_BASE_X, screen.widthPixels) + getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_BASE_Y, screen.heightPixels) + 2 * getPercent(BUTTON_HEIGHT, screen.heightPixels),
-                    getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+                    screenScale(BUTTON_BASE_X, height) + rightDisplacement,
+                    screenScale(BUTTON_BASE_Y + 2 * BUTTON_SIZE, height),
+                    screenScale(BUTTON_SIZE, height),
+                    screenScale(BUTTON_SIZE, height)
             );
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_B,
                     ControllerPacket.B_FLAG, 0, 1, "B", -1, controller, context),
-                    getPercent(BUTTON_BASE_X, screen.widthPixels) + 2 * getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_BASE_Y, screen.heightPixels) + getPercent(BUTTON_HEIGHT, screen.heightPixels),
-                    getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+                    screenScale(BUTTON_BASE_X + BUTTON_SIZE, height) + rightDisplacement,
+                    screenScale(BUTTON_BASE_Y + BUTTON_SIZE, height),
+                    screenScale(BUTTON_SIZE, height),
+                    screenScale(BUTTON_SIZE, height)
             );
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_X,
                     ControllerPacket.X_FLAG, 0, 1, "X", -1, controller, context),
-                    getPercent(BUTTON_BASE_X, screen.widthPixels),
-                    getPercent(BUTTON_BASE_Y, screen.heightPixels) + getPercent(BUTTON_HEIGHT, screen.heightPixels),
-                    getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+                    screenScale(BUTTON_BASE_X - BUTTON_SIZE, height) + rightDisplacement,
+                    screenScale(BUTTON_BASE_Y + BUTTON_SIZE, height),
+                    screenScale(BUTTON_SIZE, height),
+                    screenScale(BUTTON_SIZE, height)
             );
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_Y,
                     ControllerPacket.Y_FLAG, 0, 1, "Y", -1, controller, context),
-                    getPercent(BUTTON_BASE_X, screen.widthPixels) + getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_BASE_Y, screen.heightPixels),
-                    getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+                    screenScale(BUTTON_BASE_X, height) + rightDisplacement,
+                    screenScale(BUTTON_BASE_Y, height),
+                    screenScale(BUTTON_SIZE, height),
+                    screenScale(BUTTON_SIZE, height)
             );
 
             controller.addElement(createLeftTrigger(
                     0, "LT", -1, controller, context),
-                    getPercent(BUTTON_BASE_X, screen.widthPixels),
-                    getPercent(BUTTON_BASE_Y, screen.heightPixels),
-                    getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+                    screenScale(TRIGGER_L_BASE_X, height),
+                    screenScale(TRIGGER_BASE_Y, height),
+                    screenScale(TRIGGER_WIDTH, height),
+                    screenScale(TRIGGER_HEIGHT, height)
             );
 
             controller.addElement(createRightTrigger(
                     0, "RT", -1, controller, context),
-                    getPercent(BUTTON_BASE_X, screen.widthPixels) + 2 * getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_BASE_Y, screen.heightPixels),
-                    getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+                    screenScale(TRIGGER_R_BASE_X + TRIGGER_DISTANCE, height) + rightDisplacement,
+                    screenScale(TRIGGER_BASE_Y, height),
+                    screenScale(TRIGGER_WIDTH, height),
+                    screenScale(TRIGGER_HEIGHT, height)
             );
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_LB,
                     ControllerPacket.LB_FLAG, 0, 1, "LB", -1, controller, context),
-                    getPercent(BUTTON_BASE_X, screen.widthPixels),
-                    getPercent(BUTTON_BASE_Y, screen.heightPixels) + 2 * getPercent(BUTTON_HEIGHT, screen.heightPixels),
-                    getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+                    screenScale(TRIGGER_L_BASE_X + TRIGGER_DISTANCE, height),
+                    screenScale(TRIGGER_BASE_Y, height),
+                    screenScale(TRIGGER_WIDTH, height),
+                    screenScale(TRIGGER_HEIGHT, height)
             );
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_RB,
                     ControllerPacket.RB_FLAG, 0, 1, "RB", -1, controller, context),
-                    getPercent(BUTTON_BASE_X, screen.widthPixels) + 2 * getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_BASE_Y, screen.heightPixels) + 2 * getPercent(BUTTON_HEIGHT, screen.heightPixels),
-                    getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+                    screenScale(TRIGGER_R_BASE_X, height) + rightDisplacement,
+                    screenScale(TRIGGER_BASE_Y, height),
+                    screenScale(TRIGGER_WIDTH, height),
+                    screenScale(TRIGGER_HEIGHT, height)
             );
 
             controller.addElement(createLeftStick(controller, context),
-                    getPercent(5, screen.widthPixels),
-                    getPercent(50, screen.heightPixels),
-                    getPercent(40, screen.widthPixels),
-                    getPercent(50, screen.heightPixels)
+                    screenScale(ANALOG_L_BASE_X, height),
+                    screenScale(ANALOG_L_BASE_Y, height),
+                    screenScale(ANALOG_SIZE, height),
+                    screenScale(ANALOG_SIZE, height)
             );
 
             controller.addElement(createRightStick(controller, context),
-                    getPercent(55, screen.widthPixels),
-                    getPercent(50, screen.heightPixels),
-                    getPercent(40, screen.widthPixels),
-                    getPercent(50, screen.heightPixels)
+                    screenScale(ANALOG_R_BASE_X, height) + rightDisplacement,
+                    screenScale(ANALOG_R_BASE_Y, height),
+                    screenScale(ANALOG_SIZE, height),
+                    screenScale(ANALOG_SIZE, height)
             );
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_BACK,
                     ControllerPacket.BACK_FLAG, 0, 2, "BACK", -1, controller, context),
-                    getPercent(40, screen.widthPixels),
-                    getPercent(90, screen.heightPixels),
-                    getPercent(10, screen.widthPixels),
-                    getPercent(10, screen.heightPixels)
+                    screenScale(BACK_X, height),
+                    screenScale(START_BACK_Y, height),
+                    screenScale(START_BACK_WIDTH, height),
+                    screenScale(START_BACK_HEIGHT, height)
             );
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_START,
                     ControllerPacket.PLAY_FLAG, 0, 3, "START", -1, controller, context),
-                    getPercent(40, screen.widthPixels) + getPercent(10, screen.widthPixels),
-                    getPercent(90, screen.heightPixels),
-                    getPercent(10, screen.widthPixels),
-                    getPercent(10, screen.heightPixels)
+                    screenScale(START_X, height) + rightDisplacement,
+                    screenScale(START_BACK_Y, height),
+                    screenScale(START_BACK_WIDTH, height),
+                    screenScale(START_BACK_HEIGHT, height)
             );
         }
         else {
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_LSB,
                     ControllerPacket.LS_CLK_FLAG, 0, 1, "L3", -1, controller, context),
-                    getPercent(2, screen.widthPixels),
-                    getPercent(80, screen.heightPixels),
-                    getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+                    screenScale(TRIGGER_L_BASE_X, height),
+                    screenScale(TRIGGER_BASE_Y, height),
+                    screenScale(TRIGGER_WIDTH, height),
+                    screenScale(TRIGGER_HEIGHT, height)
             );
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_RSB,
                     ControllerPacket.RS_CLK_FLAG, 0, 1, "R3", -1, controller, context),
-                    getPercent(89, screen.widthPixels),
-                    getPercent(80, screen.heightPixels),
-                    getPercent(BUTTON_WIDTH, screen.widthPixels),
-                    getPercent(BUTTON_HEIGHT, screen.heightPixels)
+                    screenScale(TRIGGER_R_BASE_X + TRIGGER_DISTANCE, height),
+                    screenScale(TRIGGER_BASE_Y, height),
+                    screenScale(TRIGGER_WIDTH, height),
+                    screenScale(TRIGGER_HEIGHT, height)
             );
         }
     }

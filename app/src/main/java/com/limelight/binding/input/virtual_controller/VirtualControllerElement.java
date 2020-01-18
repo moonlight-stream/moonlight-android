@@ -43,7 +43,8 @@ public abstract class VirtualControllerElement extends View {
 
     private int normalColor = 0xF0888888;
     protected int pressedColor = 0xF00000FF;
-    private int configNormalColor = 0xF0FF0000;
+    private int configMoveColor = 0xF0FF0000;
+    private int configResizeColor = 0xF0FF00FF;
     private int configSelectedColor = 0xF000FF00;
 
     protected int startSize_x;
@@ -156,8 +157,12 @@ public abstract class VirtualControllerElement extends View {
     }
 
     protected int getDefaultColor() {
-        return (virtualController.getControllerMode() == VirtualController.ControllerMode.Configuration) ?
-                configNormalColor : normalColor;
+        if (virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons)
+            return configMoveColor;
+        else if (virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)
+            return configResizeColor;
+        else
+            return normalColor;
     }
 
     protected int getDefaultStrokeWidth() {
@@ -230,7 +235,10 @@ public abstract class VirtualControllerElement extends View {
                 startSize_x = getWidth();
                 startSize_y = getHeight();
 
-                //actionEnableMove();
+                if (virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons)
+                    actionEnableMove();
+                else if (virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)
+                    actionEnableResize();
 
                 return true;
             }
@@ -261,9 +269,7 @@ public abstract class VirtualControllerElement extends View {
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP: {
-                currentMode = Mode.Normal;
-                showConfigurationDialog();
-                //actionCancel();
+                actionCancel();
                 return true;
             }
             default: {

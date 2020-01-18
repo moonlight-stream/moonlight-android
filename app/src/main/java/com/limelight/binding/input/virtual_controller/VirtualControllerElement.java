@@ -230,7 +230,7 @@ public abstract class VirtualControllerElement extends View {
                 startSize_x = getWidth();
                 startSize_y = getHeight();
 
-                actionEnableMove();
+                //actionEnableMove();
 
                 return true;
             }
@@ -261,7 +261,9 @@ public abstract class VirtualControllerElement extends View {
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP: {
-                actionCancel();
+                currentMode = Mode.Normal;
+                showConfigurationDialog();
+                //actionCancel();
                 return true;
             }
             default: {

@@ -53,7 +53,7 @@
         L\'utilisation d\'un logiciel de bureau à distance peut également provoquer cette erreur. Essayez de redémarrer votre machine ou de réinstaller GFE.
     </string>
     <string name="title_decoding_error">Le décodeur vidéo s\'est écrasé</string>
-    <string name="message_decoding_error">Moonlight s\'est écrasé en raison d\'une incompatibilité avec le décodeur vidéo de cet appareil. Assurez-vous que GeForce Experience soit mis à jour vers la dernière version sur votre PC. Essayez de régler les paramètres de diffusion si les plantages continuent.</string>
+    <string name="message_decoding_error">Moonlight s\'est arrêté en raison d\'une incompatibilité avec le décodeur vidéo de cet appareil. Assurez-vous que GeForce Experience soit mis à jour vers la dernière version sur votre PC. Essayez de régler les paramètres de diffusion si les plantages continuent.</string>
     <string name="title_decoding_reset">Paramètres vidéo réinitialiser</string>
     <string name="message_decoding_reset">Le décodeur vidéo de votre appareil continue de planter avec les paramètres de diffusion sélectionnés. Vos paramètres de diffusion ont été réinitialisés par défaut.</string>
     <string name="error_usb_prohibited">L\'accès USB est interdit par votre appareil. Vérifiez vos paramètres Knox ou MDM.</string>
@@ -138,8 +138,8 @@
     <string name="category_input_settings">Paramètres d\'entrée</string>
     <string name="title_checkbox_multi_controller">Prise en charge de plusieurs contrôleurs</string>
     <string name="summary_checkbox_multi_controller">Lorsqu\'elle n\'est pas cochée, tous les contrôleurs sont regroupés</string>
-    <string name="title_checkbox_vibrate_fallback">Emuler le support vibration</string>
-    <string name="summary_checkbox_vibrate_fallback">Vibre votre appareil pour émuler une vibration si votre manette ne le prend pas en charge</string>
+    <string name="title_checkbox_vibrate_fallback">Emuler support vibration de secours</string>
+    <string name="summary_checkbox_vibrate_fallback">Emuler des tremblements si votre manette ne le prend pas en charge</string>
     <string name="title_seekbar_deadzone">Régler la zone morte du stick analogique</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Pilote de contrôleur Xbox 360/One</string>
@@ -148,14 +148,14 @@
     <string name="summary_checkbox_usb_bind_all">Force le pilote USB de Moonlight à prendre en charge tous les gamepads Xbox pris en charge</string>
     <string name="title_checkbox_mouse_emulation">Emulation de la souris via le gamepad</string>
     <string name="summary_checkbox_mouse_emulation">Appuyez longuement sur le bouton Start pour faire basculer la manette de jeu en mode souris.</string>
-    <string name="title_checkbox_mouse_nav_buttons">Activer les boutons de souris arrière et avant</string>
-    <string name="summary_checkbox_mouse_nav_buttons">L\'activation de cette option peut entraîner un clic droit sur certains périphériques.</string>
+    <string name="title_checkbox_mouse_nav_buttons">Activer les boutons de la souris arrière et avant</string>
+    <string name="summary_checkbox_mouse_nav_buttons">L\' activation de cette option peut entraîner un clic droit sur certains périphériques.</string>
 
     <string name="category_on_screen_controls_settings">Paramètres des contrôles à l\'écran</string>
     <string name="title_checkbox_show_onscreen_controls">Afficher les commandes à l\'écran</string>
     <string name="summary_checkbox_show_onscreen_controls">Afficher la superposition du contrôleur virtuel sur l\'écran tactile</string>
     <string name="title_checkbox_vibrate_osc">Activer les vibrations</string>
-    <string name="summary_checkbox_vibrate_osc">Vibre votre appareil pour émuler les vibrations des commandes à l\'écran</string>
+    <string name="summary_checkbox_vibrate_osc">Emuler des tremblements des commandes à l\'écran</string>
     <string name="title_only_l3r3">Montre seulement L3 et R3</string>
     <string name="summary_only_l3r3">Cacher tout sauf L3 et R3</string>
     <string name="title_reset_osc">Effacer la disposition des commandes à l\'écran sauvegardée</string>

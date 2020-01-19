@@ -34,7 +34,8 @@ public class VirtualController {
 
     public enum ControllerMode {
         Active,
-        Configuration
+        MoveButtons,
+        ResizeButtons
     }
 
     private static final boolean _PRINT_DEBUG_INFORMATION = false;
@@ -72,13 +73,16 @@ public class VirtualController {
             public void onClick(View v) {
                 String message;
 
-                if (currentMode == ControllerMode.Configuration) {
+                if (currentMode == ControllerMode.Active){
+                    currentMode = ControllerMode.MoveButtons;
+                    message = "Entering configuration mode (Move buttons)";
+                } else if (currentMode == ControllerMode.MoveButtons) {
+                    currentMode = ControllerMode.ResizeButtons;
+                    message = "Entering configuration mode (Resize buttons)";
+                } else {
                     currentMode = ControllerMode.Active;
                     VirtualControllerConfigurationLoader.saveProfile(VirtualController.this, context);
                     message = "Exiting configuration mode";
-                } else {
-                    currentMode = ControllerMode.Configuration;
-                    message = "Entering configuration mode";
                 }
 
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
@@ -90,6 +94,7 @@ public class VirtualController {
                 }
             }
         });
+
     }
 
     public void hide() {

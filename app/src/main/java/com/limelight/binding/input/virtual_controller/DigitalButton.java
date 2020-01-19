@@ -144,13 +144,13 @@ public class DigitalButton extends VirtualControllerElement {
         // set transparent background
         canvas.drawColor(Color.TRANSPARENT);
 
-        paint.setTextSize(getPercent(getWidth(), 30));
+        paint.setTextSize(getPercent(getWidth(), 25));
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setStrokeWidth(getDefaultStrokeWidth());
 
         paint.setColor(isPressed() ? pressedColor : getDefaultColor());
         paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(paint.getStrokeWidth(), paint.getStrokeWidth(),
+        canvas.drawOval(paint.getStrokeWidth(), paint.getStrokeWidth(),
                 getWidth() - paint.getStrokeWidth(), getHeight() - paint.getStrokeWidth(), paint);
 
         if (icon != -1) {

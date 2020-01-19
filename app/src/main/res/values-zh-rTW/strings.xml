@@ -1,38 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_label" translatable="false">Moonlight</string>
+    <string name="app_label_root" translatable="false">Moonlight （Root）</string>																	
+
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc"> 電腦已刪除 </string>
-    <string name="scut_not_paired"> 電腦沒有配對成功 </string>
+    <string name="scut_not_paired"> 電腦未配對 </string>
+    <string name="scut_pc_not_found"> 電腦未找到 </string>
+    <string name="scut_invalid_uuid"> 提供的電腦無效 </string>
+    <string name="scut_invalid_app_id"> 提供的App無效 </string>
 
     <!-- Help strings -->
-    <string name="help_loading_title"> 幫助查看器 </string>
-    <string name="help_loading_msg"> 載入幫助頁面中…… </string>
+    <string name="help_loading_title"> 查看幫助 </string>
+    <string name="help_loading_msg"> 正在載入説明頁面…… </string>
 
     <!-- PC view menu entries -->
-    <string name="pcview_menu_app_list"> 瀏覽遊戲列表 </string>
+    <string name="pcview_menu_app_list"> 流覽遊戲列表 </string>
     <string name="pcview_menu_pair_pc"> 和電腦配對 </string>
     <string name="pcview_menu_unpair_pc"> 取消配對 </string>
     <string name="pcview_menu_send_wol"> 發送 Wake-On-LAN 請求 </string>
     <string name="pcview_menu_delete_pc"> 刪除電腦 </string>
+    <string name="pcview_menu_details"> 查看詳情 </string>														
 
     <!-- Pair messages -->
     <string name="pairing"> 配對中…… </string>
     <string name="pair_pc_offline"> 電腦離線中 </string>
-    <string name="pair_pc_ingame"> 電腦正在遊戲中，你必須在配對之前先退出遊戲 </string>
+    <string name="pair_pc_ingame"> 電腦正在遊戲中，在配對之前你必須先退出遊戲 </string>
     <string name="pair_pairing_title"> 配對中 </string>
-    <string name="pair_pairing_msg"> 請在目標電腦上輸入以下的PIN碼： </string>
+    <string name="pair_pairing_msg"> 請在目標電腦上輸入以下PIN碼： </string>
     <string name="pair_incorrect_pin"> PIN碼錯誤 </string>
     <string name="pair_fail"> 配對失敗 </string>
-    <string name="pair_already_in_progress"> 已經在配對中，請稍等 </string>
+    <string name="pair_already_in_progress"> 配對中，請稍候 </string>
 
     <!-- WOL messages -->
-    <string name="wol_pc_online"> 電腦在線中 </string>
-    <string name="wol_no_mac"> 由於GeForce Experience沒有發送MAC地址過來因此無法喚醒電腦 </string>
+    <string name="wol_pc_online"> 電腦線上中 </string>
+    <string name="wol_no_mac"> 無法喚醒電腦因為GFE沒有返回MAC地址 </string>
     <string name="wol_waking_pc"> 喚醒電腦中…… </string>
-    <string name="wol_waking_msg"> 遠程喚醒電腦需要一些時間\n\n
-    	如果電腦沒有喚醒，請確保Wake-On-LAN的設置無誤
+    <string name="wol_waking_msg"> 喚醒電腦需要一些時間\n
+    	如果電腦沒有喚醒，請確保Wake-On-LAN設置無誤
     </string>
-    <string name="wol_fail"> 無法發送Wake-On-LAN數據包 </string>
+    <string name="wol_fail"> 無法發送Wake-On-LAN資料包 </string>
 
     <!-- Unpair messages -->
     <string name="unpairing"> 取消配對中…… </string>
@@ -42,40 +49,54 @@
 
     <!-- Errors -->
     <string name="error_pc_offline"> 電腦離線中 </string>
-    <string name="error_manager_not_running">ComputerManager服務不在運行中\n\n請稍等幾秒或者直接重啟Moonlight</string>
-    <string name="error_unknown_host"> 無法解析電腦地址 </string>
-    <string name="error_404"> GeForce Experience返回了HTTP 404 錯誤。確保你的顯卡支持GAMESTREAM\n\n
-	    使用遠程控制軟體同樣會引起此錯誤，請嘗試重啟電腦或者重新安裝GeForce Experience
+    <string name="error_manager_not_running"> ComputerManager服務未運行。\n請稍等幾秒或重啟App </string>
+    <string name="error_unknown_host"> 無法解析主機位址 </string>
+    <string name="error_404"> GFE返回了HTTP 404 錯誤，確保你的電腦顯卡支援串流。\n
+	    使用遠端桌面軟體同樣會引起此錯誤，請嘗試重啟電腦或重裝GFE
     </string>
+    <string name="title_decoding_error"> 視頻解碼器崩潰 </string>
+    <string name="message_decoding_error"> 由於與該設備的視頻解碼器不相容，Moonlight已崩潰。確保你電腦上的GFE已更新至最新版本，如果崩潰繼續，請嘗試調整串流設置。 </string>
+    <string name="title_decoding_reset"> 重置視頻設置 </string>
+    <string name="message_decoding_reset"> 由於設備的視頻解碼器在你選擇的串流設置上持續崩潰，已重置你的串流設置。 </string>
+    <string name="error_usb_prohibited"> 設備管理員已禁止USB訪問。請檢查您的Knox或MDM設置。 </string>
+    <string name="unable_to_pin_shortcut"> 您當前的桌面啟動器不允許創建長按子功能表。 </string>																	  
 
     <!-- Start application messages -->
     <string name="conn_establishing_title"> 建立連接中 </string>
     <string name="conn_establishing_msg"> 啟動連接中 </string>
-    <string name="conn_metered"> 警告: 你正在使用移動網路，繼續使用將會產生大量流量費用！ </string>
-    <string name="conn_client_latency"> 每幀解碼平均延遲:</string>
-    <string name="conn_client_latency_hw"> 硬解碼器延遲:</string>
-    <string name="conn_hardware_latency"> 硬解碼器平均延遲:</string>
+    <string name="conn_metered"> 警告：你正在使用移動網路連接！ </string>
+    <string name="conn_client_latency"> 平均每幀解碼延遲：</string>
+    <string name="conn_client_latency_hw"> 硬體解碼器延遲：</string>
+    <string name="conn_hardware_latency"> 硬體解碼器平均延遲：</string>
     <string name="conn_starting"> 啟動中…… </string>
     <string name="conn_error_title"> 連接錯誤 </string>
     <string name="conn_error_msg"> 啟動失敗 </string>
-    <string name="conn_terminated_title"> 連接被終結 </string>
+    <string name="conn_terminated_title"> 連接終結 </string>
     <string name="conn_terminated_msg"> 連接已被終結 </string>
 
     <!-- General strings -->
     <string name="ip_hint"> 串流電腦的IP地址 </string>
-    <string name="searching_pc"> 正在搜尋運行著GAMESTREAM的電腦…… \n\n
-        確保GeForce Experience裡面SHIELD選項裡面的GAMESTREAM開關是開著的 </string>
-    <string name="yes"> 是 </string>
-    <string name="no"> 否 </string>
-    <string name="lost_connection"> 失去了與電腦的連接 </string>
-    <string name="help">幫助</string>
+    <string name="searching_pc"> 正在搜尋運行GAMESTREAM的電腦…… \n
+        請確保GFE SHIELD設置裡的GAMESTREAM已開啟。 </string>
+    <string name="yes"> 確定 </string>
+    <string name="no"> 取消 </string>
+    <string name="lost_connection"> 與電腦失去連接 </string>
+    <string name="title_details"> 詳情 </string>
+    <string name="help"> 幫助 </string>
+    <string name="delete_pc_msg"> 你確定要刪除這台電腦？ </string>
+    <string name="slow_connection_msg"> 與電腦連接過慢 \n 請降低碼率 </string>
+    <string name="poor_connection_msg"> 與電腦連接不良 </string>
+    <string name="perf_overlay_text"> 視頻解析度： %1$s\n解碼器： %2$s\n估計主機幀數： %3$.2f FPS\n網路接收幀數： %4$.2f FPS\n渲染幀數： %5$.2f FPS\n網路丟失幀： %6$.2f%%\n平均接收時間： %7$.2f ms\n平均解碼時間： %8$.2f ms </string>
 
     <!-- AppList activity -->
-    <string name="applist_connect_msg"> 連接到電腦中…… </string>
+    <string name="applist_connect_msg"> 正在連接電腦…… </string>
     <string name="applist_menu_resume"> 恢復串流 </string>
     <string name="applist_menu_quit"> 退出串流 </string>
     <string name="applist_menu_quit_and_start"> 退出當前遊戲並開始這個遊戲 </string>
     <string name="applist_menu_cancel"> 取消 </string>
+    <string name="applist_menu_details"> 查看詳情 </string>
+    <string name="applist_menu_scut"> 創建快捷方式 </string>
+    <string name="applist_menu_tv_channel"> 添加到頻道 </string>															 
     <string name="applist_refresh_title"> 遊戲列表 </string>
     <string name="applist_refresh_msg"> 刷新中…… </string>
     <string name="applist_refresh_error_title"> 錯誤 </string>
@@ -83,85 +104,107 @@
     <string name="applist_quit_app"> 退出中 </string>
     <string name="applist_quit_success"> 成功退出串流 </string>
     <string name="applist_quit_fail"> 退出串流失敗 </string>
-    <string name="applist_quit_confirmation"> 您確定要退出當前遊戲？\n\n所有未保存的數據將丟失 </string>
+    <string name="applist_quit_confirmation"> 您確定要退出當前遊戲？\n所有未保存的資料將丟失。 </string>
+    <string name="applist_details_id">App ID：</string>												  
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc"> 手動添加電腦 </string>
-    <string name="msg_add_pc"> 連接到電腦中…… </string>
-    <string name="addpc_fail"> 無法連接到指定的電腦。請確保指定的埠沒有被防火牆阻止 </string>
+    <string name="msg_add_pc"> 正在連接電腦…… </string>
+    <string name="addpc_fail"> 無法連接至指定電腦。請確保所需埠沒有被防火牆阻止 </string>
     <string name="addpc_success"> 成功添加電腦 </string>
-    <string name="addpc_unknown_host"> 無法解析電腦的IP地址，請確保IP地址輸入無誤 </string>
-    <string name="addpc_enter_ip"> 請輸入一個IP地址！ </string>
+    <string name="addpc_unknown_host"> 無法解析電腦的IP位址，請確保IP位址輸入無誤 </string>
+    <string name="addpc_enter_ip"> 請輸入一個IP位址！ </string>
+    <string name="addpc_wrong_sitelocal"> 該位址似乎不正確。 您必須使用路由器的公共IP位址通過Internet進行串流。 </string>																																							  
 
     <!-- Preferences -->
     <string name="category_basic_settings"> 基本設置 </string>
-    <string name="title_resolution_list"> 選擇目標解析度和幀數 </string>
-    <string name="summary_resolution_list"> 過高的設定會引起串流卡頓甚至軟體閃退 </string>
-    <string name="title_fps_list">影像幀數</string>
-    <string name="summary_fps_list">增加以提供更流暢的影像串流. 減少以在較低的配備上獲得較好的效能.</string>
-    <string name="title_seekbar_bitrate"> 選擇目標影像碼率 </string>
-    <string name="summary_seekbar_bitrate"> 低碼率減少卡頓，高碼率提高畫質 </string>
+    <string name="title_resolution_list"> 視頻解析度 </string>
+    <string name="summary_resolution_list"> 高解析度提升圖像清晰度。 \n 低解析度提升在低端設備和較慢網路中的串流體驗。 </string>
+    <string name="title_fps_list"> 視頻幀數 </string>
+    <string name="summary_fps_list"> 高幀數提升視頻流流暢度。 \n 低幀數提升在低端設備中的串流體驗。</string>													   																																	
+    <string name="title_seekbar_bitrate"> 視頻碼率 </string>
+    <string name="summary_seekbar_bitrate"> 高碼率提升圖像品質。 \n 低碼率提升在較慢網路中的串流體驗。 </string>
     <string name="suffix_seekbar_bitrate">Kbps</string>
-    <string name="title_unlock_fps">解鎖所有可使用的幀率</string>
-    <string name="summary_unlock_fps">串流於90或120幀下可以減少高級配備的延遲, 但可能導致無法支持的配備出現延遲或崩潰</string>
+    <string name="title_unlock_fps"> 解鎖所有可用幀數 </string>
+    <string name="summary_unlock_fps"> 以90或120幀串流可能會減少在高端設備上的網路延遲，但會在不支援的設備上造成卡頓或崩潰。 </string>																																																														   
     <string name="title_checkbox_stretch_video"> 將畫面拉伸至全屏 </string>
     <string name="title_checkbox_disable_warnings"> 禁用錯誤提示 </string>
-    <string name="summary_checkbox_disable_warnings"> 串流過程中禁用連接錯誤提示 </string>
-    <string name="title_checkbox_enable_pip">啟用子母畫面</string>
-    <string name="summary_checkbox_enable_pip">當多工處理時, 允許觀看串流畫面(無法控制)</string>
+    <string name="summary_checkbox_disable_warnings"> 串流中禁用連接錯誤提示 </string>
+    <string name="title_checkbox_enable_pip">啟用畫中畫觀察模式</string>
+    <string name="summary_checkbox_enable_pip">允許多工時觀看串流畫面（但不操作）</string>																							 																															  
 
-    <string name="category_audio_settings"> 音頻設置 </string>
+    <string name="category_audio_settings"> 音訊設置 </string>
     <string name="title_checkbox_51_surround"> 啟用 5.1 環繞音效 </string>
-    <string name="summary_checkbox_51_surround"> 如果你的聲音聽起來有問題請禁用。\n\n需要GeForce Experience 2.7 或更高版本 </string>
+    <string name="summary_checkbox_51_surround"> 如果你的聲音聽起來有問題請禁用。 \n 需要GFE 2.7或更高版本 </string>
 
-    <string name="category_input_settings">輸入設定</string>
-    <string name="title_checkbox_multi_controller"> 啟用多手柄支持 </string>
-    <string name="summary_checkbox_multi_controller"> 如果禁用，所有手柄將會認作一個手柄 </string>
-    <string name="title_checkbox_vibrate_fallback">以手機模擬手柄震動</string>
-    <string name="summary_checkbox_vibrate_fallback">當手柄不支援震動時, 以手機來模擬</string>
-    <string name="title_seekbar_deadzone"> 調整手柄死區 </string>
+    <string name="category_input_settings">輸入設置</string>															  
+    <string name="title_checkbox_multi_controller"> 自動檢測手柄 </string>
+    <string name="summary_checkbox_multi_controller"> 禁用此項所有手柄將視為一個手柄 </string>
+    <string name="title_checkbox_vibrate_fallback"> 用設備震動類比遊戲震動效果 </string>
+    <string name="summary_checkbox_vibrate_fallback"> 如果你的手柄不支援震動，則震動設備以類比遊戲震動效果 </string>																																		
+    <string name="title_seekbar_deadzone"> 調整搖杆死區 </string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One 手柄驅動 </string>
-    <string name="summary_checkbox_xb1_driver"> 若要在那些沒有原生Xbox手柄驅動的設備上使用Xbox手柄，請勾上此複選框 </string>
-    <string name="title_checkbox_usb_bind_all">覆蓋Android控制器支援</string>
-    <string name="summary_checkbox_usb_bind_all">強制 Moonlight USB驅動程式接管所有支持的Xbox手柄</string>
-    <string name="title_checkbox_mouse_emulation">透過手柄模擬滑鼠</string>
-    <string name="summary_checkbox_mouse_emulation">長按 [Start] 鍵將會切換至滑鼠模式</string>
-    <string name="title_checkbox_mouse_nav_buttons">Enable back and forward mouse buttons</string>
-    <string name="summary_checkbox_mouse_nav_buttons">Enabling this option may break right clicking on some buggy devices</string>
+    <string name="summary_checkbox_xb1_driver"> 為缺少原生Xbox手柄支援的設備啟用內置USB驅動 </string>
+    <string name="title_checkbox_usb_bind_all"> 覆蓋安卓手柄支援 </string>
+    <string name="summary_checkbox_usb_bind_all"> 強制Moonlight的USB驅動接管所有受支持的Xbox手柄 </string>
+    <string name="title_checkbox_mouse_emulation"> 通過手柄類比滑鼠 </string>
+    <string name="summary_checkbox_mouse_emulation"> 長按開始鍵將手柄切換為滑鼠模式 </string>
+    <string name="title_checkbox_mouse_nav_buttons"> 啟用前進後退滑鼠鍵 </string>
+    <string name="summary_checkbox_mouse_nav_buttons"> 在一些支援不佳的設備上啟用此項可能會使其右鍵失效 </string>																						   
 
-    <string name="category_on_screen_controls_settings"> 觸控設置 </string>
-    <string name="title_checkbox_show_onscreen_controls"> 啟用虛擬手柄 </string>
-    <string name="summary_checkbox_show_onscreen_controls"> 將在串流畫面上顯示一層虛擬手柄 </string>
-    <string name="title_checkbox_vibrate_osc">啟用震動</string>
-    <string name="summary_checkbox_vibrate_osc">在手機上模擬搖桿震動</string>
-    <string name="title_only_l3r3">只顯示[L3]及[R3]</string>
-    <string name="summary_only_l3r3">隱藏所有虛擬按鈕除了L3和R3</string>
-    <string name="title_reset_osc">重設已經保存的觸控按鈕布局</string>
-    <string name="summary_reset_osc">將所有觸控按鈕重設為默認之大小和位置</string>
-    <string name="dialog_title_reset_osc">重設按鈕布局</string>
-    <string name="dialog_text_reset_osc">你確定要刪除所保存的按鈕布局嗎?</string>
-    <string name="toast_reset_osc_success">按鈕布局已經重設</string>
+    <string name="category_on_screen_controls_settings"> 螢幕控制按鈕設置 </string>
+    <string name="title_checkbox_show_onscreen_controls"> 顯示幕幕控制按鈕 </string>
+    <string name="summary_checkbox_show_onscreen_controls"> 在觸控式螢幕上顯示一層虛擬手柄 </string>
+    <string name="title_checkbox_vibrate_osc"> 啟用震動 </string>
+    <string name="summary_checkbox_vibrate_osc"> 使用螢幕控制按鈕時震動設備以類比遊戲震動效果 </string>
+    <string name="title_only_l3r3"> 只顯示L3和R3 </string>
+    <string name="summary_only_l3r3"> 隱藏除L3和R3外的所有虛擬按鈕 </string>
+    <string name="title_reset_osc"> 重置已保存的螢幕控制按鈕佈局 </string>
+    <string name="summary_reset_osc"> 重置所有螢幕控制按鈕為預設大小和位置 </string>
+    <string name="dialog_title_reset_osc"> 重新開機按鈕佈局 </string>
+    <string name="dialog_text_reset_osc"> 你確定要刪除所保存的螢幕按鈕佈局嗎？ </string>
+    <string name="toast_reset_osc_success"> 螢幕按鈕佈局已經重置 </string>																	   																														  
 
-    <string name="category_ui_settings"> 界面設置 </string>
-    <string name="title_language_list">語言</string>
-    <string name="summary_language_list"> 請選擇您希望Moonlight使用的語言 </string>
-    <string name="title_checkbox_list_mode"> 使用列表代替圖標 </string>
-    <string name="summary_checkbox_list_mode"> 將以列表來顯示電腦和遊戲 </string>
-    <string name="title_checkbox_small_icon_mode"> 使用小圖標 </string>
-    <string name="summary_checkbox_small_icon_mode"> 使用小圖標以在屏幕上顯示更多項目 </string>
+    <string name="category_ui_settings"> 介面設置 </string>
+    <string name="title_language_list"> 語言 </string>
+    <string name="summary_language_list"> 選擇Moonlight顯示的語言 </string>
+    <string name="title_checkbox_list_mode"> 使用清單代替圖示 </string>
+    <string name="summary_checkbox_list_mode"> 清單顯示電腦和遊戲 </string>
+    <string name="title_checkbox_small_icon_mode"> 使用小圖示 </string>
+    <string name="summary_checkbox_small_icon_mode"> 使用小圖示以在螢幕上顯示更多專案 </string>
 
     <string name="category_host_settings"> 主機設置 </string>
     <string name="title_checkbox_enable_sops"> 優化遊戲設置 </string>
-    <string name="summary_checkbox_enable_sops"> 允許GeForce Experience為最佳串流效果自動更改遊戲設置 </string>
-    <string name="title_checkbox_host_audio"> 將聲音輸出到電腦上 </string>
-    <string name="summary_checkbox_host_audio"> 將在電腦和本設備同時輸出聲音 </string>
+    <string name="summary_checkbox_enable_sops"> 允許GFE為最佳串流效果自動更改遊戲設置 </string>
+    <string name="title_checkbox_host_audio"> 在電腦上播放聲音 </string>
+    <string name="summary_checkbox_host_audio"> 在電腦和本設備同時輸出聲音 </string>
 
     <string name="category_advanced_settings"> 高級設置 </string>
-    <string name="title_disable_frame_drop">永遠不掉幀</string>
-    <string name="summary_disable_frame_drop">在一些手機上可能可以減少micro-stuttering, 但可能導致延遲</string>
-    <string name="title_video_format"> H.265設置 </string>
-    <string name="summary_video_format">H.265能降低頻寬需求，但是需要設備支持 </string>
-    <string name="title_enable_hdr">啟用 HDR (實驗中)</string>
-    <string name="summary_enable_hdr">啟用 HDR 當遊戲與電腦的顯示卡支援時. HDR 需要 GTX 1000 系列之顯示卡或更高.</string>
+    <string name="title_disable_frame_drop"> 永不掉幀 </string>
+    <string name="summary_disable_frame_drop"> 可能會減少在一些設備上的卡頓，但會增加延遲 </string>
+    <string name="title_video_format"> 更改H.265設置 </string>
+    <string name="summary_video_format">H.265能降低視頻頻寬需求，但需要較新的設備才能支援</string>
+    <string name="title_enable_hdr"> 啟用 HDR （實驗） </string>
+    <string name="summary_enable_hdr"> 當遊戲和顯卡支援時以HDR模式串流。 HDR需要GTX 1000系列或更高規格顯卡。 </string>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+    <string name="title_enable_perf_overlay"> 啟用性能資訊 </string>
+    <string name="summary_enable_perf_overlay"> 在串流中顯示即時性能資訊 </string>
+
+
 </resources>

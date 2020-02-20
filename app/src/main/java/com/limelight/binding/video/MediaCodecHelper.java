@@ -335,16 +335,17 @@ public class MediaCodecHelper {
     }
 
     public static boolean decoderSupportsLowLatency(MediaCodecInfo decoderInfo, String mimeType) {
-        try {
-            if (decoderInfo.getCapabilitiesForType(mimeType).
-                    isFeatureSupported(FEATURE_LowLatency))
-            {
-                LimeLog.info("Low latency decoding mode supported (FEATURE_LowLatency)");
-                return true;
+        // KitKat added CodecCapabilities.isFeatureSupported()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            try {
+                if (decoderInfo.getCapabilitiesForType(mimeType).isFeatureSupported(FEATURE_LowLatency)) {
+                    LimeLog.info("Low latency decoding mode supported (FEATURE_LowLatency)");
+                    return true;
+                }
+            } catch (Exception e) {
+                // Tolerate buggy codecs
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            // Tolerate buggy codecs
-            e.printStackTrace();
         }
 
         return false;

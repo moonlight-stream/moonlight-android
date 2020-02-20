@@ -73,6 +73,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Field;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -592,6 +593,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
+    // FIXME: Remove when Android R SDK is finalized
+    private static void setPreferMinimalPostProcessingWithReflection(WindowManager.LayoutParams windowLayoutParams, boolean isPreferred) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q && Build.VERSION.PREVIEW_SDK_INT == 0) {
+            // Don't attempt this reflection unless on Android R Developer Preview
+            return;
+        }
+
+        try {
+            Field field = windowLayoutParams.getClass().getDeclaredField("preferMinimalPostProcessing");
+            field.set(windowLayoutParams, isPreferred);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
     private float prepareDisplayForRendering() {
         Display display = getWindowManager().getDefaultDisplay();
         WindowManager.LayoutParams windowLayoutParams = getWindow().getAttributes();
@@ -663,6 +679,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Otherwise, the active display refresh rate is just
             // whatever is currently in use.
         }
+
+        // Enable HDMI ALLM (game mode) on Android R
+        setPreferMinimalPostProcessingWithReflection(windowLayoutParams, true);
 
         // Apply the display mode change
         getWindow().setAttributes(windowLayoutParams);

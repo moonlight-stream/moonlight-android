@@ -12,6 +12,8 @@ public class RightAnalogStick extends AnalogStick {
     public RightAnalogStick(final VirtualController controller, final Context context) {
         super(controller, context, EID_RS);
 
+        strStickSide = "R";
+
         addAnalogStickListener(new AnalogStick.AnalogStickListener() {
             @Override
             public void onMovement(float x, float y) {

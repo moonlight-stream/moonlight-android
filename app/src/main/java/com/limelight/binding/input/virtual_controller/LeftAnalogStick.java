@@ -12,6 +12,8 @@ public class LeftAnalogStick extends AnalogStick {
     public LeftAnalogStick(final VirtualController controller, final Context context) {
         super(controller, context, EID_LS);
 
+        strStickSide = "L";
+
         addAnalogStickListener(new AnalogStick.AnalogStickListener() {
             @Override
             public void onMovement(float x, float y) {

@@ -8,6 +8,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import java.util.ArrayList;
@@ -133,11 +134,14 @@ public class AnalogStick extends VirtualControllerElement {
     private int touchID;
     private float touchStartX;
     private float touchStartY;
-
     private float touchX;
     private float touchY;
+
     private float touchMaxDistance = 120;
     private float touchDeadZone = 20;
+    private float fDeadzoneSave = 0.01f;
+
+    protected String strStickSide = "L";
 
     private static double getMovementRadius(float x, float y) {
         return Math.sqrt(x * x + y * y);
@@ -231,17 +235,31 @@ public class AnalogStick extends VirtualControllerElement {
 
     @Override
     protected void onElementDraw(Canvas canvas) {
-        if (this.getIsEditing()) {
-            canvas.drawColor(0x7FFF0000);
+        boolean bIsMoving = virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons;
+        boolean bIsResizing = virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons;
+
+        if (bIsMoving || bIsResizing) {
+            if (bIsMoving) {
+                canvas.drawColor(0x7FFF0000);
+            } else {
+                canvas.drawColor(0x7FFF00FF);
+            }
+
+            paint.setColor(Color.WHITE);
+            int nWidth = getWidth();
+            int nHeight = getHeight();
+
+            paint.setStyle(Paint.Style.FILL);
+            paint.setTextSize(Math.min(nWidth, nHeight) / 2);
+            canvas.drawText(strStickSide, nWidth / 2, nHeight / 2, paint);
         }
+
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(getDefaultStrokeWidth());
 
         if (bIsFingerOnScreen) {
             // set transparent background
             canvas.drawColor(Color.TRANSPARENT);
-
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(getDefaultStrokeWidth());
-
             //canvas.drawCircle(touchX, touchY, 50, paint);
 
             // draw outer circle
@@ -266,21 +284,22 @@ public class AnalogStick extends VirtualControllerElement {
 
                 case MOVED_IN_DEAD_ZONE:
                 case MOVED_ACTIVE: {
-                    paint.setColor(Color.BLUE);
+                    paint.setColor(getDefaultColor());
+                    // draw start touch point circle
                     canvas.drawCircle(touchStartX, touchStartY,
                             radius_analog_stick / 2.0f, paint);
-
-                    paint.setColor(pressedColor);
-                    canvas.drawCircle(position_stick_x ,  position_stick_y ,
-                            radius_analog_stick, paint);
-
-                    paint.setColor(Color.RED);
+                    //paint.setColor(Color.RED);
+                    // line from start point to current touch point
                     canvas.drawLine(touchStartX, touchStartY, position_stick_x, position_stick_y, paint);
+
+                    //paint.setColor(pressedColor);
+                    canvas.drawCircle(position_stick_x, position_stick_y, radius_analog_stick, paint);
                     break;
                 }
             }
         }
     }
+
 
     private void updatePosition() {
         float dirX = (touchX - touchStartX);
@@ -298,28 +317,18 @@ public class AnalogStick extends VirtualControllerElement {
         position_stick_x = touchStartX + (dirX * length);
         position_stick_y = touchStartY + (dirY * length);
 
-        // Stay active even if we're back in the deadzone because we know the user is actively
-        // giving analog stick input and we don't want to snap back into the deadzone.
-        // We also release the deadzone if the user keeps the stick pressed for a bit to allow
-        // them to make precise movements.
-        //stick_state = (stick_state == STICK_STATE.MOVED_ACTIVE ||
-                //System.currentTimeMillis() - timeLastClick > timeoutDeadzone ||
-                //movement_radius > radius_dead_zone) ?
-               //STICK_STATE.MOVED_ACTIVE : STICK_STATE.MOVED_IN_DEAD_ZONE;
-
         stick_state = STICK_STATE.MOVED_ACTIVE;
+
+        // fix for RPCS3 where gamepad doesnt quite reach 1.0 (gets to 0.9998)
+        dirX += dirX > 0 ? fDeadzoneSave : -fDeadzoneSave;
+        dirY += dirY > 0 ? fDeadzoneSave : -fDeadzoneSave;
+        dirX = Math.min(Math.max(dirX, -1), 1);
+        dirY = Math.min(Math.max(dirY, -1), 1);
 
         if (length > touchDeadZone) {
             notifyOnMovement(dirX, -dirY);
         }
-
-        //  trigger move event if state active
-        //if (stick_state == STICK_STATE.MOVED_ACTIVE) {
-            //notifyOnMovement(-correlated_x / complete, correlated_y / complete);
-        //}
     }
-
-
 
     @Override
     public boolean onElementTouchEvent(MotionEvent event) {

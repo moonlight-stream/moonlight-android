@@ -45,6 +45,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private Thread rendererThread;
     private boolean needsSpsBitstreamFixup, isExynos4;
     private boolean adaptivePlayback, directSubmit;
+    private boolean lowLatency;
     private boolean constrainedHighProfile;
     private boolean refFrameInvalidationAvc, refFrameInvalidationHevc;
     private boolean refFrameInvalidationActive;
@@ -161,7 +162,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // shared between AVC and HEVC decoders on the same device.
         if (avcDecoder != null) {
             directSubmit = MediaCodecHelper.decoderCanDirectSubmit(avcDecoder.getName());
-            adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(avcDecoder);
             refFrameInvalidationAvc = MediaCodecHelper.decoderSupportsRefFrameInvalidationAvc(avcDecoder.getName(), prefs.height);
             refFrameInvalidationHevc = MediaCodecHelper.decoderSupportsRefFrameInvalidationHevc(avcDecoder.getName());
 
@@ -264,6 +264,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             refFrameInvalidationActive = refFrameInvalidationAvc;
+
+            lowLatency = MediaCodecHelper.decoderSupportsLowLatency(avcDecoder, mimeType);
+            adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(avcDecoder, mimeType);
         }
         else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
             mimeType = "video/hevc";
@@ -275,6 +278,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             refFrameInvalidationActive = refFrameInvalidationHevc;
+
+            lowLatency = MediaCodecHelper.decoderSupportsLowLatency(hevcDecoder, mimeType);
+            adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(hevcDecoder, mimeType);
         }
         else {
             // Unknown format
@@ -300,7 +306,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             videoFormat.setInteger(MediaFormat.KEY_MAX_HEIGHT, height);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (lowLatency) {
+            videoFormat.setInteger(MediaCodecHelper.KEY_LOW_LATENCY, 1);
+        }
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Operate at maximum rate to lower latency as much as possible on
             // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
             // but that will actually result in the decoder crashing if it can't satisfy
@@ -1031,6 +1040,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";
             str += "RFI active: "+renderer.refFrameInvalidationActive+"\n";
             str += "Using modern SPS patching: "+(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)+"\n";
+            str += "Low latency mode: "+renderer.lowLatency+"\n";
             str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Kbps \n";

@@ -39,6 +39,10 @@ public class MediaCodecHelper {
     private static final List<String> blacklisted49FpsDecoderPrefixes;
     private static final List<String> blacklisted59FpsDecoderPrefixes;
 
+    // FIXME: Remove when Android R SDK is finalized
+    public static final String FEATURE_LowLatency = "low-latency";
+    public static final String KEY_LOW_LATENCY = "low-latency";
+
     private static boolean isLowEndSnapdragon = false;
     private static boolean initialized = false;
 
@@ -330,7 +334,23 @@ public class MediaCodecHelper {
         return System.nanoTime() / 1000000L;
     }
 
-    public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo) {
+    public static boolean decoderSupportsLowLatency(MediaCodecInfo decoderInfo, String mimeType) {
+        try {
+            if (decoderInfo.getCapabilitiesForType(mimeType).
+                    isFeatureSupported(FEATURE_LowLatency))
+            {
+                LimeLog.info("Low latency decoding mode supported (FEATURE_LowLatency)");
+                return true;
+            }
+        } catch (Exception e) {
+            // Tolerate buggy codecs
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo, String mimeType) {
         // Possibly enable adaptive playback on KitKat and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if (isDecoderInList(blacklistedAdaptivePlaybackPrefixes, decoderInfo.getName())) {
@@ -339,7 +359,7 @@ public class MediaCodecHelper {
             }
 
             try {
-                if (decoderInfo.getCapabilitiesForType("video/avc").
+                if (decoderInfo.getCapabilitiesForType(mimeType).
                         isFeatureSupported(CodecCapabilities.FEATURE_AdaptivePlayback))
                 {
                     // This will make getCapabilities() return that adaptive playback is supported
@@ -348,6 +368,7 @@ public class MediaCodecHelper {
                 }
             } catch (Exception e) {
                 // Tolerate buggy codecs
+                e.printStackTrace();
             }
         }
         

@@ -114,6 +114,7 @@ public class AnalogStick extends VirtualControllerElement {
      */
     private float relative_y = 0;
 
+    private boolean bIsFingerOnScreen = false;
 
     private double movement_radius = 0;
     private double movement_angle = 0;
@@ -128,6 +129,15 @@ public class AnalogStick extends VirtualControllerElement {
 
     private List<AnalogStickListener> listeners = new ArrayList<>();
     private long timeLastClick = 0;
+
+    private int touchID;
+    private float touchStartX;
+    private float touchStartY;
+
+    private float touchX;
+    private float touchY;
+    private float touchMaxDistance = 120;
+    private float touchDeadZone = 20;
 
     private static double getMovementRadius(float x, float y) {
         return Math.sqrt(x * x + y * y);
@@ -217,124 +227,165 @@ public class AnalogStick extends VirtualControllerElement {
         super.onSizeChanged(w, h, oldw, oldh);
     }
 
+
+
     @Override
     protected void onElementDraw(Canvas canvas) {
-        // set transparent background
-        canvas.drawColor(Color.TRANSPARENT);
-
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(getDefaultStrokeWidth());
-
-        // draw outer circle
-        if (!isPressed() || click_state == CLICK_STATE.SINGLE) {
-            paint.setColor(getDefaultColor());
-        } else {
-            paint.setColor(pressedColor);
+        if (this.getIsEditing()) {
+            canvas.drawColor(0x7FFF0000);
         }
-        canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_complete, paint);
 
-        paint.setColor(getDefaultColor());
-        // draw dead zone
-        canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_dead_zone, paint);
+        if (bIsFingerOnScreen) {
+            // set transparent background
+            canvas.drawColor(Color.TRANSPARENT);
 
-        // draw stick depending on state
-        switch (stick_state) {
-            case NO_MOVEMENT: {
-                paint.setColor(getDefaultColor());
-                canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_analog_stick, paint);
-                break;
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(getDefaultStrokeWidth());
+
+            //canvas.drawCircle(touchX, touchY, 50, paint);
+
+            // draw outer circle
+            if (!isPressed() || click_state == CLICK_STATE.SINGLE) {
+                //paint.setColor(getDefaultColor());
+            } else {
+                //paint.setColor(pressedColor);
             }
-            case MOVED_IN_DEAD_ZONE:
-            case MOVED_ACTIVE: {
-                paint.setColor(pressedColor);
-                canvas.drawCircle(position_stick_x, position_stick_y, radius_analog_stick, paint);
-                break;
+            //canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_complete, paint);
+
+            //paint.setColor(getDefaultColor());
+            // draw dead zone
+            //canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_dead_zone, paint);
+
+            // draw stick depending on state
+            switch (stick_state) {
+                case NO_MOVEMENT: {
+                    paint.setColor(Color.MAGENTA);
+                    canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_analog_stick, paint);
+                    break;
+                }
+
+                case MOVED_IN_DEAD_ZONE:
+                case MOVED_ACTIVE: {
+                    paint.setColor(Color.BLUE);
+                    canvas.drawCircle(touchStartX, touchStartY,
+                            radius_analog_stick / 2.0f, paint);
+
+                    paint.setColor(pressedColor);
+                    canvas.drawCircle(position_stick_x ,  position_stick_y ,
+                            radius_analog_stick, paint);
+
+                    paint.setColor(Color.RED);
+                    canvas.drawLine(touchStartX, touchStartY, position_stick_x, position_stick_y, paint);
+                    break;
+                }
             }
         }
     }
 
     private void updatePosition() {
-        // get 100% way
-        float complete = radius_complete - radius_analog_stick;
+        float dirX = (touchX - touchStartX);
+        float dirY = (touchY - touchStartY);
 
-        // calculate relative way
-        float correlated_y = (float) (Math.sin(Math.PI / 2 - movement_angle) * (movement_radius));
-        float correlated_x = (float) (Math.cos(Math.PI / 2 - movement_angle) * (movement_radius));
+        float length = (float)Math.sqrt((dirX * dirX) + (dirY * dirY));;
 
-        // update positions
-        position_stick_x = getWidth() / 2 - correlated_x;
-        position_stick_y = getHeight() / 2 - correlated_y;
+        // normalize
+        float val = 1.0f / length;
+        dirX *= val;
+        dirY *= val;
+
+        length = Math.min(length, touchMaxDistance);
+
+        position_stick_x = touchStartX + (dirX * length);
+        position_stick_y = touchStartY + (dirY * length);
 
         // Stay active even if we're back in the deadzone because we know the user is actively
         // giving analog stick input and we don't want to snap back into the deadzone.
         // We also release the deadzone if the user keeps the stick pressed for a bit to allow
         // them to make precise movements.
-        stick_state = (stick_state == STICK_STATE.MOVED_ACTIVE ||
-                System.currentTimeMillis() - timeLastClick > timeoutDeadzone ||
-                movement_radius > radius_dead_zone) ?
-                STICK_STATE.MOVED_ACTIVE : STICK_STATE.MOVED_IN_DEAD_ZONE;
+        //stick_state = (stick_state == STICK_STATE.MOVED_ACTIVE ||
+                //System.currentTimeMillis() - timeLastClick > timeoutDeadzone ||
+                //movement_radius > radius_dead_zone) ?
+               //STICK_STATE.MOVED_ACTIVE : STICK_STATE.MOVED_IN_DEAD_ZONE;
+
+        stick_state = STICK_STATE.MOVED_ACTIVE;
+
+        if (length > touchDeadZone) {
+            notifyOnMovement(dirX, -dirY);
+        }
 
         //  trigger move event if state active
-        if (stick_state == STICK_STATE.MOVED_ACTIVE) {
-            notifyOnMovement(-correlated_x / complete, correlated_y / complete);
-        }
+        //if (stick_state == STICK_STATE.MOVED_ACTIVE) {
+            //notifyOnMovement(-correlated_x / complete, correlated_y / complete);
+        //}
     }
+
+
 
     @Override
     public boolean onElementTouchEvent(MotionEvent event) {
         // save last click state
         CLICK_STATE lastClickState = click_state;
 
-        // get absolute way for each axis
-        relative_x = -(getWidth() / 2 - event.getX());
-        relative_y = -(getHeight() / 2 - event.getY());
-
-        // get radius and angel of movement from center
-        movement_radius = getMovementRadius(relative_x, relative_y);
-        movement_angle = getAngle(relative_x, relative_y);
-
-        // pass touch event to parent if out of outer circle
-        if (movement_radius > radius_complete && !isPressed())
-            return false;
-
-        // chop radius if out of outer circle or near the edge
-        if (movement_radius > (radius_complete - radius_analog_stick)) {
-            movement_radius = radius_complete - radius_analog_stick;
-        }
-
         // handle event depending on action
         switch (event.getActionMasked()) {
             // down event (touch event)
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN: {
-                // set to dead zoned, will be corrected in update position if necessary
-                stick_state = STICK_STATE.MOVED_IN_DEAD_ZONE;
-                // check for double click
-                if (lastClickState == CLICK_STATE.SINGLE &&
-                        timeLastClick + timeoutDoubleClick > System.currentTimeMillis()) {
-                    click_state = CLICK_STATE.DOUBLE;
-                    notifyOnDoubleClick();
-                } else {
-                    click_state = CLICK_STATE.SINGLE;
-                    notifyOnClick();
+                if (!bIsFingerOnScreen) {
+                    touchID = event.getPointerId(event.getActionIndex());
+                    touchStartX = event.getX();
+                    touchStartY = event.getY();
+                    bIsFingerOnScreen = true;
                 }
-                // reset last click timestamp
-                timeLastClick = System.currentTimeMillis();
-                // set item pressed and update
-                setPressed(true);
+
+                if (touchID == event.getPointerId(event.getActionIndex())) {
+                    touchX = event.getX();
+                    touchY = event.getY();
+
+                    // set to dead zoned, will be corrected in update position if necessary
+                    stick_state = STICK_STATE.MOVED_IN_DEAD_ZONE;
+                    // check for double click
+                    if (lastClickState == CLICK_STATE.SINGLE &&
+                            timeLastClick + timeoutDoubleClick > System.currentTimeMillis()) {
+                        click_state = CLICK_STATE.DOUBLE;
+                        notifyOnDoubleClick();
+                    } else {
+                        click_state = CLICK_STATE.SINGLE;
+                        notifyOnClick();
+                    }
+                    // reset last click timestamp
+                    timeLastClick = System.currentTimeMillis();
+                    // set item pressed and update
+                    setPressed(true);
+
+                    updatePosition();
+                }
+                break;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                for (int i = 0; i < event.getPointerCount(); i++) {
+                    if (touchID == event.getPointerId(i)) {
+                        touchX = event.getX();
+                        touchY = event.getY();
+
+                        updatePosition();
+                    }
+                }
                 break;
             }
             // up event (revoke touch)
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP: {
-                setPressed(false);
+                if (touchID == event.getPointerId(event.getActionIndex())) {
+                    setPressed(false);
+                    bIsFingerOnScreen = false;
+                }
                 break;
             }
         }
 
         if (isPressed()) {
             // when is pressed calculate new positions (will trigger movement if necessary)
-            updatePosition();
         } else {
             stick_state = STICK_STATE.NO_MOVEMENT;
             notifyOnRevoke();

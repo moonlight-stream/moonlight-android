@@ -156,6 +156,11 @@ public abstract class VirtualControllerElement extends View {
         invalidate();
     }
 
+    protected boolean getIsEditing() {
+        return virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons ||
+                virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons;
+    }
+
     protected int getDefaultColor() {
         if (virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons)
             return configMoveColor;

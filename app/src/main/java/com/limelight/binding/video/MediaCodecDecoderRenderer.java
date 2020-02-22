@@ -63,6 +63,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private MediaFormat inputFormat;
     private MediaFormat outputFormat;
+    private MediaFormat configuredFormat;
 
     private boolean needsBaselineSpsHack;
     private SeqParameterSet savedSps;
@@ -319,6 +320,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // our (ludicrous) operating rate requirement.
             videoFormat.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
         }
+
+        configuredFormat = videoFormat;
+        LimeLog.info("Configuring with format: "+configuredFormat);
 
         try {
             videoDecoder.configure(videoFormat, renderTarget.getSurface(), null, 0);
@@ -1034,17 +1038,27 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         private String generateText(MediaCodecDecoderRenderer renderer, Exception originalException, ByteBuffer currentBuffer, int currentCodecFlags) {
             String str = "";
 
+            str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "Format: "+String.format("%x", renderer.videoFormat)+"\n";
             str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+"\n";
             str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+"\n";
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && renderer.avcDecoder != null) {
                 Range<Integer> avcWidthRange = renderer.avcDecoder.getCapabilitiesForType("video/avc").getVideoCapabilities().getSupportedWidths();
-                str += "AVC supported width range: "+avcWidthRange.getLower()+" - "+avcWidthRange.getUpper()+"\n";
+                str += "AVC supported width range: "+avcWidthRange+"\n";
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    Range<Double> avcFpsRange = renderer.avcDecoder.getCapabilitiesForType("video/avc").getVideoCapabilities().getAchievableFrameRatesFor(renderer.initialWidth, renderer.initialHeight);
+                    str += "AVC achievable FPS range: "+avcFpsRange+"\n";
+                }
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && renderer.hevcDecoder != null) {
                 Range<Integer> hevcWidthRange = renderer.hevcDecoder.getCapabilitiesForType("video/hevc").getVideoCapabilities().getSupportedWidths();
-                str += "HEVC supported width range: "+hevcWidthRange.getLower()+" - "+hevcWidthRange.getUpper()+"\n";
+                str += "HEVC supported width range: "+hevcWidthRange+"\n";
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    Range<Double> hevcFpsRange = renderer.hevcDecoder.getCapabilitiesForType("video/hevc").getVideoCapabilities().getAchievableFrameRatesFor(renderer.initialWidth, renderer.initialHeight);
+                    str += "HEVC achievable FPS range: "+hevcFpsRange+"\n";
+                }
             }
+            str += "Configured format: "+renderer.configuredFormat+"\n";
             str += "Input format: "+renderer.inputFormat+"\n";
             str += "Output format: "+renderer.outputFormat+"\n";
             str += "Adaptive playback: "+renderer.adaptivePlayback+"\n";
@@ -1055,7 +1069,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "RFI active: "+renderer.refFrameInvalidationActive+"\n";
             str += "Using modern SPS patching: "+(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)+"\n";
             str += "Low latency mode: "+renderer.lowLatency+"\n";
-            str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Kbps \n";
             str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";

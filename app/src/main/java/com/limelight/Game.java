@@ -438,6 +438,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
+                .setLaunchRefreshRate(prefConfig.fps)
                 .setRefreshRate(chosenFrameRate)
                 .setApp(new NvApp(appName != null ? appName : "app", appId, willStreamHdr))
                 .setBitrate(prefConfig.bitrate)

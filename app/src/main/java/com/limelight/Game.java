@@ -399,6 +399,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Hopefully, we can get rid of this once someone comes up with a better way
         // to track the state of the pipeline and time frames.
         int roundedRefreshRate = Math.round(displayRefreshRate);
+        int chosenFrameRate = prefConfig.fps;
         if (!prefConfig.disableFrameDrop || prefConfig.unlockFps) {
             if (Build.DEVICE.equals("coral") || Build.DEVICE.equals("flame")) {
                 // HACK: Pixel 4 (XL) ignores the preferred display mode and lowers refresh rate,
@@ -424,8 +425,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     // Use the old rendering strategy on these broken devices
                     decoderRenderer.enableLegacyFrameDropRendering();
                 } else {
-                    prefConfig.fps = roundedRefreshRate - 1;
-                    LimeLog.info("Adjusting FPS target for screen to " + prefConfig.fps);
+                    chosenFrameRate = roundedRefreshRate - 1;
+                    LimeLog.info("Adjusting FPS target for screen to " + chosenFrameRate);
                 }
             }
         }
@@ -437,7 +438,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
-                .setRefreshRate(prefConfig.fps)
+                .setRefreshRate(chosenFrameRate)
                 .setApp(new NvApp(appName != null ? appName : "app", appId, willStreamHdr))
                 .setBitrate(prefConfig.bitrate)
                 .setEnableSops(prefConfig.enableSops)

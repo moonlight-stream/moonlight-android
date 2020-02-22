@@ -303,7 +303,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         MediaFormat videoFormat = MediaFormat.createVideoFormat(mimeType, width, height);
 
-        videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, redrawRate);
+        // We use prefs.fps instead of redrawRate here because the low latency hack in Game.java
+        // may leave us with an odd redrawRate value like 59 or 49 which might cause the decoder
+        // to puke. To be safe, we'll use the unmodified value.
+        videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, prefs.fps);
 
         // Adaptive playback can also be enabled by the whitelist on pre-KitKat devices
         // so we don't fill these pre-KitKat

@@ -61,6 +61,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private boolean legacyFrameDropRendering = false;
     private PerfOverlayListener perfListener;
 
+    private MediaFormat inputFormat;
+    private MediaFormat outputFormat;
+
     private boolean needsBaselineSpsHack;
     private SeqParameterSet savedSps;
 
@@ -319,6 +322,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         try {
             videoDecoder.configure(videoFormat, renderTarget.getSurface(), null, 0);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                // This will contain the actual accepted input format attributes
+                inputFormat = videoDecoder.getInputFormat();
+                LimeLog.info("Input format: "+inputFormat);
+            }
+
             videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 
             if (USE_FRAME_RENDER_TIME && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -343,6 +353,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 legacyInputBuffers = videoDecoder.getInputBuffers();
             }
+
         } catch (Exception e) {
             e.printStackTrace();
             return -5;
@@ -454,7 +465,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                     break;
                                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                                     LimeLog.info("Output format changed");
-                                    LimeLog.info("New output Format: " + videoDecoder.getOutputFormat());
+                                    outputFormat = videoDecoder.getOutputFormat();
+                                    LimeLog.info("New output format: " + outputFormat);
                                     break;
                                 default:
                                     break;
@@ -1033,6 +1045,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 Range<Integer> hevcWidthRange = renderer.hevcDecoder.getCapabilitiesForType("video/hevc").getVideoCapabilities().getSupportedWidths();
                 str += "HEVC supported width range: "+hevcWidthRange.getLower()+" - "+hevcWidthRange.getUpper()+"\n";
             }
+            str += "Input format: "+renderer.inputFormat+"\n";
+            str += "Output format: "+renderer.outputFormat+"\n";
             str += "Adaptive playback: "+renderer.adaptivePlayback+"\n";
             str += "GL Renderer: "+renderer.glRenderer+"\n";
             str += "Build fingerprint: "+Build.FINGERPRINT+"\n";

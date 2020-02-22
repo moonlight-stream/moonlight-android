@@ -1413,7 +1413,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
 
                     Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_error_title),
-                            getResources().getString(R.string.conn_error_msg) + " " + stage, true);
+                            getResources().getString(R.string.conn_error_msg) + " " + stage +" (error "+errorCode+")", true);
                 }
             }
         });

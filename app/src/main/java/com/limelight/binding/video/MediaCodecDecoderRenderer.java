@@ -303,6 +303,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         MediaFormat videoFormat = MediaFormat.createVideoFormat(mimeType, width, height);
 
+        videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, redrawRate);
+
         // Adaptive playback can also be enabled by the whitelist on pre-KitKat devices
         // so we don't fill these pre-KitKat
         if (adaptivePlayback && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {

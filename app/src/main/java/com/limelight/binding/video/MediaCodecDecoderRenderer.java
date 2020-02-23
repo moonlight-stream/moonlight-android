@@ -319,6 +319,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             videoFormat.setInteger(MediaCodecHelper.KEY_LOW_LATENCY, 1);
         }
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Set the Qualcomm vendor low latency extension if the Android R option is unavailable
+            if (MediaCodecHelper.decoderSupportsQcomVendorLowLatency(selectedDecoderName)) {
+                // MediaCodec supports vendor-defined format keys using the "vendor.<extension name>.<parameter name>" syntax.
+                // These allow access to functionality that is not exposed through documented MediaFormat.KEY_* values.
+                // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/common/inc/vidc_vendor_extensions.h;l=67
+                //
+                // Examples of Qualcomm's vendor extensions for Snapdragon 845:
+                // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/vdec/src/omx_vdec_extensions.hpp
+                // https://cs.android.com/android/_/android/platform/hardware/qcom/sm8150/media/+/0621ceb1c1b19564999db8293574a0e12952ff6c
+                videoFormat.setInteger("vendor.qti-ext-dec-low-latency.enable", 1);
+            }
+
             // Operate at maximum rate to lower latency as much as possible on
             // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
             // but that will actually result in the decoder crashing if it can't satisfy

@@ -597,9 +597,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     // FIXME: Remove when Android R SDK is finalized
     private static void setPreferMinimalPostProcessingWithReflection(WindowManager.LayoutParams windowLayoutParams, boolean isPreferred) {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q && Build.VERSION.PREVIEW_SDK_INT == 0) {
-            // Don't attempt this reflection unless on Android R Developer Preview
-            return;
+        // Build.VERSION.PREVIEW_SDK_INT was added in M
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q && Build.VERSION.PREVIEW_SDK_INT == 0) {
+                // Don't attempt this reflection unless on Android R Developer Preview
+                return;
+            }
         }
 
         try {

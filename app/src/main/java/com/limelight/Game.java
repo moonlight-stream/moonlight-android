@@ -1399,7 +1399,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void stageFailed(final String stage, final long errorCode) {
+    public void stageFailed(final String stage, final int errorCode) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -1425,7 +1425,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void connectionTerminated(final long errorCode) {
+    public void connectionTerminated(final int errorCode) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

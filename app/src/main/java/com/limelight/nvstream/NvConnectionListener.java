@@ -3,10 +3,10 @@ package com.limelight.nvstream;
 public interface NvConnectionListener {
     void stageStarting(String stage);
     void stageComplete(String stage);
-    void stageFailed(String stage, long errorCode);
+    void stageFailed(String stage, int errorCode);
     
     void connectionStarted();
-    void connectionTerminated(long errorCode);
+    void connectionTerminated(int errorCode);
     void connectionStatusUpdate(int connectionStatus);
     
     void displayMessage(String message);

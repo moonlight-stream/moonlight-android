@@ -129,7 +129,7 @@ public class MoonBridge {
         }
     }
 
-    public static void bridgeClStageFailed(int stage, long errorCode) {
+    public static void bridgeClStageFailed(int stage, int errorCode) {
         if (connectionListener != null) {
             connectionListener.stageFailed(getStageName(stage), errorCode);
         }
@@ -141,7 +141,7 @@ public class MoonBridge {
         }
     }
 
-    public static void bridgeClConnectionTerminated(long errorCode) {
+    public static void bridgeClConnectionTerminated(int errorCode) {
         if (connectionListener != null) {
             connectionListener.connectionTerminated(errorCode);
         }

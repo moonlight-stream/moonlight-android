@@ -1414,7 +1414,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                     // If video initialization failed and the surface is still valid, display extra information for the user
                     if (stage.contains("video") && streamView.getHolder().getSurface().isValid()) {
-                        Toast.makeText(Game.this, "Video decoder failed to initialize. Your device may not support the selected resolution.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(Game.this, getResources().getText(R.string.video_decoder_init_failed), Toast.LENGTH_LONG).show();
                     }
 
                     Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_error_title),

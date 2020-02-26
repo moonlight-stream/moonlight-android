@@ -114,10 +114,10 @@ android {
 }
 
 dependencies {
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.62'
-    implementation 'org.bouncycastle:bcpkix-jdk15on:1.62'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.64'
+    implementation 'org.bouncycastle:bcpkix-jdk15on:1.64'
     implementation 'org.jcodec:jcodec:0.2.3'
-    implementation 'com.squareup.okhttp3:okhttp:3.12.3'
-    implementation 'com.squareup.okio:okio:1.17.4'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.9'
+    implementation 'com.squareup.okio:okio:1.17.5'
     implementation 'org.jmdns:jmdns:3.5.5'
 }

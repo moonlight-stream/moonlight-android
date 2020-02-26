@@ -604,6 +604,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return;
             }
         }
+        else {
+            return;
+        }
 
         try {
             Field field = windowLayoutParams.getClass().getDeclaredField("preferMinimalPostProcessing");

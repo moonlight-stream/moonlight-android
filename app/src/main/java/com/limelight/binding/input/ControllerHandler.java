@@ -1452,8 +1452,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         // Start+LB acts like select for controllers with one button
-        if ((context.inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
-            ((context.inputMap & ControllerPacket.LB_FLAG) != 0 ||
+        if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG) ||
+            (context.inputMap == ControllerPacket.PLAY_FLAG &&
               SystemClock.uptimeMillis() - context.lastLbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
         {
             context.inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG);
@@ -1463,10 +1463,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         // We detect select+start or start+RB as the special button combo
-        if (((context.inputMap & ControllerPacket.RB_FLAG) != 0 ||
-             (SystemClock.uptimeMillis() - context.lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS) ||
-             (context.inputMap & ControllerPacket.BACK_FLAG) != 0) &&
-            (context.inputMap & ControllerPacket.PLAY_FLAG) != 0)
+        if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.BACK_FLAG) ||
+            context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG) ||
+                (context.inputMap == ControllerPacket.PLAY_FLAG &&
+                        SystemClock.uptimeMillis() - context.lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
         {
             context.inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG);
             context.inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;

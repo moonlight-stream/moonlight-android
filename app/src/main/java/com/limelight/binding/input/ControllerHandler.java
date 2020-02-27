@@ -1,5 +1,6 @@
 package com.limelight.binding.input;
 
+import android.app.Activity;
 import android.content.Context;
 import android.hardware.input.InputManager;
 import android.hardware.usb.UsbDevice;
@@ -51,7 +52,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final SparseArray<UsbDeviceContext> usbDeviceContexts = new SparseArray<>();
 
     private final NvConnection conn;
-    private final Context activityContext;
+    private final Activity activityContext;
     private final double stickDeadzone;
     private final InputDeviceContext defaultContext = new InputDeviceContext();
     private final GameGestures gestures;
@@ -61,7 +62,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final PreferenceConfiguration prefConfig;
     private short currentControllers, initialControllers;
 
-    public ControllerHandler(Context activityContext, NvConnection conn, GameGestures gestures, PreferenceConfiguration prefConfig) {
+    public ControllerHandler(Activity activityContext, NvConnection conn, GameGestures gestures, PreferenceConfiguration prefConfig) {
         this.activityContext = activityContext;
         this.conn = conn;
         this.gestures = gestures;
@@ -1350,6 +1351,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         sendControllerInputPacket(context);
+
+        if (context.pendingExit && context.inputMap == 0) {
+            // All buttons from the quit combo are lifted. Finish the activity now.
+            activityContext.finish();
+        }
+
         return true;
     }
 
@@ -1434,6 +1441,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             return false;
         }
 
+        // Start+Back+LB+RB is the quit combo
+        if (context.inputMap == (ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG |
+                                 ControllerPacket.LB_FLAG | ControllerPacket.RB_FLAG)) {
+            // Wait for the combo to lift and then finish the activity
+            context.pendingExit = true;
+        }
+
         // Start+LB acts like select for controllers with one button
         if ((context.inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
             ((context.inputMap & ControllerPacket.LB_FLAG) != 0 ||
@@ -1456,7 +1470,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
             context.emulatingButtonFlags |= ControllerHandler.EMULATING_SPECIAL;
         }
-
 
         // We don't need to send repeat key down events, but the platform
         // sends us events that claim to be repeats but they're from different
@@ -1588,6 +1601,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean modeIsSelect;
         public boolean ignoreBack;
         public boolean hasJoystickAxes;
+        public boolean pendingExit;
 
         public int emulatingButtonFlags = 0;
 

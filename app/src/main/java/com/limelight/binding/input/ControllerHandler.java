@@ -162,8 +162,22 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         for (int i = 0; i < inputDeviceContexts.size(); i++) {
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
 
+            if (deviceContext.mouseEmulationTimer != null) {
+                deviceContext.mouseEmulationTimer.cancel();
+                deviceContext.mouseEmulationTimer = null;
+            }
+
             if (deviceContext.vibrator != null) {
                 deviceContext.vibrator.cancel();
+            }
+        }
+
+        for (int i = 0; i < usbDeviceContexts.size(); i++) {
+            UsbDeviceContext deviceContext = usbDeviceContexts.valueAt(i);
+
+            if (deviceContext.mouseEmulationTimer != null) {
+                deviceContext.mouseEmulationTimer.cancel();
+                deviceContext.mouseEmulationTimer = null;
             }
         }
 

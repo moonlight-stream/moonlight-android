@@ -401,11 +401,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
                 // Note that we are explicitly NOT excluding the current device we're examining here,
                 // since the other gamepad buttons may be on our current device and that's fine.
-                boolean[] keys = currentDev.hasKeys(KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BUTTON_A);
-                if (keys[0]) {
+                if (currentDev.hasKeys(KeyEvent.KEYCODE_BUTTON_SELECT)[0]) {
                     foundInternalSelect = true;
                 }
-                if (keys[1]) {
+
+                // We don't check KEYCODE_BUTTON_A here, since the Shield Android TV has a
+                // virtual mouse device that claims to have KEYCODE_BUTTON_A. Instead, we rely
+                // on the SOURCE_GAMEPAD flag to be set on gamepad devices.
+                if (hasGamepadButtons(currentDev)) {
                     foundInternalGamepad = true;
                 }
             }

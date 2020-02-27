@@ -147,6 +147,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (context != null) {
             LimeLog.info("Removed controller: "+context.name+" ("+deviceId+")");
             releaseControllerNumber(context);
+            context.destroy();
             inputDeviceContexts.remove(deviceId);
         }
     }
@@ -161,24 +162,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     public void stop() {
         for (int i = 0; i < inputDeviceContexts.size(); i++) {
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
-
-            if (deviceContext.mouseEmulationTimer != null) {
-                deviceContext.mouseEmulationTimer.cancel();
-                deviceContext.mouseEmulationTimer = null;
-            }
-
-            if (deviceContext.vibrator != null) {
-                deviceContext.vibrator.cancel();
-            }
+            deviceContext.destroy();
         }
 
         for (int i = 0; i < usbDeviceContexts.size(); i++) {
             UsbDeviceContext deviceContext = usbDeviceContexts.valueAt(i);
-
-            if (deviceContext.mouseEmulationTimer != null) {
-                deviceContext.mouseEmulationTimer.cancel();
-                deviceContext.mouseEmulationTimer = null;
-            }
+            deviceContext.destroy();
         }
 
         deviceVibrator.cancel();
@@ -1555,6 +1544,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (context != null) {
             LimeLog.info("Removed controller: "+controller.getControllerId());
             releaseControllerNumber(context);
+            context.destroy();
             usbDeviceContexts.remove(controller.getControllerId());
         }
     }
@@ -1587,6 +1577,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean mouseEmulationActive;
         public Timer mouseEmulationTimer;
         public short mouseEmulationLastInputMap;
+
+        public void destroy() {
+            if (mouseEmulationTimer != null) {
+                mouseEmulationTimer.cancel();
+                mouseEmulationTimer = null;
+            }
+        }
     }
 
     class InputDeviceContext extends GenericControllerContext {
@@ -1628,9 +1625,25 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public long lastRbUpTime = 0;
 
         public long startDownTime = 0;
+
+        @Override
+        public void destroy() {
+            super.destroy();
+
+            if (vibrator != null) {
+                vibrator.cancel();
+            }
+        }
     }
 
     class UsbDeviceContext extends GenericControllerContext {
         public AbstractController device;
+
+        @Override
+        public void destroy() {
+            super.destroy();
+
+            // Nothing for now
+        }
     }
 }

@@ -380,9 +380,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         // Classify this device as a remote by name if it has no joystick axes
-        if (getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_X) == null &&
-                getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_Y) == null &&
-                devName.toLowerCase().contains("remote")) {
+        if (!hasJoystickAxes(dev) && devName.toLowerCase().contains("remote")) {
             return true;
         }
 
@@ -424,8 +422,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // c) have an internal gamepad but no internal select button (NVIDIA SHIELD Portable)
             return !foundInternalGamepad || foundInternalSelect;
         }
-
-        return false;
+        else {
+            // For external devices, we want to pass through the back button if the device
+            // has no gamepad axes or gamepad buttons.
+            return !hasJoystickAxes(dev) && !hasGamepadButtons(dev);
+        }
     }
 
     private InputDeviceContext createInputDeviceContextForDevice(InputDevice dev) {

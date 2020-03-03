@@ -109,6 +109,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         defaultContext.rightTriggerAxis = MotionEvent.AXIS_GAS;
         defaultContext.controllerNumber = (short) 0;
         defaultContext.assignedControllerNumber = true;
+        defaultContext.external = false;
 
         // Some devices (GPD XD) have a back button which sends input events
         // with device ID == 0. This hits the default context which would normally
@@ -268,9 +269,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             InputDeviceContext devContext = (InputDeviceContext) context;
 
             LimeLog.info(devContext.name+" ("+context.id+") needs a controller number assigned");
-            if (devContext.name != null &&
-                    (devContext.name.contains("gpio-keys") || // This is the back button on Shield portable consoles
-                            devContext.name.contains("joy_key"))) { // These are the gamepad buttons on the Archos Gamepad 2
+            if (!devContext.external) {
                 LimeLog.info("Built-in buttons hardcoded as controller 0");
                 context.controllerNumber = 0;
             }
@@ -331,6 +330,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         context.id = device.getControllerId();
         context.device = device;
+        context.external = true;
 
         context.leftStickDeadzoneRadius = (float) stickDeadzone;
         context.rightStickDeadzoneRadius = (float) stickDeadzone;
@@ -345,6 +345,17 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // navigation event for any attached gamepads.
         if (Build.MODEL.equals("Tinker Board")) {
             return true;
+        }
+
+        String deviceName = dev.getName();
+        if (deviceName.contains("gpio") || // This is the back button on Shield portable consoles
+                deviceName.contains("joy_key") || // These are the gamepad buttons on the Archos Gamepad 2
+                deviceName.contains("keypad") || // These are gamepad buttons on the XPERIA Play
+                deviceName.equalsIgnoreCase("NVIDIA Corporation NVIDIA Controller v01.01") || // Gamepad on Shield Portable
+                deviceName.equalsIgnoreCase("NVIDIA Corporation NVIDIA Controller v01.02")) // Gamepad on Shield Portable (?)
+        {
+            LimeLog.info(dev.getName()+" is internal by hardcoded mapping");
+            return false;
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -442,6 +453,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         context.name = devName;
         context.id = dev.getId();
+        context.external = isExternal(dev);
 
         if (dev.getVibrator().hasVibrator()) {
             context.vibrator = dev.getVibrator();
@@ -1558,6 +1570,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     class GenericControllerContext {
         public int id;
+        public boolean external;
 
         public float leftStickDeadzoneRadius;
         public float rightStickDeadzoneRadius;

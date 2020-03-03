@@ -1,1 +1,1 @@
-include ':app', ':moonlight-common'
+include ':app'

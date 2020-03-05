@@ -908,18 +908,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
-        if (context.hatXAxis != -1 && context.hatYAxis != -1) {
-            switch (event.getKeyCode()) {
-            // These are duplicate dpad events for hat input
-            case KeyEvent.KEYCODE_DPAD_LEFT:
-            case KeyEvent.KEYCODE_DPAD_RIGHT:
-            case KeyEvent.KEYCODE_DPAD_CENTER:
-            case KeyEvent.KEYCODE_DPAD_UP:
-            case KeyEvent.KEYCODE_DPAD_DOWN:
-                return 0;
-            }
-        }
-        else if (context.hatXAxis == -1 &&
+        if (context.hatXAxis == -1 &&
                  context.hatYAxis == -1 &&
                  /* FIXME: There's no good way to know for sure if xpad is bound
                     to this device, so we won't use the name to validate if these
@@ -1050,17 +1039,21 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.inputMap &= ~(ControllerPacket.LEFT_FLAG | ControllerPacket.RIGHT_FLAG);
             if (hatX < -0.5) {
                 context.inputMap |= ControllerPacket.LEFT_FLAG;
+                context.hatXAxisUsed = true;
             }
             else if (hatX > 0.5) {
                 context.inputMap |= ControllerPacket.RIGHT_FLAG;
+                context.hatXAxisUsed = true;
             }
 
             context.inputMap &= ~(ControllerPacket.UP_FLAG | ControllerPacket.DOWN_FLAG);
             if (hatY < -0.5) {
                 context.inputMap |= ControllerPacket.UP_FLAG;
+                context.hatYAxisUsed = true;
             }
             else if (hatY > 0.5) {
                 context.inputMap |= ControllerPacket.DOWN_FLAG;
+                context.hatYAxisUsed = true;
             }
         }
 
@@ -1275,15 +1268,31 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.inputMap &= ~ControllerPacket.BACK_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_LEFT:
+            if (context.hatXAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap &= ~ControllerPacket.LEFT_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_RIGHT:
+            if (context.hatXAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap &= ~ControllerPacket.RIGHT_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_UP:
+            if (context.hatYAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap &= ~ControllerPacket.UP_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_DOWN:
+            if (context.hatYAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap &= ~ControllerPacket.DOWN_FLAG;
             break;
         case KeyEvent.KEYCODE_BUTTON_B:
@@ -1403,15 +1412,31 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.inputMap |= ControllerPacket.BACK_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_LEFT:
+            if (context.hatXAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap |= ControllerPacket.LEFT_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_RIGHT:
+            if (context.hatXAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap |= ControllerPacket.RIGHT_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_UP:
+            if (context.hatYAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap |= ControllerPacket.UP_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_DOWN:
+            if (context.hatYAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap |= ControllerPacket.DOWN_FLAG;
             break;
         case KeyEvent.KEYCODE_BUTTON_B:
@@ -1617,6 +1642,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         public int hatXAxis = -1;
         public int hatYAxis = -1;
+        public boolean hatXAxisUsed, hatYAxisUsed;
 
         public boolean isNonStandardDualShock4;
         public boolean usesLinuxGamepadStandardFaceButtons;

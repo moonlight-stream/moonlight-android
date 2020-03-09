@@ -1,0 +1,6 @@
+- Latency optimizations for Android R DP1
+- Video decoder optimizations
+- Added Start+Back+LB+RB combo to disconnect the stream
+- Fixed back button on some Android TV remotes
+- Fixed d-pad on gamepads that expose non-functional hat axes
+- Fixed unexpected mouse input after using gamepad mouse emulation mode

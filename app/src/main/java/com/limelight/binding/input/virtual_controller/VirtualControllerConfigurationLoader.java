@@ -324,6 +324,8 @@ public class VirtualControllerConfigurationLoader {
                     screenScale(TRIGGER_HEIGHT, height)
             );
         }
+
+        controller.setOpacity(config.oscOpacity);
     }
 
     public static void saveProfile(final VirtualController controller,

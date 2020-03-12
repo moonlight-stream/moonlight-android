@@ -295,6 +295,15 @@ public abstract class VirtualControllerElement extends View {
         invalidate();
     }
 
+
+    public void setOpacity(int opacity) {
+        int hexOpacity = opacity * 255 / 100;
+        this.normalColor = (hexOpacity << 24) | (normalColor & 0x00FFFFFF);
+        this.pressedColor = (hexOpacity << 24) | (pressedColor & 0x00FFFFFF);
+
+        invalidate();
+    }
+
     protected final float getPercent(float value, float percent) {
         return value / 100 * percent;
     }

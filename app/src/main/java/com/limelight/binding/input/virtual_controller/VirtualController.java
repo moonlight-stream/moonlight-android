@@ -125,6 +125,13 @@ public class VirtualController {
         elements.clear();
     }
 
+    public void setOpacity(int opacity) {
+        for (VirtualControllerElement element : elements) {
+            element.setOpacity(opacity);
+        }
+    }
+
+
     public void addElement(VirtualControllerElement element, int x, int y, int width, int height) {
         elements.add(element);
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(width, height);

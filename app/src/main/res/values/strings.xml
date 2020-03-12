@@ -166,6 +166,10 @@
     <string name="dialog_title_reset_osc">Reset Layout</string>
     <string name="dialog_text_reset_osc">Are you sure you want to delete your saved on-screen controls layout?</string>
     <string name="toast_reset_osc_success">On-screen controls reset to default</string>
+    <string name="title_osc_opacity">Change opacity of on-screen controls</string>
+    <string name="summary_osc_opacity">Make the on-screen controls more/less transparent</string>
+    <string name="dialog_title_osc_opacity">Change opacity</string>
+    <string name="suffix_osc_opacity">%</string>
 
     <string name="category_ui_settings">UI Settings</string>
     <string name="title_language_list">Language</string>

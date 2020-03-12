@@ -186,5 +186,7 @@
     <string name="summary_enable_hdr">HDR-Streaming sofern dies von der PC GPU unterstützt wird. HDR erfordert eine GPU der GTX 1000 Serie oder neuer.</string>
     <string name="title_enable_perf_overlay">Performance Overlay aktivieren</string>
     <string name="summary_enable_perf_overlay">Leistungsmerkmale während des Streamens in Echtzeit einblenden.</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="dialog_title_osc_opacity">Transparenz</string>
 
 </resources>

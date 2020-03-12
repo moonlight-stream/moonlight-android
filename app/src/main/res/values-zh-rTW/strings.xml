@@ -205,6 +205,10 @@
 	
     <string name="title_enable_perf_overlay"> 啟用性能資訊 </string>
     <string name="summary_enable_perf_overlay"> 在串流中顯示即時性能資訊 </string>
+    <string name="title_osc_opacity">更改屏幕按鈕透明度</string>
+    <string name="dialog_title_osc_opacity">透明度</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="summary_osc_opacity">令屏幕按钮變得更透明/更不透明</string>
 
 
 </resources>

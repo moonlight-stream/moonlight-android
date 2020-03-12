@@ -38,6 +38,11 @@ public class MediaCodecHelper {
     private static final List<String> refFrameInvalidationHevcPrefixes;
     private static final List<String> blacklisted49FpsDecoderPrefixes;
     private static final List<String> blacklisted59FpsDecoderPrefixes;
+    private static final List<String> qualcommDecoderPrefixes;
+
+    // FIXME: Remove when Android R SDK is finalized
+    public static final String FEATURE_LowLatency = "low-latency";
+    public static final String KEY_LOW_LATENCY = "low-latency";
 
     private static boolean isLowEndSnapdragon = false;
     private static boolean initialized = false;
@@ -189,6 +194,13 @@ public class MediaCodecHelper {
         }
     }
 
+    static {
+        qualcommDecoderPrefixes = new LinkedList<>();
+
+        qualcommDecoderPrefixes.add("omx.qcom");
+        qualcommDecoderPrefixes.add("c2.qti");
+    }
+
     private static boolean isPowerVR(String glRenderer) {
         return glRenderer.toLowerCase().contains("powervr");
     }
@@ -330,7 +342,24 @@ public class MediaCodecHelper {
         return System.nanoTime() / 1000000L;
     }
 
-    public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo) {
+    public static boolean decoderSupportsLowLatency(MediaCodecInfo decoderInfo, String mimeType) {
+        // KitKat added CodecCapabilities.isFeatureSupported()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            try {
+                if (decoderInfo.getCapabilitiesForType(mimeType).isFeatureSupported(FEATURE_LowLatency)) {
+                    LimeLog.info("Low latency decoding mode supported (FEATURE_LowLatency)");
+                    return true;
+                }
+            } catch (Exception e) {
+                // Tolerate buggy codecs
+                e.printStackTrace();
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo, String mimeType) {
         // Possibly enable adaptive playback on KitKat and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if (isDecoderInList(blacklistedAdaptivePlaybackPrefixes, decoderInfo.getName())) {
@@ -339,7 +368,7 @@ public class MediaCodecHelper {
             }
 
             try {
-                if (decoderInfo.getCapabilitiesForType("video/avc").
+                if (decoderInfo.getCapabilitiesForType(mimeType).
                         isFeatureSupported(CodecCapabilities.FEATURE_AdaptivePlayback))
                 {
                     // This will make getCapabilities() return that adaptive playback is supported
@@ -348,10 +377,18 @@ public class MediaCodecHelper {
                 }
             } catch (Exception e) {
                 // Tolerate buggy codecs
+                e.printStackTrace();
             }
         }
         
         return false;
+    }
+
+    public static boolean decoderSupportsQcomVendorLowLatency(String decoderName) {
+        // MediaCodec vendor extension support was introduced in Android 8.0:
+        // https://cs.android.com/android/_/android/platform/frameworks/av/+/01c10f8cdcd58d1e7025f426a72e6e75ba5d7fc2
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                isDecoderInList(qualcommDecoderPrefixes, decoderName);
     }
 
     public static boolean decoderNeedsConstrainedHighProfile(String decoderName) {

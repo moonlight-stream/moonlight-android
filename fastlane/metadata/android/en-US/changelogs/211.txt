@@ -1,0 +1,4 @@
+- Improved layout and appearance of the on-screen controls
+- Added support for resizing the on-screen controls
+- Added German translation
+- Updated Chinese and French translations

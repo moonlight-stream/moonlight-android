@@ -121,13 +121,11 @@ public class NvConnection {
             // Lower resolution to 1080p
             context.negotiatedWidth = 1920;
             context.negotiatedHeight = 1080;
-            context.negotiatedFps = context.streamConfig.getRefreshRate();
         }
         else {
             // Take what the client wanted
             context.negotiatedWidth = context.streamConfig.getWidth();
             context.negotiatedHeight = context.streamConfig.getHeight();
-            context.negotiatedFps = context.streamConfig.getRefreshRate();
         }
         
         //
@@ -263,7 +261,7 @@ public class NvConnection {
                     int ret = MoonBridge.startConnection(context.serverAddress,
                             context.serverAppVersion, context.serverGfeVersion,
                             context.negotiatedWidth, context.negotiatedHeight,
-                            context.negotiatedFps, context.streamConfig.getBitrate(),
+                            context.streamConfig.getRefreshRate(), context.streamConfig.getBitrate(),
                             context.streamConfig.getMaxPacketSize(),
                             context.streamConfig.getRemote(), context.streamConfig.getAudioConfiguration(),
                             context.streamConfig.getHevcSupported(),

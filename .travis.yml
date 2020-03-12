@@ -8,8 +8,11 @@ android:
   components:
     - tools
     - platform-tools
-    - build-tools-29.0.1
+    - build-tools-29.0.3
     - android-29
 
+before_install:
+  - sdkmanager --list
+
 install:
-  - yes | sdkmanager "ndk-bundle"
+  - yes | sdkmanager "ndk;20.0.5594570"

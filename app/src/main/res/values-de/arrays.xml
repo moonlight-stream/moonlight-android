@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string-array name="decoder_names">
+    <item>Decoder automatisch auswählen</item>
+    <item>Software Decodierung erzwingen</item>
+    <item>Hardware Decodierung erzwingen</item>
+  </string-array>
+
+  <string-array name="video_format_names">
+    <item>Verwende H.265 so fern stabile Unterstützung vorhanden ist</item>
+    <item>Immer H.265 verwenden (könnte Crashes verursachen)</item>
+    <item>Nie H.265 verwenden</item>
+  </string-array>
+</resources>

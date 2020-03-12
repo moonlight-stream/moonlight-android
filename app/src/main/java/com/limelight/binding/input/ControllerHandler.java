@@ -1,5 +1,6 @@
 package com.limelight.binding.input;
 
+import android.app.Activity;
 import android.content.Context;
 import android.hardware.input.InputManager;
 import android.hardware.usb.UsbDevice;
@@ -51,7 +52,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final SparseArray<UsbDeviceContext> usbDeviceContexts = new SparseArray<>();
 
     private final NvConnection conn;
-    private final Context activityContext;
+    private final Activity activityContext;
     private final double stickDeadzone;
     private final InputDeviceContext defaultContext = new InputDeviceContext();
     private final GameGestures gestures;
@@ -61,7 +62,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final PreferenceConfiguration prefConfig;
     private short currentControllers, initialControllers;
 
-    public ControllerHandler(Context activityContext, NvConnection conn, GameGestures gestures, PreferenceConfiguration prefConfig) {
+    public ControllerHandler(Activity activityContext, NvConnection conn, GameGestures gestures, PreferenceConfiguration prefConfig) {
         this.activityContext = activityContext;
         this.conn = conn;
         this.gestures = gestures;
@@ -108,6 +109,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         defaultContext.rightTriggerAxis = MotionEvent.AXIS_GAS;
         defaultContext.controllerNumber = (short) 0;
         defaultContext.assignedControllerNumber = true;
+        defaultContext.external = false;
 
         // Some devices (GPD XD) have a back button which sends input events
         // with device ID == 0. This hits the default context which would normally
@@ -146,6 +148,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (context != null) {
             LimeLog.info("Removed controller: "+context.name+" ("+deviceId+")");
             releaseControllerNumber(context);
+            context.destroy();
             inputDeviceContexts.remove(deviceId);
         }
     }
@@ -160,10 +163,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     public void stop() {
         for (int i = 0; i < inputDeviceContexts.size(); i++) {
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
+            deviceContext.destroy();
+        }
 
-            if (deviceContext.vibrator != null) {
-                deviceContext.vibrator.cancel();
-            }
+        for (int i = 0; i < usbDeviceContexts.size(); i++) {
+            UsbDeviceContext deviceContext = usbDeviceContexts.valueAt(i);
+            deviceContext.destroy();
         }
 
         deviceVibrator.cancel();
@@ -264,9 +269,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             InputDeviceContext devContext = (InputDeviceContext) context;
 
             LimeLog.info(devContext.name+" ("+context.id+") needs a controller number assigned");
-            if (devContext.name != null &&
-                    (devContext.name.contains("gpio-keys") || // This is the back button on Shield portable consoles
-                            devContext.name.contains("joy_key"))) { // These are the gamepad buttons on the Archos Gamepad 2
+            if (!devContext.external) {
                 LimeLog.info("Built-in buttons hardcoded as controller 0");
                 context.controllerNumber = 0;
             }
@@ -327,6 +330,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         context.id = device.getControllerId();
         context.device = device;
+        context.external = true;
 
         context.leftStickDeadzoneRadius = (float) stickDeadzone;
         context.rightStickDeadzoneRadius = (float) stickDeadzone;
@@ -341,6 +345,17 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // navigation event for any attached gamepads.
         if (Build.MODEL.equals("Tinker Board")) {
             return true;
+        }
+
+        String deviceName = dev.getName();
+        if (deviceName.contains("gpio") || // This is the back button on Shield portable consoles
+                deviceName.contains("joy_key") || // These are the gamepad buttons on the Archos Gamepad 2
+                deviceName.contains("keypad") || // These are gamepad buttons on the XPERIA Play
+                deviceName.equalsIgnoreCase("NVIDIA Corporation NVIDIA Controller v01.01") || // Gamepad on Shield Portable
+                deviceName.equalsIgnoreCase("NVIDIA Corporation NVIDIA Controller v01.02")) // Gamepad on Shield Portable (?)
+        {
+            LimeLog.info(dev.getName()+" is internal by hardcoded mapping");
+            return false;
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -376,9 +391,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         // Classify this device as a remote by name if it has no joystick axes
-        if (getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_X) == null &&
-                getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_Y) == null &&
-                devName.toLowerCase().contains("remote")) {
+        if (!hasJoystickAxes(dev) && devName.toLowerCase().contains("remote")) {
             return true;
         }
 
@@ -401,11 +414,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
                 // Note that we are explicitly NOT excluding the current device we're examining here,
                 // since the other gamepad buttons may be on our current device and that's fine.
-                boolean[] keys = currentDev.hasKeys(KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BUTTON_A);
-                if (keys[0]) {
+                if (currentDev.hasKeys(KeyEvent.KEYCODE_BUTTON_SELECT)[0]) {
                     foundInternalSelect = true;
                 }
-                if (keys[1]) {
+
+                // We don't check KEYCODE_BUTTON_A here, since the Shield Android TV has a
+                // virtual mouse device that claims to have KEYCODE_BUTTON_A. Instead, we rely
+                // on the SOURCE_GAMEPAD flag to be set on gamepad devices.
+                if (hasGamepadButtons(currentDev)) {
                     foundInternalGamepad = true;
                 }
             }
@@ -417,8 +433,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // c) have an internal gamepad but no internal select button (NVIDIA SHIELD Portable)
             return !foundInternalGamepad || foundInternalSelect;
         }
-
-        return false;
+        else {
+            // For external devices, we want to pass through the back button if the device
+            // has no gamepad axes or gamepad buttons.
+            return !hasJoystickAxes(dev) && !hasGamepadButtons(dev);
+        }
     }
 
     private InputDeviceContext createInputDeviceContextForDevice(InputDevice dev) {
@@ -434,6 +453,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         context.name = devName;
         context.id = dev.getId();
+        context.external = isExternal(dev);
 
         if (dev.getVibrator().hasVibrator()) {
             context.vibrator = dev.getVibrator();
@@ -888,18 +908,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
-        if (context.hatXAxis != -1 && context.hatYAxis != -1) {
-            switch (event.getKeyCode()) {
-            // These are duplicate dpad events for hat input
-            case KeyEvent.KEYCODE_DPAD_LEFT:
-            case KeyEvent.KEYCODE_DPAD_RIGHT:
-            case KeyEvent.KEYCODE_DPAD_CENTER:
-            case KeyEvent.KEYCODE_DPAD_UP:
-            case KeyEvent.KEYCODE_DPAD_DOWN:
-                return 0;
-            }
-        }
-        else if (context.hatXAxis == -1 &&
+        if (context.hatXAxis == -1 &&
                  context.hatYAxis == -1 &&
                  /* FIXME: There's no good way to know for sure if xpad is bound
                     to this device, so we won't use the name to validate if these
@@ -1030,17 +1039,21 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.inputMap &= ~(ControllerPacket.LEFT_FLAG | ControllerPacket.RIGHT_FLAG);
             if (hatX < -0.5) {
                 context.inputMap |= ControllerPacket.LEFT_FLAG;
+                context.hatXAxisUsed = true;
             }
             else if (hatX > 0.5) {
                 context.inputMap |= ControllerPacket.RIGHT_FLAG;
+                context.hatXAxisUsed = true;
             }
 
             context.inputMap &= ~(ControllerPacket.UP_FLAG | ControllerPacket.DOWN_FLAG);
             if (hatY < -0.5) {
                 context.inputMap |= ControllerPacket.UP_FLAG;
+                context.hatYAxisUsed = true;
             }
             else if (hatY > 0.5) {
                 context.inputMap |= ControllerPacket.DOWN_FLAG;
+                context.hatYAxisUsed = true;
             }
         }
 
@@ -1255,15 +1268,31 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.inputMap &= ~ControllerPacket.BACK_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_LEFT:
+            if (context.hatXAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap &= ~ControllerPacket.LEFT_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_RIGHT:
+            if (context.hatXAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap &= ~ControllerPacket.RIGHT_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_UP:
+            if (context.hatYAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap &= ~ControllerPacket.UP_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_DOWN:
+            if (context.hatYAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap &= ~ControllerPacket.DOWN_FLAG;
             break;
         case KeyEvent.KEYCODE_BUTTON_B:
@@ -1347,6 +1376,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         sendControllerInputPacket(context);
+
+        if (context.pendingExit && context.inputMap == 0) {
+            // All buttons from the quit combo are lifted. Finish the activity now.
+            activityContext.finish();
+        }
+
         return true;
     }
 
@@ -1377,15 +1412,31 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.inputMap |= ControllerPacket.BACK_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_LEFT:
+            if (context.hatXAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap |= ControllerPacket.LEFT_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_RIGHT:
+            if (context.hatXAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap |= ControllerPacket.RIGHT_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_UP:
+            if (context.hatYAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap |= ControllerPacket.UP_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_DOWN:
+            if (context.hatYAxisUsed) {
+                // Suppress this duplicate event if we have a hat
+                return true;
+            }
             context.inputMap |= ControllerPacket.DOWN_FLAG;
             break;
         case KeyEvent.KEYCODE_BUTTON_B:
@@ -1431,9 +1482,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             return false;
         }
 
+        // Start+Back+LB+RB is the quit combo
+        if (context.inputMap == (ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG |
+                                 ControllerPacket.LB_FLAG | ControllerPacket.RB_FLAG)) {
+            // Wait for the combo to lift and then finish the activity
+            context.pendingExit = true;
+        }
+
         // Start+LB acts like select for controllers with one button
-        if ((context.inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
-            ((context.inputMap & ControllerPacket.LB_FLAG) != 0 ||
+        if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG) ||
+            (context.inputMap == ControllerPacket.PLAY_FLAG &&
               SystemClock.uptimeMillis() - context.lastLbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
         {
             context.inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG);
@@ -1443,17 +1501,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         // We detect select+start or start+RB as the special button combo
-        if (((context.inputMap & ControllerPacket.RB_FLAG) != 0 ||
-             (SystemClock.uptimeMillis() - context.lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS) ||
-             (context.inputMap & ControllerPacket.BACK_FLAG) != 0) &&
-            (context.inputMap & ControllerPacket.PLAY_FLAG) != 0)
+        if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.BACK_FLAG) ||
+            context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG) ||
+                (context.inputMap == ControllerPacket.PLAY_FLAG &&
+                        SystemClock.uptimeMillis() - context.lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
         {
             context.inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG);
             context.inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
 
             context.emulatingButtonFlags |= ControllerHandler.EMULATING_SPECIAL;
         }
-
 
         // We don't need to send repeat key down events, but the platform
         // sends us events that claim to be repeats but they're from different
@@ -1525,6 +1582,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (context != null) {
             LimeLog.info("Removed controller: "+controller.getControllerId());
             releaseControllerNumber(context);
+            context.destroy();
             usbDeviceContexts.remove(controller.getControllerId());
         }
     }
@@ -1537,6 +1595,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     class GenericControllerContext {
         public int id;
+        public boolean external;
 
         public float leftStickDeadzoneRadius;
         public float rightStickDeadzoneRadius;
@@ -1557,6 +1616,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean mouseEmulationActive;
         public Timer mouseEmulationTimer;
         public short mouseEmulationLastInputMap;
+
+        public void destroy() {
+            if (mouseEmulationTimer != null) {
+                mouseEmulationTimer.cancel();
+                mouseEmulationTimer = null;
+            }
+        }
     }
 
     class InputDeviceContext extends GenericControllerContext {
@@ -1576,6 +1642,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         public int hatXAxis = -1;
         public int hatYAxis = -1;
+        public boolean hatXAxisUsed, hatYAxisUsed;
 
         public boolean isNonStandardDualShock4;
         public boolean usesLinuxGamepadStandardFaceButtons;
@@ -1585,6 +1652,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean modeIsSelect;
         public boolean ignoreBack;
         public boolean hasJoystickAxes;
+        public boolean pendingExit;
 
         public int emulatingButtonFlags = 0;
 
@@ -1597,9 +1665,25 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public long lastRbUpTime = 0;
 
         public long startDownTime = 0;
+
+        @Override
+        public void destroy() {
+            super.destroy();
+
+            if (vibrator != null) {
+                vibrator.cancel();
+            }
+        }
     }
 
     class UsbDeviceContext extends GenericControllerContext {
         public AbstractController device;
+
+        @Override
+        public void destroy() {
+            super.destroy();
+
+            // Nothing for now
+        }
     }
 }

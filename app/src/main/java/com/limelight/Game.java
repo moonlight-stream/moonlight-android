@@ -73,6 +73,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Field;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -398,6 +399,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Hopefully, we can get rid of this once someone comes up with a better way
         // to track the state of the pipeline and time frames.
         int roundedRefreshRate = Math.round(displayRefreshRate);
+        int chosenFrameRate = prefConfig.fps;
         if (!prefConfig.disableFrameDrop || prefConfig.unlockFps) {
             if (Build.DEVICE.equals("coral") || Build.DEVICE.equals("flame")) {
                 // HACK: Pixel 4 (XL) ignores the preferred display mode and lowers refresh rate,
@@ -423,8 +425,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     // Use the old rendering strategy on these broken devices
                     decoderRenderer.enableLegacyFrameDropRendering();
                 } else {
-                    prefConfig.fps = roundedRefreshRate - 1;
-                    LimeLog.info("Adjusting FPS target for screen to " + prefConfig.fps);
+                    chosenFrameRate = roundedRefreshRate - 1;
+                    LimeLog.info("Adjusting FPS target for screen to " + chosenFrameRate);
                 }
             }
         }
@@ -436,7 +438,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
-                .setRefreshRate(prefConfig.fps)
+                .setLaunchRefreshRate(prefConfig.fps)
+                .setRefreshRate(chosenFrameRate)
                 .setApp(new NvApp(appName != null ? appName : "app", appId, willStreamHdr))
                 .setBitrate(prefConfig.bitrate)
                 .setEnableSops(prefConfig.enableSops)
@@ -592,6 +595,29 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
+    // FIXME: Remove when Android R SDK is finalized
+    private static void setPreferMinimalPostProcessingWithReflection(WindowManager.LayoutParams windowLayoutParams, boolean isPreferred) {
+        // Build.VERSION.PREVIEW_SDK_INT was added in M
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q && Build.VERSION.PREVIEW_SDK_INT == 0) {
+                // Don't attempt this reflection unless on Android R Developer Preview
+                return;
+            }
+        }
+        else {
+            return;
+        }
+
+        try {
+            Field field = windowLayoutParams.getClass().getDeclaredField("preferMinimalPostProcessing");
+            field.set(windowLayoutParams, isPreferred);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
     private float prepareDisplayForRendering() {
         Display display = getWindowManager().getDefaultDisplay();
         WindowManager.LayoutParams windowLayoutParams = getWindow().getAttributes();
@@ -663,6 +689,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Otherwise, the active display refresh rate is just
             // whatever is currently in use.
         }
+
+        // Enable HDMI ALLM (game mode) on Android R
+        setPreferMinimalPostProcessingWithReflection(windowLayoutParams, true);
 
         // Apply the display mode change
         getWindow().setAttributes(windowLayoutParams);
@@ -1194,8 +1223,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             else
             {
                 if (virtualController != null &&
-                        virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons ||
-                        virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons) {
+                        (virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons ||
+                         virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)) {
                     // Ignore presses when the virtual controller is being configured
                     return true;
                 }
@@ -1373,7 +1402,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void stageFailed(final String stage, final long errorCode) {
+    public void stageFailed(final String stage, final int errorCode) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -1388,18 +1417,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                     // If video initialization failed and the surface is still valid, display extra information for the user
                     if (stage.contains("video") && streamView.getHolder().getSurface().isValid()) {
-                        Toast.makeText(Game.this, "Video decoder failed to initialize. Your device may not support the selected resolution.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(Game.this, getResources().getText(R.string.video_decoder_init_failed), Toast.LENGTH_LONG).show();
                     }
 
                     Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_error_title),
-                            getResources().getString(R.string.conn_error_msg) + " " + stage, true);
+                            getResources().getString(R.string.conn_error_msg) + " " + stage +" (error "+errorCode+")", true);
                 }
             }
         });
     }
 
     @Override
-    public void connectionTerminated(final long errorCode) {
+    public void connectionTerminated(final int errorCode) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

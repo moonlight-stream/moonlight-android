@@ -19,6 +19,7 @@ public class StreamConfiguration {
     private NvApp app;
     private int width, height;
     private int refreshRate;
+    private int launchRefreshRate;
     private int clientRefreshRateX100;
     private int bitrate;
     private boolean sops;
@@ -55,6 +56,11 @@ public class StreamConfiguration {
         
         public StreamConfiguration.Builder setRefreshRate(int refreshRate) {
             config.refreshRate = refreshRate;
+            return this;
+        }
+
+        public StreamConfiguration.Builder setLaunchRefreshRate(int refreshRate) {
+            config.launchRefreshRate = refreshRate;
             return this;
         }
         
@@ -147,6 +153,7 @@ public class StreamConfiguration {
         this.width = 1280;
         this.height = 720;
         this.refreshRate = 60;
+        this.launchRefreshRate = 60;
         this.bitrate = 10000;
         this.maxPacketSize = 1024;
         this.remote = STREAM_CFG_AUTO;
@@ -169,6 +176,10 @@ public class StreamConfiguration {
     
     public int getRefreshRate() {
         return refreshRate;
+    }
+
+    public int getLaunchRefreshRate() {
+        return launchRefreshRate;
     }
     
     public int getBitrate() {

@@ -240,7 +240,7 @@ public class VirtualControllerConfigurationLoader {
             );
 
             controller.addElement(createLeftTrigger(
-                    0, "LT", -1, controller, context),
+                    1, "LT", -1, controller, context),
                     screenScale(TRIGGER_L_BASE_X, height),
                     screenScale(TRIGGER_BASE_Y, height),
                     screenScale(TRIGGER_WIDTH, height),
@@ -248,7 +248,7 @@ public class VirtualControllerConfigurationLoader {
             );
 
             controller.addElement(createRightTrigger(
-                    0, "RT", -1, controller, context),
+                    1, "RT", -1, controller, context),
                     screenScale(TRIGGER_R_BASE_X + TRIGGER_DISTANCE, height) + rightDisplacement,
                     screenScale(TRIGGER_BASE_Y, height),
                     screenScale(TRIGGER_WIDTH, height),

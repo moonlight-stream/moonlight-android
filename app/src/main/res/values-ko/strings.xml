@@ -136,5 +136,6 @@
     <string name="category_advanced_settings">고급 설정</string>
     <string name="title_video_format">H.265 설정 변경</string>
     <string name="summary_video_format">H.265는 비디오 대역폭 요구사항을 낮춰주지만 최신 장치가 필요합니다.</string>
+    <string name="suffix_osc_opacity">%</string>
 
 </resources>

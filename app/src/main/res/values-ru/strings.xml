@@ -183,4 +183,5 @@
     <string name="summary_fps_list">Увеличение для более плавного видео потока. Уменьшите для лучшей производительности на более слабых устройствах.</string>
     <string name="scut_invalid_uuid">Указанный PC недействителен</string>
     <string name="scut_invalid_app_id">Указанное приложение недействительно</string>
+    <string name="suffix_osc_opacity">%</string>
 </resources>

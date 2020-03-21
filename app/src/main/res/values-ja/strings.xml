@@ -121,5 +121,18 @@
     <string name="category_advanced_settings">高度な設定</string>
     <string name="title_video_format">H.265</string>
     <string name="summary_video_format">H.265は動画に必要な帯域幅を圧縮します。この機能にはなるべく新しいデバイスが必要です</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="dialog_title_osc_opacity">透過率</string>
+    <string name="title_osc_opacity">透過率</string>
+    <string name="summary_osc_opacity">オンスクリーンコントローラの透過率を調整します</string>
+    <string name="title_only_l3r3">L3 と R3 のみ表示します</string>
+    <string name="summary_only_l3r3">L3 と R3 以外のボタンを表示しない</string>
+    <string name="title_reset_osc">オンスクリーンコントローラをデフォルトに戻します</string>
+    <string name="summary_reset_osc">サイズやレイアウトを戻します</string>
+    <string name="dialog_title_reset_osc">デフォルトに戻します</string>
+    <string name="dialog_text_reset_osc">本当にデフォルトに戻しますか？</string>
+    <string name="toast_reset_osc_success">オンスクリーンコントローラをデフォルトに戻しました</string>
+    <string name="title_checkbox_vibrate_osc">振動</string>
+    <string name="summary_checkbox_vibrate_osc">コントローラの振動を真似します</string>
 
 </resources>

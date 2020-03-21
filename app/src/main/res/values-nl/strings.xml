@@ -125,5 +125,6 @@
   <string name="category_advanced_settings">Geavanceerde Instellingen</string>
   <string name="title_video_format">Verander H.265 instellingen</string>
   <string name="summary_video_format">H.265 verlaagt video bandbreedte vereisten maar benodigdt een recent apparaat.</string>
+    <string name="suffix_osc_opacity">%</string>
 
 </resources>

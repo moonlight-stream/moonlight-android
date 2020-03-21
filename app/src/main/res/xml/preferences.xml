@@ -109,10 +109,12 @@
             android:title="@string/title_only_l3r3" />
         <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_osc_opacity"
+            android:dependency="checkbox_show_onscreen_controls"
             android:dialogMessage="@string/summary_osc_opacity"
             seekbar:min="0"
             seekbar:step="1"
             android:max="100"
+            android:defaultValue="90"
             android:summary="@string/summary_osc_opacity"
             android:text="@string/suffix_osc_opacity"
             android:title="@string/dialog_title_osc_opacity" />

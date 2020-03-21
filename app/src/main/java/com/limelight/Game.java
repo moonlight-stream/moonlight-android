@@ -1002,11 +1002,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Handle a synthetic back button event that some Android OS versions
         // create as a result of a right-click. This event WILL repeat if
         // the right mouse button is held down, so we ignore those.
-        if (!prefConfig.mouseNavButtons &&
-                (event.getSource() == InputDevice.SOURCE_MOUSE ||
+        if ((event.getSource() == InputDevice.SOURCE_MOUSE ||
                 event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) &&
                 event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
+
+            // Send the right mouse button event if mouse back and forward
+            // are disabled. If they are enabled, handleMotionEvent() will take
+            // care of this.
+            if (!prefConfig.mouseNavButtons) {
+                conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
+            }
+
+            // Always return true, otherwise the back press will be propagated
+            // up to the parent and finish the activity.
             return true;
         }
 
@@ -1065,11 +1073,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Handle a synthetic back button event that some Android OS versions
         // create as a result of a right-click.
-        if (!prefConfig.mouseNavButtons &&
-                (event.getSource() == InputDevice.SOURCE_MOUSE ||
+        if ((event.getSource() == InputDevice.SOURCE_MOUSE ||
                 event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) &&
                 event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
+
+            // Send the right mouse button event if mouse back and forward
+            // are disabled. If they are enabled, handleMotionEvent() will take
+            // care of this.
+            if (!prefConfig.mouseNavButtons) {
+                conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
+            }
+
+            // Always return true, otherwise the back press will be propagated
+            // up to the parent and finish the activity.
             return true;
         }
 
@@ -1151,7 +1167,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 // Ignore mouse input if we're not capturing from our input source
                 if (!inputCaptureProvider.isCapturingActive()) {
-                    return false;
+                    // We return true here because otherwise the events may end up causing
+                    // Android to synthesize d-pad events.
+                    return true;
                 }
 
                 if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) {

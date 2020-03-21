@@ -1016,6 +1016,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return true;
             }
 
+            // Eat repeat down events
+            if (event.getRepeatCount() > 0) {
+                return true;
+            }
+
             // Pass through keyboard input if we're not grabbing
             if (!grabbedInput) {
                 return false;

@@ -43,6 +43,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -731,7 +732,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             streamView.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
         }
 
-        return displayRefreshRate;
+        if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) ||
+                getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK)) {
+            // TVs may take a few moments to switch refresh rates, and we can probably assume
+            // it will be eventually activated.
+            // TODO: Improve this
+            return displayRefreshRate;
+        }
+        else {
+            // Use the actual refresh rate of the display, since the preferred refresh rate or mode
+            // may not actually be applied (ex: Pixel 4 with Smooth Display disabled).
+            return getWindowManager().getDefaultDisplay().getRefreshRate();
+        }
     }
 
     @SuppressLint("InlinedApi")

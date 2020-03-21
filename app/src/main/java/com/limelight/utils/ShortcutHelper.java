@@ -192,4 +192,13 @@ public class ShortcutHelper {
             }
         }
     }
+
+    public void enableAppShortcut(ComputerDetails computer, NvApp app) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            String id = getShortcutIdForGame(computer, app);
+            if (getInfoForId(id) != null) {
+                sm.enableShortcuts(Collections.singletonList(id));
+            }
+        }
+    }
 }

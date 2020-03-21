@@ -517,6 +517,12 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     if (!foundExistingApp) {
                         // This app must be new
                         appGridAdapter.addApp(new AppObject(app));
+
+                        // We could have a leftover shortcut from last time this PC was paired
+                        // or if this app was removed then added again. Enable those shortcuts
+                        // again if present.
+                        shortcutHelper.enableAppShortcut(computer, app);
+
                         updated = true;
                     }
                 }

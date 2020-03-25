@@ -1,0 +1,4 @@
+- Configurable transparency for on-screen controls
+- Fixed a crash when pinning an app shortcut to the home screen
+- Fixed right click unexpectedly stopping the stream on some devices
+- Improved key repeating behavior while streaming

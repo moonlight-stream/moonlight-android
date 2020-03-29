@@ -1,0 +1,2 @@
+- Improved performance during periods of packet loss
+- Improved prioritization of control data sent back to the PC

@@ -6,52 +6,14 @@
         <item>90 IPS</item>
         <item>120 IPS</item>
     </string-array>
-    <string-array name="language_names" translatable="false">
-        <item>Par défaut</item>
-        <item>English</item>
-        <item>Italiano</item>
-        <item>日本語</item>
-        <item>Русский</item>
-        <item>Nederlands</item>
-        <item>中文(简体)</item>
-        <item>中文(繁體)</item>
-        <item>Korean</item>
-        <item>Español</item>
-        <item>Français</item>
-        <item>Deutsch</item>
-    </string-array>
-    <string-array name="language_values" translatable="false">
-        <item>Par défaut</item>
-        <item>en</item>
-        <item>it</item>
-        <item>ja</item>
-        <item>ru</item>
-        <item>nl</item>
-        <item>zh-CN</item>
-        <item>zh-TW</item>
-        <item>ko</item>
-        <item>es</item>
-        <item>fr</item>
-        <item>de</item>
-    </string-array>
     <string-array name="decoder_names">
         <item>Sélection automatique du décodeur</item>
         <item>Contraindre le décodage logiciel</item>
         <item>Contraindre le décodage matériel</item>
     </string-array>
-        <string-array name="decoder_values" translatable="false">
-        <item>Auto</item>
-        <item>Logiciel</item>
-        <item>Matériel</item>
-    </string-array>
     <string-array name="video_format_names">
         <item>Utiliser H.265 uniquement s\'il est stable</item>
         <item>Utilisez toujours H.265 (mais il peut planter)</item>
         <item>N\'utilisez jamais H.265</item>
-    </string-array>
-    <string-array name="video_format_values" translatable="false">
-        <item>Auto</item>
-        <item>Forcer le h265</item>
-        <item>Jamais le h265</item>
     </string-array>
 </resources>

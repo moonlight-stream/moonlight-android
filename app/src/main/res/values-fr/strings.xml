@@ -132,8 +132,8 @@
     <string name="summary_checkbox_enable_pip">Permet de visualiser le flux (sans le contrôleur) tout en multitâche</string>
 
     <string name="category_audio_settings">Paramètres audio</string>
-    <string name="title_checkbox_51_surround">Activer son surround 5.1</string>
-    <string name="summary_checkbox_51_surround">Décochez si vous rencontrez des problèmes audio. Nécessite GFE 2.7 ou supérieur.</string>
+    <string name="title_audio_config_list">Configuration son surround</string>
+    <string name="summary_audio_config_list">Activer le son surround 5.1 ou 7.1 pour les systèmes home cinéma</string>
 
     <string name="category_input_settings">Paramètres d\'entrée</string>
     <string name="title_checkbox_multi_controller">Prise en charge de plusieurs contrôleurs</string>
@@ -166,6 +166,7 @@
     <string name="title_osc_opacity">Modifier l\'opacité des contrôles à l\'écran</string>
     <string name="summary_osc_opacity">Rendre les contrôles à l\'écran plus/moins transparents</string>
     <string name="dialog_title_osc_opacity">Modifiez l\'opacité</string>
+    <string name="suffix_osc_opacity">%</string>
 
     <string name="category_ui_settings">Paramètres de l\'interface utilisateur</string>
     <string name="title_language_list">Langue</string>
@@ -190,6 +191,5 @@
     <string name="summary_enable_hdr">Diffuser du HDR lorsque le jeu et le processeur graphique du PC le prennent en charge. HDR nécessite un GPU série GTX 1000 ou une version ultérieure.</string>
     <string name="title_enable_perf_overlay">Activer la superposition de performance</string>
     <string name="summary_enable_perf_overlay">Afficher une superposition à l\'écran avec des informations de performance en temps réel pendant la lecture en continu</string>
-    <string name="suffix_osc_opacity">%</string>
 
 </resources>

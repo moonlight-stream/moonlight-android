@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
 
+import com.limelight.nvstream.jni.MoonBridge;
+
 public class PreferenceConfiguration {
     private static final String LEGACY_RES_FPS_PREF_STRING = "list_resolution_fps";
 
@@ -78,7 +80,7 @@ public class PreferenceConfiguration {
     public int oscOpacity;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
     public String language;
-    public boolean listMode, smallIconMode, multiController, enable51Surround, usbDriver;
+    public boolean listMode, smallIconMode, multiController, usbDriver;
     public boolean onscreenController;
     public boolean onlyL3R3;
     public boolean disableFrameDrop;
@@ -91,6 +93,7 @@ public class PreferenceConfiguration {
     public boolean unlockFps;
     public boolean vibrateOsc;
     public boolean vibrateFallbackToDevice;
+    public MoonBridge.AudioConfiguration audioConfiguration;
 
     private static int getHeightFromResolutionString(String resString) {
         if (resString.equalsIgnoreCase("360p")) {
@@ -332,7 +335,8 @@ public class PreferenceConfiguration {
         config.listMode = prefs.getBoolean(LIST_MODE_PREF_STRING, DEFAULT_LIST_MODE);
         config.smallIconMode = prefs.getBoolean(SMALL_ICONS_PREF_STRING, getDefaultSmallMode(context));
         config.multiController = prefs.getBoolean(MULTI_CONTROLLER_PREF_STRING, DEFAULT_MULTI_CONTROLLER);
-        config.enable51Surround = prefs.getBoolean(ENABLE_51_SURROUND_PREF_STRING, DEFAULT_ENABLE_51_SURROUND);
+        config.audioConfiguration = prefs.getBoolean(ENABLE_51_SURROUND_PREF_STRING, DEFAULT_ENABLE_51_SURROUND) ?
+                MoonBridge.AUDIO_CONFIGURATION_51_SURROUND : MoonBridge.AUDIO_CONFIGURATION_STEREO;
         config.usbDriver = prefs.getBoolean(USB_DRIVER_PREF_SRING, DEFAULT_USB_DRIVER);
         config.onscreenController = prefs.getBoolean(ONSCREEN_CONTROLLER_PREF_STRING, ONSCREEN_CONTROLLER_DEFAULT);
         config.onlyL3R3 = prefs.getBoolean(ONLY_L3_R3_PREF_STRING, ONLY_L3_R3_DEFAULT);

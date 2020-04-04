@@ -263,7 +263,7 @@ public class NvConnection {
                             context.negotiatedWidth, context.negotiatedHeight,
                             context.streamConfig.getRefreshRate(), context.streamConfig.getBitrate(),
                             context.streamConfig.getMaxPacketSize(),
-                            context.streamConfig.getRemote(), context.streamConfig.getAudioConfiguration(),
+                            context.streamConfig.getRemote(), context.streamConfig.getAudioConfiguration().toInt(),
                             context.streamConfig.getHevcSupported(),
                             context.negotiatedHdr,
                             context.streamConfig.getHevcBitratePercentageMultiplier(),

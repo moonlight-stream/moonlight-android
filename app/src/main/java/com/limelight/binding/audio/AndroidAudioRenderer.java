@@ -64,24 +64,35 @@ public class AndroidAudioRenderer implements AudioRenderer {
     }
 
     @Override
-    public int setup(int audioConfiguration, int sampleRate, int samplesPerFrame) {
+    public int setup(MoonBridge.AudioConfiguration audioConfiguration, int sampleRate, int samplesPerFrame) {
         int channelConfig;
         int bytesPerFrame;
 
-        switch (audioConfiguration)
+        switch (audioConfiguration.channelCount)
         {
-            case MoonBridge.AUDIO_CONFIGURATION_STEREO:
+            case 2:
                 channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
-                bytesPerFrame = 2 * samplesPerFrame * 2;
                 break;
-            case MoonBridge.AUDIO_CONFIGURATION_51_SURROUND:
+            case 4:
+                channelConfig = AudioFormat.CHANNEL_OUT_QUAD;
+                break;
+            case 6:
                 channelConfig = AudioFormat.CHANNEL_OUT_5POINT1;
-                bytesPerFrame = 6 * samplesPerFrame * 2;
+                break;
+            case 8:
+                // AudioFormat.CHANNEL_OUT_7POINT1_SURROUND isn't available until Android 6.0,
+                // yet the CHANNEL_OUT_SIDE_LEFT and CHANNEL_OUT_SIDE_RIGHT constants were added
+                // in 5.0, so just hardcode the constant so we can work on Lollipop.
+                channelConfig = 0x000018fc; // AudioFormat.CHANNEL_OUT_7POINT1_SURROUND
                 break;
             default:
                 LimeLog.severe("Decoder returned unhandled channel count");
                 return -1;
         }
+
+        LimeLog.info("Audio channel config: "+String.format("0x%X", channelConfig));
+
+        bytesPerFrame = audioConfiguration.channelCount * samplesPerFrame * 2;
 
         // We're not supposed to request less than the minimum
         // buffer size for our buffer, but it appears that we can

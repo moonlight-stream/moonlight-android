@@ -9,12 +9,6 @@ public class StreamConfiguration {
     public static final int STREAM_CFG_LOCAL = 0;
     public static final int STREAM_CFG_REMOTE = 1;
     public static final int STREAM_CFG_AUTO = 2;
-
-    private static final int CHANNEL_COUNT_STEREO = 2;
-    private static final int CHANNEL_COUNT_5_1 = 6;
-    
-    private static final int CHANNEL_MASK_STEREO = 0x3;
-    private static final int CHANNEL_MASK_5_1 = 0xFC;
     
     private NvApp app;
     private int width, height;
@@ -27,9 +21,7 @@ public class StreamConfiguration {
     private boolean playLocalAudio;
     private int maxPacketSize;
     private int remote;
-    private int audioChannelMask;
-    private int audioChannelCount;
-    private int audioConfiguration;
+    private MoonBridge.AudioConfiguration audioConfiguration;
     private boolean supportsHevc;
     private int hevcBitratePercentageMultiplier;
     private boolean enableHdr;
@@ -119,21 +111,8 @@ public class StreamConfiguration {
             return this;
         }
         
-        public StreamConfiguration.Builder setAudioConfiguration(int audioConfig) {
-            if (audioConfig == MoonBridge.AUDIO_CONFIGURATION_STEREO) {
-                config.audioChannelCount = CHANNEL_COUNT_STEREO;
-                config.audioChannelMask = CHANNEL_MASK_STEREO;
-            }
-            else if (audioConfig == MoonBridge.AUDIO_CONFIGURATION_51_SURROUND) {
-                config.audioChannelCount = CHANNEL_COUNT_5_1;
-                config.audioChannelMask = CHANNEL_MASK_5_1;
-            }
-            else {
-                throw new IllegalArgumentException("Invalid audio configuration");
-            }
-
+        public StreamConfiguration.Builder setAudioConfiguration(MoonBridge.AudioConfiguration audioConfig) {
             config.audioConfiguration = audioConfig;
-
             return this;
         }
         
@@ -159,8 +138,7 @@ public class StreamConfiguration {
         this.remote = STREAM_CFG_AUTO;
         this.sops = true;
         this.enableAdaptiveResolution = false;
-        this.audioChannelCount = CHANNEL_COUNT_STEREO;
-        this.audioChannelMask = CHANNEL_MASK_STEREO;
+        this.audioConfiguration = MoonBridge.AUDIO_CONFIGURATION_STEREO;
         this.supportsHevc = false;
         this.enableHdr = false;
         this.attachedGamepadMask = 0;
@@ -209,16 +187,8 @@ public class StreamConfiguration {
     public int getRemote() {
         return remote;
     }
-    
-    public int getAudioChannelCount() {
-        return audioChannelCount;
-    }
-    
-    public int getAudioChannelMask() {
-        return audioChannelMask;
-    }
 
-    public int getAudioConfiguration() {
+    public MoonBridge.AudioConfiguration getAudioConfiguration() {
         return audioConfiguration;
     }
     

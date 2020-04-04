@@ -454,9 +454,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setEnableHdr(willStreamHdr)
                 .setAttachedGamepadMask(gamepadMask)
                 .setClientRefreshRateX100((int)(displayRefreshRate * 100))
-                .setAudioConfiguration(prefConfig.enable51Surround ?
-                        MoonBridge.AUDIO_CONFIGURATION_51_SURROUND :
-                        MoonBridge.AUDIO_CONFIGURATION_STEREO)
+                .setAudioConfiguration(prefConfig.audioConfiguration)
                 .build();
 
         // Initialize the connection

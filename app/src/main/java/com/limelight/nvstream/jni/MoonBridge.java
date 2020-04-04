@@ -7,8 +7,9 @@ import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 public class MoonBridge {
     /* See documentation in Limelight.h for information about these functions and constants */
 
-    public static final int AUDIO_CONFIGURATION_STEREO = 0;
-    public static final int AUDIO_CONFIGURATION_51_SURROUND = 1;
+    public static final AudioConfiguration AUDIO_CONFIGURATION_STEREO = new AudioConfiguration(2, 0x3);
+    public static final AudioConfiguration AUDIO_CONFIGURATION_51_SURROUND = new AudioConfiguration(6, 0x3F);
+    public static final AudioConfiguration AUDIO_CONFIGURATION_71_SURROUND = new AudioConfiguration(8, 0x63F);
 
     public static final int VIDEO_FORMAT_H264 = 0x0001;
     public static final int VIDEO_FORMAT_H265 = 0x0100;
@@ -43,6 +44,57 @@ public class MoonBridge {
 
     public static int CAPABILITY_SLICES_PER_FRAME(byte slices) {
         return slices << 24;
+    }
+
+    public static class AudioConfiguration {
+        public final int channelCount;
+        public final int channelMask;
+
+        public AudioConfiguration(int channelCount, int channelMask) {
+            this.channelCount = channelCount;
+            this.channelMask = channelMask;
+        }
+
+        // Creates an AudioConfiguration from the integer value returned by moonlight-common-c
+        // See CHANNEL_COUNT_FROM_AUDIO_CONFIGURATION() and CHANNEL_MASK_FROM_AUDIO_CONFIGURATION()
+        // in Limelight.h
+        private AudioConfiguration(int audioConfiguration) {
+            // Check the magic byte before decoding to make sure we got something that's actually
+            // a MAKE_AUDIO_CONFIGURATION()-based value and not something else like an older version
+            // hardcoded AUDIO_CONFIGURATION value from an earlier version of moonlight-common-c.
+            if ((audioConfiguration & 0xFF) != 0xCA) {
+                throw new IllegalArgumentException("Audio configuration has invalid magic byte!");
+            }
+
+            this.channelCount = (audioConfiguration >> 8) & 0xFF;
+            this.channelMask = (audioConfiguration >> 16) & 0xFFFF;
+        }
+
+        // See SURROUNDAUDIOINFO_FROM_AUDIO_CONFIGURATION() in Limelight.h
+        public int getSurroundAudioInfo() {
+            return channelMask << 16 | channelCount;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof AudioConfiguration) {
+                AudioConfiguration that = (AudioConfiguration)obj;
+                return this.toInt() == that.toInt();
+            }
+
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return toInt();
+        }
+
+        // Returns the integer value expected by moonlight-common-c
+        // See MAKE_AUDIO_CONFIGURATION() in Limelight.h
+        public int toInt() {
+            return ((channelMask) << 16) | (channelCount << 8) | 0xCA;
+        }
     }
 
     public static int bridgeDrSetup(int videoFormat, int width, int height, int redrawRate) {
@@ -86,7 +138,7 @@ public class MoonBridge {
 
     public static int bridgeArInit(int audioConfiguration, int sampleRate, int samplesPerFrame) {
         if (audioRenderer != null) {
-            return audioRenderer.setup(audioConfiguration, sampleRate, samplesPerFrame);
+            return audioRenderer.setup(new AudioConfiguration(audioConfiguration), sampleRate, samplesPerFrame);
         }
         else {
             return -1;

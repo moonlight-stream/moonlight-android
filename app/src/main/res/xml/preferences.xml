@@ -43,11 +43,13 @@
             android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_audio_settings">
-        <CheckBoxPreference
-            android:key="checkbox_51_surround"
-            android:title="@string/title_checkbox_51_surround"
-            android:summary="@string/summary_checkbox_51_surround"
-            android:defaultValue="false" />
+        <ListPreference
+            android:key="list_audio_config"
+            android:title="@string/title_audio_config_list"
+            android:summary="@string/summary_audio_config_list"
+            android:entries="@array/audio_config_names"
+            android:entryValues="@array/audio_config_values"
+            android:defaultValue="2" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_input_settings">
         <!--com.limelight.preferences.SeekBarPreference

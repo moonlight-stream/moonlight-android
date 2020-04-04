@@ -26,7 +26,8 @@ public class PreferenceConfiguration {
     private static final String LIST_MODE_PREF_STRING = "checkbox_list_mode";
     private static final String SMALL_ICONS_PREF_STRING = "checkbox_small_icon_mode";
     private static final String MULTI_CONTROLLER_PREF_STRING = "checkbox_multi_controller";
-    private static final String ENABLE_51_SURROUND_PREF_STRING = "checkbox_51_surround";
+    private static final String AUDIO_CONFIG_PREF_STRING = "list_audio_config";
+    private static final String LEGACY_ENABLE_51_SURROUND_PREF_STRING = "checkbox_51_surround";
     private static final String USB_DRIVER_PREF_SRING = "checkbox_usb_driver";
     private static final String VIDEO_FORMAT_PREF_STRING = "video_format";
     private static final String ONSCREEN_CONTROLLER_PREF_STRING = "checkbox_show_onscreen_controls";
@@ -53,7 +54,6 @@ public class PreferenceConfiguration {
     public static final String DEFAULT_LANGUAGE = "default";
     private static final boolean DEFAULT_LIST_MODE = false;
     private static final boolean DEFAULT_MULTI_CONTROLLER = true;
-    private static final boolean DEFAULT_ENABLE_51_SURROUND = false;
     private static final boolean DEFAULT_USB_DRIVER = true;
     private static final String DEFAULT_VIDEO_FORMAT = "auto";
     private static final boolean ONSCREEN_CONTROLLER_DEFAULT = false;
@@ -68,6 +68,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_UNLOCK_FPS = false;
     private static final boolean DEFAULT_VIBRATE_OSC = true;
     private static final boolean DEFAULT_VIBRATE_FALLBACK = false;
+    private static final String DEFAULT_AUDIO_CONFIG = "2"; // Stereo
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -250,6 +251,15 @@ public class PreferenceConfiguration {
         PreferenceConfiguration config = new PreferenceConfiguration();
 
         // Migrate legacy preferences to the new locations
+        if (prefs.contains(LEGACY_ENABLE_51_SURROUND_PREF_STRING)) {
+            if (prefs.getBoolean(LEGACY_ENABLE_51_SURROUND_PREF_STRING, false)) {
+                prefs.edit()
+                        .remove(LEGACY_ENABLE_51_SURROUND_PREF_STRING)
+                        .putString(AUDIO_CONFIG_PREF_STRING, "51")
+                        .apply();
+            }
+        }
+
         String str = prefs.getString(LEGACY_RES_FPS_PREF_STRING, null);
         if (str != null) {
             if (str.equals("360p30")) {
@@ -319,6 +329,17 @@ public class PreferenceConfiguration {
             config.bitrate = getDefaultBitrate(context);
         }
 
+        String audioConfig = prefs.getString(AUDIO_CONFIG_PREF_STRING, DEFAULT_AUDIO_CONFIG);
+        if (audioConfig.equals("71")) {
+            config.audioConfiguration = MoonBridge.AUDIO_CONFIGURATION_71_SURROUND;
+        }
+        else if (audioConfig.equals("51")) {
+            config.audioConfiguration = MoonBridge.AUDIO_CONFIGURATION_51_SURROUND;
+        }
+        else /* if (audioConfig.equals("2")) */ {
+            config.audioConfiguration = MoonBridge.AUDIO_CONFIGURATION_STEREO;
+        }
+
         config.videoFormat = getVideoFormatValue(context);
 
         config.deadzonePercentage = prefs.getInt(DEADZONE_PREF_STRING, DEFAULT_DEADZONE);
@@ -335,8 +356,6 @@ public class PreferenceConfiguration {
         config.listMode = prefs.getBoolean(LIST_MODE_PREF_STRING, DEFAULT_LIST_MODE);
         config.smallIconMode = prefs.getBoolean(SMALL_ICONS_PREF_STRING, getDefaultSmallMode(context));
         config.multiController = prefs.getBoolean(MULTI_CONTROLLER_PREF_STRING, DEFAULT_MULTI_CONTROLLER);
-        config.audioConfiguration = prefs.getBoolean(ENABLE_51_SURROUND_PREF_STRING, DEFAULT_ENABLE_51_SURROUND) ?
-                MoonBridge.AUDIO_CONFIGURATION_51_SURROUND : MoonBridge.AUDIO_CONFIGURATION_STEREO;
         config.usbDriver = prefs.getBoolean(USB_DRIVER_PREF_SRING, DEFAULT_USB_DRIVER);
         config.onscreenController = prefs.getBoolean(ONSCREEN_CONTROLLER_PREF_STRING, ONSCREEN_CONTROLLER_DEFAULT);
         config.onlyL3R3 = prefs.getBoolean(ONLY_L3_R3_PREF_STRING, ONLY_L3_R3_DEFAULT);

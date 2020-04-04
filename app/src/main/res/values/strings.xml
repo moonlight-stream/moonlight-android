@@ -135,8 +135,8 @@
     <string name="summary_checkbox_enable_pip">Allows the stream to be viewed (but not controlled) while multitasking</string>
 
     <string name="category_audio_settings">Audio Settings</string>
-    <string name="title_checkbox_51_surround">Enable 5.1 surround sound</string>
-    <string name="summary_checkbox_51_surround">Uncheck if you experience audio issues. Requires GFE 2.7 or higher.</string>
+    <string name="title_audio_config_list">Surround sound configuration</string>
+    <string name="summary_audio_config_list">Enable 5.1 or 7.1 surround sound for home-theater systems</string>
 
     <string name="category_input_settings">Input Settings</string>
     <string name="title_checkbox_multi_controller">Automatic gamepad presence detection</string>

@@ -30,6 +30,17 @@
         <item>120</item>
     </string-array>
 
+    <string-array name="audio_config_names">
+        <item>Stereo</item>
+        <item>5.1 Surround Sound</item>
+        <item>7.1 Surround Sound</item>
+    </string-array>
+    <string-array name="audio_config_values" translatable="false">
+        <item>2</item>
+        <item>51</item>
+        <item>71</item>
+    </string-array>
+
     <string-array name="language_names" translatable="false">
         <item>Default</item>
         <item>English</item>

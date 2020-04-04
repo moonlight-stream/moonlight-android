@@ -6,6 +6,11 @@
         <item>90 IPS</item>
         <item>120 IPS</item>
     </string-array>
+    <string-array name="audio_config_names">
+        <item>Stéréo</item>
+        <item>Son surround 5.1</item>
+        <item>Son surround 7.1</item>
+    </string-array>    
     <string-array name="decoder_names">
         <item>Sélection automatique du décodeur</item>
         <item>Contraindre le décodage logiciel</item>

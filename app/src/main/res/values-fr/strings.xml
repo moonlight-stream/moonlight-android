@@ -163,6 +163,9 @@
     <string name="dialog_title_reset_osc">Réinitialiser la mise en page</string>
     <string name="dialog_text_reset_osc">Êtes-vous sûr de vouloir supprimer la disposition des commandes à l\'écran que vous avez sauvegardée?</string>
     <string name="toast_reset_osc_success">Les contrôles à l\'écran sont réinitialisés</string>
+    <string name="title_osc_opacity">Modifier l\'opacité des contrôles à l\'écran</string>
+    <string name="summary_osc_opacity">Rendre les contrôles à l\'écran plus/moins transparents</string>
+    <string name="dialog_title_osc_opacity">Modifiez l\'opacité</string>
 
     <string name="category_ui_settings">Paramètres de l\'interface utilisateur</string>
     <string name="title_language_list">Langue</string>

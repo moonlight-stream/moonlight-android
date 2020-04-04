@@ -134,8 +134,6 @@
     <string name="summary_checkbox_enable_pip">允许多任务时观看串流画面（但不操作）</string>																							 																															  
 
     <string name="category_audio_settings"> 音频设置 </string>
-    <string name="title_checkbox_51_surround"> 启用 5.1 环绕音效 </string>
-    <string name="summary_checkbox_51_surround"> 如果你的声音听起来有问题请禁用。 \n 需要GFE 2.7或更高版本 </string>
 
     <string name="category_input_settings">输入设置</string>															  
     <string name="title_checkbox_multi_controller"> 自动检测手柄 </string>

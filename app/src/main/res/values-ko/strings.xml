@@ -105,8 +105,6 @@
     <string name="summary_checkbox_disable_warnings">화면 상의 연결 경고 메세지를 스트리밍 중에 비활성화합니다.</string>
 
     <string name="category_audio_settings">오디오 설정</string>
-    <string name="title_checkbox_51_surround">5.1 서라운드 사운드 활성화</string>
-    <string name="summary_checkbox_51_surround">오디오 문제가 발생한다면 체크를 해제하세요. GFE 2.7이나 그 이상 버전이 필요합니다.</string>
 
     <string name="title_checkbox_multi_controller">다중 컨트롤러 지원</string>
     <string name="summary_checkbox_multi_controller">이 옵션을 선택하지 않으면 모든 컨트롤러가 하나로 표시됩니다</string>

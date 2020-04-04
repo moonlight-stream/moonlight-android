@@ -94,8 +94,6 @@
     <string name="summary_checkbox_disable_warnings">Desactivar mensajes de advertencia en pantalla durante la transmisión</string>
 
     <string name="category_audio_settings">Configuración de audio</string>
-    <string name="title_checkbox_51_surround">Activar sonido 5.1 surround</string>
-    <string name="summary_checkbox_51_surround">Desmarcar si experimentas problemas de audio. Requiere GFE 2.7 o superior.</string>
 
     <string name="title_checkbox_multi_controller">Soporte para múltiples mandos</string>
     <string name="summary_checkbox_multi_controller">Si no está marcado, todos los mandos aparecen como uno solo</string>

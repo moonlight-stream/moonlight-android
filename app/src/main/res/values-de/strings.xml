@@ -131,8 +131,6 @@
     <string name="summary_checkbox_enable_pip">Stream auch während des Multitaskings anzeigen (ohne Steuerung)</string>
 
     <string name="category_audio_settings">Audio Einstellungen</string>
-    <string name="title_checkbox_51_surround">5.1 Surround Sound aktivieren</string>
-    <string name="summary_checkbox_51_surround">Deaktivieren wenn die Audiowiedergabe fehlerhaft ist. Setzt GFE 2.7 oder neuer voraus.</string>
 
     <string name="category_input_settings">Eingabe Einstellungen</string>
     <string name="title_checkbox_multi_controller">Automatische GamePad-Erkennung</string>

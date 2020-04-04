@@ -113,8 +113,6 @@
     <string name="summary_checkbox_enable_pip">Permette di osservare (ma non di controllare) la stream in multitasking</string>
 
     <string name="category_audio_settings">Impostazioni audio</string>
-    <string name="title_checkbox_51_surround">Abilita l\'audio 5.1 surround</string>
-    <string name="summary_checkbox_51_surround">Se riscontri problemi, disabilitalo. Richiede GFE 2.7 o versioni sucessive.</string>
 
     <string name="title_checkbox_multi_controller">Supporto a più controller</string>
     <string name="summary_checkbox_multi_controller">Quando disabilitato, tutti i controller appaiono come uno solo</string>

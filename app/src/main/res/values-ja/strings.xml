@@ -90,8 +90,6 @@
     <string name="summary_checkbox_disable_warnings">ストリーミング中に画面に警告メッセージを表示しない</string>
 
     <string name="category_audio_settings">音声</string>
-    <string name="title_checkbox_51_surround">5.1chサラウンド</string>
-    <string name="summary_checkbox_51_surround">音声に問題が生じる場合はチェックを外してください。バージョン2.7以降のGFEが必要です</string>
 
     <string name="title_checkbox_multi_controller">複数のゲームコントローラ</string>
     <string name="summary_checkbox_multi_controller">チェックを外すと、全てのゲームコントローラが単一の物として認識されます</string>

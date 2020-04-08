@@ -1,0 +1,2 @@
+- Added 7.1 surround sound support
+- Fixed a crash on some devices during a high intensity rumble event

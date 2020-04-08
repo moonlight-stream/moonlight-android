@@ -304,7 +304,10 @@ void BridgeClConnectionTerminated(int errorCode) {
 void BridgeClRumble(unsigned short controllerNumber, unsigned short lowFreqMotor, unsigned short highFreqMotor) {
     JNIEnv* env = GetThreadEnv();
 
-    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClRumbleMethod, controllerNumber, lowFreqMotor, highFreqMotor);
+    // The seemingly redundant short casts are required in order to convert the unsigned short to a signed short.
+    // If we leave it as an unsigned short, CheckJNI will fail when the value exceeds 32767. The cast itself is
+    // fine because the Java code treats the value as unsigned even though it's stored in a signed type.
+    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClRumbleMethod, controllerNumber, (short)lowFreqMotor, (short)highFreqMotor);
     if ((*env)->ExceptionCheck(env)) {
         // We will crash here
         (*JVM)->DetachCurrentThread(JVM);

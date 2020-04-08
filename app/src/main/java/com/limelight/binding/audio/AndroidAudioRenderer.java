@@ -80,10 +80,20 @@ public class AndroidAudioRenderer implements AudioRenderer {
                 channelConfig = AudioFormat.CHANNEL_OUT_5POINT1;
                 break;
             case 8:
-                // AudioFormat.CHANNEL_OUT_7POINT1_SURROUND isn't available until Android 6.0,
-                // yet the CHANNEL_OUT_SIDE_LEFT and CHANNEL_OUT_SIDE_RIGHT constants were added
-                // in 5.0, so just hardcode the constant so we can work on Lollipop.
-                channelConfig = 0x000018fc; // AudioFormat.CHANNEL_OUT_7POINT1_SURROUND
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    // AudioFormat.CHANNEL_OUT_7POINT1_SURROUND isn't available until Android 6.0,
+                    // yet the CHANNEL_OUT_SIDE_LEFT and CHANNEL_OUT_SIDE_RIGHT constants were added
+                    // in 5.0, so just hardcode the constant so we can work on Lollipop.
+                    channelConfig = 0x000018fc; // AudioFormat.CHANNEL_OUT_7POINT1_SURROUND
+                }
+                else {
+                    // On KitKat and lower, creation of the AudioTrack will fail if we specify
+                    // CHANNEL_OUT_SIDE_LEFT or CHANNEL_OUT_SIDE_RIGHT. That leaves us with
+                    // the old CHANNEL_OUT_7POINT1 which uses left-of-center and right-of-center
+                    // speakers instead of side-left and side-right. This non-standard layout
+                    // is probably not what the user wants, but we don't really have a choice.
+                    channelConfig = AudioFormat.CHANNEL_OUT_7POINT1;
+                }
                 break;
             default:
                 LimeLog.severe("Decoder returned unhandled channel count");

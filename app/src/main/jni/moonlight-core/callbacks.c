@@ -243,7 +243,7 @@ void BridgeArCleanup() {
 void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
     JNIEnv* env = GetThreadEnv();
 
-    jshort* decodedData = (*env)->GetShortArrayElements(env, DecodedAudioBuffer, 0);
+    jshort* decodedData = (*env)->GetPrimitiveArrayCritical(env, DecodedAudioBuffer, NULL);
 
     int decodeLen = opus_multistream_decode(Decoder,
                                             (const unsigned char*)sampleData,
@@ -252,8 +252,8 @@ void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
                                             OpusConfig.samplesPerFrame,
                                             0);
     if (decodeLen > 0) {
-        // We must release the array elements first to ensure the data is copied before the callback
-        (*env)->ReleaseShortArrayElements(env, DecodedAudioBuffer, decodedData, 0);
+        // We must release the array elements before making further JNI calls
+        (*env)->ReleasePrimitiveArrayCritical(env, DecodedAudioBuffer, decodedData, 0);
 
         (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArPlaySampleMethod, DecodedAudioBuffer);
         if ((*env)->ExceptionCheck(env)) {
@@ -263,7 +263,7 @@ void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
     }
     else {
         // We can abort here to avoid the copy back since no data was modified
-        (*env)->ReleaseShortArrayElements(env, DecodedAudioBuffer, decodedData, JNI_ABORT);
+        (*env)->ReleasePrimitiveArrayCritical(env, DecodedAudioBuffer, decodedData, JNI_ABORT);
     }
 }
 

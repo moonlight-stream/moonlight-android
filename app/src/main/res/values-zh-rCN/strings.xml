@@ -134,6 +134,8 @@
     <string name="summary_checkbox_enable_pip">允许多任务时观看串流画面（但不操作）</string>																							 																															  
 
     <string name="category_audio_settings"> 音频设置 </string>
+    <string name="title_audio_config_list"> 环绕声设置 </string>
+    <string name="summary_audio_config_list"> 为家庭影院系统启用5.1或7.1环绕声 </string>
 
     <string name="category_input_settings">输入设置</string>															  
     <string name="title_checkbox_multi_controller"> 自动检测手柄 </string>

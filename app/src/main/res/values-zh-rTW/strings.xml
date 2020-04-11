@@ -134,6 +134,8 @@
     <string name="summary_checkbox_enable_pip">允許多工時觀看串流畫面（但不操作）</string>																							 																															  
 
     <string name="category_audio_settings"> 音訊設置 </string>
+    <string name="title_audio_config_list"> 環繞聲設置 </string>
+    <string name="summary_audio_config_list"> 為家庭劇院系統啟用5.1或7.1環繞聲 </string>
 
     <string name="category_input_settings">輸入設置</string>															  
     <string name="title_checkbox_multi_controller"> 自動檢測手柄 </string>

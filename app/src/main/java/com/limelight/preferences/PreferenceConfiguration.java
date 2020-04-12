@@ -10,7 +10,7 @@ import com.limelight.nvstream.jni.MoonBridge;
 
 public class PreferenceConfiguration {
     private static final String LEGACY_RES_FPS_PREF_STRING = "list_resolution_fps";
-
+    private static final String LEGACY_ENABLE_51_SURROUND_PREF_STRING = "checkbox_51_surround";
 
     static final String RESOLUTION_PREF_STRING = "list_resolution";
     static final String FPS_PREF_STRING = "list_fps";
@@ -26,8 +26,7 @@ public class PreferenceConfiguration {
     private static final String LIST_MODE_PREF_STRING = "checkbox_list_mode";
     private static final String SMALL_ICONS_PREF_STRING = "checkbox_small_icon_mode";
     private static final String MULTI_CONTROLLER_PREF_STRING = "checkbox_multi_controller";
-    private static final String AUDIO_CONFIG_PREF_STRING = "list_audio_config";
-    private static final String LEGACY_ENABLE_51_SURROUND_PREF_STRING = "checkbox_51_surround";
+    static final String AUDIO_CONFIG_PREF_STRING = "list_audio_config";
     private static final String USB_DRIVER_PREF_SRING = "checkbox_usb_driver";
     private static final String VIDEO_FORMAT_PREF_STRING = "video_format";
     private static final String ONSCREEN_CONTROLLER_PREF_STRING = "checkbox_show_onscreen_controls";

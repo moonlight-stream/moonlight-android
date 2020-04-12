@@ -302,6 +302,18 @@ public class StreamSettings extends Activity {
                 // Never remove 30 FPS or 60 FPS
             }
 
+            // Android L introduces proper 7.1 surround sound support. Remove the 7.1 option
+            // for earlier versions of Android to prevent AudioTrack initialization issues.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                LimeLog.info("Excluding 7.1 surround sound option based on OS");
+                removeValue(PreferenceConfiguration.AUDIO_CONFIG_PREF_STRING, "71", new Runnable() {
+                    @Override
+                    public void run() {
+                        setValue(PreferenceConfiguration.AUDIO_CONFIG_PREF_STRING, "51");
+                    }
+                });
+            }
+
             // Android L introduces the drop duplicate behavior of releaseOutputBuffer()
             // that the unlock FPS option relies on to not massively increase latency.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {

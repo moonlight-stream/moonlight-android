@@ -54,6 +54,7 @@
         <item>Español</item>
         <item>Français</item>
         <item>Deutsch</item>
+        <item>Română</item>
     </string-array>
     <string-array name="language_values" translatable="false">
         <item>default</item>
@@ -68,6 +69,7 @@
         <item>es</item>
         <item>fr</item>
         <item>de</item>
+        <item>ro</item>
     </string-array>
 
     <string-array name="decoder_names">

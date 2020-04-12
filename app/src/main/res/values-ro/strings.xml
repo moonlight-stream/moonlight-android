@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shortcut strings -->
+    <string name="scut_deleted_pc">PC șters</string>
+    <string name="scut_not_paired">PC neîmperecheat</string>
+    <string name="scut_pc_not_found">PC negăsit</string>
+    <string name="scut_invalid_uuid">PC-ul este invalid</string>
+    <string name="scut_invalid_app_id">Aplicația este invalidă</string>
+
+    <!-- Help strings -->
+    <string name="help_loading_title">Ajutor</string>
+    <string name="help_loading_msg">Se încarcă pagina de ajutor…</string>
+
+    <!-- PC view menu entries -->
+    <string name="pcview_menu_app_list">Vezi lista de jocuri</string>
+    <string name="pcview_menu_pair_pc">Împerechează PC-ul</string>
+    <string name="pcview_menu_unpair_pc">Desperechează</string>
+    <string name="pcview_menu_send_wol">Trimite o cerere Wake-On-LAN</string>
+    <string name="pcview_menu_delete_pc">Șterge PC</string>
+    <string name="pcview_menu_details">Vezi detalii</string>
+
+    <!-- Pair messages -->
+    <string name="pairing">Se împerechează…</string>
+    <string name="pair_pc_offline">PC-ul nu este accesibil</string>
+    <string name="pair_pc_ingame">PC-ul rulează un joc acum. Trebuie să închizi jocul pentru a-l putea împerechea.</string>
+    <string name="pair_pairing_title">Se împerechează</string>
+    <string name="pair_pairing_msg">Te rugăm să introduci urmatorul PIN în PC-ul pe care îl împerechezi:</string>
+    <string name="pair_incorrect_pin">PIN-ul este greșit</string>
+    <string name="pair_fail">Împerecherea a eșuat</string>
+    <string name="pair_already_in_progress">Împerecherea este deja în curs</string>
+
+    <!-- WOL messages -->
+    <string name="wol_pc_online">PC-ul este accesibil</string>
+    <string name="wol_no_mac">Nu s-a putut porni PC-ul deoarece GFE nu a comunicat o adresa MAC</string>
+    <string name="wol_waking_pc">Se pornește PC-ul…</string>
+    <string name="wol_waking_msg">Poate dura puțin până PC-ul pornește. Dacă nu pornește, verifică dacă este configurat corect pentru Wake-On-LAN.</string>
+    <string name="wol_fail">Nu s-au putut trimite pachetele Wake-On-LAN</string>
+
+    <!-- Unpair messages -->
+    <string name="unpairing">Desperecherechere…</string>
+    <string name="unpair_success">Desperecherechere efectuată cu succes</string>
+    <string name="unpair_fail">Desperecherea a eșuat</string>
+    <string name="unpair_error">Dispozitivul nu este împerecheat</string>
+
+    <!-- Errors -->
+    <string name="error_pc_offline">PC-ul este inaccesibil</string>
+    <string name="error_manager_not_running">Serviciul ComputerManager nu este pornit. Te rugăm să aștepți câteva secunde sau să repornești aplicația.</string>
+    <string name="error_unknown_host">Nu am putut identifica hostul</string>
+    <string name="error_404">GFE a returnat un cod de eroare HTTP 404. Asigură-te ca PC-ul are o placa video suportată.
+	Este posibil sa apară această eroare daca folosești o alta aplicație de remote desktop. Încearcă să repornești PC-ul sau să reinstalezi GFE.
+    </string>
+    <string name="title_decoding_error">Decodorul video s-a închis în mod neașteptat</string>
+    <string name="message_decoding_error">Moonlight s-a închis în mod neașteptat datorită unei incompatibilități cu decodorul video al acestui dispozitiv. Asigură-te ca folosești ultima versiune de GFE. Dacă problema persistă, ajustează setările de streaming.</string>
+    <string name="title_decoding_reset">Resetează setările video</string>
+    <string name="message_decoding_reset">Decodorul video al acestui dispozitiv continuă să se blocheze folosind setările video curente. Au fost resetate cele implicite.</string>
+    <string name="error_usb_prohibited">Accesul USB este interzis de către administratorul dispozitivului. Verifică setarile Knox sau MDM.</string>
+    <string name="unable_to_pin_shortcut">Launcher-ul tău curent nu permite crearea de scurtături fixate.</string>
+    <string name="video_decoder_init_failed">Inițializarea decodorului video a eșuat. Este posibil ca acest dispozitiv să nu suporte rezoluția sau rata cadrelor selectată.</string>
+
+    <!-- Start application messages -->
+    <string name="conn_establishing_title">Se stabilește conexiunea</string>
+    <string name="conn_establishing_msg">Se pornește conexiunea</string>
+    <string name="conn_metered">Atenție: Conexiunea ta curentă este contorizată!</string>
+    <string name="conn_client_latency">Latența medie a decodării cadrelor:</string>
+    <string name="conn_client_latency_hw">latența decodorului hardware:</string>
+    <string name="conn_hardware_latency">Latența medie a decodării cadrelor (hardware):</string>
+    <string name="conn_starting">Se pornește</string>
+    <string name="conn_error_title">Eroare la conectare</string>
+    <string name="conn_error_msg">Pornirea a eșuat</string>
+    <string name="conn_terminated_title">Conexiunea închisă</string>
+    <string name="conn_terminated_msg">Conexiunea a fost terminată</string>
+
+    <!-- General strings -->
+    <string name="ip_hint">Adresa IP a PC-ului cu GFE</string>
+    <string name="searching_pc">Se caută PC-uri cu GameStream activat…\n\n
+        Asigură-te ca GameStream este activat în setările Geforce Experience SHIELD.</string>
+    <string name="yes">Da</string>
+    <string name="no">Nu</string>
+    <string name="lost_connection">S-a pierdut conexiunea catre PC</string>
+    <string name="title_details">Detalii</string>
+    <string name="help">Ajutor</string>
+    <string name="delete_pc_msg">Sigur dorești să ștergi acest PC?</string>
+    <string name="slow_connection_msg">Conexiune inceată catre PC\nRedu rata de biți</string>
+    <string name="poor_connection_msg">Conexiune slabă catre PC</string>
+    <string name="perf_overlay_text">Dimensiunile video: %1$s\nDecodor: %2$s\nRata cadrelor estimata PC: %3$.2f FPS\nRata cadrelor primite din rețea: %4$.2f FPS\nRata de afisare a cadrelor: %5$.2f FPS\nCadre pierdute de rețea: %6$.2f%%\nTimpul mediu de primire: %7$.2f ms\nTimpul mediu de decodare: %8$.2f ms</string>
+
+    <!-- AppList activity -->
+    <string name="applist_connect_msg">Se conectează la PC…</string>
+    <string name="applist_menu_resume">Continuă Sesiunea</string>
+    <string name="applist_menu_quit">Închide Sesiunea</string>
+    <string name="applist_menu_quit_and_start">Închide Jocul Curent si Pornește</string>
+    <string name="applist_menu_cancel">Anulează</string>
+    <string name="applist_menu_details">Vezi detalii</string>
+    <string name="applist_menu_scut">Creează o scurtătură</string>
+    <string name="applist_menu_tv_channel">Adaugă la canal</string>
+    <string name="applist_refresh_title">Lista de aplicații</string>
+    <string name="applist_refresh_msg">Reîmprospătare aplicații…</string>
+    <string name="applist_refresh_error_title">Eroare</string>
+    <string name="applist_refresh_error_msg">Nu s-a putut obține lista de aplicații</string>
+    <string name="applist_quit_app">Închidere în curs</string>
+    <string name="applist_quit_success">Închis cu succes</string>
+    <string name="applist_quit_fail">Nu s-a putut închide lista</string>
+    <string name="applist_quit_confirmation">Sigur dorești să închizi aplicația curentă? Toate datele nesalvate vor fi pierdute.</string>
+    <string name="applist_details_id">ID-ul aplicației:</string>
+
+    <!-- Add computer manually activity -->
+    <string name="title_add_pc">Adaugă PC manual</string>
+    <string name="msg_add_pc">Conectare în curs…</string>
+    <string name="addpc_fail">Nu s-a putut efectua conectarea la adresa introdusă. Asigurăte ca porturile nu sunt blocate in firewall.</string>
+    <string name="addpc_success">PC adăugat cu succes</string>
+    <string name="addpc_unknown_host">Nu am putut identifica adresa PC-ului. Asigură-te că ai introdus-o corect.</string>
+    <string name="addpc_enter_ip">Trebuie să introduci o adresa IP</string>
+    <string name="addpc_wrong_sitelocal">Adresa introdusă nu pare corectă. Pentru conectare prin Internet, este nevoie de adresa publică a routerului.</string>
+
+    <!-- Preferences -->
+    <string name="category_basic_settings">Setări de bază</string>
+    <string name="title_resolution_list">Rezolutia video</string>
+    <string name="summary_resolution_list">Crește-o pentru a îmbunătăți claritatea imaginii. Descrește-o pentru dispozitive neperformante sau conexiune slabă.</string>
+    <string name="title_fps_list">Rata cadrelor</string>
+    <string name="summary_fps_list">Crește-o pentru a îmbunătăți fluiditatea imaginilor. Descrește-o pentru dispozitive neperformante sau conexiune slabă.</string>
+    <string name="title_seekbar_bitrate">Rata de biți</string>
+    <string name="summary_seekbar_bitrate">Crește-o pentru a îmbunătăți calitatea imaginilor. Descrește-o pentru dispozitive neperformante sau conexiune slabă.</string>
+    <string name="suffix_seekbar_bitrate">Kbps</string>
+    <string name="title_unlock_fps">Deblochează toate ratele de cadre posibile</string>
+    <string name="summary_unlock_fps">Fluxul video de rate mai mari poate reduce latența folosind dispozitive performante, dar poate introduce erori daca nu sunt suportate.</string>
+    <string name="title_checkbox_stretch_video">Întindeți video pe ecranul complet</string>
+    <string name="title_checkbox_disable_warnings">Dezactivează mesajele de avertizare</string>
+    <string name="summary_checkbox_disable_warnings">Dezactivează mesajele de avertizare privind rețeaua în timpul conexiunii</string>
+    <string name="title_checkbox_enable_pip">Activează modul Picture-In-Picture</string>
+    <string name="summary_checkbox_enable_pip">Permite vizualizarea (dar nu și controlul) când efectuezi multitasking</string>
+
+    <string name="category_audio_settings">Setări Audio</string>
+    <string name="title_audio_config_list">Configurarea sunetului surround</string>
+    <string name="summary_audio_config_list">Activeaza sunetul 5.1 sau 7.1 pentru sisteme home-theater</string>
+
+    <string name="category_input_settings">Setări de control</string>
+    <string name="title_checkbox_multi_controller">Detectează automat prezența controllerelor.</string>
+    <string name="summary_checkbox_multi_controller">Dezactivarea acestei opțiuni implică prezența constantă a unui controller</string>
+    <string name="title_checkbox_vibrate_fallback">Simuleaza efectul de vibratie</string>
+    <string name="summary_checkbox_vibrate_fallback">Dacă controllerul nu suportă vibrații, va vibra dispozitivul în schimb.</string>
+    <string name="title_seekbar_deadzone">Zona moartă a stickului analogic</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Driver pentru controllerele de Xbox 360/One</string>
+    <string name="summary_checkbox_xb1_driver">Activează un driver USB pentru dispozitivele fără suport nativ pentru controllere Xbox</string>
+    <string name="title_checkbox_usb_bind_all">Inlocuiește driverul implicit pentru controllere</string>
+    <string name="summary_checkbox_usb_bind_all">Forțează driverul USB Moonlight să preia toate controllerele Xbox suportate</string>
+    <string name="title_checkbox_mouse_emulation">Simulează mouse cu controllerul</string>
+    <string name="summary_checkbox_mouse_emulation">Apăsarea lungă pe butonul Start schimba modul de operare a controllerului în modul mouse.</string>
+    <string name="title_checkbox_mouse_nav_buttons">Activează butoanele de înainte și înapoi ale mousului</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Această opțiune poate afecta click dreapta pentru unele dispozitive problematice.</string>
+
+    <string name="category_on_screen_controls_settings">Setări ale controalelor pe ecran</string>
+    <string name="title_checkbox_show_onscreen_controls">Afișează controale pe ecran</string>
+    <string name="summary_checkbox_show_onscreen_controls">Afișează un controller virtual pe ecran</string>
+    <string name="title_checkbox_vibrate_osc">Activează vibrațiile</string>
+    <string name="summary_checkbox_vibrate_osc">Dispozitivul va vibra asemănător unui controller</string>
+    <string name="title_only_l3r3">Afișează doar L3 si R3</string>
+    <string name="summary_only_l3r3">Ascunde toate butoanele în afară de L3 and R3</string>
+    <string name="title_reset_osc">Șterge schema salvată a controalelor</string>
+    <string name="summary_reset_osc">Resetează toate controalele de pe ecran la poziția și dimensiunea implicită</string>
+    <string name="dialog_title_reset_osc">Resetarea schemei de controale</string>
+    <string name="dialog_text_reset_osc">Sigur dorești să ștergi schema salvată a controalelor de pe ecran?</string>
+    <string name="toast_reset_osc_success">Controalele de pe ecran au fost resetate la setarile implicite</string>
+    <string name="title_osc_opacity">Modifică opacitatea controalelor de pe ecran</string>
+    <string name="summary_osc_opacity">Ajustează gradul de transparență al controalelor de pe ecran</string>
+    <string name="dialog_title_osc_opacity">Modifică opacitatea</string>
+    <string name="suffix_osc_opacity">%</string>
+
+    <string name="category_ui_settings">Setari UI</string>
+    <string name="title_language_list">Limba (Language)</string>
+    <string name="summary_language_list">Limba folosită de către Moonlight</string>
+    <string name="title_checkbox_list_mode">Folosește liste în loc de grile</string>
+    <string name="summary_checkbox_list_mode">Aplicațiile și PC-urile vor fi afișate in liste in loc de grile</string>
+    <string name="title_checkbox_small_icon_mode">Folosește iconițe mici</string>
+    <string name="summary_checkbox_small_icon_mode">Iconițele folosite în grile vor fi mici pentru a încăpea mai multe odata</string>
+
+    <string name="category_host_settings">Setările PC-ului gazdă</string>
+    <string name="title_checkbox_enable_sops">Optimizarea setărilor de joc</string>
+    <string name="summary_checkbox_enable_sops">Permite GFE să modifice setările jocurilor pentru experiența optimă</string>
+    <string name="title_checkbox_host_audio">Redă audio si pe PC</string>
+    <string name="summary_checkbox_host_audio">Sunetul se va auzi atat pe acest dispozitiv cât și pe PC</string>
+
+    <string name="category_advanced_settings">Setări avansate</string>
+    <string name="title_disable_frame_drop">Nu pierde cadre intenționat</string>
+    <string name="summary_disable_frame_drop">Poate să reducă micro-stuttering pe anumite device-uri, dar s-ar putea să crească latența</string>
+    <string name="title_video_format">Modifica setările H.265</string>
+    <string name="summary_video_format">H.265 funcționează cu o conexiune mai slaba, dar necesită un dispozitiv recent, performant</string>
+    <string name="title_enable_hdr">Activează HDR (Experimental)</string>
+    <string name="summary_enable_hdr">Folosește HDR daca aplicația si placa video suportă. Necesită o placa video seria GTX 1000 sau mai nouă.</string>
+    <string name="title_enable_perf_overlay">Activează statisticile de performanță</string>
+    <string name="summary_enable_perf_overlay">Afișează în timp real statisticile de performanță ale conexiunii.</string>
+
+</resources>

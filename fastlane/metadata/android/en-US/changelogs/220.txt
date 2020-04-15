@@ -1,0 +1,4 @@
+- Improved support for GFE 3.20.3.63
+- Audio performance optimization
+- Added Romanian translation
+- Updated Simplified Chinese and Traditional Chinese translations

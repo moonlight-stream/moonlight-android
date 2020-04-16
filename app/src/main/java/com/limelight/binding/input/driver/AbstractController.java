@@ -3,6 +3,8 @@ package com.limelight.binding.input.driver;
 public abstract class AbstractController {
 
     private final int deviceId;
+    private final int vendorId;
+    private final int productId;
 
     private UsbDriverListener listener;
 
@@ -13,6 +15,14 @@ public abstract class AbstractController {
 
     public int getControllerId() {
         return deviceId;
+    }
+
+    public int getVendorId() {
+        return vendorId;
+    }
+
+    public int getProductId() {
+        return productId;
     }
 
     protected void setButtonFlag(int buttonFlag, int data) {
@@ -32,9 +42,11 @@ public abstract class AbstractController {
     public abstract boolean start();
     public abstract void stop();
 
-    public AbstractController(int deviceId, UsbDriverListener listener) {
+    public AbstractController(int deviceId, UsbDriverListener listener, int vendorId, int productId) {
         this.deviceId = deviceId;
         this.listener = listener;
+        this.vendorId = vendorId;
+        this.productId = productId;
     }
 
     public abstract void rumble(short lowFreqMotor, short highFreqMotor);

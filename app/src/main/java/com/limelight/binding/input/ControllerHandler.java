@@ -332,6 +332,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         context.device = device;
         context.external = true;
 
+        context.vendorId = device.getVendorId();
+        context.productId = device.getProductId();
+
         context.leftStickDeadzoneRadius = (float) stickDeadzone;
         context.rightStickDeadzoneRadius = (float) stickDeadzone;
         context.triggerDeadzone = 0.13f;
@@ -445,7 +448,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         String devName = dev.getName();
 
         LimeLog.info("Creating controller context for device: "+devName);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             LimeLog.info("Vendor ID: "+dev.getVendorId());
             LimeLog.info("Product ID: "+dev.getProductId());
         }
@@ -454,6 +457,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         context.name = devName;
         context.id = dev.getId();
         context.external = isExternal(dev);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            context.vendorId = dev.getVendorId();
+            context.productId = dev.getProductId();
+        }
 
         if (dev.getVibrator().hasVibrator()) {
             context.vibrator = dev.getVibrator();
@@ -496,7 +504,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             InputDevice.MotionRange rxRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RX);
             InputDevice.MotionRange ryRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RY);
             if (rxRange != null && ryRange != null && devName != null) {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     if (dev.getVendorId() == 0x054c) { // Sony
                         if (dev.hasKeys(KeyEvent.KEYCODE_BUTTON_C)[0]) {
                             LimeLog.info("Detected non-standard DualShock 4 mapping");
@@ -591,7 +599,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         // The ADT-1 controller needs a similar fixup to the ASUS Gamepad
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             // The device name provided is just "Gamepad" which is pretty useless, so we
             // use VID/PID instead
             if (dev.getVendorId() == 0x18d1 && dev.getProductId() == 0x2c40) {
@@ -610,7 +618,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             if (devName.contains("ASUS Gamepad")) {
                 // We can only do this check on KitKat or higher, but it doesn't matter since ATV
                 // is Android 5.0 anyway
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
                     if (!hasStartKey[0] && !hasStartKey[1]) {
                         context.backIsStart = true;
@@ -905,6 +913,23 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // The Xbox button is sent as MENU
             if (event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
                 return KeyEvent.KEYCODE_BUTTON_MODE;
+            }
+        }
+        else if (context.vendorId == 0x0b05 && // ASUS
+                     (context.productId == 0x7900 || // Kunai - USB
+                      context.productId == 0x7902)) // Kunai - Bluetooth
+        {
+            // ROG Kunai has special M1-M4 buttons that are accessible via the
+            // joycon-style detachable controllers that we should map to Start
+            // and Select.
+            switch (event.getScanCode()) {
+                case 264:
+                case 266:
+                    return KeyEvent.KEYCODE_BUTTON_START;
+
+                case 265:
+                case 267:
+                    return KeyEvent.KEYCODE_BUTTON_SELECT;
             }
         }
 
@@ -1596,6 +1621,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     class GenericControllerContext {
         public int id;
         public boolean external;
+
+        public int vendorId;
+        public int productId;
 
         public float leftStickDeadzoneRadius;
         public float rightStickDeadzoneRadius;

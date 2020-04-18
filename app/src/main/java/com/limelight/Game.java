@@ -86,8 +86,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
     PerfOverlayListener
 {
-    private int lastMouseX = Integer.MIN_VALUE;
-    private int lastMouseY = Integer.MIN_VALUE;
     private int lastButtonState = 0;
 
     // Only 2 touches are supported
@@ -228,7 +226,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             streamView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
                 @Override
                 public boolean onCapturedPointer(View view, MotionEvent motionEvent) {
-                    return handleMotionEvent(motionEvent);
+                    return handleMotionEvent(view, motionEvent);
                 }
             });
         }
@@ -1141,7 +1139,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     // Returns true if the event was consumed
-    private boolean handleMotionEvent(MotionEvent event) {
+    // NB: View is only present if called from a view callback
+    private boolean handleMotionEvent(View view, MotionEvent event) {
         // Pass through keyboard input if we're not grabbing
         if (!grabbedInput) {
             return false;
@@ -1155,11 +1154,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0 ||
                   event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE)
         {
-            // This case is for mice
+            // This case is for mice and non-finger touch devices
             if (event.getSource() == InputDevice.SOURCE_MOUSE ||
                     event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE ||
                     (event.getPointerCount() >= 1 &&
-                            event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE))
+                            (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE ||
+                                    event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS ||
+                                    event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER)))
             {
                 int changedButtons = event.getButtonState() ^ lastButtonState;
 
@@ -1175,13 +1176,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     byte vScrollClicks = (byte) event.getAxisValue(MotionEvent.AXIS_VSCROLL);
                     conn.sendMouseScroll(vScrollClicks);
                 }
-                else if (event.getActionMasked() == MotionEvent.ACTION_HOVER_ENTER ||
-                         event.getActionMasked() == MotionEvent.ACTION_HOVER_EXIT) {
-                    // On some devices (Galaxy S8 without Oreo pointer capture), we can
-                    // get spurious ACTION_HOVER_ENTER events when right clicking with
-                    // incorrect X and Y coordinates. Just eat this event without processing it.
-                    return true;
-                }
 
                 if ((changedButtons & MotionEvent.BUTTON_PRIMARY) != 0) {
                     if ((event.getButtonState() & MotionEvent.BUTTON_PRIMARY) != 0) {
@@ -1192,8 +1186,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                 }
 
-                if ((changedButtons & MotionEvent.BUTTON_SECONDARY) != 0) {
-                    if ((event.getButtonState() & MotionEvent.BUTTON_SECONDARY) != 0) {
+                // Mouse secondary or stylus primary is right click (stylus down is left click)
+                if ((changedButtons & (MotionEvent.BUTTON_SECONDARY | MotionEvent.BUTTON_STYLUS_PRIMARY)) != 0) {
+                    if ((event.getButtonState() & (MotionEvent.BUTTON_SECONDARY | MotionEvent.BUTTON_STYLUS_PRIMARY)) != 0) {
                         conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
                     }
                     else {
@@ -1201,8 +1196,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                 }
 
-                if ((changedButtons & MotionEvent.BUTTON_TERTIARY) != 0) {
-                    if ((event.getButtonState() & MotionEvent.BUTTON_TERTIARY) != 0) {
+                // Mouse tertiary or stylus secondary is middle click
+                if ((changedButtons & (MotionEvent.BUTTON_TERTIARY | MotionEvent.BUTTON_STYLUS_SECONDARY)) != 0) {
+                    if ((event.getButtonState() & (MotionEvent.BUTTON_TERTIARY | MotionEvent.BUTTON_STYLUS_SECONDARY)) != 0) {
                         conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_MIDDLE);
                     }
                     else {
@@ -1230,31 +1226,41 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                 }
 
+                if (event.getActionIndex() == 0) {
+                    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                        if (event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS) {
+                            // Stylus is left click
+                            conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_LEFT);
+                        } else if (event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER) {
+                            // Eraser is right click
+                            conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
+                        }
+                    }
+                    else if (event.getActionMasked() == MotionEvent.ACTION_UP || event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+                        if (event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS) {
+                            // Stylus is left click
+                            conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_LEFT);
+                        } else if (event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER) {
+                            // Eraser is right click
+                            conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
+                        }
+                    }
+                }
+
                 // Get relative axis values if we can
                 if (inputCaptureProvider.eventHasRelativeMouseAxes(event)) {
                     // Send the deltas straight from the motion event
                     conn.sendMouseMove((short) inputCaptureProvider.getRelativeAxisX(event),
                             (short) inputCaptureProvider.getRelativeAxisY(event));
-
-                    // We have to also update the position Android thinks the cursor is at
-                    // in order to avoid jumping when we stop moving or click.
-                    lastMouseX = (int)event.getX();
-                    lastMouseY = (int)event.getY();
                 }
-                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    // We get a normal (non-relative) MotionEvent when starting pointer capture to synchronize the
-                    // location of the cursor with our app. We don't want this, so we must discard this event.
-                    lastMouseX = (int)event.getX();
-                    lastMouseY = (int)event.getY();
-                }
-                else {
-                    // Don't process the history. We just want the current position now.
-                    updateMousePosition((int)event.getX(), (int)event.getY());
+                else if (view != null) {
+                    // Otherwise send absolute position
+                    updateMousePosition(view, event.getX(0), event.getY(0));
                 }
 
                 lastButtonState = event.getButtonState();
             }
-            // This case is for touch-based input devices
+            // This case is for fingers
             else
             {
                 if (virtualController != null &&
@@ -1357,48 +1363,37 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return handleMotionEvent(event) || super.onTouchEvent(event);
+        return handleMotionEvent(null, event) || super.onTouchEvent(event);
 
     }
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
-        return handleMotionEvent(event) || super.onGenericMotionEvent(event);
+        return handleMotionEvent(null, event) || super.onGenericMotionEvent(event);
 
     }
 
-    private void updateMousePosition(int eventX, int eventY) {
-        // Send a mouse move if we already have a mouse location
-        // and the mouse coordinates change
-        if (lastMouseX != Integer.MIN_VALUE &&
-            lastMouseY != Integer.MIN_VALUE &&
-            !(lastMouseX == eventX && lastMouseY == eventY))
-        {
-            int deltaX = eventX - lastMouseX;
-            int deltaY = eventY - lastMouseY;
+    // eventX and eventY are relative to the view
+    private void updateMousePosition(View view, float eventX, float eventY) {
+        // We may get values slightly outside our view region on ACTION_HOVER_ENTER and ACTION_HOVER_EXIT.
+        // Normalize these to the view size. We can't just drop them because we won't always get an event
+        // right at the boundary of the view, so dropping them would result in our cursor never really
+        // reaching the sides of the screen.
+        eventX = Math.min(Math.max(eventX, 0), view.getWidth());
+        eventY = Math.min(Math.max(eventY, 0), view.getHeight());
 
-            // Scale the deltas if the device resolution is different
-            // than the stream resolution
-            deltaX = (int)Math.round((double)deltaX * (REFERENCE_HORIZ_RES / (double)streamView.getWidth()));
-            deltaY = (int)Math.round((double)deltaY * (REFERENCE_VERT_RES / (double)streamView.getHeight()));
-
-            conn.sendMouseMove((short)deltaX, (short)deltaY);
-        }
-
-        // Update pointer location for delta calculation next time
-        lastMouseX = eventX;
-        lastMouseY = eventY;
+        conn.sendMousePosition((short)eventX, (short)eventY, (short)view.getWidth(), (short)view.getHeight());
     }
 
     @Override
-    public boolean onGenericMotion(View v, MotionEvent event) {
-        return handleMotionEvent(event);
+    public boolean onGenericMotion(View view, MotionEvent event) {
+        return handleMotionEvent(view, event);
     }
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        return handleMotionEvent(event);
+    public boolean onTouch(View view, MotionEvent event) {
+        return handleMotionEvent(view, event);
     }
 
     @Override

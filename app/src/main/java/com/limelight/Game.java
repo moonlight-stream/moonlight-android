@@ -95,6 +95,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private static final int REFERENCE_HORIZ_RES = 1280;
     private static final int REFERENCE_VERT_RES = 720;
 
+    private static final int STYLUS_DEAD_ZONE_DELAY = 250;
+    private static final int STYLUS_DEAD_ZONE_RADIUS = 50;
+
     private static final int THREE_FINGER_TAP_THRESHOLD = 300;
 
     private ControllerHandler controllerHandler;
@@ -116,6 +119,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean grabbedInput = true;
     private boolean grabComboDown = false;
     private StreamView streamView;
+    private long stylusDownTime = 0;
+    private float stylusDownX, stylusDownY;
 
     private boolean isHidingOverlays;
     private TextView notificationOverlayView;
@@ -1226,21 +1231,40 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                 }
 
-                if (event.getActionIndex() == 0) {
+                // Handle stylus presses
+                if (event.getPointerCount() == 1 && event.getActionIndex() == 0) {
                     if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
                         if (event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS) {
+                            stylusDownTime = SystemClock.uptimeMillis();
+                            stylusDownX = event.getX(0);
+                            stylusDownY = event.getY(0);
+
                             // Stylus is left click
                             conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_LEFT);
                         } else if (event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER) {
+                            stylusDownTime = SystemClock.uptimeMillis();
+                            stylusDownX = event.getX(0);
+                            stylusDownY = event.getY(0);
+
                             // Eraser is right click
                             conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
                         }
                     }
                     else if (event.getActionMasked() == MotionEvent.ACTION_UP || event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
                         if (event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS) {
+                            // It looks odd to set these on ACTION_UP, but it makes sense.
+                            // The last "down" position is actually when we come up.
+                            stylusDownTime = SystemClock.uptimeMillis();
+                            stylusDownX = event.getX(0);
+                            stylusDownY = event.getY(0);
+
                             // Stylus is left click
                             conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_LEFT);
                         } else if (event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER) {
+                            stylusDownTime = SystemClock.uptimeMillis();
+                            stylusDownX = event.getX(0);
+                            stylusDownY = event.getY(0);
+
                             // Eraser is right click
                             conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
                         }
@@ -1255,7 +1279,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 }
                 else if (view != null) {
                     // Otherwise send absolute position
-                    updateMousePosition(view, event.getX(0), event.getY(0));
+                    updateMousePosition(view, event);
                 }
 
                 lastButtonState = event.getButtonState();
@@ -1373,8 +1397,22 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     }
 
-    // eventX and eventY are relative to the view
-    private void updateMousePosition(View view, float eventX, float eventY) {
+    private void updateMousePosition(View view, MotionEvent event) {
+        // X and Y are already relative to the provided view object
+        float eventX = event.getX(0);
+        float eventY = event.getY(0);
+
+        if (event.getPointerCount() == 1 && event.getActionIndex() == 0 &&
+                (event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER) ||
+                event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS)
+        {
+            if (SystemClock.uptimeMillis() - stylusDownTime <= STYLUS_DEAD_ZONE_DELAY &&
+                    Math.sqrt(Math.pow(eventX - stylusDownX, 2) + Math.pow(eventY - stylusDownY, 2)) <= STYLUS_DEAD_ZONE_RADIUS) {
+                // Ignore small inputs shortly after the stylus has been pressed. This ensures users can reliably double click.
+                return;
+            }
+        }
+
         // We may get values slightly outside our view region on ACTION_HOVER_ENTER and ACTION_HOVER_EXIT.
         // Normalize these to the view size. We can't just drop them because we won't always get an event
         // right at the boundary of the view, so dropping them would result in our cursor never really

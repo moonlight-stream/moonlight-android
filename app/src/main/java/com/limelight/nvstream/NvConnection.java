@@ -234,6 +234,10 @@ public class NvConnection {
                         return;
                     }
                     context.connListener.stageComplete(appName);
+                } catch (GfeHttpResponseException e) {
+                    e.printStackTrace();
+                    context.connListener.displayMessage(e.getMessage());
+                    context.connListener.stageFailed(appName, e.getErrorCode());
                 } catch (XmlPullParserException | IOException e) {
                     e.printStackTrace();
                     context.connListener.displayMessage(e.getMessage());

@@ -7,7 +7,8 @@ Streaming performance may vary based on your client device and network setup. HD
 * Streams games purchased from any store
 * Works on your home network or over the Internet/LTE
 * Up to 4K 120 FPS HDR streaming with 7.1 surround sound
-* Keyboard and mouse support (with Android 8.0 or rooted device)
+* Keyboard and mouse support (best with Android 8.0 or later)
+* Stylus/S-Pen support
 * Supports PS3, PS4, Xbox 360, Xbox One, and Android gamepads
 * Force feedback support
 * Local co-op with up to 4 connected controllers

@@ -1,0 +1,5 @@
+- Improved stylus support including direct mouse control
+- Improved mouse support for ChromeOS and Samsung DeX
+- Improved mouse support for devices running Android 7.0 and earlier
+- Improved mapping for Start and Select on the ROG Kunai
+- Fixed a crash when GeForce Experience returns an invalid status code value

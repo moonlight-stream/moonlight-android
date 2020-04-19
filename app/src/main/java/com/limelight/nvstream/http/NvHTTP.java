@@ -186,9 +186,20 @@ public class NvHTTP {
     }
     
     private static void verifyResponseStatus(XmlPullParser xpp) throws GfeHttpResponseException {
-        int statusCode = Integer.parseInt(xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_code"));
-        if (statusCode != 200) {
-            throw new GfeHttpResponseException(statusCode, xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_message"));
+        String statusCodeText = xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_code");
+        if (statusCodeText == null) {
+            throw new GfeHttpResponseException(418, "Status code is missing");
+        }
+        try {
+            int statusCode = Integer.parseInt(statusCodeText);
+            if (statusCode != 200) {
+                throw new GfeHttpResponseException(statusCode, xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_message"));
+            }
+        }
+        catch (NumberFormatException e) {
+            // It seems like GFE 3.20.3.63 is returning garbage for status_code in rare cases.
+            // Surface this in a more friendly way rather than crashing.
+            throw new GfeHttpResponseException(418, "Status code is not a number: "+statusCodeText);
         }
     }
     

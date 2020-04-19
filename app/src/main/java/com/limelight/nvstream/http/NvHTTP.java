@@ -331,7 +331,7 @@ public class NvHTTP {
             throw new FileNotFoundException(url);
         }
         else {
-            throw new IOException("HTTP request failed: "+response.code());
+            throw new GfeHttpResponseException(response.code(), response.message());
         }
     }
     

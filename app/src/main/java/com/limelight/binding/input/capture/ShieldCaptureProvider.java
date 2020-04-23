@@ -75,8 +75,10 @@ public class ShieldCaptureProvider extends InputCaptureProvider {
 
     @Override
     public boolean eventHasRelativeMouseAxes(MotionEvent event) {
-        return event.getAxisValue(AXIS_RELATIVE_X) != 0 ||
-                event.getAxisValue(AXIS_RELATIVE_Y) != 0;
+        // All mouse events should use relative axes, even if they are zero. This avoids triggering
+        // cursor jumps if we get an event with no associated motion, like ACTION_DOWN or ACTION_UP.
+        return event.getPointerCount() == 1 && event.getActionIndex() == 0 &&
+                event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE;
     }
 
     @Override

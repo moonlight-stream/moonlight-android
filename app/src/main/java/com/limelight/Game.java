@@ -1176,6 +1176,23 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     return true;
                 }
 
+                // Always update the position before sending any button events. If we're
+                // dealing with a stylus without hover support, our position might be
+                // significantly different than before.
+                if (inputCaptureProvider.eventHasRelativeMouseAxes(event)) {
+                    // Send the deltas straight from the motion event
+                    short deltaX = (short)inputCaptureProvider.getRelativeAxisX(event);
+                    short deltaY = (short)inputCaptureProvider.getRelativeAxisY(event);
+
+                    if (deltaX != 0 || deltaY != 0) {
+                        conn.sendMouseMove(deltaX, deltaY);
+                    }
+                }
+                else if (view != null) {
+                    // Otherwise send absolute position
+                    updateMousePosition(view, event);
+                }
+
                 if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) {
                     // Send the vertical scroll packet
                     byte vScrollClicks = (byte) event.getAxisValue(MotionEvent.AXIS_VSCROLL);
@@ -1269,17 +1286,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                             conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
                         }
                     }
-                }
-
-                // Get relative axis values if we can
-                if (inputCaptureProvider.eventHasRelativeMouseAxes(event)) {
-                    // Send the deltas straight from the motion event
-                    conn.sendMouseMove((short) inputCaptureProvider.getRelativeAxisX(event),
-                            (short) inputCaptureProvider.getRelativeAxisY(event));
-                }
-                else if (view != null) {
-                    // Otherwise send absolute position
-                    updateMousePosition(view, event);
                 }
 
                 lastButtonState = event.getButtonState();

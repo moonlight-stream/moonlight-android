@@ -1,0 +1,3 @@
+- Improved stylus deadzone behavior
+- Fixed incorrect mouse position on styluses without hover support
+- Fixed mouse clicks causing cursor jumping on Nvidia Shield devices

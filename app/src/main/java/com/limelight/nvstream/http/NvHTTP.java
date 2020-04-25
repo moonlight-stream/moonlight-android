@@ -192,7 +192,14 @@ public class NvHTTP {
         // the resulting long into an int.
         int statusCode = (int)Long.parseLong(xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_code"));
         if (statusCode != 200) {
-            throw new GfeHttpResponseException(statusCode, xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_message"));
+            String statusMsg = xpp.getAttributeValue(XmlPullParser.NO_NAMESPACE, "status_message");
+            if (statusCode == -1 && "Invalid".equals(statusMsg)) {
+                // Special case handling an audio capture error which GFE doesn't
+                // provide any useful status message for.
+                statusCode = 418;
+                statusMsg = "Missing audio capture device. Reinstall GeForce Experience.";
+            }
+            throw new GfeHttpResponseException(statusCode, statusMsg);
         }
     }
     

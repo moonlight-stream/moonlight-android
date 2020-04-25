@@ -25,6 +25,7 @@ public class XboxOneController extends AbstractXboxController {
     };
 
     private static final byte[] FW2015_INIT = {0x05, 0x20, 0x00, 0x01, 0x00};
+    private static final byte[] ONE_S_INIT = {0x05, 0x20, 0x00, 0x0f, 0x06};
     private static final byte[] HORI_INIT = {0x01, 0x20, 0x00, 0x09, 0x00, 0x04, 0x20, 0x3a,
             0x00, 0x00, 0x00, (byte)0x80, 0x00};
     private static final byte[] PDP_INIT1 = {0x0a, 0x20, 0x00, 0x03, 0x00, 0x01, 0x14};
@@ -38,6 +39,8 @@ public class XboxOneController extends AbstractXboxController {
             new InitPacket(0x0e6f, 0x0165, HORI_INIT),
             new InitPacket(0x0f0d, 0x0067, HORI_INIT),
             new InitPacket(0x0000, 0x0000, FW2015_INIT),
+            new InitPacket(0x045e, 0x02ea, ONE_S_INIT),
+            new InitPacket(0x045e, 0x0b00, ONE_S_INIT),
             new InitPacket(0x0e6f, 0x0000, PDP_INIT1),
             new InitPacket(0x0e6f, 0x0000, PDP_INIT2),
             new InitPacket(0x24c6, 0x541a, RUMBLE_INIT1),

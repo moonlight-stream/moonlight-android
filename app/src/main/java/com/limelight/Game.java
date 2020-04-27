@@ -1029,7 +1029,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (ControllerHandler.isGameControllerDevice(event.getDevice())) {
             // Always try the controller handler first, unless it's an alphanumeric keyboard device.
             // Otherwise, controller handler will eat keyboard d-pad events.
-            handled = controllerHandler.handleButtonDown(event);
+            handled = controllerHandler.handleButtonDown(event, prefConfig);
         }
 
         if (!handled) {
@@ -1099,7 +1099,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (ControllerHandler.isGameControllerDevice(event.getDevice())) {
             // Always try the controller handler first, unless it's an alphanumeric keyboard device.
             // Otherwise, controller handler will eat keyboard d-pad events.
-            handled = controllerHandler.handleButtonUp(event);
+            handled = controllerHandler.handleButtonUp(event, prefConfig);
         }
 
         if (!handled) {

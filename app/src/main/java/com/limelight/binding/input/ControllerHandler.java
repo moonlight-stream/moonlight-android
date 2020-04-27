@@ -651,10 +651,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     context.isNonStandardXboxBtController = true;
                 }
             }
+            else if (devName.toLowerCase().startsWith("8bitdo")) {
+                context.is8BitDoBtController = true;
+            }
         }
 
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);
         LimeLog.info("Trigger deadzone: "+context.triggerDeadzone);
+        LimeLog.info("Is 8BitDo BT controller: "+context.is8BitDoBtController);
 
         return context;
     }
@@ -827,6 +831,22 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
+        // Switch A with B and X with Y button for 8BitDo controllers
+        if (context.is8BitDoBtController) {
+            switch (event.getScanCode()) {
+                case 304:
+                    return KeyEvent.KEYCODE_BUTTON_B;
+                case 305:
+                    return KeyEvent.KEYCODE_BUTTON_A;
+                case 306:
+                    return KeyEvent.KEYCODE_BUTTON_MODE;
+                case 307:
+                    return KeyEvent.KEYCODE_BUTTON_Y;
+                case 308:
+                    return KeyEvent.KEYCODE_BUTTON_X;
+            }
+        }
+
         if (context.usesLinuxGamepadStandardFaceButtons) {
             // Android's Generic.kl swaps BTN_NORTH and BTN_WEST
             switch (event.getScanCode()) {
@@ -834,6 +854,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     return KeyEvent.KEYCODE_BUTTON_A;
                 case 305:
                     return KeyEvent.KEYCODE_BUTTON_B;
+                case 306:
+                    return KeyEvent.KEYCODE_BUTTON_MODE;
                 case 307:
                     return KeyEvent.KEYCODE_BUTTON_Y;
                 case 308:
@@ -1675,6 +1697,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean isNonStandardDualShock4;
         public boolean usesLinuxGamepadStandardFaceButtons;
         public boolean isNonStandardXboxBtController;
+        public boolean is8BitDoBtController;
         public boolean isServal;
         public boolean backIsStart;
         public boolean modeIsSelect;

@@ -839,7 +839,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 case 305:
                     return KeyEvent.KEYCODE_BUTTON_A;
                 case 306:
-                    return KeyEvent.KEYCODE_BUTTON_MODE;
+                    return KeyEvent.KEYCODE_HOME;
                 case 307:
                     return KeyEvent.KEYCODE_BUTTON_Y;
                 case 308:

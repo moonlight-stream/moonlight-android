@@ -33,6 +33,9 @@ public class MoonBridge {
     public static final int CONN_STATUS_OKAY = 0;
     public static final int CONN_STATUS_POOR = 1;
 
+    public static final int ML_ERROR_GRACEFUL_TERMINATION = 0;
+    public static final int ML_ERROR_NO_VIDEO_TRAFFIC = -100;
+
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;

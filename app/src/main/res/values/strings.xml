@@ -61,6 +61,7 @@
     <string name="error_usb_prohibited">USB access is prohibited by your device administrator. Check your Knox or MDM settings.</string>
     <string name="unable_to_pin_shortcut">Your current launcher does not allow for creating pinned shortcuts.</string>
     <string name="video_decoder_init_failed">Video decoder failed to initialize. Your device may not support the selected resolution or frame rate.</string>
+    <string name="no_video_received_error">No video received from host. Check the host PC\'s firewall and port forwarding rules.</string>
 
     <!-- Start application messages -->
     <string name="conn_establishing_title">Establishing Connection</string>

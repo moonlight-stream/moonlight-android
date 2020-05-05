@@ -827,6 +827,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
+        // Override mode button for 8BitDo controllers
+        if (context.vendorId == 0x2dc8 && event.getScanCode() == 306) {
+            return KeyEvent.KEYCODE_BUTTON_MODE;
+        }
+
         if (context.usesLinuxGamepadStandardFaceButtons) {
             // Android's Generic.kl swaps BTN_NORTH and BTN_WEST
             switch (event.getScanCode()) {

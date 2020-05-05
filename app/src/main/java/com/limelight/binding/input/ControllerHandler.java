@@ -651,7 +651,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     context.isNonStandardXboxBtController = true;
                 }
             }
-            else if (devName.toLowerCase().startsWith("8bitdo")) {
+            else if (context.vendorId == 0x2dc8) {
                 context.is8BitDoBtController = true;
             }
         }
@@ -839,7 +839,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 case 305:
                     return KeyEvent.KEYCODE_BUTTON_A;
                 case 306:
-                    return KeyEvent.KEYCODE_HOME;
+                    return KeyEvent.KEYCODE_BUTTON_MODE;
                 case 307:
                     return KeyEvent.KEYCODE_BUTTON_Y;
                 case 308:

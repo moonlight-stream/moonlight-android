@@ -155,7 +155,7 @@
     <string name="title_checkbox_mouse_nav_buttons">Enable back and forward mouse buttons</string>
     <string name="summary_checkbox_mouse_nav_buttons">Enabling this option may break right clicking on some buggy devices</string>
     <string name="title_checkbox_flip_face_buttons">Flip face buttons</string>
-    <string name="summary_checkbox_flip_face_buttons">Checking this inverts the face buttons A/B and X/Y</string>
+    <string name="summary_checkbox_flip_face_buttons">Switches the face buttons A/B and X/Y for gamepads and the on-screen controls</string>
 
     <string name="category_on_screen_controls_settings">On-screen Controls Settings</string>
     <string name="title_checkbox_show_onscreen_controls">Show on-screen controls</string>

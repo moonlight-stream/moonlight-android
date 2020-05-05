@@ -205,7 +205,8 @@ public class VirtualControllerConfigurationLoader {
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_A,
-                    ControllerPacket.A_FLAG, 0, 1, "A", -1, controller, context),
+                    !config.flipFaceButtons ? ControllerPacket.A_FLAG : ControllerPacket.B_FLAG, 0, 1,
+                    !config.flipFaceButtons ? "A" : "B", -1, controller, context),
                     screenScale(BUTTON_BASE_X, height) + rightDisplacement,
                     screenScale(BUTTON_BASE_Y + 2 * BUTTON_SIZE, height),
                     screenScale(BUTTON_SIZE, height),
@@ -214,7 +215,8 @@ public class VirtualControllerConfigurationLoader {
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_B,
-                    ControllerPacket.B_FLAG, 0, 1, "B", -1, controller, context),
+                    config.flipFaceButtons ? ControllerPacket.A_FLAG : ControllerPacket.B_FLAG, 0, 1,
+                    config.flipFaceButtons ? "A" : "B", -1, controller, context),
                     screenScale(BUTTON_BASE_X + BUTTON_SIZE, height) + rightDisplacement,
                     screenScale(BUTTON_BASE_Y + BUTTON_SIZE, height),
                     screenScale(BUTTON_SIZE, height),
@@ -223,7 +225,8 @@ public class VirtualControllerConfigurationLoader {
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_X,
-                    ControllerPacket.X_FLAG, 0, 1, "X", -1, controller, context),
+                    !config.flipFaceButtons ? ControllerPacket.X_FLAG : ControllerPacket.Y_FLAG, 0, 1,
+                    !config.flipFaceButtons ? "X" : "Y", -1, controller, context),
                     screenScale(BUTTON_BASE_X - BUTTON_SIZE, height) + rightDisplacement,
                     screenScale(BUTTON_BASE_Y + BUTTON_SIZE, height),
                     screenScale(BUTTON_SIZE, height),
@@ -232,7 +235,8 @@ public class VirtualControllerConfigurationLoader {
 
             controller.addElement(createDigitalButton(
                     VirtualControllerElement.EID_Y,
-                    ControllerPacket.Y_FLAG, 0, 1, "Y", -1, controller, context),
+                    config.flipFaceButtons ? ControllerPacket.X_FLAG : ControllerPacket.Y_FLAG, 0, 1,
+                    config.flipFaceButtons ? "X" : "Y", -1, controller, context),
                     screenScale(BUTTON_BASE_X, height) + rightDisplacement,
                     screenScale(BUTTON_BASE_Y, height),
                     screenScale(BUTTON_SIZE, height),

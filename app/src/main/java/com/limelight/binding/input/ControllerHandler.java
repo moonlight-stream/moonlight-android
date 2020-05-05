@@ -1264,7 +1264,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
-    public boolean handleButtonUp(KeyEvent event, PreferenceConfiguration prefConfig) {
+    public boolean handleButtonUp(KeyEvent event) {
         InputDeviceContext context = getContextForEvent(event);
         if (context == null) {
             return true;
@@ -1430,7 +1430,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return true;
     }
 
-    public boolean handleButtonDown(KeyEvent event, PreferenceConfiguration prefConfig) {
+    public boolean handleButtonDown(KeyEvent event) {
         InputDeviceContext context = getContextForEvent(event);
         if (context == null) {
             return true;

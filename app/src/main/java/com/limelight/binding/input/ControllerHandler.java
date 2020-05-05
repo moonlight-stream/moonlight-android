@@ -991,6 +991,21 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return keyCode;
     }
 
+    private int handleFlipFaceButtons(int keyCode) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BUTTON_A:
+                return KeyEvent.KEYCODE_BUTTON_B;
+            case KeyEvent.KEYCODE_BUTTON_B:
+                return KeyEvent.KEYCODE_BUTTON_A;
+            case KeyEvent.KEYCODE_BUTTON_X:
+                return KeyEvent.KEYCODE_BUTTON_Y;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                return KeyEvent.KEYCODE_BUTTON_X;
+            default:
+                return keyCode;
+        }
+    }
+
     private Vector2d populateCachedVector(float x, float y) {
         // Reinitialize our cached Vector2d object
         inputVector.initialize(x, y);
@@ -1256,6 +1271,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         int keyCode = handleRemapping(context, event);
+
+        if (prefConfig.flipFaceButtons) {
+            keyCode = handleFlipFaceButtons(keyCode);
+        }
+
         if (keyCode == 0) {
             return true;
         }
@@ -1417,6 +1437,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         int keyCode = handleRemapping(context, event);
+
+        if (prefConfig.flipFaceButtons) {
+            keyCode = handleFlipFaceButtons(keyCode);
+        }
+
         if (keyCode == 0) {
             return true;
         }

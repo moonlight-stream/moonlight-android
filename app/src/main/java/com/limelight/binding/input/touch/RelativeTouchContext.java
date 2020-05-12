@@ -1,5 +1,6 @@
-package com.limelight.binding.input;
+package com.limelight.binding.input.touch;
 
+import android.os.SystemClock;
 import android.view.View;
 
 import com.limelight.nvstream.NvConnection;
@@ -8,7 +9,7 @@ import com.limelight.nvstream.input.MouseButtonPacket;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class TouchContext {
+public class RelativeTouchContext implements TouchContext {
     private int lastTouchX = 0;
     private int lastTouchY = 0;
     private int originalTouchX = 0;
@@ -32,8 +33,8 @@ public class TouchContext {
     private static final int TAP_TIME_THRESHOLD = 250;
     private static final int DRAG_TIME_THRESHOLD = 650;
 
-    public TouchContext(NvConnection conn, int actionIndex,
-                        int referenceWidth, int referenceHeight, View view)
+    public RelativeTouchContext(NvConnection conn, int actionIndex,
+                                int referenceWidth, int referenceHeight, View view)
     {
         this.conn = conn;
         this.actionIndex = actionIndex;
@@ -42,6 +43,7 @@ public class TouchContext {
         this.targetView = view;
     }
 
+    @Override
     public int getActionIndex()
     {
         return actionIndex;
@@ -57,7 +59,7 @@ public class TouchContext {
 
     private boolean isTap()
     {
-        long timeDelta = System.currentTimeMillis() - originalTouchTime;
+        long timeDelta = SystemClock.uptimeMillis() - originalTouchTime;
 
         return isWithinTapBounds(lastTouchX, lastTouchY) && timeDelta <= TAP_TIME_THRESHOLD;
     }
@@ -72,7 +74,8 @@ public class TouchContext {
         }
     }
 
-    public boolean touchDownEvent(int eventX, int eventY)
+    @Override
+    public boolean touchDownEvent(int eventX, int eventY, boolean isNewFinger)
     {
         // Get the view dimensions to scale inputs on this touch
         xFactor = referenceWidth / (double)targetView.getWidth();
@@ -80,7 +83,7 @@ public class TouchContext {
 
         originalTouchX = lastTouchX = eventX;
         originalTouchY = lastTouchY = eventY;
-        originalTouchTime = System.currentTimeMillis();
+        originalTouchTime = SystemClock.uptimeMillis();
         cancelled = confirmedDrag = confirmedMove = false;
         distanceMoved = 0;
 
@@ -92,6 +95,7 @@ public class TouchContext {
         return true;
     }
 
+    @Override
     public void touchUpEvent(int eventX, int eventY)
     {
         if (cancelled) {
@@ -128,7 +132,7 @@ public class TouchContext {
         dragTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                synchronized (TouchContext.this) {
+                synchronized (RelativeTouchContext.this) {
                     // Check if someone already set move
                     if (confirmedMove) {
                         return;
@@ -179,6 +183,7 @@ public class TouchContext {
         }
     }
 
+    @Override
     public boolean touchMoveEvent(int eventX, int eventY)
     {
         if (eventX != lastTouchX || eventY != lastTouchY)
@@ -223,6 +228,7 @@ public class TouchContext {
         return true;
     }
 
+    @Override
     public void cancelTouch() {
         cancelled = true;
 
@@ -235,7 +241,11 @@ public class TouchContext {
         }
     }
 
+    @Override
     public boolean isCancelled() {
         return cancelled;
     }
+
+    @Override
+    public void setPointerCount(int pointerCount) {}
 }

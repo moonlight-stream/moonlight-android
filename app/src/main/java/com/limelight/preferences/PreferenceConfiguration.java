@@ -41,7 +41,8 @@ public class PreferenceConfiguration {
     static final String UNLOCK_FPS_STRING = "checkbox_unlock_fps";
     private static final String VIBRATE_OSC_PREF_STRING = "checkbox_vibrate_osc";
     private static final String VIBRATE_FALLBACK_PREF_STRING = "checkbox_vibrate_fallback";
-    private static final String FLIP_FACE_BUTTONS_PERF_STRING = "checkbox_flip_face_buttons";
+    private static final String FLIP_FACE_BUTTONS_PREF_STRING = "checkbox_flip_face_buttons";
+    private static final String TOUCHSCREEN_TRACKPAD_PREF_STRING = "checkbox_touchscreen_trackpad";
 
     static final String DEFAULT_RESOLUTION = "720p";
     static final String DEFAULT_FPS = "60";
@@ -69,6 +70,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_VIBRATE_OSC = true;
     private static final boolean DEFAULT_VIBRATE_FALLBACK = false;
     private static final boolean DEFAULT_FLIP_FACE_BUTTONS = false;
+    private static final boolean DEFAULT_TOUCHSCREEN_TRACKPAD = true;
     private static final String DEFAULT_AUDIO_CONFIG = "2"; // Stereo
 
     public static final int FORCE_H265_ON = -1;
@@ -95,6 +97,7 @@ public class PreferenceConfiguration {
     public boolean unlockFps;
     public boolean vibrateOsc;
     public boolean vibrateFallbackToDevice;
+    public boolean touchscreenTrackpad;
     public MoonBridge.AudioConfiguration audioConfiguration;
 
     private static int getHeightFromResolutionString(String resString) {
@@ -370,7 +373,8 @@ public class PreferenceConfiguration {
         config.unlockFps = prefs.getBoolean(UNLOCK_FPS_STRING, DEFAULT_UNLOCK_FPS);
         config.vibrateOsc = prefs.getBoolean(VIBRATE_OSC_PREF_STRING, DEFAULT_VIBRATE_OSC);
         config.vibrateFallbackToDevice = prefs.getBoolean(VIBRATE_FALLBACK_PREF_STRING, DEFAULT_VIBRATE_FALLBACK);
-        config.flipFaceButtons = prefs.getBoolean(FLIP_FACE_BUTTONS_PERF_STRING, DEFAULT_FLIP_FACE_BUTTONS);
+        config.flipFaceButtons = prefs.getBoolean(FLIP_FACE_BUTTONS_PREF_STRING, DEFAULT_FLIP_FACE_BUTTONS);
+        config.touchscreenTrackpad = prefs.getBoolean(TOUCHSCREEN_TRACKPAD_PREF_STRING, DEFAULT_TOUCHSCREEN_TRACKPAD);
 
         return config;
     }

@@ -261,6 +261,8 @@ public class MoonBridge {
 
     public static native void sendMouseScroll(byte scrollClicks);
 
+    public static native void sendMouseHighResScroll(short scrollAmount);
+
     public static native String getStageName(int stage);
 
     public static native String findExternalAddressIP4(String stunHostName, int stunPort);

@@ -6,9 +6,11 @@ import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.input.capture.InputCaptureManager;
 import com.limelight.binding.input.capture.InputCaptureProvider;
-import com.limelight.binding.input.TouchContext;
+import com.limelight.binding.input.touch.AbsoluteTouchContext;
+import com.limelight.binding.input.touch.RelativeTouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
+import com.limelight.binding.input.touch.TouchContext;
 import com.limelight.binding.input.virtual_controller.VirtualController;
 import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
@@ -474,9 +476,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
-            touchContextMap[i] = new TouchContext(conn, i,
-                    REFERENCE_HORIZ_RES, REFERENCE_VERT_RES,
-                    streamView);
+            if (!prefConfig.touchscreenTrackpad) {
+                touchContextMap[i] = new AbsoluteTouchContext(conn, i, streamView);
+            }
+            else {
+                touchContextMap[i] = new RelativeTouchContext(conn, i,
+                        REFERENCE_HORIZ_RES, REFERENCE_VERT_RES,
+                        streamView);
+            }
         }
 
         // Use sustained performance mode on N+ to ensure consistent
@@ -1332,7 +1339,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 {
                 case MotionEvent.ACTION_POINTER_DOWN:
                 case MotionEvent.ACTION_DOWN:
-                    context.touchDownEvent(eventX, eventY);
+                    for (TouchContext touchContext : touchContextMap) {
+                        touchContext.setPointerCount(event.getPointerCount());
+                    }
+                    context.touchDownEvent(eventX, eventY, true);
                     break;
                 case MotionEvent.ACTION_POINTER_UP:
                 case MotionEvent.ACTION_UP:
@@ -1345,9 +1355,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         }
                     }
                     context.touchUpEvent(eventX, eventY);
+                    for (TouchContext touchContext : touchContextMap) {
+                        touchContext.setPointerCount(event.getPointerCount() - 1);
+                    }
                     if (actionIndex == 0 && event.getPointerCount() > 1 && !context.isCancelled()) {
                         // The original secondary touch now becomes primary
-                        context.touchDownEvent((int)event.getX(1), (int)event.getY(1));
+                        context.touchDownEvent((int)event.getX(1), (int)event.getY(1), false);
                     }
                     break;
                 case MotionEvent.ACTION_MOVE:
@@ -1379,6 +1392,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 case MotionEvent.ACTION_CANCEL:
                     for (TouchContext aTouchContext : touchContextMap) {
                         aTouchContext.cancelTouch();
+                        aTouchContext.setPointerCount(0);
                     }
                     break;
                 default:

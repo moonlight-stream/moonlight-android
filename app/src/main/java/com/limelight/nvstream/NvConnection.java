@@ -348,6 +348,12 @@ public class NvConnection {
         }
     }
 
+    public void sendMouseHighResScroll(final short scrollAmount) {
+        if (!isMonkey) {
+            MoonBridge.sendMouseHighResScroll(scrollAmount);
+        }
+    }
+
     public static String findExternalAddressForMdns(String stunHostname, int stunPort) {
         return MoonBridge.findExternalAddressIP4(stunHostname, stunPort);
     }

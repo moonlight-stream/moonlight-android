@@ -51,13 +51,19 @@
             android:entryValues="@array/audio_config_values"
             android:defaultValue="2" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/category_input_settings">
+    <PreferenceCategory android:title="@string/category_input_settings"
+        android:key="category_input_settings">
         <!--com.limelight.preferences.SeekBarPreference
             android:key="seekbar_deadzone"
             android:defaultValue="15"
             android:max="50"
             android:text="@string/suffix_seekbar_deadzone"
             android:title="@string/title_seekbar_deadzone"/-->
+        <CheckBoxPreference
+            android:key="checkbox_touchscreen_trackpad"
+            android:title="@string/title_checkbox_touchscreen_trackpad"
+            android:summary="@string/summary_checkbox_touchscreen_trackpad"
+            android:defaultValue="true" />
         <CheckBoxPreference
             android:key="checkbox_multi_controller"
             android:title="@string/title_checkbox_multi_controller"

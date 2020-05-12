@@ -141,9 +141,17 @@ public class StreamSettings extends Activity {
             // hide on-screen controls category on non touch screen devices
             if (!getActivity().getPackageManager().
                     hasSystemFeature("android.hardware.touchscreen")) {
-                PreferenceCategory category =
-                        (PreferenceCategory) findPreference("category_onscreen_controls");
-                screen.removePreference(category);
+                {
+                    PreferenceCategory category =
+                            (PreferenceCategory) findPreference("category_onscreen_controls");
+                    screen.removePreference(category);
+                }
+
+                {
+                    PreferenceCategory category =
+                            (PreferenceCategory) findPreference("category_input_settings");
+                    category.removePreference(findPreference("checkbox_touchscreen_trackpad"));
+                }
             }
 
             // Remove PiP mode on devices pre-Oreo

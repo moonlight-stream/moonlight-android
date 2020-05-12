@@ -1310,6 +1310,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     return true;
                 }
 
+                if (view == null && !prefConfig.touchscreenTrackpad) {
+                    // Absolute touch events should be dropped outside our view.
+                    return true;
+                }
+
                 int actionIndex = event.getActionIndex();
 
                 int eventX = (int)event.getX(actionIndex);

@@ -1,0 +1,5 @@
+- Direct touchscreen mouse control is now supported! (disable touchscreen trackpad mode in settings)
+- Added an option to switch the A/B and X/Y face buttons on gamepads and on-screen controls
+- Added a special error message if no video was received instead of just displaying a black screen
+- Improved support for Xbox One S controllers using the new 4.8 firmware
+- Improved handling of audio capture errors reported by GeForce Experience

@@ -137,7 +137,9 @@
     <string name="title_audio_config_list"> 環繞聲設置 </string>
     <string name="summary_audio_config_list"> 為家庭劇院系統啟用5.1或7.1環繞聲 </string>
 
-    <string name="category_input_settings">輸入設置</string>															  
+    <string name="category_input_settings"> 輸入設置 </string>
+    <string name="title_checkbox_touchscreen_trackpad"> 將觸控屏作為觸控板使用 </string>
+    <string name="summary_checkbox_touchscreen_trackpad"> 如果啟用，則將觸控屏作為觸控板使用。 如果禁止，則觸控屏直接控制滑鼠游標 </string>
     <string name="title_checkbox_multi_controller"> 自動檢測手柄 </string>
     <string name="summary_checkbox_multi_controller"> 禁用此項所有手柄將視為一個手柄 </string>
     <string name="title_checkbox_vibrate_fallback"> 用設備震動類比遊戲震動效果 </string>
@@ -151,7 +153,9 @@
     <string name="title_checkbox_mouse_emulation"> 通過手柄類比滑鼠 </string>
     <string name="summary_checkbox_mouse_emulation"> 長按開始鍵將手柄切換為滑鼠模式 </string>
     <string name="title_checkbox_mouse_nav_buttons"> 啟用前進後退滑鼠鍵 </string>
-    <string name="summary_checkbox_mouse_nav_buttons"> 在一些支援不佳的設備上啟用此項可能會使其右鍵失效 </string>																						   
+    <string name="summary_checkbox_mouse_nav_buttons"> 在一些支援不佳的設備上啟用此項可能會使其右鍵失效 </string>
+    <string name="title_checkbox_flip_face_buttons">反轉技能鍵</string>
+    <string name="summary_checkbox_flip_face_buttons">為手柄和虛擬手柄調轉A/B和X/Y技能鍵</string>
 
     <string name="category_on_screen_controls_settings"> 螢幕控制按鈕設置 </string>
     <string name="title_checkbox_show_onscreen_controls"> 顯示幕幕控制按鈕 </string>

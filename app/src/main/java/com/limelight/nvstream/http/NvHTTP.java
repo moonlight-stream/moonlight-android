@@ -633,9 +633,10 @@ public class NvHTTP {
     
     public boolean launchApp(ConnectionContext context, int appId, boolean enableHdr) throws IOException, XmlPullParserException {
         // Using an FPS value over 60 causes SOPS to default to 720p60,
-        // so force it to 60 when starting. This won't impact our ability
-        // to get > 60 FPS while actually streaming though.
-        int fps = context.streamConfig.getLaunchRefreshRate() > 60 ? 60 : context.streamConfig.getLaunchRefreshRate();
+        // so force it to 0 to ensure the correct resolution is set. We
+        // used to use 60 here but that locked the frame rate to 60 FPS
+        // on GFE 3.20.3.
+        int fps = context.streamConfig.getLaunchRefreshRate() > 60 ? 0 : context.streamConfig.getLaunchRefreshRate();
 
         // Using an unsupported resolution (not 720p, 1080p, or 4K) causes
         // GFE to force SOPS to 720p60. This is fine for < 720p resolutions like

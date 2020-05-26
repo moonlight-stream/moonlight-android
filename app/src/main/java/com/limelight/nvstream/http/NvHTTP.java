@@ -632,6 +632,11 @@ public class NvHTTP {
     }
     
     public boolean launchApp(ConnectionContext context, int appId, boolean enableHdr) throws IOException, XmlPullParserException {
+        // Using an FPS value over 60 causes SOPS to default to 720p60,
+        // so force it to 60 when starting. This won't impact our ability
+        // to get > 60 FPS while actually streaming though.
+        int fps = context.streamConfig.getLaunchRefreshRate() > 60 ? 60 : context.streamConfig.getLaunchRefreshRate();
+
         // Using an unsupported resolution (not 720p, 1080p, or 4K) causes
         // GFE to force SOPS to 720p60. This is fine for < 720p resolutions like
         // 360p or 480p, but it is not ideal for 1440p and other resolutions.
@@ -645,20 +650,10 @@ public class NvHTTP {
             enableSops = false;
         }
 
-        // Using SOPS with FPS values over 60 causes GFE to fall back
-        // to 720p60. On previous GFE versions, we could avoid this by
-        // forcing the FPS value to 60 when launching the stream, but
-        // now on GFE 3.20.3 that seems to trigger some sort of
-        // frame rate limiter that locks the game to 60 FPS.
-        if (context.streamConfig.getLaunchRefreshRate() > 60) {
-            LimeLog.info("Disabling SOPS due to high frame rate: "+context.streamConfig.getLaunchRefreshRate());
-            enableSops = false;
-        }
-
         String xmlStr = openHttpConnectionToString(baseUrlHttps +
             "/launch?" + buildUniqueIdUuidString() +
             "&appid=" + appId +
-            "&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + context.streamConfig.getLaunchRefreshRate() +
+            "&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + fps +
             "&additionalStates=1&sops=" + (enableSops ? 1 : 0) +
             "&rikey="+bytesToHex(context.riKey.getEncoded()) +
             "&rikeyid="+context.riKeyId +

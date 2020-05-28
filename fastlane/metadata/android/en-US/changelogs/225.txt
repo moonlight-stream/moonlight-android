@@ -1,0 +1,4 @@
+- Fixed stream starting in 720p when configured for 1080p or 4K at 90 or 120 FPS
+- Fixed incorrect behavior of right-side modifier keys while streaming
+- Fixed the mouse cursor not reaching the bottom and right edges of the host's screen on some devices
+- Updated Traditional and Simplified Chinese translations

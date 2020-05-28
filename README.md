@@ -11,6 +11,12 @@ Moonlight also has a [PC client](https://github.com/moonlight-stream/moonlight-q
 
 Check out [the Moonlight wiki](https://github.com/moonlight-stream/moonlight-docs/wiki) for more detailed project information, setup guide, or troubleshooting steps.
 
+## Downloads
+* [Google Play Store](https://play.google.com/store/apps/details?id=com.limelight)
+* [Amazon App Store](https://www.amazon.com/gp/product/B00JK4MFN2)
+* [F-Droid](https://f-droid.org/packages/com.limelight)
+* [APK](https://github.com/moonlight-stream/moonlight-android/releases)
+
 ## Building
 * Install Android Studio and the Android NDK
 * Run ‘git submodule update --init --recursive’ from within moonlight-android/

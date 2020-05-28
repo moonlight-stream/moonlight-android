@@ -15,12 +15,12 @@ Streaming performance may vary based on your client device and network setup. HD
 * Mouse control via gamepad by long-pressing Start
 
 '''PC Requirements'''
-* NVIDIA GeForce GTX/RTX series GPU (''GT-series and AMD GPUs aren't supported by NVIDIA GameStream'')
+* NVIDIA GeForce GTX/RTX or NVIDIA Quadro GPU
 * Windows 7 or later
-* NVIDIA GeForce Experience (GFE) 2.2.2 or later
+* NVIDIA GeForce Experience or NVIDIA Quadro Experience installed
 
 '''Quick Setup Instructions'''
-# Make sure GeForce Experience is open on your PC. Turn on GameStream in the SHIELD settings page.
+# Make sure GeForce/Quadro Experience is open on your PC. Turn on GameStream in the SHIELD settings page.
 # Tap on the PC in Moonlight and type the PIN on your PC
 # Start streaming!
 

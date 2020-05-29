@@ -15,4 +15,4 @@ before_install:
   - sdkmanager --list
 
 install:
-  - yes | sdkmanager "ndk;20.0.5594570"
+  - yes | sdkmanager "ndk;21.0.6113669"

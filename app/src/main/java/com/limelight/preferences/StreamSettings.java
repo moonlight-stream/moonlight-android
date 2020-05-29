@@ -249,33 +249,33 @@ public class StreamSettings extends Activity {
                 if (maxSupportedResW != 0) {
                     if (maxSupportedResW < 3840) {
                         // 4K is unsupported
-                        removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "4K", new Runnable() {
+                        removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_4K, new Runnable() {
                             @Override
                             public void run() {
                                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
-                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "1440p");
+                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_1440P);
                                 resetBitrateToDefault(prefs, null, null);
                             }
                         });
                     }
                     if (maxSupportedResW < 2560) {
                         // 1440p is unsupported
-                        removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "1440p", new Runnable() {
+                        removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_1440P, new Runnable() {
                             @Override
                             public void run() {
                                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
-                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "1080p");
+                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_1080P);
                                 resetBitrateToDefault(prefs, null, null);
                             }
                         });
                     }
                     if (maxSupportedResW < 1920) {
                         // 1080p is unsupported
-                        removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "1080p", new Runnable() {
+                        removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_1080P, new Runnable() {
                             @Override
                             public void run() {
                                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
-                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, "720p");
+                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_720P);
                                 resetBitrateToDefault(prefs, null, null);
                             }
                         });

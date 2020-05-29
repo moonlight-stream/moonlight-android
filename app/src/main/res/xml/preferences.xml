@@ -10,7 +10,7 @@
             android:summary="@string/summary_resolution_list"
             android:entries="@array/resolution_names"
             android:entryValues="@array/resolution_values"
-            android:defaultValue="720p" />
+            android:defaultValue="1280x720" />
         <ListPreference
             android:key="list_fps"
             android:title="@string/title_fps_list"

@@ -44,7 +44,7 @@ public class PreferenceConfiguration {
     private static final String FLIP_FACE_BUTTONS_PREF_STRING = "checkbox_flip_face_buttons";
     private static final String TOUCHSCREEN_TRACKPAD_PREF_STRING = "checkbox_touchscreen_trackpad";
 
-    static final String DEFAULT_RESOLUTION = "720p";
+    static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
     private static final boolean DEFAULT_STRETCH = false;
     private static final boolean DEFAULT_SOPS = true;
@@ -77,6 +77,13 @@ public class PreferenceConfiguration {
     public static final int AUTOSELECT_H265 = 0;
     public static final int FORCE_H265_OFF = 1;
 
+    public static final String RES_360P = "640x360";
+    public static final String RES_480P = "854x480";
+    public static final String RES_720P = "1280x720";
+    public static final String RES_1080P = "1920x1080";
+    public static final String RES_1440P = "2560x1440";
+    public static final String RES_4K = "3840x2160";
+
     public int width, height, fps;
     public int bitrate;
     public int videoFormat;
@@ -100,58 +107,54 @@ public class PreferenceConfiguration {
     public boolean touchscreenTrackpad;
     public MoonBridge.AudioConfiguration audioConfiguration;
 
-    private static int getHeightFromResolutionString(String resString) {
+    private static String convertFromLegacyResolutionString(String resString) {
         if (resString.equalsIgnoreCase("360p")) {
-            return 360;
+            return RES_360P;
         }
         else if (resString.equalsIgnoreCase("480p")) {
-            return 480;
+            return RES_480P;
         }
         else if (resString.equalsIgnoreCase("720p")) {
-            return 720;
+            return RES_720P;
         }
         else if (resString.equalsIgnoreCase("1080p")) {
-            return 1080;
+            return RES_1080P;
         }
         else if (resString.equalsIgnoreCase("1440p")) {
-            return 1440;
+            return RES_1440P;
         }
         else if (resString.equalsIgnoreCase("4K")) {
-            return 2160;
+            return RES_4K;
         }
         else {
             // Should be unreachable
-            return 720;
+            return RES_720P;
         }
     }
 
     private static int getWidthFromResolutionString(String resString) {
-        int height = getHeightFromResolutionString(resString);
-        if (height == 480) {
-            // This isn't an exact 16:9 resolution
-            return 854;
-        }
-        else {
-            return (height * 16) / 9;
-        }
+        return Integer.parseInt(resString.split("x")[0]);
+    }
+
+    private static int getHeightFromResolutionString(String resString) {
+        return Integer.parseInt(resString.split("x")[1]);
     }
 
     private static String getResolutionString(int width, int height) {
         switch (height) {
             case 360:
-                return "360p";
+                return RES_360P;
             case 480:
-                return "480p";
+                return RES_480P;
             default:
             case 720:
-                return "720p";
+                return RES_720P;
             case 1080:
-                return "1080p";
+                return RES_1080P;
             case 1440:
-                return "1440p";
+                return RES_1440P;
             case 2160:
-                return "4K";
-
+                return RES_4K;
         }
     }
 
@@ -322,6 +325,13 @@ public class PreferenceConfiguration {
         else {
             // Use the new preference location
             String resStr = prefs.getString(RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION);
+
+            // Convert legacy resolution strings to the new style
+            if (!resStr.contains("x")) {
+                resStr = PreferenceConfiguration.convertFromLegacyResolutionString(resStr);
+                prefs.edit().putString(RESOLUTION_PREF_STRING, resStr).apply();
+            }
+
             config.width = PreferenceConfiguration.getWidthFromResolutionString(resStr);
             config.height = PreferenceConfiguration.getHeightFromResolutionString(resStr);
             config.fps = Integer.parseInt(prefs.getString(FPS_PREF_STRING, PreferenceConfiguration.DEFAULT_FPS));

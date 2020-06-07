@@ -865,34 +865,36 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             displayedFailureDialog = true;
             stopConnection();
 
-            int averageEndToEndLat = decoderRenderer.getAverageEndToEndLatency();
-            int averageDecoderLat = decoderRenderer.getAverageDecoderLatency();
-            String message = null;
-            if (averageEndToEndLat > 0) {
-                message = getResources().getString(R.string.conn_client_latency)+" "+averageEndToEndLat+" ms";
-                if (averageDecoderLat > 0) {
-                    message += " ("+getResources().getString(R.string.conn_client_latency_hw)+" "+averageDecoderLat+" ms)";
+            if (prefConfig.enableLatencyToast) {
+                int averageEndToEndLat = decoderRenderer.getAverageEndToEndLatency();
+                int averageDecoderLat = decoderRenderer.getAverageDecoderLatency();
+                String message = null;
+                if (averageEndToEndLat > 0) {
+                    message = getResources().getString(R.string.conn_client_latency)+" "+averageEndToEndLat+" ms";
+                    if (averageDecoderLat > 0) {
+                        message += " ("+getResources().getString(R.string.conn_client_latency_hw)+" "+averageDecoderLat+" ms)";
+                    }
                 }
-            }
-            else if (averageDecoderLat > 0) {
-                message = getResources().getString(R.string.conn_hardware_latency)+" "+averageDecoderLat+" ms";
-            }
+                else if (averageDecoderLat > 0) {
+                    message = getResources().getString(R.string.conn_hardware_latency)+" "+averageDecoderLat+" ms";
+                }
 
-            // Add the video codec to the post-stream toast
-            if (message != null) {
-                if (videoFormat == MoonBridge.VIDEO_FORMAT_H265_MAIN10) {
-                    message += " [H.265 HDR]";
+                // Add the video codec to the post-stream toast
+                if (message != null) {
+                    if (videoFormat == MoonBridge.VIDEO_FORMAT_H265_MAIN10) {
+                        message += " [H.265 HDR]";
+                    }
+                    else if (videoFormat == MoonBridge.VIDEO_FORMAT_H265) {
+                        message += " [H.265]";
+                    }
+                    else if (videoFormat == MoonBridge.VIDEO_FORMAT_H264) {
+                        message += " [H.264]";
+                    }
                 }
-                else if (videoFormat == MoonBridge.VIDEO_FORMAT_H265) {
-                    message += " [H.265]";
-                }
-                else if (videoFormat == MoonBridge.VIDEO_FORMAT_H264) {
-                    message += " [H.264]";
-                }
-            }
 
-            if (message != null) {
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                if (message != null) {
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                }
             }
 
             // Clear the tombstone count if we terminated normally

@@ -43,6 +43,7 @@ public class PreferenceConfiguration {
     private static final String VIBRATE_FALLBACK_PREF_STRING = "checkbox_vibrate_fallback";
     private static final String FLIP_FACE_BUTTONS_PREF_STRING = "checkbox_flip_face_buttons";
     private static final String TOUCHSCREEN_TRACKPAD_PREF_STRING = "checkbox_touchscreen_trackpad";
+    private static final String LATENCY_TOAST_PREF_STRING = "checkbox_enable_post_stream_toast";
 
     static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
@@ -72,6 +73,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_FLIP_FACE_BUTTONS = false;
     private static final boolean DEFAULT_TOUCHSCREEN_TRACKPAD = true;
     private static final String DEFAULT_AUDIO_CONFIG = "2"; // Stereo
+    private static final boolean DEFAULT_LATENCY_TOAST = false;
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -98,6 +100,7 @@ public class PreferenceConfiguration {
     public boolean enableHdr;
     public boolean enablePip;
     public boolean enablePerfOverlay;
+    public boolean enableLatencyToast;
     public boolean bindAllUsb;
     public boolean mouseEmulation;
     public boolean mouseNavButtons;
@@ -385,6 +388,7 @@ public class PreferenceConfiguration {
         config.vibrateFallbackToDevice = prefs.getBoolean(VIBRATE_FALLBACK_PREF_STRING, DEFAULT_VIBRATE_FALLBACK);
         config.flipFaceButtons = prefs.getBoolean(FLIP_FACE_BUTTONS_PREF_STRING, DEFAULT_FLIP_FACE_BUTTONS);
         config.touchscreenTrackpad = prefs.getBoolean(TOUCHSCREEN_TRACKPAD_PREF_STRING, DEFAULT_TOUCHSCREEN_TRACKPAD);
+        config.enableLatencyToast = prefs.getBoolean(LATENCY_TOAST_PREF_STRING, DEFAULT_LATENCY_TOAST);
 
         return config;
     }

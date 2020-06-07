@@ -142,10 +142,10 @@
     <string name="summary_checkbox_vibrate_fallback">Vibrates your device to emulate rumble if your gamepad does not support it</string>
     <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>
     <string name="suffix_seekbar_deadzone">%</string>
-    <string name="title_checkbox_xb1_driver">Xbox 360/One controller driver</string>
+    <string name="title_checkbox_xb1_driver">Xbox 360/One USB gamepad driver</string>
     <string name="summary_checkbox_xb1_driver">Enables a built-in USB driver for devices without native Xbox controller support</string>
-    <string name="title_checkbox_usb_bind_all">Override Android controller support</string>
-    <string name="summary_checkbox_usb_bind_all">Forces Moonlight\'s USB driver to take over all supported Xbox gamepads</string>
+    <string name="title_checkbox_usb_bind_all">Override native Xbox gamepad support</string>
+    <string name="summary_checkbox_usb_bind_all">Use Moonlight\'s USB driver for all supported gamepads, even if native Xbox controller support is present</string>
     <string name="title_checkbox_mouse_emulation">Mouse emulation via gamepad</string>
     <string name="summary_checkbox_mouse_emulation">Long pressing the Start button will switch the gamepad into mouse mode</string>
     <string name="title_checkbox_mouse_nav_buttons">Enable back and forward mouse buttons</string>
@@ -197,7 +197,7 @@
     <string name="summary_video_format">H.265 lowers video bandwidth requirements but requires a newer device</string>
     <string name="title_enable_hdr">Enable HDR (Experimental)</string>
     <string name="summary_enable_hdr">Stream HDR when the game and PC GPU support it. HDR requires a GTX 1000 series GPU or later.</string>
-    <string name="title_enable_perf_overlay">Enable performance overlay</string>
-    <string name="summary_enable_perf_overlay">Display an on-screen overlay with real-time performance information while streaming</string>
+    <string name="title_enable_perf_overlay">Show performance stats</string>
+    <string name="summary_enable_perf_overlay">Display real-time stream performance information while streaming</string>
 
 </resources>

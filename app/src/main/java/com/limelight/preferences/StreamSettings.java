@@ -160,7 +160,7 @@ public class StreamSettings extends Activity {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
                     !getActivity().getPackageManager().hasSystemFeature("android.software.picture_in_picture")) {
                 PreferenceCategory category =
-                        (PreferenceCategory) findPreference("category_basic_settings");
+                        (PreferenceCategory) findPreference("category_ui_settings");
                 category.removePreference(findPreference("checkbox_enable_pip"));
             }
 
@@ -337,7 +337,7 @@ public class StreamSettings extends Activity {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 LimeLog.info("Excluding unlock FPS toggle based on OS");
                 PreferenceCategory category =
-                        (PreferenceCategory) findPreference("category_basic_settings");
+                        (PreferenceCategory) findPreference("category_advanced_settings");
                 category.removePreference(findPreference("checkbox_unlock_fps"));
             }
             else {

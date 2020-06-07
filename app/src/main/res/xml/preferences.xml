@@ -28,18 +28,8 @@
             android:text="@string/suffix_seekbar_bitrate"
             android:title="@string/title_seekbar_bitrate" />
         <CheckBoxPreference
-            android:key="checkbox_unlock_fps"
-            android:title="@string/title_unlock_fps"
-            android:summary="@string/summary_unlock_fps"
-            android:defaultValue="false" />
-        <CheckBoxPreference
             android:key="checkbox_stretch_video"
             android:title="@string/title_checkbox_stretch_video"
-            android:defaultValue="false" />
-        <CheckBoxPreference
-            android:key="checkbox_enable_pip"
-            android:title="@string/title_checkbox_enable_pip"
-            android:summary="@string/summary_checkbox_enable_pip"
             android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_audio_settings">
@@ -153,7 +143,13 @@
             android:summary="@string/summary_checkbox_host_audio"
             android:defaultValue="false" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/category_ui_settings">
+    <PreferenceCategory android:title="@string/category_ui_settings"
+        android:key="category_ui_settings">
+        <CheckBoxPreference
+            android:key="checkbox_enable_pip"
+            android:title="@string/title_checkbox_enable_pip"
+            android:summary="@string/summary_checkbox_enable_pip"
+            android:defaultValue="false" />
         <ListPreference
             android:key="list_languages"
             android:title="@string/title_language_list"
@@ -173,6 +169,11 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_advanced_settings"
         android:key="category_advanced_settings">
+        <CheckBoxPreference
+            android:key="checkbox_unlock_fps"
+            android:title="@string/title_unlock_fps"
+            android:summary="@string/summary_unlock_fps"
+            android:defaultValue="false" />
         <CheckBoxPreference
             android:key="checkbox_disable_warnings"
             android:title="@string/title_checkbox_disable_warnings"

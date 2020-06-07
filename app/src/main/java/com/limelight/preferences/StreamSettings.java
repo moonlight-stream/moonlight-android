@@ -156,8 +156,9 @@ public class StreamSettings extends Activity {
                 }
             }
 
-            // Remove PiP mode on devices pre-Oreo
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            // Remove PiP mode on devices pre-Oreo or where the feature is not available (some low RAM devices)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+                    !getActivity().getPackageManager().hasSystemFeature("android.software.picture_in_picture")) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_basic_settings");
                 category.removePreference(findPreference("checkbox_enable_pip"));

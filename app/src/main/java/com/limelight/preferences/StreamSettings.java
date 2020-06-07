@@ -1,5 +1,6 @@
 package com.limelight.preferences;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaCodecInfo;
@@ -7,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
@@ -159,6 +161,13 @@ public class StreamSettings extends Activity {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_basic_settings");
                 category.removePreference(findPreference("checkbox_enable_pip"));
+            }
+
+            // Remove the "emulate rumble support with vibration" checkbox if the device can't vibrate
+            if (!((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasVibrator()) {
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_input_settings");
+                category.removePreference(findPreference("checkbox_vibrate_fallback"));
             }
 
             int maxSupportedFps = 0;

@@ -6,9 +6,11 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
+import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 
@@ -194,8 +196,9 @@ public class CachedAppAssetLoader {
                 // will use the app image placeholder bitmap, rather than an empty bitmap.
                 LoaderTask task = new LoaderTask(imageView, prgView, false);
                 AsyncDrawable asyncDrawable = new AsyncDrawable(imageView.getResources(), noAppImageBitmap, task);
-                imageView.setVisibility(View.VISIBLE);
                 imageView.setImageDrawable(asyncDrawable);
+                imageView.setAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
+                imageView.setVisibility(View.VISIBLE);
                 task.executeOnExecutor(networkExecutor, tuple);
             }
         }
@@ -220,7 +223,8 @@ public class CachedAppAssetLoader {
                     prgView.setVisibility(View.INVISIBLE);
                 }
 
-                // Show the view
+                // Show the box art
+                imageView.setAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
                 imageView.setVisibility(View.VISIBLE);
             }
         }

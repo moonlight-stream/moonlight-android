@@ -6,6 +6,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.view.View;
+import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -204,7 +205,7 @@ public class CachedAppAssetLoader {
         }
 
         @Override
-        protected void onPostExecute(Bitmap bitmap) {
+        protected void onPostExecute(final Bitmap bitmap) {
             // Do nothing if cancelled
             if (isCancelled()) {
                 return;
@@ -213,19 +214,39 @@ public class CachedAppAssetLoader {
             final ImageView imageView = imageViewRef.get();
             final ProgressBar prgView = progressViewRef.get();
             if (getLoaderTask(imageView) == this) {
-                // Set the bitmap
-                if (bitmap != null) {
-                    imageView.setImageBitmap(bitmap);
-                }
-
                 // Hide the progress bar
                 if (prgView != null) {
                     prgView.setVisibility(View.INVISIBLE);
                 }
 
-                // Show the box art
-                imageView.setAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
-                imageView.setVisibility(View.VISIBLE);
+                // Fade in the box art
+                if (bitmap != null) {
+                    if (imageView.getVisibility() == View.VISIBLE) {
+                        // Fade out the placeholder first
+                        Animation fadeOutAnimation = AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadeout);
+                        fadeOutAnimation.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {}
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+                                // Fade in the new box art
+                                imageView.setImageBitmap(bitmap);
+                                imageView.setAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {}
+                        });
+                        imageView.setAnimation(fadeOutAnimation);
+                    }
+                    else {
+                        // View is invisible already, so just fade in the new art
+                        imageView.setImageBitmap(bitmap);
+                        imageView.setAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
+                        imageView.setVisibility(View.VISIBLE);
+                    }
+                }
             }
         }
     }

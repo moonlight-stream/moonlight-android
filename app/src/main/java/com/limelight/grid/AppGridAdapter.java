@@ -2,6 +2,7 @@ package com.limelight.grid;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -113,30 +114,21 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     }
 
     @Override
-    public boolean populateImageView(ImageView imgView, ProgressBar prgView, AppView.AppObject obj) {
+    public void populateView(ImageView imgView, ProgressBar prgView, TextView txtView, ImageView overlayView, AppView.AppObject obj) {
         // Let the cached asset loader handle it
         loader.populateImageView(obj.app, imgView, prgView);
-        return true;
-    }
 
-    @Override
-    public boolean populateTextView(TextView txtView, AppView.AppObject obj) {
         // Select the text view so it starts marquee mode
         txtView.setSelected(true);
+        txtView.setText(obj.app.getAppName());
 
-        // Return false to use the app's toString method
-        return false;
-    }
-
-    @Override
-    public boolean populateOverlayView(ImageView overlayView, AppView.AppObject obj) {
         if (obj.isRunning) {
             // Show the play button overlay
             overlayView.setImageResource(R.drawable.ic_play);
-            return true;
+            overlayView.setVisibility(View.VISIBLE);
         }
-
-        // No overlay
-        return false;
+        else {
+            overlayView.setVisibility(View.GONE);
+        }
     }
 }

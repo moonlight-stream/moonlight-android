@@ -40,10 +40,6 @@ public class MediaCodecHelper {
     private static final List<String> blacklisted59FpsDecoderPrefixes;
     private static final List<String> qualcommDecoderPrefixes;
 
-    // FIXME: Remove when Android R SDK is finalized
-    public static final String FEATURE_LowLatency = "low-latency";
-    public static final String KEY_LOW_LATENCY = "low-latency";
-
     private static boolean isLowEndSnapdragon = false;
     private static boolean initialized = false;
 
@@ -343,10 +339,9 @@ public class MediaCodecHelper {
     }
 
     public static boolean decoderSupportsLowLatency(MediaCodecInfo decoderInfo, String mimeType) {
-        // KitKat added CodecCapabilities.isFeatureSupported()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {
-                if (decoderInfo.getCapabilitiesForType(mimeType).isFeatureSupported(FEATURE_LowLatency)) {
+                if (decoderInfo.getCapabilitiesForType(mimeType).isFeatureSupported(CodecCapabilities.FEATURE_LowLatency)) {
                     LimeLog.info("Low latency decoding mode supported (FEATURE_LowLatency)");
                     return true;
                 }

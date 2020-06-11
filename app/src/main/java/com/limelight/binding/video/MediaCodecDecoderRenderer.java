@@ -318,8 +318,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             videoFormat.setInteger(MediaFormat.KEY_MAX_HEIGHT, height);
         }
 
-        if (lowLatency) {
-            videoFormat.setInteger(MediaCodecHelper.KEY_LOW_LATENCY, 1);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && lowLatency) {
+            videoFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1);
         }
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Set the Qualcomm vendor low latency extension if the Android R option is unavailable

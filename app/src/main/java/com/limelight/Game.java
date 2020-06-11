@@ -63,6 +63,7 @@ import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.View.OnGenericMotionListener;
@@ -212,11 +213,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         prefConfig = PreferenceConfiguration.readPreferences(this);
         tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && prefConfig.stretchVideo) {
+        if (prefConfig.stretchVideo) {
             // Allow the activity to layout under notches if the fill-screen option
             // was turned on by the user
-            getWindow().getAttributes().layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                getWindow().getAttributes().layoutInDisplayCutoutMode =
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+            }
+            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                getWindow().getAttributes().layoutInDisplayCutoutMode =
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            }
         }
 
         // Listen for events on the game surface
@@ -609,29 +616,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
-    // FIXME: Remove when Android R SDK is finalized
-    private static void setPreferMinimalPostProcessingWithReflection(WindowManager.LayoutParams windowLayoutParams, boolean isPreferred) {
-        // Build.VERSION.PREVIEW_SDK_INT was added in M
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q && Build.VERSION.PREVIEW_SDK_INT == 0) {
-                // Don't attempt this reflection unless on Android R Developer Preview
-                return;
-            }
-        }
-        else {
-            return;
-        }
-
-        try {
-            Field field = windowLayoutParams.getClass().getDeclaredField("preferMinimalPostProcessing");
-            field.set(windowLayoutParams, isPreferred);
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
     private float prepareDisplayForRendering() {
         Display display = getWindowManager().getDefaultDisplay();
         WindowManager.LayoutParams windowLayoutParams = getWindow().getAttributes();
@@ -709,7 +693,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Enable HDMI ALLM (game mode) on Android R
-        setPreferMinimalPostProcessingWithReflection(windowLayoutParams, true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            windowLayoutParams.preferMinimalPostProcessing = true;
+        }
 
         // Apply the display mode change
         getWindow().setAttributes(windowLayoutParams);
@@ -1693,6 +1679,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         surfaceCreated = true;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Tell the OS about our frame rate to allow it to adapt the display refresh rate appropriately
+            holder.getSurface().setFrameRate(prefConfig.fps, Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE);
+        }
     }
 
     @Override

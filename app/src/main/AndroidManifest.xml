@@ -120,7 +120,8 @@
             android:resizeableActivity="true"
             android:launchMode="singleTask"
             android:excludeFromRecents="true"
-            android:theme="@style/StreamTheme">
+            android:theme="@style/StreamTheme"
+            android:preferMinimalPostProcessing="true">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.limelight.AppView" />

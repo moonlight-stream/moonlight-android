@@ -164,11 +164,17 @@ public class StreamSettings extends Activity {
                 category.removePreference(findPreference("checkbox_enable_pip"));
             }
 
-            // Remove the "emulate rumble support with vibration" checkbox if the device can't vibrate
+            // Remove the vibration options if the device can't vibrate
             if (!((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasVibrator()) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_input_settings");
                 category.removePreference(findPreference("checkbox_vibrate_fallback"));
+
+                // The entire OSC category may have already been removed by the touchscreen check above
+                category = (PreferenceCategory) findPreference("category_onscreen_controls");
+                if (category != null) {
+                    category.removePreference(findPreference("checkbox_vibrate_osc"));
+                }
             }
 
             int maxSupportedFps = 0;

@@ -832,6 +832,38 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             return KeyEvent.KEYCODE_BUTTON_MODE;
         }
 
+        if ((context.vendorId == 0x057e && context.productId == 0x2009) || // Switch Pro controller
+                (context.vendorId == 0x0f0d && context.productId == 0x00c1)) { // HORIPAD for Switch
+            switch (event.getScanCode()) {
+                case 0x130:
+                    return KeyEvent.KEYCODE_BUTTON_A;
+                case 0x131:
+                    return KeyEvent.KEYCODE_BUTTON_B;
+                case 0x132:
+                    return KeyEvent.KEYCODE_BUTTON_X;
+                case 0x133:
+                    return KeyEvent.KEYCODE_BUTTON_Y;
+                case 0x134:
+                    return KeyEvent.KEYCODE_BUTTON_L1;
+                case 0x135:
+                    return KeyEvent.KEYCODE_BUTTON_R1;
+                case 0x136:
+                    return KeyEvent.KEYCODE_BUTTON_L2;
+                case 0x137:
+                    return KeyEvent.KEYCODE_BUTTON_R2;
+                case 0x138:
+                    return KeyEvent.KEYCODE_BUTTON_SELECT;
+                case 0x139:
+                    return KeyEvent.KEYCODE_BUTTON_START;
+                case 0x13A:
+                    return KeyEvent.KEYCODE_BUTTON_THUMBL;
+                case 0x13B:
+                    return KeyEvent.KEYCODE_BUTTON_THUMBR;
+                case 0x13D:
+                    return KeyEvent.KEYCODE_BUTTON_MODE;
+            }
+        }
+
         if (context.usesLinuxGamepadStandardFaceButtons) {
             // Android's Generic.kl swaps BTN_NORTH and BTN_WEST
             switch (event.getScanCode()) {

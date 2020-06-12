@@ -434,8 +434,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 return true;
 
             case VIEW_DETAILS_ID:
-                Dialog.displayDialog(AppView.this, getResources().getString(R.string.title_details),
-                        getResources().getString(R.string.applist_details_id) + " " + app.app.getAppId(), false);
+                Dialog.displayDialog(AppView.this, getResources().getString(R.string.title_details), app.app.toString(), false);
                 return true;
 
             case CREATE_SHORTCUT_ID:

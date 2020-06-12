@@ -69,9 +69,9 @@ public class ComputerDetails {
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
+        str.append("Name: ").append(name).append("\n");
         str.append("State: ").append(state).append("\n");
         str.append("Active Address: ").append(activeAddress).append("\n");
-        str.append("Name: ").append(name).append("\n");
         str.append("UUID: ").append(uuid).append("\n");
         str.append("Local Address: ").append(localAddress).append("\n");
         str.append("Remote Address: ").append(remoteAddress).append("\n");

@@ -58,4 +58,13 @@ public class NvApp {
     public boolean isInitialized() {
         return this.initialized;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append("Name: ").append(appName).append("\n");
+        str.append("HDR: ").append(hdrSupported ? "Yes" : "No").append("\n");
+        str.append("ID: ").append(appId).append("\n");
+        return str.toString();
+    }
 }

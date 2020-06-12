@@ -198,7 +198,7 @@ public class CachedAppAssetLoader {
                 LoaderTask task = new LoaderTask(imageView, prgView, false);
                 AsyncDrawable asyncDrawable = new AsyncDrawable(imageView.getResources(), noAppImageBitmap, task);
                 imageView.setImageDrawable(asyncDrawable);
-                imageView.setAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
+                imageView.startAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
                 imageView.setVisibility(View.VISIBLE);
                 task.executeOnExecutor(networkExecutor, tuple);
             }
@@ -232,18 +232,18 @@ public class CachedAppAssetLoader {
                             public void onAnimationEnd(Animation animation) {
                                 // Fade in the new box art
                                 imageView.setImageBitmap(bitmap.bitmap);
-                                imageView.setAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
+                                imageView.startAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
                             }
 
                             @Override
                             public void onAnimationRepeat(Animation animation) {}
                         });
-                        imageView.setAnimation(fadeOutAnimation);
+                        imageView.startAnimation(fadeOutAnimation);
                     }
                     else {
                         // View is invisible already, so just fade in the new art
                         imageView.setImageBitmap(bitmap.bitmap);
-                        imageView.setAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
+                        imageView.startAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
                         imageView.setVisibility(View.VISIBLE);
                     }
                 }

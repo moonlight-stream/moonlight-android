@@ -64,7 +64,7 @@ public class DiskAssetLoader {
         return inSampleSize;
     }
 
-    public Bitmap loadBitmapFromCache(CachedAppAssetLoader.LoaderTuple tuple, int sampleSize) {
+    public ScaledBitmap loadBitmapFromCache(CachedAppAssetLoader.LoaderTuple tuple, int sampleSize) {
         File file = getFile(tuple.computer.uuid, tuple.app.getAppId());
 
         // Don't bother with anything if it doesn't exist
@@ -110,27 +110,33 @@ public class DiskAssetLoader {
             bmp = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
             if (bmp != null) {
                 LimeLog.info("Tuple "+tuple+" decoded from disk cache with sample size: "+options.inSampleSize);
+                return new ScaledBitmap(decodeOnlyOptions.outWidth, decodeOnlyOptions.outHeight, bmp);
             }
         }
         else {
             // On P, we can get a bitmap back in one step with ImageDecoder
+            final ScaledBitmap scaledBitmap = new ScaledBitmap();
             try {
-                bmp = ImageDecoder.decodeBitmap(ImageDecoder.createSource(file), new ImageDecoder.OnHeaderDecodedListener() {
+                scaledBitmap.bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(file), new ImageDecoder.OnHeaderDecodedListener() {
                     @Override
                     public void onHeaderDecoded(ImageDecoder imageDecoder, ImageDecoder.ImageInfo imageInfo, ImageDecoder.Source source) {
+                        scaledBitmap.originalWidth = imageInfo.getSize().getWidth();
+                        scaledBitmap.originalHeight = imageInfo.getSize().getHeight();
+
                         imageDecoder.setTargetSize(STANDARD_ASSET_WIDTH, STANDARD_ASSET_HEIGHT);
                         if (isLowRamDevice) {
                             imageDecoder.setMemorySizePolicy(ImageDecoder.MEMORY_POLICY_LOW_RAM);
                         }
                     }
                 });
+                return scaledBitmap;
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
             }
         }
 
-        return bmp;
+        return null;
     }
 
     public File getFile(String computerUuid, int appId) {

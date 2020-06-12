@@ -1,6 +1,5 @@
 package com.limelight.grid.assets;
 
-import android.graphics.Bitmap;
 import android.util.LruCache;
 
 import com.limelight.LimeLog;
@@ -10,15 +9,15 @@ import java.util.HashMap;
 
 public class MemoryAssetLoader {
     private static final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
-    private static final LruCache<String, Bitmap> memoryCache = new LruCache<String, Bitmap>(maxMemory / 16) {
+    private static final LruCache<String, ScaledBitmap> memoryCache = new LruCache<String, ScaledBitmap>(maxMemory / 16) {
         @Override
-        protected int sizeOf(String key, Bitmap bitmap) {
+        protected int sizeOf(String key, ScaledBitmap bitmap) {
             // Sizeof returns kilobytes
-            return bitmap.getByteCount() / 1024;
+            return bitmap.bitmap.getByteCount() / 1024;
         }
 
         @Override
-        protected void entryRemoved(boolean evicted, String key, Bitmap oldValue, Bitmap newValue) {
+        protected void entryRemoved(boolean evicted, String key, ScaledBitmap oldValue, ScaledBitmap newValue) {
             super.entryRemoved(evicted, key, oldValue, newValue);
 
             if (evicted) {
@@ -27,22 +26,22 @@ public class MemoryAssetLoader {
             }
         }
     };
-    private static final HashMap<String, WeakReference<Bitmap>> evictionCache = new HashMap<>();
+    private static final HashMap<String, WeakReference<ScaledBitmap>> evictionCache = new HashMap<>();
 
     private static String constructKey(CachedAppAssetLoader.LoaderTuple tuple) {
         return tuple.computer.uuid+"-"+tuple.app.getAppId();
     }
 
-    public Bitmap loadBitmapFromCache(CachedAppAssetLoader.LoaderTuple tuple) {
+    public ScaledBitmap loadBitmapFromCache(CachedAppAssetLoader.LoaderTuple tuple) {
         final String key = constructKey(tuple);
 
-        Bitmap bmp = memoryCache.get(key);
+        ScaledBitmap bmp = memoryCache.get(key);
         if (bmp != null) {
             LimeLog.info("LRU cache hit for tuple: "+tuple);
             return bmp;
         }
 
-        WeakReference<Bitmap> bmpRef = evictionCache.get(key);
+        WeakReference<ScaledBitmap> bmpRef = evictionCache.get(key);
         if (bmpRef != null) {
             bmp = bmpRef.get();
             if (bmp != null) {
@@ -63,7 +62,7 @@ public class MemoryAssetLoader {
         return null;
     }
 
-    public void populateCache(CachedAppAssetLoader.LoaderTuple tuple, Bitmap bitmap) {
+    public void populateCache(CachedAppAssetLoader.LoaderTuple tuple, ScaledBitmap bitmap) {
         memoryCache.put(constructKey(tuple), bitmap);
     }
 

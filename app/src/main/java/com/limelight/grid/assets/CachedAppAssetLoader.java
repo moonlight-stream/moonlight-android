@@ -92,7 +92,7 @@ public class CachedAppAssetLoader {
         memoryLoader.clearCache();
     }
 
-    private Bitmap doNetworkAssetLoad(LoaderTuple tuple, LoaderTask task) {
+    private ScaledBitmap doNetworkAssetLoad(LoaderTuple tuple, LoaderTask task) {
         // Try 3 times
         for (int i = 0; i < 3; i++) {
             // Check again whether we've been cancelled or the image view is gone
@@ -113,7 +113,7 @@ public class CachedAppAssetLoader {
                 // If there's a task associated with this load, we should return the bitmap
                 if (task != null) {
                     // If the cached bitmap is valid, return it. Otherwise, we'll try the load again
-                    Bitmap bmp = diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
+                    ScaledBitmap bmp = diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
                     if (bmp != null) {
                         return bmp;
                     }
@@ -135,7 +135,7 @@ public class CachedAppAssetLoader {
         return null;
     }
 
-    private class LoaderTask extends AsyncTask<LoaderTuple, Void, Bitmap> {
+    private class LoaderTask extends AsyncTask<LoaderTuple, Void, ScaledBitmap> {
         private final WeakReference<ImageView> imageViewRef;
         private final WeakReference<ProgressBar> progressViewRef;
         private final boolean diskOnly;
@@ -149,7 +149,7 @@ public class CachedAppAssetLoader {
         }
 
         @Override
-        protected Bitmap doInBackground(LoaderTuple... params) {
+        protected ScaledBitmap doInBackground(LoaderTuple... params) {
             tuple = params[0];
 
             // Check whether it has been cancelled or the views are gone
@@ -157,7 +157,7 @@ public class CachedAppAssetLoader {
                 return null;
             }
 
-            Bitmap bmp = diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
+            ScaledBitmap bmp = diskLoader.loadBitmapFromCache(tuple, (int) scalingDivider);
             if (bmp == null) {
                 if (!diskOnly) {
                     // Try to load the asset from the network
@@ -205,7 +205,7 @@ public class CachedAppAssetLoader {
         }
 
         @Override
-        protected void onPostExecute(final Bitmap bitmap) {
+        protected void onPostExecute(final ScaledBitmap bitmap) {
             // Do nothing if cancelled
             if (isCancelled()) {
                 return;
@@ -231,7 +231,7 @@ public class CachedAppAssetLoader {
                             @Override
                             public void onAnimationEnd(Animation animation) {
                                 // Fade in the new box art
-                                imageView.setImageBitmap(bitmap);
+                                imageView.setImageBitmap(bitmap.bitmap);
                                 imageView.setAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
                             }
 
@@ -242,7 +242,7 @@ public class CachedAppAssetLoader {
                     }
                     else {
                         // View is invisible already, so just fade in the new art
-                        imageView.setImageBitmap(bitmap);
+                        imageView.setImageBitmap(bitmap.bitmap);
                         imageView.setAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
                         imageView.setVisibility(View.VISIBLE);
                     }
@@ -338,11 +338,11 @@ public class CachedAppAssetLoader {
         prgView.setVisibility(View.INVISIBLE);
 
         // First, try the memory cache in the current context
-        Bitmap bmp = memoryLoader.loadBitmapFromCache(tuple);
+        ScaledBitmap bmp = memoryLoader.loadBitmapFromCache(tuple);
         if (bmp != null) {
             // Show the bitmap immediately
             imgView.setVisibility(View.VISIBLE);
-            imgView.setImageBitmap(bmp);
+            imgView.setImageBitmap(bmp.bitmap);
             return true;
         }
 

@@ -4,7 +4,7 @@ import android.util.LruCache;
 
 import com.limelight.LimeLog;
 
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.util.HashMap;
 
 public class MemoryAssetLoader {
@@ -21,12 +21,12 @@ public class MemoryAssetLoader {
             super.entryRemoved(evicted, key, oldValue, newValue);
 
             if (evicted) {
-                // Keep a weak reference around to the bitmap as long as we can
-                evictionCache.put(key, new WeakReference<>(oldValue));
+                // Keep a soft reference around to the bitmap as long as we can
+                evictionCache.put(key, new SoftReference<>(oldValue));
             }
         }
     };
-    private static final HashMap<String, WeakReference<ScaledBitmap>> evictionCache = new HashMap<>();
+    private static final HashMap<String, SoftReference<ScaledBitmap>> evictionCache = new HashMap<>();
 
     private static String constructKey(CachedAppAssetLoader.LoaderTuple tuple) {
         return tuple.computer.uuid+"-"+tuple.app.getAppId();
@@ -41,7 +41,7 @@ public class MemoryAssetLoader {
             return bmp;
         }
 
-        WeakReference<ScaledBitmap> bmpRef = evictionCache.get(key);
+        SoftReference<ScaledBitmap> bmpRef = evictionCache.get(key);
         if (bmpRef != null) {
             bmp = bmpRef.get();
             if (bmp != null) {
@@ -54,7 +54,7 @@ public class MemoryAssetLoader {
                 return bmp;
             }
             else {
-                // The data is gone, so remove the dangling WeakReference now
+                // The data is gone, so remove the dangling SoftReference now
                 evictionCache.remove(key);
             }
         }

@@ -564,9 +564,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
     @Override
     public int getAdapterFragmentLayoutId() {
-        return PreferenceConfiguration.readPreferences(this).listMode ?
-                R.layout.list_view : (PreferenceConfiguration.readPreferences(AppView.this).smallIconMode ?
-                    R.layout.app_grid_view_small : R.layout.app_grid_view);
+        return PreferenceConfiguration.readPreferences(AppView.this).smallIconMode ?
+                    R.layout.app_grid_view_small : R.layout.app_grid_view;
     }
 
     @Override

@@ -109,8 +109,6 @@
   <string name="category_ui_settings">UI Installingen</string>
   <string name="title_language_list">Taal</string>
   <string name="summary_language_list">Taal te gebruiken in Moonlight</string>
-  <string name="title_checkbox_list_mode">Gebruik lijsten in plaats van kolommen</string>
-  <string name="summary_checkbox_list_mode">Display apps and PCs in lists instead of grids</string>
   <string name="title_checkbox_small_icon_mode">Gebruik kleine iconen</string>
   <string name="summary_checkbox_small_icon_mode">Gebruik kleine iconen in kolom onderdelen zodat meer items tegelijk zichtbaar worden.</string>
 

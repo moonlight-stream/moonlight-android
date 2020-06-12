@@ -111,8 +111,6 @@
     <string name="category_ui_settings">Configuración de la interfaz</string>
     <string name="title_language_list">Idioma</string>
     <string name="summary_language_list">Idioma a usar por Moonlight</string>
-    <string name="title_checkbox_list_mode">Usar listas en lugar de cuadrículas</string>
-    <string name="summary_checkbox_list_mode">Mostrar aplicaciones y PCs en listas en lugar de el cuadrículas</string>
     <string name="title_checkbox_small_icon_mode">Usar iconos pequeños</string>
     <string name="summary_checkbox_small_icon_mode">Usar iconos pequeños en las entradas de cuadrículas para permitir más entradas en la pantalla</string>
 

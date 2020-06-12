@@ -164,8 +164,6 @@
     <string name="category_ui_settings">UI Einstellungen</string>
     <string name="title_language_list">Sprache</string>
     <string name="summary_language_list">Sprache die Moonlight verwenden soll</string>
-    <string name="title_checkbox_list_mode">Zeige Listen anstelle von Rastern.</string>
-    <string name="summary_checkbox_list_mode">Zeige Apps und PCs als Liste anstelle eines Rasters</string>
     <string name="title_checkbox_small_icon_mode">Verwende kleine Icons</string>
     <string name="summary_checkbox_small_icon_mode">Verwende kleine Icons in der Rasteransicht, um mehr gleichzeitig anzeigen zu können</string>
 

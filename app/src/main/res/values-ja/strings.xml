@@ -105,8 +105,6 @@
     <string name="category_ui_settings">インターフェース</string>
     <string name="title_language_list">言語</string>
     <string name="summary_language_list">Moonlightで使用する言語</string>
-    <string name="title_checkbox_list_mode">リストメニュー</string>
-    <string name="summary_checkbox_list_mode">ゲームをグリッドではなく、リストで表示します</string>
     <string name="title_checkbox_small_icon_mode">小さなアイコン</string>
     <string name="summary_checkbox_small_icon_mode">グリッドで小さなアイコンを使用します</string>
 

@@ -120,8 +120,6 @@
     <string name="category_ui_settings">UI 설정</string>
     <string name="title_language_list">언어</string>
     <string name="summary_language_list">Moonlight에서 사용할 언어를 선택합니다.</string>
-    <string name="title_checkbox_list_mode">그리드(바둑판) 대신 리스트 뷰 사용</string>
-    <string name="summary_checkbox_list_mode">그리드 대신 리스트로 앱과 PC를 표시합니다.</string>
     <string name="title_checkbox_small_icon_mode">작은 아이콘 사용</string>
     <string name="summary_checkbox_small_icon_mode">더 많이 표시하기 위해 그리드 표시에서 작은 아이콘을 사용합니다.</string>
 

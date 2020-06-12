@@ -22,10 +22,7 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
     }
 
     private static int getLayoutIdForPreferences(PreferenceConfiguration prefs) {
-        if (prefs.listMode) {
-            return R.layout.simple_row;
-        }
-        else if (prefs.smallIconMode) {
+        if (prefs.smallIconMode) {
             return R.layout.pc_grid_item_small;
         }
         else {

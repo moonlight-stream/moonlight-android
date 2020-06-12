@@ -692,9 +692,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
     @Override
     public int getAdapterFragmentLayoutId() {
-        return PreferenceConfiguration.readPreferences(this).listMode ?
-                R.layout.list_view : (PreferenceConfiguration.readPreferences(this).smallIconMode ?
-                R.layout.pc_grid_view_small : R.layout.pc_grid_view);
+        return PreferenceConfiguration.readPreferences(this).smallIconMode ?
+                R.layout.pc_grid_view_small : R.layout.pc_grid_view;
     }
 
     @Override

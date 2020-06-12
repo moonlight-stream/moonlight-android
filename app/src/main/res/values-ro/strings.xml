@@ -169,8 +169,6 @@
     <string name="category_ui_settings">Setari UI</string>
     <string name="title_language_list">Limba (Language)</string>
     <string name="summary_language_list">Limba folosită de către Moonlight</string>
-    <string name="title_checkbox_list_mode">Folosește liste în loc de grile</string>
-    <string name="summary_checkbox_list_mode">Aplicațiile și PC-urile vor fi afișate in liste in loc de grile</string>
     <string name="title_checkbox_small_icon_mode">Folosește iconițe mici</string>
     <string name="summary_checkbox_small_icon_mode">Iconițele folosite în grile vor fi mici pentru a încăpea mai multe odata</string>
 

@@ -171,8 +171,6 @@
     <string name="category_ui_settings">Paramètres de l\'interface utilisateur</string>
     <string name="title_language_list">Langue</string>
     <string name="summary_language_list">Langue à utiliser pour Moonlight</string>
-    <string name="title_checkbox_list_mode">Utiliser des listes au lieu des grilles</string>
-    <string name="summary_checkbox_list_mode">Afficher les applications et les PC en listes au lieu de grilles</string>
     <string name="title_checkbox_small_icon_mode">Utiliser des petites icônes</string>
     <string name="summary_checkbox_small_icon_mode">Utilisez les petites icônes dans les éléments de la grille pour permettre plus d\'éléments à l\'écran</string>
 

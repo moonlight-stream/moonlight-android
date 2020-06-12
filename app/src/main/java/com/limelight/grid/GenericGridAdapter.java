@@ -10,7 +10,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.limelight.R;
-import com.limelight.preferences.PreferenceConfiguration;
 
 import java.util.ArrayList;
 

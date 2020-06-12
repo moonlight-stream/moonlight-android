@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
@@ -137,14 +137,14 @@ public class CachedAppAssetLoader {
 
     private class LoaderTask extends AsyncTask<LoaderTuple, Void, ScaledBitmap> {
         private final WeakReference<ImageView> imageViewRef;
-        private final WeakReference<ProgressBar> progressViewRef;
+        private final WeakReference<TextView> textViewRef;
         private final boolean diskOnly;
 
         private LoaderTuple tuple;
 
-        public LoaderTask(ImageView imageView, ProgressBar prgView, boolean diskOnly) {
+        public LoaderTask(ImageView imageView, TextView textView, boolean diskOnly) {
             this.imageViewRef = new WeakReference<>(imageView);
-            this.progressViewRef = new WeakReference<>(prgView);
+            this.textViewRef = new WeakReference<>(textView);
             this.diskOnly = diskOnly;
         }
 
@@ -153,7 +153,7 @@ public class CachedAppAssetLoader {
             tuple = params[0];
 
             // Check whether it has been cancelled or the views are gone
-            if (isCancelled() || imageViewRef.get() == null || progressViewRef.get() == null) {
+            if (isCancelled() || imageViewRef.get() == null || textViewRef.get() == null) {
                 return null;
             }
 
@@ -186,20 +186,16 @@ public class CachedAppAssetLoader {
 
             // If the current loader task for this view isn't us, do nothing
             final ImageView imageView = imageViewRef.get();
-            final ProgressBar prgView = progressViewRef.get();
+            final TextView textView = textViewRef.get();
             if (getLoaderTask(imageView) == this) {
-                // Now display the progress bar since we have to hit the network
-                if (prgView != null) {
-                    prgView.setVisibility(View.VISIBLE);
-                }
-
                 // Set off another loader task on the network executor. This time our AsyncDrawable
                 // will use the app image placeholder bitmap, rather than an empty bitmap.
-                LoaderTask task = new LoaderTask(imageView, prgView, false);
+                LoaderTask task = new LoaderTask(imageView, textView, false);
                 AsyncDrawable asyncDrawable = new AsyncDrawable(imageView.getResources(), noAppImageBitmap, task);
                 imageView.setImageDrawable(asyncDrawable);
                 imageView.startAnimation(AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadein));
                 imageView.setVisibility(View.VISIBLE);
+                textView.setVisibility(View.VISIBLE);
                 task.executeOnExecutor(networkExecutor, tuple);
             }
         }
@@ -212,15 +208,13 @@ public class CachedAppAssetLoader {
             }
 
             final ImageView imageView = imageViewRef.get();
-            final ProgressBar prgView = progressViewRef.get();
+            final TextView textView = textViewRef.get();
             if (getLoaderTask(imageView) == this) {
-                // Hide the progress bar
-                if (prgView != null) {
-                    prgView.setVisibility(View.INVISIBLE);
-                }
-
                 // Fade in the box art
                 if (bitmap != null) {
+                    // Show the text if it's a placeholder
+                    textView.setVisibility(isBitmapPlaceholder(bitmap) ? View.VISIBLE : View.GONE);
+
                     if (imageView.getVisibility() == View.VISIBLE) {
                         // Fade out the placeholder first
                         Animation fadeOutAnimation = AnimationUtils.loadAnimation(imageView.getContext(), R.anim.boxart_fadeout);
@@ -324,7 +318,13 @@ public class CachedAppAssetLoader {
         });
     }
 
-    public boolean populateImageView(NvApp app, ImageView imgView, ProgressBar prgView) {
+    private boolean isBitmapPlaceholder(ScaledBitmap bitmap) {
+        return (bitmap == null) ||
+                (bitmap.originalWidth == 130 && bitmap.originalHeight == 180) || // GFE 2.0
+                (bitmap.originalWidth == 628 && bitmap.originalHeight == 888); // GFE 3.0
+    }
+
+    public boolean populateImageView(NvApp app, ImageView imgView, TextView textView) {
         LoaderTuple tuple = new LoaderTuple(computer, app);
 
         // If there's already a task in progress for this view,
@@ -334,8 +334,8 @@ public class CachedAppAssetLoader {
             return true;
         }
 
-        // Hide the progress bar always on initial load
-        prgView.setVisibility(View.INVISIBLE);
+        // Always set the name text so we have it if needed later
+        textView.setText(app.getAppName());
 
         // First, try the memory cache in the current context
         ScaledBitmap bmp = memoryLoader.loadBitmapFromCache(tuple);
@@ -343,13 +343,17 @@ public class CachedAppAssetLoader {
             // Show the bitmap immediately
             imgView.setVisibility(View.VISIBLE);
             imgView.setImageBitmap(bmp.bitmap);
+
+            // Show the text if it's a placeholder bitmap
+            textView.setVisibility(isBitmapPlaceholder(bmp) ? View.VISIBLE : View.GONE);
             return true;
         }
 
         // If it's not in memory, create an async task to load it. This task will be attached
         // via AsyncDrawable to this view.
-        final LoaderTask task = new LoaderTask(imgView, prgView, true);
+        final LoaderTask task = new LoaderTask(imgView, textView, true);
         final AsyncDrawable asyncDrawable = new AsyncDrawable(imgView.getResources(), placeholderBitmap, task);
+        textView.setVisibility(View.INVISIBLE);
         imgView.setVisibility(View.INVISIBLE);
         imgView.setImageDrawable(asyncDrawable);
 

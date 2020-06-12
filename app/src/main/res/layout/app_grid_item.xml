@@ -1,49 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:padding="20dp">
-    <RelativeLayout
-        android:id="@+id/grid_image_layout"
+    android:layout_width="150dp"
+    android:layout_height="200dp"
+    android:padding="10dp">
+    <ImageView
+        android:id="@+id/grid_image"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </ImageView>
+    <ImageView
+        android:id="@+id/grid_overlay"
         android:layout_centerHorizontal="true"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/grid_image"
-            android:cropToPadding="false"
-            android:scaleType="fitXY"
-            android:layout_centerHorizontal="true"
-            android:layout_width="150dp"
-            android:layout_height="175dp">
-        </ImageView>
-        <ProgressBar
-            android:id="@+id/grid_spinner"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:indeterminate="true">
-        </ProgressBar>
-        <ImageView
-            android:id="@+id/grid_overlay"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:layout_width="50dp"
-            android:layout_height="50dp">
-        </ImageView>
-    </RelativeLayout>
+        android:layout_marginTop="10dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp">
+    </ImageView>
     <TextView
         android:id="@+id/grid_text"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/grid_image_layout"
-        android:layout_marginTop="10dp"
-        android:layout_centerHorizontal="true"
+        android:layout_height="match_parent"
+        android:layout_below="@id/grid_overlay"
+        android:layout_margin="5dp"
         android:gravity="center"
-        android:singleLine="true"
-        android:ellipsize="marquee"
-        android:marqueeRepeatLimit="marquee_forever"
-        android:scrollHorizontally="true"
-        android:textSize="18sp" >
+        android:textSize="18sp">
     </TextView>
 </RelativeLayout>

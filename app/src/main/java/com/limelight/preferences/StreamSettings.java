@@ -56,8 +56,7 @@ public class StreamSettings extends Activity {
 
         // Check for changes that require a UI reload to take effect
         PreferenceConfiguration newPrefs = PreferenceConfiguration.readPreferences(this);
-        if (newPrefs.smallIconMode != previousPrefs.smallIconMode ||
-                !newPrefs.language.equals(previousPrefs.language)) {
+        if (!newPrefs.language.equals(previousPrefs.language)) {
             // Restart the PC view to apply UI changes
             Intent intent = new Intent(this, PcView.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);

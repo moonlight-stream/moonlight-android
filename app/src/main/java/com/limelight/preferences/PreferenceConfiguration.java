@@ -338,6 +338,12 @@ public class PreferenceConfiguration {
             config.fps = Integer.parseInt(prefs.getString(FPS_PREF_STRING, PreferenceConfiguration.DEFAULT_FPS));
         }
 
+        if (!prefs.contains(SMALL_ICONS_PREF_STRING)) {
+            // We need to write small icon mode's default to disk for the settings page to display
+            // the current state of the option properly
+            prefs.edit().putBoolean(SMALL_ICONS_PREF_STRING, getDefaultSmallMode(context)).apply();
+        }
+
         // This must happen after the preferences migration to ensure the preferences are populated
         config.bitrate = prefs.getInt(BITRATE_PREF_STRING, prefs.getInt(BITRATE_PREF_OLD_STRING, 0) * 1000);
         if (config.bitrate == 0) {

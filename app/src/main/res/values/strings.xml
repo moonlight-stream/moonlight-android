@@ -175,8 +175,8 @@
     <string name="summary_checkbox_enable_pip">Allows the stream to be viewed (but not controlled) while multitasking</string>
     <string name="title_language_list">Language</string>
     <string name="summary_language_list">Language to use for Moonlight</string>
-    <string name="title_checkbox_small_icon_mode">Use small icons</string>
-    <string name="summary_checkbox_small_icon_mode">Use small icons in grid items to allow more items on screen</string>
+    <string name="title_checkbox_small_icon_mode">Use small box art</string>
+    <string name="summary_checkbox_small_icon_mode">Smaller box art in the app grid allows more apps to be visible on screen</string>
 
     <string name="category_host_settings">Host Settings</string>
     <string name="title_checkbox_enable_sops">Optimize game settings</string>

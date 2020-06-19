@@ -1,0 +1,6 @@
+- Improved PC and App Grid UI
+- Android 11 optimizations
+- Added mapping for Nintendo Switch Pro controller
+- Post-stream latency message is now disabled by default
+- Fixed control stream connection error on some networks
+- Reorganized some of the settings options

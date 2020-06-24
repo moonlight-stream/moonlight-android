@@ -167,11 +167,11 @@ public class VirtualControllerConfigurationLoader {
     private static final int DPAD_BASE_Y = 41;
     private static final int DPAD_SIZE = 30;
 
-    private static final int ANALOG_L_BASE_X = 4;
-    private static final int ANALOG_L_BASE_Y = 1;
-    private static final int ANALOG_R_BASE_X = 96;
+    private static final int ANALOG_L_BASE_X = 6;
+    private static final int ANALOG_L_BASE_Y = 4;
+    private static final int ANALOG_R_BASE_X = 98;
     private static final int ANALOG_R_BASE_Y = 42;
-    private static final int ANALOG_SIZE = 28;
+    private static final int ANALOG_SIZE = 26;
 
     private static final int L3_R3_BASE_Y = 60;
 

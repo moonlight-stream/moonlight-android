@@ -189,24 +189,10 @@
     <string name="summary_video_format">H.265能降低視頻頻寬需求，但需要較新的設備才能支援</string>
     <string name="title_enable_hdr"> 啟用 HDR （實驗） </string>
     <string name="summary_enable_hdr"> 當遊戲和顯卡支援時以HDR模式串流。 HDR需要GTX 1000系列或更高規格顯卡。 </string>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
     <string name="title_enable_perf_overlay"> 啟用性能資訊 </string>
     <string name="summary_enable_perf_overlay"> 在串流中顯示即時性能資訊 </string>
+    <string name="title_enable_post_stream_toast">串流完畢顯示延遲資訊</string>
+    <string name="summary_enable_post_stream_toast">串流結束後顯示延遲資訊</string>
     <string name="title_osc_opacity">更改屏幕按鈕透明度</string>
     <string name="dialog_title_osc_opacity">透明度</string>
     <string name="suffix_osc_opacity">%</string>

@@ -1,0 +1,3 @@
+- Removed old button emulation feature which prevented LB+Start, RB+Start, and Start+Select from working as expected
+- Fixed edges of on-screen analog sticks being clipped
+- Updated Simplified and Traditional Chinese translations

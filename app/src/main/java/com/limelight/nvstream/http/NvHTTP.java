@@ -11,6 +11,8 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
@@ -29,6 +31,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -42,7 +45,6 @@ import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.http.PairingManager.PairState;
 
 import okhttp3.ConnectionPool;
-import okhttp3.Handshake;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -66,7 +68,8 @@ public class NvHTTP {
     
     private OkHttpClient httpClient;
     private OkHttpClient httpClientWithReadTimeout;
-        
+
+    private X509TrustManager defaultTrustManager;
     private X509TrustManager trustManager;
     private X509KeyManager keyManager;
     private X509Certificate serverCert;
@@ -82,17 +85,45 @@ public class NvHTTP {
                 throw new IllegalStateException("Should never be called");
             }
             public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
-                // Check the server certificate if we've paired to this host
-                if (!certs[0].equals(NvHTTP.this.serverCert)) {
-                    throw new CertificateException("Certificate mismatch");
+                try {
+                    // Try the default trust manager first to allow pairing with certificates
+                    // that chain up to a trusted root CA. This will raise CertificateException
+                    // if the certificate is not trusted (expected for GFE's self-signed certs).
+                    defaultTrustManager.checkServerTrusted(certs, authType);
+                } catch (CertificateException e) {
+                    // Check the server certificate if we've paired to this host
+                    if (certs.length != 1 || !certs[0].equals(NvHTTP.this.serverCert)) {
+                        throw new CertificateException("Certificate mismatch");
+                    }
                 }
             }
         };
     }
 
+    private static X509TrustManager getDefaultTrustManager() {
+        try {
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init((KeyStore) null);
+
+            for (TrustManager tm : tmf.getTrustManagers()) {
+                if (tm instanceof X509TrustManager) {
+                    return (X509TrustManager) tm;
+                }
+            }
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        }
+
+        throw new IllegalStateException("No X509 trust manager found");
+    }
+
     private void initializeHttpState(final X509Certificate serverCert, final LimelightCryptoProvider cryptoProvider) {
         // Set up TrustManager
         setServerCert(serverCert);
+
+        defaultTrustManager = getDefaultTrustManager();
 
         keyManager = new X509KeyManager() {
             public String chooseClientAlias(String[] keyTypes,
@@ -296,18 +327,6 @@ public class NvHTTP {
         }
     }
 
-    public X509Certificate getCertificateIfTrusted() {
-        try {
-            Response resp = httpClient.newCall(new Request.Builder().url(baseUrlHttps).get().build()).execute();
-            Handshake handshake = resp.handshake();
-            if (handshake != null) {
-                return (X509Certificate)handshake.peerCertificates().get(0);
-            }
-        } catch (IOException ignored) {}
-
-        return null;
-    }
-
     // Read timeout should be enabled for any HTTP query that requires no outside action
     // on the GFE server. Examples of queries that DO require outside action are launch, resume, and quit.
     // The initial pair query does require outside action (user entering a PIN) but subsequent pairing
@@ -315,10 +334,6 @@ public class NvHTTP {
     private ResponseBody openHttpConnection(String url, boolean enableReadTimeout) throws IOException {
         Request request = new Request.Builder().url(url).get().build();
         Response response;
-
-        if (serverCert == null && !url.startsWith(baseUrlHttp)) {
-            throw new IllegalStateException("Attempted HTTPS fetch without pinned cert");
-        }
 
         if (enableReadTimeout) {
             response = performAndroidTlsHack(httpClientWithReadTimeout).newCall(request).execute();
@@ -379,11 +394,6 @@ public class NvHTTP {
     }
 
     public PairingManager.PairState getPairState(String serverInfo) throws IOException, XmlPullParserException {
-        // If we don't have a server cert, we can't be paired even if the host thinks we are
-        if (serverCert == null) {
-            return PairState.NOT_PAIRED;
-        }
-
         if (!NvHTTP.getXmlString(serverInfo, "PairStatus").equals("1")) {
             return PairState.NOT_PAIRED;
         }

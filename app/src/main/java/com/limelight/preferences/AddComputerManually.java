@@ -104,12 +104,6 @@ public class AddComputerManually extends Activity {
         try {
             ComputerDetails details = new ComputerDetails();
             details.manualAddress = host;
-
-            try {
-                NvHTTP http = new NvHTTP(host, managerBinder.getUniqueId(), null, PlatformBinding.getCryptoProvider(this));
-                details.serverCert = http.getCertificateIfTrusted();
-            } catch (IOException ignored) {}
-
             success = managerBinder.addComputerBlocking(details);
         } catch (IllegalArgumentException e) {
             // This can be thrown from OkHttp if the host fails to canonicalize to a valid name.

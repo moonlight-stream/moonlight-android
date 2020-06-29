@@ -92,8 +92,15 @@ public class NvHTTP {
                     defaultTrustManager.checkServerTrusted(certs, authType);
                 } catch (CertificateException e) {
                     // Check the server certificate if we've paired to this host
-                    if (certs.length != 1 || !certs[0].equals(NvHTTP.this.serverCert)) {
-                        throw new CertificateException("Certificate mismatch");
+                    if (certs.length == 1 && NvHTTP.this.serverCert != null) {
+                        if (!certs[0].equals(NvHTTP.this.serverCert)) {
+                            throw new CertificateException("Certificate mismatch");
+                        }
+                    }
+                    else {
+                        // The cert chain doesn't look like a self-signed cert or we don't have
+                        // a certificate pinned, so re-throw the original validation error.
+                        throw e;
                     }
                 }
             }

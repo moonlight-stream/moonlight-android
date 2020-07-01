@@ -42,6 +42,7 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
         android:installLocation="auto"
+        android:gwpAsanMode="always"
         android:theme="@style/AppTheme">
         <provider
             android:name=".PosterContentProvider"

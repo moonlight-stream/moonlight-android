@@ -354,6 +354,19 @@ public class MediaCodecHelper {
         return false;
     }
 
+    public static boolean decoderSupportsMaxOperatingRate(String decoderName) {
+        // Operate at maximum rate to lower latency as much as possible on
+        // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
+        // but that will actually result in the decoder crashing if it can't satisfy
+        // our (ludicrous) operating rate requirement. This seems to cause reliable
+        // crashes on the Xiaomi Mi 10 lite 5G on Android 10, and probably isn't too
+        // useful in light of the qti-ext-dec-low-latency code. To be safe, we'll
+        // disable it on devices running Q or non-Qualcomm devices.
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+                isDecoderInList(qualcommDecoderPrefixes, decoderName);
+    }
+
     public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo, String mimeType) {
         // Possibly enable adaptive playback on KitKat and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {

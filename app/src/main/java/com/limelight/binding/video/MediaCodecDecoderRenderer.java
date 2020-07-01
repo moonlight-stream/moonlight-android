@@ -334,11 +334,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 videoFormat.setInteger("vendor.qti-ext-dec-low-latency.enable", 1);
             }
 
-            // Operate at maximum rate to lower latency as much as possible on
-            // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
-            // but that will actually result in the decoder crashing if it can't satisfy
-            // our (ludicrous) operating rate requirement.
-            videoFormat.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
+            if (MediaCodecHelper.decoderSupportsMaxOperatingRate(selectedDecoderName)) {
+                videoFormat.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
+            }
         }
 
         configuredFormat = videoFormat;

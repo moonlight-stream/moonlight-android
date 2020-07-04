@@ -590,7 +590,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         listView.requestFocus();
     }
 
-    public class AppObject {
+    public static class AppObject {
         public final NvApp app;
         public boolean isRunning;
 

@@ -178,7 +178,7 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     ret = (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeDrSubmitDecodeUnitMethod,
                                        DecodedFrameBuffer, offset, BUFFER_TYPE_PICDATA,
                                        decodeUnit->frameNumber,
-                                       decodeUnit->receiveTimeMs);
+                                       (jlong)decodeUnit->receiveTimeMs);
     if ((*env)->ExceptionCheck(env)) {
         // We will crash here
         (*JVM)->DetachCurrentThread(JVM);

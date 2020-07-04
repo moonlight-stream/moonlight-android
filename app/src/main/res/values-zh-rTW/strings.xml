@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_label" translatable="false">Moonlight</string>
-    <string name="app_label_root" translatable="false">Moonlight （Root）</string>																	
 
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc"> 電腦已刪除 </string>

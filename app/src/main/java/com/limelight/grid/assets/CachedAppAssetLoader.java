@@ -362,7 +362,7 @@ public class CachedAppAssetLoader {
         return false;
     }
 
-    public class LoaderTuple {
+    public static class LoaderTuple {
         public final ComputerDetails computer;
         public final NvApp app;
 

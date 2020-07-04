@@ -22,7 +22,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class VirtualController {
-    public class ControllerInputContext {
+    public static class ControllerInputContext {
         public short inputMap = 0x0000;
         public byte leftTrigger = 0x00;
         public byte rightTrigger = 0x00;

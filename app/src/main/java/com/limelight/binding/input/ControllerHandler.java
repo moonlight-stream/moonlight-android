@@ -1616,7 +1616,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         usbDeviceContexts.put(controller.getControllerId(), context);
     }
 
-    class GenericControllerContext {
+    static class GenericControllerContext {
         public int id;
         public boolean external;
 

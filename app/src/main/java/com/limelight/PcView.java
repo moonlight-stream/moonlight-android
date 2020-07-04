@@ -719,7 +719,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         registerForContextMenu(listView);
     }
 
-    public class ComputerObject {
+    public static class ComputerObject {
         public ComputerDetails details;
 
         public ComputerObject(ComputerDetails details) {

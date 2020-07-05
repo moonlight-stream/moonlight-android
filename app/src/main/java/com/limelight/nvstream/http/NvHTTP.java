@@ -17,6 +17,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.LinkedList;
@@ -26,9 +27,11 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -147,9 +150,21 @@ public class NvHTTP {
             public String[] getServerAliases(String keyType, Principal[] issuers) { return null; }
         };
 
-        // Ignore differences between given hostname and certificate hostname
         HostnameVerifier hv = new HostnameVerifier() {
-            public boolean verify(String hostname, SSLSession session) { return true; }
+            public boolean verify(String hostname, SSLSession session) {
+                try {
+                    Certificate[] certificates = session.getPeerCertificates();
+                    if (certificates.length == 1 && certificates[0].equals(serverCert)) {
+                        // Allow any hostname if it's our pinned cert
+                        return true;
+                    }
+                } catch (SSLPeerUnverifiedException e) {
+                    e.printStackTrace();
+                }
+
+                // Fall back to default HostnameVerifier for validating CA-issued certs
+                return HttpsURLConnection.getDefaultHostnameVerifier().verify(hostname, session);
+            }
         };
 
         httpClient = new OkHttpClient.Builder()

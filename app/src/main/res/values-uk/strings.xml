@@ -187,7 +187,6 @@
     <string name="summary_fps_list">Збільшення для більш плавного відео потоку. Зменшіть для кращої продуктивності на більш слабких пристроях.</string>
     <string name="scut_invalid_uuid">Зазначений ПК недійсний</string>
     <string name="scut_invalid_app_id">Зазначений додаток недійсне</string>
-    <string name="toast_reset_osc_success">Екранні елементи керування скидаються до стандартних</string>
     <string name="title_osc_opacity">Змінити непрозорість екранних елементів керування</string>
     <string name="summary_osc_opacity">Зробити екранні елементи керування більш/менш прозорими</string>
     <string name="dialog_title_osc_opacity">Зміна непрозорості</string>	

@@ -159,7 +159,7 @@ public class NvHTTP {
             public boolean verify(String hostname, SSLSession session) {
                 try {
                     Certificate[] certificates = session.getPeerCertificates();
-                    if (certificates.length == 1 && certificates[0].equals(serverCert)) {
+                    if (certificates.length == 1 && certificates[0].equals(NvHTTP.this.serverCert)) {
                         // Allow any hostname if it's our pinned cert
                         return true;
                     }

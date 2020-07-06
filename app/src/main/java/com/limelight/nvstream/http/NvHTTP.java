@@ -84,7 +84,44 @@ public class NvHTTP {
 
     void setServerCert(X509Certificate serverCert) {
         this.serverCert = serverCert;
+    }
 
+    private static X509TrustManager getDefaultTrustManager() {
+        try {
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init((KeyStore) null);
+
+            for (TrustManager tm : tmf.getTrustManagers()) {
+                if (tm instanceof X509TrustManager) {
+                    return (X509TrustManager) tm;
+                }
+            }
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        }
+
+        throw new IllegalStateException("No X509 trust manager found");
+    }
+
+    private void initializeHttpState(final LimelightCryptoProvider cryptoProvider) {
+        keyManager = new X509KeyManager() {
+            public String chooseClientAlias(String[] keyTypes,
+                    Principal[] issuers, Socket socket) { return "Limelight-RSA"; }
+            public String chooseServerAlias(String keyType, Principal[] issuers,
+                    Socket socket) { return null; }
+            public X509Certificate[] getCertificateChain(String alias) {
+                return new X509Certificate[] {cryptoProvider.getClientCertificate()};
+            }
+            public String[] getClientAliases(String keyType, Principal[] issuers) { return null; }
+            public PrivateKey getPrivateKey(String alias) {
+                return cryptoProvider.getClientPrivateKey();
+            }
+            public String[] getServerAliases(String keyType, Principal[] issuers) { return null; }
+        };
+
+        defaultTrustManager = getDefaultTrustManager();
         trustManager = new X509TrustManager() {
             public X509Certificate[] getAcceptedIssuers() {
                 return new X509Certificate[0];
@@ -112,47 +149,6 @@ public class NvHTTP {
                     }
                 }
             }
-        };
-    }
-
-    private static X509TrustManager getDefaultTrustManager() {
-        try {
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            tmf.init((KeyStore) null);
-
-            for (TrustManager tm : tmf.getTrustManagers()) {
-                if (tm instanceof X509TrustManager) {
-                    return (X509TrustManager) tm;
-                }
-            }
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
-        }
-
-        throw new IllegalStateException("No X509 trust manager found");
-    }
-
-    private void initializeHttpState(final X509Certificate serverCert, final LimelightCryptoProvider cryptoProvider) {
-        // Set up TrustManager
-        setServerCert(serverCert);
-
-        defaultTrustManager = getDefaultTrustManager();
-
-        keyManager = new X509KeyManager() {
-            public String chooseClientAlias(String[] keyTypes,
-                    Principal[] issuers, Socket socket) { return "Limelight-RSA"; }
-            public String chooseServerAlias(String keyType, Principal[] issuers,
-                    Socket socket) { return null; }
-            public X509Certificate[] getCertificateChain(String alias) {
-                return new X509Certificate[] {cryptoProvider.getClientCertificate()};
-            }
-            public String[] getClientAliases(String keyType, Principal[] issuers) { return null; }
-            public PrivateKey getPrivateKey(String alias) {
-                return cryptoProvider.getClientPrivateKey();
-            }
-            public String[] getServerAliases(String keyType, Principal[] issuers) { return null; }
         };
 
         HostnameVerifier hv = new HostnameVerifier() {
@@ -189,7 +185,9 @@ public class NvHTTP {
         // started by other Moonlight clients.
         this.uniqueId = "0123456789ABCDEF";
 
-        initializeHttpState(serverCert, cryptoProvider);
+        this.serverCert = serverCert;
+
+        initializeHttpState(cryptoProvider);
 
         try {
             // The URI constructor takes care of escaping IPv6 literals

@@ -314,9 +314,8 @@ public class PairingManager {
                 return md.digest(data);
             }
             catch (NoSuchAlgorithmException e) {
-                // Shouldn't ever happen
                 e.printStackTrace();
-                return null;
+                throw new RuntimeException(e);
             }
         }
     }
@@ -332,9 +331,8 @@ public class PairingManager {
                 return md.digest(data);
             }
             catch (NoSuchAlgorithmException e) {
-                // Shouldn't ever happen
                 e.printStackTrace();
-                return null;
+                throw new RuntimeException(e);
             }
         }
     }

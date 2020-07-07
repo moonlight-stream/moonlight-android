@@ -43,25 +43,26 @@ public class NvConnection {
         this.context = new ConnectionContext();
         this.context.streamConfig = config;
         this.context.serverCert = serverCert;
-        try {
-            // This is unique per connection
-            this.context.riKey = generateRiAesKey();
-        } catch (NoSuchAlgorithmException e) {
-            // Should never happen
-            e.printStackTrace();
-        }
-        
-        this.context.riKeyId = generateRiKeyId();
+
+        // This is unique per connection
+        this.context.riKey = generateRiAesKey();
+        context.riKeyId = generateRiKeyId();
+
         this.isMonkey = ActivityManager.isUserAMonkey();
     }
     
-    private static SecretKey generateRiAesKey() throws NoSuchAlgorithmException {
-        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-        
-        // RI keys are 128 bits
-        keyGen.init(128);
-        
-        return keyGen.generateKey();
+    private static SecretKey generateRiAesKey() {
+        try {
+            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+
+            // RI keys are 128 bits
+            keyGen.init(128);
+
+            return keyGen.generateKey();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
     
     private static int generateRiKeyId() {

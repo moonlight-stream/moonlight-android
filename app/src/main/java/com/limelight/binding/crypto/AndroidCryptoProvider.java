@@ -102,9 +102,7 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
             LimeLog.warning("Corrupted certificate");
             return false;
         } catch (NoSuchAlgorithmException e) {
-            // Should never happen
-            e.printStackTrace();
-            return false;
+            throw new RuntimeException(e);
         } catch (InvalidKeySpecException e) {
             // May happen if the key is corrupt
             LimeLog.warning("Corrupted key");
@@ -124,10 +122,8 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", bcProvider);
             keyPairGenerator.initialize(2048);
             keyPair = keyPairGenerator.generateKeyPair();
-        } catch (NoSuchAlgorithmException e1) {
-            // Should never happen
-            e1.printStackTrace();
-            return false;
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
 
         Date now = new Date();
@@ -152,8 +148,6 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
             cert = new JcaX509CertificateConverter().setProvider(bcProvider).getCertificate(certBuilder.build(sigGen));
             key = (RSAPrivateKey) keyPair.getPrivate();
         } catch (Exception e) {
-            // Nothing should go wrong here
-            e.printStackTrace();
             throw new RuntimeException(e);
         }
 

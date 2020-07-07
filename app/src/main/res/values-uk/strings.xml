@@ -109,8 +109,6 @@
     <string name="category_ui_settings">Налаштування інтерфейсу</string>
     <string name="title_language_list">Мова</string>
     <string name="summary_language_list">Мова, яка буде використовуватися в Moonlight</string>
-    <string name="title_checkbox_list_mode">Використовувати списки замість сіток</string>
-    <string name="summary_checkbox_list_mode">Виводити додатки і комп\'ютери списком, замість використання сітки</string>
     <string name="title_checkbox_small_icon_mode">Використовувати маленькі іконки</string>
     <string name="summary_checkbox_small_icon_mode">Використовувати маленькі іконки в сітці для відображення більшої кількості елементів на екрані</string>
 

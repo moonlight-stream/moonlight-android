@@ -238,6 +238,7 @@ public class NvConnection {
                     e.printStackTrace();
                     context.connListener.displayMessage(e.getMessage());
                     context.connListener.stageFailed(appName, e.getErrorCode());
+                    return;
                 } catch (XmlPullParserException | IOException e) {
                     e.printStackTrace();
                     context.connListener.displayMessage(e.getMessage());

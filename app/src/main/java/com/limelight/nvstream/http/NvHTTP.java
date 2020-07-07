@@ -326,11 +326,7 @@ public class NvHTTP {
         // This has some extra logic to always report unpaired if the pinned cert isn't there
         details.pairState = getPairState(serverInfo);
         
-        try {
-            details.runningGameId = getCurrentGame(serverInfo);
-        } catch (NumberFormatException e) {
-            details.runningGameId = 0;
-        }
+        details.runningGameId = getCurrentGame(serverInfo);
         
         // We could reach it so it's online
         details.state = ComputerDetails.State.ONLINE;
@@ -438,11 +434,7 @@ public class NvHTTP {
     public long getMaxLumaPixelsH264(String serverInfo) throws XmlPullParserException, IOException {
         String str = getXmlString(serverInfo, "MaxLumaPixelsH264");
         if (str != null) {
-            try {
-                return Long.parseLong(str);
-            } catch (NumberFormatException e) {
-                return 0;
-            }
+            return Long.parseLong(str);
         } else {
             return 0;
         }
@@ -451,11 +443,7 @@ public class NvHTTP {
     public long getMaxLumaPixelsHEVC(String serverInfo) throws XmlPullParserException, IOException {
         String str = getXmlString(serverInfo, "MaxLumaPixelsHEVC");
         if (str != null) {
-            try {
-                return Long.parseLong(str);
-            } catch (NumberFormatException e) {
-                return 0;
-            }
+            return Long.parseLong(str);
         } else {
             return 0;
         }
@@ -472,11 +460,7 @@ public class NvHTTP {
     public long getServerCodecModeSupport(String serverInfo) throws XmlPullParserException, IOException {
         String str = getXmlString(serverInfo, "ServerCodecModeSupport");
         if (str != null) {
-            try {
-                return Long.parseLong(str);
-            } catch (NumberFormatException e) {
-                return 0;
-            }
+            return Long.parseLong(str);
         } else {
             return 0;
         }
@@ -632,36 +616,23 @@ public class NvHTTP {
     }
     
     public int getServerMajorVersion(String serverInfo) throws XmlPullParserException, IOException {
-        int[] appVersionQuad = getServerAppVersionQuad(serverInfo);
-        if (appVersionQuad != null) {
-            return appVersionQuad[0];
-        }
-        else {
-            return 0;
-        }
+        return getServerAppVersionQuad(serverInfo)[0];
     }
     
     public int[] getServerAppVersionQuad(String serverInfo) throws XmlPullParserException, IOException {
-        try {
-            String serverVersion = getServerVersion(serverInfo);
-            if (serverVersion == null) {
-                LimeLog.warning("Missing server version field");
-                return null;
-            }
-            String[] serverVersionSplit = serverVersion.split("\\.");
-            if (serverVersionSplit.length != 4) {
-                LimeLog.warning("Malformed server version field");
-                return null;
-            }
-            int[] ret = new int[serverVersionSplit.length];
-            for (int i = 0; i < ret.length; i++) {
-                ret[i] = Integer.parseInt(serverVersionSplit[i]);
-            }
-            return ret;
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-            return null;
+        String serverVersion = getServerVersion(serverInfo);
+        if (serverVersion == null) {
+            throw new IllegalArgumentException("Missing server version field");
         }
+        String[] serverVersionSplit = serverVersion.split("\\.");
+        if (serverVersionSplit.length != 4) {
+            throw new IllegalArgumentException("Malformed server version field: "+serverVersion);
+        }
+        int[] ret = new int[serverVersionSplit.length];
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = Integer.parseInt(serverVersionSplit[i]);
+        }
+        return ret;
     }
 
     final private static char[] hexArray = "0123456789ABCDEF".toCharArray();

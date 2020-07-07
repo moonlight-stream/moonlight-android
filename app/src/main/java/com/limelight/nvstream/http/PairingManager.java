@@ -55,6 +55,10 @@ public class PairingManager {
     
     private static byte[] hexToBytes(String s) {
         int len = s.length();
+        if (len % 2 != 0) {
+            throw new IllegalArgumentException("Illegal string length: "+len);
+        }
+
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
             data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
@@ -74,7 +78,7 @@ public class PairingManager {
                 return (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(certBytes));
             } catch (CertificateException e) {
                 e.printStackTrace();
-                return null;
+                throw new RuntimeException(e);
             }
         }
         else {

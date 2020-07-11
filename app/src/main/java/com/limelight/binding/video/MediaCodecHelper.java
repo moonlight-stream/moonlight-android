@@ -359,12 +359,14 @@ public class MediaCodecHelper {
         // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
         // but that will actually result in the decoder crashing if it can't satisfy
         // our (ludicrous) operating rate requirement. This seems to cause reliable
-        // crashes on the Xiaomi Mi 10 lite 5G on Android 10, and probably isn't too
-        // useful in light of the qti-ext-dec-low-latency code. To be safe, we'll
-        // disable it on devices running Q or non-Qualcomm devices.
+        // crashes on the Xiaomi Mi 10 lite 5G on Android 10, so we'll disable it
+        // on that device and all non-Qualcomm devices to be safe.
+        //
+        // NB: Even on Android 10, this optimization still provides significant
+        // performance gains on Pixel 2.
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
-                isDecoderInList(qualcommDecoderPrefixes, decoderName);
+                isDecoderInList(qualcommDecoderPrefixes, decoderName) &&
+                !Build.DEVICE.equalsIgnoreCase("monet");
     }
 
     public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo, String mimeType) {

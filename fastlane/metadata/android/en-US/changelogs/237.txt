@@ -1,0 +1,4 @@
+- Added Ukrainian translation
+- Fixed SSL error connecting to GFE 3.20.4 on Android 4.1-4.4
+- Fixed a random crash when starting a stream in bad network conditions
+- Fixed decoder-related crashes on Xiaomi Mi 10 Lite 5G devices

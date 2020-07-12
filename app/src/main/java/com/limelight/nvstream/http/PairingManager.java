@@ -14,7 +14,6 @@ import java.security.*;
 import java.security.cert.*;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Random;
 
 public class PairingManager {
 
@@ -172,7 +171,7 @@ public class PairingManager {
     }
     
     public static String generatePinString() {
-        Random r = new Random();
+        SecureRandom r = new SecureRandom();
         return String.format((Locale)null, "%d%d%d%d",
                 r.nextInt(10), r.nextInt(10),
                 r.nextInt(10), r.nextInt(10));

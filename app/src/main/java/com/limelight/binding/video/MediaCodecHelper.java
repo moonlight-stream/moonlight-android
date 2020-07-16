@@ -40,6 +40,8 @@ public class MediaCodecHelper {
     private static final List<String> blacklisted59FpsDecoderPrefixes;
     private static final List<String> qualcommDecoderPrefixes;
 
+    private static boolean isXiaomiSnapdragon7250 = false;
+    
     private static boolean isLowEndSnapdragon = false;
     private static boolean initialized = false;
 
@@ -359,14 +361,46 @@ public class MediaCodecHelper {
         // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
         // but that will actually result in the decoder crashing if it can't satisfy
         // our (ludicrous) operating rate requirement. This seems to cause reliable
-        // crashes on the Xiaomi Mi 10 lite 5G on Android 10, so we'll disable it
+        // crashes on the Xiaomi Mi 10 lite 5G & Redmi K30 5G
+        // (maybe all Snapdragon 765G/768G devices ?) on Android 10, so we'll disable it
         // on that device and all non-Qualcomm devices to be safe.
         //
         // NB: Even on Android 10, this optimization still provides significant
         // performance gains on Pixel 2.
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                 isDecoderInList(qualcommDecoderPrefixes, decoderName) &&
-                !Build.DEVICE.equalsIgnoreCase("monet");
+                !isDeviceXiaomiQcomSM7250() ;
+    }
+
+    private static boolean isDeviceXiaomiQcomSM7250(){
+        // Check device cpu, Could't get from Build props, Check Xiaomi Snapdragon 765G/768G devices from /proc/cpuinfo instead.
+        if (isXiaomiSnapdragon7250){
+            return true;
+        }
+        boolean result = false;
+        try{
+            BufferedReader br = new BufferedReader (new FileReader("/proc/cpuinfo"));
+            String str;
+            String value;
+            while ((str = br.readLine ()) != null) {
+                String[] sps = str.split (":");
+                if (sps.length > 1) {
+                    String key = sps[0].trim ();
+                    if (key.equalsIgnoreCase("hardware")){
+                        value = sps[1].trim ().toLowerCase();
+                        if (value.contains("sm7250")){
+                            result = true;
+                            isXiaomiSnapdragon7250 = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            br.close ();
+        }
+        catch (Exception ignored){
+        }
+        return result && Build.MANUFACTURER.equalsIgnoreCase("xiaomi");
     }
 
     public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo, String mimeType) {

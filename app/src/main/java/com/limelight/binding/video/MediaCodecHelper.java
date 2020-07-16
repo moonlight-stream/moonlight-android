@@ -378,6 +378,7 @@ public class MediaCodecHelper {
             return true;
         }
         boolean result = false;
+        boolean xiaomiDevice = Build.MANUFACTURER.equalsIgnoreCase("xiaomi")
         try{
             BufferedReader br = new BufferedReader (new FileReader("/proc/cpuinfo"));
             String str;
@@ -389,8 +390,8 @@ public class MediaCodecHelper {
                     if (key.equalsIgnoreCase("hardware")){
                         value = sps[1].trim ().toLowerCase();
                         if (value.contains("sm7250")){
-                            result = true;
-                            isXiaomiSnapdragon7250 = true;
+                            result = xiaomiDevice;
+                            isXiaomiSnapdragon7250 = xiaomiDevice;
                             break;
                         }
                     }
@@ -400,7 +401,7 @@ public class MediaCodecHelper {
         }
         catch (Exception ignored){
         }
-        return result && Build.MANUFACTURER.equalsIgnoreCase("xiaomi");
+        return result;
     }
 
     public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo, String mimeType) {

@@ -1,3 +1,31 @@
+# 说明
+
+该项目专为Xperia 1等机型添加了3840x1644分辨率的支持，以提供21:9的原生分辨率串流。
+
+
+
+## 如何更改分辨率
+
+在Nvidia控制面板中，增加自定义分辨率，并设置电脑分辨率。
+
+注意：只有一部分游戏支持21:9的超宽屏。
+
+![Screenshot_20200727-095255](/screenshot/Screenshot_20200727-095255.png)
+
+![16556A5CDE990FAE78F443B1EB9941F7](/screenshot/16556A5CDE990FAE78F443B1EB9941F7.jpg)
+
+
+
+## 如果构建5G 4K 100Mbps流畅串流
+
+1、尽可能清空5G通道，能走有线的设备走有线
+
+2、低速率设备放到2.4G，专门为游戏手机提供一个独立的5G通道
+
+3、使用一个高端路由器，例如华硕RT-AX92U
+
+
+
 # Moonlight Android
 
 [![Travis CI Status](https://travis-ci.org/moonlight-stream/moonlight-android.svg?branch=master)](https://travis-ci.org/moonlight-stream/moonlight-android)

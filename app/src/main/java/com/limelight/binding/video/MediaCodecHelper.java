@@ -41,6 +41,7 @@ public class MediaCodecHelper {
     private static final List<String> qualcommDecoderPrefixes;
 
     private static boolean isLowEndSnapdragon = false;
+    private static boolean isAdreno620 = false;
     private static boolean initialized = false;
 
     static {
@@ -231,19 +232,23 @@ public class MediaCodecHelper {
         return modelNumber.charAt(1) == '0';
     }
 
+    private static int getAdrenoRendererModelNumber(String glRenderer) {
+        String modelNumber = getAdrenoVersionString(glRenderer);
+        if (modelNumber == null) {
+            // Not an Adreno GPU
+            return -1;
+        }
+
+        return Integer.parseInt(modelNumber);
+    }
+
     // This is a workaround for some broken devices that report
     // only GLES 3.0 even though the GPU is an Adreno 4xx series part.
     // An example of such a device is the Huawei Honor 5x with the
     // Snapdragon 616 SoC (Adreno 405).
     private static boolean isGLES31SnapdragonRenderer(String glRenderer) {
-        String modelNumber = getAdrenoVersionString(glRenderer);
-        if (modelNumber == null) {
-            // Not an Adreno GPU
-            return false;
-        }
-
         // Snapdragon 4xx and higher support GLES 3.1
-        return modelNumber.charAt(0) >= '4';
+        return getAdrenoRendererModelNumber(glRenderer) >= 400;
     }
 
     public static void initialize(Context context, String glRenderer) {
@@ -258,6 +263,7 @@ public class MediaCodecHelper {
             LimeLog.info("OpenGL ES version: "+configInfo.reqGlEsVersion);
 
             isLowEndSnapdragon = isLowEndSnapdragonRenderer(glRenderer);
+            isAdreno620 = getAdrenoRendererModelNumber(glRenderer) == 620;
 
             // Tegra K1 and later can do reference frame invalidation properly
             if (configInfo.reqGlEsVersion >= 0x30000) {
@@ -359,14 +365,14 @@ public class MediaCodecHelper {
         // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
         // but that will actually result in the decoder crashing if it can't satisfy
         // our (ludicrous) operating rate requirement. This seems to cause reliable
-        // crashes on the Xiaomi Mi 10 lite 5G on Android 10, so we'll disable it
-        // on that device and all non-Qualcomm devices to be safe.
+        // crashes on the Xiaomi Mi 10 lite 5G and Redmi K30i 5G on Android 10, so
+        // we'll disable it on Snapdragon 765G and all non-Qualcomm devices to be safe.
         //
         // NB: Even on Android 10, this optimization still provides significant
         // performance gains on Pixel 2.
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                 isDecoderInList(qualcommDecoderPrefixes, decoderName) &&
-                !Build.DEVICE.equalsIgnoreCase("monet");
+                !isAdreno620;
     }
 
     public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo, String mimeType) {

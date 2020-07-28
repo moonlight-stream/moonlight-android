@@ -83,7 +83,7 @@ public class PreferenceConfiguration {
     public static final String RES_1080P = "1920x1080";
     public static final String RES_1440P = "2560x1440";
     public static final String RES_4K = "3840x2160";
-    public static final String RES_2K_219 = "1920x822";
+    public static final String RES_2K_219 = "2560x1096";
     public static final String RES_4K_219 = "3840x1644";
 
     public int width, height, fps;
@@ -164,7 +164,7 @@ public class PreferenceConfiguration {
                 return RES_1440P;
             case 2160:
                 return RES_4K;
-            case 822:
+            case 1096:
                 return RES_2K_219;
             case 1644:
                 return RES_4K_219;

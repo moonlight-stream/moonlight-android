@@ -9,6 +9,7 @@ android {
 
         versionName "9.6.4"
         versionCode = 237
+        signingConfig signingConfigs.debug
     }
 
     flavorDimensions "root"

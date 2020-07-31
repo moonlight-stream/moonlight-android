@@ -1,6 +1,7 @@
 package com.limelight.binding.video;
 
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.Locale;
 
 import org.jcodec.codecs.h264.H264Utils;
@@ -20,6 +21,8 @@ import android.media.MediaFormat;
 import android.media.MediaCodec.BufferInfo;
 import android.media.MediaCodec.CodecException;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Range;
 import android.view.SurfaceHolder;
 
@@ -60,6 +63,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private boolean foreground = true;
     private boolean legacyFrameDropRendering = false;
     private PerfOverlayListener perfListener;
+    private Handler infoHandler;
+    private HandlerThread handlerThread;
 
     private MediaFormat inputFormat;
     private MediaFormat outputFormat;
@@ -138,6 +143,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.consecutiveCrashCount = consecutiveCrashCount;
         this.glRenderer = glRenderer;
         this.perfListener = perfListener;
+        this.handlerThread = new HandlerThread("HandlerThread");
+        this.handlerThread.start();
+        this.infoHandler = new Handler(this.handlerThread.getLooper());
 
         this.activeWindowVideoStats = new VideoStats();
         this.lastWindowVideoStats = new VideoStats();
@@ -636,75 +644,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return MoonBridge.DR_OK;
         }
 
-        if (lastFrameNumber == 0) {
-            activeWindowVideoStats.measurementStartTimestamp = System.currentTimeMillis();
-        } else if (frameNumber != lastFrameNumber && frameNumber != lastFrameNumber + 1) {
-            // We can receive the same "frame" multiple times if it's an IDR frame.
-            // In that case, each frame start NALU is submitted independently.
-            activeWindowVideoStats.framesLost += frameNumber - lastFrameNumber - 1;
-            activeWindowVideoStats.totalFrames += frameNumber - lastFrameNumber - 1;
-            activeWindowVideoStats.frameLossEvents++;
-        }
-
-        lastFrameNumber = frameNumber;
-
-        // Flip stats windows roughly every second
-        if (System.currentTimeMillis() >= activeWindowVideoStats.measurementStartTimestamp + 1000) {
-            if (prefs.enablePerfOverlay) {
-                VideoStats lastTwo = new VideoStats();
-                lastTwo.add(lastWindowVideoStats);
-                lastTwo.add(activeWindowVideoStats);
-                VideoStatsFps fps = lastTwo.getFps();
-                String decoder;
-
-                if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
-                    decoder = avcDecoder.getName();
-                } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
-                    decoder = hevcDecoder.getName();
-                } else {
-                    decoder = "(unknown)";
-                }
-
-                float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
-                String perfText = context.getString(
-                        R.string.perf_overlay_text,
-                        initialWidth + "x" + initialHeight,
-                        decoder,
-                        fps.totalFps,
-                        fps.receivedFps,
-                        fps.renderedFps,
-                        (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
-                        ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
-                        decodeTimeMs);
-                perfListener.onPerfUpdate(perfText);
-            }
-
-            globalVideoStats.add(activeWindowVideoStats);
-            lastWindowVideoStats.copy(activeWindowVideoStats);
-            activeWindowVideoStats.clear();
-            activeWindowVideoStats.measurementStartTimestamp = System.currentTimeMillis();
-        }
-
-        activeWindowVideoStats.totalFramesReceived++;
-        activeWindowVideoStats.totalFrames++;
-
         int inputBufferIndex;
         ByteBuffer buf;
-
-        long timestampUs = System.nanoTime() / 1000;
-
-        if (!FRAME_RENDER_TIME_ONLY) {
-            // Count time from first packet received to decode start
-            activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
-        }
-
-        if (timestampUs <= lastTimestampUs) {
-            // We can't submit multiple buffers with the same timestamp
-            // so bump it up by one before queuing
-            timestampUs = lastTimestampUs + 1;
-        }
-
-        lastTimestampUs = timestampUs;
 
         int codecFlags = 0;
 
@@ -923,6 +864,90 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         // Copy data from our buffer list into the input buffer
         buf.put(decodeUnitData, 0, decodeUnitLength);
+
+//        Date curDate = new Date(System.currentTimeMillis());
+//PROCESSING
+
+        long currentTimeMillis = System.currentTimeMillis();
+
+        if (lastFrameNumber == 0) {
+            activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
+        } else if (frameNumber != lastFrameNumber && frameNumber != lastFrameNumber + 1) {
+            // We can receive the same "frame" multiple times if it's an IDR frame.
+            // In that case, each frame start NALU is submitted independently.
+            activeWindowVideoStats.framesLost += frameNumber - lastFrameNumber - 1;
+            activeWindowVideoStats.totalFrames += frameNumber - lastFrameNumber - 1;
+            activeWindowVideoStats.frameLossEvents++;
+        }
+
+        lastFrameNumber = frameNumber;
+
+        // Flip stats windows roughly every second
+        if (currentTimeMillis >= activeWindowVideoStats.measurementStartTimestamp + 1000) {
+            if (prefs.enablePerfOverlay) {
+                final VideoStats lastTwo = new VideoStats();
+                lastTwo.add(lastWindowVideoStats);
+                lastTwo.add(activeWindowVideoStats);
+                final VideoStatsFps fps = lastTwo.getFps();
+                final String decoder;
+
+                if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
+                    decoder = avcDecoder.getName();
+                } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
+                    decoder = hevcDecoder.getName();
+                } else {
+                    decoder = "(unknown)";
+                }
+
+                final float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
+
+                infoHandler.post(new Runnable()
+                {
+                    @Override public void run()
+                    {
+                        String perfText = context.getString(
+                                R.string.perf_overlay_text,
+                                initialWidth + "x" + initialHeight,
+                                decoder,
+                                fps.totalFps,
+                                fps.receivedFps,
+                                fps.renderedFps,
+                                (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
+                                ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
+                                decodeTimeMs);
+
+                        perfListener.onPerfUpdate(perfText);
+                    }
+                });
+            }
+
+            globalVideoStats.add(activeWindowVideoStats);
+            lastWindowVideoStats.copy(activeWindowVideoStats);
+            activeWindowVideoStats.clear();
+            activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
+        }
+
+        activeWindowVideoStats.totalFramesReceived++;
+        activeWindowVideoStats.totalFrames++;
+
+//        Date endDate = new Date(System.currentTimeMillis());
+//        long diff = endDate.getTime() - curDate.getTime();
+//        System.out.println("diff " + diff);
+
+        long timestampUs = System.nanoTime() / 1000;
+
+        if (!FRAME_RENDER_TIME_ONLY) {
+            // Count time from first packet received to decode start
+            activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
+        }
+
+        if (timestampUs <= lastTimestampUs) {
+            // We can't submit multiple buffers with the same timestamp
+            // so bump it up by one before queuing
+            timestampUs = lastTimestampUs + 1;
+        }
+
+        lastTimestampUs = timestampUs;
 
         if (!queueInputBuffer(inputBufferIndex,
                 0, buf.position(),

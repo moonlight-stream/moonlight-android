@@ -72,6 +72,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private Semaphore renderingSemaphore;
     private int freeInputBufferIndex = -1;
     private Lock freeInputBufferLock;
+    private ByteBuffer freeInputBuffer;
 
     private MediaFormat inputFormat;
     private MediaFormat outputFormat;
@@ -507,12 +508,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
                             // 这里再请求一个空白的帧
                             freeInputBufferLock.lock();
-                            if (freeInputBufferIndex == -1) {
+                            if (freeInputBufferIndex < 0) {
                                 int index = -1;
                                 while (index < 0 && !stopping) {
                                     index = videoDecoder.dequeueInputBuffer(10000);
                                 }
                                 freeInputBufferIndex = index;
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                    freeInputBuffer = videoDecoder.getInputBuffer(index);
+                                }
                             }
                             freeInputBufferLock.unlock();;
 
@@ -553,7 +557,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         try {
             freeInputBufferLock.lock();
-            if (freeInputBufferIndex > -1) {
+            if (freeInputBufferIndex >= 0) {
                 index = freeInputBufferIndex;
             } else {
                 while (index < 0 && !stopping) {
@@ -643,7 +647,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             try {
-                buf = videoDecoder.getInputBuffer(inputBufferIndex);
+//                buf = videoDecoder.getInputBuffer(inputBufferIndex);
+
+                freeInputBufferLock.lock();
+                if (freeInputBuffer != null) {
+                    buf = freeInputBuffer;
+                    freeInputBuffer = null;
+                } else {
+                    buf = videoDecoder.getInputBuffer(inputBufferIndex);
+                }
+                freeInputBufferLock.unlock();
+
+
             } catch (Exception e) {
                 handleDecoderException(e, null, 0, true);
                 return null;

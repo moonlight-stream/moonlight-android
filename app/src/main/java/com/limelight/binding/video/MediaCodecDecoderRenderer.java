@@ -1,8 +1,12 @@
 package com.limelight.binding.video;
 
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.jcodec.codecs.h264.H264Utils;
 import org.jcodec.codecs.h264.io.model.SeqParameterSet;
@@ -65,6 +69,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private PerfOverlayListener perfListener;
     private Handler infoHandler;
     private HandlerThread handlerThread;
+    private Semaphore renderingSemaphore;
 
     private MediaFormat inputFormat;
     private MediaFormat outputFormat;
@@ -146,6 +151,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.handlerThread = new HandlerThread("HandlerThread");
         this.handlerThread.start();
         this.infoHandler = new Handler(this.handlerThread.getLooper());
+        this.renderingSemaphore = new Semaphore(0);
 
         this.activeWindowVideoStats = new VideoStats();
         this.lastWindowVideoStats = new VideoStats();
@@ -445,9 +451,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         rendererThread = new Thread() {
             @Override
             public void run() {
+
                 BufferInfo info = new BufferInfo();
                 while (!stopping) {
                     try {
+
+//                        System.out.println("请求信号");
+                        renderingSemaphore.acquire();
+                        if (stopping) break;
+
                         // Try to output a frame
                         int outIndex = videoDecoder.dequeueOutputBuffer(info, 50000);
                         if (outIndex >= 0) {
@@ -455,12 +467,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             int lastIndex = outIndex;
 
                             // Get the last output buffer in the queue
-                            while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
-                                videoDecoder.releaseOutputBuffer(lastIndex, false);
-
-                                lastIndex = outIndex;
-                                presentationTimeUs = info.presentationTimeUs;
-                            }
+//                            while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
+//                                videoDecoder.releaseOutputBuffer(lastIndex, false);
+//
+//                                lastIndex = outIndex;
+//                                presentationTimeUs = info.presentationTimeUs;
+//                            }
 
                             // Render the last buffer
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -489,6 +501,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                     activeWindowVideoStats.totalTimeMs += delta;
                                 }
                             }
+
+//                            System.out.println("完成一帧渲染");
+                            renderingSemaphore.release();
+
                         } else {
                             switch (outIndex) {
                                 case MediaCodec.INFO_TRY_AGAIN_LATER:
@@ -565,6 +581,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         if (rendererThread != null) {
             rendererThread.interrupt();
         }
+
+        renderingSemaphore.release();
     }
 
     @Override
@@ -901,6 +919,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
                 final float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
 
+                final Long nowTime = currentTimeMillis;
+
                 infoHandler.post(new Runnable()
                 {
                     @Override public void run()
@@ -916,7 +936,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                 ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
                                 decodeTimeMs);
 
-                        perfListener.onPerfUpdate(perfText);
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss");
+                        Date date = new Date(nowTime);
+                        String time = simpleDateFormat.format(date);
+
+                        perfListener.onPerfUpdate(perfText + "," + time);
                     }
                 });
             }
@@ -940,6 +964,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // Count time from first packet received to decode start
             activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
         }
+
+//        System.out.println("timestampUs diff " + (timestampUs-lastTimestampUs));
 
         if (timestampUs <= lastTimestampUs) {
             // We can't submit multiple buffers with the same timestamp
@@ -968,6 +994,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 LimeLog.info("SPS replay complete");
             }
         }
+
+        renderingSemaphore.release();
 
         return MoonBridge.DR_OK;
     }

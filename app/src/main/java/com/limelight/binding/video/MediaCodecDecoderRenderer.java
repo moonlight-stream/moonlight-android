@@ -70,6 +70,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private Handler infoHandler;
     private HandlerThread handlerThread;
     private Semaphore renderingSemaphore;
+    private int freeInputBufferIndex = -1;
+    private Lock freeInputBufferLock;
 
     private MediaFormat inputFormat;
     private MediaFormat outputFormat;
@@ -152,6 +154,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.handlerThread.start();
         this.infoHandler = new Handler(this.handlerThread.getLooper());
         this.renderingSemaphore = new Semaphore(0);
+        this.freeInputBufferLock = new ReentrantLock();
 
         this.activeWindowVideoStats = new VideoStats();
         this.lastWindowVideoStats = new VideoStats();
@@ -502,6 +505,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                 }
                             }
 
+                            // 这里再请求一个空白的帧
+                            freeInputBufferLock.lock();
+                            if (freeInputBufferIndex == -1) {
+                                int index = -1;
+                                while (index < 0 && !stopping) {
+                                    index = videoDecoder.dequeueInputBuffer(10000);
+                                }
+                                freeInputBufferIndex = index;
+                            }
+                            freeInputBufferLock.unlock();;
+
                             renderingSemaphore.release();
 
 //                            System.out.println("完成一帧渲染");
@@ -538,9 +552,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         startTime = MediaCodecHelper.getMonotonicMillis();
 
         try {
-            while (index < 0 && !stopping) {
-                index = videoDecoder.dequeueInputBuffer(10000);
+            freeInputBufferLock.lock();
+            if (freeInputBufferIndex > -1) {
+                index = freeInputBufferIndex;
+            } else {
+                while (index < 0 && !stopping) {
+                    index = videoDecoder.dequeueInputBuffer(10000);
+                }
             }
+            freeInputBufferIndex = -1;
+            freeInputBufferLock.unlock();
         } catch (Exception e) {
             handleDecoderException(e, null, 0, true);
             return MediaCodec.INFO_TRY_AGAIN_LATER;

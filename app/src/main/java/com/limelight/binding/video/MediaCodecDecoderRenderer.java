@@ -502,8 +502,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                 }
                             }
 
-//                            System.out.println("完成一帧渲染");
                             renderingSemaphore.release();
+
+//                            System.out.println("完成一帧渲染");
+
 
                         } else {
                             switch (outIndex) {
@@ -936,11 +938,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                 ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
                                 decodeTimeMs);
 
-                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss");
-                        Date date = new Date(nowTime);
-                        String time = simpleDateFormat.format(date);
-
-                        perfListener.onPerfUpdate(perfText + "," + time);
+                        perfListener.onPerfUpdate(perfText);
                     }
                 });
             }

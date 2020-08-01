@@ -688,6 +688,95 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         int inputBufferIndex;
         ByteBuffer buf;
 
+        //        Date curDate = new Date(System.currentTimeMillis());
+//PROCESSING
+
+        long currentTimeMillis = System.currentTimeMillis();
+
+        if (lastFrameNumber == 0) {
+            activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
+        } else if (frameNumber != lastFrameNumber && frameNumber != lastFrameNumber + 1) {
+            // We can receive the same "frame" multiple times if it's an IDR frame.
+            // In that case, each frame start NALU is submitted independently.
+            activeWindowVideoStats.framesLost += frameNumber - lastFrameNumber - 1;
+            activeWindowVideoStats.totalFrames += frameNumber - lastFrameNumber - 1;
+            activeWindowVideoStats.frameLossEvents++;
+        }
+
+        lastFrameNumber = frameNumber;
+
+        // Flip stats windows roughly every second
+        if (currentTimeMillis >= activeWindowVideoStats.measurementStartTimestamp + 1000) {
+            if (prefs.enablePerfOverlay) {
+                final VideoStats lastTwo = new VideoStats();
+                lastTwo.add(lastWindowVideoStats);
+                lastTwo.add(activeWindowVideoStats);
+                final VideoStatsFps fps = lastTwo.getFps();
+                final String decoder;
+
+                if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
+                    decoder = avcDecoder.getName();
+                } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
+                    decoder = hevcDecoder.getName();
+                } else {
+                    decoder = "(unknown)";
+                }
+
+                final float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
+
+                final Long nowTime = currentTimeMillis;
+
+                infoHandler.post(new Runnable()
+                {
+                    @Override public void run()
+                    {
+                        String perfText = context.getString(
+                                R.string.perf_overlay_text,
+                                initialWidth + "x" + initialHeight,
+                                decoder,
+                                fps.totalFps,
+                                fps.receivedFps,
+                                fps.renderedFps,
+                                (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
+                                ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
+                                decodeTimeMs);
+
+                        perfListener.onPerfUpdate(perfText);
+                    }
+                });
+            }
+
+            globalVideoStats.add(activeWindowVideoStats);
+            lastWindowVideoStats.copy(activeWindowVideoStats);
+            activeWindowVideoStats.clear();
+            activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
+        }
+
+        activeWindowVideoStats.totalFramesReceived++;
+        activeWindowVideoStats.totalFrames++;
+
+//        Date endDate = new Date(System.currentTimeMillis());
+//        long diff = endDate.getTime() - curDate.getTime();
+//        System.out.println("diff " + diff);
+//        System.out.println("++++ 提交数据 " + System.currentTimeMillis());
+
+        long timestampUs = System.nanoTime() / 1000;
+
+        if (!FRAME_RENDER_TIME_ONLY) {
+            // Count time from first packet received to decode start
+            activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
+        }
+
+//        System.out.println("timestampUs diff " + (timestampUs-lastTimestampUs));
+
+        if (timestampUs <= lastTimestampUs) {
+            // We can't submit multiple buffers with the same timestamp
+            // so bump it up by one before queuing
+            timestampUs = lastTimestampUs + 1;
+        }
+
+        lastTimestampUs = timestampUs;
+
         int codecFlags = 0;
 
         // H264 SPS
@@ -905,95 +994,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         // Copy data from our buffer list into the input buffer
         buf.put(decodeUnitData, 0, decodeUnitLength);
-
-//        Date curDate = new Date(System.currentTimeMillis());
-//PROCESSING
-
-        long currentTimeMillis = System.currentTimeMillis();
-
-        if (lastFrameNumber == 0) {
-            activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
-        } else if (frameNumber != lastFrameNumber && frameNumber != lastFrameNumber + 1) {
-            // We can receive the same "frame" multiple times if it's an IDR frame.
-            // In that case, each frame start NALU is submitted independently.
-            activeWindowVideoStats.framesLost += frameNumber - lastFrameNumber - 1;
-            activeWindowVideoStats.totalFrames += frameNumber - lastFrameNumber - 1;
-            activeWindowVideoStats.frameLossEvents++;
-        }
-
-        lastFrameNumber = frameNumber;
-
-        // Flip stats windows roughly every second
-        if (currentTimeMillis >= activeWindowVideoStats.measurementStartTimestamp + 1000) {
-            if (prefs.enablePerfOverlay) {
-                final VideoStats lastTwo = new VideoStats();
-                lastTwo.add(lastWindowVideoStats);
-                lastTwo.add(activeWindowVideoStats);
-                final VideoStatsFps fps = lastTwo.getFps();
-                final String decoder;
-
-                if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
-                    decoder = avcDecoder.getName();
-                } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
-                    decoder = hevcDecoder.getName();
-                } else {
-                    decoder = "(unknown)";
-                }
-
-                final float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
-
-                final Long nowTime = currentTimeMillis;
-
-                infoHandler.post(new Runnable()
-                {
-                    @Override public void run()
-                    {
-                        String perfText = context.getString(
-                                R.string.perf_overlay_text,
-                                initialWidth + "x" + initialHeight,
-                                decoder,
-                                fps.totalFps,
-                                fps.receivedFps,
-                                fps.renderedFps,
-                                (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
-                                ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
-                                decodeTimeMs);
-
-                        perfListener.onPerfUpdate(perfText);
-                    }
-                });
-            }
-
-            globalVideoStats.add(activeWindowVideoStats);
-            lastWindowVideoStats.copy(activeWindowVideoStats);
-            activeWindowVideoStats.clear();
-            activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
-        }
-
-        activeWindowVideoStats.totalFramesReceived++;
-        activeWindowVideoStats.totalFrames++;
-
-//        Date endDate = new Date(System.currentTimeMillis());
-//        long diff = endDate.getTime() - curDate.getTime();
-//        System.out.println("diff " + diff);
-//        System.out.println("++++ 提交数据 " + System.currentTimeMillis());
-
-        long timestampUs = System.nanoTime() / 1000;
-
-        if (!FRAME_RENDER_TIME_ONLY) {
-            // Count time from first packet received to decode start
-            activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
-        }
-
-//        System.out.println("timestampUs diff " + (timestampUs-lastTimestampUs));
-
-        if (timestampUs <= lastTimestampUs) {
-            // We can't submit multiple buffers with the same timestamp
-            // so bump it up by one before queuing
-            timestampUs = lastTimestampUs + 1;
-        }
-
-        lastTimestampUs = timestampUs;
 
         if (!queueInputBuffer(inputBufferIndex,
                 0, buf.position(),

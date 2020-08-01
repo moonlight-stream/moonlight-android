@@ -452,7 +452,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             @Override
             public void run() {
 
-                long lastRenderTime = System.currentTimeMillis();
+//                long lastRenderTime = System.currentTimeMillis();
 
                 BufferInfo info = new BufferInfo();
                 while (!stopping) {
@@ -513,7 +513,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             }
 
                             // 再赋予一次输出帧的检查，以检查当前提交周期进来的数据提交
-//                            renderingSemaphore.release();
+                            renderingSemaphore.release();
 
 //                            System.out.println("完成一帧渲染");
 //                            long currentTime = System.currentTimeMillis();

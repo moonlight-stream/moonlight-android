@@ -452,28 +452,35 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             @Override
             public void run() {
 
+                long lastRenderTime = System.currentTimeMillis();
+
                 BufferInfo info = new BufferInfo();
                 while (!stopping) {
                     try {
 
                         // dequeueOutputBuffer是有开销的，大概<=1ms，使用信号量，减少每秒几十次的空请求，减轻数据输入时的解码器访问阻塞
-//                        System.out.println("请求信号");
+//                        System.out.println("等待信号 " + System.currentTimeMillis());
                         renderingSemaphore.acquire();
                         if (stopping) break;
+//                        System.out.println("收到信号 " + System.currentTimeMillis());
 
                         // Try to output a frame
-                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 50000);
+                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
                         if (outIndex >= 0) {
                             long presentationTimeUs = info.presentationTimeUs;
                             int lastIndex = outIndex;
 
-                            // Get the last output buffer in the queue
-                            while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
-                                videoDecoder.releaseOutputBuffer(lastIndex, false);
+//                            long startTime = System.currentTimeMillis();
+//                            System.out.println("- 渲染数据 " + startTime + " " + (startTime-lastRenderTime));
+//                            lastRenderTime = startTime;
 
-                                lastIndex = outIndex;
-                                presentationTimeUs = info.presentationTimeUs;
-                            }
+                            // Get the last output buffer in the queue
+//                            while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
+//                                videoDecoder.releaseOutputBuffer(lastIndex, false);
+//
+//                                lastIndex = outIndex;
+//                                presentationTimeUs = info.presentationTimeUs;
+//                            }
 //                            // 丢弃所有可用
 //                            renderingSemaphore.drainPermits();
 
@@ -506,10 +513,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             }
 
                             // 再赋予一次输出帧的检查，以检查当前提交周期进来的数据提交
-                            renderingSemaphore.release();
+//                            renderingSemaphore.release();
 
 //                            System.out.println("完成一帧渲染");
-
+//                            long currentTime = System.currentTimeMillis();
+//                            if (currentTime - startTime > 5) {
+//                                System.out.println("!!!! 渲染延迟 " + currentTime);
+//                            } else {
+//                                System.out.println("- 渲染完成 " + currentTime + " " + (currentTime - startTime));
+//                            }
 
                         } else {
                             switch (outIndex) {
@@ -525,8 +537,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             }
                             // 丢去所有信号，等待下一次数据提交
                             renderingSemaphore.drainPermits();
+
+//                            System.out.println("- 没有找到 " + System.currentTimeMillis());
                         }
                     } catch (Exception e) {
+//                        System.out.println("!!!! error " + System.currentTimeMillis());
                         handleDecoderException(e, null, 0, false);
                     }
                 }
@@ -961,6 +976,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 //        Date endDate = new Date(System.currentTimeMillis());
 //        long diff = endDate.getTime() - curDate.getTime();
 //        System.out.println("diff " + diff);
+//        System.out.println("++++ 提交数据 " + System.currentTimeMillis());
 
         long timestampUs = System.nanoTime() / 1000;
 
@@ -982,6 +998,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         if (!queueInputBuffer(inputBufferIndex,
                 0, buf.position(),
                 timestampUs, codecFlags)) {
+//            System.out.println("DR_NEED_IDR " + System.currentTimeMillis());
             return MoonBridge.DR_NEED_IDR;
         }
 
@@ -992,6 +1009,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 needsBaselineSpsHack = false;
 
                 if (!replaySps()) {
+//                    System.out.println("DR_NEED_IDR " + System.currentTimeMillis());
                     return MoonBridge.DR_NEED_IDR;
                 }
 

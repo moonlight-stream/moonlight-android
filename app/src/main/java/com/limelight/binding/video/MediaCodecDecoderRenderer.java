@@ -456,6 +456,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 while (!stopping) {
                     try {
 
+                        // dequeueOutputBuffer是有开销的，大概<=1ms，使用信号量，减少每秒几十次的空请求，减轻数据输入时的解码器访问阻塞
 //                        System.out.println("请求信号");
                         renderingSemaphore.acquire();
                         if (stopping) break;
@@ -467,12 +468,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             int lastIndex = outIndex;
 
                             // Get the last output buffer in the queue
-//                            while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
-//                                videoDecoder.releaseOutputBuffer(lastIndex, false);
-//
-//                                lastIndex = outIndex;
-//                                presentationTimeUs = info.presentationTimeUs;
-//                            }
+                            while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
+                                videoDecoder.releaseOutputBuffer(lastIndex, false);
+
+                                lastIndex = outIndex;
+                                presentationTimeUs = info.presentationTimeUs;
+                            }
+//                            // 丢弃所有可用
+//                            renderingSemaphore.drainPermits();
 
                             // Render the last buffer
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -502,6 +505,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                 }
                             }
 
+                            // 再赋予一次输出帧的检查，以检查当前提交周期进来的数据提交
                             renderingSemaphore.release();
 
 //                            System.out.println("完成一帧渲染");
@@ -519,6 +523,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                 default:
                                     break;
                             }
+                            // 丢去所有信号，等待下一次数据提交
+                            renderingSemaphore.drainPermits();
                         }
                     } catch (Exception e) {
                         handleDecoderException(e, null, 0, false);

@@ -466,7 +466,23 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 while (!stopping) {
                     try {
 
-                        // dequeueOutputBuffer是有开销的，大概<=1ms，使用信号量，减少每秒几十次的空请求，减轻数据输入时的解码器访问阻塞
+                        /*
+                        加入信号量控制之后，提交和渲染变得更有序，画面稳定
+                        ...
+                        2020-08-02 18:59:21.219 17682-18110/com.limelight.debug I/System.out: + 提交 172384290 <-0
+                        2020-08-02 18:59:21.221 17682-18109/com.limelight.debug I/System.out: - 渲染 172384292 172384258
+                        2020-08-02 18:59:21.237 17682-18110/com.limelight.debug I/System.out: + 提交 172384308 <-- 1
+                        2020-08-02 18:59:21.239 17682-18109/com.limelight.debug I/System.out: - 渲染 172384310 172384275
+                        2020-08-02 18:59:21.254 17682-18110/com.limelight.debug I/System.out: + 提交 172384325 <--- 2
+                        2020-08-02 18:59:21.256 17682-18109/com.limelight.debug I/System.out: - 渲染 172384327 172384290 <- 0
+                        2020-08-02 18:59:21.270 17682-18110/com.limelight.debug I/System.out: + 提交 172384340
+                        2020-08-02 18:59:21.272 17682-18109/com.limelight.debug I/System.out: - 渲染 172384343 172384308 <-- 1
+                        2020-08-02 18:59:21.287 17682-18110/com.limelight.debug I/System.out: + 提交 172384358
+                        2020-08-02 18:59:21.289 17682-18109/com.limelight.debug I/System.out: - 渲染 172384361 172384325 <--- 2
+                        2020-08-02 18:59:21.303 17682-18110/com.limelight.debug I/System.out: + 提交 172384374
+                        2020-08-02 18:59:21.306 17682-18109/com.limelight.debug I/System.out: - 渲染 172384377 172384340
+                        ...
+                        */
 //                        System.out.println("等待信号 " + System.currentTimeMillis());
                         renderingSemaphore.acquire();
                         if (stopping) break;
@@ -519,6 +535,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                     activeWindowVideoStats.totalTimeMs += delta;
                                 }
                             }
+//                            System.out.println("- 渲染 " + MediaCodecHelper.getMonotonicMillis() + " " + (presentationTimeUs / 1000));
 
                             // 再赋予一次输出帧的检查，以检查当前提交周期进来的数据提交
                             renderingSemaphore.release();
@@ -1054,6 +1071,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 //        buf.position(pos);
 //        buf.put(decodeUnitData, 0, decodeUnitLength);
 
+//        System.out.println("+ 提交 " + timestampUs/1000);
 
         if (!queueInputBuffer(inputBufferIndex,
                 0, buf.position(),

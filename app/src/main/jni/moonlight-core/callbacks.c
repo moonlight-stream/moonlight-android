@@ -147,7 +147,7 @@ void BridgeDrCleanup(void) {
     (*env)->DeleteGlobalRef(env, objDecodedFrameBuffer);
 }
 
-#define LOG_DEBUG_SUBMIT
+//#define LOG_DEBUG_SUBMIT
 
 int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     JNIEnv* env = GetThreadEnv();

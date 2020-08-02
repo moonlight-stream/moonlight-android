@@ -4,6 +4,8 @@ import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 
+import java.nio.ByteBuffer;
+
 public class MoonBridge {
     /* See documentation in Limelight.h for information about these functions and constants */
 
@@ -127,11 +129,11 @@ public class MoonBridge {
         }
     }
 
-    public static int bridgeDrSubmitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength,
+    public static int bridgeDrSubmitDecodeUnit(byte[] decodeUnitData, ByteBuffer decodeUnitData2, int decodeUnitLength,
                                                int decodeUnitType,
                                                int frameNumber, long receiveTimeMs) {
         if (videoRenderer != null) {
-            return videoRenderer.submitDecodeUnit(decodeUnitData, decodeUnitLength,
+            return videoRenderer.submitDecodeUnit(decodeUnitData, decodeUnitData2, decodeUnitLength,
                     decodeUnitType, frameNumber, receiveTimeMs);
         }
         else {
@@ -272,4 +274,6 @@ public class MoonBridge {
     public static native int getPendingVideoFrames();
 
     public static native void init();
+
+    public static native void nativeCopy(ByteBuffer buffer0, int offset0, ByteBuffer buffer1, int offset1, int length);
 }

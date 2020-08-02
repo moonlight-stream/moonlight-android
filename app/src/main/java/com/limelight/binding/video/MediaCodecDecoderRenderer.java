@@ -30,6 +30,8 @@ import android.os.HandlerThread;
 import android.util.Range;
 import android.view.SurfaceHolder;
 
+import static com.limelight.nvstream.jni.MoonBridge.nativeCopy;
+
 public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private static final boolean USE_FRAME_RENDER_TIME = false;
@@ -676,9 +678,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
     }
 
+    public final static int copy(final ByteBuffer from, final int offset1,
+                                 final ByteBuffer to, final int offset2, final int len) {
+        System.arraycopy(from.array(), offset1, to.array(), offset2, len);
+        to.limit(offset2 + len);
+        return len;
+    }
+
     @SuppressWarnings("deprecation")
     @Override
-    public int submitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
+    public int submitDecodeUnit(byte[] decodeUnitData, ByteBuffer decodeUnitData2, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {
         if (stopping) {
             // Don't bother if we're stopping
@@ -780,10 +789,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         int codecFlags = 0;
 
         // H264 SPS
-        if (decodeUnitData[4] == 0x67) {
+//        if (decodeUnitData[4] == 0x67) {
+        if (decodeUnitData2.get(4) == 0x67) {
             numSpsIn++;
 
+//            ByteBuffer clone = ByteBuffer.allocate(decodeUnitData.capacity());
+//            decodeUnitData.rewind();//copy from the beginning
+//            clone.put(decodeUnitData);
+//            decodeUnitData.rewind();
+//            clone.flip();
+
             ByteBuffer spsBuf = ByteBuffer.wrap(decodeUnitData);
+//            ByteBuffer spsBuf = clone;
 
             // Skip to the start of the NALU data
             spsBuf.position(5);
@@ -993,7 +1010,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         // Copy data from our buffer list into the input buffer
-        buf.put(decodeUnitData, 0, decodeUnitLength);
+//        decodeUnitData2.position(0);
+//        byte[] b = new byte[decodeUnitData2.remaining()];
+//        decodeUnitData2.get(b);
+//        buf.put(b, 0, decodeUnitLength);
+
+        int pos = buf.position();
+        nativeCopy(decodeUnitData2, 0, buf, pos, decodeUnitLength);
+//        buf.position(pos + decodeUnitLength);
+
+
+//        buf.put(decodeUnitData, 0, decodeUnitLength);
+
 
         if (!queueInputBuffer(inputBufferIndex,
                 0, buf.position(),

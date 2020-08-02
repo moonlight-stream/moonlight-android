@@ -4,6 +4,7 @@
 #include <android/log.h>
 
 #include <arpa/inet.h>
+#include <string.h>
 
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendMouseMove(JNIEnv *env, jclass clazz, jshort deltaX, jshort deltaY) {
@@ -101,4 +102,24 @@ Java_com_limelight_nvstream_jni_MoonBridge_getPendingAudioDuration(JNIEnv *env, 
 JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_getPendingVideoFrames(JNIEnv *env, jclass clazz) {
     return LiGetPendingVideoFrames();
+}
+
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_nativeCopy(JNIEnv *env, jclass clazz, jobject buffer0,
+                                                      jint offset0, jobject buffer1, jint offset1,
+                                                      jint length) {
+//    jclass cls = (*env)->GetObjectClass(env, buffer0);
+//    jmethodID mid = (*env)->GetMethodID(env, cls, "limit", "(I)Ljava/nio/Buffer;");
+
+    char *buf0 = (char*)(*env)->GetDirectBufferAddress(env, buffer0);
+//    jlong capacity0 = (*env)->GetDirectBufferCapacity(env, buffer0);
+    char *buf1 = (char*)(*env)->GetDirectBufferAddress(env, buffer1);
+//    jlong capacity1 = (*env)->GetDirectBufferCapacity(env, buffer1);
+//    int written = length;
+
+    // Do something spectacular with the buffer...
+    memcpy(buf1+offset1, buf0+offset0, length);
+
+//    (*env)->CallObjectMethod(env, buffer0, mid, written);
+//    (*env)->CallObjectMethod(env, buffer1, mid, written);
 }

@@ -31,6 +31,8 @@ import android.util.Range;
 import android.view.SurfaceHolder;
 
 import static com.limelight.nvstream.jni.MoonBridge.nativeCopy;
+import static com.limelight.nvstream.jni.MoonBridge.nativeCreate;
+import static com.limelight.nvstream.jni.MoonBridge.nativeFree;
 
 public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
@@ -43,9 +45,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private MediaCodecInfo avcDecoder;
     private MediaCodecInfo hevcDecoder;
 
-    private byte[] vpsBuffer;
-    private byte[] spsBuffer;
-    private byte[] ppsBuffer;
+//    private byte[] vpsBuffer;
+//    private byte[] spsBuffer;
+//    private byte[] ppsBuffer;
+    private ByteBuffer vpsBuffer;
+    private ByteBuffer spsBuffer;
+    private ByteBuffer ppsBuffer;
+
     private boolean submittedCsd;
     private boolean submitCsdNextCall;
 
@@ -913,20 +919,31 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             ByteBuffer escapedNalu = H264Utils.writeSPS(sps, decodeUnitLength);
 
             // Batch this to submit together with PPS
-            spsBuffer = new byte[5 + escapedNalu.limit()];
-            System.arraycopy(decodeUnitData, 0, spsBuffer, 0, 5);
-//            nativeCopy(decodeUnitData2, 0, ByteBuffer.wrap(spsBuffer), 0, 5);
+//            spsBuffer = new byte[5 + escapedNalu.limit()];
+//            System.arraycopy(decodeUnitData, 0, spsBuffer, 0, 5);
+//            escapedNalu.get(spsBuffer, 5, escapedNalu.limit());
 
-            escapedNalu.get(spsBuffer, 5, escapedNalu.limit());
+            if (spsBuffer != null) nativeFree(spsBuffer);
+
+            spsBuffer = nativeCreate(5 + escapedNalu.limit());
+            nativeCopy(decodeUnitData2, 0, spsBuffer, 0, 5);
+            spsBuffer.position(5);
+            spsBuffer.put(escapedNalu.array(), 0, escapedNalu.limit());
+            spsBuffer.position(0);
+
             return MoonBridge.DR_OK;
         }
         else if (decodeUnitType == MoonBridge.BUFFER_TYPE_VPS) {
             numVpsIn++;
 
             // Batch this to submit together with SPS and PPS per AOSP docs
-            vpsBuffer = new byte[decodeUnitLength];
-            System.arraycopy(decodeUnitData, 0, vpsBuffer, 0, decodeUnitLength);
-//            nativeCopy(decodeUnitData2, 0, ByteBuffer.wrap(vpsBuffer), 0, decodeUnitLength);
+//            vpsBuffer = new byte[decodeUnitLength];
+//            System.arraycopy(decodeUnitData, 0, vpsBuffer, 0, decodeUnitLength);
+
+            if (vpsBuffer != null) nativeFree(vpsBuffer);
+
+            vpsBuffer = nativeCreate(decodeUnitLength);
+            nativeCopy(decodeUnitData2, 0, vpsBuffer, 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
         // Only the HEVC SPS hits this path (H.264 is handled above)
@@ -934,9 +951,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             numSpsIn++;
 
             // Batch this to submit together with VPS and PPS per AOSP docs
-            spsBuffer = new byte[decodeUnitLength];
-            System.arraycopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength);
-//            nativeCopy(decodeUnitData2, 0, ByteBuffer.wrap(spsBuffer), 0, decodeUnitLength);
+//            spsBuffer = new byte[decodeUnitLength];
+//            System.arraycopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength);
+
+            if (spsBuffer != null) nativeFree(spsBuffer);
+
+            spsBuffer = nativeCreate(decodeUnitLength);
+            nativeCopy(decodeUnitData2, 0, spsBuffer, 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
         else if (decodeUnitType == MoonBridge.BUFFER_TYPE_PPS) {
@@ -972,9 +993,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
             else {
                 // Batch this to submit together with the next I-frame
-                ppsBuffer = new byte[decodeUnitLength];
-                System.arraycopy(decodeUnitData, 0, ppsBuffer, 0, decodeUnitLength);
-//                nativeCopy(decodeUnitData2, 0, ByteBuffer.wrap(ppsBuffer), 0, decodeUnitLength);
+//                ppsBuffer = new byte[decodeUnitLength];
+//                System.arraycopy(decodeUnitData, 0, ppsBuffer, 0, decodeUnitLength);
+
+                if (ppsBuffer != null) nativeFree(ppsBuffer);
+
+                ppsBuffer = nativeCreate(decodeUnitLength);
+                nativeCopy(decodeUnitData2, 0, ppsBuffer, 0, decodeUnitLength);
 
                 // Next call will be I-frame data
                 submitCsdNextCall = true;

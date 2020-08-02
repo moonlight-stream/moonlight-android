@@ -276,4 +276,7 @@ public class MoonBridge {
     public static native void init();
 
     public static native void nativeCopy(ByteBuffer buffer0, int offset0, ByteBuffer buffer1, int offset1, int length);
+
+    public static native ByteBuffer nativeCreate(int size);
+    public static native void nativeFree(ByteBuffer buffer);
 }

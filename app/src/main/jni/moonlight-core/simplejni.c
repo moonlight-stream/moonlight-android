@@ -5,6 +5,7 @@
 
 #include <arpa/inet.h>
 #include <string.h>
+#include <stdlib.h>
 
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendMouseMove(JNIEnv *env, jclass clazz, jshort deltaX, jshort deltaY) {
@@ -122,4 +123,17 @@ Java_com_limelight_nvstream_jni_MoonBridge_nativeCopy(JNIEnv *env, jclass clazz,
 
 //    (*env)->CallObjectMethod(env, buffer0, mid, written);
 //    (*env)->CallObjectMethod(env, buffer1, mid, written);
+}
+
+JNIEXPORT jobject JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_nativeCreate(JNIEnv *env, jclass clazz, jint size) {
+    void* buf = malloc(size);
+    jobject obj = (*env)->NewDirectByteBuffer(env, buf, size);
+    return (*env)->NewGlobalRef(env, obj);
+}
+
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_nativeFree(JNIEnv *env, jclass clazz, jobject buffer) {
+    void* buf = (*env)->GetDirectBufferAddress(env, buffer);
+    free(buf);
 }

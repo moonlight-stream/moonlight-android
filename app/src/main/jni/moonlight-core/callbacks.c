@@ -122,8 +122,8 @@ int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* 
 
     cDecodedFrameBufferLength = 32768;
     cDecodedFrameBuffer = (uint8_t*)malloc(cDecodedFrameBufferLength);
-    objDecodedFrameBuffer = (*env)->NewDirectByteBuffer(env, cDecodedFrameBuffer, cDecodedFrameBufferLength);
-
+    objDecodedFrameBuffer = (*env)->NewGlobalRef(env, (*env)->NewDirectByteBuffer(env, cDecodedFrameBuffer, cDecodedFrameBufferLength));
+//    LOGD("objDecodedFrameBuffer %d", objDecodedFrameBuffer);
     return 0;
 }
 
@@ -145,19 +145,9 @@ void BridgeDrCleanup(void) {
     (*env)->DeleteGlobalRef(env, DecodedFrameBuffer);
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeDrCleanupMethod);
-}
 
-JNIEXPORT void JNICALL Java_com_limelight_binding_video_MediaCodecDecoderRenderer_nativeCopy(JNIEnv *env, jobject obj, jobject buffer0, jint offset0, jobject buffer1, jint offset1) {
-//    jclass cls = env->GetObjectClass(buffer);
-//    jmethodID mid = env->GetMethodID(cls, "limit", "(I)Ljava/nio/Buffer;");
-//    char *buf = (char*)env->GetDirectBufferAddress(buffer);
-//    jlong capacity = env->GetDirectBufferCapacity(buffer);
-//    int written = 0;
-//
-//    // Do something spectacular with the buffer...
-//
-//    env->CallObjectMethod(buffer, mid, written);
-//    return written;
+    if (cDecodedFrameBuffer) free(cDecodedFrameBuffer);
+    (*env)->DeleteGlobalRef(env, objDecodedFrameBuffer);
 }
 
 int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
@@ -181,7 +171,9 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
             free(cDecodedFrameBuffer);
         cDecodedFrameBufferLength = decodeUnit->fullLength;
         cDecodedFrameBuffer = (uint8_t*)malloc(cDecodedFrameBufferLength);
-        objDecodedFrameBuffer = (*env)->NewDirectByteBuffer(env, cDecodedFrameBuffer, cDecodedFrameBufferLength);
+
+        (*env)->DeleteGlobalRef(env, objDecodedFrameBuffer);
+        objDecodedFrameBuffer = (*env)->NewGlobalRef(env, (*env)->NewDirectByteBuffer(env, cDecodedFrameBuffer, cDecodedFrameBufferLength));
     }
 
     PLENTRY currentEntry;

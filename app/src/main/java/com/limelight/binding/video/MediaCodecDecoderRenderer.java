@@ -799,8 +799,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 //            decodeUnitData.rewind();
 //            clone.flip();
 
-            ByteBuffer spsBuf = ByteBuffer.wrap(decodeUnitData);
-//            ByteBuffer spsBuf = clone;
+//            ByteBuffer spsBuf = ByteBuffer.wrap(decodeUnitData);
+            // clone
+            ByteBuffer clone = ByteBuffer.allocate(decodeUnitData2.capacity());
+            decodeUnitData2.rewind();//copy from the beginning
+            clone.put(decodeUnitData2);
+            decodeUnitData2.rewind();
+            clone.flip();
+            ByteBuffer spsBuf = clone;
 
             // Skip to the start of the NALU data
             spsBuf.position(5);
@@ -909,6 +915,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // Batch this to submit together with PPS
             spsBuffer = new byte[5 + escapedNalu.limit()];
             System.arraycopy(decodeUnitData, 0, spsBuffer, 0, 5);
+//            nativeCopy(decodeUnitData2, 0, ByteBuffer.wrap(spsBuffer), 0, 5);
+
             escapedNalu.get(spsBuffer, 5, escapedNalu.limit());
             return MoonBridge.DR_OK;
         }
@@ -918,6 +926,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // Batch this to submit together with SPS and PPS per AOSP docs
             vpsBuffer = new byte[decodeUnitLength];
             System.arraycopy(decodeUnitData, 0, vpsBuffer, 0, decodeUnitLength);
+//            nativeCopy(decodeUnitData2, 0, ByteBuffer.wrap(vpsBuffer), 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
         // Only the HEVC SPS hits this path (H.264 is handled above)
@@ -927,6 +936,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // Batch this to submit together with VPS and PPS per AOSP docs
             spsBuffer = new byte[decodeUnitLength];
             System.arraycopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength);
+//            nativeCopy(decodeUnitData2, 0, ByteBuffer.wrap(spsBuffer), 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
         else if (decodeUnitType == MoonBridge.BUFFER_TYPE_PPS) {
@@ -964,6 +974,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 // Batch this to submit together with the next I-frame
                 ppsBuffer = new byte[decodeUnitLength];
                 System.arraycopy(decodeUnitData, 0, ppsBuffer, 0, decodeUnitLength);
+//                nativeCopy(decodeUnitData2, 0, ByteBuffer.wrap(ppsBuffer), 0, decodeUnitLength);
 
                 // Next call will be I-frame data
                 submitCsdNextCall = true;
@@ -1017,9 +1028,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         int pos = buf.position();
         nativeCopy(decodeUnitData2, 0, buf, pos, decodeUnitLength);
-//        buf.position(pos + decodeUnitLength);
+        buf.position(pos + decodeUnitLength);
 
-
+//        buf.position(pos);
 //        buf.put(decodeUnitData, 0, decodeUnitLength);
 
 

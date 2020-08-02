@@ -693,7 +693,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int submitDecodeUnit(ByteBuffer decodeUnitData2, int decodeUnitLength, int decodeUnitType,
+    public int submitDecodeUnit(ByteBuffer decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {
         if (stopping) {
             // Don't bother if we're stopping
@@ -795,31 +795,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         int codecFlags = 0;
 
         // H264 SPS
-//        if (decodeUnitData[4] == 0x67) {
-        if (decodeUnitData2.get(4) == 0x67) {
+        if (decodeUnitData.get(4) == 0x67) {
             numSpsIn++;
 
-//            ByteBuffer clone = ByteBuffer.allocate(decodeUnitData.capacity());
-//            decodeUnitData.rewind();//copy from the beginning
-//            clone.put(decodeUnitData);
-//            decodeUnitData.rewind();
-//            clone.flip();
-
-//            ByteBuffer spsBuf = ByteBuffer.wrap(decodeUnitData);
-            // clone
-            ByteBuffer clone = ByteBuffer.allocate(decodeUnitData2.capacity());
-            decodeUnitData2.rewind();//copy from the beginning
-            clone.put(decodeUnitData2);
-            decodeUnitData2.rewind();
-            clone.flip();
-            ByteBuffer spsBuf = clone;
-
             // Skip to the start of the NALU data
-            spsBuf.position(5);
+            decodeUnitData.position(5);
 
             // The H264Utils.readSPS function safely handles
             // Annex B NALUs (including NALUs with escape sequences)
-            SeqParameterSet sps = H264Utils.readSPS(spsBuf);
+            SeqParameterSet sps = H264Utils.readSPS(decodeUnitData);
+
+            decodeUnitData.position(0);
 
             // Some decoders rely on H264 level to decide how many buffers are needed
             // Since we only need one frame buffered, we'll set the level as low as we can
@@ -926,7 +912,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             if (spsBuffer != null) nativeFree(spsBuffer);
 
             spsBuffer = nativeCreate(5 + escapedNalu.limit());
-            nativeCopy(decodeUnitData2, 0, spsBuffer, 0, 5);
+            nativeCopy(decodeUnitData, 0, spsBuffer, 0, 5);
             spsBuffer.position(5);
             spsBuffer.put(escapedNalu.array(), 0, escapedNalu.limit());
             spsBuffer.position(0);
@@ -943,7 +929,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             if (vpsBuffer != null) nativeFree(vpsBuffer);
 
             vpsBuffer = nativeCreate(decodeUnitLength);
-            nativeCopy(decodeUnitData2, 0, vpsBuffer, 0, decodeUnitLength);
+            nativeCopy(decodeUnitData, 0, vpsBuffer, 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
         // Only the HEVC SPS hits this path (H.264 is handled above)
@@ -957,7 +943,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             if (spsBuffer != null) nativeFree(spsBuffer);
 
             spsBuffer = nativeCreate(decodeUnitLength);
-            nativeCopy(decodeUnitData2, 0, spsBuffer, 0, decodeUnitLength);
+            nativeCopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
         else if (decodeUnitType == MoonBridge.BUFFER_TYPE_PPS) {
@@ -999,7 +985,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 if (ppsBuffer != null) nativeFree(ppsBuffer);
 
                 ppsBuffer = nativeCreate(decodeUnitLength);
-                nativeCopy(decodeUnitData2, 0, ppsBuffer, 0, decodeUnitLength);
+                nativeCopy(decodeUnitData, 0, ppsBuffer, 0, decodeUnitLength);
 
                 // Next call will be I-frame data
                 submitCsdNextCall = true;
@@ -1022,13 +1008,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             if (submitCsdNextCall) {
                 if (vpsBuffer != null) {
-                    buf.put(vpsBuffer);
+//                    buf.put(vpsBuffer);
+                    nativeCopy(vpsBuffer, 0, buf, 0, vpsBuffer.capacity());
                 }
                 if (spsBuffer != null) {
-                    buf.put(spsBuffer);
+//                    buf.put(spsBuffer);
+                    nativeCopy(spsBuffer, 0, buf, 0, spsBuffer.capacity());
                 }
                 if (ppsBuffer != null) {
-                    buf.put(ppsBuffer);
+//                    buf.put(ppsBuffer);
+                    nativeCopy(ppsBuffer, 0, buf, 0, ppsBuffer.capacity());
                 }
 
                 submitCsdNextCall = false;
@@ -1046,13 +1035,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         // Copy data from our buffer list into the input buffer
-//        decodeUnitData2.position(0);
-//        byte[] b = new byte[decodeUnitData2.remaining()];
-//        decodeUnitData2.get(b);
+//        decodeUnitData.position(0);
+//        byte[] b = new byte[decodeUnitData.remaining()];
+//        decodeUnitData.get(b);
 //        buf.put(b, 0, decodeUnitLength);
 
         int pos = buf.position();
-        nativeCopy(decodeUnitData2, 0, buf, pos, decodeUnitLength);
+        nativeCopy(decodeUnitData, 0, buf, pos, decodeUnitLength);
         buf.position(pos + decodeUnitLength);
 
 //        buf.position(pos);

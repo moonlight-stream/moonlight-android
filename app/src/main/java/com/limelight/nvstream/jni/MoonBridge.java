@@ -129,11 +129,11 @@ public class MoonBridge {
         }
     }
 
-    public static int bridgeDrSubmitDecodeUnit(byte[] decodeUnitData, ByteBuffer decodeUnitData2, int decodeUnitLength,
+    public static int bridgeDrSubmitDecodeUnit(ByteBuffer decodeUnitData2, int decodeUnitLength,
                                                int decodeUnitType,
                                                int frameNumber, long receiveTimeMs) {
         if (videoRenderer != null) {
-            return videoRenderer.submitDecodeUnit(decodeUnitData, decodeUnitData2, decodeUnitLength,
+            return videoRenderer.submitDecodeUnit(decodeUnitData2, decodeUnitLength,
                     decodeUnitType, frameNumber, receiveTimeMs);
         }
         else {

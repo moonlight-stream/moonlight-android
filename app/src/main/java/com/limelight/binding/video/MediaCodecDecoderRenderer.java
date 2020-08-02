@@ -693,7 +693,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int submitDecodeUnit(byte[] decodeUnitData, ByteBuffer decodeUnitData2, int decodeUnitLength, int decodeUnitType,
+    public int submitDecodeUnit(ByteBuffer decodeUnitData2, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {
         if (stopping) {
             // Don't bother if we're stopping

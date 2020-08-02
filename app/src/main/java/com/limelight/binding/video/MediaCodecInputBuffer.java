@@ -6,4 +6,6 @@ public class MediaCodecInputBuffer {
 
     public int index;
     public ByteBuffer buffer;
+    public long timestampUs;
+    public int codecFlags;
 }

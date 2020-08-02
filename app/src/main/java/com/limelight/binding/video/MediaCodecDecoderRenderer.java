@@ -81,6 +81,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private HandlerThread handlerThread;
     private Semaphore renderingSemaphore;
     private List<MediaCodecInputBuffer> inputBufferCache;
+    private List<MediaCodecInputBuffer> queueInputBufferList;
 
     private MediaFormat inputFormat;
     private MediaFormat outputFormat;
@@ -164,6 +165,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.infoHandler = new Handler(this.handlerThread.getLooper());
         this.renderingSemaphore = new Semaphore(0);
         this.inputBufferCache = new ArrayList<MediaCodecInputBuffer>();
+        this.queueInputBufferList = new ArrayList<MediaCodecInputBuffer>();
 
         this.activeWindowVideoStats = new VideoStats();
         this.lastWindowVideoStats = new VideoStats();
@@ -492,6 +494,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                         if (stopping) break;
 //                        System.out.println("收到信号 " + System.currentTimeMillis());
 
+                        // 提交input，每次只提交一个
+                        MediaCodecInputBuffer inputBuffer = null;
+                        synchronized (queueInputBufferList) {
+                            if (queueInputBufferList.size() > 0)
+                                inputBuffer = queueInputBufferList.remove(0);
+                        }
+                        if (inputBuffer != null)
+                            queueInputBuffer(inputBuffer.index, 0, inputBuffer.buffer.position(), inputBuffer.timestampUs, inputBuffer.codecFlags);
+
                         // Try to output a frame
                         int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
                         if (outIndex >= 0) {
@@ -670,6 +681,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         } catch (Exception e) {
             handleDecoderException(e, null, codecFlags, true);
             return false;
+        }
+    }
+
+    private boolean queueInputBuffer(MediaCodecInputBuffer inputBuffer) {
+
+        synchronized (queueInputBufferList) {
+            queueInputBufferList.add(inputBuffer);
+            return true;
         }
     }
 
@@ -1117,12 +1136,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
 //        System.out.println("+ 提交 " + timestampUs/1000);
 
-        if (!queueInputBuffer(inputBuffer.index,
-                0, inputBuffer.buffer.position(),
-                timestampUs, codecFlags)) {
+        inputBuffer.timestampUs = timestampUs;
+        inputBuffer.codecFlags = codecFlags;
+        if (!queueInputBuffer(inputBuffer)) {
 //            System.out.println("DR_NEED_IDR " + System.currentTimeMillis());
             return MoonBridge.DR_NEED_IDR;
         }
+//        if (!queueInputBuffer(inputBuffer.index,
+//                0, inputBuffer.buffer.position(),
+//                timestampUs, codecFlags)) {
+////            System.out.println("DR_NEED_IDR " + System.currentTimeMillis());
+//            return MoonBridge.DR_NEED_IDR;
+//        }
 
         if ((codecFlags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
             submittedCsd = true;
@@ -1181,10 +1206,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         savedSps = null;
 
         // Queue the new SPS
-        return queueInputBuffer(inputBuffer.index,
-                0, inputBuffer.buffer.position(),
-                System.nanoTime() / 1000,
-                MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
+        inputBuffer.timestampUs = System.nanoTime() / 1000;
+        inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+        return queueInputBuffer(inputBuffer);
+//        return queueInputBuffer(inputBuffer.index,
+//                0, inputBuffer.buffer.position(),
+//                System.nanoTime() / 1000,
+//                MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
     }
 
     @Override

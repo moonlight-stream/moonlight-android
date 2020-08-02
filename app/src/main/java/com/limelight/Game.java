@@ -1506,11 +1506,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (spinner != null) {
-                    spinner.dismiss();
-                    spinner = null;
-                }
-
                 if (!displayedFailureDialog) {
                     displayedFailureDialog = true;
                     LimeLog.severe(stage + " failed: " + errorCode);
@@ -1520,8 +1515,27 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         Toast.makeText(Game.this, getResources().getText(R.string.video_decoder_init_failed), Toast.LENGTH_LONG).show();
                     }
 
-                    Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_error_title),
-                            getResources().getString(R.string.conn_error_msg) + " " + stage +" (error "+errorCode+")", true);
+                    String dialogText = getResources().getString(R.string.conn_error_msg) + " " + stage +" (error "+errorCode+")";
+                    if (portFlags != 0) {
+                        int ret = MoonBridge.testClientConnectivity("conntest-android.moonlight-stream.org", 443, portFlags);
+                        if (ret != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && ret != 0)  {
+                            dialogText += "\n\n" + getResources().getString(R.string.nettest_text_blocked);
+                        }
+                    }
+
+                    // testClientConnectivity() can take a little while, so leave the spinner dialog up until it's done
+                    if (spinner != null) {
+                        spinner.dismiss();
+                        spinner = null;
+                    }
+
+                    Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_error_title), dialogText, true);
+                }
+                else {
+                    if (spinner != null) {
+                        spinner.dismiss();
+                        spinner = null;
+                    }
                 }
             }
         });

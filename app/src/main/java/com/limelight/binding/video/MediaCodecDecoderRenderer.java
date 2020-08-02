@@ -968,10 +968,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 // When we get the PPS, submit the VPS and SPS together with
                 // the PPS, as required by AOSP docs on use of MediaCodec.
                 if (vpsBuffer != null) {
-                    buf.put(vpsBuffer);
+//                    buf.put(vpsBuffer);
+                    nativeCopy(vpsBuffer, 0, buf, 0, vpsBuffer.limit());
+                    buf.position(vpsBuffer.limit());
                 }
                 if (spsBuffer != null) {
-                    buf.put(spsBuffer);
+//                    buf.put(spsBuffer);
+                    nativeCopy(spsBuffer, 0, buf, 0, spsBuffer.limit());
+                    buf.position(spsBuffer.limit());
                 }
 
                 // This is the CSD blob
@@ -1009,15 +1013,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             if (submitCsdNextCall) {
                 if (vpsBuffer != null) {
 //                    buf.put(vpsBuffer);
-                    nativeCopy(vpsBuffer, 0, buf, 0, vpsBuffer.capacity());
+                    nativeCopy(vpsBuffer, 0, buf, 0, vpsBuffer.limit());
+                    buf.position(vpsBuffer.limit());
                 }
                 if (spsBuffer != null) {
 //                    buf.put(spsBuffer);
-                    nativeCopy(spsBuffer, 0, buf, 0, spsBuffer.capacity());
+                    nativeCopy(spsBuffer, 0, buf, 0, spsBuffer.limit());
+                    buf.position(spsBuffer.limit());
                 }
                 if (ppsBuffer != null) {
 //                    buf.put(ppsBuffer);
-                    nativeCopy(ppsBuffer, 0, buf, 0, ppsBuffer.capacity());
+                    nativeCopy(ppsBuffer, 0, buf, 0, ppsBuffer.limit());
+                    buf.position(ppsBuffer.limit());
                 }
 
                 submitCsdNextCall = false;

@@ -401,9 +401,12 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             }
         }
 
-        MenuItem hideAppItem = menu.add(Menu.NONE, HIDE_APP_ID, 3, getResources().getString(R.string.applist_menu_hide_app));
-        hideAppItem.setCheckable(true);
-        hideAppItem.setChecked(selectedApp.isHidden);
+        // Only show the hide checkbox if this is not the currently running app or it's already hidden
+        if (lastRunningAppId != selectedApp.app.getAppId() || selectedApp.isHidden) {
+            MenuItem hideAppItem = menu.add(Menu.NONE, HIDE_APP_ID, 3, getResources().getString(R.string.applist_menu_hide_app));
+            hideAppItem.setCheckable(true);
+            hideAppItem.setChecked(selectedApp.isHidden);
+        }
 
         menu.add(Menu.NONE, VIEW_DETAILS_ID, 4, getResources().getString(R.string.applist_menu_details));
 

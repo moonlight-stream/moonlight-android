@@ -36,6 +36,25 @@ public class MoonBridge {
     public static final int ML_ERROR_GRACEFUL_TERMINATION = 0;
     public static final int ML_ERROR_NO_VIDEO_TRAFFIC = -100;
 
+    public static final int ML_PORT_INDEX_TCP_47984 = 0;
+    public static final int ML_PORT_INDEX_TCP_47989 = 1;
+    public static final int ML_PORT_INDEX_TCP_48010 = 2;
+    public static final int ML_PORT_INDEX_UDP_47998 = 8;
+    public static final int ML_PORT_INDEX_UDP_47999 = 9;
+    public static final int ML_PORT_INDEX_UDP_48000 = 10;
+    public static final int ML_PORT_INDEX_UDP_48010 = 11;
+
+    public static final int ML_PORT_FLAG_ALL = 0xFFFFFFFF;
+    public static final int ML_PORT_FLAG_TCP_47984 = 0x0001;
+    public static final int ML_PORT_FLAG_TCP_47989 = 0x0002;
+    public static final int ML_PORT_FLAG_TCP_48010 = 0x0004;
+    public static final int ML_PORT_FLAG_UDP_47998 = 0x0100;
+    public static final int ML_PORT_FLAG_UDP_47999 = 0x0200;
+    public static final int ML_PORT_FLAG_UDP_48000 = 0x0400;
+    public static final int ML_PORT_FLAG_UDP_48010 = 0x0800;
+
+    public static final int ML_TEST_RESULT_INCONCLUSIVE = 0xFFFFFFFF;
+
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;
@@ -186,7 +205,7 @@ public class MoonBridge {
 
     public static void bridgeClStageFailed(int stage, int errorCode) {
         if (connectionListener != null) {
-            connectionListener.stageFailed(getStageName(stage), errorCode);
+            connectionListener.stageFailed(getStageName(stage), getPortFlagsFromStage(stage), errorCode);
         }
     }
 
@@ -270,6 +289,14 @@ public class MoonBridge {
     public static native int getPendingAudioDuration();
 
     public static native int getPendingVideoFrames();
+
+    public static native int testClientConnectivity(String testServerHostName, int referencePort, int testFlags);
+
+    public static native int getPortFromPortFlagIndex(int portFlagIndex);
+
+    public static native String getProtocolFromPortFlagIndex(int portFlagIndex);
+
+    public static native int getPortFlagsFromStage(int stage);
 
     public static native void init();
 }

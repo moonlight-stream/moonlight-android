@@ -118,6 +118,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private final static int QUIT_ID = 7;
     private final static int VIEW_DETAILS_ID = 8;
     private final static int FULL_APP_LIST_ID = 9;
+    private final static int TEST_NETWORK_ID = 10;
 
     private void initializeViews() {
         setContentView(R.layout.activity_pc_view);
@@ -321,7 +322,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         if (computer.details.state == ComputerDetails.State.OFFLINE ||
             computer.details.state == ComputerDetails.State.UNKNOWN) {
             menu.add(Menu.NONE, WOL_ID, 1, getResources().getString(R.string.pcview_menu_send_wol));
-            menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
+            menu.add(Menu.NONE, TEST_NETWORK_ID, 2, getResources().getString(R.string.pcview_menu_test_network));
+            menu.add(Menu.NONE, DELETE_ID, 3, getResources().getString(R.string.pcview_menu_delete_pc));
         }
         else if (computer.details.pairState != PairState.PAIRED) {
             menu.add(Menu.NONE, PAIR_ID, 1, getResources().getString(R.string.pcview_menu_pair_pc));
@@ -627,6 +629,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
             case VIEW_DETAILS_ID:
                 Dialog.displayDialog(PcView.this, getResources().getString(R.string.title_details), computer.details.toString(), false);
+                return true;
+
+            case TEST_NETWORK_ID:
+                ServerHelper.doNetworkTest(PcView.this);
                 return true;
 
             default:

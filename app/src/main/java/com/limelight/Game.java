@@ -1502,7 +1502,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void stageFailed(final String stage, final int errorCode) {
+    public void stageFailed(final String stage, final int portFlags, final int errorCode) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

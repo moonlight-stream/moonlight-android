@@ -15,7 +15,8 @@
     <string name="help_loading_msg">Loading help page…</string>
 
     <!-- PC view menu entries -->
-    <string name="pcview_menu_app_list">View Game List</string>
+    <string name="pcview_menu_app_list">View Apps</string>
+    <string name="pcview_menu_full_app_list">View Hidden Apps</string>
     <string name="pcview_menu_pair_pc">Pair with PC</string>
     <string name="pcview_menu_unpair_pc">Unpair</string>
     <string name="pcview_menu_send_wol">Send Wake-On-LAN request</string>
@@ -99,6 +100,7 @@
     <string name="applist_menu_details">View Details</string>
     <string name="applist_menu_scut">Create Shortcut</string>
     <string name="applist_menu_tv_channel">Add to Channel</string>
+    <string name="applist_menu_hide_app">Hide App</string>
     <string name="applist_refresh_title">App List</string>
     <string name="applist_refresh_msg">Refreshing apps…</string>
     <string name="applist_refresh_error_title">Error</string>

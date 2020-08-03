@@ -695,8 +695,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         synchronized (queueInputBufferList) {
 
-            // 清空未提交的帧
-            queueInputBufferList.clear();
+            // 清空未提交的帧，不能丢，否则造成资源耗尽，卡住
+            // queueInputBufferList.clear();
 
             queueInputBufferList.add(inputBuffer);
             return true;
@@ -748,6 +748,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     }
 
     private MediaCodecInputBuffer getEmptyInputBufferFromCache() {
+
         synchronized (inputBufferCache) {
 //            System.out.println("getEmptyInputBufferFromCache " + inputBufferCache.size());
             if (inputBufferCache.size() > 0) {
@@ -790,6 +791,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             // Don't bother if we're stopping
             return MoonBridge.DR_OK;
         }
+
+        // 还有未提交的帧，就跳过当前提交，直接触发release信号
+        if (queueInputBufferList.size() > 0) {
+            renderingSemaphore.release();
+            return MoonBridge.DR_OK;
+        }
+
 
 //        int inputBufferIndex;
 //        ByteBuffer buf;

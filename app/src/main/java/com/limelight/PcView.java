@@ -117,6 +117,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private final static int RESUME_ID = 6;
     private final static int QUIT_ID = 7;
     private final static int VIEW_DETAILS_ID = 8;
+    private final static int FULL_APP_LIST_ID = 9;
+    private final static int TEST_NETWORK_ID = 10;
 
     private void initializeViews() {
         setContentView(R.layout.activity_pc_view);
@@ -320,7 +322,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         if (computer.details.state == ComputerDetails.State.OFFLINE ||
             computer.details.state == ComputerDetails.State.UNKNOWN) {
             menu.add(Menu.NONE, WOL_ID, 1, getResources().getString(R.string.pcview_menu_send_wol));
-            menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
+            menu.add(Menu.NONE, TEST_NETWORK_ID, 2, getResources().getString(R.string.pcview_menu_test_network));
+            menu.add(Menu.NONE, DELETE_ID, 3, getResources().getString(R.string.pcview_menu_delete_pc));
         }
         else if (computer.details.pairState != PairState.PAIRED) {
             menu.add(Menu.NONE, PAIR_ID, 1, getResources().getString(R.string.pcview_menu_pair_pc));
@@ -333,12 +336,13 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             }
 
             menu.add(Menu.NONE, APP_LIST_ID, 3, getResources().getString(R.string.pcview_menu_app_list));
+            menu.add(Menu.NONE, FULL_APP_LIST_ID, 4, getResources().getString(R.string.pcview_menu_full_app_list));
 
             // FIXME: We used to be able to unpair here but it's been broken since GFE 2.1.x, so I've replaced
             // it with delete which actually work
-            menu.add(Menu.NONE, DELETE_ID, 4, getResources().getString(R.string.pcview_menu_delete_pc));
+            menu.add(Menu.NONE, DELETE_ID, 5, getResources().getString(R.string.pcview_menu_delete_pc));
         }
-        menu.add(Menu.NONE, VIEW_DETAILS_ID, 5,  getResources().getString(R.string.pcview_menu_details));
+        menu.add(Menu.NONE, VIEW_DETAILS_ID, 6,  getResources().getString(R.string.pcview_menu_details));
     }
 
     @Override
@@ -442,7 +446,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
                         if (toastSuccess) {
                             // Open the app list after a successful pairing attempt
-                            doAppList(computer, true);
+                            doAppList(computer, true, false);
                         }
                         else {
                             // Start polling again if we're still in the foreground
@@ -541,7 +545,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }).start();
     }
 
-    private void doAppList(ComputerDetails computer, boolean newlyPaired) {
+    private void doAppList(ComputerDetails computer, boolean newlyPaired, boolean showHiddenGames) {
         if (computer.state == ComputerDetails.State.OFFLINE) {
             Toast.makeText(PcView.this, getResources().getString(R.string.error_pc_offline), Toast.LENGTH_SHORT).show();
             return;
@@ -555,6 +559,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         i.putExtra(AppView.NAME_EXTRA, computer.name);
         i.putExtra(AppView.UUID_EXTRA, computer.uuid);
         i.putExtra(AppView.NEW_PAIR_EXTRA, newlyPaired);
+        i.putExtra(AppView.SHOW_HIDDEN_APPS_EXTRA, showHiddenGames);
         startActivity(i);
     }
 
@@ -592,8 +597,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 }, null);
                 return true;
 
+            case FULL_APP_LIST_ID:
             case APP_LIST_ID:
-                doAppList(computer.details, false);
+                doAppList(computer.details, false, item.getItemId() == FULL_APP_LIST_ID);
                 return true;
 
             case RESUME_ID:
@@ -625,6 +631,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 Dialog.displayDialog(PcView.this, getResources().getString(R.string.title_details), computer.details.toString(), false);
                 return true;
 
+            case TEST_NETWORK_ID:
+                ServerHelper.doNetworkTest(PcView.this);
+                return true;
+
             default:
                 return super.onContextItemSelected(item);
         }
@@ -634,6 +644,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         managerBinder.removeComputer(details);
 
         new DiskAssetLoader(this).deleteAssetsForComputer(details.uuid);
+
+        // Delete hidden games preference value
+        getSharedPreferences(AppView.HIDDEN_APPS_PREF_FILENAME, MODE_PRIVATE)
+                .edit()
+                .remove(details.uuid)
+                .apply();
 
         for (int i = 0; i < pcGridAdapter.getCount(); i++) {
             ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(i);
@@ -711,7 +727,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     // Pair an unpaired machine by default
                     doPair(computer.details);
                 } else {
-                    doAppList(computer.details, false);
+                    doAppList(computer.details, false, false);
                 }
             }
         });

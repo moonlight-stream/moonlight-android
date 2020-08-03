@@ -105,6 +105,34 @@ Java_com_limelight_nvstream_jni_MoonBridge_getPendingVideoFrames(JNIEnv *env, jc
     return LiGetPendingVideoFrames();
 }
 
+//JNIEXPORT jint JNICALL
+//Java_com_limelight_nvstream_jni_MoonBridge_testClientConnectivity(JNIEnv *env, jclass clazz, jstring testServerHostName, jint referencePort, jint testFlags) {
+//    int ret;
+//    const char* testServerHostNameStr = (*env)->GetStringUTFChars(env, testServerHostName, NULL);
+//
+//    ret = LiTestClientConnectivity(testServerHostNameStr, (unsigned short)referencePort, testFlags);
+//
+//    (*env)->ReleaseStringUTFChars(env, testServerHostName, testServerHostNameStr);
+//
+//    return ret;
+//}
+//
+//JNIEXPORT jint JNICALL
+//Java_com_limelight_nvstream_jni_MoonBridge_getPortFromPortFlagIndex(JNIEnv *env, jclass clazz, jint portFlagIndex) {
+//    return LiGetPortFromPortFlagIndex(portFlagIndex);
+//}
+//
+//JNIEXPORT jstring JNICALL
+//Java_com_limelight_nvstream_jni_MoonBridge_getProtocolFromPortFlagIndex(JNIEnv *env, jclass clazz, jint portFlagIndex) {
+//    int protocol = LiGetProtocolFromPortFlagIndex(portFlagIndex);
+//    return (*env)->NewStringUTF(env, protocol == IPPROTO_TCP ? "TCP" : "UDP");
+//}
+//
+//JNIEXPORT jint JNICALL
+//Java_com_limelight_nvstream_jni_MoonBridge_getPortFlagsFromStage(JNIEnv *env, jclass clazz, jint stage) {
+//    return LiGetPortFlagsFromStage(stage);
+//}
+
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_nativeCopy(JNIEnv *env, jclass clazz, jobject buffer0,
                                                       jint offset0, jobject buffer1, jint offset1,

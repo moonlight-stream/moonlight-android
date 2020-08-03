@@ -17,8 +17,12 @@ import com.limelight.grid.assets.NetworkAssetLoader;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.preferences.PreferenceConfiguration;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("unchecked")
 public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
@@ -28,16 +32,36 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
 
     private final ComputerDetails computer;
     private final String uniqueId;
+    private final boolean showHiddenApps;
 
     private CachedAppAssetLoader loader;
+    private Set<Integer> hiddenAppIds = new HashSet<>();
+    private ArrayList<AppView.AppObject> allApps = new ArrayList<>();
 
-    public AppGridAdapter(Context context, PreferenceConfiguration prefs, ComputerDetails computer, String uniqueId) {
+    public AppGridAdapter(Context context, PreferenceConfiguration prefs, ComputerDetails computer, String uniqueId, boolean showHiddenApps) {
         super(context, getLayoutIdForPreferences(prefs));
 
         this.computer = computer;
         this.uniqueId = uniqueId;
+        this.showHiddenApps = showHiddenApps;
 
         updateLayoutWithPreferences(context, prefs);
+    }
+
+    public void updateHiddenApps(Set<Integer> newHiddenAppIds) {
+        this.hiddenAppIds.clear();
+        this.hiddenAppIds.addAll(newHiddenAppIds);
+
+        // Reconstruct the itemList with the new hidden app set
+        itemList.clear();
+        for (AppView.AppObject app : allApps) {
+            app.isHidden = hiddenAppIds.contains(app.app.getAppId());
+
+            if (!app.isHidden || showHiddenApps) {
+                itemList.add(app);
+            }
+        }
+        notifyDataSetChanged();
     }
 
     private static int getLayoutIdForPreferences(PreferenceConfiguration prefs) {
@@ -88,8 +112,8 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         loader.freeCacheMemory();
     }
 
-    private void sortList() {
-        Collections.sort(itemList, new Comparator<AppView.AppObject>() {
+    private static void sortList(List<AppView.AppObject> list) {
+        Collections.sort(list, new Comparator<AppView.AppObject>() {
             @Override
             public int compare(AppView.AppObject lhs, AppView.AppObject rhs) {
                 return lhs.app.getAppName().toLowerCase().compareTo(rhs.app.getAppName().toLowerCase());
@@ -98,20 +122,37 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     }
 
     public void addApp(AppView.AppObject app) {
-        // Queue a request to fetch this bitmap into cache
-        loader.queueCacheLoad(app.app);
+        // Update hidden state
+        app.isHidden = hiddenAppIds.contains(app.app.getAppId());
 
-        // Add the app to our sorted list
-        itemList.add(app);
-        sortList();
+        // Always add the app to the all apps list
+        allApps.add(app);
+        sortList(allApps);
+
+        // Add the app to the adapter data if it's not hidden
+        if (showHiddenApps || !app.isHidden) {
+            // Queue a request to fetch this bitmap into cache
+            loader.queueCacheLoad(app.app);
+
+            // Add the app to our sorted list
+            itemList.add(app);
+            sortList(itemList);
+        }
     }
 
     public void removeApp(AppView.AppObject app) {
         itemList.remove(app);
+        allApps.remove(app);
     }
 
     @Override
-    public void populateView(ImageView imgView, ProgressBar prgView, TextView txtView, ImageView overlayView, AppView.AppObject obj) {
+    public void clear() {
+        super.clear();
+        allApps.clear();
+    }
+
+    @Override
+    public void populateView(View parentView, ImageView imgView, ProgressBar prgView, TextView txtView, ImageView overlayView, AppView.AppObject obj) {
         // Let the cached asset loader handle it
         loader.populateImageView(obj.app, imgView, txtView);
 
@@ -122,6 +163,13 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         }
         else {
             overlayView.setVisibility(View.GONE);
+        }
+
+        if (obj.isHidden) {
+            parentView.setAlpha(0.40f);
+        }
+        else {
+            parentView.setAlpha(1.0f);
         }
     }
 }

@@ -231,19 +231,19 @@ public class NvConnection {
 
                 try {
                     if (!startApp()) {
-                        context.connListener.stageFailed(appName, 0);
+                        context.connListener.stageFailed(appName, 0, 0);
                         return;
                     }
                     context.connListener.stageComplete(appName);
                 } catch (GfeHttpResponseException e) {
                     e.printStackTrace();
                     context.connListener.displayMessage(e.getMessage());
-                    context.connListener.stageFailed(appName, e.getErrorCode());
+                    context.connListener.stageFailed(appName, 0, e.getErrorCode());
                     return;
                 } catch (XmlPullParserException | IOException e) {
                     e.printStackTrace();
                     context.connListener.displayMessage(e.getMessage());
-                    context.connListener.stageFailed(appName, 0);
+                    context.connListener.stageFailed(appName, MoonBridge.ML_PORT_FLAG_TCP_47984 | MoonBridge.ML_PORT_FLAG_TCP_47989, 0);
                     return;
                 }
 
@@ -256,7 +256,7 @@ public class NvConnection {
                     connectionAllowed.acquire();
                 } catch (InterruptedException e) {
                     context.connListener.displayMessage(e.getMessage());
-                    context.connListener.stageFailed(appName, 0);
+                    context.connListener.stageFailed(appName, 0, 0);
                     return;
                 }
 

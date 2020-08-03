@@ -15,12 +15,23 @@
     <string name="help_loading_msg">Loading help page…</string>
 
     <!-- PC view menu entries -->
-    <string name="pcview_menu_app_list">View Game List</string>
+    <string name="pcview_menu_app_list">View Apps</string>
+    <string name="pcview_menu_full_app_list">View Hidden Apps</string>
     <string name="pcview_menu_pair_pc">Pair with PC</string>
     <string name="pcview_menu_unpair_pc">Unpair</string>
     <string name="pcview_menu_send_wol">Send Wake-On-LAN request</string>
     <string name="pcview_menu_delete_pc">Delete PC</string>
+    <string name="pcview_menu_test_network">Test Network Connection</string>
     <string name="pcview_menu_details">View Details</string>
+
+    <!-- Network test strings -->
+    <string name="nettest_title_waiting">Testing Network Connection</string>
+    <string name="nettest_text_waiting">Moonlight is testing your network connection to determine if NVIDIA GameStream is blocked.\n\nThis may take a few seconds…</string>
+    <string name="nettest_title_done">Network Test Complete</string>
+    <string name="nettest_text_success">Your network does not appear to be blocking Moonlight. If you still have trouble connecting, check your PC\'s firewall settings.\n\nIf you are trying to stream over the Internet, install the Moonlight Internet Hosting Tool on your PC and run the included Internet Streaming Tester to check your PC\'s Internet connection.</string>
+    <string name="nettest_text_inconclusive">The network test could not be performed. Please try again later.</string>
+    <string name="nettest_text_failure">Your device\'s current network connection seems to be blocking Moonlight. Streaming over the Internet may not work properly while connected to this network.\n\nThe following network ports were blocked:\n</string>
+    <string name="nettest_text_blocked">Your device\'s current network connection is blocking Moonlight. Streaming over the Internet may not work properly while connected to this network.</string>
 
     <!-- Pair messages -->
     <string name="pairing">Pairing…</string>
@@ -99,6 +110,7 @@
     <string name="applist_menu_details">View Details</string>
     <string name="applist_menu_scut">Create Shortcut</string>
     <string name="applist_menu_tv_channel">Add to Channel</string>
+    <string name="applist_menu_hide_app">Hide App</string>
     <string name="applist_refresh_title">App List</string>
     <string name="applist_refresh_msg">Refreshing apps…</string>
     <string name="applist_refresh_error_title">Error</string>

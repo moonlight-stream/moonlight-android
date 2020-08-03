@@ -795,7 +795,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 //        ByteBuffer buf;
         MediaCodecInputBuffer inputBuffer;
 
-        //        Date curDate = new Date(System.currentTimeMillis());
+//        Date curDate = new Date(System.currentTimeMillis());
 //PROCESSING
 
         long currentTimeMillis = System.currentTimeMillis();
@@ -1109,19 +1109,19 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             if (submitCsdNextCall) {
                 if (vpsBuffer != null) {
-                    System.out.println("vpsBuffer " + vpsBuffer.limit());
+//                    System.out.println("vpsBuffer " + vpsBuffer.limit());
 //                    buf.put(vpsBuffer);
                     nativeCopy(vpsBuffer, 0, inputBuffer.buffer, 0, vpsBuffer.limit());
                     inputBuffer.buffer.position(vpsBuffer.limit());
                 }
                 if (spsBuffer != null) {
-                    System.out.println("spsBuffer " + spsBuffer.limit());
+//                    System.out.println("spsBuffer " + spsBuffer.limit());
 //                    buf.put(spsBuffer);
                     nativeCopy(spsBuffer, 0, inputBuffer.buffer, 0, spsBuffer.limit());
                     inputBuffer.buffer.position(spsBuffer.limit());
                 }
                 if (ppsBuffer != null) {
-                    System.out.println("ppsBuffer " + ppsBuffer.limit());
+//                    System.out.println("ppsBuffer " + ppsBuffer.limit());
 //                    buf.put(ppsBuffer);
                     nativeCopy(ppsBuffer, 0, inputBuffer.buffer, 0, ppsBuffer.limit());
                     inputBuffer.buffer.position(ppsBuffer.limit());

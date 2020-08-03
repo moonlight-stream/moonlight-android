@@ -472,6 +472,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 while (!stopping) {
                     try {
 
+                        // 添加缓存
+                        synchronized (inputBufferCache) {
+                            int maxCount = 1;
+                            if (inputBufferCache.size() < maxCount) {
+                                inputBufferCache.add(getEmptyInputBuffer());
+                            }
+//                            System.out.println("add inputBufferCache " + inputBufferCache.size());
+                        }
+
                         /*
                         加入信号量控制之后，提交和渲染变得更有序，画面稳定
                         ...
@@ -552,15 +561,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             }
 //                            System.out.println("- 渲染 " + MediaCodecHelper.getMonotonicMillis() + " " + (presentationTimeUs / 1000));
 
-                            // 添加缓存
-                            synchronized (inputBufferCache) {
-                                if (inputBufferCache.size() == 0) {
-                                    inputBufferCache.add(getEmptyInputBuffer());
-                                }
-                            }
-
                             // 再赋予一次输出帧的检查，以检查当前提交周期进来的数据提交
                             renderingSemaphore.release();
+
+                            // 模拟解码器延迟
+//                            Thread.sleep(100);
 
 //                            System.out.println("完成一帧渲染");
 //                            long currentTime = System.currentTimeMillis();
@@ -605,6 +610,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         startTime = MediaCodecHelper.getMonotonicMillis();
 
+//        System.out.println("请求input");
         try {
             while (index < 0 && !stopping) {
                 index = videoDecoder.dequeueInputBuffer(10000);
@@ -613,6 +619,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             handleDecoderException(e, null, 0, true);
             return MediaCodec.INFO_TRY_AGAIN_LATER;
         }
+//        System.out.println("请求input 完成");
 
         int deltaMs = (int)(MediaCodecHelper.getMonotonicMillis() - startTime);
 
@@ -687,6 +694,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private boolean queueInputBuffer(MediaCodecInputBuffer inputBuffer) {
 
         synchronized (queueInputBufferList) {
+
+            // 清空未提交的帧
+            queueInputBufferList.clear();
+
             queueInputBufferList.add(inputBuffer);
             return true;
         }
@@ -738,10 +749,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private MediaCodecInputBuffer getEmptyInputBufferFromCache() {
         synchronized (inputBufferCache) {
+//            System.out.println("getEmptyInputBufferFromCache " + inputBufferCache.size());
             if (inputBufferCache.size() > 0) {
                 return inputBufferCache.remove(0);
             } else {
-                return getEmptyInputBuffer();
+                return null;//getEmptyInputBuffer();
             }
         }
     }
@@ -1039,6 +1051,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 //                    return MoonBridge.DR_NEED_IDR;
 //                }
                 inputBuffer = getEmptyInputBufferFromCache();
+                if (inputBuffer == null) {
+                    // We're being torn down now
+                    return MoonBridge.DR_NEED_IDR;
+                }
 
                 // When we get the PPS, submit the VPS and SPS together with
                 // the PPS, as required by AOSP docs on use of MediaCodec.
@@ -1086,6 +1102,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 //            }
 
             inputBuffer = getEmptyInputBufferFromCache();
+            if (inputBuffer == null) {
+                // We're being torn down now
+                return MoonBridge.DR_NEED_IDR;
+            }
 
             if (submitCsdNextCall) {
                 if (vpsBuffer != null) {
@@ -1182,10 +1202,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         MediaCodecInputBuffer inputBuffer = getEmptyInputBufferFromCache();
 //        int[] index = new int[1];
 //        ByteBuffer inputBuffer = getEmptyInputBuffer(index);
-//        if (inputBuffer == null) {
-//            // We're being torn down now
-//            return false;
-//        }
+        if (inputBuffer == null) {
+            // We're being torn down now
+            return false;
+        }
 //        int inputIndex = index[0];
 
         // Write the Annex B header

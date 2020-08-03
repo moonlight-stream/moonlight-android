@@ -795,7 +795,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // 还有未提交的帧，就跳过当前提交，直接触发release信号
         if (queueInputBufferList.size() > 0) {
             renderingSemaphore.release();
-            return MoonBridge.DR_OK;
+            return MoonBridge.DR_NEED_IDR;
         }
 
 

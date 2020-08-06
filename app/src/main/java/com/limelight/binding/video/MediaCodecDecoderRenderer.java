@@ -55,7 +55,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private Context context;
     private MediaCodec videoDecoder;
-    private Thread rendererThread;
+//    private Thread rendererThread;
     private boolean needsSpsBitstreamFixup, isExynos4;
     private boolean adaptivePlayback, directSubmit;
     private boolean lowLatency;
@@ -480,135 +480,135 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private void startRendererThread()
     {
-        rendererThread = new Thread() {
-            @Override
-            public void run() {
+//        rendererThread = new Thread() {
+//            @Override
+//            public void run() {
 
-                BufferInfo info = new BufferInfo();
-                while (!stopping) {
-                    try {
-
-                        // Build input buffer cache
-                        synchronized (inputBufferCache) {
-                            int maxCount = 1; // Too much caching doesn't make sense
-                            if (inputBufferCache.size() < maxCount) {
-                                inputBufferCache.add(getEmptyInputBuffer());
-                            }
-                            // System.out.println("add inputBufferCache " + inputBufferCache.size());
-                        }
-
-                        /*
-                        加入信号量控制之后，提交和渲染变得更有序，画面稳定
-                        ...
-                        2020-08-02 18:59:21.219 17682-18110/com.limelight.debug I/System.out: + 提交 172384290 <-0
-                        2020-08-02 18:59:21.221 17682-18109/com.limelight.debug I/System.out: - 渲染 172384292 172384258
-                        2020-08-02 18:59:21.237 17682-18110/com.limelight.debug I/System.out: + 提交 172384308 <-- 1
-                        2020-08-02 18:59:21.239 17682-18109/com.limelight.debug I/System.out: - 渲染 172384310 172384275
-                        2020-08-02 18:59:21.254 17682-18110/com.limelight.debug I/System.out: + 提交 172384325 <--- 2
-                        2020-08-02 18:59:21.256 17682-18109/com.limelight.debug I/System.out: - 渲染 172384327 172384290 <- 0
-                        2020-08-02 18:59:21.270 17682-18110/com.limelight.debug I/System.out: + 提交 172384340
-                        2020-08-02 18:59:21.272 17682-18109/com.limelight.debug I/System.out: - 渲染 172384343 172384308 <-- 1
-                        2020-08-02 18:59:21.287 17682-18110/com.limelight.debug I/System.out: + 提交 172384358
-                        2020-08-02 18:59:21.289 17682-18109/com.limelight.debug I/System.out: - 渲染 172384361 172384325 <--- 2
-                        2020-08-02 18:59:21.303 17682-18110/com.limelight.debug I/System.out: + 提交 172384374
-                        2020-08-02 18:59:21.306 17682-18109/com.limelight.debug I/System.out: - 渲染 172384377 172384340
-                        ...
-                        */
-                        // System.out.println("Waitting for a signal " + System.currentTimeMillis());
-                        renderingSemaphore.acquire();
-                        if (stopping) break;
-
-                        // System.out.println("Received a signal " + System.currentTimeMillis());
-
-                        // Queue one input for each time
-                        MediaCodecInputBuffer inputBuffer = null;
-                        synchronized (queueInputBufferList) {
-                            if (queueInputBufferList.size() > 0)
-                                inputBuffer = queueInputBufferList.remove(0);
-                        }
-                        if (inputBuffer != null)
-                            queueInputBuffer(inputBuffer.index, 0, inputBuffer.buffer.position(), inputBuffer.timestampUs, inputBuffer.codecFlags);
-
-                        // Try to output a frame
-                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
-                        if (outIndex >= 0) {
-                            long presentationTimeUs = info.presentationTimeUs;
-                            int lastIndex = outIndex;
-
-                            //long startTime = System.currentTimeMillis();
-                            //System.out.println("- Rendering " + startTime + " " + (startTime-lastRenderTime));
-                            //lastRenderTime = startTime;
-
-                            /* Don't drop any frames to keep the display smooth */
-                            // Get the last output buffer in the queue
-                            //while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
-                            //    videoDecoder.releaseOutputBuffer(lastIndex, false);
-                            //
-                            //    lastIndex = outIndex;
-                            //    presentationTimeUs = info.presentationTimeUs;
-                            //}
-
-                            // Render the last buffer
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                if (legacyFrameDropRendering) {
-                                    // Use a PTS that will cause this frame to be dropped if another comes in within
-                                    // the same V-sync period
-                                    videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
-                                }
-                                else {
-                                    // Use a PTS that will cause this frame to never be dropped if frame dropping
-                                    // is disabled
-                                    videoDecoder.releaseOutputBuffer(lastIndex, 0);
-                                }
-                            }
-                            else {
-                                videoDecoder.releaseOutputBuffer(lastIndex, true);
-                            }
-
-                            activeWindowVideoStats.totalFramesRendered++;
-
-                            // Add delta time to the totals (excluding probable outliers)
-                            long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
-                            if (delta >= 0 && delta < 1000) {
-                                activeWindowVideoStats.decoderTimeMs += delta;
-                                if (!USE_FRAME_RENDER_TIME) {
-                                    activeWindowVideoStats.totalTimeMs += delta;
-                                }
-                            }
-                            // System.out.println("- 渲染 " + MediaCodecHelper.getMonotonicMillis() + " " + (presentationTimeUs / 1000));
-
-                            // Check the incoming frames during rendering
-                            renderingSemaphore.release();
-
-                            // Simulating decoder delay
-                            // Thread.sleep(100);
-
-                            // System.out.println("Rendering complete");
-
-                        } else {
-                            switch (outIndex) {
-                                case MediaCodec.INFO_TRY_AGAIN_LATER:
-                                    break;
-                                case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                                    LimeLog.info("Output format changed");
-                                    outputFormat = videoDecoder.getOutputFormat();
-                                    LimeLog.info("New output format: " + outputFormat);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            // Wait for the next frame of data
-                            renderingSemaphore.drainPermits();
-                        }
-                    } catch (Exception e) {
-                        handleDecoderException(e, null, 0, false);
-                    }
-                }
-            }
-        };
-        rendererThread.setName("Video - Renderer (MediaCodec)");
-        rendererThread.setPriority(Thread.NORM_PRIORITY + 2);
-        rendererThread.start();
+//                BufferInfo info = new BufferInfo();
+//                while (!stopping) {
+//                    try {
+//
+//                        // Build input buffer cache
+//                        synchronized (inputBufferCache) {
+//                            int maxCount = 1; // Too much caching doesn't make sense
+//                            if (inputBufferCache.size() < maxCount) {
+//                                inputBufferCache.add(getEmptyInputBuffer());
+//                            }
+//                            // System.out.println("add inputBufferCache " + inputBufferCache.size());
+//                        }
+//
+//                        /*
+//                        加入信号量控制之后，提交和渲染变得更有序，画面稳定
+//                        ...
+//                        2020-08-02 18:59:21.219 17682-18110/com.limelight.debug I/System.out: + 提交 172384290 <-0
+//                        2020-08-02 18:59:21.221 17682-18109/com.limelight.debug I/System.out: - 渲染 172384292 172384258
+//                        2020-08-02 18:59:21.237 17682-18110/com.limelight.debug I/System.out: + 提交 172384308 <-- 1
+//                        2020-08-02 18:59:21.239 17682-18109/com.limelight.debug I/System.out: - 渲染 172384310 172384275
+//                        2020-08-02 18:59:21.254 17682-18110/com.limelight.debug I/System.out: + 提交 172384325 <--- 2
+//                        2020-08-02 18:59:21.256 17682-18109/com.limelight.debug I/System.out: - 渲染 172384327 172384290 <- 0
+//                        2020-08-02 18:59:21.270 17682-18110/com.limelight.debug I/System.out: + 提交 172384340
+//                        2020-08-02 18:59:21.272 17682-18109/com.limelight.debug I/System.out: - 渲染 172384343 172384308 <-- 1
+//                        2020-08-02 18:59:21.287 17682-18110/com.limelight.debug I/System.out: + 提交 172384358
+//                        2020-08-02 18:59:21.289 17682-18109/com.limelight.debug I/System.out: - 渲染 172384361 172384325 <--- 2
+//                        2020-08-02 18:59:21.303 17682-18110/com.limelight.debug I/System.out: + 提交 172384374
+//                        2020-08-02 18:59:21.306 17682-18109/com.limelight.debug I/System.out: - 渲染 172384377 172384340
+//                        ...
+//                        */
+//                        // System.out.println("Waitting for a signal " + System.currentTimeMillis());
+//                        renderingSemaphore.acquire();
+//                        if (stopping) break;
+//
+//                        // System.out.println("Received a signal " + System.currentTimeMillis());
+//
+//                        // Queue one input for each time
+//                        MediaCodecInputBuffer inputBuffer = null;
+//                        synchronized (queueInputBufferList) {
+//                            if (queueInputBufferList.size() > 0)
+//                                inputBuffer = queueInputBufferList.remove(0);
+//                        }
+//                        if (inputBuffer != null)
+//                            queueInputBuffer(inputBuffer.index, 0, inputBuffer.buffer.position(), inputBuffer.timestampUs, inputBuffer.codecFlags);
+//
+//                        // Try to output a frame
+//                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
+//                        if (outIndex >= 0) {
+//                            long presentationTimeUs = info.presentationTimeUs;
+//                            int lastIndex = outIndex;
+//
+//                            //long startTime = System.currentTimeMillis();
+//                            //System.out.println("- Rendering " + startTime + " " + (startTime-lastRenderTime));
+//                            //lastRenderTime = startTime;
+//
+//                            /* Don't drop any frames to keep the display smooth */
+//                            // Get the last output buffer in the queue
+//                            //while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
+//                            //    videoDecoder.releaseOutputBuffer(lastIndex, false);
+//                            //
+//                            //    lastIndex = outIndex;
+//                            //    presentationTimeUs = info.presentationTimeUs;
+//                            //}
+//
+//                            // Render the last buffer
+//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                                if (legacyFrameDropRendering) {
+//                                    // Use a PTS that will cause this frame to be dropped if another comes in within
+//                                    // the same V-sync period
+//                                    videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
+//                                }
+//                                else {
+//                                    // Use a PTS that will cause this frame to never be dropped if frame dropping
+//                                    // is disabled
+//                                    videoDecoder.releaseOutputBuffer(lastIndex, 0);
+//                                }
+//                            }
+//                            else {
+//                                videoDecoder.releaseOutputBuffer(lastIndex, true);
+//                            }
+//
+//                            activeWindowVideoStats.totalFramesRendered++;
+//
+//                            // Add delta time to the totals (excluding probable outliers)
+//                            long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
+//                            if (delta >= 0 && delta < 1000) {
+//                                activeWindowVideoStats.decoderTimeMs += delta;
+//                                if (!USE_FRAME_RENDER_TIME) {
+//                                    activeWindowVideoStats.totalTimeMs += delta;
+//                                }
+//                            }
+//                            // System.out.println("- 渲染 " + MediaCodecHelper.getMonotonicMillis() + " " + (presentationTimeUs / 1000));
+//
+//                            // Check the incoming frames during rendering
+//                            renderingSemaphore.release();
+//
+//                            // Simulating decoder delay
+//                            // Thread.sleep(100);
+//
+//                            // System.out.println("Rendering complete");
+//
+//                        } else {
+//                            switch (outIndex) {
+//                                case MediaCodec.INFO_TRY_AGAIN_LATER:
+//                                    break;
+//                                case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
+//                                    LimeLog.info("Output format changed");
+//                                    outputFormat = videoDecoder.getOutputFormat();
+//                                    LimeLog.info("New output format: " + outputFormat);
+//                                    break;
+//                                default:
+//                                    break;
+//                            }
+//                            // Wait for the next frame of data
+//                            renderingSemaphore.drainPermits();
+//                        }
+//                    } catch (Exception e) {
+//                        handleDecoderException(e, null, 0, false);
+//                    }
+//                }
+//            }
+//        };
+//        rendererThread.setName("Video - Renderer (MediaCodec)");
+//        rendererThread.setPriority(Thread.NORM_PRIORITY + 2);
+//        rendererThread.start();
     }
 
     private int dequeueInputBuffer() {
@@ -662,9 +662,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         stopping = true;
 
         // Halt the rendering thread
-        if (rendererThread != null) {
-            rendererThread.interrupt();
-        }
+//        if (rendererThread != null) {
+//            rendererThread.interrupt();
+//        }
 
         renderingSemaphore.release();
     }
@@ -675,15 +675,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         prepareForStop();
 
         // Wait for the renderer thread to shut down
-        try {
-            rendererThread.join();
-        } catch (InterruptedException ignored) { }
+//        try {
+//            rendererThread.join();
+//        } catch (InterruptedException ignored) { }
     }
 
     @Override
     public void cleanup() {
-        if (videoDecoder != null)
-            videoDecoder.release();
+//        if (videoDecoder != null)
+//            videoDecoder.release();
         MoonBridge.deleteMediaCodec(videoDecoder2);
     }
 
@@ -743,18 +743,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return buf;
     }
 
-    private MediaCodecInputBuffer getEmptyInputBuffer() {
-        int[] index = new int[1];
-        ByteBuffer buf = getEmptyInputBuffer(index);
-        if (buf == null) {
-            // We're being torn down now
-            return null;
-        }
-        MediaCodecInputBuffer inputBuffer = new MediaCodecInputBuffer();
-        inputBuffer.index = index[0];
-        inputBuffer.buffer = buf;
-        return inputBuffer;
-    }
+//    private MediaCodecInputBuffer getEmptyInputBuffer() {
+//        int[] index = new int[1];
+//        ByteBuffer buf = getEmptyInputBuffer(index);
+//        if (buf == null) {
+//            // We're being torn down now
+//            return null;
+//        }
+//        MediaCodecInputBuffer inputBuffer = new MediaCodecInputBuffer();
+//        inputBuffer.index = index[0];
+//        inputBuffer.buffer = buf;
+//        return inputBuffer;
+//    }
 
     private MediaCodecInputBuffer getEmptyInputBufferFromCache() {
 

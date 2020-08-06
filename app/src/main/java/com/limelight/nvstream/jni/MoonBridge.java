@@ -3,6 +3,7 @@ package com.limelight.nvstream.jni;
 import android.media.MediaCodec;
 import android.view.Surface;
 
+import com.limelight.binding.video.MediaCodecInputBuffer;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
@@ -317,4 +318,6 @@ public class MoonBridge {
 
     public static native int submitDecodeUnit(long videoDecoder, ByteBuffer decodeUnitData, int decodeUnitLength, int decodeUnitType,
     int frameNumber, long receiveTimeMs);
+
+    public static native MediaCodecInputBuffer getEmptyInputBuffer(long videoDecoder);
 }

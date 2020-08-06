@@ -208,3 +208,9 @@ Java_com_limelight_nvstream_jni_MoonBridge_submitDecodeUnit(JNIEnv *env, jclass 
     void* data = (*env)->GetDirectBufferAddress(env, decode_unit_data);
     return VideoDecoder_submitDecodeUnit(video_decoder, data, decode_unit_length, decode_unit_type, frame_number, receive_time_ms);
 }
+
+JNIEXPORT jobject JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_getEmptyInputBuffer(JNIEnv *env, jclass clazz,
+                                                               jlong video_decoder) {
+
+}

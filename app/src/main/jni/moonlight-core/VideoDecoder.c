@@ -39,6 +39,27 @@ int sdk_version() {
     return sdk_ver;
 }
 
+// 获取空的输入缓冲区
+bool getEmptyInputBuffer(VideoDecoder* videoDeoder, VideoInputBuffer* inputBuffer) {
+
+    int bufidx = AMediaCodec_dequeueInputBuffer(videoDeoder->codec, 0);
+    if (bufidx < 0) {
+        return 0;
+    }
+
+    size_t bufsize;
+    void* buf = AMediaCodec_getInputBuffer(videoDeoder->codec, bufidx, &bufsize);
+    if (buf == NULL) {
+        return false;
+    }
+
+    inputBuffer->index = bufidx;
+    inputBuffer->buffer = buf;
+    inputBuffer->bufsize = bufsize;
+
+    return 1;
+}
+
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, int lowLatency) {
 
     int sdk_ver = sdk_version();
@@ -122,42 +143,69 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
     VideoDecoder* videoDeoder = (VideoDecoder*)malloc(sizeof(VideoDecoder));
     videoDeoder->window = window;
     videoDeoder->codec = codec;
-    videoDeoder->threadInfo = 0;
+    videoDeoder->inputBufferCount = 0;
+    videoDeoder->stop = false;
+    videoDeoder->stopCallback = 0;
 
     return videoDeoder;
 }
 
-void VideoDecoder_release(VideoDecoder* videoDeoder) {
-
-    // 停止
-    VideoDecoder_stop(videoDeoder);
-
+void releaseVideoDecoder(VideoDecoder* videoDeoder) {
     AMediaCodec_delete(videoDeoder->codec);
     free(videoDeoder);
+}
+
+void VideoDecoder_release(VideoDecoder* videoDeoder) {
+
+    pthread_mutex_lock(&videoDeoder->lock);
+
+    // 停止
+    if (!videoDeoder->stop) {
+        videoDeoder->stopCallback = releaseVideoDecoder;
+        VideoDecoder_stop(videoDeoder);
+    } else {
+        releaseVideoDecoder(videoDeoder);
+    }
 
     LOGD("VideoDecoder_release: released!");
+
+    pthread_mutex_unlock(&videoDeoder->lock);
 }
 
 pthread_t pid;
+pthread_mutex_t inputCache_lock;
 
-void* rendering_thread(ThreadInfo* info)
+void* rendering_thread(VideoDecoder* videoDeoder)
 {
-    while(!info->stop) {
+    while(!videoDeoder->stop) {
 
         LOGD("rendering_thread: Rendering ...");
+
+        pthread_mutex_lock(&inputCache_lock); {
+            int maxCount = 1; // Too much caching doesn't make sense
+            // if (videoDeoder->inputBufferCache.size() < maxCount) {
+            //     videoDeoder->inputBufferCache.add(getEmptyInputBuffer());
+            // }
+            
+        } pthread_mutex_unlock(&inputCache_lock);
 
         sleep(1);
     }
 
-    // 释放info
-    free(info);
+    if (videoDeoder->stopCallback) {
+        videoDeoder->stopCallback(videoDeoder);
+    }
 
     LOGD("rendering_thread: Thread quited!");
 }
 
-void VideoDecoder_start(VideoDecoder* videoDeodec) {
+void VideoDecoder_start(VideoDecoder* videoDeoder) {
 
-    if (AMediaCodec_start(videoDeodec->codec) != AMEDIA_OK) {
+    pthread_mutex_lock(&videoDeoder->lock);
+
+    assert(!videoDeoder->stop);
+
+    if (AMediaCodec_start(videoDeoder->codec) != AMEDIA_OK) {
         LOGD("AMediaCodec_start: Could not start encoder.");
     }
     else {
@@ -165,19 +213,20 @@ void VideoDecoder_start(VideoDecoder* videoDeodec) {
     }
 
     // 启动线程
-    ThreadInfo* info = (ThreadInfo*)malloc(sizeof(ThreadInfo));
-    pthread_create(&pid, 0, rendering_thread, info);
+    pthread_create(&pid, 0, rendering_thread, videoDeoder);    
 
-    videoDeodec->threadInfo = info;
+    pthread_mutex_unlock(&videoDeoder->lock);
 }
 
 void VideoDecoder_stop(VideoDecoder* videoDeoder) {
 
-    videoDeoder->threadInfo->stop = 1;
+    videoDeoder->stop = true;
 }
 
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {
+
+    pthread_mutex_lock(&videoDeoder->lock);
 
     LOGD("VideoDecoder_submitDecodeUnit: submit %p", decodeUnitData);
 
@@ -187,5 +236,9 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeoder, void* decodeUnitDat
 //    if (((char*)decodeUnitData)[4] == 0x67) {
 //
 //    }
+
+    pthread_mutex_unlock(&videoDeoder->lock);
+
     return 0;
 }
+

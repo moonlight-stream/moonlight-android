@@ -10,21 +10,33 @@
 #include <android/native_window_jni.h>
 
 typedef struct {
-    bool stop;
-
-} ThreadInfo;
+    int index;
+    void* buffer;
+    size_t bufsize;
+    long timestampUs;
+    int codecFlags;
+} VideoInputBuffer;
 
 typedef struct {
 //    int fd;
     ANativeWindow* window;
 //    AMediaExtractor* ex;
     AMediaCodec* codec;
-    ThreadInfo* threadInfo;
+//    ThreadInfo* threadInfo;
 //    int64_t renderstart;
 //    bool sawInputEOS;
 //    bool sawOutputEOS;
 //    bool isPlaying;
 //    bool renderonce;
+
+    bool stop;
+    void (*stopCallback)(void*);
+
+    // 缓冲区
+    VideoInputBuffer inputBufferCache[3];
+    int inputBufferCount;
+
+    pthread_mutex_t lock;
 } VideoDecoder;
 
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, int lowLatency);
@@ -36,5 +48,7 @@ void VideoDecoder_stop(VideoDecoder* videoDeoder);
 // Callback
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs);
+
+// bool VideoDecoder_getEmptyInputBuffer(VideoDecoder* videoDeoder, VideoInputBuffer* inputBuffer);
 
 #endif //MOONLIGHT_ANDROID_DECODER_H

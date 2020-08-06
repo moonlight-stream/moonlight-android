@@ -165,3 +165,34 @@ Java_com_limelight_nvstream_jni_MoonBridge_nativeFree(JNIEnv *env, jclass clazz,
     void* buf = (*env)->GetDirectBufferAddress(env, buffer);
     free(buf);
 }
+
+#include "VideoDecoder.h"
+
+JNIEXPORT jlong JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_createMediaCodec(JNIEnv *env, jclass clazz, jobject surface, jstring name,
+                                                            jstring mime_type, jint width,
+                                                            jint height, jint fps, int lowLatency) {
+    const char *c_name = (*env)->GetStringUTFChars(env, name, 0);
+    const char *c_mime_type = (*env)->GetStringUTFChars(env, mime_type, 0);
+
+    long videoDecoder = (long)VideoDecoder_create(env, surface, c_name, c_mime_type, width, height, fps, lowLatency);
+
+    (*env)->ReleaseStringUTFChars(env, name, c_name);
+    (*env)->ReleaseStringUTFChars(env, mime_type, c_mime_type);
+
+    return videoDecoder;
+}
+
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_deleteMediaCodec(JNIEnv *env, jclass clazz,
+                                                            jlong videoDecoder) {
+//    ()video_codec;
+    VideoDecoder_release((VideoDecoder*)videoDecoder);
+}
+
+JNIEXPORT jlong JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_startMediaCodec(JNIEnv *env, jclass clazz,
+                                                           jlong video_decoder) {
+
+    VideoDecoder_start(video_decoder);
+}

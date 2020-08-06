@@ -32,10 +32,6 @@ import android.os.HandlerThread;
 import android.util.Range;
 import android.view.SurfaceHolder;
 
-import static com.limelight.nvstream.jni.MoonBridge.nativeCopy;
-import static com.limelight.nvstream.jni.MoonBridge.nativeCreate;
-import static com.limelight.nvstream.jni.MoonBridge.nativeFree;
-
 public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private static final boolean USE_FRAME_RENDER_TIME = false;
@@ -82,6 +78,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private Semaphore renderingSemaphore;
     private List<MediaCodecInputBuffer> inputBufferCache;
     private List<MediaCodecInputBuffer> queueInputBufferList;
+
+    private long videoDecoder2;
 
     private MediaFormat inputFormat;
     private MediaFormat outputFormat;
@@ -320,6 +318,26 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return -3;
         }
 
+        // 变更解码器 begin
+
+        int fps = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            fps = prefs.fps;
+        }
+        int lowLatencyValue = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && lowLatency) {
+            lowLatencyValue = 1;
+        }
+
+        videoDecoder2 = MoonBridge.createMediaCodec(renderTarget.getSurface(), selectedDecoderName, mimeType, width, height, fps, lowLatencyValue);
+        if (videoDecoder2 == 0) {
+            return -4;
+        }
+
+        MoonBridge.startMediaCodec(videoDecoder2);
+
+        // 变更解码器 end
+/*
         // Codecs have been known to throw all sorts of crazy runtime exceptions
         // due to implementation problems
         try {
@@ -408,7 +426,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             e.printStackTrace();
             return -5;
         }
-
+*/
         return 0;
     }
 
@@ -664,7 +682,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     @Override
     public void cleanup() {
-        videoDecoder.release();
+        if (videoDecoder != null)
+            videoDecoder.release();
+        MoonBridge.deleteMediaCodec(videoDecoder2);
     }
 
     private boolean queueInputBuffer(int inputBufferIndex, int offset, int length, long timestampUs, int codecFlags) {
@@ -993,10 +1013,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             //System.arraycopy(decodeUnitData, 0, spsBuffer, 0, 5);
             //escapedNalu.get(spsBuffer, 5, escapedNalu.limit());
 
-            if (spsBuffer != null) nativeFree(spsBuffer);
+            if (spsBuffer != null) MoonBridge.nativeFree(spsBuffer);
 
-            spsBuffer = nativeCreate(5 + escapedNalu.limit());
-            nativeCopy(decodeUnitData, 0, spsBuffer, 0, 5);
+            spsBuffer = MoonBridge.nativeCreate(5 + escapedNalu.limit());
+            MoonBridge.nativeCopy(decodeUnitData, 0, spsBuffer, 0, 5);
             spsBuffer.position(5);
             spsBuffer.put(escapedNalu.array(), 0, escapedNalu.limit());
             spsBuffer.position(0);
@@ -1010,10 +1030,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             //vpsBuffer = new byte[decodeUnitLength];
             //System.arraycopy(decodeUnitData, 0, vpsBuffer, 0, decodeUnitLength);
 
-            if (vpsBuffer != null) nativeFree(vpsBuffer);
+            if (vpsBuffer != null) MoonBridge.nativeFree(vpsBuffer);
 
-            vpsBuffer = nativeCreate(decodeUnitLength);
-            nativeCopy(decodeUnitData, 0, vpsBuffer, 0, decodeUnitLength);
+            vpsBuffer = MoonBridge.nativeCreate(decodeUnitLength);
+            MoonBridge.nativeCopy(decodeUnitData, 0, vpsBuffer, 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
         // Only the HEVC SPS hits this path (H.264 is handled above)
@@ -1024,10 +1044,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             //spsBuffer = new byte[decodeUnitLength];
             //System.arraycopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength);
 
-            if (spsBuffer != null) nativeFree(spsBuffer);
+            if (spsBuffer != null) MoonBridge.nativeFree(spsBuffer);
 
-            spsBuffer = nativeCreate(decodeUnitLength);
-            nativeCopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength);
+            spsBuffer = MoonBridge.nativeCreate(decodeUnitLength);
+            MoonBridge.nativeCopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength);
             return MoonBridge.DR_OK;
         }
         else if (decodeUnitType == MoonBridge.BUFFER_TYPE_PPS) {
@@ -1052,12 +1072,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 // the PPS, as required by AOSP docs on use of MediaCodec.
                 if (vpsBuffer != null) {
                     // buf.put(vpsBuffer);
-                    nativeCopy(vpsBuffer, 0, inputBuffer.buffer, 0, vpsBuffer.limit());
+                    MoonBridge.nativeCopy(vpsBuffer, 0, inputBuffer.buffer, 0, vpsBuffer.limit());
                     inputBuffer.buffer.position(vpsBuffer.limit());
                 }
                 if (spsBuffer != null) {
                     // buf.put(spsBuffer);
-                    nativeCopy(spsBuffer, 0, inputBuffer.buffer, 0, spsBuffer.limit());
+                    MoonBridge.nativeCopy(spsBuffer, 0, inputBuffer.buffer, 0, spsBuffer.limit());
                     inputBuffer.buffer.position(spsBuffer.limit());
                 }
 
@@ -1068,9 +1088,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 // Batch this to submit together with the next I-frame
                 //ppsBuffer = new byte[decodeUnitLength];
                 //System.arraycopy(decodeUnitData, 0, ppsBuffer, 0, decodeUnitLength);
-                if (ppsBuffer != null) nativeFree(ppsBuffer);
-                ppsBuffer = nativeCreate(decodeUnitLength);
-                nativeCopy(decodeUnitData, 0, ppsBuffer, 0, decodeUnitLength);
+                if (ppsBuffer != null) MoonBridge.nativeFree(ppsBuffer);
+                ppsBuffer = MoonBridge.nativeCreate(decodeUnitLength);
+                MoonBridge.nativeCopy(decodeUnitData, 0, ppsBuffer, 0, decodeUnitLength);
 
                 // Next call will be I-frame data
                 submitCsdNextCall = true;
@@ -1100,19 +1120,19 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 if (vpsBuffer != null) {
                     //System.out.println("vpsBuffer " + vpsBuffer.limit());
                     //buf.put(vpsBuffer);
-                    nativeCopy(vpsBuffer, 0, inputBuffer.buffer, 0, vpsBuffer.limit());
+                    MoonBridge.nativeCopy(vpsBuffer, 0, inputBuffer.buffer, 0, vpsBuffer.limit());
                     inputBuffer.buffer.position(vpsBuffer.limit());
                 }
                 if (spsBuffer != null) {
                     //System.out.println("spsBuffer " + spsBuffer.limit());
                     //buf.put(spsBuffer);
-                    nativeCopy(spsBuffer, 0, inputBuffer.buffer, 0, spsBuffer.limit());
+                    MoonBridge.nativeCopy(spsBuffer, 0, inputBuffer.buffer, 0, spsBuffer.limit());
                     inputBuffer.buffer.position(spsBuffer.limit());
                 }
                 if (ppsBuffer != null) {
                     //System.out.println("ppsBuffer " + ppsBuffer.limit());
                     //buf.put(ppsBuffer);
-                    nativeCopy(ppsBuffer, 0, inputBuffer.buffer, 0, ppsBuffer.limit());
+                    MoonBridge.nativeCopy(ppsBuffer, 0, inputBuffer.buffer, 0, ppsBuffer.limit());
                     inputBuffer.buffer.position(ppsBuffer.limit());
                 }
 
@@ -1133,7 +1153,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // Copy data from our buffer list into the input buffer
         // buf.put(decodeUnitData, 0, decodeUnitLength);
         int pos = inputBuffer.buffer.position();
-        nativeCopy(decodeUnitData, 0, inputBuffer.buffer, pos, decodeUnitLength);
+        MoonBridge.nativeCopy(decodeUnitData, 0, inputBuffer.buffer, pos, decodeUnitLength);
         inputBuffer.buffer.position(pos + decodeUnitLength);
 
         // System.out.println("+ 提交 " + timestampUs/1000);

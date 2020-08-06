@@ -1,5 +1,8 @@
 package com.limelight.nvstream.jni;
 
+import android.media.MediaCodec;
+import android.view.Surface;
+
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
@@ -306,4 +309,9 @@ public class MoonBridge {
 
     public static native ByteBuffer nativeCreate(int size);
     public static native void nativeFree(ByteBuffer buffer);
+
+    public static native long createMediaCodec(Surface surface, String name, String mimeType, int width, int height, int fps, int lowLatency);
+    public static native void deleteMediaCodec(long videoDecoder);
+
+    public static native long startMediaCodec(long videoDecoder);
 }

@@ -129,7 +129,8 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
 
 void VideoDecoder_release(VideoDecoder* videoDeoder) {
 
-    videoDeoder->threadInfo->stop = 1;
+    // 停止
+    VideoDecoder_stop(videoDeoder);
 
     AMediaCodec_delete(videoDeoder->codec);
     free(videoDeoder);
@@ -170,10 +171,21 @@ void VideoDecoder_start(VideoDecoder* videoDeodec) {
     videoDeodec->threadInfo = info;
 }
 
-int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeodec, void* data, int decodeUnitLength, int decodeUnitType,
+void VideoDecoder_stop(VideoDecoder* videoDeoder) {
+
+    videoDeoder->threadInfo->stop = 1;
+}
+
+int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {
 
-    LOGD("VideoDecoder_submitDecodeUnit: submit %p", data);
+    LOGD("VideoDecoder_submitDecodeUnit: submit %p", decodeUnitData);
 
+    int codecFlags = 0;
+
+    // H264 SPS
+//    if (((char*)decodeUnitData)[4] == 0x67) {
+//
+//    }
     return 0;
 }

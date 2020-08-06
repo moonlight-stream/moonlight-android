@@ -28,12 +28,13 @@ typedef struct {
 } VideoDecoder;
 
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, int lowLatency);
-void VideoDecoder_release(VideoDecoder* videoDeodec);
+void VideoDecoder_release(VideoDecoder* videoDeoder);
 
-void VideoDecoder_start(VideoDecoder* videoDeodec);
+void VideoDecoder_start(VideoDecoder* videoDeoder);
+void VideoDecoder_stop(VideoDecoder* videoDeoder);
 
 // Callback
-int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeodec, void* data, int decodeUnitLength, int decodeUnitType,
+int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs);
 
 #endif //MOONLIGHT_ANDROID_DECODER_H

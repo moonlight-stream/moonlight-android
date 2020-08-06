@@ -314,4 +314,7 @@ public class MoonBridge {
     public static native void deleteMediaCodec(long videoDecoder);
 
     public static native long startMediaCodec(long videoDecoder);
+
+    public static native int submitDecodeUnit(long videoDecoder, ByteBuffer decodeUnitData, int decodeUnitLength, int decodeUnitType,
+    int frameNumber, long receiveTimeMs);
 }

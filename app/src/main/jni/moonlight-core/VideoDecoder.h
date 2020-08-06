@@ -32,4 +32,8 @@ void VideoDecoder_release(VideoDecoder* videoDeodec);
 
 void VideoDecoder_start(VideoDecoder* videoDeodec);
 
+// Callback
+int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeodec, void* data, int decodeUnitLength, int decodeUnitType,
+                                int frameNumber, long receiveTimeMs);
+
 #endif //MOONLIGHT_ANDROID_DECODER_H

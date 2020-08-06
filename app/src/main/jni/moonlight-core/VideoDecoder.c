@@ -13,7 +13,7 @@
 
 #include <android/log.h>
 
-#   define  LOG_TAG    "decoder"
+#   define  LOG_TAG    "VideoDecoder"
 #   define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
 
@@ -133,6 +133,8 @@ void VideoDecoder_release(VideoDecoder* videoDeoder) {
 
     AMediaCodec_delete(videoDeoder->codec);
     free(videoDeoder);
+
+    LOGD("VideoDecoder_release: released!");
 }
 
 pthread_t pid;
@@ -141,7 +143,7 @@ void* rendering_thread(ThreadInfo* info)
 {
     while(!info->stop) {
 
-        LOGD("Rendering ...");
+        LOGD("rendering_thread: Rendering ...");
 
         sleep(1);
     }
@@ -149,7 +151,7 @@ void* rendering_thread(ThreadInfo* info)
     // 释放info
     free(info);
 
-    LOGD("Thread quited!");
+    LOGD("rendering_thread: Thread quited!");
 }
 
 void VideoDecoder_start(VideoDecoder* videoDeodec) {
@@ -166,4 +168,12 @@ void VideoDecoder_start(VideoDecoder* videoDeodec) {
     pthread_create(&pid, 0, rendering_thread, info);
 
     videoDeodec->threadInfo = info;
+}
+
+int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeodec, void* data, int decodeUnitLength, int decodeUnitType,
+                                int frameNumber, long receiveTimeMs) {
+
+    LOGD("VideoDecoder_submitDecodeUnit: submit %p", data);
+
+    return 0;
 }

@@ -196,3 +196,15 @@ Java_com_limelight_nvstream_jni_MoonBridge_startMediaCodec(JNIEnv *env, jclass c
 
     VideoDecoder_start(video_decoder);
 }
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_submitDecodeUnit(JNIEnv *env, jclass clazz,
+                                                            jlong video_decoder,
+                                                            jobject decode_unit_data,
+                                                            jint decode_unit_length,
+                                                            jint decode_unit_type,
+                                                            jint frame_number,
+                                                            jlong receive_time_ms) {
+    void* data = (*env)->GetDirectBufferAddress(env, decode_unit_data);
+    return VideoDecoder_submitDecodeUnit(video_decoder, data, decode_unit_length, decode_unit_type, frame_number, receive_time_ms);
+}

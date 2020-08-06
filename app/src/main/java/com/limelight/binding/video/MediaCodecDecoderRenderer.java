@@ -800,6 +800,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return MoonBridge.DR_OK;
         }
 
+        return MoonBridge.submitDecodeUnit(videoDecoder2, decodeUnitData, decodeUnitLength, decodeUnitType, frameNumber, receiveTimeMs);
+
+/*
         // 还有未提交的帧，就跳过当前提交，直接触发release信号
         if (queueInputBufferList.size() > 0) {
             renderingSemaphore.release();
@@ -1186,6 +1189,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         renderingSemaphore.release();
 
         return MoonBridge.DR_OK;
+ */
     }
 
     private boolean replaySps() {

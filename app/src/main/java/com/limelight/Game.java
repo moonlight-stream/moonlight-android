@@ -30,6 +30,7 @@ import com.limelight.ui.GameGestures;
 import com.limelight.ui.StreamView;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.NetHelper;
+import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
@@ -1540,7 +1541,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                     String dialogText = getResources().getString(R.string.conn_error_msg) + " " + stage +" (error "+errorCode+")";
                     if (portFlags != 0) {
-                        int ret = MoonBridge.testClientConnectivity("conntest-android.moonlight-stream.org", 443, portFlags);
+                        int ret = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER, 443, portFlags);
                         if (ret != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && ret != 0)  {
                             dialogText += "\n\n" + getResources().getString(R.string.nettest_text_blocked);
                         }

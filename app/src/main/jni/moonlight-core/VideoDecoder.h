@@ -8,6 +8,7 @@
 #include <jni.h>
 #include <media/NdkMediaCodec.h>
 #include <android/native_window_jni.h>
+#include <semaphore.h>
 
 typedef struct {
     int index;
@@ -15,7 +16,7 @@ typedef struct {
     size_t bufsize;
     long timestampUs;
     int codecFlags;
-    bool isFree;
+    int status;
 } VideoInputBuffer;
 
 typedef struct {
@@ -37,6 +38,7 @@ typedef struct {
     VideoInputBuffer* inputBufferCache;
 
     pthread_mutex_t lock; // api lock
+    sem_t rendering_sem;
 } VideoDecoder;
 
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, int lowLatency);
@@ -48,6 +50,10 @@ void VideoDecoder_stop(VideoDecoder* videoDeoder);
 // Callback
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs);
+
+int VideoDecoder_dequeueInputBuffer(VideoDecoder* videoDeoder);
+VideoInputBuffer* VideoDecoder_getInputBuffer(VideoDecoder* videoDeoder, int index);
+bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDeoder, int index, long timestampUs, int codecFlags);
 
 // bool VideoDecoder_getEmptyInputBuffer(VideoDecoder* videoDeoder, VideoInputBuffer* inputBuffer);
 

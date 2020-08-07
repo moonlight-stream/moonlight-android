@@ -319,5 +319,7 @@ public class MoonBridge {
     public static native int submitDecodeUnit(long videoDecoder, ByteBuffer decodeUnitData, int decodeUnitLength, int decodeUnitType,
     int frameNumber, long receiveTimeMs);
 
-    public static native MediaCodecInputBuffer getEmptyInputBuffer(long videoDecoder);
+    public static native int dequeueInputBuffer(long videoDecoder);
+    public static native ByteBuffer getInputBuffer(long videoDecoder, int index);
+    public static native boolean queueInputBuffer(long videoDecoder, int index, long timestampUs, int codecFlags);
 }

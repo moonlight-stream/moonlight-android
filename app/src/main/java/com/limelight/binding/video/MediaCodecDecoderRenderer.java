@@ -75,9 +75,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private PerfOverlayListener perfListener;
     private Handler infoHandler;
     private HandlerThread handlerThread;
-    private Semaphore renderingSemaphore;
-    private List<MediaCodecInputBuffer> inputBufferCache;
-    private List<MediaCodecInputBuffer> queueInputBufferList;
+    // private Semaphore renderingSemaphore;
+//    private List<MediaCodecInputBuffer> inputBufferCache;
+//    private List<MediaCodecInputBuffer> queueInputBufferList;
 
     private long videoDecoder2;
 
@@ -161,9 +161,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.handlerThread = new HandlerThread("HandlerThread");
         this.handlerThread.start();
         this.infoHandler = new Handler(this.handlerThread.getLooper());
-        this.renderingSemaphore = new Semaphore(0);
-        this.inputBufferCache = new ArrayList<MediaCodecInputBuffer>();
-        this.queueInputBufferList = new ArrayList<MediaCodecInputBuffer>();
+        // this.renderingSemaphore = new Semaphore(0);
+//        this.inputBufferCache = new ArrayList<MediaCodecInputBuffer>();
+//        this.queueInputBufferList = new ArrayList<MediaCodecInputBuffer>();
 
         this.activeWindowVideoStats = new VideoStats();
         this.lastWindowVideoStats = new VideoStats();
@@ -666,7 +666,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 //            rendererThread.interrupt();
 //        }
 
-        renderingSemaphore.release();
+        // renderingSemaphore.release();
     }
 
     @Override
@@ -702,48 +702,49 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private boolean queueInputBuffer(MediaCodecInputBuffer inputBuffer) {
 
-        synchronized (queueInputBufferList) {
-
-            // 清空未提交的帧，不能丢，否则造成资源耗尽，卡住
-            // queueInputBufferList.clear();
-
-            queueInputBufferList.add(inputBuffer);
-            return true;
-        }
+//        synchronized (queueInputBufferList) {
+//
+//            // 清空未提交的帧，不能丢，否则造成资源耗尽，卡住
+//            // queueInputBufferList.clear();
+//
+//            queueInputBufferList.add(inputBuffer);
+//            return true;
+//        }
+        return false;
     }
 
     // Using the new getInputBuffer() API on Lollipop allows
     // the framework to do some performance optimizations for us
     private ByteBuffer getEmptyInputBuffer(int[] index) {
-        ByteBuffer buf;
+//        ByteBuffer buf;
 
-        // 可以请求一个缓存
-        int inputBufferIndex = dequeueInputBuffer();
-        if (inputBufferIndex < 0) {
-            // We're being torn down now
-            return null;
-        }
+//        // 可以请求一个缓存
+//        int inputBufferIndex = dequeueInputBuffer();
+//        if (inputBufferIndex < 0) {
+//            // We're being torn down now
+//            return null;
+//        }
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            try {
+//                buf = videoDecoder.getInputBuffer(inputBufferIndex);
+//            } catch (Exception e) {
+//                handleDecoderException(e, null, 0, true);
+//                return null;
+//            }
+//        }
+//        else {
+//            buf = legacyInputBuffers[inputBufferIndex];
+//
+//            // Clear old input data pre-Lollipop
+//            buf.clear();
+//        }
+//        index[0] = inputBufferIndex;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                buf = videoDecoder.getInputBuffer(inputBufferIndex);
-            } catch (Exception e) {
-                handleDecoderException(e, null, 0, true);
-                return null;
-            }
-        }
-        else {
-            buf = legacyInputBuffers[inputBufferIndex];
-
-            // Clear old input data pre-Lollipop
-            buf.clear();
-        }
-        index[0] = inputBufferIndex;
-
-        return buf;
+        return null;
     }
 
-//    private MediaCodecInputBuffer getEmptyInputBuffer() {
+    private MediaCodecInputBuffer getEmptyInputBuffer() {
 //        int[] index = new int[1];
 //        ByteBuffer buf = getEmptyInputBuffer(index);
 //        if (buf == null) {
@@ -754,17 +755,19 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 //        inputBuffer.index = index[0];
 //        inputBuffer.buffer = buf;
 //        return inputBuffer;
-//    }
+        return null;
+    }
 
     private MediaCodecInputBuffer getEmptyInputBufferFromCache() {
 
-        synchronized (inputBufferCache) {
-            if (inputBufferCache.size() > 0) {
-                return inputBufferCache.remove(0);
-            } else {
-                return null;//getEmptyInputBuffer();
-            }
-        }
+//        synchronized (inputBufferCache) {
+//            if (inputBufferCache.size() > 0) {
+//                return inputBufferCache.remove(0);
+//            } else {
+//                return null;//getEmptyInputBuffer();
+//            }
+//        }
+        return null;
     }
 
     private void doProfileSpecificSpsPatching(SeqParameterSet sps) {
@@ -800,18 +803,20 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return MoonBridge.DR_OK;
         }
 
-        return MoonBridge.submitDecodeUnit(videoDecoder2, decodeUnitData, decodeUnitLength, decodeUnitType, frameNumber, receiveTimeMs);
+//        System.out.println("111111");
 
-/*
+        // return MoonBridge.submitDecodeUnit(videoDecoder2, decodeUnitData, decodeUnitLength, decodeUnitType, frameNumber, receiveTimeMs);
+
+
         // 还有未提交的帧，就跳过当前提交，直接触发release信号
-        if (queueInputBufferList.size() > 0) {
-            renderingSemaphore.release();
-            return MoonBridge.DR_NEED_IDR;
-        }
+        // if (queueInputBufferList.size() > 0) {
+        //     renderingSemaphore.release();
+        //     return MoonBridge.DR_NEED_IDR;
+        // }
         
-        // int inputBufferIndex;
-        // ByteBuffer buf;
-        MediaCodecInputBuffer inputBuffer;
+         int inputBufferIndex;
+//         ByteBuffer buf;
+        ByteBuffer inputBuffer;
 
         long currentTimeMillis = System.currentTimeMillis();
 
@@ -829,6 +834,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         // Flip stats windows roughly every second
         if (currentTimeMillis >= activeWindowVideoStats.measurementStartTimestamp + 1000) {
+//            System.out.println("1.1");
             if (prefs.enablePerfOverlay) {
                 final VideoStats lastTwo = new VideoStats();
                 lastTwo.add(lastWindowVideoStats);
@@ -1027,6 +1033,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return MoonBridge.DR_OK;
         }
         else if (decodeUnitType == MoonBridge.BUFFER_TYPE_VPS) {
+//            System.out.println("1.2");
             numVpsIn++;
 
             // Batch this to submit together with SPS and PPS per AOSP docs
@@ -1041,6 +1048,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
         // Only the HEVC SPS hits this path (H.264 is handled above)
         else if (decodeUnitType == MoonBridge.BUFFER_TYPE_SPS) {
+//            System.out.println("1.3");
             numSpsIn++;
 
             // Batch this to submit together with VPS and PPS per AOSP docs
@@ -1054,18 +1062,22 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return MoonBridge.DR_OK;
         }
         else if (decodeUnitType == MoonBridge.BUFFER_TYPE_PPS) {
+//            System.out.println("1.4");
             numPpsIn++;
 
             // If this is the first CSD blob or we aren't supporting
             // adaptive playback, we will submit the CSD blob in a
             // separate input buffer.
             if (!submittedCsd || !adaptivePlayback) {
-                //inputBufferIndex = dequeueInputBuffer();
-                //if (inputBufferIndex < 0) {
-                //    // We're being torn down now
-                //    return MoonBridge.DR_NEED_IDR;
-                //}
-                inputBuffer = getEmptyInputBufferFromCache();
+                inputBufferIndex = MoonBridge.dequeueInputBuffer(videoDecoder2);
+                if (inputBufferIndex < 0) {
+                    // We're being torn down now
+                    return MoonBridge.DR_NEED_IDR;
+                }
+                if (videoDecoder2 == 0) {
+                    return MoonBridge.DR_NEED_IDR;
+                }
+                inputBuffer = MoonBridge.getInputBuffer(videoDecoder2, inputBufferIndex);
                 if (inputBuffer == null) {
                     // We're being torn down now
                     return MoonBridge.DR_NEED_IDR;
@@ -1075,13 +1087,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 // the PPS, as required by AOSP docs on use of MediaCodec.
                 if (vpsBuffer != null) {
                     // buf.put(vpsBuffer);
-                    MoonBridge.nativeCopy(vpsBuffer, 0, inputBuffer.buffer, 0, vpsBuffer.limit());
-                    inputBuffer.buffer.position(vpsBuffer.limit());
+                    MoonBridge.nativeCopy(vpsBuffer, 0, inputBuffer, 0, vpsBuffer.limit());
+                    inputBuffer.position(vpsBuffer.limit());
                 }
                 if (spsBuffer != null) {
                     // buf.put(spsBuffer);
-                    MoonBridge.nativeCopy(spsBuffer, 0, inputBuffer.buffer, 0, spsBuffer.limit());
-                    inputBuffer.buffer.position(spsBuffer.limit());
+                    MoonBridge.nativeCopy(spsBuffer, 0, inputBuffer, 0, spsBuffer.limit());
+                    inputBuffer.position(spsBuffer.limit());
                 }
 
                 // This is the CSD blob
@@ -1102,50 +1114,49 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
         }
         else {
-            //inputBufferIndex = dequeueInputBuffer();
-            //if (inputBufferIndex < 0) {
-            //    // We're being torn down now
-            //    return MoonBridge.DR_NEED_IDR;
-            //}
-            //
-            //buf = getEmptyInputBuffer(inputBufferIndex);
-            //if (buf == null) {
-            //    // We're being torn down now
-            //    return MoonBridge.DR_NEED_IDR;
-            //}
-            inputBuffer = getEmptyInputBufferFromCache();
+//            System.out.println("1.5");
+            inputBufferIndex = MoonBridge.dequeueInputBuffer(videoDecoder2);
+            if (inputBufferIndex < 0) {
+                // We're being torn down now
+                return MoonBridge.DR_NEED_IDR;
+            }
+//            System.out.println("1.51 " + videoDecoder2);
+            if (videoDecoder2 == 0) {
+                return MoonBridge.DR_NEED_IDR;
+            }
+            inputBuffer = MoonBridge.getInputBuffer(videoDecoder2, inputBufferIndex);
             if (inputBuffer == null) {
                 // We're being torn down now
                 return MoonBridge.DR_NEED_IDR;
             }
-
+//            System.out.println("1.2");
             if (submitCsdNextCall) {
                 if (vpsBuffer != null) {
                     //System.out.println("vpsBuffer " + vpsBuffer.limit());
                     //buf.put(vpsBuffer);
-                    MoonBridge.nativeCopy(vpsBuffer, 0, inputBuffer.buffer, 0, vpsBuffer.limit());
-                    inputBuffer.buffer.position(vpsBuffer.limit());
+                    MoonBridge.nativeCopy(vpsBuffer, 0, inputBuffer, 0, vpsBuffer.limit());
+                    inputBuffer.position(vpsBuffer.limit());
                 }
                 if (spsBuffer != null) {
                     //System.out.println("spsBuffer " + spsBuffer.limit());
                     //buf.put(spsBuffer);
-                    MoonBridge.nativeCopy(spsBuffer, 0, inputBuffer.buffer, 0, spsBuffer.limit());
-                    inputBuffer.buffer.position(spsBuffer.limit());
+                    MoonBridge.nativeCopy(spsBuffer, 0, inputBuffer, 0, spsBuffer.limit());
+                    inputBuffer.position(spsBuffer.limit());
                 }
                 if (ppsBuffer != null) {
                     //System.out.println("ppsBuffer " + ppsBuffer.limit());
                     //buf.put(ppsBuffer);
-                    MoonBridge.nativeCopy(ppsBuffer, 0, inputBuffer.buffer, 0, ppsBuffer.limit());
-                    inputBuffer.buffer.position(ppsBuffer.limit());
+                    MoonBridge.nativeCopy(ppsBuffer, 0, inputBuffer, 0, ppsBuffer.limit());
+                    inputBuffer.position(ppsBuffer.limit());
                 }
 
                 submitCsdNextCall = false;
             }
         }
 
-        if (decodeUnitLength > inputBuffer.buffer.limit() - inputBuffer.buffer.position()) {
+        if (decodeUnitLength > inputBuffer.limit() - inputBuffer.position()) {
             IllegalArgumentException exception = new IllegalArgumentException(
-                    "Decode unit length "+decodeUnitLength+" too large for input buffer "+inputBuffer.buffer.limit());
+                    "Decode unit length "+decodeUnitLength+" too large for input buffer "+inputBuffer.limit());
             if (!reportedCrash) {
                 reportedCrash = true;
                 crashListener.notifyCrash(exception);
@@ -1155,22 +1166,23 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         // Copy data from our buffer list into the input buffer
         // buf.put(decodeUnitData, 0, decodeUnitLength);
-        int pos = inputBuffer.buffer.position();
-        MoonBridge.nativeCopy(decodeUnitData, 0, inputBuffer.buffer, pos, decodeUnitLength);
-        inputBuffer.buffer.position(pos + decodeUnitLength);
+        int pos = inputBuffer.position();
+        MoonBridge.nativeCopy(decodeUnitData, 0, inputBuffer, pos, decodeUnitLength);
+        inputBuffer.position(pos + decodeUnitLength);
 
         // System.out.println("+ 提交 " + timestampUs/1000);
 
-        inputBuffer.timestampUs = timestampUs;
-        inputBuffer.codecFlags = codecFlags;
-        //if (!queueInputBuffer(inputBuffer.index,
-        //        0, inputBuffer.buffer.position(),
-        //        timestampUs, codecFlags)) {
-        //    return MoonBridge.DR_NEED_IDR;
-        //}
-        if (!queueInputBuffer(inputBuffer)) {
+//        System.out.println("222222");
+
+//        inputBuffer.timestampUs = timestampUs;
+//        inputBuffer.codecFlags = codecFlags;
+        if (!MoonBridge.queueInputBuffer(videoDecoder2, inputBufferIndex,
+                timestampUs, codecFlags)) {
             return MoonBridge.DR_NEED_IDR;
         }
+//        if (!queueInputBuffer(inputBuffer)) {
+//            return MoonBridge.DR_NEED_IDR;
+//        }
 
         if ((codecFlags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
             submittedCsd = true;
@@ -1186,32 +1198,34 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
         }
 
-        renderingSemaphore.release();
+//        System.out.println("33333");
+
+        // renderingSemaphore.release();
 
         return MoonBridge.DR_OK;
- */
     }
 
     private boolean replaySps() {
-        //int inputIndex = dequeueInputBuffer();
-        //if (inputIndex < 0) {
-        //    return false;
-        //}
-        //
-        //ByteBuffer inputBuffer = getEmptyInputBuffer(inputIndex);
-        //if (inputBuffer == null) {
-        //    return false;
-        //}
-        MediaCodecInputBuffer inputBuffer = getEmptyInputBufferFromCache();
-        //int[] index = new int[1];
-        //ByteBuffer inputBuffer = getEmptyInputBuffer(index);
-        if (inputBuffer == null) {
-            // We're being torn down now
-            return false;
+        int inputIndex = MoonBridge.dequeueInputBuffer(videoDecoder2);
+        if (inputIndex < 0) {
+           return false;
         }
 
+        if (videoDecoder2 == 0) {
+            return false;
+        }
+        ByteBuffer inputBuffer = MoonBridge.getInputBuffer(videoDecoder2, inputIndex);
+        if (inputBuffer == null) {
+           return false;
+        }
+        // MediaCodecInputBuffer inputBuffer = getEmptyInputBufferFromCache();
+        // if (inputBuffer == null) {
+        //     // We're being torn down now
+        //     return false;
+        // }
+
         // Write the Annex B header
-        inputBuffer.buffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
+        inputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
 
         // Switch the H264 profile back to high
         savedSps.profileIdc = 100;
@@ -1222,20 +1236,23 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // The H264Utils.writeSPS function safely handles
         // Annex B NALUs (including NALUs with escape sequences)
         ByteBuffer escapedNalu = H264Utils.writeSPS(savedSps, 128);
-        inputBuffer.buffer.put(escapedNalu);
+        inputBuffer.put(escapedNalu);
 
         // No need for the SPS anymore
         savedSps = null;
 
         // Queue the new SPS
-        inputBuffer.timestampUs = System.nanoTime() / 1000;
-        inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+        // inputBuffer.timestampUs = System.nanoTime() / 1000;
+        // inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 
-        //return queueInputBuffer(inputBuffer.index,
-        //        0, inputBuffer.buffer.position(),
+        return MoonBridge.queueInputBuffer(videoDecoder2, inputIndex,
+               System.nanoTime() / 1000,
+               MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
+        // return queueInputBuffer(inputIndex,
+        //        0, inputBuffer.position(),
         //        System.nanoTime() / 1000,
         //        MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
-        return queueInputBuffer(inputBuffer);
+        // return queueInputBuffer(inputBuffer);
     }
 
     @Override

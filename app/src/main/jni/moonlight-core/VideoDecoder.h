@@ -14,7 +14,7 @@ typedef struct {
     int index;
     void* buffer;
     size_t bufsize;
-    long timestampUs;
+    uint64_t timestampUs;
     int codecFlags;
     int status;
 } VideoInputBuffer;
@@ -53,7 +53,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeoder, void* decodeUnitDat
 
 int VideoDecoder_dequeueInputBuffer(VideoDecoder* videoDeoder);
 VideoInputBuffer* VideoDecoder_getInputBuffer(VideoDecoder* videoDeoder, int index);
-bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDeoder, int index, long timestampUs, int codecFlags);
+bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDeoder, int index, uint64_t timestampUs, uint32_t codecFlags);
 
 // bool VideoDecoder_getEmptyInputBuffer(VideoDecoder* videoDeoder, VideoInputBuffer* inputBuffer);
 

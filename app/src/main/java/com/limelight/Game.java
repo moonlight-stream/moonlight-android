@@ -1586,14 +1586,30 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     if (errorCode != MoonBridge.ML_ERROR_GRACEFUL_TERMINATION) {
                         String message;
 
-                        switch (errorCode) {
-                            case MoonBridge.ML_ERROR_NO_VIDEO_TRAFFIC:
-                                message = getResources().getString(R.string.no_video_received_error);
-                                break;
+                        // Perform a connection test if the failure could be due to a blocked port
+                        int portFlags = MoonBridge.getPortFlagsFromTerminationErrorCode(errorCode);
+                        int portTestResult;
+                        if (portFlags != 0) {
+                            portTestResult = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER, 443, portFlags);
+                        }
+                        else {
+                            portTestResult = MoonBridge.ML_TEST_RESULT_INCONCLUSIVE;
+                        }
 
-                            default:
-                                message = getResources().getString(R.string.conn_terminated_msg);
-                                break;
+                        if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0) {
+                            // If we got a blocked result, that supersedes any other error message
+                            message = getResources().getString(R.string.nettest_text_blocked);
+                        }
+                        else {
+                            switch (errorCode) {
+                                case MoonBridge.ML_ERROR_NO_VIDEO_TRAFFIC:
+                                    message = getResources().getString(R.string.no_video_received_error);
+                                    break;
+
+                                default:
+                                    message = getResources().getString(R.string.conn_terminated_msg);
+                                    break;
+                            }
                         }
 
                         Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_terminated_title),

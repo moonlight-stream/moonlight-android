@@ -130,3 +130,8 @@ JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_getPortFlagsFromStage(JNIEnv *env, jclass clazz, jint stage) {
     return LiGetPortFlagsFromStage(stage);
 }
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_getPortFlagsFromTerminationErrorCode(JNIEnv *env, jclass clazz, jint errorCode) {
+    return LiGetPortFlagsFromTerminationErrorCode(errorCode);
+}

@@ -35,6 +35,7 @@ int sdk_version() {
     } else {
         // Not running on Android or SDK version is not available
         // ...
+        LOGD("sdk_version fail!");
     }
     return sdk_ver;
 }
@@ -58,6 +59,22 @@ bool getEmptyInputBuffer(VideoDecoder* videoDeoder, VideoInputBuffer* inputBuffe
     inputBuffer->bufsize = bufsize;
 
     return 1;
+}
+
+const int InputBufferMaxSize = 1;
+
+void makeInputBuffer(VideoDecoder* videoDeoder) {
+    int count = 0;
+    int size = sizeof(videoDeoder->inputBufferCache)/sizeof(videoDeoder->inputBufferCache[0]);
+    for (int i = 0; i < size && count < InputBufferMaxSize; i++) {
+        VideoInputBuffer* inputBuffer = &videoDeoder->inputBufferCache[i];
+        if (inputBuffer->isFree) {
+            getEmptyInputBuffer(videoDeoder, inputBuffer);
+            inputBuffer->isFree = false;
+        }
+        
+        count ++;
+    }
 }
 
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, int lowLatency) {
@@ -143,15 +160,32 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
     VideoDecoder* videoDeoder = (VideoDecoder*)malloc(sizeof(VideoDecoder));
     videoDeoder->window = window;
     videoDeoder->codec = codec;
-    videoDeoder->inputBufferCount = 0;
     videoDeoder->stop = false;
     videoDeoder->stopCallback = 0;
+    pthread_mutex_init(&videoDeoder->lock, 0);
+
+    videoDeoder->inputBufferCache = malloc(sizeof(VideoInputBuffer)*InputBufferMaxSize);
+    for (int i = 0; i < InputBufferMaxSize; i++) {
+        VideoInputBuffer inputBuffer = {
+            .index = 0,
+            .buffer = 0,
+            .bufsize = 0,
+            .timestampUs = 0,
+            .codecFlags = 0,
+            .isFree = true
+        };
+        
+        videoDeoder->inputBufferCache[i] = inputBuffer;
+    }
 
     return videoDeoder;
 }
 
 void releaseVideoDecoder(VideoDecoder* videoDeoder) {
     AMediaCodec_delete(videoDeoder->codec);
+
+    pthread_mutex_destroy(&videoDeoder->lock);
+    free(videoDeoder->inputBufferCache);
     free(videoDeoder);
 }
 
@@ -161,6 +195,7 @@ void VideoDecoder_release(VideoDecoder* videoDeoder) {
 
     // 停止
     if (!videoDeoder->stop) {
+        // release at stop
         videoDeoder->stopCallback = releaseVideoDecoder;
         VideoDecoder_stop(videoDeoder);
     } else {
@@ -183,8 +218,9 @@ void* rendering_thread(VideoDecoder* videoDeoder)
 
         pthread_mutex_lock(&inputCache_lock); {
             int maxCount = 1; // Too much caching doesn't make sense
-            // if (videoDeoder->inputBufferCache.size() < maxCount) {
+            // if (videoDeoder->inputBufferCount < maxCount) {
             //     videoDeoder->inputBufferCache.add(getEmptyInputBuffer());
+            //     videoDeoder->inputBufferCount ++;
             // }
             
         } pthread_mutex_unlock(&inputCache_lock);
@@ -201,6 +237,7 @@ void* rendering_thread(VideoDecoder* videoDeoder)
 
 void VideoDecoder_start(VideoDecoder* videoDeoder) {
 
+    LOGD("VideoDecoder_start pthread_mutex_lock");
     pthread_mutex_lock(&videoDeoder->lock);
 
     assert(!videoDeoder->stop);
@@ -216,6 +253,8 @@ void VideoDecoder_start(VideoDecoder* videoDeoder) {
     pthread_create(&pid, 0, rendering_thread, videoDeoder);    
 
     pthread_mutex_unlock(&videoDeoder->lock);
+
+    LOGD("VideoDecoder_start pthread_mutex_unlock");
 }
 
 void VideoDecoder_stop(VideoDecoder* videoDeoder) {

@@ -15,6 +15,7 @@ typedef struct {
     size_t bufsize;
     long timestampUs;
     int codecFlags;
+    bool isFree;
 } VideoInputBuffer;
 
 typedef struct {
@@ -33,10 +34,9 @@ typedef struct {
     void (*stopCallback)(void*);
 
     // 缓冲区
-    VideoInputBuffer inputBufferCache[3];
-    int inputBufferCount;
+    VideoInputBuffer* inputBufferCache;
 
-    pthread_mutex_t lock;
+    pthread_mutex_t lock; // api lock
 } VideoDecoder;
 
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, int lowLatency);

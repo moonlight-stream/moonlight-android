@@ -13,8 +13,12 @@
 
 #include <android/log.h>
 
-#   define  LOG_TAG    "VideoDecoder"
-#   define  LOGD(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
+#define LOG_TAG    "VideoDecoder"
+#ifdef LC_DEBUG
+#define LOGD(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
+#else
+#define LOGD(...) 
+#endif
 
 typedef enum {
     INPUT_BUFFER_STATUS_INVALID,
@@ -80,14 +84,22 @@ bool getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuff
     return true;
 }
 
-const int InputBufferMaxSize = 1;
+const int InputBufferMaxSize = 2;
+const int InputBufferCacheSize = 1;
 pthread_mutex_t inputCache_lock = PTHREAD_MUTEX_INITIALIZER; // lock NDK API access
 
 void makeInputBuffer(VideoDecoder* videoDecoder) {
 
     pthread_mutex_lock(&inputCache_lock); {
 
+        int cacheCount = 0;
         for (int i = 0; i < InputBufferMaxSize; i++) {
+
+            assert(cacheCount <= InputBufferCacheSize);
+            if (cacheCount == InputBufferCacheSize) {
+                break;
+            }
+
             VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
             if (inputBuffer->status == INPUT_BUFFER_STATUS_INVALID) {
                 if (getEmptyInputBuffer(videoDecoder, inputBuffer)) {
@@ -96,6 +108,10 @@ void makeInputBuffer(VideoDecoder* videoDecoder) {
                 } else {
                     LOGD("makeInputBuffer fail!");
                 }
+            }
+            // count unqueuing
+            if (inputBuffer->status != INPUT_BUFFER_STATUS_QUEUING) {
+                cacheCount ++;
             }
         }
 
@@ -320,26 +336,26 @@ void* rendering_thread(VideoDecoder* videoDecoder)
         makeInputBuffer(videoDecoder);
 
         // Waitting for a signal
-        sem_wait(&videoDecoder->rendering_sem);
-        if (videoDecoder->stop) break;
+        // sem_wait(&videoDecoder->rendering_sem);
+        // if (videoDecoder->stop) break;
 
         // Queue one input for each time
         queueInputBuffer(videoDecoder);
 
         // Try to output a frame
         AMediaCodecBufferInfo info;
-        int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0); // -1 to block test
+        int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 50000); // -1 to block test
         if (outIndex >= 0) {
             long presentationTimeUs = info.presentationTimeUs;
             int lastIndex = outIndex;
 
             // Get the last output buffer in the queue
-            // while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
-            //     AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+            while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
+                AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
             
-            //     lastIndex = outIndex;
-            //     presentationTimeUs = info.presentationTimeUs;
-            // }
+                lastIndex = outIndex;
+                presentationTimeUs = info.presentationTimeUs;
+            }
 
             AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
 
@@ -349,8 +365,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             // Check the incoming frames during rendering
             sem_post(&videoDecoder->rendering_sem);
-            
-            
             
         } else {
 
@@ -550,4 +564,54 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
     }
 
     return isBusing;
+}
+
+
+int VideoDecoder_dequeueInputBuffer2(VideoDecoder* videoDecoder) {
+
+    int index = -1;
+
+    pthread_mutex_lock(&videoDecoder->lock); {
+
+        while (index < 0 && !videoDecoder->stop) {
+            index = AMediaCodec_dequeueInputBuffer(videoDecoder->codec, 10000);
+        }
+
+    } pthread_mutex_unlock(&videoDecoder->lock);
+
+    LOGD("VideoDecoder_dequeueInputBuffer2 index %d", index);
+
+    return index;
+}
+
+void* VideoDecoder_getInputBuffer2(VideoDecoder* videoDecoder, int index, size_t* bufsize) {
+
+    void* buf;
+
+    pthread_mutex_lock(&videoDecoder->lock); {
+
+        buf = AMediaCodec_getInputBuffer(videoDecoder->codec, index, bufsize);
+        if (buf == 0) {
+            assert(!"error");
+            return 0;
+        }
+
+    } pthread_mutex_unlock(&videoDecoder->lock);
+
+    return buf;
+}
+
+bool VideoDecoder_queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags) {
+
+    // bool res;
+    pthread_mutex_lock(&videoDecoder->lock); {
+
+        AMediaCodec_queueInputBuffer(videoDecoder->codec, index, 0, bufsize, timestampUs,
+                                 codecFlags);
+
+    } pthread_mutex_unlock(&videoDecoder->lock);
+
+    // LOGD("VideoDecoder_queueInputBuffer2 result %d index %d bufsize %d timestampUs %ld codecFlags %d", res, index, bufsize, timestampUs, codecFlags);
+
+    return true;
 }

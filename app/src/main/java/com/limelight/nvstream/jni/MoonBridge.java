@@ -321,6 +321,6 @@ public class MoonBridge {
 
     public static native int dequeueInputBuffer(long videoDecoder);
     public static native ByteBuffer getInputBuffer(long videoDecoder, int index);
-    public static native boolean queueInputBuffer(long videoDecoder, int index, long timestampUs, int codecFlags);
+    public static native boolean queueInputBuffer(long videoDecoder, int index, int bufsize, long timestampUs, int codecFlags);
     public static native boolean decoderIsBusing(long videoDecoder);
 }

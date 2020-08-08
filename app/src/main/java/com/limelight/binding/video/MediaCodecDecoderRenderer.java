@@ -1169,13 +1169,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         MoonBridge.nativeCopy(decodeUnitData, 0, inputBuffer, pos, decodeUnitLength);
         inputBuffer.position(pos + decodeUnitLength);
 
-        System.out.println("+ 提交 " + timestampUs/1000);
+        // System.out.println("+ 提交 " + timestampUs/1000);
 
 //        System.out.println("222222");
 
 //        inputBuffer.timestampUs = timestampUs;
 //        inputBuffer.codecFlags = codecFlags;
-        if (!MoonBridge.queueInputBuffer(videoDecoder2, inputBufferIndex,
+        if (!MoonBridge.queueInputBuffer(videoDecoder2, inputBufferIndex, inputBuffer.position(),
                 timestampUs, codecFlags)) {
             return MoonBridge.DR_NEED_IDR;
         }
@@ -1244,7 +1244,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // inputBuffer.timestampUs = System.nanoTime() / 1000;
         // inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 
-        return MoonBridge.queueInputBuffer(videoDecoder2, inputIndex,
+        return MoonBridge.queueInputBuffer(videoDecoder2, inputIndex, inputBuffer.position(),
                System.nanoTime() / 1000,
                MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
         // return queueInputBuffer(inputIndex,

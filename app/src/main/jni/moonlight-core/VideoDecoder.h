@@ -42,20 +42,25 @@ typedef struct {
 } VideoDecoder;
 
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency);
-void VideoDecoder_release(VideoDecoder* videoDeoder);
+void VideoDecoder_release(VideoDecoder* videoDecoder);
 
-void VideoDecoder_start(VideoDecoder* videoDeoder);
-void VideoDecoder_stop(VideoDecoder* videoDeoder);
+void VideoDecoder_start(VideoDecoder* videoDecoder);
+void VideoDecoder_stop(VideoDecoder* videoDecoder);
 
 // Callback
-int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDeoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
+int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs);
 
-int VideoDecoder_dequeueInputBuffer(VideoDecoder* videoDeoder);
-VideoInputBuffer* VideoDecoder_getInputBuffer(VideoDecoder* videoDeoder, int index);
-bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDeoder, int index, uint64_t timestampUs, uint32_t codecFlags);
+int VideoDecoder_dequeueInputBuffer(VideoDecoder* videoDecoder);
+VideoInputBuffer* VideoDecoder_getInputBuffer(VideoDecoder* videoDecoder, int index);
+bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDecoder, int index, uint64_t timestampUs, uint32_t codecFlags);
 
 bool VideoDecoder_isBusing(VideoDecoder* videoDecoder);
-// bool VideoDecoder_getEmptyInputBuffer(VideoDecoder* videoDeoder, VideoInputBuffer* inputBuffer);
+// bool VideoDecoder_getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuffer);
+
+// native
+int VideoDecoder_dequeueInputBuffer2(VideoDecoder* videoDecoder);
+void* VideoDecoder_getInputBuffer2(VideoDecoder* videoDecoder, int index, size_t* bufsize);
+bool VideoDecoder_queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags);
 
 #endif //MOONLIGHT_ANDROID_DECODER_H

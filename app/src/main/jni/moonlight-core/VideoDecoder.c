@@ -4,6 +4,7 @@
 
 #include "VideoDecoder.h"
 #include <stdlib.h>
+#include <sys/time.h>
 
 #include <media/NdkMediaExtractor.h>
 
@@ -15,10 +16,12 @@
 
 #define LOG_TAG    "VideoDecoder"
 #ifdef LC_DEBUG
-#define LOGD(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
+#define LOGD(...)  //{__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
 #else
 #define LOGD(...) 
 #endif
+
+#define LOGT(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
 
 typedef enum {
     INPUT_BUFFER_STATUS_INVALID,
@@ -328,6 +331,13 @@ void VideoDecoder_release(VideoDecoder* videoDecoder) {
 
 pthread_t pid;
 
+long getTimeUsec()
+{
+    struct timeval t;
+    gettimeofday(&t, 0);
+    return (long)((long)t.tv_sec * 1000 * 1000 + t.tv_usec);
+}
+
 void* rendering_thread(VideoDecoder* videoDecoder)
 {
     while(!videoDecoder->stop) {
@@ -349,22 +359,32 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             long presentationTimeUs = info.presentationTimeUs;
             int lastIndex = outIndex;
 
+#ifdef LC_DEBUG
+            static long lastRenderingTime = 0;
+            long start_time = getTimeUsec();
+#endif
+
             // Get the last output buffer in the queue
-            while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
-                AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+            // while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
+            //     AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
             
-                lastIndex = outIndex;
-                presentationTimeUs = info.presentationTimeUs;
-            }
+            //     lastIndex = outIndex;
+            //     presentationTimeUs = info.presentationTimeUs;
+            // }
 
             AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
 
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);
-            
+
+#ifdef LC_DEBUG            
+            LOGT("[test] - 渲染: %d ms %d ms %ld %ld\n", (getTimeUsec() - start_time) / 1000, (start_time - lastRenderingTime)/1000, start_time/1000, presentationTimeUs/1000);
+            lastRenderingTime = start_time;
+#endif
+
             // AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, timestampUs);
 
             // Check the incoming frames during rendering
-            sem_post(&videoDecoder->rendering_sem);
+            // sem_post(&videoDecoder->rendering_sem);
             
         } else {
 
@@ -546,17 +566,9 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
         // get a empty input buffer from cache
         pthread_mutex_lock(&inputCache_lock); {
 
-            // for (int i = 0; i < InputBufferMaxSize; i++) {
-            //     VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
-            //     if (inputBuffer->status == INPUT_BUFFER_STATUS_QUEUING) {
-            //         // LOGD("VideoDecoder_getInputBuffer working [%d]", i);
-            //         isBusing = true;
-            //         break;
-            //     }
-            // }
             for (int i = 0; i < InputBufferMaxSize; i++) {
                 VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
-                if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) {
+                if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) { // just any one free buffer
                     // LOGD("VideoDecoder_getInputBuffer working [%d]", i);
                     isBusing = false;
                     break;

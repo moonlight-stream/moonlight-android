@@ -790,6 +790,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return len;
     }
 
+    private long lastSubTime = 0;
+
     @SuppressWarnings("deprecation")
     @Override
     public int submitDecodeUnit(ByteBuffer decodeUnitData, int decodeUnitLength, int decodeUnitType,
@@ -1169,7 +1171,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         MoonBridge.nativeCopy(decodeUnitData, 0, inputBuffer, pos, decodeUnitLength);
         inputBuffer.position(pos + decodeUnitLength);
 
-        // System.out.println("+ 提交 " + timestampUs/1000);
+//        long endTime = System.currentTimeMillis();
+//        System.out.println("[test] + 提交 " + currentTimeMillis + " " + (endTime-currentTimeMillis) + " " + (currentTimeMillis-lastSubTime) + " " + (timestampUs/1000));
+//        lastSubTime = currentTimeMillis;
 
 //        System.out.println("222222");
 

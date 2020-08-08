@@ -382,7 +382,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             int fps = 60;
             float standerDelayUs = 1000000.0 / fps;
             
-            int customDelayUs = 0;
+            int customDelayUs = 16666;
             
             int timeoutUs = (currentDelayUs + prevDelayUs) - (standerDelayUs * 2);
             int releaseDelayUs = customDelayUs-timeoutUs;
@@ -393,17 +393,17 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             prevRenderingTime[1] = prevRenderingTime[0];
             prevRenderingTime[0] = start_time;
 #endif
-//            usleep(releaseDelayUs);
+           usleep(releaseDelayUs);
             AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
 
-//            AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, (releaseDelayUs + presentationTimeUs) * 1000);
+        //    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, (releaseDelayUs + presentationTimeUs) * 1000);
 
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);
 
             
 
             // Check the incoming frames during rendering
-            // sem_post(&videoDecoder->rendering_sem);
+            sem_post(&videoDecoder->rendering_sem);
             
         } else {
 

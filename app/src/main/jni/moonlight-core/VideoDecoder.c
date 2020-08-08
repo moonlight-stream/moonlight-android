@@ -350,12 +350,12 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             int lastIndex = outIndex;
 
             // Get the last output buffer in the queue
-            while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
-                AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+            // while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
+            //     AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
             
-                lastIndex = outIndex;
-                presentationTimeUs = info.presentationTimeUs;
-            }
+            //     lastIndex = outIndex;
+            //     presentationTimeUs = info.presentationTimeUs;
+            // }
 
             AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
 
@@ -426,7 +426,7 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     // 启动线程
     pthread_attr_t attr;
     pthread_attr_init(&attr);
-    pthread_create(&pid, &attr, rendering_thread, videoDecoder);    
+    pthread_create(&pid, &attr, rendering_thread, videoDecoder);
 
     pthread_mutex_unlock(&videoDecoder->lock);
 }

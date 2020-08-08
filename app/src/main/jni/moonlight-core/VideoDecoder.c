@@ -362,7 +362,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             int lastIndex = outIndex;
 
 #ifdef LC_DEBUG
-            static long lastRenderingTime = 0;
+            static long prevRenderingTime[2] = {0};
             long start_time = getTimeUsec();
 #endif
 
@@ -374,16 +374,33 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             //     presentationTimeUs = info.presentationTimeUs;
             // }
 
+            
+
+#ifdef LC_DEBUG            
+            long currentDelayUs = (start_time - prevRenderingTime[0]);
+            long prevDelayUs = (prevRenderingTime[0] - prevRenderingTime[1]);
+            int fps = 60;
+            float standerDelayUs = 1000000.0 / fps;
+            
+            int customDelayUs = 0;
+            
+            int timeoutUs = (currentDelayUs + prevDelayUs) - (standerDelayUs * 2);
+            int releaseDelayUs = customDelayUs-timeoutUs;
+            if (releaseDelayUs < 0) releaseDelayUs = 0;
+            if (releaseDelayUs > customDelayUs) releaseDelayUs = customDelayUs;
+
+            LOGT("[test] - 渲染: %d ms %d ms %ld %ld deleay %d\n", (getTimeUsec() - start_time) / 1000, (start_time - prevRenderingTime[0])/1000, start_time/1000, presentationTimeUs/1000, releaseDelayUs);
+            prevRenderingTime[1] = prevRenderingTime[0];
+            prevRenderingTime[0] = start_time;
+#endif
+//            usleep(releaseDelayUs);
             AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
+
+//            AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, (releaseDelayUs + presentationTimeUs) * 1000);
 
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);
 
-#ifdef LC_DEBUG            
-            LOGT("[test] - 渲染: %d ms %d ms %ld %ld\n", (getTimeUsec() - start_time) / 1000, (start_time - lastRenderingTime)/1000, start_time/1000, presentationTimeUs/1000);
-            lastRenderingTime = start_time;
-#endif
-
-            // AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, timestampUs);
+            
 
             // Check the incoming frames during rendering
             // sem_post(&videoDecoder->rendering_sem);

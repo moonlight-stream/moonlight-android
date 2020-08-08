@@ -39,6 +39,7 @@ typedef struct {
 
     pthread_mutex_t lock; // api lock
     sem_t rendering_sem;
+    sem_t queue_sem;
 } VideoDecoder;
 
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency);

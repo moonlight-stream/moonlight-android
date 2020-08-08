@@ -277,6 +277,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
     videoDecoder->stopCallback = 0;
     pthread_mutex_init(&videoDecoder->lock, 0);
     sem_init(&videoDecoder->rendering_sem, 0, 0);
+    sem_init(&videoDecoder->queue_sem, 0, 0);
 
     videoDecoder->inputBufferCache = malloc(sizeof(VideoInputBuffer)*InputBufferMaxSize);
     for (int i = 0; i < InputBufferMaxSize; i++) {
@@ -303,6 +304,7 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
 
     pthread_mutex_destroy(&videoDecoder->lock);
     sem_destroy(&videoDecoder->rendering_sem);
+    sem_destroy(&videoDecoder->queue_sem);
 
     free(videoDecoder->inputBufferCache);
     free(videoDecoder);
@@ -339,7 +341,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
         sem_wait(&videoDecoder->rendering_sem);
         if (videoDecoder->stop) break;
 
-        // // Queue one input for each time
+        // // Queue input buffers
         // queueInputBuffer(videoDecoder);
 
         // Try to output a frame
@@ -414,7 +416,10 @@ void* queue_thread(VideoDecoder* videoDecoder) {
 
     while(!videoDecoder->stop) {
 
-        
+        sem_wait(&videoDecoder->queue_sem);
+
+        // Queue input buffers
+        queueInputBuffer(videoDecoder);
     }
 
     LOGD("queue_thread: Thread quited!");
@@ -437,6 +442,8 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_create(&pid, &attr, rendering_thread, videoDecoder);
+
+    pthread_create(&pid, &attr, queue_thread, videoDecoder);
 
     pthread_mutex_unlock(&videoDecoder->lock);
 }
@@ -671,7 +678,8 @@ bool VideoDecoder_queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_
         } pthread_mutex_unlock(&inputCache_lock);
 
         // Queue one input for each time
-        queueInputBuffer(videoDecoder);
+        // queueInputBuffer(videoDecoder);
+        sem_post(&videoDecoder->queue_sem);
 
     } pthread_mutex_unlock(&videoDecoder->lock);
 

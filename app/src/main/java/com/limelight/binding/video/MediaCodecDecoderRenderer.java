@@ -324,12 +324,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             fps = prefs.fps;
         }
-        int lowLatencyValue = 0;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && lowLatency) {
-            lowLatencyValue = 1;
-        }
 
-        videoDecoder2 = MoonBridge.createMediaCodec(renderTarget.getSurface(), selectedDecoderName, mimeType, width, height, fps, lowLatencyValue);
+        videoDecoder2 = MoonBridge.createMediaCodec(renderTarget.getSurface(), selectedDecoderName, mimeType, width, height, fps, lowLatency);
         if (videoDecoder2 == 0) {
             return -4;
         }
@@ -813,6 +809,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         //     renderingSemaphore.release();
         //     return MoonBridge.DR_NEED_IDR;
         // }
+        if (MoonBridge.decoderIsBusing(videoDecoder2)) {
+            return MoonBridge.DR_NEED_IDR;
+        }
         
          int inputBufferIndex;
 //         ByteBuffer buf;
@@ -1170,7 +1169,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         MoonBridge.nativeCopy(decodeUnitData, 0, inputBuffer, pos, decodeUnitLength);
         inputBuffer.position(pos + decodeUnitLength);
 
-        // System.out.println("+ 提交 " + timestampUs/1000);
+        System.out.println("+ 提交 " + timestampUs/1000);
 
 //        System.out.println("222222");
 

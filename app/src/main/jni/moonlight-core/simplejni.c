@@ -171,7 +171,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_nativeFree(JNIEnv *env, jclass clazz,
 JNIEXPORT jlong JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_createMediaCodec(JNIEnv *env, jclass clazz, jobject surface, jstring name,
                                                             jstring mime_type, jint width,
-                                                            jint height, jint fps, int lowLatency) {
+                                                            jint height, jint fps, jboolean lowLatency) {
     const char *c_name = (*env)->GetStringUTFChars(env, name, 0);
     const char *c_mime_type = (*env)->GetStringUTFChars(env, mime_type, 0);
 
@@ -230,4 +230,11 @@ Java_com_limelight_nvstream_jni_MoonBridge_queueInputBuffer(JNIEnv *env, jclass 
                                                             jlong timestamp_us, jint codec_flags) {
 
     return VideoDecoder_queueInputBuffer(video_decoder, index, timestamp_us, codec_flags);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_decoderIsBusing(JNIEnv *env, jclass clazz,
+                                                           jlong video_decoder) {
+    // TODO: implement decoderIsBusing()
+    return VideoDecoder_isBusing(video_decoder);
 }

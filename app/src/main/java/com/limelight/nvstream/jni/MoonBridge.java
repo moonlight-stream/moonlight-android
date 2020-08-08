@@ -311,7 +311,7 @@ public class MoonBridge {
     public static native ByteBuffer nativeCreate(int size);
     public static native void nativeFree(ByteBuffer buffer);
 
-    public static native long createMediaCodec(Surface surface, String name, String mimeType, int width, int height, int fps, int lowLatency);
+    public static native long createMediaCodec(Surface surface, String name, String mimeType, int width, int height, int fps, boolean lowLatency);
     public static native void deleteMediaCodec(long videoDecoder);
 
     public static native long startMediaCodec(long videoDecoder);
@@ -322,4 +322,5 @@ public class MoonBridge {
     public static native int dequeueInputBuffer(long videoDecoder);
     public static native ByteBuffer getInputBuffer(long videoDecoder, int index);
     public static native boolean queueInputBuffer(long videoDecoder, int index, long timestampUs, int codecFlags);
+    public static native boolean decoderIsBusing(long videoDecoder);
 }

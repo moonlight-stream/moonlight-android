@@ -41,7 +41,7 @@ typedef struct {
     sem_t rendering_sem;
 } VideoDecoder;
 
-VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, int lowLatency);
+VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency);
 void VideoDecoder_release(VideoDecoder* videoDeoder);
 
 void VideoDecoder_start(VideoDecoder* videoDeoder);
@@ -55,6 +55,7 @@ int VideoDecoder_dequeueInputBuffer(VideoDecoder* videoDeoder);
 VideoInputBuffer* VideoDecoder_getInputBuffer(VideoDecoder* videoDeoder, int index);
 bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDeoder, int index, uint64_t timestampUs, uint32_t codecFlags);
 
+bool VideoDecoder_isBusing(VideoDecoder* videoDecoder);
 // bool VideoDecoder_getEmptyInputBuffer(VideoDecoder* videoDeoder, VideoInputBuffer* inputBuffer);
 
 #endif //MOONLIGHT_ANDROID_DECODER_H

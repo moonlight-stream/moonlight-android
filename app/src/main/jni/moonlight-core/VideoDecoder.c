@@ -14,7 +14,7 @@
 #include <android/log.h>
 
 #   define  LOG_TAG    "VideoDecoder"
-#   define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#   define  LOGD(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
 
 typedef enum {
     INPUT_BUFFER_STATUS_INVALID,
@@ -22,6 +22,16 @@ typedef enum {
     INPUT_BUFFER_STATUS_WORKING,
     INPUT_BUFFER_STATUS_QUEUING,
 };
+
+VideoDecoder* _videoDecoder = 0;
+void printCache() {
+
+    if (_videoDecoder) {
+        VideoInputBuffer* inputBuffer = &_videoDecoder->inputBufferCache[0];
+        //LOGD("cache %d", inputBuffer->status);
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "cache %d", inputBuffer->status);
+    }
+}
 
 //
 //Decoder decoder = {-1, NULL, NULL, NULL, 0, false, false, false, false};
@@ -64,6 +74,8 @@ bool getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuff
     inputBuffer->index = bufidx;
     inputBuffer->buffer = buf;
     inputBuffer->bufsize = bufsize;
+    inputBuffer->timestampUs = 0;
+    inputBuffer->codecFlags = 0;
 
     return true;
 }
@@ -99,9 +111,7 @@ void _queueInputBuffer(VideoDecoder* videoDecoder, int index) {
     AMediaCodec_queueInputBuffer(videoDecoder->codec, inputBuffer->index, 0, inputBuffer->bufsize, inputBuffer->timestampUs,
                                  inputBuffer->codecFlags);
 
-    // mark to invalid
-    inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
-    LOGD("_queueInputBuffer free index [%d]%d bufsize %d timestampUs %ld codecFlags %d", index, inputBuffer->index, inputBuffer->bufsize, inputBuffer->timestampUs, inputBuffer->codecFlags);
+    LOGD("_queueInputBuffer free index [%d]%d bufsize %d timestampUs %ld codecFlags %d", index, inputBuffer->index, inputBuffer->bufsize, inputBuffer->timestampUs/1000, inputBuffer->codecFlags);
 }
 
 void queueInputBuffer(VideoDecoder* videoDecoder) {
@@ -115,14 +125,53 @@ void queueInputBuffer(VideoDecoder* videoDecoder) {
                 // Queue one input for each time
                 // LOGD("queueInputBuffer: %d", i);
                 _queueInputBuffer(videoDecoder, i);
-                break; // or continue
+                
+                // mark to invalid
+                inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
+                // break; // or continue
             }
         }        
 
     } pthread_mutex_unlock(&inputCache_lock);
 }
 
-VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, int lowLatency) {
+// helper
+
+// private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
+//     if (!initialized) {
+//         throw new IllegalStateException("MediaCodecHelper must be initialized before use");
+//     }
+
+//     for (String badPrefix : decoderList) {
+//         if (decoderName.length() >= badPrefix.length()) {
+//             String prefix = decoderName.substring(0, badPrefix.length());
+//             if (prefix.equalsIgnoreCase(badPrefix)) {
+//                 return true;
+//             }
+//         }
+//     }
+    
+//     return false;
+// }
+
+bool decoderSupportsMaxOperatingRate(const char* decoderName) {
+    // Operate at maximum rate to lower latency as much as possible on
+    // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
+    // but that will actually result in the decoder crashing if it can't satisfy
+    // our (ludicrous) operating rate requirement. This seems to cause reliable
+    // crashes on the Xiaomi Mi 10 lite 5G and Redmi K30i 5G on Android 10, so
+    // we'll disable it on Snapdragon 765G and all non-Qualcomm devices to be safe.
+    //
+    // NB: Even on Android 10, this optimization still provides significant
+    // performance gains on Pixel 2.
+    int sdk_ver = sdk_version();
+    return sdk_ver >= Build_VERSION_CODES_M;
+    // return Build.VERSION.SDK_INT >= Build_VERSION_CODES_M &&
+    //         isDecoderInList(qualcommDecoderPrefixes, decoderName) &&
+    //         !isAdreno620;
+}
+
+VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency) {
 
     int sdk_ver = sdk_version();
 
@@ -149,7 +198,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
     }
 
     if (sdk_ver >= Build_VERSION_CODES_R && lowLatency) {
-        AMediaFormat_setInt32(videoFormat, "latency", lowLatency);
+        AMediaFormat_setInt32(videoFormat, "latency", 0);
     }
     else if (sdk_ver >= Build_VERSION_CODES_M) {
 //        // Set the Qualcomm vendor low latency extension if the Android R option is unavailable
@@ -164,9 +213,9 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
 //            videoFormat.setInteger("vendor.qti-ext-dec-low-latency.enable", 1);
 //        }
 //
-//        if (MediaCodecHelper.decoderSupportsMaxOperatingRate(selectedDecoderName)) {
-//            videoFormat.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
-//        }
+       if (decoderSupportsMaxOperatingRate(name)) {
+           AMediaFormat_setInt32(videoFormat, "operating-rate", 32767);
+       }
     }
 
     ANativeWindow* window = ANativeWindow_fromSurface(env, surface);
@@ -227,6 +276,8 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
         videoDecoder->inputBufferCache[i] = inputBuffer;
     }
 
+    _videoDecoder = videoDecoder;
+
     return videoDecoder;
 }
 
@@ -279,9 +330,20 @@ void* rendering_thread(VideoDecoder* videoDecoder)
         AMediaCodecBufferInfo info;
         int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0); // -1 to block test
         if (outIndex >= 0) {
-            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, outIndex, true);
+            long presentationTimeUs = info.presentationTimeUs;
+            int lastIndex = outIndex;
 
-            LOGD("[fuck] rendering_thread: Rendering ... [%d] presentationTimeUs %ld", outIndex, info.presentationTimeUs);
+            // Get the last output buffer in the queue
+            // while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
+            //     AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+            
+            //     lastIndex = outIndex;
+            //     presentationTimeUs = info.presentationTimeUs;
+            // }
+
+            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
+
+            LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);
             
             // AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, timestampUs);
 
@@ -450,4 +512,42 @@ bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDecoder, int index, uint64
     } pthread_mutex_unlock(&videoDecoder->lock);
 
     return true;
+}
+
+bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
+
+    bool isBusing = false;
+    pthread_mutex_lock(&videoDecoder->lock); {
+
+        // get a empty input buffer from cache
+        pthread_mutex_lock(&inputCache_lock); {
+
+            // for (int i = 0; i < InputBufferMaxSize; i++) {
+            //     VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+            //     if (inputBuffer->status == INPUT_BUFFER_STATUS_QUEUING) {
+            //         // LOGD("VideoDecoder_getInputBuffer working [%d]", i);
+            //         isBusing = true;
+            //         break;
+            //     }
+            // }
+            for (int i = 0; i < InputBufferMaxSize; i++) {
+                VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+                if (inputBuffer->status > INPUT_BUFFER_STATUS_FREE) {
+                    // LOGD("VideoDecoder_getInputBuffer working [%d]", i);
+                    isBusing = true;
+                    break;
+                }
+            }
+
+        } pthread_mutex_unlock(&inputCache_lock);
+
+        // LOGD("VideoDecoder_dequeueInputBuffer index [%d]", index);
+
+    } pthread_mutex_unlock(&videoDecoder->lock);
+
+    if (isBusing) {
+        sem_post(&videoDecoder->rendering_sem);
+    }
+
+    return isBusing;
 }

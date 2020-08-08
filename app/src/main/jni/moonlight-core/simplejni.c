@@ -242,6 +242,6 @@ JNIEXPORT jboolean JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_decoderIsBusing(JNIEnv *env, jclass clazz,
                                                            jlong video_decoder) {
     // TODO: implement decoderIsBusing()
-    // return VideoDecoder_isBusing(video_decoder);
-    return false;
+    return VideoDecoder_isBusing(video_decoder);
+    // return false;
 }

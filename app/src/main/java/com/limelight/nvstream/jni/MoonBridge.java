@@ -300,6 +300,8 @@ public class MoonBridge {
 
     public static native int getPortFlagsFromStage(int stage);
 
+    public static native int getPortFlagsFromTerminationErrorCode(int errorCode);
+
     public static native void init();
 
     public static native void nativeCopy(ByteBuffer buffer0, int offset0, ByteBuffer buffer1, int offset1, int length);

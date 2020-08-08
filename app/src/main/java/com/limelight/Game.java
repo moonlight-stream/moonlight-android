@@ -30,6 +30,7 @@ import com.limelight.ui.GameGestures;
 import com.limelight.ui.StreamView;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.NetHelper;
+import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
@@ -616,6 +617,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
+    private boolean isRefreshRateGoodMatch(float refreshRate) {
+        return refreshRate >= prefConfig.fps &&
+                Math.round(refreshRate) % prefConfig.fps <= 3;
+    }
+
     private float prepareDisplayForRendering() {
         Display display = getWindowManager().getDefaultDisplay();
         WindowManager.LayoutParams windowLayoutParams = getWindow().getAttributes();
@@ -624,41 +630,59 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // On M, we can explicitly set the optimal display mode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Display.Mode bestMode = display.getMode();
+            boolean refreshRateIsGood = isRefreshRateGoodMatch(bestMode.getRefreshRate());
             for (Display.Mode candidate : display.getSupportedModes()) {
-                boolean refreshRateOk = candidate.getRefreshRate() >= bestMode.getRefreshRate();
-                boolean resolutionOk = candidate.getPhysicalWidth() >= bestMode.getPhysicalWidth() &&
-                        candidate.getPhysicalHeight() >= bestMode.getPhysicalHeight() &&
-                        candidate.getPhysicalWidth() <= 4096;
+                boolean refreshRateReduced = candidate.getRefreshRate() < bestMode.getRefreshRate();
+                boolean resolutionReduced = candidate.getPhysicalWidth() < bestMode.getPhysicalWidth() ||
+                        candidate.getPhysicalHeight() < bestMode.getPhysicalHeight();
+                boolean resolutionFitsStream = candidate.getPhysicalWidth() >= prefConfig.width &&
+                        candidate.getPhysicalHeight() >= prefConfig.height;
 
                 LimeLog.info("Examining display mode: "+candidate.getPhysicalWidth()+"x"+
                         candidate.getPhysicalHeight()+"x"+candidate.getRefreshRate());
 
-                // On non-4K streams, we force the resolution to never change
-                if (prefConfig.width < 3840) {
+                if (candidate.getPhysicalWidth() > 4096) {
+                    // Avoid resolutions options above 4K to be safe
+                    continue;
+                }
+
+                // On non-4K streams, we force the resolution to never change unless it's above
+                // 60 FPS, which may require a resolution reduction due to HDMI bandwidth limitations.
+                if (prefConfig.width < 3840 && prefConfig.fps <= 60) {
                     if (display.getMode().getPhysicalWidth() != candidate.getPhysicalWidth() ||
                             display.getMode().getPhysicalHeight() != candidate.getPhysicalHeight()) {
                         continue;
                     }
                 }
 
-                // Ensure the frame rate stays around 60 Hz for <= 60 FPS streams
-                if (prefConfig.fps <= 60) {
-                    if (candidate.getRefreshRate() >= 63) {
+                // Make sure the resolution doesn't regress unless if it's over 60 FPS
+                // where we may need to reduce resolution to achieve the desired refresh rate.
+                if (resolutionReduced && !(prefConfig.fps > 60 && resolutionFitsStream)) {
+                    continue;
+                }
+
+                if (refreshRateIsGood) {
+                    // We have a good matching refresh rate, so we're looking for equal or greater
+                    // that is also a good matching refresh rate for our stream frame rate.
+                    if (refreshRateReduced || !isRefreshRateGoodMatch(candidate.getRefreshRate())) {
                         continue;
                     }
                 }
-
-                // Make sure the refresh rate doesn't regress
-                if (!refreshRateOk) {
-                    continue;
-                }
-
-                // Make sure the resolution doesn't regress
-                if (!resolutionOk) {
-                    continue;
+                else if (!isRefreshRateGoodMatch(candidate.getRefreshRate())) {
+                    // We didn't have a good match and this match isn't good either, so just don't
+                    // reduce the refresh rate.
+                    if (refreshRateReduced) {
+                        continue;
+                    }
+                } else {
+                    // We didn't have a good match and this match is good. Prefer this refresh rate
+                    // even if it reduces the refresh rate. Lowering the refresh rate can be beneficial
+                    // when streaming a 60 FPS stream on a 90 Hz device. We want to select 60 Hz to
+                    // match the frame rate even if the active display mode is 90 Hz.
                 }
 
                 bestMode = candidate;
+                refreshRateIsGood = isRefreshRateGoodMatch(candidate.getRefreshRate());
             }
             LimeLog.info("Selected display mode: "+bestMode.getPhysicalWidth()+"x"+
                     bestMode.getPhysicalHeight()+"x"+bestMode.getRefreshRate());
@@ -669,9 +693,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             float bestRefreshRate = display.getRefreshRate();
             for (float candidate : display.getSupportedRefreshRates()) {
-                if (candidate > bestRefreshRate) {
-                    LimeLog.info("Examining refresh rate: "+candidate);
+                LimeLog.info("Examining refresh rate: "+candidate);
 
+                if (candidate > bestRefreshRate) {
                     // Ensure the frame rate stays around 60 Hz for <= 60 FPS streams
                     if (prefConfig.fps <= 60) {
                         if (candidate >= 63) {
@@ -1517,7 +1541,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                     String dialogText = getResources().getString(R.string.conn_error_msg) + " " + stage +" (error "+errorCode+")";
                     if (portFlags != 0) {
-                        int ret = MoonBridge.testClientConnectivity("conntest-android.moonlight-stream.org", 443, portFlags);
+                        int ret = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER, 443, portFlags);
                         if (ret != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && ret != 0)  {
                             dialogText += "\n\n" + getResources().getString(R.string.nettest_text_blocked);
                         }
@@ -1562,14 +1586,30 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     if (errorCode != MoonBridge.ML_ERROR_GRACEFUL_TERMINATION) {
                         String message;
 
-                        switch (errorCode) {
-                            case MoonBridge.ML_ERROR_NO_VIDEO_TRAFFIC:
-                                message = getResources().getString(R.string.no_video_received_error);
-                                break;
+                        // Perform a connection test if the failure could be due to a blocked port
+                        int portFlags = MoonBridge.getPortFlagsFromTerminationErrorCode(errorCode);
+                        int portTestResult;
+                        if (portFlags != 0) {
+                            portTestResult = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER, 443, portFlags);
+                        }
+                        else {
+                            portTestResult = MoonBridge.ML_TEST_RESULT_INCONCLUSIVE;
+                        }
 
-                            default:
-                                message = getResources().getString(R.string.conn_terminated_msg);
-                                break;
+                        if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0) {
+                            // If we got a blocked result, that supersedes any other error message
+                            message = getResources().getString(R.string.nettest_text_blocked);
+                        }
+                        else {
+                            switch (errorCode) {
+                                case MoonBridge.ML_ERROR_NO_VIDEO_TRAFFIC:
+                                    message = getResources().getString(R.string.no_video_received_error);
+                                    break;
+
+                                default:
+                                    message = getResources().getString(R.string.conn_terminated_msg);
+                                    break;
+                            }
                         }
 
                         Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_terminated_title),

@@ -811,7 +811,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         //     renderingSemaphore.release();
         //     return MoonBridge.DR_NEED_IDR;
         // }
-       while (MoonBridge.decoderIsBusing(videoDecoder2)) {
+       while (MoonBridge.decoderIsBusing(videoDecoder2) && !stopping) {
            try {
                Thread.sleep(1);
            } catch (InterruptedException e) {

@@ -17,11 +17,13 @@
 #define LOG_TAG    "VideoDecoder"
 #ifdef LC_DEBUG
 #define LOGD(...)  //{__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
+#define LOGT(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
 #else
 #define LOGD(...) 
+#define LOGT(...)  
 #endif
 
-#define LOGT(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
+
 
 typedef enum {
     INPUT_BUFFER_STATUS_INVALID,
@@ -45,7 +47,8 @@ void printCache() {
 //Decoder decoder = {-1, NULL, NULL, NULL, 0, false, false, false, false};
 
 int VIDEO_FORMAT_MASK_H264 = 0x00FF;
-
+uint64_t lastPresentationTimeUs = 0;
+bool closeRendered = true;
 
 #define Build_VERSION_CODES_KITKAT 19
 #define Build_VERSION_CODES_M 23
@@ -145,6 +148,8 @@ void queueInputBuffer(VideoDecoder* videoDecoder) {
                 // Queue one input for each time
                 // LOGD("queueInputBuffer: %d", i);
                 _queueInputBuffer(videoDecoder, i);
+
+                lastPresentationTimeUs = inputBuffer->timestampUs;
                 
                 // mark to rendering
                 inputBuffer->status = INPUT_BUFFER_STATUS_RENDERING;
@@ -347,6 +352,7 @@ static bool isRendered = false;
 void* rendering_thread(VideoDecoder* videoDecoder)
 {
     isRendered = false;
+    closeRendered = true;
 
     while(!videoDecoder->stop) {
 
@@ -364,8 +370,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
         AMediaCodecBufferInfo info;
         int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0); // -1 to block test
         if (outIndex >= 0) {
-
-            isRendered = true;
 
             long presentationTimeUs = info.presentationTimeUs;
             int lastIndex = outIndex;
@@ -424,10 +428,13 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);            
 
             // Queue input buffers
-            queueInputBuffer(videoDecoder);
+            // queueInputBuffer(videoDecoder);
 
             // Check the incoming frames during rendering
-            sem_post(&videoDecoder->rendering_sem);
+            // sem_post(&videoDecoder->rendering_sem);
+
+            isRendered = true;
+            closeRendered = presentationTimeUs == lastPresentationTimeUs;
             
         } else {
 
@@ -592,16 +599,15 @@ bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDecoder, int index, uint64
 }
 
 #define SYNC_PUSH 1
+#define BUSY_COUNT 2
 
 bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
 
 #if SYNC_PUSH
     bool isBusing = false;
-    if (!isRendered) {
-        sem_post(&videoDecoder->rendering_sem);
-        return false;
-    }
     char tmp[512] = {0};
+    int reduce_count = !closeRendered;
+    sprintf(tmp, "[%d]", reduce_count);
 #else
     bool isBusing = true;
 #endif
@@ -610,13 +616,17 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
         // get a empty input buffer from cache
         pthread_mutex_lock(&inputCache_lock); {
 
+            int count = 0;
+
             for (int i = 0; i < InputBufferMaxSize; i++) {
                 VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
 
 #if SYNC_PUSH
                 sprintf(tmp, "%s %d", tmp, inputBuffer->status);
                 if (inputBuffer->status > INPUT_BUFFER_STATUS_FREE) {
-                    isBusing = true;
+                    count ++;
+                    if (count >= BUSY_COUNT - reduce_count)
+                        isBusing = true;
                     // LOGT("[test2] [%d] %d", i, inputBuffer->status);
 #else
                 if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) { // just any one free buffer
@@ -634,7 +644,7 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
 
     } pthread_mutex_unlock(&videoDecoder->lock);
 
-    if (isBusing) {
+    if (isBusing || !isRendered) {
         sem_post(&videoDecoder->rendering_sem);
     }
 

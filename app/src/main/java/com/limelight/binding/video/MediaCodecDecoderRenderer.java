@@ -1183,9 +1183,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         MoonBridge.nativeCopy(decodeUnitData, 0, inputBuffer, pos, decodeUnitLength);
         inputBuffer.position(pos + decodeUnitLength);
 
-       long endTime = System.currentTimeMillis();
-       System.out.println("[test] + 提交 " + currentTimeMillis + " " + (endTime-currentTimeMillis) + " " + (currentTimeMillis-lastSubTime) + " " + (timestampUs/1000));
-       lastSubTime = currentTimeMillis;
+//       long endTime = System.currentTimeMillis();
+//       System.out.println("[test] + 提交 " + currentTimeMillis + " " + (endTime-currentTimeMillis) + " " + (currentTimeMillis-lastSubTime) + " " + (timestampUs/1000));
+//       lastSubTime = currentTimeMillis;
 
 //        System.out.println("222222");
 

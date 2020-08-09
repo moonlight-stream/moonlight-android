@@ -30,7 +30,6 @@ typedef enum {
     INPUT_BUFFER_STATUS_FREE,
     INPUT_BUFFER_STATUS_WORKING,
     INPUT_BUFFER_STATUS_QUEUING,
-    INPUT_BUFFER_STATUS_RENDERING,
 };
 
 VideoDecoder* _videoDecoder = 0;
@@ -47,8 +46,8 @@ void printCache() {
 //Decoder decoder = {-1, NULL, NULL, NULL, 0, false, false, false, false};
 
 int VIDEO_FORMAT_MASK_H264 = 0x00FF;
-uint64_t lastPresentationTimeUs = 0;
-bool closeRendered = true;
+uint64_t renderingFrames = 0;
+uint64_t renderedFrames = 0;
 
 #define Build_VERSION_CODES_KITKAT 19
 #define Build_VERSION_CODES_M 23
@@ -149,13 +148,11 @@ void queueInputBuffer(VideoDecoder* videoDecoder) {
                 // LOGD("queueInputBuffer: %d", i);
                 _queueInputBuffer(videoDecoder, i);
 
-                lastPresentationTimeUs = inputBuffer->timestampUs;
+                renderingFrames ++;
                 
-                // mark to rendering
-                inputBuffer->status = INPUT_BUFFER_STATUS_RENDERING;
-
                 // mark to invalid
-                // inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
+                inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
+                
                 break; // or continue
             }
         }        
@@ -347,12 +344,10 @@ long getTimeUsec()
     return (long)((long)t.tv_sec * 1000 * 1000 + t.tv_usec);
 }
 
-static bool isRendered = false;
-
 void* rendering_thread(VideoDecoder* videoDecoder)
 {
-    isRendered = false;
-    closeRendered = true;
+    renderingFrames = 0;
+    renderedFrames = 0;
 
     while(!videoDecoder->stop) {
 
@@ -385,22 +380,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             
             //     lastIndex = outIndex;
             //     presentationTimeUs = info.presentationTimeUs;
-            // }
-
-            // mark all rendering frames
-            pthread_mutex_lock(&inputCache_lock); {
-
-                for (int i = 0; i < InputBufferMaxSize; i++) {
-                
-                    VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
-                    if (inputBuffer->status == INPUT_BUFFER_STATUS_RENDERING) {
-                        inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
-                    }
-                }
-
-            } pthread_mutex_unlock(&inputCache_lock);
-
-            
+            // }            
 
 #ifdef LC_DEBUG            
             long currentDelayUs = (start_time - prevRenderingTime[0]);
@@ -427,14 +407,18 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);            
 
-            // Queue input buffers
-            // queueInputBuffer(videoDecoder);
-
             // Check the incoming frames during rendering
             // sem_post(&videoDecoder->rendering_sem);
 
-            isRendered = true;
-            closeRendered = presentationTimeUs == lastPresentationTimeUs;
+            renderedFrames ++;
+
+            while (renderingFrames - renderedFrames <= 2 && !videoDecoder->stop) {
+
+                // Queue input buffers
+                queueInputBuffer(videoDecoder);
+
+                usleep(1000);
+            }
             
         } else {
 
@@ -606,8 +590,6 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
 #if SYNC_PUSH
     bool isBusing = false;
     char tmp[512] = {0};
-    int reduce_count = !closeRendered;
-    sprintf(tmp, "[%d]", reduce_count);
 #else
     bool isBusing = true;
 #endif
@@ -624,9 +606,6 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
 #if SYNC_PUSH
                 sprintf(tmp, "%s %d", tmp, inputBuffer->status);
                 if (inputBuffer->status > INPUT_BUFFER_STATUS_FREE) {
-                    count ++;
-                    if (count >= BUSY_COUNT - reduce_count)
-                        isBusing = true;
                     // LOGT("[test2] [%d] %d", i, inputBuffer->status);
 #else
                 if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) { // just any one free buffer
@@ -644,9 +623,11 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
 
     } pthread_mutex_unlock(&videoDecoder->lock);
 
-    if (isBusing || !isRendered) {
-        sem_post(&videoDecoder->rendering_sem);
-    }
+    isBusing = renderedFrames > 0 && renderingFrames - renderedFrames > 2;
+
+    LOGT("[test] %d %d %d", renderingFrames, renderedFrames, isBusing);
+
+    sem_post(&videoDecoder->rendering_sem);
 
     return isBusing;
 }

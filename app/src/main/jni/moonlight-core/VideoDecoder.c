@@ -357,11 +357,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
         sem_wait(&videoDecoder->rendering_sem);
         if (videoDecoder->stop) break;
 
-        if (!isRendered) {
-            // Queue input buffers
-            queueInputBuffer(videoDecoder);
-        }
-        
+        // Queue input buffers
+        queueInputBuffer(videoDecoder);
 
         // Try to output a frame
         AMediaCodecBufferInfo info;
@@ -600,8 +597,11 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
 
 #if SYNC_PUSH
     bool isBusing = false;
-    if (!isRendered)
+    if (!isRendered) {
+        sem_post(&videoDecoder->rendering_sem);
         return false;
+    }
+    char tmp[512] = {0};
 #else
     bool isBusing = true;
 #endif
@@ -614,17 +614,19 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
                 VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
 
 #if SYNC_PUSH
+                sprintf(tmp, "%s %d", tmp, inputBuffer->status);
                 if (inputBuffer->status > INPUT_BUFFER_STATUS_FREE) {
                     isBusing = true;
-                    LOGT("[test2] [%d] %d", i, inputBuffer->status);
+                    // LOGT("[test2] [%d] %d", i, inputBuffer->status);
 #else
                 if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) { // just any one free buffer
                     // LOGD("VideoDecoder_getInputBuffer working [%d]", i);
                     isBusing = false;
-#endif
                     break;
+#endif
                 }
             }
+            LOGT("[test] %s", tmp);
 
         } pthread_mutex_unlock(&inputCache_lock);
 

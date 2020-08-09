@@ -811,16 +811,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         //     renderingSemaphore.release();
         //     return MoonBridge.DR_NEED_IDR;
         // }
-//        while (MoonBridge.decoderIsBusing(videoDecoder2)) {
-//            try {
-//                Thread.sleep(5);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        if (MoonBridge.decoderIsBusing(videoDecoder2)) {
-//            return MoonBridge.DR_NEED_IDR;
-//        }
+       while (MoonBridge.decoderIsBusing(videoDecoder2)) {
+           try {
+               Thread.sleep(1);
+           } catch (InterruptedException e) {
+               e.printStackTrace();
+           }
+       }
+        // if (MoonBridge.decoderIsBusing(videoDecoder2)) {
+        // //    return MoonBridge.DR_NEED_IDR;
+        // }
         
          int inputBufferIndex;
 //         ByteBuffer buf;

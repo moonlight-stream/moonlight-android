@@ -39,6 +39,10 @@ LOCAL_SRC_FILES := moonlight-common-c/src/AudioStream.c \
                    moonlight-common-c/enet/win32.c \
                    simplejni.c \
                    callbacks.c \
+                   h264bitstream/h264_stream.c\
+                   h264bitstream/h264_sei.c\
+                   h264bitstream/h264_analyze.c\
+                   h264bitstream/h264_nal.c\
 
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/moonlight-common-c/enet/include \

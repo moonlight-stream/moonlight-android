@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <h264bitstream/h264_stream.h>
+
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendMouseMove(JNIEnv *env, jclass clazz, jshort deltaX, jshort deltaY) {
     LiSendMouseMoveEvent(deltaX, deltaY);
@@ -169,4 +171,78 @@ JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_nativeFree(JNIEnv *env, jclass clazz, jobject buffer) {
     void* buf = (*env)->GetDirectBufferAddress(env, buffer);
     free(buf);
+}
+
+static void* sps_buffer = 0;
+static void* sps_bufsize = 0;
+
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_readSPS(JNIEnv *env, jclass clazz, jobject buffer, jobject spsBuffer, jint decodeUnitLength, jboolean constrainedHighProfile) {
+
+    const char* data = (*env)->GetDirectBufferAddress(env, buffer);
+    jlong size = (*env)->GetDirectBufferCapacity(env, buffer);
+    assert(data[4] == 0x67);
+
+    bs_t* bs = bs_new((uint8_t*)data + 5, size - 5);
+
+    sps_t sps;
+    read_seq_parameter_set_rbsp(&sps, bs);
+
+
+
+    if (sps.profile_idc == 100 && constrainedHighProfile) {
+//        LimeLog.info("Setting constraint set flags for constrained high profile");
+        sps.constraint_set4_flag = true;
+        sps.constraint_set5_flag = true;
+    }
+    else {
+        // Force the constraints unset otherwise (some may be set by default)
+        sps.constraint_set4_flag = false;
+        sps.constraint_set5_flag = false;
+    }
+
+
+//    sps.vui.motion_vectors_over_pic_boundaries_flag = bs_read_u1(b);
+
+//    sps->vui.max_bits_per_mb_denom = bs_read_ue(b);
+//    sps->vui.log2_max_mv_length_horizontal = bs_read_ue(b);
+//    sps->vui.log2_max_mv_length_vertical = bs_read_ue(b);
+//    sps->vui.num_reorder_frames = bs_read_ue(b);
+    sps.vui.max_dec_frame_buffering = sps.num_ref_frames;
+    sps.vui.max_bytes_per_pic_denom = 2;
+    sps.vui.max_bits_per_mb_denom = 1;
+
+
+    if (sps_buffer == 0) sps_buffer = malloc(1024);
+    memset(sps_buffer, 0, 1024);
+    bs_t* sps_bs = bs_new((uint8_t*)sps_buffer, 1024);
+
+    write_seq_parameter_set_rbsp(&sps, sps_bs);
+
+    const char* sps_data = (*env)->GetDirectBufferAddress(env, spsBuffer);
+//    jlong size = (*env)->GetDirectBufferCapacity(env, buffer);
+    memcpy(sps_data, data, 5);
+    memcpy(sps_data+5, sps_buffer, decodeUnitLength-5);
+
+    bs_free(sps_bs);
+    bs_free(bs);
+}
+
+#   define  LOG_TAG    "test"
+#   define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_printBuffer(JNIEnv *env, jclass clazz, jobject buffer, jint length) {
+
+    const char* data = (*env)->GetDirectBufferAddress(env, buffer);
+//    jlong size = (*env)->GetDirectBufferCapacity(env, buffer);
+
+    char tmp[1024];
+    memset(tmp, 0, 1024);
+
+    for (int i=0; i<length; i++) {
+        sprintf(tmp, "%s %x", tmp, data[i]);
+    }
+
+    LOGD("buffer: %s", tmp);
 }

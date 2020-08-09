@@ -308,4 +308,8 @@ public class MoonBridge {
 
     public static native ByteBuffer nativeCreate(int size);
     public static native void nativeFree(ByteBuffer buffer);
+
+    public static native void readSPS(ByteBuffer buffer, ByteBuffer spsBuffer, int decodeUnitLength, boolean constrainedHighProfile);
+
+    public static native void printBuffer(ByteBuffer buffer, int length);
 }

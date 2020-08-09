@@ -355,15 +355,15 @@ void* rendering_thread(VideoDecoder* videoDecoder)
         makeInputBuffer(videoDecoder);
 
         // Waitting for a signal
-        sem_wait(&videoDecoder->rendering_sem);
-        if (videoDecoder->stop) break;
+        // sem_wait(&videoDecoder->rendering_sem);
+        // if (videoDecoder->stop) break;
 
         // Queue input buffers
         queueInputBuffer(videoDecoder);
 
         // Try to output a frame
         AMediaCodecBufferInfo info;
-        int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0); // -1 to block test
+        int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 1000); // -1 to block test
         if (outIndex >= 0) {
 
             long presentationTimeUs = info.presentationTimeUs;
@@ -407,10 +407,9 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);            
 
-            // Check the incoming frames during rendering
-            // sem_post(&videoDecoder->rendering_sem);
-
             renderedFrames ++;
+
+            bool sleeped = false;
 
             while (renderingFrames - renderedFrames <= 2 && !videoDecoder->stop) {
 
@@ -418,7 +417,13 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                 queueInputBuffer(videoDecoder);
 
                 usleep(1000);
+
+                sleeped = true;
             }
+
+            if (sleeped)
+                // Check the incoming frames during rendering
+                sem_post(&videoDecoder->rendering_sem);
             
         } else {
 

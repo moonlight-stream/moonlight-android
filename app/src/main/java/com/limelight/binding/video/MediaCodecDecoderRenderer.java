@@ -560,6 +560,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             }
                             // System.out.println("- 渲染 " + MediaCodecHelper.getMonotonicMillis() + " " + (presentationTimeUs / 1000));
 
+                            // Queue one input for each time
+                            inputBuffer = null;
+                            synchronized (queueInputBufferList) {
+                                if (queueInputBufferList.size() > 0)
+                                    inputBuffer = queueInputBufferList.remove(0);
+                            }
+                            if (inputBuffer != null)
+                                queueInputBuffer(inputBuffer.index, 0, inputBuffer.buffer.position(), inputBuffer.timestampUs, inputBuffer.codecFlags);
+
                             // Check the incoming frames during rendering
                             renderingSemaphore.release();
 

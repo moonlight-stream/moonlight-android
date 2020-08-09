@@ -1025,8 +1025,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             MoonBridge.readSPS(decodeUnitData, spsBuffer, decodeUnitLength+1, constrainedHighProfile);
 
-            MoonBridge.printBuffer(decodeUnitData, spsBuffer.limit());
-            MoonBridge.printBuffer(spsBuffer, spsBuffer.limit());
+//            MoonBridge.printBuffer(decodeUnitData, spsBuffer.limit());
+//            MoonBridge.printBuffer(spsBuffer, spsBuffer.limit());
 
 //            String spsBuffer_s = byteArrayToHex(spsBuffer2);
 //            System.out.println("spsBuffer_s " + spsBuffer2);
@@ -1037,7 +1037,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 //            long endTime = System.currentTimeMillis();
 //            System.out.println("[test] readsps " + (endTime - currentTimeMillis) + " ms ");
 
-            System.out.println("spsBuffer make " + spsBuffer.limit());
+//            System.out.println("spsBuffer make " + spsBuffer.limit());
 
             return MoonBridge.DR_OK;
         }
@@ -1113,7 +1113,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 // Next call will be I-frame data
                 submitCsdNextCall = true;
 
-                System.out.println("submitCsdNextCall = true");
+//                System.out.println("submitCsdNextCall = true");
 
                 return MoonBridge.DR_OK;
             }
@@ -1140,19 +1140,19 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             if (submitCsdNextCall) {
                 if (vpsBuffer != null) {
-                    System.out.println("vpsBuffer " + vpsBuffer.limit());
+//                    System.out.println("vpsBuffer " + vpsBuffer.limit());
                     //buf.put(vpsBuffer);
                     nativeCopy(vpsBuffer, 0, inputBuffer.buffer, 0, vpsBuffer.limit());
                     inputBuffer.buffer.position(vpsBuffer.limit());
                 }
                 if (spsBuffer != null) {
-                    System.out.println("spsBuffer " + spsBuffer.limit());
+//                    System.out.println("spsBuffer " + spsBuffer.limit());
                     //buf.put(spsBuffer);
                     nativeCopy(spsBuffer, 0, inputBuffer.buffer, 0, spsBuffer.limit());
                     inputBuffer.buffer.position(spsBuffer.limit());
                 }
                 if (ppsBuffer != null) {
-                    System.out.println("ppsBuffer " + ppsBuffer.limit());
+//                    System.out.println("ppsBuffer " + ppsBuffer.limit());
                     //buf.put(ppsBuffer);
                     nativeCopy(ppsBuffer, 0, inputBuffer.buffer, 0, ppsBuffer.limit());
                     inputBuffer.buffer.position(ppsBuffer.limit());

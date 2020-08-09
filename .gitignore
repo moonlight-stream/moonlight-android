@@ -3,6 +3,7 @@
 *.ap_
 *.aab
 output.json
+output-metadata.json
 out/
 
 # files for the dex VM

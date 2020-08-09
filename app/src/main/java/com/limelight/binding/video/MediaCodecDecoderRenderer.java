@@ -811,9 +811,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         //     renderingSemaphore.release();
         //     return MoonBridge.DR_NEED_IDR;
         // }
-        if (MoonBridge.decoderIsBusing(videoDecoder2)) {
-            return MoonBridge.DR_NEED_IDR;
-        }
+//        while (MoonBridge.decoderIsBusing(videoDecoder2)) {
+//            try {
+//                Thread.sleep(5);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        if (MoonBridge.decoderIsBusing(videoDecoder2)) {
+//            return MoonBridge.DR_NEED_IDR;
+//        }
         
          int inputBufferIndex;
 //         ByteBuffer buf;
@@ -911,7 +918,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // H264 SPS
         if (decodeUnitData.get(4) == 0x67) {
             numSpsIn++;
-
+/*
             // Skip to the start of the NALU data
             decodeUnitData.position(5);
 
@@ -1030,6 +1037,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             spsBuffer.position(5);
             spsBuffer.put(escapedNalu.array(), 0, escapedNalu.limit());
             spsBuffer.position(0);
+
+ */
+            if (spsBuffer != null) MoonBridge.nativeFree(spsBuffer);
+            spsBuffer = MoonBridge.nativeCreate(decodeUnitLength+1);
+            MoonBridge.nativeCopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength+1);
 
             return MoonBridge.DR_OK;
         }
@@ -1171,9 +1183,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         MoonBridge.nativeCopy(decodeUnitData, 0, inputBuffer, pos, decodeUnitLength);
         inputBuffer.position(pos + decodeUnitLength);
 
-//        long endTime = System.currentTimeMillis();
-//        System.out.println("[test] + 提交 " + currentTimeMillis + " " + (endTime-currentTimeMillis) + " " + (currentTimeMillis-lastSubTime) + " " + (timestampUs/1000));
-//        lastSubTime = currentTimeMillis;
+       long endTime = System.currentTimeMillis();
+       System.out.println("[test] + 提交 " + currentTimeMillis + " " + (endTime-currentTimeMillis) + " " + (currentTimeMillis-lastSubTime) + " " + (timestampUs/1000));
+       lastSubTime = currentTimeMillis;
 
 //        System.out.println("222222");
 

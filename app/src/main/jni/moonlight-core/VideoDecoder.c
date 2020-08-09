@@ -28,6 +28,7 @@ typedef enum {
     INPUT_BUFFER_STATUS_FREE,
     INPUT_BUFFER_STATUS_WORKING,
     INPUT_BUFFER_STATUS_QUEUING,
+    INPUT_BUFFER_STATUS_RENDERING,
 };
 
 VideoDecoder* _videoDecoder = 0;
@@ -145,9 +146,12 @@ void queueInputBuffer(VideoDecoder* videoDecoder) {
                 // LOGD("queueInputBuffer: %d", i);
                 _queueInputBuffer(videoDecoder, i);
                 
+                // mark to rendering
+                inputBuffer->status = INPUT_BUFFER_STATUS_RENDERING;
+
                 // mark to invalid
-                inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
-                // break; // or continue
+                // inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
+                break; // or continue
             }
         }        
 
@@ -338,8 +342,12 @@ long getTimeUsec()
     return (long)((long)t.tv_sec * 1000 * 1000 + t.tv_usec);
 }
 
+static bool isRendered = false;
+
 void* rendering_thread(VideoDecoder* videoDecoder)
 {
+    isRendered = false;
+
     while(!videoDecoder->stop) {
 
         // Build input buffer cache
@@ -349,13 +357,19 @@ void* rendering_thread(VideoDecoder* videoDecoder)
         sem_wait(&videoDecoder->rendering_sem);
         if (videoDecoder->stop) break;
 
-        // Queue input buffers
-        queueInputBuffer(videoDecoder);
+        if (!isRendered) {
+            // Queue input buffers
+            queueInputBuffer(videoDecoder);
+        }
+        
 
         // Try to output a frame
         AMediaCodecBufferInfo info;
         int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0); // -1 to block test
         if (outIndex >= 0) {
+
+            isRendered = true;
+
             long presentationTimeUs = info.presentationTimeUs;
             int lastIndex = outIndex;
 
@@ -371,6 +385,19 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             //     lastIndex = outIndex;
             //     presentationTimeUs = info.presentationTimeUs;
             // }
+
+            // mark all rendering frames
+            pthread_mutex_lock(&inputCache_lock); {
+
+                for (int i = 0; i < InputBufferMaxSize; i++) {
+                
+                    VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+                    if (inputBuffer->status == INPUT_BUFFER_STATUS_RENDERING) {
+                        inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
+                    }
+                }
+
+            } pthread_mutex_unlock(&inputCache_lock);
 
             
 
@@ -398,6 +425,9 @@ void* rendering_thread(VideoDecoder* videoDecoder)
         //    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, (releaseDelayUs + presentationTimeUs) * 1000);
 
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);            
+
+            // Queue input buffers
+            queueInputBuffer(videoDecoder);
 
             // Check the incoming frames during rendering
             sem_post(&videoDecoder->rendering_sem);
@@ -564,9 +594,17 @@ bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDecoder, int index, uint64
     return true;
 }
 
+#define SYNC_PUSH 1
+
 bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
 
+#if SYNC_PUSH
+    bool isBusing = false;
+    if (!isRendered)
+        return false;
+#else
     bool isBusing = true;
+#endif
     pthread_mutex_lock(&videoDecoder->lock); {
 
         // get a empty input buffer from cache
@@ -574,9 +612,16 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
 
             for (int i = 0; i < InputBufferMaxSize; i++) {
                 VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+
+#if SYNC_PUSH
+                if (inputBuffer->status > INPUT_BUFFER_STATUS_FREE) {
+                    isBusing = true;
+                    LOGT("[test2] [%d] %d", i, inputBuffer->status);
+#else
                 if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) { // just any one free buffer
                     // LOGD("VideoDecoder_getInputBuffer working [%d]", i);
                     isBusing = false;
+#endif
                     break;
                 }
             }

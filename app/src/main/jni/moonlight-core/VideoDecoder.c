@@ -8,7 +8,6 @@
 #include <sys/system_properties.h>
 #include <pthread.h>
 #include <string.h>
-#include <h264bitstream/h264_stream.h>
 
 #include <media/NdkMediaExtractor.h>
 #include <android/log.h>
@@ -604,56 +603,86 @@ typedef enum {
 
 #define BUFFER_FLAG_CODEC_CONFIG 2
 
-bool replaySps() {
-    // int inputIndex = _dequeueInputBuffer(videoDecoder);
-    // if (inputIndex < 0) {
-    //     return false;
-    // }
-
-    // size_t bufsize;
-    // void* inputBuffer = getInputBuffer(videoDecoder, inputIndex, &bufsize);
-    // if (inputBuffer == 0) {
-    //     return false;
-    // }
-    // // MediaCodecInputBuffer inputBuffer = getEmptyInputBufferFromCache();
-    // // if (inputBuffer == null) {
-    // //     // We're being torn down now
-    // //     return false;
-    // // }
-
-    // // Write the Annex B header
-    // inputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
-
-    // // Switch the H264 profile back to high
-    // savedSps.profileIdc = 100;
-
-    // // Patch the SPS constraint flags
-    // doProfileSpecificSpsPatching(savedSps);
-
-    // // The H264Utils.writeSPS function safely handles
-    // // Annex B NALUs (including NALUs with escape sequences)
-    // ByteBuffer escapedNalu = H264Utils.writeSPS(savedSps, 128);
-    // inputBuffer.put(escapedNalu);
-
-    // // No need for the SPS anymore
-    // savedSps = null;
-
-    // // Queue the new SPS
-    // // inputBuffer.timestampUs = System.nanoTime() / 1000;
-    // // inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-
-    // return MoonBridge.queueInputBuffer(videoDecoder2, inputIndex, inputBuffer.position(),
-    //         System.nanoTime() / 1000,
-    //         MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
-    // // return queueInputBuffer(inputIndex,
-    // //        0, inputBuffer.position(),
-    // //        System.nanoTime() / 1000,
-    // //        MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
-    // // return queueInputBuffer(inputBuffer);
-    return true;
+void doProfileSpecificSpsPatching(sps_t* sps, bool constrainedHighProfile) {
+    // Some devices benefit from setting constraint flags 4 & 5 to make this Constrained
+    // High Profile which allows the decoder to assume there will be no B-frames and
+    // reduce delay and buffering accordingly. Some devices (Marvell, Exynos 4) don't
+    // like it so we only set them on devices that are confirmed to benefit from it.
+    if (sps->profile_idc == 100 && constrainedHighProfile) {
+//        LimeLog.info("Setting constraint set flags for constrained high profile");
+        sps->constraint_set4_flag = true;
+        sps->constraint_set5_flag = true;
+    }
+    else {
+        // Force the constraints unset otherwise (some may be set by default)
+        sps->constraint_set4_flag = false;
+        sps->constraint_set5_flag = false;
+    }
 }
 
-void patchSPS(const uint8_t* data, size_t decodeUnitLength, void* sps_buffer, bool constrainedHighProfile) {
+bool replaySps(VideoDecoder* videoDecoder) {
+
+    size_t inputBufPos = 0;
+
+    int inputIndex = _dequeueInputBuffer(videoDecoder);
+    if (inputIndex < 0) {
+        return false;
+    }
+
+    size_t bufsize;
+    void* inputBuffer = _getInputBuffer(videoDecoder, inputIndex, &bufsize);
+    if (inputBuffer == 0) {
+        // We're being torn down now
+        return false;
+    }
+
+    // Write the Annex B header
+    // inputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
+    const int head = 5;
+    static const char* header = {0x00, 0x00, 0x00, 0x01, 0x67};
+    memcpy(inputBuffer, header, head);
+
+    // Switch the H264 profile back to high
+    videoDecoder->savedSps.profile_idc = 100;
+
+    // Patch the SPS constraint flags
+    doProfileSpecificSpsPatching(&videoDecoder->savedSps, videoDecoder->constrainedHighProfile);
+
+    // The H264Utils.writeSPS function safely handles
+    // Annex B NALUs (including NALUs with escape sequences)
+    // Create tmp buffer
+    void* tmp_buffer = malloc(128);
+    bs_t* tmp_sps_bs = bs_new((uint8_t*)tmp_buffer, 128);
+
+    // Write to tmp buffer
+    write_seq_parameter_set_rbsp(&videoDecoder->savedSps, tmp_sps_bs);
+
+    // Copy tmp -> sps buffer
+    memcpy(inputBuffer+head, tmp_buffer, 128-head);
+    inputBufPos = head + 128;
+
+    free(tmp_buffer);
+    bs_free(tmp_sps_bs);
+
+    // No need for the SPS anymore
+    // savedSps = null;
+
+    // Queue the new SPS
+    // inputBuffer.timestampUs = System.nanoTime() / 1000;
+    // inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+
+    return _queueInputBuffer2(videoDecoder, inputIndex, inputBufPos,
+            getTimeUsec(),
+            BUFFER_FLAG_CODEC_CONFIG);
+    // return queueInputBuffer(inputIndex,
+    //        0, inputBuffer.position(),
+    //        System.nanoTime() / 1000,
+    //        MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
+    // return queueInputBuffer(inputBuffer);
+    // return true;
+}
+
+void patchSPS(VideoDecoder* videoDecoder, const uint8_t* data, size_t decodeUnitLength, void* sps_buffer) {
     // const char* data = (*env)->GetDirectBufferAddress(env, buffer);
     // jlong size = (*env)->GetDirectBufferCapacity(env, buffer);
     assert(data[4] == 0x67);
@@ -665,30 +694,23 @@ void patchSPS(const uint8_t* data, size_t decodeUnitLength, void* sps_buffer, bo
     sps_t sps;
     read_seq_parameter_set_rbsp(&sps, bs);
 
-    if (sps.profile_idc == 100 && constrainedHighProfile) {
-//        LimeLog.info("Setting constraint set flags for constrained high profile");
-        sps.constraint_set4_flag = true;
-        sps.constraint_set5_flag = true;
-    }
-    else {
-        // Force the constraints unset otherwise (some may be set by default)
-        sps.constraint_set4_flag = false;
-        sps.constraint_set5_flag = false;
-    }
+    // Patch the SPS constraint flags
+    doProfileSpecificSpsPatching(&sps, videoDecoder->constrainedHighProfile);
 
-
-//    sps.vui.motion_vectors_over_pic_boundaries_flag = bs_read_u1(b);
-
-//    sps->vui.max_bits_per_mb_denom = bs_read_ue(b);
-//    sps->vui.log2_max_mv_length_horizontal = bs_read_ue(b);
-//    sps->vui.log2_max_mv_length_vertical = bs_read_ue(b);
-//    sps->vui.num_reorder_frames = bs_read_ue(b);
+    // [???]
     sps.vui.max_dec_frame_buffering = sps.num_ref_frames;
     sps.vui.max_bytes_per_pic_denom = 2;
     sps.vui.max_bits_per_mb_denom = 1;
 
+    // If we need to hack this SPS to say we're baseline, do so now
+    if (videoDecoder->needsBaselineSpsHack) {
+        LOGD("Hacking SPS to baseline");
+        sps.profile_idc = 66;
+        videoDecoder->savedSps = sps;
+    }
+
     // Create tmp buffer
-    void* tmp_buffer[head + decodeUnitLength];
+    void* tmp_buffer = malloc(head + decodeUnitLength);
     bs_t* sps_bs = bs_new((uint8_t*)tmp_buffer, head + decodeUnitLength);
 
     // Write to tmp buffer
@@ -698,6 +720,7 @@ void patchSPS(const uint8_t* data, size_t decodeUnitLength, void* sps_buffer, bo
     memcpy(sps_buffer, data, head);
     memcpy(sps_buffer+head, tmp_buffer, decodeUnitLength-head);
 
+    free(tmp_buffer);
     bs_free(sps_bs);
     bs_free(bs);
 }
@@ -770,7 +793,8 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         SPS_BUFFER = malloc(decodeUnitLength);
         SPS_BUFSIZE = decodeUnitLength;
 
-        patchSPS(decodeUnitData, decodeUnitLength, SPS_BUFFER, videoDecoder->constrainedHighProfile);
+        // java版本这里会+1长度，写入一个高位字节，存为 0x80。我这里并未实现该功能，似乎也没问题
+        patchSPS(videoDecoder, decodeUnitData, decodeUnitLength, SPS_BUFFER);
 
 #ifdef LC_DEBUG
         printBufferHex(decodeUnitData, SPS_BUFSIZE);
@@ -902,7 +926,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         if (videoDecoder->needsBaselineSpsHack) {
             videoDecoder->needsBaselineSpsHack = false;
 
-            if (!replaySps()) {
+            if (!replaySps(videoDecoder)) {
                 RETURN(DR_NEED_IDR);
             }
 

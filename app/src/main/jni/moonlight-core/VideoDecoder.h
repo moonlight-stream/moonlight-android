@@ -9,6 +9,7 @@
 #include <media/NdkMediaCodec.h>
 #include <android/native_window_jni.h>
 #include <semaphore.h>
+#include <h264bitstream/h264_stream.h>
 
 typedef struct {
     int index;
@@ -31,6 +32,8 @@ typedef struct {
     uint64_t renderingFrames;
     uint64_t renderedFrames;
     uint64_t lastTimestampUs;
+
+    sps_t savedSps;
 
     FrameBuffer buffers[3];
     uint32_t numSpsIn, numPpsIn, numVpsIn;

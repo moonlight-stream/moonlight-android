@@ -20,12 +20,25 @@ typedef struct {
 } VideoInputBuffer;
 
 typedef struct {
+    void* data;
+    size_t size;
+} FrameBuffer;
+
+typedef struct {
     ANativeWindow* window;
     AMediaCodec* codec;
 
-    void* buffers[3];
+    uint64_t renderingFrames;
+    uint64_t renderedFrames;
+    uint64_t lastTimestampUs;
 
-    bool stop;
+    FrameBuffer buffers[3];
+    uint32_t numSpsIn, numPpsIn, numVpsIn;
+    bool submittedCsd, submitCsdNextCall, needsBaselineSpsHack;
+
+    bool adaptivePlayback;
+
+    bool stopping;
     void (*stopCallback)(void*);
 
     // 缓冲区
@@ -34,7 +47,7 @@ typedef struct {
     pthread_mutex_t lock; // api lock
 } VideoDecoder;
 
-VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency);
+VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency, bool adaptivePlayback, bool needsBaselineSpsHack);
 void VideoDecoder_release(VideoDecoder* videoDecoder);
 
 void VideoDecoder_start(VideoDecoder* videoDecoder);
@@ -43,10 +56,6 @@ void VideoDecoder_stop(VideoDecoder* videoDecoder);
 // Callback
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs);
-
-int VideoDecoder_dequeueInputBuffer(VideoDecoder* videoDecoder);
-VideoInputBuffer* VideoDecoder_getInputBuffer(VideoDecoder* videoDecoder, int index);
-bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDecoder, int index, uint64_t timestampUs, uint32_t codecFlags);
 
 bool VideoDecoder_isBusing(VideoDecoder* videoDecoder);
 // bool VideoDecoder_getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuffer);

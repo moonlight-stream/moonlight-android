@@ -34,7 +34,7 @@ typedef struct {
 
     FrameBuffer buffers[3];
     uint32_t numSpsIn, numPpsIn, numVpsIn;
-    bool submittedCsd, submitCsdNextCall, needsBaselineSpsHack;
+    bool submittedCsd, submitCsdNextCall, needsBaselineSpsHack, constrainedHighProfile;
 
     bool adaptivePlayback;
 
@@ -47,7 +47,7 @@ typedef struct {
     pthread_mutex_t lock; // api lock
 } VideoDecoder;
 
-VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency, bool adaptivePlayback, bool needsBaselineSpsHack);
+VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency, bool adaptivePlayback, bool needsBaselineSpsHack, bool constrainedHighProfile);
 void VideoDecoder_release(VideoDecoder* videoDecoder);
 
 void VideoDecoder_start(VideoDecoder* videoDecoder);

@@ -325,7 +325,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             fps = prefs.fps;
         }
 
-        videoDecoder2 = MoonBridge.createMediaCodec(renderTarget.getSurface(), selectedDecoderName, mimeType, width, height, fps, lowLatency, adaptivePlayback, needsBaselineSpsHack);
+        videoDecoder2 = MoonBridge.createMediaCodec(renderTarget.getSurface(), selectedDecoderName, mimeType, width, height, fps, lowLatency, adaptivePlayback, needsBaselineSpsHack, constrainedHighProfile);
         if (videoDecoder2 == 0) {
             return -4;
         }

@@ -171,11 +171,11 @@ Java_com_limelight_nvstream_jni_MoonBridge_nativeFree(JNIEnv *env, jclass clazz,
 JNIEXPORT jlong JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_createMediaCodec(JNIEnv *env, jclass clazz, jobject surface, jstring name,
                                                             jstring mime_type, jint width,
-                                                            jint height, jint fps, jboolean lowLatency, jboolean adaptivePlayback, jboolean needsBaselineSpsHack) {
+                                                            jint height, jint fps, jboolean lowLatency, jboolean adaptivePlayback, jboolean needsBaselineSpsHack, jboolean constrainedHighProfile) {
     const char *c_name = (*env)->GetStringUTFChars(env, name, 0);
     const char *c_mime_type = (*env)->GetStringUTFChars(env, mime_type, 0);
 
-    long videoDecoder = (long)VideoDecoder_create(env, surface, c_name, c_mime_type, width, height, fps, lowLatency, adaptivePlayback, needsBaselineSpsHack);
+    long videoDecoder = (long)VideoDecoder_create(env, surface, c_name, c_mime_type, width, height, fps, lowLatency, adaptivePlayback, needsBaselineSpsHack, constrainedHighProfile);
 
     (*env)->ReleaseStringUTFChars(env, name, c_name);
     (*env)->ReleaseStringUTFChars(env, mime_type, c_mime_type);

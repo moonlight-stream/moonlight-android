@@ -5,13 +5,12 @@
 #include "VideoDecoder.h"
 #include <stdlib.h>
 #include <sys/time.h>
+#include <sys/system_properties.h>
+#include <pthread.h>
+#include <string.h>
+#include <h264bitstream/h264_stream.h>
 
 #include <media/NdkMediaExtractor.h>
-
-#include <sys/system_properties.h>
-
-#include <pthread.h>
-
 #include <android/log.h>
 
 #define LOG_TAG    "VideoDecoder"
@@ -282,7 +281,7 @@ bool decoderSupportsMaxOperatingRate(const char* decoderName) {
     //         !isAdreno620;
 }
 
-VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency, bool adaptivePlayback, bool needsBaselineSpsHack) {
+VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency, bool adaptivePlayback, bool needsBaselineSpsHack, bool constrainedHighProfile) {
 
     int sdk_ver = sdk_version();
 
@@ -396,6 +395,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
 
     videoDecoder->adaptivePlayback = adaptivePlayback;
     videoDecoder->needsBaselineSpsHack = needsBaselineSpsHack;
+    videoDecoder->constrainedHighProfile = constrainedHighProfile;
 
     _videoDecoder = videoDecoder;
 
@@ -653,6 +653,65 @@ bool replaySps() {
     return true;
 }
 
+void patchSPS(const uint8_t* data, size_t decodeUnitLength, void* sps_buffer, bool constrainedHighProfile) {
+    // const char* data = (*env)->GetDirectBufferAddress(env, buffer);
+    // jlong size = (*env)->GetDirectBufferCapacity(env, buffer);
+    assert(data[4] == 0x67);
+
+    const int head = 5;
+
+    bs_t* bs = bs_new((uint8_t*)data + head, decodeUnitLength - head);
+
+    sps_t sps;
+    read_seq_parameter_set_rbsp(&sps, bs);
+
+    if (sps.profile_idc == 100 && constrainedHighProfile) {
+//        LimeLog.info("Setting constraint set flags for constrained high profile");
+        sps.constraint_set4_flag = true;
+        sps.constraint_set5_flag = true;
+    }
+    else {
+        // Force the constraints unset otherwise (some may be set by default)
+        sps.constraint_set4_flag = false;
+        sps.constraint_set5_flag = false;
+    }
+
+
+//    sps.vui.motion_vectors_over_pic_boundaries_flag = bs_read_u1(b);
+
+//    sps->vui.max_bits_per_mb_denom = bs_read_ue(b);
+//    sps->vui.log2_max_mv_length_horizontal = bs_read_ue(b);
+//    sps->vui.log2_max_mv_length_vertical = bs_read_ue(b);
+//    sps->vui.num_reorder_frames = bs_read_ue(b);
+    sps.vui.max_dec_frame_buffering = sps.num_ref_frames;
+    sps.vui.max_bytes_per_pic_denom = 2;
+    sps.vui.max_bits_per_mb_denom = 1;
+
+    // Create tmp buffer
+    void* tmp_buffer[head + decodeUnitLength];
+    bs_t* sps_bs = bs_new((uint8_t*)tmp_buffer, head + decodeUnitLength);
+
+    // Write to tmp buffer
+    write_seq_parameter_set_rbsp(&sps, sps_bs);
+
+    // Copy tmp -> sps buffer
+    memcpy(sps_buffer, data, head);
+    memcpy(sps_buffer+head, tmp_buffer, decodeUnitLength-head);
+
+    bs_free(sps_bs);
+    bs_free(bs);
+}
+
+void printBufferHex(void* data, size_t size) {
+    char tmp[1024];
+    memset(tmp, 0, 1024);
+
+    for (int i=0; i<size; i++) {
+        sprintf(tmp, "%s %x", tmp, ((char*)data)[i]);
+    }
+    LOGT("buffer: %s", tmp);
+}
+
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {
 
@@ -708,9 +767,16 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         
         if (SPS_BUFFER) free(SPS_BUFFER);
 
-        SPS_BUFFER = malloc(decodeUnitLength+1);
-        memcpy(SPS_BUFFER, decodeUnitData, decodeUnitLength+1);
-        SPS_BUFSIZE = decodeUnitLength+1;
+        SPS_BUFFER = malloc(decodeUnitLength);
+        SPS_BUFSIZE = decodeUnitLength;
+
+        patchSPS(decodeUnitData, decodeUnitLength, SPS_BUFFER, videoDecoder->constrainedHighProfile);
+
+#ifdef LC_DEBUG
+        printBufferHex(decodeUnitData, SPS_BUFSIZE);
+        printBufferHex(SPS_BUFFER, SPS_BUFSIZE);
+#endif
+        
         RETURN(DR_OK);
     } else if (decodeUnitType == BUFFER_TYPE_VPS) {
         videoDecoder->numVpsIn++;

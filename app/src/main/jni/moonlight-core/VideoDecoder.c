@@ -3,6 +3,7 @@
 //
 
 #include "VideoDecoder.h"
+#include "h264bitstream/h264_stream.h"
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/system_properties.h>
@@ -280,7 +281,7 @@ bool decoderSupportsMaxOperatingRate(const char* decoderName) {
     //         !isAdreno620;
 }
 
-VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency, bool adaptivePlayback, bool needsBaselineSpsHack, bool constrainedHighProfile) {
+VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency) {
 
     int sdk_ver = sdk_version();
 
@@ -296,7 +297,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
         // We use prefs.fps instead of redrawRate here because the low latency hack in Game.java
         // may leave us with an odd redrawRate value like 59 or 49 which might cause the decoder
         // to puke. To be safe, we'll use the unmodified value.
-        AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_FRAME_RATE, fps);
+        AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_FRAME_RATE, prefsFps);
     }
 
     // Adaptive playback can also be enabled by the whitelist on pre-KitKat devices
@@ -366,6 +367,10 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
     VideoDecoder* videoDecoder = (VideoDecoder*)malloc(sizeof(VideoDecoder));
     videoDecoder->window = window;
     videoDecoder->codec = codec;
+    videoDecoder->initialWidth = width;
+    videoDecoder->initialHeight = height;
+    videoDecoder->refreshRate = refreshRate;
+
     videoDecoder->stopping = false;
     videoDecoder->stopCallback = 0;
     pthread_mutex_init(&videoDecoder->lock, 0);
@@ -392,9 +397,10 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
         videoDecoder->buffers[i] = framebuffer;
     }
 
-    videoDecoder->adaptivePlayback = adaptivePlayback;
-    videoDecoder->needsBaselineSpsHack = needsBaselineSpsHack;
-    videoDecoder->constrainedHighProfile = constrainedHighProfile;
+    videoDecoder->adaptivePlayback = false;
+    videoDecoder->needsBaselineSpsHack = false;
+    videoDecoder->constrainedHighProfile = false;
+    videoDecoder->refFrameInvalidationActive = false;
 
     _videoDecoder = videoDecoder;
 
@@ -693,6 +699,31 @@ void patchSPS(VideoDecoder* videoDecoder, const uint8_t* data, size_t decodeUnit
 
     sps_t sps;
     read_seq_parameter_set_rbsp(&sps, bs);
+
+    // Some decoders rely on H264 level to decide how many buffers are needed
+    // Since we only need one frame buffered, we'll set the level as low as we can
+    // for known resolution combinations. Reference frame invalidation may need
+    // these, so leave them be for those decoders.
+    if (!videoDecoder->refFrameInvalidationActive) {
+        if (videoDecoder->initialWidth <= 720 && videoDecoder->initialHeight <= 480 && videoDecoder->refreshRate <= 60) {
+            // Max 5 buffered frames at 720x480x60
+            LOGD("Patching level_idc to 31");
+            sps.level_idc = 31;
+        }
+        else if (videoDecoder->initialWidth <= 1280 && videoDecoder->initialHeight <= 720 && videoDecoder->refreshRate <= 60) {
+            // Max 5 buffered frames at 1280x720x60
+            LOGD("Patching level_idc to 32");
+            sps.level_idc = 32;
+        }
+        else if (videoDecoder->initialWidth <= 1920 && videoDecoder->initialHeight <= 1080 && videoDecoder->refreshRate <= 60) {
+            // Max 4 buffered frames at 1920x1080x64
+            LOGD("Patching level_idc to 42");
+            sps.level_idc = 42;
+        }
+        else {
+            // Leave the profile alone (currently 5.0)
+        }
+    }
 
     // Patch the SPS constraint flags
     doProfileSpecificSpsPatching(&sps, videoDecoder->constrainedHighProfile);

@@ -29,6 +29,9 @@ typedef struct {
     ANativeWindow* window;
     AMediaCodec* codec;
 
+    int initialWidth, initialHeight;
+    int refreshRate;
+
     uint64_t renderingFrames;
     uint64_t renderedFrames;
     uint64_t lastTimestampUs;
@@ -37,9 +40,8 @@ typedef struct {
 
     FrameBuffer buffers[3];
     uint32_t numSpsIn, numPpsIn, numVpsIn;
-    bool submittedCsd, submitCsdNextCall, needsBaselineSpsHack, constrainedHighProfile;
-
-    bool adaptivePlayback;
+    bool submittedCsd, submitCsdNextCall;
+    bool adaptivePlayback, needsBaselineSpsHack, constrainedHighProfile, refFrameInvalidationActive;
 
     bool stopping;
     void (*stopCallback)(void*);
@@ -50,7 +52,7 @@ typedef struct {
     pthread_mutex_t lock; // api lock
 } VideoDecoder;
 
-VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int fps, bool lowLatency, bool adaptivePlayback, bool needsBaselineSpsHack, bool constrainedHighProfile);
+VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency);
 void VideoDecoder_release(VideoDecoder* videoDecoder);
 
 void VideoDecoder_start(VideoDecoder* videoDecoder);

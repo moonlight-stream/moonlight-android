@@ -311,7 +311,9 @@ public class MoonBridge {
     public static native ByteBuffer nativeCreate(int size);
     public static native void nativeFree(ByteBuffer buffer);
 
-    public static native long createMediaCodec(Surface surface, String name, String mimeType, int width, int height, int fps, boolean lowLatency, boolean adaptivePlayback, boolean needsBaselineSpsHack, boolean constrainedHighProfile);
+    public static native long createMediaCodec(Surface surface, String name, String mimeType, int width, int height, int refreshRate, int prefsFps, boolean lowLatency,
+    boolean adaptivePlayback, boolean needsBaselineSpsHack, boolean constrainedHighProfile, boolean refFrameInvalidationActive);
+
     public static native void deleteMediaCodec(long videoDecoder);
     public static native void stopMediaCodec(long videoDecoder);
 

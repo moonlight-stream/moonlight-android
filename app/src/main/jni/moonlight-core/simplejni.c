@@ -170,17 +170,22 @@ Java_com_limelight_nvstream_jni_MoonBridge_nativeFree(JNIEnv *env, jclass clazz,
 
 JNIEXPORT jlong JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_createMediaCodec(JNIEnv *env, jclass clazz, jobject surface, jstring name,
-                                                            jstring mime_type, jint width,
-                                                            jint height, jint fps, jboolean lowLatency, jboolean adaptivePlayback, jboolean needsBaselineSpsHack, jboolean constrainedHighProfile) {
+                                                            jstring mime_type, jint width, jint height, jint refreshRate, jint prefsFps, jboolean lowLatency,
+                                                            jboolean adaptivePlayback, jboolean needsBaselineSpsHack, jboolean constrainedHighProfile, jboolean refFrameInvalidationActive) {
     const char *c_name = (*env)->GetStringUTFChars(env, name, 0);
     const char *c_mime_type = (*env)->GetStringUTFChars(env, mime_type, 0);
 
-    long videoDecoder = (long)VideoDecoder_create(env, surface, c_name, c_mime_type, width, height, fps, lowLatency, adaptivePlayback, needsBaselineSpsHack, constrainedHighProfile);
+    VideoDecoder* videoDecoder = VideoDecoder_create(env, surface, c_name, c_mime_type, width, height, refreshRate, prefsFps, lowLatency);
+
+    videoDecoder->adaptivePlayback = adaptivePlayback;
+    videoDecoder->needsBaselineSpsHack = needsBaselineSpsHack;
+    videoDecoder->constrainedHighProfile = constrainedHighProfile;
+    videoDecoder->refFrameInvalidationActive = refFrameInvalidationActive;
 
     (*env)->ReleaseStringUTFChars(env, name, c_name);
     (*env)->ReleaseStringUTFChars(env, mime_type, c_mime_type);
 
-    return videoDecoder;
+    return (jlong)videoDecoder;
 }
 
 JNIEXPORT void JNICALL

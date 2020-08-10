@@ -32,6 +32,11 @@ typedef enum {
     INPUT_BUFFER_STATUS_QUEUING,
 };
 
+typedef enum {
+    SPS, PPS, VPS,
+    __BUFFER_MAX
+};
+
 VideoDecoder* _videoDecoder = 0;
 void printCache() {
 
@@ -300,6 +305,11 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
         videoDecoder->inputBufferCache[i] = inputBuffer;
     }
 
+    // Initialize
+    for (int i = 0; i < __BUFFER_MAX; i++) {
+        videoDecoder->buffers[i] = 0;
+    }
+
     _videoDecoder = videoDecoder;
 
     return videoDecoder;
@@ -312,6 +322,12 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
     pthread_mutex_destroy(&videoDecoder->lock);
 
     free(videoDecoder->inputBufferCache);
+
+    for (int i = 0; i < __BUFFER_MAX; i++) {
+        if (videoDecoder->buffers[i])
+            free(videoDecoder->buffers[i]);
+    }
+
     free(videoDecoder);
 
     LOGD("VideoDecoder_release: released!");
@@ -416,8 +432,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);            
 
             renderedFrames ++;
-
-            
             
         } else {
 
@@ -495,9 +509,10 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     int codecFlags = 0;
 
     // H264 SPS
-//    if (((char*)decodeUnitData)[4] == 0x67) {
-//
-//    }
+    if (((char*)decodeUnitData)[4] == 0x67) {
+        
+        
+    }
 
     pthread_mutex_unlock(&videoDecoder->lock);
 

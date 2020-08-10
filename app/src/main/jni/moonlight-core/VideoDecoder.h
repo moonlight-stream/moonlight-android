@@ -20,16 +20,10 @@ typedef struct {
 } VideoInputBuffer;
 
 typedef struct {
-//    int fd;
     ANativeWindow* window;
-//    AMediaExtractor* ex;
     AMediaCodec* codec;
-//    ThreadInfo* threadInfo;
-//    int64_t renderstart;
-//    bool sawInputEOS;
-//    bool sawOutputEOS;
-//    bool isPlaying;
-//    bool renderonce;
+
+    void* buffers[3];
 
     bool stop;
     void (*stopCallback)(void*);

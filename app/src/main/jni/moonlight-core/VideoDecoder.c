@@ -12,6 +12,7 @@
 
 #include <media/NdkMediaExtractor.h>
 #include <android/log.h>
+#include "MediaCodecHelper.h"
 
 #define LOG_TAG    "VideoDecoder"
 #ifdef LC_DEBUG
@@ -21,6 +22,8 @@
 #define LOGD(...) 
 #define LOGT(...)  
 #endif
+
+static VideoDecoder* currentVideoDecoder = 0;
 
 typedef enum {
     BUFFER_TYPE_SPS = 1,
@@ -56,22 +59,7 @@ void printCache() {
 
 int VIDEO_FORMAT_MASK_H264 = 0x00FF;
 
-#define Build_VERSION_CODES_KITKAT 19
-#define Build_VERSION_CODES_M 23
-#define Build_VERSION_CODES_R 30
 
-int sdk_version() {
-    static char sdk_ver_str[PROP_VALUE_MAX+1];
-    int sdk_ver = 0;
-    if (__system_property_get("ro.build.version.sdk", sdk_ver_str)) {
-        sdk_ver = atoi(sdk_ver_str);
-    } else {
-        // Not running on Android or SDK version is not available
-        // ...
-        LOGD("sdk_version fail!");
-    }
-    return sdk_ver;
-}
 
 // 获取空的输入缓冲区
 bool getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuffer) {
@@ -274,26 +262,23 @@ bool decoderSupportsMaxOperatingRate(const char* decoderName) {
     //
     // NB: Even on Android 10, this optimization still provides significant
     // performance gains on Pixel 2.
-    int sdk_ver = sdk_version();
-    return sdk_ver >= Build_VERSION_CODES_M;
+    return Build_VERSION_SDK_INT >= Build_VERSION_CODES_M;
     // return Build.VERSION.SDK_INT >= Build_VERSION_CODES_M &&
     //         isDecoderInList(qualcommDecoderPrefixes, decoderName) &&
     //         !isAdreno620;
 }
 
-VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency) {
-
-    int sdk_ver = sdk_version();
+VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* decoderName, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency, bool adaptivePlayback) {
 
     // Codecs have been known to throw all sorts of crazy runtime exceptions
     // due to implementation problems
-    AMediaCodec* codec = AMediaCodec_createCodecByName(name);
+    AMediaCodec* codec = AMediaCodec_createCodecByName(decoderName);
 
     AMediaFormat* videoFormat = AMediaFormat_new();
     AMediaFormat_setString(videoFormat, AMEDIAFORMAT_KEY_MIME, mimeType);
 
     // Avoid setting KEY_FRAME_RATE on Lollipop and earlier to reduce compatibility risk
-    if (sdk_ver >= Build_VERSION_CODES_M) {
+    if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_M) {
         // We use prefs.fps instead of redrawRate here because the low latency hack in Game.java
         // may leave us with an odd redrawRate value like 59 or 49 which might cause the decoder
         // to puke. To be safe, we'll use the unmodified value.
@@ -302,30 +287,30 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
 
     // Adaptive playback can also be enabled by the whitelist on pre-KitKat devices
     // so we don't fill these pre-KitKat
-    if (/* adaptivePlayback &&  */ sdk_ver >= Build_VERSION_CODES_KITKAT) {
+    if (adaptivePlayback &&  Build_VERSION_SDK_INT >= Build_VERSION_CODES_KITKAT) {
         AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_WIDTH, width);
         AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_HEIGHT, height);
     }
 
-    if (sdk_ver >= Build_VERSION_CODES_R && lowLatency) {
+    if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_R && lowLatency) {
         AMediaFormat_setInt32(videoFormat, "latency", 0);
     }
-    else if (sdk_ver >= Build_VERSION_CODES_M) {
-//        // Set the Qualcomm vendor low latency extension if the Android R option is unavailable
-//        if (MediaCodecHelper.decoderSupportsQcomVendorLowLatency(selectedDecoderName)) {
-//            // MediaCodec supports vendor-defined format keys using the "vendor.<extension name>.<parameter name>" syntax.
-//            // These allow access to functionality that is not exposed through documented MediaFormat.KEY_* values.
-//            // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/common/inc/vidc_vendor_extensions.h;l=67
-//            //
-//            // Examples of Qualcomm's vendor extensions for Snapdragon 845:
-//            // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/vdec/src/omx_vdec_extensions.hpp
-//            // https://cs.android.com/android/_/android/platform/hardware/qcom/sm8150/media/+/0621ceb1c1b19564999db8293574a0e12952ff6c
-//            videoFormat.setInteger("vendor.qti-ext-dec-low-latency.enable", 1);
-//        }
-//
-       if (decoderSupportsMaxOperatingRate(name)) {
+    else if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_M) {
+        // Set the Qualcomm vendor low latency extension if the Android R option is unavailable
+        if (MediaCodecHelper_decoderSupportsQcomVendorLowLatency(decoderName)) {
+            // MediaCodec supports vendor-defined format keys using the "vendor.<extension name>.<parameter name>" syntax.
+            // These allow access to functionality that is not exposed through documented MediaFormat.KEY_* values.
+            // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/common/inc/vidc_vendor_extensions.h;l=67
+            //
+            // Examples of Qualcomm's vendor extensions for Snapdragon 845:
+            // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/vdec/src/omx_vdec_extensions.hpp
+            // https://cs.android.com/android/_/android/platform/hardware/qcom/sm8150/media/+/0621ceb1c1b19564999db8293574a0e12952ff6c
+            AMediaFormat_setInt32(videoFormat, "vendor.qti-ext-dec-low-latency.enable", 1);
+        }
+
+        if (decoderSupportsMaxOperatingRate(decoderName)) {
            AMediaFormat_setInt32(videoFormat, "operating-rate", 32767);
-       }
+        }
     }
 
     ANativeWindow* window = ANativeWindow_fromSurface(env, surface);
@@ -397,7 +382,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
         videoDecoder->buffers[i] = framebuffer;
     }
 
-    videoDecoder->adaptivePlayback = false;
+    videoDecoder->adaptivePlayback = adaptivePlayback;
     videoDecoder->needsBaselineSpsHack = false;
     videoDecoder->constrainedHighProfile = false;
     videoDecoder->refFrameInvalidationActive = false;
@@ -594,6 +579,9 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     pthread_attr_init(&attr);
     pthread_create(&pid, &attr, rendering_thread, videoDecoder);
 
+    // Set current
+    currentVideoDecoder = videoDecoder;
+
     pthread_mutex_unlock(&videoDecoder->lock);
 }
 
@@ -725,13 +713,62 @@ void patchSPS(VideoDecoder* videoDecoder, const uint8_t* data, size_t decodeUnit
         }
     }
 
-    // Patch the SPS constraint flags
-    doProfileSpecificSpsPatching(&sps, videoDecoder->constrainedHighProfile);
+    // TI OMAP4 requires a reference frame count of 1 to decode successfully. Exynos 4
+    // also requires this fixup.
+    //
+    // I'm doing this fixup for all devices because I haven't seen any devices that
+    // this causes issues for. At worst, it seems to do nothing and at best it fixes
+    // issues with video lag, hangs, and crashes.
+    //
+    // It does break reference frame invalidation, so we will not do that for decoders
+    // where we've enabled reference frame invalidation.
+    if (!videoDecoder->refFrameInvalidationActive) {
+        LOGD("Patching num_ref_frames in SPS");
+        sps.num_ref_frames = 1;
+    }
 
-    // [???]
-    sps.vui.max_dec_frame_buffering = sps.num_ref_frames;
-    sps.vui.max_bytes_per_pic_denom = 2;
-    sps.vui.max_bits_per_mb_denom = 1;
+    // GFE 2.5.11 changed the SPS to add additional extensions
+    // Some devices don't like these so we remove them here on old devices.
+    if (Build_VERSION_SDK_INT < Build_VERSION_CODES_O) {
+        sps.vui.video_signal_type_present_flag = false;
+        sps.vui.colour_description_present_flag = false;
+        sps.vui.chroma_loc_info_present_flag = false;
+    }
+
+    // Some older devices used to choke on a bitstream restrictions, so we won't provide them
+    // unless explicitly whitelisted. For newer devices, leave the bitstream restrictions present.
+    if (videoDecoder->needsSpsBitstreamFixup || videoDecoder->isExynos4 || Build_VERSION_SDK_INT >= Build_VERSION_CODES_O) {
+        // The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
+        // or max_dec_frame_buffering which increases decoding latency on Tegra.
+
+        // GFE 2.5.11 started sending bitstream restrictions
+        if (sps.vui.bitstream_restriction_flag == 0) {
+            LOGD("Adding bitstream restrictions");
+//        sps.vuiParams.bitstreamRestriction = new VUIParameters.BitstreamRestriction();
+            sps.vui.motion_vectors_over_pic_boundaries_flag = true;
+            sps.vui.log2_max_mv_length_horizontal = 16;
+            sps.vui.log2_max_mv_length_vertical = 16;
+            sps.vui.num_reorder_frames = 0;
+        } else {
+            LOGD("Patching bitstream restrictions");
+        }
+
+        // Some devices throw errors if maxDecFrameBuffering < numRefFrames
+        sps.vui.max_dec_frame_buffering = sps.num_ref_frames;
+
+        // These values are the defaults for the fields, but they are more aggressive
+        // than what GFE sends in 2.5.11, but it doesn't seem to cause picture problems.
+        sps.vui.max_bytes_per_pic_denom = 2;
+        sps.vui.max_bits_per_mb_denom = 1;
+
+        // log2_max_mv_length_horizontal and log2_max_mv_length_vertical are set to more
+        // conservative values by GFE 2.5.11. We'll let those values stand.
+
+    } else {
+        // Devices that didn't/couldn't get bitstream restrictions before GFE 2.5.11
+        // will continue to not receive them now
+        sps.vui.bitstream_restriction_flag = 0;
+    }
 
     // If we need to hack this SPS to say we're baseline, do so now
     if (videoDecoder->needsBaselineSpsHack) {
@@ -740,6 +777,11 @@ void patchSPS(VideoDecoder* videoDecoder, const uint8_t* data, size_t decodeUnit
         videoDecoder->savedSps = sps;
     }
 
+    // Patch the SPS constraint flags
+    doProfileSpecificSpsPatching(&sps, videoDecoder->constrainedHighProfile);
+
+    // The H264Utils.writeSPS function safely handles
+    // Annex B NALUs (including NALUs with escape sequences)
     // Create tmp buffer
     void* tmp_buffer = malloc(head + decodeUnitLength);
     bs_t* sps_bs = bs_new((uint8_t*)tmp_buffer, head + decodeUnitLength);
@@ -1055,4 +1097,12 @@ bool VideoDecoder_queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_
     // LOGD("VideoDecoder_queueInputBuffer2 result %d index %d bufsize %d timestampUs %ld codecFlags %d", res, index, bufsize, timestampUs, codecFlags);
 
     return true;
+}
+
+int VideoDecoder_staticSubmitDecodeUnit(void* decodeUnitData, int decodeUnitLength, int decodeUnitType, int frameNumber, long receiveTimeMs) {
+
+    // currentVideoDecoder
+    assert(currentVideoDecoder);
+
+    return VideoDecoder_submitDecodeUnit(currentVideoDecoder, decodeUnitData, decodeUnitLength, decodeUnitType, frameNumber, receiveTimeMs);
 }

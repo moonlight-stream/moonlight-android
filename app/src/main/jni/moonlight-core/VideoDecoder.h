@@ -32,6 +32,7 @@ typedef struct {
     int initialWidth, initialHeight;
     int refreshRate;
 
+    uint64_t lastFrameNumber;
     uint64_t renderingFrames;
     uint64_t renderedFrames;
     uint64_t lastTimestampUs;
@@ -41,7 +42,7 @@ typedef struct {
     FrameBuffer buffers[3];
     uint32_t numSpsIn, numPpsIn, numVpsIn;
     bool submittedCsd, submitCsdNextCall;
-    bool adaptivePlayback, needsBaselineSpsHack, constrainedHighProfile, refFrameInvalidationActive;
+    bool adaptivePlayback, needsBaselineSpsHack, constrainedHighProfile, refFrameInvalidationActive, needsSpsBitstreamFixup, isExynos4;
 
     bool stopping;
     void (*stopCallback)(void*);
@@ -52,7 +53,7 @@ typedef struct {
     pthread_mutex_t lock; // api lock
 } VideoDecoder;
 
-VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency);
+VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* decoderName, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency, bool adaptivePlayback);
 void VideoDecoder_release(VideoDecoder* videoDecoder);
 
 void VideoDecoder_start(VideoDecoder* videoDecoder);
@@ -63,11 +64,14 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
                                 int frameNumber, long receiveTimeMs);
 
 bool VideoDecoder_isBusing(VideoDecoder* videoDecoder);
-// bool VideoDecoder_getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuffer);
 
 // native
 int VideoDecoder_dequeueInputBuffer2(VideoDecoder* videoDecoder);
 void* VideoDecoder_getInputBuffer2(VideoDecoder* videoDecoder, int index, size_t* bufsize);
 bool VideoDecoder_queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags);
+
+// static
+int VideoDecoder_staticSubmitDecodeUnit(void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
+                                int frameNumber, long receiveTimeMs);
 
 #endif //MOONLIGHT_ANDROID_DECODER_H

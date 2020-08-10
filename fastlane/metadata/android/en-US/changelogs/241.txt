@@ -1,0 +1,4 @@
+- Added the ability to hide unwanted games via a long press on the game icon
+- Added a network test to check if Moonlight's connection is being blocked
+- Improved display mode selection logic for better frame rate matching
+- Fixed crashes on some Snapdragon 765G devices

@@ -469,6 +469,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             @Override
             public void run() {
 
+                long lastRenderingTimeMillis = 0;
+
                 renderingFrames = 0;
                 renderedFrames = 0;
 
@@ -476,14 +478,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 while (!stopping) {
                     try {
 
-                        // Build input buffer cache
-                        synchronized (inputBufferCache) {
-                            int maxCount = 1; // Too much caching doesn't make sense
-                            if (inputBufferCache.size() < maxCount) {
-                                inputBufferCache.add(getEmptyInputBuffer());
-                            }
-                            // System.out.println("add inputBufferCache " + inputBufferCache.size());
-                        }
+
 
                         /*
                         加入信号量控制之后，提交和渲染变得更有序，画面稳定
@@ -503,24 +498,65 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                         ...
                         */
                         // System.out.println("Waitting for a signal " + System.currentTimeMillis());
-                        renderingSemaphore.acquire();
-                        if (stopping) break;
+                        // renderingSemaphore.acquire();
+                        // if (stopping) break;
 
                         // System.out.println("Received a signal " + System.currentTimeMillis());
 
                         // Queue one input for each time
-                        MediaCodecInputBuffer inputBuffer = null;
-                        synchronized (queueInputBufferList) {
-                            if (queueInputBufferList.size() > 0)
-                                inputBuffer = queueInputBufferList.remove(0);
-                        }
-                        if (inputBuffer != null) {
-                            queueInputBuffer(inputBuffer.index, 0, inputBuffer.buffer.position(), inputBuffer.timestampUs, inputBuffer.codecFlags);
-                            renderingFrames ++;
-                        }
+//                        MediaCodecInputBuffer inputBuffer = null;
+//                        synchronized (queueInputBufferList) {
+//                            if (queueInputBufferList.size() > 0)
+//                                inputBuffer = queueInputBufferList.remove(0);
+//                        }
+//                        if (inputBuffer != null) {
+//                            queueInputBuffer(inputBuffer.index, 0, inputBuffer.buffer.position(), inputBuffer.timestampUs, inputBuffer.codecFlags);
+//                            renderingFrames ++;
+//                        }
+
+//                        boolean sleeped = false;
+
+                        do {
+                            try {
+
+                                // Build input buffer cache
+                                synchronized (inputBufferCache) {
+                                    int maxCount = 1; // Too much caching doesn't make sense
+                                    if (inputBufferCache.size() < maxCount) {
+                                        inputBufferCache.add(getEmptyInputBuffer());
+                                    }
+                                    // System.out.println("add inputBufferCache " + inputBufferCache.size());
+                                }
+
+                                // Queue one input for each time
+                                MediaCodecInputBuffer inputBuffer = null;
+                                synchronized (queueInputBufferList) {
+                                    if (queueInputBufferList.size() > 0)
+                                        inputBuffer = queueInputBufferList.remove(0);
+                                }
+                                if (inputBuffer != null) {
+                                    queueInputBuffer(inputBuffer.index, 0, inputBuffer.buffer.position(), inputBuffer.timestampUs, inputBuffer.codecFlags);
+                                    renderingFrames ++;
+                                }
+
+                                if (renderingFrames - renderedFrames < 3 && !stopping) {
+                                    Thread.sleep(1);
+//                                    sleeped = true;
+                                } else {
+                                    break;
+                                }
+
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        } while (true);
+
+//                        if (sleeped)
+//                            // Check the incoming frames during rendering
+//                            renderingSemaphore.release();
 
                         // Try to output a frame
-                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
+                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 1000);
                         if (outIndex >= 0) {
                             long presentationTimeUs = info.presentationTimeUs;
                             int lastIndex = outIndex;
@@ -558,14 +594,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             activeWindowVideoStats.totalFramesRendered++;
 
                             // Add delta time to the totals (excluding probable outliers)
-                            long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
+                            long currentTimeMillis = MediaCodecHelper.getMonotonicMillis();
+                            long delta = currentTimeMillis - (presentationTimeUs / 1000);
                             if (delta >= 0 && delta < 1000) {
                                 activeWindowVideoStats.decoderTimeMs += delta;
                                 if (!USE_FRAME_RENDER_TIME) {
                                     activeWindowVideoStats.totalTimeMs += delta;
                                 }
                             }
-//                             System.out.println("- 渲染 " + MediaCodecHelper.getMonotonicMillis() + " " + (presentationTimeUs / 1000));
+                            long frameDelay = currentTimeMillis - (presentationTimeUs / 1000);
+//                            System.out.println("- 渲染 " + currentTimeMillis + " " + (presentationTimeUs / 1000) + " " + (currentTimeMillis-lastRenderingTimeMillis) + " " + frameDelay);
+                            lastRenderingTimeMillis = currentTimeMillis;
 
                             // Queue one input for each time
 //                            inputBuffer = null;
@@ -585,6 +624,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             // System.out.println("Rendering complete");
 
                             renderedFrames ++;
+
+
 
                         } else {
                             switch (outIndex) {
@@ -909,6 +950,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             timestampUs = lastTimestampUs + 1;
         }
 
+//        System.out.println("+ 提交 " + timestampUs/1000 + " " + (timestampUs-lastTimestampUs)/1000);
+
         lastTimestampUs = timestampUs;
 
         int codecFlags = 0;
@@ -1195,8 +1238,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         int pos = inputBuffer.buffer.position();
         nativeCopy(decodeUnitData, 0, inputBuffer.buffer, pos, decodeUnitLength);
         inputBuffer.buffer.position(pos + decodeUnitLength);
-
-//         System.out.println("+ 提交 " + timestampUs/1000);
 
         inputBuffer.timestampUs = timestampUs;
         inputBuffer.codecFlags = codecFlags;

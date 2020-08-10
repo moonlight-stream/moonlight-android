@@ -66,7 +66,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
     private final static int START_OR_RESUME_ID = 1;
     private final static int QUIT_ID = 2;
-    private final static int CANCEL_ID = 3;
     private final static int START_WITH_QUIT = 4;
     private final static int VIEW_DETAILS_ID = 5;
     private final static int CREATE_SHORTCUT_ID = 6;
@@ -397,7 +396,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             }
             else {
                 menu.add(Menu.NONE, START_WITH_QUIT, 1, getResources().getString(R.string.applist_menu_quit_and_start));
-                menu.add(Menu.NONE, CANCEL_ID, 2, getResources().getString(R.string.applist_menu_cancel));
             }
         }
 
@@ -468,9 +466,6 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         });
                     }
                 }, null);
-                return true;
-
-            case CANCEL_ID:
                 return true;
 
             case VIEW_DETAILS_ID:

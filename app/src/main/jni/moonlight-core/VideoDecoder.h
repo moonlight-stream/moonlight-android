@@ -10,6 +10,7 @@
 #include <android/native_window_jni.h>
 #include <semaphore.h>
 #include <h264bitstream/h264_stream.h>
+#include "VideoStats.h"
 
 typedef struct {
     int index;
@@ -44,6 +45,10 @@ typedef struct {
     bool submittedCsd, submitCsdNextCall;
     bool adaptivePlayback, needsBaselineSpsHack, constrainedHighProfile, refFrameInvalidationActive, needsSpsBitstreamFixup, isExynos4;
 
+    VideoStats activeWindowVideoStats;
+    VideoStats lastWindowVideoStats;
+    VideoStats globalVideoStats;
+
     bool stopping;
     void (*stopCallback)(void*);
 
@@ -66,11 +71,12 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 bool VideoDecoder_isBusing(VideoDecoder* videoDecoder);
 
 // native
-int VideoDecoder_dequeueInputBuffer2(VideoDecoder* videoDecoder);
-void* VideoDecoder_getInputBuffer2(VideoDecoder* videoDecoder, int index, size_t* bufsize);
-bool VideoDecoder_queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags);
+int VideoDecoder_dequeueInputBuffer(VideoDecoder* videoDecoder);
+void* VideoDecoder_getInputBuffer(VideoDecoder* videoDecoder, int index, size_t* bufsize);
+bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags);
 
-// static
+// This is called once for each frame-start NALU. This means it will be called several times
+// for an IDR frame which contains several parameter sets and the I-frame data.
 int VideoDecoder_staticSubmitDecodeUnit(void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs);
 

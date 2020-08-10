@@ -5,7 +5,6 @@
 #include "VideoDecoder.h"
 #include "h264bitstream/h264_stream.h"
 #include <stdlib.h>
-#include <sys/time.h>
 #include <sys/system_properties.h>
 #include <pthread.h>
 #include <string.h>
@@ -23,7 +22,11 @@
 #define LOGT(...)  
 #endif
 
+static const bool USE_FRAME_RENDER_TIME = false;
+static const bool FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
+
 static VideoDecoder* currentVideoDecoder = 0;
+
 
 typedef enum {
     BUFFER_TYPE_SPS = 1,
@@ -233,25 +236,6 @@ bool _isBusing(VideoDecoder* videoDecoder) {
     return videoDecoder->renderedFrames > 0 && videoDecoder->renderingFrames - videoDecoder->renderedFrames > 2;
 }
 
-// helper
-
-// private static boolean isDecoderInList(List<String> decoderList, String decoderName) {
-//     if (!initialized) {
-//         throw new IllegalStateException("MediaCodecHelper must be initialized before use");
-//     }
-
-//     for (String badPrefix : decoderList) {
-//         if (decoderName.length() >= badPrefix.length()) {
-//             String prefix = decoderName.substring(0, badPrefix.length());
-//             if (prefix.equalsIgnoreCase(badPrefix)) {
-//                 return true;
-//             }
-//         }
-//     }
-    
-//     return false;
-// }
-
 bool decoderSupportsMaxOperatingRate(const char* decoderName) {
     // Operate at maximum rate to lower latency as much as possible on
     // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
@@ -429,13 +413,6 @@ void VideoDecoder_release(VideoDecoder* videoDecoder) {
 
 pthread_t pid;
 
-long getTimeUsec()
-{
-    struct timeval t;
-    gettimeofday(&t, 0);
-    return (long)((long)t.tv_sec * 1000 * 1000 + t.tv_usec);
-}
-
 void* rendering_thread(VideoDecoder* videoDecoder)
 {
     while(!videoDecoder->stopping) {
@@ -509,6 +486,16 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);
 
             videoDecoder->renderedFrames ++;
+
+            videoDecoder->activeWindowVideoStats.totalFramesReceived ++;
+            // Add delta time to the totals (excluding probable outliers)
+            long delta = getTimeUsec()/1000 - (presentationTimeUs / 1000);
+            if (delta >= 0 && delta < 1000) {
+                videoDecoder->activeWindowVideoStats.decoderTimeMs += delta;
+                if (!USE_FRAME_RENDER_TIME) {
+                    videoDecoder->activeWindowVideoStats.totalTimeMs += delta;
+                }
+            }
             
         } else {
 
@@ -565,6 +552,7 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     }
 
     // Init
+    videoDecoder->lastFrameNumber = 0;
     videoDecoder->renderingFrames = 0;
     videoDecoder->renderedFrames = 0;
     videoDecoder->lastTimestampUs = 0;
@@ -836,6 +824,63 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         usleep(1000);
     }
 
+    long timestampUs = getTimeUsec();
+    long currentTimeMillis = timestampUs/1000;
+
+    if (videoDecoder->lastFrameNumber == 0) {
+        videoDecoder->activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
+    } else if (frameNumber != videoDecoder->lastFrameNumber && frameNumber != videoDecoder->lastFrameNumber + 1) {
+        // We can receive the same "frame" multiple times if it's an IDR frame.
+        // In that case, each frame start NALU is submitted independently.
+        videoDecoder->activeWindowVideoStats.framesLost += frameNumber - videoDecoder->lastFrameNumber - 1;
+        videoDecoder->activeWindowVideoStats.totalFrames += frameNumber - videoDecoder->lastFrameNumber - 1;
+        videoDecoder->activeWindowVideoStats.frameLossEvents++;
+    }
+
+    videoDecoder->lastFrameNumber = frameNumber;
+
+    // Flip stats windows roughly every second
+    if (currentTimeMillis >= videoDecoder->activeWindowVideoStats.measurementStartTimestamp + 1000) {
+        // if (prefs.enablePerfOverlay) {
+        //     VideoStats lastTwo = new VideoStats();
+        //     lastTwo.add(lastWindowVideoStats);
+        //     lastTwo.add(activeWindowVideoStats);
+        //     VideoStatsFps fps = lastTwo.getFps();
+        //     String decoder;
+
+        //     if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
+        //         decoder = avcDecoder.getName();
+        //     } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
+        //         decoder = hevcDecoder.getName();
+        //     } else {
+        //         decoder = "(unknown)";
+        //     }
+
+        //     float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
+        //     String perfText = context.getString(
+        //             R.string.perf_overlay_text,
+        //             initialWidth + "x" + initialHeight,
+        //             decoder,
+        //             fps.totalFps,
+        //             fps.receivedFps,
+        //             fps.renderedFps,
+        //             (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
+        //             ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
+        //             decodeTimeMs);
+        //     perfListener.onPerfUpdate(perfText);
+        // }
+
+        VideoStats_add(&videoDecoder->globalVideoStats, &videoDecoder->activeWindowVideoStats);
+        VideoStats_copy(&videoDecoder->lastWindowVideoStats, &videoDecoder->activeWindowVideoStats);
+        VideoStats_clear(&videoDecoder->activeWindowVideoStats);
+        videoDecoder->activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
+    }
+
+    videoDecoder->activeWindowVideoStats.totalFramesReceived++;
+    videoDecoder->activeWindowVideoStats.totalFrames++;
+
+    LOGT("fuck %ld", videoDecoder->activeWindowVideoStats.measurementStartTimestamp);
+
     LOGD("VideoDecoder_submitDecodeUnit: submit %p", decodeUnitData);
 
     int inputBufferIndex;
@@ -845,7 +890,10 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     int codecFlags = 0;
 
-    long timestampUs = getTimeUsec();
+    if (!FRAME_RENDER_TIME_ONLY) {
+        // Count time from first packet received to decode start
+        videoDecoder->activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
+    }
 
     if (timestampUs <= videoDecoder->lastTimestampUs) {
         // We can't submit multiple buffers with the same timestamp
@@ -1057,7 +1105,7 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
     return isBusing;
 }
 
-int VideoDecoder_dequeueInputBuffer2(VideoDecoder* videoDecoder) {
+int VideoDecoder_dequeueInputBuffer(VideoDecoder* videoDecoder) {
 
     int index = -1;
 
@@ -1067,12 +1115,12 @@ int VideoDecoder_dequeueInputBuffer2(VideoDecoder* videoDecoder) {
 
     } pthread_mutex_unlock(&videoDecoder->lock);
 
-    LOGD("VideoDecoder_dequeueInputBuffer2 index %d", index);
+    LOGD("VideoDecoder_dequeueInputBuffer index %d", index);
 
     return index;
 }
 
-void* VideoDecoder_getInputBuffer2(VideoDecoder* videoDecoder, int index, size_t* bufsize) {
+void* VideoDecoder_getInputBuffer(VideoDecoder* videoDecoder, int index, size_t* bufsize) {
 
     void* buf = 0;
 
@@ -1085,7 +1133,7 @@ void* VideoDecoder_getInputBuffer2(VideoDecoder* videoDecoder, int index, size_t
     return buf;
 }
 
-bool VideoDecoder_queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags) {
+bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags) {
 
     // bool res;
     pthread_mutex_lock(&videoDecoder->lock); {
@@ -1094,7 +1142,7 @@ bool VideoDecoder_queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_
 
     } pthread_mutex_unlock(&videoDecoder->lock);
 
-    // LOGD("VideoDecoder_queueInputBuffer2 result %d index %d bufsize %d timestampUs %ld codecFlags %d", res, index, bufsize, timestampUs, codecFlags);
+    // LOGD("VideoDecoder_queueInputBuffer result %d index %d bufsize %d timestampUs %ld codecFlags %d", res, index, bufsize, timestampUs, codecFlags);
 
     return true;
 }

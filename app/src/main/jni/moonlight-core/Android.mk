@@ -40,6 +40,7 @@ LOCAL_SRC_FILES := moonlight-common-c/src/AudioStream.c \
                    callbacks.c \
                    VideoDecoder.c \
                    MediaCodecHelper.c \
+                   VideoStats.c \
                    h264bitstream/h264_stream.c\
                    h264bitstream/h264_sei.c\
                    h264bitstream/h264_analyze.c\

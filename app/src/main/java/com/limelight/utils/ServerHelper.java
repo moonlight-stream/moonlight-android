@@ -25,6 +25,8 @@ import java.net.UnknownHostException;
 import java.security.cert.CertificateEncodingException;
 
 public class ServerHelper {
+    public static final String CONNECTION_TEST_SERVER = "android.conntest.moonlight-stream.org";
+
     public static String getCurrentAddressFromComputer(ComputerDetails computer) {
         return computer.activeAddress;
     }
@@ -87,7 +89,7 @@ public class ServerHelper {
                         parent.getResources().getString(R.string.nettest_text_waiting),
                         false);
 
-                int ret = MoonBridge.testClientConnectivity("conntest-android.moonlight-stream.org", 443, MoonBridge.ML_PORT_FLAG_ALL);
+                int ret = MoonBridge.testClientConnectivity(CONNECTION_TEST_SERVER, 443, MoonBridge.ML_PORT_FLAG_ALL);
                 spinnerDialog.dismiss();
 
                 String dialogSummary;

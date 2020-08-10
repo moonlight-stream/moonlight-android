@@ -152,18 +152,6 @@ public class MoonBridge {
         }
     }
 
-    public static int bridgeDrSubmitDecodeUnit(ByteBuffer decodeUnitData2, int decodeUnitLength,
-                                               int decodeUnitType,
-                                               int frameNumber, long receiveTimeMs) {
-        if (videoRenderer != null) {
-            return videoRenderer.submitDecodeUnit(decodeUnitData2, decodeUnitLength,
-                    decodeUnitType, frameNumber, receiveTimeMs);
-        }
-        else {
-            return DR_OK;
-        }
-    }
-
     public static int bridgeArInit(int audioConfiguration, int sampleRate, int samplesPerFrame) {
         if (audioRenderer != null) {
             return audioRenderer.setup(new AudioConfiguration(audioConfiguration), sampleRate, samplesPerFrame);
@@ -304,6 +292,8 @@ public class MoonBridge {
 
     public static native int getPortFlagsFromStage(int stage);
 
+    public static native int getPortFlagsFromTerminationErrorCode(int errorCode);
+
     public static native void init();
 
     public static native void nativeCopy(ByteBuffer buffer0, int offset0, ByteBuffer buffer1, int offset1, int length);
@@ -318,9 +308,6 @@ public class MoonBridge {
     public static native void stopMediaCodec(long videoDecoder);
 
     public static native long startMediaCodec(long videoDecoder);
-
-    public static native int submitDecodeUnit(long videoDecoder, ByteBuffer decodeUnitData, int decodeUnitLength, int decodeUnitType,
-    int frameNumber, long receiveTimeMs);
 
     public static native int dequeueInputBuffer(long videoDecoder);
     public static native ByteBuffer getInputBuffer(long videoDecoder, int index);

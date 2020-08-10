@@ -11,8 +11,9 @@ import com.limelight.nvstream.http.ComputerDetails;
 
 public class WakeOnLanSender {
     private static final int[] PORTS_TO_TRY = new int[] {
-        7, 9, // Standard WOL ports
-        47998, 47999, 48000, 48002, 48010 // Ports opened by GFE
+        9, // Standard WOL port (privileged port)
+        47998, 47999, 48000, 48002, 48010, // Ports opened by GFE
+        47009, // Port opened by Moonlight Internet Hosting Tool for WoL (non-privileged port)
     };
     
     public static void sendWolPacket(ComputerDetails computer) throws IOException {

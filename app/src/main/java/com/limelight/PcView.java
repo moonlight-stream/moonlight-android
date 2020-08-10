@@ -322,12 +322,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         if (computer.details.state == ComputerDetails.State.OFFLINE ||
             computer.details.state == ComputerDetails.State.UNKNOWN) {
             menu.add(Menu.NONE, WOL_ID, 1, getResources().getString(R.string.pcview_menu_send_wol));
-            menu.add(Menu.NONE, TEST_NETWORK_ID, 2, getResources().getString(R.string.pcview_menu_test_network));
-            menu.add(Menu.NONE, DELETE_ID, 3, getResources().getString(R.string.pcview_menu_delete_pc));
         }
         else if (computer.details.pairState != PairState.PAIRED) {
             menu.add(Menu.NONE, PAIR_ID, 1, getResources().getString(R.string.pcview_menu_pair_pc));
-            menu.add(Menu.NONE, DELETE_ID, 2, getResources().getString(R.string.pcview_menu_delete_pc));
         }
         else {
             if (computer.details.runningGameId != 0) {
@@ -337,12 +334,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
             menu.add(Menu.NONE, APP_LIST_ID, 3, getResources().getString(R.string.pcview_menu_app_list));
             menu.add(Menu.NONE, FULL_APP_LIST_ID, 4, getResources().getString(R.string.pcview_menu_full_app_list));
-
-            // FIXME: We used to be able to unpair here but it's been broken since GFE 2.1.x, so I've replaced
-            // it with delete which actually work
-            menu.add(Menu.NONE, DELETE_ID, 5, getResources().getString(R.string.pcview_menu_delete_pc));
         }
-        menu.add(Menu.NONE, VIEW_DETAILS_ID, 6,  getResources().getString(R.string.pcview_menu_details));
+
+        menu.add(Menu.NONE, TEST_NETWORK_ID, 5, getResources().getString(R.string.pcview_menu_test_network));
+        menu.add(Menu.NONE, DELETE_ID, 6, getResources().getString(R.string.pcview_menu_delete_pc));
+        menu.add(Menu.NONE, VIEW_DETAILS_ID, 7,  getResources().getString(R.string.pcview_menu_details));
     }
 
     @Override

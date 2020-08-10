@@ -256,3 +256,15 @@ Java_com_limelight_nvstream_jni_MoonBridge_stopMediaCodec(JNIEnv *env, jclass cl
                                                           jlong video_decoder) {
     VideoDecoder_stop(video_decoder);
 }
+
+JNIEXPORT jstring JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_formatDecoderInfo(JNIEnv *env, jclass clazz,
+                                                             jlong video_decoder, jstring format) {
+    const char* c_format = (*env)->GetStringUTFChars(env, format, 0);
+
+    const char* result = VideoDecoder_formatInfo(video_decoder, format);
+
+    (*env)->ReleaseStringUTFChars(env, format, c_format);
+    
+    return (*env)->NewStringUTF(env, result);
+}

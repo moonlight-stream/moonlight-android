@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -79,6 +81,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 //    private List<MediaCodecInputBuffer> inputBufferCache;
 //    private List<MediaCodecInputBuffer> queueInputBufferList;
 
+    private Timer infoTimer;
     private long videoDecoder2;
 
     private MediaFormat inputFormat;
@@ -478,6 +481,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private void startRendererThread()
     {
+        if (infoTimer != null)
+            infoTimer.cancel();
+
+        infoTimer = new Timer();
+        infoTimer.schedule(new TimerTask(){
+            public void run() {
+                MoonBridge.formatDecoderInfo(videoDecoder2, )
+                perfListener.onPerfUpdate(perfText);
+            }
+        }, 0, 1000);
 //        rendererThread = new Thread() {
 //            @Override
 //            public void run() {

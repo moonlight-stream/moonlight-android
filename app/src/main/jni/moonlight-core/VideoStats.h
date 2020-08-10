@@ -27,4 +27,6 @@ long getTimeUsec();
 
 void VideoStats_add(VideoStats* stats, const VideoStats* other);
 
+VideoStatsFps VideoStats_getFps(const VideoStats* stats);
+
 #endif //MOONLIGHT_ANDROID_VIDEOSTATS_H

@@ -27,7 +27,7 @@ void VideoStats_add(VideoStats* stats, const VideoStats* other) {
         stats->measurementStartTimestamp = other->measurementStartTimestamp;
     }
 
-    assert(other->measurementStartTimestamp <= stats->measurementStartTimestamp);
+    assert(other->measurementStartTimestamp >= stats->measurementStartTimestamp);
 }
 
 void VideoStats_copy(VideoStats* stats, const VideoStats* other) {

@@ -371,6 +371,8 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     videoDecoder->constrainedHighProfile = false;
     videoDecoder->refFrameInvalidationActive = false;
 
+    videoDecoder->infoBuffer = malloc(1024);
+
     _videoDecoder = videoDecoder;
 
     return videoDecoder;
@@ -389,6 +391,8 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
         if (framebuffer->data != 0)
             free(framebuffer->data);
     }
+
+    free(videoDecoder->infoBuffer);
 
     free(videoDecoder);
 
@@ -561,6 +565,11 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     videoDecoder->numVpsIn = 0;
     videoDecoder->numSpsIn = 0;
     videoDecoder->submittedCsd = false;
+
+    VideoStats initStats = {0};
+    videoDecoder->activeWindowVideoStats = initStats;
+    videoDecoder->lastWindowVideoStats = initStats;
+    videoDecoder->globalVideoStats = initStats;
 
     // Start thread
     pthread_attr_t attr;
@@ -1103,6 +1112,38 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
     isBusing = _isBusing(videoDecoder);
 
     return isBusing;
+}
+
+const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* format) {
+    
+    char* tmp[50];
+    sprintf(tmp, "%dx%x", videoDecoder->initialWidth, videoDecoder->initialHeight);
+    
+    VideoStats lastTwo = {0};
+    VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
+    VideoStats_add(&lastTwo, &videoDecoder->activeWindowVideoStats);
+    VideoStatsFps fps = VideoStats_getFps(&lastTwo);
+    const char* decoder = "Undefined";
+
+    // if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
+    //     decoder = avcDecoder.getName();
+    // } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
+    //     decoder = hevcDecoder.getName();
+    // } else {
+    //     decoder = "(unknown)";
+    // }
+
+    float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
+    sprintf(videoDecoder->infoBuffer, format, 
+                        tmp,
+                        decoder,
+                        fps.totalFps,
+                        fps.receivedFps,
+                        fps.renderedFps,
+                        (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
+                        ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
+                        decodeTimeMs);
+    return videoDecoder->infoBuffer;
 }
 
 int VideoDecoder_dequeueInputBuffer(VideoDecoder* videoDecoder) {

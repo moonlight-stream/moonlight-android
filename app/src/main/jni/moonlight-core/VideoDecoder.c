@@ -285,7 +285,6 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* name
     videoDecoder->stop = false;
     videoDecoder->stopCallback = 0;
     pthread_mutex_init(&videoDecoder->lock, 0);
-    sem_init(&videoDecoder->rendering_sem, 0, 0);
 
     videoDecoder->inputBufferCache = malloc(sizeof(VideoInputBuffer)*InputBufferMaxSize);
     for (int i = 0; i < InputBufferMaxSize; i++) {
@@ -311,7 +310,6 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
     ANativeWindow_release(videoDecoder->window);
 
     pthread_mutex_destroy(&videoDecoder->lock);
-    sem_destroy(&videoDecoder->rendering_sem);
 
     free(videoDecoder->inputBufferCache);
     free(videoDecoder);
@@ -351,15 +349,21 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
     while(!videoDecoder->stop) {
 
-        // Build input buffer cache
-        makeInputBuffer(videoDecoder);
+        do {
 
-        // Waitting for a signal
-        // sem_wait(&videoDecoder->rendering_sem);
-        // if (videoDecoder->stop) break;
+            // Build input buffer cache
+            makeInputBuffer(videoDecoder);
 
-        // Queue input buffers
-        queueInputBuffer(videoDecoder);
+            // Queue input buffers
+            queueInputBuffer(videoDecoder);
+
+            if (renderingFrames - renderedFrames <= 2 && !videoDecoder->stop) {
+                usleep(1000);
+            } else {
+                break;
+            }
+            
+        } while (true);
 
         // Try to output a frame
         AMediaCodecBufferInfo info;
@@ -394,9 +398,13 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             // int timeoutUs = (currentDelayUs + customDelayUs) - (standerDelayUs * 2);
             int releaseDelayUs = customDelayUs-timeoutUs;
             if (releaseDelayUs < 0) releaseDelayUs = 0;
-            if (releaseDelayUs > customDelayUs) releaseDelayUs = customDelayUs;
+            if (releaseDelayUs > customDelayUs) releaseDelayUs = customDelayUs; // need delay
 
-            LOGT("[test] - 渲染: %d ms %d ms %ld %ld deleay %d\n", (getTimeUsec() - start_time) / 1000, (start_time - prevRenderingTime[0])/1000, start_time/1000, presentationTimeUs/1000, releaseDelayUs);
+            struct  timeval    tv;
+            struct  timezone   tz;
+            gettimeofday(&tv,&tz);
+            long frameDelay = (tv.tv_usec - presentationTimeUs)/1000;
+            LOGT("[test] - 渲染: %d ms %d ms %d ms %ld %ld deleay %d need\n", (getTimeUsec() - start_time) / 1000, (start_time - prevRenderingTime[0])/1000, frameDelay, start_time/1000, presentationTimeUs/1000, releaseDelayUs);
             prevRenderingTime[1] = prevRenderingTime[0];
             prevRenderingTime[0] = start_time;
 #endif
@@ -409,21 +417,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             renderedFrames ++;
 
-            bool sleeped = false;
-
-            while (renderingFrames - renderedFrames <= 2 && !videoDecoder->stop) {
-
-                // Queue input buffers
-                queueInputBuffer(videoDecoder);
-
-                usleep(1000);
-
-                sleeped = true;
-            }
-
-            if (sleeped)
-                // Check the incoming frames during rendering
-                sem_post(&videoDecoder->rendering_sem);
+            
             
         } else {
 
@@ -449,10 +443,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             }
 
             LOGD("rendering_thread: Rendering pass %d", outIndex);
-
-            // Wait for the next frame of data
-            while (sem_trywait(&videoDecoder->rendering_sem) == 0) {
-            }
 
 //            renderingSemaphore.drainPermits();
         }
@@ -493,7 +483,6 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
 void VideoDecoder_stop(VideoDecoder* videoDecoder) {
 
     videoDecoder->stop = true;
-    sem_post(&videoDecoder->rendering_sem); // make stop signal
 }
 
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
@@ -575,9 +564,6 @@ bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDecoder, int index, uint64
 
             inputBuffer->status = INPUT_BUFFER_STATUS_QUEUING;
 
-            // send rendering semaphore
-            sem_post(&videoDecoder->rendering_sem);
-
             LOGD("[fuck] post queueInputBuffer: [%d]%d timestampUs %ld codecFlags %d", index, inputBuffer->index, inputBuffer->timestampUs, inputBuffer->codecFlags);
 
         } pthread_mutex_unlock(&inputCache_lock);
@@ -631,8 +617,6 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
     isBusing = renderedFrames > 0 && renderingFrames - renderedFrames > 2;
 
     LOGT("[test] %d %d %d", renderingFrames, renderedFrames, isBusing);
-
-    sem_post(&videoDecoder->rendering_sem);
 
     return isBusing;
 }
@@ -724,16 +708,9 @@ bool VideoDecoder_queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_
 
             inputBuffer->status = INPUT_BUFFER_STATUS_QUEUING;
 
-            // send rendering semaphore
-            sem_post(&videoDecoder->rendering_sem);
-
             LOGD("[fuck] post queueInputBuffer: [%d]%d timestampUs %ld codecFlags %d", index, inputBuffer->index, inputBuffer->timestampUs, inputBuffer->codecFlags);
 
         } pthread_mutex_unlock(&inputCache_lock);
-
-        // Queue one input for each time
-        // queueInputBuffer(videoDecoder);
-        sem_post(&videoDecoder->rendering_sem);
 
     } pthread_mutex_unlock(&videoDecoder->lock);
 

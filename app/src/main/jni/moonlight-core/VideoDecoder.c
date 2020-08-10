@@ -506,9 +506,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             if (releaseDelayUs < 0) releaseDelayUs = 0;
             if (releaseDelayUs > customDelayUs) releaseDelayUs = customDelayUs; // need delay
 
-            struct timeval tv;
-            gettimeofday(&tv, 0);
-            long frameDelay = (tv.tv_usec - presentationTimeUs)/1000;
+            long frameDelay = (start_time - presentationTimeUs)/1000;
             LOGT("[test] - 渲染: %d ms %d ms %d ms %ld %ld deleay %d need\n", (getTimeUsec() - start_time) / 1000, (start_time - prevRenderingTime[0])/1000, frameDelay, start_time/1000, presentationTimeUs/1000, releaseDelayUs);
             prevRenderingTime[1] = prevRenderingTime[0];
             prevRenderingTime[0] = start_time;
@@ -606,6 +604,55 @@ typedef enum {
 
 #define BUFFER_FLAG_CODEC_CONFIG 2
 
+bool replaySps() {
+    // int inputIndex = _dequeueInputBuffer(videoDecoder);
+    // if (inputIndex < 0) {
+    //     return false;
+    // }
+
+    // size_t bufsize;
+    // void* inputBuffer = getInputBuffer(videoDecoder, inputIndex, &bufsize);
+    // if (inputBuffer == 0) {
+    //     return false;
+    // }
+    // // MediaCodecInputBuffer inputBuffer = getEmptyInputBufferFromCache();
+    // // if (inputBuffer == null) {
+    // //     // We're being torn down now
+    // //     return false;
+    // // }
+
+    // // Write the Annex B header
+    // inputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
+
+    // // Switch the H264 profile back to high
+    // savedSps.profileIdc = 100;
+
+    // // Patch the SPS constraint flags
+    // doProfileSpecificSpsPatching(savedSps);
+
+    // // The H264Utils.writeSPS function safely handles
+    // // Annex B NALUs (including NALUs with escape sequences)
+    // ByteBuffer escapedNalu = H264Utils.writeSPS(savedSps, 128);
+    // inputBuffer.put(escapedNalu);
+
+    // // No need for the SPS anymore
+    // savedSps = null;
+
+    // // Queue the new SPS
+    // // inputBuffer.timestampUs = System.nanoTime() / 1000;
+    // // inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+
+    // return MoonBridge.queueInputBuffer(videoDecoder2, inputIndex, inputBuffer.position(),
+    //         System.nanoTime() / 1000,
+    //         MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
+    // // return queueInputBuffer(inputIndex,
+    // //        0, inputBuffer.position(),
+    // //        System.nanoTime() / 1000,
+    // //        MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
+    // // return queueInputBuffer(inputBuffer);
+    return true;
+}
+
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {
 
@@ -643,9 +690,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     int codecFlags = 0;
 
-    struct timeval tv;
-    gettimeofday(&tv, 0);
-    long timestampUs = tv.tv_usec;
+    long timestampUs = getTimeUsec();
 
     if (timestampUs <= videoDecoder->lastTimestampUs) {
         // We can't submit multiple buffers with the same timestamp
@@ -653,7 +698,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         timestampUs = videoDecoder->lastTimestampUs + 1;
     }
 
-    LOGT("[test] + 提交 %d %d", timestampUs/1000, (timestampUs-videoDecoder->lastTimestampUs)/1000);
+    LOGT("[test] + 提交 %ld %d", timestampUs/1000, (timestampUs-videoDecoder->lastTimestampUs)/1000);
 
     videoDecoder->lastTimestampUs = timestampUs;
 
@@ -665,6 +710,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
         SPS_BUFFER = malloc(decodeUnitLength+1);
         memcpy(SPS_BUFFER, decodeUnitData, decodeUnitLength+1);
+        SPS_BUFSIZE = decodeUnitLength+1;
         RETURN(DR_OK);
     } else if (decodeUnitType == BUFFER_TYPE_VPS) {
         videoDecoder->numVpsIn++;
@@ -674,6 +720,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
         VPS_BUFFER = malloc(decodeUnitLength);
         memcpy(VPS_BUFFER, decodeUnitData, decodeUnitLength);
+        VPS_BUFSIZE = decodeUnitLength;
         RETURN(DR_OK);
     } else if (decodeUnitType == BUFFER_TYPE_SPS) {
         videoDecoder->numSpsIn++;
@@ -683,6 +730,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
         SPS_BUFFER = malloc(decodeUnitLength);
         memcpy(SPS_BUFFER, decodeUnitData, decodeUnitLength);
+        SPS_BUFSIZE = decodeUnitLength;
         RETURN(DR_OK);
     } else if (decodeUnitType == BUFFER_TYPE_PPS) {
         videoDecoder->numPpsIn++;
@@ -782,19 +830,19 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         RETURN(DR_NEED_IDR);
     }
 
-    // if ((codecFlags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-    //     videoDecoder->submittedCsd = true;
+    if ((codecFlags & BUFFER_FLAG_CODEC_CONFIG) != 0) {
+        videoDecoder->submittedCsd = true;
 
-    //     if (videoDecoder->needsBaselineSpsHack) {
-    //         videoDecoder->needsBaselineSpsHack = false;
+        if (videoDecoder->needsBaselineSpsHack) {
+            videoDecoder->needsBaselineSpsHack = false;
 
-    //         if (!replaySps()) {
-    //             RETURN(DR_NEED_IDR);
-    //         }
+            if (!replaySps()) {
+                RETURN(DR_NEED_IDR);
+            }
 
-    //         LimeLog.info("SPS replay complete");
-    //     }
-    // }
+            LOGD("SPS replay complete");
+        }
+    }
 
     RETURN(0);
 }

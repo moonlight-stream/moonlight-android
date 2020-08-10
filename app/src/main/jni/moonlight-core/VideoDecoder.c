@@ -22,6 +22,8 @@
 #define LOGT(...)  
 #endif
 
+#define BUSY_COUNT 2
+
 static const bool USE_FRAME_RENDER_TIME = false;
 static const bool FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
 
@@ -233,7 +235,7 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 
 bool _isBusing(VideoDecoder* videoDecoder) {
     
-    return videoDecoder->renderedFrames > 0 && videoDecoder->renderingFrames - videoDecoder->renderedFrames > 2;
+    return videoDecoder->renderedFrames > 0 && videoDecoder->renderingFrames - videoDecoder->renderedFrames > BUSY_COUNT;
 }
 
 bool decoderSupportsMaxOperatingRate(const char* decoderName) {
@@ -336,6 +338,8 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     VideoDecoder* videoDecoder = (VideoDecoder*)malloc(sizeof(VideoDecoder));
     videoDecoder->window = window;
     videoDecoder->codec = codec;
+    videoDecoder->decoderName = malloc(strlen(decoderName)+1);
+    strcpy(videoDecoder->decoderName, decoderName);
     videoDecoder->initialWidth = width;
     videoDecoder->initialHeight = height;
     videoDecoder->refreshRate = refreshRate;
@@ -392,6 +396,9 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
             free(framebuffer->data);
     }
 
+    if (videoDecoder->decoderName)
+        free(videoDecoder->decoderName);
+
     free(videoDecoder->infoBuffer);
 
     free(videoDecoder);
@@ -431,12 +438,13 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             // Queue input buffers
             queueInputBuffer(videoDecoder);
 
-            if (videoDecoder->renderingFrames - videoDecoder->renderedFrames <= 2 && !videoDecoder->stopping) {
+            if (videoDecoder->renderingFrames - videoDecoder->renderedFrames <= BUSY_COUNT && !videoDecoder->stopping) {
 
                 // LOGT("[test] wait %d %d", videoDecoder->renderingFrames, videoDecoder->renderedFrames);
 
                 usleep(1000);
-            } else {
+            } else
+            {
                 break;
             }
             
@@ -444,7 +452,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
         // Try to output a frame
         AMediaCodecBufferInfo info;
-        int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 1000); // -1 to block test
+        int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0); // -1 to block test
         if (outIndex >= 0) {
 
             long presentationTimeUs = info.presentationTimeUs;
@@ -456,12 +464,12 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 #endif
 
             // Get the last output buffer in the queue
-            // while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
-            //     AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-            
-            //     lastIndex = outIndex;
-            //     presentationTimeUs = info.presentationTimeUs;
-            // }            
+//            while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
+//                AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+//
+//                lastIndex = outIndex;
+//                presentationTimeUs = info.presentationTimeUs;
+//            }
 
 #ifdef LC_DEBUG            
             long currentDelayUs = (start_time - prevRenderingTime[0]);
@@ -491,7 +499,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             videoDecoder->renderedFrames ++;
 
-            videoDecoder->activeWindowVideoStats.totalFramesReceived ++;
+            videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
             // Add delta time to the totals (excluding probable outliers)
             long delta = getTimeUsec()/1000 - (presentationTimeUs / 1000);
             if (delta >= 0 && delta < 1000) {
@@ -805,6 +813,9 @@ void printBufferHex(void* data, size_t size) {
     LOGT("buffer: %s", tmp);
 }
 
+
+
+
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {
 
@@ -826,15 +837,14 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     pthread_mutex_lock(&videoDecoder->lock);
 
+    long timestampUs = getTimeUsec();
+    long currentTimeMillis = getTimeMsec();
+
     while (_isBusing(videoDecoder) && !videoDecoder->stopping) {
 
         // LOGT("[test] busing %d %d", videoDecoder->renderingFrames, videoDecoder->renderedFrames);
-
         usleep(1000);
     }
-
-    long timestampUs = getTimeUsec();
-    long currentTimeMillis = timestampUs/1000;
 
     if (videoDecoder->lastFrameNumber == 0) {
         videoDecoder->activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
@@ -850,34 +860,6 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     // Flip stats windows roughly every second
     if (currentTimeMillis >= videoDecoder->activeWindowVideoStats.measurementStartTimestamp + 1000) {
-        // if (prefs.enablePerfOverlay) {
-        //     VideoStats lastTwo = new VideoStats();
-        //     lastTwo.add(lastWindowVideoStats);
-        //     lastTwo.add(activeWindowVideoStats);
-        //     VideoStatsFps fps = lastTwo.getFps();
-        //     String decoder;
-
-        //     if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
-        //         decoder = avcDecoder.getName();
-        //     } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
-        //         decoder = hevcDecoder.getName();
-        //     } else {
-        //         decoder = "(unknown)";
-        //     }
-
-        //     float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
-        //     String perfText = context.getString(
-        //             R.string.perf_overlay_text,
-        //             initialWidth + "x" + initialHeight,
-        //             decoder,
-        //             fps.totalFps,
-        //             fps.receivedFps,
-        //             fps.renderedFps,
-        //             (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
-        //             ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
-        //             decodeTimeMs);
-        //     perfListener.onPerfUpdate(perfText);
-        // }
 
         VideoStats_add(&videoDecoder->globalVideoStats, &videoDecoder->activeWindowVideoStats);
         VideoStats_copy(&videoDecoder->lastWindowVideoStats, &videoDecoder->activeWindowVideoStats);
@@ -888,7 +870,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     videoDecoder->activeWindowVideoStats.totalFramesReceived++;
     videoDecoder->activeWindowVideoStats.totalFrames++;
 
-    LOGT("fuck %ld", videoDecoder->activeWindowVideoStats.measurementStartTimestamp);
+//    LOGT("fuck %d %ld %ld %ld %ld", frameNumber, videoDecoder->activeWindowVideoStats.totalFramesReceived, videoDecoder->activeWindowVideoStats.totalFramesRendered, currentTimeMillis, videoDecoder->activeWindowVideoStats.measurementStartTimestamp);
 
     LOGD("VideoDecoder_submitDecodeUnit: submit %p", decodeUnitData);
 
@@ -910,7 +892,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         timestampUs = videoDecoder->lastTimestampUs + 1;
     }
 
-    LOGT("[test] + 提交 %ld %d", timestampUs/1000, (timestampUs-videoDecoder->lastTimestampUs)/1000);
+    long callDif = timestampUs - videoDecoder->lastTimestampUs;
 
     videoDecoder->lastTimestampUs = timestampUs;
 
@@ -1050,6 +1032,11 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         RETURN(DR_NEED_IDR);
     }
 
+#ifdef LC_DEBUG
+    long endTimeMillis = getTimeMsec();
+    LOGT("[test] + 提交 %ld %d 等待 %d", timestampUs/1000, callDif/1000, endTimeMillis-currentTimeMillis);
+#endif
+
     if ((codecFlags & BUFFER_FLAG_CODEC_CONFIG) != 0) {
         videoDecoder->submittedCsd = true;
 
@@ -1068,7 +1055,6 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 }
 
 #define SYNC_PUSH 1
-#define BUSY_COUNT 2
 
 bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
 
@@ -1117,21 +1103,13 @@ bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
 const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* format) {
     
     char* tmp[50];
-    sprintf(tmp, "%dx%x", videoDecoder->initialWidth, videoDecoder->initialHeight);
+    sprintf(tmp, "%dx%d", videoDecoder->initialWidth, videoDecoder->initialHeight);
     
     VideoStats lastTwo = {0};
     VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
     VideoStats_add(&lastTwo, &videoDecoder->activeWindowVideoStats);
     VideoStatsFps fps = VideoStats_getFps(&lastTwo);
-    const char* decoder = "Undefined";
-
-    // if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
-    //     decoder = avcDecoder.getName();
-    // } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
-    //     decoder = hevcDecoder.getName();
-    // } else {
-    //     decoder = "(unknown)";
-    // }
+    const char* decoder = videoDecoder->decoderName;
 
     float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
     sprintf(videoDecoder->infoBuffer, format, 

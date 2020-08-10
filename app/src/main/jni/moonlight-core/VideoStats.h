@@ -5,6 +5,8 @@
 #ifndef MOONLIGHT_ANDROID_VIDEOSTATS_H
 #define MOONLIGHT_ANDROID_VIDEOSTATS_H
 
+#include <stdint.h>
+
 typedef struct {
     long decoderTimeMs;
     long totalTimeMs;
@@ -23,7 +25,8 @@ typedef struct {
     float renderedFps;
 } VideoStatsFps;
 
-long getTimeUsec();
+uint64_t getTimeMsec(void);
+uint64_t getTimeUsec(void);
 
 void VideoStats_add(VideoStats* stats, const VideoStats* other);
 

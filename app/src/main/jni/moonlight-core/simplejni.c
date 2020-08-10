@@ -262,7 +262,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_formatDecoderInfo(JNIEnv *env, jclass
                                                              jlong video_decoder, jstring format) {
     const char* c_format = (*env)->GetStringUTFChars(env, format, 0);
 
-    const char* result = VideoDecoder_formatInfo(video_decoder, format);
+    const char* result = VideoDecoder_formatInfo(video_decoder, c_format);
 
     (*env)->ReleaseStringUTFChars(env, format, c_format);
     

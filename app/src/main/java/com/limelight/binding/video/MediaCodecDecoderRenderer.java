@@ -483,14 +483,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     {
         if (infoTimer != null)
             infoTimer.cancel();
+        if (prefs.enablePerfOverlay) {
+            infoTimer = new Timer();
+            infoTimer.schedule(new TimerTask(){
+                public void run() {
+                    String format = context.getResources().getString(R.string.perf_overlay_text);
+                    String info = MoonBridge.formatDecoderInfo(videoDecoder2, format);
+                    perfListener.onPerfUpdate(info);
+                }
+            }, 0, 1000);
+        }
 
-        infoTimer = new Timer();
-        infoTimer.schedule(new TimerTask(){
-            public void run() {
-                MoonBridge.formatDecoderInfo(videoDecoder2, )
-                perfListener.onPerfUpdate(perfText);
-            }
-        }, 0, 1000);
 //        rendererThread = new Thread() {
 //            @Override
 //            public void run() {
@@ -671,6 +674,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     public void prepareForStop() {
         // Let the decoding code know to ignore codec exceptions now
         stopping = true;
+
+        if (infoTimer != null)
+            infoTimer.cancel();
 
         MoonBridge.stopMediaCodec(videoDecoder2);
 

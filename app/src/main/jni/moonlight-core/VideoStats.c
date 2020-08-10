@@ -6,11 +6,29 @@
 #include <sys/time.h>
 #include <assert.h>
 
-long getTimeUsec()
+uint64_t getTimeMsec()
 {
     struct timeval t;
     gettimeofday(&t, 0);
-    return (long)((long)t.tv_sec * 1000 * 1000 + t.tv_usec);
+    return (long)((long)t.tv_sec * 1000 + t.tv_usec/1000);
+}
+
+uint64_t getTimeUsec(void) {
+#if defined(LC_WINDOWS)
+    return GetTickCount64();
+#elif HAVE_CLOCK_GETTIME
+    struct timespec tv;
+
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+
+    return (tv.tv_sec * 1000 * 1000) + (tv.tv_nsec / 1000);
+#else
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+
+    return (tv.tv_sec * 1000 * 1000) + (tv.tv_usec);
+#endif
 }
 
 void VideoStats_add(VideoStats* stats, const VideoStats* other) {
@@ -53,7 +71,7 @@ void VideoStats_clear(VideoStats* stats) {
 }
 
 VideoStatsFps VideoStats_getFps(const VideoStats* stats) {
-    float elapsed = (getTimeUsec()/1000 - stats->measurementStartTimestamp) / (float) 1000;
+    float elapsed = (getTimeMsec() - stats->measurementStartTimestamp) / (float) 1000;
 
     VideoStatsFps fps = {0};
     if (elapsed > 0) {

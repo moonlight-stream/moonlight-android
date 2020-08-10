@@ -29,7 +29,7 @@ typedef struct {
 typedef struct {
     ANativeWindow* window;
     AMediaCodec* codec;
-    // const char* decoderName;
+    const char* decoderName;
 
     int initialWidth, initialHeight;
     int refreshRate;

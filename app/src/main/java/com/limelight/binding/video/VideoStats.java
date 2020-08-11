@@ -1,6 +1,6 @@
 package com.limelight.binding.video;
 
-class VideoStats {
+public class VideoStats {
 
     long decoderTimeMs;
     long totalTimeMs;

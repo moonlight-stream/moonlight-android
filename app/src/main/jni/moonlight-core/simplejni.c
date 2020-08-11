@@ -268,3 +268,42 @@ Java_com_limelight_nvstream_jni_MoonBridge_formatDecoderInfo(JNIEnv *env, jclass
     
     return (*env)->NewStringUTF(env, result);
 }
+
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_getVideoStats(JNIEnv *env, jclass clazz,
+                                                         jlong video_decoder, jobject stats) {
+
+    VideoDecoder* videoDecoder = (VideoDecoder*)video_decoder;
+
+    jclass class = (*env)->FindClass(env,"com/limelight/binding/video/VideoStats");
+//    jmethodID cid = (*env)->GetMethodID(env, class, "<init>", "()V");
+//    jobject stats = (*env)->NewObject(env, class, cid);
+
+    VideoStats vs = videoDecoder->globalVideoStats;
+
+    jfieldID fid;
+    fid = (*env)->GetFieldID(env, class, "decoderTimeMs", "J");
+    if (fid) (*env)->SetLongField(env, stats, fid, (jlong)vs.decoderTimeMs);
+
+    fid = (*env)->GetFieldID(env, class, "totalTimeMs", "J");
+    if (fid) (*env)->SetLongField(env, stats, fid, (jlong)vs.totalTimeMs);
+
+    fid = (*env)->GetFieldID(env, class, "totalFrames", "I");
+    if (fid) (*env)->SetIntField(env, stats, fid, vs.totalFrames);
+
+    fid = (*env)->GetFieldID(env, class, "totalFramesReceived", "I");
+    if (fid) (*env)->SetIntField(env, stats, fid, vs.totalFramesReceived);
+
+    fid = (*env)->GetFieldID(env, class, "totalFramesRendered", "I");
+    if (fid) (*env)->SetIntField(env, stats, fid, vs.totalFramesRendered);
+
+    fid = (*env)->GetFieldID(env, class, "frameLossEvents", "I");
+    if (fid) (*env)->SetIntField(env, stats, fid, vs.frameLossEvents);
+
+    fid = (*env)->GetFieldID(env, class, "framesLost", "I");
+    if (fid) (*env)->SetIntField(env, stats, fid, vs.framesLost);
+
+    fid = (*env)->GetFieldID(env, class, "measurementStartTimestamp", "J");
+    if (fid) (*env)->SetLongField(env, stats, fid, (jlong)vs.measurementStartTimestamp);
+
+}

@@ -1173,7 +1173,9 @@ bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDecoder, int index, size_t
 int VideoDecoder_staticSubmitDecodeUnit(void* decodeUnitData, int decodeUnitLength, int decodeUnitType, int frameNumber, long receiveTimeMs) {
 
     // currentVideoDecoder
-    assert(currentVideoDecoder);
+    // assert(currentVideoDecoder);
+    if (!currentVideoDecoder)
+        return DR_NEED_IDR;
 
     return VideoDecoder_submitDecodeUnit(currentVideoDecoder, decodeUnitData, decodeUnitLength, decodeUnitType, frameNumber, receiveTimeMs);
 }

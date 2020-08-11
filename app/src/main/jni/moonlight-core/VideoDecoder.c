@@ -439,6 +439,11 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 {
     while(!videoDecoder->stopping) {
 
+#if QUEUE_IMMEDIATE
+        // Build input buffer cache
+        makeInputBuffer(videoDecoder);
+#endif
+
         // Try to output a frame
         AMediaCodecBufferInfo info;
         int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 50000); // -1 to block test

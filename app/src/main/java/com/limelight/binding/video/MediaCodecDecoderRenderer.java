@@ -1,16 +1,9 @@
 package com.limelight.binding.video;
 
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.jcodec.codecs.h264.H264Utils;
 import org.jcodec.codecs.h264.io.model.SeqParameterSet;
@@ -39,25 +32,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private static final boolean USE_FRAME_RENDER_TIME = false;
     private static final boolean FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
 
-    // Used on versions < 5.0
-    private ByteBuffer[] legacyInputBuffers;
-
     private MediaCodecInfo avcDecoder;
     private MediaCodecInfo hevcDecoder;
 
-//    private byte[] vpsBuffer;
-//    private byte[] spsBuffer;
-//    private byte[] ppsBuffer;
-    private ByteBuffer vpsBuffer;
-    private ByteBuffer spsBuffer;
-    private ByteBuffer ppsBuffer;
-
-    private boolean submittedCsd;
-    private boolean submitCsdNextCall;
-
     private Context context;
-    private MediaCodec videoDecoder;
-//    private Thread rendererThread;
     private boolean needsSpsBitstreamFixup, isExynos4;
     private boolean adaptivePlayback, directSubmit;
     private boolean lowLatency;
@@ -75,11 +53,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private boolean foreground = true;
     private boolean legacyFrameDropRendering = false;
     private PerfOverlayListener perfListener;
-    private Handler infoHandler;
-    private HandlerThread handlerThread;
-    // private Semaphore renderingSemaphore;
-//    private List<MediaCodecInputBuffer> inputBufferCache;
-//    private List<MediaCodecInputBuffer> queueInputBufferList;
 
     private Timer infoTimer;
     private long videoDecoder2;
@@ -99,14 +72,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private VideoStats lastWindowVideoStats;
     private VideoStats globalVideoStats;
 
-    private long lastTimestampUs;
-    private int lastFrameNumber;
     private int refreshRate;
     private PreferenceConfiguration prefs;
-
-    private int numSpsIn;
-    private int numPpsIn;
-    private int numVpsIn;
 
     private MediaCodecInfo findAvcDecoder() {
         MediaCodecInfo decoder = MediaCodecHelper.findProbableSafeDecoder("video/avc", MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
@@ -153,20 +120,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                      CrashListener crashListener, int consecutiveCrashCount,
                                      boolean meteredData, boolean requestedHdr,
                                      String glRenderer, PerfOverlayListener perfListener) {
-        //dumpDecoders();
-
         this.context = context;
         this.prefs = prefs;
         this.crashListener = crashListener;
         this.consecutiveCrashCount = consecutiveCrashCount;
         this.glRenderer = glRenderer;
         this.perfListener = perfListener;
-        this.handlerThread = new HandlerThread("HandlerThread");
-        this.handlerThread.start();
-        this.infoHandler = new Handler(this.handlerThread.getLooper());
-        // this.renderingSemaphore = new Semaphore(0);
-//        this.inputBufferCache = new ArrayList<MediaCodecInputBuffer>();
-//        this.queueInputBufferList = new ArrayList<MediaCodecInputBuffer>();
 
         this.activeWindowVideoStats = new VideoStats();
         this.lastWindowVideoStats = new VideoStats();
@@ -493,176 +452,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 }
             }, 0, 1000);
         }
-
-//        rendererThread = new Thread() {
-//            @Override
-//            public void run() {
-
-//                BufferInfo info = new BufferInfo();
-//                while (!stopping) {
-//                    try {
-//
-//                        // Build input buffer cache
-//                        synchronized (inputBufferCache) {
-//                            int maxCount = 1; // Too much caching doesn't make sense
-//                            if (inputBufferCache.size() < maxCount) {
-//                                inputBufferCache.add(getEmptyInputBuffer());
-//                            }
-//                            // System.out.println("add inputBufferCache " + inputBufferCache.size());
-//                        }
-//
-//                        /*
-//                        加入信号量控制之后，提交和渲染变得更有序，画面稳定
-//                        ...
-//                        2020-08-02 18:59:21.219 17682-18110/com.limelight.debug I/System.out: + 提交 172384290 <-0
-//                        2020-08-02 18:59:21.221 17682-18109/com.limelight.debug I/System.out: - 渲染 172384292 172384258
-//                        2020-08-02 18:59:21.237 17682-18110/com.limelight.debug I/System.out: + 提交 172384308 <-- 1
-//                        2020-08-02 18:59:21.239 17682-18109/com.limelight.debug I/System.out: - 渲染 172384310 172384275
-//                        2020-08-02 18:59:21.254 17682-18110/com.limelight.debug I/System.out: + 提交 172384325 <--- 2
-//                        2020-08-02 18:59:21.256 17682-18109/com.limelight.debug I/System.out: - 渲染 172384327 172384290 <- 0
-//                        2020-08-02 18:59:21.270 17682-18110/com.limelight.debug I/System.out: + 提交 172384340
-//                        2020-08-02 18:59:21.272 17682-18109/com.limelight.debug I/System.out: - 渲染 172384343 172384308 <-- 1
-//                        2020-08-02 18:59:21.287 17682-18110/com.limelight.debug I/System.out: + 提交 172384358
-//                        2020-08-02 18:59:21.289 17682-18109/com.limelight.debug I/System.out: - 渲染 172384361 172384325 <--- 2
-//                        2020-08-02 18:59:21.303 17682-18110/com.limelight.debug I/System.out: + 提交 172384374
-//                        2020-08-02 18:59:21.306 17682-18109/com.limelight.debug I/System.out: - 渲染 172384377 172384340
-//                        ...
-//                        */
-//                        // System.out.println("Waitting for a signal " + System.currentTimeMillis());
-//                        renderingSemaphore.acquire();
-//                        if (stopping) break;
-//
-//                        // System.out.println("Received a signal " + System.currentTimeMillis());
-//
-//                        // Queue one input for each time
-//                        MediaCodecInputBuffer inputBuffer = null;
-//                        synchronized (queueInputBufferList) {
-//                            if (queueInputBufferList.size() > 0)
-//                                inputBuffer = queueInputBufferList.remove(0);
-//                        }
-//                        if (inputBuffer != null)
-//                            queueInputBuffer(inputBuffer.index, 0, inputBuffer.buffer.position(), inputBuffer.timestampUs, inputBuffer.codecFlags);
-//
-//                        // Try to output a frame
-//                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 0);
-//                        if (outIndex >= 0) {
-//                            long presentationTimeUs = info.presentationTimeUs;
-//                            int lastIndex = outIndex;
-//
-//                            //long startTime = System.currentTimeMillis();
-//                            //System.out.println("- Rendering " + startTime + " " + (startTime-lastRenderTime));
-//                            //lastRenderTime = startTime;
-//
-//                            /* Don't drop any frames to keep the display smooth */
-//                            // Get the last output buffer in the queue
-//                            //while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
-//                            //    videoDecoder.releaseOutputBuffer(lastIndex, false);
-//                            //
-//                            //    lastIndex = outIndex;
-//                            //    presentationTimeUs = info.presentationTimeUs;
-//                            //}
-//
-//                            // Render the last buffer
-//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                                if (legacyFrameDropRendering) {
-//                                    // Use a PTS that will cause this frame to be dropped if another comes in within
-//                                    // the same V-sync period
-//                                    videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
-//                                }
-//                                else {
-//                                    // Use a PTS that will cause this frame to never be dropped if frame dropping
-//                                    // is disabled
-//                                    videoDecoder.releaseOutputBuffer(lastIndex, 0);
-//                                }
-//                            }
-//                            else {
-//                                videoDecoder.releaseOutputBuffer(lastIndex, true);
-//                            }
-//
-//                            activeWindowVideoStats.totalFramesRendered++;
-//
-//                            // Add delta time to the totals (excluding probable outliers)
-//                            long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
-//                            if (delta >= 0 && delta < 1000) {
-//                                activeWindowVideoStats.decoderTimeMs += delta;
-//                                if (!USE_FRAME_RENDER_TIME) {
-//                                    activeWindowVideoStats.totalTimeMs += delta;
-//                                }
-//                            }
-//                            // System.out.println("- 渲染 " + MediaCodecHelper.getMonotonicMillis() + " " + (presentationTimeUs / 1000));
-//
-//                            // Check the incoming frames during rendering
-//                            renderingSemaphore.release();
-//
-//                            // Simulating decoder delay
-//                            // Thread.sleep(100);
-//
-//                            // System.out.println("Rendering complete");
-//
-//                        } else {
-//                            switch (outIndex) {
-//                                case MediaCodec.INFO_TRY_AGAIN_LATER:
-//                                    break;
-//                                case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-//                                    LimeLog.info("Output format changed");
-//                                    outputFormat = videoDecoder.getOutputFormat();
-//                                    LimeLog.info("New output format: " + outputFormat);
-//                                    break;
-//                                default:
-//                                    break;
-//                            }
-//                            // Wait for the next frame of data
-//                            renderingSemaphore.drainPermits();
-//                        }
-//                    } catch (Exception e) {
-//                        handleDecoderException(e, null, 0, false);
-//                    }
-//                }
-//            }
-//        };
-//        rendererThread.setName("Video - Renderer (MediaCodec)");
-//        rendererThread.setPriority(Thread.NORM_PRIORITY + 2);
-//        rendererThread.start();
-    }
-
-    private int dequeueInputBuffer() {
-        int index = -1;
-        long startTime;
-
-        startTime = MediaCodecHelper.getMonotonicMillis();
-
-//        System.out.println("请求input");
-        try {
-            while (index < 0 && !stopping) {
-                index = videoDecoder.dequeueInputBuffer(10000);
-            }
-        } catch (Exception e) {
-            handleDecoderException(e, null, 0, true);
-            return MediaCodec.INFO_TRY_AGAIN_LATER;
-        }
-//        System.out.println("请求input 完成");
-
-        int deltaMs = (int)(MediaCodecHelper.getMonotonicMillis() - startTime);
-
-        if (deltaMs >= 20) {
-            LimeLog.warning("Dequeue input buffer ran long: " + deltaMs + " ms");
-        }
-
-        if (index < 0) {
-            // We've been hung for 5 seconds and no other exception was reported,
-            // so generate a decoder hung exception
-            if (deltaMs >= 5000 && initialException == null) {
-                DecoderHungException decoderHungException = new DecoderHungException(deltaMs);
-                if (!reportedCrash) {
-                    reportedCrash = true;
-                    crashListener.notifyCrash(decoderHungException);
-                }
-                throw new RendererException(this, decoderHungException);
-            }
-            return index;
-        }
-
-        return index;
     }
 
     @Override
@@ -679,114 +468,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             infoTimer.cancel();
 
         MoonBridge.stopMediaCodec(videoDecoder2);
-
-        // Halt the rendering thread
-//        if (rendererThread != null) {
-//            rendererThread.interrupt();
-//        }
-
-        // renderingSemaphore.release();
     }
 
     @Override
     public void stop() {
         // May be called already, but we'll call it now to be safe
         prepareForStop();
-
-        // Wait for the renderer thread to shut down
-//        try {
-//            rendererThread.join();
-//        } catch (InterruptedException ignored) { }
     }
 
     @Override
     public void cleanup() {
-//        if (videoDecoder != null)
-//            videoDecoder.release();
+
         MoonBridge.deleteMediaCodec(videoDecoder2);
-    }
-
-    private boolean queueInputBuffer(int inputBufferIndex, int offset, int length, long timestampUs, int codecFlags) {
-
-        try {
-            videoDecoder.queueInputBuffer(inputBufferIndex,
-                    offset, length,
-                    timestampUs, codecFlags);
-            return true;
-        } catch (Exception e) {
-            handleDecoderException(e, null, codecFlags, true);
-            return false;
-        }
-    }
-
-    private boolean queueInputBuffer(MediaCodecInputBuffer inputBuffer) {
-
-//        synchronized (queueInputBufferList) {
-//
-//            // 清空未提交的帧，不能丢，否则造成资源耗尽，卡住
-//            // queueInputBufferList.clear();
-//
-//            queueInputBufferList.add(inputBuffer);
-//            return true;
-//        }
-        return false;
-    }
-
-    // Using the new getInputBuffer() API on Lollipop allows
-    // the framework to do some performance optimizations for us
-    private ByteBuffer getEmptyInputBuffer(int[] index) {
-//        ByteBuffer buf;
-
-//        // 可以请求一个缓存
-//        int inputBufferIndex = dequeueInputBuffer();
-//        if (inputBufferIndex < 0) {
-//            // We're being torn down now
-//            return null;
-//        }
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            try {
-//                buf = videoDecoder.getInputBuffer(inputBufferIndex);
-//            } catch (Exception e) {
-//                handleDecoderException(e, null, 0, true);
-//                return null;
-//            }
-//        }
-//        else {
-//            buf = legacyInputBuffers[inputBufferIndex];
-//
-//            // Clear old input data pre-Lollipop
-//            buf.clear();
-//        }
-//        index[0] = inputBufferIndex;
-
-        return null;
-    }
-
-    private MediaCodecInputBuffer getEmptyInputBuffer() {
-//        int[] index = new int[1];
-//        ByteBuffer buf = getEmptyInputBuffer(index);
-//        if (buf == null) {
-//            // We're being torn down now
-//            return null;
-//        }
-//        MediaCodecInputBuffer inputBuffer = new MediaCodecInputBuffer();
-//        inputBuffer.index = index[0];
-//        inputBuffer.buffer = buf;
-//        return inputBuffer;
-        return null;
-    }
-
-    private MediaCodecInputBuffer getEmptyInputBufferFromCache() {
-
-//        synchronized (inputBufferCache) {
-//            if (inputBufferCache.size() > 0) {
-//                return inputBufferCache.remove(0);
-//            } else {
-//                return null;//getEmptyInputBuffer();
-//            }
-//        }
-        return null;
     }
 
     private void doProfileSpecificSpsPatching(SeqParameterSet sps) {
@@ -811,57 +504,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         System.arraycopy(from.array(), offset1, to.array(), offset2, len);
         to.limit(offset2 + len);
         return len;
-    }
-
-
-    private boolean replaySps() {
-        int inputIndex = MoonBridge.dequeueInputBuffer(videoDecoder2);
-        if (inputIndex < 0) {
-           return false;
-        }
-
-        if (videoDecoder2 == 0) {
-            return false;
-        }
-        ByteBuffer inputBuffer = MoonBridge.getInputBuffer(videoDecoder2, inputIndex);
-        if (inputBuffer == null) {
-           return false;
-        }
-        // MediaCodecInputBuffer inputBuffer = getEmptyInputBufferFromCache();
-        // if (inputBuffer == null) {
-        //     // We're being torn down now
-        //     return false;
-        // }
-
-        // Write the Annex B header
-        inputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
-
-        // Switch the H264 profile back to high
-        savedSps.profileIdc = 100;
-
-        // Patch the SPS constraint flags
-        doProfileSpecificSpsPatching(savedSps);
-
-        // The H264Utils.writeSPS function safely handles
-        // Annex B NALUs (including NALUs with escape sequences)
-        ByteBuffer escapedNalu = H264Utils.writeSPS(savedSps, 128);
-        inputBuffer.put(escapedNalu);
-
-        // No need for the SPS anymore
-        savedSps = null;
-
-        // Queue the new SPS
-        // inputBuffer.timestampUs = System.nanoTime() / 1000;
-        // inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-
-        return MoonBridge.queueInputBuffer(videoDecoder2, inputIndex, inputBuffer.position(),
-               System.nanoTime() / 1000,
-               MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
-        // return queueInputBuffer(inputIndex,
-        //        0, inputBuffer.position(),
-        //        System.nanoTime() / 1000,
-        //        MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
-        // return queueInputBuffer(inputBuffer);
     }
 
     @Override
@@ -979,7 +621,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Kbps \n";
-            str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
+//            str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
             str += "Total frames received: "+renderer.globalVideoStats.totalFramesReceived+"\n";
             str += "Total frames rendered: "+renderer.globalVideoStats.totalFramesRendered+"\n";
             str += "Frame losses: "+renderer.globalVideoStats.framesLost+" in "+renderer.globalVideoStats.frameLossEvents+" loss events\n";

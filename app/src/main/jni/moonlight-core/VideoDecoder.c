@@ -12,6 +12,7 @@
 #include <media/NdkMediaExtractor.h>
 #include <android/log.h>
 #include "MediaCodecHelper.h"
+#include "libopus/include/opus_types.h"
 
 #define LOG_TAG    "VideoDecoder"
 #ifdef LC_DEBUG
@@ -438,12 +439,12 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             // Queue input buffers
             queueInputBuffer(videoDecoder);
 
-            if (videoDecoder->renderingFrames - videoDecoder->renderedFrames <= BUSY_COUNT && !videoDecoder->stopping) {
-
-                // LOGT("[test] wait %d %d", videoDecoder->renderingFrames, videoDecoder->renderedFrames);
-
-                usleep(1000);
-            } else
+//            if (videoDecoder->renderingFrames - videoDecoder->renderedFrames <= BUSY_COUNT && !videoDecoder->stopping) {
+//
+//                // LOGT("[test] wait %d %d", videoDecoder->renderingFrames, videoDecoder->renderedFrames);
+//
+//                usleep(1000);
+//            } else
             {
                 break;
             }
@@ -452,7 +453,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
         // Try to output a frame
         AMediaCodecBufferInfo info;
-        int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0); // -1 to block test
+        int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 1000); // -1 to block test
         if (outIndex >= 0) {
 
             long presentationTimeUs = info.presentationTimeUs;
@@ -837,14 +838,15 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     pthread_mutex_lock(&videoDecoder->lock);
 
-    long timestampUs = getTimeUsec();
-    long currentTimeMillis = getTimeMsec();
+    // Get long time, not the same as receiveTimeMs
+    uint64_t timestampUs = getTimeUsec();
+    uint64_t currentTimeMillis = timestampUs / 1000;
 
-    while (_isBusing(videoDecoder) && !videoDecoder->stopping) {
-
-        // LOGT("[test] busing %d %d", videoDecoder->renderingFrames, videoDecoder->renderedFrames);
-        usleep(1000);
-    }
+//    while (_isBusing(videoDecoder) && !videoDecoder->stopping) {
+//
+//        // LOGT("[test] busing %d %d", videoDecoder->renderingFrames, videoDecoder->renderedFrames);
+//        usleep(1000);
+//    }
 
     if (videoDecoder->lastFrameNumber == 0) {
         videoDecoder->activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
@@ -883,7 +885,9 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     if (!FRAME_RENDER_TIME_ONLY) {
         // Count time from first packet received to decode start
-        videoDecoder->activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
+        //videoDecoder->activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
+        // receiveTimeMs is a clock time
+        videoDecoder->activeWindowVideoStats.totalTimeMs += getClockUsec()/1000 - receiveTimeMs;
     }
 
     if (timestampUs <= videoDecoder->lastTimestampUs) {

@@ -538,13 +538,13 @@ void* queuing_thread(VideoDecoder* videoDecoder) {
 
     while(!videoDecoder->stopping) {
 
-        sem_wait(&videoDecoder->queue_sem);
-
         // Queue input buffers
         queueInputBuffer(videoDecoder);
 
         // Build input buffer cache
         makeInputBuffer(videoDecoder);
+
+        sem_wait(&videoDecoder->queue_sem);
     }
 }
 

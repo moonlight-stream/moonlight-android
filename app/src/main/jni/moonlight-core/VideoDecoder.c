@@ -50,23 +50,6 @@ typedef enum {
     __BUFFER_MAX
 };
 
-VideoDecoder* _videoDecoder = 0;
-void printCache() {
-
-    if (_videoDecoder) {
-        VideoInputBuffer* inputBuffer = &_videoDecoder->inputBufferCache[0];
-        //LOGD("cache %d", inputBuffer->status);
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "cache %d", inputBuffer->status);
-    }
-}
-
-//
-//Decoder decoder = {-1, NULL, NULL, NULL, 0, false, false, false, false};
-
-int VIDEO_FORMAT_MASK_H264 = 0x00FF;
-
-
-
 // 获取空的输入缓冲区
 bool getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuffer) {
 
@@ -310,7 +293,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     }
 
     const char* string = AMediaFormat_toString(videoFormat);
-    LOGD("videoFormat %s", string);
+    LOGT("videoFormat %s", string);
 
 //    videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
 //    if (USE_FRAME_RENDER_TIME && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -377,8 +360,6 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     videoDecoder->refFrameInvalidationActive = false;
 
     videoDecoder->infoBuffer = malloc(1024);
-
-    _videoDecoder = videoDecoder;
 
     return videoDecoder;
 }
@@ -526,7 +507,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                     //outputFormat = videoDecoder.getOutputFormat();
                     AMediaFormat* videoFormat = AMediaCodec_getOutputFormat(videoDecoder->codec);
                     const char* string = AMediaFormat_toString(videoFormat);
-                    LOGD("New output format: %s", string);
+                    LOGT("New output format: %s", string);
                     break;
                 // }
                 default:

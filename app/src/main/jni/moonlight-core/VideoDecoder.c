@@ -210,6 +210,8 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 
         inputBuffer->status = INPUT_BUFFER_STATUS_QUEUING;
 
+        sem_post(&videoDecoder->queue_sem);
+
         LOGD("[fuck] post queueInputBuffer: [%d]%d timestampUs %ld codecFlags %d", index, inputBuffer->index, inputBuffer->timestampUs, inputBuffer->codecFlags);
 
     } pthread_mutex_unlock(&inputCache_lock);
@@ -331,6 +333,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     videoDecoder->stopping = false;
     videoDecoder->stopCallback = 0;
     pthread_mutex_init(&videoDecoder->lock, 0);
+    sem_init(&videoDecoder->queue_sem, 0, 1);
 
     videoDecoder->inputBufferCache = malloc(sizeof(VideoInputBuffer)*InputBufferMaxSize);
     for (int i = 0; i < InputBufferMaxSize; i++) {
@@ -369,6 +372,7 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
     ANativeWindow_release(videoDecoder->window);
 
     pthread_mutex_destroy(&videoDecoder->lock);
+    sem_destroy(&videoDecoder->queue_sem);
 
     free(videoDecoder->inputBufferCache);
 
@@ -410,31 +414,9 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 {
     while(!videoDecoder->stopping) {
 
-        // LOGT("loop");
-
-        do {
-
-            // Build input buffer cache
-            makeInputBuffer(videoDecoder);
-
-            // Queue input buffers
-            queueInputBuffer(videoDecoder);
-
-//            if (videoDecoder->renderingFrames - videoDecoder->renderedFrames <= BUSY_COUNT && !videoDecoder->stopping) {
-//
-//                // LOGT("[test] wait %d %d", videoDecoder->renderingFrames, videoDecoder->renderedFrames);
-//
-//                usleep(1000);
-//            } else
-            {
-                break;
-            }
-            
-        } while (true);
-
         // Try to output a frame
         AMediaCodecBufferInfo info;
-        int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 1000); // -1 to block test
+        int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 50000); // -1 to block test
         if (outIndex >= 0) {
 
             long presentationTimeUs = info.presentationTimeUs;
@@ -507,7 +489,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                     //outputFormat = videoDecoder.getOutputFormat();
                     AMediaFormat* videoFormat = AMediaCodec_getOutputFormat(videoDecoder->codec);
                     const char* string = AMediaFormat_toString(videoFormat);
-                    LOGT("New output format: %s", string);
+                    LOGD("New output format: %s", string);
                     break;
                 // }
                 default:
@@ -530,6 +512,22 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     }
 
     LOGT("rendering_thread: Thread quited!");
+}
+
+void* queuing_thread(VideoDecoder* videoDecoder) {
+
+    int count = 0;
+
+    while(!videoDecoder->stopping) {
+
+        sem_wait(&videoDecoder->queue_sem);
+
+        // Build input buffer cache
+        makeInputBuffer(videoDecoder);
+
+        // Queue input buffers
+        queueInputBuffer(videoDecoder);
+    }
 }
 
 void VideoDecoder_start(VideoDecoder* videoDecoder) {
@@ -565,6 +563,9 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_create(&pid, &attr, rendering_thread, videoDecoder);
+
+    pthread_attr_init(&attr);
+    pthread_create(&pid, &attr, queuing_thread, videoDecoder);
 
     // Set current
     currentVideoDecoder = videoDecoder;

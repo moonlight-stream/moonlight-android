@@ -24,6 +24,7 @@
 #endif
 
 #define BUSY_COUNT 2
+#define USE_CACHE 1
 
 static const bool USE_FRAME_RENDER_TIME = false;
 static const bool FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
@@ -148,6 +149,7 @@ int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
 
     int index = -1;
 
+#if USE_CACHE
     // get one
     pthread_mutex_lock(&inputCache_lock); {
 
@@ -161,6 +163,12 @@ int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
         }
         
     } pthread_mutex_unlock(&inputCache_lock);
+#else
+    while (index < 0 && !videoDecoder->stopping) {
+        index = AMediaCodec_dequeueInputBuffer(videoDecoder->codec, 10000);
+    }
+    
+#endif
 
     return index;
 }
@@ -169,6 +177,7 @@ void* _getInputBuffer(VideoDecoder* videoDecoder, int index, size_t* bufsize) {
 
     void* buf = 0;
 
+#if USE_CACHE
     VideoInputBuffer* inputBuffer;
     pthread_mutex_lock(&inputCache_lock); {
 
@@ -192,12 +201,17 @@ void* _getInputBuffer(VideoDecoder* videoDecoder, int index, size_t* bufsize) {
         //     return 0;
         // }
     }
+#else
+    buf = AMediaCodec_getInputBuffer(videoDecoder->codec, index, bufsize);
+#endif
 
     return buf;
 }
 
 bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags) {
 
+
+#if USE_CACHE
     pthread_mutex_lock(&inputCache_lock);
     {
         // add to list
@@ -215,6 +229,11 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
         LOGD("[fuck] post queueInputBuffer: [%d]%d timestampUs %ld codecFlags %d", index, inputBuffer->index, inputBuffer->timestampUs, inputBuffer->codecFlags);
 
     } pthread_mutex_unlock(&inputCache_lock);
+#else
+    // push to codec
+    AMediaCodec_queueInputBuffer(videoDecoder->codec, index, 0, bufsize, timestampUs,
+                                 codecFlags);
+#endif
 
     return true;
 }
@@ -428,12 +447,12 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 #endif
 
             // Get the last output buffer in the queue
-//            while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
-//                AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-//
-//                lastIndex = outIndex;
-//                presentationTimeUs = info.presentationTimeUs;
-//            }
+           while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
+               AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+
+               lastIndex = outIndex;
+               presentationTimeUs = info.presentationTimeUs;
+           }
 
 #ifdef LC_DEBUG            
             long currentDelayUs = (start_time - prevRenderingTime[0]);
@@ -497,16 +516,9 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             }
 
             LOGD("rendering_thread: Rendering pass %d", outIndex);
-
-//            renderingSemaphore.drainPermits();
         }
-        
-        
-
-//        sleep(1);
     }
     
-
     if (videoDecoder->stopCallback) {
         videoDecoder->stopCallback(videoDecoder);
     }
@@ -576,6 +588,7 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
 void VideoDecoder_stop(VideoDecoder* videoDecoder) {
 
     videoDecoder->stopping = true;
+    sem_post(&videoDecoder->queue_sem);
 }
 
 typedef enum {
@@ -825,7 +838,6 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     uint64_t currentTimeMillis = timestampUs / 1000;
 
 //    while (_isBusing(videoDecoder) && !videoDecoder->stopping) {
-//
 //        // LOGT("[test] busing %d %d", videoDecoder->renderingFrames, videoDecoder->renderedFrames);
 //        usleep(1000);
 //    }
@@ -1020,7 +1032,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
 #ifdef LC_DEBUG
     long endTimeMillis = getTimeMsec();
-    LOGT("[test] + 提交 %ld %d 等待 %d", timestampUs/1000, callDif/1000, endTimeMillis-currentTimeMillis);
+    LOGT("[test] + 提交数据 %ld 间隔 %d ms 提交用时 %d ms", timestampUs/1000, callDif/1000, endTimeMillis-currentTimeMillis);
 #endif
 
     if ((codecFlags & BUFFER_FLAG_CODEC_CONFIG) != 0) {

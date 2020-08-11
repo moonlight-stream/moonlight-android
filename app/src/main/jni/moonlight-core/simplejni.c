@@ -7,8 +7,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <h264bitstream/h264_stream.h>
-
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendMouseMove(JNIEnv *env, jclass clazz, jshort deltaX, jshort deltaY) {
     LiSendMouseMoveEvent(deltaX, deltaY);
@@ -107,38 +105,33 @@ Java_com_limelight_nvstream_jni_MoonBridge_getPendingVideoFrames(JNIEnv *env, jc
     return LiGetPendingVideoFrames();
 }
 
-JNIEXPORT jint JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_testClientConnectivity(JNIEnv *env, jclass clazz, jstring testServerHostName, jint referencePort, jint testFlags) {
-    int ret;
-    const char* testServerHostNameStr = (*env)->GetStringUTFChars(env, testServerHostName, NULL);
-
-    ret = LiTestClientConnectivity(testServerHostNameStr, (unsigned short)referencePort, testFlags);
-
-    (*env)->ReleaseStringUTFChars(env, testServerHostName, testServerHostNameStr);
-
-    return ret;
-}
-
-JNIEXPORT jint JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_getPortFromPortFlagIndex(JNIEnv *env, jclass clazz, jint portFlagIndex) {
-    return LiGetPortFromPortFlagIndex(portFlagIndex);
-}
-
-JNIEXPORT jstring JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_getProtocolFromPortFlagIndex(JNIEnv *env, jclass clazz, jint portFlagIndex) {
-    int protocol = LiGetProtocolFromPortFlagIndex(portFlagIndex);
-    return (*env)->NewStringUTF(env, protocol == IPPROTO_TCP ? "TCP" : "UDP");
-}
-
-JNIEXPORT jint JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_getPortFlagsFromStage(JNIEnv *env, jclass clazz, jint stage) {
-    return LiGetPortFlagsFromStage(stage);
-}
-
-JNIEXPORT jint JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_getPortFlagsFromTerminationErrorCode(JNIEnv *env, jclass clazz, jint errorCode) {
-    return LiGetPortFlagsFromTerminationErrorCode(errorCode);
-}
+//JNIEXPORT jint JNICALL
+//Java_com_limelight_nvstream_jni_MoonBridge_testClientConnectivity(JNIEnv *env, jclass clazz, jstring testServerHostName, jint referencePort, jint testFlags) {
+//    int ret;
+//    const char* testServerHostNameStr = (*env)->GetStringUTFChars(env, testServerHostName, NULL);
+//
+//    ret = LiTestClientConnectivity(testServerHostNameStr, (unsigned short)referencePort, testFlags);
+//
+//    (*env)->ReleaseStringUTFChars(env, testServerHostName, testServerHostNameStr);
+//
+//    return ret;
+//}
+//
+//JNIEXPORT jint JNICALL
+//Java_com_limelight_nvstream_jni_MoonBridge_getPortFromPortFlagIndex(JNIEnv *env, jclass clazz, jint portFlagIndex) {
+//    return LiGetPortFromPortFlagIndex(portFlagIndex);
+//}
+//
+//JNIEXPORT jstring JNICALL
+//Java_com_limelight_nvstream_jni_MoonBridge_getProtocolFromPortFlagIndex(JNIEnv *env, jclass clazz, jint portFlagIndex) {
+//    int protocol = LiGetProtocolFromPortFlagIndex(portFlagIndex);
+//    return (*env)->NewStringUTF(env, protocol == IPPROTO_TCP ? "TCP" : "UDP");
+//}
+//
+//JNIEXPORT jint JNICALL
+//Java_com_limelight_nvstream_jni_MoonBridge_getPortFlagsFromStage(JNIEnv *env, jclass clazz, jint stage) {
+//    return LiGetPortFlagsFromStage(stage);
+//}
 
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_nativeCopy(JNIEnv *env, jclass clazz, jobject buffer0,
@@ -173,76 +166,105 @@ Java_com_limelight_nvstream_jni_MoonBridge_nativeFree(JNIEnv *env, jclass clazz,
     free(buf);
 }
 
-static void* sps_buffer = 0;
-static void* sps_bufsize = 0;
+#include "VideoDecoder.h"
 
-JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_readSPS(JNIEnv *env, jclass clazz, jobject buffer, jobject spsBuffer, jint decodeUnitLength, jboolean constrainedHighProfile) {
+JNIEXPORT jlong JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_createMediaCodec(JNIEnv *env, jclass clazz, jobject surface, jstring name,
+                                                            jstring mime_type, jint width, jint height, jint refreshRate, jint prefsFps, jboolean lowLatency,
+                                                            jboolean adaptivePlayback, jboolean needsBaselineSpsHack, jboolean constrainedHighProfile, jboolean refFrameInvalidationActive, jboolean needsSpsBitstreamFixup, jboolean isExynos4) {
+    const char *c_name = (*env)->GetStringUTFChars(env, name, 0);
+    const char *c_mime_type = (*env)->GetStringUTFChars(env, mime_type, 0);
 
-    const char* data = (*env)->GetDirectBufferAddress(env, buffer);
-    jlong size = (*env)->GetDirectBufferCapacity(env, buffer);
-    assert(data[4] == 0x67);
+    VideoDecoder* videoDecoder = VideoDecoder_create(env, surface, c_name, c_mime_type, width, height, refreshRate, prefsFps, lowLatency, adaptivePlayback);
 
-    bs_t* bs = bs_new((uint8_t*)data + 5, size - 5);
+    videoDecoder->needsBaselineSpsHack = needsBaselineSpsHack;
+    videoDecoder->constrainedHighProfile = constrainedHighProfile;
+    videoDecoder->refFrameInvalidationActive = refFrameInvalidationActive;
+    videoDecoder->needsSpsBitstreamFixup = needsSpsBitstreamFixup;
+    videoDecoder->isExynos4 = isExynos4;
 
-    sps_t sps;
-    read_seq_parameter_set_rbsp(&sps, bs);
+    (*env)->ReleaseStringUTFChars(env, name, c_name);
+    (*env)->ReleaseStringUTFChars(env, mime_type, c_mime_type);
 
-
-
-    if (sps.profile_idc == 100 && constrainedHighProfile) {
-//        LimeLog.info("Setting constraint set flags for constrained high profile");
-        sps.constraint_set4_flag = true;
-        sps.constraint_set5_flag = true;
-    }
-    else {
-        // Force the constraints unset otherwise (some may be set by default)
-        sps.constraint_set4_flag = false;
-        sps.constraint_set5_flag = false;
-    }
-
-
-//    sps.vui.motion_vectors_over_pic_boundaries_flag = bs_read_u1(b);
-
-//    sps->vui.max_bits_per_mb_denom = bs_read_ue(b);
-//    sps->vui.log2_max_mv_length_horizontal = bs_read_ue(b);
-//    sps->vui.log2_max_mv_length_vertical = bs_read_ue(b);
-//    sps->vui.num_reorder_frames = bs_read_ue(b);
-    sps.vui.max_dec_frame_buffering = sps.num_ref_frames;
-    sps.vui.max_bytes_per_pic_denom = 2;
-    sps.vui.max_bits_per_mb_denom = 1;
-
-
-    if (sps_buffer == 0) sps_buffer = malloc(1024);
-    memset(sps_buffer, 0, 1024);
-    bs_t* sps_bs = bs_new((uint8_t*)sps_buffer, 1024);
-
-    write_seq_parameter_set_rbsp(&sps, sps_bs);
-
-    const char* sps_data = (*env)->GetDirectBufferAddress(env, spsBuffer);
-//    jlong size = (*env)->GetDirectBufferCapacity(env, buffer);
-    memcpy(sps_data, data, 5);
-    memcpy(sps_data+5, sps_buffer, decodeUnitLength-5);
-
-    bs_free(sps_bs);
-    bs_free(bs);
+    return (jlong)videoDecoder;
 }
 
-#   define  LOG_TAG    "test"
-#   define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_deleteMediaCodec(JNIEnv *env, jclass clazz,
+                                                            jlong videoDecoder) {
+//    ()video_codec;
+    VideoDecoder_release((VideoDecoder*)videoDecoder);
+}
+
+JNIEXPORT jlong JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_startMediaCodec(JNIEnv *env, jclass clazz,
+                                                           jlong video_decoder) {
+
+    VideoDecoder_start(video_decoder);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_submitDecodeUnit(JNIEnv *env, jclass clazz,
+                                                            jlong video_decoder,
+                                                            jobject decode_unit_data,
+                                                            jint decode_unit_length,
+                                                            jint decode_unit_type,
+                                                            jint frame_number,
+                                                            jlong receive_time_ms) {
+    void* data = (*env)->GetDirectBufferAddress(env, decode_unit_data);
+    return VideoDecoder_submitDecodeUnit(video_decoder, data, decode_unit_length, decode_unit_type, frame_number, receive_time_ms);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_dequeueInputBuffer(JNIEnv *env, jclass clazz,
+                                                                   jlong video_decoder) {
+    // return VideoDecoder_dequeueInputBuffer(video_decoder);
+    return VideoDecoder_dequeueInputBuffer(video_decoder);
+}
+
+JNIEXPORT jobject JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_getInputBuffer(JNIEnv *env, jclass clazz,
+                                                          jlong video_decoder, jint index) {
+
+    // VideoInputBuffer* inputBuffer = VideoDecoder_getInputBuffer(video_decoder, index);
+    // jobject byteBuffer = (*env)->NewDirectByteBuffer(env, inputBuffer->buffer, inputBuffer->bufsize);
+    // return byteBuffer;
+    size_t bufsize;
+    void* inputBuffer = VideoDecoder_getInputBuffer(video_decoder, index, &bufsize);
+    jobject byteBuffer = (*env)->NewDirectByteBuffer(env, inputBuffer, bufsize);
+    return byteBuffer;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_queueInputBuffer(JNIEnv *env, jclass clazz,
+                                                            jlong video_decoder, jint index, jint bufsize,
+                                                            jlong timestamp_us, jint codec_flags) {
+
+    return VideoDecoder_queueInputBuffer(video_decoder, index, bufsize, timestamp_us, codec_flags);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_decoderIsBusing(JNIEnv *env, jclass clazz,
+                                                           jlong video_decoder) {
+    // TODO: implement decoderIsBusing()
+    return VideoDecoder_isBusing(video_decoder);
+    // return false;
+}
 
 JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_printBuffer(JNIEnv *env, jclass clazz, jobject buffer, jint length) {
+Java_com_limelight_nvstream_jni_MoonBridge_stopMediaCodec(JNIEnv *env, jclass clazz,
+                                                          jlong video_decoder) {
+    VideoDecoder_stop(video_decoder);
+}
 
-    const char* data = (*env)->GetDirectBufferAddress(env, buffer);
-//    jlong size = (*env)->GetDirectBufferCapacity(env, buffer);
+JNIEXPORT jstring JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_formatDecoderInfo(JNIEnv *env, jclass clazz,
+                                                             jlong video_decoder, jstring format) {
+    const char* c_format = (*env)->GetStringUTFChars(env, format, 0);
 
-    char tmp[1024];
-    memset(tmp, 0, 1024);
+    const char* result = VideoDecoder_formatInfo(video_decoder, c_format);
 
-    for (int i=0; i<length; i++) {
-        sprintf(tmp, "%s %x", tmp, data[i]);
-    }
-
-    LOGD("buffer: %s", tmp);
+    (*env)->ReleaseStringUTFChars(env, format, c_format);
+    
+    return (*env)->NewStringUTF(env, result);
 }

@@ -1,15 +1,9 @@
 package com.limelight.binding.video;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.jcodec.codecs.h264.H264Utils;
 import org.jcodec.codecs.h264.io.model.SeqParameterSet;
@@ -33,34 +27,15 @@ import android.os.HandlerThread;
 import android.util.Range;
 import android.view.SurfaceHolder;
 
-import static com.limelight.nvstream.jni.MoonBridge.nativeCopy;
-import static com.limelight.nvstream.jni.MoonBridge.nativeCreate;
-import static com.limelight.nvstream.jni.MoonBridge.nativeFree;
-
 public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private static final boolean USE_FRAME_RENDER_TIME = false;
     private static final boolean FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
 
-    // Used on versions < 5.0
-    private ByteBuffer[] legacyInputBuffers;
-
     private MediaCodecInfo avcDecoder;
     private MediaCodecInfo hevcDecoder;
 
-//    private byte[] vpsBuffer;
-//    private byte[] spsBuffer;
-//    private byte[] ppsBuffer;
-    private ByteBuffer vpsBuffer;
-    private ByteBuffer spsBuffer;
-    private ByteBuffer ppsBuffer;
-
-    private boolean submittedCsd;
-    private boolean submitCsdNextCall;
-
     private Context context;
-    private MediaCodec videoDecoder;
-    private Thread rendererThread;
     private boolean needsSpsBitstreamFixup, isExynos4;
     private boolean adaptivePlayback, directSubmit;
     private boolean lowLatency;
@@ -78,13 +53,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private boolean foreground = true;
     private boolean legacyFrameDropRendering = false;
     private PerfOverlayListener perfListener;
-    private Handler infoHandler;
-    private HandlerThread handlerThread;
-    private Semaphore renderingSemaphore;
-    private List<MediaCodecInputBuffer> inputBufferCache;
-    private List<MediaCodecInputBuffer> queueInputBufferList;
-    private long renderingFrames;
-    private long renderedFrames;
+
+    private Timer infoTimer;
+    private long videoDecoder2;
 
     private MediaFormat inputFormat;
     private MediaFormat outputFormat;
@@ -101,14 +72,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private VideoStats lastWindowVideoStats;
     private VideoStats globalVideoStats;
 
-    private long lastTimestampUs;
-    private int lastFrameNumber;
     private int refreshRate;
     private PreferenceConfiguration prefs;
-
-    private int numSpsIn;
-    private int numPpsIn;
-    private int numVpsIn;
 
     private MediaCodecInfo findAvcDecoder() {
         MediaCodecInfo decoder = MediaCodecHelper.findProbableSafeDecoder("video/avc", MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
@@ -155,20 +120,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                                      CrashListener crashListener, int consecutiveCrashCount,
                                      boolean meteredData, boolean requestedHdr,
                                      String glRenderer, PerfOverlayListener perfListener) {
-        //dumpDecoders();
-
         this.context = context;
         this.prefs = prefs;
         this.crashListener = crashListener;
         this.consecutiveCrashCount = consecutiveCrashCount;
         this.glRenderer = glRenderer;
         this.perfListener = perfListener;
-        this.handlerThread = new HandlerThread("HandlerThread");
-        this.handlerThread.start();
-        this.infoHandler = new Handler(this.handlerThread.getLooper());
-        this.renderingSemaphore = new Semaphore(0);
-        this.inputBufferCache = new ArrayList<MediaCodecInputBuffer>();
-        this.queueInputBufferList = new ArrayList<MediaCodecInputBuffer>();
 
         this.activeWindowVideoStats = new VideoStats();
         this.lastWindowVideoStats = new VideoStats();
@@ -323,6 +280,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return -3;
         }
 
+        // 变更解码器 begin
+
+        int fps = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            fps = prefs.fps;
+        }
+
+        videoDecoder2 = MoonBridge.createMediaCodec(renderTarget.getSurface(), selectedDecoderName, mimeType, width, height, redrawRate, prefs.fps, lowLatency,
+            adaptivePlayback, needsBaselineSpsHack, constrainedHighProfile, refFrameInvalidationActive, needsSpsBitstreamFixup, isExynos4);
+
+        if (videoDecoder2 == 0) {
+            return -4;
+        }
+
+        MoonBridge.startMediaCodec(videoDecoder2);
+
+        // 变更解码器 end
+/*
         // Codecs have been known to throw all sorts of crazy runtime exceptions
         // due to implementation problems
         try {
@@ -411,7 +386,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             e.printStackTrace();
             return -5;
         }
-
+*/
         return 0;
     }
 
@@ -465,232 +440,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
     private void startRendererThread()
     {
-        rendererThread = new Thread() {
-            @Override
-            public void run() {
-
-                long lastRenderingTimeMillis = 0;
-
-                renderingFrames = 0;
-                renderedFrames = 0;
-
-                BufferInfo info = new BufferInfo();
-                while (!stopping) {
-                    try {
-
-
-
-                        /*
-                        加入信号量控制之后，提交和渲染变得更有序，画面稳定
-                        ...
-                        2020-08-02 18:59:21.219 17682-18110/com.limelight.debug I/System.out: + 提交 172384290 <-0
-                        2020-08-02 18:59:21.221 17682-18109/com.limelight.debug I/System.out: - 渲染 172384292 172384258
-                        2020-08-02 18:59:21.237 17682-18110/com.limelight.debug I/System.out: + 提交 172384308 <-- 1
-                        2020-08-02 18:59:21.239 17682-18109/com.limelight.debug I/System.out: - 渲染 172384310 172384275
-                        2020-08-02 18:59:21.254 17682-18110/com.limelight.debug I/System.out: + 提交 172384325 <--- 2
-                        2020-08-02 18:59:21.256 17682-18109/com.limelight.debug I/System.out: - 渲染 172384327 172384290 <- 0
-                        2020-08-02 18:59:21.270 17682-18110/com.limelight.debug I/System.out: + 提交 172384340
-                        2020-08-02 18:59:21.272 17682-18109/com.limelight.debug I/System.out: - 渲染 172384343 172384308 <-- 1
-                        2020-08-02 18:59:21.287 17682-18110/com.limelight.debug I/System.out: + 提交 172384358
-                        2020-08-02 18:59:21.289 17682-18109/com.limelight.debug I/System.out: - 渲染 172384361 172384325 <--- 2
-                        2020-08-02 18:59:21.303 17682-18110/com.limelight.debug I/System.out: + 提交 172384374
-                        2020-08-02 18:59:21.306 17682-18109/com.limelight.debug I/System.out: - 渲染 172384377 172384340
-                        ...
-                        */
-                        // System.out.println("Waitting for a signal " + System.currentTimeMillis());
-                        // renderingSemaphore.acquire();
-                        // if (stopping) break;
-
-                        // System.out.println("Received a signal " + System.currentTimeMillis());
-
-                        // Queue one input for each time
-//                        MediaCodecInputBuffer inputBuffer = null;
-//                        synchronized (queueInputBufferList) {
-//                            if (queueInputBufferList.size() > 0)
-//                                inputBuffer = queueInputBufferList.remove(0);
-//                        }
-//                        if (inputBuffer != null) {
-//                            queueInputBuffer(inputBuffer.index, 0, inputBuffer.buffer.position(), inputBuffer.timestampUs, inputBuffer.codecFlags);
-//                            renderingFrames ++;
-//                        }
-
-//                        boolean sleeped = false;
-
-                        do {
-                            try {
-
-                                // Build input buffer cache
-                                synchronized (inputBufferCache) {
-                                    int maxCount = 1; // Too much caching doesn't make sense
-                                    if (inputBufferCache.size() < maxCount) {
-                                        inputBufferCache.add(getEmptyInputBuffer());
-                                    }
-                                    // System.out.println("add inputBufferCache " + inputBufferCache.size());
-                                }
-
-                                // Queue one input for each time
-                                MediaCodecInputBuffer inputBuffer = null;
-                                synchronized (queueInputBufferList) {
-                                    if (queueInputBufferList.size() > 0)
-                                        inputBuffer = queueInputBufferList.remove(0);
-                                }
-                                if (inputBuffer != null) {
-                                    queueInputBuffer(inputBuffer.index, 0, inputBuffer.buffer.position(), inputBuffer.timestampUs, inputBuffer.codecFlags);
-                                    renderingFrames ++;
-                                }
-
-                                if (renderingFrames - renderedFrames < 3 && !stopping) {
-                                    Thread.sleep(1);
-//                                    sleeped = true;
-                                } else {
-                                    break;
-                                }
-
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        } while (true);
-
-//                        if (sleeped)
-//                            // Check the incoming frames during rendering
-//                            renderingSemaphore.release();
-
-                        // Try to output a frame
-                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 1000);
-                        if (outIndex >= 0) {
-                            long presentationTimeUs = info.presentationTimeUs;
-                            int lastIndex = outIndex;
-
-                            //long startTime = System.currentTimeMillis();
-                            //System.out.println("- Rendering " + startTime + " " + (startTime-lastRenderTime));
-                            //lastRenderTime = startTime;
-
-                            /* Don't drop any frames to keep the display smooth */
-                            // Get the last output buffer in the queue
-                            //while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
-                            //    videoDecoder.releaseOutputBuffer(lastIndex, false);
-                            //
-                            //    lastIndex = outIndex;
-                            //    presentationTimeUs = info.presentationTimeUs;
-                            //}
-
-                            // Render the last buffer
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                if (legacyFrameDropRendering) {
-                                    // Use a PTS that will cause this frame to be dropped if another comes in within
-                                    // the same V-sync period
-                                    videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
-                                }
-                                else {
-                                    // Use a PTS that will cause this frame to never be dropped if frame dropping
-                                    // is disabled
-                                    videoDecoder.releaseOutputBuffer(lastIndex, 0);
-                                }
-                            }
-                            else {
-                                videoDecoder.releaseOutputBuffer(lastIndex, true);
-                            }
-
-                            activeWindowVideoStats.totalFramesRendered++;
-
-                            // Add delta time to the totals (excluding probable outliers)
-                            long currentTimeMillis = MediaCodecHelper.getMonotonicMillis();
-                            long delta = currentTimeMillis - (presentationTimeUs / 1000);
-                            if (delta >= 0 && delta < 1000) {
-                                activeWindowVideoStats.decoderTimeMs += delta;
-                                if (!USE_FRAME_RENDER_TIME) {
-                                    activeWindowVideoStats.totalTimeMs += delta;
-                                }
-                            }
-                            long frameDelay = currentTimeMillis - (presentationTimeUs / 1000);
-//                            System.out.println("- 渲染 " + currentTimeMillis + " " + (presentationTimeUs / 1000) + " " + (currentTimeMillis-lastRenderingTimeMillis) + " " + frameDelay);
-                            lastRenderingTimeMillis = currentTimeMillis;
-
-                            // Queue one input for each time
-//                            inputBuffer = null;
-//                            synchronized (queueInputBufferList) {
-//                                if (queueInputBufferList.size() > 0)
-//                                    inputBuffer = queueInputBufferList.remove(0);
-//                            }
-//                            if (inputBuffer != null)
-//                                queueInputBuffer(inputBuffer.index, 0, inputBuffer.buffer.position(), inputBuffer.timestampUs, inputBuffer.codecFlags);
-
-                            // Check the incoming frames during rendering
-//                            renderingSemaphore.release();
-
-                            // Simulating decoder delay
-                            // Thread.sleep(100);
-
-                            // System.out.println("Rendering complete");
-
-                            renderedFrames ++;
-
-
-
-                        } else {
-                            switch (outIndex) {
-                                case MediaCodec.INFO_TRY_AGAIN_LATER:
-                                    break;
-                                case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                                    LimeLog.info("Output format changed");
-                                    outputFormat = videoDecoder.getOutputFormat();
-                                    LimeLog.info("New output format: " + outputFormat);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            // Wait for the next frame of data
-                            renderingSemaphore.drainPermits();
-                        }
-                    } catch (Exception e) {
-                        handleDecoderException(e, null, 0, false);
-                    }
+        if (infoTimer != null)
+            infoTimer.cancel();
+        if (prefs.enablePerfOverlay) {
+            infoTimer = new Timer();
+            infoTimer.schedule(new TimerTask(){
+                public void run() {
+                    String format = context.getResources().getString(R.string.perf_overlay_text);
+                    String info = MoonBridge.formatDecoderInfo(videoDecoder2, format);
+                    perfListener.onPerfUpdate(info);
                 }
-            }
-        };
-        rendererThread.setName("Video - Renderer (MediaCodec)");
-        rendererThread.setPriority(Thread.NORM_PRIORITY + 2);
-        rendererThread.start();
-    }
-
-    private int dequeueInputBuffer() {
-        int index = -1;
-        long startTime;
-
-        startTime = MediaCodecHelper.getMonotonicMillis();
-
-//        System.out.println("请求input");
-        try {
-            while (index < 0 && !stopping) {
-                index = videoDecoder.dequeueInputBuffer(10000);
-            }
-        } catch (Exception e) {
-            handleDecoderException(e, null, 0, true);
-            return MediaCodec.INFO_TRY_AGAIN_LATER;
+            }, 0, 1000);
         }
-//        System.out.println("请求input 完成");
-
-        int deltaMs = (int)(MediaCodecHelper.getMonotonicMillis() - startTime);
-
-        if (deltaMs >= 20) {
-            LimeLog.warning("Dequeue input buffer ran long: " + deltaMs + " ms");
-        }
-
-        if (index < 0) {
-            // We've been hung for 5 seconds and no other exception was reported,
-            // so generate a decoder hung exception
-            if (deltaMs >= 5000 && initialException == null) {
-                DecoderHungException decoderHungException = new DecoderHungException(deltaMs);
-                if (!reportedCrash) {
-                    reportedCrash = true;
-                    crashListener.notifyCrash(decoderHungException);
-                }
-                throw new RendererException(this, decoderHungException);
-            }
-            return index;
-        }
-
-        return index;
     }
 
     @Override
@@ -703,108 +464,22 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // Let the decoding code know to ignore codec exceptions now
         stopping = true;
 
-        // Halt the rendering thread
-        if (rendererThread != null) {
-            rendererThread.interrupt();
-        }
+        if (infoTimer != null)
+            infoTimer.cancel();
 
-        renderingSemaphore.release();
+        MoonBridge.stopMediaCodec(videoDecoder2);
     }
 
     @Override
     public void stop() {
         // May be called already, but we'll call it now to be safe
         prepareForStop();
-
-        // Wait for the renderer thread to shut down
-        try {
-            rendererThread.join();
-        } catch (InterruptedException ignored) { }
     }
 
     @Override
     public void cleanup() {
-        videoDecoder.release();
-    }
 
-    private boolean queueInputBuffer(int inputBufferIndex, int offset, int length, long timestampUs, int codecFlags) {
-
-        try {
-            videoDecoder.queueInputBuffer(inputBufferIndex,
-                    offset, length,
-                    timestampUs, codecFlags);
-            return true;
-        } catch (Exception e) {
-            handleDecoderException(e, null, codecFlags, true);
-            return false;
-        }
-    }
-
-    private boolean queueInputBuffer(MediaCodecInputBuffer inputBuffer) {
-
-        synchronized (queueInputBufferList) {
-
-            // 清空未提交的帧，不能丢，否则造成资源耗尽，卡住
-            // queueInputBufferList.clear();
-
-            queueInputBufferList.add(inputBuffer);
-            return true;
-        }
-    }
-
-    // Using the new getInputBuffer() API on Lollipop allows
-    // the framework to do some performance optimizations for us
-    private ByteBuffer getEmptyInputBuffer(int[] index) {
-        ByteBuffer buf;
-
-        // 可以请求一个缓存
-        int inputBufferIndex = dequeueInputBuffer();
-        if (inputBufferIndex < 0) {
-            // We're being torn down now
-            return null;
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                buf = videoDecoder.getInputBuffer(inputBufferIndex);
-            } catch (Exception e) {
-                handleDecoderException(e, null, 0, true);
-                return null;
-            }
-        }
-        else {
-            buf = legacyInputBuffers[inputBufferIndex];
-
-            // Clear old input data pre-Lollipop
-            buf.clear();
-        }
-        index[0] = inputBufferIndex;
-
-        return buf;
-    }
-
-    private MediaCodecInputBuffer getEmptyInputBuffer() {
-        int[] index = new int[1];
-        ByteBuffer buf = getEmptyInputBuffer(index);
-        if (buf == null) {
-            // We're being torn down now
-            return null;
-        }
-        MediaCodecInputBuffer inputBuffer = new MediaCodecInputBuffer();
-        inputBuffer.index = index[0];
-        inputBuffer.buffer = buf;
-        return inputBuffer;
-    }
-
-    private MediaCodecInputBuffer getEmptyInputBufferFromCache() {
-
-        synchronized (inputBufferCache) {
-            if (inputBufferCache.size() > 0) {
-                return inputBufferCache.remove(0);
-            } else {
-                return null;//getEmptyInputBuffer();
-            }
-        }
+        MoonBridge.deleteMediaCodec(videoDecoder2);
     }
 
     private void doProfileSpecificSpsPatching(SeqParameterSet sps) {
@@ -829,490 +504,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         System.arraycopy(from.array(), offset1, to.array(), offset2, len);
         to.limit(offset2 + len);
         return len;
-    }
-
-    public static String byteArrayToHex(byte[] a) {
-        StringBuilder sb = new StringBuilder(a.length * 2);
-        for(byte b: a)
-            sb.append(String.format("%02x", b));
-        return sb.toString();
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public int submitDecodeUnit(ByteBuffer decodeUnitData, int decodeUnitLength, int decodeUnitType,
-                                int frameNumber, long receiveTimeMs) {
-        if (stopping) {
-            // Don't bother if we're stopping
-            return MoonBridge.DR_OK;
-        }
-
-        // 还有未提交的帧，就跳过当前提交，直接触发release信号
-//        if (queueInputBufferList.size() > 0) {
-//            renderingSemaphore.release();
-//            return MoonBridge.DR_NEED_IDR;
-//        }
-        while (renderingFrames - renderedFrames > 2) {
-            try {
-                renderingSemaphore.release();
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        
-        // int inputBufferIndex;
-        // ByteBuffer buf;
-        MediaCodecInputBuffer inputBuffer;
-
-        long currentTimeMillis = System.currentTimeMillis();
-
-        if (lastFrameNumber == 0) {
-            activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
-        } else if (frameNumber != lastFrameNumber && frameNumber != lastFrameNumber + 1) {
-            // We can receive the same "frame" multiple times if it's an IDR frame.
-            // In that case, each frame start NALU is submitted independently.
-            activeWindowVideoStats.framesLost += frameNumber - lastFrameNumber - 1;
-            activeWindowVideoStats.totalFrames += frameNumber - lastFrameNumber - 1;
-            activeWindowVideoStats.frameLossEvents++;
-        }
-
-        lastFrameNumber = frameNumber;
-
-        // Flip stats windows roughly every second
-        if (currentTimeMillis >= activeWindowVideoStats.measurementStartTimestamp + 1000) {
-            if (prefs.enablePerfOverlay) {
-                final VideoStats lastTwo = new VideoStats();
-                lastTwo.add(lastWindowVideoStats);
-                lastTwo.add(activeWindowVideoStats);
-                final VideoStatsFps fps = lastTwo.getFps();
-                final String decoder;
-
-                if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
-                    decoder = avcDecoder.getName();
-                } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
-                    decoder = hevcDecoder.getName();
-                } else {
-                    decoder = "(unknown)";
-                }
-
-                final float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
-
-                final Long nowTime = currentTimeMillis;
-
-                infoHandler.post(new Runnable()
-                {
-                    @Override public void run()
-                    {
-                        String perfText = context.getString(
-                                R.string.perf_overlay_text,
-                                initialWidth + "x" + initialHeight,
-                                decoder,
-                                fps.totalFps,
-                                fps.receivedFps,
-                                fps.renderedFps,
-                                (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
-                                ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
-                                decodeTimeMs);
-
-                        perfListener.onPerfUpdate(perfText);
-                    }
-                });
-            }
-
-            globalVideoStats.add(activeWindowVideoStats);
-            lastWindowVideoStats.copy(activeWindowVideoStats);
-            activeWindowVideoStats.clear();
-            activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
-        }
-
-        activeWindowVideoStats.totalFramesReceived++;
-        activeWindowVideoStats.totalFrames++;
-
-//        Date endDate = new Date(System.currentTimeMillis());
-//        long diff = endDate.getTime() - curDate.getTime();
-//        System.out.println("diff " + diff);
-//        System.out.println("++++ 提交数据 " + System.currentTimeMillis());
-
-        long timestampUs = System.nanoTime() / 1000;
-
-        if (!FRAME_RENDER_TIME_ONLY) {
-            // Count time from first packet received to decode start
-            activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
-        }
-
-//        System.out.println("timestampUs diff " + (timestampUs-lastTimestampUs));
-
-        if (timestampUs <= lastTimestampUs) {
-            // We can't submit multiple buffers with the same timestamp
-            // so bump it up by one before queuing
-            timestampUs = lastTimestampUs + 1;
-        }
-
-//        System.out.println("+ 提交 " + timestampUs/1000 + " " + (timestampUs-lastTimestampUs)/1000);
-
-        lastTimestampUs = timestampUs;
-
-        int codecFlags = 0;
-
-        // H264 SPS
-        if (decodeUnitData.get(4) == 0x67) {
-            numSpsIn++;
-/*
-            // Skip to the start of the NALU data
-            decodeUnitData.position(5);
-
-            // The H264Utils.readSPS function safely handles
-            // Annex B NALUs (including NALUs with escape sequences)
-            SeqParameterSet sps = H264Utils.readSPS(decodeUnitData);
-
-            decodeUnitData.position(0);
-
-            // Some decoders rely on H264 level to decide how many buffers are needed
-            // Since we only need one frame buffered, we'll set the level as low as we can
-            // for known resolution combinations. Reference frame invalidation may need
-            // these, so leave them be for those decoders.
-            if (!refFrameInvalidationActive) {
-                if (initialWidth <= 720 && initialHeight <= 480 && refreshRate <= 60) {
-                    // Max 5 buffered frames at 720x480x60
-                    LimeLog.info("Patching level_idc to 31");
-                    sps.levelIdc = 31;
-                }
-                else if (initialWidth <= 1280 && initialHeight <= 720 && refreshRate <= 60) {
-                    // Max 5 buffered frames at 1280x720x60
-                    LimeLog.info("Patching level_idc to 32");
-                    sps.levelIdc = 32;
-                }
-                else if (initialWidth <= 1920 && initialHeight <= 1080 && refreshRate <= 60) {
-                    // Max 4 buffered frames at 1920x1080x64
-                    LimeLog.info("Patching level_idc to 42");
-                    sps.levelIdc = 42;
-                }
-                else {
-                    // Leave the profile alone (currently 5.0)
-                }
-            }
-
-            // TI OMAP4 requires a reference frame count of 1 to decode successfully. Exynos 4
-            // also requires this fixup.
-            //
-            // I'm doing this fixup for all devices because I haven't seen any devices that
-            // this causes issues for. At worst, it seems to do nothing and at best it fixes
-            // issues with video lag, hangs, and crashes.
-            //
-            // It does break reference frame invalidation, so we will not do that for decoders
-            // where we've enabled reference frame invalidation.
-            if (!refFrameInvalidationActive) {
-                LimeLog.info("Patching num_ref_frames in SPS");
-                sps.numRefFrames = 1;
-            }
-
-            // GFE 2.5.11 changed the SPS to add additional extensions
-            // Some devices don't like these so we remove them here on old devices.
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                sps.vuiParams.videoSignalTypePresentFlag = false;
-                sps.vuiParams.colourDescriptionPresentFlag = false;
-                sps.vuiParams.chromaLocInfoPresentFlag = false;
-            }
-
-            // Some older devices used to choke on a bitstream restrictions, so we won't provide them
-            // unless explicitly whitelisted. For newer devices, leave the bitstream restrictions present.
-            if (needsSpsBitstreamFixup || isExynos4 || Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
-                // or max_dec_frame_buffering which increases decoding latency on Tegra.
-
-                // GFE 2.5.11 started sending bitstream restrictions
-                if (sps.vuiParams.bitstreamRestriction == null) {
-                    LimeLog.info("Adding bitstream restrictions");
-                    sps.vuiParams.bitstreamRestriction = new VUIParameters.BitstreamRestriction();
-                    sps.vuiParams.bitstreamRestriction.motionVectorsOverPicBoundariesFlag = true;
-                    sps.vuiParams.bitstreamRestriction.log2MaxMvLengthHorizontal = 16;
-                    sps.vuiParams.bitstreamRestriction.log2MaxMvLengthVertical = 16;
-                    sps.vuiParams.bitstreamRestriction.numReorderFrames = 0;
-                }
-                else {
-                    LimeLog.info("Patching bitstream restrictions");
-                }
-
-                // Some devices throw errors if maxDecFrameBuffering < numRefFrames
-                sps.vuiParams.bitstreamRestriction.maxDecFrameBuffering = sps.numRefFrames;
-
-                // These values are the defaults for the fields, but they are more aggressive
-                // than what GFE sends in 2.5.11, but it doesn't seem to cause picture problems.
-                sps.vuiParams.bitstreamRestriction.maxBytesPerPicDenom = 2;
-                sps.vuiParams.bitstreamRestriction.maxBitsPerMbDenom = 1;
-
-                // log2_max_mv_length_horizontal and log2_max_mv_length_vertical are set to more
-                // conservative values by GFE 2.5.11. We'll let those values stand.
-            }
-            else {
-                // Devices that didn't/couldn't get bitstream restrictions before GFE 2.5.11
-                // will continue to not receive them now
-                sps.vuiParams.bitstreamRestriction = null;
-            }
-
-            // If we need to hack this SPS to say we're baseline, do so now
-            if (needsBaselineSpsHack) {
-                LimeLog.info("Hacking SPS to baseline");
-                sps.profileIdc = 66;
-                savedSps = sps;
-            }
-
-            // Patch the SPS constraint flags
-            doProfileSpecificSpsPatching(sps);
-
-            // The H264Utils.writeSPS function safely handles
-            // Annex B NALUs (including NALUs with escape sequences)
-            ByteBuffer escapedNalu = H264Utils.writeSPS(sps, decodeUnitLength);
-            */
-
-
-
-            // Batch this to submit together with PPS
-            //spsBuffer = new byte[5 + escapedNalu.limit()];
-            //System.arraycopy(decodeUnitData, 0, spsBuffer, 0, 5);
-            //escapedNalu.get(spsBuffer, 5, escapedNalu.limit());
-
-            if (spsBuffer != null) nativeFree(spsBuffer);
-
-//            spsBuffer = nativeCreate(5 + escapedNalu.limit());
-//            nativeCopy(decodeUnitData, 0, spsBuffer, 0, 5);
-//            spsBuffer.position(5);
-//            spsBuffer.put(escapedNalu.array(), 0, escapedNalu.limit());
-//            spsBuffer.position(0);
-
-            spsBuffer = nativeCreate(decodeUnitLength+1);
-
-            MoonBridge.readSPS(decodeUnitData, spsBuffer, decodeUnitLength+1, constrainedHighProfile);
-
-//            MoonBridge.printBuffer(decodeUnitData, spsBuffer.limit());
-//            MoonBridge.printBuffer(spsBuffer, spsBuffer.limit());
-
-//            String spsBuffer_s = byteArrayToHex(spsBuffer2);
-//            System.out.println("spsBuffer_s " + spsBuffer2);
-
-//            if (spsBuffer != null) nativeFree(spsBuffer);
-//            spsBuffer = nativeCreate(decodeUnitData.limit());
-//            nativeCopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitData.limit());
-//            long endTime = System.currentTimeMillis();
-//            System.out.println("[test] readsps " + (endTime - currentTimeMillis) + " ms ");
-
-//            System.out.println("spsBuffer make " + spsBuffer.limit());
-
-            return MoonBridge.DR_OK;
-        }
-        else if (decodeUnitType == MoonBridge.BUFFER_TYPE_VPS) {
-            numVpsIn++;
-
-            // Batch this to submit together with SPS and PPS per AOSP docs
-            //vpsBuffer = new byte[decodeUnitLength];
-            //System.arraycopy(decodeUnitData, 0, vpsBuffer, 0, decodeUnitLength);
-
-            if (vpsBuffer != null) nativeFree(vpsBuffer);
-
-            vpsBuffer = nativeCreate(decodeUnitLength);
-            nativeCopy(decodeUnitData, 0, vpsBuffer, 0, decodeUnitLength);
-            return MoonBridge.DR_OK;
-        }
-        // Only the HEVC SPS hits this path (H.264 is handled above)
-        else if (decodeUnitType == MoonBridge.BUFFER_TYPE_SPS) {
-            numSpsIn++;
-
-            // Batch this to submit together with VPS and PPS per AOSP docs
-            //spsBuffer = new byte[decodeUnitLength];
-            //System.arraycopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength);
-
-            if (spsBuffer != null) nativeFree(spsBuffer);
-
-            spsBuffer = nativeCreate(decodeUnitLength);
-            nativeCopy(decodeUnitData, 0, spsBuffer, 0, decodeUnitLength);
-            return MoonBridge.DR_OK;
-        }
-        else if (decodeUnitType == MoonBridge.BUFFER_TYPE_PPS) {
-            numPpsIn++;
-
-            // If this is the first CSD blob or we aren't supporting
-            // adaptive playback, we will submit the CSD blob in a
-            // separate input buffer.
-            if (!submittedCsd || !adaptivePlayback) {
-                //inputBufferIndex = dequeueInputBuffer();
-                //if (inputBufferIndex < 0) {
-                //    // We're being torn down now
-                //    return MoonBridge.DR_NEED_IDR;
-                //}
-                inputBuffer = getEmptyInputBufferFromCache();
-                if (inputBuffer == null) {
-                    // We're being torn down now
-                    return MoonBridge.DR_NEED_IDR;
-                }
-
-                // When we get the PPS, submit the VPS and SPS together with
-                // the PPS, as required by AOSP docs on use of MediaCodec.
-                if (vpsBuffer != null) {
-                    // buf.put(vpsBuffer);
-                    nativeCopy(vpsBuffer, 0, inputBuffer.buffer, 0, vpsBuffer.limit());
-                    inputBuffer.buffer.position(vpsBuffer.limit());
-                }
-                if (spsBuffer != null) {
-                    // buf.put(spsBuffer);
-                    nativeCopy(spsBuffer, 0, inputBuffer.buffer, 0, spsBuffer.limit());
-                    inputBuffer.buffer.position(spsBuffer.limit());
-                }
-
-                // This is the CSD blob
-                codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-            }
-            else {
-                // Batch this to submit together with the next I-frame
-                //ppsBuffer = new byte[decodeUnitLength];
-                //System.arraycopy(decodeUnitData, 0, ppsBuffer, 0, decodeUnitLength);
-                if (ppsBuffer != null) nativeFree(ppsBuffer);
-                ppsBuffer = nativeCreate(decodeUnitLength);
-                nativeCopy(decodeUnitData, 0, ppsBuffer, 0, decodeUnitLength);
-
-                // Next call will be I-frame data
-                submitCsdNextCall = true;
-
-//                System.out.println("submitCsdNextCall = true");
-
-                return MoonBridge.DR_OK;
-            }
-        }
-        else {
-            //inputBufferIndex = dequeueInputBuffer();
-            //if (inputBufferIndex < 0) {
-            //    // We're being torn down now
-            //    return MoonBridge.DR_NEED_IDR;
-            //}
-            //
-            //buf = getEmptyInputBuffer(inputBufferIndex);
-            //if (buf == null) {
-            //    // We're being torn down now
-            //    return MoonBridge.DR_NEED_IDR;
-            //}
-            inputBuffer = getEmptyInputBufferFromCache();
-            if (inputBuffer == null) {
-                // We're being torn down now
-                return MoonBridge.DR_NEED_IDR;
-            }
-
-//            System.out.println("submitCsdNextCall " + submitCsdNextCall);
-
-            if (submitCsdNextCall) {
-                if (vpsBuffer != null) {
-//                    System.out.println("vpsBuffer " + vpsBuffer.limit());
-                    //buf.put(vpsBuffer);
-                    nativeCopy(vpsBuffer, 0, inputBuffer.buffer, 0, vpsBuffer.limit());
-                    inputBuffer.buffer.position(vpsBuffer.limit());
-                }
-                if (spsBuffer != null) {
-//                    System.out.println("spsBuffer " + spsBuffer.limit());
-                    //buf.put(spsBuffer);
-                    nativeCopy(spsBuffer, 0, inputBuffer.buffer, 0, spsBuffer.limit());
-                    inputBuffer.buffer.position(spsBuffer.limit());
-                }
-                if (ppsBuffer != null) {
-//                    System.out.println("ppsBuffer " + ppsBuffer.limit());
-                    //buf.put(ppsBuffer);
-                    nativeCopy(ppsBuffer, 0, inputBuffer.buffer, 0, ppsBuffer.limit());
-                    inputBuffer.buffer.position(ppsBuffer.limit());
-                }
-
-                submitCsdNextCall = false;
-            }
-        }
-
-        if (decodeUnitLength > inputBuffer.buffer.limit() - inputBuffer.buffer.position()) {
-            IllegalArgumentException exception = new IllegalArgumentException(
-                    "Decode unit length "+decodeUnitLength+" too large for input buffer "+inputBuffer.buffer.limit());
-            if (!reportedCrash) {
-                reportedCrash = true;
-                crashListener.notifyCrash(exception);
-            }
-            throw new RendererException(this, exception);
-        }
-
-        // Copy data from our buffer list into the input buffer
-        // buf.put(decodeUnitData, 0, decodeUnitLength);
-        int pos = inputBuffer.buffer.position();
-        nativeCopy(decodeUnitData, 0, inputBuffer.buffer, pos, decodeUnitLength);
-        inputBuffer.buffer.position(pos + decodeUnitLength);
-
-        inputBuffer.timestampUs = timestampUs;
-        inputBuffer.codecFlags = codecFlags;
-        //if (!queueInputBuffer(inputBuffer.index,
-        //        0, inputBuffer.buffer.position(),
-        //        timestampUs, codecFlags)) {
-        //    return MoonBridge.DR_NEED_IDR;
-        //}
-        if (!queueInputBuffer(inputBuffer)) {
-            return MoonBridge.DR_NEED_IDR;
-        }
-
-        if ((codecFlags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-            submittedCsd = true;
-
-            if (needsBaselineSpsHack) {
-                needsBaselineSpsHack = false;
-
-                if (!replaySps()) {
-                    return MoonBridge.DR_NEED_IDR;
-                }
-
-                LimeLog.info("SPS replay complete");
-            }
-        }
-
-        renderingSemaphore.release();
-
-        return MoonBridge.DR_OK;
-    }
-
-    private boolean replaySps() {
-        //int inputIndex = dequeueInputBuffer();
-        //if (inputIndex < 0) {
-        //    return false;
-        //}
-        //
-        //ByteBuffer inputBuffer = getEmptyInputBuffer(inputIndex);
-        //if (inputBuffer == null) {
-        //    return false;
-        //}
-        MediaCodecInputBuffer inputBuffer = getEmptyInputBufferFromCache();
-        //int[] index = new int[1];
-        //ByteBuffer inputBuffer = getEmptyInputBuffer(index);
-        if (inputBuffer == null) {
-            // We're being torn down now
-            return false;
-        }
-
-        // Write the Annex B header
-        inputBuffer.buffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
-
-        // Switch the H264 profile back to high
-        savedSps.profileIdc = 100;
-
-        // Patch the SPS constraint flags
-        doProfileSpecificSpsPatching(savedSps);
-
-        // The H264Utils.writeSPS function safely handles
-        // Annex B NALUs (including NALUs with escape sequences)
-        ByteBuffer escapedNalu = H264Utils.writeSPS(savedSps, 128);
-        inputBuffer.buffer.put(escapedNalu);
-
-        // No need for the SPS anymore
-        savedSps = null;
-
-        // Queue the new SPS
-        inputBuffer.timestampUs = System.nanoTime() / 1000;
-        inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-
-        //return queueInputBuffer(inputBuffer.index,
-        //        0, inputBuffer.buffer.position(),
-        //        System.nanoTime() / 1000,
-        //        MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
-        return queueInputBuffer(inputBuffer);
     }
 
     @Override
@@ -1430,7 +621,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Kbps \n";
-            str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
+//            str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
             str += "Total frames received: "+renderer.globalVideoStats.totalFramesReceived+"\n";
             str += "Total frames rendered: "+renderer.globalVideoStats.totalFramesRendered+"\n";
             str += "Frame losses: "+renderer.globalVideoStats.framesLost+" in "+renderer.globalVideoStats.frameLossEvents+" loss events\n";

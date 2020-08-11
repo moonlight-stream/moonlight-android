@@ -19,7 +19,6 @@ static jmethodID BridgeDrSetupMethod;
 static jmethodID BridgeDrStartMethod;
 static jmethodID BridgeDrStopMethod;
 static jmethodID BridgeDrCleanupMethod;
-static jmethodID BridgeDrSubmitDecodeUnitMethod;
 static jmethodID BridgeArInitMethod;
 static jmethodID BridgeArStartMethod;
 static jmethodID BridgeArStopMethod;
@@ -34,9 +33,8 @@ static jmethodID BridgeClRumbleMethod;
 static jmethodID BridgeClConnectionStatusUpdateMethod;
 static jshortArray DecodedAudioBuffer;
 
-static uint8_t* cDecodedFrameBuffer;
-static uint8_t* cDecodedFrameBufferLength;
-static jobject objDecodedFrameBuffer;
+static uint8_t* decodedFrameBuffer;
+static uint8_t* decodedFrameBufferLength;
 
 #include <moonlight-common-c/src/Platform.h>
 #   include <android/log.h>
@@ -87,8 +85,6 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jclass clazz) {
     BridgeDrStartMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrStart", "()V");
     BridgeDrStopMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrStop", "()V");
     BridgeDrCleanupMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrCleanup", "()V");
-    BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrSubmitDecodeUnit",
-                                                               "(Ljava/nio/ByteBuffer;IIIJ)I");
     BridgeArInitMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArInit", "(III)I");
     BridgeArStartMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArStart", "()V");
     BridgeArStopMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArStop", "()V");
@@ -117,9 +113,8 @@ int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* 
     }
 
     // Use a 32K frame buffer that will increase if needed
-    cDecodedFrameBufferLength = 32768;
-    cDecodedFrameBuffer = (uint8_t*)malloc(cDecodedFrameBufferLength);
-    objDecodedFrameBuffer = (*env)->NewGlobalRef(env, (*env)->NewDirectByteBuffer(env, cDecodedFrameBuffer, cDecodedFrameBufferLength));
+    decodedFrameBufferLength = 32768;
+    decodedFrameBuffer = (uint8_t*)malloc(decodedFrameBufferLength);
 
     return 0;
 }
@@ -143,8 +138,7 @@ void BridgeDrCleanup(void) {
 
     (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeDrCleanupMethod);
 
-    if (cDecodedFrameBuffer) free(cDecodedFrameBuffer);
-    (*env)->DeleteGlobalRef(env, objDecodedFrameBuffer);
+    if (decodedFrameBuffer) free(decodedFrameBuffer);
 }
 
 //#define LOG_DEBUG_SUBMIT
@@ -161,14 +155,11 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
 #endif
 
     // Increase the size of our frame data buffer if our frame won't fit
-    if (cDecodedFrameBufferLength < decodeUnit->fullLength) {
-        if (cDecodedFrameBuffer)
-            free(cDecodedFrameBuffer);
-        cDecodedFrameBufferLength = decodeUnit->fullLength;
-        cDecodedFrameBuffer = (uint8_t*)malloc(cDecodedFrameBufferLength);
-
-        (*env)->DeleteGlobalRef(env, objDecodedFrameBuffer);
-        objDecodedFrameBuffer = (*env)->NewGlobalRef(env, (*env)->NewDirectByteBuffer(env, cDecodedFrameBuffer, cDecodedFrameBufferLength));
+    if (decodedFrameBufferLength < decodeUnit->fullLength) {
+        if (decodedFrameBuffer)
+            free(decodedFrameBuffer);
+        decodedFrameBufferLength = decodeUnit->fullLength;
+        decodedFrameBuffer = (uint8_t*)malloc(decodedFrameBufferLength);
     }
 
     PLENTRY currentEntry;
@@ -181,11 +172,10 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
         if (currentEntry->bufferType != BUFFER_TYPE_PICDATA) {
             // Use the beginning of the buffer each time since this is a separate
             // invocation of the decoder each time.
-            memcpy(cDecodedFrameBuffer, currentEntry->data, currentEntry->length);
+            memcpy(decodedFrameBuffer, currentEntry->data, currentEntry->length);
 
-            ret = (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeDrSubmitDecodeUnitMethod,
-                                              objDecodedFrameBuffer, currentEntry->length, currentEntry->bufferType,
-                                              decodeUnit->frameNumber, (jlong)decodeUnit->receiveTimeMs);
+            ret = VideoDecoder_staticSubmitDecodeUnit(decodedFrameBuffer, currentEntry->length, currentEntry->bufferType,
+                                decodeUnit->frameNumber, decodeUnit->receiveTimeMs);
 
             if ((*env)->ExceptionCheck(env)) {
                 // We will crash here
@@ -197,15 +187,14 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
             }
         }
         else {
-            memcpy(cDecodedFrameBuffer+offset, currentEntry->data, currentEntry->length);
+            memcpy(decodedFrameBuffer+offset, currentEntry->data, currentEntry->length);
             offset += currentEntry->length;
         }
 
         currentEntry = currentEntry->next;
     }
 
-    ret = (*env)->CallStaticIntMethod(env, GlobalBridgeClass, BridgeDrSubmitDecodeUnitMethod,
-                                      objDecodedFrameBuffer, offset, BUFFER_TYPE_PICDATA,
+    ret = VideoDecoder_staticSubmitDecodeUnit(decodedFrameBuffer, offset, BUFFER_TYPE_PICDATA,
                                       decodeUnit->frameNumber,
                                       (jlong)decodeUnit->receiveTimeMs);
 

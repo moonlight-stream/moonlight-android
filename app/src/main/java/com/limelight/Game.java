@@ -1527,9 +1527,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void stageFailed(final String stage, final int portFlags, final int errorCode) {
+        // Perform a connection test if the failure could be due to a blocked port
+        // This does network I/O, so don't do it on the main thread.
+        final int portTestResult = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER, 443, portFlags);
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (spinner != null) {
+                    spinner.dismiss();
+                    spinner = null;
+                }
+
                 if (!displayedFailureDialog) {
                     displayedFailureDialog = true;
                     LimeLog.severe(stage + " failed: " + errorCode);
@@ -1540,26 +1549,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
 
                     String dialogText = getResources().getString(R.string.conn_error_msg) + " " + stage +" (error "+errorCode+")";
-                    if (portFlags != 0) {
-                        int ret = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER, 443, portFlags);
-                        if (ret != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && ret != 0)  {
-                            dialogText += "\n\n" + getResources().getString(R.string.nettest_text_blocked);
-                        }
+                    if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0)  {
+                        dialogText += "\n\n" + getResources().getString(R.string.nettest_text_blocked);
                     }
 
-                    // testClientConnectivity() can take a little while, so leave the spinner dialog up until it's done
-                    if (spinner != null) {
-                        spinner.dismiss();
-                        spinner = null;
-                    }
 
                     Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_error_title), dialogText, true);
-                }
-                else {
-                    if (spinner != null) {
-                        spinner.dismiss();
-                        spinner = null;
-                    }
                 }
             }
         });
@@ -1567,6 +1562,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void connectionTerminated(final int errorCode) {
+        // Perform a connection test if the failure could be due to a blocked port
+        // This does network I/O, so don't do it on the main thread.
+        final int portTestResult = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER,
+                443, MoonBridge.getPortFlagsFromTerminationErrorCode(errorCode));
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -1585,16 +1585,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     // Otherwise, just finish the activity immediately.
                     if (errorCode != MoonBridge.ML_ERROR_GRACEFUL_TERMINATION) {
                         String message;
-
-                        // Perform a connection test if the failure could be due to a blocked port
-                        int portFlags = MoonBridge.getPortFlagsFromTerminationErrorCode(errorCode);
-                        int portTestResult;
-                        if (portFlags != 0) {
-                            portTestResult = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER, 443, portFlags);
-                        }
-                        else {
-                            portTestResult = MoonBridge.ML_TEST_RESULT_INCONCLUSIVE;
-                        }
 
                         if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0) {
                             // If we got a blocked result, that supersedes any other error message

@@ -1,5 +1,9 @@
 package com.limelight.nvstream.jni;
 
+import android.media.MediaCodec;
+import android.view.Surface;
+
+import com.limelight.binding.video.MediaCodecInputBuffer;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
@@ -145,18 +149,6 @@ public class MoonBridge {
     public static void bridgeDrCleanup() {
         if (videoRenderer != null) {
             videoRenderer.cleanup();
-        }
-    }
-
-    public static int bridgeDrSubmitDecodeUnit(ByteBuffer decodeUnitData2, int decodeUnitLength,
-                                               int decodeUnitType,
-                                               int frameNumber, long receiveTimeMs) {
-        if (videoRenderer != null) {
-            return videoRenderer.submitDecodeUnit(decodeUnitData2, decodeUnitLength,
-                    decodeUnitType, frameNumber, receiveTimeMs);
-        }
-        else {
-            return DR_OK;
         }
     }
 
@@ -309,7 +301,18 @@ public class MoonBridge {
     public static native ByteBuffer nativeCreate(int size);
     public static native void nativeFree(ByteBuffer buffer);
 
-    public static native void readSPS(ByteBuffer buffer, ByteBuffer spsBuffer, int decodeUnitLength, boolean constrainedHighProfile);
+    public static native long createMediaCodec(Surface surface, String name, String mimeType, int width, int height, int refreshRate, int prefsFps, boolean lowLatency,
+    boolean adaptivePlayback, boolean needsBaselineSpsHack, boolean constrainedHighProfile, boolean refFrameInvalidationActive, boolean needsSpsBitstreamFixup, boolean isExynos4);
 
-    public static native void printBuffer(ByteBuffer buffer, int length);
+    public static native void deleteMediaCodec(long videoDecoder);
+    public static native void stopMediaCodec(long videoDecoder);
+
+    public static native long startMediaCodec(long videoDecoder);
+
+    public static native int dequeueInputBuffer(long videoDecoder);
+    public static native ByteBuffer getInputBuffer(long videoDecoder, int index);
+    public static native boolean queueInputBuffer(long videoDecoder, int index, int bufsize, long timestampUs, int codecFlags);
+    public static native boolean decoderIsBusing(long videoDecoder);
+
+    public static native String formatDecoderInfo(long videoDecoder, String format);
 }

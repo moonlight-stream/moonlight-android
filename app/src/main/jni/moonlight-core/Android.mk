@@ -11,7 +11,6 @@ LOCAL_MODULE    := moonlight-core
 LOCAL_SRC_FILES := moonlight-common-c/src/AudioStream.c \
                    moonlight-common-c/src/ByteBuffer.c \
                    moonlight-common-c/src/Connection.c \
-                   moonlight-common-c/src/ConnectionTester.c \
                    moonlight-common-c/src/ControlStream.c \
                    moonlight-common-c/src/FakeCallbacks.c \
                    moonlight-common-c/src/InputStream.c \
@@ -39,6 +38,9 @@ LOCAL_SRC_FILES := moonlight-common-c/src/AudioStream.c \
                    moonlight-common-c/enet/win32.c \
                    simplejni.c \
                    callbacks.c \
+                   VideoDecoder.c \
+                   MediaCodecHelper.c \
+                   VideoStats.c \
                    h264bitstream/h264_stream.c\
                    h264bitstream/h264_sei.c\
                    h264bitstream/h264_analyze.c\
@@ -55,7 +57,7 @@ ifeq ($(NDK_DEBUG),1)
 LOCAL_CFLAGS += -DLC_DEBUG
 endif
 
-LOCAL_LDLIBS := -llog
+LOCAL_LDLIBS := -llog -landroid -lmediandk
 
 LOCAL_STATIC_LIBRARIES := libopus libssl libcrypto
 LOCAL_LDFLAGS += -Wl,--exclude-libs,ALL

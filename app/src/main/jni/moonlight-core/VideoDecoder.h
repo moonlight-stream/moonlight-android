@@ -75,10 +75,6 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 bool VideoDecoder_isBusing(VideoDecoder* videoDecoder);
 const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* format);
 
-// Queue input buffer
-int VideoDecoder_dequeueInputBuffer(VideoDecoder* videoDecoder);
-void* VideoDecoder_getInputBuffer(VideoDecoder* videoDecoder, int index, size_t* bufsize);
-bool VideoDecoder_queueInputBuffer(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags);
 
 // This is called once for each frame-start NALU. This means it will be called several times
 // for an IDR frame which contains several parameter sets and the I-frame data.

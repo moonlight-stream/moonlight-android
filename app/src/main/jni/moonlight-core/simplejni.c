@@ -215,42 +215,6 @@ Java_com_limelight_nvstream_jni_MoonBridge_submitDecodeUnit(JNIEnv *env, jclass 
     return VideoDecoder_submitDecodeUnit(video_decoder, data, decode_unit_length, decode_unit_type, frame_number, receive_time_ms);
 }
 
-JNIEXPORT jint JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_dequeueInputBuffer(JNIEnv *env, jclass clazz,
-                                                                   jlong video_decoder) {
-    // return VideoDecoder_dequeueInputBuffer(video_decoder);
-    return VideoDecoder_dequeueInputBuffer(video_decoder);
-}
-
-JNIEXPORT jobject JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_getInputBuffer(JNIEnv *env, jclass clazz,
-                                                          jlong video_decoder, jint index) {
-
-    // VideoInputBuffer* inputBuffer = VideoDecoder_getInputBuffer(video_decoder, index);
-    // jobject byteBuffer = (*env)->NewDirectByteBuffer(env, inputBuffer->buffer, inputBuffer->bufsize);
-    // return byteBuffer;
-    size_t bufsize;
-    void* inputBuffer = VideoDecoder_getInputBuffer(video_decoder, index, &bufsize);
-    jobject byteBuffer = (*env)->NewDirectByteBuffer(env, inputBuffer, bufsize);
-    return byteBuffer;
-}
-
-JNIEXPORT jboolean JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_queueInputBuffer(JNIEnv *env, jclass clazz,
-                                                            jlong video_decoder, jint index, jint bufsize,
-                                                            jlong timestamp_us, jint codec_flags) {
-
-    return VideoDecoder_queueInputBuffer(video_decoder, index, bufsize, timestamp_us, codec_flags);
-}
-
-JNIEXPORT jboolean JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_decoderIsBusing(JNIEnv *env, jclass clazz,
-                                                           jlong video_decoder) {
-    // TODO: implement decoderIsBusing()
-    return VideoDecoder_isBusing(video_decoder);
-    // return false;
-}
-
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_stopMediaCodec(JNIEnv *env, jclass clazz,
                                                           jlong video_decoder) {

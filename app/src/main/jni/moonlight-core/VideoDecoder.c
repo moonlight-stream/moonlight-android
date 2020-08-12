@@ -17,14 +17,15 @@
 #define LOG_TAG    "VideoDecoder"
 #ifdef LC_DEBUG
 #define LOGD(...)  //{__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
-#define LOGT(...)  //{__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
+#define LOGT(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
 #else
 #define LOGD(...) 
 #define LOGT(...)  
 #endif
 
+#define BUSY_COUNT 2
 #define USE_CACHE 1
-#define QUEUE_IMMEDIATE 0
+#define QUEUE_IMMEDIATE 1
 
 static const bool USE_FRAME_RENDER_TIME = false;
 static const bool FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
@@ -43,6 +44,7 @@ typedef enum {
     INPUT_BUFFER_STATUS_FREE,
     INPUT_BUFFER_STATUS_WORKING,
     INPUT_BUFFER_STATUS_QUEUING,
+    INPUT_BUFFER_STATUS_TEMP,
 };
 
 // buffer index
@@ -71,6 +73,8 @@ bool getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuff
     inputBuffer->bufsize = bufsize;
     inputBuffer->timestampUs = 0;
     inputBuffer->codecFlags = 0;
+
+    LOGT("[test] create buffer %d %p", bufidx, buf);
 
     return true;
 }
@@ -208,14 +212,16 @@ void* _getInputBuffer(VideoDecoder* videoDecoder, int index, size_t* bufsize) {
     return buf;
 }
 
-bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags) {
+bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags, bool force) {
 
 #if USE_CACHE
     pthread_mutex_lock(&inputCache_lock);
     {
         // add to list
         VideoInputBuffer *inputBuffer = &videoDecoder->inputBufferCache[index];
-        assert(inputBuffer->status == INPUT_BUFFER_STATUS_WORKING);
+        if (!force) {
+            assert(inputBuffer->status == INPUT_BUFFER_STATUS_WORKING);
+        }
 
         inputBuffer->timestampUs = timestampUs;
         inputBuffer->codecFlags = codecFlags;
@@ -243,6 +249,10 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
     return true;
 }
 
+bool _isBusing(VideoDecoder* videoDecoder) {
+    
+    return videoDecoder->renderedFrames > 0 && videoDecoder->renderingFrames - videoDecoder->renderedFrames > BUSY_COUNT;
+}
 
 bool decoderSupportsMaxOperatingRate(const char* decoderName) {
     // Operate at maximum rate to lower latency as much as possible on
@@ -472,7 +482,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             if (releaseDelayUs > customDelayUs) releaseDelayUs = customDelayUs; // need delay
 
             long frameDelay = (start_time - presentationTimeUs)/1000;
-            LOGT("[test] - 渲染 呈现用时 %d ms 调用 %d ms 延迟 %d ms %ld %ld deleay %d need\n", (getTimeUsec() - start_time)/1000, (start_time - prevRenderingTime[0])/1000, frameDelay, start_time, presentationTimeUs, releaseDelayUs);
+            LOGT("[test] - 渲染: %d ms %d ms %d ms %ld %ld deleay %d need\n", (getTimeUsec() - start_time) / 1000, (start_time - prevRenderingTime[0])/1000, frameDelay, start_time/1000, presentationTimeUs/1000, releaseDelayUs);
             prevRenderingTime[1] = prevRenderingTime[0];
             prevRenderingTime[0] = start_time;
 #endif
@@ -630,7 +640,7 @@ void doProfileSpecificSpsPatching(sps_t* sps, bool constrainedHighProfile) {
     }
 }
 
-bool replaySps(VideoDecoder* videoDecoder, long receiveTimeMs) {
+bool replaySps(VideoDecoder* videoDecoder) {
 
     size_t inputBufPos = 0;
 
@@ -682,8 +692,8 @@ bool replaySps(VideoDecoder* videoDecoder, long receiveTimeMs) {
     // inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 
     return _queueInputBuffer2(videoDecoder, inputIndex, inputBufPos,
-            receiveTimeMs,
-            BUFFER_FLAG_CODEC_CONFIG);
+            getTimeUsec(),
+            BUFFER_FLAG_CODEC_CONFIG, false);
     // return queueInputBuffer(inputIndex,
     //        0, inputBuffer.position(),
     //        System.nanoTime() / 1000,
@@ -845,9 +855,14 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     pthread_mutex_lock(&videoDecoder->lock);
 
-    // Get UTCx time, not the same as receiveTimeMs (clock time)
+    // Get long time, not the same as receiveTimeMs
     uint64_t timestampUs = getTimeUsec();
     uint64_t currentTimeMillis = timestampUs / 1000;
+
+//    while (_isBusing(videoDecoder) && !videoDecoder->stopping) {
+//        // LOGT("[test] busing %d %d", videoDecoder->renderingFrames, videoDecoder->renderedFrames);
+//        usleep(1000);
+//    }
 
     if (videoDecoder->lastFrameNumber == 0) {
         videoDecoder->activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
@@ -900,6 +915,8 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     long callDif = timestampUs - videoDecoder->lastTimestampUs;
 
     videoDecoder->lastTimestampUs = timestampUs;
+
+    bool skipCopy = false;
 
     // H264 SPS
     if (((char*)decodeUnitData)[4] == 0x67) {
@@ -986,20 +1003,24 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         }
 
     } else {
-//            System.out.println("1.5");
-        inputBufferIndex = _dequeueInputBuffer(videoDecoder);
-        if (inputBufferIndex < 0) {
-            // We're being torn down now
-            RETURN(DR_NEED_IDR);
+
+        int tempIndex = _getTempBufferIndex(videoDecoder, decodeUnitData);
+
+        if (tempIndex == -1) {
+            inputBufferIndex = _dequeueInputBuffer(videoDecoder);
+            if (inputBufferIndex < 0) {
+                // We're being torn down now
+                RETURN(DR_NEED_IDR);
+            }
+            inputBuffer = _getInputBuffer(videoDecoder, inputBufferIndex, &inputBufsize);
+            if (inputBuffer == 0) {
+                // We're being torn down now
+                RETURN(DR_NEED_IDR);
+            }
         }
-//            System.out.println("1.51 " + videoDecoder2);
-        inputBuffer = _getInputBuffer(videoDecoder, inputBufferIndex, &inputBufsize);
-        if (inputBuffer == 0) {
-            // We're being torn down now
-            RETURN(DR_NEED_IDR);
-        }
-//            System.out.println("1.2");
+
         if (videoDecoder->submitCsdNextCall) {
+
             if (VPS_BUFFER != 0) {
                 memcpy(inputBuffer+inputBufPos, VPS_BUFFER, VPS_BUFSIZE);
                 inputBufPos += VPS_BUFSIZE;
@@ -1014,6 +1035,14 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
             }
 
             videoDecoder->submitCsdNextCall = false;
+        } else if (tempIndex != -1){
+            // Skip
+            // assert(tempIndex != -1);
+            inputBufferIndex = tempIndex;
+            inputBuffer = decodeUnitData;
+            inputBufPos = decodeUnitLength;
+
+            skipCopy = true;
         }
     }
 
@@ -1029,17 +1058,23 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     }
 
     // Copy data from our buffer list into the input buffer
-    memcpy(inputBuffer+inputBufPos, decodeUnitData, decodeUnitLength);
-    inputBufPos += decodeUnitLength;
+    if (!skipCopy) {
+        memcpy(inputBuffer+inputBufPos, decodeUnitData, decodeUnitLength);
+        inputBufPos += decodeUnitLength;
+    } else {
+        LOGT("[test] skip copy");
+    }
+
+    LOGT("[test] 提交 %p <= %p [%d]", inputBuffer, decodeUnitData, inputBufferIndex);
 
     if (!_queueInputBuffer2(videoDecoder, inputBufferIndex, inputBufPos,
-            timestampUs, codecFlags)) {
+            timestampUs, codecFlags, skipCopy)) {
         RETURN(DR_NEED_IDR);
     }
 
 #ifdef LC_DEBUG
     long endTimeMillis = getTimeMsec();
-    LOGT("[test] + 提交数据 %ld 间隔 %d ms 提交用时 %d ms", timestampUs, callDif/1000, endTimeMillis-currentTimeMillis);
+    LOGT("[test] + 提交数据 %ld 间隔 %d ms 提交用时 %d ms", timestampUs/1000, callDif/1000, endTimeMillis-currentTimeMillis);
 #endif
 
     if ((codecFlags & BUFFER_FLAG_CODEC_CONFIG) != 0) {
@@ -1048,7 +1083,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         if (videoDecoder->needsBaselineSpsHack) {
             videoDecoder->needsBaselineSpsHack = false;
 
-            if (!replaySps(videoDecoder, timestampUs)) {
+            if (!replaySps(videoDecoder)) {
                 RETURN(DR_NEED_IDR);
             }
 
@@ -1057,6 +1092,132 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     }
 
     RETURN(0);
+}
+
+int _getTempBufferIndex(VideoDecoder* videoDecoder, void* buffer) {
+
+    int index = -1;
+    // get a empty input buffer from cache
+    pthread_mutex_lock(&inputCache_lock); {
+
+        int count = 0;
+
+        for (int i = 0; i < InputBufferMaxSize; i++) {
+            VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+            if (buffer == inputBuffer->buffer) {
+                assert(inputBuffer->status == INPUT_BUFFER_STATUS_TEMP);
+                index = i;
+                break;
+            }
+        }
+
+    } pthread_mutex_unlock(&inputCache_lock);
+
+    return index;
+}
+
+void VideoDecoder_getTempBuffer(void** buffer, size_t* bufsize) {
+
+//    void* buffer = 0;
+    *buffer = 0;
+    *bufsize = 0;
+
+    VideoDecoder* videoDecoder = currentVideoDecoder;
+
+    pthread_mutex_lock(&videoDecoder->lock); {
+
+        // get a empty input buffer from cache
+        pthread_mutex_lock(&inputCache_lock); {
+
+            int count = 0;
+
+            for (int i = 0; i < InputBufferMaxSize; i++) {
+                VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+                if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) {
+                    *buffer = inputBuffer->buffer;
+                    *bufsize = inputBuffer->bufsize;
+                    inputBuffer->status = INPUT_BUFFER_STATUS_TEMP;
+                    break;
+                }
+            }
+
+        } pthread_mutex_unlock(&inputCache_lock);
+
+    } pthread_mutex_unlock(&videoDecoder->lock);
+
+//    LOGT("[test] fuck %p", *buffer);
+
+//    return buffer;
+}
+
+void VideoDecoder_releaseTempBuffer(void* buffer) {
+
+    VideoDecoder* videoDecoder = currentVideoDecoder;
+
+    pthread_mutex_lock(&videoDecoder->lock); {
+
+        // get a empty input buffer from cache
+        pthread_mutex_lock(&inputCache_lock); {
+
+            int count = 0;
+
+            for (int i = 0; i < InputBufferMaxSize; i++) {
+                VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+                if (buffer == inputBuffer->buffer && inputBuffer->status == INPUT_BUFFER_STATUS_TEMP) {
+                    inputBuffer->status = INPUT_BUFFER_STATUS_FREE;
+                    break;
+                }
+            }
+
+        } pthread_mutex_unlock(&inputCache_lock);
+
+    } pthread_mutex_unlock(&videoDecoder->lock);
+}
+
+#define SYNC_PUSH 1
+
+bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
+
+#if SYNC_PUSH
+    bool isBusing = false;
+    char tmp[512] = {0};
+#else
+    bool isBusing = true;
+#endif
+    pthread_mutex_lock(&videoDecoder->lock); {
+
+        // get a empty input buffer from cache
+        pthread_mutex_lock(&inputCache_lock); {
+
+            int count = 0;
+
+            for (int i = 0; i < InputBufferMaxSize; i++) {
+                VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+
+#if SYNC_PUSH
+                sprintf(tmp, "%s %d", tmp, inputBuffer->status);
+                if (inputBuffer->status > INPUT_BUFFER_STATUS_FREE) {
+                    // LOGT("[test2] [%d] %d", i, inputBuffer->status);
+#else
+                if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) { // just any one free buffer
+                    // LOGD("VideoDecoder_getInputBuffer working [%d]", i);
+                    isBusing = false;
+                    break;
+#endif
+                }
+            }
+            LOGT("[test] %s", tmp);
+
+        } pthread_mutex_unlock(&inputCache_lock);
+
+        // LOGD("VideoDecoder_dequeueInputBuffer index [%d]", index);
+
+    } pthread_mutex_unlock(&videoDecoder->lock);
+
+    // isBusing = renderedFrames > 0 && renderingFrames - renderedFrames > 2;
+    isBusing = _isBusing(videoDecoder);
+
+    return isBusing;
 }
 
 const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* format) {

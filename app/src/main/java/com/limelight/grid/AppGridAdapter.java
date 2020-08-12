@@ -48,19 +48,28 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         updateLayoutWithPreferences(context, prefs);
     }
 
-    public void updateHiddenApps(Set<Integer> newHiddenAppIds) {
+    public void updateHiddenApps(Set<Integer> newHiddenAppIds, boolean hideImmediately) {
         this.hiddenAppIds.clear();
         this.hiddenAppIds.addAll(newHiddenAppIds);
 
-        // Reconstruct the itemList with the new hidden app set
-        itemList.clear();
-        for (AppView.AppObject app : allApps) {
-            app.isHidden = hiddenAppIds.contains(app.app.getAppId());
+        if (hideImmediately) {
+            // Reconstruct the itemList with the new hidden app set
+            itemList.clear();
+            for (AppView.AppObject app : allApps) {
+                app.isHidden = hiddenAppIds.contains(app.app.getAppId());
 
-            if (!app.isHidden || showHiddenApps) {
-                itemList.add(app);
+                if (!app.isHidden || showHiddenApps) {
+                    itemList.add(app);
+                }
             }
         }
+        else {
+            // Just update the isHidden state to show the correct UI indication
+            for (AppView.AppObject app : allApps) {
+                app.isHidden = hiddenAppIds.contains(app.app.getAppId());
+            }
+        }
+
         notifyDataSetChanged();
     }
 

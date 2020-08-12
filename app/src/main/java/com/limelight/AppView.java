@@ -113,7 +113,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                         return;
                     }
 
-                    appGridAdapter.updateHiddenApps(hiddenAppIds);
+                    appGridAdapter.updateHiddenApps(hiddenAppIds, true);
 
                     // Now make the binder visible. We must do this after appGridAdapter
                     // is set to prevent us from reaching updateUiWithServerinfo() and
@@ -314,7 +314,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 Service.BIND_AUTO_CREATE);
     }
 
-    private void updateHiddenApps() {
+    private void updateHiddenApps(boolean hideImmediately) {
         HashSet<String> hiddenAppIdStringSet = new HashSet<>();
 
         for (Integer hiddenAppId : hiddenAppIds) {
@@ -326,7 +326,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 .putStringSet(uuidString, hiddenAppIdStringSet)
                 .apply();
 
-        appGridAdapter.updateHiddenApps(hiddenAppIds);
+        appGridAdapter.updateHiddenApps(hiddenAppIds, hideImmediately);
     }
 
     private void populateAppGridWithCache() {
@@ -481,7 +481,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                     // Transitioning shown to hidden
                     hiddenAppIds.add(app.app.getAppId());
                 }
-                updateHiddenApps();
+                updateHiddenApps(false);
                 return true;
 
             case CREATE_SHORTCUT_ID:

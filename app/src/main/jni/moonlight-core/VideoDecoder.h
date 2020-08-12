@@ -57,7 +57,6 @@ typedef struct {
     VideoInputBuffer* inputBufferCache;
     char* infoBuffer;
 
-    sem_t queue_sem;
     pthread_mutex_t lock; // api lock
 } VideoDecoder;
 

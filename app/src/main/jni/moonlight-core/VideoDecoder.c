@@ -25,7 +25,6 @@
 
 #define BUSY_COUNT 2
 #define USE_CACHE 1
-#define QUEUE_IMMEDIATE 1
 
 static const bool USE_FRAME_RENDER_TIME = false;
 static const bool FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
@@ -233,12 +232,8 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 
     } pthread_mutex_unlock(&inputCache_lock);
 
-#if QUEUE_IMMEDIATE
     // Queue input buffers
     queueInputBuffer(videoDecoder);
-#else
-    sem_post(&videoDecoder->queue_sem);
-#endif
 
 #else
     // push to codec
@@ -363,7 +358,6 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     videoDecoder->stopping = false;
     videoDecoder->stopCallback = 0;
     pthread_mutex_init(&videoDecoder->lock, 0);
-    sem_init(&videoDecoder->queue_sem, 0, 1);
 
     videoDecoder->inputBufferCache = malloc(sizeof(VideoInputBuffer)*InputBufferMaxSize);
     for (int i = 0; i < InputBufferMaxSize; i++) {
@@ -402,7 +396,6 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
     ANativeWindow_release(videoDecoder->window);
 
     pthread_mutex_destroy(&videoDecoder->lock);
-    sem_destroy(&videoDecoder->queue_sem);
 
     free(videoDecoder->inputBufferCache);
 
@@ -537,33 +530,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     LOGT("rendering_thread: Thread quited!");
 }
 
-void* queuing_thread(VideoDecoder* videoDecoder) {
-
-    int count = 0;
-
-    while(!videoDecoder->stopping) {
-
-        // Queue input buffers
-        queueInputBuffer(videoDecoder);
-
-        sem_wait(&videoDecoder->queue_sem);
-    }
-
-    // // Build input buffer cache
-    // makeInputBuffer(videoDecoder);
-
-    // while(!videoDecoder->stopping) {
-
-    //     sem_wait(&videoDecoder->queue_sem);
-
-    //     // Queue input buffers
-    //     queueInputBuffer(videoDecoder);
-
-    //     // Build input buffer cache
-    //     makeInputBuffer(videoDecoder);
-    // }
-}
-
 void VideoDecoder_start(VideoDecoder* videoDecoder) {
 
     pthread_mutex_lock(&videoDecoder->lock);
@@ -599,11 +565,6 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     pthread_attr_init(&attr);
     pthread_create(&pid, &attr, rendering_thread, videoDecoder);
 
-#if !QUEUE_IMMEDIATE
-    pthread_attr_init(&attr);
-    pthread_create(&pid, &attr, queuing_thread, videoDecoder);
-#endif
-
     // Set current
     currentVideoDecoder = videoDecoder;
 
@@ -613,7 +574,6 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
 void VideoDecoder_stop(VideoDecoder* videoDecoder) {
 
     videoDecoder->stopping = true;
-    sem_post(&videoDecoder->queue_sem);
 }
 
 typedef enum {

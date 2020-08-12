@@ -850,6 +850,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     pthread_mutex_lock(&videoDecoder->lock);
 
+    // Get UTCx time, not the same as receiveTimeMs (clock time)
     uint64_t timestampUs = getTimeUsec();
     uint64_t currentTimeMillis = timestampUs / 1000;
 

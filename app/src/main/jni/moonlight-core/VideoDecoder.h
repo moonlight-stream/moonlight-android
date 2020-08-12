@@ -70,6 +70,8 @@ void VideoDecoder_stop(VideoDecoder* videoDecoder);
 // Submit data
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs);
+void VideoDecoder_getTempBuffer(void** buffer, size_t* bufsize);
+void VideoDecoder_releaseTempBuffer(void* buffer);
 
 // Check busy
 bool VideoDecoder_isBusing(VideoDecoder* videoDecoder);

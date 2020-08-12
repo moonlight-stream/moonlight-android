@@ -44,6 +44,7 @@ typedef enum {
     INPUT_BUFFER_STATUS_FREE,
     INPUT_BUFFER_STATUS_WORKING,
     INPUT_BUFFER_STATUS_QUEUING,
+    INPUT_BUFFER_STATUS_TEMP,
 };
 
 // buffer index
@@ -72,6 +73,8 @@ bool getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuff
     inputBuffer->bufsize = bufsize;
     inputBuffer->timestampUs = 0;
     inputBuffer->codecFlags = 0;
+
+    LOGT("[test] create buffer %d %p", bufidx, buf);
 
     return true;
 }
@@ -209,14 +212,16 @@ void* _getInputBuffer(VideoDecoder* videoDecoder, int index, size_t* bufsize) {
     return buf;
 }
 
-bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags) {
+bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags, bool force) {
 
 #if USE_CACHE
     pthread_mutex_lock(&inputCache_lock);
     {
         // add to list
         VideoInputBuffer *inputBuffer = &videoDecoder->inputBufferCache[index];
-        assert(inputBuffer->status == INPUT_BUFFER_STATUS_WORKING);
+        if (!force) {
+            assert(inputBuffer->status == INPUT_BUFFER_STATUS_WORKING);
+        }
 
         inputBuffer->timestampUs = timestampUs;
         inputBuffer->codecFlags = codecFlags;
@@ -688,7 +693,7 @@ bool replaySps(VideoDecoder* videoDecoder) {
 
     return _queueInputBuffer2(videoDecoder, inputIndex, inputBufPos,
             getTimeUsec(),
-            BUFFER_FLAG_CODEC_CONFIG);
+            BUFFER_FLAG_CODEC_CONFIG, false);
     // return queueInputBuffer(inputIndex,
     //        0, inputBuffer.position(),
     //        System.nanoTime() / 1000,
@@ -911,6 +916,8 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     videoDecoder->lastTimestampUs = timestampUs;
 
+    bool skipCopy = false;
+
     // H264 SPS
     if (((char*)decodeUnitData)[4] == 0x67) {
         videoDecoder->numSpsIn ++;
@@ -996,20 +1003,24 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         }
 
     } else {
-//            System.out.println("1.5");
-        inputBufferIndex = _dequeueInputBuffer(videoDecoder);
-        if (inputBufferIndex < 0) {
-            // We're being torn down now
-            RETURN(DR_NEED_IDR);
+
+        int tempIndex = _getTempBufferIndex(videoDecoder, decodeUnitData);
+
+        if (tempIndex == -1) {
+            inputBufferIndex = _dequeueInputBuffer(videoDecoder);
+            if (inputBufferIndex < 0) {
+                // We're being torn down now
+                RETURN(DR_NEED_IDR);
+            }
+            inputBuffer = _getInputBuffer(videoDecoder, inputBufferIndex, &inputBufsize);
+            if (inputBuffer == 0) {
+                // We're being torn down now
+                RETURN(DR_NEED_IDR);
+            }
         }
-//            System.out.println("1.51 " + videoDecoder2);
-        inputBuffer = _getInputBuffer(videoDecoder, inputBufferIndex, &inputBufsize);
-        if (inputBuffer == 0) {
-            // We're being torn down now
-            RETURN(DR_NEED_IDR);
-        }
-//            System.out.println("1.2");
+
         if (videoDecoder->submitCsdNextCall) {
+
             if (VPS_BUFFER != 0) {
                 memcpy(inputBuffer+inputBufPos, VPS_BUFFER, VPS_BUFSIZE);
                 inputBufPos += VPS_BUFSIZE;
@@ -1024,6 +1035,14 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
             }
 
             videoDecoder->submitCsdNextCall = false;
+        } else if (tempIndex != -1){
+            // Skip
+            // assert(tempIndex != -1);
+            inputBufferIndex = tempIndex;
+            inputBuffer = decodeUnitData;
+            inputBufPos = decodeUnitLength;
+
+            skipCopy = true;
         }
     }
 
@@ -1039,11 +1058,17 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     }
 
     // Copy data from our buffer list into the input buffer
-    memcpy(inputBuffer+inputBufPos, decodeUnitData, decodeUnitLength);
-    inputBufPos += decodeUnitLength;
+    if (!skipCopy) {
+        memcpy(inputBuffer+inputBufPos, decodeUnitData, decodeUnitLength);
+        inputBufPos += decodeUnitLength;
+    } else {
+        LOGT("[test] skip copy");
+    }
+
+    LOGT("[test] 提交 %p <= %p [%d]", inputBuffer, decodeUnitData, inputBufferIndex);
 
     if (!_queueInputBuffer2(videoDecoder, inputBufferIndex, inputBufPos,
-            timestampUs, codecFlags)) {
+            timestampUs, codecFlags, skipCopy)) {
         RETURN(DR_NEED_IDR);
     }
 
@@ -1067,6 +1092,86 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     }
 
     RETURN(0);
+}
+
+int _getTempBufferIndex(VideoDecoder* videoDecoder, void* buffer) {
+
+    int index = -1;
+    // get a empty input buffer from cache
+    pthread_mutex_lock(&inputCache_lock); {
+
+        int count = 0;
+
+        for (int i = 0; i < InputBufferMaxSize; i++) {
+            VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+            if (buffer == inputBuffer->buffer) {
+                assert(inputBuffer->status == INPUT_BUFFER_STATUS_TEMP);
+                index = i;
+                break;
+            }
+        }
+
+    } pthread_mutex_unlock(&inputCache_lock);
+
+    return index;
+}
+
+void VideoDecoder_getTempBuffer(void** buffer, size_t* bufsize) {
+
+//    void* buffer = 0;
+    *buffer = 0;
+    *bufsize = 0;
+
+    VideoDecoder* videoDecoder = currentVideoDecoder;
+
+    pthread_mutex_lock(&videoDecoder->lock); {
+
+        // get a empty input buffer from cache
+        pthread_mutex_lock(&inputCache_lock); {
+
+            int count = 0;
+
+            for (int i = 0; i < InputBufferMaxSize; i++) {
+                VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+                if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) {
+                    *buffer = inputBuffer->buffer;
+                    *bufsize = inputBuffer->bufsize;
+                    inputBuffer->status = INPUT_BUFFER_STATUS_TEMP;
+                    break;
+                }
+            }
+
+        } pthread_mutex_unlock(&inputCache_lock);
+
+    } pthread_mutex_unlock(&videoDecoder->lock);
+
+//    LOGT("[test] fuck %p", *buffer);
+
+//    return buffer;
+}
+
+void VideoDecoder_releaseTempBuffer(void* buffer) {
+
+    VideoDecoder* videoDecoder = currentVideoDecoder;
+
+    pthread_mutex_lock(&videoDecoder->lock); {
+
+        // get a empty input buffer from cache
+        pthread_mutex_lock(&inputCache_lock); {
+
+            int count = 0;
+
+            for (int i = 0; i < InputBufferMaxSize; i++) {
+                VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+                if (buffer == inputBuffer->buffer && inputBuffer->status == INPUT_BUFFER_STATUS_TEMP) {
+                    inputBuffer->status = INPUT_BUFFER_STATUS_FREE;
+                    break;
+                }
+            }
+
+        } pthread_mutex_unlock(&inputCache_lock);
+
+    } pthread_mutex_unlock(&videoDecoder->lock);
 }
 
 #define SYNC_PUSH 1

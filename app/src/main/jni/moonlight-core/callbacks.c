@@ -161,6 +161,16 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
         decodedFrameBufferLength = decodeUnit->fullLength;
         decodedFrameBuffer = (uint8_t*)malloc(decodedFrameBufferLength);
     }
+#define LOGT(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
+
+    size_t tempBufsize;
+    void* tempBuffer = 0;
+    VideoDecoder_getTempBuffer(&tempBuffer, &tempBufsize);
+//    LOGT("[test] fuck %p", tempBuffer);
+    if (!tempBuffer)
+    {
+        tempBuffer = decodedFrameBuffer;
+    }
 
     PLENTRY currentEntry;
     int offset;
@@ -172,31 +182,37 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
         if (currentEntry->bufferType != BUFFER_TYPE_PICDATA) {
             // Use the beginning of the buffer each time since this is a separate
             // invocation of the decoder each time.
-            memcpy(decodedFrameBuffer, currentEntry->data, currentEntry->length);
+            memcpy(tempBuffer, currentEntry->data, currentEntry->length);
 
-            ret = VideoDecoder_staticSubmitDecodeUnit(decodedFrameBuffer, currentEntry->length, currentEntry->bufferType,
+            ret = VideoDecoder_staticSubmitDecodeUnit(tempBuffer, currentEntry->length, currentEntry->bufferType,
                                 decodeUnit->frameNumber, decodeUnit->receiveTimeMs);
 
             if ((*env)->ExceptionCheck(env)) {
                 // We will crash here
                 (*JVM)->DetachCurrentThread(JVM);
+
+                VideoDecoder_releaseTempBuffer(tempBuffer);
                 return DR_OK;
             }
             else if (ret != DR_OK) {
+
+                VideoDecoder_releaseTempBuffer(tempBuffer);
                 return ret;
             }
         }
         else {
-            memcpy(decodedFrameBuffer+offset, currentEntry->data, currentEntry->length);
+            memcpy(tempBuffer+offset, currentEntry->data, currentEntry->length);
             offset += currentEntry->length;
         }
 
         currentEntry = currentEntry->next;
     }
 
-    ret = VideoDecoder_staticSubmitDecodeUnit(decodedFrameBuffer, offset, BUFFER_TYPE_PICDATA,
+    ret = VideoDecoder_staticSubmitDecodeUnit(tempBuffer, offset, BUFFER_TYPE_PICDATA,
                                       decodeUnit->frameNumber,
                                       (jlong)decodeUnit->receiveTimeMs);
+
+    VideoDecoder_releaseTempBuffer(tempBuffer);
 
 #ifdef LOG_DEBUG_SUBMIT
     uint64_t endTime = PltGetMillis();

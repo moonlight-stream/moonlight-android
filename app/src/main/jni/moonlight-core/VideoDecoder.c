@@ -17,7 +17,7 @@
 #define LOG_TAG    "VideoDecoder"
 #ifdef LC_DEBUG
 #define LOGD(...)  //{__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
-#define LOGT(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
+#define LOGT(...)  //{__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
 #else
 #define LOGD(...) 
 #define LOGT(...)  

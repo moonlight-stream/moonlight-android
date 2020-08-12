@@ -72,7 +72,6 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
                                 int frameNumber, long receiveTimeMs);
 
 // Check busy
-bool VideoDecoder_isBusing(VideoDecoder* videoDecoder);
 const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* format);
 
 

@@ -23,7 +23,6 @@
 #define LOGT(...)  
 #endif
 
-#define BUSY_COUNT 2
 #define USE_CACHE 1
 #define QUEUE_IMMEDIATE 0
 
@@ -244,10 +243,6 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
     return true;
 }
 
-bool _isBusing(VideoDecoder* videoDecoder) {
-    
-    return videoDecoder->renderedFrames > 0 && videoDecoder->renderingFrames - videoDecoder->renderedFrames > BUSY_COUNT;
-}
 
 bool decoderSupportsMaxOperatingRate(const char* decoderName) {
     // Operate at maximum rate to lower latency as much as possible on
@@ -1062,52 +1057,6 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     }
 
     RETURN(0);
-}
-
-#define SYNC_PUSH 1
-
-bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
-
-#if SYNC_PUSH
-    bool isBusing = false;
-    char tmp[512] = {0};
-#else
-    bool isBusing = true;
-#endif
-    pthread_mutex_lock(&videoDecoder->lock); {
-
-        // get a empty input buffer from cache
-        pthread_mutex_lock(&inputCache_lock); {
-
-            int count = 0;
-
-            for (int i = 0; i < InputBufferMaxSize; i++) {
-                VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
-
-#if SYNC_PUSH
-                sprintf(tmp, "%s %d", tmp, inputBuffer->status);
-                if (inputBuffer->status > INPUT_BUFFER_STATUS_FREE) {
-                    // LOGT("[test2] [%d] %d", i, inputBuffer->status);
-#else
-                if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) { // just any one free buffer
-                    // LOGD("VideoDecoder_getInputBuffer working [%d]", i);
-                    isBusing = false;
-                    break;
-#endif
-                }
-            }
-            LOGT("[test] %s", tmp);
-
-        } pthread_mutex_unlock(&inputCache_lock);
-
-        // LOGD("VideoDecoder_dequeueInputBuffer index [%d]", index);
-
-    } pthread_mutex_unlock(&videoDecoder->lock);
-
-    // isBusing = renderedFrames > 0 && renderingFrames - renderedFrames > 2;
-    isBusing = _isBusing(videoDecoder);
-
-    return isBusing;
 }
 
 const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* format) {

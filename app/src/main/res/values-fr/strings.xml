@@ -136,6 +136,8 @@
     <string name="summary_audio_config_list">Activer le son surround 5.1 ou 7.1 pour les systèmes home cinéma</string>
 
     <string name="category_input_settings">Paramètres d\'entrée</string>
+    <string name="title_checkbox_touchscreen_trackpad">Utilisez l'écran tactile comme trackpad</string>
+    <string name="summary_checkbox_touchscreen_trackpad">S'il est activé, l'écran tactile agit comme un trackpad. S'il est désactivé, l'écran tactile contrôle directement le curseur de la souris.</string>
     <string name="title_checkbox_multi_controller">Prise en charge de plusieurs contrôleurs</string>
     <string name="summary_checkbox_multi_controller">Lorsqu\'elle n\'est pas cochée, tous les contrôleurs sont regroupés</string>
     <string name="title_checkbox_vibrate_fallback">Emuler support vibration de secours</string>
@@ -150,6 +152,8 @@
     <string name="summary_checkbox_mouse_emulation">Appuyez longuement sur le bouton Start pour faire basculer la manette de jeu en mode souris.</string>
     <string name="title_checkbox_mouse_nav_buttons">Activer les boutons de la souris arrière et avant</string>
     <string name="summary_checkbox_mouse_nav_buttons">L\' activation de cette option peut entraîner un clic droit sur certains périphériques.</string>
+    <string name="title_checkbox_flip_face_buttons">Boutons de face inversé</string>
+    <string name="summary_checkbox_flip_face_buttons">Commute les boutons de face A/B et X/Y pour les manettes de jeu et les commandes à l'écran</string>
 
     <string name="category_on_screen_controls_settings">Paramètres des contrôles à l\'écran</string>
     <string name="title_checkbox_show_onscreen_controls">Afficher les commandes à l\'écran</string>
@@ -181,7 +185,11 @@
     <string name="summary_checkbox_host_audio">Lire l\'audio de l\'ordinateur et de ce périphérique</string>
 
     <string name="category_advanced_settings">Réglages avancés</string>
-    <string name="title_disable_frame_drop">Désactiver la suppression d\'image</string>
+    <string name="title_unlock_fps">Débloquez toutes les fréquences d'images possibles</string>
+    <string name="summary_unlock_fps">Le streaming à 90 ou 120 FPS peut réduire la latence sur les appareils haut de gamme, mais peut entraîner un décalage ou une instabilité sur les appareils qui ne peuvent pas le prendre en charge</string>
+    <string name="title_checkbox_disable_warnings">Désactiver les messages d'avertissement</string>
+    <string name="summary_checkbox_disable_warnings">Désactiver les messages d'avertissement de connexion à l'écran pendant la diffusion</string>
+    <string name="title_disable_frame_drop">Ne jamais laisser tomber les frames</string>
     <string name="summary_disable_frame_drop">Peut réduire les micro-saccades sur certains appareils, mais peut augmenter la latence</string>
     <string name="title_video_format">Modifier les paramètres H.265</string>
     <string name="summary_video_format">H.265 réduit les besoins en bande passante vidéo mais nécessite un périphérique très récent</string>
@@ -189,5 +197,6 @@
     <string name="summary_enable_hdr">Diffuser du HDR lorsque le jeu et le processeur graphique du PC le prennent en charge. HDR nécessite un GPU série GTX 1000 ou une version ultérieure.</string>
     <string name="title_enable_perf_overlay">Activer la superposition de performance</string>
     <string name="summary_enable_perf_overlay">Afficher une superposition à l\'écran avec des informations de performance en temps réel pendant la lecture en continu</string>
-
+    <string name="title_enable_post_stream_toast">Afficher le message de latence après la diffusion en continu</string>
+    <string name="summary_enable_post_stream_toast">Afficher un message d’informations de latence après la fin du flux</string>
 </resources>

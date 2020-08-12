@@ -890,9 +890,9 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     if (!FRAME_RENDER_TIME_ONLY) {
         // Count time from first packet received to decode start
-        videoDecoder->activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
+        //videoDecoder->activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
         // receiveTimeMs is a clock time
-//        videoDecoder->activeWindowVideoStats.totalTimeMs += getClockUsec()/1000 - receiveTimeMs;
+        videoDecoder->activeWindowVideoStats.totalTimeMs += getClockUsec()/1000 - receiveTimeMs;
     }
 
     if (timestampUs <= videoDecoder->lastTimestampUs) {

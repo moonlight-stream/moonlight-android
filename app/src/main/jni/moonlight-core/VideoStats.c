@@ -8,52 +8,39 @@
 
 uint64_t getTimeMsec()
 {
-// #if defined(LC_WINDOWS)
-//     return GetTickCount64();
-// #elif HAVE_CLOCK_GETTIME
-//     struct timespec tv;
-    
-//     clock_gettime(CLOCK_MONOTONIC, &tv);
-    
-//     return (tv.tv_sec * 1000) + (tv.tv_nsec / 1000000);
-// #else
-//     struct timeval tv;
+    struct timeval t;
+    gettimeofday(&t, 0);
+    return (long)((long)t.tv_sec * 1000 + t.tv_usec/1000);
+}
 
-//     gettimeofday(&tv, NULL);
+uint64_t getClockUsec(void) {
+//#if defined(LC_WINDOWS)
+//    return GetTickCount64();
+//#elif HAVE_CLOCK_GETTIME
+//    struct timespec tv;
+//
+//    clock_gettime(CLOCK_MONOTONIC, &tv);
+//
+//    return (tv.tv_sec * 1000 * 1000) + (tv.tv_nsec / 1000);
+//#else
+//    struct timeval tv;
+//
+//    gettimeofday(&tv, NULL);
+//
+//    return (tv.tv_sec * 1000 * 1000) + (tv.tv_usec);
+//#endif
+    struct timespec tv;
 
-//     return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
-// #endif
-
-struct timespec tv;
-    
     clock_gettime(CLOCK_MONOTONIC, &tv);
-    
-    return (tv.tv_sec * 1000) + (tv.tv_nsec / 1000000);
+
+    return (tv.tv_sec * 1000 * 1000) + (tv.tv_nsec / 1000);
 }
 
 uint64_t getTimeUsec(void) {
 
-// #if defined(LC_WINDOWS)
-//     return GetTickCount64();
-// #elif HAVE_CLOCK_GETTIME
-//     struct timespec tv;
-    
-//     clock_gettime(CLOCK_MONOTONIC, &tv);
-    
-//     return (tv.tv_sec * 1000 * 1000) + (tv.tv_nsec / 1000);
-// #else
-//     struct timeval tv;
-
-//     gettimeofday(&tv, NULL);
-
-//     return (tv.tv_sec * 1000 * 1000) + (tv.tv_usec);
-// #endif
-
-    struct timespec tv;
-    
-    clock_gettime(CLOCK_MONOTONIC, &tv);
-    
-    return (tv.tv_sec * 1000 * 1000) + (tv.tv_nsec / 1000);
+    struct timeval t;
+    gettimeofday(&t, 0);
+    return (long)((long)t.tv_sec * 1000*1000 + t.tv_usec);
 }
 
 void VideoStats_add(VideoStats* stats, const VideoStats* other) {

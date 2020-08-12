@@ -54,7 +54,6 @@ typedef struct {
     void (*stopCallback)(void*);
 
     // 缓冲区
-    VideoInputBuffer* inputBufferCache;
     char* infoBuffer;
 
     pthread_mutex_t lock; // api lock

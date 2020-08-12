@@ -477,7 +477,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             if (releaseDelayUs > customDelayUs) releaseDelayUs = customDelayUs; // need delay
 
             long frameDelay = (start_time - presentationTimeUs)/1000;
-            LOGT("[test] - 渲染: %d ms %d ms %d ms %ld %ld deleay %d need\n", (getTimeUsec() - start_time) / 1000, (start_time - prevRenderingTime[0])/1000, frameDelay, start_time/1000, presentationTimeUs/1000, releaseDelayUs);
+            LOGT("[test] - 渲染 呈现用时 %d ms 调用 %d ms 延迟 %d ms %ld %ld deleay %d need\n", (getTimeUsec() - start_time)/1000, (start_time - prevRenderingTime[0])/1000, frameDelay, start_time, presentationTimeUs, releaseDelayUs);
             prevRenderingTime[1] = prevRenderingTime[0];
             prevRenderingTime[0] = start_time;
 #endif
@@ -635,7 +635,7 @@ void doProfileSpecificSpsPatching(sps_t* sps, bool constrainedHighProfile) {
     }
 }
 
-bool replaySps(VideoDecoder* videoDecoder) {
+bool replaySps(VideoDecoder* videoDecoder, long receiveTimeMs) {
 
     size_t inputBufPos = 0;
 
@@ -687,7 +687,7 @@ bool replaySps(VideoDecoder* videoDecoder) {
     // inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 
     return _queueInputBuffer2(videoDecoder, inputIndex, inputBufPos,
-            getTimeUsec(),
+            receiveTimeMs,
             BUFFER_FLAG_CODEC_CONFIG);
     // return queueInputBuffer(inputIndex,
     //        0, inputBuffer.position(),
@@ -850,14 +850,8 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     pthread_mutex_lock(&videoDecoder->lock);
 
-    // Get long time, not the same as receiveTimeMs
     uint64_t timestampUs = getTimeUsec();
     uint64_t currentTimeMillis = timestampUs / 1000;
-
-//    while (_isBusing(videoDecoder) && !videoDecoder->stopping) {
-//        // LOGT("[test] busing %d %d", videoDecoder->renderingFrames, videoDecoder->renderedFrames);
-//        usleep(1000);
-//    }
 
     if (videoDecoder->lastFrameNumber == 0) {
         videoDecoder->activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
@@ -896,9 +890,9 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     if (!FRAME_RENDER_TIME_ONLY) {
         // Count time from first packet received to decode start
-        //videoDecoder->activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
+        videoDecoder->activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
         // receiveTimeMs is a clock time
-        videoDecoder->activeWindowVideoStats.totalTimeMs += getClockUsec()/1000 - receiveTimeMs;
+//        videoDecoder->activeWindowVideoStats.totalTimeMs += getClockUsec()/1000 - receiveTimeMs;
     }
 
     if (timestampUs <= videoDecoder->lastTimestampUs) {
@@ -1049,7 +1043,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
 #ifdef LC_DEBUG
     long endTimeMillis = getTimeMsec();
-    LOGT("[test] + 提交数据 %ld 间隔 %d ms 提交用时 %d ms", timestampUs/1000, callDif/1000, endTimeMillis-currentTimeMillis);
+    LOGT("[test] + 提交数据 %ld 间隔 %d ms 提交用时 %d ms", timestampUs, callDif/1000, endTimeMillis-currentTimeMillis);
 #endif
 
     if ((codecFlags & BUFFER_FLAG_CODEC_CONFIG) != 0) {
@@ -1058,7 +1052,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         if (videoDecoder->needsBaselineSpsHack) {
             videoDecoder->needsBaselineSpsHack = false;
 
-            if (!replaySps(videoDecoder)) {
+            if (!replaySps(videoDecoder, timestampUs)) {
                 RETURN(DR_NEED_IDR);
             }
 

@@ -433,19 +433,16 @@ void VideoDecoder_release(VideoDecoder* videoDecoder) {
     pthread_mutex_unlock(&videoDecoder->lock);
 }
 
-pthread_t pid;
-
 void* rendering_thread(VideoDecoder* videoDecoder)
 {
-    while(!videoDecoder->stopping) {
+    // Try to output a frame
+    AMediaCodecBufferInfo info;
 
-#if QUEUE_IMMEDIATE
+    while(!videoDecoder->stopping) {
+        
         // Build input buffer cache
         makeInputBuffer(videoDecoder);
-#endif
 
-        // Try to output a frame
-        AMediaCodecBufferInfo info;
         int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 50000); // -1 to block test
         if (outIndex >= 0) {
 
@@ -484,10 +481,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             prevRenderingTime[1] = prevRenderingTime[0];
             prevRenderingTime[0] = start_time;
 #endif
-            // usleep(releaseDelayUs);
-            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
 
-        //    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, (releaseDelayUs + presentationTimeUs) * 1000);
+            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
 
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);
 
@@ -546,11 +541,22 @@ void* queuing_thread(VideoDecoder* videoDecoder) {
         // Queue input buffers
         queueInputBuffer(videoDecoder);
 
-        // Build input buffer cache
-        makeInputBuffer(videoDecoder);
-
         sem_wait(&videoDecoder->queue_sem);
     }
+
+    // // Build input buffer cache
+    // makeInputBuffer(videoDecoder);
+
+    // while(!videoDecoder->stopping) {
+
+    //     sem_wait(&videoDecoder->queue_sem);
+
+    //     // Queue input buffers
+    //     queueInputBuffer(videoDecoder);
+
+    //     // Build input buffer cache
+    //     makeInputBuffer(videoDecoder);
+    // }
 }
 
 void VideoDecoder_start(VideoDecoder* videoDecoder) {
@@ -583,12 +589,15 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     videoDecoder->globalVideoStats = initStats;
 
     // Start thread
+    pthread_t pid;
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_create(&pid, &attr, rendering_thread, videoDecoder);
 
+#if !QUEUE_IMMEDIATE
     pthread_attr_init(&attr);
     pthread_create(&pid, &attr, queuing_thread, videoDecoder);
+#endif
 
     // Set current
     currentVideoDecoder = videoDecoder;
@@ -819,9 +828,6 @@ void printBufferHex(void* data, size_t size) {
     }
     LOGT("buffer: %s", tmp);
 }
-
-
-
 
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {

@@ -163,9 +163,13 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     }
 #define LOGT(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
 
+#define USE_CACHE 0
+
     size_t tempBufsize;
     void* tempBuffer = 0;
+#if USE_CACHE
     VideoDecoder_getTempBuffer(&tempBuffer, &tempBufsize);
+#endif
 //    LOGT("[test] fuck %p", tempBuffer);
     if (!tempBuffer)
     {
@@ -190,13 +194,15 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
             if ((*env)->ExceptionCheck(env)) {
                 // We will crash here
                 (*JVM)->DetachCurrentThread(JVM);
-
-                VideoDecoder_releaseTempBuffer(tempBuffer);
+                #if USE_CACHE
+                    VideoDecoder_releaseTempBuffer(tempBuffer);
+                #endif
                 return DR_OK;
             }
             else if (ret != DR_OK) {
-
+                #if USE_CACHE
                 VideoDecoder_releaseTempBuffer(tempBuffer);
+                #endif
                 return ret;
             }
         }
@@ -212,7 +218,9 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
                                       decodeUnit->frameNumber,
                                       (jlong)decodeUnit->receiveTimeMs);
 
+    #if USE_CACHE
     VideoDecoder_releaseTempBuffer(tempBuffer);
+    #endif
 
 #ifdef LOG_DEBUG_SUBMIT
     uint64_t endTime = PltGetMillis();

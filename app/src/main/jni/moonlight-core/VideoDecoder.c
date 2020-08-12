@@ -23,8 +23,7 @@
 #define LOGT(...)  
 #endif
 
-#define BUSY_COUNT 2
-#define USE_CACHE 1
+#define USE_CACHE 0
 
 static const bool USE_FRAME_RENDER_TIME = false;
 static const bool FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
@@ -170,7 +169,6 @@ int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
     while (index < 0 && !videoDecoder->stopping) {
         index = AMediaCodec_dequeueInputBuffer(videoDecoder->codec, 10000);
     }
-    
 #endif
 
     return index;
@@ -242,11 +240,6 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 #endif
 
     return true;
-}
-
-bool _isBusing(VideoDecoder* videoDecoder) {
-    
-    return videoDecoder->renderedFrames > 0 && videoDecoder->renderingFrames - videoDecoder->renderedFrames > BUSY_COUNT;
 }
 
 bool decoderSupportsMaxOperatingRate(const char* decoderName) {
@@ -438,8 +431,10 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
     while(!videoDecoder->stopping) {
         
+#if USE_CACHE
         // Build input buffer cache
         makeInputBuffer(videoDecoder);
+#endif
 
         int outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 50000); // -1 to block test
         if (outIndex >= 0) {
@@ -819,11 +814,6 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     uint64_t timestampUs = getTimeUsec();
     uint64_t currentTimeMillis = timestampUs / 1000;
 
-//    while (_isBusing(videoDecoder) && !videoDecoder->stopping) {
-//        // LOGT("[test] busing %d %d", videoDecoder->renderingFrames, videoDecoder->renderedFrames);
-//        usleep(1000);
-//    }
-
     if (videoDecoder->lastFrameNumber == 0) {
         videoDecoder->activeWindowVideoStats.measurementStartTimestamp = currentTimeMillis;
     } else if (frameNumber != videoDecoder->lastFrameNumber && frameNumber != videoDecoder->lastFrameNumber + 1) {
@@ -964,7 +954,11 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     } else {
 
+        #if USE_CACHE
         int tempIndex = _getTempBufferIndex(videoDecoder, decodeUnitData);
+        #else
+        int tempIndex = -1;
+        #endif
 
         if (tempIndex == -1) {
             inputBufferIndex = _dequeueInputBuffer(videoDecoder);
@@ -1134,51 +1128,6 @@ void VideoDecoder_releaseTempBuffer(void* buffer) {
     } pthread_mutex_unlock(&videoDecoder->lock);
 }
 
-#define SYNC_PUSH 1
-
-bool VideoDecoder_isBusing(VideoDecoder* videoDecoder) {
-
-#if SYNC_PUSH
-    bool isBusing = false;
-    char tmp[512] = {0};
-#else
-    bool isBusing = true;
-#endif
-    pthread_mutex_lock(&videoDecoder->lock); {
-
-        // get a empty input buffer from cache
-        pthread_mutex_lock(&inputCache_lock); {
-
-            int count = 0;
-
-            for (int i = 0; i < InputBufferMaxSize; i++) {
-                VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
-
-#if SYNC_PUSH
-                sprintf(tmp, "%s %d", tmp, inputBuffer->status);
-                if (inputBuffer->status > INPUT_BUFFER_STATUS_FREE) {
-                    // LOGT("[test2] [%d] %d", i, inputBuffer->status);
-#else
-                if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) { // just any one free buffer
-                    // LOGD("VideoDecoder_getInputBuffer working [%d]", i);
-                    isBusing = false;
-                    break;
-#endif
-                }
-            }
-            LOGT("[test] %s", tmp);
-
-        } pthread_mutex_unlock(&inputCache_lock);
-
-        // LOGD("VideoDecoder_dequeueInputBuffer index [%d]", index);
-
-    } pthread_mutex_unlock(&videoDecoder->lock);
-
-    // isBusing = renderedFrames > 0 && renderingFrames - renderedFrames > 2;
-    isBusing = _isBusing(videoDecoder);
-
-    return isBusing;
-}
 
 const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* format) {
     

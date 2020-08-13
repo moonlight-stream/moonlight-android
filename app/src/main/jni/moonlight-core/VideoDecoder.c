@@ -52,6 +52,8 @@ typedef enum {
 // 获取空的输入缓冲区
 bool getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuffer) {
 
+    assert(inputBuffer->status == INPUT_BUFFER_STATUS_INVALID);
+
     int bufidx = AMediaCodec_dequeueInputBuffer(videoDecoder->codec, 0);
     if (bufidx < 0) {
         return false;
@@ -69,6 +71,7 @@ bool getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuff
     inputBuffer->bufsize = bufsize;
     inputBuffer->timestampUs = 0;
     inputBuffer->codecFlags = 0;
+    inputBuffer->status = INPUT_BUFFER_STATUS_FREE;
 
     LOGT("[test] create buffer %d %p", bufidx, buf);
 
@@ -100,6 +103,11 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
     // push to codec
     AMediaCodec_queueInputBuffer(videoDecoder->codec, index, 0, bufsize, timestampUs,
                                  codecFlags);
+
+    if (index == videoDecoder->tempInputBuffer.index) {
+        videoDecoder->tempInputBuffer.index = -1;
+        videoDecoder->tempInputBuffer.status = INPUT_BUFFER_STATUS_INVALID;
+    }
 
     return true;
 }
@@ -228,6 +236,8 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     videoDecoder->refFrameInvalidationActive = false;
 
     videoDecoder->infoBuffer = malloc(1024);
+    videoDecoder->tempInputBuffer.index = -1;
+    videoDecoder->tempInputBuffer.status = INPUT_BUFFER_STATUS_INVALID;
 
     return videoDecoder;
 }
@@ -592,15 +602,15 @@ void patchSPS(VideoDecoder* videoDecoder, const uint8_t* data, size_t decodeUnit
         sps.vui.bitstream_restriction_flag = 0;
     }
 
+    // Patch the SPS constraint flags
+    doProfileSpecificSpsPatching(&sps, videoDecoder->constrainedHighProfile);
+
     // If we need to hack this SPS to say we're baseline, do so now
     if (videoDecoder->needsBaselineSpsHack) {
         LOGD("Hacking SPS to baseline");
         sps.profile_idc = 66;
         videoDecoder->savedSps = sps;
     }
-
-    // Patch the SPS constraint flags
-    doProfileSpecificSpsPatching(&sps, videoDecoder->constrainedHighProfile);
 
     // The H264Utils.writeSPS function safely handles
     // Annex B NALUs (including NALUs with escape sequences)
@@ -795,13 +805,16 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     } else {
 
-        #if USE_CACHE
-        int tempIndex = _getTempBufferIndex(videoDecoder, decodeUnitData);
-        #else
-        int tempIndex = -1;
-        #endif
+        #define USE_CACHE 1
 
-        if (tempIndex == -1) {
+        #if USE_CACHE
+        if (videoDecoder->tempInputBuffer.buffer == decodeUnitData) {
+            assert(videoDecoder->tempInputBuffer.index != -1);
+            inputBufferIndex = videoDecoder->tempInputBuffer.index;
+            inputBuffer = decodeUnitData;
+        } else
+        #else
+            {
             inputBufferIndex = _dequeueInputBuffer(videoDecoder);
             if (inputBufferIndex < 0) {
                 // We're being torn down now
@@ -813,8 +826,10 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
                 RETURN(DR_NEED_IDR);
             }
         }
+        #endif
 
         if (videoDecoder->submitCsdNextCall) {
+            assert(inputBufPos == 0);
 
             if (VPS_BUFFER != 0) {
                 memcpy(inputBuffer+inputBufPos, VPS_BUFFER, VPS_BUFSIZE);
@@ -830,11 +845,8 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
             }
 
             videoDecoder->submitCsdNextCall = false;
-        } else if (tempIndex != -1){
+        } else if (inputBuffer == decodeUnitData){
             // Skip
-            // assert(tempIndex != -1);
-            inputBufferIndex = tempIndex;
-            inputBuffer = decodeUnitData;
             inputBufPos = decodeUnitLength;
 
             skipCopy = true;
@@ -898,12 +910,18 @@ int _getTempBufferIndex(VideoDecoder* videoDecoder, void* buffer) {
 
 void VideoDecoder_getTempBuffer(void** buffer, size_t* bufsize) {
 
+    VideoDecoder* videoDecoder = currentVideoDecoder;
 
+    if (videoDecoder->tempInputBuffer.status == INPUT_BUFFER_STATUS_INVALID) {
+        getEmptyInputBuffer(videoDecoder, &videoDecoder->tempInputBuffer);
+    }
+
+    *buffer = videoDecoder->tempInputBuffer.buffer;
 }
 
 void VideoDecoder_releaseTempBuffer(void* buffer) {
 
-
+    // assert(buffer);
 }
 
 

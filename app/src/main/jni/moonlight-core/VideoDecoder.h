@@ -55,6 +55,7 @@ typedef struct {
 
     // 缓冲区
     char* infoBuffer;
+    VideoInputBuffer tempInputBuffer;
 
     pthread_mutex_t lock; // api lock
 } VideoDecoder;

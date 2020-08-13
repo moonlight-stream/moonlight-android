@@ -23,6 +23,8 @@
 #define LOGT(...)  
 #endif
 
+#define USE_CACHE 1
+
 static const bool USE_FRAME_RENDER_TIME = false;
 static const bool FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
 
@@ -38,9 +40,6 @@ typedef enum {
 typedef enum {
     INPUT_BUFFER_STATUS_INVALID,
     INPUT_BUFFER_STATUS_FREE,
-    INPUT_BUFFER_STATUS_WORKING,
-    INPUT_BUFFER_STATUS_QUEUING,
-    INPUT_BUFFER_STATUS_TEMP,
 };
 
 // buffer index
@@ -104,10 +103,12 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
     AMediaCodec_queueInputBuffer(videoDecoder->codec, index, 0, bufsize, timestampUs,
                                  codecFlags);
 
+#if USE_CACHE
     if (index == videoDecoder->tempInputBuffer.index) {
         videoDecoder->tempInputBuffer.index = -1;
         videoDecoder->tempInputBuffer.status = INPUT_BUFFER_STATUS_INVALID;
     }
+#endif
 
     return true;
 }
@@ -805,14 +806,12 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     } else {
 
-        #define USE_CACHE 1
-
         #if USE_CACHE
-        if (videoDecoder->tempInputBuffer.buffer == decodeUnitData) {
-            assert(videoDecoder->tempInputBuffer.index != -1);
-            inputBufferIndex = videoDecoder->tempInputBuffer.index;
-            inputBuffer = decodeUnitData;
-        } else
+            if (videoDecoder->tempInputBuffer.buffer == decodeUnitData) {
+                assert(videoDecoder->tempInputBuffer.index != -1);
+                inputBufferIndex = videoDecoder->tempInputBuffer.index;
+                inputBuffer = decodeUnitData;
+            } else
         #else
             {
             inputBufferIndex = _dequeueInputBuffer(videoDecoder);

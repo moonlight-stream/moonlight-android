@@ -90,7 +90,7 @@ int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
     return index;
 }
 
-inline void* _getInputBuffer(VideoDecoder* videoDecoder, int index, size_t* bufsize) {
+static inline void* _getInputBuffer(VideoDecoder* videoDecoder, int index, size_t* bufsize) {
 
     return AMediaCodec_getInputBuffer(videoDecoder->codec, index, bufsize);
 }

@@ -59,8 +59,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.util.DisplayMetrics;
 import android.util.Rational;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -748,7 +750,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (prefConfig.stretchVideo || aspectRatioMatch) {
             // Set the surface to the size of the video
-            streamView.getHolder().setFixedSize(prefConfig.width, prefConfig.height);
+            Point size = new Point();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                int width = display.getMode().getPhysicalHeight();
+                int height = display.getMode().getPhysicalWidth();
+                float k = (float)prefConfig.width / width * height / prefConfig.height;
+
+                android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(width, (int)(height/k), Gravity.CENTER);
+                streamView.setLayoutParams(params);
+            } else {
+                streamView.getHolder().setFixedSize(prefConfig.width, prefConfig.height);
+            }
         }
         else {
             // Set the surface to scale based on the aspect ratio of the stream

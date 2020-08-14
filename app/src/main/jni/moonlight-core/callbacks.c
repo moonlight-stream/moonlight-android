@@ -161,6 +161,20 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
         decodedFrameBufferLength = decodeUnit->fullLength;
         decodedFrameBuffer = (uint8_t*)malloc(decodedFrameBufferLength);
     }
+#define LOGT(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
+
+#define USE_CACHE 1
+
+    size_t tempBufsize;
+    void* tempBuffer = 0;
+#if USE_CACHE
+    VideoDecoder_getTempBuffer(&tempBuffer, &tempBufsize);
+#endif
+//    LOGT("[test] fuck %p", tempBuffer);
+    if (!tempBuffer)
+    {
+        tempBuffer = decodedFrameBuffer;
+    }
 
     PLENTRY currentEntry;
     int offset;
@@ -172,9 +186,9 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
         if (currentEntry->bufferType != BUFFER_TYPE_PICDATA) {
             // Use the beginning of the buffer each time since this is a separate
             // invocation of the decoder each time.
-            memcpy(decodedFrameBuffer, currentEntry->data, currentEntry->length);
+            memcpy(tempBuffer, currentEntry->data, currentEntry->length);
 
-            ret = VideoDecoder_staticSubmitDecodeUnit(decodedFrameBuffer, currentEntry->length, currentEntry->bufferType,
+            ret = VideoDecoder_staticSubmitDecodeUnit(tempBuffer, currentEntry->length, currentEntry->bufferType,
                                 decodeUnit->frameNumber, decodeUnit->receiveTimeMs);
 
             if ((*env)->ExceptionCheck(env)) {
@@ -187,14 +201,14 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
             }
         }
         else {
-            memcpy(decodedFrameBuffer+offset, currentEntry->data, currentEntry->length);
+            memcpy(tempBuffer+offset, currentEntry->data, currentEntry->length);
             offset += currentEntry->length;
         }
 
         currentEntry = currentEntry->next;
     }
 
-    ret = VideoDecoder_staticSubmitDecodeUnit(decodedFrameBuffer, offset, BUFFER_TYPE_PICDATA,
+    ret = VideoDecoder_staticSubmitDecodeUnit(tempBuffer, offset, BUFFER_TYPE_PICDATA,
                                       decodeUnit->frameNumber,
                                       (jlong)decodeUnit->receiveTimeMs);
 

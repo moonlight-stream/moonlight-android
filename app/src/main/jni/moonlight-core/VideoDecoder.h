@@ -54,10 +54,9 @@ typedef struct {
     void (*stopCallback)(void*);
 
     // 缓冲区
-    VideoInputBuffer* inputBufferCache;
     char* infoBuffer;
+    VideoInputBuffer tempInputBuffer;
 
-    sem_t queue_sem;
     pthread_mutex_t lock; // api lock
 } VideoDecoder;
 
@@ -70,9 +69,10 @@ void VideoDecoder_stop(VideoDecoder* videoDecoder);
 // Submit data
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs);
+void VideoDecoder_getTempBuffer(void** buffer, size_t* bufsize);
+void VideoDecoder_releaseTempBuffer(void* buffer);
 
 // Check busy
-bool VideoDecoder_isBusing(VideoDecoder* videoDecoder);
 const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* format);
 
 

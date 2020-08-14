@@ -467,19 +467,21 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         if (infoTimer != null)
             infoTimer.cancel();
 
-        // Fix jni GetFieldID crash
-        long decoderTimeMs = globalVideoStats.decoderTimeMs;
-        long totalTimeMs = globalVideoStats.totalTimeMs;
-        int totalFrames = globalVideoStats.totalFrames;
-        int totalFramesReceived = globalVideoStats.totalFramesReceived;
-        int totalFramesRendered = globalVideoStats.totalFramesRendered;
-        int frameLossEvents = globalVideoStats.frameLossEvents;
-        int framesLost = globalVideoStats.framesLost;
-        long measurementStartTimestamp = globalVideoStats.measurementStartTimestamp;
+        if (videoDecoder2 != 0) {
+            // Fix jni GetFieldID crash
+            long decoderTimeMs = globalVideoStats.decoderTimeMs;
+            long totalTimeMs = globalVideoStats.totalTimeMs;
+            int totalFrames = globalVideoStats.totalFrames;
+            int totalFramesReceived = globalVideoStats.totalFramesReceived;
+            int totalFramesRendered = globalVideoStats.totalFramesRendered;
+            int frameLossEvents = globalVideoStats.frameLossEvents;
+            int framesLost = globalVideoStats.framesLost;
+            long measurementStartTimestamp = globalVideoStats.measurementStartTimestamp;
 
-        MoonBridge.getVideoStats(videoDecoder2, globalVideoStats);
+            MoonBridge.getVideoStats(videoDecoder2, globalVideoStats);
 
-        MoonBridge.stopMediaCodec(videoDecoder2);
+            MoonBridge.stopMediaCodec(videoDecoder2);
+        }
     }
 
     @Override

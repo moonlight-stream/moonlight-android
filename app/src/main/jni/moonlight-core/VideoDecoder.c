@@ -116,7 +116,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
 
     // Codecs have been known to throw all sorts of crazy runtime exceptions
     // due to implementation problems
-    AMediaCodec* codec = AMediaCodec_createCodecByName(decoderName);
+    AMediaCodec* codec = AMediaCodec_createDecoderByType(mimeType);//AMediaCodec_createCodecByName(decoderName);
 
     AMediaFormat* videoFormat = AMediaFormat_new();
     AMediaFormat_setString(videoFormat, AMEDIAFORMAT_KEY_MIME, mimeType);

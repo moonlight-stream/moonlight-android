@@ -281,11 +281,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             long presentationTimeUs = info.presentationTimeUs;
             int lastIndex = outIndex;
 
-#ifdef LC_DEBUG
-            static long prevRenderingTime[2] = {0};
-            long start_time = getTimeUsec();
-#endif
-
             // Skip frame if need
             VideoStats lastTwo = {0};
             VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
@@ -300,31 +295,9 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                 }
             }
 
-#ifdef LC_DEBUG            
-            long currentDelayUs = (start_time - prevRenderingTime[0]);
-            long prevDelayUs = (prevRenderingTime[0] - prevRenderingTime[1]);
-            int fps = 60;
-            float standerDelayUs = 1000000.0 / fps;
-            
-            int customDelayUs = 16666/2;
-            
-            int timeoutUs = (currentDelayUs + prevDelayUs) - (standerDelayUs * 2);
-            // int timeoutUs = (currentDelayUs + customDelayUs) - (standerDelayUs * 2);
-            int releaseDelayUs = customDelayUs-timeoutUs;
-            if (releaseDelayUs < 0) releaseDelayUs = 0;
-            if (releaseDelayUs > customDelayUs) releaseDelayUs = customDelayUs; // need delay
-
-            long frameDelay = (start_time - presentationTimeUs)/1000;
-            LOGT("[test] - 渲染: %d ms %d ms %d ms %ld %ld deleay %d need\n", (getTimeUsec() - start_time) / 1000, (start_time - prevRenderingTime[0])/1000, frameDelay, start_time/1000, presentationTimeUs/1000, releaseDelayUs);
-            prevRenderingTime[1] = prevRenderingTime[0];
-            prevRenderingTime[0] = start_time;
-#endif
-
             AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
 
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);
-
-            videoDecoder->renderedFrames ++;
 
             videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
             // Add delta time to the totals (excluding probable outliers)
@@ -385,8 +358,6 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
 
     // Init
     videoDecoder->lastFrameNumber = 0;
-    videoDecoder->renderingFrames = 0;
-    videoDecoder->renderedFrames = 0;
     videoDecoder->lastTimestampUs = 0;
 
     videoDecoder->numSpsIn = 0;

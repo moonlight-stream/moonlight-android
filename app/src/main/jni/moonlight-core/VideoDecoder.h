@@ -35,8 +35,6 @@ typedef struct {
     int refreshRate;
 
     uint64_t lastFrameNumber;
-    uint64_t renderingFrames;
-    uint64_t renderedFrames;
     uint64_t lastTimestampUs;
 
     sps_t savedSps;

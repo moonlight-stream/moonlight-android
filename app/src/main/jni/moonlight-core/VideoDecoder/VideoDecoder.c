@@ -112,6 +112,59 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
     return true;
 }
 
+// static
+void OnInputAvailableCB(
+        AMediaCodec *  aMediaCodec ,
+        void *userdata,
+        int32_t index) {
+    LOGT("OnInputAvailableCB: index(%d)", index);
+//    sp<AMessage> msg = sp<AMessage>((AMessage *)userdata)->dup();
+//    msg->setInt32("callbackID", CB_INPUT_AVAILABLE);
+//    msg->setInt32("index", index);
+//    msg->post();
+}
+// static
+void OnOutputAvailableCB(
+        AMediaCodec *  aMediaCodec ,
+        void *userdata,
+        int32_t index,
+        AMediaCodecBufferInfo *bufferInfo) {
+    LOGT("OnOutputAvailableCB: index(%d), (%d, %d, %lld, 0x%x)",
+          index, bufferInfo->offset, bufferInfo->size,
+          (long long)bufferInfo->presentationTimeUs, bufferInfo->flags);
+//    sp<AMessage> msg = sp<AMessage>((AMessage *)userdata)->dup();
+//    msg->setInt32("callbackID", CB_OUTPUT_AVAILABLE);
+//    msg->setInt32("index", index);
+//    msg->setSize("offset", (size_t)(bufferInfo->offset));
+//    msg->setSize("size", (size_t)(bufferInfo->size));
+//    msg->setInt64("timeUs", bufferInfo->presentationTimeUs);
+//    msg->setInt32("flags", (int32_t)(bufferInfo->flags));
+//    msg->post();
+}
+// static
+void OnFormatChangedCB(
+        AMediaCodec *  aMediaCodec ,
+        void *userdata,
+        AMediaFormat *format) {
+//    sp<AMediaFormatWrapper> formatWrapper = new AMediaFormatWrapper(format);
+//    sp<AMessage> outputFormat = formatWrapper->toAMessage();
+//    ALOGV("OnFormatChangedCB: format(%s)", outputFormat->debugString().c_str());
+//    sp<AMessage> msg = sp<AMessage>((AMessage *)userdata)->dup();
+//    msg->setInt32("callbackID", CB_OUTPUT_FORMAT_CHANGED);
+//    msg->setMessage("format", outputFormat);
+//    msg->post();
+}
+// static
+void OnErrorCB(
+        AMediaCodec *  aMediaCodec ,
+        void *userdata,
+        media_status_t err,
+        int32_t actionCode,
+        const char *detail) {
+    LOGT("OnErrorCB: err(%d), actionCode(%d), detail(%s)", err, actionCode, detail);
+
+}
+
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* decoderName, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency, bool adaptivePlayback, bool maxOperatingRate) {
 
     // Codecs have been known to throw all sorts of crazy runtime exceptions
@@ -167,6 +220,8 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
         LOGD("AMediaCodec_configure() failed with error %i for format %u", (int)status, 21);
         return 0;
     }
+
+
 
     const char* string = AMediaFormat_toString(videoFormat);
     LOGT("videoFormat %s", string);
@@ -357,12 +412,13 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
 
     assert(!videoDecoder->stopping);
 
-    if (AMediaCodec_start(videoDecoder->codec) != AMEDIA_OK) {
-        LOGD("AMediaCodec_start: Could not start encoder.");
-    }
-    else {
-        LOGD("AMediaCodec_start: encoder successfully started");
-    }
+//    struct AMediaCodecOnAsyncNotifyCallback aCB = {
+//            OnInputAvailableCB,
+//            OnOutputAvailableCB,
+//            OnFormatChangedCB,
+//            OnErrorCB
+//    };
+//    AMediaCodec_setAsyncNotifyCallback(videoDecoder->codec, aCB, videoDecoder);
 
     // Init
     videoDecoder->lastFrameNumber = 0;
@@ -386,6 +442,13 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
 
     // Set current
     currentVideoDecoder = videoDecoder;
+
+    if (AMediaCodec_start(videoDecoder->codec) != AMEDIA_OK) {
+        LOGD("AMediaCodec_start: Could not start encoder.");
+    }
+    else {
+        LOGD("AMediaCodec_start: encoder successfully started");
+    }
 
     pthread_mutex_unlock(&videoDecoder->lock);
 }

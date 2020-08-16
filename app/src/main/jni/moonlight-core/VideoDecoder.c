@@ -11,6 +11,7 @@
 
 #include <media/NdkMediaExtractor.h>
 #include <android/log.h>
+#include <dlfcn.h>
 #include "MediaCodecHelper.h"
 #include "libopus/include/opus_types.h"
 
@@ -113,23 +114,7 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
     return true;
 }
 
-bool decoderSupportsMaxOperatingRate(const char* decoderName) {
-    // Operate at maximum rate to lower latency as much as possible on
-    // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
-    // but that will actually result in the decoder crashing if it can't satisfy
-    // our (ludicrous) operating rate requirement. This seems to cause reliable
-    // crashes on the Xiaomi Mi 10 lite 5G and Redmi K30i 5G on Android 10, so
-    // we'll disable it on Snapdragon 765G and all non-Qualcomm devices to be safe.
-    //
-    // NB: Even on Android 10, this optimization still provides significant
-    // performance gains on Pixel 2.
-    return Build_VERSION_SDK_INT >= Build_VERSION_CODES_M;
-    // return Build.VERSION.SDK_INT >= Build_VERSION_CODES_M &&
-    //         isDecoderInList(qualcommDecoderPrefixes, decoderName) &&
-    //         !isAdreno620;
-}
-
-VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* decoderName, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency, bool adaptivePlayback) {
+VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* decoderName, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency, bool adaptivePlayback, bool maxOperatingRate) {
 
     // Codecs have been known to throw all sorts of crazy runtime exceptions
     // due to implementation problems
@@ -137,6 +122,8 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
 
     AMediaFormat* videoFormat = AMediaFormat_new();
     AMediaFormat_setString(videoFormat, AMEDIAFORMAT_KEY_MIME, mimeType);
+
+//    AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_IS_SYNC_FRAME, 0);
 
     // Avoid setting KEY_FRAME_RATE on Lollipop and earlier to reduce compatibility risk
     if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_M) {
@@ -169,8 +156,8 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
             AMediaFormat_setInt32(videoFormat, "vendor.qti-ext-dec-low-latency.enable", 1);
         }
 
-        if (decoderSupportsMaxOperatingRate(decoderName)) {
-           AMediaFormat_setInt32(videoFormat, "operating-rate", 32767);
+        if (maxOperatingRate) {
+           AMediaFormat_setInt32(videoFormat, "operating-rate", 32767); // Short.MAX_VALUE
         }
     }
 
@@ -299,13 +286,19 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             long start_time = getTimeUsec();
 #endif
 
-            // Get the last output buffer in the queue
-        //    while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
-        //        AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-
-        //        lastIndex = outIndex;
-        //        presentationTimeUs = info.presentationTimeUs;
-        //    }
+            // Skip frame if need
+            VideoStats lastTwo = {0};
+            VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
+            VideoStats_add(&lastTwo, &videoDecoder->activeWindowVideoStats);
+            VideoStatsFps fps = VideoStats_getFps(&lastTwo);
+            if (fps.renderedFps < fps.receivedFps)
+            {
+                while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
+                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+                    lastIndex = outIndex;
+                    presentationTimeUs = info.presentationTimeUs;
+                }
+            }
 
 #ifdef LC_DEBUG            
             long currentDelayUs = (start_time - prevRenderingTime[0]);

@@ -9,6 +9,7 @@
 #include <stddef.h>
 
 #define Build_VERSION_CODES_KITKAT 19
+#define Build_VERSION_CODES_LOLLIPOP 21
 #define Build_VERSION_CODES_M 23
 #define Build_VERSION_CODES_O 26
 #define Build_VERSION_CODES_R 30

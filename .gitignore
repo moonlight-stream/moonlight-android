@@ -41,3 +41,7 @@ app/.externalNativeBuild/
 
 # NDK stuff
 .cxx/
+
+# release
+app/nonRoot/release
+app/root/release

@@ -43,6 +43,12 @@ uint64_t getTimeUsec(void) {
     return (long)((long)t.tv_sec * 1000*1000 + t.tv_usec);
 }
 
+uint64_t getTimeNanc(void) {
+    struct timespec tv;
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+    return (tv.tv_sec * 1000 * 1000 * 1000) + (tv.tv_nsec);
+}
+
 void VideoStats_add(VideoStats* stats, const VideoStats* other) {
 
     stats->decoderTimeMs += other->decoderTimeMs;

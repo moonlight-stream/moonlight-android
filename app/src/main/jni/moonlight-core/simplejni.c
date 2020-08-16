@@ -171,7 +171,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_nativeFree(JNIEnv *env, jclass clazz,
     free(buf);
 }
 
-#include "VideoDecoder.h"
+#include "VideoDecoder/VideoDecoder.h"
 
 JNIEXPORT jlong JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_createMediaCodec(JNIEnv *env, jclass clazz, jobject surface, jstring name,
@@ -275,4 +275,11 @@ Java_com_limelight_nvstream_jni_MoonBridge_getVideoStats(JNIEnv *env, jclass cla
     fid = (*env)->GetFieldID(env, class, "measurementStartTimestamp", "J");
     if (fid) (*env)->SetLongField(env, stats, fid, (jlong)vs.measurementStartTimestamp);
 
+}
+
+JNIEXPORT jlong JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_setLegacyFrameDropRendering(JNIEnv *env, jclass clazz,
+                                                                       jlong video_decoder,
+                                                                       jboolean enabled) {
+    VideoDecoder_setLegacyFrameDropRendering(video_decoder, enabled);
 }

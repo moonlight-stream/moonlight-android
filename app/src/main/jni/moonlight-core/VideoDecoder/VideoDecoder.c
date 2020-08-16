@@ -216,6 +216,8 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
         videoDecoder->buffers[i] = framebuffer;
     }
 
+    videoDecoder->legacyFrameDropRendering = false;
+
     videoDecoder->adaptivePlayback = adaptivePlayback;
     videoDecoder->needsBaselineSpsHack = false;
     videoDecoder->constrainedHighProfile = false;
@@ -248,6 +250,10 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
     free(videoDecoder);
 
     LOGD("VideoDecoder_release: released!");
+}
+
+void VideoDecoder_setLegacyFrameDropRendering(VideoDecoder* videoDecoder, bool enabled) {
+    videoDecoder->legacyFrameDropRendering = enabled;
 }
 
 void VideoDecoder_release(VideoDecoder* videoDecoder) {
@@ -293,7 +299,11 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                 }
             }
 
-            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
+            if (videoDecoder->legacyFrameDropRendering) {
+                AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
+            } else {
+                AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
+            }
 
             LOGD("[fuck] rendering_thread: Rendering ... [%d] flags %d offset %d size %d presentationTimeUs %ld", lastIndex, info.flags, info.offset, info.size, presentationTimeUs/1000);
 

@@ -39,9 +39,9 @@ LOCAL_SRC_FILES := moonlight-common-c/src/AudioStream.c \
                    moonlight-common-c/enet/win32.c \
                    simplejni.c \
                    callbacks.c \
-                   VideoDecoder.c \
-                   MediaCodecHelper.c \
-                   VideoStats.c \
+                   VideoDecoder/VideoDecoder.c \
+                   VideoDecoder/MediaCodecHelper.c \
+                   VideoDecoder/VideoStats.c \
                    h264bitstream/h264_stream.c\
                    h264bitstream/h264_sei.c\
                    h264bitstream/h264_analyze.c\

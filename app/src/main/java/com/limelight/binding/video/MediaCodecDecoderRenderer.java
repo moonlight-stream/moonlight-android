@@ -296,6 +296,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return -4;
         }
 
+        MoonBridge.setLegacyFrameDropRendering(videoDecoder2, legacyFrameDropRendering);
+
         MoonBridge.startMediaCodec(videoDecoder2);
 
         // 变更解码器 end

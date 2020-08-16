@@ -69,9 +69,11 @@ int _Build_VERSION_SDK_INT() {
     return sdk_ver;
 }
 
+#define IS_DECODER_IN_LIST(a, b) isDecoderInList(a, sizeof(a)/sizeof(*a), b);
+
 bool MediaCodecHelper_decoderSupportsQcomVendorLowLatency(const char* decoderName) {
     // MediaCodec vendor extension support was introduced in Android 8.0:
     // https://cs.android.com/android/_/android/platform/frameworks/av/+/01c10f8cdcd58d1e7025f426a72e6e75ba5d7fc2
     return Build_VERSION_SDK_INT >= Build_VERSION_CODES_O &&
-           isDecoderInList(qualcommDecoderPrefixes, sizeof(qualcommDecoderPrefixes)/sizeof(*qualcommDecoderPrefixes), decoderName);
+            IS_DECODER_IN_LIST(qualcommDecoderPrefixes, decoderName);
 }

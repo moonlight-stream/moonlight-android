@@ -73,8 +73,6 @@ bool getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuff
     inputBuffer->codecFlags = 0;
     inputBuffer->status = INPUT_BUFFER_STATUS_FREE;
 
-    LOGT("[test] create buffer %d %p", bufidx, buf);
-
     return true;
 }
 
@@ -157,7 +155,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
         }
 
         if (maxOperatingRate) {
-           AMediaFormat_setInt32(videoFormat, "operating-rate", 32767); // Short.MAX_VALUE
+            AMediaFormat_setInt32(videoFormat, "operating-rate", 32767); // Short.MAX_VALUE
         }
     }
 
@@ -808,11 +806,6 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
             }
 
             videoDecoder->submitCsdNextCall = false;
-        } else if (inputBuffer == decodeUnitData){
-            // Skip
-            inputBufPos = decodeUnitLength;
-
-            skipCopy = true;
         }
     }
 
@@ -828,14 +821,14 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     }
 
     // Copy data from our buffer list into the input buffer
-    if (!skipCopy) {
+    if (inputBuffer+inputBufPos != decodeUnitData) {
         memcpy(inputBuffer+inputBufPos, decodeUnitData, decodeUnitLength);
-        inputBufPos += decodeUnitLength;
     } else {
         LOGT("[test] skip copy");
     }
+    LOGT("[test] 提交 %p + %d <= %p [%d]", inputBuffer, inputBufPos, decodeUnitData, inputBufferIndex);
 
-    LOGT("[test] 提交 %p <= %p [%d]", inputBuffer, decodeUnitData, inputBufferIndex);
+    inputBufPos += decodeUnitLength;
 
     if (!_queueInputBuffer2(videoDecoder, inputBufferIndex, inputBufPos,
             timestampUs, codecFlags, skipCopy)) {
@@ -880,11 +873,6 @@ void VideoDecoder_getTempBuffer(void** buffer, size_t* bufsize) {
     }
 
     *buffer = videoDecoder->tempInputBuffer.buffer;
-}
-
-void VideoDecoder_releaseTempBuffer(void* buffer) {
-
-    // assert(buffer);
 }
 
 

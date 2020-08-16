@@ -286,25 +286,19 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             long start_time = getTimeUsec();
 #endif
 
-//            // Get the last output buffer in the queue
-//           while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
-//               AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-//               lastIndex = outIndex;
-//               presentationTimeUs = info.presentationTimeUs;
-//           }
-
-             VideoStats lastTwo = {0};
-             VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
-             VideoStats_add(&lastTwo, &videoDecoder->activeWindowVideoStats);
-             VideoStatsFps fps = VideoStats_getFps(&lastTwo);
-             if (fps.renderedFps < fps.receivedFps)
-             {
-                 while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
-                     AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-                     lastIndex = outIndex;
-                     presentationTimeUs = info.presentationTimeUs;
-                 }
-             }
+            // Skip frame if need
+            VideoStats lastTwo = {0};
+            VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
+            VideoStats_add(&lastTwo, &videoDecoder->activeWindowVideoStats);
+            VideoStatsFps fps = VideoStats_getFps(&lastTwo);
+            if (fps.renderedFps < fps.receivedFps)
+            {
+                while ((outIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
+                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+                    lastIndex = outIndex;
+                    presentationTimeUs = info.presentationTimeUs;
+                }
+            }
 
 #ifdef LC_DEBUG            
             long currentDelayUs = (start_time - prevRenderingTime[0]);

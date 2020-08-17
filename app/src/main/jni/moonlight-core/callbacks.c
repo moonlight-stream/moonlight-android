@@ -163,13 +163,11 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     }
 #define LOGT(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
 
-#define USE_CACHE 1
-
     size_t tempBufsize;
     void* tempBuffer = 0;
-#if USE_CACHE
-    VideoDecoder_getTempBuffer(&tempBuffer, &tempBufsize);
-#endif
+
+//    VideoDecoder_getTempBuffer(&tempBuffer, &tempBufsize);
+
 //    LOGT("[test] fuck %p", tempBuffer);
     if (!tempBuffer)
     {

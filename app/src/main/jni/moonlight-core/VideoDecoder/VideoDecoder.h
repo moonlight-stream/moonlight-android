@@ -22,6 +22,12 @@ typedef struct {
 } VideoInputBuffer;
 
 typedef struct {
+    int index;
+    AMediaCodecBufferInfo bufferInfo;
+    int status;
+} VideoOutputBuffer;
+
+typedef struct {
     void* data;
     size_t size;
 } FrameBuffer;
@@ -55,8 +61,13 @@ typedef struct {
 
     // 缓冲区
     char* infoBuffer;
-    VideoInputBuffer tempInputBuffer;
+    VideoInputBuffer* inputBufferCache;
+    VideoOutputBuffer* outputBufferCache;
+    sem_t queuing_sem;
+    sem_t rendering_sem;
 
+    pthread_mutex_t inputCacheLock;
+    pthread_mutex_t outputCacheLock;
     pthread_mutex_t lock; // api lock
 } VideoDecoder;
 

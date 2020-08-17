@@ -544,6 +544,11 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             long presentationTimeUs = info.presentationTimeUs;
             int lastIndex = outIndex;
 
+#ifdef LC_DEBUG
+            static long prevRenderingTime = 0;
+            long start_time = getTimeUsec();
+#endif
+
             // Skip frame if need
             VideoStats lastTwo = {0};
             VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
@@ -574,7 +579,11 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                 }
             }
 
-            LOGT("[test] - rendering_thread: Rendering ... [%d] presentationTimeUs %ld %d ms", lastIndex, presentationTimeUs/1000, delta);
+#ifdef LC_DEBUG
+            LOGT("[test] - 渲染: [%d] %ld 间隔 %d ms 解码用时 %d ms", lastIndex, presentationTimeUs/1000, (start_time - prevRenderingTime)/1000, delta);
+            prevRenderingTime = start_time;
+#endif
+
             
         } else {
 

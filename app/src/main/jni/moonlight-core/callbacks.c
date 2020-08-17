@@ -166,9 +166,9 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     size_t tempBufsize;
     void* tempBuffer = 0;
 
-//    VideoDecoder_getTempBuffer(&tempBuffer, &tempBufsize);
-
+    VideoDecoder_getTempBuffer(&tempBuffer, &tempBufsize);
 //    LOGT("[test] fuck %p", tempBuffer);
+
     if (!tempBuffer)
     {
         tempBuffer = decodedFrameBuffer;
@@ -192,9 +192,11 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
             if ((*env)->ExceptionCheck(env)) {
                 // We will crash here
                 (*JVM)->DetachCurrentThread(JVM);
+                VideoDecoder_releaseTempBuffer(tempBuffer);
                 return DR_OK;
             }
             else if (ret != DR_OK) {
+                VideoDecoder_releaseTempBuffer(tempBuffer);
                 return ret;
             }
         }
@@ -214,6 +216,8 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     uint64_t endTime = PltGetMillis();
     LOGD("提交完成 %d  %d", endTime-startTime, endTime);
 #endif
+
+    VideoDecoder_releaseTempBuffer(tempBuffer);
 
     if ((*env)->ExceptionCheck(env)) {
         // We will crash here

@@ -41,7 +41,8 @@ typedef enum {
     INPUT_BUFFER_STATUS_INVALID,
     INPUT_BUFFER_STATUS_FREE,
     INPUT_BUFFER_STATUS_WORKING,
-    INPUT_BUFFER_STATUS_QUEUING
+    INPUT_BUFFER_STATUS_QUEUING,
+    INPUT_BUFFER_STATUS_TEMP,
 };
 
 typedef enum {
@@ -169,7 +170,9 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 
         // add to list
         VideoInputBuffer *inputBuffer = &videoDecoder->inputBufferCache[index];
-        assert(inputBuffer->status == INPUT_BUFFER_STATUS_WORKING);
+        if (inputBuffer->status != INPUT_BUFFER_STATUS_TEMP) {
+            assert(inputBuffer->status == INPUT_BUFFER_STATUS_WORKING);
+        }
 
         inputBuffer->timestampUs = timestampUs;
         inputBuffer->codecFlags = codecFlags;
@@ -177,9 +180,17 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 
         inputBuffer->status = INPUT_BUFFER_STATUS_QUEUING;
 
+        LOGT("[test] Push to codec [%d]%d buffer %p", index, inputBuffer->index, inputBuffer->buffer);
+
         // 立即提交
-       index = inputBuffer->index;
-       inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
+        index = inputBuffer->index;
+        inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
+        inputBuffer->index = -1;
+        inputBuffer->buffer = 0;
+        inputBuffer->bufsize = 0;
+        inputBuffer->codecFlags = 0;
+        inputBuffer->timestampUs = 0;
+
         // or 异步提交 貌似会卡死
         //  index = -1;
 
@@ -187,7 +198,6 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 
 #endif
     if (index >= 0) {
-        // LOGT("[test] Push to codec %d", index);
         // Push to codec
         AMediaCodec_queueInputBuffer(videoDecoder->codec, index, 0, bufsize, timestampUs,
                                     codecFlags);
@@ -874,7 +884,7 @@ int bufferIndexInCache(VideoDecoder* videoDecoder, void* buffer) {
         for (int i = 0; i < InputBufferCacheSize; i++) {
             VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
             if (inputBuffer->buffer == buffer) {
-                assert(inputBuffer->status == INPUT_BUFFER_STATUS_FREE);
+                assert(inputBuffer->status == INPUT_BUFFER_STATUS_TEMP);
                 index = i;
                 break;
             }
@@ -1149,28 +1159,53 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     RETURN(0);
 }
 
-int _getTempBufferIndex(VideoDecoder* videoDecoder, void* buffer) {
-
-    int index = -1;
-
-    return index;
-}
-
 void VideoDecoder_getTempBuffer(void** buffer, size_t* bufsize) {
 
     VideoDecoder* videoDecoder = currentVideoDecoder;
 
-    // Return a free input buffer as temp buffer
-    pthread_mutex_lock(&videoDecoder->inputCacheLock); {
-        for (int i = 0; i < InputBufferCacheSize; i++) {
-            VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
-            if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) {
-                *buffer = inputBuffer->buffer;
-                *bufsize = inputBuffer->bufsize;
-                break;
+    pthread_mutex_lock(&videoDecoder->lock); {
+
+        // Return a free input buffer as temp buffer
+        pthread_mutex_lock(&videoDecoder->inputCacheLock); {
+            for (int i = 0; i < InputBufferCacheSize; i++) {
+                VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+                if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) {
+                    *buffer = inputBuffer->buffer;
+                    *bufsize = inputBuffer->bufsize;
+                    inputBuffer->status = INPUT_BUFFER_STATUS_TEMP;
+
+                    LOGT("[test] getTempBuffer [%d]%d", i, inputBuffer->index);
+
+                    break;
+                }
             }
-        }
-    } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
+        } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
+
+    } pthread_mutex_unlock(&videoDecoder->lock);
+}
+
+void VideoDecoder_releaseTempBuffer(void* buffer) {
+
+    VideoDecoder* videoDecoder = currentVideoDecoder;
+
+    pthread_mutex_lock(&videoDecoder->lock); {
+
+        // get a empty input buffer from cache
+        pthread_mutex_lock(&videoDecoder->inputCacheLock); {
+
+            int count = 0;
+
+            for (int i = 0; i < InputBufferCacheSize; i++) {
+                VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+                if (buffer == inputBuffer->buffer && inputBuffer->status == INPUT_BUFFER_STATUS_TEMP) {
+                    inputBuffer->status = INPUT_BUFFER_STATUS_FREE;
+                    break;
+                }
+            }
+
+        } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
+
+    } pthread_mutex_unlock(&videoDecoder->lock);
 }
 
 

@@ -19,6 +19,15 @@
     <string name="pcview_menu_send_wol">Envoyer la requête Wake-On-LAN</string>
     <string name="pcview_menu_delete_pc">Supprimer PC</string>
     <string name="pcview_menu_details">Voir les détails</string>
+    
+    <!-- Network test strings -->
+    <string name="nettest_title_waiting">Test de la connexion réseau</string>
+    <string name="nettest_text_waiting">Moonlight teste votre connexion réseau pour déterminer si NVIDIA GameStream est bloqué.\n\nCela peut prendre quelques secondes.</string>
+    <string name="nettest_title_done">Test du réseau terminé</string>
+    <string name="nettest_text_success">Votre réseau ne semble pas bloquer Moonlight. Si vous avez encore de la difficulté à vous connecter, vérifiez les paramètres du pare-feu de votre PC.\n\nSi vous essayez de diffuser sur Internet, installez l'outil d'hébergement Internet Moonlight sur votre PC et exécutez le testeur de streaming Internet inclus pour vérifier la connexion Internet de votre PC.</string>
+    <string name="nettest_text_inconclusive">Le test réseau n’a pas pu être effectué car aucun des serveurs de test de connexion Moonlight n’était accessible. Vérifiez votre connexion Internet ou réessayez plus tard.</string>
+    <string name="nettest_text_failure">La connexion réseau actuelle de votre appareil semble bloquer Moonlight. Le streaming sur Internet peut ne pas fonctionner lorsqu’il est connecté à ce réseau.\n\nLes ports réseau suivants ont été bloqués:\n</string>
+    <string name="nettest_text_blocked">La connexion réseau actuelle de votre appareil bloque Moonlight. Le streaming sur Internet peut ne pas fonctionner lorsqu’il est connecté à ce réseau.</string>
 
     <!-- Pair messages -->
     <string name="pairing">Appariement…</string>

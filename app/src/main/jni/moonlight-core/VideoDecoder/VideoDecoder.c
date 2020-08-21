@@ -24,6 +24,7 @@
 #define LOGT(...)  
 #endif
 
+// API 28 Support
 #define VD_USE_CACHE 1
 
 static const bool USE_FRAME_RENDER_TIME = false;
@@ -93,8 +94,8 @@ bool getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuff
     return true;
 }
 
-const int InputBufferCacheSize = 10;
-const int OutputBufferCacheSize = 10;
+const int InputBufferCacheSize = 20;
+const int OutputBufferCacheSize = 20;
 
 int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
 
@@ -1141,6 +1142,12 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     inputBufPos += decodeUnitLength;
 
+    int delay = 1000000/videoDecoder->refreshRate - callDif;
+    if (delay > 2000) {
+        usleep(delay);
+        LOGT("[test] usleep用时 %d ms", delay/1000);
+    }
+
     if (!_queueInputBuffer2(videoDecoder, inputBufferIndex, inputBufPos,
             timestampUs, codecFlags)) {
         RETURN(DR_NEED_IDR);
@@ -1164,6 +1171,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
             LOGD("SPS replay complete");
         }
     }
+
 
     RETURN(0);
 }

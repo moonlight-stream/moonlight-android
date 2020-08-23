@@ -132,8 +132,6 @@
     <string name="title_seekbar_bitrate">Sélectionnez le bitrate vidéo à obtenir</string>
     <string name="summary_seekbar_bitrate">Bitrate inférieur pour réduire la saccade. Augmentez le bitrate pour augmenter la qualité de l\'image.</string>
     <string name="suffix_seekbar_bitrate">Kbps</string>
-    <string name="title_unlock_fps">Débloquer tous les taux d\'images possibles</string>
-    <string name="summary_unlock_fps">La diffusion en continu à 90 ou 120 FPS peut réduire la latence sur les périphériques haut de gamme, mais peut provoquer des retards ou des blocages sur les périphériques qui ne peuvent \pas le prendre en charge</string>
     <string name="title_checkbox_stretch_video">Étirez la vidéo en plein écran</string>
     <string name="title_checkbox_disable_warnings">Désactiver les messages d\'avertissement</string>
     <string name="summary_checkbox_disable_warnings">Désactiver les messages d\'avertissement de connexion à l\'écran pendant le streaming</string>

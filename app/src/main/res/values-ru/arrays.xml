@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string-array name="audio_config_names">
+        <item>Стерео</item>
+        <item>5.1 Объёмный звук</item>
+        <item>7.1 Объёмный звук</item>
+    </string-array>
     <string-array name="decoder_names">
         <item>Автоматический выбор декодера</item>
         <item>Принудительное программное декодирование</item>
         <item>Принудительное аппаратное декодирование</item>
     </string-array>
-
     <string-array name="video_format_names">
         <item>Использовать H.265 только если безопасно</item>
         <item>Всегда использовать H.265 если доступно</item>

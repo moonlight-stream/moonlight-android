@@ -8,6 +8,14 @@
     <string name="pcview_menu_send_wol">Отправить Wake-On-LAN запрос</string>
     <string name="pcview_menu_delete_pc">Удалить PC</string>
 
+    <!-- Network test strings -->
+    <string name="nettest_title_waiting">Тестирование Сетевого Подключения</string>
+    <string name="nettest_text_waiting">Moonlight тестирует ваше сетевое подключение чтобы определить, заблокирован ли NVIDIA GameStream.\n\nЭто может занять некоторое время…</string>
+    <string name="nettest_title_done">Тестирование Подключения Завершено</string>
+    <string name="nettest_text_success">Ваша сеть не блокирует Moonlight. Если у вас всё ещё есть проблемы с соединением, проверьте настройки брандмауэра на компьютере.\n\nЕсли вы пытаетесь транслировать через интернет, установите Moonlight Internet Hosting Tool на ваш компьютер и запустите установленный Internet Streaming Tester, чтобы проверить Интернет-соединение на вашем компьютере.</string>
+    <string name="nettest_text_inconclusive">Тестирование подключения не может быть выполнено, потому что сервера тестирования подключения Moonlight не доступны. Проверьте ваше Интернет-соединение или повторите попытку позже.</string>
+    <string name="nettest_text_failure">Похоже, что текущее сетевое подключение вашего устройства блокирует Moonlight. Трансляция через Интернет может не работать при подключении к этой сети.\n\nСледующие сетевые порты были заблокированны:\n</string>
+
     <!-- Pair messages -->
     <string name="pairing">Создание пары…</string>
     <string name="pair_pc_offline">Компьютер выключен или находится не в сети</string>
@@ -16,7 +24,7 @@
     <string name="pair_pairing_msg">Пожалуйста введите этот PIN на PC:</string>
     <string name="pair_incorrect_pin">Неправильный PIN</string>
     <string name="pair_fail">Создание пары не удалось</string>
-
+	
     <!-- WOL messages -->
     <string name="wol_pc_online">Компьютер в сети</string>
     <string name="wol_no_mac">Невозможно разбудить PC потому что GFE не отправило MAC адрес</string>
@@ -96,6 +104,8 @@
     <string name="summary_checkbox_disable_warnings">Выключить экранные предупреждения о соединении во время трансляции</string>
 
     <string name="category_audio_settings">Аудио Настройки</string>
+    <string name="title_audio_config_list">Настроки объёмного звука</string>
+    <string name="summary_audio_config_list">Включить объёмный звук 5.1 или 7.1 для систем домашнего кинотеатра</string>
 
     <string name="title_checkbox_multi_controller">Поддержка нескольких контроллеров</string>
     <string name="summary_checkbox_multi_controller">Когда отключена, все контроллеры определяются как один</string>
@@ -103,6 +113,8 @@
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Драйвер контроллеров Xbox 360/One</string>
     <string name="summary_checkbox_xb1_driver">Включить встроенный USB драйвер для устройств без собственной поддержки контроллеров Xbox</string>
+    <string name="title_checkbox_flip_face_buttons">Перевернуть кнопки A/B и X/Y</string>
+    <string name="summary_checkbox_flip_face_buttons">Меняет местами кнопки A/B и X/Y на геймпадах и экранных кнопках</string>
 
     <string name="category_ui_settings">Настройки Интерфейса</string>
     <string name="title_language_list">Язык</string>

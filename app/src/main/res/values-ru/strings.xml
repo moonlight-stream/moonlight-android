@@ -10,11 +10,11 @@
 
     <!-- Network test strings -->
     <string name="nettest_title_waiting">Тестирование Сетевого Подключения</string>
-    <string name="nettest_text_waiting">Moonlight тестирует ваше сетевое подключение чтобы определить, заблокирован ли NVIDIA GameStream.\n\nЭто может занять некоторое время…</string>
+    <string name="nettest_text_waiting">Moonlight тестирует ваше сетевое подключение, чтобы определить, заблокирован ли NVIDIA GameStream.\n\nЭто может занять некоторое время…</string>
     <string name="nettest_title_done">Тестирование Подключения Завершено</string>
     <string name="nettest_text_success">Ваша сеть не блокирует Moonlight. Если у вас всё ещё есть проблемы с соединением, проверьте настройки брандмауэра на компьютере.\n\nЕсли вы пытаетесь транслировать через интернет, установите Moonlight Internet Hosting Tool на ваш компьютер и запустите установленный Internet Streaming Tester, чтобы проверить Интернет-соединение на вашем компьютере.</string>
     <string name="nettest_text_inconclusive">Тестирование подключения не может быть выполнено, потому что сервера тестирования подключения Moonlight не доступны. Проверьте ваше Интернет-соединение или повторите попытку позже.</string>
-    <string name="nettest_text_failure">Похоже, что текущее сетевое подключение вашего устройства блокирует Moonlight. Трансляция через Интернет может не работать при подключении к этой сети.\n\nСледующие сетевые порты были заблокированны:\n</string>
+    <string name="nettest_text_failure">Похоже, что текущее сетевое подключение вашего устройства блокирует Moonlight. Трансляция через Интернет может не работать при подключении к этой сети.\n\nСледующие сетевые порты были заблокированы:\n</string>
 
     <!-- Pair messages -->
     <string name="pairing">Создание пары…</string>

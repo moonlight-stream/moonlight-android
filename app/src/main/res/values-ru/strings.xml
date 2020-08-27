@@ -24,7 +24,7 @@
     <string name="pair_pairing_msg">Пожалуйста введите этот PIN на PC:</string>
     <string name="pair_incorrect_pin">Неправильный PIN</string>
     <string name="pair_fail">Создание пары не удалось</string>
-	
+
     <!-- WOL messages -->
     <string name="wol_pc_online">Компьютер в сети</string>
     <string name="wol_no_mac">Невозможно разбудить PC потому что GFE не отправило MAC адрес</string>

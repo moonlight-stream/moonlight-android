@@ -175,7 +175,7 @@
     <string name="applist_menu_scut">Создать ярлык</string>
     <string name="category_input_settings">Настройки ввода</string>
     <string name="title_checkbox_touchscreen_trackpad">Использовать сенсор как тачпад</string>
-    <string name="summary_checkbox_touchscreen_trackpad">Если включено, сенсор выступает в роле тачпада. Если отключено, сенсор напрямую контролирует курсор мыши.</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Если включено, сенсор выступает в роли тачпада. Если отключено, сенсор напрямую контролирует курсор мыши.</string>
     <string name="delete_pc_msg">Вы уверены что хотите удалить этот PC?</string>
     <string name="pcview_menu_details">Детали</string>
     <string name="poor_connection_msg">Слабое соединение с PC</string>

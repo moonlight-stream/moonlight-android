@@ -104,7 +104,7 @@
     <string name="summary_checkbox_disable_warnings">Выключить экранные предупреждения о соединении во время трансляции</string>
 
     <string name="category_audio_settings">Аудио Настройки</string>
-    <string name="title_audio_config_list">Настроки объёмного звука</string>
+    <string name="title_audio_config_list">Настройка объёмного звука</string>
     <string name="summary_audio_config_list">Включить объёмный звук 5.1 или 7.1 для систем домашнего кинотеатра</string>
 
     <string name="title_checkbox_multi_controller">Поддержка нескольких контроллеров</string>

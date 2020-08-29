@@ -134,7 +134,6 @@
     <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_checkbox_stretch_video">Étirez la vidéo en plein écran</string>
     <string name="title_checkbox_disable_warnings">Désactiver les messages d\'avertissement</string>
-    <string name="summary_checkbox_disable_warnings">Désactiver les messages d\'avertissement de connexion à l\'écran pendant le streaming</string>
     <string name="title_checkbox_enable_pip">Activer le mode observateur dans l\'image</string>
     <string name="summary_checkbox_enable_pip">Permet de visualiser le flux (sans le contrôleur) tout en multitâche</string>
 
@@ -194,7 +193,6 @@
     <string name="category_advanced_settings">Réglages avancés</string>
     <string name="title_unlock_fps">Débloquez toutes les fréquences d'images possibles</string>
     <string name="summary_unlock_fps">Le streaming à 90 ou 120 FPS peut réduire la latence sur les appareils haut de gamme, mais peut entraîner un décalage ou une instabilité sur les appareils qui ne peuvent pas le prendre en charge</string>
-    <string name="title_checkbox_disable_warnings">Désactiver les messages d'avertissement</string>
     <string name="summary_checkbox_disable_warnings">Désactiver les messages d'avertissement de connexion à l'écran pendant la diffusion</string>
     <string name="title_disable_frame_drop">Ne jamais laisser tomber les frames</string>
     <string name="summary_disable_frame_drop">Peut réduire les micro-saccades sur certains appareils, mais peut augmenter la latence</string>

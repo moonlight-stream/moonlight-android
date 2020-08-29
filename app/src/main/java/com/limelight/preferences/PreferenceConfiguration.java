@@ -55,6 +55,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_HOST_AUDIO = false;
     private static final int DEFAULT_DEADZONE = 15;
     private static final int DEFAULT_OPACITY = 90;
+    private static final int DEFAULT_MAXPACKETSIZE = 1024;
     public static final String DEFAULT_LANGUAGE = "default";
     private static final boolean DEFAULT_MULTI_CONTROLLER = true;
     private static final boolean DEFAULT_USB_DRIVER = true;
@@ -364,7 +365,7 @@ public class PreferenceConfiguration {
             config.bitrate = getDefaultBitrate(context);
         }
 
-        config.maxPacketSize = prefs.getInt(MAXPACKETSIZE_PREF_STRING);
+        config.maxPacketSize = prefs.getInt(MAXPACKETSIZE_PREF_STRING, DEFAULT_MAXPACKETSIZE);
         if (config.maxPacketSize == 0) {
             config.maxPacketSize = getDefaultMaxPacketSize(context);
         }

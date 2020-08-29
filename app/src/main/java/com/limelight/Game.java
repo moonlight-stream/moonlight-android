@@ -449,6 +449,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
         }
 
+        boolean vpnActive = NetHelper.isActiveNetworkVpn(this);
+        if (vpnActive) {
+            LimeLog.info("Detected active network is a VPN");
+        }
+
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
                 .setLaunchRefreshRate(prefConfig.fps)
@@ -457,7 +462,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setBitrate(prefConfig.bitrate)
                 .setEnableSops(prefConfig.enableSops)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
-                .setMaxPacketSize(prefConfig.maxPacketSize) // Lower MTU on VPN
+                .setMaxPacketSize(prefConfig.maxPacketSize)
                 .setRemoteConfiguration(vpnActive ? // Use remote optimizations on VPN
                         StreamConfiguration.STREAM_CFG_REMOTE :
                         StreamConfiguration.STREAM_CFG_AUTO)

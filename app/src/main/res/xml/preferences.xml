@@ -23,10 +23,19 @@
             android:dialogMessage="@string/summary_seekbar_bitrate"
             seekbar:min="500"
             seekbar:step="500"
-            android:max="100000"
+            android:max="150000"
             android:summary="@string/summary_seekbar_bitrate"
             android:text="@string/suffix_seekbar_bitrate"
             android:title="@string/title_seekbar_bitrate" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_maxpacketsize_bytes"
+            android:dialogMessage="@string/summary_seekbar_maxpacketsize"
+            seekbar:min="1024"
+            seekbar:step="100"
+            android:max="65000"
+            android:summary="@string/summary_seekbar_maxpacketsize"
+            android:text="@string/suffix_seekbar_maxpacketsize"
+            android:title="@string/title_seekbar_maxpacketsize" />
         <CheckBoxPreference
             android:key="checkbox_stretch_video"
             android:title="@string/title_checkbox_stretch_video"

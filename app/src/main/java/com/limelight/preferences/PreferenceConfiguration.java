@@ -15,6 +15,7 @@ public class PreferenceConfiguration {
     static final String RESOLUTION_PREF_STRING = "list_resolution";
     static final String FPS_PREF_STRING = "list_fps";
     static final String BITRATE_PREF_STRING = "seekbar_bitrate_kbps";
+    static final String MAXPACKETSIZE_PREF_STRING = "seekbar_maxpacketsize_bytes";
     private static final String BITRATE_PREF_OLD_STRING = "seekbar_bitrate";
     private static final String STRETCH_PREF_STRING = "checkbox_stretch_video";
     private static final String SOPS_PREF_STRING = "checkbox_enable_sops";
@@ -86,6 +87,7 @@ public class PreferenceConfiguration {
 
     public int width, height, fps;
     public int bitrate;
+    public int maxPacketSize;
     public int videoFormat;
     public int deadzonePercentage;
     public int oscOpacity;
@@ -220,6 +222,15 @@ public class PreferenceConfiguration {
                 prefs.getString(FPS_PREF_STRING, DEFAULT_FPS));
     }
 
+    public static int getDefaultMaxPacketSize(Context context) {
+        boolean vpnActive = NetHelper.isActiveNetworkVpn(context);
+        if (vpnActive) {
+            LimeLog.info("Detected active network is a VPN");
+            return 1024;
+        }
+        return 1392;
+    }
+
     private static int getVideoFormatValue(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
@@ -245,6 +256,7 @@ public class PreferenceConfiguration {
         prefs.edit()
                 .remove(BITRATE_PREF_STRING)
                 .remove(BITRATE_PREF_OLD_STRING)
+                .remove(MAXPACKETSIZE_PREF_STRING)
                 .remove(LEGACY_RES_FPS_PREF_STRING)
                 .remove(RESOLUTION_PREF_STRING)
                 .remove(FPS_PREF_STRING)
@@ -348,6 +360,11 @@ public class PreferenceConfiguration {
         config.bitrate = prefs.getInt(BITRATE_PREF_STRING, prefs.getInt(BITRATE_PREF_OLD_STRING, 0) * 1000);
         if (config.bitrate == 0) {
             config.bitrate = getDefaultBitrate(context);
+        }
+
+        config.maxPacketSize = prefs.getInt(MAXPACKETSIZE_PREF_STRING);
+        if (config.maxPacketSize == 0) {
+            config.maxPacketSize = getDefaultMaxPacketSize(context);
         }
 
         String audioConfig = prefs.getString(AUDIO_CONFIG_PREF_STRING, DEFAULT_AUDIO_CONFIG);

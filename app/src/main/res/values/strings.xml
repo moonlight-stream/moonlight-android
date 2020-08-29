@@ -139,6 +139,9 @@
     <string name="title_seekbar_bitrate">Video bitrate</string>
     <string name="summary_seekbar_bitrate">Increase for better image quality. Decrease to improve performance on slower connections.</string>
     <string name="suffix_seekbar_bitrate">Kbps</string>
+    <string name="title_seekbar_maxpacketsize">Packet Size</string>
+    <string name="summary_seekbar_maxpacketsize">Increase for faster receive times.</string>
+    <string name="suffix_seekbar_maxpacketsize">bytes</string>
     <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
 
     <string name="category_audio_settings">Audio Settings</string>

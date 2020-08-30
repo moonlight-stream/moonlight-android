@@ -1596,6 +1596,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                                     message = getResources().getString(R.string.no_video_received_error);
                                     break;
 
+                                case MoonBridge.ML_ERROR_NO_VIDEO_FRAME:
+                                    message = getResources().getString(R.string.no_frame_received_error);
+                                    break;
+
                                 default:
                                     message = getResources().getString(R.string.conn_terminated_msg);
                                     break;

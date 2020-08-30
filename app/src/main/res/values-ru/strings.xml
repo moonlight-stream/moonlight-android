@@ -8,6 +8,14 @@
     <string name="pcview_menu_send_wol">Отправить Wake-On-LAN запрос</string>
     <string name="pcview_menu_delete_pc">Удалить PC</string>
 
+    <!-- Network test strings -->
+    <string name="nettest_title_waiting">Тестирование Сетевого Подключения</string>
+    <string name="nettest_text_waiting">Moonlight тестирует ваше сетевое подключение, чтобы определить, заблокирован ли NVIDIA GameStream.\n\nЭто может занять некоторое время…</string>
+    <string name="nettest_title_done">Тестирование Подключения Завершено</string>
+    <string name="nettest_text_success">Ваша сеть не блокирует Moonlight. Если у вас всё ещё есть проблемы с соединением, проверьте настройки брандмауэра на компьютере.\n\nЕсли вы пытаетесь транслировать через интернет, установите Moonlight Internet Hosting Tool на ваш компьютер и запустите установленный Internet Streaming Tester, чтобы проверить Интернет-соединение на вашем компьютере.</string>
+    <string name="nettest_text_inconclusive">Тестирование подключения не может быть выполнено, потому что сервера тестирования подключения Moonlight не доступны. Проверьте ваше Интернет-соединение или повторите попытку позже.</string>
+    <string name="nettest_text_failure">Похоже, что текущее сетевое подключение вашего устройства блокирует Moonlight. Трансляция через Интернет может не работать при подключении к этой сети.\n\nСледующие сетевые порты были заблокированы:\n</string>
+
     <!-- Pair messages -->
     <string name="pairing">Создание пары…</string>
     <string name="pair_pc_offline">Компьютер выключен или находится не в сети</string>
@@ -96,6 +104,8 @@
     <string name="summary_checkbox_disable_warnings">Выключить экранные предупреждения о соединении во время трансляции</string>
 
     <string name="category_audio_settings">Аудио Настройки</string>
+    <string name="title_audio_config_list">Настройка объёмного звука</string>
+    <string name="summary_audio_config_list">Включить объёмный звук 5.1 или 7.1 для систем домашнего кинотеатра</string>
 
     <string name="title_checkbox_multi_controller">Поддержка нескольких контроллеров</string>
     <string name="summary_checkbox_multi_controller">Когда отключена, все контроллеры определяются как один</string>
@@ -103,6 +113,8 @@
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Драйвер контроллеров Xbox 360/One</string>
     <string name="summary_checkbox_xb1_driver">Включить встроенный USB драйвер для устройств без собственной поддержки контроллеров Xbox</string>
+    <string name="title_checkbox_flip_face_buttons">Перевернуть кнопки A/B и X/Y</string>
+    <string name="summary_checkbox_flip_face_buttons">Меняет местами кнопки A/B и X/Y на геймпадах и экранных кнопках</string>
 
     <string name="category_ui_settings">Настройки Интерфейса</string>
     <string name="title_language_list">Язык</string>
@@ -124,6 +136,8 @@
     <string name="summary_checkbox_show_onscreen_controls">Отображать оверлей виртуального контроллера на сенсорном экране</string>
     <string name="title_only_l3r3">Показывать только L3 и R3</string>
     <string name="summary_only_l3r3">Скрывать все экранные кнопки кроме L3 и R3</string>
+    <string name="summary_osc_opacity">Сделать экранные кнопки более/менее прозрачными</string>
+    <string name="dialog_title_osc_opacity">Изменить прозрачность</string>
     <string name="scut_deleted_pc">PC удален</string>
     <string name="scut_not_paired">PC не сопряжен</string>
     <string name="help_loading_title">Просмотр Помощи</string>
@@ -152,12 +166,16 @@
     <string name="summary_disable_frame_drop">Может уменьшить микрозависания на некоторых устройствах, но также увеличить задержку</string>
     <string name="title_enable_hdr">Включить HDR (Экспериментально)</string>
     <string name="summary_enable_hdr">Транслировать в HDR если игра и GPU компьютера поддерживают это. HDR требует видеокарты GTX 1000 серии или более новой.</string>
+    <string name="title_enable_post_stream_toast">Показывать отчёт о задержке после трансляции</string>
+    <string name="summary_enable_post_stream_toast">Отобразить сообщение с информацией о задержке после окончания трансляции.</string>
 
     <string name="title_checkbox_vibrate_osc">Включить вибрацию</string>
     <string name="title_fps_list">Частота кадров</string>
     <string name="applist_menu_details">Детали</string>
     <string name="applist_menu_scut">Создать ярлык</string>
     <string name="category_input_settings">Настройки ввода</string>
+    <string name="title_checkbox_touchscreen_trackpad">Использовать сенсор как тачпад</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Если включено, сенсор выступает в роли тачпада. Если отключено, сенсор напрямую контролирует курсор мыши.</string>
     <string name="delete_pc_msg">Вы уверены что хотите удалить этот PC?</string>
     <string name="pcview_menu_details">Детали</string>
     <string name="poor_connection_msg">Слабое соединение с PC</string>

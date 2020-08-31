@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -134,6 +136,18 @@ public class ComputerManagerService extends Service {
                 dbManager.updateComputer(existingComputer);
             }
             else {
+                try {
+                    // If the active address is a site-local address (RFC 1918),
+                    // then use STUN to populate the external address field if
+                    // it's not set already.
+                    if (details.remoteAddress == null) {
+                        InetAddress addr = InetAddress.getByName(details.activeAddress);
+                        if (addr.isSiteLocalAddress()) {
+                            populateExternalAddress(details);
+                        }
+                    }
+                } catch (UnknownHostException ignored) {}
+
                 dbManager.updateComputer(details);
             }
         }

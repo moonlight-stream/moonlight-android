@@ -59,10 +59,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
-import android.util.DisplayMetrics;
 import android.util.Rational;
 import android.view.Display;
-import android.view.Gravity;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -1596,6 +1594,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                             switch (errorCode) {
                                 case MoonBridge.ML_ERROR_NO_VIDEO_TRAFFIC:
                                     message = getResources().getString(R.string.no_video_received_error);
+                                    break;
+
+                                case MoonBridge.ML_ERROR_NO_VIDEO_FRAME:
+                                    message = getResources().getString(R.string.no_frame_received_error);
                                     break;
 
                                 default:

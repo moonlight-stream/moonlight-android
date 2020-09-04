@@ -24,6 +24,7 @@
             seekbar:min="500"
             seekbar:step="500"
             android:max="100000"
+            seekbar:keyStep="1000"
             seekbar:divisor="1000"
             android:summary="@string/summary_seekbar_bitrate"
             android:text="@string/suffix_seekbar_bitrate_mbps"

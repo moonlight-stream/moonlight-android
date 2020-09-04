@@ -32,6 +32,7 @@ public class SeekBarPreference extends DialogPreference
     private final int maxValue;
     private final int minValue;
     private final int stepSize;
+    private final int keyStepSize;
     private final int divisor;
     private int currentValue;
 
@@ -63,6 +64,7 @@ public class SeekBarPreference extends DialogPreference
         minValue = attrs.getAttributeIntValue(SEEKBAR_SCHEMA_URL, "min", 1);
         stepSize = attrs.getAttributeIntValue(SEEKBAR_SCHEMA_URL, "step", 1);
         divisor = attrs.getAttributeIntValue(SEEKBAR_SCHEMA_URL, "divisor", 1);
+        keyStepSize = attrs.getAttributeIntValue(SEEKBAR_SCHEMA_URL, "keyStep", 0);
     }
 
     @Override
@@ -130,6 +132,9 @@ public class SeekBarPreference extends DialogPreference
         }
 
         seekBar.setMax(maxValue);
+        if (keyStepSize != 0) {
+            seekBar.setKeyProgressIncrement(keyStepSize);
+        }
         seekBar.setProgress(currentValue);
 
         return layout;
@@ -139,6 +144,9 @@ public class SeekBarPreference extends DialogPreference
     protected void onBindDialogView(View v) {
         super.onBindDialogView(v);
         seekBar.setMax(maxValue);
+        if (keyStepSize != 0) {
+            seekBar.setKeyProgressIncrement(keyStepSize);
+        }
         seekBar.setProgress(currentValue);
     }
 

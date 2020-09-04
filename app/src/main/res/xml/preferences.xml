@@ -24,8 +24,9 @@
             seekbar:min="500"
             seekbar:step="500"
             android:max="100000"
+            seekbar:divisor="1000"
             android:summary="@string/summary_seekbar_bitrate"
-            android:text="@string/suffix_seekbar_bitrate"
+            android:text="@string/suffix_seekbar_bitrate_mbps"
             android:title="@string/title_seekbar_bitrate" />
         <CheckBoxPreference
             android:key="checkbox_stretch_video"

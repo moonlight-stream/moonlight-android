@@ -122,7 +122,6 @@
     <string name="summary_fps_list"> 高帧数提升视频流流畅度。 \n 低帧数提升在低端设备中的串流体验。</string>													   																																	
     <string name="title_seekbar_bitrate"> 视频码率 </string>
     <string name="summary_seekbar_bitrate"> 高码率提升图像质量。 \n 低码率提升在较慢网络中的串流体验。 </string>
-    <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_unlock_fps"> 解锁所有可用帧数 </string>
     <string name="summary_unlock_fps"> 以90或120帧串流可能会减少在高端设备上的网络延迟，但会在不支持的设备上造成卡顿或崩溃。 </string>																																																														   
     <string name="title_checkbox_stretch_video"> 将画面拉伸至全屏 </string>

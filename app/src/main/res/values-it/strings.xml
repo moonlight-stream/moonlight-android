@@ -105,7 +105,6 @@
     <string name="summary_resolution_list">Valori troppo elevati possono causare lag o crash</string>
     <string name="title_seekbar_bitrate">Velocità di trasmissione video</string>
     <string name="summary_seekbar_bitrate">Abbassa la velocità di trasmissione per ridurre lo stuttering; alzala per migliorare la qualità dell\'immagine</string>
-    <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_checkbox_stretch_video">Forza video a schermo intero</string>
     <string name="title_checkbox_disable_warnings">Disabilita messaggi di warning</string>
     <string name="summary_checkbox_disable_warnings">Disabilita i messaggi di warning sullo schermo durante lo streaming</string>

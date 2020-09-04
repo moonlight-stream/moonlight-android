@@ -42,6 +42,7 @@ public class MoonBridge {
 
     public static final int ML_ERROR_GRACEFUL_TERMINATION = 0;
     public static final int ML_ERROR_NO_VIDEO_TRAFFIC = -100;
+    public static final int ML_ERROR_NO_VIDEO_FRAME = -101;
 
     public static final int ML_PORT_INDEX_TCP_47984 = 0;
     public static final int ML_PORT_INDEX_TCP_47989 = 1;

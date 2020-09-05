@@ -1,0 +1,4 @@
+- Hiding games now only takes effect after returning to the app list
+- Display a warning if the connection is too unstable to stream
+- Increase maximum bitrate to 150 Mbps for Ethernet-connected devices
+- Update Russian and French translations

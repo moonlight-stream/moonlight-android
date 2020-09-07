@@ -122,7 +122,6 @@
     <string name="summary_fps_list"> 高幀數提升視頻流流暢度。 \n 低幀數提升在低端設備中的串流體驗。</string>													   																																	
     <string name="title_seekbar_bitrate"> 視頻碼率 </string>
     <string name="summary_seekbar_bitrate"> 高碼率提升圖像品質。 \n 低碼率提升在較慢網路中的串流體驗。 </string>
-    <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_unlock_fps"> 解鎖所有可用幀數 </string>
     <string name="summary_unlock_fps"> 以90或120幀串流可能會減少在高端設備上的網路延遲，但會在不支援的設備上造成卡頓或崩潰。 </string>																																																														   
     <string name="title_checkbox_stretch_video"> 將畫面拉伸至全屏 </string>

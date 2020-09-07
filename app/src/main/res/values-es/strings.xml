@@ -88,7 +88,6 @@
     <string name="summary_resolution_list">Establecer unos valores demasiado altos puede causar lag o cierres inesperados</string>
     <string name="title_seekbar_bitrate">Seleccionar bitrate de vídeo</string>
     <string name="summary_seekbar_bitrate">Usa bitrate bajo para reducir "parpadeo". Incrementa el bitrate para mayor calidad de imagen.</string>
-    <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_checkbox_stretch_video">Ajustar vídeo a pantalla completa</string>
     <string name="title_checkbox_disable_warnings">Desactivar mensajes de advertencia</string>
     <string name="summary_checkbox_disable_warnings">Desactivar mensajes de advertencia en pantalla durante la transmisión</string>

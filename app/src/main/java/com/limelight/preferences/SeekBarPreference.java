@@ -14,6 +14,8 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import java.util.Locale;
+
 // Based on a Stack Overflow example: http://stackoverflow.com/questions/1974193/slider-on-my-preferencescreen
 public class SeekBarPreference extends DialogPreference
 {
@@ -30,6 +32,8 @@ public class SeekBarPreference extends DialogPreference
     private final int maxValue;
     private final int minValue;
     private final int stepSize;
+    private final int keyStepSize;
+    private final int divisor;
     private int currentValue;
 
     public SeekBarPreference(Context context, AttributeSet attrs) {
@@ -59,6 +63,8 @@ public class SeekBarPreference extends DialogPreference
         maxValue = attrs.getAttributeIntValue(ANDROID_SCHEMA_URL, "max", 100);
         minValue = attrs.getAttributeIntValue(SEEKBAR_SCHEMA_URL, "min", 1);
         stepSize = attrs.getAttributeIntValue(SEEKBAR_SCHEMA_URL, "step", 1);
+        divisor = attrs.getAttributeIntValue(SEEKBAR_SCHEMA_URL, "divisor", 1);
+        keyStepSize = attrs.getAttributeIntValue(SEEKBAR_SCHEMA_URL, "keyStep", 0);
     }
 
     @Override
@@ -101,7 +107,14 @@ public class SeekBarPreference extends DialogPreference
                     return;
                 }
 
-                String t = String.valueOf(value);
+                String t;
+                if (divisor != 1) {
+                    float floatValue = roundedValue / (float)divisor;
+                    t = String.format((Locale)null, "%.1f", floatValue);
+                }
+                else {
+                    t = String.valueOf(value);
+                }
                 valueText.setText(suffix == null ? t : t.concat(suffix.length() > 1 ? " "+suffix : suffix));
             }
 
@@ -119,6 +132,9 @@ public class SeekBarPreference extends DialogPreference
         }
 
         seekBar.setMax(maxValue);
+        if (keyStepSize != 0) {
+            seekBar.setKeyProgressIncrement(keyStepSize);
+        }
         seekBar.setProgress(currentValue);
 
         return layout;
@@ -128,6 +144,9 @@ public class SeekBarPreference extends DialogPreference
     protected void onBindDialogView(View v) {
         super.onBindDialogView(v);
         seekBar.setMax(maxValue);
+        if (keyStepSize != 0) {
+            seekBar.setKeyProgressIncrement(keyStepSize);
+        }
         seekBar.setProgress(currentValue);
     }
 

@@ -120,7 +120,6 @@
     <string name="summary_fps_list">Crește-o pentru a îmbunătăți fluiditatea imaginilor. Descrește-o pentru dispozitive neperformante sau conexiune slabă.</string>
     <string name="title_seekbar_bitrate">Rata de biți</string>
     <string name="summary_seekbar_bitrate">Crește-o pentru a îmbunătăți calitatea imaginilor. Descrește-o pentru dispozitive neperformante sau conexiune slabă.</string>
-    <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_unlock_fps">Deblochează toate ratele de cadre posibile</string>
     <string name="summary_unlock_fps">Fluxul video de rate mai mari poate reduce latența folosind dispozitive performante, dar poate introduce erori daca nu sunt suportate.</string>
     <string name="title_checkbox_stretch_video">Întindeți video pe ecranul complet</string>

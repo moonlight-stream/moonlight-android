@@ -90,7 +90,6 @@
     <string name="summary_resolution_list">Вибір занадто високого значеня для свого пристрою може викликати гальма або вильоти</string>
     <string name="title_seekbar_bitrate">Виберіть бітрейт відео</string>
     <string name="summary_seekbar_bitrate">Низький бітрейт зменшить зависання. Збільшення бітрейта поліпшить якість зображення.</string>
-    <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_checkbox_stretch_video">Розтягувати відео на весь екран</string>
     <string name="title_checkbox_disable_warnings">Відключити повідомлення з попередженнями</string>
     <string name="summary_checkbox_disable_warnings">Вимкнути екранні попередження про з\'єднання під час трансляції</string>

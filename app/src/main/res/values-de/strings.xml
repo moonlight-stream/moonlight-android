@@ -121,7 +121,6 @@
     <string name="summary_fps_list">Erhöhen für einen gleichmäßigeren Video-Stream. Verringern um auf langsameren Geräten eine bessere Performance zu erzielen.</string>
     <string name="title_seekbar_bitrate">Video bitrate</string>
     <string name="summary_seekbar_bitrate">Erhöhen für einen schärferen Video-Stream. Verringern um auf langsameren Geräten eine bessere Performance zu erzielen.</string>
-    <string name="suffix_seekbar_bitrate">Kbps</string>
     <string name="title_unlock_fps">Alle Bildwiederholungsraten freigeben</string>
     <string name="summary_unlock_fps">Streaming mit 90 oder 120 FPS reduziert gegebenfalls die Latenz auf High-End Geräten, für jedoch zu Crashes oder Lag auf Geräten die dies nicht untersützen können.</string>
     <string name="title_checkbox_stretch_video">Video auf den ganzen Bildschirm ausdehnen</string>

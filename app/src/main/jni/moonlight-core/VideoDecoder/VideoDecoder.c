@@ -26,6 +26,7 @@
 
 // API 28 Support
 #define VD_USE_CACHE 1
+#define INPUTBUFFER_SUBMIT_IMMEDIATE 1
 
 static const bool USE_FRAME_RENDER_TIME = false;
 static const bool FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
@@ -184,6 +185,7 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
         LOGT("[test] Push to codec [%d]%d buffer %p", index, inputBuffer->index, inputBuffer->buffer);
 
         // 立即提交
+#if INPUTBUFFER_SUBMIT_IMMEDIATE
         index = inputBuffer->index;
         inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
         inputBuffer->index = -1;
@@ -191,9 +193,10 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
         inputBuffer->bufsize = 0;
         inputBuffer->codecFlags = 0;
         inputBuffer->timestampUs = 0;
-
+#else
         // or 异步提交 貌似会卡死
-        //  index = -1;
+        index = -1;
+#endif
 
     } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
 
@@ -237,6 +240,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
     return outputIndex;
 }
 
+#if VD_USE_CACHE
 // static
 void OnInputAvailableCB(
         AMediaCodec *  aMediaCodec ,
@@ -244,7 +248,6 @@ void OnInputAvailableCB(
         int32_t index) {
     LOGT("OnInputAvailableCB: index(%d)", index);
 
-#if VD_USE_CACHE
     VideoDecoder* videoDecoder = (VideoDecoder*)userdata;
     pthread_mutex_lock(&videoDecoder->inputCacheLock); {
         for (int i = 0; i < InputBufferCacheSize; i++) {
@@ -260,7 +263,6 @@ void OnInputAvailableCB(
         }
 
     } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
-#endif
 
 //    sp<AMessage> msg = sp<AMessage>((AMessage *)userdata)->dup();
 //    msg->setInt32("callbackID", CB_INPUT_AVAILABLE);
@@ -277,7 +279,6 @@ void OnOutputAvailableCB(
           index, bufferInfo->offset, bufferInfo->size,
           (long long)bufferInfo->presentationTimeUs, bufferInfo->flags);
 
-#if VD_USE_CACHE
     VideoDecoder* videoDecoder = (VideoDecoder*)userdata;
     pthread_mutex_lock(&videoDecoder->outputCacheLock); {
         for (int i = 0; i < OutputBufferCacheSize; i++) {
@@ -293,7 +294,6 @@ void OnOutputAvailableCB(
     } pthread_mutex_unlock(&videoDecoder->outputCacheLock);
 
     sem_post(&videoDecoder->rendering_sem);
-#endif
 
 //    sp<AMessage> msg = sp<AMessage>((AMessage *)userdata)->dup();
 //    msg->setInt32("callbackID", CB_OUTPUT_AVAILABLE);
@@ -327,6 +327,7 @@ void OnErrorCB(
     LOGT("OnErrorCB: err(%d), actionCode(%d), detail(%s)", err, actionCode, detail);
 
 }
+#endif
 
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* decoderName, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency, bool adaptivePlayback, bool maxOperatingRate) {
 
@@ -658,7 +659,9 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     pthread_attr_init(&attr);
 
     pthread_create(&pid, &attr, rendering_thread, videoDecoder);
+#if !INPUTBUFFER_SUBMIT_IMMEDIATE
     pthread_create(&pid, &attr, queuing_thread, videoDecoder);
+#endif
 
     // Set current
     currentVideoDecoder = videoDecoder;

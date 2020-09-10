@@ -166,7 +166,7 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     size_t tempBufsize;
     void* tempBuffer = 0;
 
-    VideoDecoder_getTempBuffer(&tempBuffer, &tempBufsize);
+//    VideoDecoder_getTempBuffer(&tempBuffer, &tempBufsize);
 //    LOGT("[test] fuck %p", tempBuffer);
 
     if (!tempBuffer)

@@ -221,6 +221,8 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 
 #if VD_USE_CACHE
 
+    const bool drop_enabled = true; // 丢弃多余的帧
+
     long start_time = getTimeUsec();
     long usTimeout = timeoutUs;//1000000 / videoDecoder->refreshRate;
     bool exit = false;
@@ -228,27 +230,44 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
         pthread_mutex_lock(&videoDecoder->outputCacheLock); {
 
             int validCount = 0;
-            VideoOutputBuffer* validBuffer = 0;
+            VideoOutputBuffer* minBuffer = 0;
+            VideoOutputBuffer* maxBuffer = 0;
+            
             for (int i = 0; i < OutputBufferCacheSize; i++) {
                 VideoOutputBuffer* outputBuffer = &videoDecoder->outputBufferCache[i];
                 if (outputBuffer->status == OUTPUT_BUFFER_STATUS_WORKING) {
 
-                    if (validBuffer == 0) {
-                        validBuffer = outputBuffer;
-                    } else if (outputBuffer->bufferInfo.presentationTimeUs < validBuffer->bufferInfo.presentationTimeUs) {
-                        validBuffer = outputBuffer;
+                    int64_t presentationTimeUs = outputBuffer->bufferInfo.presentationTimeUs;
+
+                    if (minBuffer == 0) {
+                        minBuffer = outputBuffer;
+                    } else if (presentationTimeUs < minBuffer->bufferInfo.presentationTimeUs) {
+                        minBuffer = outputBuffer;
                     }
-                    validCount ++;
+
+                    if (maxBuffer == 0) {
+                        maxBuffer = outputBuffer;
+                    } else if (presentationTimeUs > maxBuffer->bufferInfo.presentationTimeUs) {
+                        maxBuffer = outputBuffer;
+                    }
+
+                    // 丢弃，直接导致界面显示的解码时间边长
+                    if (drop_enabled && minBuffer != maxBuffer && outputBuffer != minBuffer && outputBuffer != maxBuffer) {
+                        AMediaCodec_releaseOutputBuffer(videoDecoder->codec, outputBuffer->index, false);
+                        LOGT("[test] drop")
+                    } else {
+                        validCount ++;
+                    }
                 }
             }
 
-            if (validBuffer) {
+            if (minBuffer) {
                 long currentTime = getTimeUsec();
                 bool isTimeout = (currentTime - start_time) >= usTimeout;
                 if (validCount >= 2 || isTimeout) {
-                    validBuffer->status = OUTPUT_BUFFER_STATUS_INVALID;
-                    outputIndex = validBuffer->index;
-                    *info = validBuffer->bufferInfo;
+                    minBuffer->status = OUTPUT_BUFFER_STATUS_INVALID;
+                    outputIndex = minBuffer->index;
+                    *info = minBuffer->bufferInfo;
                     exit = true;
                 }
             }

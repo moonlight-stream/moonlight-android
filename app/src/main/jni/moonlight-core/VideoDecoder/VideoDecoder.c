@@ -222,14 +222,23 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 #if VD_USE_CACHE
     pthread_mutex_lock(&videoDecoder->outputCacheLock); {
 
+        VideoOutputBuffer* validBuffer = 0;
         for (int i = 0; i < OutputBufferCacheSize; i++) {
             VideoOutputBuffer* outputBuffer = &videoDecoder->outputBufferCache[i];
             if (outputBuffer->status == OUTPUT_BUFFER_STATUS_WORKING) {
-                outputBuffer->status = OUTPUT_BUFFER_STATUS_INVALID;
-                outputIndex = outputBuffer->index;
-                *info = outputBuffer->bufferInfo;
-                break;
+
+                if (validBuffer == 0) {
+                    validBuffer = outputBuffer;
+                } else if (outputBuffer->bufferInfo.presentationTimeUs < validBuffer->bufferInfo.presentationTimeUs) {
+                    validBuffer = outputBuffer;
+                }
             }
+        }
+
+        if (validBuffer) {
+            validBuffer->status = OUTPUT_BUFFER_STATUS_INVALID;
+            outputIndex = validBuffer->index;
+            *info = validBuffer->bufferInfo;
         }
         
     } pthread_mutex_unlock(&videoDecoder->outputCacheLock);

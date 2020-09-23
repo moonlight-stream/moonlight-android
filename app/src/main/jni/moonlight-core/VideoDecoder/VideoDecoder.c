@@ -338,6 +338,17 @@ void OnOutputAvailableCB(
 
     } pthread_mutex_unlock(&videoDecoder->outputCacheLock);
 
+    // 解码完成
+    videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
+    // Add delta time to the totals (excluding probable outliers)
+    long delta = (getTimeUsec() - bufferInfo->presentationTimeUs) / 1000;
+    if (delta >= 0 && delta < 1000) {
+        videoDecoder->activeWindowVideoStats.decoderTimeMs += delta;
+        if (!USE_FRAME_RENDER_TIME) {
+            videoDecoder->activeWindowVideoStats.totalTimeMs += delta;
+        }
+    }
+
     sem_post(&videoDecoder->rendering_sem);
 
 //    sp<AMessage> msg = sp<AMessage>((AMessage *)userdata)->dup();
@@ -617,16 +628,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                 AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
             } else {
                 AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
-            }
-
-            videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
-            // Add delta time to the totals (excluding probable outliers)
-            long delta = (getTimeUsec() - presentationTimeUs) / 1000;
-            if (delta >= 0 && delta < 1000) {
-                videoDecoder->activeWindowVideoStats.decoderTimeMs += delta;
-                if (!USE_FRAME_RENDER_TIME) {
-                    videoDecoder->activeWindowVideoStats.totalTimeMs += delta;
-                }
             }
 
 #ifdef LC_DEBUG

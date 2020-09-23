@@ -7,8 +7,8 @@ android {
         minSdkVersion 28 // 16
         targetSdkVersion 30
 
-        versionName "9.7.4"
-        versionCode = 238
+        versionName "9.7.3"
+        versionCode = 243
         signingConfig signingConfigs.debug
     }
 

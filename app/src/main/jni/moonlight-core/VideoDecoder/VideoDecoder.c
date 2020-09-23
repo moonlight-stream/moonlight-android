@@ -220,28 +220,45 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
     int outputIndex = -1;
 
 #if VD_USE_CACHE
-    pthread_mutex_lock(&videoDecoder->outputCacheLock); {
 
-        VideoOutputBuffer* validBuffer = 0;
-        for (int i = 0; i < OutputBufferCacheSize; i++) {
-            VideoOutputBuffer* outputBuffer = &videoDecoder->outputBufferCache[i];
-            if (outputBuffer->status == OUTPUT_BUFFER_STATUS_WORKING) {
+    long start_time = getTimeUsec();
+    long usTimeout = timeoutUs;//1000000 / videoDecoder->refreshRate;
+    bool exit = false;
+    while(!exit) {
+        pthread_mutex_lock(&videoDecoder->outputCacheLock); {
 
-                if (validBuffer == 0) {
-                    validBuffer = outputBuffer;
-                } else if (outputBuffer->bufferInfo.presentationTimeUs < validBuffer->bufferInfo.presentationTimeUs) {
-                    validBuffer = outputBuffer;
+            int validCount = 0;
+            VideoOutputBuffer* validBuffer = 0;
+            for (int i = 0; i < OutputBufferCacheSize; i++) {
+                VideoOutputBuffer* outputBuffer = &videoDecoder->outputBufferCache[i];
+                if (outputBuffer->status == OUTPUT_BUFFER_STATUS_WORKING) {
+
+                    if (validBuffer == 0) {
+                        validBuffer = outputBuffer;
+                    } else if (outputBuffer->bufferInfo.presentationTimeUs < validBuffer->bufferInfo.presentationTimeUs) {
+                        validBuffer = outputBuffer;
+                    }
+                    validCount ++;
                 }
             }
-        }
 
-        if (validBuffer) {
-            validBuffer->status = OUTPUT_BUFFER_STATUS_INVALID;
-            outputIndex = validBuffer->index;
-            *info = validBuffer->bufferInfo;
-        }
-        
-    } pthread_mutex_unlock(&videoDecoder->outputCacheLock);
+            if (validBuffer) {
+                long currentTime = getTimeUsec();
+                bool isTimeout = (currentTime - start_time) >= usTimeout;
+                if (validCount >= 2 || isTimeout) {
+                    validBuffer->status = OUTPUT_BUFFER_STATUS_INVALID;
+                    outputIndex = validBuffer->index;
+                    *info = validBuffer->bufferInfo;
+                    exit = true;
+                }
+            }
+
+        } pthread_mutex_unlock(&videoDecoder->outputCacheLock);
+
+        if (!exit)
+            usleep(1000);
+    }
+
 #else
     outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, timeoutUs); // -1 to block test
 #endif
@@ -544,12 +561,15 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     // Try to output a frame
     AMediaCodecBufferInfo info;
 
+    long usTimeout = 1000000 / videoDecoder->refreshRate;
+    long lastRenderingTimeUs = getTimeUsec();
+
     while(!videoDecoder->stopping) {
 
-        sem_wait(&videoDecoder->rendering_sem);
-        if (videoDecoder->stopping) break;
+//        sem_wait(&videoDecoder->rendering_sem);
+        // if (videoDecoder->stopping) break;
 
-        int outIndex = dequeueOutputBuffer(videoDecoder, &info, 50000); // -1 to block test
+        int outIndex = dequeueOutputBuffer(videoDecoder, &info, usTimeout); // -1 to block test
         if (outIndex >= 0) {
 
             long presentationTimeUs = info.presentationTimeUs;
@@ -561,18 +581,18 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 #endif
 
             // Skip frame if need
-            VideoStats lastTwo = {0};
-            VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
-            VideoStats_add(&lastTwo, &videoDecoder->activeWindowVideoStats);
-            VideoStatsFps fps = VideoStats_getFps(&lastTwo);
-            if (fps.renderedFps < fps.receivedFps)
-            {
-                while ((outIndex = dequeueOutputBuffer(videoDecoder, &info, 0)) >= 0) {
-                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-                    lastIndex = outIndex;
-                    presentationTimeUs = info.presentationTimeUs;
-                }
-            }
+//            VideoStats lastTwo = {0};
+//            VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
+//            VideoStats_add(&lastTwo, &videoDecoder->activeWindowVideoStats);
+//            VideoStatsFps fps = VideoStats_getFps(&lastTwo);
+//            if (fps.renderedFps < fps.receivedFps)
+//            {
+//                while ((outIndex = dequeueOutputBuffer(videoDecoder, &info, 0)) >= 0) {
+//                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+//                    lastIndex = outIndex;
+//                    presentationTimeUs = info.presentationTimeUs;
+//                }
+//            }
 
             if (videoDecoder->legacyFrameDropRendering) {
                 AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
@@ -594,7 +614,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             LOGT("[test] - 渲染: [%d] %ld 间隔 %d ms 解码用时 %d ms", lastIndex, presentationTimeUs/1000, (start_time - prevRenderingTime)/1000, delta);
             prevRenderingTime = start_time;
 #endif
-
+//            usleep(1000000 / videoDecoder->refreshRate);
             
         } else {
 
@@ -620,7 +640,19 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             }
 
             LOGD("rendering_thread: Rendering pass %d", outIndex);
+
+//            usleep(1000);
         }
+
+        long currentTimeUs = getTimeUsec();
+        long renderingTimeUs = currentTimeUs - lastRenderingTimeUs; // 渲染时间
+
+        usTimeout = 1000000 / videoDecoder->refreshRate;
+        if (renderingTimeUs > usTimeout)
+            usTimeout = usTimeout * 2 - renderingTimeUs;
+        
+        LOGT("[test] usTimeout %d %d", usTimeout, renderingTimeUs);
+        lastRenderingTimeUs = currentTimeUs;
     }
     
     if (videoDecoder->stopCallback) {
@@ -1154,11 +1186,11 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     inputBufPos += decodeUnitLength;
 
-    int delay = 1000000/videoDecoder->refreshRate - callDif;
-    if (delay > 2000) {
-        usleep(delay);
-        LOGT("[test] usleep用时 %d ms", delay/1000);
-    }
+//    int delay = 1000000/videoDecoder->refreshRate - callDif;
+//    if (delay > 2000) {
+//        usleep(delay);
+//        LOGT("[test] usleep用时 %d ms", delay/1000);
+//    }
 
     if (!_queueInputBuffer2(videoDecoder, inputBufferIndex, inputBufPos,
             timestampUs, codecFlags)) {

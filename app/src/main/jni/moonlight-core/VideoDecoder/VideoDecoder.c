@@ -222,6 +222,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 #if VD_USE_CACHE
 
     const bool drop_enabled = true; // 丢弃多余的帧
+    const long delay_timeUs = 1000;
 
     long start_time = getTimeUsec();
     long usTimeout = timeoutUs;//1000000 / videoDecoder->refreshRate;
@@ -264,7 +265,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 
             if (minBuffer) {
                 long currentTime = getTimeUsec();
-                bool isTimeout = (currentTime - start_time) >= usTimeout;
+                bool isTimeout = (currentTime - start_time) > (usTimeout - delay_timeUs); // 提前1ms判断超时
                 if (validCount >= 2 || isTimeout) {
                     minBuffer->status = OUTPUT_BUFFER_STATUS_INVALID;
                     outputIndex = minBuffer->index;
@@ -274,11 +275,15 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
                     LOGT("[test] usTimeout0 %d %d", validCount, isTimeout);
                 }
             }
+//            else {
+//                long currentTime = getTimeUsec();
+//                LOGT("[test] usTimeout0 no buffer %d %d", validCount, (currentTime - start_time));
+//            }
 
         } pthread_mutex_unlock(&videoDecoder->outputCacheLock);
 
         if (!exit)
-            usleep(1000);
+            usleep(delay_timeUs);
     }
 
 #else
@@ -617,21 +622,25 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             long currentTimeUs = getTimeUsec();
             long renderingTimeUs = currentTimeUs - lastRenderingTimeUs; // 拿到帧花费的时间
-            // long needDelay = usTimeout - renderingTimeUs;
-            // // 额外需要的延迟等待，然后再提交显示
-            // if (needDelay > 0) {
-            //     usleep(needDelay);
-            // }
+
+            // 额外需要的延迟等待，然后再提交显示。
+            // 此举将固定帧获取时间，并极大概率使缓冲区始终存在2个解码成功的帧，并第一时间返回，然后在这里进行等待，这等待过程中，会有另一个完成的帧，以此良性循环。
+            {
+                long needDelay = usTimeout - renderingTimeUs;
+                if (needDelay > 0) {
+                    usleep(needDelay);
+
+                    currentTimeUs += needDelay;
+                    renderingTimeUs += needDelay;
+                }
+            }
 
             usTimeout = 1000000 / videoDecoder->refreshRate;
             if (renderingTimeUs > usTimeout)
                 usTimeout = usTimeout * 2 - renderingTimeUs;
 
-            
             LOGT("[test] usTimeout %d %d", usTimeout, renderingTimeUs);
             lastRenderingTimeUs = currentTimeUs;
-
-            
 
             if (videoDecoder->legacyFrameDropRendering) {
                 AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());

@@ -182,7 +182,7 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 
         inputBuffer->status = INPUT_BUFFER_STATUS_QUEUING;
 
-        LOGT("[test] Push to codec [%d]%d buffer %p", index, inputBuffer->index, inputBuffer->buffer);
+        LOGT("[test] Push to codec [%d]%d buffer %p codecFlags %d", index, inputBuffer->index, inputBuffer->buffer, codecFlags);
 
         // 立即提交
 #if INPUTBUFFER_SUBMIT_IMMEDIATE
@@ -357,8 +357,6 @@ void OnOutputAvailableCB(
         }
     }
 
-    sem_post(&videoDecoder->rendering_sem);
-
 //    sp<AMessage> msg = sp<AMessage>((AMessage *)userdata)->dup();
 //    msg->setInt32("callbackID", CB_OUTPUT_AVAILABLE);
 //    msg->setInt32("index", index);
@@ -467,8 +465,6 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     pthread_mutex_init(&videoDecoder->inputCacheLock, 0);
     pthread_mutex_init(&videoDecoder->outputCacheLock, 0);
     
-    sem_init(&videoDecoder->rendering_sem, 0, 0);
-
     // Initialize
     for (int i = 0; i < __BUFFER_MAX; i++) {
         FrameBuffer framebuffer;
@@ -521,8 +517,6 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
     pthread_mutex_destroy(&videoDecoder->lock);
     pthread_mutex_destroy(&videoDecoder->inputCacheLock);
     pthread_mutex_destroy(&videoDecoder->outputCacheLock);
-
-    sem_destroy(&videoDecoder->rendering_sem);
 
     free(videoDecoder->inputBufferCache);
 
@@ -604,19 +598,11 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
     while(!videoDecoder->stopping) {
 
-//        sem_wait(&videoDecoder->rendering_sem);
-        // if (videoDecoder->stopping) break;
-
         int outIndex = dequeueOutputBuffer(videoDecoder, &info, usTimeout); // -1 to block test
         if (outIndex >= 0) {
 
             long presentationTimeUs = info.presentationTimeUs;
             int lastIndex = outIndex;
-
-#ifdef LC_DEBUG
-            static long prevRenderingTime = 0;
-            long start_time = getTimeUsec();
-#endif
 
             // Skip frame code move into dequeueOutputBuffer
 
@@ -642,18 +628,20 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             LOGT("[test] usTimeout %d %d", usTimeout, renderingTimeUs);
             lastRenderingTimeUs = currentTimeUs;
 
+#ifdef LC_DEBUG
+            static long prevRenderingTime = 0;
+            long start_time = getTimeUsec();
+
+            LOGT("[test] - 渲染: [%d] %ld 间隔 %ld us %ld %ld", lastIndex, presentationTimeUs/1000, (start_time - prevRenderingTime), start_time, lastRenderingTimeUs);
+            prevRenderingTime = start_time;
+#endif
+
             if (videoDecoder->legacyFrameDropRendering) {
                 AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
             } else {
                 AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
             }
 
-#ifdef LC_DEBUG
-            LOGT("[test] - 渲染: [%d] %ld 间隔 %d ms", lastIndex, presentationTimeUs/1000, (start_time - prevRenderingTime)/1000);
-            prevRenderingTime = start_time;
-#endif
-//            usleep(1000000 / videoDecoder->refreshRate);
-            
         } else {
 
             #define INFO_OUTPUT_BUFFERS_CHANGED -3
@@ -678,8 +666,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             }
 
             LOGD("rendering_thread: Rendering pass %d", outIndex);
-
-//            usleep(1000);
         }
     }
     
@@ -749,7 +735,6 @@ void VideoDecoder_stop(VideoDecoder* videoDecoder) {
 
     videoDecoder->stopping = true;
     sem_post(&videoDecoder->queuing_sem);
-    sem_post(&videoDecoder->rendering_sem);
 }
 
 typedef enum {

@@ -38,7 +38,7 @@ static uint8_t* decodedFrameBufferLength;
 
 #include <moonlight-common-c/src/Platform.h>
 #   include <android/log.h>
-#   define  LOG_TAG    "glhook"
+#   define  LOG_TAG    "moonlight"
 #   define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
 void DetachThread(void* context) {

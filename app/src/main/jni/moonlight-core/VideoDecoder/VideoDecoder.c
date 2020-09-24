@@ -226,7 +226,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
     long start_time = getTimeUsec();
     long usTimeout = timeoutUs;//1000000 / videoDecoder->refreshRate;
     bool exit = false;
-    while(!exit) {
+    while(!exit && !videoDecoder->stopping) {
         pthread_mutex_lock(&videoDecoder->outputCacheLock); {
 
             int validCount = 0;
@@ -253,6 +253,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 
                     // 丢弃，直接导致界面显示的解码时间边长
                     if (drop_enabled && minBuffer != maxBuffer && outputBuffer != minBuffer && outputBuffer != maxBuffer) {
+                        outputBuffer->status = OUTPUT_BUFFER_STATUS_INVALID;
                         AMediaCodec_releaseOutputBuffer(videoDecoder->codec, outputBuffer->index, false);
                         LOGT("[test] drop")
                     } else {
@@ -269,6 +270,8 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
                     outputIndex = minBuffer->index;
                     *info = minBuffer->bufferInfo;
                     exit = true;
+
+                    LOGT("[test] usTimeout0 %d %d", validCount, isTimeout);
                 }
             }
 
@@ -610,19 +613,25 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             long start_time = getTimeUsec();
 #endif
 
-            // Skip frame if need
-//            VideoStats lastTwo = {0};
-//            VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
-//            VideoStats_add(&lastTwo, &videoDecoder->activeWindowVideoStats);
-//            VideoStatsFps fps = VideoStats_getFps(&lastTwo);
-//            if (fps.renderedFps < fps.receivedFps)
-//            {
-//                while ((outIndex = dequeueOutputBuffer(videoDecoder, &info, 0)) >= 0) {
-//                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-//                    lastIndex = outIndex;
-//                    presentationTimeUs = info.presentationTimeUs;
-//                }
-//            }
+            // Skip frame code move into dequeueOutputBuffer
+
+            long currentTimeUs = getTimeUsec();
+            long renderingTimeUs = currentTimeUs - lastRenderingTimeUs; // 拿到帧花费的时间
+            // long needDelay = usTimeout - renderingTimeUs;
+            // // 额外需要的延迟等待，然后再提交显示
+            // if (needDelay > 0) {
+            //     usleep(needDelay);
+            // }
+
+            usTimeout = 1000000 / videoDecoder->refreshRate;
+            if (renderingTimeUs > usTimeout)
+                usTimeout = usTimeout * 2 - renderingTimeUs;
+
+            
+            LOGT("[test] usTimeout %d %d", usTimeout, renderingTimeUs);
+            lastRenderingTimeUs = currentTimeUs;
+
+            
 
             if (videoDecoder->legacyFrameDropRendering) {
                 AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
@@ -631,7 +640,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             }
 
 #ifdef LC_DEBUG
-            LOGT("[test] - 渲染: [%d] %ld 间隔 %d ms 解码用时 %d ms", lastIndex, presentationTimeUs/1000, (start_time - prevRenderingTime)/1000, delta);
+            LOGT("[test] - 渲染: [%d] %ld 间隔 %d ms", lastIndex, presentationTimeUs/1000, (start_time - prevRenderingTime)/1000);
             prevRenderingTime = start_time;
 #endif
 //            usleep(1000000 / videoDecoder->refreshRate);
@@ -663,16 +672,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
 //            usleep(1000);
         }
-
-        long currentTimeUs = getTimeUsec();
-        long renderingTimeUs = currentTimeUs - lastRenderingTimeUs; // 渲染时间
-
-        usTimeout = 1000000 / videoDecoder->refreshRate;
-        if (renderingTimeUs > usTimeout)
-            usTimeout = usTimeout * 2 - renderingTimeUs;
-        
-        LOGT("[test] usTimeout %d %d", usTimeout, renderingTimeUs);
-        lastRenderingTimeUs = currentTimeUs;
     }
     
     if (videoDecoder->stopCallback) {

@@ -63,7 +63,7 @@ typedef struct {
     char* infoBuffer;
     VideoInputBuffer* inputBufferCache;
     VideoOutputBuffer* outputBufferCache;
-    sem_t queuing_sem;
+    // sem_t queuing_sem;
 
     pthread_mutex_t inputCacheLock;
     pthread_mutex_t outputCacheLock;

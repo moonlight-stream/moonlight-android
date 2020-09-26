@@ -444,7 +444,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     // Use the old rendering strategy on these broken devices
                     decoderRenderer.enableLegacyFrameDropRendering();
                 } else {
-                    chosenFrameRate = roundedRefreshRate - 1;
+//                    chosenFrameRate = roundedRefreshRate - 1;
                     LimeLog.info("Adjusting FPS target for screen to " + chosenFrameRate);
                 }
             }

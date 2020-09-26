@@ -328,6 +328,18 @@ void OnOutputAvailableCB(
           (long long)bufferInfo->presentationTimeUs, bufferInfo->flags);
 
     VideoDecoder* videoDecoder = (VideoDecoder*)userdata;
+
+    // 解码完成，计算解码延迟
+    videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
+    // Add delta time to the totals (excluding probable outliers)
+    long delta = (getTimeUsec() - bufferInfo->presentationTimeUs) / 1000;
+    if (delta >= 0 && delta < 1000) {
+        videoDecoder->activeWindowVideoStats.decoderTimeMs += delta;
+        if (!USE_FRAME_RENDER_TIME) {
+            videoDecoder->activeWindowVideoStats.totalTimeMs += delta;
+        }
+    }
+
     pthread_mutex_lock(&videoDecoder->outputCacheLock); {
         for (int i = 0; i < OutputBufferCacheSize; i++) {
             VideoOutputBuffer* outputBuffer = &videoDecoder->outputBufferCache[i];
@@ -341,16 +353,7 @@ void OnOutputAvailableCB(
 
     } pthread_mutex_unlock(&videoDecoder->outputCacheLock);
 
-    // 解码完成，计算解码延迟
-    videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
-    // Add delta time to the totals (excluding probable outliers)
-    long delta = (getTimeUsec() - bufferInfo->presentationTimeUs) / 1000;
-    if (delta >= 0 && delta < 1000) {
-        videoDecoder->activeWindowVideoStats.decoderTimeMs += delta;
-        if (!USE_FRAME_RENDER_TIME) {
-            videoDecoder->activeWindowVideoStats.totalTimeMs += delta;
-        }
-    }
+    
 
 //    sp<AMessage> msg = sp<AMessage>((AMessage *)userdata)->dup();
 //    msg->setInt32("callbackID", CB_OUTPUT_AVAILABLE);
@@ -646,7 +649,15 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             if (videoDecoder->legacyFrameDropRendering) {
                 AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
             } else {
-                AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
+
+                static long test_frames = 0;
+                if ((test_frames % 120) == 0 || (test_frames % ((120*2)+60)) == 0) {
+                    //AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
+                } else {
+                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
+                }
+                test_frames++;
             }
 
             LOGT("[test] - 呈现: %ld", (getTimeUsec() - prevRenderingTime));

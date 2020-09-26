@@ -26,7 +26,7 @@
 
 // API 28 Support
 #define VD_USE_CACHE 1
-#define INPUTBUFFER_SUBMIT_IMMEDIATE 1
+// #define INPUTBUFFER_SUBMIT_IMMEDIATE 1
 
 static const bool USE_FRAME_RENDER_TIME = false;
 static const bool FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
@@ -185,7 +185,7 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
         LOGT("[test] Push to codec [%d]%d buffer %p codecFlags %d", index, inputBuffer->index, inputBuffer->buffer, codecFlags);
 
         // 立即提交
-#if INPUTBUFFER_SUBMIT_IMMEDIATE
+// #if INPUTBUFFER_SUBMIT_IMMEDIATE
         index = inputBuffer->index;
         inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
         inputBuffer->index = -1;
@@ -193,23 +193,18 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
         inputBuffer->bufsize = 0;
         inputBuffer->codecFlags = 0;
         inputBuffer->timestampUs = 0;
-#else
-        // or 异步提交 貌似会卡死
-        index = -1;
-#endif
+// #else
+//         // or 异步提交 貌似会卡死
+//         index = -1;
+// #endif
 
     } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
 
 #endif
-    if (index >= 0) {
-        // Push to codec
-        AMediaCodec_queueInputBuffer(videoDecoder->codec, index, 0, bufsize, timestampUs,
-                                    codecFlags);
-
-        // LOGT("[test] Push to codec %d ok", index);
-    } else {
-//        sem_post(&videoDecoder->queuing_sem);
-    }
+    
+    // Push to codec
+    AMediaCodec_queueInputBuffer(videoDecoder->codec, index, 0, bufsize, timestampUs,
+                                codecFlags);
 
 
     return true;
@@ -346,7 +341,7 @@ void OnOutputAvailableCB(
 
     } pthread_mutex_unlock(&videoDecoder->outputCacheLock);
 
-    // 解码完成
+    // 解码完成，计算解码延迟
     videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
     // Add delta time to the totals (excluding probable outliers)
     long delta = (getTimeUsec() - bufferInfo->presentationTimeUs) / 1000;
@@ -407,7 +402,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
         // We use prefs.fps instead of redrawRate here because the low latency hack in Game.java
         // may leave us with an odd redrawRate value like 59 or 49 which might cause the decoder
         // to puke. To be safe, we'll use the unmodified value.
-        AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_FRAME_RATE, prefsFps);
+        AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_FRAME_RATE, prefsFps); // valid for encoder ?
     }
 
     // Adaptive playback can also be enabled by the whitelist on pre-KitKat devices
@@ -417,8 +412,9 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
         AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_HEIGHT, height);
     }
 
+    // android 30+ 及其以上才支持低延迟模式，可以设置这个值
     if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_R && lowLatency) {
-        AMediaFormat_setInt32(videoFormat, "latency", 0);
+        AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_LATENCY, 0);
     }
     else if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_M) {
         // Set the Qualcomm vendor low latency extension if the Android R option is unavailable
@@ -477,6 +473,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     videoDecoder->legacyFrameDropRendering = false;
 
     videoDecoder->adaptivePlayback = adaptivePlayback;
+    videoDecoder->needsSpsBitstreamFixup = false;
     videoDecoder->needsBaselineSpsHack = false;
     videoDecoder->constrainedHighProfile = false;
     videoDecoder->refFrameInvalidationActive = false;
@@ -506,6 +503,13 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
         };
 
         videoDecoder->outputBufferCache[i] = outputBuffer;
+    }
+
+    if (strcmp(mimeType, "video/avc") == 0) {
+
+        // These fixups only apply to H264 decoders
+        videoDecoder->needsSpsBitstreamFixup = MediaCodecHelper_decoderNeedsSpsBitstreamRestrictions(decoderName);
+        videoDecoder->needsBaselineSpsHack = MediaCodecHelper_decoderNeedsBaselineSpsHack(decoderName);
     }
 
     return videoDecoder;
@@ -787,7 +791,7 @@ bool replaySps(VideoDecoder* videoDecoder) {
     // Write the Annex B header
     // inputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
     const int head = 5;
-    static const char* header = {0x00, 0x00, 0x00, 0x01, 0x67};
+    static const char header[] = {0x00, 0x00, 0x00, 0x01, 0x67};
     memcpy(inputBuffer, header, head);
 
     // Switch the H264 profile back to high
@@ -877,7 +881,7 @@ void patchSPS(VideoDecoder* videoDecoder, const uint8_t* data, size_t decodeUnit
     // It does break reference frame invalidation, so we will not do that for decoders
     // where we've enabled reference frame invalidation.
     if (!videoDecoder->refFrameInvalidationActive) {
-        LOGD("Patching num_ref_frames in SPS");
+        LOGT("Patching num_ref_frames in SPS");
         sps.num_ref_frames = 1;
     }
 
@@ -897,14 +901,14 @@ void patchSPS(VideoDecoder* videoDecoder, const uint8_t* data, size_t decodeUnit
 
         // GFE 2.5.11 started sending bitstream restrictions
         if (sps.vui.bitstream_restriction_flag == 0) {
-            LOGD("Adding bitstream restrictions");
+            LOGT("Adding bitstream restrictions");
 //        sps.vuiParams.bitstreamRestriction = new VUIParameters.BitstreamRestriction();
             sps.vui.motion_vectors_over_pic_boundaries_flag = true;
             sps.vui.log2_max_mv_length_horizontal = 16;
             sps.vui.log2_max_mv_length_vertical = 16;
             sps.vui.num_reorder_frames = 0;
         } else {
-            LOGD("Patching bitstream restrictions");
+            LOGT("Patching bitstream restrictions");
         }
 
         // Some devices throw errors if maxDecFrameBuffering < numRefFrames
@@ -929,7 +933,7 @@ void patchSPS(VideoDecoder* videoDecoder, const uint8_t* data, size_t decodeUnit
 
     // If we need to hack this SPS to say we're baseline, do so now
     if (videoDecoder->needsBaselineSpsHack) {
-        LOGD("Hacking SPS to baseline");
+        LOGT("Hacking SPS to baseline");
         sps.profile_idc = 66;
         videoDecoder->savedSps = sps;
     }
@@ -1232,7 +1236,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
                 RETURN(DR_NEED_IDR);
             }
 
-            LOGD("SPS replay complete");
+            LOGT("SPS replay complete");
         }
     }
 

@@ -14,6 +14,8 @@
 #endif
 
 const char* qualcommDecoderPrefixes[] = {"omx.qcom", "c2.qti"};
+const char* baselineProfileHackPrefixes[] = {"omx.intel"};
+const char* spsFixupBitstreamFixupDecoderPrefixes[] = {"omx.nvidia", "omx.qcom", "omx.brcm"};
 
 char * __cdecl stristr (
         const char * str1,
@@ -76,4 +78,12 @@ bool MediaCodecHelper_decoderSupportsQcomVendorLowLatency(const char* decoderNam
     // https://cs.android.com/android/_/android/platform/frameworks/av/+/01c10f8cdcd58d1e7025f426a72e6e75ba5d7fc2
     return Build_VERSION_SDK_INT >= Build_VERSION_CODES_O &&
             IS_DECODER_IN_LIST(qualcommDecoderPrefixes, decoderName);
+}
+
+bool MediaCodecHelper_decoderNeedsBaselineSpsHack(const char* decoderName) {
+    return IS_DECODER_IN_LIST(baselineProfileHackPrefixes, decoderName);
+}
+
+bool MediaCodecHelper_decoderNeedsSpsBitstreamRestrictions(const char* decoderName) {
+    return IS_DECODER_IN_LIST(spsFixupBitstreamFixupDecoderPrefixes, decoderName);
 }

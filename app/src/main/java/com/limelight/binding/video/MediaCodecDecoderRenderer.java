@@ -290,7 +290,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         boolean maxOperatingRate = MediaCodecHelper.decoderSupportsMaxOperatingRate(selectedDecoderName);
 
         videoDecoder2 = MoonBridge.createMediaCodec(renderTarget.getSurface(), selectedDecoderName, mimeType, width, height, redrawRate, prefs.fps, lowLatency,
-            adaptivePlayback, maxOperatingRate, needsBaselineSpsHack, constrainedHighProfile, refFrameInvalidationActive, needsSpsBitstreamFixup, isExynos4);
+            adaptivePlayback, maxOperatingRate, constrainedHighProfile, refFrameInvalidationActive, isExynos4);
 
         if (videoDecoder2 == 0) {
             return -4;

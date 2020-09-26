@@ -441,6 +441,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     ANativeWindow* window = ANativeWindow_fromSurface(env, surface);
 
     media_status_t status = AMediaCodec_configure(codec, videoFormat, window, 0, 0);
+    AMediaFormat_delete(videoFormat);
     if (status != 0)
     {
         LOGD("AMediaCodec_configure() failed with error %i for format %u", (int)status, 21);
@@ -643,6 +644,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             }
 
         } else {
+          
+          // 回调模式不走这里
 
             #define INFO_OUTPUT_BUFFERS_CHANGED -3
             #define INFO_OUTPUT_FORMAT_CHANGED -2
@@ -851,7 +854,7 @@ void patchSPS(VideoDecoder* videoDecoder, const uint8_t* data, size_t decodeUnit
             sps.level_idc = 32;
         }
         else if (videoDecoder->initialWidth <= 1920 && videoDecoder->initialHeight <= 1080 && videoDecoder->refreshRate <= 60) {
-            // Max 4 buffered frames at 1920x1080x64
+            // Max 4 buffered frames at 1920x1080x60
             LOGD("Patching level_idc to 42");
             sps.level_idc = 42;
         }

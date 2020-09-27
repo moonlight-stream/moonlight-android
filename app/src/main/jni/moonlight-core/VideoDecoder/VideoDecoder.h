@@ -64,6 +64,8 @@ typedef struct {
     VideoInputBuffer* inputBufferCache;
     VideoOutputBuffer* outputBufferCache;
     // sem_t queuing_sem;
+    bool immediate;
+    long immediate_count;
 
     pthread_mutex_t inputCacheLock;
     pthread_mutex_t outputCacheLock;

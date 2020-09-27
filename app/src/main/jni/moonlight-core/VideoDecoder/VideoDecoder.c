@@ -606,6 +606,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     long base_time = 0;
     long last_time = 0;
     uint32_t frame_Index = 0;
+    videoDecoder->immediate = true;
+    bool last_immediate = false;
 
     while(!videoDecoder->stopping) {
 
@@ -649,7 +651,32 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             last_time = rendering_time;
 
-            AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, rendering_time);
+            // if (videoDecoder->legacyFrameDropRendering) {
+            //     // AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, rendering_time - 16666000);
+            //     AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, currentTimeNs);
+            // } else 
+            {
+
+                bool immediate = videoDecoder->immediate;
+
+                if (immediate != last_immediate) {
+                    frame_Index = 0;
+                    base_time = currentTimeNs;
+                }
+
+                if (immediate) {
+                    LOGT("[test] - 渲染 立即模式");
+                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
+                    // AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, currentTimeNs);
+                } else {
+                    LOGT("[test] - 渲染 非立即模式");
+                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, rendering_time);
+                }
+
+                last_immediate = videoDecoder->immediate;
+            }
+            
+            
             
 
             // long currentTimeUs = getTimeUsec();
@@ -780,6 +807,8 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     videoDecoder->activeWindowVideoStats = initStats;
     videoDecoder->lastWindowVideoStats = initStats;
     videoDecoder->globalVideoStats = initStats;
+
+    videoDecoder->immediate_count = 0;
 
     // Start thread
     pthread_t pid;
@@ -1098,6 +1127,32 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     videoDecoder->activeWindowVideoStats.totalFramesReceived++;
     videoDecoder->activeWindowVideoStats.totalFrames++;
+
+    // 如果解码延迟始终大于每帧要求，就采用立即模式
+    {
+        VideoStats lastTwo = {0};
+        VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
+        VideoStats_add(&lastTwo, &videoDecoder->activeWindowVideoStats);
+        VideoStatsFps fps = VideoStats_getFps(&lastTwo);
+        const char* decoder = videoDecoder->decoderName;
+
+        float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
+        if (decodeTimeMs < 1000.0f / videoDecoder->refreshRate) {
+            // 需要稳定5s才切换
+            const int ms_times = 3;
+            if (videoDecoder->immediate_count++ > videoDecoder->refreshRate*ms_times) {
+                videoDecoder->immediate = false;
+                videoDecoder->immediate_count = 0;
+            }
+        } else {
+            videoDecoder->immediate = true;
+            videoDecoder->immediate_count = 0;
+        }
+    }
+    // 立即模式下，需要跳一帧来防止触发卡顿瓶颈
+    if (videoDecoder->immediate && videoDecoder->activeWindowVideoStats.totalFrames % videoDecoder->refreshRate == 0) {
+        RETURN(DR_NEED_IDR);
+    }
 
 //    LOGT("fuck %d %ld %ld %ld %ld", frameNumber, videoDecoder->activeWindowVideoStats.totalFramesReceived, videoDecoder->activeWindowVideoStats.totalFramesRendered, currentTimeMillis, videoDecoder->activeWindowVideoStats.measurementStartTimestamp);
 

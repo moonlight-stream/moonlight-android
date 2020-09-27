@@ -106,21 +106,28 @@ int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
     // get one
     pthread_mutex_lock(&videoDecoder->inputCacheLock); {
 
-        for (int i = 0; i < InputBufferCacheSize; i++) {
-            VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
-            if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) {
-                inputBuffer->status = INPUT_BUFFER_STATUS_WORKING;
-                index = i;
-                break;
+        while (index < 0 && !videoDecoder->stopping) {
+
+            for (int i = 0; i < InputBufferCacheSize; i++) {
+                VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+                if (inputBuffer->status == INPUT_BUFFER_STATUS_FREE) {
+                    inputBuffer->status = INPUT_BUFFER_STATUS_WORKING;
+                    index = i;
+                    break;
+                }
             }
+
+            usleep(1000);
+
+            // if (index == -1) {
+            //     LOGT("[test] 没有空闲的input buffer");
+            // } else {
+            //     LOGT("[test] 拿到空闲的input buffer");
+            // }
         }
 
     } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
-    if (index == -1) {
-        LOGT("[test] 没有空闲的input buffer");
-    } else {
-        LOGT("[test] 拿到空闲的input buffer");
-    }
+    
 #else
     while (index < 0 && !videoDecoder->stopping) {
         index = AMediaCodec_dequeueInputBuffer(videoDecoder->codec, 10000);
@@ -603,6 +610,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
     long usTimeout = 1000000 / videoDecoder->refreshRate;
     long lastRenderingTimeUs = getTimeUsec();
+    long test_count = 0;
 
     while(!videoDecoder->stopping) {
 
@@ -641,6 +649,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             long start_time = getTimeUsec();
 
             LOGT("[test] - 渲染: [%d] %ld 间隔 %ld us %ld %ld", lastIndex, presentationTimeUs/1000, (start_time - prevRenderingTime), start_time, lastRenderingTimeUs);
+
             prevRenderingTime = start_time;
 #endif
 
@@ -650,17 +659,26 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                 AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
             } else {
 
-                static long test_frames = 0;
-                if ((test_frames % 120) == 0 || (test_frames % ((120*2)+60)) == 0) {
-                    //AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
-                } else {
-                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, true);
-                }
-                test_frames++;
+                AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
+
+//                static long test_frames = 0;
+//                if ((test_frames % 120) == 0 || (test_frames % ((120*2)+60)) == 0) {
+//                    //AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+//                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
+//                } else {
+//                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
+//                }
+//                test_frames++;
+
+//                LOGT("fuck %ld > %ld", test_delta, usTimeout);
+//                if (test_count++ % 2 == 0) {
+//                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
+//                } else {
+//                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
+//                }
             }
 
-            LOGT("[test] - 呈现: %ld", (getTimeUsec() - prevRenderingTime));
+            // LOGT("[test] - 呈现: %ld", (getTimeUsec() - prevRenderingTime));
 
         } else {
           

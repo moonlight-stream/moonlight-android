@@ -25,7 +25,7 @@
 #endif
 
 // API 28 Support
-#define VD_USE_CACHE 1
+#define VD_BUFFER_CBMODE 1
 // #define INPUTBUFFER_SUBMIT_IMMEDIATE 1
 
 static const bool USE_FRAME_RENDER_TIME = false;
@@ -102,7 +102,7 @@ int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
 
     int index = -1;
 
-#if VD_USE_CACHE
+#if VD_BUFFER_CBMODE
     // get one
     pthread_mutex_lock(&videoDecoder->inputCacheLock); {
 
@@ -139,7 +139,7 @@ int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
 
 static inline void* _getInputBuffer(VideoDecoder* videoDecoder, int index, size_t* bufsize) {
 
-#if VD_USE_CACHE
+#if VD_BUFFER_CBMODE
     VideoInputBuffer* inputBuffer;
     pthread_mutex_lock(&videoDecoder->inputCacheLock); {
 
@@ -173,7 +173,7 @@ static inline void* _getInputBuffer(VideoDecoder* videoDecoder, int index, size_
 
 bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags) {
 
-#if VD_USE_CACHE
+#if VD_BUFFER_CBMODE
 
     pthread_mutex_lock(&videoDecoder->inputCacheLock); {
 
@@ -221,7 +221,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 
     int outputIndex = -1;
 
-#if VD_USE_CACHE
+#if VD_BUFFER_CBMODE
 
     const bool drop_enabled = true; // 丢弃多余的帧
     const long delay_timeUs = 1000;
@@ -295,7 +295,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
     return outputIndex;
 }
 
-#if VD_USE_CACHE
+#if VD_BUFFER_CBMODE
 // static
 void OnInputAvailableCB(
         AMediaCodec *  aMediaCodec ,
@@ -723,7 +723,7 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
 
     assert(!videoDecoder->stopping);
 
-#if VD_USE_CACHE
+#if VD_BUFFER_CBMODE
     struct AMediaCodecOnAsyncNotifyCallback aCB = {
             OnInputAvailableCB,
             OnOutputAvailableCB,

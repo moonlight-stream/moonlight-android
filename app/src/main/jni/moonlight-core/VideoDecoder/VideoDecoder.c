@@ -25,7 +25,7 @@
 #endif
 
 // API 28 Support
-#define VD_BUFFER_CBMODE 1
+#define VD_BUFFER_CBMODE 0
 // #define INPUTBUFFER_SUBMIT_IMMEDIATE 1
 
 static const bool USE_FRAME_RENDER_TIME = false;
@@ -158,19 +158,15 @@ static inline void* _getInputBuffer(VideoDecoder* videoDecoder, int index, size_
     if (inputBuffer) {
         buf = inputBuffer->buffer;
         *bufsize = inputBuffer->bufsize;
-    } else {
-        // buf = AMediaCodec_getInputBuffer(videoDecoder->codec, index, bufsize);
-        // if (buf == 0) {
-        //     assert(!"error");
-        //     return 0;
-        // }
     }
+    
     return buf;
 #else
     return AMediaCodec_getInputBuffer(videoDecoder->codec, index, bufsize);
 #endif
 }
 
+// 提交输入
 bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags) {
 
 #if VD_BUFFER_CBMODE
@@ -206,6 +202,8 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 // #endif
 
     } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
+#else
+    LOGT("[test] Push to codec [%d] codecFlags bufsize %d codecFlags %d", index, bufsize, codecFlags);
 
 #endif
     
@@ -217,9 +215,12 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
     return true;
 }
 
+// 请求输出
 int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info, int64_t timeoutUs) {
 
     int outputIndex = -1;
+
+    LOGT("[test] dequeueOutputBuffer codec %p timeoutUs %ld", videoDecoder->codec, timeoutUs);
 
 #if VD_BUFFER_CBMODE
 
@@ -289,8 +290,10 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
     }
 
 #else
-    outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, timeoutUs); // -1 to block test
+    outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
 #endif
+
+    LOGT("[test] dequeueOutputBuffer ok! %d", outputIndex);
 
     return outputIndex;
 }
@@ -335,17 +338,6 @@ void OnOutputAvailableCB(
           (long long)bufferInfo->presentationTimeUs, bufferInfo->flags);
 
     VideoDecoder* videoDecoder = (VideoDecoder*)userdata;
-
-    // 解码完成，计算解码延迟
-    videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
-    // Add delta time to the totals (excluding probable outliers)
-    long delta = (getTimeUsec() - bufferInfo->presentationTimeUs) / 1000;
-    if (delta >= 0 && delta < 1000) {
-        videoDecoder->activeWindowVideoStats.decoderTimeMs += delta;
-        if (!USE_FRAME_RENDER_TIME) {
-            videoDecoder->activeWindowVideoStats.totalTimeMs += delta;
-        }
-    }
 
     pthread_mutex_lock(&videoDecoder->outputCacheLock); {
         for (int i = 0; i < OutputBufferCacheSize; i++) {
@@ -617,6 +609,17 @@ void* rendering_thread(VideoDecoder* videoDecoder)
         int outIndex = dequeueOutputBuffer(videoDecoder, &info, usTimeout); // -1 to block test
         if (outIndex >= 0) {
 
+            // 解码完成，计算解码延迟
+            videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
+            // Add delta time to the totals (excluding probable outliers)
+            long delta = (getTimeUsec() - info.presentationTimeUs) / 1000;
+            if (delta >= 0 && delta < 1000) {
+                videoDecoder->activeWindowVideoStats.decoderTimeMs += delta;
+                if (!USE_FRAME_RENDER_TIME) {
+                    videoDecoder->activeWindowVideoStats.totalTimeMs += delta;
+                }
+            }
+
             long presentationTimeUs = info.presentationTimeUs;
             int lastIndex = outIndex;
 
@@ -630,7 +633,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             {
                 long needDelay = usTimeout - renderingTimeUs;
                 if (needDelay > 0) {
-                    usleep(needDelay);
+                    usleep(needDelay); // 等待将造成缓冲区累积，资源不足引起延迟
 
                     currentTimeUs += needDelay;
                     renderingTimeUs += needDelay;
@@ -681,7 +684,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
         } else {
           
-          // 回调模式不走这里
+            // 回调模式不走这里
 
             #define INFO_OUTPUT_BUFFERS_CHANGED -3
             #define INFO_OUTPUT_FORMAT_CHANGED -2
@@ -689,7 +692,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             switch (outIndex) {
                 case INFO_TRY_AGAIN_LATER:
-                    LOGD("try again later");
+                    LOGT("[test] try again later");
                     break;
                 case INFO_OUTPUT_FORMAT_CHANGED:
                 // {
@@ -697,7 +700,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                     //outputFormat = videoDecoder.getOutputFormat();
                     AMediaFormat* videoFormat = AMediaCodec_getOutputFormat(videoDecoder->codec);
                     const char* string = AMediaFormat_toString(videoFormat);
-                    LOGD("New output format: %s", string);
+                    LOGT("[test] New output format: %s", string);
                     break;
                 // }
                 default:
@@ -705,6 +708,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             }
 
             LOGD("rendering_thread: Rendering pass %d", outIndex);
+
+            usleep(1000);
         }
     }
     
@@ -753,9 +758,10 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     pthread_attr_init(&attr);
 
     pthread_create(&pid, &attr, rendering_thread, videoDecoder);
-//#if !INPUTBUFFER_SUBMIT_IMMEDIATE
+
+// #if VD_BUFFER_CBMODE
 //    pthread_create(&pid, &attr, queuing_thread, videoDecoder);
-//#endif
+// #endif
 
     // Set current
     currentVideoDecoder = videoDecoder;

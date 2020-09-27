@@ -404,14 +404,14 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
         // We use prefs.fps instead of redrawRate here because the low latency hack in Game.java
         // may leave us with an odd redrawRate value like 59 or 49 which might cause the decoder
         // to puke. To be safe, we'll use the unmodified value.
-        AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_FRAME_RATE, prefsFps); // valid for encoder ?
+        AMediaFormat_setInt32(videoFormat, /*AMEDIAFORMAT_KEY_FRAME_RATE*/"frame-rate", prefsFps); // valid for encoder ?
     }
 
     // Adaptive playback can also be enabled by the whitelist on pre-KitKat devices
     // so we don't fill these pre-KitKat
     if (adaptivePlayback &&  Build_VERSION_SDK_INT >= Build_VERSION_CODES_KITKAT) {
-        AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_WIDTH, width);
-        AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_HEIGHT, height);
+        AMediaFormat_setInt32(videoFormat, /*AMEDIAFORMAT_KEY_WIDTH*/"width", width);
+        AMediaFormat_setInt32(videoFormat, /*AMEDIAFORMAT_KEY_HEIGHT*/"height", height);
     }
 
     // android 30+ 及其以上才支持低延迟模式，可以设置这个值
@@ -629,7 +629,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             // Skip frame code move into dequeueOutputBuffer
 
             long currentTimeNs = getTimeNanc();
-            //  long renderingTimeNs = currentTimeNs - lastRenderingTimeNs; // 拿到帧花费的时间
 
             if (base_time == 0) {
                 base_time = currentTimeNs;

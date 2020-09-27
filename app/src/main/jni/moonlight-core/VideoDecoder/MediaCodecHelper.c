@@ -5,6 +5,7 @@
 #include "MediaCodecHelper.h"
 #include <sys/system_properties.h>
 #include <android/log.h>
+#include <ctype.h>
 
 #define LOG_TAG    "MediaCodecHelper"
 #ifdef LC_DEBUG
@@ -33,7 +34,7 @@ char * __cdecl stristr (
         s1 = cp;
         s2 = (char *) str2;
 
-        while ( *s1 && *s2 && !(_tolower(*s1)-_tolower(*s2)) )
+        while ( *s1 && *s2 && !(tolower(*s1)-tolower(*s2)) )
             s1++, s2++;
 
         if (!*s2)

@@ -6,7 +6,7 @@
 * 提高渲染效率和实时性，画面稳定
 * 帧率统计信息更准确
 
-由于使用了MediaCodec NDK，将主动帧请求改为回调方式，API要求 >= 28（android系统版本9）
+由于使用了MediaCodec NDK，API要求 >= 21（android系统版本5.0）
 
 ## 如何更改分辨率
 

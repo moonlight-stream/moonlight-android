@@ -4,7 +4,7 @@ android {
     compileSdkVersion 30
 
     defaultConfig {
-        minSdkVersion 16 // 28
+        minSdkVersion 21 // 28
         targetSdkVersion 30
 
         versionName "9.7.3b"

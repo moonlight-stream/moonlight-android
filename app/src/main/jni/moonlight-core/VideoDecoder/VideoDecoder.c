@@ -653,29 +653,28 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             prevRenderingTime = start_time;
 #endif
 
-            static long test_index = 0;
-
             if (videoDecoder->legacyFrameDropRendering) {
+
                 AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
+
             } else {
 
                 AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
 
-//                static long test_frames = 0;
-//                if ((test_frames % 120) == 0 || (test_frames % ((120*2)+60)) == 0) {
-//                    //AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-//                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
-//                } else {
-//                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
-//                }
-//                test_frames++;
+            //    static long test_frames = 0;
+            //    if ((test_frames % 120) == 0 || (test_frames % ((120*2)+60)) == 0) {
+            // //    if ((test_frames % 300) == 0 || (test_frames % 300) == 90 || (test_frames % 300) == 180 || (test_frames % 300) == 270) {
+            //     // if ((test_frames % 120) <= 1) {
+            //     // if ((test_frames % 240) <= 3) {
+            //        //AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+            //        AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
+            //    } else {
+            //        AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
+            //    }
+            //    test_frames++;
 
-//                LOGT("fuck %ld > %ld", test_delta, usTimeout);
-//                if (test_count++ % 2 == 0) {
-//                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
-//                } else {
-//                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
-//                }
+            //    LOGT("fuck %ld > %ld", test_delta, usTimeout);
+               
             }
 
             // LOGT("[test] - 呈现: %ld", (getTimeUsec() - prevRenderingTime));

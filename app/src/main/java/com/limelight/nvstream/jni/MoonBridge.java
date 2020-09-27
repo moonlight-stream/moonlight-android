@@ -305,12 +305,12 @@ public class MoonBridge {
 
     public static native long createMediaCodec(Surface surface, String name, String mimeType, int width, int height, int refreshRate, int prefsFps, boolean lowLatency,
     boolean adaptivePlayback, boolean maxOperatingRate, boolean constrainedHighProfile, boolean refFrameInvalidationActive, boolean isExynos4);
-    public static native long setLegacyFrameDropRendering(long videoDecoder, boolean enabled);
+    public static native void setLegacyFrameDropRendering(long videoDecoder, boolean enabled);
 
     public static native void deleteMediaCodec(long videoDecoder);
     public static native void stopMediaCodec(long videoDecoder);
 
-    public static native long startMediaCodec(long videoDecoder);
+    public static native void startMediaCodec(long videoDecoder);
 
     public static native String formatDecoderInfo(long videoDecoder, String format);
     public static native void getVideoStats(long videoDecoder, VideoStats stats);

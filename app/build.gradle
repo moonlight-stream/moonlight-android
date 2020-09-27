@@ -4,11 +4,11 @@ android {
     compileSdkVersion 30
 
     defaultConfig {
-        minSdkVersion 28 // 16
+        minSdkVersion 16 // 28
         targetSdkVersion 30
 
-        versionName "9.7.3"
-        versionCode = 243
+        versionName "9.7.3b"
+        versionCode = 244
         signingConfig signingConfigs.debug
     }
 

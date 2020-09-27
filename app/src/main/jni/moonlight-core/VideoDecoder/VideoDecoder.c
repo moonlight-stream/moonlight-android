@@ -37,7 +37,7 @@ typedef enum {
     BUFFER_TYPE_SPS = 1,
     BUFFER_TYPE_PPS = 2,
     BUFFER_TYPE_VPS = 3,
-};
+}BUFFER_TYPE;
 
 typedef enum {
     INPUT_BUFFER_STATUS_INVALID,
@@ -45,18 +45,18 @@ typedef enum {
     INPUT_BUFFER_STATUS_WORKING,
     INPUT_BUFFER_STATUS_QUEUING,
     INPUT_BUFFER_STATUS_TEMP,
-};
+}INPUT_BUFFER_STATUS;
 
 typedef enum {
     OUTPUT_BUFFER_STATUS_INVALID,
     OUTPUT_BUFFER_STATUS_WORKING,
-};
+}OUTPUT_BUFFER_STATUS;
 
 // buffer index
 typedef enum {
     SPS, PPS, VPS,
     __BUFFER_MAX
-};
+}__BUFFER_NAME;
 
 void printBufferHex(void* data, size_t size) {
     char tmp[1024];
@@ -395,7 +395,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     AMediaCodec* codec = AMediaCodec_createDecoderByType(mimeType);//AMediaCodec_createCodecByName(decoderName);
 
     AMediaFormat* videoFormat = AMediaFormat_new();
-    AMediaFormat_setString(videoFormat, AMEDIAFORMAT_KEY_MIME, mimeType);
+    AMediaFormat_setString(videoFormat, /*AMEDIAFORMAT_KEY_MIME*/"mime", mimeType);
 
 //    AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_IS_SYNC_FRAME, 0);
 
@@ -416,7 +416,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
 
     // android 30+ 及其以上才支持低延迟模式，可以设置这个值
     if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_R && lowLatency) {
-        AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_LATENCY, 0);
+        AMediaFormat_setInt32(videoFormat, /*AMEDIAFORMAT_KEY_LATENCY*/"latency", 0);
     }
     else if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_M) {
         // Set the Qualcomm vendor low latency extension if the Android R option is unavailable
@@ -453,7 +453,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     videoDecoder->window = window;
     videoDecoder->codec = codec;
     videoDecoder->decoderName = malloc(strlen(decoderName)+1);
-    strcpy(videoDecoder->decoderName, decoderName);
+    strcpy((char*)videoDecoder->decoderName, decoderName);
     videoDecoder->initialWidth = width;
     videoDecoder->initialHeight = height;
     videoDecoder->refreshRate = refreshRate;
@@ -534,7 +534,7 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
     }
 
     if (videoDecoder->decoderName)
-        free(videoDecoder->decoderName);
+        free((void*)videoDecoder->decoderName);
 
     free(videoDecoder->infoBuffer);
 
@@ -554,7 +554,7 @@ void VideoDecoder_release(VideoDecoder* videoDecoder) {
     // 停止
     if (!videoDecoder->stopping) {
         // release at stop
-        videoDecoder->stopCallback = releaseVideoDecoder;
+        videoDecoder->stopCallback = (void(*)(void*))releaseVideoDecoder;
         VideoDecoder_stop(videoDecoder);
     } else {
         releaseVideoDecoder(videoDecoder);
@@ -603,6 +603,9 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     long usTimeout = 1000000 / videoDecoder->refreshRate;
     long lastRenderingTimeUs = getTimeUsec();
     long test_count = 0;
+    long base_time = 0;
+    long last_time = 0;
+    uint32_t frame_Index = 0;
 
     while(!videoDecoder->stopping) {
 
@@ -625,60 +628,87 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             // Skip frame code move into dequeueOutputBuffer
 
-            long currentTimeUs = getTimeUsec();
-            long renderingTimeUs = currentTimeUs - lastRenderingTimeUs; // 拿到帧花费的时间
+            long currentTimeNs = getTimeNanc();
+            //  long renderingTimeNs = currentTimeNs - lastRenderingTimeNs; // 拿到帧花费的时间
+
+            if (base_time == 0) {
+                base_time = currentTimeNs;
+            }
+
+            long rendering_time = base_time + (frame_Index + 1) * usTimeout*1000;
+
+            if (currentTimeNs > rendering_time) {
+                frame_Index = 0;
+                base_time = currentTimeNs;
+                // LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
+            }
+
+            rendering_time = base_time + (frame_Index + 1) * usTimeout*1000; // reset
+            frame_Index ++;
+            
+            LOGT("[test] - 渲染: %ld %ld", rendering_time, rendering_time-last_time);
+
+            last_time = rendering_time;
+
+            AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, rendering_time);
+            
+
+            // long currentTimeUs = getTimeUsec();
+            // long renderingTimeUs = currentTimeUs - lastRenderingTimeUs; // 拿到帧花费的时间
 
             // 额外需要的延迟等待，然后再提交显示。
             // 此举将固定帧获取时间，并极大概率使缓冲区始终存在2个解码成功的帧，并第一时间返回，然后在这里进行等待，这等待过程中，会有另一个完成的帧，以此良性循环。
-            {
-                long needDelay = usTimeout - renderingTimeUs;
-                if (needDelay > 0) {
-                    usleep(needDelay); // 等待将造成缓冲区累积，资源不足引起延迟
+            // {
+            //     long needDelay = usTimeout - renderingTimeUs;
+            //     if (needDelay > 0) {
+            //         // usleep(needDelay); // 等待将造成缓冲区累积，资源不足引起延迟
 
-                    currentTimeUs += needDelay;
-                    renderingTimeUs += needDelay;
-                }
-            }
+            //         currentTimeUs += needDelay;
+            //         renderingTimeUs += needDelay;
+            //     }
+            // }
 
-            usTimeout = 1000000 / videoDecoder->refreshRate;
-            if (renderingTimeUs > usTimeout)
-                usTimeout = usTimeout * 2 - renderingTimeUs;
+            // usTimeout = 1000000 / videoDecoder->refreshRate;
+            // if (renderingTimeUs > usTimeout)
+            //     usTimeout = usTimeout * 2 - renderingTimeUs;
 
-            LOGT("[test] usTimeout %d %d", usTimeout, renderingTimeUs);
-            lastRenderingTimeUs = currentTimeUs;
+            // LOGT("[test] usTimeout %d %d", usTimeout, renderingTimeUs);
+            // lastRenderingTimeUs = currentTimeUs;
 
-#ifdef LC_DEBUG
-            static long prevRenderingTime = 0;
-            long start_time = getTimeUsec();
+// #ifdef LC_DEBUG
+//             static long prevRenderingTime = 0;
+//             long start_time = getTimeUsec();
 
-            LOGT("[test] - 渲染: [%d] %ld 间隔 %ld us %ld %ld", lastIndex, presentationTimeUs/1000, (start_time - prevRenderingTime), start_time, lastRenderingTimeUs);
+//             LOGT("[test] - 渲染: [%d] %ld 间隔 %ld us %ld %ld", lastIndex, presentationTimeUs/1000, (start_time - prevRenderingTime), start_time, lastRenderingTimeUs);
 
-            prevRenderingTime = start_time;
-#endif
+//             prevRenderingTime = start_time;
+// #endif
+            
 
-            if (videoDecoder->legacyFrameDropRendering) {
+            // if (videoDecoder->legacyFrameDropRendering) {
 
-                AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
+            //     AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
 
-            } else {
+            // } else {
 
-                AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
+            //     AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
+            //     // AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
 
-            //    static long test_frames = 0;
-            //    if ((test_frames % 120) == 0 || (test_frames % ((120*2)+60)) == 0) {
-            // //    if ((test_frames % 300) == 0 || (test_frames % 300) == 90 || (test_frames % 300) == 180 || (test_frames % 300) == 270) {
-            //     // if ((test_frames % 120) <= 1) {
-            //     // if ((test_frames % 240) <= 3) {
-            //        //AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-            //        AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
-            //    } else {
-            //        AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
-            //    }
-            //    test_frames++;
+            // //    static long test_frames = 0;
+            // //    if ((test_frames % 120) == 0 || (test_frames % ((120*2)+60)) == 0) {
+            // // //    if ((test_frames % 300) == 0 || (test_frames % 300) == 90 || (test_frames % 300) == 180 || (test_frames % 300) == 270) {
+            // //     // if ((test_frames % 120) <= 1) {
+            // //     // if ((test_frames % 240) <= 3) {
+            // //        //AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
+            // //        AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, getTimeNanc());
+            // //    } else {
+            // //        AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
+            // //    }
+            // //    test_frames++;
 
-            //    LOGT("fuck %ld > %ld", test_delta, usTimeout);
+            // //    LOGT("fuck %ld > %ld", test_delta, usTimeout);
                
-            }
+            // }
 
             // LOGT("[test] - 呈现: %ld", (getTimeUsec() - prevRenderingTime));
 
@@ -757,7 +787,7 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     pthread_attr_t attr;
     pthread_attr_init(&attr);
 
-    pthread_create(&pid, &attr, rendering_thread, videoDecoder);
+    pthread_create(&pid, &attr, (void *(*)(void *))rendering_thread, videoDecoder);
 
 // #if VD_BUFFER_CBMODE
 //    pthread_create(&pid, &attr, queuing_thread, videoDecoder);
@@ -785,7 +815,7 @@ void VideoDecoder_stop(VideoDecoder* videoDecoder) {
 typedef enum {
     DR_OK = 0,
     DR_NEED_IDR = -1
-};
+}DR_RESULT;
 
 #define BUFFER_FLAG_CODEC_CONFIG 2
 

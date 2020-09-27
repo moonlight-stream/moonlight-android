@@ -31,6 +31,8 @@ uint64_t getTimeNanc(void);
 uint64_t getClockUsec(void);
 
 void VideoStats_add(VideoStats* stats, const VideoStats* other);
+void VideoStats_copy(VideoStats* stats, const VideoStats* other);
+void VideoStats_clear(VideoStats* stats);
 
 VideoStatsFps VideoStats_getFps(const VideoStats* stats);
 

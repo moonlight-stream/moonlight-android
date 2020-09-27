@@ -199,11 +199,11 @@ Java_com_limelight_nvstream_jni_MoonBridge_deleteMediaCodec(JNIEnv *env, jclass 
     VideoDecoder_release((VideoDecoder*)videoDecoder);
 }
 
-JNIEXPORT jlong JNICALL
+JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_startMediaCodec(JNIEnv *env, jclass clazz,
                                                            jlong video_decoder) {
 
-    VideoDecoder_start(video_decoder);
+    VideoDecoder_start((VideoDecoder*)video_decoder);
 }
 
 JNIEXPORT jint JNICALL
@@ -215,13 +215,13 @@ Java_com_limelight_nvstream_jni_MoonBridge_submitDecodeUnit(JNIEnv *env, jclass 
                                                             jint frame_number,
                                                             jlong receive_time_ms) {
     void* data = (*env)->GetDirectBufferAddress(env, decode_unit_data);
-    return VideoDecoder_submitDecodeUnit(video_decoder, data, decode_unit_length, decode_unit_type, frame_number, receive_time_ms);
+    return VideoDecoder_submitDecodeUnit((VideoDecoder*)video_decoder, data, decode_unit_length, decode_unit_type, frame_number, receive_time_ms);
 }
 
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_stopMediaCodec(JNIEnv *env, jclass clazz,
                                                           jlong video_decoder) {
-    VideoDecoder_stop(video_decoder);
+    VideoDecoder_stop((VideoDecoder*)video_decoder);
 }
 
 JNIEXPORT jstring JNICALL
@@ -229,7 +229,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_formatDecoderInfo(JNIEnv *env, jclass
                                                              jlong video_decoder, jstring format) {
     const char* c_format = (*env)->GetStringUTFChars(env, format, 0);
 
-    const char* result = VideoDecoder_formatInfo(video_decoder, c_format);
+    const char* result = VideoDecoder_formatInfo((VideoDecoder*)video_decoder, c_format);
 
     (*env)->ReleaseStringUTFChars(env, format, c_format);
     
@@ -275,9 +275,9 @@ Java_com_limelight_nvstream_jni_MoonBridge_getVideoStats(JNIEnv *env, jclass cla
 
 }
 
-JNIEXPORT jlong JNICALL
+JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_setLegacyFrameDropRendering(JNIEnv *env, jclass clazz,
                                                                        jlong video_decoder,
                                                                        jboolean enabled) {
-    VideoDecoder_setLegacyFrameDropRendering(video_decoder, enabled);
+    VideoDecoder_setLegacyFrameDropRendering((VideoDecoder*)video_decoder, enabled);
 }

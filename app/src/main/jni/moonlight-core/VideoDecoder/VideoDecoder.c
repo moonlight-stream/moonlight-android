@@ -291,6 +291,14 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 
 #else
     outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
+
+    // 在立即模式下，清空缓冲区
+    if (videoDecoder->immediate) {
+        int dropIndex = -1;
+        while ((dropIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
+            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, dropIndex, false);
+        }
+    }
 #endif
 
     LOGT("[test] dequeueOutputBuffer ok! %d", outputIndex);
@@ -1148,10 +1156,6 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
             videoDecoder->immediate = true;
             videoDecoder->immediate_count = 0;
         }
-    }
-    // 立即模式下，需要跳一帧来防止触发卡顿瓶颈
-    if (videoDecoder->immediate && videoDecoder->activeWindowVideoStats.totalFrames % videoDecoder->refreshRate == 0) {
-        RETURN(DR_NEED_IDR);
     }
 
 //    LOGT("fuck %d %ld %ld %ld %ld", frameNumber, videoDecoder->activeWindowVideoStats.totalFramesReceived, videoDecoder->activeWindowVideoStats.totalFramesRendered, currentTimeMillis, videoDecoder->activeWindowVideoStats.measurementStartTimestamp);

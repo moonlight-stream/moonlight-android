@@ -216,7 +216,7 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 }
 
 // 请求输出
-int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info, int64_t timeoutUs, bool useLastBuffer) {
+int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info, int64_t timeoutUs) {
 
     int outputIndex = -1;
 
@@ -291,38 +291,20 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 
 #else
     
+    outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
 
-    // 在立即模式下，清空缓冲区
-    if (useLastBuffer) {
-        // int lastIndex = outputIndex;
-        // // Get the last output buffer in the queue
-        // while ((outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
-        //     AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-        //     lastIndex = outputIndex;
-        // }
-        // outputIndex = lastIndex;
-        outputIndex = clearOutputBuffer(videoDecoder, info, -1);
-    } else {
-        outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
+    // 在立即模式下，清空缓冲区（如果使用最后一帧，起不到降低解码延迟的作用）
+    if (videoDecoder->immediateRendering) {
+        int dropIndex = -1;
+        while ((dropIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
+            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, dropIndex, false);
+        }
     }
 #endif
 
     LOGT("[test] dequeueOutputBuffer ok! %d", outputIndex);
 
     return outputIndex;
-}
-
-int clearOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info, int outputIndex) {
-    int lastIndex = outputIndex;
-    // Get the last output buffer in the queue
-    while ((outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
-        if (lastIndex >= 0) {
-            LOGT("[test] 渲染 丢帧");
-            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-        }
-        lastIndex = outputIndex;
-    }
-    return lastIndex;
 }
 
 #if VD_BUFFER_CBMODE
@@ -638,7 +620,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
     while(!videoDecoder->stopping) {
 
-        int outIndex = dequeueOutputBuffer(videoDecoder, &info, nsTimeout/1000, videoDecoder->immediateRendering);
+        int outIndex = dequeueOutputBuffer(videoDecoder, &info, nsTimeout/1000);
         if (outIndex >= 0) {
 
             int lastIndex = outIndex;

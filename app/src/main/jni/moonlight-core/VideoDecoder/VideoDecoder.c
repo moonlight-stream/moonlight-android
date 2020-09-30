@@ -216,8 +216,7 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 }
 
 // 请求输出
-// int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info, int64_t timeoutUs) {
-int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info, int64_t timeoutUs, bool useLastBuffer) {
+int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info, int64_t timeoutUs) {
 
     int outputIndex = -1;
 
@@ -291,9 +290,10 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
     }
 
 #else
+    
     outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
 
-    // 在立即模式下，清空缓冲区
+    // 在立即模式下，清空缓冲区（如果使用最后一帧，起不到降低解码延迟的作用）
     if (videoDecoder->immediateRendering) {
         int dropIndex = -1;
         while ((dropIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
@@ -609,7 +609,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     // Try to output a frame
     AMediaCodecBufferInfo info;
 
-    // long usTimeout = 1000000 / videoDecoder->refreshRate;
     long nsTimeout = (int)(1000000000. / videoDecoder->refreshRate + 0.5);
     long lastRenderingTimeUs = getTimeUsec();
     long test_count = 0;
@@ -621,11 +620,9 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
     while(!videoDecoder->stopping) {
 
-        // int outIndex = dequeueOutputBuffer(videoDecoder, &info, usTimeout);
-        int outIndex = dequeueOutputBuffer(videoDecoder, &info, nsTimeout/1000, videoDecoder->immediateRendering);
+        int outIndex = dequeueOutputBuffer(videoDecoder, &info, nsTimeout/1000);
         if (outIndex >= 0) {
 
-            long presentationTimeUs = info.presentationTimeUs;
             int lastIndex = outIndex;
 
             // 计算帧显示的准确时间戳(通过延迟一帧来算)
@@ -635,27 +632,24 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                 base_time = currentTimeNs;
             }
 
-            // long rendering_time = base_time + (frame_Index + 1) * usTimeout*1000;
             long rendering_time = base_time + (frame_Index + 1) * nsTimeout;
             {
-                if (currentTimeNs > rendering_time) {
+                if (currentTimeNs > rendering_time/* || rendering_time - currentTimeNs >= 2*nsTimeout 会造成频繁的重置，画面卡顿加剧*/) {
                     frame_Index = 0;
                     base_time = currentTimeNs;
-                    // LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
+                    // outIndex = clearOutputBuffer(videoDecoder, &info, outIndex);
+                    LOGT("[test] - 渲染重置 %ld %ld", currentTimeNs, base_time + nsTimeout);
                 }
 
-                // rendering_time = base_time + (frame_Index + 1) * usTimeout*1000; // reset
                 rendering_time = base_time + (frame_Index + 1) * nsTimeout; // reset
                 frame_Index ++;
                 
-                // LOGT("[test] - 渲染: %ld %ld", rendering_time, rendering_time-last_time);
                 LOGT("[test] - 渲染: %ld %ld %ld", rendering_time, rendering_time-last_time, rendering_time - currentTimeNs);
-
 
                 last_time = rendering_time;
             }
 
-                        // 统计解码延迟
+            // 统计解码延迟
             {
                 videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
                 // Add delta time to the totals (excluding probable outliers)
@@ -667,7 +661,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                     }
                 }
             }
-
 
             // 逻辑丢帧时使用currentTimeNs会造成非常不稳定的帧率
             // if (videoDecoder->legacyFrameDropRendering) {
@@ -1094,7 +1087,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
         if (decodeTimeMs < 1000.0f / videoDecoder->refreshRate) {
             // 需要稳定5s才切换
-            const int ms_times = 3;
+            const int ms_times = 5;
             if (videoDecoder->immediateCount++ > videoDecoder->refreshRate*ms_times) {
                 videoDecoder->immediateRendering = false;
                 videoDecoder->immediateCount = 0;

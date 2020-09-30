@@ -216,7 +216,8 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 }
 
 // 请求输出
-int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info, int64_t timeoutUs) {
+// int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info, int64_t timeoutUs) {
+int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info, int64_t timeoutUs, bool useLastBuffer) {
 
     int outputIndex = -1;
 
@@ -608,7 +609,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     // Try to output a frame
     AMediaCodecBufferInfo info;
 
-    long usTimeout = 1000000 / videoDecoder->refreshRate;
+    // long usTimeout = 1000000 / videoDecoder->refreshRate;
+    long nsTimeout = (int)(1000000000. / videoDecoder->refreshRate + 0.5);
     long lastRenderingTimeUs = getTimeUsec();
     long test_count = 0;
     long base_time = 0;
@@ -619,10 +621,41 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
     while(!videoDecoder->stopping) {
 
-        int outIndex = dequeueOutputBuffer(videoDecoder, &info, usTimeout);
+        // int outIndex = dequeueOutputBuffer(videoDecoder, &info, usTimeout);
+        int outIndex = dequeueOutputBuffer(videoDecoder, &info, nsTimeout/1000, videoDecoder->immediateRendering);
         if (outIndex >= 0) {
 
-            // 统计解码延迟
+            long presentationTimeUs = info.presentationTimeUs;
+            int lastIndex = outIndex;
+
+            // 计算帧显示的准确时间戳(通过延迟一帧来算)
+            long currentTimeNs = getTimeNanc();
+
+            if (base_time == 0) {
+                base_time = currentTimeNs;
+            }
+
+            // long rendering_time = base_time + (frame_Index + 1) * usTimeout*1000;
+            long rendering_time = base_time + (frame_Index + 1) * nsTimeout;
+            {
+                if (currentTimeNs > rendering_time) {
+                    frame_Index = 0;
+                    base_time = currentTimeNs;
+                    // LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
+                }
+
+                // rendering_time = base_time + (frame_Index + 1) * usTimeout*1000; // reset
+                rendering_time = base_time + (frame_Index + 1) * nsTimeout; // reset
+                frame_Index ++;
+                
+                // LOGT("[test] - 渲染: %ld %ld", rendering_time, rendering_time-last_time);
+                LOGT("[test] - 渲染: %ld %ld %ld", rendering_time, rendering_time-last_time, rendering_time - currentTimeNs);
+
+
+                last_time = rendering_time;
+            }
+
+                        // 统计解码延迟
             {
                 videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
                 // Add delta time to the totals (excluding probable outliers)
@@ -635,31 +668,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                 }
             }
 
-            long presentationTimeUs = info.presentationTimeUs;
-            int lastIndex = outIndex;
-
-            // 计算帧显示的准确时间戳(通过延迟一帧来算)
-            long currentTimeNs = getTimeNanc();
-
-            if (base_time == 0) {
-                base_time = currentTimeNs;
-            }
-
-            long rendering_time = base_time + (frame_Index + 1) * usTimeout*1000;
-            {
-                if (currentTimeNs > rendering_time) {
-                    frame_Index = 0;
-                    base_time = currentTimeNs;
-                    // LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
-                }
-
-                rendering_time = base_time + (frame_Index + 1) * usTimeout*1000; // reset
-                frame_Index ++;
-                
-                LOGT("[test] - 渲染: %ld %ld", rendering_time, rendering_time-last_time);
-
-                last_time = rendering_time;
-            }
 
             // 逻辑丢帧时使用currentTimeNs会造成非常不稳定的帧率
             // if (videoDecoder->legacyFrameDropRendering) {

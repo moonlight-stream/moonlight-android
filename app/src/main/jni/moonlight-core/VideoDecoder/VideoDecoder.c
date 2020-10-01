@@ -408,7 +408,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
 //    AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_IS_SYNC_FRAME, 0);
 
     // Avoid setting KEY_FRAME_RATE on Lollipop and earlier to reduce compatibility risk
-    if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_M) {
+    if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_LOLLIPOP) { // android is Build_VERSION_CODES_M
         // We use prefs.fps instead of redrawRate here because the low latency hack in Game.java
         // may leave us with an odd redrawRate value like 59 or 49 which might cause the decoder
         // to puke. To be safe, we'll use the unmodified value.
@@ -636,7 +636,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             }
 
             long presentationTimeUs = info.presentationTimeUs;
-            int lastIndex = outIndex;
 
             // 计算帧显示的准确时间戳(通过延迟一帧来算)
             long currentTimeNs = getTimeNanc();
@@ -663,7 +662,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             // 逻辑丢帧时使用currentTimeNs会造成非常不稳定的帧率
             // if (videoDecoder->legacyFrameDropRendering) {
-            //     AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, currentTimeNs);
+            //     AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, currentTimeNs);
             // } else 
             {
 
@@ -676,10 +675,10 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
                 if (immediate) {
                     LOGT("[test] - 渲染 立即模式");
-                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
+                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, outIndex, info.size != 0);
                 } else {
                     LOGT("[test] - 渲染 非立即模式");
-                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, rendering_time);
+                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, rendering_time);
                 }
 
                 last_immediate = videoDecoder->immediateRendering;

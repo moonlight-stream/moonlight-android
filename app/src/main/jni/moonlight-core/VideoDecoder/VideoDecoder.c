@@ -635,30 +635,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                 }
             }
 
-            long presentationTimeUs = info.presentationTimeUs;
-
-            // 计算帧显示的准确时间戳(通过延迟一帧来算)
-            long currentTimeNs = getTimeNanc();
-
-            if (base_time == 0) {
-                base_time = currentTimeNs;
-            }
-
-            long rendering_time = base_time + (frame_Index + 1) * usTimeout*1000;
-            {
-                if (currentTimeNs > rendering_time) {
-                    frame_Index = 0;
-                    base_time = currentTimeNs;
-                    // LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
-                }
-
-                rendering_time = base_time + (frame_Index + 1) * usTimeout*1000; // reset
-                frame_Index ++;
-                
-                LOGT("[test] - 渲染: %ld %ld", rendering_time, rendering_time-last_time);
-
-                last_time = rendering_time;
-            }
+            
 
             // 逻辑丢帧时使用currentTimeNs会造成非常不稳定的帧率
             // if (videoDecoder->legacyFrameDropRendering) {
@@ -668,15 +645,40 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
                 bool immediate = videoDecoder->immediateRendering;
 
-                if (immediate != last_immediate) {
-                    frame_Index = 0;
-                    base_time = currentTimeNs;
-                }
-
                 if (immediate) {
                     LOGT("[test] - 渲染 立即模式");
                     AMediaCodec_releaseOutputBuffer(videoDecoder->codec, outIndex, info.size != 0);
                 } else {
+
+                    // 计算帧显示的准确时间戳(通过延迟一帧来算)
+                    long currentTimeNs = getTimeNanc();
+
+                    if (immediate != last_immediate) {
+                        frame_Index = 0;
+                    }
+
+                    retry:
+
+                    if (frame_Index == 0) {
+                        base_time = currentTimeNs;
+                    }
+
+                    long rendering_time = base_time + (frame_Index + 1) * usTimeout*1000;
+                    {
+                        if (currentTimeNs > rendering_time) {
+                            frame_Index = 0;
+                            // base_time = currentTimeNs;
+                            // LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
+                            goto retry;
+                        }
+                        
+                        frame_Index ++;
+                        
+                        LOGT("[test] - 渲染: %ld %ld", rendering_time, rendering_time-last_time);
+
+                        last_time = rendering_time;
+                    }
+
                     LOGT("[test] - 渲染 非立即模式");
                     AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, rendering_time);
                 }

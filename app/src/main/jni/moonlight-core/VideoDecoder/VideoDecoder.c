@@ -215,14 +215,6 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
     return true;
 }
 
-void clearOutputBuffers(VideoDecoder* videoDecoder) {
-    AMediaCodecBufferInfo info;
-    int dropIndex = -1;
-    while ((dropIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, &info, 0)) >= 0) {
-        AMediaCodec_releaseOutputBuffer(videoDecoder->codec, dropIndex, false);
-    }
-}
-
 // 请求输出
 int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info, int64_t timeoutUs) {
 
@@ -299,12 +291,18 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 
 #else
     
+
     outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
 
+    // 在立即模式下，清空缓冲区
     // 在立即模式下，清空缓冲区（如果使用最后一帧，起不到降低解码延迟的作用）
     if (videoDecoder->immediateRendering) {
-        clearOutputBuffers(videoDecoder);
+        int dropIndex = -1;
+        while ((dropIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
+            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, dropIndex, false);
+        }
     }
+
 #endif
 
     LOGT("[test] dequeueOutputBuffer ok! %d", outputIndex);
@@ -614,8 +612,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     // Try to output a frame
     AMediaCodecBufferInfo info;
 
-    int refreshRate = videoDecoder->refreshRate;
-
     long nsTimeout = (int)(1000000000. / videoDecoder->refreshRate + 0.5);
     long lastRenderingTimeUs = getTimeUsec();
     long test_count = 0;
@@ -624,17 +620,11 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     uint32_t frame_Index = 0;
     videoDecoder->immediateRendering = true;
     bool last_immediate = false;
-    long base_time2 = 0;
-    long ns_fix = 0;
-    long lastCurrentTimeNs = 0;
 
     while(!videoDecoder->stopping) {
 
         int outIndex = dequeueOutputBuffer(videoDecoder, &info, nsTimeout/1000);
         if (outIndex >= 0) {
-
-            // 计算帧显示的准确时间戳(通过延迟一帧来算)
-            long currentTimeNs = getTimeNanc();
 
             // 统计解码延迟
             {
@@ -654,72 +644,46 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             //     AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, currentTimeNs);
             // } else 
             {
+
                 bool immediate = videoDecoder->immediateRendering;
+
+                if (immediate != last_immediate) {
+                    frame_Index = 0;
+                }
+
+                // 计算帧显示的准确时间戳(通过延迟一帧来算)
+                long currentTimeNs = getTimeNanc();
+
+                retry:
+
+                if (frame_Index == 0) {
+                    base_time = currentTimeNs;
+                }
+
+                long rendering_time = base_time + (frame_Index + 1) * nsTimeout;
+                {
+                    if (currentTimeNs > rendering_time/* || rendering_time - currentTimeNs >= 2*nsTimeout 会造成频繁的重置，画面卡顿加剧*/) {
+                        // base_time = currentTimeNs;
+                        // outIndex = clearOutputBuffer(videoDecoder, &info, outIndex);
+                        LOGT("[test] - 渲染重置 %ld %ld", currentTimeNs, base_time + nsTimeout);
+
+                        frame_Index = 0;
+                        goto retry;
+                    }
+
+                    frame_Index ++;
+                    
+                    LOGT("[test] - 渲染: %ld %ld %ld", rendering_time, rendering_time-last_time, rendering_time - currentTimeNs);
+
+                    last_time = rendering_time;
+                }
 
                 if (immediate) {
                     LOGT("[test] - 渲染 立即模式");
                     AMediaCodec_releaseOutputBuffer(videoDecoder->codec, outIndex, info.size != 0);
                 } else {
-
-                    // 渲染模式切换，重置帧计数器
-                    if (immediate != last_immediate) {
-                        frame_Index = 0;
-                    }
-
-                    retry:
-
-                    if (frame_Index == 0) {
-                        base_time = currentTimeNs;
-                    }
-
-                    if (frame_Index == 0) {
-                        base_time2 = currentTimeNs;
-                    } else if (frame_Index % (refreshRate+1) == 0) {
-                        base_time2 = lastCurrentTimeNs;
-                    }
-
-                    // 基础时间修正
-                    // {
-                    //     if ((frame_Index%(refreshRate+1)) == refreshRate)
-                    //     {
-                    //         long dif = 1000000000 - (currentTimeNs - base_time2);
-                    //         if (dif > 0) {
-                    //             ns_fix = dif / refreshRate;
-                    //             LOGT("[test] - 渲染统计: 修正 %f ms 时间 %f ms frame %d 平均 %ld us", ns_fix/1000000.0, (currentTimeNs - base_time2)/1000000.0, ((frame_Index)%(refreshRate+1)), (currentTimeNs - base_time2)/((frame_Index%(refreshRate+1)) + 0)/1000);
-                    //         } else {
-                    //             ns_fix = 0;
-                    //         }
-
-                    //         frame_Index = 0;
-                    //         goto retry;
-                    //     }
-                    // }
-
-                    // base_time += ns_fix;
-
-                    long rendering_time = base_time + (frame_Index + 1) * nsTimeout;
-                    {
-                        // 卡顿会造成某一时刻，当前时间比渲染时间戳更长的情况，也就是超过一帧的延迟，此时重置。
-                        // 可能是某一帧突然的卡顿造成，而不是累积式，所以无法实施修正，只能条件触发修正。
-                        // 此举会增加画面稳定性，由重置帧计数器带来的提高rendering_time延迟，造成呈现速度快时（静止画面），增加延迟到40ms左右，反之，减小延迟到30+ms
-                        if (currentTimeNs > rendering_time /*|| rendering_time - currentTimeNs >= 2*nsTimeout 会造成频繁的重置，画面卡顿加剧*/) {
-                            LOGT("[test] - 渲染重置 %f ms %d %f ms %f ms dif %f frame_Index %d", (base_time-ns_fix)/1000000.0, ns_fix, currentTimeNs/1000000.0, rendering_time/1000000.0, (currentTimeNs-rendering_time)/1000000.0, frame_Index);
-                            frame_Index = 0;
-                            goto retry;
-                        }
-
-                        frame_Index ++;
-                        
-                        LOGT("[test] - 渲染 time %f ms %f ms %f ms", rendering_time/1000000.0, (rendering_time-last_time)/1000000.0, (rendering_time - currentTimeNs)/1000000.0f);
-
-                        last_time = rendering_time;
-                    }
-
-
                     LOGT("[test] - 渲染 非立即模式");
                     AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, rendering_time);
-
-                    lastCurrentTimeNs = currentTimeNs;
                 }
 
                 last_immediate = videoDecoder->immediateRendering;

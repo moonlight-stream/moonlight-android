@@ -626,8 +626,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
         int outIndex = dequeueOutputBuffer(videoDecoder, &info, nsTimeout/1000);
         if (outIndex >= 0) {
 
-            int lastIndex = outIndex;
-
             // 统计解码延迟
             {
                 videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
@@ -643,7 +641,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             // 逻辑丢帧时使用currentTimeNs会造成非常不稳定的帧率
             // if (videoDecoder->legacyFrameDropRendering) {
-            //     AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, currentTimeNs);
+            //     AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, currentTimeNs);
             // } else 
             {
 
@@ -682,10 +680,10 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
                 if (immediate) {
                     LOGT("[test] - 渲染 立即模式");
-                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, info.size != 0);
+                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, outIndex, info.size != 0);
                 } else {
                     LOGT("[test] - 渲染 非立即模式");
-                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, lastIndex, rendering_time);
+                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, rendering_time);
                 }
 
                 last_immediate = videoDecoder->immediateRendering;

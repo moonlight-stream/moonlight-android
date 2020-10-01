@@ -292,19 +292,17 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 #else
     
 
+    outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
+
     // 在立即模式下，清空缓冲区
-    if (useLastBuffer) {
-        // int lastIndex = outputIndex;
-        // // Get the last output buffer in the queue
-        // while ((outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
-        //     AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false);
-        //     lastIndex = outputIndex;
-        // }
-        // outputIndex = lastIndex;
-        outputIndex = clearOutputBuffer(videoDecoder, info, -1);
-    } else {
-        outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
+    // 在立即模式下，清空缓冲区（如果使用最后一帧，起不到降低解码延迟的作用）
+    if (videoDecoder->immediateRendering) {
+        int dropIndex = -1;
+        while ((dropIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
+            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, dropIndex, false);
+        }
     }
+
 #endif
 
     LOGT("[test] dequeueOutputBuffer ok! %d", outputIndex);
@@ -427,7 +425,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
 //    AMediaFormat_setInt32(videoFormat, AMEDIAFORMAT_KEY_IS_SYNC_FRAME, 0);
 
     // Avoid setting KEY_FRAME_RATE on Lollipop and earlier to reduce compatibility risk
-    if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_M) {
+    if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_LOLLIPOP) { // android is Build_VERSION_CODES_M
         // We use prefs.fps instead of redrawRate here because the low latency hack in Game.java
         // may leave us with an odd redrawRate value like 59 or 49 which might cause the decoder
         // to puke. To be safe, we'll use the unmodified value.

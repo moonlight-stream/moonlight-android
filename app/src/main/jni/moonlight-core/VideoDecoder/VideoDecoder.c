@@ -665,16 +665,24 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
                     long rendering_time = base_time + (frame_Index + 1) * usTimeout*1000;
                     {
+                        // 计算输出缓冲区的数量（含当前即将显示的缓冲区）
+                        const int buffer_count = (rendering_time-currentTimeNs) / usTimeout / 1000;
+
                         if (currentTimeNs > rendering_time) {
                             frame_Index = 0;
                             // base_time = currentTimeNs;
                             // LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
                             goto retry;
+                        } else if (buffer_count > 1){
+                            // 去除延迟
+                            LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
+                            frame_Index = 0;
+                            goto retry;
                         }
                         
                         frame_Index ++;
                         
-                        LOGT("[test] - 渲染: %ld %ld", rendering_time, rendering_time-last_time);
+                        LOGT("[test] - 渲染: %ld 间隔 %ld 延迟 %f ms [%d]", rendering_time, rendering_time-last_time, (rendering_time-currentTimeNs)/1000000.0, buffer_count);
 
                         last_time = rendering_time;
                     }

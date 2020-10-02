@@ -51,8 +51,6 @@ typedef struct {
     bool submittedCsd, submitCsdNextCall;
     bool adaptivePlayback, needsBaselineSpsHack, constrainedHighProfile, refFrameInvalidationActive, needsSpsBitstreamFixup, isExynos4;
 
-    bool legacyFrameDropRendering;
-
     VideoStats activeWindowVideoStats;
     VideoStats lastWindowVideoStats;
     VideoStats globalVideoStats;

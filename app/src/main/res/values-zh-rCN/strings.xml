@@ -195,7 +195,4 @@
     <string name="suffix_osc_opacity">%</string>
     <string name="summary_osc_opacity">令屏幕按钮变得更透明/更不透明</string>
 
-    <string name="title_bufferbar_count"> 缓冲区数量 </string>
-    <string name="summary_bufferbar_count"> 实时性和流畅度的取舍 </string>
-
 </resources>

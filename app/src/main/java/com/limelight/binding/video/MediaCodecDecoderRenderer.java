@@ -51,7 +51,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private int consecutiveCrashCount;
     private String glRenderer;
     private boolean foreground = true;
-    private boolean legacyFrameDropRendering = false;
     private PerfOverlayListener perfListener;
 
     private Timer infoTimer;
@@ -186,11 +185,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return avcDecoder != null && MediaCodecHelper.decoderBlacklistedForFrameRate(avcDecoder.getName(), frameRate);
     }
 
-    public void enableLegacyFrameDropRendering() {
-        LimeLog.info("Legacy frame drop rendering enabled");
-        legacyFrameDropRendering = true;
-    }
-
     public boolean isHevcMain10Hdr10Supported() {
         if (hevcDecoder == null) {
             return false;
@@ -296,7 +290,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return -4;
         }
 
-        MoonBridge.setLegacyFrameDropRendering(videoDecoder2, legacyFrameDropRendering);
         MoonBridge.setBufferCount(videoDecoder2, prefs.bufferCount);
 
         MoonBridge.startMediaCodec(videoDecoder2);

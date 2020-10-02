@@ -419,36 +419,46 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // to track the state of the pipeline and time frames.
         int roundedRefreshRate = Math.round(displayRefreshRate);
         int chosenFrameRate = prefConfig.fps;
-        if (!prefConfig.disableFrameDrop || prefConfig.unlockFps) {
-            if (Build.DEVICE.equals("coral") || Build.DEVICE.equals("flame")) {
-                // HACK: Pixel 4 (XL) ignores the preferred display mode and lowers refresh rate,
-                // causing frame pacing issues. See https://issuetracker.google.com/issues/143401475
-                // To work around this, use frame drop mode if we want to stream at >= 60 FPS.
-                if (prefConfig.fps >= 60) {
-                    LimeLog.info("Using Pixel 4 rendering hack");
-                    decoderRenderer.enableLegacyFrameDropRendering();
-                }
-            }
-            else if (prefConfig.fps >= roundedRefreshRate) {
-                if (prefConfig.unlockFps) {
-                    // Use frame drops when rendering above the screen frame rate
-                    decoderRenderer.enableLegacyFrameDropRendering();
-                    LimeLog.info("Using drop mode for FPS > Hz");
-                } else if (roundedRefreshRate <= 49) {
-                    // Let's avoid clearly bogus refresh rates and fall back to legacy rendering
-                    decoderRenderer.enableLegacyFrameDropRendering();
-                    LimeLog.info("Bogus refresh rate: " + roundedRefreshRate);
-                }
-                // HACK: Avoid crashing on some MTK devices
-                else if (decoderRenderer.isBlacklistedForFrameRate(roundedRefreshRate - 1)) {
-                    // Use the old rendering strategy on these broken devices
-                    decoderRenderer.enableLegacyFrameDropRendering();
-                } else {
-//                    chosenFrameRate = roundedRefreshRate - 1;
-                    LimeLog.info("Adjusting FPS target for screen to " + chosenFrameRate);
-                }
+
+        // 已禁用enableLegacyFrameDropRendering
+//        if (!prefConfig.disableFrameDrop || prefConfig.unlockFps) {
+//            if (Build.DEVICE.equals("coral") || Build.DEVICE.equals("flame")) {
+//                // HACK: Pixel 4 (XL) ignores the preferred display mode and lowers refresh rate,
+//                // causing frame pacing issues. See https://issuetracker.google.com/issues/143401475
+//                // To work around this, use frame drop mode if we want to stream at >= 60 FPS.
+//                if (prefConfig.fps >= 60) {
+//                    LimeLog.info("Using Pixel 4 rendering hack");
+//                    decoderRenderer.enableLegacyFrameDropRendering();
+//                }
+//            }
+//            else if (prefConfig.fps >= roundedRefreshRate) {
+//                if (prefConfig.unlockFps) {
+//                    // Use frame drops when rendering above the screen frame rate
+//                    decoderRenderer.enableLegacyFrameDropRendering();
+//                    LimeLog.info("Using drop mode for FPS > Hz");
+//                } else if (roundedRefreshRate <= 49) {
+//                    // Let's avoid clearly bogus refresh rates and fall back to legacy rendering
+//                    decoderRenderer.enableLegacyFrameDropRendering();
+//                    LimeLog.info("Bogus refresh rate: " + roundedRefreshRate);
+//                }
+//                // HACK: Avoid crashing on some MTK devices
+//                else if (decoderRenderer.isBlacklistedForFrameRate(roundedRefreshRate - 1)) {
+//                    // Use the old rendering strategy on these broken devices
+//                    decoderRenderer.enableLegacyFrameDropRendering();
+//                } else {
+////                    chosenFrameRate = roundedRefreshRate - 1;
+//                    LimeLog.info("Adjusting FPS target for screen to " + chosenFrameRate);
+//                }
+//            }
+//        }
+
+        // -1帧不触发高延迟解码，同时每秒必然会卡（掉帧）。所以只在没有缓冲区的时候进行判断
+        if (prefConfig.bufferCount == 0) {
+            if (roundedRefreshRate == 60 || roundedRefreshRate == 120 || roundedRefreshRate == 144) {
+                chosenFrameRate = roundedRefreshRate - 1;
             }
         }
+
 
         boolean vpnActive = NetHelper.isActiveNetworkVpn(this);
         if (vpnActive) {

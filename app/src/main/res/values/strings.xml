@@ -214,6 +214,6 @@
     <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
 
     <string name="title_bufferbar_count"> 缓冲区数量 </string>
-    <string name="summary_bufferbar_count"> 实时性和流畅度的取舍 </string>
+    <string name="summary_bufferbar_count"> 画面实时性和稳定性的取舍。 \n 缓冲区越大，画面越稳定，但延迟会变高。</string>
 
 </resources>

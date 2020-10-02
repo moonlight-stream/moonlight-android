@@ -292,8 +292,8 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 #else
     outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
 
-    // 在立即模式下，清空缓冲区
-    if (videoDecoder->immediateRendering) {
+    // 在立即模式下，且可变模式的情况下，清空缓冲区。如果没有设置缓冲区，那么不丢帧，以保障流畅度，因为此时是-1帧模式，不会触发高延迟解码。
+    if (videoDecoder->immediateRendering && videoDecoder->bufferCount > 0) {
         int dropIndex = -1;
         while ((dropIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
             AMediaCodec_releaseOutputBuffer(videoDecoder->codec, dropIndex, false);
@@ -481,8 +481,6 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
         videoDecoder->buffers[i] = framebuffer;
     }
 
-    videoDecoder->legacyFrameDropRendering = false;
-
     videoDecoder->adaptivePlayback = adaptivePlayback;
     videoDecoder->needsSpsBitstreamFixup = false;
     videoDecoder->needsBaselineSpsHack = false;
@@ -550,10 +548,6 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
     free(videoDecoder);
 
     LOGD("VideoDecoder_release: released!");
-}
-
-void VideoDecoder_setLegacyFrameDropRendering(VideoDecoder* videoDecoder, bool enabled) {
-    videoDecoder->legacyFrameDropRendering = enabled;
 }
 
 void VideoDecoder_release(VideoDecoder* videoDecoder) {
@@ -644,7 +638,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             // } else 
             {
 
-                bool immediate = videoDecoder->immediateRendering || videoDecoder->bufferCount == 0;
+                bool immediate = videoDecoder->immediateRendering;
 
                 if (immediate) {
                     LOGT("[test] - 渲染 立即模式");
@@ -1095,11 +1089,14 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
         float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
         if (decodeTimeMs < 1000.0f / videoDecoder->refreshRate) {
-            // 需要稳定5s才切换
-            const int ms_times = 3;
-            if (videoDecoder->immediateCount++ > videoDecoder->refreshRate*ms_times) {
-                videoDecoder->immediateRendering = false;
-                videoDecoder->immediateCount = 0;
+            // 如果缓冲区为0，则不进行非立即模式的切换判断
+            if (videoDecoder->bufferCount > 0) {
+                // 需要稳定5s才切换
+                const int ms_times = 3;
+                if (videoDecoder->immediateCount++ > videoDecoder->refreshRate*ms_times) {
+                    videoDecoder->immediateRendering = false;
+                    videoDecoder->immediateCount = 0;
+                }
             }
         } else {
             videoDecoder->immediateRendering = true;

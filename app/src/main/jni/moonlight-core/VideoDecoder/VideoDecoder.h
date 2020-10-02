@@ -36,6 +36,7 @@ typedef struct {
     ANativeWindow* window;
     AMediaCodec* codec;
     const char* decoderName;
+    int bufferCount; // Default = 1
 
     int initialWidth, initialHeight;
     int refreshRate;

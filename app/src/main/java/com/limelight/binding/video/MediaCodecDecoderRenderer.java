@@ -297,6 +297,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         MoonBridge.setLegacyFrameDropRendering(videoDecoder2, legacyFrameDropRendering);
+        MoonBridge.setBufferCount(videoDecoder2, prefs.bufferCount);
 
         MoonBridge.startMediaCodec(videoDecoder2);
 

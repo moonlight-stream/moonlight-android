@@ -213,4 +213,7 @@
     <string name="title_enable_post_stream_toast">Show latency message after streaming</string>
     <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
 
+    <string name="title_bufferbar_count"> 缓冲区数量 </string>
+    <string name="summary_bufferbar_count"> 实时性和流畅度的取舍 </string>
+
 </resources>

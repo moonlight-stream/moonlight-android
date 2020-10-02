@@ -29,6 +29,17 @@
             android:summary="@string/summary_seekbar_bitrate"
             android:text="@string/suffix_seekbar_bitrate_mbps"
             android:title="@string/title_seekbar_bitrate" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="bufferbar_count"
+            android:dialogMessage="@string/summary_bufferbar_count"
+            seekbar:min="0"
+            android:max="3"
+            seekbar:step="1"
+            seekbar:keyStep="1"
+            seekbar:divisor="1"
+            android:summary="@string/summary_bufferbar_count"
+            android:text=""
+            android:title="@string/title_bufferbar_count" />
         <CheckBoxPreference
             android:key="checkbox_stretch_video"
             android:title="@string/title_checkbox_stretch_video"

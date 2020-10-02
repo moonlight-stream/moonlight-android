@@ -281,3 +281,10 @@ Java_com_limelight_nvstream_jni_MoonBridge_setLegacyFrameDropRendering(JNIEnv *e
                                                                        jboolean enabled) {
     VideoDecoder_setLegacyFrameDropRendering((VideoDecoder*)video_decoder, enabled);
 }
+
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_setBufferCount(JNIEnv *env, jclass clazz,
+                                                          jlong video_decoder, jint buffer_count) {
+
+    ((VideoDecoder*)video_decoder)->bufferCount = buffer_count;
+}

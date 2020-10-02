@@ -465,6 +465,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     videoDecoder->initialWidth = width;
     videoDecoder->initialHeight = height;
     videoDecoder->refreshRate = refreshRate;
+    videoDecoder->bufferCount = 0;
 
     videoDecoder->stopping = false;
     videoDecoder->stopCallback = 0;
@@ -643,7 +644,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             // } else 
             {
 
-                bool immediate = videoDecoder->immediateRendering;
+                bool immediate = videoDecoder->immediateRendering || videoDecoder->bufferCount == 0;
 
                 if (immediate) {
                     LOGT("[test] - 渲染 立即模式");
@@ -673,7 +674,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                             // base_time = currentTimeNs;
                             // LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
                             goto retry;
-                        } else if (buffer_count > 1){
+                        } else if (buffer_count > videoDecoder->bufferCount){
                             // 去除延迟
                             LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
                             frame_Index = 0;

@@ -298,7 +298,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
     if (need_drop_frames ) { // 快速降解码延迟需求
         frames_count = 1000;
     } else {
-        // 总是需要丢帧，这里则只丢1帧，防止丢帧过多画面不流畅
+        // 总是需要丢帧
         if (videoDecoder->alwaysDropFrames) {
             frames_count = 1000;
         }

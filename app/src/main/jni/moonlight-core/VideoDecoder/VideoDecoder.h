@@ -66,6 +66,8 @@ typedef struct {
     bool immediateRendering;
     long immediateCount;
 
+    bool alwaysDropFrames;
+
     pthread_mutex_t inputCacheLock;
     pthread_mutex_t outputCacheLock;
     pthread_mutex_t lock; // api lock

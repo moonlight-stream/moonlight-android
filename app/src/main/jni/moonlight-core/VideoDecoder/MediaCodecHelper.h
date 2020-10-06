@@ -17,6 +17,8 @@
 #define Build_VERSION_SDK_INT _Build_VERSION_SDK_INT()
 
 bool MediaCodecHelper_decoderSupportsQcomVendorLowLatency(const char* decoderName);
+bool MediaCodecHelper_decoderSupportsHisiVendorLowLatency(const char* decoderName);
+
 bool MediaCodecHelper_decoderNeedsBaselineSpsHack(const char* decoderName);
 bool MediaCodecHelper_decoderNeedsSpsBitstreamRestrictions(const char* decoderName);
 

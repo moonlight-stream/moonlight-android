@@ -183,7 +183,7 @@
     <string name="title_disable_frame_drop"> 永不掉帧 </string>
     <string name="summary_disable_frame_drop"> 可能会减少在一些设备上的卡顿，但会增加延迟 </string>
     <string name="title_video_format"> 更改H.265设置 </string>
-    <string name="summary_video_format">H.265能降低视频带宽需求，但需要较新的设备才能支持</string>
+    <string name="summary_video_format">H.265能降低视频带宽需求，但需要较新的设备才能支持，但延迟较高。</string>
     <string name="title_enable_hdr"> 启用 HDR （实验） </string>
     <string name="summary_enable_hdr"> 当游戏和显卡支持时以HDR模式串流。 HDR需要GTX 1000系列或更高规格显卡。 </string>
     <string name="title_enable_perf_overlay"> 启用性能信息 </string>

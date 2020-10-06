@@ -293,12 +293,24 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
     outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
 
     // 在立即模式下，且可变模式的情况下，清空缓冲区。如果没有设置缓冲区，那么不丢帧，以保障流畅度，因为此时是-1帧模式，不会触发高延迟解码。
-    if (videoDecoder->immediateRendering && videoDecoder->bufferCount > 0) {
-        int dropIndex = -1;
-        while ((dropIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
-            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, dropIndex, false);
+    bool need_drop_frames = videoDecoder->immediateRendering && videoDecoder->bufferCount > 0;
+    int frames_count = 0;
+    if (need_drop_frames ) { // 快速降解码延迟需求
+        frames_count = 1000;
+    } else {
+        // 总是需要丢帧，这里则只丢1帧，防止丢帧过多画面不流畅
+        if (videoDecoder->alwaysDropFrames) {
+            frames_count = 1000;
         }
     }
+
+    int dropIndex = -1;
+    int i = 0;
+    while (i++ < frames_count && (dropIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
+        AMediaCodec_releaseOutputBuffer(videoDecoder->codec, dropIndex, false);
+        LOGT("[test] drop frame");
+    }
+
 #endif
 
     LOGT("[test] dequeueOutputBuffer ok! %d", outputIndex);
@@ -398,6 +410,10 @@ void OnErrorCB(
 
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* decoderName, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency, bool adaptivePlayback, bool maxOperatingRate) {
 
+    LOGT("decoderName %s", decoderName);
+
+    bool alwaysDropFrames = false;
+
     // Codecs have been known to throw all sorts of crazy runtime exceptions
     // due to implementation problems
     AMediaCodec* codec = AMediaCodec_createDecoderByType(mimeType);//AMediaCodec_createCodecByName(decoderName);
@@ -439,10 +455,25 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
             AMediaFormat_setInt32(videoFormat, "vendor.qti-ext-dec-low-latency.enable", 1);
         }
 
+        // hisi low latency decode
+        if (MediaCodecHelper_decoderSupportsHisiVendorLowLatency(decoderName)) {
+            AMediaFormat_setInt32(videoFormat, "vender.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-req", 1);
+            AMediaFormat_setInt32(videoFormat, "vender.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-rdy", -1);
+            alwaysDropFrames = true;
+        }
+
         if (maxOperatingRate) {
             AMediaFormat_setInt32(videoFormat, "operating-rate", 32767); // Short.MAX_VALUE
         }
     }
+
+    /*
+     * OMX.qcom.video.decoder.avc Xperia 1 II 索尼的产品好像默认启用在了android源代码里
+     * */
+//    if (strcmp("OMX.qcom.video.decoder.avc", decoderName) == 0) {
+//        AMediaFormat_setInt32(videoFormat, "vt-low-latency", 1);
+//        LOGT("[Xperia 1 II] vt-low-latency");
+//    }
 
     const char* string = AMediaFormat_toString(videoFormat);
     LOGT("videoFormat %s", string);
@@ -466,6 +497,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     videoDecoder->initialHeight = height;
     videoDecoder->refreshRate = refreshRate;
     videoDecoder->bufferCount = 0;
+    videoDecoder->alwaysDropFrames = alwaysDropFrames;
 
     videoDecoder->stopping = false;
     videoDecoder->stopCallback = 0;
@@ -658,19 +690,21 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                         base_time = currentTimeNs;
                     }
 
-                    long rendering_time = base_time + (frame_Index + 1) * usTimeout*1000;
+                    const int delay_frame = 1;
+                    const long nsFrameTime = usTimeout*1000;
+                    long rendering_time = base_time + (frame_Index + delay_frame) * nsFrameTime;
                     {
                         // 计算输出缓冲区的数量（含当前即将显示的缓冲区）
-                        const int buffer_count = (rendering_time-currentTimeNs) / usTimeout / 1000;
+                        const int buffer_count = (rendering_time-currentTimeNs) / nsFrameTime;
 
-                        if (currentTimeNs > rendering_time) {
+                        if (currentTimeNs > (rendering_time+(1-delay_frame)*nsFrameTime)) {
                             frame_Index = 0;
                             // base_time = currentTimeNs;
-                            // LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
+                            // LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + nsFrameTime);
                             goto retry;
                         } else if (buffer_count > videoDecoder->bufferCount){
                             // 去除延迟
-                            LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + usTimeout*1000);
+                            LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + nsFrameTime*delay_frame);
                             frame_Index = 0;
                             goto retry;
                         }

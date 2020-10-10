@@ -1,0 +1,1 @@
+- Improved performance on Google TV Chromecast and other newer Amlogic devices by using HEVC by default

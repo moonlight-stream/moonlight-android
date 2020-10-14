@@ -63,7 +63,6 @@ typedef struct {
     VideoInputBuffer* inputBufferCache;
     VideoOutputBuffer* outputBufferCache;
     // sem_t queuing_sem;
-    bool immediateRendering;
     long immediateCount;
 
     bool alwaysDropFrames;

@@ -292,8 +292,9 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 #else
     outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
 
-    // 在立即模式下，且可变模式的情况下，清空缓冲区。如果没有设置缓冲区，那么不丢帧，以保障流畅度，因为此时是-1帧模式，不会触发高延迟解码。
-    bool need_drop_frames = videoDecoder->immediateRendering && videoDecoder->bufferCount > 0;
+    // 如果不是强制设定，不进行丢帧。因为常规模式（缓冲==0）时，是-1帧模式，不会触发高解码延迟，所以不用丢。
+    // 而非立即模式，提交都很快，不丢帧也不会触发高解码延迟。
+    bool need_drop_frames = false;
     int frames_count = 0;
     if (need_drop_frames ) { // 快速降解码延迟需求
         frames_count = 1000;
@@ -471,7 +472,11 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
      * OMX.qcom.video.decoder.avc Xperia 1 II 索尼的产品好像默认启用在了android源代码里
      * */
 //    if (strcmp("OMX.qcom.video.decoder.avc", decoderName) == 0) {
+//        AMediaFormat_setInt32(videoFormat, "vt-version", 65536);
 //        AMediaFormat_setInt32(videoFormat, "vt-low-latency", 1);
+//        AMediaFormat_setInt32(videoFormat, "vt-max-macroblock-processing-rate", 972000);
+//        AMediaFormat_setInt32(videoFormat, "vt-max-level", 52);
+//        AMediaFormat_setInt32(videoFormat, "vt-max-instances", 16);
 //        LOGT("[Xperia 1 II] vt-low-latency");
 //    }
 
@@ -641,7 +646,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     long base_time = 0;
     long last_time = 0;
     uint32_t frame_Index = 0;
-    videoDecoder->immediateRendering = true;
     bool last_immediate = false;
 
     while(!videoDecoder->stopping) {
@@ -669,8 +673,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             //     AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, currentTimeNs);
             // } else 
             {
-
-                bool immediate = videoDecoder->immediateRendering;
+                // 立即渲染：只发生在无缓冲区的情况下
+                bool immediate = videoDecoder->bufferCount == 0;
 
                 if (immediate) {
                     LOGT("[test] - 渲染 立即模式");
@@ -720,7 +724,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                     AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, rendering_time);
                 }
 
-                last_immediate = videoDecoder->immediateRendering;
+                last_immediate = immediate;
             }
 
         } else {
@@ -1112,31 +1116,6 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     videoDecoder->activeWindowVideoStats.totalFramesReceived++;
     videoDecoder->activeWindowVideoStats.totalFrames++;
-
-    // 如果解码延迟始终大于每帧要求，就采用立即模式
-    {
-        VideoStats lastTwo = {0};
-        VideoStats_add(&lastTwo, &videoDecoder->lastWindowVideoStats);
-        VideoStats_add(&lastTwo, &videoDecoder->activeWindowVideoStats);
-        VideoStatsFps fps = VideoStats_getFps(&lastTwo);
-        const char* decoder = videoDecoder->decoderName;
-
-        float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
-        if (decodeTimeMs < 1000.0f / videoDecoder->refreshRate) {
-            // 如果缓冲区为0，则不进行非立即模式的切换判断
-            if (videoDecoder->bufferCount > 0) {
-                // 需要稳定5s才切换
-                const int ms_times = 3;
-                if (videoDecoder->immediateCount++ > videoDecoder->refreshRate*ms_times) {
-                    videoDecoder->immediateRendering = false;
-                    videoDecoder->immediateCount = 0;
-                }
-            }
-        } else {
-            videoDecoder->immediateRendering = true;
-            videoDecoder->immediateCount = 0;
-        }
-    }
 
 //    LOGT("fuck %d %ld %ld %ld %ld", frameNumber, videoDecoder->activeWindowVideoStats.totalFramesReceived, videoDecoder->activeWindowVideoStats.totalFramesRendered, currentTimeMillis, videoDecoder->activeWindowVideoStats.measurementStartTimestamp);
 

@@ -135,6 +135,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private TextView notificationOverlayView;
     private int requestedNotificationOverlayVisibility = View.GONE;
     private TextView performanceOverlayView;
+    private Point finger3TouchCenter;
 
     private ShortcutHelper shortcutHelper;
 
@@ -1354,6 +1355,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         aTouchContext.cancelTouch();
                     }
 
+                    // 得到3指触摸中心
+                    Point center = new Point(0, 0);
+                    int fingers = event.getPointerCount();
+                    for (int i=0; i<fingers; i++) {
+                        center.x += event.getX(i);
+                        center.y += event.getY(i);
+                    }
+                    center.x /= fingers;
+                    center.y /= fingers;
+                    finger3TouchCenter = center;
+
                     return true;
                 }
 
@@ -1377,7 +1389,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         // All fingers up
                         if (SystemClock.uptimeMillis() - threeFingerDownTime < THREE_FINGER_TAP_THRESHOLD) {
                             // This is a 3 finger tap to bring up the keyboard
-                            showKeyboard();
+                            // showKeyboard();
+
+                            // 不启用虚拟控制器的时候才进行分屏触摸判断
+                            if (!prefConfig.onscreenController && finger3TouchCenter.x < view.getWidth() / 2) {
+                                performanceOverlayView.setVisibility(performanceOverlayView.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+                            } else {
+                                showKeyboard();
+                            }
+
                             return true;
                         }
                     }

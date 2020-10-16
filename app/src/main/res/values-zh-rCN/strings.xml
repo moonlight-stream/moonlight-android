@@ -187,7 +187,7 @@
     <string name="title_enable_hdr"> 启用 HDR （实验） </string>
     <string name="summary_enable_hdr"> 当游戏和显卡支持时以HDR模式串流。 HDR需要GTX 1000系列或更高规格显卡。 </string>
     <string name="title_enable_perf_overlay"> 启用性能信息 </string>
-    <string name="summary_enable_perf_overlay"> 在串流中显示实时性能信息 </string>
+    <string name="summary_enable_perf_overlay"> 在串流中显示实时性能信息（可通过三指单击左侧屏幕来控制，右侧是控制手机键盘） </string>
     <string name="title_enable_post_stream_toast">串流完毕显示延迟信息</string>
     <string name="summary_enable_post_stream_toast">串流结束后显示延迟信息</string>
     <string name="title_osc_opacity">更改屏幕按钮透明度</string>

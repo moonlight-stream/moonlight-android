@@ -440,16 +440,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     {
         if (infoTimer != null)
             infoTimer.cancel();
-        if (prefs.enablePerfOverlay) {
-            infoTimer = new Timer();
-            infoTimer.schedule(new TimerTask(){
-                public void run() {
-                    String format = context.getResources().getString(R.string.perf_overlay_text);
-                    String info = MoonBridge.formatDecoderInfo(videoDecoder2, format);
-                    perfListener.onPerfUpdate(info);
-                }
-            }, 0, 1000);
-        }
+        // if (prefs.enablePerfOverlay) {
+        // Always show
+        infoTimer = new Timer();
+        infoTimer.schedule(new TimerTask(){
+            public void run() {
+                String format = context.getResources().getString(R.string.perf_overlay_text);
+                String info = MoonBridge.formatDecoderInfo(videoDecoder2, format);
+                perfListener.onPerfUpdate(info);
+            }
+        }, 0, 1000);
+        //}
     }
 
     @Override

@@ -694,7 +694,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                         base_time = currentTimeNs;
                     }
 
-                    const int delay_frame = 1;
+                    const int delay_frame = 1;// + videoDecoder->refreshRate/120;
                     const long nsFrameTime = usTimeout*1000;
                     long rendering_time = base_time + (frame_Index + delay_frame) * nsFrameTime;
                     {

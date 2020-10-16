@@ -135,6 +135,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private TextView notificationOverlayView;
     private int requestedNotificationOverlayVisibility = View.GONE;
     private TextView performanceOverlayView;
+    private String performanceOverlayViewString;
+    private boolean performanceOverlayViewDisabled;
     private Point finger3TouchCenter;
 
     private ShortcutHelper shortcutHelper;
@@ -348,9 +350,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Check if the user has enabled performance stats overlay
-        if (prefConfig.enablePerfOverlay) {
-            performanceOverlayView.setVisibility(View.VISIBLE);
-        }
+//        if (prefConfig.enablePerfOverlay) {
+//
+//        }
+        performanceOverlayView.setVisibility(View.VISIBLE);
 
         decoderRenderer = new MediaCodecDecoderRenderer(
                 this,
@@ -560,7 +563,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     virtualController.hide();
                 }
 
-                performanceOverlayView.setVisibility(View.GONE);
+                //performanceOverlayView.setVisibility(View.GONE);
+                setPerformanceOverlayViewVisibility(false);
                 notificationOverlayView.setVisibility(View.GONE);
             }
             else {
@@ -572,9 +576,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     virtualController.show();
                 }
 
-                if (prefConfig.enablePerfOverlay) {
-                    performanceOverlayView.setVisibility(View.VISIBLE);
-                }
+//                if (prefConfig.enablePerfOverlay) {
+//                    performanceOverlayView.setVisibility(View.VISIBLE);
+//                }
 
                 notificationOverlayView.setVisibility(requestedNotificationOverlayVisibility);
             }
@@ -1393,7 +1397,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                             // 不启用虚拟控制器的时候才进行分屏触摸判断
                             if (!prefConfig.onscreenController && finger3TouchCenter.x < view.getWidth() / 2) {
-                                performanceOverlayView.setVisibility(performanceOverlayView.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+                                // int visiblity = performanceOverlayView.getVisibility();
+                                // performanceOverlayView.setVisibility(visiblity == View.GONE ? View.VISIBLE : View.INVISIBLE);
+                                setPerformanceOverlayViewVisibility(performanceOverlayViewDisabled);
+
                             } else {
                                 showKeyboard();
                             }
@@ -1870,7 +1877,25 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                performanceOverlayView.setText(text);
+                if (!performanceOverlayViewDisabled) {
+                    performanceOverlayView.setText(text);
+                }
+                performanceOverlayViewString = text;
+            }
+        });
+    }
+
+    private void setPerformanceOverlayViewVisibility(final boolean visibility) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                performanceOverlayViewDisabled = !visibility;
+                if (performanceOverlayViewDisabled) {
+                    performanceOverlayView.setText(null);
+                } else {
+                    performanceOverlayView.setText(performanceOverlayViewString);
+                }
             }
         });
     }

@@ -40,6 +40,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 25;
 
+    private static final int EMULATING_SPECIAL = 0x1;
+    private static final int EMULATING_SELECT = 0x2;
+
+    private static final int EMULATED_SPECIAL_UP_DELAY_MS = 100;
+    private static final int EMULATED_SELECT_UP_DELAY_MS = 30;
+
     private final Vector2d inputVector = new Vector2d();
 
     private final SparseArray<InputDeviceContext> inputDeviceContexts = new SparseArray<>();
@@ -1416,6 +1422,41 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             return false;
         }
 
+        // Check if we're emulating the select button
+        if ((context.emulatingButtonFlags & ControllerHandler.EMULATING_SELECT) != 0)
+        {
+            // If either start or LB is up, select comes up too
+            if ((context.inputMap & ControllerPacket.PLAY_FLAG) == 0 ||
+                (context.inputMap & ControllerPacket.LB_FLAG) == 0)
+            {
+                context.inputMap &= ~ControllerPacket.BACK_FLAG;
+
+                context.emulatingButtonFlags &= ~ControllerHandler.EMULATING_SELECT;
+
+                try {
+                    Thread.sleep(EMULATED_SELECT_UP_DELAY_MS);
+                } catch (InterruptedException ignored) {}
+            }
+        }
+
+        // Check if we're emulating the special button
+        if ((context.emulatingButtonFlags & ControllerHandler.EMULATING_SPECIAL) != 0)
+        {
+            // If either start or select and RB is up, the special button comes up too
+            if ((context.inputMap & ControllerPacket.PLAY_FLAG) == 0 ||
+                ((context.inputMap & ControllerPacket.BACK_FLAG) == 0 &&
+                 (context.inputMap & ControllerPacket.RB_FLAG) == 0))
+            {
+                context.inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
+
+                context.emulatingButtonFlags &= ~ControllerHandler.EMULATING_SPECIAL;
+
+                try {
+                    Thread.sleep(EMULATED_SPECIAL_UP_DELAY_MS);
+                } catch (InterruptedException ignored) {}
+            }
+        }
+
         sendControllerInputPacket(context);
 
         if (context.pendingExit && context.inputMap == 0) {
@@ -1533,6 +1574,29 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                                  ControllerPacket.LB_FLAG | ControllerPacket.RB_FLAG)) {
             // Wait for the combo to lift and then finish the activity
             context.pendingExit = true;
+        }
+
+        // Start+LB acts like select for controllers with one button
+        if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG) ||
+            (context.inputMap == ControllerPacket.PLAY_FLAG &&
+              SystemClock.uptimeMillis() - context.lastLbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
+        {
+            context.inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG);
+            context.inputMap |= ControllerPacket.BACK_FLAG;
+
+            context.emulatingButtonFlags |= ControllerHandler.EMULATING_SELECT;
+        }
+
+        // We detect select+start or start+RB as the special button combo
+        if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.BACK_FLAG) ||
+            context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG) ||
+                (context.inputMap == ControllerPacket.PLAY_FLAG &&
+                        SystemClock.uptimeMillis() - context.lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
+        {
+            context.inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG);
+            context.inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+
+            context.emulatingButtonFlags |= ControllerHandler.EMULATING_SPECIAL;
         }
 
         // We don't need to send repeat key down events, but the platform
@@ -1679,6 +1743,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean ignoreBack;
         public boolean hasJoystickAxes;
         public boolean pendingExit;
+
+        public int emulatingButtonFlags = 0;
 
         // Used for OUYA bumper state tracking since they force all buttons
         // up when the OUYA button goes down. We watch the last time we get

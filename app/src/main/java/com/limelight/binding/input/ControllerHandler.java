@@ -647,9 +647,17 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.triggerDeadzone = 0.30f;
             }
             // SHIELD controllers will use small stick deadzones
-            else if (devName.contains("SHIELD")) {
+            else if (devName.contains("SHIELD") || devName.contains("NVIDIA Controller")) {
                 context.leftStickDeadzoneRadius = 0.07f;
                 context.rightStickDeadzoneRadius = 0.07f;
+
+                // The big Nvidia button on the Shield controllers acts like a Search button. It
+                // summons the Google Assistant on the Shield TV. On my Pixel 4, it seems to do
+                // nothing, so we can hijack it to act like a mode button.
+                if (devName.contains("NVIDIA Controller v01.03") || devName.contains("NVIDIA Controller v01.04")) {
+                    context.searchIsMode = true;
+                    context.hasMode = true;
+                }
             }
             // The Serval has a couple of unknown buttons that are start and select. It also has
             // a back button which we want to ignore since there's already a select button.
@@ -1047,6 +1055,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         else if (context.modeIsSelect && keyCode == KeyEvent.KEYCODE_BUTTON_MODE) {
             // Emulate the select button with mode
             return KeyEvent.KEYCODE_BUTTON_SELECT;
+        }
+        else if (context.searchIsMode && keyCode == KeyEvent.KEYCODE_SEARCH) {
+            // Emulate the mode button with search
+            return KeyEvent.KEYCODE_BUTTON_MODE;
         }
 
         return keyCode;
@@ -1780,6 +1792,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean isServal;
         public boolean backIsStart;
         public boolean modeIsSelect;
+        public boolean searchIsMode;
         public boolean ignoreBack;
         public boolean hasJoystickAxes;
         public boolean pendingExit;

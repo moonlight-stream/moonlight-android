@@ -467,6 +467,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.vibrator = dev.getVibrator();
         }
 
+        // Detect if the gamepad has Mode and Select buttons according to the Android key layouts.
+        // We do this first because other codepaths below may override these defaults.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            boolean[] buttons = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_MODE, KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BACK, 0);
+            context.hasMode = buttons[0];
+            context.hasSelect = buttons[1] || buttons[2];
+        }
+
         context.leftStickXAxis = MotionEvent.AXIS_X;
         context.leftStickYAxis = MotionEvent.AXIS_Y;
         if (getMotionRangeForJoystickAxis(dev, context.leftStickXAxis) != null &&
@@ -525,6 +533,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     // The old DS4 driver uses RX and RY for triggers
                     context.leftTriggerAxis = MotionEvent.AXIS_RX;
                     context.rightTriggerAxis = MotionEvent.AXIS_RY;
+
+                    // DS4 has Select and Mode buttons (possibly mapped non-standard)
+                    context.hasSelect = true;
+                    context.hasMode = true;
                 }
                 else {
                     // If it's not a non-standard DS4 controller, it's probably an Xbox controller or
@@ -606,6 +618,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.backIsStart = true;
                 context.modeIsSelect = true;
                 context.triggerDeadzone = 0.30f;
+                context.hasSelect = true;
+                context.hasMode = false;
             }
         }
 
@@ -623,6 +637,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     if (!hasStartKey[0] && !hasStartKey[1]) {
                         context.backIsStart = true;
                         context.modeIsSelect = true;
+                        context.hasSelect = true;
+                        context.hasMode = false;
                     }
                 }
 
@@ -639,6 +655,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // a back button which we want to ignore since there's already a select button.
             else if (devName.contains("Razer Serval")) {
                 context.isServal = true;
+
+                // Serval has Select and Mode buttons (possibly mapped non-standard)
+                context.hasMode = true;
+                context.hasSelect = true;
             }
             // The Xbox One S Bluetooth controller has some mappings that need fixing up.
             // However, Microsoft released a firmware update with no change to VID/PID
@@ -649,6 +669,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             else if (devName.equals("Xbox Wireless Controller")) {
                 if (gasRange == null) {
                     context.isNonStandardXboxBtController = true;
+
+                    // Xbox One S has Select and Mode buttons (possibly mapped non-standard)
+                    context.hasMode = true;
+                    context.hasSelect = true;
                 }
             }
         }
@@ -1485,6 +1509,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         switch (keyCode) {
         case KeyEvent.KEYCODE_BUTTON_MODE:
+            context.hasMode = true;
             context.inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
             break;
         case KeyEvent.KEYCODE_BUTTON_START:
@@ -1496,6 +1521,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             break;
         case KeyEvent.KEYCODE_BACK:
         case KeyEvent.KEYCODE_BUTTON_SELECT:
+            context.hasSelect = true;
             context.inputMap |= ControllerPacket.BACK_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_LEFT:
@@ -1577,26 +1603,40 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         // Start+LB acts like select for controllers with one button
-        if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG) ||
-            (context.inputMap == ControllerPacket.PLAY_FLAG &&
-              SystemClock.uptimeMillis() - context.lastLbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
-        {
-            context.inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG);
-            context.inputMap |= ControllerPacket.BACK_FLAG;
+        if (!context.hasSelect) {
+            if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG) ||
+                    (context.inputMap == ControllerPacket.PLAY_FLAG &&
+                            SystemClock.uptimeMillis() - context.lastLbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
+            {
+                context.inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG);
+                context.inputMap |= ControllerPacket.BACK_FLAG;
 
-            context.emulatingButtonFlags |= ControllerHandler.EMULATING_SELECT;
+                context.emulatingButtonFlags |= ControllerHandler.EMULATING_SELECT;
+            }
         }
 
-        // We detect select+start or start+RB as the special button combo
-        if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.BACK_FLAG) ||
-            context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG) ||
-                (context.inputMap == ControllerPacket.PLAY_FLAG &&
-                        SystemClock.uptimeMillis() - context.lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
-        {
-            context.inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG);
-            context.inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+        // If there is a physical select button, we'll use Start+Select as the special button combo
+        // otherwise we'll use Start+RB.
+        if (!context.hasMode) {
+            if (context.hasSelect) {
+                if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.BACK_FLAG)) {
+                    context.inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.BACK_FLAG);
+                    context.inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
 
-            context.emulatingButtonFlags |= ControllerHandler.EMULATING_SPECIAL;
+                    context.emulatingButtonFlags |= ControllerHandler.EMULATING_SPECIAL;
+                }
+            }
+            else {
+                if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG) ||
+                        (context.inputMap == ControllerPacket.PLAY_FLAG &&
+                                SystemClock.uptimeMillis() - context.lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
+                {
+                    context.inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG);
+                    context.inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+
+                    context.emulatingButtonFlags |= ControllerHandler.EMULATING_SPECIAL;
+                }
+            }
         }
 
         // We don't need to send repeat key down events, but the platform
@@ -1745,6 +1785,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean pendingExit;
 
         public int emulatingButtonFlags = 0;
+        public boolean hasSelect;
+        public boolean hasMode;
 
         // Used for OUYA bumper state tracking since they force all buttons
         // up when the OUYA button goes down. We watch the last time we get

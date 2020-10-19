@@ -26,7 +26,7 @@ class VideoStats {
             this.measurementStartTimestamp = other.measurementStartTimestamp;
         }
 
-        assert other.measurementStartTimestamp <= this.measurementStartTimestamp;
+        assert other.measurementStartTimestamp >= this.measurementStartTimestamp;
     }
 
     void copy(VideoStats other) {

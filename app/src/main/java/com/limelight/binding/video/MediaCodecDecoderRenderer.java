@@ -20,6 +20,7 @@ import android.media.MediaFormat;
 import android.media.MediaCodec.BufferInfo;
 import android.media.MediaCodec.CodecException;
 import android.os.Build;
+import android.os.SystemClock;
 import android.util.Range;
 import android.view.SurfaceHolder;
 
@@ -410,7 +411,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             //
             if (initialException != null) {
                 // This isn't the first time we've had an exception processing video
-                if (System.currentTimeMillis() - initialExceptionTimestamp >= EXCEPTION_REPORT_DELAY_MS) {
+                if (SystemClock.uptimeMillis() - initialExceptionTimestamp >= EXCEPTION_REPORT_DELAY_MS) {
                     // It's been over 3 seconds and we're still getting exceptions. Throw the original now.
                     if (!reportedCrash) {
                         reportedCrash = true;
@@ -427,7 +428,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 else {
                     initialException = new RendererException(this, e);
                 }
-                initialExceptionTimestamp = System.currentTimeMillis();
+                initialExceptionTimestamp = SystemClock.uptimeMillis();
             }
         }
     }
@@ -637,7 +638,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         if (lastFrameNumber == 0) {
-            activeWindowVideoStats.measurementStartTimestamp = System.currentTimeMillis();
+            activeWindowVideoStats.measurementStartTimestamp = SystemClock.uptimeMillis();
         } else if (frameNumber != lastFrameNumber && frameNumber != lastFrameNumber + 1) {
             // We can receive the same "frame" multiple times if it's an IDR frame.
             // In that case, each frame start NALU is submitted independently.
@@ -649,7 +650,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         lastFrameNumber = frameNumber;
 
         // Flip stats windows roughly every second
-        if (System.currentTimeMillis() >= activeWindowVideoStats.measurementStartTimestamp + 1000) {
+        if (SystemClock.uptimeMillis() >= activeWindowVideoStats.measurementStartTimestamp + 1000) {
             if (prefs.enablePerfOverlay) {
                 VideoStats lastTwo = new VideoStats();
                 lastTwo.add(lastWindowVideoStats);
@@ -682,7 +683,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             globalVideoStats.add(activeWindowVideoStats);
             lastWindowVideoStats.copy(activeWindowVideoStats);
             activeWindowVideoStats.clear();
-            activeWindowVideoStats.measurementStartTimestamp = System.currentTimeMillis();
+            activeWindowVideoStats.measurementStartTimestamp = SystemClock.uptimeMillis();
         }
 
         activeWindowVideoStats.totalFramesReceived++;

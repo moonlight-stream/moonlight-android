@@ -8,6 +8,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.SystemClock;
 import android.view.MotionEvent;
 
 import java.util.ArrayList;
@@ -270,7 +271,7 @@ public class AnalogStick extends VirtualControllerElement {
         // We also release the deadzone if the user keeps the stick pressed for a bit to allow
         // them to make precise movements.
         stick_state = (stick_state == STICK_STATE.MOVED_ACTIVE ||
-                System.currentTimeMillis() - timeLastClick > timeoutDeadzone ||
+                SystemClock.uptimeMillis() - timeLastClick > timeoutDeadzone ||
                 movement_radius > radius_dead_zone) ?
                 STICK_STATE.MOVED_ACTIVE : STICK_STATE.MOVED_IN_DEAD_ZONE;
 
@@ -311,7 +312,7 @@ public class AnalogStick extends VirtualControllerElement {
                 stick_state = STICK_STATE.MOVED_IN_DEAD_ZONE;
                 // check for double click
                 if (lastClickState == CLICK_STATE.SINGLE &&
-                        timeLastClick + timeoutDoubleClick > System.currentTimeMillis()) {
+                        timeLastClick + timeoutDoubleClick > SystemClock.uptimeMillis()) {
                     click_state = CLICK_STATE.DOUBLE;
                     notifyOnDoubleClick();
                 } else {
@@ -319,7 +320,7 @@ public class AnalogStick extends VirtualControllerElement {
                     notifyOnClick();
                 }
                 // reset last click timestamp
-                timeLastClick = System.currentTimeMillis();
+                timeLastClick = SystemClock.uptimeMillis();
                 // set item pressed and update
                 setPressed(true);
                 break;

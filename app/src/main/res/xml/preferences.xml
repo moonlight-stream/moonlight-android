@@ -200,6 +200,11 @@
             android:summary="@string/summary_enable_hdr"
             android:defaultValue="false" />
         <CheckBoxPreference
+            android:key="checkbox_enable_low_latency"
+            android:title="@string/title_enable_low_latency"
+            android:summary="@string/summary_enable_low_latency"
+            android:defaultValue="true" />
+        <CheckBoxPreference
             android:key="checkbox_enable_perf_overlay"
             android:title="@string/title_enable_perf_overlay"
             android:summary="@string/summary_enable_perf_overlay"

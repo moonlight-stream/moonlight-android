@@ -83,7 +83,7 @@ bool MediaCodecHelper_decoderSupportsQcomVendorLowLatency(const char* decoderNam
 }
 
 bool MediaCodecHelper_decoderSupportsHisiVendorLowLatency(const char* decoderName) {
-    return Build_VERSION_SDK_INT >= Build_VERSION_CODES_O &&
+    return //Build_VERSION_SDK_INT >= Build_VERSION_CODES_O &&
             IS_DECODER_IN_LIST(hisiDecoderPrefixes, decoderName);
 }
 

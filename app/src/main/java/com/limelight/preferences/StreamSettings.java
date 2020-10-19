@@ -400,6 +400,15 @@ public class StreamSettings extends Activity {
                 }
             }
 
+            // Remove Low Latency checkbox
+            MediaCodecInfo avcDecoder = findAvcDecoder();
+            if (!MediaCodecHelper.decoderSupportsHisiVendorLowLatency(avcDecoder.getName())) {
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_advanced_settings");
+                category.removePreference(findPreference("checkbox_enable_low_latency"));
+            }
+
+
             // Add a listener to the FPS and resolution preference
             // so the bitrate can be auto-adjusted
             findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING).setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -429,5 +438,13 @@ public class StreamSettings extends Activity {
                 }
             });
         }
+    }
+
+    private static MediaCodecInfo findAvcDecoder() {
+        MediaCodecInfo decoder = MediaCodecHelper.findProbableSafeDecoder("video/avc", MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
+        if (decoder == null) {
+            decoder = MediaCodecHelper.findFirstDecoder("video/avc");
+        }
+        return decoder;
     }
 }

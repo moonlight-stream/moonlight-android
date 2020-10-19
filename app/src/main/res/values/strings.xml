@@ -216,4 +216,7 @@
     <string name="title_bufferbar_count"> 缓冲区数量 </string>
     <string name="summary_bufferbar_count"> 画面实时性和稳定性的取舍。 \n 缓冲区越大，画面越稳定，但延迟会变高。</string>
 
+    <string name="title_enable_low_latency"> 低延迟解码 </string>
+    <string name="summary_enable_low_latency"> 针对华为海思等解码器开启低延迟解码（开启后可能有卡顿）</string>
+
 </resources>

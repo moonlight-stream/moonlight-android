@@ -354,6 +354,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 //
 //        }
         performanceOverlayView.setVisibility(View.VISIBLE);
+        setPerformanceOverlayViewVisibility(prefConfig.enablePerfOverlay);
 
         decoderRenderer = new MediaCodecDecoderRenderer(
                 this,

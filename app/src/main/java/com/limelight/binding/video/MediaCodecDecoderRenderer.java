@@ -24,6 +24,7 @@ import android.media.MediaCodec.CodecException;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 import android.util.Range;
 import android.view.SurfaceHolder;
 
@@ -283,7 +284,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         boolean maxOperatingRate = MediaCodecHelper.decoderSupportsMaxOperatingRate(selectedDecoderName);
 
-        videoDecoder2 = MoonBridge.createMediaCodec(renderTarget.getSurface(), selectedDecoderName, mimeType, width, height, redrawRate, prefs.fps, prefs.enableLowLatency,
+        videoDecoder2 = MoonBridge.createMediaCodec(renderTarget.getSurface(), selectedDecoderName, mimeType, width, height, redrawRate, prefs.fps, lowLatency,
             adaptivePlayback, maxOperatingRate, constrainedHighProfile, refFrameInvalidationActive, isExynos4);
 
         if (videoDecoder2 == 0) {
@@ -414,7 +415,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             //
             if (initialException != null) {
                 // This isn't the first time we've had an exception processing video
-                if (System.currentTimeMillis() - initialExceptionTimestamp >= EXCEPTION_REPORT_DELAY_MS) {
+                if (SystemClock.uptimeMillis() - initialExceptionTimestamp >= EXCEPTION_REPORT_DELAY_MS) {
                     // It's been over 3 seconds and we're still getting exceptions. Throw the original now.
                     if (!reportedCrash) {
                         reportedCrash = true;
@@ -431,7 +432,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 else {
                     initialException = new RendererException(this, e);
                 }
-                initialExceptionTimestamp = System.currentTimeMillis();
+                initialExceptionTimestamp = SystemClock.uptimeMillis();
             }
         }
     }

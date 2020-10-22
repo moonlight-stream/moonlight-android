@@ -440,7 +440,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     }
 
     // android 30+ 及其以上才支持低延迟模式，可以设置这个值
-    if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_R /*&& lowLatency*/) {
+    if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_R && lowLatency) {
         AMediaFormat_setInt32(videoFormat, /*AMEDIAFORMAT_KEY_LATENCY*/"latency", 0);
     }else if (Build_VERSION_SDK_INT >= Build_VERSION_CODES_M) {
         // Set the Qualcomm vendor low latency extension if the Android R option is unavailable
@@ -455,13 +455,6 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
             AMediaFormat_setInt32(videoFormat, "vendor.qti-ext-dec-low-latency.enable", 1);
         }
 
-        if (maxOperatingRate) {
-            AMediaFormat_setInt32(videoFormat, "operating-rate", 32767); // Short.MAX_VALUE
-        }
-    }
-
-    if (lowLatency) {
-
         // hisi low latency decode
         // Support Kirin990/Kirin980/Kirin985/Kirin820/Kirin810
         // if (MediaCodecHelper_decoderSupportsHisiVendorLowLatency("OMX.hisi.video.decoder.avc"))
@@ -472,8 +465,11 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
             alwaysDropFrames = true;
             LOGT("Hisi low latency %s", decoderName);
         }
-    }
 
+        if (maxOperatingRate) {
+            AMediaFormat_setInt32(videoFormat, "operating-rate", 32767); // Short.MAX_VALUE
+        }
+    }
 
     /*
      * OMX.qcom.video.decoder.avc Xperia 1 II 索尼的产品好像默认启用在了android源代码里

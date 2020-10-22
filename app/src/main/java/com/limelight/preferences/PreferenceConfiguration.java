@@ -34,7 +34,6 @@ public class PreferenceConfiguration {
     private static final String DISABLE_FRAME_DROP_PREF_STRING = "checkbox_disable_frame_drop";
     private static final String ENABLE_HDR_PREF_STRING = "checkbox_enable_hdr";
     private static final String ENABLE_PIP_PREF_STRING = "checkbox_enable_pip";
-    private static final String ENABLE_LOW_LATENCY_PREF_STRING = "checkbox_enable_low_latency";
     private static final String ENABLE_PERF_OVERLAY_STRING = "checkbox_enable_perf_overlay";
     private static final String BIND_ALL_USB_STRING = "checkbox_usb_bind_all";
     private static final String MOUSE_EMULATION_STRING = "checkbox_mouse_emulation";
@@ -102,7 +101,6 @@ public class PreferenceConfiguration {
     public boolean onlyL3R3;
     public boolean enableHdr;
     public boolean enablePip;
-    public boolean enableLowLatency;
     public boolean enablePerfOverlay;
     public boolean enableLatencyToast;
     public boolean bindAllUsb;
@@ -410,7 +408,6 @@ public class PreferenceConfiguration {
         config.touchscreenTrackpad = prefs.getBoolean(TOUCHSCREEN_TRACKPAD_PREF_STRING, DEFAULT_TOUCHSCREEN_TRACKPAD);
         config.enableLatencyToast = prefs.getBoolean(LATENCY_TOAST_PREF_STRING, DEFAULT_LATENCY_TOAST);
         config.bufferCount = prefs.getInt(BUFFER_PREF_STRING, DEFAULT_BUFFER_COUNT);
-        config.enableLowLatency = prefs.getBoolean(ENABLE_LOW_LATENCY_PREF_STRING, DEFAULT_ENABLE_LOW_LATENCY);
 
         return config;
     }

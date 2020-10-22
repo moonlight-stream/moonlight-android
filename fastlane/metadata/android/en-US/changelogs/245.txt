@@ -1,0 +1,3 @@
+- Gamepad button combos to emulate missing Select and Guide buttons have been reintroduced
+- For gamepads without a Select button, LB+Start will trigger the Select button and RB+Start will trigger the Guide button
+- For gamepads with a Select button, Start+Select will trigger the Guide button

@@ -408,6 +408,10 @@ public class StreamSettings extends Activity {
                     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
                     String valueStr = (String) newValue;
 
+                    if (valueStr == getString(R.string.resolution_full_local_value)) {
+                        valueStr = PreferenceConfiguration.fullWidth + "x" + PreferenceConfiguration.fullHeight;
+                    }
+
                     // Write the new bitrate value
                     resetBitrateToDefault(prefs, valueStr, null);
 

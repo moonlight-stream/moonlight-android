@@ -3,10 +3,15 @@ package com.limelight.preferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.util.DisplayMetrics;
 
 import com.limelight.nvstream.jni.MoonBridge;
+
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 public class PreferenceConfiguration {
     private static final String LEGACY_RES_FPS_PREF_STRING = "list_resolution_fps";
@@ -88,7 +93,9 @@ public class PreferenceConfiguration {
     public static final String RES_4K = "3840x2160";
     public static final String RES_2K_219 = "2560x1096";
     public static final String RES_4K_219 = "3840x1644";
+    public static final String RES_FULL_LOCAL = "full_local";
 
+    public static int fullWidth, fullHeight;
     public int width, height, fps;
     public int bitrate;
     public int videoFormat;
@@ -114,6 +121,7 @@ public class PreferenceConfiguration {
 
     public int bufferCount;
 
+    // 这个几乎用于异常判断，异常值可能是full_local等
     private static String convertFromLegacyResolutionString(String resString) {
         if (resString.equalsIgnoreCase("360p")) {
             return RES_360P;
@@ -139,21 +147,51 @@ public class PreferenceConfiguration {
         else if (resString.equalsIgnoreCase("4K (21:9)")) {
             return RES_4K_219;
         }
+        else if (resString.equalsIgnoreCase("full_local")) {
+            return RES_FULL_LOCAL;
+        }
         else {
             // Should be unreachable
             return RES_720P;
         }
     }
 
+    private static int getHorizontalScreenWidth() {
+        if (fullWidth > 0) return fullWidth;
+
+        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
+        return max(metrics.widthPixels, metrics.heightPixels);
+    }
+
+    private static int getHorizontalScreenHeight() {
+        if (fullHeight > 0) return fullHeight;
+
+        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
+        return min(metrics.widthPixels, metrics.heightPixels);
+    }
+
     private static int getWidthFromResolutionString(String resString) {
-        return Integer.parseInt(resString.split("x")[0]);
+        String[] arr = resString.split("x");
+        if (arr.length == 2) {
+            return Integer.parseInt(arr[0]);
+        }
+        return getHorizontalScreenWidth();
     }
 
     private static int getHeightFromResolutionString(String resString) {
-        return Integer.parseInt(resString.split("x")[1]);
+        String[] arr = resString.split("x");
+        if (arr.length == 2) {
+            return Integer.parseInt(arr[1]);
+        }
+        return getHorizontalScreenHeight();
     }
 
     private static String getResolutionString(int width, int height) {
+
+        if (getHorizontalScreenWidth() == width && getHorizontalScreenHeight() == height) {
+            return RES_FULL_LOCAL;
+        }
+
         switch (height) {
             case 360:
                 return RES_360P;

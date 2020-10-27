@@ -1,15 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
+
     compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 21 // 28
         targetSdkVersion 30
 
-        versionName "9.7.4a"
-        versionCode = 244
-        signingConfig signingConfigs.debug
+        versionName "9.7.6a"
+        versionCode = 246
+        signingConfig signingConfigs.nonRootRelease
     }
 
     flavorDimensions "root"

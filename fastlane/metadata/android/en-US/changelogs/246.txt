@@ -1,0 +1,1 @@
+- Enabled raw mouse input on the Nvidia Shield TV to avoid mouse acceleration

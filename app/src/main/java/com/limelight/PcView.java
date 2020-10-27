@@ -41,6 +41,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.ContextMenu;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -170,6 +171,42 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         pcGridAdapter.notifyDataSetChanged();
     }
 
+    private void initConfig() {
+
+        int maxSupportedResWidth  = 0;
+        int maxSupportedResHeight = 0;
+
+        // Hide non-supported resolution/FPS combinations
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Display display = getWindowManager().getDefaultDisplay();
+
+            int maxSupportedResW = 0;
+
+            // Always allow resolutions that are smaller or equal to the active
+            // display resolution because decoders can report total non-sense to us.
+            // For example, a p201 device reports:
+            // AVC Decoder: OMX.amlogic.avc.decoder.awesome
+            // HEVC Decoder: OMX.amlogic.hevc.decoder.awesome
+            // AVC supported width range: 64 - 384
+            // HEVC supported width range: 64 - 544
+            for (Display.Mode candidate : display.getSupportedModes()) {
+                // Some devices report their dimensions in the portrait orientation
+                // where height > width. Normalize these to the conventional width > height
+                // arrangement before we process them.
+
+                int width = Math.max(candidate.getPhysicalWidth(), candidate.getPhysicalHeight());
+                int height = Math.min(candidate.getPhysicalWidth(), candidate.getPhysicalHeight());
+
+                if (width > maxSupportedResWidth) {
+                    maxSupportedResWidth = width;
+                    maxSupportedResHeight = height;
+                }
+            }
+        }
+        PreferenceConfiguration.fullWidth = maxSupportedResWidth;
+        PreferenceConfiguration.fullHeight = maxSupportedResHeight;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -213,6 +250,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }
         else {
             LimeLog.info("Cached GL Renderer: " + glPrefs.glRenderer);
+            initConfig();
             completeOnCreate();
         }
     }

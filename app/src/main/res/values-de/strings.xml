@@ -55,22 +55,22 @@
     <string name="title_decoding_error">Video Decoder ist gecrashed</string>
     <string name="message_decoding_error">Moonlight ist wegen einer Inkompatibilität zu dem Video-Decoder ihres Gerätes gecrasht. Stellen sie sicher, dass GeForce Experience Version auf ihrem PC auf dem neuesten Stand ist. Sollten weiterin Crashes auftreten, versuchen sie ihre Stream Einstellungen zu justieren.</string>
     <string name="title_decoding_reset">Video Einstellungen zurücksetzen</string>
-    <string name="message_decoding_reset">Der Video-Decoder ihres Geärts ist wiederholt mit den ausgewählten Einstellungen gecrasht. Ihre streaming einstellungen wurden zurückgesetzt.</string>
+    <string name="message_decoding_reset">Der Video-Decoder ihres Geräts ist wiederholt mit den ausgewählten Einstellungen gecrasht. Ihre Streamingeinstellungen wurden zurückgesetzt.</string>
     <string name="error_usb_prohibited">USB Zugriff ist administrativ unterbunden. Bitte überprüfen sie ihre Knox oder MDM Einstellungen.</string>
     <string name="unable_to_pin_shortcut">Die zur Zeit aktive Launcher App ünterstützt das erstellen angehefteter Shortcuts nicht.</string>
 
     <!-- Start application messages -->
     <string name="conn_establishing_title">Verbindung herstellen</string>
     <string name="conn_establishing_msg">Verbindung starten</string>
-    <string name="conn_metered">Warnung: Das Datentransfairvolument ihrer Netzwerkverbindung ist limitiert!</string>
+    <string name="conn_metered">Warnung: Das Datentransfervolumen ihrer Netzwerkverbindung ist limitiert!</string>
     <string name="conn_client_latency">Durchschnittliche Frame-Dekodierungslatenz:</string>
     <string name="conn_client_latency_hw">Hardware-Dekodierungslatenz:</string>
     <string name="conn_hardware_latency">Durchschnittliche Hardware-Dekodierungslatenz:</string>
     <string name="conn_starting">Startet</string>
-    <string name="conn_error_title">Verbindingsfehler</string>
+    <string name="conn_error_title">Verbindungsfehler</string>
     <string name="conn_error_msg">Start fehlgeschlagen</string>
     <string name="conn_terminated_title">Verbindung beendet</string>
-    <string name="conn_terminated_msg">Die verbinding wurde beendet</string>
+    <string name="conn_terminated_msg">Die Verbindung wurde beendet</string>
 
     <!-- General strings -->
     <string name="ip_hint">IP-Adresse des GeForce PCs</string>
@@ -107,7 +107,7 @@
     <!-- Add computer manually activity -->
     <string name="title_add_pc">PC manuell hinzufügen</string>
     <string name="msg_add_pc">Verbinde zum PC…</string>
-    <string name="addpc_fail">Verbindung fehlgeschlagen. Stellen sie sicher, dass die benötigten ports von einer Firewall gefiltert werden.</string>
+    <string name="addpc_fail">Verbindung fehlgeschlagen. Stellen sie sicher, dass die benötigten Ports von einer Firewall gefiltert werden.</string>
     <string name="addpc_success">Computer erfolgreich hinzugefügt</string>
     <string name="addpc_unknown_host">Auflößen der PC-Adresse fehlgeschlagen. Stellen sie sicher, dass die Adresse keine Tippfehler beinhaltet.</string>
     <string name="addpc_enter_ip">Sie müssen eine IP-Addresse eingeben.</string>
@@ -133,7 +133,7 @@
 
     <string name="category_input_settings">Eingabe Einstellungen</string>
     <string name="title_checkbox_multi_controller">Automatische GamePad-Erkennung</string>
-    <string name="summary_checkbox_multi_controller">Abwählen dieser Option erzwingt dass immer ein GamePad present ist</string>
+    <string name="summary_checkbox_multi_controller">Abwählen dieser Option erzwingt dass immer ein GamePad präsent ist</string>
     <string name="title_checkbox_vibrate_fallback">Vibrationsemulation aktivieren</string>
     <string name="summary_checkbox_vibrate_fallback">Lässt das Gerät vibrieren falls das GamePad keine Vibration unterstütz</string>
     <string name="title_seekbar_deadzone">Tot Bereich des Analogsticks</string>

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_label" translatable="false">Moonlight</string>
+    <string name="app_label_root" translatable="false">Moonlight (Root)</string>
 
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc">PC gelöscht</string>
@@ -13,12 +15,23 @@
     <string name="help_loading_msg">Lade Hilfesanzeige…</string>
 
     <!-- PC view menu entries -->
-    <string name="pcview_menu_app_list">Spiele List anzeigen</string>
+    <string name="pcview_menu_app_list">Spiele anzeigen</string>
+    <string name="pcview_menu_full_app_list">Ausgeblendete Spiele anzeigen</string>
     <string name="pcview_menu_pair_pc">Mit PC verbinden</string>
     <string name="pcview_menu_unpair_pc">Verbindung beenden</string>
     <string name="pcview_menu_send_wol">Wake-On-LAN Anfrage senden</string>
     <string name="pcview_menu_delete_pc">PC löschen</string>
+     <string name="pcview_menu_test_network">Netzwerkverbindung testen</string>
     <string name="pcview_menu_details">Details anzeigen</string>
+
+    <!-- Network test strings -->
+    <string name="nettest_title_waiting">Netzwerkverbindung wird getest</string>
+    <string name="nettest_text_waiting">Moonlight testet Ihre Netzwerkverbindung, um festzustellen, ob NVIDIA GameStream blockiert ist. Dies kann einige Sekunden dauern...</string>
+    <string name="nettest_title_done">Netzwerktest abgeschlossen</string>
+    <string name="nettest_text_success">Ihr Netzwerk scheint das Mondlicht nicht zu blockieren. Wenn Sie weiterhin Probleme mit der Verbindung haben, überprüfen Sie die Firewall-Einstellungen Ihres PC\n\n\n Wenn Sie versuchen, über das Internet zu streamen, installieren Sie das Moonlight Internet Hosting Tool auf Ihrem PC und führen Sie den mitgelieferten Internet-Streaming-Tester aus, um die Internetverbindung Ihres PC\ zu überprüfen.</string>
+    <string name="nettest_text_inconclusive">Der Netzwerktest konnte nicht durchgeführt werden, da keiner der Verbindungstestserver von Moonlight\ erreichbar war. Überprüfen Sie Ihre Internetverbindung oder versuchen Sie es später noch einmal.</string>
+    <string name="nettest_text_failure">Die aktuelle Netzwerkverbindung Ihres Geräts scheint das Mondlicht zu blockieren. Das Streaming über das Internet funktioniert möglicherweise nicht, während Sie mit diesem Netzwerk verbunden sind.\n\n Folgende Netzwerkports wurden blockiert:\n</string>
+    <string name="nettest_text_blocked">Die aktuelle Netzwerkverbindung Ihres Geräts blockiert Moonlight. Das Streaming über das Internet funktioniert möglicherweise nicht, während Sie mit diesem Netzwerk verbunden sind.</string>
 
     <!-- Pair messages -->
     <string name="pairing">Verbinden…</string>
@@ -28,7 +41,7 @@
     <string name="pair_pairing_msg">Bitte geben sie folgenden PIN auf ihrem PC ein:</string>
     <string name="pair_incorrect_pin">PIN inkorrekt</string>
     <string name="pair_fail">Verbindung fehlgeschlagen</string>
-    <string name="pair_already_in_progress">Verbindungsaufbau rebreits im gange</string>
+    <string name="pair_already_in_progress">Verbindungsaufbau bereits im Gange</string>
 
     <!-- WOL messages -->
     <string name="wol_pc_online">Computer ist online</string>
@@ -50,7 +63,7 @@
     <string name="error_manager_not_running">Der ComputerManager Service läuft nicht. Bitte warten sie ein paar Sekunden oder starten sie Die App neu.</string>
     <string name="error_unknown_host">Host konnte nicht aufgelößt werden.</string>
     <string name="error_404">GFE ist auf einen HTTP 404 Fehler gestoßen. Stellen sie sicher, dass die GPU ihres PCs unterstützt wird.
-	  Die verwendung von Remote-Desktop Software kann ebenso diesen Fehler verursachen. Starten sie ihren Computer neu oder reinstallieren sie GFE.
+	  Die Verwendung von Remote-Desktop Software kann ebenso diesen Fehler verursachen. Starten sie ihren Computer neu oder reinstallieren sie GFE.
     </string>
     <string name="title_decoding_error">Video Decoder ist gecrashed</string>
     <string name="message_decoding_error">Moonlight ist wegen einer Inkompatibilität zu dem Video-Decoder ihres Gerätes gecrasht. Stellen sie sicher, dass GeForce Experience Version auf ihrem PC auf dem neuesten Stand ist. Sollten weiterin Crashes auftreten, versuchen sie ihre Stream Einstellungen zu justieren.</string>
@@ -99,7 +112,7 @@
     <string name="applist_refresh_error_title">Fehler</string>
     <string name="applist_refresh_error_msg">Abfrage der App-Liste fehlgeschlagen</string>
     <string name="applist_quit_app">Beenden</string>
-    <string name="applist_quit_success">Erfolgreich Beendet</string>
+    <string name="applist_quit_success">Erfolgreich beendet</string>
     <string name="applist_quit_fail">Beenden fehlgeschlagen</string>
     <string name="applist_quit_confirmation">Sind sie sicher, dass die die laufende App schließen möchten? Ungespeicherte Daten gehen verloren.</string>
     <string name="applist_details_id">App ID:</string>
@@ -119,7 +132,7 @@
     <string name="summary_resolution_list">Ehöhen für klarere Bilder. Reduzieren für flüssigere Darstellung auf langsameren Geräten und Netzwerken.</string>
     <string name="title_fps_list">Bildwiederholungsrate</string>
     <string name="summary_fps_list">Erhöhen für einen gleichmäßigeren Video-Stream. Verringern um auf langsameren Geräten eine bessere Performance zu erzielen.</string>
-    <string name="title_seekbar_bitrate">Video bitrate</string>
+    <string name="title_seekbar_bitrate">Video Bitrate</string>
     <string name="summary_seekbar_bitrate">Erhöhen für einen schärferen Video-Stream. Verringern um auf langsameren Geräten eine bessere Performance zu erzielen.</string>
     <string name="title_unlock_fps">Alle Bildwiederholungsraten freigeben</string>
     <string name="summary_unlock_fps">Streaming mit 90 oder 120 FPS reduziert gegebenfalls die Latenz auf High-End Geräten, für jedoch zu Crashes oder Lag auf Geräten die dies nicht untersützen können.</string>
@@ -130,18 +143,20 @@
     <string name="summary_checkbox_enable_pip">Stream auch während des Multitaskings anzeigen (ohne Steuerung)</string>
 
     <string name="category_audio_settings">Audio Einstellungen</string>
+    <string name="title_audio_config_list">Surround Sound Konfiguration </string>
+    <string name="summary_audio_config_list">Aktivieren von 5.1- oder 7.1-Surround-Sound für Heimkinosysteme</string>
 
     <string name="category_input_settings">Eingabe Einstellungen</string>
     <string name="title_checkbox_multi_controller">Automatische GamePad-Erkennung</string>
     <string name="summary_checkbox_multi_controller">Abwählen dieser Option erzwingt dass immer ein GamePad präsent ist</string>
     <string name="title_checkbox_vibrate_fallback">Vibrationsemulation aktivieren</string>
     <string name="summary_checkbox_vibrate_fallback">Lässt das Gerät vibrieren falls das GamePad keine Vibration unterstütz</string>
-    <string name="title_seekbar_deadzone">Tot Bereich des Analogsticks</string>
+    <string name="title_seekbar_deadzone">Deadzone des Analogsticks</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One GamePad Treiber</string>
     <string name="summary_checkbox_xb1_driver">Aktiviert eingebauten USB Treiber für Geräte die keinen Xbox GamePad-Unterstützung haben</string>
     <string name="title_checkbox_usb_bind_all">Android GamePad Unterstütung überlagern</string>
-    <string name="summary_checkbox_usb_bind_all">Erzwingt die Vernwedung von Moonlight\'s USB Treiber für alle Xbox kompatiblen GamePads</string>
+    <string name="summary_checkbox_usb_bind_all">Erzwingt die Verwendung von Moonlight\'s USB Treiber für alle Xbox kompatiblen GamePads</string>
     <string name="title_checkbox_mouse_emulation">Maus Emulation via GamePad</string>
     <string name="summary_checkbox_mouse_emulation">Langes gedrückt halten der Start-Taste wechselt in den Maus Modus</string>
     <string name="title_checkbox_mouse_nav_buttons">Vor- und Zurück-Tasten aktivieren</string>
@@ -161,6 +176,8 @@
     <string name="toast_reset_osc_success">On-Screen Steuerelemente wurden zurückgesetzt</string>
 
     <string name="category_ui_settings">UI Einstellungen</string>
+    <string name="title_checkbox_enable_pip">Aktivieren des Bild-in-Bild-Beobachtungsmodus</string>
+    <string name="summary_checkbox_enable_pip">Ermöglicht die Anzeige (aber nicht die Steuerung) des Streams während des Multitasking</string>
     <string name="title_language_list">Sprache</string>
     <string name="summary_language_list">Sprache die Moonlight verwenden soll</string>
     <string name="title_checkbox_small_icon_mode">Verwende kleine Icons</string>
@@ -174,9 +191,13 @@
 
     <string name="category_advanced_settings">Erweiterte Einstellungen</string>
     <string name="title_disable_frame_drop">Nie Frames Überspringen</string>
+    <string name="title_unlock_fps">Unlock all possible frame rates</string>
+    <string name="summary_unlock_fps">Streaming mit 90 oder 120 FPS kann die Latenzzeit auf High-End-Geräten verringern, kann aber bei Geräten, die dies nicht unterstützen, zu Verzögerungen oder Instabilität führen.</string>
+    <string name="title_checkbox_disable_warnings">Warnhinweise deaktivieren</string>
+    <string name="summary_checkbox_disable_warnings">On-Screen Warnmeldungen während des Streaming deaktivieren</string>
     <string name="summary_disable_frame_drop">Kann potentiell das Mikro-Ruckeln auf einigen Geräten reduzieren, allerdings erhöt dies gleichzeitig die Latenz</string>
     <string name="title_video_format">Ändere H.265 Einstellungen</string>
-    <string name="summary_video_format">H.265 verringerd die Video-Bandbreitenanforderung, funktioniert allerdings nur auf sehr neuen Geräten</string>
+    <string name="summary_video_format">H.265 verringert die Video-Bandbreitenanforderung, funktioniert allerdings nur auf sehr neuen Geräten</string>
     <string name="title_enable_hdr">HDR aktivieren (experimentell)</string>
     <string name="summary_enable_hdr">HDR-Streaming sofern dies von der PC GPU unterstützt wird. HDR erfordert eine GPU der GTX 1000 Serie oder neuer.</string>
     <string name="title_enable_perf_overlay">Performance Overlay aktivieren</string>

@@ -47,10 +47,10 @@
     <string name="wol_pc_online">Computer ist online</string>
     <string name="wol_no_mac">PC konnte nicht geweckt werden, da GFE keine MAC-Adresse gesendet hat.</string>
     <string name="wol_waking_pc">PC wird geweckt…</string>
-    <string name="wol_waking_msg">Es kann einige Momente dauert ihren PC zu wecken.
+    <string name="wol_waking_msg">Es kann einige Momente dauern ihren PC zu wecken.
         Sollte dies fehlschlagen stellen sie bitte sicher, dass Wake-On-LAN korrekt konfiguriert ist.
     </string>
-    <string name="wol_fail">Sender der Wake-On-LAN Pakete ist fehlgeschlagen</string>
+    <string name="wol_fail">Senden der Wake-On-LAN Pakete ist fehlgeschlagen.</string>
 
     <!-- Unpair messages -->
     <string name="unpairing">Trenne Verbindung…</string>
@@ -199,7 +199,7 @@
 
     <string name="category_advanced_settings">Erweiterte Einstellungen</string>
     <string name="title_disable_frame_drop">Nie Frames Überspringen</string>
-    <string name="title_unlock_fps">Unlock all possible frame rates</string>
+    <string name="title_unlock_fps">Alle möglichen Bildfrequenzen freischalten</string>
     <string name="summary_unlock_fps">Streaming mit 90 oder 120 FPS kann die Latenzzeit auf High-End-Geräten verringern, kann aber bei Geräten, die dies nicht unterstützen, zu Verzögerungen oder Instabilität führen.</string>
     <string name="title_checkbox_disable_warnings">Warnhinweise deaktivieren</string>
     <string name="summary_checkbox_disable_warnings">On-Screen Warnmeldungen während des Streaming deaktivieren</string>

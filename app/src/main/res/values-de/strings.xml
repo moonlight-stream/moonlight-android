@@ -28,8 +28,8 @@
     <string name="nettest_title_waiting">Netzwerkverbindung wird getest</string>
     <string name="nettest_text_waiting">Moonlight testet Ihre Netzwerkverbindung, um festzustellen, ob NVIDIA GameStream blockiert ist. Dies kann einige Sekunden dauern...</string>
     <string name="nettest_title_done">Netzwerktest abgeschlossen</string>
-    <string name="nettest_text_success">Ihr Netzwerk scheint das Mondlicht nicht zu blockieren. Wenn Sie weiterhin Probleme mit der Verbindung haben, überprüfen Sie die Firewall-Einstellungen Ihres PC\n\n\n Wenn Sie versuchen, über das Internet zu streamen, installieren Sie das Moonlight Internet Hosting Tool auf Ihrem PC und führen Sie den mitgelieferten Internet-Streaming-Tester aus, um die Internetverbindung Ihres PC\ zu überprüfen.</string>
-    <string name="nettest_text_inconclusive">Der Netzwerktest konnte nicht durchgeführt werden, da keiner der Verbindungstestserver von Moonlight\ erreichbar war. Überprüfen Sie Ihre Internetverbindung oder versuchen Sie es später noch einmal.</string>
+    <string name="nettest_text_success">Ihr Netzwerk scheint das Mondlicht nicht zu blockieren. Wenn Sie weiterhin Probleme mit der Verbindung haben, überprüfen Sie die Firewall-Einstellungen Ihres PC\n\n\n Wenn Sie versuchen, über das Internet zu streamen, installieren Sie das Moonlight Internet Hosting Tool auf Ihrem PC und führen Sie den mitgelieferten Internet-Streaming-Tester aus, um die Internetverbindung Ihres PCs zu überprüfen.</string>
+    <string name="nettest_text_inconclusive">Der Netzwerktest konnte nicht durchgeführt werden, da keiner der Verbindungstestserver von Moonlight erreichbar war. Überprüfen Sie Ihre Internetverbindung oder versuchen Sie es später noch einmal.</string>
     <string name="nettest_text_failure">Die aktuelle Netzwerkverbindung Ihres Geräts scheint das Mondlicht zu blockieren. Das Streaming über das Internet funktioniert möglicherweise nicht, während Sie mit diesem Netzwerk verbunden sind.\n\n Folgende Netzwerkports wurden blockiert:\n</string>
     <string name="nettest_text_blocked">Die aktuelle Netzwerkverbindung Ihres Geräts blockiert Moonlight. Das Streaming über das Internet funktioniert möglicherweise nicht, während Sie mit diesem Netzwerk verbunden sind.</string>
 
@@ -91,7 +91,7 @@
     <!-- General strings -->
     <string name="ip_hint">IP-Adresse des GeForce PCs</string>
     <string name="searching_pc">Suche nach PCs wo GeForce Experience aktiv ist…\n\n
-    Stellen Sie sicher, dass GameStream in den GeForce Experience SHIELD-Einstellungen aktiviert ist.</nav></string>
+    Stellen Sie sicher, dass GameStream in den GeForce Experience SHIELD-Einstellungen aktiviert ist.</string>
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
     <string name="lost_connection">Verbindung zum PC verloren</string>
@@ -100,7 +100,7 @@
     <string name="delete_pc_msg">Sind sie sicher, dass sie diesen PC löschen möchten?</string>
     <string name="slow_connection_msg">Langsame Verbindung zum PC\nReduzieren sie die Bitrate</string>
     <string name="poor_connection_msg">Sehr langsame Verbindung zum PC</string>
-    <string name="perf_overlay_text">Videodimensionen: %1$s\nDecoder: %2$s\nGeschätzte PC Bildwiederholrate: %3$.2f FPS\nBildwiederholrate der Netzwerkübertragung: %4$.2f FPS\nWiedergabe-Bildwiederholungsrate: %5$.2f FPS\nWegen Netzwerkübertraung ausgelassene Frames: %6$.2f%%\nDurchschnittliche Übertragunsdauer: %7$.2f ms\nDurchschnittliche decoding dauer: %8$.2f ms</string>
+    <string name="perf_overlay_text">Videodimensionen: %1$s\nDecoder: %2$s\nGeschätzte PC Bildwiederholrate: %3$.2f FPS\nBildwiederholrate der Netzwerkübertragung: %4$.2f FPS\nWiedergabe-Bildwiederholungsrate: %5$.2f FPS\nWegen Netzwerkübertraung ausgelassene Frames: %6$.2f%%\nDurchschnittliche Übertragungsdauer: %7$.2f ms\nDurchschnittliche decoding dauer: %8$.2f ms</string>
 
     <!-- AppList activity -->
     <string name="applist_connect_msg">Verbinde mit PC…</string>
@@ -158,7 +158,7 @@
     <string name="title_checkbox_xb1_driver">Xbox 360/One GamePad Treiber</string>
     <string name="summary_checkbox_xb1_driver">Aktiviert eingebauten USB Treiber für Geräte die keinen Xbox GamePad-Unterstützung haben</string>
     <string name="title_checkbox_usb_bind_all">Android GamePad Unterstütung überlagern</string>
-    <string name="summary_checkbox_usb_bind_all">Erzwingt die Verwendung von Moonlight\'s USB Treiber für alle Xbox kompatiblen GamePads</string>
+    <string name="summary_checkbox_usb_bind_all">Erzwingt die Verwendung von Moonlights USB Treiber für alle Xbox kompatiblen GamePads</string>
     <string name="title_checkbox_mouse_emulation">Maus Emulation via GamePad</string>
     <string name="summary_checkbox_mouse_emulation">Langes gedrückt halten der Start-Taste wechselt in den Maus Modus</string>
     <string name="title_checkbox_mouse_nav_buttons">Vor- und Zurück-Tasten aktivieren</string>

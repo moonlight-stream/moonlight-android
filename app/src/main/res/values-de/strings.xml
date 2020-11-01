@@ -21,7 +21,7 @@
     <string name="pcview_menu_unpair_pc">Verbindung beenden</string>
     <string name="pcview_menu_send_wol">Wake-On-LAN Anfrage senden</string>
     <string name="pcview_menu_delete_pc">PC löschen</string>
-     <string name="pcview_menu_test_network">Netzwerkverbindung testen</string>
+    <string name="pcview_menu_test_network">Netzwerkverbindung testen</string>
     <string name="pcview_menu_details">Details anzeigen</string>
 
     <!-- Network test strings -->
@@ -71,6 +71,9 @@
     <string name="message_decoding_reset">Der Video-Decoder ihres Geräts ist wiederholt mit den ausgewählten Einstellungen gecrasht. Ihre Streamingeinstellungen wurden zurückgesetzt.</string>
     <string name="error_usb_prohibited">USB Zugriff ist administrativ unterbunden. Bitte überprüfen sie ihre Knox oder MDM Einstellungen.</string>
     <string name="unable_to_pin_shortcut">Die zur Zeit aktive Launcher App ünterstützt das erstellen angehefteter Shortcuts nicht.</string>
+    <string name="video_decoder_init_failed">Der Videodecoder konnte nicht initialisiert werden. Ihr Gerät unterstützt möglicherweise die gewählte Auflösung oder Bildfrequenz nicht.</string>
+    <string name="no_video_received_error">Kein Video vom Gastgeber empfangen. Überprüfen Sie die Firewall und Portweiterleitungsregeln des Host-PCs.</string>
+    <string name="no_frame_received_error">Ihre Netzwerkverbindung funktioniert nicht gut. Reduzieren Sie die Einstellung der Videobitrate oder versuchen Sie eine schnellere Verbindung.</string>
 
     <!-- Start application messages -->
     <string name="conn_establishing_title">Verbindung herstellen</string>
@@ -87,7 +90,8 @@
 
     <!-- General strings -->
     <string name="ip_hint">IP-Adresse des GeForce PCs</string>
-    <string name="searching_pc">Suche nach PCs wo GeForce Experience aktiv ist…</string>
+    <string name="searching_pc">Suche nach PCs wo GeForce Experience aktiv ist…\n\n
+    Stellen Sie sicher, dass GameStream in den GeForce Experience SHIELD-Einstellungen aktiviert ist.</nav></string>
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
     <string name="lost_connection">Verbindung zum PC verloren</string>
@@ -107,6 +111,7 @@
     <string name="applist_menu_details">Details anzeigen</string>
     <string name="applist_menu_scut">Shortcut erstellen</string>
     <string name="applist_menu_tv_channel">Zu Kanal hinzufügen</string>
+    <string name="applist_menu_hide_app">App ausblenden</string>
     <string name="applist_refresh_title">App Liste</string>
     <string name="applist_refresh_msg">Aktualisiere Apps…</string>
     <string name="applist_refresh_error_title">Fehler</string>
@@ -134,19 +139,16 @@
     <string name="summary_fps_list">Erhöhen für einen gleichmäßigeren Video-Stream. Verringern um auf langsameren Geräten eine bessere Performance zu erzielen.</string>
     <string name="title_seekbar_bitrate">Video Bitrate</string>
     <string name="summary_seekbar_bitrate">Erhöhen für einen schärferen Video-Stream. Verringern um auf langsameren Geräten eine bessere Performance zu erzielen.</string>
-    <string name="title_unlock_fps">Alle Bildwiederholungsraten freigeben</string>
-    <string name="summary_unlock_fps">Streaming mit 90 oder 120 FPS reduziert gegebenfalls die Latenz auf High-End Geräten, für jedoch zu Crashes oder Lag auf Geräten die dies nicht untersützen können.</string>
-    <string name="title_checkbox_stretch_video">Video auf den ganzen Bildschirm ausdehnen</string>
-    <string name="title_checkbox_disable_warnings">Warnhinweise deaktivieren</string>
-    <string name="summary_checkbox_disable_warnings">Verbindungswarnungen nicht als Overlay wärend des Streamens anzeigen</string>
-    <string name="title_checkbox_enable_pip">Bild-in-Bild Überwachungsmodus aktivieren</string>
-    <string name="summary_checkbox_enable_pip">Stream auch während des Multitaskings anzeigen (ohne Steuerung)</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="title_checkbox_stretch_video">Video auf Vollbildschirm strecken</string>
 
     <string name="category_audio_settings">Audio Einstellungen</string>
     <string name="title_audio_config_list">Surround Sound Konfiguration </string>
     <string name="summary_audio_config_list">Aktivieren von 5.1- oder 7.1-Surround-Sound für Heimkinosysteme</string>
 
     <string name="category_input_settings">Eingabe Einstellungen</string>
+    <string name="title_checkbox_touchscreen_trackpad">Verwenden des Touchscreen als Trackpad</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Wenn aktiviert, verhält sich der Touchscreen wie ein Trackpad. Wenn er deaktiviert ist, steuert der Touchscreen den Mauszeiger direkt.</string>
     <string name="title_checkbox_multi_controller">Automatische GamePad-Erkennung</string>
     <string name="summary_checkbox_multi_controller">Abwählen dieser Option erzwingt dass immer ein GamePad präsent ist</string>
     <string name="title_checkbox_vibrate_fallback">Vibrationsemulation aktivieren</string>
@@ -161,6 +163,8 @@
     <string name="summary_checkbox_mouse_emulation">Langes gedrückt halten der Start-Taste wechselt in den Maus Modus</string>
     <string name="title_checkbox_mouse_nav_buttons">Vor- und Zurück-Tasten aktivieren</string>
     <string name="summary_checkbox_mouse_nav_buttons">Aktivierung dieser Option kann auf fehleranfälligen Geräten Rechts-Clicks verunmöglichen</string>
+    <string name="title_checkbox_flip_face_buttons">Buttons umkehren</string>
+    <string name="summary_checkbox_flip_face_buttons">Kehrt die Buttons A/B und X/Y für Gamepads und die Bildschirmsteuerung um</string>
 
     <string name="category_on_screen_controls_settings">On-Screen Steuerungseinstellungen</string>
     <string name="title_checkbox_show_onscreen_controls">Zeige On-Screen Steuerung</string>
@@ -174,6 +178,10 @@
     <string name="dialog_title_reset_osc">Layout Zurücksetzen</string>
     <string name="dialog_text_reset_osc">Sind sie sicher, dass sie das gepseicherte on-screen Layout der Steuerelemte löschen wollen?</string>
     <string name="toast_reset_osc_success">On-Screen Steuerelemente wurden zurückgesetzt</string>
+    <string name="title_osc_opacity">Ändern der Transparenz von Bildschirmsteuerelementen</string>
+    <string name="summary_osc_opacity">Steuerelemente auf dem Bildschirm mehr/weniger transparent machen</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="dialog_title_osc_opacity">Transparenz</string>
 
     <string name="category_ui_settings">UI Einstellungen</string>
     <string name="title_checkbox_enable_pip">Aktivieren des Bild-in-Bild-Beobachtungsmodus</string>
@@ -202,7 +210,6 @@
     <string name="summary_enable_hdr">HDR-Streaming sofern dies von der PC GPU unterstützt wird. HDR erfordert eine GPU der GTX 1000 Serie oder neuer.</string>
     <string name="title_enable_perf_overlay">Performance Overlay aktivieren</string>
     <string name="summary_enable_perf_overlay">Leistungsmerkmale während des Streamens in Echtzeit einblenden.</string>
-    <string name="suffix_osc_opacity">%</string>
-    <string name="dialog_title_osc_opacity">Transparenz</string>
-
+    <string name="title_enable_post_stream_toast">Zeige Informationen über Latenz nach Streaming</string>
+     <string name="summary_enable_post_stream_toast">Anzeige einer Informationsmeldung über Latenz nach dem Ende des Streams</string>
 </resources>

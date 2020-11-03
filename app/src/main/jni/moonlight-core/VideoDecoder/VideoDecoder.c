@@ -644,7 +644,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     AMediaCodecBufferInfo info;
 
     long usTimeout = 1000000 / videoDecoder->refreshRate;
-    long lastRenderingTimeUs = getTimeUsec();
     long test_count = 0;
     long base_time = 0;
     long last_time = 0;
@@ -677,15 +676,19 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             // } else 
             {
                 // 立即渲染：只发生在无缓冲区的情况下
-                bool immediate = videoDecoder->bufferCount == 0;
+                bool immediate = videoDecoder->bufferCount <= 1;
 
                 if (immediate) {
                     LOGT("[test] - 渲染 立即模式");
-                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, outIndex, info.size != 0);
+                    if (videoDecoder->bufferCount == 0) {
+                        AMediaCodec_releaseOutputBuffer(videoDecoder->codec, outIndex, info.size != 0);
+                    } else {
+                        AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, getClockNanc());
+                    }
                 } else {
 
                     // 计算帧显示的准确时间戳(通过延迟一帧来算)
-                    long currentTimeNs = getTimeNanc();
+                    long currentTimeNs = getClockNanc();
 
                     if (immediate != last_immediate) {
                         frame_Index = 0;
@@ -1056,21 +1059,6 @@ int bufferIndexInCache(VideoDecoder* videoDecoder, void* buffer) {
     return index;
 }
 
-VideoInputBuffer* findBufferInCache(VideoDecoder* videoDecoder, void* buffer) {
-    VideoInputBuffer* findInputBuffer = 0;
-    pthread_mutex_lock(&videoDecoder->inputCacheLock); {
-        for (int i = 0; i < InputBufferCacheSize; i++) {
-            VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
-            if (inputBuffer->buffer == buffer) {
-                findInputBuffer = inputBuffer;
-                break;
-            }
-        }
-
-    } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
-    return findInputBuffer;
-}
-
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs) {
 
@@ -1133,7 +1121,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 
     if (!FRAME_RENDER_TIME_ONLY) {
         // Count time from first packet received to decode start
-        //videoDecoder->activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
+//        videoDecoder->activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
         // receiveTimeMs is a clock time
         videoDecoder->activeWindowVideoStats.totalTimeMs += getClockUsec()/1000 - receiveTimeMs;
     }
@@ -1390,7 +1378,7 @@ const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* form
     const char* decoder = videoDecoder->decoderName;
 
     float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
-    sprintf(videoDecoder->infoBuffer, format, 
+    sprintf(videoDecoder->infoBuffer, format,
                         tmp,
                         decoder,
                         fps.totalFps,
@@ -1399,6 +1387,10 @@ const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* form
                         (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
                         ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
                         decodeTimeMs);
+//    sprintf(videoDecoder->infoBuffer, "%d %d %ld\n%d %d %ld",
+//            videoDecoder->lastWindowVideoStats.totalFramesReceived, videoDecoder->lastWindowVideoStats.totalFramesRendered, videoDecoder->lastWindowVideoStats.totalTimeMs,
+//            videoDecoder->activeWindowVideoStats.totalFramesReceived, videoDecoder->activeWindowVideoStats.totalFramesRendered, videoDecoder->activeWindowVideoStats.totalTimeMs);
+
     return videoDecoder->infoBuffer;
 }
 

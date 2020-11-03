@@ -28,6 +28,8 @@ typedef struct {
 uint64_t getTimeMsec(void);
 uint64_t getTimeUsec(void);
 uint64_t getTimeNanc(void);
+uint64_t getClockMsec(void);
+uint64_t getClockNanc(void);
 uint64_t getClockUsec(void);
 
 void VideoStats_add(VideoStats* stats, const VideoStats* other);

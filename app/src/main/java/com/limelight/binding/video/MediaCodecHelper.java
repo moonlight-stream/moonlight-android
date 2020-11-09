@@ -124,7 +124,7 @@ public class MediaCodecHelper {
         whitelistedHevcDecoders = new LinkedList<>();
 
         // Allow software HEVC decoding in the official AOSP emulator
-        if (Build.HARDWARE.equals("ranchu") && Build.BRAND.equals("google")) {
+        if (Build.HARDWARE.equals("ranchu")) {
             whitelistedHevcDecoders.add("omx.google");
         }
 

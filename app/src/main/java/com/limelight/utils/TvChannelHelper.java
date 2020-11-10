@@ -252,19 +252,7 @@ public class TvChannelHelper {
 
     @TargetApi(Build.VERSION_CODES.O)
     private boolean isAndroidTV() {
-        PackageManager pm = context.getPackageManager();
-
-        // HarmonyOS devices report PackageManager.FEATURE_LEANBACK yet
-        // when we attempt to actually use TvContract, it will die with
-        // an IllegalArgumentException because TvContract.Channels.CONTENT_URI
-        // is an unknown URL. I don't know if this is a perfect check for
-        // HarmonyOS-powered TVs (excluding any Android TVs), but it will
-        // suffice for now.
-        if (pm.hasSystemFeature("com.huawei.software.features.tv")) {
-            return false;
-        }
-
-        return pm.hasSystemFeature(PackageManager.FEATURE_LEANBACK);
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
     }
 
     @TargetApi(Build.VERSION_CODES.O)

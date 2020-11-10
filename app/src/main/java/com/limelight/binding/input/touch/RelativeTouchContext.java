@@ -23,6 +23,7 @@ public class RelativeTouchContext implements TouchContext {
     private double distanceMoved;
     private double xFactor, yFactor;
     private int pointerCount;
+    private int maxPointerCountInGesture;
 
     private final NvConnection conn;
     private final int actionIndex;
@@ -67,6 +68,13 @@ public class RelativeTouchContext implements TouchContext {
             return false;
         }
 
+        // If this input wasn't the last finger down, do not report
+        // a tap. This ensures we don't report duplicate taps for each
+        // finger on a multi-finger tap gesture
+        if (actionIndex + 1 != maxPointerCountInGesture) {
+            return false;
+        }
+
         long timeDelta = SystemClock.uptimeMillis() - originalTouchTime;
         return isWithinTapBounds(lastTouchX, lastTouchY) && timeDelta <= TAP_TIME_THRESHOLD;
     }
@@ -92,6 +100,7 @@ public class RelativeTouchContext implements TouchContext {
         originalTouchY = lastTouchY = eventY;
 
         if (isNewFinger) {
+            maxPointerCountInGesture = pointerCount;
             originalTouchTime = SystemClock.uptimeMillis();
             cancelled = confirmedDrag = confirmedMove = confirmedScroll = false;
             distanceMoved = 0;
@@ -279,5 +288,9 @@ public class RelativeTouchContext implements TouchContext {
     @Override
     public void setPointerCount(int pointerCount) {
         this.pointerCount = pointerCount;
+
+        if (pointerCount > maxPointerCountInGesture) {
+            maxPointerCountInGesture = pointerCount;
+        }
     }
 }

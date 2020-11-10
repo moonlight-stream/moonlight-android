@@ -186,6 +186,10 @@ public class RelativeTouchContext implements TouchContext {
     @Override
     public boolean touchMoveEvent(int eventX, int eventY)
     {
+        if (cancelled) {
+            return true;
+        }
+
         if (eventX != lastTouchX || eventY != lastTouchY)
         {
             // We only send moves and drags for the primary touch point

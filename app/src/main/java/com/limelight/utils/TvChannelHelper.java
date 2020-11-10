@@ -77,8 +77,18 @@ public class TvChannelHelper {
                 return;
             }
 
-            Uri channelUri = context.getContentResolver().insert(
-                    TvContract.Channels.CONTENT_URI, builder.toContentValues());
+            Uri channelUri;
+
+            try {
+                channelUri = context.getContentResolver().insert(
+                        TvContract.Channels.CONTENT_URI, builder.toContentValues());
+            } catch (IllegalArgumentException e) {
+                // This can happen on HarmonyOS devices which report to
+                // support Leanback APIs, yet don't implement this URI
+                e.printStackTrace();
+                return;
+            }
+
             if (channelUri != null) {
                 long id = ContentUris.parseId(channelUri);
                 updateChannelIcon(id);
@@ -144,8 +154,15 @@ public class TvChannelHelper {
                 return;
             }
 
-            context.getContentResolver().insert(TvContract.PreviewPrograms.CONTENT_URI,
-                    builder.toContentValues());
+            try {
+                context.getContentResolver().insert(TvContract.PreviewPrograms.CONTENT_URI,
+                        builder.toContentValues());
+            } catch (IllegalArgumentException e) {
+                // This can happen on HarmonyOS devices which report to
+                // support Leanback APIs, yet don't implement this URI
+                e.printStackTrace();
+                return;
+            }
 
             TvContract.requestChannelBrowsable(context, channelId);
         }

@@ -18,9 +18,11 @@ public class RelativeTouchContext implements TouchContext {
     private boolean cancelled;
     private boolean confirmedMove;
     private boolean confirmedDrag;
+    private boolean confirmedScroll;
     private Timer dragTimer;
     private double distanceMoved;
     private double xFactor, yFactor;
+    private int pointerCount;
 
     private final NvConnection conn;
     private final int actionIndex;
@@ -32,6 +34,8 @@ public class RelativeTouchContext implements TouchContext {
     private static final int TAP_DISTANCE_THRESHOLD = 25;
     private static final int TAP_TIME_THRESHOLD = 250;
     private static final int DRAG_TIME_THRESHOLD = 650;
+
+    private static final int SCROLL_SPEED_DIVISOR = 20;
 
     public RelativeTouchContext(NvConnection conn, int actionIndex,
                                 int referenceWidth, int referenceHeight, View view)
@@ -59,8 +63,11 @@ public class RelativeTouchContext implements TouchContext {
 
     private boolean isTap()
     {
-        long timeDelta = SystemClock.uptimeMillis() - originalTouchTime;
+        if (confirmedDrag || confirmedMove || confirmedScroll) {
+            return false;
+        }
 
+        long timeDelta = SystemClock.uptimeMillis() - originalTouchTime;
         return isWithinTapBounds(lastTouchX, lastTouchY) && timeDelta <= TAP_TIME_THRESHOLD;
     }
 
@@ -83,13 +90,16 @@ public class RelativeTouchContext implements TouchContext {
 
         originalTouchX = lastTouchX = eventX;
         originalTouchY = lastTouchY = eventY;
-        originalTouchTime = SystemClock.uptimeMillis();
-        cancelled = confirmedDrag = confirmedMove = false;
-        distanceMoved = 0;
 
-        if (actionIndex == 0) {
-            // Start the timer for engaging a drag
-            startDragTimer();
+        if (isNewFinger) {
+            originalTouchTime = SystemClock.uptimeMillis();
+            cancelled = confirmedDrag = confirmedMove = confirmedScroll = false;
+            distanceMoved = 0;
+
+            if (actionIndex == 0) {
+                // Start the timer for engaging a drag
+                startDragTimer();
+            }
         }
 
         return true;
@@ -183,6 +193,13 @@ public class RelativeTouchContext implements TouchContext {
         }
     }
 
+    private void checkForConfirmedScroll() {
+        // Enter scrolling mode if we've already left the tap zone
+        // and we have 2 fingers on screen. Leave scroll mode if
+        // we no longer have 2 fingers on screen
+        confirmedScroll = (actionIndex == 0 && pointerCount == 2 && confirmedMove);
+    }
+
     @Override
     public boolean touchMoveEvent(int eventX, int eventY)
     {
@@ -192,16 +209,17 @@ public class RelativeTouchContext implements TouchContext {
 
         if (eventX != lastTouchX || eventY != lastTouchY)
         {
+            checkForConfirmedMove(eventX, eventY);
+            checkForConfirmedScroll();
+
             // We only send moves and drags for the primary touch point
             if (actionIndex == 0) {
-                checkForConfirmedMove(eventX, eventY);
-
                 int deltaX = eventX - lastTouchX;
                 int deltaY = eventY - lastTouchY;
 
                 // Scale the deltas based on the factors passed to our constructor
-                deltaX = (int)Math.round((double)Math.abs(deltaX) * xFactor);
-                deltaY = (int)Math.round((double)Math.abs(deltaY) * yFactor);
+                deltaX = (int) Math.round((double) Math.abs(deltaX) * xFactor);
+                deltaY = (int) Math.round((double) Math.abs(deltaY) * yFactor);
 
                 // Fix up the signs
                 if (eventX < lastTouchX) {
@@ -209,6 +227,16 @@ public class RelativeTouchContext implements TouchContext {
                 }
                 if (eventY < lastTouchY) {
                     deltaY = -deltaY;
+                }
+
+                if (pointerCount == 2) {
+                    if (confirmedScroll) {
+                        deltaY /= SCROLL_SPEED_DIVISOR;
+
+                        conn.sendMouseHighResScroll((short) deltaY);
+                    }
+                } else {
+                    conn.sendMouseMove((short) deltaX, (short) deltaY);
                 }
 
                 // If the scaling factor ended up rounding deltas to zero, wait until they are
@@ -220,8 +248,6 @@ public class RelativeTouchContext implements TouchContext {
                 if (deltaY != 0) {
                     lastTouchY = eventY;
                 }
-
-                conn.sendMouseMove((short)deltaX, (short)deltaY);
             }
             else {
                 lastTouchX = eventX;
@@ -251,5 +277,7 @@ public class RelativeTouchContext implements TouchContext {
     }
 
     @Override
-    public void setPointerCount(int pointerCount) {}
+    public void setPointerCount(int pointerCount) {
+        this.pointerCount = pointerCount;
+    }
 }

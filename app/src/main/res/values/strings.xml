@@ -15,8 +15,7 @@
     <string name="help_loading_msg">Loading help page…</string>
 
     <!-- PC view menu entries -->
-    <string name="pcview_menu_app_list">View Apps</string>
-    <string name="pcview_menu_full_app_list">View Hidden Apps</string>
+    <string name="pcview_menu_full_app_list">View All Apps</string>
     <string name="pcview_menu_pair_pc">Pair with PC</string>
     <string name="pcview_menu_unpair_pc">Unpair</string>
     <string name="pcview_menu_send_wol">Send Wake-On-LAN request</string>

@@ -15,7 +15,6 @@
     <string name="help_loading_msg">Lade Hilfesanzeige…</string>
 
     <!-- PC view menu entries -->
-    <string name="pcview_menu_app_list">Spiele anzeigen</string>
     <string name="pcview_menu_full_app_list">Ausgeblendete Spiele anzeigen</string>
     <string name="pcview_menu_pair_pc">Mit PC verbinden</string>
     <string name="pcview_menu_unpair_pc">Verbindung beenden</string>

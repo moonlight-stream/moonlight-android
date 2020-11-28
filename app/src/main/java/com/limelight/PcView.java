@@ -109,7 +109,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }
     }
 
-    private final static int APP_LIST_ID = 1;
     private final static int PAIR_ID = 2;
     private final static int UNPAIR_ID = 3;
     private final static int WOL_ID = 4;
@@ -332,7 +331,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 menu.add(Menu.NONE, QUIT_ID, 2, getResources().getString(R.string.applist_menu_quit));
             }
 
-            menu.add(Menu.NONE, APP_LIST_ID, 3, getResources().getString(R.string.pcview_menu_app_list));
             menu.add(Menu.NONE, FULL_APP_LIST_ID, 4, getResources().getString(R.string.pcview_menu_full_app_list));
         }
 
@@ -594,8 +592,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 return true;
 
             case FULL_APP_LIST_ID:
-            case APP_LIST_ID:
-                doAppList(computer.details, false, item.getItemId() == FULL_APP_LIST_ID);
+                doAppList(computer.details, false, true);
                 return true;
 
             case RESUME_ID:

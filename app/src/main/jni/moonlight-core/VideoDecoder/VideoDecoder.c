@@ -434,7 +434,9 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
 
     // Adaptive playback can also be enabled by the whitelist on pre-KitKat devices
     // so we don't fill these pre-KitKat
-    if (adaptivePlayback &&  Build_VERSION_SDK_INT >= Build_VERSION_CODES_KITKAT) {
+    // if (adaptivePlayback &&  Build_VERSION_SDK_INT >= Build_VERSION_CODES_KITKAT)
+    // !!! Must set size !!!
+    {
         AMediaFormat_setInt32(videoFormat, /*AMEDIAFORMAT_KEY_WIDTH*/"width", width);
         AMediaFormat_setInt32(videoFormat, /*AMEDIAFORMAT_KEY_HEIGHT*/"height", height);
     }

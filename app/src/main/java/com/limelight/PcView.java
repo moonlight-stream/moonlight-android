@@ -317,6 +317,22 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
 
+        // Add a header with PC status details
+        menu.clearHeader();
+        switch (computer.details.state)
+        {
+            case ONLINE:
+                menu.setHeaderTitle(R.string.pcview_menu_header_online);
+                break;
+            case OFFLINE:
+                menu.setHeaderIcon(R.drawable.ic_pc_offline);
+                menu.setHeaderTitle(R.string.pcview_menu_header_offline);
+                break;
+            case UNKNOWN:
+                menu.setHeaderTitle(R.string.pcview_menu_header_unknown);
+                break;
+        }
+
         // Inflate the context menu
         if (computer.details.state == ComputerDetails.State.OFFLINE ||
             computer.details.state == ComputerDetails.State.UNKNOWN) {

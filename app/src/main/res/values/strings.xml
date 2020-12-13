@@ -15,6 +15,9 @@
     <string name="help_loading_msg">Loading help page…</string>
 
     <!-- PC view menu entries -->
+    <string name="pcview_menu_header_online">PC Status: Online</string>
+    <string name="pcview_menu_header_offline">PC Status: Offline</string>
+    <string name="pcview_menu_header_unknown">PC Status: Refreshing</string>
     <string name="pcview_menu_app_list">View All Apps</string>
     <string name="pcview_menu_pair_pc">Pair with PC</string>
     <string name="pcview_menu_unpair_pc">Unpair</string>

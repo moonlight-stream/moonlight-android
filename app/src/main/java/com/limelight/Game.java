@@ -278,7 +278,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
         String uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
         String pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
-        boolean willStreamHdr = Game.this.getIntent().getBooleanExtra(EXTRA_APP_HDR, false);
+        boolean willStreamHdr = Game.this.getIntent().getBooleanExtra(EXTRA_APP_HDR, false) || prefConfig.enableHdr;
         byte[] derCertData = Game.this.getIntent().getByteArrayExtra(EXTRA_SERVER_CERT);
 
         X509Certificate serverCert = null;

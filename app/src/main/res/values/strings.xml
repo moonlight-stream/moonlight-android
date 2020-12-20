@@ -213,13 +213,13 @@
     <string name="title_enable_post_stream_toast">Show latency message after streaming</string>
     <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
 
-    <string name="title_bufferbar_count"> 缓冲区数量 </string>
-    <string name="summary_bufferbar_count"> 画面实时性和稳定性的取舍。 \n 缓冲区越大，画面越稳定，但延迟会变高。</string>
+    <string name="title_bufferbar_count"> Number of buffers </string>
+    <string name="summary_bufferbar_count"> The choice of real-time and stability. \n The larger the buffer, the more stable the picture is, but the delay becomes higher</string>
 
-    <string name="title_enable_low_latency"> 低延迟解码 </string>
-    <string name="summary_enable_low_latency"> 针对华为海思等解码器开启低延迟解码（开启后可能有卡顿）</string>
+    <string name="title_enable_low_latency"> Low latency decoding </string>
+    <string name="summary_enable_low_latency"> Enable low latency decoding for decoders such as Huawei Hisilicon (there may be stuck after enabling)</string>
 
-    <string name="resolution_full_local_name"> 本机分辨率</string>
+    <string name="resolution_full_local_name"> Local resolution</string>
     <string name="resolution_full_local_value"> full_local</string>
 
 </resources>

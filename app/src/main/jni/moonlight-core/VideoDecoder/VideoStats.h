@@ -25,9 +25,12 @@ typedef struct {
     float renderedFps;
 } VideoStatsFps;
 
+// 时间模式，更准确
 uint64_t getTimeMsec(void);
 uint64_t getTimeUsec(void);
 uint64_t getTimeNanc(void);
+
+// 时钟模式，可能
 uint64_t getClockMsec(void);
 uint64_t getClockNanc(void);
 uint64_t getClockUsec(void);

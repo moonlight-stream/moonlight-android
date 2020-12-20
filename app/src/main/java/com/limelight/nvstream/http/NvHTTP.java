@@ -227,7 +227,7 @@ public class NvHTTP {
                 break;
             case (XmlPullParser.TEXT):
                 if (currentTag.peek().equals(tagname)) {
-                    return xpp.getText().trim();
+                    return xpp.getText();
                 }
                 break;
             }
@@ -557,11 +557,11 @@ public class NvHTTP {
             case (XmlPullParser.TEXT):
                 NvApp app = appList.getLast();
                 if (currentTag.peek().equals("AppTitle")) {
-                    app.setAppName(xpp.getText().trim());
+                    app.setAppName(xpp.getText());
                 } else if (currentTag.peek().equals("ID")) {
-                    app.setAppId(xpp.getText().trim());
+                    app.setAppId(xpp.getText());
                 } else if (currentTag.peek().equals("IsHdrSupported")) {
-                    app.setHdrSupported(xpp.getText().trim().equals("1"));
+                    app.setHdrSupported(xpp.getText().equals("1"));
                 }
                 break;
             }

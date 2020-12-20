@@ -110,7 +110,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }
     }
 
-    private final static int APP_LIST_ID = 1;
     private final static int PAIR_ID = 2;
     private final static int UNPAIR_ID = 3;
     private final static int WOL_ID = 4;
@@ -171,6 +170,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         pcGridAdapter.notifyDataSetChanged();
     }
 
+    // Added by rexq57
     private void initConfig() {
 
         int maxSupportedResWidth  = 0;
@@ -250,7 +250,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }
         else {
             LimeLog.info("Cached GL Renderer: " + glPrefs.glRenderer);
-            initConfig();
+            initConfig(); // Added by rexq57
             completeOnCreate();
         }
     }
@@ -356,6 +356,22 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
 
+        // Add a header with PC status details
+        menu.clearHeader();
+        switch (computer.details.state)
+        {
+            case ONLINE:
+                menu.setHeaderTitle(R.string.pcview_menu_header_online);
+                break;
+            case OFFLINE:
+                menu.setHeaderIcon(R.drawable.ic_pc_offline);
+                menu.setHeaderTitle(R.string.pcview_menu_header_offline);
+                break;
+            case UNKNOWN:
+                menu.setHeaderTitle(R.string.pcview_menu_header_unknown);
+                break;
+        }
+
         // Inflate the context menu
         if (computer.details.state == ComputerDetails.State.OFFLINE ||
             computer.details.state == ComputerDetails.State.UNKNOWN) {
@@ -370,8 +386,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 menu.add(Menu.NONE, QUIT_ID, 2, getResources().getString(R.string.applist_menu_quit));
             }
 
-            menu.add(Menu.NONE, APP_LIST_ID, 3, getResources().getString(R.string.pcview_menu_app_list));
-            menu.add(Menu.NONE, FULL_APP_LIST_ID, 4, getResources().getString(R.string.pcview_menu_full_app_list));
+            menu.add(Menu.NONE, FULL_APP_LIST_ID, 4, getResources().getString(R.string.pcview_menu_app_list));
         }
 
         menu.add(Menu.NONE, TEST_NETWORK_ID, 5, getResources().getString(R.string.pcview_menu_test_network));
@@ -632,8 +647,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 return true;
 
             case FULL_APP_LIST_ID:
-            case APP_LIST_ID:
-                doAppList(computer.details, false, item.getItemId() == FULL_APP_LIST_ID);
+                doAppList(computer.details, false, true);
                 return true;
 
             case RESUME_ID:

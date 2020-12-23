@@ -115,7 +115,17 @@ public class NvConnection {
         //
         
         // Check for a supported stream resolution
-        if (context.streamConfig.getHeight() >= 2160 && !h.supports4K(serverInfo)) {
+        if ((context.streamConfig.getWidth() > 4096 || context.streamConfig.getHeight() > 4096) &&
+                (h.getServerCodecModeSupport(serverInfo) & 0x200) == 0) {
+            context.connListener.displayMessage("Your host PC does not support streaming at resolutions above 4K.");
+            return false;
+        }
+        else if ((context.streamConfig.getWidth() > 4096 || context.streamConfig.getHeight() > 4096) &&
+                !context.streamConfig.getHevcSupported()) {
+            context.connListener.displayMessage("Your streaming device must support H.265 to stream at resolutions above 4K.");
+            return false;
+        }
+        else if (context.streamConfig.getHeight() >= 2160 && !h.supports4K(serverInfo)) {
             // Client wants 4K but the server can't do it
             context.connListener.displayTransientMessage("You must update GeForce Experience to stream in 4K. The stream will be 1080p.");
             

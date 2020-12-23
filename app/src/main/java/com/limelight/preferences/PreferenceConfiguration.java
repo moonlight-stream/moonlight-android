@@ -83,6 +83,7 @@ public class PreferenceConfiguration {
     public static final String RES_1080P = "1920x1080";
     public static final String RES_1440P = "2560x1440";
     public static final String RES_4K = "3840x2160";
+    public static final String RES_NATIVE = "Native";
 
     public int width, height, fps;
     public int bitrate;

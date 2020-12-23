@@ -7,6 +7,7 @@
         <item>1080p</item>
         <item>1440p</item>
         <item>4K</item>
+        <item>Native</item>
     </string-array>
     <string-array name="resolution_values" translatable="false">
         <item>640x360</item>
@@ -15,6 +16,7 @@
         <item>1920x1080</item>
         <item>2560x1440</item>
         <item>3840x2160</item>
+        <item>Native</item>
     </string-array>
 
     <string-array name="fps_names">

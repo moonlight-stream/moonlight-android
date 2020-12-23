@@ -28,6 +28,8 @@ import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
 
+import java.util.Arrays;
+
 public class StreamSettings extends Activity {
     private PreferenceConfiguration previousPrefs;
 
@@ -66,6 +68,7 @@ public class StreamSettings extends Activity {
     }
 
     public static class SettingsFragment extends PreferenceFragment {
+        private boolean nativeResolutionOptionPresent = false;
 
         private void setValue(String preferenceKey, String value) {
             ListPreference pref = (ListPreference) findPreference(preferenceKey);
@@ -82,12 +85,27 @@ public class StreamSettings extends Activity {
             CharSequence[] entries = pref.getEntries();
             CharSequence[] values = pref.getEntryValues();
 
+            // Check if the native resolution is already present
+            for (CharSequence value : values) {
+                if (newValue.equals(value.toString())) {
+                    // It is present in the default list, so remove the native option
+                    nativeResolutionOptionPresent = false;
+
+                    pref.setEntries(Arrays.copyOf(entries, entries.length - 1));
+                    pref.setEntryValues(Arrays.copyOf(values, values.length - 1));
+
+                    return;
+                }
+            }
+
             // Add the name suffix to the native option
             entries[entries.length - 1] = entries[entries.length - 1].toString() + nameSuffix;
             values[values.length - 1] = newValue;
 
             pref.setEntries(entries);
             pref.setEntryValues(values);
+
+            nativeResolutionOptionPresent = true;
         }
 
         private void removeValue(String preferenceKey, String value, Runnable onMatched) {
@@ -125,8 +143,6 @@ public class StreamSettings extends Activity {
             pref.setEntries(entries);
             pref.setEntryValues(entryValues);
         }
-
-
 
         private void resetBitrateToDefault(SharedPreferences prefs, String res, String fps) {
             if (res == null) {
@@ -442,23 +458,25 @@ public class StreamSettings extends Activity {
                     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
                     String valueStr = (String) newValue;
 
-                    // Detect if this value is the native resolution option
-                    CharSequence[] values = ((ListPreference)preference).getEntryValues();
-                    boolean isNativeRes = true;
-                    for (int i = 0; i < values.length; i++) {
-                        // If get a match prior to the end, it's not native res
-                        if (valueStr.equals(values[i].toString()) && i < values.length - 1) {
-                            isNativeRes = false;
-                            break;
+                    if (nativeResolutionOptionPresent) {
+                        // Detect if this value is the native resolution option
+                        CharSequence[] values = ((ListPreference)preference).getEntryValues();
+                        boolean isNativeRes = true;
+                        for (int i = 0; i < values.length; i++) {
+                            // If get a match prior to the end, it's not native res
+                            if (valueStr.equals(values[i].toString()) && i < values.length - 1) {
+                                isNativeRes = false;
+                                break;
+                            }
                         }
-                    }
 
-                    // If this is native resolution, show the warning dialog
-                    if (isNativeRes) {
-                        Dialog.displayDialog(getActivity(),
-                                getResources().getString(R.string.title_native_res_dialog),
-                                getResources().getString(R.string.text_native_res_dialog),
-                                false);
+                        // If this is native resolution, show the warning dialog
+                        if (isNativeRes) {
+                            Dialog.displayDialog(getActivity(),
+                                    getResources().getString(R.string.title_native_res_dialog),
+                                    getResources().getString(R.string.text_native_res_dialog),
+                                    false);
+                        }
                     }
 
                     // Write the new bitrate value

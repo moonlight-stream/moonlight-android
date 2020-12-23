@@ -328,9 +328,10 @@ public class StreamSettings extends Activity {
                 }
             }
             else {
-                updateNativeResolutionEntry(
-                        getActivity().getWindowManager().getDefaultDisplay().getWidth(),
-                        getActivity().getWindowManager().getDefaultDisplay().getHeight());
+                Display display = getActivity().getWindowManager().getDefaultDisplay();
+                int width = Math.max(display.getWidth(), display.getHeight());
+                int height = Math.min(display.getWidth(), display.getHeight());
+                updateNativeResolutionEntry(width, height);
             }
 
             if (!PreferenceConfiguration.readPreferences(this.getActivity()).unlockFps) {

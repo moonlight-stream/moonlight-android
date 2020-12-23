@@ -116,17 +116,6 @@ Java_com_limelight_nvstream_jni_MoonBridge_testClientConnectivity(JNIEnv *env, j
 }
 
 JNIEXPORT jint JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_getPortFromPortFlagIndex(JNIEnv *env, jclass clazz, jint portFlagIndex) {
-    return LiGetPortFromPortFlagIndex(portFlagIndex);
-}
-
-JNIEXPORT jstring JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_getProtocolFromPortFlagIndex(JNIEnv *env, jclass clazz, jint portFlagIndex) {
-    int protocol = LiGetProtocolFromPortFlagIndex(portFlagIndex);
-    return (*env)->NewStringUTF(env, protocol == IPPROTO_TCP ? "TCP" : "UDP");
-}
-
-JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_getPortFlagsFromStage(JNIEnv *env, jclass clazz, jint stage) {
     return LiGetPortFlagsFromStage(stage);
 }
@@ -134,4 +123,15 @@ Java_com_limelight_nvstream_jni_MoonBridge_getPortFlagsFromStage(JNIEnv *env, jc
 JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_getPortFlagsFromTerminationErrorCode(JNIEnv *env, jclass clazz, jint errorCode) {
     return LiGetPortFlagsFromTerminationErrorCode(errorCode);
+}
+
+JNIEXPORT jstring JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_stringifyPortFlags(JNIEnv *env, jclass clazz, jint portFlags, jstring separator) {
+    const char* separatorStr = (*env)->GetStringUTFChars(env, separator, NULL);
+    char outputBuffer[512];
+
+    LiStringifyPortFlags(portFlags, separatorStr, outputBuffer, sizeof(outputBuffer));
+
+    (*env)->ReleaseStringUTFChars(env, separator, separatorStr);
+    return (*env)->NewStringUTF(env, outputBuffer);
 }

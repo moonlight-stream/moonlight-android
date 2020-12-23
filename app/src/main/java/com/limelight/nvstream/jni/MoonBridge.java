@@ -293,13 +293,11 @@ public class MoonBridge {
 
     public static native int testClientConnectivity(String testServerHostName, int referencePort, int testFlags);
 
-    public static native int getPortFromPortFlagIndex(int portFlagIndex);
-
-    public static native String getProtocolFromPortFlagIndex(int portFlagIndex);
-
     public static native int getPortFlagsFromStage(int stage);
 
     public static native int getPortFlagsFromTerminationErrorCode(int errorCode);
+
+    public static native String stringifyPortFlags(int portFlags, String separator);
 
     public static native void init();
 }

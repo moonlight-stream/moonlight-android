@@ -99,8 +99,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             if (!MediaCodecHelper.decoderIsWhitelistedForHevc(decoderInfo.getName(), meteredNetwork)) {
                 LimeLog.info("Found HEVC decoder, but it's not whitelisted - "+decoderInfo.getName());
 
-                // HDR implies HEVC forced on, since HEVCMain10HDR10 is required for HDR
-                if (prefs.videoFormat == PreferenceConfiguration.FORCE_H265_ON || requestedHdr) {
+                // HDR implies HEVC forced on, since HEVCMain10HDR10 is required for HDR.
+                // > 4K streaming also requires HEVC, so force it on there too.
+                if (prefs.videoFormat == PreferenceConfiguration.FORCE_H265_ON || requestedHdr ||
+                        prefs.width > 4096 || prefs.height > 4096) {
                     LimeLog.info("Forcing H265 enabled despite non-whitelisted decoder");
                 }
                 else {
@@ -229,6 +231,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             if (avcDecoder == null) {
                 LimeLog.severe("No available AVC decoder!");
+                return -1;
+            }
+
+            if (width > 4096 || height > 4096) {
+                LimeLog.severe("> 4K streaming only supported on HEVC");
                 return -1;
             }
 

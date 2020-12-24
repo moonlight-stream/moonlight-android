@@ -101,11 +101,7 @@ public class ServerHelper {
                 }
                 else {
                     dialogSummary = parent.getResources().getString(R.string.nettest_text_failure);
-                    for (int i = 0; i < 32; i++) {
-                        if ((ret & (1 << i)) != 0) {
-                            dialogSummary += MoonBridge.getProtocolFromPortFlagIndex(i) + " " + MoonBridge.getPortFromPortFlagIndex(i) + "\n";
-                        }
-                    }
+                    dialogSummary += MoonBridge.stringifyPortFlags(ret, "\n");
                 }
 
                 Dialog.displayDialog(parent,

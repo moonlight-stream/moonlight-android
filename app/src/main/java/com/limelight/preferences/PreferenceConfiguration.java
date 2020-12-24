@@ -93,9 +93,8 @@ public class PreferenceConfiguration {
     public static final String RES_4K = "3840x2160";
     public static final String RES_2K_219 = "2560x1096";
     public static final String RES_4K_219 = "3840x1644";
-    public static final String RES_FULL_LOCAL = "full_local";
+    public static final String RES_NATIVE = "Native";
 
-    public static int fullWidth, fullHeight;
     public int width, height, fps;
     public int bitrate;
     public int videoFormat;
@@ -147,51 +146,35 @@ public class PreferenceConfiguration {
         else if (resString.equalsIgnoreCase("4K (21:9)")) {
             return RES_4K_219;
         }
-        else if (resString.equalsIgnoreCase("full_local")) {
-            return RES_FULL_LOCAL;
-        }
         else {
             // Should be unreachable
             return RES_720P;
         }
     }
 
-    private static int getHorizontalScreenWidth() {
-        if (fullWidth > 0) return fullWidth;
-
-        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        return max(metrics.widthPixels, metrics.heightPixels);
-    }
-
-    private static int getHorizontalScreenHeight() {
-        if (fullHeight > 0) return fullHeight;
-
-        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        return min(metrics.widthPixels, metrics.heightPixels);
-    }
+//    private static int getHorizontalScreenWidth() {
+//        if (fullWidth > 0) return fullWidth;
+//
+//        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
+//        return max(metrics.widthPixels, metrics.heightPixels);
+//    }
+//
+//    private static int getHorizontalScreenHeight() {
+//        if (fullHeight > 0) return fullHeight;
+//
+//        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
+//        return min(metrics.widthPixels, metrics.heightPixels);
+//    }
 
     private static int getWidthFromResolutionString(String resString) {
-        String[] arr = resString.split("x");
-        if (arr.length == 2) {
-            return Integer.parseInt(arr[0]);
-        }
-        return getHorizontalScreenWidth();
+        return Integer.parseInt(resString.split("x")[0]);
     }
 
     private static int getHeightFromResolutionString(String resString) {
-        String[] arr = resString.split("x");
-        if (arr.length == 2) {
-            return Integer.parseInt(arr[1]);
-        }
-        return getHorizontalScreenHeight();
+        return Integer.parseInt(resString.split("x")[1]);
     }
 
     private static String getResolutionString(int width, int height) {
-
-        if (getHorizontalScreenWidth() == width && getHorizontalScreenHeight() == height) {
-            return RES_FULL_LOCAL;
-        }
-
         switch (height) {
             case 360:
                 return RES_360P;

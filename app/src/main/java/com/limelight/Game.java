@@ -1587,10 +1587,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
 
                     String dialogText = getResources().getString(R.string.conn_error_msg) + " " + stage +" (error "+errorCode+")";
+
+                    if (portFlags != 0) {
+                        dialogText += "\n\n" + getResources().getString(R.string.check_ports_msg) + "\n" +
+                                MoonBridge.stringifyPortFlags(portFlags, "\n");
+                    }
+
                     if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0)  {
                         dialogText += "\n\n" + getResources().getString(R.string.nettest_text_blocked);
                     }
-
 
                     Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_error_title), dialogText, true);
                 }
@@ -1602,8 +1607,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public void connectionTerminated(final int errorCode) {
         // Perform a connection test if the failure could be due to a blocked port
         // This does network I/O, so don't do it on the main thread.
-        final int portTestResult = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER,
-                443, MoonBridge.getPortFlagsFromTerminationErrorCode(errorCode));
+        final int portFlags = MoonBridge.getPortFlagsFromTerminationErrorCode(errorCode);
+        final int portTestResult = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER,443, portFlags);
 
         runOnUiThread(new Runnable() {
             @Override
@@ -1642,6 +1647,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                                     message = getResources().getString(R.string.conn_terminated_msg);
                                     break;
                             }
+                        }
+
+                        if (portFlags != 0) {
+                            message += "\n\n" + getResources().getString(R.string.check_ports_msg) + "\n" +
+                                    MoonBridge.stringifyPortFlags(portFlags, "\n");
                         }
 
                         Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_terminated_title),

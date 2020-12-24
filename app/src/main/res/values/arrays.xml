@@ -9,7 +9,7 @@
         <item>4K</item>
         <item>2K (21:9)</item>
         <item>4K (21:9)</item>
-        <item>@string/resolution_full_local_name</item>
+        <item>Native</item>
     </string-array>
     <string-array name="resolution_values" translatable="false">
         <item>640x360</item>
@@ -20,7 +20,7 @@
         <item>3840x2160</item>
         <item>2560x1096</item>
         <item>3840x1644</item>
-        <item>@string/resolution_full_local_value</item>
+        <item>Native</item>
     </string-array>
 
     <string-array name="fps_names">

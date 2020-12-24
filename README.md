@@ -19,7 +19,7 @@
 
 注意：只有一部分游戏支持21:9的超宽屏。
 
-![Screenshot_20200727-095255](/screenshot/Screenshot_20200727-095255.png)
+![Screenshot_20200727-095255](/screenshot/Screenshot_20201224-113932.png)
 
 ![16556A5CDE990FAE78F443B1EB9941F7](/screenshot/16556A5CDE990FAE78F443B1EB9941F7.jpg)
 

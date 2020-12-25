@@ -28,7 +28,10 @@ import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class StreamSettings extends Activity {
     private PreferenceConfiguration previousPrefs;
@@ -144,7 +147,27 @@ public class StreamSettings extends Activity {
             pref.setEntryValues(entryValues);
         }
 
+        private void resetRefreshRate(List<Integer> arr) {
 
+            String preferenceKey = PreferenceConfiguration.FPS_PREF_STRING;
+
+            ListPreference pref = (ListPreference) findPreference(preferenceKey);
+
+            // Create the new arrays
+            CharSequence[] entries = new CharSequence[arr.size()];
+            CharSequence[] entryValues = new CharSequence[arr.size()];
+            int outIndex = 0;
+            for (int i = 0; i < arr.size(); i++) {
+
+                entries[outIndex] = String.valueOf((int) arr.get(i));//pref.getEntries()[i];
+                entryValues[outIndex] = String.valueOf((int) arr.get(i));//pref.getEntryValues()[i];
+                outIndex++;
+            }
+
+            // Update the preference with the new list
+            pref.setEntries(entries);
+            pref.setEntryValues(entryValues);
+        }
 
         private void resetBitrateToDefault(SharedPreferences prefs, String res, String fps) {
             if (res == null) {
@@ -214,6 +237,8 @@ public class StreamSettings extends Activity {
             }
 
             int maxSupportedFps = 0;
+            ArrayList<Integer> extendRefreshRate = new ArrayList<Integer>();
+            Integer[] normalRefreshRate = {30, 60, 90, 120};
 
             // Hide non-supported resolution/FPS combinations
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -257,6 +282,11 @@ public class StreamSettings extends Activity {
                     if (candidate.getRefreshRate() > maxSupportedFps) {
                         maxSupportedFps = (int)candidate.getRefreshRate();
                     }
+                    int refreshRate = (int)candidate.getRefreshRate();
+                    if (!Arrays.asList(normalRefreshRate).contains(refreshRate) && !extendRefreshRate.contains(refreshRate)) {
+                        extendRefreshRate.add(refreshRate);
+                    }
+//                    System.out.println("fps " + (int)candidate.getRefreshRate() + " " + width + " x " + height);
                 }
 
                 updateNativeResolutionEntry(nativeWidth, nativeHeight);
@@ -352,31 +382,48 @@ public class StreamSettings extends Activity {
                 updateNativeResolutionEntry(width, height);
             }
 
-            if (!PreferenceConfiguration.readPreferences(this.getActivity()).unlockFps) {
-                // We give some extra room in case the FPS is rounded down
-                if (maxSupportedFps < 118) {
-                    removeValue(PreferenceConfiguration.FPS_PREF_STRING, "120", new Runnable() {
-                        @Override
-                        public void run() {
-                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
-                            setValue(PreferenceConfiguration.FPS_PREF_STRING, "90");
-                            resetBitrateToDefault(prefs, null, null);
-                        }
-                    });
+            // 设置
+//            extendRefreshRate.add(96); for test
+            ArrayList<Integer> supportRefreshRate = new ArrayList<Integer>(extendRefreshRate);
+            for (int i=0; i<normalRefreshRate.length; i++) {
+
+                // remove unsupport refresh rate
+                if (!PreferenceConfiguration.readPreferences(this.getActivity()).unlockFps && normalRefreshRate[i] > maxSupportedFps) {
+                    continue;
                 }
-                if (maxSupportedFps < 88) {
-                    // 1080p is unsupported
-                    removeValue(PreferenceConfiguration.FPS_PREF_STRING, "90", new Runnable() {
-                        @Override
-                        public void run() {
-                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
-                            setValue(PreferenceConfiguration.FPS_PREF_STRING, "60");
-                            resetBitrateToDefault(prefs, null, null);
-                        }
-                    });
-                }
-                // Never remove 30 FPS or 60 FPS
+                supportRefreshRate.add(normalRefreshRate[i]);
             }
+            // sorted
+            Collections.sort(supportRefreshRate);
+
+            resetRefreshRate(supportRefreshRate);
+
+//            if (!PreferenceConfiguration.readPreferences(this.getActivity()).unlockFps) {
+//                // We give some extra room in case the FPS is rounded down
+//                if (maxSupportedFps < 118) {
+//                    removeValue(PreferenceConfiguration.FPS_PREF_STRING, "120", new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+//                            setValue(PreferenceConfiguration.FPS_PREF_STRING, "90");
+//                            resetBitrateToDefault(prefs, null, null);
+//                        }
+//                    });
+//                }
+//                if (maxSupportedFps < 88) {
+//                    // 1080p is unsupported
+//                    removeValue(PreferenceConfiguration.FPS_PREF_STRING, "90", new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+//                            setValue(PreferenceConfiguration.FPS_PREF_STRING, "60");
+//                            resetBitrateToDefault(prefs, null, null);
+//                        }
+//                    });
+//                }
+//                // Never remove 30 FPS or 60 FPS
+//            }
+
 
             // Android L introduces proper 7.1 surround sound support. Remove the 7.1 option
             // for earlier versions of Android to prevent AudioTrack initialization issues.

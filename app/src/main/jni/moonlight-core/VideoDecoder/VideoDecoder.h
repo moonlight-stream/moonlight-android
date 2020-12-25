@@ -82,12 +82,12 @@ void VideoDecoder_stop(VideoDecoder* videoDecoder);
 // Submit data
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                 int frameNumber, long receiveTimeMs);
+// 部分解码器没有多余的缓冲区用作临时写入，必须取一个提交一个，否则无法获取下一个缓冲区
 void VideoDecoder_getTempBuffer(void** buffer, size_t* bufsize);
 void VideoDecoder_releaseTempBuffer(void* buffer);
 
 // Check busy
 const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* format);
-
 
 // This is called once for each frame-start NALU. This means it will be called several times
 // for an IDR frame which contains several parameter sets and the I-frame data.

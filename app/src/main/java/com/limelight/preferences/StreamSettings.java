@@ -147,7 +147,7 @@ public class StreamSettings extends Activity {
             pref.setEntryValues(entryValues);
         }
 
-        private void resetRefreshRate(List<Integer> arr) {
+        private void resetRefreshRate(List<Integer> arr, int currentRefreshRate) {
 
             String preferenceKey = PreferenceConfiguration.FPS_PREF_STRING;
 
@@ -159,8 +159,16 @@ public class StreamSettings extends Activity {
             int outIndex = 0;
             for (int i = 0; i < arr.size(); i++) {
 
-                entries[outIndex] = String.valueOf((int) arr.get(i));//pref.getEntries()[i];
-                entryValues[outIndex] = String.valueOf((int) arr.get(i));//pref.getEntryValues()[i];
+                int refreshRate = (int) arr.get(i);
+
+                if (currentRefreshRate == refreshRate) {
+                    String mark = getResources().getString(R.string.refreshrate_mark);
+                    entries[outIndex] = String.valueOf(refreshRate) + " (" + mark + ")";
+                } else {
+                    entries[outIndex] = String.valueOf(refreshRate);//pref.getEntries()[i];
+                }
+
+                entryValues[outIndex] = String.valueOf(refreshRate);//pref.getEntryValues()[i];
                 outIndex++;
             }
 
@@ -282,10 +290,10 @@ public class StreamSettings extends Activity {
                     if (candidate.getRefreshRate() > maxSupportedFps) {
                         maxSupportedFps = (int)candidate.getRefreshRate();
                     }
-                    int refreshRate = (int)candidate.getRefreshRate();
-                    if (!Arrays.asList(normalRefreshRate).contains(refreshRate) && !extendRefreshRate.contains(refreshRate)) {
-                        extendRefreshRate.add(refreshRate);
-                    }
+//                    int refreshRate = (int)candidate.getRefreshRate();
+//                    if (!Arrays.asList(normalRefreshRate).contains(refreshRate) && !extendRefreshRate.contains(refreshRate)) {
+//                        extendRefreshRate.add(refreshRate);
+//                    }
 //                    System.out.println("fps " + (int)candidate.getRefreshRate() + " " + width + " x " + height);
                 }
 
@@ -396,7 +404,9 @@ public class StreamSettings extends Activity {
             // sorted
             Collections.sort(supportRefreshRate);
 
-            resetRefreshRate(supportRefreshRate);
+            // add current refresh rate
+            int refreshRate = (int)getActivity().getWindowManager().getDefaultDisplay().getRefreshRate();
+            resetRefreshRate(supportRefreshRate, refreshRate);
 
 //            if (!PreferenceConfiguration.readPreferences(this.getActivity()).unlockFps) {
 //                // We give some extra room in case the FPS is rounded down

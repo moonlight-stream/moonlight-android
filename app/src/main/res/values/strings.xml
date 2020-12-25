@@ -227,4 +227,6 @@
     <string name="resolution_full_local_name"> Local resolution</string>
     <string name="resolution_full_local_value"> full_local</string>
 
+    <string name="refreshrate_mark">Current</string>
+
 </resources>

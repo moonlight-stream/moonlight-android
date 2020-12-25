@@ -401,11 +401,16 @@ public class StreamSettings extends Activity {
                 }
                 supportRefreshRate.add(normalRefreshRate[i]);
             }
-            // sorted
-            Collections.sort(supportRefreshRate);
 
             // add current refresh rate
             int refreshRate = (int)getActivity().getWindowManager().getDefaultDisplay().getRefreshRate();
+            if (!supportRefreshRate.contains(refreshRate)) {
+                supportRefreshRate.add(refreshRate);
+            }
+
+            // sorted
+            Collections.sort(supportRefreshRate);
+
             resetRefreshRate(supportRefreshRate, refreshRate);
 
 //            if (!PreferenceConfiguration.readPreferences(this.getActivity()).unlockFps) {

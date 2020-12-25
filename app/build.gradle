@@ -1,7 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-
+    signingConfigs {
+        nonRootRelease {
+            storeFile file('/Users/xingbi/android-key/rexq57')
+            storePassword 'wzbbj5213637aC'
+            keyAlias 'key0'
+            keyPassword 'wzbbj5213637aC'
+        }
+    }
     compileSdkVersion 30
 
     defaultConfig {

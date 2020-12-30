@@ -68,7 +68,7 @@ public class StreamSettings extends Activity {
     }
 
     public static class SettingsFragment extends PreferenceFragment {
-        private boolean nativeResolutionOptionPresent = false;
+        private int nativeResolutionStartIndex = Integer.MAX_VALUE;
 
         private void setValue(String preferenceKey, String value) {
             ListPreference pref = (ListPreference) findPreference(preferenceKey);
@@ -76,36 +76,35 @@ public class StreamSettings extends Activity {
             pref.setValue(value);
         }
 
-        private void updateNativeResolutionEntry(int nativeWidth, int nativeHeight) {
+        private void addNativeResolutionEntry(int nativeWidth, int nativeHeight) {
             ListPreference pref = (ListPreference) findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING);
 
-            String nameSuffix = " ("+nativeWidth+"x"+nativeHeight+")";
+            String newName = getResources().getString(R.string.resolution_prefix_native) + " ("+nativeWidth+"x"+nativeHeight+")";
             String newValue = nativeWidth+"x"+nativeHeight;
 
-            CharSequence[] entries = pref.getEntries();
             CharSequence[] values = pref.getEntryValues();
 
             // Check if the native resolution is already present
             for (CharSequence value : values) {
                 if (newValue.equals(value.toString())) {
-                    // It is present in the default list, so remove the native option
-                    nativeResolutionOptionPresent = false;
-
-                    pref.setEntries(Arrays.copyOf(entries, entries.length - 1));
-                    pref.setEntryValues(Arrays.copyOf(values, values.length - 1));
-
+                    // It is present in the default list, so don't add it again
                     return;
                 }
             }
 
-            // Add the name suffix to the native option
-            entries[entries.length - 1] = entries[entries.length - 1].toString() + nameSuffix;
-            values[values.length - 1] = newValue;
+            CharSequence[] newEntries = Arrays.copyOf(pref.getEntries(), pref.getEntries().length + 1);
+            CharSequence[] newValues = Arrays.copyOf(values, values.length + 1);
 
-            pref.setEntries(entries);
-            pref.setEntryValues(values);
+            // Add the new native option
+            newEntries[newEntries.length - 1] = newName;
+            newValues[newValues.length - 1] = newValue;
 
-            nativeResolutionOptionPresent = true;
+            pref.setEntries(newEntries);
+            pref.setEntryValues(newValues);
+
+            if (newValues.length - 1 < nativeResolutionStartIndex) {
+                nativeResolutionStartIndex = newValues.length - 1;
+            }
         }
 
         private void removeValue(String preferenceKey, String value, Runnable onMatched) {
@@ -226,7 +225,6 @@ public class StreamSettings extends Activity {
                 // HEVC Decoder: OMX.amlogic.hevc.decoder.awesome
                 // AVC supported width range: 64 - 384
                 // HEVC supported width range: 64 - 544
-                int nativeWidth = 0, nativeHeight = 0;
                 for (Display.Mode candidate : display.getSupportedModes()) {
                     // Some devices report their dimensions in the portrait orientation
                     // where height > width. Normalize these to the conventional width > height
@@ -235,12 +233,7 @@ public class StreamSettings extends Activity {
                     int width = Math.max(candidate.getPhysicalWidth(), candidate.getPhysicalHeight());
                     int height = Math.min(candidate.getPhysicalWidth(), candidate.getPhysicalHeight());
 
-                    if (width > nativeWidth) {
-                        nativeWidth = width;
-                    }
-                    if (height > nativeHeight) {
-                        nativeHeight = height;
-                    }
+                    addNativeResolutionEntry(width, height);
 
                     if ((width >= 3840 || height >= 2160) && maxSupportedResW < 3840) {
                         maxSupportedResW = 3840;
@@ -256,8 +249,6 @@ public class StreamSettings extends Activity {
                         maxSupportedFps = (int)candidate.getRefreshRate();
                     }
                 }
-
-                updateNativeResolutionEntry(nativeWidth, nativeHeight);
 
                 // This must be called to do runtime initialization before calling functions that evaluate
                 // decoder lists.
@@ -347,7 +338,7 @@ public class StreamSettings extends Activity {
                 Display display = getActivity().getWindowManager().getDefaultDisplay();
                 int width = Math.max(display.getWidth(), display.getHeight());
                 int height = Math.min(display.getWidth(), display.getHeight());
-                updateNativeResolutionEntry(width, height);
+                addNativeResolutionEntry(width, height);
             }
 
             if (!PreferenceConfiguration.readPreferences(this.getActivity()).unlockFps) {
@@ -458,25 +449,23 @@ public class StreamSettings extends Activity {
                     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
                     String valueStr = (String) newValue;
 
-                    if (nativeResolutionOptionPresent) {
-                        // Detect if this value is the native resolution option
-                        CharSequence[] values = ((ListPreference)preference).getEntryValues();
-                        boolean isNativeRes = true;
-                        for (int i = 0; i < values.length; i++) {
-                            // If get a match prior to the end, it's not native res
-                            if (valueStr.equals(values[i].toString()) && i < values.length - 1) {
-                                isNativeRes = false;
-                                break;
-                            }
+                    // Detect if this value is the native resolution option
+                    CharSequence[] values = ((ListPreference)preference).getEntryValues();
+                    boolean isNativeRes = true;
+                    for (int i = 0; i < values.length; i++) {
+                        // Look for a match prior to the start of the native resolution entries
+                        if (valueStr.equals(values[i].toString()) && i < nativeResolutionStartIndex) {
+                            isNativeRes = false;
+                            break;
                         }
+                    }
 
-                        // If this is native resolution, show the warning dialog
-                        if (isNativeRes) {
-                            Dialog.displayDialog(getActivity(),
-                                    getResources().getString(R.string.title_native_res_dialog),
-                                    getResources().getString(R.string.text_native_res_dialog),
-                                    false);
-                        }
+                    // If this is native resolution, show the warning dialog
+                    if (isNativeRes) {
+                        Dialog.displayDialog(getActivity(),
+                                getResources().getString(R.string.title_native_res_dialog),
+                                getResources().getString(R.string.text_native_res_dialog),
+                                false);
                     }
 
                     // Write the new bitrate value

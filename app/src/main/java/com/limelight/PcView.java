@@ -319,19 +319,22 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         // Add a header with PC status details
         menu.clearHeader();
+        String headerTitle = computer.details.name + " - ";
         switch (computer.details.state)
         {
             case ONLINE:
-                menu.setHeaderTitle(R.string.pcview_menu_header_online);
+                headerTitle += getResources().getString(R.string.pcview_menu_header_online);
                 break;
             case OFFLINE:
                 menu.setHeaderIcon(R.drawable.ic_pc_offline);
-                menu.setHeaderTitle(R.string.pcview_menu_header_offline);
+                headerTitle += getResources().getString(R.string.pcview_menu_header_offline);
                 break;
             case UNKNOWN:
-                menu.setHeaderTitle(R.string.pcview_menu_header_unknown);
+                headerTitle += getResources().getString(R.string.pcview_menu_header_unknown);
                 break;
         }
+
+        menu.setHeaderTitle(headerTitle);
 
         // Inflate the context menu
         if (computer.details.state == ComputerDetails.State.OFFLINE ||

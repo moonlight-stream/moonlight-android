@@ -1,0 +1,1 @@
+- Fixed missing video or audio when streaming over some Internet connections

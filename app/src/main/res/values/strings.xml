@@ -76,6 +76,7 @@
     <string name="video_decoder_init_failed">Video decoder failed to initialize. Your device may not support the selected resolution or frame rate.</string>
     <string name="no_video_received_error">No video received from host.</string>
     <string name="no_frame_received_error">Your network connection isn\'t performing well. Reduce your video bitrate setting or try a faster connection.</string>
+    <string name="early_termination_error">Something went wrong on your host PC when starting the stream.\n\nMake sure you don\'t have any DRM-protected content open on your host PC. You can also try restarting your host PC.\n\nIf the issue persists, try reinstalling your GPU drivers and GeForce Experience.</string>
     <string name="check_ports_msg">Check your firewall and port forwarding rules for port(s):</string>
 
     <!-- Start application messages -->
@@ -138,8 +139,8 @@
     <string name="category_basic_settings">Basic Settings</string>
     <string name="title_resolution_list">Video resolution</string>
     <string name="summary_resolution_list">Increase to improve image clarity. Decrease for better performance on lower end devices and slower networks.</string>
-    <string name="title_native_res_dialog">Native Resolution Limitations</string>
-    <string name="text_native_res_dialog">Native resolution modes are not officially supported by GeForce Experience, so it will not set your host display resolution. You will need to set it manually while in game.\n\nIf your host PC display does not support this device\'s native resolution, you may need to add the resolution option manually in the NVIDIA Control Panel.\n\nFinally, your device or host PC may not support streaming at native resolution. If it doesn\'t work on your device, you\'re just out of luck.</string>
+    <string name="title_native_res_dialog">Native Resolution Warning</string>
+    <string name="text_native_res_dialog">Native resolution modes are not officially supported by GeForce Experience, so it will not set your host display resolution itself. You will need to set it manually while in game.\n\nIf you choose to create a custom resolution in NVIDIA Control Panel to match your device resolution, please ensure you have read and understood NVIDIA\'s warning regarding possible monitor damage, PC instability, and other potential problems.\n\nWe are not responsible for any problems resulting from creating a custom resolution on your PC.\n\nFinally, your device or host PC may not support streaming at native resolution. If it doesn\'t work on your device, you\'re just out of luck unfortunately.</string>
     <string name="title_fps_list">Video frame rate</string>
     <string name="summary_fps_list">Increase for a smoother video stream. Decrease for better performance on lower end devices.</string>
     <string name="title_seekbar_bitrate">Video bitrate</string>

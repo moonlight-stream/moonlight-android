@@ -1183,6 +1183,27 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
     }
 
+    public void toggleKeyboard(){
+        InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+
+        Rect r = new Rect();
+        streamView.getWindowVisibleDisplayFrame(r);
+        int screenHeight = streamView.getRootView().getHeight();
+
+        // r.bottom is the position above soft keypad or device button.
+        // if keypad is shown, the r.bottom is smaller than that before.
+        int keypadHeight = screenHeight - r.bottom;
+
+        boolean isVisible = keypadHeight > screenHeight * 0.15; // 0.15 ratio is perhaps enough to determine keypad height.
+
+        //if (imm.isActive()){ not work
+        if (isVisible) {
+            imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0); // hide
+        } else {
+            imm.toggleSoftInput(0, InputMethodManager.HIDE_IMPLICIT_ONLY); // show
+        }
+    }
+
     // Returns true if the event was consumed
     // NB: View is only present if called from a view callback
     private boolean handleMotionEvent(View view, MotionEvent event) {
@@ -1403,7 +1424,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                                 setPerformanceOverlayViewVisibility(performanceOverlayViewDisabled);
 
                             } else {
-                                showKeyboard();
+                                toggleKeyboard();
                             }
 
                             return true;

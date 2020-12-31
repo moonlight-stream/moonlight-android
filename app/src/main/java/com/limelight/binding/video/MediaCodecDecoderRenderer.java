@@ -638,7 +638,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     @SuppressWarnings("deprecation")
     @Override
     public int submitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
-                                int frameNumber, long receiveTimeMs) {
+                                int frameNumber, long receiveTimeMs, long enqueueTimeMs) {
         if (stopping) {
             // Don't bother if we're stopping
             return MoonBridge.DR_OK;
@@ -699,11 +699,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         int inputBufferIndex;
         ByteBuffer buf;
 
-        long timestampUs = System.nanoTime() / 1000;
+        long timestampUs = enqueueTimeMs * 1000;
 
         if (!FRAME_RENDER_TIME_ONLY) {
-            // Count time from first packet received to decode start
-            activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
+            // Count time from first packet received to enqueue time as receive time
+            // We will count DU queue time as part of decoding, because it is directly
+            // caused by a slow decoder.
+            activeWindowVideoStats.totalTimeMs += enqueueTimeMs - receiveTimeMs;
         }
 
         if (timestampUs <= lastTimestampUs) {

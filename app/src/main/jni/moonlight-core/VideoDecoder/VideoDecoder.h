@@ -63,7 +63,6 @@ typedef struct {
     VideoInputBuffer* inputBufferCache;
     VideoOutputBuffer* outputBufferCache;
     // sem_t queuing_sem;
-    long immediateCount;
 
     bool alwaysDropFrames;
 
@@ -81,17 +80,17 @@ void VideoDecoder_stop(VideoDecoder* videoDecoder);
 
 // Submit data
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
-                                int frameNumber, long receiveTimeMs);
+                                int frameNumber, uint64_t receiveTimeMs);
 // 部分解码器没有多余的缓冲区用作临时写入，必须取一个提交一个，否则无法获取下一个缓冲区
 void VideoDecoder_getTempBuffer(void** buffer, size_t* bufsize);
 void VideoDecoder_releaseTempBuffer(void* buffer);
 
-// Check busy
+// 格式化解码器信息
 const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* format);
 
 // This is called once for each frame-start NALU. This means it will be called several times
 // for an IDR frame which contains several parameter sets and the I-frame data.
 int VideoDecoder_staticSubmitDecodeUnit(void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
-                                int frameNumber, long receiveTimeMs);
+                                int frameNumber, uint64_t receiveTimeMs);
 
 #endif //MOONLIGHT_ANDROID_DECODER_H

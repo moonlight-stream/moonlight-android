@@ -225,10 +225,10 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 #if VD_BUFFER_CBMODE
 
     const bool drop_enabled = true; // 丢弃多余的帧
-    const long delay_timeUs = 1000;
+    const uint64_t delay_timeUs = 1000;
 
-    long start_time = getTimeUsec();
-    long usTimeout = timeoutUs;//1000000 / videoDecoder->refreshRate;
+    uint64_t start_time = getClockUsec();//getTimeUsec();
+    uint64_t usTimeout = timeoutUs;//1000000 / videoDecoder->refreshRate;
     bool exit = false;
     while(!exit && !videoDecoder->stopping) {
         pthread_mutex_lock(&videoDecoder->outputCacheLock); {
@@ -267,7 +267,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
             }
 
             if (minBuffer) {
-                long currentTime = getTimeUsec();
+                uint64_t currentTime = getClockUsec();//getTimeUsec();
                 bool isTimeout = (currentTime - start_time) > (usTimeout - delay_timeUs); // 提前1ms判断超时
                 if (validCount >= 2 || isTimeout) {
                     minBuffer->status = OUTPUT_BUFFER_STATUS_INVALID;
@@ -279,7 +279,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
                 }
             }
 //            else {
-//                long currentTime = getTimeUsec();
+//                uint64_t currentTime = getClockUsec();//getTimeUsec();
 //                LOGT("[test] usTimeout0 no buffer %d %d", validCount, (currentTime - start_time));
 //            }
 
@@ -356,7 +356,7 @@ void OnOutputAvailableCB(
         AMediaCodecBufferInfo *bufferInfo) {
     LOGT("OnOutputAvailableCB: index(%d), (%d, %d, %lld, 0x%x)",
           index, bufferInfo->offset, bufferInfo->size,
-          (long long)bufferInfo->presentationTimeUs, bufferInfo->flags);
+          (uint64_t)bufferInfo->presentationTimeUs, bufferInfo->flags);
 
     VideoDecoder* videoDecoder = (VideoDecoder*)userdata;
 
@@ -645,10 +645,10 @@ void* rendering_thread(VideoDecoder* videoDecoder)
     // Try to output a frame
     AMediaCodecBufferInfo info;
 
-    long usTimeout = 1000000 / videoDecoder->refreshRate;
-    long test_count = 0;
-    long base_time = 0;
-    long last_time = 0;
+    uint64_t usTimeout = 1000000 / videoDecoder->refreshRate;
+    uint64_t test_count = 0;
+    uint64_t base_time = 0;
+    uint64_t last_time = 0;
     uint32_t frame_Index = 0;
     bool last_immediate = false;
 
@@ -661,7 +661,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             {
                 videoDecoder->activeWindowVideoStats.totalFramesRendered ++;
                 // Add delta time to the totals (excluding probable outliers)
-                long delta = (getTimeUsec() - info.presentationTimeUs) / 1000;
+                uint64_t delta = (/*getTimeUsec()*/getClockUsec() - info.presentationTimeUs) / 1000;
                 if (delta >= 0 && delta < 1000) {
                     videoDecoder->activeWindowVideoStats.decoderTimeMs += delta;
                     if (!USE_FRAME_RENDER_TIME) {
@@ -669,8 +669,6 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                     }
                 }
             }
-
-            
 
             // 逻辑丢帧时使用currentTimeNs会造成非常不稳定的帧率
             // if (videoDecoder->legacyFrameDropRendering) {
@@ -689,8 +687,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                     }
                 } else {
 
-                    // 计算帧显示的准确时间戳(通过延迟一帧来算)
-                    long currentTimeNs = getClockNanc();
+                    // 计算帧显示的准确时间戳(通过延迟一帧来算) 这里的时间结果必须是clock nanc，所以必须统一为clock
+                    uint64_t currentTimeNs = getClockNanc();
 
                     if (immediate != last_immediate) {
                         frame_Index = 0;
@@ -703,8 +701,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                     }
 
                     const int delay_frame = 1;// + videoDecoder->refreshRate/120;
-                    const long nsFrameTime = usTimeout*1000;
-                    long rendering_time = base_time + (frame_Index + delay_frame) * nsFrameTime;
+                    const uint64_t nsFrameTime = usTimeout*1000;
+                    uint64_t rendering_time = base_time + (frame_Index + delay_frame) * nsFrameTime;
                     {
                         // 计算输出缓冲区的数量（含当前即将显示的缓冲区）
                         const int buffer_count = (rendering_time-currentTimeNs) / nsFrameTime;
@@ -777,6 +775,33 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
 void VideoDecoder_start(VideoDecoder* videoDecoder) {
 
+//    {
+//        uint64_t start = getClockMsec();
+//        uint64_t start_t = getTimeMsec();
+//        int count = 100000000;
+//        for (int i=0; i<count; i++) {
+//            getTimeUsec();
+//        }
+//
+//        uint64_t end = getClockMsec();
+//        uint64_t end_t = getTimeMsec();
+//        LOGT("时间差 %ld %d\n", end-start, (end-start)/count);
+//        LOGT("时间差 %ld %d\n", end_t-start_t, (end_t-start_t)/count);
+//    }
+
+//    {
+//        uint64_t start = getClockMsec();
+//        int count = 100000000;
+//        for (int i=0; i<count; i++) {
+//            getClockUsec();
+//        }
+//
+//        uint64_t end = getClockMsec();
+//        LOGT("时间差 %ld %d\n", end-start, (end-start)/count);
+//    }
+
+
+
     pthread_mutex_lock(&videoDecoder->lock);
 
     assert(!videoDecoder->stopping);
@@ -804,8 +829,6 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     videoDecoder->activeWindowVideoStats = initStats;
     videoDecoder->lastWindowVideoStats = initStats;
     videoDecoder->globalVideoStats = initStats;
-
-    videoDecoder->immediateCount = 0;
 
     // Start thread
     pthread_t pid;
@@ -913,7 +936,7 @@ bool replaySps(VideoDecoder* videoDecoder) {
     // inputBuffer.codecFlags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 
     return _queueInputBuffer2(videoDecoder, inputIndex, inputBufPos,
-            getTimeUsec(),
+            /*getTimeUsec()*/getClockUsec(), // 参与时间计算
             BUFFER_FLAG_CODEC_CONFIG);
     // return queueInputBuffer(inputIndex,
     //        0, inputBuffer.position(),
@@ -1062,7 +1085,7 @@ int bufferIndexInCache(VideoDecoder* videoDecoder, void* buffer) {
 }
 
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
-                                int frameNumber, long receiveTimeMs) {
+                                int frameNumber, uint64_t receiveTimeMs) {
 
     #define VPS_BUFFER  videoDecoder->buffers[VPS].data
     #define VPS_BUFSIZE videoDecoder->buffers[VPS].size
@@ -1083,7 +1106,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     pthread_mutex_lock(&videoDecoder->lock);
 
     // Get long time, not the same as receiveTimeMs
-    uint64_t timestampUs = getTimeUsec();
+    uint64_t timestampUs = getClockUsec();//getTimeUsec();
     uint64_t currentTimeMillis = timestampUs / 1000;
 
     if (videoDecoder->lastFrameNumber == 0) {
@@ -1134,7 +1157,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         timestampUs = videoDecoder->lastTimestampUs + 1;
     }
 
-    long callDif = timestampUs - videoDecoder->lastTimestampUs;
+    uint64_t callDif = timestampUs - videoDecoder->lastTimestampUs;
 
     videoDecoder->lastTimestampUs = timestampUs;
 
@@ -1296,7 +1319,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
     }
 
 #ifdef LC_DEBUG
-    long endTimeMillis = getTimeMsec();
+    uint64_t endTimeMillis = getClockMsec();//getTimeMsec();
     LOGT("[test] + 提交数据 %ld 间隔 %d ms 提交用时 %d ms", timestampUs/1000, callDif/1000, endTimeMillis-currentTimeMillis);
 #endif
 
@@ -1396,7 +1419,7 @@ const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* form
     return videoDecoder->infoBuffer;
 }
 
-int VideoDecoder_staticSubmitDecodeUnit(void* decodeUnitData, int decodeUnitLength, int decodeUnitType, int frameNumber, long receiveTimeMs) {
+int VideoDecoder_staticSubmitDecodeUnit(void* decodeUnitData, int decodeUnitLength, int decodeUnitType, int frameNumber, uint64_t receiveTimeMs) {
 
     // currentVideoDecoder
     // assert(currentVideoDecoder);

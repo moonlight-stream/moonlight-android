@@ -15,8 +15,8 @@ android {
         minSdkVersion 21 // 28
         targetSdkVersion 30
 
-        versionName "9.7.7b"
-        versionCode = 247
+        versionName "9.8"
+        versionCode = 251
         signingConfig signingConfigs.nonRootRelease
     }
 

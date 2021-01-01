@@ -10,21 +10,23 @@ uint64_t getTimeMsec()
 {
     struct timeval t;
     gettimeofday(&t, 0);
-    return (long)((long)t.tv_sec * 1000 + t.tv_usec/1000);
+    return (uint64_t)((uint64_t)t.tv_sec * 1000 + t.tv_usec/1000);
+//    return getClockMsec();
 }
 
 uint64_t getTimeUsec(void) {
 
     struct timeval t;
     gettimeofday(&t, 0);
-    return (long)((long)t.tv_sec * 1000*1000 + t.tv_usec);
+    return (uint64_t)((uint64_t)t.tv_sec * 1000*1000 + t.tv_usec);
+//    return getClockUsec();
 }
 
 uint64_t getTimeNanc(void) {
 
     struct timeval t;
     gettimeofday(&t, 0);
-    return (long)((long)t.tv_sec * 1000*1000*1000 + t.tv_usec*1000);
+    return (uint64_t)((uint64_t)t.tv_sec * 1000*1000*1000 + t.tv_usec*1000);
 }
 
 uint64_t getClockMsec(void) {
@@ -100,7 +102,7 @@ void VideoStats_clear(VideoStats* stats) {
 }
 
 VideoStatsFps VideoStats_getFps(const VideoStats* stats) {
-    float elapsed = (getTimeMsec() - stats->measurementStartTimestamp) / (float) 1000;
+    float elapsed = (/*getTimeMsec()*/getClockMsec() - stats->measurementStartTimestamp) / (float) 1000;
 
     VideoStatsFps fps = {0};
     if (elapsed > 0) {

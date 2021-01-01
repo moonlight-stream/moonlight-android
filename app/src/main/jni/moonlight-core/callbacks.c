@@ -187,7 +187,7 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
             memcpy(tempBuffer, currentEntry->data, currentEntry->length);
 
             ret = VideoDecoder_staticSubmitDecodeUnit(tempBuffer, currentEntry->length, currentEntry->bufferType,
-                                decodeUnit->frameNumber, decodeUnit->receiveTimeMs);
+                                decodeUnit->frameNumber, decodeUnit->receiveTimeMs, (jlong)decodeUnit->enqueueTimeMs);
 
             if ((*env)->ExceptionCheck(env)) {
                 // We will crash here
@@ -210,7 +210,7 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
 
     ret = VideoDecoder_staticSubmitDecodeUnit(tempBuffer, offset, BUFFER_TYPE_PICDATA,
                                       decodeUnit->frameNumber,
-                                      (jlong)decodeUnit->receiveTimeMs);
+                                      (jlong)decodeUnit->receiveTimeMs, (jlong)decodeUnit->enqueueTimeMs);
 
 #ifdef LOG_DEBUG_SUBMIT
     uint64_t endTime = PltGetMillis();

@@ -1085,7 +1085,7 @@ int bufferIndexInCache(VideoDecoder* videoDecoder, void* buffer) {
 }
 
 int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitData, int decodeUnitLength, int decodeUnitType,
-                                int frameNumber, uint64_t receiveTimeMs) {
+                                int frameNumber, uint64_t receiveTimeMs, uint64_t enqueueTimeMs) {
 
     #define VPS_BUFFER  videoDecoder->buffers[VPS].data
     #define VPS_BUFSIZE videoDecoder->buffers[VPS].size
@@ -1148,7 +1148,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
         // Count time from first packet received to decode start
 //        videoDecoder->activeWindowVideoStats.totalTimeMs += (timestampUs / 1000) - receiveTimeMs;
         // receiveTimeMs is a clock time
-        videoDecoder->activeWindowVideoStats.totalTimeMs += getClockUsec()/1000 - receiveTimeMs;
+        videoDecoder->activeWindowVideoStats.totalTimeMs += enqueueTimeMs - receiveTimeMs;
     }
 
     if (timestampUs <= videoDecoder->lastTimestampUs) {
@@ -1419,12 +1419,12 @@ const char* VideoDecoder_formatInfo(VideoDecoder* videoDecoder, const char* form
     return videoDecoder->infoBuffer;
 }
 
-int VideoDecoder_staticSubmitDecodeUnit(void* decodeUnitData, int decodeUnitLength, int decodeUnitType, int frameNumber, uint64_t receiveTimeMs) {
+int VideoDecoder_staticSubmitDecodeUnit(void* decodeUnitData, int decodeUnitLength, int decodeUnitType, int frameNumber, uint64_t receiveTimeMs, uint64_t enqueueTimeMs) {
 
     // currentVideoDecoder
     // assert(currentVideoDecoder);
     if (!currentVideoDecoder)
         return DR_NEED_IDR;
 
-    return VideoDecoder_submitDecodeUnit(currentVideoDecoder, decodeUnitData, decodeUnitLength, decodeUnitType, frameNumber, receiveTimeMs);
+    return VideoDecoder_submitDecodeUnit(currentVideoDecoder, decodeUnitData, decodeUnitLength, decodeUnitType, frameNumber, receiveTimeMs, enqueueTimeMs);
 }

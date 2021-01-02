@@ -293,95 +293,34 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 #else
     outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
 
-    // 如果不是强制设定，不进行丢帧。因为常规模式（缓冲==0）时，是-1帧模式，不会触发高解码延迟，所以不用丢。
+    // 不丢帧逻辑: 常规模式（缓冲==0）时，是-1帧模式，不会触发高解码延迟，所以不用丢。(但会造成画面突然严重延迟)
     // 而非立即模式，提交都很快，不丢帧也不会触发高解码延迟。
-    bool need_drop_frames = false;
     int frames_count = 0;
-    if (need_drop_frames ) { // 快速降解码延迟需求
+
+    // 总是需要丢帧
+    if (videoDecoder->alwaysDropFrames) {
         frames_count = 1000;
     } else {
-        // 总是需要丢帧
-        if (videoDecoder->alwaysDropFrames) {
-            frames_count = 1000;
-        }
+//        bool need_drop_frames = videoDecoder->bufferCount == 0;
+//        if (need_drop_frames ) { // 快速降解码延迟需求
+//            frames_count = 1000;
+//        }
     }
 
-    int dropIndex = -1;
+    int lastIndex = outputIndex;
     int i = 0;
-    while (i++ < frames_count && (dropIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
-        AMediaCodec_releaseOutputBuffer(videoDecoder->codec, dropIndex, false);
+    while (i++ < frames_count && (outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
+        AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false); // drop last index
         LOGT("[test] drop frame");
+        lastIndex = outputIndex;
     }
+    outputIndex = lastIndex;
 
 #endif
 
     LOGT("[test] dequeueOutputBuffer ok! %d", outputIndex);
 
     return outputIndex;
-}
-
-void OnInputAvailableCB(
-        AMediaCodec *  aMediaCodec ,
-        void *userdata,
-        int32_t index) {
-    LOGT("OnInputAvailableCB: index(%d)", index);
-
-    VideoDecoder* videoDecoder = (VideoDecoder*)userdata;
-    pthread_mutex_lock(&videoDecoder->inputCacheLock); {
-        for (int i = 0; i < InputBufferCacheSize; i++) {
-            VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
-            if (inputBuffer->status == INPUT_BUFFER_STATUS_INVALID) {
-                inputBuffer->index  = index;
-                inputBuffer->status = INPUT_BUFFER_STATUS_FREE;
-
-                inputBuffer->buffer = AMediaCodec_getInputBuffer(videoDecoder->codec, index, &inputBuffer->bufsize);
-
-                break;
-            }
-        }
-
-    } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
-}
-
-void OnOutputAvailableCB(
-        AMediaCodec *  aMediaCodec ,
-        void *userdata,
-        int32_t index,
-        AMediaCodecBufferInfo *bufferInfo) {
-    LOGT("OnOutputAvailableCB: index(%d), (%d, %d, %lld, 0x%x)",
-          index, bufferInfo->offset, bufferInfo->size,
-          (uint64_t)bufferInfo->presentationTimeUs, bufferInfo->flags);
-
-    VideoDecoder* videoDecoder = (VideoDecoder*)userdata;
-
-    pthread_mutex_lock(&videoDecoder->outputCacheLock); {
-        for (int i = 0; i < OutputBufferCacheSize; i++) {
-            VideoOutputBuffer* outputBuffer = &videoDecoder->outputBufferCache[i];
-            if (outputBuffer->status == OUTPUT_BUFFER_STATUS_INVALID) {
-                outputBuffer->status = OUTPUT_BUFFER_STATUS_WORKING;
-                outputBuffer->index = index;
-                outputBuffer->bufferInfo = *bufferInfo;
-                break;
-            }
-        }
-
-    } pthread_mutex_unlock(&videoDecoder->outputCacheLock);
-}
-
-void OnFormatChangedCB(
-        AMediaCodec *  aMediaCodec ,
-        void *userdata,
-        AMediaFormat *format) {
-}
-
-void OnErrorCB(
-        AMediaCodec *  aMediaCodec ,
-        void *userdata,
-        media_status_t err,
-        int32_t actionCode,
-        const char *detail) {
-    LOGT("OnErrorCB: err(%d), actionCode(%d), detail(%s)", err, actionCode, detail);
-
 }
 
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* decoderName, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency, bool adaptivePlayback, bool maxOperatingRate) {
@@ -734,8 +673,9 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             }
 
             LOGD("rendering_thread: Rendering pass %d", outIndex);
-
-            usleep(1000);
+            
+            if (videoDecoder->bufferCount > 0)
+                usleep(1000);
         }
     }
     
@@ -767,7 +707,7 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     } else
 #endif
     {
-        
+        // pass
     }
 
     // Init
@@ -1382,3 +1322,70 @@ int VideoDecoder_staticSubmitDecodeUnit(void* decodeUnitData, int decodeUnitLeng
 
     return VideoDecoder_submitDecodeUnit(currentVideoDecoder, decodeUnitData, decodeUnitLength, decodeUnitType, frameNumber, receiveTimeMs, enqueueTimeMs);
 }
+
+#if VD_CALLBACK_MODE
+
+void OnInputAvailableCB(
+        AMediaCodec *  aMediaCodec ,
+        void *userdata,
+        int32_t index) {
+    LOGT("OnInputAvailableCB: index(%d)", index);
+
+    VideoDecoder* videoDecoder = (VideoDecoder*)userdata;
+    pthread_mutex_lock(&videoDecoder->inputCacheLock); {
+        for (int i = 0; i < InputBufferCacheSize; i++) {
+            VideoInputBuffer* inputBuffer = &videoDecoder->inputBufferCache[i];
+            if (inputBuffer->status == INPUT_BUFFER_STATUS_INVALID) {
+                inputBuffer->index  = index;
+                inputBuffer->status = INPUT_BUFFER_STATUS_FREE;
+
+                inputBuffer->buffer = AMediaCodec_getInputBuffer(videoDecoder->codec, index, &inputBuffer->bufsize);
+
+                break;
+            }
+        }
+
+    } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
+}
+
+void OnOutputAvailableCB(
+        AMediaCodec *  aMediaCodec ,
+        void *userdata,
+        int32_t index,
+        AMediaCodecBufferInfo *bufferInfo) {
+    LOGT("OnOutputAvailableCB: index(%d), (%d, %d, %lld, 0x%x)",
+          index, bufferInfo->offset, bufferInfo->size,
+          (uint64_t)bufferInfo->presentationTimeUs, bufferInfo->flags);
+
+    VideoDecoder* videoDecoder = (VideoDecoder*)userdata;
+
+    pthread_mutex_lock(&videoDecoder->outputCacheLock); {
+        for (int i = 0; i < OutputBufferCacheSize; i++) {
+            VideoOutputBuffer* outputBuffer = &videoDecoder->outputBufferCache[i];
+            if (outputBuffer->status == OUTPUT_BUFFER_STATUS_INVALID) {
+                outputBuffer->status = OUTPUT_BUFFER_STATUS_WORKING;
+                outputBuffer->index = index;
+                outputBuffer->bufferInfo = *bufferInfo;
+                break;
+            }
+        }
+
+    } pthread_mutex_unlock(&videoDecoder->outputCacheLock);
+}
+
+void OnFormatChangedCB(
+        AMediaCodec *  aMediaCodec ,
+        void *userdata,
+        AMediaFormat *format) {
+}
+
+void OnErrorCB(
+        AMediaCodec *  aMediaCodec ,
+        void *userdata,
+        media_status_t err,
+        int32_t actionCode,
+        const char *detail) {
+    LOGT("OnErrorCB: err(%d), actionCode(%d), detail(%s)", err, actionCode, detail);
+
+}
+#endif

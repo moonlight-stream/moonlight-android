@@ -24,9 +24,9 @@
 #define LOGT(...)  
 #endif
 
-// API 28 Support
-#define VD_BUFFER_CBMODE 0
-// #define INPUTBUFFER_SUBMIT_IMMEDIATE 1
+// API 28 Support or 21
+#define VD_CALLBACK_MODE 0
+#define VD_BUFFER_CACHE_MODE 0 // 暂时不可用
 
 static const bool USE_FRAME_RENDER_TIME = false;
 static const bool FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
@@ -102,7 +102,7 @@ int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
 
     int index = -1;
 
-#if VD_BUFFER_CBMODE
+#if VD_BUFFER_CACHE_MODE
     // get one
     pthread_mutex_lock(&videoDecoder->inputCacheLock); {
 
@@ -127,7 +127,7 @@ int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
         }
 
     } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
-    
+
 #else
     while (index < 0 && !videoDecoder->stopping) {
         index = AMediaCodec_dequeueInputBuffer(videoDecoder->codec, 10000);
@@ -139,7 +139,7 @@ int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
 
 static inline void* _getInputBuffer(VideoDecoder* videoDecoder, int index, size_t* bufsize) {
 
-#if VD_BUFFER_CBMODE
+#if VD_BUFFER_CACHE_MODE
     VideoInputBuffer* inputBuffer;
     pthread_mutex_lock(&videoDecoder->inputCacheLock); {
 
@@ -169,7 +169,7 @@ static inline void* _getInputBuffer(VideoDecoder* videoDecoder, int index, size_
 // 提交输入
 bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, uint64_t timestampUs, uint32_t codecFlags) {
 
-#if VD_BUFFER_CBMODE
+#if VD_BUFFER_CACHE_MODE
 
     pthread_mutex_lock(&videoDecoder->inputCacheLock); {
 
@@ -188,6 +188,7 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
         LOGT("[test] Push to codec [%d]%d buffer %p codecFlags %d", index, inputBuffer->index, inputBuffer->buffer, codecFlags);
 
         // 立即提交
+// #define INPUTBUFFER_SUBMIT_IMMEDIATE 1
 // #if INPUTBUFFER_SUBMIT_IMMEDIATE
         index = inputBuffer->index;
         inputBuffer->status = INPUT_BUFFER_STATUS_INVALID;
@@ -222,7 +223,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 
     LOGT("[test] dequeueOutputBuffer codec %p timeoutUs %ld", videoDecoder->codec, timeoutUs);
 
-#if VD_BUFFER_CBMODE
+#if VD_BUFFER_CACHE_MODE
 
     const bool drop_enabled = true; // 丢弃多余的帧
     const uint64_t delay_timeUs = 1000;
@@ -319,8 +320,6 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
     return outputIndex;
 }
 
-#if VD_BUFFER_CBMODE
-// static
 void OnInputAvailableCB(
         AMediaCodec *  aMediaCodec ,
         void *userdata,
@@ -342,13 +341,8 @@ void OnInputAvailableCB(
         }
 
     } pthread_mutex_unlock(&videoDecoder->inputCacheLock);
-
-//    sp<AMessage> msg = sp<AMessage>((AMessage *)userdata)->dup();
-//    msg->setInt32("callbackID", CB_INPUT_AVAILABLE);
-//    msg->setInt32("index", index);
-//    msg->post();
 }
-// static
+
 void OnOutputAvailableCB(
         AMediaCodec *  aMediaCodec ,
         void *userdata,
@@ -372,32 +366,14 @@ void OnOutputAvailableCB(
         }
 
     } pthread_mutex_unlock(&videoDecoder->outputCacheLock);
-
-    
-
-//    sp<AMessage> msg = sp<AMessage>((AMessage *)userdata)->dup();
-//    msg->setInt32("callbackID", CB_OUTPUT_AVAILABLE);
-//    msg->setInt32("index", index);
-//    msg->setSize("offset", (size_t)(bufferInfo->offset));
-//    msg->setSize("size", (size_t)(bufferInfo->size));
-//    msg->setInt64("timeUs", bufferInfo->presentationTimeUs);
-//    msg->setInt32("flags", (int32_t)(bufferInfo->flags));
-//    msg->post();
 }
-// static
+
 void OnFormatChangedCB(
         AMediaCodec *  aMediaCodec ,
         void *userdata,
         AMediaFormat *format) {
-//    sp<AMediaFormatWrapper> formatWrapper = new AMediaFormatWrapper(format);
-//    sp<AMessage> outputFormat = formatWrapper->toAMessage();
-//    ALOGV("OnFormatChangedCB: format(%s)", outputFormat->debugString().c_str());
-//    sp<AMessage> msg = sp<AMessage>((AMessage *)userdata)->dup();
-//    msg->setInt32("callbackID", CB_OUTPUT_FORMAT_CHANGED);
-//    msg->setMessage("format", outputFormat);
-//    msg->post();
 }
-// static
+
 void OnErrorCB(
         AMediaCodec *  aMediaCodec ,
         void *userdata,
@@ -407,7 +383,6 @@ void OnErrorCB(
     LOGT("OnErrorCB: err(%d), actionCode(%d), detail(%s)", err, actionCode, detail);
 
 }
-#endif
 
 VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* decoderName, const char* mimeType, int width, int height, int refreshRate, int prefsFps, bool lowLatency, bool adaptivePlayback, bool maxOperatingRate) {
 
@@ -735,7 +710,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
         } else {
           
-            // 回调模式不走这里
+            // 回调模式始终不走这里
 
             #define INFO_OUTPUT_BUFFERS_CHANGED -3
             #define INFO_OUTPUT_FORMAT_CHANGED -2
@@ -775,46 +750,25 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
 void VideoDecoder_start(VideoDecoder* videoDecoder) {
 
-//    {
-//        uint64_t start = getClockMsec();
-//        uint64_t start_t = getTimeMsec();
-//        int count = 100000000;
-//        for (int i=0; i<count; i++) {
-//            getTimeUsec();
-//        }
-//
-//        uint64_t end = getClockMsec();
-//        uint64_t end_t = getTimeMsec();
-//        LOGT("时间差 %ld %d\n", end-start, (end-start)/count);
-//        LOGT("时间差 %ld %d\n", end_t-start_t, (end_t-start_t)/count);
-//    }
-
-//    {
-//        uint64_t start = getClockMsec();
-//        int count = 100000000;
-//        for (int i=0; i<count; i++) {
-//            getClockUsec();
-//        }
-//
-//        uint64_t end = getClockMsec();
-//        LOGT("时间差 %ld %d\n", end-start, (end-start)/count);
-//    }
-
-
-
     pthread_mutex_lock(&videoDecoder->lock);
 
     assert(!videoDecoder->stopping);
 
-#if VD_BUFFER_CBMODE
-    struct AMediaCodecOnAsyncNotifyCallback aCB = {
+#if VD_CALLBACK_MODE
+    bool callback_mode = true;
+    if (callback_mode) {
+        struct AMediaCodecOnAsyncNotifyCallback aCB = {
             OnInputAvailableCB,
             OnOutputAvailableCB,
             OnFormatChangedCB,
             OnErrorCB
-    };
-    AMediaCodec_setAsyncNotifyCallback(videoDecoder->codec, aCB, videoDecoder);
+        };
+        AMediaCodec_setAsyncNotifyCallback(videoDecoder->codec, aCB, videoDecoder);
+    } else
 #endif
+    {
+        
+    }
 
     // Init
     videoDecoder->lastFrameNumber = 0;

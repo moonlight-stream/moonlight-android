@@ -98,6 +98,41 @@ bool getEmptyInputBuffer(VideoDecoder* videoDecoder, VideoInputBuffer* inputBuff
 const int InputBufferCacheSize = 20;
 const int OutputBufferCacheSize = 20;
 
+// 封装解码提交和获取的api，增加decodingCount计数器功能
+media_status_t _queueInputBuffer(VideoDecoder* videoDecoder, size_t idx,
+                                 off_t offset, size_t size,
+                                 uint64_t time, uint32_t flags) {
+    media_status_t status;
+
+//    pthread_mutex_lock(&videoDecoder->wrapperLock);
+    {
+        // Push to codec
+        status = AMediaCodec_queueInputBuffer(videoDecoder->codec, idx, offset, size, time,
+                                              flags);
+        if (idx >= 0) {
+            videoDecoder->decodingCount ++;
+        }
+    }
+//    pthread_mutex_unlock(&videoDecoder->wrapperLock);
+    return status;
+}
+
+ssize_t _dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
+                             int64_t timeoutUs) {
+    int outputIndex;
+//    pthread_mutex_lock(&videoDecoder->wrapperLock);
+    {
+        outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info,
+                                                      timeoutUs); // -1 to block test
+        if (outputIndex >= 0) {
+            videoDecoder->decodingCount --;
+            assert(videoDecoder->decodingCount >= 0);
+        }
+    }
+//    pthread_mutex_unlock(&videoDecoder->wrapperLock);
+    return outputIndex;
+}
+
 int _dequeueInputBuffer(VideoDecoder* videoDecoder) {
 
     int index = -1;
@@ -209,7 +244,7 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
 #endif
     
     // Push to codec
-    AMediaCodec_queueInputBuffer(videoDecoder->codec, index, 0, bufsize, timestampUs,
+    _queueInputBuffer(videoDecoder, index, 0, bufsize, timestampUs,
                                 codecFlags);
 
 
@@ -291,7 +326,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
     }
 
 #else
-    outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, timeoutUs); // -1 to block test
+    outputIndex = _dequeueOutputBuffer(videoDecoder, info, timeoutUs); // -1 to block test
 
     // 不丢帧逻辑: 常规模式（缓冲==0）时，是-1帧模式，不会触发高解码延迟，所以不用丢。(但会造成画面突然严重延迟)
     // 而非立即模式，提交都很快，不丢帧也不会触发高解码延迟。
@@ -305,11 +340,14 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 //        if (need_drop_frames ) { // 快速降解码延迟需求
 //            frames_count = 1000;
 //        }
+        if (videoDecoder->bufferCount == 0 && videoDecoder->decodingCount >= 1) {
+            frames_count = videoDecoder->decodingCount;
+        }
     }
 
     int lastIndex = outputIndex;
     int i = 0;
-    while (i++ < frames_count && (outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info, 0)) >= 0) {
+    while (i++ < frames_count && (outputIndex = _dequeueOutputBuffer(videoDecoder, info, 0)) >= 0) {
         AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false); // drop last index
         LOGT("[test] drop frame");
         lastIndex = outputIndex;
@@ -428,6 +466,7 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     pthread_mutex_init(&videoDecoder->lock, 0);
     pthread_mutex_init(&videoDecoder->inputCacheLock, 0);
     pthread_mutex_init(&videoDecoder->outputCacheLock, 0);
+    pthread_mutex_init(&videoDecoder->wrapperLock, 0);
     
     // Initialize
     for (int i = 0; i < __BUFFER_MAX; i++) {
@@ -487,6 +526,7 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
     pthread_mutex_destroy(&videoDecoder->lock);
     pthread_mutex_destroy(&videoDecoder->inputCacheLock);
     pthread_mutex_destroy(&videoDecoder->outputCacheLock);
+    pthread_mutex_destroy(&videoDecoder->wrapperLock);
 
     free(videoDecoder->inputBufferCache);
 
@@ -674,8 +714,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
 
             LOGD("rendering_thread: Rendering pass %d", outIndex);
             
-            if (videoDecoder->bufferCount > 0)
-                usleep(1000);
+//            if (videoDecoder->bufferCount > 0)
+//                usleep(1000);
         }
     }
     
@@ -710,7 +750,7 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
         // pass
     }
 
-    // Init
+    // Init decoder
     videoDecoder->lastFrameNumber = 0;
     videoDecoder->lastTimestampUs = 0;
 
@@ -718,6 +758,7 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     videoDecoder->numVpsIn = 0;
     videoDecoder->numSpsIn = 0;
     videoDecoder->submittedCsd = false;
+    videoDecoder->decodingCount = 0;
 
     VideoStats initStats = {0};
     videoDecoder->activeWindowVideoStats = initStats;

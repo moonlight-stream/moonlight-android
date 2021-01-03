@@ -50,6 +50,7 @@ typedef struct {
     uint32_t numSpsIn, numPpsIn, numVpsIn;
     bool submittedCsd, submitCsdNextCall;
     bool adaptivePlayback, needsBaselineSpsHack, constrainedHighProfile, refFrameInvalidationActive, needsSpsBitstreamFixup, isExynos4;
+    int decodingCount;
 
     VideoStats activeWindowVideoStats;
     VideoStats lastWindowVideoStats;
@@ -62,9 +63,12 @@ typedef struct {
     char* infoBuffer;
     VideoInputBuffer* inputBufferCache;
     VideoOutputBuffer* outputBufferCache;
-    // sem_t queuing_sem;
 
+
+    // 标记：总是丢帧，来自检测
     bool alwaysDropFrames;
+
+    pthread_mutex_t wrapperLock;
 
     pthread_mutex_t inputCacheLock;
     pthread_mutex_t outputCacheLock;

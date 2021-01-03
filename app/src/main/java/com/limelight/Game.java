@@ -460,7 +460,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // -1帧不触发高延迟解码，同时每秒必然会卡（掉帧）。所以只在没有缓冲区的时候进行判断
         if (prefConfig.bufferCount == 0) {
             if (roundedRefreshRate == 60 || roundedRefreshRate == 120 || roundedRefreshRate == 144) {
-                chosenFrameRate = roundedRefreshRate - 1;
+//                chosenFrameRate = roundedRefreshRate - 1;
             }
         }
 

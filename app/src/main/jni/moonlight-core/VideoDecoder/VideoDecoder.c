@@ -328,7 +328,7 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
             frames_count = 1000;
         } else {
             // 当还有一个以上的帧正在解码时，丢帧当前帧
-            if (videoDecoder->bufferCount <= 1 && videoDecoder->decodingCount >= 1) {
+            if (videoDecoder->bufferCount < 1 && videoDecoder->decodingCount >= 1) {
                 frames_count = 1;
             }
         }
@@ -617,7 +617,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             // } else 
             {
                 // 立即渲染：只发生在无缓冲区的情况下
-                bool immediate = videoDecoder->bufferCount <= 1;
+                bool immediate = videoDecoder->bufferCount < 1;
 
                 if (immediate) {
                     LOGT("[test] - 渲染 立即模式");

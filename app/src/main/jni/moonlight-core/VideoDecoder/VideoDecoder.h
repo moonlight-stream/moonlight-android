@@ -68,8 +68,6 @@ typedef struct {
     // 标记：总是丢帧，来自检测
     bool alwaysDropFrames;
 
-    pthread_mutex_t wrapperLock;
-
     pthread_mutex_t inputCacheLock;
     pthread_mutex_t outputCacheLock;
     pthread_mutex_t lock; // api lock

@@ -99,37 +99,28 @@ const int InputBufferCacheSize = 20;
 const int OutputBufferCacheSize = 20;
 
 // 封装解码提交和获取的api，增加decodingCount计数器功能
-media_status_t _queueInputBuffer(VideoDecoder* videoDecoder, size_t idx,
-                                 off_t offset, size_t size,
+bool _queueInputBuffer(VideoDecoder* videoDecoder, size_t idx,
+                                 size_t size,
                                  uint64_t time, uint32_t flags) {
-    media_status_t status;
 
-//    pthread_mutex_lock(&videoDecoder->wrapperLock);
-    {
-        // Push to codec
-        status = AMediaCodec_queueInputBuffer(videoDecoder->codec, idx, offset, size, time,
-                                              flags);
-        if (idx >= 0) {
-            videoDecoder->decodingCount ++;
-        }
+    AMediaCodec_queueInputBuffer(videoDecoder->codec, idx, 0, size, time,
+                                          flags);
+    if (idx >= 0) {
+        videoDecoder->decodingCount ++;
     }
-//    pthread_mutex_unlock(&videoDecoder->wrapperLock);
-    return status;
+
+    return true;
 }
 
 ssize_t _dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
                              int64_t timeoutUs) {
-    int outputIndex;
-//    pthread_mutex_lock(&videoDecoder->wrapperLock);
-    {
-        outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info,
+    int outputIndex = AMediaCodec_dequeueOutputBuffer(videoDecoder->codec, info,
                                                       timeoutUs); // -1 to block test
-        if (outputIndex >= 0) {
-            videoDecoder->decodingCount --;
-            assert(videoDecoder->decodingCount >= 0);
-        }
+    if (outputIndex >= 0) {
+        videoDecoder->decodingCount --;
+        assert(videoDecoder->decodingCount >= 0);
     }
-//    pthread_mutex_unlock(&videoDecoder->wrapperLock);
+
     return outputIndex;
 }
 
@@ -242,10 +233,10 @@ bool _queueInputBuffer2(VideoDecoder* videoDecoder, int index, size_t bufsize, u
     LOGT("[test] Push to codec [%d] codecFlags bufsize %d codecFlags %d", index, bufsize, codecFlags);
 
 #endif
-    
+
     // Push to codec
-    _queueInputBuffer(videoDecoder, index, 0, bufsize, timestampUs,
-                                codecFlags);
+    AMediaCodec_queueInputBuffer(videoDecoder, index, 0, bufsize, timestampUs,
+                                 codecFlags);
 
 
     return true;
@@ -327,32 +318,30 @@ int dequeueOutputBuffer(VideoDecoder* videoDecoder, AMediaCodecBufferInfo *info,
 
 #else
     outputIndex = _dequeueOutputBuffer(videoDecoder, info, timeoutUs); // -1 to block test
+    if (outputIndex >= 0)  {
+        // 不丢帧逻辑: 常规模式（缓冲==0）时，是-1帧模式，不会触发高解码延迟，所以不用丢。(但会造成画面突然严重延迟)
+        // 而非立即模式，提交都很快，不丢帧也不会触发高解码延迟。
+        int frames_count = 0;
 
-    // 不丢帧逻辑: 常规模式（缓冲==0）时，是-1帧模式，不会触发高解码延迟，所以不用丢。(但会造成画面突然严重延迟)
-    // 而非立即模式，提交都很快，不丢帧也不会触发高解码延迟。
-    int frames_count = 0;
-
-    // 总是需要丢帧
-    if (videoDecoder->alwaysDropFrames) {
-        frames_count = 1000;
-    } else {
-//        bool need_drop_frames = videoDecoder->bufferCount == 0;
-//        if (need_drop_frames ) { // 快速降解码延迟需求
-//            frames_count = 1000;
-//        }
-        if (videoDecoder->bufferCount == 0 && videoDecoder->decodingCount >= 1) {
-            frames_count = videoDecoder->decodingCount;
+        // 总是需要丢帧
+        if (videoDecoder->alwaysDropFrames) {
+            frames_count = 1000;
+        } else {
+            // 当还有一个以上的帧正在解码时，丢帧当前帧
+            if (videoDecoder->bufferCount <= 1 && videoDecoder->decodingCount >= 1) {
+                frames_count = 1;
+            }
         }
-    }
 
-    int lastIndex = outputIndex;
-    int i = 0;
-    while (i++ < frames_count && (outputIndex = _dequeueOutputBuffer(videoDecoder, info, 0)) >= 0) {
-        AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false); // drop last index
-        LOGT("[test] drop frame");
-        lastIndex = outputIndex;
+        int lastIndex = outputIndex;
+        int i = 0;
+        while (i++ < frames_count && (outputIndex = _dequeueOutputBuffer(videoDecoder, info, 0)) >= 0) {
+            AMediaCodec_releaseOutputBuffer(videoDecoder->codec, lastIndex, false); // drop last index
+            LOGT("[test] drop frame");
+            lastIndex = outputIndex;
+        }
+        outputIndex = lastIndex;
     }
-    outputIndex = lastIndex;
 
 #endif
 
@@ -466,7 +455,6 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     pthread_mutex_init(&videoDecoder->lock, 0);
     pthread_mutex_init(&videoDecoder->inputCacheLock, 0);
     pthread_mutex_init(&videoDecoder->outputCacheLock, 0);
-    pthread_mutex_init(&videoDecoder->wrapperLock, 0);
     
     // Initialize
     for (int i = 0; i < __BUFFER_MAX; i++) {
@@ -526,7 +514,6 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
     pthread_mutex_destroy(&videoDecoder->lock);
     pthread_mutex_destroy(&videoDecoder->inputCacheLock);
     pthread_mutex_destroy(&videoDecoder->outputCacheLock);
-    pthread_mutex_destroy(&videoDecoder->wrapperLock);
 
     free(videoDecoder->inputBufferCache);
 
@@ -1248,7 +1235,7 @@ int VideoDecoder_submitDecodeUnit(VideoDecoder* videoDecoder, void* decodeUnitDa
 //        LOGT("[test] usleep用时 %d ms", delay/1000);
 //    }
 
-    if (!_queueInputBuffer2(videoDecoder, inputBufferIndex, inputBufPos,
+    if (!_queueInputBuffer(videoDecoder, inputBufferIndex, inputBufPos,
             timestampUs, codecFlags)) {
         RETURN(DR_NEED_IDR);
     }

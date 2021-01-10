@@ -3,15 +3,10 @@ package com.limelight.preferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.util.DisplayMetrics;
 
 import com.limelight.nvstream.jni.MoonBridge;
-
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 
 public class PreferenceConfiguration {
     private static final String LEGACY_RES_FPS_PREF_STRING = "list_resolution_fps";
@@ -91,8 +86,6 @@ public class PreferenceConfiguration {
     public static final String RES_1080P = "1920x1080";
     public static final String RES_1440P = "2560x1440";
     public static final String RES_4K = "3840x2160";
-    public static final String RES_2K_219 = "2560x1096";
-    public static final String RES_4K_219 = "3840x1644";
     public static final String RES_NATIVE = "Native";
 
     public int width, height, fps;
@@ -118,9 +111,32 @@ public class PreferenceConfiguration {
     public boolean touchscreenTrackpad;
     public MoonBridge.AudioConfiguration audioConfiguration;
 
+    public static boolean isNativeResolution(int width, int height) {
+        // It's not a native resolution if it matches an existing resolution option
+        if (width == 640 && height == 360) {
+            return false;
+        }
+        else if (width == 854 && height == 480) {
+            return false;
+        }
+        else if (width == 1280 && height == 720) {
+            return false;
+        }
+        else if (width == 1920 && height == 1080) {
+            return false;
+        }
+        else if (width == 2560 && height == 1440) {
+            return false;
+        }
+        else if (width == 3840 && height == 2160) {
+            return false;
+        }
+
+        return true;
+    }
+	
     public int bufferCount;
 
-    // 这个几乎用于异常判断，异常值可能是full_local等
     private static String convertFromLegacyResolutionString(String resString) {
         if (resString.equalsIgnoreCase("360p")) {
             return RES_360P;
@@ -140,31 +156,11 @@ public class PreferenceConfiguration {
         else if (resString.equalsIgnoreCase("4K")) {
             return RES_4K;
         }
-        else if (resString.equalsIgnoreCase("2K (21:9)")) {
-            return RES_2K_219;
-        }
-        else if (resString.equalsIgnoreCase("4K (21:9)")) {
-            return RES_4K_219;
-        }
         else {
             // Should be unreachable
             return RES_720P;
         }
     }
-
-//    private static int getHorizontalScreenWidth() {
-//        if (fullWidth > 0) return fullWidth;
-//
-//        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-//        return max(metrics.widthPixels, metrics.heightPixels);
-//    }
-//
-//    private static int getHorizontalScreenHeight() {
-//        if (fullHeight > 0) return fullHeight;
-//
-//        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-//        return min(metrics.widthPixels, metrics.heightPixels);
-//    }
 
     private static int getWidthFromResolutionString(String resString) {
         return Integer.parseInt(resString.split("x")[0]);
@@ -189,10 +185,6 @@ public class PreferenceConfiguration {
                 return RES_1440P;
             case 2160:
                 return RES_4K;
-            case 1096:
-                return RES_2K_219;
-            case 1644:
-                return RES_4K_219;
         }
     }
 

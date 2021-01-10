@@ -109,6 +109,30 @@ public class PreferenceConfiguration {
     public boolean touchscreenTrackpad;
     public MoonBridge.AudioConfiguration audioConfiguration;
 
+    public static boolean isNativeResolution(int width, int height) {
+        // It's not a native resolution if it matches an existing resolution option
+        if (width == 640 && height == 360) {
+            return false;
+        }
+        else if (width == 854 && height == 480) {
+            return false;
+        }
+        else if (width == 1280 && height == 720) {
+            return false;
+        }
+        else if (width == 1920 && height == 1080) {
+            return false;
+        }
+        else if (width == 2560 && height == 1440) {
+            return false;
+        }
+        else if (width == 3840 && height == 2160) {
+            return false;
+        }
+
+        return true;
+    }
+
     private static String convertFromLegacyResolutionString(String resString) {
         if (resString.equalsIgnoreCase("360p")) {
             return RES_360P;

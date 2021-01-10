@@ -1,0 +1,3 @@
+- Added support for multiple native resolution options
+- Improve accuracy of decoder latency reports for very slow decoders
+- Minor UI improvements

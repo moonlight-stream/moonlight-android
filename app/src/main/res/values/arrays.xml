@@ -97,4 +97,13 @@
         <item>forceh265</item>
         <item>neverh265</item>
     </string-array>
+
+    <string-array name="api_names">
+        <item>Java</item>
+        <item>NDK</item>
+    </string-array>
+    <string-array name="api_values" translatable="false">
+        <item>java</item>
+        <item>ndk</item>
+    </string-array>
 </resources>

@@ -67,6 +67,7 @@ public class MoonBridge {
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;
+    public static boolean useNDK = false;
 
     static {
         System.loadLibrary("moonlight-core");
@@ -165,6 +166,10 @@ public class MoonBridge {
         else {
             return DR_OK;
         }
+    }
+
+    public static boolean bridgeDrUseNDK() {
+        return useNDK;
     }
 
     public static int bridgeArInit(int audioConfiguration, int sampleRate, int samplesPerFrame) {

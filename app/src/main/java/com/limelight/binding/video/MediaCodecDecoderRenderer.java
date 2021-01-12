@@ -315,9 +315,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         boolean maxOperatingRate = MediaCodecHelper.decoderSupportsMaxOperatingRate(selectedDecoderName);
 
         // native
-        boolean use_native = false;
+        boolean use_ndk = prefs.decoderAPI.equals("ndk");
+        MoonBridge.useNDK = use_ndk;
 
-        if (use_native) {
+        if (use_ndk) {
             nativeVideoDecoder = MoonBridge.createMediaCodec(renderTarget.getSurface(), selectedDecoderName, mimeType, width, height, redrawRate, prefs.fps, lowLatency,
                     adaptivePlayback, maxOperatingRate, constrainedHighProfile, refFrameInvalidationActive, isExynos4);
 
@@ -582,9 +583,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 }
             }
         };
-        rendererThread.setName("Video - Renderer (MediaCodec)");
-        rendererThread.setPriority(Thread.NORM_PRIORITY + 2);
-        rendererThread.start();
+        if (videoDecoder != null) {
+            rendererThread.setName("Video - Renderer (MediaCodec)");
+            rendererThread.setPriority(Thread.NORM_PRIORITY + 2);
+            rendererThread.start();
+        }
     }
 
     private int dequeueInputBuffer() {

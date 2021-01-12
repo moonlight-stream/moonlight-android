@@ -231,4 +231,7 @@
 
     <string name="refreshrate_mark">Current</string>
 
+    <string name="title_api_list">Decoder API</string>
+    <string name="summary_api_list">NDK is recommended</string>
+
 </resources>

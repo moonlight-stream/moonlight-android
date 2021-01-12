@@ -20,6 +20,7 @@ static jmethodID BridgeDrStartMethod;
 static jmethodID BridgeDrStopMethod;
 static jmethodID BridgeDrCleanupMethod;
 static jmethodID BridgeDrSubmitDecodeUnitMethod;
+static jmethodID BridgeDrUseNDKMethod;
 static jmethodID BridgeArInitMethod;
 static jmethodID BridgeArStartMethod;
 static jmethodID BridgeArStopMethod;
@@ -88,6 +89,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jclass clazz) {
     BridgeDrStopMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrStop", "()V");
     BridgeDrCleanupMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrCleanup", "()V");
     BridgeDrSubmitDecodeUnitMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrSubmitDecodeUnit", "([BIIIJJ)I");
+    BridgeDrUseNDKMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeDrUseNDK", "()Z");
     BridgeArInitMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArInit", "(III)I");
     BridgeArStartMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArStart", "()V");
     BridgeArStopMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeArStop", "()V");
@@ -153,8 +155,8 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     JNIEnv* env = GetThreadEnv();
     int ret;
 
-    bool use_native = false;
-    if (use_native) {
+    bool use_ndk = (*env)->CallStaticBooleanMethod(env, GlobalBridgeClass, BridgeDrUseNDKMethod);
+    if (use_ndk) {
 
 #ifdef LOG_DEBUG_SUBMIT
         static uint64_t lastTime = -1;

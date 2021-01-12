@@ -52,6 +52,13 @@
             android:title="@string/title_enable_hdr"
             android:summary="@string/summary_enable_hdr"
             android:defaultValue="false" />
+        <ListPreference
+            android:key="list_api"
+            android:title="@string/title_api_list"
+            android:summary="@string/summary_api_list"
+            android:entries="@array/api_names"
+            android:entryValues="@array/api_values"
+            android:defaultValue="ndk" />
         <CheckBoxPreference
             android:key="checkbox_stretch_video"
             android:title="@string/title_checkbox_stretch_video"

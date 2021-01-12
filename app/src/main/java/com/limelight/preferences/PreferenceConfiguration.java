@@ -16,6 +16,7 @@ public class PreferenceConfiguration {
     static final String FPS_PREF_STRING = "list_fps";
     static final String BITRATE_PREF_STRING = "seekbar_bitrate_kbps";
     static final String BUFFER_PREF_STRING = "bufferbar_count";
+    static final String DECODER_API_STRING = "list_api";
     private static final String BITRATE_PREF_OLD_STRING = "seekbar_bitrate";
     private static final String STRETCH_PREF_STRING = "checkbox_stretch_video";
     private static final String SOPS_PREF_STRING = "checkbox_enable_sops";
@@ -75,6 +76,7 @@ public class PreferenceConfiguration {
     private static final String DEFAULT_AUDIO_CONFIG = "2"; // Stereo
     private static final boolean DEFAULT_LATENCY_TOAST = false;
     private static final int DEFAULT_BUFFER_COUNT = 1;
+    private static final String DEFAULT_DECODER_API = "ndk";
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -110,6 +112,8 @@ public class PreferenceConfiguration {
     public boolean vibrateFallbackToDevice;
     public boolean touchscreenTrackpad;
     public MoonBridge.AudioConfiguration audioConfiguration;
+    public int bufferCount;
+    public String decoderAPI;
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
@@ -134,8 +138,6 @@ public class PreferenceConfiguration {
 
         return true;
     }
-	
-    public int bufferCount;
 
     private static String convertFromLegacyResolutionString(String resString) {
         if (resString.equalsIgnoreCase("360p")) {
@@ -421,6 +423,7 @@ public class PreferenceConfiguration {
         config.touchscreenTrackpad = prefs.getBoolean(TOUCHSCREEN_TRACKPAD_PREF_STRING, DEFAULT_TOUCHSCREEN_TRACKPAD);
         config.enableLatencyToast = prefs.getBoolean(LATENCY_TOAST_PREF_STRING, DEFAULT_LATENCY_TOAST);
         config.bufferCount = prefs.getInt(BUFFER_PREF_STRING, DEFAULT_BUFFER_COUNT);
+        config.decoderAPI = prefs.getString(DECODER_API_STRING, DEFAULT_DECODER_API);
 
         return config;
     }

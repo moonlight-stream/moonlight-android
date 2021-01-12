@@ -122,11 +122,11 @@ int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* 
 
     if (use_ndk) {
         // Use a 32K frame buffer that will increase if needed
-        DecodedFrameBuffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, 32768));
-    } else {
-        // Use a 32K frame buffer that will increase if needed
         decodedFrameBufferLength = 32768;
         decodedFrameBuffer = (uint8_t*)malloc(decodedFrameBufferLength);
+    } else {
+        // Use a 32K frame buffer that will increase if needed
+        DecodedFrameBuffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, 32768));
     }
     DecoderUseNDK = use_ndk;
 

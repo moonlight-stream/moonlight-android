@@ -569,22 +569,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }, 0, 1000);
         //}
 
-        rendererThread = new Thread() {
-            @Override
-            public void run() {
-                BufferInfo info = new BufferInfo();
+        if (videoDecoder != null) {
 
-                int usTimeout = 50000;//1000000 / refreshRate;
+            rendererThread = new Thread() {
+                @Override
+                public void run() {
+                    BufferInfo info = new BufferInfo();
 
-                while (!stopping) {
-                    try {
-                        // Try to output a frame
-                        int outIndex = dequeueOutputBuffer(info, usTimeout);
-                        if (outIndex >= 0) {
-                            long presentationTimeUs = info.presentationTimeUs;
-                            int lastIndex = outIndex;
+                    int usTimeout = 50000;//1000000 / refreshRate;
 
-                            // Get the last output buffer in the queue
+                    while (!stopping) {
+                        try {
+                            // Try to output a frame
+                            int outIndex = dequeueOutputBuffer(info, usTimeout);
+                            if (outIndex >= 0) {
+                                long presentationTimeUs = info.presentationTimeUs;
+                                int lastIndex = outIndex;
+
+                                // Get the last output buffer in the queue
 //                            while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
 //                                videoDecoder.releaseOutputBuffer(lastIndex, false);
 //
@@ -592,53 +594,53 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 //                                presentationTimeUs = info.presentationTimeUs;
 //                            }
 
-                            // Render the last buffer
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                if (legacyFrameDropRendering) {
-                                    // Use a PTS that will cause this frame to be dropped if another comes in within
-                                    // the same V-sync period
-                                    videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
+                                // Render the last buffer
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                    if (legacyFrameDropRendering) {
+                                        // Use a PTS that will cause this frame to be dropped if another comes in within
+                                        // the same V-sync period
+                                        videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
+                                    }
+                                    else {
+                                        // Use a PTS that will cause this frame to never be dropped if frame dropping
+                                        // is disabled
+                                        videoDecoder.releaseOutputBuffer(lastIndex, 0);
+                                    }
                                 }
                                 else {
-                                    // Use a PTS that will cause this frame to never be dropped if frame dropping
-                                    // is disabled
-                                    videoDecoder.releaseOutputBuffer(lastIndex, 0);
+                                    videoDecoder.releaseOutputBuffer(lastIndex, true);
+                                }
+
+                                activeWindowVideoStats.totalFramesRendered++;
+
+                                // Add delta time to the totals (excluding probable outliers)
+                                long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
+                                if (delta >= 0 && delta < 1000) {
+                                    activeWindowVideoStats.decoderTimeMs += delta;
+                                    if (!USE_FRAME_RENDER_TIME) {
+                                        activeWindowVideoStats.totalTimeMs += delta;
+                                    }
+                                }
+                            } else {
+                                switch (outIndex) {
+                                    case MediaCodec.INFO_TRY_AGAIN_LATER:
+                                        break;
+                                    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
+                                        LimeLog.info("Output format changed");
+                                        outputFormat = videoDecoder.getOutputFormat();
+                                        LimeLog.info("New output format: " + outputFormat);
+                                        break;
+                                    default:
+                                        break;
                                 }
                             }
-                            else {
-                                videoDecoder.releaseOutputBuffer(lastIndex, true);
-                            }
-
-                            activeWindowVideoStats.totalFramesRendered++;
-
-                            // Add delta time to the totals (excluding probable outliers)
-                            long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
-                            if (delta >= 0 && delta < 1000) {
-                                activeWindowVideoStats.decoderTimeMs += delta;
-                                if (!USE_FRAME_RENDER_TIME) {
-                                    activeWindowVideoStats.totalTimeMs += delta;
-                                }
-                            }
-                        } else {
-                            switch (outIndex) {
-                                case MediaCodec.INFO_TRY_AGAIN_LATER:
-                                    break;
-                                case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                                    LimeLog.info("Output format changed");
-                                    outputFormat = videoDecoder.getOutputFormat();
-                                    LimeLog.info("New output format: " + outputFormat);
-                                    break;
-                                default:
-                                    break;
-                            }
+                        } catch (Exception e) {
+                            handleDecoderException(e, null, 0, false);
                         }
-                    } catch (Exception e) {
-                        handleDecoderException(e, null, 0, false);
                     }
                 }
-            }
-        };
-        if (videoDecoder != null) {
+            };
+
             rendererThread.setName("Video - Renderer (MediaCodec)");
             rendererThread.setPriority(Thread.NORM_PRIORITY + 2);
             rendererThread.start();

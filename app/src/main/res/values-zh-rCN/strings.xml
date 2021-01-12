@@ -206,6 +206,6 @@
     <string name="refreshrate_mark">本机刷新率</string>
 
     <string name="title_api_list">解码器API</string>
-    <string name="summary_api_list">推荐NDK</string>
+    <string name="summary_api_list">推荐使用NDK</string>
 
 </resources>

@@ -92,6 +92,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private int numSpsIn;
     private int numPpsIn;
     private int numVpsIn;
+    private int decodingCount;
+    private int bufferCount;
 
     private MediaCodecInfo findAvcDecoder() {
         MediaCodecInfo decoder = MediaCodecHelper.findProbableSafeDecoder("video/avc", MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
@@ -150,6 +152,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.activeWindowVideoStats = new VideoStats();
         this.lastWindowVideoStats = new VideoStats();
         this.globalVideoStats = new VideoStats();
+        this.decodingCount = 0;
 
         avcDecoder = findAvcDecoder();
         if (avcDecoder != null) {
@@ -330,6 +333,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
             MoonBridge.startMediaCodec(nativeVideoDecoder);
         } else {
+
+            bufferCount = prefs.bufferCount;
+
             // Codecs have been known to throw all sorts of crazy runtime exceptions
             // due to implementation problems
             try {
@@ -471,6 +477,49 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
     }
 
+    private int _dequeueOutputBuffer(MediaCodec.BufferInfo info, long timeoutUs) {
+
+        int outputIndex = videoDecoder.dequeueOutputBuffer(info, timeoutUs);
+
+        if (outputIndex >= 0) {
+            decodingCount --;
+            assert(decodingCount >= 0);
+        }
+
+        return outputIndex;
+    }
+
+    private int dequeueOutputBuffer(MediaCodec.BufferInfo info, long timeoutUs) {
+
+        int outputIndex = _dequeueOutputBuffer(info, timeoutUs); // -1 to block test
+        if (outputIndex >= 0)  {
+            // 不丢帧逻辑: 常规模式（缓冲==0）时，是-1帧模式，不会触发高解码延迟，所以不用丢。(但会造成画面突然严重延迟)
+            // 而非立即模式，提交都很快，不丢帧也不会触发高解码延迟。
+            int frames_count = 0;
+
+            // 总是需要丢帧
+            if (/*videoDecoder->alwaysDropFrames*/false) {
+                frames_count = 1000;
+            } else {
+                // 当还有一个以上的帧正在解码时，丢帧当前帧
+                if (bufferCount < 1 && decodingCount >= 1) {
+                    frames_count = 1;
+                }
+            }
+
+            int lastIndex = outputIndex;
+            int i = 0;
+            while (i++ < frames_count && (outputIndex = _dequeueOutputBuffer(info, 0)) >= 0) {
+                videoDecoder.releaseOutputBuffer(lastIndex, false); // drop last index
+                // LOGT("[test] drop frame");
+                lastIndex = outputIndex;
+            }
+
+            outputIndex = lastIndex;
+        }
+        return outputIndex;
+    }
+
     private void startRendererThread()
     {
         if (infoTimer != null)
@@ -521,21 +570,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             @Override
             public void run() {
                 BufferInfo info = new BufferInfo();
+
+                int usTimeout = 50000;//1000000 / refreshRate;
+
                 while (!stopping) {
                     try {
                         // Try to output a frame
-                        int outIndex = videoDecoder.dequeueOutputBuffer(info, 50000);
+                        int outIndex = dequeueOutputBuffer(info, usTimeout);
                         if (outIndex >= 0) {
                             long presentationTimeUs = info.presentationTimeUs;
                             int lastIndex = outIndex;
 
                             // Get the last output buffer in the queue
-                            while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
-                                videoDecoder.releaseOutputBuffer(lastIndex, false);
-
-                                lastIndex = outIndex;
-                                presentationTimeUs = info.presentationTimeUs;
-                            }
+//                            while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
+//                                videoDecoder.releaseOutputBuffer(lastIndex, false);
+//
+//                                lastIndex = outIndex;
+//                                presentationTimeUs = info.presentationTimeUs;
+//                            }
 
                             // Render the last buffer
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -679,6 +731,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             videoDecoder.queueInputBuffer(inputBufferIndex,
                     offset, length,
                     timestampUs, codecFlags);
+
+            if (inputBufferIndex >= 0) {
+                decodingCount ++;
+            }
+
             return true;
         } catch (Exception e) {
             handleDecoderException(e, null, codecFlags, true);

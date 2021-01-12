@@ -35,6 +35,7 @@ static jmethodID BridgeClRumbleMethod;
 static jmethodID BridgeClConnectionStatusUpdateMethod;
 static jbyteArray DecodedFrameBuffer;
 static jshortArray DecodedAudioBuffer;
+static jboolean DecoderUseNDK;
 
 static uint8_t* decodedFrameBuffer;
 static uint8_t* decodedFrameBufferLength;
@@ -117,12 +118,17 @@ int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* 
         return err;
     }
 
-    // Use a 32K frame buffer that will increase if needed
-    decodedFrameBufferLength = 32768;
-    decodedFrameBuffer = (uint8_t*)malloc(decodedFrameBufferLength);
-	
-	// Use a 32K frame buffer that will increase if needed
-    DecodedFrameBuffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, 32768));
+    bool use_ndk = (*env)->CallStaticBooleanMethod(env, GlobalBridgeClass, BridgeDrUseNDKMethod);
+
+    if (use_ndk) {
+        // Use a 32K frame buffer that will increase if needed
+        DecodedFrameBuffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, 32768));
+    } else {
+        // Use a 32K frame buffer that will increase if needed
+        decodedFrameBufferLength = 32768;
+        decodedFrameBuffer = (uint8_t*)malloc(decodedFrameBufferLength);
+    }
+    DecoderUseNDK = use_ndk;
 
     return 0;
 }
@@ -155,8 +161,7 @@ int BridgeDrSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     JNIEnv* env = GetThreadEnv();
     int ret;
 
-    bool use_ndk = (*env)->CallStaticBooleanMethod(env, GlobalBridgeClass, BridgeDrUseNDKMethod);
-    if (use_ndk) {
+    if (DecoderUseNDK) {
 
 #ifdef LOG_DEBUG_SUBMIT
         static uint64_t lastTime = -1;

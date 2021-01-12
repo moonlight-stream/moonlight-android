@@ -335,6 +335,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         } else {
 
             bufferCount = prefs.bufferCount;
+            if (bufferCount >= 1) {
+                enableLegacyFrameDropRendering();
+            }
 
             // Codecs have been known to throw all sorts of crazy runtime exceptions
             // due to implementation problems

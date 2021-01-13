@@ -617,7 +617,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
             // } else 
             {
                 // 立即渲染：只发生在无缓冲区的情况下
-                bool immediate = videoDecoder->bufferCount < 1;
+                bool immediate = false;//videoDecoder->bufferCount < 1;
 
                 if (immediate) {
                     LOGT("[test] - 渲染 立即模式");
@@ -641,7 +641,14 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                         base_time = currentTimeNs;
                     }
 
-                    const int delay_frame = 1;// + videoDecoder->refreshRate/120;
+                    int limitBufferCount = videoDecoder->bufferCount;
+                    float delay_frame = 1;
+
+                    if (videoDecoder->bufferCount == 0) {
+                        delay_frame = 0.5;
+                        limitBufferCount = 1;
+                    }
+
                     const uint64_t nsFrameTime = usTimeout*1000;
                     uint64_t rendering_time = base_time + (frame_Index + delay_frame) * nsFrameTime;
                     {
@@ -649,13 +656,15 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                         const int buffer_count = (rendering_time-currentTimeNs) / nsFrameTime;
 
                         if (currentTimeNs > (rendering_time+(1-delay_frame)*nsFrameTime)) {
-                            frame_Index = 0;
+                             frame_Index = 0;
                             // base_time = currentTimeNs;
-                            // LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + nsFrameTime);
+                             LOGT("[test] - 渲染重置1 %ld %ld", currentTimeNs, base_time + nsFrameTime);
+                             // 让 rendering_time = currentTimeNs，仅仅修正base_time
+//                            base_time = currentTimeNs - (frame_Index + delay_frame) * nsFrameTime;
                             goto retry;
-                        } else if (buffer_count > videoDecoder->bufferCount){
+                        } else if (buffer_count > limitBufferCount){ // 理论上：buffer_count <= videoDecoder->bufferCount
                             // 去除延迟
-                            LOGT("[test] - 渲染重置 %ld", currentTimeNs, base_time + nsFrameTime*delay_frame);
+                            LOGT("[test] - 渲染重置2 %ld %ld %ld", currentTimeNs, rendering_time, currentTimeNs - rendering_time);
                             frame_Index = 0;
                             goto retry;
                         }

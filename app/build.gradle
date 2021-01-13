@@ -16,7 +16,7 @@ android {
         targetSdkVersion 30
 
         versionName "9.8.1"
-        versionCode = 252
+        versionCode = 253
         signingConfig signingConfigs.nonRootRelease
     }
 

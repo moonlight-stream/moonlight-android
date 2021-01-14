@@ -656,11 +656,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                         const int buffer_count = (rendering_time-currentTimeNs) / nsFrameTime;
 
                         if (currentTimeNs > (rendering_time+(1-delay_frame)*nsFrameTime)) {
-                             frame_Index = 0;
-                            // base_time = currentTimeNs;
-                             LOGT("[test] - 渲染重置1 %ld %ld", currentTimeNs, base_time + nsFrameTime);
-                             // 让 rendering_time = currentTimeNs，仅仅修正base_time
-//                            base_time = currentTimeNs - (frame_Index + delay_frame) * nsFrameTime;
+                            LOGT("[test] - 渲染重置1 %ld %ld", currentTimeNs, base_time + nsFrameTime);
+                            frame_Index = 0;
                             goto retry;
                         } else if (buffer_count > limitBufferCount){ // 理论上：buffer_count <= videoDecoder->bufferCount
                             // 去除延迟

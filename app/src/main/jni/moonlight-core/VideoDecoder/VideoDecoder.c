@@ -642,7 +642,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                     }
 
                     int limitBufferCount = videoDecoder->bufferCount;
-                    float delay_frame = 1;
+                    double delay_frame = 1;
 
                     if (videoDecoder->bufferCount == 0) {
                         delay_frame = 0.5;

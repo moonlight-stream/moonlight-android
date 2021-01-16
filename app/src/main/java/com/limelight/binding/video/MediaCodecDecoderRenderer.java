@@ -381,6 +381,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                     videoFormat.setInteger("vendor.qti-ext-dec-low-latency.enable", 1);
                 }
 
+                // hisi low latency decode
+                // Support Kirin990/Kirin980/Kirin985/Kirin820/Kirin810
+                // if (MediaCodecHelper_decoderSupportsHisiVendorLowLatency("OMX.hisi.video.decoder.avc"))
+                if (MediaCodecHelper.decoderSupportsHisiVendorLowLatency(selectedDecoderName))
+                {
+                    videoFormat.setInteger("vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-req", 1);
+                    videoFormat.setInteger("vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-rdy", -1);
+                }
+
                 if (MediaCodecHelper.decoderSupportsMaxOperatingRate(selectedDecoderName)) {
                     videoFormat.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
                 }

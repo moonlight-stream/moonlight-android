@@ -39,6 +39,7 @@ public class MediaCodecHelper {
     private static final List<String> blacklisted49FpsDecoderPrefixes;
     private static final List<String> blacklisted59FpsDecoderPrefixes;
     private static final List<String> qualcommDecoderPrefixes;
+    private static final List<String> hisiDecoderPrefixes;
 
     private static boolean isLowEndSnapdragon = false;
     private static boolean isAdreno620 = false;
@@ -202,6 +203,9 @@ public class MediaCodecHelper {
 
         qualcommDecoderPrefixes.add("omx.qcom");
         qualcommDecoderPrefixes.add("c2.qti");
+
+        hisiDecoderPrefixes = new LinkedList<>();
+        hisiDecoderPrefixes.add("omx.hisi");
     }
 
     private static boolean isPowerVR(String glRenderer) {
@@ -411,6 +415,13 @@ public class MediaCodecHelper {
         // https://cs.android.com/android/_/android/platform/frameworks/av/+/01c10f8cdcd58d1e7025f426a72e6e75ba5d7fc2
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                 isDecoderInList(qualcommDecoderPrefixes, decoderName);
+    }
+
+    public static boolean decoderSupportsHisiVendorLowLatency(String decoderName) {
+        // MediaCodec vendor extension support was introduced in Android 8.0:
+        // https://cs.android.com/android/_/android/platform/frameworks/av/+/01c10f8cdcd58d1e7025f426a72e6e75ba5d7fc2
+        return //Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                isDecoderInList(hisiDecoderPrefixes, decoderName);
     }
 
     public static boolean decoderNeedsConstrainedHighProfile(String decoderName) {

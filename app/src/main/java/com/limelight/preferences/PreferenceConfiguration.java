@@ -6,7 +6,12 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
 
+import com.limelight.Game;
+import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.jni.MoonBridge;
+
+import java.util.Map;
+import java.util.Set;
 
 public class PreferenceConfiguration {
     private static final String LEGACY_RES_FPS_PREF_STRING = "list_resolution_fps";
@@ -14,7 +19,9 @@ public class PreferenceConfiguration {
 
     static final String RESOLUTION_PREF_STRING = "list_resolution";
     static final String FPS_PREF_STRING = "list_fps";
+    static final String RM_PROFILE_STRING = "remove_profile";
     static final String BITRATE_PREF_STRING = "seekbar_bitrate_kbps";
+    public static final String APP_PROFILES_PREF_FILENAME = "AppProfiles";
     private static final String BITRATE_PREF_OLD_STRING = "seekbar_bitrate";
     private static final String STRETCH_PREF_STRING = "checkbox_stretch_video";
     private static final String SOPS_PREF_STRING = "checkbox_enable_sops";
@@ -108,6 +115,7 @@ public class PreferenceConfiguration {
     public boolean vibrateFallbackToDevice;
     public boolean touchscreenTrackpad;
     public MoonBridge.AudioConfiguration audioConfiguration;
+    public Set<String> profileKeys;
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
@@ -182,6 +190,19 @@ public class PreferenceConfiguration {
             case 2160:
                 return RES_4K;
         }
+    }
+
+    public static String getAppProfileKey(Integer appId, Context context) {
+
+        Map<String,?> keys = context.getSharedPreferences(APP_PROFILES_PREF_FILENAME, Context.MODE_PRIVATE).getAll();
+
+        for(Map.Entry<String,?> entry : keys.entrySet()){
+            Set value = (Set) entry.getValue();
+            if (value.contains(appId.toString())) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     public static int getDefaultBitrate(String resString, String fpsString) {
@@ -280,7 +301,18 @@ public class PreferenceConfiguration {
     }
 
     public static PreferenceConfiguration readPreferences(Context context) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences prefs;
+        String profileKey = null;
+        if (context instanceof Game) {
+            Integer appId = ((Game) context).getIntent().getIntExtra(Game.EXTRA_APP_ID, StreamConfiguration.INVALID_APP_ID);
+            profileKey = PreferenceConfiguration.getAppProfileKey(appId, context);
+        }
+        if (profileKey == null) {
+            prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        } else {
+            prefs = context.getSharedPreferences(profileKey, Context.MODE_PRIVATE);
+        }
+
         PreferenceConfiguration config = new PreferenceConfiguration();
 
         // Migrate legacy preferences to the new locations
@@ -417,6 +449,7 @@ public class PreferenceConfiguration {
         config.flipFaceButtons = prefs.getBoolean(FLIP_FACE_BUTTONS_PREF_STRING, DEFAULT_FLIP_FACE_BUTTONS);
         config.touchscreenTrackpad = prefs.getBoolean(TOUCHSCREEN_TRACKPAD_PREF_STRING, DEFAULT_TOUCHSCREEN_TRACKPAD);
         config.enableLatencyToast = prefs.getBoolean(LATENCY_TOAST_PREF_STRING, DEFAULT_LATENCY_TOAST);
+        config.profileKeys = context.getSharedPreferences(APP_PROFILES_PREF_FILENAME, Context.MODE_PRIVATE).getAll().keySet();
 
         return config;
     }

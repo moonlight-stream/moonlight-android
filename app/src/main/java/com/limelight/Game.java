@@ -50,6 +50,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.SurfaceTexture;
 import android.hardware.input.InputManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
@@ -66,6 +67,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.TextureView;
 import android.view.View;
 import android.view.View.OnGenericMotionListener;
 import android.view.View.OnSystemUiVisibilityChangeListener;
@@ -85,10 +87,9 @@ import java.security.cert.X509Certificate;
 import java.util.Locale;
 
 
-public class Game extends Activity implements SurfaceHolder.Callback,
-    OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
-    OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
-    PerfOverlayListener
+public class Game extends Activity implements TextureView.SurfaceTextureListener, View.OnLayoutChangeListener, OnGenericMotionListener, OnTouchListener,
+    NvConnectionListener, EvdevListener, OnSystemUiVisibilityChangeListener, GameGestures,
+    StreamView.InputCallbacks, PerfOverlayListener
 {
     private int lastButtonState = 0;
 
@@ -126,6 +127,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean grabbedInput = true;
     private boolean grabComboDown = false;
     private StreamView streamView;
+    private Surface streamSurface;
+
     private long lastAbsTouchUpTime = 0;
     private long lastAbsTouchDownTime = 0;
     private float lastAbsTouchUpX, lastAbsTouchUpY;
@@ -232,7 +235,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView.setOnGenericMotionListener(this);
         streamView.setOnTouchListener(this);
         streamView.setInputCallbacks(this);
-
         notificationOverlayView = findViewById(R.id.notificationOverlay);
 
         performanceOverlayView = findViewById(R.id.performanceOverlay);
@@ -528,7 +530,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // The connection will be started when the surface gets created
-        streamView.getHolder().addCallback(this);
+        streamView.setSurfaceTextureListener(this);
     }
 
     @Override
@@ -750,7 +752,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (prefConfig.stretchVideo || aspectRatioMatch) {
             // Set the surface to the size of the video
-            streamView.getHolder().setFixedSize(prefConfig.width, prefConfig.height);
+           // if(streamView.isAvailable()) {
+                streamView.getSurfaceTexture().setDefaultBufferSize(prefConfig.width, prefConfig.height);
+           // }
         }
         else {
             // Set the surface to scale based on the aspect ratio of the stream
@@ -1546,7 +1550,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     LimeLog.severe(stage + " failed: " + errorCode);
 
                     // If video initialization failed and the surface is still valid, display extra information for the user
-                    if (stage.contains("video") && streamView.getHolder().getSurface().isValid()) {
+                    if (stage.contains("video") && streamSurface.isValid()) {
                         Toast.makeText(Game.this, getResources().getText(R.string.video_decoder_init_failed), Toast.LENGTH_LONG).show();
                     }
 
@@ -1727,31 +1731,34 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    public void onSurfaceTextureSizeChanged(SurfaceTexture holder, int width, int height) {
         if (!surfaceCreated) {
             throw new IllegalStateException("Surface changed before creation!");
         }
 
         if (!attemptedConnection) {
             attemptedConnection = true;
-
-            decoderRenderer.setRenderTarget(holder);
+            streamSurface = new Surface(holder);
+            decoderRenderer.setRenderTarget(streamSurface);
             conn.start(PlatformBinding.getAudioRenderer(), decoderRenderer, Game.this);
         }
     }
 
     @Override
-    public void surfaceCreated(SurfaceHolder holder) {
+    public void onSurfaceTextureAvailable(SurfaceTexture holder, int width, int height ) {
         surfaceCreated = true;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Tell the OS about our frame rate to allow it to adapt the display refresh rate appropriately
-            holder.getSurface().setFrameRate(prefConfig.fps, Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE);
+            streamSurface.setFrameRate(prefConfig.fps, Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE);
         }
+        streamSurface = new Surface(holder);
+        onSurfaceTextureSizeChanged(holder, width, height);
+
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture holder) {
         if (!surfaceCreated) {
             throw new IllegalStateException("Surface destroyed before creation!");
         }
@@ -1764,6 +1771,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 stopConnection();
             }
         }
+        return true;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture holder){
+
     }
 
     @Override
@@ -1859,5 +1872,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 performanceOverlayView.setText(text);
             }
         });
+    }
+
+    @Override
+    public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+
+        onSurfaceTextureAvailable(streamView.getSurfaceTexture(),  right - left, bottom - top);
+
     }
 }

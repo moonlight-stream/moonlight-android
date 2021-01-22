@@ -5,8 +5,9 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
+import android.view.TextureView;
 
-public class StreamView extends SurfaceView {
+public class StreamView extends TextureView {
     private double desiredAspectRatio;
     private InputCallbacks inputCallbacks;
 

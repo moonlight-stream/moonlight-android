@@ -14,6 +14,7 @@ import com.limelight.nvstream.jni.MoonBridge;
 import com.limelight.preferences.PreferenceConfiguration;
 
 import android.content.Context;
+import android.graphics.SurfaceTexture;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -22,6 +23,7 @@ import android.media.MediaCodec.CodecException;
 import android.os.Build;
 import android.os.SystemClock;
 import android.util.Range;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 
 public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
@@ -52,7 +54,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private boolean refFrameInvalidationActive;
     private int initialWidth, initialHeight;
     private int videoFormat;
-    private SurfaceHolder renderTarget;
+    private Surface renderTarget;
     private volatile boolean stopping;
     private CrashListener crashListener;
     private boolean reportedCrash;
@@ -125,7 +127,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return decoderInfo;
     }
 
-    public void setRenderTarget(SurfaceHolder renderTarget) {
+    public void setRenderTarget(Surface renderTarget) {
         this.renderTarget = renderTarget;
     }
 
@@ -351,7 +353,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         LimeLog.info("Configuring with format: "+configuredFormat);
 
         try {
-            videoDecoder.configure(videoFormat, renderTarget.getSurface(), null, 0);
+            videoDecoder.configure(videoFormat, renderTarget, null, 0);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 // This will contain the actual accepted input format attributes

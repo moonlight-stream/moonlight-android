@@ -199,7 +199,22 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // HACK for https://issuetracker.google.com/issues/163120692
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R) {
             if (device.getId() == -1) {
-                return true;
+                // This "virtual" device could be input from any of the attached devices.
+                // Look to see if any gamepads are connected.
+                int[] ids = InputDevice.getDeviceIds();
+                for (int id : ids) {
+                    InputDevice dev = InputDevice.getDevice(id);
+                    if (dev == null) {
+                        // This device was removed during enumeration
+                        continue;
+                    }
+
+                    // If there are any gamepad devices connected, we'll
+                    // report that this virtual device is a gamepad.
+                    if (hasJoystickAxes(dev) || hasGamepadButtons(dev)) {
+                        return true;
+                    }
+                }
             }
         }
 

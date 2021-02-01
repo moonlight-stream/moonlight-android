@@ -107,6 +107,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         defaultContext.rightStickDeadzoneRadius = (float) stickDeadzone;
         defaultContext.leftTriggerAxis = MotionEvent.AXIS_BRAKE;
         defaultContext.rightTriggerAxis = MotionEvent.AXIS_GAS;
+        defaultContext.hatXAxis = MotionEvent.AXIS_HAT_X;
+        defaultContext.hatYAxis = MotionEvent.AXIS_HAT_Y;
         defaultContext.controllerNumber = (short) 0;
         defaultContext.assignedControllerNumber = true;
         defaultContext.external = false;
@@ -192,6 +194,28 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (hasJoystickAxes(device) || hasGamepadButtons(device)) {
             // Has real joystick axes or gamepad buttons
             return true;
+        }
+
+        // HACK for https://issuetracker.google.com/issues/163120692
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R) {
+            if (device.getId() == -1) {
+                // This "virtual" device could be input from any of the attached devices.
+                // Look to see if any gamepads are connected.
+                int[] ids = InputDevice.getDeviceIds();
+                for (int id : ids) {
+                    InputDevice dev = InputDevice.getDevice(id);
+                    if (dev == null) {
+                        // This device was removed during enumeration
+                        continue;
+                    }
+
+                    // If there are any gamepad devices connected, we'll
+                    // report that this virtual device is a gamepad.
+                    if (hasJoystickAxes(dev) || hasGamepadButtons(dev)) {
+                        return true;
+                    }
+                }
+            }
         }
 
         // Otherwise, we'll try anything that claims to be a non-alphabetic keyboard
@@ -701,6 +725,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // input device has been destroyed. In this case we'll see a
             // != 0 device ID but no device attached.
             return null;
+        }
+
+        // HACK for https://issuetracker.google.com/issues/163120692
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R) {
+            if (event.getDeviceId() == -1) {
+                return defaultContext;
+            }
         }
 
         // Return the existing context if it exists

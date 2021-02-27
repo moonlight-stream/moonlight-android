@@ -40,6 +40,8 @@ public class MediaCodecHelper {
     private static final List<String> blacklisted59FpsDecoderPrefixes;
     private static final List<String> qualcommDecoderPrefixes;
 
+    public static final boolean IS_EMULATOR = Build.HARDWARE.equals("ranchu") || Build.HARDWARE.equals("cheets");
+
     private static boolean isLowEndSnapdragon = false;
     private static boolean isAdreno620 = false;
     private static boolean initialized = false;
@@ -78,7 +80,7 @@ public class MediaCodecHelper {
 
         // Blacklist software decoders that don't support H264 high profile,
         // but exclude the official AOSP and CrOS emulator from this restriction.
-        if (!Build.HARDWARE.equals("ranchu") && !Build.HARDWARE.equals("cheets")) {
+        if (!IS_EMULATOR) {
             blacklistedDecoderPrefixes.add("omx.google");
             blacklistedDecoderPrefixes.add("AVCDecoder");
         }
@@ -586,7 +588,7 @@ public class MediaCodecHelper {
     private static boolean isCodecBlacklisted(MediaCodecInfo codecInfo) {
         // Use the new isSoftwareOnly() function on Android Q
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (codecInfo.isSoftwareOnly()) {
+            if (!IS_EMULATOR && codecInfo.isSoftwareOnly()) {
                 LimeLog.info("Skipping software-only decoder: "+codecInfo.getName());
                 return true;
             }

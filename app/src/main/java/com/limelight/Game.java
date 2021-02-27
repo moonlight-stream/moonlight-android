@@ -1187,6 +1187,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         {
             // This case is for mice and non-finger touch devices
             if (event.getSource() == InputDevice.SOURCE_MOUSE ||
+                    event.getSource() == InputDevice.SOURCE_TOUCHPAD ||
                     event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE ||
                     (event.getPointerCount() >= 1 &&
                             (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE ||

@@ -38,23 +38,31 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
 
     @Override
     public boolean eventHasRelativeMouseAxes(MotionEvent event) {
-        return event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE;
+        // SOURCE_MOUSE_RELATIVE is how SOURCE_MOUSE appears when our view has pointer capture.
+        // SOURCE_TOUCHPAD will have relative axes populated iff our view has pointer capture.
+        // See https://developer.android.com/reference/android/view/View#requestPointerCapture()
+        return event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE ||
+                (event.getSource() == InputDevice.SOURCE_TOUCHPAD && targetView.hasPointerCapture());
     }
 
     @Override
     public float getRelativeAxisX(MotionEvent event) {
-        float x = event.getX();
+        int axis = (event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) ?
+                MotionEvent.AXIS_X : MotionEvent.AXIS_RELATIVE_X;
+        float x = event.getAxisValue(axis);
         for (int i = 0; i < event.getHistorySize(); i++) {
-            x += event.getHistoricalX(i);
+            x += event.getHistoricalAxisValue(axis, i);
         }
         return x;
     }
 
     @Override
     public float getRelativeAxisY(MotionEvent event) {
-        float y = event.getY();
+        int axis = (event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) ?
+                MotionEvent.AXIS_Y : MotionEvent.AXIS_RELATIVE_Y;
+        float y = event.getAxisValue(axis);
         for (int i = 0; i < event.getHistorySize(); i++) {
-            y += event.getHistoricalY(i);
+            y += event.getHistoricalAxisValue(axis, i);
         }
         return y;
     }

@@ -1,0 +1,2 @@
+- Fixed mapping of Nintendo Switch Pro controller on Android 11
+- Fixed handling of multiple input devices with different modifier states

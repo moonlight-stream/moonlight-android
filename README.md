@@ -1,6 +1,6 @@
 # Moonlight Android
 
-[![Travis CI Status](https://travis-ci.com/moonlight-stream/moonlight-android.svg?branch=master)](https://travis-ci.com/moonlight-stream/moonlight-android)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/232a8tadrrn8jv0k/branch/master?svg=true)](https://ci.appveyor.com/project/cgutman/moonlight-android/branch/master)
 
 [Moonlight for Android](https://moonlight-stream.org) is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield.
 

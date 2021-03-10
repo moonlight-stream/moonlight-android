@@ -1,0 +1,18 @@
+version: 0.0.0.{build}
+
+clone_depth: 1
+
+image: Visual Studio 2019
+
+before_build:
+  - 'git submodule update --init --recursive'
+  - 'mklink /D C:\android-sdk "C:\Program Files (x86)\Android\android-sdk"'
+  - 'set ANDROID_HOME=C:\android-sdk'
+
+build_script:
+  - gradlew.bat build connectedCheck
+
+after_build:
+  - 'appveyor PushArtifact app\build\reports\lint-results.html'
+
+deploy: off

@@ -1100,7 +1100,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return false;
             }
 
-            byte modifiers = getModifierState(event);
+            byte modifiers = getModifierState();
             if (KeyboardTranslator.needsShift(event.getKeyCode())) {
                 modifiers |= KeyboardPacket.MODIFIER_SHIFT;
                 conn.sendKeyboardInput((short) 0x8010, KeyboardPacket.KEY_DOWN, modifiers);
@@ -1164,13 +1164,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return false;
             }
 
-            byte modifiers = getModifierState(event);
+            byte modifiers = getModifierState();
             if (KeyboardTranslator.needsShift(event.getKeyCode())) {
                 modifiers |= KeyboardPacket.MODIFIER_SHIFT;
             }
             conn.sendKeyboardInput(translated, KeyboardPacket.KEY_UP, modifiers);
             if (KeyboardTranslator.needsShift(event.getKeyCode())) {
-                conn.sendKeyboardInput((short) 0x8010, KeyboardPacket.KEY_UP, getModifierState(event));
+                conn.sendKeyboardInput((short) 0x8010, KeyboardPacket.KEY_UP, getModifierState());
             }
         }
 
@@ -1233,6 +1233,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         {
             // This case is for mice and non-finger touch devices
             if (event.getSource() == InputDevice.SOURCE_MOUSE ||
+                    event.getSource() == InputDevice.SOURCE_TOUCHPAD ||
                     event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE ||
                     (event.getPointerCount() >= 1 &&
                             (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE ||

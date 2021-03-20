@@ -1,2 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="title_checkbox_multi_controller">Automatisk oppdaging av spillkontroller</string>
+    <string name="title_checkbox_touchscreen_trackpad">Bruk denne pekeskjermen som pekeflate</string>
+    <string name="title_checkbox_stretch_video">Strekk video til hele skjermen</string>
+    <string name="title_seekbar_bitrate">Video-bitrate</string>
+    <string name="title_fps_list">Videorammetakt</string>
+    <string name="applist_quit_confirmation">Er du sikker på at du vil avslutte det kjørende programmet\? All ulagret data vil gå tapt.</string>
+    <string name="applist_refresh_msg">Gjenoppfrisker programmer …</string>
+    <string name="perf_overlay_text">Videooppløsning: %1$s
+\nDekoder: %2$s
+\nAntatt rammetakt på verts-PC: %3$.2f BPS
+\nInnkommende rammetakt fra nettverket: %4$.2f BPS
+\nOpptegningsrammetakt: %5$.2f BPS
+\nRammer droppet av din nettverkstilknytning: %6$.2f%%
+\nGjennomsnittlig mottakstid: %7$.2f ms
+\nGjennomsnittlig dekodingstid: %8$.2f ms</string>
+    <string name="lost_connection">Mistet tilknytning til PC</string>
+    <string name="searching_pc">Søker etter PC-er med GameStream kjørende …
+\n
+\nForsikre deg om at GameStream er påslått i GeForce Experience SHEILD-innstillingene.</string>
+    <string name="conn_starting">Starter</string>
+    <string name="conn_hardware_latency">Gjennomsnittlig latens for maskinvarerammedekoding:</string>
+    <string name="conn_client_latency_hw">maskinvaredekoderlatens:</string>
+    <string name="conn_client_latency">Gjennomsnittlig latens for rammedekoding:</string>
+    <string name="check_ports_msg">Sjekk om din brannmur og portvideresendingsreglene for port(ene):</string>
+    <string name="early_termination_error">Noe gikk galt på din verts-PC under oppstart av strømmen.
+\n
+\nForsikre deg om at du ikke har noe DRM-beskyttet innhold åpent på din PC. Du kan også prøve å starte din verts-PC på ny.
+\n
+\nHvis problemet vedvarer, kan du prøve å reinstallere skjermkortsdriverne og GeForce Experience.</string>
+    <string name="no_frame_received_error">Din nettverkstilkobling fungerer ikke så godt. Reduser videobitraten fra dens innstilling, eller prøv en raskere tilknytning.</string>
+    <string name="no_video_received_error">Fikk ingen video fra verten.</string>
+    <string name="unable_to_pin_shortcut">Din nåværende oppstarter tillater ikke opprettelse av festede snarveier.</string>
+    <string name="title_decoding_error">Videodekoderen krasjet</string>
+    <string name="error_unknown_host">Klarte ikke å utlede vertsadresse</string>
+    <string name="unpair_error">Enheten ble ikke parret</string>
+    <string name="unpair_fail">Klarte ikke å oppheve parring</string>
+    <string name="unpair_success">Parring opphevet</string>
+    <string name="unpairing">Opphever parring …</string>
+    <string name="wol_fail">Klarte ikke å sende Wake-On-LAN-pakker</string>
+    <string name="wol_waking_msg">Det kan ta et par sekunder før PC-en din våkner. Hvis den ikke gjør det må du sjekke at den er satt opp riktig for Wake-On-LAN.</string>
+    <string name="wol_no_mac">Kunne ikke vekke opp PC fordi GFE ikke sendte en MAC-adresse</string>
+    <string name="pair_already_in_progress">Parring allerede underveis</string>
+    <string name="pair_fail">Parring mislyktes</string>
+    <string name="pair_pairing_msg">Skriv inn følgende PIN på mål-PC-en:</string>
+    <string name="pair_pairing_title">Parring</string>
+    <string name="pair_pc_ingame">Datamaskinen er for øyeblikket i et spill. Du må lukke spillet før parring.</string>
+    <string name="pairing">Parrer …</string>
+    <string name="nettest_title_done">Nettverkstest fullført</string>
+    <string name="title_seekbar_deadzone">Dødsonejustering for analogstikke</string>
+    <string name="title_checkbox_xb1_driver">Driver for Xbox 360/One USB-spillkontroller</string>
+    <string name="title_video_format">Endre H.265-innstillinger</string>
+    <string name="title_disable_frame_drop">Aldri forkast rammer</string>
+    <string name="title_checkbox_disable_warnings">Skru av advarselsmeldinger</string>
+    <string name="title_unlock_fps">Lås opp alle mulige rammetakter</string>
+    <string name="category_advanced_settings">Avanserte innstillinger</string>
+    <string name="title_checkbox_host_audio">Spill lyd på PC</string>
+    <string name="title_checkbox_enable_sops">Optimiser spillinnstillinger</string>
+    <string name="category_host_settings">Vertsinnstillinger</string>
+    <string name="summary_language_list">Språk brukt i Moonlight</string>
+    <string name="title_language_list">Språk</string>
+    <string name="category_ui_settings">Grensesnittsinnstillinger</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="dialog_title_osc_opacity">Endre dekkevne</string>
+    <string name="dialog_title_reset_osc">Tilbakestill oppsett</string>
+    <string name="summary_only_l3r3">Skjul alle virtuelle knapper unntatt L3 og R3</string>
+    <string name="title_only_l3r3">Kun vis L3 og R3</string>
+    <string name="title_checkbox_vibrate_osc">Skru på vibrering</string>
+    <string name="title_checkbox_mouse_emulation">Museemulering via spillkontroller</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="category_input_settings">Inndatainnstillinger</string>
+    <string name="title_audio_config_list">Kringlydsoppsett</string>
+    <string name="category_audio_settings">Lydinnstillinger</string>
+    <string name="title_resolution_list">Videooppløsning</string>
+    <string name="category_basic_settings">Grunnleggende innstillinger</string>
+    <string name="addpc_enter_ip">Du må skrive inn en IP-adresse</string>
+    <string name="addpc_success">Datamaskin tillagt</string>
+    <string name="msg_add_pc">Kobler til PC-en …</string>
+    <string name="title_add_pc">Legg til PC manuelt</string>
+    <string name="applist_details_id">Program-ID:</string>
+    <string name="applist_quit_fail">Klarte ikke å avslutte</string>
+    <string name="applist_quit_success">Avsluttet</string>
+    <string name="applist_quit_app">Avslutter …</string>
+    <string name="applist_refresh_error_msg">Klarte ikke å hente programliste</string>
+    <string name="applist_refresh_error_title">Feil</string>
+    <string name="applist_refresh_title">Programliste</string>
+    <string name="applist_menu_hide_app">Skjul prgram</string>
+    <string name="applist_menu_tv_channel">Legg til i kanal</string>
+    <string name="applist_menu_scut">Opprett snarvei</string>
+    <string name="applist_menu_details">Vis detaljer</string>
+    <string name="applist_menu_cancel">Avbryt</string>
+    <string name="applist_menu_quit_and_start">Avslutt nåværende spill og start</string>
+    <string name="applist_menu_quit">Avslutt økt</string>
+    <string name="applist_menu_resume">Fortsett økt</string>
+    <string name="applist_connect_msg">Kobler til PC …</string>
+    <string name="poor_connection_msg">Dårlig tilknytning til PC</string>
+    <string name="slow_connection_msg">Vis tilkobling til PC
+\nReduser bitraten din</string>
+    <string name="delete_pc_msg">Er du sikker på at du vil slette denne PC-en\?</string>
+    <string name="help">Hjelp</string>
+    <string name="title_details">Detaljer</string>
+    <string name="no">Nei</string>
+    <string name="yes">Ja</string>
+    <string name="ip_hint">IP-adresse for GeForce PC</string>
+    <string name="conn_terminated_msg">Tilkoblingen ble avsluttet</string>
+    <string name="conn_terminated_title">Tilkobling avsluttet</string>
+    <string name="conn_error_msg">Klarte ikke å starte</string>
+    <string name="conn_error_title">Tilkoblingsfeil</string>
+    <string name="conn_metered">Advarsel: Din aktive nettverkstilknytning er kvotebasert.</string>
+    <string name="conn_establishing_msg">Starter tilkobling</string>
+    <string name="conn_establishing_title">Etablerer tilkobling</string>
+    <string name="error_pc_offline">Datamaskinen er frakoblet</string>
+    <string name="wol_waking_pc">Vekker opp PC …</string>
+    <string name="wol_pc_online">Datamaskinen er tilkoblet</string>
+    <string name="pair_incorrect_pin">Feil PIN</string>
+    <string name="pair_pc_offline">Datamaskinen er frakoblet</string>
+    <string name="nettest_title_waiting">Tester nettverkstilkobling …</string>
+    <string name="pcview_menu_details">Vis detaljer</string>
+    <string name="pcview_menu_test_network">Test nettverkstilkobling</string>
+    <string name="pcview_menu_delete_pc">Slett PC</string>
+    <string name="pcview_menu_send_wol">Send Wake-On-LAN-forespørsel</string>
+    <string name="pcview_menu_app_list">Vis alle programmer</string>
+    <string name="pcview_menu_header_unknown">Oppdaterer …</string>
+    <string name="pcview_menu_header_offline">Frakoblet</string>
+    <string name="pcview_menu_header_online">Tilkoblet</string>
+    <string name="help_loading_msg">Laster inn hjelpeside …</string>
+    <string name="help_loading_title">Hjelpeviser</string>
+    <string name="scut_invalid_app_id">Angitt program er ikke gyldig</string>
+    <string name="scut_invalid_uuid">Angitt PC er ikke gyldig</string>
+    <string name="scut_pc_not_found">PC ikke funnet</string>
+    <string name="scut_deleted_pc">PC slettet</string>
+</resources>

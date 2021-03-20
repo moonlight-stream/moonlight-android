@@ -598,10 +598,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
 
-        // We can't guarantee the state of modifiers keys which may have
-        // lifted while focus was not on us. Clear the modifier state.
-        this.modifierFlags = 0;
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Capture is lost when focus is lost, so it must be requested again
             // when focus is regained.
@@ -1000,6 +996,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return false;
     }
 
+    private static byte getModifierState(KeyEvent event) {
+        byte modifier = 0;
+        if (event.isShiftPressed()) {
+            modifier |= KeyboardPacket.MODIFIER_SHIFT;
+        }
+        if (event.isCtrlPressed()) {
+            modifier |= KeyboardPacket.MODIFIER_CTRL;
+        }
+        if (event.isAltPressed()) {
+            modifier |= KeyboardPacket.MODIFIER_ALT;
+        }
+        return modifier;
+    }
+
     private byte getModifierState() {
         return (byte) modifierFlags;
     }
@@ -1065,7 +1075,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return false;
             }
 
-            byte modifiers = getModifierState();
+            byte modifiers = getModifierState(event);
             if (KeyboardTranslator.needsShift(event.getKeyCode())) {
                 modifiers |= KeyboardPacket.MODIFIER_SHIFT;
                 conn.sendKeyboardInput((short) 0x8010, KeyboardPacket.KEY_DOWN, modifiers);
@@ -1129,13 +1139,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return false;
             }
 
-            byte modifiers = getModifierState();
+            byte modifiers = getModifierState(event);
             if (KeyboardTranslator.needsShift(event.getKeyCode())) {
                 modifiers |= KeyboardPacket.MODIFIER_SHIFT;
             }
             conn.sendKeyboardInput(translated, KeyboardPacket.KEY_UP, modifiers);
             if (KeyboardTranslator.needsShift(event.getKeyCode())) {
-                conn.sendKeyboardInput((short) 0x8010, KeyboardPacket.KEY_UP, getModifierState());
+                conn.sendKeyboardInput((short) 0x8010, KeyboardPacket.KEY_UP, getModifierState(event));
             }
         }
 

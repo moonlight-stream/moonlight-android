@@ -147,6 +147,9 @@ public class RelativeTouchContext implements TouchContext {
     }
 
     private synchronized void startDragTimer() {
+        // Cancel any existing drag timers
+        cancelDragTimer();
+
         dragTimer = new Timer(true);
         dragTimer.schedule(new TimerTask() {
             @Override

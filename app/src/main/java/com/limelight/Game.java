@@ -1084,7 +1084,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             byte modifiers = getModifierState(event);
             if (KeyboardTranslator.needsShift(event.getKeyCode())) {
                 modifiers |= KeyboardPacket.MODIFIER_SHIFT;
-                conn.sendKeyboardInput((short) 0x8010, KeyboardPacket.KEY_DOWN, modifiers);
             }
             conn.sendKeyboardInput(translated, KeyboardPacket.KEY_DOWN, modifiers);
         }
@@ -1150,9 +1149,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 modifiers |= KeyboardPacket.MODIFIER_SHIFT;
             }
             conn.sendKeyboardInput(translated, KeyboardPacket.KEY_UP, modifiers);
-            if (KeyboardTranslator.needsShift(event.getKeyCode())) {
-                conn.sendKeyboardInput((short) 0x8010, KeyboardPacket.KEY_UP, getModifierState(event));
-            }
         }
 
         return true;

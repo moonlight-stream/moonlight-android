@@ -598,6 +598,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
 
+        // We can't guarantee the state of modifiers keys which may have
+        // lifted while focus was not on us. Clear the modifier state.
+        this.modifierFlags = 0;
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Capture is lost when focus is lost, so it must be requested again
             // when focus is regained.

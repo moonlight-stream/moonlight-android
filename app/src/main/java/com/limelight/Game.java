@@ -996,8 +996,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return false;
     }
 
-    private static byte getModifierState(KeyEvent event) {
-        byte modifier = 0;
+    // We cannot simply use modifierFlags for all key event processing, because
+    // some IMEs will not generate real key events for pressing Shift. Instead
+    // they will simply send key events with isShiftPressed() returning true,
+    // and we will need to send the modifier flag ourselves.
+    private byte getModifierState(KeyEvent event) {
+        // Start with the global modifier state to ensure we cover the case
+        // detailed in https://github.com/moonlight-stream/moonlight-android/issues/840
+        byte modifier = getModifierState();
         if (event.isShiftPressed()) {
             modifier |= KeyboardPacket.MODIFIER_SHIFT;
         }

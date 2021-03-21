@@ -115,7 +115,7 @@
     <string name="wol_pc_online">Datamaskinen er tilkoblet</string>
     <string name="pair_incorrect_pin">Feil PIN</string>
     <string name="pair_pc_offline">Datamaskinen er frakoblet</string>
-    <string name="nettest_title_waiting">Tester nettverkstilkobling …</string>
+    <string name="nettest_title_waiting">Testing av nettverkstilkobling</string>
     <string name="pcview_menu_details">Vis detaljer</string>
     <string name="pcview_menu_test_network">Test nettverkstilkobling</string>
     <string name="pcview_menu_delete_pc">Slett PC</string>

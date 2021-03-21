@@ -5,10 +5,10 @@
 
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc">PC deleted</string>
-    <string name="scut_not_paired">PC not paired</string>
+    <string name="scut_not_paired">Unpaired PC</string>
     <string name="scut_pc_not_found">PC not found</string>
-    <string name="scut_invalid_uuid">Provided PC is not valid</string>
-    <string name="scut_invalid_app_id">Provided App is not valid</string>
+    <string name="scut_invalid_uuid">Provided PC not valid</string>
+    <string name="scut_invalid_app_id">Provided app not valid</string>
 
     <!-- Help strings -->
     <string name="help_loading_title">Help Viewer</string>
@@ -17,7 +17,7 @@
     <!-- PC view menu entries -->
     <string name="pcview_menu_header_online">Online</string>
     <string name="pcview_menu_header_offline">Offline</string>
-    <string name="pcview_menu_header_unknown">Refreshing</string>
+    <string name="pcview_menu_header_unknown">Refreshing…</string>
     <string name="pcview_menu_app_list">View All Apps</string>
     <string name="pcview_menu_pair_pc">Pair with PC</string>
     <string name="pcview_menu_unpair_pc">Unpair</string>
@@ -27,81 +27,81 @@
     <string name="pcview_menu_details">View Details</string>
 
     <!-- Network test strings -->
-    <string name="nettest_title_waiting">Testing Network Connection</string>
-    <string name="nettest_text_waiting">Moonlight is testing your network connection to determine if NVIDIA GameStream is blocked.\n\nThis may take a few seconds…</string>
+    <string name="nettest_title_waiting">Testing Network Connection…</string>
+    <string name="nettest_text_waiting"Testing network connection to determine if NVIDIA GameStream is blocked…</string>
     <string name="nettest_title_done">Network Test Complete</string>
-    <string name="nettest_text_success">Your network does not appear to be blocking Moonlight. If you still have trouble connecting, check your PC\'s firewall settings.\n\nIf you are trying to stream over the Internet, install the Moonlight Internet Hosting Tool on your PC and run the included Internet Streaming Tester to check your PC\'s Internet connection.</string>
-    <string name="nettest_text_inconclusive">The network test could not be performed because none of Moonlight\'s connection testing servers were reachable. Check your Internet connection or try again later.</string>
-    <string name="nettest_text_failure">Your device\'s current network connection seems to be blocking Moonlight. Streaming over the Internet may not work while connected to this network.\n\nThe following network ports were blocked:\n</string>
-    <string name="nettest_text_blocked">Your device\'s current network connection is blocking Moonlight. Streaming over the Internet may not work while connected to this network.</string>
+    <string name="nettest_text_success">Moonlight is not blocked by the network. Check your PC\'s firewall settings if you have trouble connecting.\n\nTo stream over the Internet, install the Moonlight Internet Hosting Tool on your PC and run the included Internet Streaming Tester.</string>
+    <string name="nettest_text_inconclusive">Could not reach any of Moonlight\'s connection testing servers to thest the network conenction. Check it yourself, or try again later.</string>
+    <string name="nettest_text_failure">The network settings on your device is blocking Moonlight. Change them or use a different network to stream over the Internet.\n\nThe following network ports were blocked:\n</string>
+    <string name="nettest_text_blocked">The network your device is connected to is blocking Moonlight. Connect to a different network to stream over the Internet.</string>
 
     <!-- Pair messages -->
     <string name="pairing">Pairing…</string>
-    <string name="pair_pc_offline">Computer is offline</string>
-    <string name="pair_pc_ingame">Computer is currently in a game. You must close the game before pairing.</string>
+    <string name="pair_pc_offline">Computer offline</string>
+    <string name="pair_pc_ingame">Computer currently in a game. Close it before pairing.</string>
     <string name="pair_pairing_title">Pairing</string>
-    <string name="pair_pairing_msg">Please enter the following PIN on the target PC:</string>
+    <string name="pair_pairing_msg">Enter the following PIN on the target PC:</string>
     <string name="pair_incorrect_pin">Incorrect PIN</string>
     <string name="pair_fail">Pairing failed</string>
-    <string name="pair_already_in_progress">Pairing already in progress</string>
+    <string name="pair_already_in_progress">Pairing already in progress…</string>
 
     <!-- WOL messages -->
-    <string name="wol_pc_online">Computer is online</string>
-    <string name="wol_no_mac">Unable to wake PC because GFE didn\'t send a MAC address</string>
+    <string name="wol_pc_online">Computer online</string>
+    <string name="wol_no_mac">Cannot wake PC because GFE didn\'t send a MAC address</string>
     <string name="wol_waking_pc">Waking PC…</string>
-    <string name="wol_waking_msg">It may take a few seconds for your PC to wake up.
-	    If it doesn\'t, make sure it\'s configured properly for Wake-On-LAN.
+    <string name="wol_waking_msg">It may take your PC some seconds to wake up.
+	    If it doesn\'t, make sure Wake-On-LAN is set up on it.
     </string>
-    <string name="wol_fail">Failed to send Wake-On-LAN packets</string>
+    <string name="wol_fail">Could not send Wake-On-LAN packets</string>
 
     <!-- Unpair messages -->
     <string name="unpairing">Unpairing…</string>
-    <string name="unpair_success">Unpaired successfully</string>
-    <string name="unpair_fail">Failed to unpair</string>
-    <string name="unpair_error">Device was not paired</string>
+    <string name="unpair_success">Unpaired</string>
+    <string name="unpair_fail">Could not remove pairing</string>
+    <string name="unpair_error">Could not pair device</string>
 
     <!-- Errors -->
-    <string name="error_pc_offline">Computer is offline</string>
-    <string name="error_manager_not_running">The ComputerManager service is not running. Please wait a few seconds or restart the app.</string>
-    <string name="error_unknown_host">Failed to resolve host</string>
-    <string name="error_404">GFE returned an HTTP 404 error. Make sure your PC is running a supported GPU.
-	    Using remote desktop software can also cause this error. Try rebooting your machine or reinstalling GFE.
+    <string name="error_pc_offline">Computer offline</string>
+    <string name="error_manager_not_running">The ComputerManager service is not running. Wait a few seconds or restart the app.</string>
+    <string name="error_unknown_host">Could not resolve host</string>
+    <string name="error_404">Got a HTTP 404 error from GFE. Ensure your PC is running a supported GPU.
+	    Using remote desktop software can also cause this error. Try rebooting your machine or reinstall GFE.
     </string>
     <string name="title_decoding_error">Video Decoder Crashed</string>
-    <string name="message_decoding_error">Moonlight has crashed due to an incompatibility with this device\'s video decoder. Ensure GeForce Experience is updated to the latest version on your PC. Try adjusting the streaming settings if the crashes continue.</string>
+    <string name="message_decoding_error">Moonlight has an incompatibility with the video decoder on this device. Ensure GeForce Experience on your PC is updated to the latest version. Try adjusting the streaming settings if the problem persists.</string>
     <string name="title_decoding_reset">Video Settings Reset</string>
-    <string name="message_decoding_reset">Your device\'s video decoder continues to crash at your selected streaming settings. Your streaming settings have been reset to default.</string>
-    <string name="error_usb_prohibited">USB access is prohibited by your device administrator. Check your Knox or MDM settings.</string>
-    <string name="unable_to_pin_shortcut">Your current launcher does not allow for creating pinned shortcuts.</string>
-    <string name="video_decoder_init_failed">Video decoder failed to initialize. Your device may not support the selected resolution or frame rate.</string>
-    <string name="no_video_received_error">No video received from host.</string>
-    <string name="no_frame_received_error">Your network connection isn\'t performing well. Reduce your video bitrate setting or try a faster connection.</string>
-    <string name="early_termination_error">Something went wrong on your host PC when starting the stream.\n\nMake sure you don\'t have any DRM-protected content open on your host PC. You can also try restarting your host PC.\n\nIf the issue persists, try reinstalling your GPU drivers and GeForce Experience.</string>
+    <string name="message_decoding_reset">The video decoder on your devices still crashes at the selected streaming settings. They have been reset to their defaults.</string>
+    <string name="error_usb_prohibited">USB access is turned off on your device. Check your Knox or MDM settings.</string>
+    <string name="unable_to_pin_shortcut">Your current launcher allow creating pinned shortcuts.</string>
+    <string name="video_decoder_init_failed">Could not start video decoder. Your device may not support the selected resolution or frame rate.</string>
+    <string name="no_video_received_error">No video from host.</string>
+    <string name="no_frame_received_error">Reduce your video bitrate setting or try a faster connection for better performance.</string>
+    <string name="early_termination_error">There was a problem starting the stream on your host PC.\n\nEnsure you don\'t have any DRM-protected content open on it, or try restarting it.\n\nTry reinstalling your GPU drivers and GeForce Experience if the problem persists.</string>
     <string name="check_ports_msg">Check your firewall and port forwarding rules for port(s):</string>
 
     <!-- Start application messages -->
     <string name="conn_establishing_title">Establishing Connection</string>
-    <string name="conn_establishing_msg">Starting connection</string>
-    <string name="conn_metered">Warning: Your active network connection is metered!</string>
+    <string name="conn_establishing_msg">Starting connection…</string>
+    <string name="conn_metered">Warning: Your active network connection is not unlimited!</string>
     <string name="conn_client_latency">Average frame decoding latency:</string>
     <string name="conn_client_latency_hw">hardware decoder latency:</string>
     <string name="conn_hardware_latency">Average hardware decoding latency:</string>
     <string name="conn_starting">Starting</string>
     <string name="conn_error_title">Connection Error</string>
-    <string name="conn_error_msg">Failed to start</string>
+    <string name="conn_error_msg">Could not start</string>
     <string name="conn_terminated_title">Connection Terminated</string>
     <string name="conn_terminated_msg">The connection was terminated</string>
 
     <!-- General strings -->
-    <string name="ip_hint">IP address of GeForce PC</string>
+    <string name="ip_hint">Public IP address of GeForce PC</string>
     <string name="searching_pc">Searching for PCs with GameStream running…\n\n
-        Ensure GameStream is enabled in the GeForce Experience SHIELD settings.</string>
+        Ensure GameStream is on in the GeForce Experience SHIELD settings.</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="lost_connection">Lost connection to PC</string>
     <string name="title_details">Details</string>
     <string name="help">Help</string>
-    <string name="delete_pc_msg">Are you sure you want to delete this PC?</string>
+    <string name="delete_pc_msg">Really delete this PC?</string>
     <string name="slow_connection_msg">Slow connection to PC\nReduce your bitrate</string>
     <string name="poor_connection_msg">Poor connection to PC</string>
     <string name="perf_overlay_text">Video dimensions: %1$s\nDecoder: %2$s\nEstimated host PC frame rate: %3$.2f FPS\nIncoming frame rate from network: %4$.2f FPS\nRendering frame rate: %5$.2f FPS\nFrames dropped by your network connection: %6$.2f%%\nAverage receive time: %7$.2f ms\nAverage decoding time: %8$.2f ms</string>
@@ -119,105 +119,105 @@
     <string name="applist_refresh_title">App List</string>
     <string name="applist_refresh_msg">Refreshing apps…</string>
     <string name="applist_refresh_error_title">Error</string>
-    <string name="applist_refresh_error_msg">Failed to get app list</string>
+    <string name="applist_refresh_error_msg">Could not fetch app list</string>
     <string name="applist_quit_app">Quitting</string>
-    <string name="applist_quit_success">Successfully quit</string>
-    <string name="applist_quit_fail">Failed to quit</string>
-    <string name="applist_quit_confirmation">Are you sure you want to quit the running app? All unsaved data will be lost.</string>
+    <string name="applist_quit_success">Goodbye</string>
+    <string name="applist_quit_fail">Could not quit</string>
+    <string name="applist_quit_confirmation">Really quit the running app? All unsaved data will be lost.</string>
     <string name="applist_details_id">App ID:</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>
     <string name="msg_add_pc">Connecting to the PC…</string>
-    <string name="addpc_fail">Unable to connect to the specified computer. Make sure the required ports are allowed through the firewall.</string>
-    <string name="addpc_success">Successfully added computer</string>
-    <string name="addpc_unknown_host">Unable to resolve PC address. Make sure you didn\'t make a typo in the address.</string>
-    <string name="addpc_enter_ip">You must enter an IP address</string>
-    <string name="addpc_wrong_sitelocal">That address doesn\'t look right. You must use your router\'s public IP address for streaming over the Internet.</string>
+    <string name="addpc_fail">Cannot connect to this computer. Ensure the required ports are open in the firewall.</string>
+    <string name="addpc_success">Computer added</string>
+    <string name="addpc_unknown_host">Cannot resolve PC address. Ensure the address is correct.</string>
+    <string name="addpc_enter_ip">Enter an IP address first</string>
+    <string name="addpc_wrong_sitelocal">Use the correct public IP address of your router to stream over the Internet.</string>
 
     <!-- Preferences -->
-    <string name="category_basic_settings">Basic Settings</string>
+    <string name="category_basic_settings">Basic</string>
     <string name="title_resolution_list">Video resolution</string>
-    <string name="summary_resolution_list">Increase to improve image clarity. Decrease for better performance on lower end devices and slower networks.</string>
+    <string name="summary_resolution_list">Increase for better image clarity. Decrease for better performance on slow devices and networks.</string>
     <string name="title_native_res_dialog">Native Resolution Warning</string>
-    <string name="text_native_res_dialog">Native resolution modes are not officially supported by GeForce Experience, so it will not set your host display resolution itself. You will need to set it manually while in game.\n\nIf you choose to create a custom resolution in NVIDIA Control Panel to match your device resolution, please ensure you have read and understood NVIDIA\'s warning regarding possible monitor damage, PC instability, and other potential problems.\n\nWe are not responsible for any problems resulting from creating a custom resolution on your PC.\n\nFinally, your device or host PC may not support streaming at native resolution. If it doesn\'t work on your device, you\'re just out of luck unfortunately.</string>
-    <string name="title_fps_list">Video frame rate</string>
-    <string name="summary_fps_list">Increase for a smoother video stream. Decrease for better performance on lower end devices.</string>
+    <string name="text_native_res_dialog">GeForce Experience does not officially support native resolution modes, so it will not set your host display resolution. Set it manually in-game.\n\nRead NVIDIA\'s warning of possible monitor damage, PC instability, etc. before creating a custom resolution in NVIDIA Control Panel that matches your device resolution,.\n\n\nIt may not work at all for techincal reasons and Moonlight is not resonsible.</string>
+    <string name="title_fps_list">Video frame-rate</string>
+    <string name="summary_fps_list">Increase for a smoother video. Decrease for better performance on slow devices.</string>
     <string name="title_seekbar_bitrate">Video bitrate</string>
-    <string name="summary_seekbar_bitrate">Increase for better image quality. Decrease to improve performance on slower connections.</string>
+    <string name="summary_seekbar_bitrate">Increase for better image quality. Decrease to improve performance on slow connections.</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
     <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
     <string name="resolution_prefix_native">Native</string>
 
-    <string name="category_audio_settings">Audio Settings</string>
-    <string name="title_audio_config_list">Surround sound configuration</string>
-    <string name="summary_audio_config_list">Enable 5.1 or 7.1 surround sound for home-theater systems</string>
+    <string name="category_audio_settings">Audio</string>
+    <string name="title_audio_config_list">Surround sound setup</string>
+    <string name="summary_audio_config_list">5.1 or 7.1 surround sound for home-theater systems</string>
 
-    <string name="category_input_settings">Input Settings</string>
-    <string name="title_checkbox_touchscreen_trackpad">Use the touchscreen as a trackpad</string>
-    <string name="summary_checkbox_touchscreen_trackpad">If enabled, the touchscreen acts like a trackpad. If disabled, the touchscreen directly controls the mouse cursor.</string>
-    <string name="title_checkbox_multi_controller">Automatic gamepad presence detection</string>
-    <string name="summary_checkbox_multi_controller">Unchecking this option forces a gamepad to always be present</string>
-    <string name="title_checkbox_vibrate_fallback">Emulate rumble support with vibration</string>
-    <string name="summary_checkbox_vibrate_fallback">Vibrates your device to emulate rumble if your gamepad does not support it</string>
-    <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>
+    <string name="category_input_settings">Input</string>
+    <string name="title_checkbox_touchscreen_trackpad">Use touchscreen as trackpad</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Makes the touchscreen act like a trackpad. Otherwise the touchscreen controls the cursor directly.</string>
+    <string name="title_checkbox_multi_controller">Auto-detect gamepads</string>
+    <string name="summary_checkbox_multi_controller">Without this a gamepad must always be connected</string>
+    <string name="title_checkbox_vibrate_fallback">Emulate gamepad vibration</string>
+    <string name="summary_checkbox_vibrate_fallback">Vibrates your device if your gamepad does not support it</string>
+    <string name="title_seekbar_deadzone">Analog stick deadzone adjustment</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One USB gamepad driver</string>
-    <string name="summary_checkbox_xb1_driver">Enables a built-in USB driver for devices without native Xbox controller support</string>
-    <string name="title_checkbox_usb_bind_all">Override native Xbox gamepad support</string>
-    <string name="summary_checkbox_usb_bind_all">Use Moonlight\'s USB driver for all supported gamepads, even if native Xbox controller support is present</string>
-    <string name="title_checkbox_mouse_emulation">Mouse emulation via gamepad</string>
-    <string name="summary_checkbox_mouse_emulation">Long pressing the Start button will switch the gamepad into mouse mode</string>
-    <string name="title_checkbox_mouse_nav_buttons">Enable back and forward mouse buttons</string>
-    <string name="summary_checkbox_mouse_nav_buttons">Enabling this option may break right clicking on some buggy devices</string>
+    <string name="summary_checkbox_xb1_driver">Uses a built-in driver on devices without Xbox controller support</string>
+    <string name="title_checkbox_usb_bind_all">Override Xbox gamepad support</string>
+    <string name="summary_checkbox_usb_bind_all">Use Moonlight\'s driver for all supported gamepads, even if Xbox controllers are supported</string>
+    <string name="title_checkbox_mouse_emulation">Mouse via gamepad</string>
+    <string name="summary_checkbox_mouse_emulation">Long pressing the \'Start'\ button switches the gamepad into mouse mode</string>
+    <string name="title_checkbox_mouse_nav_buttons">\'Back\' and \'Forward\' mouse buttons</string>
+    <string name="summary_checkbox_mouse_nav_buttons">May break right-clicking on some devices</string>
     <string name="title_checkbox_flip_face_buttons">Flip face buttons</string>
-    <string name="summary_checkbox_flip_face_buttons">Switches the face buttons A/B and X/Y for gamepads and the on-screen controls</string>
+    <string name="summary_checkbox_flip_face_buttons">Switches A/B and X/Y for gamepads and on-screen controller</string>
 
-    <string name="category_on_screen_controls_settings">On-screen Controls Settings</string>
-    <string name="title_checkbox_show_onscreen_controls">Show on-screen controls</string>
+    <string name="category_on_screen_controls_settings">On-screen Controller</string>
+    <string name="title_checkbox_show_onscreen_controls">Show on-screen controller</string>
     <string name="summary_checkbox_show_onscreen_controls">Show virtual controller overlay on touchscreen</string>
-    <string name="title_checkbox_vibrate_osc">Enable vibration</string>
-    <string name="summary_checkbox_vibrate_osc">Vibrates your device to emulate rumble for the on-screen controls</string>
+    <string name="title_checkbox_vibrate_osc">Vibration</string>
+    <string name="summary_checkbox_vibrate_osc">Vibrates your device for the on-screen controller</string>
     <string name="title_only_l3r3">Only show L3 and R3</string>
     <string name="summary_only_l3r3">Hide all virtual buttons except L3 and R3</string>
-    <string name="title_reset_osc">Clear saved on-screen controls layout</string>
-    <string name="summary_reset_osc">Resets all on-screen controls to their default size and position</string>
+    <string name="title_reset_osc">Clear saved on-screen controller layout</string>
+    <string name="summary_reset_osc">Resets all on-screen controllers to default size and position</string>
     <string name="dialog_title_reset_osc">Reset Layout</string>
-    <string name="dialog_text_reset_osc">Are you sure you want to delete your saved on-screen controls layout?</string>
-    <string name="toast_reset_osc_success">On-screen controls reset to default</string>
-    <string name="title_osc_opacity">Change opacity of on-screen controls</string>
-    <string name="summary_osc_opacity">Make the on-screen controls more/less transparent</string>
+    <string name="dialog_text_reset_osc">Really delete saved on-screen controller layout?</string>
+    <string name="toast_reset_osc_success">On-screen controller reset to default</string>
+    <string name="title_osc_opacity">On-screen controller opacity</string>
+    <string name="summary_osc_opacity">Makes the on-screen controller less/more transparent</string>
     <string name="dialog_title_osc_opacity">Change opacity</string>
     <string name="suffix_osc_opacity">%</string>
 
-    <string name="category_ui_settings">UI Settings</string>
-    <string name="title_checkbox_enable_pip">Enable Picture-in-Picture observer mode</string>
+    <string name="category_ui_settings">UI</string>
+    <string name="title_checkbox_enable_pip">Picture-in-Picture observer mode</string>
     <string name="summary_checkbox_enable_pip">Allows the stream to be viewed (but not controlled) while multitasking</string>
     <string name="title_language_list">Language</string>
-    <string name="summary_language_list">Language to use for Moonlight</string>
-    <string name="title_checkbox_small_icon_mode">Use small box art</string>
-    <string name="summary_checkbox_small_icon_mode">Smaller box art in the app grid allows more apps to be visible on screen</string>
+    <string name="summary_language_list">Language used in Moonlight</string>
+    <string name="title_checkbox_small_icon_mode">Small box art</string>
+    <string name="summary_checkbox_small_icon_mode">More space in the app grid allows more apps to be visible</string>
 
-    <string name="category_host_settings">Host Settings</string>
+    <string name="category_host_settings">Host</string>
     <string name="title_checkbox_enable_sops">Optimize game settings</string>
     <string name="summary_checkbox_enable_sops">Allow GFE to modify game settings for optimal streaming</string>
     <string name="title_checkbox_host_audio">Play audio on PC</string>
     <string name="summary_checkbox_host_audio">Play audio from the computer and this device</string>
 
-    <string name="category_advanced_settings">Advanced Settings</string>
+    <string name="category_advanced_settings">Advanced</string>
     <string name="title_unlock_fps">Unlock all possible frame rates</string>
-    <string name="summary_unlock_fps">Streaming at 90 or 120 FPS may reduce latency on high-end devices but can cause lag or instability on devices that can\'t support it</string>
-    <string name="title_checkbox_disable_warnings">Disable warning messages</string>
-    <string name="summary_checkbox_disable_warnings">Disable on-screen connection warning messages while streaming</string>
+    <string name="summary_unlock_fps">Streaming at 90 or 120 FPS may reduce latency on high-end devices and cause lag or instability on devices that can\'t handle it.</string>
+    <string name="title_checkbox_disable_warnings">No warning messages</string>
+    <string name="summary_checkbox_disable_warnings">Turs off connection warning messages while streaming</string>
     <string name="title_disable_frame_drop">Never drop frames</string>
-    <string name="summary_disable_frame_drop">May reduce micro-stuttering on some devices, but can increase latency</string>
-    <string name="title_video_format">Change H.265 settings</string>
-    <string name="summary_video_format">H.265 lowers video bandwidth requirements but requires a newer device</string>
-    <string name="title_enable_hdr">Enable HDR (Experimental)</string>
-    <string name="summary_enable_hdr">Stream HDR when the game and PC GPU support it. HDR requires a GTX 1000 series GPU or later.</string>
-    <string name="title_enable_perf_overlay">Show performance stats while streaming</string>
-    <string name="summary_enable_perf_overlay">Display real-time stream performance information while streaming</string>
-    <string name="title_enable_post_stream_toast">Show latency message after streaming</string>
-    <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
+    <string name="summary_disable_frame_drop">May reduce micro-stuttering on some devices and increase latency</string>
+    <string name="title_video_format">H.265 settings</string>
+    <string name="summary_video_format">H.265 uses less bandwidth, but only works on newer device</string>
+    <string name="title_enable_hdr">HDR (Experimental)</string>
+    <string name="summary_enable_hdr">Stream HDR when the game and PC GPU supports it. Requires a GTX 1000 series GPU or later.</string>
+    <string name="title_enable_perf_overlay">Performance stats while streaming</string>
+    <string name="summary_enable_perf_overlay">Display real-time stream performance info during streaming</string>
+    <string name="title_enable_post_stream_toast">Latency info after streaming</string>
+    <string name="summary_enable_post_stream_toast">Display a latency info message after the stream ends</string>
 
 </resources>

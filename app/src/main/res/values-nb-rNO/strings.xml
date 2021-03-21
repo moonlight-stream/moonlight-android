@@ -130,4 +130,69 @@
     <string name="scut_invalid_uuid">Angitt PC er ikke gyldig</string>
     <string name="scut_pc_not_found">PC ikke funnet</string>
     <string name="scut_deleted_pc">PC slettet</string>
+    <string name="summary_checkbox_mouse_emulation">Å lang-trykke «Start»-knappen veksler spillkontroller til musemodus</string>
+    <string name="title_checkbox_usb_bind_all">Overstyr systemspesifikk kontrollerstøtte</string>
+    <string name="summary_checkbox_xb1_driver">Skrur på en innebygd USB-driver for enheter uten systemspesifikk Xbox-kontrollerstøtte</string>
+    <string name="summary_checkbox_vibrate_fallback">Vibrerer din kontroller for å emulere vibrasjon, hvis din kontroller støtter det</string>
+    <string name="title_checkbox_vibrate_fallback">Vibrasjonsemulering</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Får pekeskjermen til å oppføre seg som en pekeflate. Ellers kontrolleres pekeskjermen musen direkte.</string>
+    <string name="title_decoding_reset">Tilbakestilling av videoinnstillinger</string>
+    <string name="message_decoding_error">Moonlight har krasjet som følge av inkompabilitet med denne enhetens videodekoder. Forsikre deg om at GeForce Experience er oppdatert til seneste versjon på din PC. Prøv å justere strømmingsinnstillingene hvis problemet vedvarer.</string>
+    <string name="error_404">GFE returnerte en HTTP-404-feil. Forsikre deg om at PC-en kjører et støttet skjermkort. Bruk av fjernskrivebordsprogramvare kan også forårsake denne feilen. Prøv å starte maskinen på ny, eller å reinstallere GFE.</string>
+    <string name="error_manager_not_running">ComputerManager-tjenesten kjører ikke. Vent noen sekunder eller start programmet på ny.</string>
+    <string name="nettest_text_blocked">Nettverkstilkoblingen på din enhet ser ut til å blokkere Moonlight. Strømming over Internett kan ikke fungere tilkoblet gjennom dette nettverket.</string>
+    <string name="nettest_text_failure">Nettverkstilkoblingen på din enhet ser ut til å blokkere Moonlight. Strømming over Internett kan ikke fungere når tilkoblet gjennom dette nettverket.
+\n
+\nFølgende nettverksporter ble blokkert:
+\n</string>
+    <string name="nettest_text_inconclusive">Nettverkstesten kunne ikke utføres fordi ingen av Moonlight sine tilkoblingstesttjenere kunne nås. Sjekk din tilkobling til Internett og prøv igjen senere.</string>
+    <string name="summary_enable_perf_overlay">Viser ytelsesinfo i sanntid under strømming</string>
+    <string name="title_enable_perf_overlay">Vis ytelsesstatistikk under strømming</string>
+    <string name="summary_enable_hdr">Strøm HDR når spillet og PC-ens skjermkort støtter det. HDR krever GTX 1000-eller nyere.</string>
+    <string name="summary_checkbox_enable_pip">Tillater strømmen å vises (men ikke kontrolleres) under fleroppgaveløsning</string>
+    <string name="title_checkbox_enable_pip">Skru på bilde-i-bilde-observatørmodus</string>
+    <string name="title_reset_osc">Tøm lagret oppsett for kontroller som vises på skjermen</string>
+    <string name="summary_checkbox_vibrate_osc">Vibrerer din enhet for kontroller som vises på skjermen</string>
+    <string name="summary_checkbox_show_onscreen_controls">Vis virtuelle kontroller for innstillinger i overleggslag på pekeskjermen</string>
+    <string name="title_checkbox_show_onscreen_controls">Vis innstillingskontroller på skjermen</string>
+    <string name="category_on_screen_controls_settings">Innstillinger for kontroller som vises på skjermen</string>
+    <string name="summary_checkbox_usb_bind_all">Bruk Moonlight sin USB-driver for alle støttede spillkontrollere, selv når systemspesifikk kontrollerstøtte er tilgjengelig</string>
+    <string name="summary_audio_config_list">Skru på for 5,1- eller 7,1-kringlyd for hjemmekinosystemer</string>
+    <string name="summary_seekbar_bitrate">Øk for bedret bildekvalitet. Senk for bedre ytelse på trege tilkoblinger.</string>
+    <string name="summary_fps_list">Øk for jevnere videostrøm. Senk for bedre ytelse på trege enheter.</string>
+    <string name="video_decoder_init_failed">Klarte ikke å starte videodekoder. Enheten din støtter kanskje ikke valgt oppløsning eller rammetakt.</string>
+    <string name="error_usb_prohibited">USB-tilgang har blitt forbudt av din enhetsadministrator. Sjekk dine Knox- eller MDM-innstillinger.</string>
+    <string name="message_decoding_reset">Strømmingsinnstilinger tilbakestilt til forvalg som følge av at enhetens videodekoder fortsatte å krasje.</string>
+    <string name="summary_resolution_list">Øk for å forbedre bildeklarhet. Senk for bedre ytelse på svakere enheter og tregere nettverk.</string>
+    <string name="addpc_wrong_sitelocal">Den adressen ser ikke riktig ut. Du må bruke den offentlige IP-adressen for ruteren din for strømming over Internett.</string>
+    <string name="addpc_unknown_host">Kunne ikke utlede adresse tilhørende PC. Forsikre deg om at du ikke har skrevet den inn feil.</string>
+    <string name="addpc_fail">Kunne ikke koble til angitt datamaskin. Forsikre deg om at påkrevde porter er tillatt gjennom brannmuren.</string>
+    <string name="summary_enable_post_stream_toast">Vis en informasjonsmelding om latens etter at strømmen sluttføres</string>
+    <string name="title_enable_post_stream_toast">Vis latensmelding etter strømming</string>
+    <string name="title_enable_hdr">Skru på HDR (eksperimentelt)</string>
+    <string name="summary_video_format">H.265 senker båndbreddekravene, men krever en nyere enhet</string>
+    <string name="summary_disable_frame_drop">Kan redusere mikro-hakking på noen enheter, men kan øke latens</string>
+    <string name="summary_checkbox_disable_warnings">Skru av visning av tilkoblingsadvarsler på skjermen under strømming</string>
+    <string name="summary_unlock_fps">Strømming i 90 eller 120 BPS kan redusere latens på flaggskipsenheter, men kan forårsake forsinkelser eller ustabilitet på enheter som ikke klarer det.</string>
+    <string name="summary_checkbox_host_audio">Spill lyd fra datamaskinen og denne enheten</string>
+    <string name="summary_checkbox_enable_sops">Tillat GFE å endre spill-innstillinger for optimal strømming</string>
+    <string name="summary_checkbox_small_icon_mode">Mindre bilder for omslagskunst i programrutenettet lar deg se flere programmer på skjermen</string>
+    <string name="title_checkbox_small_icon_mode">Bruk liten omslagskunst</string>
+    <string name="summary_osc_opacity">Gjør kontroller som vises på skjermen mer/mindre gjennomsiktig</string>
+    <string name="title_osc_opacity">Endre dekkevne for kontroller som vises på skjermen</string>
+    <string name="toast_reset_osc_success">Kontroller som vises på skjermen tilbakestilt til forvalg</string>
+    <string name="dialog_text_reset_osc">Er du sikker på at du vil slette oppsettet ditt for kontroller som vises på skjermen\?</string>
+    <string name="summary_reset_osc">Tilbakestiller alle kontroller som vises på skjermen til forvalgt størrelse og posisjon</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Å skru på dette ødelegger for høyreklikking på noen enheter</string>
+    <string name="title_checkbox_mouse_nav_buttons">Skru på museknapper for forover og tilbake</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="nettest_text_success">Det ser ikke ut til at nettverket ditt blokkerer Moonlight. Hvis du fremdeles har problemer bør du sjekke PC-ens brannmursinnstillinger.
+\n
+\nHvis du prøver å strømme over Internett, kan du installere Moonlight Internett-vertstjeningsverktøyet på din PC og kjøre den inkluderte Internett-strømmingstesteren for å sjekke PC-ens tilkobling til Internett.</string>
+    <string name="nettest_text_waiting">Moonlight tester din nettverksforbindelse for å fastsette hvorvidt NVIDIA GameStream er blokkert.
+\n
+\nDette kan ta noen sekunder …</string>
+    <string name="pcview_menu_unpair_pc">Opphev parring</string>
+    <string name="pcview_menu_pair_pc">Parr med PC</string>
+    <string name="scut_not_paired">PC ikke parret</string>
 </resources>

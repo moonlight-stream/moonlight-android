@@ -4,15 +4,15 @@
     <string name="title_checkbox_touchscreen_trackpad">Bruk denne pekeskjermen som pekeflate</string>
     <string name="title_checkbox_stretch_video">Strekk video til hele skjermen</string>
     <string name="title_seekbar_bitrate">Video-bitrate</string>
-    <string name="title_fps_list">Videorammetakt</string>
+    <string name="title_fps_list">Videobilderammetakt</string>
     <string name="applist_quit_confirmation">Er du sikker på at du vil avslutte det kjørende programmet\? All ulagret data vil gå tapt.</string>
     <string name="applist_refresh_msg">Gjenoppfrisker programmer …</string>
     <string name="perf_overlay_text">Videooppløsning: %1$s
 \nDekoder: %2$s
-\nAntatt rammetakt på verts-PC: %3$.2f BPS
-\nInnkommende rammetakt fra nettverket: %4$.2f BPS
-\nOpptegningsrammetakt: %5$.2f BPS
-\nRammer droppet av din nettverkstilknytning: %6$.2f%%
+\nAntatt bilderammetakt på verts-PC: %3$.2f BPS
+\nInnkommende bilderammetakt fra nettverket: %4$.2f BPS
+\nOpptegningsbilderammetakt: %5$.2f BPS
+\nBilderammer droppet av din nettverkstilknytning: %6$.2f%%
 \nGjennomsnittlig mottakstid: %7$.2f ms
 \nGjennomsnittlig dekodingstid: %8$.2f ms</string>
     <string name="lost_connection">Mistet tilknytning til PC</string>
@@ -22,7 +22,7 @@
     <string name="conn_starting">Starter</string>
     <string name="conn_hardware_latency">Gjennomsnittlig latens for maskinvarerammedekoding:</string>
     <string name="conn_client_latency_hw">maskinvaredekoderlatens:</string>
-    <string name="conn_client_latency">Gjennomsnittlig latens for rammedekoding:</string>
+    <string name="conn_client_latency">Gjennomsnittlig latens for bilderammedekoding:</string>
     <string name="check_ports_msg">Sjekk om din brannmur og portvideresendingsreglene for port(ene):</string>
     <string name="early_termination_error">Noe gikk galt på din verts-PC under oppstart av strømmen.
 \n
@@ -51,12 +51,12 @@
     <string name="title_seekbar_deadzone">Dødsonejustering for analogstikke</string>
     <string name="title_checkbox_xb1_driver">Driver for Xbox 360/One USB-spillkontroller</string>
     <string name="title_video_format">Endre H.265-innstillinger</string>
-    <string name="title_disable_frame_drop">Aldri forkast rammer</string>
+    <string name="title_disable_frame_drop">Aldri forkast bilderammer</string>
     <string name="title_checkbox_disable_warnings">Skru av advarselsmeldinger</string>
-    <string name="title_unlock_fps">Lås opp alle mulige rammetakter</string>
+    <string name="title_unlock_fps">Lås opp alle mulige bilderammetakter</string>
     <string name="category_advanced_settings">Avanserte innstillinger</string>
     <string name="title_checkbox_host_audio">Spill lyd på PC</string>
-    <string name="title_checkbox_enable_sops">Optimiser spillinnstillinger</string>
+    <string name="title_checkbox_enable_sops">Optimaliser spillinnstillinger</string>
     <string name="category_host_settings">Vertsinnstillinger</string>
     <string name="summary_language_list">Språk brukt i Moonlight</string>
     <string name="title_language_list">Språk</string>
@@ -140,8 +140,8 @@
     <string name="message_decoding_error">Moonlight har krasjet som følge av inkompabilitet med denne enhetens videodekoder. Forsikre deg om at GeForce Experience er oppdatert til seneste versjon på din PC. Prøv å justere strømmingsinnstillingene hvis problemet vedvarer.</string>
     <string name="error_404">GFE returnerte en HTTP-404-feil. Forsikre deg om at PC-en kjører et støttet skjermkort. Bruk av fjernskrivebordsprogramvare kan også forårsake denne feilen. Prøv å starte maskinen på ny, eller å reinstallere GFE.</string>
     <string name="error_manager_not_running">ComputerManager-tjenesten kjører ikke. Vent noen sekunder eller start programmet på ny.</string>
-    <string name="nettest_text_blocked">Nettverkstilkoblingen på din enhet ser ut til å blokkere Moonlight. Strømming over Internett kan ikke fungere tilkoblet gjennom dette nettverket.</string>
-    <string name="nettest_text_failure">Nettverkstilkoblingen på din enhet ser ut til å blokkere Moonlight. Strømming over Internett kan ikke fungere når tilkoblet gjennom dette nettverket.
+    <string name="nettest_text_blocked">Nettverkstilkoblingen på din enhet ser ut til å blokkere Moonlight. Strømming over Internett vil muligens ikke fungere tilkoblet gjennom dette nettverket.</string>
+    <string name="nettest_text_failure">Nettverkstilkoblingen på din enhet ser ut til å blokkere Moonlight. Strømming over Internett vil muligens ikke fungere når tilkoblet gjennom dette nettverket.
 \n
 \nFølgende nettverksporter ble blokkert:
 \n</string>
@@ -151,16 +151,16 @@
     <string name="summary_enable_hdr">Strøm HDR når spillet og PC-ens skjermkort støtter det. HDR krever GTX 1000-eller nyere.</string>
     <string name="summary_checkbox_enable_pip">Tillater strømmen å vises (men ikke kontrolleres) under fleroppgaveløsning</string>
     <string name="title_checkbox_enable_pip">Skru på bilde-i-bilde-observatørmodus</string>
-    <string name="title_reset_osc">Tøm lagret oppsett for kontroller som vises på skjermen</string>
-    <string name="summary_checkbox_vibrate_osc">Vibrerer din enhet for kontroller som vises på skjermen</string>
-    <string name="summary_checkbox_show_onscreen_controls">Vis virtuelle kontroller for innstillinger i overleggslag på pekeskjermen</string>
+    <string name="title_reset_osc">Tøm lagret oppsett for innstillingskontroller som vises på skjermen</string>
+    <string name="summary_checkbox_vibrate_osc">Vibrerer din enhet for innstillingskontroller som vises på skjermen</string>
+    <string name="summary_checkbox_show_onscreen_controls">Vis virtuelle innstillingskontroller for innstillinger i overleggslag på pekeskjermen</string>
     <string name="title_checkbox_show_onscreen_controls">Vis innstillingskontroller på skjermen</string>
-    <string name="category_on_screen_controls_settings">Innstillinger for kontroller som vises på skjermen</string>
+    <string name="category_on_screen_controls_settings">Innstillinger for innstillingskontroller som vises på skjermen</string>
     <string name="summary_checkbox_usb_bind_all">Bruk Moonlight sin USB-driver for alle støttede spillkontrollere, selv når systemspesifikk kontrollerstøtte er tilgjengelig</string>
     <string name="summary_audio_config_list">Skru på for 5,1- eller 7,1-kringlyd for hjemmekinosystemer</string>
     <string name="summary_seekbar_bitrate">Øk for bedret bildekvalitet. Senk for bedre ytelse på trege tilkoblinger.</string>
     <string name="summary_fps_list">Øk for jevnere videostrøm. Senk for bedre ytelse på trege enheter.</string>
-    <string name="video_decoder_init_failed">Klarte ikke å starte videodekoder. Enheten din støtter kanskje ikke valgt oppløsning eller rammetakt.</string>
+    <string name="video_decoder_init_failed">Klarte ikke å starte videodekoder. Enheten din støtter kanskje ikke valgt oppløsning eller bilderammetakt.</string>
     <string name="error_usb_prohibited">USB-tilgang har blitt forbudt av din enhetsadministrator. Sjekk dine Knox- eller MDM-innstillinger.</string>
     <string name="message_decoding_reset">Strømmingsinnstilinger tilbakestilt til forvalg som følge av at enhetens videodekoder fortsatte å krasje.</string>
     <string name="summary_resolution_list">Øk for å forbedre bildeklarhet. Senk for bedre ytelse på svakere enheter og tregere nettverk.</string>
@@ -178,11 +178,11 @@
     <string name="summary_checkbox_enable_sops">Tillat GFE å endre spill-innstillinger for optimal strømming</string>
     <string name="summary_checkbox_small_icon_mode">Mindre bilder for omslagskunst i programrutenettet lar deg se flere programmer på skjermen</string>
     <string name="title_checkbox_small_icon_mode">Bruk liten omslagskunst</string>
-    <string name="summary_osc_opacity">Gjør kontroller som vises på skjermen mer/mindre gjennomsiktig</string>
-    <string name="title_osc_opacity">Endre dekkevne for kontroller som vises på skjermen</string>
-    <string name="toast_reset_osc_success">Kontroller som vises på skjermen tilbakestilt til forvalg</string>
-    <string name="dialog_text_reset_osc">Er du sikker på at du vil slette oppsettet ditt for kontroller som vises på skjermen\?</string>
-    <string name="summary_reset_osc">Tilbakestiller alle kontroller som vises på skjermen til forvalgt størrelse og posisjon</string>
+    <string name="summary_osc_opacity">Gjør innstillingskontroller som vises på skjermen mer/mindre gjennomsiktige</string>
+    <string name="title_osc_opacity">Endre dekkevne for innstillingskontroller som vises på skjermen</string>
+    <string name="toast_reset_osc_success">Innstillingskontroller som vises på skjermen tilbakestilt til forvalg</string>
+    <string name="dialog_text_reset_osc">Er du sikker på at du vil slette oppsettet ditt for innstillingskontroller som vises på skjermen\?</string>
+    <string name="summary_reset_osc">Tilbakestiller alle innstillingskontroller som vises på skjermen til forvalgt størrelse og posisjon</string>
     <string name="summary_checkbox_mouse_nav_buttons">Å skru på dette ødelegger for høyreklikking på noen enheter</string>
     <string name="title_checkbox_mouse_nav_buttons">Skru på museknapper for forover og tilbake</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
@@ -195,4 +195,16 @@
     <string name="pcview_menu_unpair_pc">Opphev parring</string>
     <string name="pcview_menu_pair_pc">Parr med PC</string>
     <string name="scut_not_paired">PC ikke parret</string>
+    <string name="summary_checkbox_flip_face_buttons">Veksler A/B og X/Y-knapper for spillkontrollere, og innstillingskontroller som vises på skjermen</string>
+    <string name="text_native_res_dialog">Innebygd oppløsningsmodus støttes ikke offisielt av GeForce Experience, så det vil ikke sette skjermoppløsning for verten på egenhånd. Du vil måtte sette det manuelt inne i spillet.
+\n
+\nHvis du velger å opprette en egendefinert oppløsning i NVIDIA-kontrollpanelet for å samsvare med enhetsoppløsningen må du forsikre deg om at du har lest og forstått NVIDIA sin advarsel om mulig skjermskade, PC-instabilitet, og andre potensielle problemer.
+\n
+\nVi er ikke ansvarlige for noen problemer som oppstår ved å lage en egendefinert oppløsning på din PC.
+\n
+\nDet kan hende din enhet eller verts-PC ikke støtter strømming i egentlig oppløsning. Hvis det ikke fungerer på din enhet er det dessverre ingenting du kan gjøre.</string>
+    <string name="summary_checkbox_multi_controller">Å fjerne dette valget påtvinger tilkoblet spillkontroller</string>
+    <string name="resolution_prefix_native">Innebygd</string>
+    <string name="title_native_res_dialog">Advarsel om innebygd oppløsning</string>
+    <string name="title_checkbox_flip_face_buttons">Veksle diamantknapper</string>
 </resources>

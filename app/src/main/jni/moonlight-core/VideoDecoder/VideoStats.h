@@ -26,14 +26,14 @@ typedef struct {
 } VideoStatsFps;
 
 // 时间模式，更准确
-uint64_t getTimeMsec(void);
-uint64_t getTimeUsec(void);  
-uint64_t getTimeNanc(void);
+int64_t getTimeMsec(void);
+int64_t getTimeUsec(void);
+int64_t getTimeNanc(void);
 
 // 时钟模式，可能更适合程序内部的时间戳计算方式
-uint64_t getClockMsec(void);
-uint64_t getClockNanc(void);
-uint64_t getClockUsec(void);
+int64_t getClockMsec(void);
+int64_t getClockNanc(void);
+int64_t getClockUsec(void);
 
 void VideoStats_add(VideoStats* stats, const VideoStats* other);
 void VideoStats_copy(VideoStats* stats, const VideoStats* other);

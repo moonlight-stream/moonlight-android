@@ -12,6 +12,7 @@
 #include <media/NdkMediaExtractor.h>
 #include <android/log.h>
 #include <dlfcn.h>
+#include <unistd.h>
 #include "MediaCodecHelper.h"
 #include "libopus/include/opus_types.h"
 
@@ -21,7 +22,7 @@
 #define LOGT(...)  {__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__); /*printCache();*/}
 #else
 #define LOGD(...) 
-#define LOGT(...)  
+#define LOGT(...)
 #endif
 
 // API 28 Support or 21
@@ -455,6 +456,13 @@ VideoDecoder* VideoDecoder_create(JNIEnv *env, jobject surface, const char* deco
     pthread_mutex_init(&videoDecoder->lock, 0);
     pthread_mutex_init(&videoDecoder->inputCacheLock, 0);
     pthread_mutex_init(&videoDecoder->outputCacheLock, 0);
+
+    sem_init(&videoDecoder->rendering_sem, 0, 0);
+    pthread_mutex_init(&videoDecoder->rendering_lock, 0);
+    for (int i = 0; i < 10; i++) {
+        ReleasingBuffer buf = {-1, 0};
+        videoDecoder->rendering_idx_list[i] = buf;
+    }
     
     // Initialize
     for (int i = 0; i < __BUFFER_MAX; i++) {
@@ -514,6 +522,7 @@ void releaseVideoDecoder(VideoDecoder* videoDecoder) {
     pthread_mutex_destroy(&videoDecoder->lock);
     pthread_mutex_destroy(&videoDecoder->inputCacheLock);
     pthread_mutex_destroy(&videoDecoder->outputCacheLock);
+    pthread_mutex_destroy(&videoDecoder->rendering_lock);
 
     free(videoDecoder->inputBufferCache);
 
@@ -581,6 +590,61 @@ void VideoDecoder_release(VideoDecoder* videoDecoder) {
 //    return 0;
 //}
 
+void releaseOutputBufferAtTime(VideoDecoder* videoDecoder, AMediaCodec *mData, size_t idx, int64_t timestampNs) {
+#if 0
+    pthread_mutex_lock(&videoDecoder->rendering_lock);
+    {
+        for (int i = 0; i < 10; i++) {
+            if (videoDecoder->rendering_idx_list[i].idx == -1) {
+                ReleasingBuffer buf = {idx, timestampNs};
+                videoDecoder->rendering_idx_list[i] = buf;
+                LOGT("fuckyou - [%d]%ld", idx, timestampNs);
+                break;
+            }
+        }
+    }pthread_mutex_unlock(&videoDecoder->rendering_lock);
+    sem_post(&videoDecoder->rendering_sem);
+#else
+    AMediaCodec_releaseOutputBufferAtTime(mData, idx, timestampNs);
+#endif
+}
+
+void* _rendering_thread(VideoDecoder* videoDecoder)
+{
+    bool rendered = false;
+    while(!videoDecoder->stopping) {
+
+        if (rendered) {
+            sem_wait(&videoDecoder->rendering_sem);
+        }
+        rendered = false;
+
+        pthread_mutex_lock(&videoDecoder->rendering_lock); {
+
+            for (int i = 0; i < 10; i++) {
+                if (videoDecoder->rendering_idx_list[i].idx != -1) {
+                    // 等待
+                    int64_t currentTimeNs = getClockNanc();
+                    int us_delay = (videoDecoder->rendering_idx_list[i].timestampNs-currentTimeNs) / 1000;
+                    if (us_delay > 1000 * 1000 || us_delay < 0) {
+                        us_delay = 0;
+                    }
+                    LOGT("fuckyou [%d]%ld %ld ms", videoDecoder->rendering_idx_list[i].idx, currentTimeNs, us_delay / 1000);
+                    usleep(us_delay);
+                    // ...
+                    AMediaCodec_releaseOutputBuffer(videoDecoder->codec, videoDecoder->rendering_idx_list[i].idx, 1);
+                    videoDecoder->rendering_idx_list[i].idx = -1;
+                    rendered = true;
+                    break;
+                }
+            }
+
+        }pthread_mutex_unlock(&videoDecoder->rendering_lock);
+    }
+
+    return 0;
+}
+
 void* rendering_thread(VideoDecoder* videoDecoder)
 {
     // Try to output a frame
@@ -629,7 +693,7 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                 } else {
 
                     // 计算帧显示的准确时间戳(通过延迟一帧来算) 这里的时间结果必须是clock nanc，所以必须统一为clock
-                    uint64_t currentTimeNs = getClockNanc();
+                    int64_t currentTimeNs = getClockNanc();
 
                     if (immediate != last_immediate) {
                         frame_Index = 0;
@@ -674,7 +738,8 @@ void* rendering_thread(VideoDecoder* videoDecoder)
                     }
 
                     LOGT("[test] - 渲染 非立即模式");
-                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, rendering_time);
+                    releaseOutputBufferAtTime(videoDecoder, videoDecoder->codec, outIndex, rendering_time);
+//                    AMediaCodec_releaseOutputBufferAtTime(videoDecoder->codec, outIndex, rendering_time);
                 }
 
                 last_immediate = immediate;
@@ -759,11 +824,21 @@ void VideoDecoder_start(VideoDecoder* videoDecoder) {
     videoDecoder->globalVideoStats = initStats;
 
     // Start thread
-    pthread_t pid;
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
+    {
+        pthread_t pid;
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
 
-    pthread_create(&pid, &attr, (void *(*)(void *))rendering_thread, videoDecoder);
+        pthread_create(&pid, &attr, (void *(*)(void *))rendering_thread, videoDecoder);
+    }
+
+    {
+        pthread_t pid;
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
+
+        pthread_create(&pid, &attr, (void *(*)(void *))_rendering_thread, videoDecoder);
+    }
 
 // #if VD_BUFFER_CBMODE
 //    pthread_create(&pid, &attr, queuing_thread, videoDecoder);

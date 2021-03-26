@@ -1021,8 +1021,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return false;
     }
 
-    private static byte getModifierState(KeyEvent event) {
-        byte modifier = 0;
+    // We cannot simply use modifierFlags for all key event processing, because
+    // some IMEs will not generate real key events for pressing Shift. Instead
+    // they will simply send key events with isShiftPressed() returning true,
+    // and we will need to send the modifier flag ourselves.
+    private byte getModifierState(KeyEvent event) {
+        // Start with the global modifier state to ensure we cover the case
+        // detailed in https://github.com/moonlight-stream/moonlight-android/issues/840
+        byte modifier = getModifierState();
         if (event.isShiftPressed()) {
             modifier |= KeyboardPacket.MODIFIER_SHIFT;
         }
@@ -1100,10 +1106,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return false;
             }
 
-            byte modifiers = getModifierState();
+            byte modifiers = getModifierState(event);
             if (KeyboardTranslator.needsShift(event.getKeyCode())) {
                 modifiers |= KeyboardPacket.MODIFIER_SHIFT;
-                conn.sendKeyboardInput((short) 0x8010, KeyboardPacket.KEY_DOWN, modifiers);
             }
             conn.sendKeyboardInput(translated, KeyboardPacket.KEY_DOWN, modifiers);
         }
@@ -1164,14 +1169,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return false;
             }
 
-            byte modifiers = getModifierState();
+            byte modifiers = getModifierState(event);
             if (KeyboardTranslator.needsShift(event.getKeyCode())) {
                 modifiers |= KeyboardPacket.MODIFIER_SHIFT;
             }
             conn.sendKeyboardInput(translated, KeyboardPacket.KEY_UP, modifiers);
-            if (KeyboardTranslator.needsShift(event.getKeyCode())) {
-                conn.sendKeyboardInput((short) 0x8010, KeyboardPacket.KEY_UP, getModifierState());
-            }
         }
 
         return true;

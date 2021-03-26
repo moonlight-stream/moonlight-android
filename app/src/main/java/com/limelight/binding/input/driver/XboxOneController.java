@@ -21,7 +21,9 @@ public class XboxOneController extends AbstractXboxController {
             0x0e6f, // Unknown
             0x0f0d, // Hori
             0x1532, // Razer Wildcat
+            0x20d6, // PowerA
             0x24c6, // PowerA
+            0x2e24, // Hyperkin
     };
 
     private static final byte[] FW2015_INIT = {0x05, 0x20, 0x00, 0x01, 0x00};

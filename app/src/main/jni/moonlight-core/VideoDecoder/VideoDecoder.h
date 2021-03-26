@@ -33,11 +33,6 @@ typedef struct {
 } FrameBuffer;
 
 typedef struct {
-    int idx;
-    int64_t timestampNs;
-} ReleasingBuffer;
-
-typedef struct {
     ANativeWindow* window;
     AMediaCodec* codec;
     const char* decoderName;
@@ -72,10 +67,6 @@ typedef struct {
 
     // 标记：总是丢帧，来自检测
     bool alwaysDropFrames;
-
-    sem_t rendering_sem;
-    ReleasingBuffer rendering_idx_list[10];
-    pthread_mutex_t rendering_lock;
 
     pthread_mutex_t inputCacheLock;
     pthread_mutex_t outputCacheLock;

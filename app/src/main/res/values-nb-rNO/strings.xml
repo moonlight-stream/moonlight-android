@@ -121,7 +121,7 @@
     <string name="pcview_menu_delete_pc">Slett PC</string>
     <string name="pcview_menu_send_wol">Send Wake-On-LAN-forespørsel</string>
     <string name="pcview_menu_app_list">Vis alle programmer</string>
-    <string name="pcview_menu_header_unknown">Oppdaterer …</string>
+    <string name="pcview_menu_header_unknown">Oppdaterer</string>
     <string name="pcview_menu_header_offline">Frakoblet</string>
     <string name="pcview_menu_header_online">Tilkoblet</string>
     <string name="help_loading_msg">Laster inn hjelpeside …</string>

@@ -1,0 +1,3 @@
+- Added Amazon Luna wired controller support in the built-in Xbox USB driver
+- Added support for AMF-encoded HEVC streams from servers like Sunshine and OpenStream
+- Norwegian Bokmål translation from Weblate community

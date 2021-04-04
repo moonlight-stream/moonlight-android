@@ -18,18 +18,23 @@
     <string name="pcview_menu_details">Voir les détails</string>
     <!-- Network test strings -->
     <string name="nettest_title_waiting">Test de la connexion réseau</string>
-    <string name="nettest_text_waiting">Moonlight teste votre connexion réseau pour déterminer si NVIDIA GameStream est bloqué.\n\nCela peut prendre quelques secondes.</string>
+    <string name="nettest_text_waiting">Moonlight teste votre connexion réseau pour déterminer si NVIDIA GameStream est bloqué.
+\n
+\nCela peut prendre quelques secondes…</string>
     <string name="nettest_title_done">Test du réseau terminé</string>
     <string name="nettest_text_success">Votre réseau ne semble pas bloquer Moonlight. Si vous avez encore de la difficulté à vous connecter, vérifiez les paramètres du pare-feu de votre PC.\n\nSi vous essayez de diffuser sur Internet, installez l\'outil d\'hébergement Internet Moonlight sur votre PC et exécutez le testeur de streaming Internet inclus pour vérifier la connexion Internet de votre PC.</string>
     <string name="nettest_text_inconclusive">Le test réseau n’a pas pu être effectué car aucun des serveurs de test de connexion Moonlight n’était accessible. Vérifiez votre connexion Internet ou réessayez plus tard.</string>
-    <string name="nettest_text_failure">La connexion réseau actuelle de votre appareil semble bloquer Moonlight. Le streaming sur Internet peut ne pas fonctionner lorsqu’il est connecté à ce réseau.\n\nLes ports réseau suivants ont été bloqués:\n</string>
+    <string name="nettest_text_failure">La connexion réseau actuelle de votre appareil semble bloquer Moonlight. Le streaming sur Internet peut ne pas fonctionner lorsqu’il est connecté à ce réseau.
+\n
+\nLes ports réseau suivants ont été bloqués :
+\n</string>
     <string name="nettest_text_blocked">La connexion réseau actuelle de votre appareil bloque Moonlight. Le streaming sur Internet peut ne pas fonctionner lorsqu’il est connecté à ce réseau.</string>
     <!-- Pair messages -->
     <string name="pairing">Appariement…</string>
     <string name="pair_pc_offline">L\'ordinateur est hors ligne</string>
     <string name="pair_pc_ingame">L\'ordinateur est actuellement dans un jeu. Vous devez fermer le jeu avant l\'appariement.</string>
     <string name="pair_pairing_title">Appariement</string>
-    <string name="pair_pairing_msg">SVP entrer le code PIN suivant sur le PC concerné:</string>
+    <string name="pair_pairing_msg">SVP entrer le code PIN suivant sur le PC concerné :</string>
     <string name="pair_incorrect_pin">Code PIN incorrect</string>
     <string name="pair_fail">Échec de l\'appariement</string>
     <string name="pair_already_in_progress">Appariement déjà en cours</string>
@@ -62,10 +67,10 @@
     <!-- Start application messages -->
     <string name="conn_establishing_title">Établissement de la connexion</string>
     <string name="conn_establishing_msg">Démarrage de la connection</string>
-    <string name="conn_metered">Attention: Votre connexion réseau active est mesurée!</string>
-    <string name="conn_client_latency">Latence moyenne de décodage de trame:</string>
-    <string name="conn_client_latency_hw">Latence du décodeur matériel:</string>
-    <string name="conn_hardware_latency">Latence moyenne du décodage matériel:</string>
+    <string name="conn_metered">Attention : Votre connexion réseau active est mesurée !</string>
+    <string name="conn_client_latency">Latence moyenne de décodage de trame :</string>
+    <string name="conn_client_latency_hw">Latence du décodeur matériel :</string>
+    <string name="conn_hardware_latency">Latence moyenne du décodage matériel :</string>
     <string name="conn_starting">Démarrage</string>
     <string name="conn_error_title">Erreur de connexion</string>
     <string name="conn_error_msg">Impossible de démarrer</string>
@@ -80,10 +85,17 @@
     <string name="lost_connection">Perte de connexion avec le PC</string>
     <string name="title_details">Détails</string>
     <string name="help">Aide</string>
-    <string name="delete_pc_msg">Êtes-vous sûr de vouloir supprimer ce PC?</string>
+    <string name="delete_pc_msg">Êtes-vous sûr de vouloir supprimer ce PC \?</string>
     <string name="slow_connection_msg">Connexion lente au PC\nRéduisez votre débit</string>
     <string name="poor_connection_msg">Mauvaise connexion au PC</string>
-    <string name="perf_overlay_text">Video dimensions: %1$s\nDécodeur: %2$s\nEstimation de la fréquence d\'images de l\'ordinateur hôte: %3$.2f FPS\nFréquence d\'images entrantes du réseau: %4$.2f FPS\nTaux de rendu: %5$.2f FPS\nImages envoyé par votre connexion réseau: %6$.2f%%\nTemps moyen de réception: %7$.2f ms\nTemps de décodage moyen: %8$.2f ms</string>
+    <string name="perf_overlay_text">Dimensions vidéo : %1$s
+\nDécodeur : %2$s
+\nEstimation de la fréquence d\'images de l\'ordinateur hôte : %3$.2f FPS
+\nFréquence d\'images entrantes du réseau : %4$.2f FPS
+\nFréquence d\'images de rendu : %5$.2f FPS
+\nImages perdues par votre connexion réseau : %6$.2f%%
+\nTemps moyen de réception : %7$.2f ms
+\nTemps moyen de décodage : %8$.2f ms</string>
     <!-- AppList activity -->
     <string name="applist_connect_msg">Connexion au PC…</string>
     <string name="applist_menu_resume">Reprise de la session</string>
@@ -100,8 +112,8 @@
     <string name="applist_quit_app">Fermeture</string>
     <string name="applist_quit_success">Fermeture avec succès</string>
     <string name="applist_quit_fail">Échec de la fermeture</string>
-    <string name="applist_quit_confirmation">Voulez-vous vraiment quitter l\'application en cours d\'exécution? Toutes les données non enregistrées seront perdues.</string>
-    <string name="applist_details_id">ID app:</string>
+    <string name="applist_quit_confirmation">Voulez-vous vraiment quitter l\'application en cours d\'exécution \? Toutes les données non enregistrées seront perdues.</string>
+    <string name="applist_details_id">ID de l\'appli :</string>
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Ajouter un PC manuellement</string>
     <string name="msg_add_pc">Connexion au PC…</string>
@@ -113,7 +125,7 @@
     <!-- Preferences -->
     <string name="category_basic_settings">Paramètres de base</string>
     <string name="title_resolution_list">Résolution vidéo</string>
-    <string name="summary_resolution_list">Le réglage de valeurs trop élevées pour votre appareil peut provoquer un retard ou un plantage</string>
+    <string name="summary_resolution_list">Le réglage de valeurs trop élevées pour votre appareil peut provoquer un retard ou un plantage.</string>
     <string name="title_fps_list">Fréquence d\'images vidéo</string>
     <string name="summary_fps_list">Augmenter pour un flux vidéo plus lisse. Diminution pour de meilleures performances sur les périphériques bas de gamme.</string>
     <string name="title_seekbar_bitrate">Sélectionnez le bitrate vidéo à obtenir</string>
@@ -135,13 +147,13 @@
     <string name="title_seekbar_deadzone">Régler la zone morte du stick analogique</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Pilote de contrôleur Xbox 360/One</string>
-    <string name="summary_checkbox_xb1_driver">Active un pilote USB intégré pour les périphériques sans prise en charge du contrôleur Xbox natif.</string>
+    <string name="summary_checkbox_xb1_driver">Active un pilote USB intégré pour les périphériques sans prise en charge du contrôleur Xbox natif</string>
     <string name="title_checkbox_usb_bind_all">Ignorer le support du contrôleur Android</string>
     <string name="summary_checkbox_usb_bind_all">Force le pilote USB de Moonlight à prendre en charge tous les gamepads Xbox pris en charge</string>
     <string name="title_checkbox_mouse_emulation">Emulation de la souris via le gamepad</string>
-    <string name="summary_checkbox_mouse_emulation">Appuyez longuement sur le bouton Start pour faire basculer la manette de jeu en mode souris.</string>
+    <string name="summary_checkbox_mouse_emulation">Appuyez longuement sur le bouton Start pour faire basculer la manette en mode souris</string>
     <string name="title_checkbox_mouse_nav_buttons">Activer les boutons de la souris arrière et avant</string>
-    <string name="summary_checkbox_mouse_nav_buttons">L\' activation de cette option peut entraîner un clic droit sur certains périphériques.</string>
+    <string name="summary_checkbox_mouse_nav_buttons">L\' activation de cette option peut casser le clic droit sur certains appareils bogués</string>
     <string name="title_checkbox_flip_face_buttons">Boutons de face inversé</string>
     <string name="summary_checkbox_flip_face_buttons">Commute les boutons de face A/B et X/Y pour les manettes de jeu et les commandes à l\'écran</string>
     <string name="category_on_screen_controls_settings">Paramètres des contrôles à l\'écran</string>
@@ -154,7 +166,7 @@
     <string name="title_reset_osc">Effacer la disposition des commandes à l\'écran sauvegardée</string>
     <string name="summary_reset_osc">Rétablit la taille et la position par défaut de tous les contrôles à l\'écran</string>
     <string name="dialog_title_reset_osc">Réinitialiser la mise en page</string>
-    <string name="dialog_text_reset_osc">Êtes-vous sûr de vouloir supprimer la disposition des commandes à l\'écran que vous avez sauvegardée?</string>
+    <string name="dialog_text_reset_osc">Êtes-vous sûr de vouloir supprimer la disposition des commandes à l\'écran que vous avez sauvegardée \?</string>
     <string name="toast_reset_osc_success">Les contrôles à l\'écran sont réinitialisés</string>
     <string name="title_osc_opacity">Modifier l\'opacité des contrôles à l\'écran</string>
     <string name="summary_osc_opacity">Rendre les contrôles à l\'écran plus/moins transparents</string>
@@ -190,4 +202,22 @@
     <string name="pcview_menu_header_unknown">Actualisation</string>
     <string name="pcview_menu_header_offline">Hors ligne</string>
     <string name="pcview_menu_header_online">En ligne</string>
+    <string name="resolution_prefix_native">Native</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="text_native_res_dialog">Les modes de résolution native ne sont pas officiellement supportées par GeForce Experience, l\'écran de votre hôte ne changera donc pas sa résolution. Vous devrez changer la résolution de chaque jeu dans les paramètres de celui-ci.
+\n
+\nSi vous créez une résolution personnalisée dans le panneau de contrôle NVIDIA identique à celle de votre appareil, gardez à l\'esprit les avertissement de NVIDIA en ce qui est des potentiels dégâts à votre moniteur, une instabilité générale, et encore d\'autres problèmes.
+\n
+\nNous ne sommes pas responsables des problèmes qui peuvent arriver suite à l\'utilisation de cette fonctionnalité.
+\n
+\nEnfin, votre appareil et/ou vôtre PC hôte peut ne pas supporter cette fonctionnalité. Si ça ne marche pas, on ne peut malheureusement rien y faire.</string>
+    <string name="title_native_res_dialog">Avertissement résolution native</string>
+    <string name="applist_menu_hide_app">Cacher l\'application</string>
+    <string name="check_ports_msg">Vérifiez vos règles de pare-feu pour les ports suivants :</string>
+    <string name="early_termination_error">Quelque chose s\'est mal passé sur votre PC hôte en démarrant le flux.
+\n
+\nVérifiez qu\'aucune application utilisant un DRM n\'est ouverte sur votre PC hôte. Vous pouvez aussi essayer de redémarrer votre PC hôte.
+\n
+\nSi le problème persiste, essayez de réinstaller les pilotes de votre GPU ainsi que GeForce Experience.</string>
+    <string name="no_frame_received_error">Votre connexion ne fonctionne pas bien. Baissez votre paramètres de débit ou utilisez une connexion plus rapide.</string>
 </resources>

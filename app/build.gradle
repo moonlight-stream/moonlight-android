@@ -2,16 +2,16 @@ apply plugin: 'com.android.application'
 
 android {
 
-    ndkVersion "22.0.7026061"
+    ndkVersion "22.1.7171670"
+
     compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 21 // 28
         targetSdkVersion 30
 
-        versionName "9.8.4"
-        versionCode = 255
-
+        versionName "9.8.5"
+        versionCode = 256
     }
 
     flavorDimensions "root"

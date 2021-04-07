@@ -186,4 +186,14 @@
     <string name="pcview_menu_header_unknown">Обновление</string>
     <string name="pcview_menu_header_offline">Оффлайн</string>
     <string name="pcview_menu_header_online">Онлайн</string>
+    <string name="title_osc_opacity">Изменить прозрачность экранных элементов управления</string>
+    <string name="check_ports_msg">Проверьте свой брандмауэр и правила переадресации портов для порта(ов):</string>
+    <string name="early_termination_error">Что-то пошло не так на вашем хост-компьютере при запуске трансляции.
+\n
+\nУбедитесь, что на вашем компьютере нет содержимого, защищенного DRM. Вы также можете попробовать перезагрузить компьютер.
+\n
+\nЕсли проблема сохраняется, попробуйте переустановить драйверы для GPU и GeForce Experience.</string>
+    <string name="no_frame_received_error">Ваше сетевое подключение не справляется с заданными настройками. Попробуйте изменить битрейт или использовать более быстрое подключение.</string>
+    <string name="no_video_received_error">Видео от хоста не получено.</string>
+    <string name="nettest_text_blocked">Текущее сетевое соединение вашего устройства блокирует Moonlight. Потоковая передача через Интернет может не работать при подключении к этой сети.</string>
 </resources>

@@ -1679,6 +1679,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                                     break;
 
                                 case MoonBridge.ML_ERROR_UNEXPECTED_EARLY_TERMINATION:
+                                case MoonBridge.ML_ERROR_PROTECTED_CONTENT:
                                     message = getResources().getString(R.string.early_termination_error);
                                     break;
 

@@ -149,7 +149,10 @@ public class MediaCodecHelper {
         // I know the Fire TV 2 and 3 works, so I'll whitelist Amazon devices which seem to actually be tested.
         if (Build.MANUFACTURER.equalsIgnoreCase("Amazon")) {
             whitelistedHevcDecoders.add("omx.mtk");
-            whitelistedHevcDecoders.add("omx.amlogic");
+
+            // This broke at some point on the Fire TV 3 and now the decoder
+            // never produces any output frames.
+            //whitelistedHevcDecoders.add("omx.amlogic");
         }
 
         // Plot twist: On newer Sony devices (BRAVIA_ATV2, BRAVIA_ATV3_4K, BRAVIA_UR1_4K) the H.264 decoder crashes
@@ -424,7 +427,7 @@ public class MediaCodecHelper {
                     videoFormat.setInteger("vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-rdy", -1);
                 }
                 else if (isDecoderInList(exynosDecoderPrefixes, decoderInfo.getName())) {
-                    // Exynos low latency option (I think...)
+                    // Exynos low latency option for H.264 decoder
                     videoFormat.setInteger("vendor.rtc-ext-dec-low-latency.enable", 1);
                 }
             }

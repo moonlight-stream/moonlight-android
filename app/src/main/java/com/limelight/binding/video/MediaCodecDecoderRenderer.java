@@ -46,7 +46,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private Thread rendererThread;
     private boolean needsSpsBitstreamFixup, isExynos4;
     private boolean adaptivePlayback, directSubmit;
-    private boolean lowLatency;
     private boolean constrainedHighProfile;
     private boolean refFrameInvalidationAvc, refFrameInvalidationHevc;
     private boolean refFrameInvalidationActive;
@@ -241,11 +240,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         this.refreshRate = redrawRate;
 
         String mimeType;
-        String selectedDecoderName;
+        MediaCodecInfo selectedDecoderInfo;
 
         if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
             mimeType = "video/avc";
-            selectedDecoderName = avcDecoder.getName();
+            selectedDecoderInfo = avcDecoder;
 
             if (avcDecoder == null) {
                 LimeLog.severe("No available AVC decoder!");
@@ -258,31 +257,28 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             // These fixups only apply to H264 decoders
-            needsSpsBitstreamFixup = MediaCodecHelper.decoderNeedsSpsBitstreamRestrictions(selectedDecoderName);
-            needsBaselineSpsHack = MediaCodecHelper.decoderNeedsBaselineSpsHack(selectedDecoderName);
-            constrainedHighProfile = MediaCodecHelper.decoderNeedsConstrainedHighProfile(selectedDecoderName);
+            needsSpsBitstreamFixup = MediaCodecHelper.decoderNeedsSpsBitstreamRestrictions(selectedDecoderInfo.getName());
+            needsBaselineSpsHack = MediaCodecHelper.decoderNeedsBaselineSpsHack(selectedDecoderInfo.getName());
+            constrainedHighProfile = MediaCodecHelper.decoderNeedsConstrainedHighProfile(selectedDecoderInfo.getName());
             isExynos4 = MediaCodecHelper.isExynos4Device();
             if (needsSpsBitstreamFixup) {
-                LimeLog.info("Decoder "+selectedDecoderName+" needs SPS bitstream restrictions fixup");
+                LimeLog.info("Decoder "+selectedDecoderInfo.getName()+" needs SPS bitstream restrictions fixup");
             }
             if (needsBaselineSpsHack) {
-                LimeLog.info("Decoder "+selectedDecoderName+" needs baseline SPS hack");
+                LimeLog.info("Decoder "+selectedDecoderInfo.getName()+" needs baseline SPS hack");
             }
             if (constrainedHighProfile) {
-                LimeLog.info("Decoder "+selectedDecoderName+" needs constrained high profile");
+                LimeLog.info("Decoder "+selectedDecoderInfo.getName()+" needs constrained high profile");
             }
             if (isExynos4) {
-                LimeLog.info("Decoder "+selectedDecoderName+" is on Exynos 4");
+                LimeLog.info("Decoder "+selectedDecoderInfo.getName()+" is on Exynos 4");
             }
 
             refFrameInvalidationActive = refFrameInvalidationAvc;
-
-            lowLatency = MediaCodecHelper.decoderSupportsLowLatency(avcDecoder, mimeType);
-            adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(avcDecoder, mimeType);
         }
         else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
             mimeType = "video/hevc";
-            selectedDecoderName = hevcDecoder.getName();
+            selectedDecoderInfo = hevcDecoder;
 
             if (hevcDecoder == null) {
                 LimeLog.severe("No available HEVC decoder!");
@@ -290,9 +286,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             }
 
             refFrameInvalidationActive = refFrameInvalidationHevc;
-
-            lowLatency = MediaCodecHelper.decoderSupportsLowLatency(hevcDecoder, mimeType);
-            adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(hevcDecoder, mimeType);
         }
         else {
             // Unknown format
@@ -300,10 +293,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             return -3;
         }
 
+        adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(selectedDecoderInfo, mimeType);
+
         // Codecs have been known to throw all sorts of crazy runtime exceptions
         // due to implementation problems
         try {
-            videoDecoder = MediaCodec.createByCodecName(selectedDecoderName);
+            videoDecoder = MediaCodec.createByCodecName(selectedDecoderInfo.getName());
         } catch (Exception e) {
             e.printStackTrace();
             return -4;
@@ -326,26 +321,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             videoFormat.setInteger(MediaFormat.KEY_MAX_HEIGHT, height);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && lowLatency) {
-            videoFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1);
-        }
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Set the Qualcomm vendor low latency extension if the Android R option is unavailable
-            if (MediaCodecHelper.decoderSupportsQcomVendorLowLatency(selectedDecoderName)) {
-                // MediaCodec supports vendor-defined format keys using the "vendor.<extension name>.<parameter name>" syntax.
-                // These allow access to functionality that is not exposed through documented MediaFormat.KEY_* values.
-                // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/common/inc/vidc_vendor_extensions.h;l=67
-                //
-                // Examples of Qualcomm's vendor extensions for Snapdragon 845:
-                // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/vdec/src/omx_vdec_extensions.hpp
-                // https://cs.android.com/android/_/android/platform/hardware/qcom/sm8150/media/+/0621ceb1c1b19564999db8293574a0e12952ff6c
-                videoFormat.setInteger("vendor.qti-ext-dec-low-latency.enable", 1);
-            }
-
-            if (MediaCodecHelper.decoderSupportsMaxOperatingRate(selectedDecoderName)) {
-                videoFormat.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
-            }
-        }
+        MediaCodecHelper.setDecoderLowLatencyOptions(videoFormat, selectedDecoderInfo, mimeType);
 
         configuredFormat = videoFormat;
         LimeLog.info("Configuring with format: "+configuredFormat);
@@ -375,7 +351,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 }, null);
             }
 
-            LimeLog.info("Using codec "+selectedDecoderName+" for hardware decoding "+mimeType);
+            LimeLog.info("Using codec "+selectedDecoderInfo.getName()+" for hardware decoding "+mimeType);
 
             // Start the decoder
             videoDecoder.start();
@@ -1103,7 +1079,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";
             str += "RFI active: "+renderer.refFrameInvalidationActive+"\n";
             str += "Using modern SPS patching: "+(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)+"\n";
-            str += "Low latency mode: "+renderer.lowLatency+"\n";
             str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Kbps \n";

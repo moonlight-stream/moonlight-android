@@ -41,6 +41,7 @@ public class MediaCodecHelper {
     private static final List<String> blacklisted59FpsDecoderPrefixes;
     private static final List<String> qualcommDecoderPrefixes;
     private static final List<String> kirinDecoderPrefixes;
+    private static final List<String> exynosDecoderPrefixes;
 
     public static final boolean IS_EMULATOR = Build.HARDWARE.equals("ranchu") || Build.HARDWARE.equals("cheets");
 
@@ -212,6 +213,12 @@ public class MediaCodecHelper {
         kirinDecoderPrefixes = new LinkedList<>();
 
         kirinDecoderPrefixes.add("omx.hisi");
+    }
+
+    static {
+        exynosDecoderPrefixes = new LinkedList<>();
+
+        exynosDecoderPrefixes.add("omx.exynos");
     }
 
     private static boolean isPowerVR(String glRenderer) {
@@ -415,6 +422,10 @@ public class MediaCodecHelper {
                     // https://developer.huawei.com/consumer/cn/forum/topic/0202325564295980115
                     videoFormat.setInteger("vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-req", 1);
                     videoFormat.setInteger("vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-rdy", -1);
+                }
+                else if (isDecoderInList(exynosDecoderPrefixes, decoderInfo.getName())) {
+                    // Exynos low latency option (I think...)
+                    videoFormat.setInteger("vendor.rtc-ext-dec-low-latency.enable", 1);
                 }
             }
             else if (isDecoderInList(qualcommDecoderPrefixes, decoderInfo.getName())) {

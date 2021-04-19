@@ -18,6 +18,7 @@ LOCAL_SRC_FILES := moonlight-common-c/src/AudioStream.c \
                    moonlight-common-c/src/LinkedBlockingQueue.c \
                    moonlight-common-c/src/Misc.c \
                    moonlight-common-c/src/Platform.c \
+                   moonlight-common-c/src/PlatformCrypto.c \
                    moonlight-common-c/src/PlatformSockets.c \
                    moonlight-common-c/src/RtpFecQueue.c \
                    moonlight-common-c/src/RtpReorderQueue.c \

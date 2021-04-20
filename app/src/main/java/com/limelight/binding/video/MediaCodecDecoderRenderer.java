@@ -84,6 +84,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private int numSpsIn;
     private int numPpsIn;
     private int numVpsIn;
+    private int numFramesIn;
+    private int numFramesOut;
 
     private MediaCodecInfo findAvcDecoder() {
         MediaCodecInfo decoder = MediaCodecHelper.findProbableSafeDecoder("video/avc", MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
@@ -430,9 +432,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                             long presentationTimeUs = info.presentationTimeUs;
                             int lastIndex = outIndex;
 
+                            numFramesOut++;
+
                             // Get the last output buffer in the queue
                             while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
                                 videoDecoder.releaseOutputBuffer(lastIndex, false);
+
+                                numFramesOut++;
 
                                 lastIndex = outIndex;
                                 presentationTimeUs = info.presentationTimeUs;
@@ -895,6 +901,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
                 submitCsdNextCall = false;
             }
+
+            numFramesIn++;
         }
 
         if (decodeUnitLength > buf.limit() - buf.position()) {
@@ -1040,8 +1048,31 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
 
         private String generateText(MediaCodecDecoderRenderer renderer, Exception originalException, ByteBuffer currentBuffer, int currentCodecFlags) {
-            String str = "";
+            String str;
 
+            if (renderer.numVpsIn == 0 && renderer.numSpsIn == 0 && renderer.numPpsIn == 0) {
+                str = "PreSPSError";
+            }
+            else if (renderer.numSpsIn > 0 && renderer.numPpsIn == 0) {
+                str = "PrePPSError";
+            }
+            else if (renderer.numPpsIn > 0 && renderer.numFramesIn == 0) {
+                str = "PreIFrameError";
+            }
+            else if (renderer.numFramesIn > 0 && renderer.outputFormat == null) {
+                str = "PreOutputConfigError";
+            }
+            else if (renderer.outputFormat != null && renderer.numFramesOut == 0) {
+                str = "PreOutputError";
+            }
+            else if (renderer.numFramesOut <= renderer.refreshRate * 30) {
+                str = "EarlyOutputError";
+            }
+            else {
+                str = "ErrorWhileStreaming";
+            }
+
+            str += "\n";
             str += "Format: "+String.format("%x", renderer.videoFormat)+"\n";
             str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+"\n";
             str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+"\n";
@@ -1082,7 +1113,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
             str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Kbps \n";
-            str += "In stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
+            str += "CSD stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
+            str += "Frames in-out: "+renderer.numFramesIn+", "+renderer.numFramesOut+"\n";
             str += "Total frames received: "+renderer.globalVideoStats.totalFramesReceived+"\n";
             str += "Total frames rendered: "+renderer.globalVideoStats.totalFramesRendered+"\n";
             str += "Frame losses: "+renderer.globalVideoStats.framesLost+" in "+renderer.globalVideoStats.frameLossEvents+" loss events\n";

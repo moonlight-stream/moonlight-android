@@ -165,7 +165,12 @@ public class MediaCodecHelper {
         // since GFE added support for maxNumReferenceFrames, we'll just enable all Amlogic SoCs
         // running Android 9 or later. HEVC is much lower latency than H.264 on Sabrina (S905X2).
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            whitelistedHevcDecoders.add("omx.amlogic");
+            // This broke at some point and now latency is like 10 frames and completely unplayable.
+            //whitelistedHevcDecoders.add("omx.amlogic");
+
+            // It looks like the OMX.amlogic.hevc.decoder.awesome2 in the ADT-3/Google TV Chromecast
+            // doesn't suffer from the latency problem that the ADT-2 has with OMX.amlogic.hevc.decoder.awesome
+            whitelistedHevcDecoders.add("OMX.amlogic.hevc.decoder.awesome2");
         }
 
         // These theoretically have good HEVC decoding capabilities (potentially better than

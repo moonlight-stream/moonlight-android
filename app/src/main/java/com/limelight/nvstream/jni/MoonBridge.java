@@ -18,6 +18,10 @@ public class MoonBridge {
     public static final int VIDEO_FORMAT_MASK_H264 = 0x00FF;
     public static final int VIDEO_FORMAT_MASK_H265 = 0xFF00;
 
+    public static final int ENCFLG_NONE = 0;
+    public static final int ENCFLG_AUDIO = 1;
+    public static final int ENCFLG_ALL = 0xFFFFFFFF;
+
     public static final int BUFFER_TYPE_PICDATA = 0;
     public static final int BUFFER_TYPE_SPS = 1;
     public static final int BUFFER_TYPE_PPS = 2;
@@ -255,6 +259,7 @@ public class MoonBridge {
                                               boolean enableHdr,
                                               int hevcBitratePercentageMultiplier,
                                               int clientRefreshRateX100,
+                                              int encryptionFlags,
                                               byte[] riAesKey, byte[] riAesIv,
                                               int videoCapabilities);
 

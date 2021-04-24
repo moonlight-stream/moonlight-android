@@ -26,6 +26,7 @@ public class StreamConfiguration {
     private int hevcBitratePercentageMultiplier;
     private boolean enableHdr;
     private int attachedGamepadMask;
+    private int encryptionFlags;
 
     public static class Builder {
         private StreamConfiguration config = new StreamConfiguration();
@@ -110,7 +111,17 @@ public class StreamConfiguration {
             config.clientRefreshRateX100 = refreshRateX100;
             return this;
         }
-        
+
+        public StreamConfiguration.Builder setAudioEncryption(boolean enable) {
+            if (enable) {
+                config.encryptionFlags |= MoonBridge.ENCFLG_AUDIO;
+            }
+            else {
+                config.encryptionFlags &= ~MoonBridge.ENCFLG_AUDIO;
+            }
+            return this;
+        }
+
         public StreamConfiguration.Builder setAudioConfiguration(MoonBridge.AudioConfiguration audioConfig) {
             config.audioConfiguration = audioConfig;
             return this;
@@ -210,5 +221,9 @@ public class StreamConfiguration {
 
     public int getClientRefreshRateX100() {
         return clientRefreshRateX100;
+    }
+
+    public int getEncryptionFlags() {
+        return encryptionFlags;
     }
 }

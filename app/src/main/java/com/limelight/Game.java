@@ -473,6 +473,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setAttachedGamepadMask(gamepadMask)
                 .setClientRefreshRateX100((int)(displayRefreshRate * 100))
                 .setAudioConfiguration(prefConfig.audioConfiguration)
+                .setAudioEncryption(true)
                 .build();
 
         // Initialize the connection

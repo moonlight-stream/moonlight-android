@@ -284,6 +284,7 @@ public class NvConnection {
                             context.negotiatedHdr,
                             context.streamConfig.getHevcBitratePercentageMultiplier(),
                             context.streamConfig.getClientRefreshRateX100(),
+                            context.streamConfig.getEncryptionFlags(),
                             context.riKey.getEncoded(), ib.array(),
                             context.videoCapabilities);
                     if (ret != 0) {

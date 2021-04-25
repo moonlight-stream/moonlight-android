@@ -6,19 +6,32 @@
     <string name="scut_not_paired"> 電腦未配對 </string>
     <string name="scut_pc_not_found"> 電腦未找到 </string>
     <string name="scut_invalid_uuid"> 提供的電腦無效 </string>
-    <string name="scut_invalid_app_id"> 提供的App無效 </string>
+    <string name="scut_invalid_app_id"> 提供的遊戲無效 </string>
 
     <!-- Help strings -->
     <string name="help_loading_title"> 查看幫助 </string>
     <string name="help_loading_msg"> 正在載入説明頁面…… </string>
 
     <!-- PC view menu entries -->
+    <string name="pcview_menu_header_online"> 線上 </string>
+    <string name="pcview_menu_header_offline"> 離線 </string>
+    <string name="pcview_menu_header_unknown"> 刷新中 </string>
+    <string name="pcview_menu_test_network"> 檢測網路連接 </string>
     <string name="pcview_menu_app_list"> 流覽遊戲列表 </string>
     <string name="pcview_menu_pair_pc"> 和電腦配對 </string>
     <string name="pcview_menu_unpair_pc"> 取消配對 </string>
-    <string name="pcview_menu_send_wol"> 發送 Wake-On-LAN 請求 </string>
+    <string name="pcview_menu_send_wol"> 發送WOL請求 </string>
     <string name="pcview_menu_delete_pc"> 刪除電腦 </string>
-    <string name="pcview_menu_details"> 查看詳情 </string>														
+    <string name="pcview_menu_details"> 查看詳情 </string>
+	
+    <!-- Network test strings -->
+    <string name="nettest_title_waiting"> 正在檢測網路連接 </string>
+    <string name="nettest_text_waiting"> Moonlight正在檢測您的網路連接以確認NVIDIA遊戲串流服務是否被攔截。\n\n 可能需要等待一些時間… </string>
+    <string name="nettest_title_done"> 網路檢測完成 </string>
+    <string name="nettest_text_success">您的網路似乎沒有攔截Moonlight。如果仍然無法連接，請檢查您電腦的防火牆設置。\n\n如果您是嘗試通過互聯網串流，請在您的電腦上安裝Moonlight Internet Hosting Tool，然後運行裡面的Internet Streaming Tester來檢查電腦的互聯網連接。 </string>
+    <string name="nettest_text_inconclusive">由於沒有Moonlight連接測試伺服器可供訪問，因此無法執行網路測試。請檢查您的Internet連接或稍後再試。 </string>
+    <string name="nettest_text_failure">您設備當前的網路連接似乎攔截了Moonlight。連接到該網路時可能無法通過互聯網串流。\n\n以下網路埠被攔截：\n</string>
+    <string name="nettest_text_blocked">您設備當前的網路連接攔截了Moonlight。連接到該網路時可能無法通過互聯網串流。</string>
 
     <!-- Pair messages -->
     <string name="pairing"> 配對中…… </string>
@@ -35,9 +48,9 @@
     <string name="wol_no_mac"> 無法喚醒電腦因為GFE沒有返回MAC地址 </string>
     <string name="wol_waking_pc"> 喚醒電腦中…… </string>
     <string name="wol_waking_msg"> 喚醒電腦需要一些時間\n
-    	如果電腦沒有喚醒，請確保Wake-On-LAN設置無誤
+    	如果電腦沒有喚醒，請確保WOL設置無誤
     </string>
-    <string name="wol_fail"> 無法發送Wake-On-LAN資料包 </string>
+    <string name="wol_fail"> 無法發送WOL資料包 </string>
 
     <!-- Unpair messages -->
     <string name="unpairing"> 取消配對中…… </string>
@@ -57,7 +70,12 @@
     <string name="title_decoding_reset"> 重置視頻設置 </string>
     <string name="message_decoding_reset"> 由於設備的視頻解碼器在你選擇的串流設置上持續崩潰，已重置你的串流設置。 </string>
     <string name="error_usb_prohibited"> 設備管理員已禁止USB訪問。請檢查您的Knox或MDM設置。 </string>
-    <string name="unable_to_pin_shortcut"> 您當前的桌面啟動器不允許創建長按子功能表。 </string>																	  
+    <string name="unable_to_pin_shortcut"> 您當前的桌面啟動器不允許創建固定的快捷方式。 </string>
+    <string name="video_decoder_init_failed"> 視頻解碼器初始化失敗。您的設備可能不支援選定的解析度或幀數。 </string>
+    <string name="no_video_received_error"> 沒有接收到來自主機的視頻。 </string>
+    <string name="no_frame_received_error"> 您的網路連接品質不佳。降低視頻碼率設置或更換更快的連接。</string>
+    <string name="early_termination_error"> 開始串流時您的主機電腦出了點問題。\n\n請確保沒有在主機電腦上開啟任何受DRM保護的內容。您也可以嘗試重新開機主機電腦。\n\n如果問題仍然存在，請嘗試重新安裝GPU驅動和GFE。</string>
+    <string name="check_ports_msg"> 請檢查您的防火牆和埠轉發規則中的埠：</string>
 
     <!-- Start application messages -->
     <string name="conn_establishing_title"> 建立連接中 </string>
@@ -94,7 +112,8 @@
     <string name="applist_menu_cancel"> 取消 </string>
     <string name="applist_menu_details"> 查看詳情 </string>
     <string name="applist_menu_scut"> 創建快捷方式 </string>
-    <string name="applist_menu_tv_channel"> 添加到頻道 </string>															 
+    <string name="applist_menu_tv_channel"> 添加到頻道 </string>
+    <string name="applist_menu_hide_app"> 隱藏遊戲 </string>
     <string name="applist_refresh_title"> 遊戲列表 </string>
     <string name="applist_refresh_msg"> 刷新中…… </string>
     <string name="applist_refresh_error_title"> 錯誤 </string>
@@ -103,7 +122,7 @@
     <string name="applist_quit_success"> 成功退出串流 </string>
     <string name="applist_quit_fail"> 退出串流失敗 </string>
     <string name="applist_quit_confirmation"> 您確定要退出當前遊戲？\n所有未保存的資料將丟失。 </string>
-    <string name="applist_details_id">App ID：</string>												  
+    <string name="applist_details_id">遊戲ID：</string>												  
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc"> 手動添加電腦 </string>
@@ -118,10 +137,14 @@
     <string name="category_basic_settings"> 基本設置 </string>
     <string name="title_resolution_list"> 視頻解析度 </string>
     <string name="summary_resolution_list"> 高解析度提升圖像清晰度。 \n 低解析度提升在低端設備和較慢網路中的串流體驗。 </string>
+    <string name="title_native_res_dialog"> 本地解析度警告 </string>
+    <string name="text_native_res_dialog"> 本地解析度模式不受GFE的官方支持，因此不會自動設置主機的顯示解析度。您需要在遊戲中手動進行設置。\n\n如果您選擇在NVIDIA控制台中創建自訂解析度以匹配設備解析度，請確保您已閱讀並理解NVIDIA關於可能導致顯示器損壞和電腦不穩定以及其他潛在問題的警告。\n\n對於您在您的電腦上創建自訂解析度而導致的任何問題，我們概不負責。\n\n最後，您的設備或主機電腦可能不支援以本地解析度串流。如果此模式在您的設備上無法正常運行，只能說您運氣欠佳了。 </string>
     <string name="title_fps_list"> 視頻幀數 </string>
     <string name="summary_fps_list"> 高幀數提升視頻流流暢度。 \n 低幀數提升在低端設備中的串流體驗。</string>													   																																	
     <string name="title_seekbar_bitrate"> 視頻碼率 </string>
     <string name="summary_seekbar_bitrate"> 高碼率提升圖像品質。 \n 低碼率提升在較慢網路中的串流體驗。 </string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="resolution_prefix_native"> 本地 </string>
     <string name="title_unlock_fps"> 解鎖所有可用幀數 </string>
     <string name="summary_unlock_fps"> 以90或120幀串流可能會減少在高端設備上的網路延遲，但會在不支援的設備上造成卡頓或崩潰。 </string>																																																														   
     <string name="title_checkbox_stretch_video"> 將畫面拉伸至全屏 </string>
@@ -132,11 +155,11 @@
 
     <string name="category_audio_settings"> 音訊設置 </string>
     <string name="title_audio_config_list"> 環繞聲設置 </string>
-    <string name="summary_audio_config_list"> 為家庭劇院系統啟用5.1或7.1環繞聲 </string>
+    <string name="summary_audio_config_list"> 為家庭影院系統啟用5.1或7.1環繞聲 </string>
 
-    <string name="category_input_settings"> 輸入設置 </string>
-    <string name="title_checkbox_touchscreen_trackpad"> 將觸控屏作為觸控板使用 </string>
-    <string name="summary_checkbox_touchscreen_trackpad"> 如果啟用，則將觸控屏作為觸控板使用。 如果禁止，則觸控屏直接控制滑鼠游標 </string>
+    <string name="category_input_settings">輸入設置</string>
+    <string name="title_checkbox_touchscreen_trackpad">將觸控屏作為觸控板使用</string>
+    <string name="summary_checkbox_touchscreen_trackpad">如果啟用，則將觸控屏作為觸控板使用。 如果禁止，則觸控屏直接控制滑鼠游標</string>
     <string name="title_checkbox_multi_controller"> 自動檢測手柄 </string>
     <string name="summary_checkbox_multi_controller"> 禁用此項所有手柄將視為一個手柄 </string>
     <string name="title_checkbox_vibrate_fallback"> 用設備震動類比遊戲震動效果 </string>
@@ -151,23 +174,29 @@
     <string name="summary_checkbox_mouse_emulation"> 長按開始鍵將手柄切換為滑鼠模式 </string>
     <string name="title_checkbox_mouse_nav_buttons"> 啟用前進後退滑鼠鍵 </string>
     <string name="summary_checkbox_mouse_nav_buttons"> 在一些支援不佳的設備上啟用此項可能會使其右鍵失效 </string>
-    <string name="title_checkbox_flip_face_buttons">反轉技能鍵</string>
-    <string name="summary_checkbox_flip_face_buttons">為手柄和虛擬手柄調轉A/B和X/Y技能鍵</string>
+    <string name="title_checkbox_flip_face_buttons"> 反轉技能鍵 </string>
+    <string name="summary_checkbox_flip_face_buttons"> 為手柄和虛擬手柄調轉A/B和X/Y技能鍵 </string>
 
-    <string name="category_on_screen_controls_settings"> 螢幕控制按鈕設置 </string>
-    <string name="title_checkbox_show_onscreen_controls"> 顯示幕幕控制按鈕 </string>
+    <string name="category_on_screen_controls_settings"> 螢幕控制按鍵設置 </string>
+    <string name="title_checkbox_show_onscreen_controls"> 顯示幕幕控制按鍵 </string>
     <string name="summary_checkbox_show_onscreen_controls"> 在觸控式螢幕上顯示一層虛擬手柄 </string>
     <string name="title_checkbox_vibrate_osc"> 啟用震動 </string>
-    <string name="summary_checkbox_vibrate_osc"> 使用螢幕控制按鈕時震動設備以類比遊戲震動效果 </string>
+    <string name="summary_checkbox_vibrate_osc"> 使用螢幕控制按鍵時震動設備以類比遊戲震動效果 </string>
     <string name="title_only_l3r3"> 只顯示L3和R3 </string>
-    <string name="summary_only_l3r3"> 隱藏除L3和R3外的所有虛擬按鈕 </string>
-    <string name="title_reset_osc"> 重置已保存的螢幕控制按鈕佈局 </string>
-    <string name="summary_reset_osc"> 重置所有螢幕控制按鈕為預設大小和位置 </string>
-    <string name="dialog_title_reset_osc"> 重新開機按鈕佈局 </string>
-    <string name="dialog_text_reset_osc"> 你確定要刪除所保存的螢幕按鈕佈局嗎？ </string>
-    <string name="toast_reset_osc_success"> 螢幕按鈕佈局已經重置 </string>																	   																														  
+    <string name="summary_only_l3r3"> 隱藏除L3和R3外的所有虛擬按鍵 </string>
+    <string name="title_reset_osc"> 重置已保存的螢幕控制按鍵佈局 </string>
+    <string name="summary_reset_osc"> 重置所有螢幕控制按鍵為預設大小和位置 </string>
+    <string name="dialog_title_reset_osc"> 重置按鍵佈局 </string>
+    <string name="dialog_text_reset_osc"> 你確定要刪除所保存的螢幕按鍵佈局嗎？ </string>
+    <string name="toast_reset_osc_success"> 螢幕按鍵佈局已經重置 </string>	
+    <string name="title_osc_opacity"> 更改螢幕按鍵透明度 </string>
+    <string name="summary_osc_opacity"> 令螢幕按鍵變得更透明/更不透明 </string>
+    <string name="dialog_title_osc_opacity"> 透明度 </string>
+    <string name="suffix_osc_opacity">%</string>																   																														  
 
     <string name="category_ui_settings"> 介面設置 </string>
+    <string name="title_checkbox_enable_pip"> 啟用畫中畫觀察模式 </string>
+    <string name="summary_checkbox_enable_pip"> 允許在多工處理時觀看串流（但不控制）</string>
     <string name="title_language_list"> 語言 </string>
     <string name="summary_language_list"> 選擇Moonlight顯示的語言 </string>
     <string name="title_checkbox_small_icon_mode"> 使用小圖示 </string>
@@ -180,20 +209,19 @@
     <string name="summary_checkbox_host_audio"> 在電腦和本設備同時輸出聲音 </string>
 
     <string name="category_advanced_settings"> 高級設置 </string>
+    <string name="title_unlock_fps"> 解鎖全部可用幀率 </string>
+    <string name="summary_unlock_fps"> 以90或120FPS串流可緩解在高端設備上的延遲，但會給不支援的設備增加延遲或不穩定 </string>
+    <string name="title_checkbox_disable_warnings"> 禁用警告資訊 </string>
+    <string name="summary_checkbox_disable_warnings"> 串流時禁止在螢幕顯示連接警告資訊 </string>
     <string name="title_disable_frame_drop"> 永不掉幀 </string>
     <string name="summary_disable_frame_drop"> 可能會減少在一些設備上的卡頓，但會增加延遲 </string>
     <string name="title_video_format"> 更改H.265設置 </string>
-    <string name="summary_video_format">H.265能降低視頻頻寬需求，但需要較新的設備才能支援</string>
+    <string name="summary_video_format"> H.265能降低視頻頻寬需求，但需要較新的設備才能支援 </string>
     <string name="title_enable_hdr"> 啟用 HDR （實驗） </string>
-    <string name="summary_enable_hdr"> 當遊戲和顯卡支援時以HDR模式串流。 HDR需要GTX 1000系列或更高規格顯卡。 </string>
+    <string name="summary_enable_hdr"> 當遊戲和顯卡支援時以HDR模式串流。HDR需要GTX 1000系列或更高規格顯卡。 </string>
     <string name="title_enable_perf_overlay"> 啟用性能資訊 </string>
     <string name="summary_enable_perf_overlay"> 在串流中顯示即時性能資訊 </string>
-    <string name="title_enable_post_stream_toast">串流完畢顯示延遲資訊</string>
-    <string name="summary_enable_post_stream_toast">串流結束後顯示延遲資訊</string>
-    <string name="title_osc_opacity">更改屏幕按鈕透明度</string>
-    <string name="dialog_title_osc_opacity">透明度</string>
-    <string name="suffix_osc_opacity">%</string>
-    <string name="summary_osc_opacity">令屏幕按钮變得更透明/更不透明</string>
-
-
+    <string name="title_enable_post_stream_toast"> 串流完畢顯示延遲資訊 </string>
+    <string name="summary_enable_post_stream_toast"> 串流結束後顯示延遲資訊 </string>
+    
 </resources>

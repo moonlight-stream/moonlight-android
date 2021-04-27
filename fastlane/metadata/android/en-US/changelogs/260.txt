@@ -1,0 +1,4 @@
+- Improved performance with high bitrates and resolutions with GFE 3.22
+- Fixed support for Android 11 low latency codecs
+- Reverted a change that caused issues on some old Qualcomm devices
+- Updated translations from Weblate community

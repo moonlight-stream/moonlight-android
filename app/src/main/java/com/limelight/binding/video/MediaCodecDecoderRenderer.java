@@ -1072,7 +1072,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 str = "ErrorWhileStreaming";
             }
 
-            str += ":\n";
+            str += ": 1\n";
             str += "Format: "+String.format("%x", renderer.videoFormat)+"\n";
             str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+"\n";
             str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+"\n";

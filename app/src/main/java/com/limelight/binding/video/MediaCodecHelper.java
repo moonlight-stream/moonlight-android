@@ -431,10 +431,6 @@ public class MediaCodecHelper {
                     videoFormat.setInteger("vendor.rtc-ext-dec-low-latency.enable", 1);
                 }
             }
-            else if (isDecoderInList(qualcommDecoderPrefixes, decoderInfo.getName())) {
-                // This is an older low latency option used on some Qualcomm devices
-                videoFormat.setInteger("vt-low-latency", 1);
-            }
 
             if (MediaCodecHelper.decoderSupportsMaxOperatingRate(decoderInfo.getName())) {
                 videoFormat.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);

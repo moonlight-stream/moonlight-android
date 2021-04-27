@@ -614,13 +614,6 @@ public class MediaCodecHelper {
                 if (codecInfo.isEncoder()) {
                     continue;
                 }
-
-                // Skip compatibility aliases on Q+
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    if (codecInfo.isAlias()) {
-                        continue;
-                    }
-                }
                 
                 // Check for preferred decoders
                 if (preferredDecoder.equalsIgnoreCase(codecInfo.getName())) {

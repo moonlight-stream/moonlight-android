@@ -706,43 +706,57 @@ public class MediaCodecHelper {
     // and we want to be sure all callers are handling this possibility
     @SuppressWarnings("RedundantThrows")
     private static MediaCodecInfo findKnownSafeDecoder(String mimeType, int requiredProfile) throws Exception {
-        for (MediaCodecInfo codecInfo : getMediaCodecList()) {      
-            // Skip encoders
-            if (codecInfo.isEncoder()) {
-                continue;
-            }
-
-            // Skip compatibility aliases on Q+
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                if (codecInfo.isAlias()) {
+        // Some devices (Exynos devces, at least) have two sets of decoders.
+        // The first set of decoders are C2 which do not support FEATURE_LowLatency,
+        // but the second set of OMX decoders do support FEATURE_LowLatency. We want
+        // to pick the OMX decoders despite the fact that C2 is listed first.
+        // On some Qualcomm devices (like Pixel 4), there are separate low latency decoders
+        // (like c2.qti.hevc.decoder.low_latency) that advertise FEATURE_LowLatency while
+        // the standard ones (like c2.qti.hevc.decoder) do not. Like Exynos, the decoders
+        // with FEATURE_LowLatency support are listed after the standard ones.
+        for (int i = 0; i < 2; i++) {
+            for (MediaCodecInfo codecInfo : getMediaCodecList()) {
+                // Skip encoders
+                if (codecInfo.isEncoder()) {
                     continue;
                 }
-            }
-            
-            // Find a decoder that supports the requested video format
-            for (String mime : codecInfo.getSupportedTypes()) {
-                if (mime.equalsIgnoreCase(mimeType)) {
-                    LimeLog.info("Examining decoder capabilities of "+codecInfo.getName());
 
-                    // Skip blacklisted codecs
-                    if (isCodecBlacklisted(codecInfo)) {
+                // Skip compatibility aliases on Q+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    if (codecInfo.isAlias()) {
                         continue;
                     }
+                }
 
-                    CodecCapabilities caps = codecInfo.getCapabilitiesForType(mime);
+                // Find a decoder that supports the requested video format
+                for (String mime : codecInfo.getSupportedTypes()) {
+                    if (mime.equalsIgnoreCase(mimeType)) {
+                        LimeLog.info("Examining decoder capabilities of " + codecInfo.getName() + " (round " + (i + 1) + ")");
 
-                    if (requiredProfile != -1) {
-                        for (CodecProfileLevel profile : caps.profileLevels) {
-                            if (profile.profile == requiredProfile) {
-                                LimeLog.info("Decoder " + codecInfo.getName() + " supports required profile");
-                                return codecInfo;
-                            }
+                        // Skip blacklisted codecs
+                        if (isCodecBlacklisted(codecInfo)) {
+                            continue;
                         }
 
-                        LimeLog.info("Decoder " + codecInfo.getName() + " does NOT support required profile");
-                    }
-                    else {
-                        return codecInfo;
+                        CodecCapabilities caps = codecInfo.getCapabilitiesForType(mime);
+
+                        if (i == 0 && !decoderSupportsAndroidRLowLatency(codecInfo, mime)) {
+                            LimeLog.info("Skipping decoder that lacks FEATURE_LowLatency for round 1");
+                            continue;
+                        }
+
+                        if (requiredProfile != -1) {
+                            for (CodecProfileLevel profile : caps.profileLevels) {
+                                if (profile.profile == requiredProfile) {
+                                    LimeLog.info("Decoder " + codecInfo.getName() + " supports required profile");
+                                    return codecInfo;
+                                }
+                            }
+
+                            LimeLog.info("Decoder " + codecInfo.getName() + " does NOT support required profile");
+                        } else {
+                            return codecInfo;
+                        }
                     }
                 }
             }

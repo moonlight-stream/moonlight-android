@@ -190,4 +190,25 @@
     <string name="pcview_menu_header_unknown">刷新中</string>
     <string name="pcview_menu_header_offline">离线</string>
     <string name="pcview_menu_header_online">在线</string>
+    <string name="resolution_prefix_native">本地</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="text_native_res_dialog">本地分辨率模式不受GFE的官方支持，因此不会自动设置主机的显示分辨率。您需要在游戏中手动进行设置。
+\n
+\n如果您选择在NVIDIA控制面板中创建自定义分辨率以匹配设备分辨率，请确保您已阅读并理解NVIDIA关于可能导致显示器损坏和电脑不稳定以及其他潜在问题的警告。
+\n
+\n对于您在您的电脑上创建自定义分辨率而导致的任何问题，我们概不负责。
+\n
+\n最后，您的设备或主机电脑可能不支持以本地分辨率串流。如果此模式无法在您的设备上正常运行，那很遗憾您运气欠佳。</string>
+    <string name="title_native_res_dialog">本地分辨率警告</string>
+    <string name="applist_menu_hide_app">隐藏游戏</string>
+    <string name="check_ports_msg">请检查您的防火墙和端口转发规则中的端口：</string>
+    <string name="early_termination_error">开始串流时您的主机电脑出了点问题。
+\n
+\n请确保没有在主机电脑上开启任何受DRM保护的内容。您也可以尝试重新启动主机电脑。
+\n
+\n如果问题仍然存在，请尝试重新安装GPU驱动和GFE。</string>
+    <string name="no_frame_received_error">您的网络连接质量不佳。请降低视频码率设置或更换更快的网络连接。</string>
+    <string name="no_video_received_error">没有接收到来自主机的视频。</string>
+    <string name="video_decoder_init_failed">视频解码器初始化失败。您的设备可能不支持选定的分辨率或帧数。</string>
+    <string name="nettest_text_blocked">您设备当前的网络连接拦截了Moonlight。连接到该网络时可能无法通过互联网串流。</string>
 </resources>

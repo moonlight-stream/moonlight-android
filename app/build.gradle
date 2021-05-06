@@ -112,6 +112,9 @@ android {
             path "src/main/jni/Android.mk"
         }
     }
+
+    // Generate native debug symbols to allow Google Play to symbolicate our native crashes
+    android.defaultConfig.ndk.debugSymbolLevel = 'FULL'
 }
 
 dependencies {

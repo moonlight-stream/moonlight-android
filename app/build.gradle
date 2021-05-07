@@ -10,7 +10,7 @@ android {
         targetSdkVersion 30
 
         versionName "9.9.2"
-        versionCode = 262
+        versionCode = 263
     }
 
     flavorDimensions "root"

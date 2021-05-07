@@ -15,6 +15,7 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.util.DisplayMetrics;
 import android.util.Range;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -28,6 +29,7 @@ import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 public class StreamSettings extends Activity {
@@ -334,11 +336,29 @@ public class StreamSettings extends Activity {
                     // Never remove 720p
                 }
             }
-            else {
-                Display display = getActivity().getWindowManager().getDefaultDisplay();
-                int width = Math.max(display.getWidth(), display.getHeight());
-                int height = Math.min(display.getWidth(), display.getHeight());
+            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                // On Android 4.2 and later, we can get the true metrics via the
+                // getRealMetrics() function (unlike the lies that getWidth() and getHeight()
+                // tell to us).
+                DisplayMetrics metrics = new DisplayMetrics();
+                getActivity().getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+                int width = Math.max(metrics.widthPixels, metrics.heightPixels);
+                int height = Math.min(metrics.widthPixels, metrics.heightPixels);
                 addNativeResolutionEntry(width, height);
+            }
+            else {
+                // On Android 4.1, we have to resort to reflection to invoke hidden APIs
+                // to get the real screen dimensions.
+                Display display = getActivity().getWindowManager().getDefaultDisplay();
+                try {
+                    Method getRawHeightFunc = Display.class.getMethod("getRawHeight");
+                    Method getRawWidthFunc = Display.class.getMethod("getRawWidth");
+                    int width = (Integer) getRawWidthFunc.invoke(display);
+                    int height = (Integer) getRawHeightFunc.invoke(display);
+                    addNativeResolutionEntry(Math.max(width, height), Math.min(width, height));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             if (!PreferenceConfiguration.readPreferences(this.getActivity()).unlockFps) {

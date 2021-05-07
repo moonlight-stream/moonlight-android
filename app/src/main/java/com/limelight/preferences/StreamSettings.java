@@ -3,6 +3,7 @@ package com.limelight.preferences;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.media.MediaCodecInfo;
 import android.os.Build;
 import android.os.Bundle;
@@ -175,7 +176,7 @@ public class StreamSettings extends Activity {
 
             // hide on-screen controls category on non touch screen devices
             if (!getActivity().getPackageManager().
-                    hasSystemFeature("android.hardware.touchscreen")) {
+                    hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
                 {
                     PreferenceCategory category =
                             (PreferenceCategory) findPreference("category_onscreen_controls");
@@ -235,7 +236,12 @@ public class StreamSettings extends Activity {
                     int width = Math.max(candidate.getPhysicalWidth(), candidate.getPhysicalHeight());
                     int height = Math.min(candidate.getPhysicalWidth(), candidate.getPhysicalHeight());
 
-                    addNativeResolutionEntry(width, height);
+                    // Some TVs report strange values here, so let's avoid native resolutions on a TV
+                    // unless they report greater than 4K resolutions.
+                    if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) ||
+                            (width > 3840 || height > 2160)) {
+                        addNativeResolutionEntry(width, height);
+                    }
 
                     if ((width >= 3840 || height >= 2160) && maxSupportedResW < 3840) {
                         maxSupportedResW = 3840;

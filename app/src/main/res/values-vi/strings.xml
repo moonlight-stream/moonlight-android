@@ -1,2 +1,210 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="summary_enable_post_stream_toast">Hiển thị một thông báo thông tin độ trễ sau khi kết thúc stream</string>
+    <string name="title_enable_post_stream_toast">Hiện thông báo độ trễ sau khi stream</string>
+    <string name="summary_enable_perf_overlay">Hiển thị thông tin hiệu năng stream theo thời gian thực trong khi stream</string>
+    <string name="title_enable_perf_overlay">Hiện thống kê hiệu năng trong khi stream</string>
+    <string name="summary_enable_hdr">Stream HDR khi trò chơi và GPU của PC hỗ trợ nó. HDR yêu cầu GPU GTX series 1000 hoặc mới hơn.</string>
+    <string name="title_enable_hdr">Bật HDR (Thử nghiệm)</string>
+    <string name="summary_video_format">H.265 làm giảm yêu cầu băng thông video nhưng yêu cầu một thiết bị mới hơn</string>
+    <string name="title_video_format">Thay đổi cài đặt H.265</string>
+    <string name="summary_disable_frame_drop">Có thể làm giảm sự khựng nhỏ trên một số thiết bị, nhưng có thể làm tăng độ trễ</string>
+    <string name="title_disable_frame_drop">Không bao giờ giảm khung hình</string>
+    <string name="summary_checkbox_disable_warnings">Tắt các thông báo cảnh báo kết nối trên màn hình trong khi stream</string>
+    <string name="title_checkbox_disable_warnings">Tắt các thông báo cảnh báo</string>
+    <string name="summary_unlock_fps">Việc stream tại 90 hoặc 120 FPS có thể sẽ giảm độ trễ trên các thiết bị tầm cao nhưng có thể sẽ gây ra lag hoặc mất ổn định trên các thiết bị không thể hỗ trợ việc đó</string>
+    <string name="title_unlock_fps">Mở khoá tất cả tốc độ khung hình có thể có</string>
+    <string name="category_advanced_settings">Cài đặt nâng cao</string>
+    <string name="summary_checkbox_host_audio">Phát âm thanh từ máy tính và thiết bị này</string>
+    <string name="title_checkbox_host_audio">Phát âm thanh trên PC</string>
+    <string name="summary_checkbox_small_icon_mode">Bìa nhỏ trong lưới ứng dụng cho phép hiển thị nhiều ứng dụng hơn trên màn hình</string>
+    <string name="title_checkbox_small_icon_mode">Sử dụng bìa nhỏ</string>
+    <string name="summary_language_list">Ngôn ngữ để sử dụng cho Moonlight</string>
+    <string name="title_language_list">Ngôn ngữ</string>
+    <string name="summary_checkbox_enable_pip">Cho phép stream được xem (nhưng không được điều khiển) trong khi đa nhiệm</string>
+    <string name="title_checkbox_enable_pip">Bật chế độ quan sát Hình-trong-Hình</string>
+    <string name="category_ui_settings">Cài đặt giao diện</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="dialog_title_osc_opacity">Thay đổi độ trong suốt</string>
+    <string name="summary_osc_opacity">Làm cho điều khiển trên màn hình (ít) trong suốt hơn</string>
+    <string name="title_osc_opacity">Thay đổi độ trong suốt của điều khiển trên màn hình</string>
+    <string name="toast_reset_osc_success">Đã đặt lại điều khiển trên màn hình về mặc định</string>
+    <string name="dialog_text_reset_osc">Bạn có chắc bạn muốn xoá bố cục điều khiển trên màn hình đã lưu của bạn không\?</string>
+    <string name="dialog_title_reset_osc">Đặt lại bố cục</string>
+    <string name="summary_reset_osc">Đặt lại tất cả điều khiển trên màn hình về kích thước và vị trí mặc định</string>
+    <string name="title_reset_osc">Xoá bộ cục điều khiển trên màn hình đã lưu</string>
+    <string name="summary_only_l3r3">Ẩn tất cả nút ảo trừ L3 và R3</string>
+    <string name="title_only_l3r3">Chỉ hiện L3 và R3</string>
+    <string name="summary_checkbox_vibrate_osc">Làm thiết bị rung để giả lập rumble đối với điều khiển trên màn hình</string>
+    <string name="title_checkbox_vibrate_osc">Bật rung</string>
+    <string name="summary_checkbox_show_onscreen_controls">Hiện bộ điều khiển ảo trên màn hình cảm ứng</string>
+    <string name="title_checkbox_show_onscreen_controls">Hiện điều khiển trên màn hình</string>
+    <string name="category_on_screen_controls_settings">Cài đặt điều khiển trên màn hình</string>
+    <string name="summary_checkbox_flip_face_buttons">Chuyển các nút ở mặt A/B và X/Y đối với tay cầm điều khiển và điều khiển trên màn hình</string>
+    <string name="title_checkbox_flip_face_buttons">Đảo các nút ở mặt</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Việc bật tuỳ chọn này có thể sẽ làm hỏng việc nhấn chuột phải trên một số thiết bị có lỗi</string>
+    <string name="title_checkbox_mouse_nav_buttons">Bật các nút quay lại và đi trước của chuột</string>
+    <string name="summary_checkbox_mouse_emulation">Việc nhấn giữ nút Start sẽ chuyển tay cầm điều khiển vào chế độ chuột</string>
+    <string name="title_checkbox_mouse_emulation">Giả lập chuột qua tay cầm điều khiển</string>
+    <string name="summary_checkbox_usb_bind_all">Sử dụng driver USB của Moonlight cho tất cả tay cầm điều khiển được hỗ trợ, kể cả nếu có hỗ trợ tay cầm điều khiển Xbox</string>
+    <string name="title_checkbox_usb_bind_all">Ghi đè lên sự hỗ trợ tay cầm điều khiển Xbox</string>
+    <string name="summary_checkbox_xb1_driver">Bật một driver USB được tích hợp cho các thiết bị không hỗ trợ tay cầm điều khiển Xbox</string>
+    <string name="title_checkbox_xb1_driver">Driver tay cầm điều khiển USB Xbox 360/One</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_seekbar_deadzone">Điều chỉnh vùng chết của cần analog</string>
+    <string name="summary_checkbox_vibrate_fallback">Làm thiết bị của bạn rung để giả lập rumble nếu tay cầm điều khiển của bạn không hỗ trợ nó</string>
+    <string name="title_checkbox_vibrate_fallback">Giả lập hỗ trợ rumble bằng rung</string>
+    <string name="summary_checkbox_multi_controller">Việc không đánh dấu sẽ buộc một tay cầm điều khiển luôn có mặt</string>
+    <string name="title_checkbox_multi_controller">Tự động phát hiện sự có mặt của tay cầm điều khiển</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Nếu bật, màn hình cảm ứng hoạt động như một trackpad. Nếu tắt, màn hình cảm ứng trực tiếp điều khiển con trỏ chuột.</string>
+    <string name="title_checkbox_touchscreen_trackpad">Sử dụng màn hình cảm ứng làm trackpad</string>
+    <string name="category_input_settings">Cài đặt đầu vào</string>
+    <string name="summary_audio_config_list">Bật âm thanh bao quanh 5.1 hoặc 7.1 cho các hệ thống rạp phim tại nhà</string>
+    <string name="title_audio_config_list">Thiết lập âm thanh bao quanh</string>
+    <string name="category_audio_settings">Cài đặt âm thanh</string>
+    <string name="resolution_prefix_native">Gốc</string>
+    <string name="title_checkbox_stretch_video">Kéo giãn video ra toàn màn hình</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="summary_seekbar_bitrate">Tăng để có chất lượng hình ảnh tốt hơn. Giảm để cải thiện hiệu năng trên các kết nối chậm hơn.</string>
+    <string name="title_seekbar_bitrate">Tốc độ bit video</string>
+    <string name="summary_fps_list">Tăng để stream video mượt mà hơn. Giảm để có hiệu năng tốt hơn trên các thiết bị tầm thấp hơn.</string>
+    <string name="title_fps_list">Tốc độ khung hình video</string>
+    <string name="text_native_res_dialog">Các chế độ độ phân giải gốc không được GeForce Experience hỗ trợ chính thức, nên nó sẽ không tự đặt độ phân giải hiển thị của máy chủ. Bạn sẽ cần phải đặt nó theo cách thủ công trong khi đang trong trò chơi.
+\n
+\nNếu bạn chọn việc tạo một độ phân giải tuỳ chỉnh trong Bảng điều khiển NVIDIA để khớp với độ phân giải thiết bị, vui lòng chắc chắn là bạn đã đọc và hiểu cảnh báo của NVIDIA về hư hại màn hình có thể có, sự bất ổn của PC, và các vấn đề tiềm năng khác.
+\n
+\nChúng tôi không chịu trách nhiệm cho bất kỳ vấn đề nào gây ra từ việc tạo độ phân giải tuỳ chỉnh trên PC.
+\n
+\nCuối cùng, thiết bị hoặc PC chủ có thể không hỗ trợ việc stream tại độ phân giải gốc. Nếu việc này không hoạt động trên thiết bị, không may mắn là bạn không thể làm gì được.</string>
+    <string name="title_native_res_dialog">Cảnh báo độ phân giải gốc</string>
+    <string name="summary_resolution_list">Tăng để cải thiện độ rõ của hình ảnh. Giảm để có hiệu năng tốt hơn trên các thiết bị tầm thấp hơn và các mạng chậm hơn.</string>
+    <string name="title_resolution_list">Độ phân giải video</string>
+    <string name="category_basic_settings">Cài đặt cơ bản</string>
+    <string name="addpc_wrong_sitelocal">Địa chỉ đó trông không đúng. Bạn phải sử dụng địa chỉ IP công khai của router để stream qua Internet.</string>
+    <string name="addpc_enter_ip">Bạn phải nhập một địa chỉ IP</string>
+    <string name="addpc_unknown_host">Không thể xử lý địa chỉ PC. Hãy chắc chắn là bạn không mắc lỗi chính tả trong địa chỉ.</string>
+    <string name="addpc_success">Thêm máy tính thành công</string>
+    <string name="addpc_fail">Không thể kết nối đến máy tính được chỉ định. Hãy chắc chắn là các cổng được yêu cầu được cho phép qua tường lửa.</string>
+    <string name="msg_add_pc">Đang kết nối đến PC…</string>
+    <string name="title_add_pc">Thêm PC thủ công</string>
+    <string name="applist_details_id">ID ứng dụng:</string>
+    <string name="applist_quit_confirmation">Bạn có chắc bạn muốn thoát ứng dụng đang chạy không\? Tất cả dữ liệu chưa được lưu sẽ bị mất.</string>
+    <string name="applist_quit_fail">Thoát thất bại</string>
+    <string name="applist_quit_success">Thoát thành công</string>
+    <string name="applist_quit_app">Đang thoát</string>
+    <string name="applist_refresh_error_msg">Lấy danh sách ứng dụng thất bại</string>
+    <string name="applist_refresh_error_title">Lỗi</string>
+    <string name="applist_refresh_msg">Đang làm mới các ứng dụng…</string>
+    <string name="applist_refresh_title">Danh sách ứng dụng</string>
+    <string name="applist_menu_hide_app">Ẩn ứng dụng</string>
+    <string name="applist_menu_tv_channel">Thêm vào kênh</string>
+    <string name="applist_menu_scut">Tạo lối tắt</string>
+    <string name="applist_menu_details">Xem chi tiết</string>
+    <string name="applist_menu_cancel">Huỷ</string>
+    <string name="applist_menu_quit_and_start">Thoát trò chơi hiện tại và bắt đầu</string>
+    <string name="applist_menu_quit">Thoát phiên làm việc</string>
+    <string name="applist_menu_resume">Tiếp tục phiên làm việc</string>
+    <string name="applist_connect_msg">Đang kết nối đến PC…</string>
+    <string name="perf_overlay_text">Kích thước video: %1$s
+\nTrình giải mã: %2$s
+\nTốc độ khung hình trên PC chủ được ước tính: %3$.2f FPS
+\nTốc độ khung hình đang đến từ mạng: %4$.2f FPS
+\nTốc độ khung hình kết xuất: %5$.2f FPS
+\nKhung hình bị giảm bởi kết nối mạng: %6$.2f%%
+\nThời gian nhận trung bình: %7$.2f ms
+\nThời gian giải mã trung bình: %8$.2f ms</string>
+    <string name="poor_connection_msg">Kết nối đến PC bị kém</string>
+    <string name="slow_connection_msg">Kết nối đến PC bị chậm.
+\nHãy giảm tốc độ bit</string>
+    <string name="delete_pc_msg">Bạn có chắc bạn muốn xoá PC này không\?</string>
+    <string name="yes">Có</string>
+    <string name="searching_pc">Đang tìm các PC có GameStream đang chạy…
+\n
+\nHãy chắc chắn là GameStream được bật trong cài đặt GeForce Experience SHIELD.</string>
+    <string name="ip_hint">Địa chỉ IP của PC GeForce</string>
+    <string name="conn_terminated_msg">Kết nối đã bị chấm dứt</string>
+    <string name="conn_terminated_title">Kết nối bị chấm dứt</string>
+    <string name="conn_error_msg">Bắt đầu thất bại</string>
+    <string name="conn_error_title">Lỗi kết nối</string>
+    <string name="conn_starting">Đang bắt đầu</string>
+    <string name="conn_hardware_latency">Độ trễ giải mã phần cứng trung bình:</string>
+    <string name="conn_client_latency_hw">độ trễ trình giải mã phần cứng:</string>
+    <string name="conn_client_latency">Độ trễ giải mã khung hình trung bình:</string>
+    <string name="conn_metered">Cảnh báo: Kết nối mạng đang hoạt động là có trả phí!</string>
+    <string name="conn_establishing_title">Đang lập kết nối</string>
+    <string name="check_ports_msg">Hãy kiểm tra tường lửa và các quy tắc chuyển tiếp cổng để tìm (các) cổng:</string>
+    <string name="early_termination_error">Có gì đó sai đã xảy ra trên PC chủ của bạn khi bắt đầu stream.
+\n
+\nHãy chắc chắn là bạn không mở bất kỳ nội dung được DRM bảo vệ nào trên PC chủ. Bạn cũng có thể thử khởi động lại PC chủ.
+\n
+\nNếu vấn đề vẫn tiếp diễn, hãy thử cài đặt lại driver GPU và GeForce Experience.</string>
+    <string name="no_frame_received_error">Kết nối mạng của bạn đang không hoạt động tốt. Hãy giảm cài đặt tốc độ bit hoặc thử một kết nối nhanh hơn.</string>
+    <string name="no_video_received_error">Không nhận được video từ chủ.</string>
+    <string name="video_decoder_init_failed">Khởi tạo trình giải mã video thất bại. Thiết bị có thể không hỗ trợ độ phân giải hoặc tốc độ khung hình đã chọn.</string>
+    <string name="unable_to_pin_shortcut">Launcher hiện tại không hỗ trợ việc tạo các lối tắt được ghim.</string>
+    <string name="error_usb_prohibited">Quyền truy cập USB bị cấm bởi quản trị viên thiết bị. Hãy kiểm tra cài đặt Knox hoặc MDM.</string>
+    <string name="message_decoding_reset">Trình giải mã video của thiết bị vẫn tiếp tục dừng đột ngột tại các cài đặt stream đã chọn. Các cài đặt stream đã được đặt lại về mặc định.</string>
+    <string name="title_decoding_reset">Đã đặt lại cài đặt video</string>
+    <string name="message_decoding_error">Moonlight đã bị dừng đột ngột vì một sự không tương thích với trình giải mã video của thiết bị này. Hãy chắc chắn là GeForce Experience được cập nhật lên phiên bản mới nhất trên PC. Hãy thử điều chỉnh cài đặt stream nếu việc dừng đột ngột vẫn tiếp tục.</string>
+    <string name="title_decoding_error">Trình giải mã video bị dừng đột ngột</string>
+    <string name="error_404">GFE đã trả lời bằng lỗi HTTP 404. Hãy chắc chắn rằng PC của bạn đang chạy một GPU được hỗ trợ. Việc sử dụng phần mềm máy tính từ xa cũng có thể gây ra lỗi này. Hãy thử khởi động lại máy hoặc cài đặt lại GFE.</string>
+    <string name="error_unknown_host">Xử lý máy chủ thất bại</string>
+    <string name="error_manager_not_running">Dịch vụ ComputerManager đang không chạy. Vui lòng đợi một vài giây hoặc khởi động lại ứng dụng.</string>
+    <string name="error_pc_offline">Máy tính đang ngoại tuyến</string>
+    <string name="summary_checkbox_enable_sops">Cho phép GFE sửa đổi cài đặt trò chơi để stream tối ưu</string>
+    <string name="title_checkbox_enable_sops">Tối ưu hoá cài đặt trò chơi</string>
+    <string name="category_host_settings">Cài đặt chủ</string>
+    <string name="help">Trợ giúp</string>
+    <string name="title_details">Chi tiết</string>
+    <string name="lost_connection">Đã mất kết nối đến PC</string>
+    <string name="no">Không</string>
+    <string name="conn_establishing_msg">Đang bắt đầu kết nối</string>
+    <string name="unpair_error">Thiết bị đã không được ghép đôi</string>
+    <string name="unpair_fail">Huỷ ghép đôi thất bại</string>
+    <string name="unpair_success">Huỷ ghép đôi thành công</string>
+    <string name="unpairing">Đang huỷ ghép đôi…</string>
+    <string name="wol_fail">Gửi các gói Wake-On-LAN thất bại</string>
+    <string name="wol_waking_msg">PC của bạn có thể sẽ mất một vài giây để thức giấc. Nếu nó không thức giấc, hãy chắc chắn là nó được thiết lập đúng cho Wake-On-LAN.</string>
+    <string name="wol_waking_pc">Đang đánh thức PC…</string>
+    <string name="wol_no_mac">Không thể đánh thức PC vì GFE đã không gửi một địa chỉ MAC</string>
+    <string name="wol_pc_online">Máy tính đang trực tuyến</string>
+    <string name="pair_already_in_progress">Việc ghép đôi đang được thực hiện rồi</string>
+    <string name="pair_fail">Ghép đôi thất bại</string>
+    <string name="pair_incorrect_pin">PIN không chính xác</string>
+    <string name="pair_pairing_msg">Vui lòng nhập mã PIN sau trên PC mục tiêu:</string>
+    <string name="pair_pairing_title">Đang ghép đôi</string>
+    <string name="pair_pc_ingame">Máy tính hiện đang trong một trò chơi. Bạn phải đóng trò chơi trước khi ghép đôi.</string>
+    <string name="pair_pc_offline">Máy tính đang ngoại tuyến</string>
+    <string name="pairing">Đang ghép đôi…</string>
+    <string name="nettest_text_blocked">Kết nối mạng hiện tại của thiết bị đang chặn Moonlight. Việc stream qua Internet có thể sẽ không được khi đang kết nối đến mạng này.</string>
+    <string name="nettest_text_failure">Kết nối mạng hiện tại của thiết bị có vẻ là đang chặn Moonlight. Việc stream qua Internet có thể sẽ không được khi đang kết nối đến mạng này.
+\n
+\nCác cổng mạng sau bị chặn:
+\n</string>
+    <string name="nettest_text_inconclusive">Việc thử nghiệm mạng không thể được thực hiện vì không có máy chủ thử nghiệm kết nối nào của Moonlight có thể được kết nối đến. Hãy kiểm tra kết nối Internet của bạn hoặc thử lại sau.</string>
+    <string name="nettest_text_success">Mạng của bạn có vẻ là không chặn Moonlight. Nếu bạn vẫn gặp rắc rối trong việc kết nối, hãy kiểm tra cài đặt tường lửa của PC.
+\n
+\nNếu bạn đang cố stream qua Internet, hãy cài đặt Moonlight Internet Hosting Tool trên PC và chạy Internet Streaming Tester được bao gồm trong đó để kiểm tra kết nối Internet của PC.</string>
+    <string name="nettest_title_done">Thử nghiệm mạng hoàn tất</string>
+    <string name="nettest_text_waiting">Moonlight đang thử nghiệm kết nối mạng của bạn để xác định xem NVIDIA GameStream có bị chặn không.
+\n
+\nViệc này có thể sẽ mất một vài giây…</string>
+    <string name="nettest_title_waiting">Đang thử nghiệm kết nối mạng</string>
+    <string name="pcview_menu_details">Xem chi tiết</string>
+    <string name="pcview_menu_test_network">Thử nghiệm kết nối mạng</string>
+    <string name="pcview_menu_delete_pc">Xoá PC</string>
+    <string name="pcview_menu_send_wol">Gửi yêu cầu Wake-On-LAN</string>
+    <string name="pcview_menu_unpair_pc">Huỷ ghép đôi</string>
+    <string name="pcview_menu_pair_pc">Ghép đôi với PC</string>
+    <string name="pcview_menu_app_list">Xem tất cả ứng dụng</string>
+    <string name="pcview_menu_header_unknown">Đang làm mới</string>
+    <string name="pcview_menu_header_offline">Ngoại tuyến</string>
+    <string name="pcview_menu_header_online">Trực tuyến</string>
+    <string name="help_loading_msg">Đang tải trang trợ giúp…</string>
+    <string name="help_loading_title">Trình xem trợ giúp</string>
+    <string name="scut_invalid_app_id">Ứng dụng được cung cấp không hợp lệ</string>
+    <string name="scut_invalid_uuid">PC được cung cấp không hợp lệ</string>
+    <string name="scut_pc_not_found">Không tìm thấy PC</string>
+    <string name="scut_not_paired">PC chưa được ghép đôi</string>
+    <string name="scut_deleted_pc">PC đã bị xoá</string>
+</resources>

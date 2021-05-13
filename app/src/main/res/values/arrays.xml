@@ -59,6 +59,8 @@
         <item>Română</item>
         <item>Українська</item>
         <item>Norwegian Bokmål</item>
+        <item>日本語</item>
+        <item>Tiếng Việt</item>
     </string-array>
     <string-array name="language_values" translatable="false">
         <item>default</item>
@@ -76,6 +78,8 @@
         <item>ro</item>
         <item>uk</item>
         <item>nb-NO</item>
+        <item>ja</item>
+        <item>vi</item>
     </string-array>
 
     <string-array name="decoder_names">

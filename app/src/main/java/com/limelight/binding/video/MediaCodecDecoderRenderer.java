@@ -656,6 +656,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 }
 
                 float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
+                long rttInfo = MoonBridge.getEstimatedRttInfo();
                 StringBuilder sb = new StringBuilder();
                 sb.append(context.getString(R.string.perf_overlay_dimensions, initialWidth + "x" + initialHeight)).append('\n');
                 sb.append(context.getString(R.string.perf_overlay_decoder, decoder)).append('\n');
@@ -664,6 +665,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 sb.append(context.getString(R.string.perf_overlay_renderingfps, fps.renderedFps)).append('\n');
                 sb.append(context.getString(R.string.perf_overlay_netdrops,
                         (float)lastTwo.framesLost / lastTwo.totalFrames * 100)).append('\n');
+                sb.append(context.getString(R.string.perf_overlay_netlatency,
+                        (rttInfo >> 32) & 0xFFFF, rttInfo & 0xFFFF)).append('\n');
                 sb.append(context.getString(R.string.perf_overlay_recvtime,
                         ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs)).append('\n');
                 sb.append(context.getString(R.string.perf_overlay_dectime, decodeTimeMs));

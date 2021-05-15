@@ -135,3 +135,14 @@ Java_com_limelight_nvstream_jni_MoonBridge_stringifyPortFlags(JNIEnv *env, jclas
     (*env)->ReleaseStringUTFChars(env, separator, separatorStr);
     return (*env)->NewStringUTF(env, outputBuffer);
 }
+
+JNIEXPORT jlong JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_getEstimatedRttInfo(JNIEnv *env, jclass clazz) {
+    uint32_t rtt, variance;
+
+    if (!LiGetEstimatedRttInfo(&rtt, &variance)) {
+        return -1;
+    }
+
+    return ((uint64_t)rtt << 32U) | variance;
+}

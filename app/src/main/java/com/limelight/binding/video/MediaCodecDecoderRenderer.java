@@ -656,17 +656,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
                 }
 
                 float decodeTimeMs = (float)lastTwo.decoderTimeMs / lastTwo.totalFramesReceived;
-                String perfText = context.getString(
-                        R.string.perf_overlay_text,
-                        initialWidth + "x" + initialHeight,
-                        decoder,
-                        fps.totalFps,
-                        fps.receivedFps,
-                        fps.renderedFps,
-                        (float)lastTwo.framesLost / lastTwo.totalFrames * 100,
-                        ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs,
-                        decodeTimeMs);
-                perfListener.onPerfUpdate(perfText);
+                StringBuilder sb = new StringBuilder();
+                sb.append(context.getString(R.string.perf_overlay_dimensions, initialWidth + "x" + initialHeight)).append('\n');
+                sb.append(context.getString(R.string.perf_overlay_decoder, decoder)).append('\n');
+                sb.append(context.getString(R.string.perf_overlay_hostfps, fps.totalFps)).append('\n');
+                sb.append(context.getString(R.string.perf_overlay_incomingfps, fps.receivedFps)).append('\n');
+                sb.append(context.getString(R.string.perf_overlay_renderingfps, fps.renderedFps)).append('\n');
+                sb.append(context.getString(R.string.perf_overlay_netdrops,
+                        (float)lastTwo.framesLost / lastTwo.totalFrames * 100)).append('\n');
+                sb.append(context.getString(R.string.perf_overlay_recvtime,
+                        ((float)lastTwo.totalTimeMs / lastTwo.totalFramesReceived) - decodeTimeMs)).append('\n');
+                sb.append(context.getString(R.string.perf_overlay_dectime, decodeTimeMs));
+                perfListener.onPerfUpdate(sb.toString());
             }
 
             globalVideoStats.add(activeWindowVideoStats);

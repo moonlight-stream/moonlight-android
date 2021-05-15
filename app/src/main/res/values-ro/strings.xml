@@ -82,7 +82,14 @@
     <string name="delete_pc_msg">Sigur dorești să ștergi acest PC?</string>
     <string name="slow_connection_msg">Conexiune inceată catre PC\nRedu rata de biți</string>
     <string name="poor_connection_msg">Conexiune slabă catre PC</string>
-    <string name="perf_overlay_text">Dimensiunile video: %1$s\nDecodor: %2$s\nRata cadrelor estimata PC: %3$.2f FPS\nRata cadrelor primite din rețea: %4$.2f FPS\nRata de afisare a cadrelor: %5$.2f FPS\nCadre pierdute de rețea: %6$.2f%%\nTimpul mediu de primire: %7$.2f ms\nTimpul mediu de decodare: %8$.2f ms</string>
+    <string name="perf_overlay_dimensions">Dimensiunile video: %1$s</string>
+    <string name="perf_overlay_decoder">Decodor: %1$s</string>
+    <string name="perf_overlay_hostfps">Rata cadrelor estimata PC: %1$.2f FPS</string>
+    <string name="perf_overlay_incomingfps">Rata cadrelor primite din rețea: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Rata de afisare a cadrelor: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Cadre pierdute de rețea: %1$.2f%%</string>
+    <string name="perf_overlay_recvtime">Timpul mediu de primire: %1$.2f ms</string>
+    <string name="perf_overlay_dectime">Timpul mediu de decodare: %1$.2f ms</string>
 
     <!-- AppList activity -->
     <string name="applist_connect_msg">Se conectează la PC…</string>

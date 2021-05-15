@@ -72,7 +72,14 @@
     <string name="delete_pc_msg"> 你確定要刪除這台電腦？ </string>
     <string name="slow_connection_msg"> 與電腦連接過慢 \n 請降低碼率 </string>
     <string name="poor_connection_msg"> 與電腦連接不良 </string>
-    <string name="perf_overlay_text"> 視頻解析度： %1$s\n解碼器： %2$s\n估計主機幀數： %3$.2f FPS\n網路接收幀數： %4$.2f FPS\n渲染幀數： %5$.2f FPS\n網路丟失幀： %6$.2f%%\n平均接收時間： %7$.2f ms\n平均解碼時間： %8$.2f ms </string>
+    <string name="perf_overlay_dimensions">視頻解析度： %1$s</string>
+    <string name="perf_overlay_decoder">解碼器： %1$s</string>
+    <string name="perf_overlay_hostfps">估計主機幀數： %1$.2f FPS</string>
+    <string name="perf_overlay_incomingfps">網路接收幀數： %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">渲染幀數： %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">網路丟失幀： %1$.2f%%</string>
+    <string name="perf_overlay_recvtime">平均接收時間： %1$.2f ms</string>
+    <string name="perf_overlay_dectime">平均解碼時間： %1$.2f ms</string>
     <!-- AppList activity -->
     <string name="applist_connect_msg"> 正在連接電腦…… </string>
     <string name="applist_menu_resume"> 恢復串流 </string>

@@ -105,14 +105,14 @@
     <string name="applist_menu_quit">Thoát phiên làm việc</string>
     <string name="applist_menu_resume">Tiếp tục phiên làm việc</string>
     <string name="applist_connect_msg">Đang kết nối đến PC…</string>
-    <string name="perf_overlay_text">Kích thước video: %1$s
-\nTrình giải mã: %2$s
-\nTốc độ khung hình trên PC chủ được ước tính: %3$.2f FPS
-\nTốc độ khung hình đang đến từ mạng: %4$.2f FPS
-\nTốc độ khung hình kết xuất: %5$.2f FPS
-\nKhung hình bị giảm bởi kết nối mạng: %6$.2f%%
-\nThời gian nhận trung bình: %7$.2f ms
-\nThời gian giải mã trung bình: %8$.2f ms</string>
+    <string name="perf_overlay_dimensions">Kích thước video: %1$s</string>
+    <string name="perf_overlay_decoder">Trình giải mã: %1$s</string>
+    <string name="perf_overlay_hostfps">Tốc độ khung hình trên PC chủ được ước tính: %1$.2f FPS</string>
+    <string name="perf_overlay_incomingfps">Tốc độ khung hình đang đến từ mạng: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Tốc độ khung hình kết xuất: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Khung hình bị giảm bởi kết nối mạng: %1$.2f%%</string>
+    <string name="perf_overlay_recvtime">Thời gian nhận trung bình: %1$.2f ms</string>
+    <string name="perf_overlay_dectime">Thời gian giải mã trung bình: %1$.2f ms</string>
     <string name="poor_connection_msg">Kết nối đến PC bị kém</string>
     <string name="slow_connection_msg">Kết nối đến PC bị chậm.
 \nHãy giảm tốc độ bit</string>

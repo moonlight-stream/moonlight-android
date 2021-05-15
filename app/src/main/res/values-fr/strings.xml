@@ -88,14 +88,14 @@
     <string name="delete_pc_msg">Êtes-vous sûr de vouloir supprimer ce PC \?</string>
     <string name="slow_connection_msg">Connexion lente au PC\nRéduisez votre débit</string>
     <string name="poor_connection_msg">Mauvaise connexion au PC</string>
-    <string name="perf_overlay_text">Dimensions vidéo : %1$s
-\nDécodeur : %2$s
-\nEstimation de la fréquence d\'images de l\'ordinateur hôte : %3$.2f FPS
-\nFréquence d\'images entrantes du réseau : %4$.2f FPS
-\nFréquence d\'images de rendu : %5$.2f FPS
-\nImages perdues par votre connexion réseau : %6$.2f%%
-\nTemps moyen de réception : %7$.2f ms
-\nTemps moyen de décodage : %8$.2f ms</string>
+    <string name="perf_overlay_dimensions">Dimensions vidéo : %1$s</string>
+    <string name="perf_overlay_decoder">Décodeur : %1$s</string>
+    <string name="perf_overlay_hostfps">Estimation de la fréquence d\'images de l\'ordinateur hôte : %1$.2f FPS</string>
+    <string name="perf_overlay_incomingfps">Fréquence d\'images entrantes du réseau : %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Fréquence d\'images de rendu : %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Images perdues par votre connexion réseau : %1$.2f%%</string>
+    <string name="perf_overlay_recvtime">Temps moyen de réception : %1$.2f ms</string>
+    <string name="perf_overlay_dectime">Temps moyen de décodage : %1$.2f ms</string>
     <!-- AppList activity -->
     <string name="applist_connect_msg">Connexion au PC…</string>
     <string name="applist_menu_resume">Reprise de la session</string>

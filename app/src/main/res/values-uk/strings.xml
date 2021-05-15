@@ -180,7 +180,14 @@
     <string name="slow_connection_msg">Повільне підключення до ПК\nЗменшити бітрейт</string>
     <string name="summary_unlock_fps">Трансляція зі швидкістю 90 або 120 кадрів в секунду може зменшити затримку на пристроях високого класу, але може викликати затримки або збій на пристроях без підтримки цього функціоналу</string>
     <string name="summary_enable_perf_overlay">Відображення накладення на екрані з інформацією про продуктивність під час трансляції в режимі реального часу</string>
-    <string name="perf_overlay_text">Розширення відео: %1$s\nДекодер: %2$s\nРозрахункова частота кадрів ПК-хоста: %3$.2f FPS\nВхідна частота кадрів з мережі: %4$.2f FPS\nЧастота кадрів під час рендерінгу: %5$.2f FPS\nВідкинутих кадрів вашою мережею: %6$.2f%%\nСередній час отримання: %7$.2f ms\nСередній час декодування: %8$.2f ms</string>
+    <string name="perf_overlay_dimensions">Розширення відео: %1$s</string>
+    <string name="perf_overlay_decoder">Декодер: %1$s</string>
+    <string name="perf_overlay_hostfps">Розрахункова частота кадрів ПК-хоста: %1$.2f FPS</string>
+    <string name="perf_overlay_incomingfps">Вхідна частота кадрів з мережі: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Частота кадрів під час рендерінгу: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Відкинутих кадрів вашою мережею: %1$.2f%%</string>
+    <string name="perf_overlay_recvtime">Середній час отримання: %1$.2f ms</string>
+    <string name="perf_overlay_dectime">Середній час декодування: %1$.2f ms</string>
     <string name="summary_fps_list">Збільшення для більш плавного відео потоку. Зменшіть для кращої продуктивності на більш слабких пристроях.</string>
     <string name="scut_invalid_uuid">Зазначений ПК недійсний</string>
     <string name="scut_invalid_app_id">Зазначений додаток недійсне</string>

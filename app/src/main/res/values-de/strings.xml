@@ -94,14 +94,15 @@
     <string name="slow_connection_msg">Langsame Verbindung zum Host
 \nReduziere die Bitrate</string>
     <string name="poor_connection_msg">Sehr langsame Verbindung zum Host</string>
-    <string name="perf_overlay_text">Videodimensionen: %1$s
-\nDecoder: %2$s
-\nGeschätzte Host Bildwiederholrate: %3$.2f FPS
-\nBildwiederholrate der Netzwerkübertragung: %4$.2f FPS
-\nWiedergabe-Bildwiederholungsrate: %5$.2f FPS
-\nWegen Netzwerkübertragung ausgelassene Frames: %6$.2f%%
-\nDurchschnittliche Übertragungsdauer: %7$.2f ms
-\nDurchschnittliche Dekodierungszeit: %8$.2f ms</string>
+    <string name="perf_overlay_dimensions">Videodimensionen: %1$s</string>
+    <string name="perf_overlay_decoder">Decoder: %1$s</string>
+    <string name="perf_overlay_hostfps">Geschätzte Host Bildwiederholrate: %1$.2f FPS</string>
+    <string name="perf_overlay_incomingfps">Bildwiederholrate der Netzwerkübertragung: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Wiedergabe-Bildwiederholungsrate: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Wegen Netzwerkübertragung ausgelassene Frames: %1$.2f%%</string>
+    <string name="perf_overlay_recvtime">Durchschnittliche Übertragungsdauer: %1$.2f ms</string>
+    <string name="perf_overlay_dectime">Durchschnittliche Dekodierungszeit: %1$.2f ms</string>
+
     <!-- AppList activity -->
     <string name="applist_connect_msg">Verbinde mit Host…</string>
     <string name="applist_menu_resume">Sitzung wiederherstellen</string>

@@ -22,6 +22,7 @@ import android.media.MediaFormat;
 import android.os.Build;
 
 import com.limelight.LimeLog;
+import com.limelight.preferences.PreferenceConfiguration;
 
 public class MediaCodecHelper {
     
@@ -516,7 +517,7 @@ public class MediaCodecHelper {
         return isDecoderInList(refFrameInvalidationHevcPrefixes, decoderName);
     }
 
-    public static boolean decoderIsWhitelistedForHevc(String decoderName, boolean meteredData) {
+    public static boolean decoderIsWhitelistedForHevc(String decoderName, boolean meteredData, PreferenceConfiguration prefs) {
         // TODO: Shield Tablet K1/LTE?
         //
         // NVIDIA does partial HEVC acceleration on the Shield Tablet. I don't know
@@ -551,9 +552,10 @@ public class MediaCodecHelper {
         // Some devices have HEVC decoders that we prefer not to use
         // typically because it can't support reference frame invalidation.
         // However, we will use it for HDR and for streaming over mobile networks
-        // since it works fine otherwise.
+        // since it works fine otherwise. We will also use it for 4K because RFI
+        // is currently disabled due to issues with video corruption.
         if (isDecoderInList(deprioritizedHevcDecoders, decoderName)) {
-            if (meteredData) {
+            if (meteredData || (prefs.width == 3840 && prefs.height == 2160)) {
                 LimeLog.info("Selected deprioritized decoder");
                 return true;
             }

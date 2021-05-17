@@ -108,7 +108,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // for even required levels of HEVC.
         MediaCodecInfo decoderInfo = MediaCodecHelper.findProbableSafeDecoder("video/hevc", -1);
         if (decoderInfo != null) {
-            if (!MediaCodecHelper.decoderIsWhitelistedForHevc(decoderInfo.getName(), meteredNetwork)) {
+            if (!MediaCodecHelper.decoderIsWhitelistedForHevc(decoderInfo.getName(), meteredNetwork, prefs)) {
                 LimeLog.info("Found HEVC decoder, but it's not whitelisted - "+decoderInfo.getName());
 
                 // HDR implies HEVC forced on, since HEVCMain10HDR10 is required for HDR.

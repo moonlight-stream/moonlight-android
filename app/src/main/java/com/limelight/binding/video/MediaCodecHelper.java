@@ -168,6 +168,12 @@ public class MediaCodecHelper {
             whitelistedHevcDecoders.add("omx.amlogic");
         }
 
+        // Realtek SoCs are used inside many Android TV devices and can only do 4K60 with HEVC.
+        // We'll enable those HEVC decoders by default and see if anything breaks.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            whitelistedHevcDecoders.add("omx.realtek");
+        }
+
         // These theoretically have good HEVC decoding capabilities (potentially better than
         // their AVC decoders), but haven't been tested enough
         //whitelistedHevcDecoders.add("omx.rk");

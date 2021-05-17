@@ -72,9 +72,7 @@
     <string name="delete_pc_msg"> 你确定要删除这台电脑？ </string>
     <string name="slow_connection_msg"> 与电脑连接过慢 \n 请降低码率 </string>
     <string name="poor_connection_msg"> 与电脑连接不良 </string>
-    <string name="perf_overlay_dimensions">视频分辨率： %1$s</string>
     <string name="perf_overlay_decoder">解码器： %1$s</string>
-    <string name="perf_overlay_hostfps">估计主机帧数： %1$.2f FPS</string>
     <string name="perf_overlay_incomingfps">网络接收帧数： %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">渲染帧数： %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">网络丢失帧： %1$.2f%%</string>

@@ -88,9 +88,7 @@
     <string name="delete_pc_msg">Êtes-vous sûr de vouloir supprimer ce PC \?</string>
     <string name="slow_connection_msg">Connexion lente au PC\nRéduisez votre débit</string>
     <string name="poor_connection_msg">Mauvaise connexion au PC</string>
-    <string name="perf_overlay_dimensions">Dimensions vidéo : %1$s</string>
     <string name="perf_overlay_decoder">Décodeur : %1$s</string>
-    <string name="perf_overlay_hostfps">Estimation de la fréquence d\'images de l\'ordinateur hôte : %1$.2f FPS</string>
     <string name="perf_overlay_incomingfps">Fréquence d\'images entrantes du réseau : %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Fréquence d\'images de rendu : %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">Images perdues par votre connexion réseau : %1$.2f%%</string>

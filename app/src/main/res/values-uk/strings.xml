@@ -180,9 +180,7 @@
     <string name="slow_connection_msg">Повільне підключення до ПК\nЗменшити бітрейт</string>
     <string name="summary_unlock_fps">Трансляція зі швидкістю 90 або 120 кадрів в секунду може зменшити затримку на пристроях високого класу, але може викликати затримки або збій на пристроях без підтримки цього функціоналу</string>
     <string name="summary_enable_perf_overlay">Відображення накладення на екрані з інформацією про продуктивність під час трансляції в режимі реального часу</string>
-    <string name="perf_overlay_dimensions">Розширення відео: %1$s</string>
     <string name="perf_overlay_decoder">Декодер: %1$s</string>
-    <string name="perf_overlay_hostfps">Розрахункова частота кадрів ПК-хоста: %1$.2f FPS</string>
     <string name="perf_overlay_incomingfps">Вхідна частота кадрів з мережі: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Частота кадрів під час рендерінгу: %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">Відкинутих кадрів вашою мережею: %1$.2f%%</string>

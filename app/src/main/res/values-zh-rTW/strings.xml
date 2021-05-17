@@ -72,9 +72,7 @@
     <string name="delete_pc_msg"> 你確定要刪除這台電腦？ </string>
     <string name="slow_connection_msg"> 與電腦連接過慢 \n 請降低碼率 </string>
     <string name="poor_connection_msg"> 與電腦連接不良 </string>
-    <string name="perf_overlay_dimensions">視頻解析度： %1$s</string>
     <string name="perf_overlay_decoder">解碼器： %1$s</string>
-    <string name="perf_overlay_hostfps">估計主機幀數： %1$.2f FPS</string>
     <string name="perf_overlay_incomingfps">網路接收幀數： %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">渲染幀數： %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">網路丟失幀： %1$.2f%%</string>

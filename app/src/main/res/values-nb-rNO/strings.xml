@@ -8,9 +8,7 @@
     <string name="applist_quit_confirmation">Er du sikker på at du vil avslutte det kjørende programmet\? All ulagret data vil gå tapt.</string>
     <string name="applist_refresh_msg">Gjenoppfrisker programmer …</string>
 
-    <string name="perf_overlay_dimensions">Videooppløsning: %1$s</string>
     <string name="perf_overlay_decoder">Dekoder: %1$s</string>
-    <string name="perf_overlay_hostfps">Antatt bilderammetakt på verts-PC: %1$.2f BPS</string>
     <string name="perf_overlay_incomingfps">Innkommende bilderammetakt fra nettverket: %1$.2f BPS</string>
     <string name="perf_overlay_renderingfps">Opptegningsbilderammetakt: %1$.2f BPS</string>
     <string name="perf_overlay_netdrops">Bilderammer droppet av din nettverkstilknytning: %1$.2f%%</string>

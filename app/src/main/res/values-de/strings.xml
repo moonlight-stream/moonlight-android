@@ -94,9 +94,7 @@
     <string name="slow_connection_msg">Langsame Verbindung zum Host
 \nReduziere die Bitrate</string>
     <string name="poor_connection_msg">Sehr langsame Verbindung zum Host</string>
-    <string name="perf_overlay_dimensions">Videodimensionen: %1$s</string>
     <string name="perf_overlay_decoder">Decoder: %1$s</string>
-    <string name="perf_overlay_hostfps">Geschätzte Host Bildwiederholrate: %1$.2f FPS</string>
     <string name="perf_overlay_incomingfps">Bildwiederholrate der Netzwerkübertragung: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Wiedergabe-Bildwiederholungsrate: %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">Wegen Netzwerkübertragung ausgelassene Frames: %1$.2f%%</string>

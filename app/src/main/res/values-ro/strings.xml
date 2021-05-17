@@ -82,9 +82,7 @@
     <string name="delete_pc_msg">Sigur dorești să ștergi acest PC?</string>
     <string name="slow_connection_msg">Conexiune inceată catre PC\nRedu rata de biți</string>
     <string name="poor_connection_msg">Conexiune slabă catre PC</string>
-    <string name="perf_overlay_dimensions">Dimensiunile video: %1$s</string>
     <string name="perf_overlay_decoder">Decodor: %1$s</string>
-    <string name="perf_overlay_hostfps">Rata cadrelor estimata PC: %1$.2f FPS</string>
     <string name="perf_overlay_incomingfps">Rata cadrelor primite din rețea: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Rata de afisare a cadrelor: %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">Cadre pierdute de rețea: %1$.2f%%</string>

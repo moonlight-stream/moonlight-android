@@ -155,6 +155,13 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             }
         });
 
+        // Amazon review didn't like the help button because the wiki was not entirely
+        // navigable via the Fire TV remote (though the relevant parts were). Let's hide
+        // it on Fire TV.
+        if (getPackageManager().hasSystemFeature("amazon.hardware.fire_tv")) {
+            helpButton.setVisibility(View.GONE);
+        }
+
         getFragmentManager().beginTransaction()
             .replace(R.id.pcFragmentContainer, new AdapterFragment())
             .commitAllowingStateLoss();

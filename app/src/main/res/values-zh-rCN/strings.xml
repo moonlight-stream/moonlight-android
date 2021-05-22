@@ -76,7 +76,6 @@
     <string name="perf_overlay_incomingfps">网络接收帧数： %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">渲染帧数： %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">网络丢失帧： %1$.2f%%</string>
-    <string name="perf_overlay_recvtime">平均接收时间： %1$.2f ms</string>
     <string name="perf_overlay_dectime">平均解码时间： %1$.2f ms</string>
     <!-- AppList activity -->
     <string name="applist_connect_msg"> 正在连接电脑…… </string>

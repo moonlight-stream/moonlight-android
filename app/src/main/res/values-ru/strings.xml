@@ -179,7 +179,6 @@
     <string name="perf_overlay_incomingfps">Входящая частота кадров из сети: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Частота кадров при рендеринге: %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">Отброшеных кадров вашей сетью: %1$.2f%%</string>
-    <string name="perf_overlay_recvtime">Среднее время получения: %1$.2f ms</string>
     <string name="perf_overlay_dectime">Среднее время декодирования: %1$.2f ms</string>
     <string name="summary_fps_list">Увеличение для более плавного видео потока. Уменьшите для лучшей производительности на более слабых устройствах.</string>
     <string name="scut_invalid_uuid">Указанный PC недействителен</string>

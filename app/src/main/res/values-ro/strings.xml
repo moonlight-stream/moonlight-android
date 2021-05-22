@@ -86,7 +86,6 @@
     <string name="perf_overlay_incomingfps">Rata cadrelor primite din rețea: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Rata de afisare a cadrelor: %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">Cadre pierdute de rețea: %1$.2f%%</string>
-    <string name="perf_overlay_recvtime">Timpul mediu de primire: %1$.2f ms</string>
     <string name="perf_overlay_dectime">Timpul mediu de decodare: %1$.2f ms</string>
 
     <!-- AppList activity -->

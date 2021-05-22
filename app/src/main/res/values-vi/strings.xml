@@ -109,7 +109,6 @@
     <string name="perf_overlay_incomingfps">Tốc độ khung hình đang đến từ mạng: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Tốc độ khung hình kết xuất: %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">Khung hình bị giảm bởi kết nối mạng: %1$.2f%%</string>
-    <string name="perf_overlay_recvtime">Thời gian nhận trung bình: %1$.2f ms</string>
     <string name="perf_overlay_dectime">Thời gian giải mã trung bình: %1$.2f ms</string>
     <string name="poor_connection_msg">Kết nối đến PC bị kém</string>
     <string name="slow_connection_msg">Kết nối đến PC bị chậm.

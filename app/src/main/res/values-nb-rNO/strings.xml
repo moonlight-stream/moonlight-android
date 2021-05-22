@@ -12,7 +12,6 @@
     <string name="perf_overlay_incomingfps">Innkommende bilderammetakt fra nettverket: %1$.2f BPS</string>
     <string name="perf_overlay_renderingfps">Opptegningsbilderammetakt: %1$.2f BPS</string>
     <string name="perf_overlay_netdrops">Bilderammer droppet av din nettverkstilknytning: %1$.2f%%</string>
-    <string name="perf_overlay_recvtime">Gjennomsnittlig mottakstid: %1$.2f ms</string>
     <string name="perf_overlay_dectime">Gjennomsnittlig dekodingstid: %1$.2f ms</string>
 
     <string name="lost_connection">Mistet tilknytning til PC</string>

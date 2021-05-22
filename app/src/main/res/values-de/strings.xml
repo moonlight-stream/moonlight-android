@@ -98,7 +98,6 @@
     <string name="perf_overlay_incomingfps">Bildwiederholrate der Netzwerkübertragung: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Wiedergabe-Bildwiederholungsrate: %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">Wegen Netzwerkübertragung ausgelassene Frames: %1$.2f%%</string>
-    <string name="perf_overlay_recvtime">Durchschnittliche Übertragungsdauer: %1$.2f ms</string>
     <string name="perf_overlay_dectime">Durchschnittliche Dekodierungszeit: %1$.2f ms</string>
 
     <!-- AppList activity -->

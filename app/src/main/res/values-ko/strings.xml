@@ -138,12 +138,10 @@
     <string name="applist_menu_scut">바로가기 만들기</string>
     <string name="applist_menu_details">세부사항</string>
     <string name="perf_overlay_dectime">평균 디코딩 시간 : %1$.2f ms</string>
-    <string name="perf_overlay_recvtime">평균 수신 시간 : %1$.2f ms</string>
     <string name="perf_overlay_netlatency">평균 네트워크 지연 시간 : %1$d ms (편차 : %2$d ms)</string>
     <string name="perf_overlay_netdrops">네트워크 인해 손실 된 프레임 : %1$.2f%%</string>
     <string name="perf_overlay_renderingfps">렌더링 FPS : % 1 $ .2f FPS</string>
     <string name="perf_overlay_incomingfps">네트워크를 통해 받은 FPS: %1$.2f FPS</string>
-    <string name="perf_overlay_hostfps">호스트 PC FPS : %1$.2f FPS</string>
     <string name="perf_overlay_decoder">디코더:%1$s</string>
     <string name="poor_connection_msg">PC와의 연결이 불안정함</string>
     <string name="slow_connection_msg">PC와의 연결이 느림

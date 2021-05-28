@@ -139,7 +139,7 @@
     <string name="applist_menu_details">세부사항</string>
     <string name="perf_overlay_dectime">평균 디코딩 시간 : %1$.2f ms</string>
     <string name="perf_overlay_netlatency">평균 네트워크 지연 시간 : %1$d ms (편차 : %2$d ms)</string>
-    <string name="perf_overlay_netdrops">네트워크 인해 손실 된 프레임 : %1$.2f%%</string>
+    <string name="perf_overlay_netdrops">네트워크에 의해 손실 된 프레임 : %1$.2f%%</string>
     <string name="perf_overlay_renderingfps">렌더링 프레임속도 : %1$.2f FPS</string>
     <string name="perf_overlay_incomingfps">네트워크를 통해 받은 프레임속도: %1$.2f FPS</string>
     <string name="perf_overlay_decoder">디코더:%1$s</string>

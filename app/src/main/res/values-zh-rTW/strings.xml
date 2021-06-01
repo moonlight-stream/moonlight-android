@@ -215,4 +215,6 @@
     <string name="pcview_menu_header_unknown">刷新</string>
     <string name="pcview_menu_header_offline">離線</string>
     <string name="pcview_menu_header_online">線上</string>
+    <string name="perf_overlay_netlatency">平均網路延遲： %1$d ms (抖動： %2$d ms)</string>
+    <string name="perf_overlay_streamdetails">視頻流： %1$s %2$.2f FPS</string>
 </resources>

@@ -1,0 +1,2 @@
+- Significantly improved audio quality over unreliable network connections
+- Updated community-contributed translations from Weblate

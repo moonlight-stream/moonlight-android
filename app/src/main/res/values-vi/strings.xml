@@ -204,4 +204,6 @@
     <string name="scut_pc_not_found">Không tìm thấy PC</string>
     <string name="scut_not_paired">PC chưa được ghép đôi</string>
     <string name="scut_deleted_pc">PC đã bị xoá</string>
+    <string name="perf_overlay_netlatency">Độ trễ mạng trung bình: %1$d ms (sai số: %2$d ms)</string>
+    <string name="perf_overlay_streamdetails">Tốc độ khung hình: %1$s %2$.2f FPS</string>
 </resources>

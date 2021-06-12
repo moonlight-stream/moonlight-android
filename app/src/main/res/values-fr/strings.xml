@@ -185,8 +185,8 @@
     <string name="summary_checkbox_disable_warnings">Désactiver les messages d\'avertissement de connexion à l\'écran pendant la diffusion</string>
     <string name="title_disable_frame_drop">Ne jamais laisser tomber les frames</string>
     <string name="summary_disable_frame_drop">Peut réduire les micro-saccades sur certains appareils, mais peut augmenter la latence</string>
-    <string name="title_video_format">Modifier les paramètres H.265</string>
-    <string name="summary_video_format">H.265 réduit les besoins en bande passante vidéo mais nécessite un périphérique très récent</string>
+    <string name="title_video_format">Modifier les paramètres HEVC</string>
+    <string name="summary_video_format">HEVC réduit les besoins en bande passante vidéo mais nécessite un périphérique très récent</string>
     <string name="title_enable_hdr">Activer le HDR (expérimental)</string>
     <string name="summary_enable_hdr">Diffuser du HDR lorsque le jeu et le processeur graphique du PC le prennent en charge. HDR nécessite un GPU série GTX 1000 ou une version ultérieure.</string>
     <string name="title_enable_perf_overlay">Activer la superposition de performance</string>

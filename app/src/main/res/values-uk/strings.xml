@@ -118,8 +118,8 @@
     <string name="summary_checkbox_host_audio">Програвати звук на комп\'ютері і поточному пристрої</string>
 
     <string name="category_advanced_settings">Розширені Налаштування</string>
-    <string name="title_video_format">Змінити налаштування H.265</string>
-    <string name="summary_video_format">H.265 знижує вимоги до пропускної здатності, але вимагає дуже нового пристрою</string>
+    <string name="title_video_format">Змінити налаштування HEVC</string>
+    <string name="summary_video_format">HEVC знижує вимоги до пропускної здатності, але вимагає дуже нового пристрою</string>
     <string name="category_on_screen_controls_settings">Налаштування дисплею з кнопками</string>
     <string name="title_checkbox_show_onscreen_controls">Показувати екранні кнопки</string>
     <string name="summary_checkbox_show_onscreen_controls">Відображати оверлей віртуального контролера на сенсорному екрані</string>

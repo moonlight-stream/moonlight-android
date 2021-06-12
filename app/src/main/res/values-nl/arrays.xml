@@ -7,8 +7,8 @@
   </string-array>
 
   <string-array name="video_format_names">
-    <item>Gebruik H.265 alleen als het stabiel is.</item>
-    <item>Gebruik H.265 altijd (mogelijkheid tot crashes)</item>
-    <item>Gebruik H.265 nooit</item>
+    <item>Gebruik HEVC alleen als het stabiel is.</item>
+    <item>Gebruik HEVC altijd (mogelijkheid tot crashes)</item>
+    <item>Gebruik HEVC nooit</item>
   </string-array>
 </resources>

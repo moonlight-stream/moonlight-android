@@ -96,7 +96,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     }
 
     private MediaCodecInfo findHevcDecoder(PreferenceConfiguration prefs, boolean meteredNetwork, boolean requestedHdr) {
-        // Don't return anything if H.265 is forced off
+        // Don't return anything if HEVC is forced off
         if (prefs.videoFormat == PreferenceConfiguration.FORCE_H265_OFF) {
             return null;
         }

@@ -13,8 +13,8 @@
     </string-array>
 
     <string-array name="video_format_names">
-        <item>Использовать H.265 только если безопасно</item>
-        <item>Всегда использовать H.265 если доступно</item>
-        <item>Никогда не использовать H.265</item>
+        <item>Использовать HEVC только если безопасно</item>
+        <item>Всегда использовать HEVC если доступно</item>
+        <item>Никогда не использовать HEVC</item>
     </string-array>
 </resources>

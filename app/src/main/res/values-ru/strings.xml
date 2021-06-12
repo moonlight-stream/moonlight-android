@@ -112,8 +112,8 @@
     <string name="title_checkbox_host_audio">Проигрывать звук на PC</string>
     <string name="summary_checkbox_host_audio">Проигрывать звук на компьютере и текущем устройстве</string>
     <string name="category_advanced_settings">Расширенные Настройки</string>
-    <string name="title_video_format">Изменить настройки H.265</string>
-    <string name="summary_video_format">H.265 снижает требования к пропускной способности, но требует очень нового устройства</string>
+    <string name="title_video_format">Изменить настройки HEVC</string>
+    <string name="summary_video_format">HEVC снижает требования к пропускной способности, но требует очень нового устройства</string>
     <string name="category_on_screen_controls_settings">Настройки Экранных Кнопок</string>
     <string name="title_checkbox_show_onscreen_controls">Показывать экранные кнопки</string>
     <string name="summary_checkbox_show_onscreen_controls">Отображать оверлей виртуального контроллера на сенсорном экране</string>

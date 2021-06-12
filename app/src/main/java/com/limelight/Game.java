@@ -377,9 +377,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             Toast.makeText(this, "Decoder does not support HEVC Main10HDR10", Toast.LENGTH_LONG).show();
         }
 
-        // Display a message to the user if H.265 was forced on but we still didn't find a decoder
+        // Display a message to the user if HEVC was forced on but we still didn't find a decoder
         if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
-            Toast.makeText(this, "No H.265 decoder found.\nFalling back to H.264.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "No HEVC decoder found.\nFalling back to H.264.", Toast.LENGTH_LONG).show();
         }
 
         int gamepadMask = ControllerHandler.getAttachedControllerMask(this);
@@ -899,10 +899,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // Add the video codec to the post-stream toast
                 if (message != null) {
                     if (videoFormat == MoonBridge.VIDEO_FORMAT_H265_MAIN10) {
-                        message += " [H.265 HDR]";
+                        message += " [HEVC HDR]";
                     }
                     else if (videoFormat == MoonBridge.VIDEO_FORMAT_H265) {
-                        message += " [H.265]";
+                        message += " [HEVC]";
                     }
                     else if (videoFormat == MoonBridge.VIDEO_FORMAT_H264) {
                         message += " [H.264]";

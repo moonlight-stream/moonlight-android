@@ -110,8 +110,8 @@
     <string name="title_checkbox_host_audio">PC에서 소리 재생</string>
     <string name="summary_checkbox_host_audio">이 장치와 컴퓨터에서 소리를 재생합니다.</string>
     <string name="category_advanced_settings">고급 설정</string>
-    <string name="title_video_format">H.265 설정 변경</string>
-    <string name="summary_video_format">H.265는 낮은 대역폭으로 더 좋은 화질을 볼 수 있게 해주지만 최신 장치가 필요합니다.</string>
+    <string name="title_video_format">HEVC 설정 변경</string>
+    <string name="summary_video_format">HEVC는 낮은 대역폭으로 더 좋은 화질을 볼 수 있게 해주지만 최신 장치가 필요합니다.</string>
     <string name="suffix_osc_opacity">%</string>
     <string name="title_checkbox_enable_pip">PIP모드 활성화</string>
     <string name="summary_checkbox_vibrate_fallback">게임 패드가 진동을 지원하지 않는 경우 장치를 진동 시켜 진동을 활성화합니다</string>

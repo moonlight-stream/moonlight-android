@@ -17,8 +17,8 @@
         <item>Contraindre le décodage matériel</item>
     </string-array>
     <string-array name="video_format_names">
-        <item>Utiliser H.265 uniquement s\'il est stable</item>
-        <item>Utilisez toujours H.265 (mais il peut planter)</item>
-        <item>N\'utilisez jamais H.265</item>
+        <item>Utiliser HEVC uniquement s\'il est stable</item>
+        <item>Utilisez toujours HEVC (mais il peut planter)</item>
+        <item>N\'utilisez jamais HEVC</item>
     </string-array>
 </resources>

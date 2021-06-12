@@ -120,7 +120,7 @@
     <string name="summary_checkbox_host_audio">Reproducir audio en el ordenador y en este dispositivo</string>
 
     <string name="category_advanced_settings">Configuración avanzada</string>
-    <string name="title_video_format">Cambiar configuración H.265</string>
-    <string name="summary_video_format">H.265 reduce el ancho de banda de vídeo, pero requiere un dispositivo bastante actual.</string>
+    <string name="title_video_format">Cambiar configuración HEVC</string>
+    <string name="summary_video_format">HEVC reduce el ancho de banda de vídeo, pero requiere un dispositivo bastante actual.</string>
 
 </resources>

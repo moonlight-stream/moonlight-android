@@ -92,9 +92,9 @@
     </string-array>
 
     <string-array name="video_format_names">
-        <item>Use H.265 only if stable</item>
-        <item>Always use H.265 (may crash)</item>
-        <item>Never use H.265</item>
+        <item>Use HEVC only if stable</item>
+        <item>Always use HEVC (may crash)</item>
+        <item>Never use HEVC</item>
     </string-array>
     <string-array name="video_format_values" translatable="false">
         <item>auto</item>

@@ -49,7 +49,7 @@
     <string name="nettest_title_done">Nettverkstest fullført</string>
     <string name="title_seekbar_deadzone">Dødsonejustering for analogstikke</string>
     <string name="title_checkbox_xb1_driver">Driver for Xbox 360/One USB-spillkontroller</string>
-    <string name="title_video_format">Endre H.265-innstillinger</string>
+    <string name="title_video_format">Endre HEVC-innstillinger</string>
     <string name="title_disable_frame_drop">Aldri forkast bilderammer</string>
     <string name="title_checkbox_disable_warnings">Skru av advarselsmeldinger</string>
     <string name="title_unlock_fps">Lås opp alle mulige bilderammetakter</string>
@@ -169,7 +169,7 @@
     <string name="summary_enable_post_stream_toast">Vis en informasjonsmelding om latens etter at strømmen sluttføres</string>
     <string name="title_enable_post_stream_toast">Vis latensmelding etter strømming</string>
     <string name="title_enable_hdr">Skru på HDR (eksperimentelt)</string>
-    <string name="summary_video_format">H.265 senker båndbreddekravene, men krever en nyere enhet</string>
+    <string name="summary_video_format">HEVC senker båndbreddekravene, men krever en nyere enhet</string>
     <string name="summary_disable_frame_drop">Kan redusere mikro-hakking på noen enheter, men kan øke latens</string>
     <string name="summary_checkbox_disable_warnings">Skru av visning av tilkoblingsadvarsler på skjermen under strømming</string>
     <string name="summary_unlock_fps">Strømming i 90 eller 120 BPS kan redusere latens på flaggskipsenheter, men kan forårsake forsinkelser eller ustabilitet på enheter som ikke klarer det.</string>

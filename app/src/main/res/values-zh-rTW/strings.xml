@@ -165,8 +165,8 @@
     <string name="category_advanced_settings"> 高級設置 </string>
     <string name="title_disable_frame_drop"> 永不掉幀 </string>
     <string name="summary_disable_frame_drop"> 可能會減少在一些設備上的卡頓，但會增加延遲 </string>
-    <string name="title_video_format"> 更改H.265設置 </string>
-    <string name="summary_video_format">H.265能降低視頻頻寬需求，但需要較新的設備才能支援</string>
+    <string name="title_video_format"> 更改HEVC設置 </string>
+    <string name="summary_video_format">HEVC能降低視頻頻寬需求，但需要較新的設備才能支援</string>
     <string name="title_enable_hdr"> 啟用 HDR （實驗） </string>
     <string name="summary_enable_hdr"> 當遊戲和顯卡支援時以HDR模式串流。 HDR需要GTX 1000系列或更高規格顯卡。 </string>
     <string name="title_enable_perf_overlay"> 啟用性能資訊 </string>

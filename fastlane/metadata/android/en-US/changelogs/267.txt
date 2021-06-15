@@ -1,0 +1,3 @@
+- Optimizations to core streaming code
+- Changed "H.265" to "HEVC" to match other Moonlight clients
+- Fixed possible crash when audio packet sizes change while streaming

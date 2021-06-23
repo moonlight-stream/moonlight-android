@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="summary_enable_post_stream_toast">Késleltetési információs üzenet megjelenítése az adatfolyam vége után</string>
+    <string name="title_enable_post_stream_toast">A késleltetési üzenet megjelenítése streaming után</string>
+    <string name="summary_enable_perf_overlay">Valós idejű adatfolyam-adat megjelenítése streaming közben</string>
+    <string name="title_enable_perf_overlay">Teljesítmény statisztikák megjelenítése közvetítés közben</string>
+    <string name="summary_enable_hdr">Streaming HDR, amikor a játék és a PC GPU támogatja. A HDR-hez GTX 1000 sorozatú vagy újabb verzió szükséges.</string>
+    <string name="title_enable_hdr">HDR engedélyezése (kísérleti)</string>
+    <string name="summary_video_format">A H.265 csökkenti a video sávszélesség követelményeit, de újabb eszközt igényel</string>
+    <string name="title_video_format">Módosítsa a H.265 beállításait</string>
+    <string name="summary_disable_frame_drop">Csökkentheti a mikrodadogást egyes eszközökön, de növelheti a késést</string>
+    <string name="title_disable_frame_drop">Soha ne ejtse le a kereteket</string>
+    <string name="summary_checkbox_disable_warnings">Streaming közben tiltsa le a képernyőn megjelenő csatlakozási figyelmeztető üzeneteket</string>
+    <string name="title_checkbox_disable_warnings">Tiltsa le a figyelmeztető üzeneteket</string>
+    <string name="summary_unlock_fps">A 90 vagy 120 FPS sebességgel történő streaming csökkentheti a csúcskategóriás eszközök késését, de késést vagy instabilitást okozhat azokon az eszközökön, amelyek ezt nem támogatják</string>
+    <string name="title_unlock_fps">Oldja fel az összes lehetséges képsebességet</string>
+    <string name="category_advanced_settings">További beállítások</string>
+    <string name="summary_checkbox_host_audio">Hang lejátszása a számítógépről és az eszközről</string>
+    <string name="title_checkbox_host_audio">Hang lejátszása PC-n</string>
+    <string name="summary_checkbox_enable_sops">Engedje meg, hogy a GFE módosítsa a játék beállításait az optimális streaming érdekében</string>
+    <string name="title_checkbox_enable_sops">Optimalizálja a játék beállításait</string>
+    <string name="category_host_settings">Gazdabeállítások</string>
+    <string name="summary_checkbox_small_icon_mode">Az alkalmazásrács kisebbik rajza lehetővé teszi, hogy több alkalmazás is látható legyen a képernyőn</string>
+    <string name="title_checkbox_small_icon_mode">Használjon kis dobozos rajzokat</string>
+    <string name="summary_language_list">A Moonlight-hoz használt nyelv</string>
+    <string name="title_language_list">Nyelv</string>
+    <string name="summary_checkbox_enable_pip">Lehetővé teszi az adatfolyam megtekintését (de nem vezérlését) multitasking közben</string>
+    <string name="title_checkbox_enable_pip">Engedélyezze a Kép a képben megfigyelő módot</string>
+    <string name="category_ui_settings">Felhasználói felület beállításai</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="dialog_title_osc_opacity">Opacitás módosítása</string>
+    <string name="summary_osc_opacity">Tegye többé-kevésbé átláthatóvá a képernyőn megjelenő vezérlőket</string>
+    <string name="title_osc_opacity">A képernyőn megjelenő vezérlők átlátszatlanságának módosítása</string>
+    <string name="toast_reset_osc_success">A képernyőn megjelenő vezérlők visszaállnak az alapértelmezettre</string>
+    <string name="dialog_text_reset_osc">Biztosan törli a képernyőn tárolt vezérlők mentett elrendezését\?</string>
+    <string name="dialog_title_reset_osc">Reset Layout</string>
+    <string name="summary_reset_osc">Visszaállítja az összes képernyőn megjelenő vezérlőt az alapértelmezett méretre és helyzetre</string>
+    <string name="title_reset_osc">A képernyőn lévő mentett vezérlők elrendezésének törlése</string>
+    <string name="summary_only_l3r3">Az összes virtuális gombot elrejti az L3 és R3 kivételével</string>
+    <string name="title_only_l3r3">Csak az L3-at és az R3-at mutatják</string>
+    <string name="summary_checkbox_vibrate_osc">Rezeg a készülék, hogy utánozza a képernyőn megjelenő vezérlők zúgását</string>
+    <string name="title_checkbox_vibrate_osc">Rezgés engedélyezése</string>
+    <string name="summary_checkbox_show_onscreen_controls">A virtuális vezérlő fedvényének megjelenítése az érintőképernyőn</string>
+    <string name="title_checkbox_show_onscreen_controls">A képernyőn megjelenő vezérlők megjelenítése</string>
+    <string name="category_on_screen_controls_settings">A képernyőn megjelenő vezérlők beállításai</string>
+    <string name="summary_checkbox_flip_face_buttons">Átkapcsolja az A / B és X / Y arcgombokat a játékvezérlőkhöz és a képernyőn megjelenő vezérlőkhöz</string>
+    <string name="title_checkbox_flip_face_buttons">Flip face gombok</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Ennek az opciónak az engedélyezése megszakíthatja a jobb egérgombbal való kattintást néhány hibás eszközön</string>
+    <string name="title_checkbox_mouse_nav_buttons">Engedélyezze az előre és hátra gombokat</string>
+    <string name="summary_checkbox_mouse_emulation">A Start gomb hosszan tartó megnyomásával egér üzemmódba kapcsol a játéktábla</string>
+    <string name="title_checkbox_mouse_emulation">Egér emuláció a játékvezérlőn keresztül</string>
+    <string name="summary_checkbox_usb_bind_all">Használja a Moonlight USB-illesztőprogramját az összes támogatott játékvezérlőhöz, még akkor is, ha natív Xbox vezérlő támogatás van jelen</string>
+    <string name="title_checkbox_usb_bind_all">Az natív Xbox játéktámogatás felülbírálása</string>
+    <string name="summary_checkbox_xb1_driver">Beépített USB-illesztőprogramot engedélyez natív Xbox vezérlő támogatás nélküli eszközökhöz</string>
+    <string name="title_checkbox_xb1_driver">Xbox 360 / One USB játékvezérlő</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_seekbar_deadzone">Állítsa be az analóg bot holtzónáját</string>
+    <string name="summary_checkbox_vibrate_fallback">Rezeg a készülék, hogy utánozza a dübörgést, ha a gamepad nem támogatja</string>
+    <string name="title_checkbox_vibrate_fallback">A dübörgés támogatását rezgéssel utánozzuk</string>
+    <string name="summary_checkbox_multi_controller">Ennek az opciónak a bejelölése arra kényszeríti a játéktáblát, hogy mindig jelen legyen</string>
+    <string name="title_checkbox_multi_controller">Automatikus gamepad jelenlét-észlelés</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Ha engedélyezve van, az érintőképernyő úgy működik, mint egy trackpad. Ha le van tiltva, az érintőképernyő közvetlenül vezérli az egér kurzort.</string>
+    <string name="title_checkbox_touchscreen_trackpad">Használja az érintőképernyőt trackpadként</string>
+    <string name="category_input_settings">Bemeneti beállítások</string>
+    <string name="summary_audio_config_list">Engedélyezze az 5.1 vagy 7.1 térhatású hangot házimozi rendszerekhez</string>
+    <string name="title_audio_config_list">Térhatású hang konfigurációja</string>
+    <string name="resolution_prefix_native">Natív</string>
+    <string name="category_audio_settings">Hangbeállítások</string>
+    <string name="title_checkbox_stretch_video">Nyújtsa a videót teljes képernyősre</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="summary_seekbar_bitrate">Növelje a jobb képminőség érdekében. Csökkenjen a lassabb kapcsolatok teljesítményének javítása érdekében.</string>
+    <string name="title_seekbar_bitrate">Videó bitráta</string>
+    <string name="summary_fps_list">Növelje a gördülékenyebb videofolyamot. Csökkenjen a jobb teljesítmény érdekében az alsó kategóriás eszközökön.</string>
+    <string name="title_fps_list">Videó képkockasebessége</string>
+    <string name="text_native_res_dialog">A natív felbontási módokat a GeForce Experience hivatalosan nem támogatja, így maga nem állítja be a gazdagép kijelzőjének felbontását. A játék során manuálisan kell beállítania.
+\n
+\nHa úgy dönt, hogy az NVIDIA vezérlőpultján egyedi felbontást hoz létre, hogy megfeleljen az eszköz felbontásának, kérjük, olvassa el és értette az NVIDIA figyelmeztetéseit a monitor esetleges károsodásával, a számítógép instabilitásával és más lehetséges problémákkal kapcsolatban.
+\n
+\nNem vagyunk felelősek a PC-n egyedi felbontás létrehozásából eredő problémákért.
+\n
+\nVégül előfordulhat, hogy az eszköz vagy a fogadó PC nem támogatja a natív felbontású adatfolyamot. Ha a készülékén nem működik, sajnos csak nincs szerencséje.</string>
+    <string name="title_native_res_dialog">Natív felbontás figyelmeztetés</string>
+    <string name="summary_resolution_list">Növelje a kép tisztaságának növelése érdekében. Csökkenjen a jobb teljesítmény érdekében az alsó kategóriás eszközökön és a lassabb hálózatokon.</string>
+    <string name="title_resolution_list">Videó felbontás</string>
+    <string name="category_basic_settings">Alapbeállítások</string>
+    <string name="addpc_wrong_sitelocal">Ez a cím nem tűnik megfelelőnek. Az interneten történő streaminghez az PCnyilvános IP-címét kell használnia.</string>
+    <string name="addpc_enter_ip">Meg kell adnia egy IP-címet</string>
+    <string name="addpc_unknown_host">Nem sikerült feloldani a PC-címet. Győződjön meg arról, hogy nem hibázott a címben.</string>
+    <string name="addpc_success">A számítógép sikeresen hozzáadva</string>
+    <string name="addpc_fail">Nem sikerült csatlakozni a megadott számítógéphez. Győződjön meg arról, hogy a szükséges portok engedélyezve vannak a tűzfalon keresztül.</string>
+    <string name="msg_add_pc">Csatlakozás a számítógéphez…</string>
+    <string name="title_add_pc">Számítógép hozzáadása manuálisan</string>
+    <string name="applist_details_id">Alkalmazásazonosító:</string>
+    <string name="applist_quit_confirmation">Biztosan kilép a futó alkalmazásból\? Minden nem mentett adat elvész.</string>
+    <string name="applist_quit_fail">Nem sikerült kilépni</string>
+    <string name="applist_quit_success">Sikeresen kiléptél</string>
+    <string name="applist_quit_app">Kilépés</string>
+    <string name="applist_refresh_error_msg">Nem sikerült betölteni az alkalmazások listáját</string>
+    <string name="applist_refresh_error_title">Hiba</string>
+    <string name="applist_refresh_msg">Alkalmazás lista frissítése…</string>
+    <string name="applist_refresh_title">Alkalmazás lista</string>
+    <string name="applist_menu_quit">Kilépés a játékból</string>
+    <string name="applist_menu_resume">Visszalépés a játékba</string>
+    <string name="applist_menu_hide_app">Alkalmazás elrejtése</string>
+    <string name="applist_menu_tv_channel">Hozzáadás a csatornához</string>
+    <string name="applist_menu_scut">Parancsikon létrehozása</string>
+    <string name="applist_menu_details">Részletek megtekintése</string>
+    <string name="applist_menu_cancel">Mégse</string>
+    <string name="applist_menu_quit_and_start">Lépjen ki az aktuális játékból és indítsa el</string>
+    <string name="applist_connect_msg">Csatlakozás a számítógéphez…</string>
+    <string name="perf_overlay_dectime">Átlagos dekódolási idő:%1$.2f ms</string>
+    <string name="perf_overlay_netlatency">Átlagos hálózati késés:%1$d ms (szórás:%2$d ms)</string>
+    <string name="perf_overlay_netdrops">A hálózati kapcsolat miatt elesett keretek:%1$.2f%%</string>
+    <string name="perf_overlay_renderingfps">Képkockasebesség megjelenítése:%1$.2f FPS</string>
+    <string name="perf_overlay_incomingfps">Bejövő képkockasebesség a hálózatról:%1$.2f FPS</string>
+    <string name="perf_overlay_decoder">Dekóder:%1$s</string>
+    <string name="perf_overlay_streamdetails">Videófolyam:%1$s%2$.2f FPS</string>
+    <string name="poor_connection_msg">Gyenge kapcsolat a PC-vel</string>
+    <string name="slow_connection_msg">Lassú kapcsolat a PC-vel
+\nCsökkentse a bitrátát</string>
+    <string name="delete_pc_msg">Biztosan törli ezt a számítógépet\?</string>
+    <string name="help">Segítség</string>
+    <string name="title_details">Részletek</string>
+    <string name="lost_connection">Megszakadt a kapcsolat a PC-vel</string>
+    <string name="no">Nem</string>
+    <string name="yes">Igen</string>
+    <string name="searching_pc">PC-k keresése futó GameStream segítségével ...
+\n
+\n Győződjön meg arról, hogy a GameStream engedélyezve van a GeForce Experience SHIELD beállításaiban.</string>
+    <string name="ip_hint">A GeForce PC IP-címe</string>
+    <string name="conn_terminated_msg">A kapcsolat megszakadt</string>
+    <string name="conn_terminated_title">A kapcsolat megszűnt</string>
+    <string name="conn_error_msg">Nem sikerült elindítani</string>
+    <string name="conn_client_latency_hw">hardveres dekóder késleltetése:</string>
+    <string name="conn_client_latency">Átlagos keret dekódolási késés:</string>
+    <string name="conn_metered">Figyelem: Az aktív hálózati kapcsolatod mérésre került!</string>
+    <string name="conn_establishing_msg">Kapcsolódás</string>
+    <string name="conn_establishing_title">Kapcsolat létesítése</string>
+    <string name="check_ports_msg">Ellenőrizze a tűzfal és a port-továbbítási szabályokat a port(ok)ra vonatkozóan:</string>
+    <string name="early_termination_error">Valami nem sikerült a fogadó PC-n az adatfolyam indításakor.
+\n
+\nGyőződjön meg arról, hogy a fogadó PC-n nincs megnyitva DRM-védett tartalom. Megpróbálhatja újraindítani a gazdagépet is.
+\n
+\nHa a probléma továbbra is fennáll, próbálja meg újratelepíteni a GPU illesztőprogramokat és a GeForce Experience szoftvert.</string>
+    <string name="no_frame_received_error">A hálózati kapcsolat nem működik megfelelően. Csökkentse a videó bitráta beállítását, vagy próbálkozzon gyorsabb kapcsolattal.</string>
+    <string name="no_video_received_error">Nem kapott videót a gazdagéptől.</string>
+    <string name="video_decoder_init_failed">A videó dekóder inicializálása nem sikerült. Előfordulhat, hogy készüléke nem támogatja a kiválasztott felbontást vagy képkockasebességet.</string>
+    <string name="unable_to_pin_shortcut">A jelenlegi program nem teszi lehetővé rögzített parancsikonok létrehozását.</string>
+    <string name="error_usb_prohibited">Az USB-hozzáférést az eszköz rendszergazdája tiltja. Ellenőrizze a Knox vagy az MDM beállításait.</string>
+    <string name="message_decoding_reset">Az eszköz videodekóderje továbbra is összeomlik a kiválasztott adatfolyam-beállításoknál. A streaming beállításait visszaállította az alapértelmezettre.</string>
+    <string name="title_decoding_reset">Videó Beállítások Alapra</string>
+    <string name="message_decoding_error">A Moonlight összeomlott, mert inkompatibilis volt az eszköz videó dekóderével. Győződjön meg arról, hogy a GeForce Experience frissítve van a számítógép legújabb verziójára. Próbálja meg módosítani a streaming beállításokat, ha az összeomlások továbbra is fennállnak.</string>
+    <string name="title_decoding_error">A videó dekóder összeomlott</string>
+    <string name="error_404">A GFE HTTP 404 hibát adott vissza. Győződjön meg arról, hogy a számítógépen támogatott GPU fut. A távoli asztali szoftver használata szintén ezt a hibát okozhatja. Próbálja újraindítani a gépet, vagy telepítse újra a GFE-t.</string>
+    <string name="conn_error_title">Csatlakozási hiba</string>
+    <string name="conn_starting">Indítás</string>
+    <string name="conn_hardware_latency">Átlagos hardver dekódolási késés:</string>
+    <string name="error_unknown_host">Nem sikerült feloldani a gazdagépet</string>
+    <string name="error_manager_not_running">A ComputerManager szolgáltatás nem fut. Várjon néhány másodpercet, vagy indítsa újra az alkalmazást.</string>
+    <string name="error_pc_offline">A számítógép nem elérhető</string>
+    <string name="unpair_error">Az eszköz nincs párosítva</string>
+    <string name="unpair_fail">A párosítás megszüntetése nem sikerült</string>
+    <string name="unpair_success">Párosítás megszüntetve</string>
+    <string name="unpairing">Párosítás megszüntetése…</string>
+    <string name="wol_fail">Nem sikerült elküldeni a Wake-On-LAN csomagokat</string>
+    <string name="wol_waking_msg">Néhány másodpercbe telhet, mire a számítógép felébred. Ha nem, ellenőrizze, hogy megfelelően van-e konfigurálva a Wake-On-LAN számára.</string>
+    <string name="wol_waking_pc">PC elindítása…</string>
+    <string name="wol_no_mac">Nem lehet elindítani a PC-t, mert a GFE nem küldött MAC-címet</string>
+    <string name="wol_pc_online">A számítógép elérhető</string>
+    <string name="pair_already_in_progress">A párosítás már folyamatban van</string>
+    <string name="pairing">Párosítás…</string>
+    <string name="pair_pairing_title">Párosítás</string>
+    <string name="pair_fail">Párosítás nem sikerült</string>
+    <string name="pair_incorrect_pin">Hibás PIN</string>
+    <string name="pair_pairing_msg">Kérjük, adja meg a következő PIN-kódot a cél PC-n:</string>
+    <string name="pair_pc_ingame">A számítógép jelenleg játékban van. A párosítás előtt be kell zárni a játékot.</string>
+    <string name="pair_pc_offline">A számítógép nem elérhető</string>
+    <string name="nettest_text_blocked">Az eszköz jelenlegi hálózati kapcsolata blokkolja a Moonlight-ot. Előfordulhat, hogy az interneten keresztüli streaming nem működik, ha csatlakozik ehhez a hálózathoz.</string>
+    <string name="nettest_text_failure">Úgy tűnik, hogy eszközének jelenlegi hálózati kapcsolata blokkolja a Moonlight-ot. Előfordulhat, hogy az interneten keresztüli streaming nem működik, ha csatlakozik ehhez a hálózathoz.
+\n
+\nA következő hálózati portokat blokkolták:
+\n</string>
+    <string name="nettest_text_inconclusive">A hálózati tesztet nem sikerült elvégezni, mert a Moonlight egyik kapcsolat tesztelő szervere sem volt elérhető. Ellenőrizze az internetkapcsolatot, vagy próbálkozzon újra később.</string>
+    <string name="nettest_text_success">Úgy tűnik, hogy a hálózata nem blokkolja a Moonlight-ot. Ha továbbra is problémái vannak a csatlakozással, ellenőrizze a számítógép tűzfalának beállításait.
+\n
+\nHa az interneten keresztül kíván közvetíteni, telepítse a Moonlight Internet Hosting Tool alkalmazást a számítógépére, és futtassa a mellékelt Internet Streaming Tester szoftvert a számítógép internetkapcsolatának ellenőrzéséhez.</string>
+    <string name="nettest_title_done">Hálózati kapcsolat teszt kész</string>
+    <string name="nettest_text_waiting">A Moonlight a hálózati kapcsolatot teszteli annak megállapítására, hogy az NVIDIA GameStream blokkolva van-e.
+\n
+\nEz eltarthat néhány másodpercig …</string>
+    <string name="pcview_menu_test_network">Hálózati kapcsolat teszt</string>
+    <string name="nettest_title_waiting">Hálózati kapcsolat ellenőrzése</string>
+    <string name="pcview_menu_details">Részletek megtekintése</string>
+    <string name="pcview_menu_delete_pc">PC törlése</string>
+    <string name="pcview_menu_send_wol">Wake-On-LAN kérés küldése</string>
+    <string name="pcview_menu_unpair_pc">Lecsatlakoztat</string>
+    <string name="pcview_menu_pair_pc">PC csatlakoztatása</string>
+    <string name="pcview_menu_app_list">Összes alkalmazás megtekintése</string>
+    <string name="pcview_menu_header_unknown">Újratöltés</string>
+    <string name="pcview_menu_header_offline">Nem elérhető</string>
+    <string name="pcview_menu_header_online">Elérhető</string>
+    <string name="help_loading_msg">Segítségek betöltés alatt…</string>
+    <string name="help_loading_title">Segítség megtekintő</string>
+    <string name="scut_invalid_app_id">A kiválasztott App nem érvényes</string>
+    <string name="scut_invalid_uuid">A kiválasztott PC nem érvényes</string>
+    <string name="scut_pc_not_found">Pc nem található</string>
+    <string name="scut_not_paired">PC nincs csatlakoztatva</string>
+    <string name="scut_deleted_pc">PC eltávolítva</string>
+</resources>

@@ -6,8 +6,8 @@
     <string name="title_enable_perf_overlay">Teljesítmény statisztikák megjelenítése közvetítés közben</string>
     <string name="summary_enable_hdr">Streaming HDR, amikor a játék és a PC GPU támogatja. A HDR-hez GTX 1000 sorozatú vagy újabb verzió szükséges.</string>
     <string name="title_enable_hdr">HDR engedélyezése (kísérleti)</string>
-    <string name="summary_video_format">A H.265 csökkenti a video sávszélesség követelményeit, de újabb eszközt igényel</string>
-    <string name="title_video_format">Módosítsa a H.265 beállításait</string>
+    <string name="summary_video_format">A HEVC csökkenti a video sávszélesség követelményeit, de újabb eszközt igényel</string>
+    <string name="title_video_format">Módosítsa a HEVC beállításait</string>
     <string name="summary_disable_frame_drop">Csökkentheti a mikrodadogást egyes eszközökön, de növelheti a késést</string>
     <string name="title_disable_frame_drop">Soha ne ejtse le a kereteket</string>
     <string name="summary_checkbox_disable_warnings">Streaming közben tiltsa le a képernyőn megjelenő csatlakozási figyelmeztető üzeneteket</string>

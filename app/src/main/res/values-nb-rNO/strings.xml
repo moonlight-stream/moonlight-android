@@ -7,13 +7,11 @@
     <string name="title_fps_list">Videobilderammetakt</string>
     <string name="applist_quit_confirmation">Er du sikker på at du vil avslutte det kjørende programmet\? All ulagret data vil gå tapt.</string>
     <string name="applist_refresh_msg">Gjenoppfrisker programmer …</string>
-
     <string name="perf_overlay_decoder">Dekoder: %1$s</string>
     <string name="perf_overlay_incomingfps">Innkommende bilderammetakt fra nettverket: %1$.2f BPS</string>
     <string name="perf_overlay_renderingfps">Opptegningsbilderammetakt: %1$.2f BPS</string>
     <string name="perf_overlay_netdrops">Bilderammer droppet av din nettverkstilknytning: %1$.2f%%</string>
     <string name="perf_overlay_dectime">Gjennomsnittlig dekodingstid: %1$.2f ms</string>
-
     <string name="lost_connection">Mistet tilknytning til PC</string>
     <string name="searching_pc">Søker etter PC-er med GameStream kjørende …
 \n
@@ -206,4 +204,7 @@
     <string name="resolution_prefix_native">Innebygd</string>
     <string name="title_native_res_dialog">Advarsel om innebygd oppløsning</string>
     <string name="title_checkbox_flip_face_buttons">Veksle diamantknapper</string>
+    <string name="resolution_prefix_native_fullscreen">Systemspesifikk fullskjerm</string>
+    <string name="perf_overlay_netlatency">Gjennomsnittlig nettverksforsinkelse: %1$d ms (variasjon: %2$d ms)</string>
+    <string name="perf_overlay_streamdetails">Videostrøm: %1$s %2$.2f BPS</string>
 </resources>

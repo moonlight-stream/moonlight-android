@@ -214,9 +214,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         prefConfig = PreferenceConfiguration.readPreferences(this);
         tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
 
-        if (prefConfig.stretchVideo) {
+        if (prefConfig.stretchVideo || shouldIgnoreInsetsForResolution(prefConfig.width, prefConfig.height)) {
             // Allow the activity to layout under notches if the fill-screen option
-            // was turned on by the user
+            // was turned on by the user or it's a full-screen native resolution
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 getWindow().getAttributes().layoutInDisplayCutoutMode =
                         WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
@@ -625,6 +625,26 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean isRefreshRateGoodMatch(float refreshRate) {
         return refreshRate >= prefConfig.fps &&
                 Math.round(refreshRate) % prefConfig.fps <= 3;
+    }
+
+    private boolean shouldIgnoreInsetsForResolution(int width, int height) {
+        // Never ignore insets for non-native resolutions
+        if (!PreferenceConfiguration.isNativeResolution(width, height)) {
+            return false;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Display display = getWindowManager().getDefaultDisplay();
+            for (Display.Mode candidate : display.getSupportedModes()) {
+                // Ignore insets if this is an exact match for the display resolution
+                if ((width == candidate.getPhysicalWidth() && height == candidate.getPhysicalHeight()) ||
+                        (height == candidate.getPhysicalWidth() && width == candidate.getPhysicalHeight())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private float prepareDisplayForRendering() {

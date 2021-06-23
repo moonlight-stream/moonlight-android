@@ -19,6 +19,7 @@ import android.preference.PreferenceScreen;
 import android.util.DisplayMetrics;
 import android.util.Range;
 import android.view.Display;
+import android.view.DisplayCutout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -79,10 +80,20 @@ public class StreamSettings extends Activity {
             pref.setValue(value);
         }
 
-        private void addNativeResolutionEntry(int nativeWidth, int nativeHeight) {
+        private void addNativeResolutionEntry(int nativeWidth, int nativeHeight, boolean insetsRemoved) {
             ListPreference pref = (ListPreference) findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING);
 
-            String newName = getResources().getString(R.string.resolution_prefix_native) + " ("+nativeWidth+"x"+nativeHeight+")";
+            String newName;
+
+            if (insetsRemoved) {
+                newName = getResources().getString(R.string.resolution_prefix_native_fullscreen);
+            }
+            else {
+                newName = getResources().getString(R.string.resolution_prefix_native);
+            }
+
+            newName += " ("+nativeWidth+"x"+nativeHeight+")";
+
             String newValue = nativeWidth+"x"+nativeHeight;
 
             CharSequence[] values = pref.getEntryValues();
@@ -221,6 +232,29 @@ public class StreamSettings extends Activity {
 
                 int maxSupportedResW = 0;
 
+                // Add a native resolution with any insets included for users that don't want content
+                // behind the notch of their display
+                boolean hasInsets = false;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // FIXME: Come up with a solution for Android 9 which doesn't support Display.getCutout()
+                    DisplayCutout cutout = display.getCutout();
+                    if (cutout != null) {
+                        DisplayMetrics metrics = new DisplayMetrics();
+
+                        int widthInsets = cutout.getSafeInsetLeft() + cutout.getSafeInsetRight();
+                        int heightInsets = cutout.getSafeInsetBottom() + cutout.getSafeInsetTop();
+
+                        if (widthInsets != 0 || heightInsets != 0) {
+                            getActivity().getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+                            int width = Math.max(metrics.widthPixels - widthInsets, metrics.heightPixels - heightInsets);
+                            int height = Math.min(metrics.widthPixels - widthInsets, metrics.heightPixels - heightInsets);
+
+                            addNativeResolutionEntry(width, height, false);
+                            hasInsets = true;
+                        }
+                    }
+                }
+
                 // Always allow resolutions that are smaller or equal to the active
                 // display resolution because decoders can report total non-sense to us.
                 // For example, a p201 device reports:
@@ -240,7 +274,7 @@ public class StreamSettings extends Activity {
                     // unless they report greater than 4K resolutions.
                     if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) ||
                             (width > 3840 || height > 2160)) {
-                        addNativeResolutionEntry(width, height);
+                        addNativeResolutionEntry(width, height, hasInsets);
                     }
 
                     if ((width >= 3840 || height >= 2160) && maxSupportedResW < 3840) {
@@ -350,7 +384,7 @@ public class StreamSettings extends Activity {
                 getActivity().getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
                 int width = Math.max(metrics.widthPixels, metrics.heightPixels);
                 int height = Math.min(metrics.widthPixels, metrics.heightPixels);
-                addNativeResolutionEntry(width, height);
+                addNativeResolutionEntry(width, height, false);
             }
             else {
                 // On Android 4.1, we have to resort to reflection to invoke hidden APIs
@@ -361,7 +395,7 @@ public class StreamSettings extends Activity {
                     Method getRawWidthFunc = Display.class.getMethod("getRawWidth");
                     int width = (Integer) getRawWidthFunc.invoke(display);
                     int height = (Integer) getRawHeightFunc.invoke(display);
-                    addNativeResolutionEntry(Math.max(width, height), Math.min(width, height));
+                    addNativeResolutionEntry(Math.max(width, height), Math.min(width, height), false);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

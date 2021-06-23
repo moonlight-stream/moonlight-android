@@ -114,7 +114,7 @@
     <string name="perf_overlay_renderingfps">Képkockasebesség megjelenítése:%1$.2f FPS</string>
     <string name="perf_overlay_incomingfps">Bejövő képkockasebesség a hálózatról:%1$.2f FPS</string>
     <string name="perf_overlay_decoder">Dekóder:%1$s</string>
-    <string name="perf_overlay_streamdetails">Videófolyam:%1$s%2$.2f FPS</string>
+    <string name="perf_overlay_streamdetails">Videófolyam:%1$s %2$.2f FPS</string>
     <string name="poor_connection_msg">Gyenge kapcsolat a PC-vel</string>
     <string name="slow_connection_msg">Lassú kapcsolat a PC-vel
 \nCsökkentse a bitrátát</string>

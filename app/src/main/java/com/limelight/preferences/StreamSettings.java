@@ -239,13 +239,13 @@ public class StreamSettings extends Activity {
                     // FIXME: Come up with a solution for Android 9 which doesn't support Display.getCutout()
                     DisplayCutout cutout = display.getCutout();
                     if (cutout != null) {
-                        DisplayMetrics metrics = new DisplayMetrics();
-
                         int widthInsets = cutout.getSafeInsetLeft() + cutout.getSafeInsetRight();
                         int heightInsets = cutout.getSafeInsetBottom() + cutout.getSafeInsetTop();
 
                         if (widthInsets != 0 || heightInsets != 0) {
-                            getActivity().getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+                            DisplayMetrics metrics = new DisplayMetrics();
+                            display.getRealMetrics(metrics);
+
                             int width = Math.max(metrics.widthPixels - widthInsets, metrics.heightPixels - heightInsets);
                             int height = Math.min(metrics.widthPixels - widthInsets, metrics.heightPixels - heightInsets);
 

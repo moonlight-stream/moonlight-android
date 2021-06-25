@@ -23,6 +23,7 @@ import android.view.DisplayCutout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 
 import com.limelight.LimeLog;
 import com.limelight.PcView;
@@ -36,6 +37,9 @@ import java.util.Arrays;
 
 public class StreamSettings extends Activity {
     private PreferenceConfiguration previousPrefs;
+
+    // HACK for Android 9
+    static DisplayCutout displayCutoutP;
 
     void reloadSettings() {
         getFragmentManager().beginTransaction().replace(
@@ -52,9 +56,26 @@ public class StreamSettings extends Activity {
         UiHelper.setLocale(this);
 
         setContentView(R.layout.activity_stream_settings);
-        reloadSettings();
 
         UiHelper.notifyNewRootView(this);
+    }
+
+    @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+
+        // We have to use this hack on Android 9 because we don't have Display.getCutout()
+        // which was added in Android 10.
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
+            // Insets can be null when the activity is recreated on screen rotation
+            // https://stackoverflow.com/questions/61241255/windowinsets-getdisplaycutout-is-null-everywhere-except-within-onattachedtowindo
+            WindowInsets insets = getWindow().getDecorView().getRootWindowInsets();
+            if (insets != null) {
+                displayCutoutP = insets.getDisplayCutout();
+            }
+        }
+
+        reloadSettings();
     }
 
     @Override
@@ -235,9 +256,18 @@ public class StreamSettings extends Activity {
                 // Add a native resolution with any insets included for users that don't want content
                 // behind the notch of their display
                 boolean hasInsets = false;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // FIXME: Come up with a solution for Android 9 which doesn't support Display.getCutout()
-                    DisplayCutout cutout = display.getCutout();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    DisplayCutout cutout;
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        // Use the much nicer Display.getCutout() API on Android 10+
+                        cutout = display.getCutout();
+                    }
+                    else {
+                        // Android 9 only
+                        cutout = displayCutoutP;
+                    }
+
                     if (cutout != null) {
                         int widthInsets = cutout.getSafeInsetLeft() + cutout.getSafeInsetRight();
                         int heightInsets = cutout.getSafeInsetBottom() + cutout.getSafeInsetTop();

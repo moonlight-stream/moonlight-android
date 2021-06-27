@@ -219,4 +219,5 @@
     <string name="title_checkbox_mouse_emulation">게임패드를 마우스처럼 사용하기</string>
     <string name="perf_overlay_streamdetails">비디오 스트림 : %1$s %2$.2f FPS</string>
     <string name="unable_to_pin_shortcut">현재 런처에서는 바로가기 생성이 불가능합니다.</string>
+    <string name="resolution_prefix_native_fullscreen">네이티브 (전체화면)</string>
 </resources>

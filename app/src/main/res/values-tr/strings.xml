@@ -1,2 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="summary_reset_osc">Bütün ekran kontrollerini varsayılan boyutu ve pozisyonuna sıfırlar</string>
+    <string name="title_checkbox_touchscreen_trackpad">Dokunmatik ekranı trackpad olarak kullan</string>
+    <string name="category_input_settings">Girdi Ayarları</string>
+    <string name="summary_language_list">Moonlight için kullanılacak olan dil</string>
+    <string name="ip_hint">GeForce PC\'nin IP adresi</string>
+    <string name="title_details">Detaylar</string>
+    <string name="dialog_title_osc_opacity">Opaklığı değiştir</string>
+    <string name="conn_error_title">Bağlantı Hatası</string>
+    <string name="conn_starting">Başlatılıyor</string>
+    <string name="conn_error_msg">Başlatma başarısız</string>
+    <string name="summary_audio_config_list">Ev-sinema sistemleri için 5.1 yada 7.1 surround sesi etkinleştir</string>
+    <string name="title_checkbox_host_audio">Sesleri bilgisayarda çal</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="error_pc_offline">Bilgisayar çevrimdışı</string>
+    <string name="unpair_success">Eşleştirme başarıyla kaldırıldı</string>
+    <string name="unpairing">Eşleştirme kaldırılıyor…</string>
+    <string name="pair_fail">Eşleştirme başarısız</string>
+    <string name="pair_incorrect_pin">Yanlış PIN</string>
+    <string name="pair_pairing_title">Eşleştiriliyor</string>
+    <string name="pair_pc_offline">Bilgisayar çevrimdışı</string>
+    <string name="pairing">Eşleştiriliyor…</string>
+    <string name="nettest_title_waiting">Ağ Bağlantısı Test Ediliyor</string>
+    <string name="pcview_menu_details">Detayları Görüntüle</string>
+    <string name="pcview_menu_test_network">Ağ Bağlantısını Test Et</string>
+    <string name="pcview_menu_delete_pc">PC\'yi sil</string>
+    <string name="pcview_menu_unpair_pc">Eşleştirmeyi kaldır</string>
+    <string name="pcview_menu_pair_pc">PC ile eşle</string>
+    <string name="pcview_menu_app_list">Bütün Uygulamaları Göster</string>
+    <string name="pcview_menu_header_unknown">Yenileniyor</string>
+    <string name="pcview_menu_header_offline">Çevrimdışı</string>
+    <string name="pcview_menu_header_online">Çevrimiçi</string>
+    <string name="scut_pc_not_found">PC bulunamadı</string>
+    <string name="scut_not_paired">PC eşleştirilmedi</string>
+    <string name="scut_deleted_pc">PC silindi</string>
+</resources>

@@ -15,6 +15,9 @@ public class ConnectionContext {
     // This is the version quad from the appversion tag of /serverinfo
     public String serverAppVersion;
     public String serverGfeVersion;
+
+    // This is the sessionUrl0 tag from /resume and /launch
+    public String rtspSessionUrl;
     
     public int negotiatedWidth, negotiatedHeight;
     public boolean negotiatedHdr;

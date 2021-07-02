@@ -680,7 +680,13 @@ public class NvHTTP {
             (context.streamConfig.getAttachedGamepadMask() != 0 ? "&gcmap=" + context.streamConfig.getAttachedGamepadMask() : ""),
             false);
         String gameSession = getXmlString(xmlStr, "gamesession");
-        return gameSession != null && !gameSession.equals("0");
+        if (gameSession != null && !gameSession.equals("0")) {
+            context.rtspSessionUrl = getXmlString(xmlStr, "sessionUrl0");
+            return true;
+        }
+        else {
+            return false;
+        }
     }
     
     public boolean resumeApp(ConnectionContext context) throws IOException, XmlPullParserException {
@@ -690,7 +696,13 @@ public class NvHTTP {
                 "&surroundAudioInfo=" + context.streamConfig.getAudioConfiguration().getSurroundAudioInfo(),
                 false);
         String resume = getXmlString(xmlStr, "resume");
-        return Integer.parseInt(resume) != 0;
+        if (Integer.parseInt(resume) != 0) {
+            context.rtspSessionUrl = getXmlString(xmlStr, "sessionUrl0");
+            return true;
+        }
+        else {
+            return false;
+        }
     }
     
     public boolean quitApp() throws IOException, XmlPullParserException {

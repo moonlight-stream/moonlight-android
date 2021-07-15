@@ -3,11 +3,11 @@ apply plugin: 'com.android.application'
 android {
     ndkVersion "22.1.7171670"
 
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdkVersion 31
 
         versionName "9.9.6"
         versionCode = 268

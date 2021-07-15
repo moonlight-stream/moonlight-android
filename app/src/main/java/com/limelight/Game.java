@@ -78,7 +78,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
-import java.lang.reflect.Field;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -118,6 +117,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
     private boolean connected = false;
+    private boolean autoEnterPip = false;
     private boolean surfaceCreated = false;
     private boolean attemptedConnection = false;
 
@@ -571,23 +571,49 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.O)
+    private PictureInPictureParams getPictureInPictureParams(boolean autoEnter) {
+        PictureInPictureParams.Builder builder =
+                new PictureInPictureParams.Builder()
+                        .setAspectRatio(new Rational(prefConfig.width, prefConfig.height))
+                        .setSourceRectHint(new Rect(
+                                streamView.getLeft(), streamView.getTop(),
+                                streamView.getRight(), streamView.getBottom()));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(autoEnter);
+            builder.setSeamlessResizeEnabled(true);
+        }
+
+        return builder.build();
+    }
+
+    private void setPipAutoEnter(boolean autoEnter) {
+        if (!prefConfig.enablePip) {
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            setPictureInPictureParams(getPictureInPictureParams(autoEnter));
+        }
+        else {
+            autoEnterPip = autoEnter;
+        }
+    }
+
     @Override
     public void onUserLeaveHint() {
         super.onUserLeaveHint();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (prefConfig.enablePip && connected) {
+        // PiP is only supported on Oreo and later, and we don't need to manually enter PiP on
+        // Android S and later.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            if (autoEnterPip) {
                 try {
                     // This has thrown all sorts of weird exceptions on Samsung devices
                     // running Oreo. Just eat them and close gracefully on leave, rather
                     // than crashing.
-                    enterPictureInPictureMode(
-                            new PictureInPictureParams.Builder()
-                                    .setAspectRatio(new Rational(prefConfig.width, prefConfig.height))
-                                    .setSourceRectHint(new Rect(
-                                            streamView.getLeft(), streamView.getTop(),
-                                            streamView.getRight(), streamView.getBottom()))
-                                    .build());
+                    enterPictureInPictureMode(getPictureInPictureParams(false));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -800,6 +826,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private final Runnable hideSystemUi = new Runnable() {
             @Override
             public void run() {
+                // TODO: Do we want to use WindowInsetsController here on R+ instead of
+                // SYSTEM_UI_FLAG_IMMERSIVE_STICKY? They seem to do the same thing as of S...
+
                 // In multi-window mode on N+, we need to drop our layout flags or we'll
                 // be drawing underneath the system UI.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode()) {
@@ -1538,6 +1567,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     private void stopConnection() {
         if (connecting || connected) {
+            setPipAutoEnter(false);
             connecting = connected = false;
 
             controllerHandler.stop();
@@ -1702,6 +1732,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     spinner = null;
                 }
 
+                setPipAutoEnter(true);
                 connected = true;
                 connecting = false;
 

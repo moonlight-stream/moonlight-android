@@ -1,5 +1,6 @@
 package com.limelight.binding.input;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.input.InputManager;
@@ -7,9 +8,11 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.media.AudioAttributes;
 import android.os.Build;
+import android.os.CombinedVibration;
 import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.os.VibratorManager;
 import android.util.SparseArray;
 import android.view.InputDevice;
 import android.view.InputEvent;
@@ -487,7 +490,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.productId = dev.getProductId();
         }
 
-        if (dev.getVibrator().hasVibrator()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && hasDualAmplitudeControlledRumbleVibrators(dev.getVibratorManager())) {
+            context.vibratorManager = dev.getVibratorManager();
+        }
+        else if (dev.getVibrator().hasVibrator()) {
             context.vibrator = dev.getVibrator();
         }
 
@@ -1283,7 +1289,43 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
-    private void rumbleVibrator(Vibrator vibrator, short lowFreqMotor, short highFreqMotor) {
+    @TargetApi(31)
+    private boolean hasDualAmplitudeControlledRumbleVibrators(VibratorManager vm) {
+        int[] vibratorIds = vm.getVibratorIds();
+
+        // There must be exactly 2 vibrators on this device
+        if (vibratorIds.length != 2) {
+            return false;
+        }
+
+        // Both vibrators must have amplitude control
+        for (int vid : vibratorIds) {
+            if (!vm.getVibrator(vid).hasAmplitudeControl()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // This must only be called if hasDualAmplitudeControlledRumbleVibrators() is true!
+    @TargetApi(31)
+    private void rumbleDualVibrators(VibratorManager vm, short lowFreqMotor, short highFreqMotor) {
+        if (lowFreqMotor == 0 && highFreqMotor == 0) {
+            vm.cancel();
+            return;
+        }
+
+        int[] vibratorIds = vm.getVibratorIds();
+
+        CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
+        combo.addVibrator(vibratorIds[0], VibrationEffect.createOneShot(60000, (lowFreqMotor >> 8) & 0xFF));
+        combo.addVibrator(vibratorIds[1], VibrationEffect.createOneShot(60000, (highFreqMotor >> 8) & 0xFF));
+
+        vm.vibrate(combo.combine());
+    }
+
+    private void rumbleSingleVibrator(Vibrator vibrator, short lowFreqMotor, short highFreqMotor) {
         // Since we can only use a single amplitude value, compute the desired amplitude
         // by taking 80% of the big motor and 33% of the small motor, then capping to 255.
         // NB: This value is now 0-255 as required by VibrationEffect.
@@ -1339,9 +1381,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             if (deviceContext.controllerNumber == controllerNumber) {
                 foundMatchingDevice = true;
 
-                if (deviceContext.vibrator != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && deviceContext.vibratorManager != null) {
                     vibrated = true;
-                    rumbleVibrator(deviceContext.vibrator, lowFreqMotor, highFreqMotor);
+                    rumbleDualVibrators(deviceContext.vibratorManager, lowFreqMotor, highFreqMotor);
+                }
+                else if (deviceContext.vibrator != null) {
+                    vibrated = true;
+                    rumbleSingleVibrator(deviceContext.vibrator, lowFreqMotor, highFreqMotor);
                 }
             }
         }
@@ -1361,12 +1407,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // controls that triggered the rumble. Vibrate the device if
             // the user has requested that behavior.
             if (!foundMatchingDevice && prefConfig.onscreenController && !prefConfig.onlyL3R3 && prefConfig.vibrateOsc) {
-                rumbleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
+                rumbleSingleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
             }
             else if (foundMatchingDevice && !vibrated && prefConfig.vibrateFallbackToDevice) {
                 // We found a device to vibrate but it didn't have rumble support. The user
                 // has requested us to vibrate the device in this case.
-                rumbleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
+                rumbleSingleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
             }
         }
     }
@@ -1803,6 +1849,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     class InputDeviceContext extends GenericControllerContext {
         public String name;
+        public VibratorManager vibratorManager;
         public Vibrator vibrator;
 
         public int leftStickXAxis = -1;
@@ -1849,7 +1896,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public void destroy() {
             super.destroy();
 
-            if (vibrator != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && vibratorManager != null) {
+                vibratorManager.cancel();
+            }
+            else if (vibrator != null) {
                 vibrator.cancel();
             }
         }

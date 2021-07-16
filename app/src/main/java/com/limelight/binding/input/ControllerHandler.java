@@ -1316,11 +1316,21 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             return;
         }
 
+        // There's no documentation that states that vibrators for FF_RUMBLE input devices will
+        // always be enumerated in this order, but it seems consistent between Xbox Series X (USB),
+        // PS3 (USB), and PS4 (USB+BT) controllers on Android 12 Beta 3.
         int[] vibratorIds = vm.getVibratorIds();
+        int[] vibratorAmplitudes = new int[] { (highFreqMotor >> 8) & 0xFF, (lowFreqMotor >> 8) & 0xFF };
 
         CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
-        combo.addVibrator(vibratorIds[0], VibrationEffect.createOneShot(60000, (lowFreqMotor >> 8) & 0xFF));
-        combo.addVibrator(vibratorIds[1], VibrationEffect.createOneShot(60000, (highFreqMotor >> 8) & 0xFF));
+
+        for (int i = 0; i < vibratorIds.length; i++) {
+            // It's illegal to create a VibrationEffect with an amplitude of 0.
+            // Simply excluding that vibrator from our ParallelCombination will turn it off.
+            if (vibratorAmplitudes[i] != 0) {
+                combo.addVibrator(vibratorIds[i], VibrationEffect.createOneShot(60000, vibratorAmplitudes[i]));
+            }
+        }
 
         vm.vibrate(combo.combine());
     }

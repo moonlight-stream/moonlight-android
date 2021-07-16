@@ -206,4 +206,5 @@
     <string name="scut_deleted_pc">PC đã bị xoá</string>
     <string name="perf_overlay_netlatency">Độ trễ mạng trung bình: %1$d ms (sai số: %2$d ms)</string>
     <string name="perf_overlay_streamdetails">Tốc độ khung hình: %1$s %2$.2f FPS</string>
+    <string name="resolution_prefix_native_fullscreen">Toàn màn hình theo hệ thống</string>
 </resources>

@@ -206,4 +206,5 @@
     <string name="scut_pc_not_found">Pc nem található</string>
     <string name="scut_not_paired">PC nincs csatlakoztatva</string>
     <string name="scut_deleted_pc">PC eltávolítva</string>
+    <string name="resolution_prefix_native_fullscreen">Natív teljes képernyős</string>
 </resources>

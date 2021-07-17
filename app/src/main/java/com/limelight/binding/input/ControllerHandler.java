@@ -1311,6 +1311,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     // This must only be called if hasDualAmplitudeControlledRumbleVibrators() is true!
     @TargetApi(31)
     private void rumbleDualVibrators(VibratorManager vm, short lowFreqMotor, short highFreqMotor) {
+        // Normalize motor values to 0-255 amplitudes for VibrationManager
+        highFreqMotor = (short)((highFreqMotor >> 8) & 0xFF);
+        lowFreqMotor = (short)((lowFreqMotor >> 8) & 0xFF);
+
+        // If they're both zero, we can just call cancel().
         if (lowFreqMotor == 0 && highFreqMotor == 0) {
             vm.cancel();
             return;
@@ -1320,7 +1325,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // always be enumerated in this order, but it seems consistent between Xbox Series X (USB),
         // PS3 (USB), and PS4 (USB+BT) controllers on Android 12 Beta 3.
         int[] vibratorIds = vm.getVibratorIds();
-        int[] vibratorAmplitudes = new int[] { (highFreqMotor >> 8) & 0xFF, (lowFreqMotor >> 8) & 0xFF };
+        int[] vibratorAmplitudes = new int[] { highFreqMotor, lowFreqMotor };
 
         CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
 

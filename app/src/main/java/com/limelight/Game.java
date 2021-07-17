@@ -1239,11 +1239,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
         }
         else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0 ||
+                 (event.getSource() & InputDevice.SOURCE_CLASS_POSITION) != 0 ||
                   event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE)
         {
             // This case is for mice and non-finger touch devices
             if (event.getSource() == InputDevice.SOURCE_MOUSE ||
-                    event.getSource() == InputDevice.SOURCE_TOUCHPAD ||
+                    (event.getSource() & InputDevice.SOURCE_CLASS_POSITION) != 0 || // SOURCE_TOUCHPAD
                     event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE ||
                     (event.getPointerCount() >= 1 &&
                             (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE ||
@@ -1271,8 +1272,33 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         conn.sendMouseMove(deltaX, deltaY);
                     }
                 }
+                else if ((event.getSource() & InputDevice.SOURCE_CLASS_POSITION) != 0) {
+                    // If this input device is not associated with the view itself (like a trackpad),
+                    // we'll convert the device-specific coordinates to use to send the cursor position.
+                    // This really isn't ideal but it's probably better than nothing.
+                    //
+                    // Trackpad on newer versions of Android (Oreo and later) should be caught by the
+                    // relative axes case above. If we get here, we're on an older version that doesn't
+                    // support pointer capture.
+                    InputDevice.MotionRange xRange = event.getDevice().getMotionRange(MotionEvent.AXIS_X, event.getSource());
+                    InputDevice.MotionRange yRange = event.getDevice().getMotionRange(MotionEvent.AXIS_Y, event.getSource());
+
+                    // All touchpads coordinate planes should start at (0, 0)
+                    if (xRange != null && yRange != null && xRange.getMin() == 0 && yRange.getMin() == 0) {
+                        int xMax = (int)xRange.getMax();
+                        int yMax = (int)yRange.getMax();
+
+                        // Touchpads must be smaller than (65535, 65535)
+                        if (xMax <= Short.MAX_VALUE && yMax <= Short.MAX_VALUE) {
+                            conn.sendMousePosition((short)event.getAxisValue(MotionEvent.AXIS_X),
+                                                   (short)event.getAxisValue(MotionEvent.AXIS_Y),
+                                                   (short)xMax,
+                                                   (short)yMax);
+                        }
+                    }
+                }
                 else if (view != null) {
-                    // Otherwise send absolute position
+                    // Otherwise send absolute position based on the view for SOURCE_CLASS_POINTER
                     updateMousePosition(view, event);
                 }
 

@@ -39,7 +39,7 @@ public class ShortcutHelper {
     @TargetApi(Build.VERSION_CODES.N_MR1)
     private void reapShortcutsForDynamicAdd() {
         List<ShortcutInfo> dynamicShortcuts = sm.getDynamicShortcuts();
-        while (dynamicShortcuts.size() >= sm.getMaxShortcutCountPerActivity()) {
+        while (!dynamicShortcuts.isEmpty() && dynamicShortcuts.size() >= sm.getMaxShortcutCountPerActivity()) {
             ShortcutInfo maxRankShortcut = dynamicShortcuts.get(0);
             for (ShortcutInfo scut : dynamicShortcuts) {
                 if (maxRankShortcut.getRank() < scut.getRank()) {
@@ -118,8 +118,16 @@ public class ShortcutHelper {
                 // To avoid a random carousel of shortcuts popping in and out based on polling status,
                 // we only add shortcuts if it's not at the limit or the user made a conscious action
                 // to interact with this PC.
-                if (forceAdd || sm.getDynamicShortcuts().size() < sm.getMaxShortcutCountPerActivity()) {
+
+                if (forceAdd) {
+                    // This should free an entry for us to add one below
                     reapShortcutsForDynamicAdd();
+                }
+
+                // We still need to check the maximum shortcut count even after reaping,
+                // because there's a possibility that it could be zero.
+                if (sm.getDynamicShortcuts().size() < sm.getMaxShortcutCountPerActivity()) {
+                    // Add a shortcut if there is room
                     sm.addDynamicShortcuts(Collections.singletonList(sinfo));
                 }
             }

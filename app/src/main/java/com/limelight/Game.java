@@ -1280,20 +1280,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     // Trackpad on newer versions of Android (Oreo and later) should be caught by the
                     // relative axes case above. If we get here, we're on an older version that doesn't
                     // support pointer capture.
-                    InputDevice.MotionRange xRange = event.getDevice().getMotionRange(MotionEvent.AXIS_X, event.getSource());
-                    InputDevice.MotionRange yRange = event.getDevice().getMotionRange(MotionEvent.AXIS_Y, event.getSource());
+                    InputDevice device = event.getDevice();
+                    if (device != null) {
+                        InputDevice.MotionRange xRange = device.getMotionRange(MotionEvent.AXIS_X, event.getSource());
+                        InputDevice.MotionRange yRange = device.getMotionRange(MotionEvent.AXIS_Y, event.getSource());
 
-                    // All touchpads coordinate planes should start at (0, 0)
-                    if (xRange != null && yRange != null && xRange.getMin() == 0 && yRange.getMin() == 0) {
-                        int xMax = (int)xRange.getMax();
-                        int yMax = (int)yRange.getMax();
+                        // All touchpads coordinate planes should start at (0, 0)
+                        if (xRange != null && yRange != null && xRange.getMin() == 0 && yRange.getMin() == 0) {
+                            int xMax = (int)xRange.getMax();
+                            int yMax = (int)yRange.getMax();
 
-                        // Touchpads must be smaller than (65535, 65535)
-                        if (xMax <= Short.MAX_VALUE && yMax <= Short.MAX_VALUE) {
-                            conn.sendMousePosition((short)event.getAxisValue(MotionEvent.AXIS_X),
-                                                   (short)event.getAxisValue(MotionEvent.AXIS_Y),
-                                                   (short)xMax,
-                                                   (short)yMax);
+                            // Touchpads must be smaller than (65535, 65535)
+                            if (xMax <= Short.MAX_VALUE && yMax <= Short.MAX_VALUE) {
+                                conn.sendMousePosition((short)event.getX(), (short)event.getY(),
+                                                       (short)xMax, (short)yMax);
+                            }
                         }
                     }
                 }

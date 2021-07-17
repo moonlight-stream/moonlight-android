@@ -1089,8 +1089,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Handle a synthetic back button event that some Android OS versions
         // create as a result of a right-click. This event WILL repeat if
         // the right mouse button is held down, so we ignore those.
-        if ((event.getSource() == InputDevice.SOURCE_MOUSE ||
-                event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) &&
+        int eventSource = event.getSource();
+        if ((eventSource == InputDevice.SOURCE_MOUSE ||
+                eventSource == InputDevice.SOURCE_MOUSE_RELATIVE) &&
                 event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
 
             // Send the right mouse button event if mouse back and forward
@@ -1159,8 +1160,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Handle a synthetic back button event that some Android OS versions
         // create as a result of a right-click.
-        if ((event.getSource() == InputDevice.SOURCE_MOUSE ||
-                event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) &&
+        int eventSource = event.getSource();
+        if ((eventSource == InputDevice.SOURCE_MOUSE ||
+                eventSource == InputDevice.SOURCE_MOUSE_RELATIVE) &&
                 event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
 
             // Send the right mouse button event if mouse back and forward
@@ -1233,19 +1235,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return false;
         }
 
-        if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
+        int eventSource = event.getSource();
+        if ((eventSource & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
             if (controllerHandler.handleMotionEvent(event)) {
                 return true;
             }
         }
-        else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0 ||
-                 (event.getSource() & InputDevice.SOURCE_CLASS_POSITION) != 0 ||
-                  event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE)
+        else if ((eventSource & InputDevice.SOURCE_CLASS_POINTER) != 0 ||
+                 (eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 ||
+                 eventSource == InputDevice.SOURCE_MOUSE_RELATIVE)
         {
             // This case is for mice and non-finger touch devices
-            if (event.getSource() == InputDevice.SOURCE_MOUSE ||
-                    (event.getSource() & InputDevice.SOURCE_CLASS_POSITION) != 0 || // SOURCE_TOUCHPAD
-                    event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE ||
+            if (eventSource == InputDevice.SOURCE_MOUSE ||
+                    (eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 || // SOURCE_TOUCHPAD
+                    eventSource == InputDevice.SOURCE_MOUSE_RELATIVE ||
                     (event.getPointerCount() >= 1 &&
                             (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE ||
                                     event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS ||
@@ -1272,7 +1275,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         conn.sendMouseMove(deltaX, deltaY);
                     }
                 }
-                else if ((event.getSource() & InputDevice.SOURCE_CLASS_POSITION) != 0) {
+                else if ((eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0) {
                     // If this input device is not associated with the view itself (like a trackpad),
                     // we'll convert the device-specific coordinates to use to send the cursor position.
                     // This really isn't ideal but it's probably better than nothing.
@@ -1282,8 +1285,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     // support pointer capture.
                     InputDevice device = event.getDevice();
                     if (device != null) {
-                        InputDevice.MotionRange xRange = device.getMotionRange(MotionEvent.AXIS_X, event.getSource());
-                        InputDevice.MotionRange yRange = device.getMotionRange(MotionEvent.AXIS_Y, event.getSource());
+                        InputDevice.MotionRange xRange = device.getMotionRange(MotionEvent.AXIS_X, eventSource);
+                        InputDevice.MotionRange yRange = device.getMotionRange(MotionEvent.AXIS_Y, eventSource);
 
                         // All touchpads coordinate planes should start at (0, 0)
                         if (xRange != null && yRange != null && xRange.getMin() == 0 && yRange.getMin() == 0) {

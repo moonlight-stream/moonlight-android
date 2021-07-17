@@ -1,0 +1,4 @@
+- Improved controller rumble support with independent rumble motor control using the new Android 12 APIs
+- Fixed touchpad input on DualShock controllers (if supported by the Android device itself)
+- Fixed certain controllers disconnecting from the host when Moonlight enters the background
+- Updated community-contributed translations from Weblate

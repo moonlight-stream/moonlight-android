@@ -158,11 +158,36 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
+    // This can happen when gaining/losing input focus with some devices.
+    // Input devices that have a trackpad may gain/lose AXIS_RELATIVE_X/Y.
     @Override
     public void onInputDeviceChanged(int deviceId) {
-        // Remove and re-add 
-        onInputDeviceRemoved(deviceId);
-        onInputDeviceAdded(deviceId);
+        InputDevice device = InputDevice.getDevice(deviceId);
+        if (device == null) {
+            return;
+        }
+
+        // If we don't have a context for this device, we don't need to update anything
+        InputDeviceContext existingContext = inputDeviceContexts.get(deviceId);
+        if (existingContext == null) {
+            return;
+        }
+
+        LimeLog.info("Device changed: "+existingContext.name+" ("+deviceId+")");
+
+        // Don't release the controller number, because we will carry it over if it is present.
+        // We also want to make sure the change is invisible to the host PC to avoid an add/remove
+        // cycle for the gamepad which may break some games.
+        existingContext.destroy();
+
+        InputDeviceContext newContext = createInputDeviceContextForDevice(device);
+
+        // Copy over existing controller number state
+        newContext.assignedControllerNumber = existingContext.assignedControllerNumber;
+        newContext.reservedControllerNumber = existingContext.reservedControllerNumber;
+        newContext.controllerNumber = existingContext.controllerNumber;
+
+        inputDeviceContexts.put(deviceId, newContext);
     }
 
     public void stop() {

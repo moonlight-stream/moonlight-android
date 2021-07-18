@@ -2,6 +2,28 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:seekbar="http://schemas.moonlight-stream.com/apk/res/seekbar">
 
+    <PreferenceCategory
+        android:key="category_profile"
+        android:title="Profile">
+
+        <EditTextPreference
+            android:dialogMessage="@string/remove_profile_message"
+            android:icon="@android:drawable/ic_menu_save"
+            android:inputType="textShortMessage|textNoSuggestions"
+            android:key="text_profile"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:summary="@string/profile_save_description"
+            android:title="@string/profile_save_title" />
+        <ListPreference
+            android:contentDescription="@string/remove_profile_description"
+            android:defaultValue="1"
+            android:enabled="false"
+            android:icon="@android:drawable/ic_menu_delete"
+            android:key="remove_profile"
+            android:summary="@string/remove_profile_description"
+            android:title="@string/remove_profile_title" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_basic_settings"
         android:key="category_basic_settings">
         <ListPreference

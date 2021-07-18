@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
@@ -37,6 +39,7 @@ import android.os.IBinder;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AbsListView;
@@ -50,6 +53,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import org.xmlpull.v1.XmlPullParserException;
 
 public class AppView extends Activity implements AdapterFragmentCallbacks {
+    private AdapterContextMenuInfo _contextMenuInfo = null;
     private AppGridAdapter appGridAdapter;
     private String uuidString;
     private ShortcutHelper shortcutHelper;
@@ -70,6 +74,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private final static int VIEW_DETAILS_ID = 5;
     private final static int CREATE_SHORTCUT_ID = 6;
     private final static int HIDE_APP_ID = 7;
+    private final static int PROFILE_GROUP = 1;
 
     public final static String HIDDEN_APPS_PREF_FILENAME = "HiddenApps";
 
@@ -329,6 +334,29 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         appGridAdapter.updateHiddenApps(hiddenAppIds, hideImmediately);
     }
 
+    private void updateAppProfile(String profileKey, Integer appId, boolean remove) {
+        SharedPreferences profConfig = getSharedPreferences(PreferenceConfiguration.APP_PROFILES_PREF_FILENAME, MODE_PRIVATE);
+        SharedPreferences.Editor edit = profConfig.edit();
+
+        // Go through every profile and remove this appId
+        Map<String,?> keys = profConfig.getAll();
+        for(Map.Entry<String,?> entry : keys.entrySet()){
+            if (entry.getValue() instanceof Set) {
+                Set<String> appIds = new HashSet<String>((HashSet<String>) entry.getValue());
+                appIds.remove(appId.toString());
+                edit.putStringSet(profileKey, appIds);
+            }
+        }
+
+        if (!remove) {
+            HashSet<String> profileAppIds = new HashSet<String>(profConfig.getStringSet(profileKey, new HashSet<String>()));
+            profileAppIds.add(appId.toString());
+            edit.putStringSet(profileKey, profileAppIds);
+        }
+
+        edit.apply();
+    }
+
     private void populateAppGridWithCache() {
         try {
             // Try to load from cache
@@ -411,6 +439,24 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
         menu.add(Menu.NONE, VIEW_DETAILS_ID, 4, getResources().getString(R.string.applist_menu_details));
 
+        // Builds submenu on context menu with all profiles.
+        if (!PreferenceConfiguration.readPreferences(this).profileKeys.isEmpty()) {
+            SubMenu profileSubMenu = menu.addSubMenu(Menu.NONE, 7, 6, getResources().getString(R.string.applist_menu_app_profile));
+            Object[] array = PreferenceConfiguration.readPreferences(this).profileKeys.toArray();
+            for (int i = 0; i < array.length; i++) {
+                String s = array[i].toString();
+                MenuItem profileItem = profileSubMenu.add(PROFILE_GROUP, i, i, s);
+                String profileKey = PreferenceConfiguration.getAppProfileKey(selectedApp.app.getAppId(), this);
+
+                if (s.equals(profileKey)) {
+                    profileItem.setChecked(true);
+                }
+            }
+
+            profileSubMenu.setGroupCheckable(PROFILE_GROUP, true, true);
+        }
+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Only add an option to create shortcut if box art is loaded
             // and when we're in grid-mode (not list-mode).
@@ -433,7 +479,31 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+
+        SubMenu sMenu = item.getSubMenu();
+        // Android loses contextual menuInfo on context menu submenus, so this sets it manually
+        if (sMenu != null) {
+            _contextMenuInfo = (AdapterContextMenuInfo) item.getMenuInfo();
+            return super.onContextItemSelected(item);
+        }
+        if (info == null && _contextMenuInfo != null) {
+            info = _contextMenuInfo;
+        }
+
         final AppObject app = (AppObject) appGridAdapter.getItem(info.position);
+
+        if (item.getGroupId() == PROFILE_GROUP) {
+            if (item.isChecked()) {
+                // Removes profile
+                updateAppProfile(item.getTitle().toString(), app.app.getAppId(), true);
+            }
+            else {
+                // Sets profile
+                updateAppProfile(item.getTitle().toString(), app.app.getAppId(), false);
+            }
+            return false;
+        }
+
         switch (item.getItemId()) {
             case START_WITH_QUIT:
                 // Display a confirmation dialog first

@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <!-- PC view menu entries -->
     <string name="pcview_menu_app_list">Посмотреть список игр</string>
     <string name="pcview_menu_pair_pc">Создать пару с PC</string>
     <string name="pcview_menu_unpair_pc">Разорвать пару</string>
     <string name="pcview_menu_send_wol">Отправить Wake-On-LAN запрос</string>
     <string name="pcview_menu_delete_pc">Удалить PC</string>
-
     <!-- Network test strings -->
     <string name="nettest_title_waiting">Тестирование Сетевого Подключения</string>
     <string name="nettest_text_waiting">Moonlight тестирует ваше сетевое подключение, чтобы определить, заблокирован ли NVIDIA GameStream.\n\nЭто может занять некоторое время…</string>
@@ -15,7 +13,6 @@
     <string name="nettest_text_success">Ваша сеть не блокирует Moonlight. Если у вас всё ещё есть проблемы с соединением, проверьте настройки брандмауэра на компьютере.\n\nЕсли вы пытаетесь транслировать через интернет, установите Moonlight Internet Hosting Tool на ваш компьютер и запустите установленный Internet Streaming Tester, чтобы проверить Интернет-соединение на вашем компьютере.</string>
     <string name="nettest_text_inconclusive">Тестирование подключения не может быть выполнено, потому что сервера тестирования подключения Moonlight не доступны. Проверьте ваше Интернет-соединение или повторите попытку позже.</string>
     <string name="nettest_text_failure">Похоже, что текущее сетевое подключение вашего устройства блокирует Moonlight. Трансляция через Интернет может не работать при подключении к этой сети.\n\nСледующие сетевые порты были заблокированы:\n</string>
-
     <!-- Pair messages -->
     <string name="pairing">Создание пары…</string>
     <string name="pair_pc_offline">Компьютер выключен или находится не в сети</string>
@@ -24,7 +21,6 @@
     <string name="pair_pairing_msg">Пожалуйста введите этот PIN на PC:</string>
     <string name="pair_incorrect_pin">Неправильный PIN</string>
     <string name="pair_fail">Создание пары не удалось</string>
-
     <!-- WOL messages -->
     <string name="wol_pc_online">Компьютер в сети</string>
     <string name="wol_no_mac">Невозможно разбудить PC потому что GFE не отправило MAC адрес</string>
@@ -33,13 +29,11 @@
 	    Если этого не происходит, удостоверьтесь что Wake-On-LAN настроен правильно.
     </string>
     <string name="wol_fail">Ошибка при отправке Wake-On-LAN пакетов</string>
-
     <!-- Unpair messages -->
     <string name="unpairing">Разрыв пары…</string>
     <string name="unpair_success">Разрыв пары закончился успешно</string>
     <string name="unpair_fail">Разрыв пары не удался</string>
     <string name="unpair_error">Устройство не было спарено</string>
-
     <!-- Errors -->
     <string name="error_pc_offline">Компьютер выключен или находится не в сети</string>
     <string name="error_manager_not_running">Сервис ComputerManager не запущен. Пожалуйста, подождите несколько секунд или перезапустите приложение.</string>
@@ -47,7 +41,6 @@
     <string name="error_404">GFE вернул ошибку HTTP 404. Убедитесь что Ваш PC использует поддерживаемый GPU.
 	    Использование программ для удалённого доступа также может вызывать эту ошибку. Попробуйте перезагрузить компьютер или переустановить GFE.
     </string>
-
     <!-- Start application messages -->
     <string name="conn_establishing_title">Создание соединения</string>
     <string name="conn_establishing_msg">Подключение</string>
@@ -60,7 +53,6 @@
     <string name="conn_error_msg">Запуск не удался</string>
     <string name="conn_terminated_title">Соединение прекращено</string>
     <string name="conn_terminated_msg">Подключение было прервано</string>
-
     <!-- General strings -->
     <string name="ip_hint">IP-адрес компьютера с GeForce</string>
     <string name="searching_pc">Поиск компьютеров с запущенным GameStream…\n\n
@@ -68,7 +60,6 @@
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="lost_connection">Потеряно соединение с PC</string>
-
     <!-- AppList activity -->
     <string name="applist_menu_resume">Возобновить сессию</string>
     <string name="applist_menu_quit">Выйти из сессии</string>
@@ -83,7 +74,6 @@
     <string name="applist_quit_success">Выход произошёл успешно из</string>
     <string name="applist_quit_fail">Ошибка при выходе</string>
     <string name="applist_quit_confirmation">Вы уверены, что хотите выйти из запущенного приложения? Все несохраненные данные будут потеряны.</string>
-
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Добавление PC вручную</string>
     <string name="msg_add_pc">Соединение с PC…</string>
@@ -91,7 +81,6 @@
     <string name="addpc_success">Компьютер добавлен успешно</string>
     <string name="addpc_unknown_host">Не удалось найти PC по указанному адресу. Убедитесь, что Вы не совершили ошибок во время его написания.</string>
     <string name="addpc_enter_ip">Вы должны ввести IP адрес</string>
-
     <!-- Preferences -->
     <string name="category_basic_settings">Общие Настройки</string>
     <string name="title_resolution_list">Выберите разрешение и частоту кадров</string>
@@ -101,11 +90,9 @@
     <string name="title_checkbox_stretch_video">Растягивать видео на весь экран</string>
     <string name="title_checkbox_disable_warnings">Отключить сообщения с предупреждениями</string>
     <string name="summary_checkbox_disable_warnings">Выключить экранные предупреждения о соединении во время трансляции</string>
-
     <string name="category_audio_settings">Аудио Настройки</string>
     <string name="title_audio_config_list">Настройка объёмного звука</string>
     <string name="summary_audio_config_list">Включить объёмный звук 5.1 или 7.1 для систем домашнего кинотеатра</string>
-
     <string name="title_checkbox_multi_controller">Поддержка нескольких контроллеров</string>
     <string name="summary_checkbox_multi_controller">Когда отключена, все контроллеры определяются как один</string>
     <string name="title_seekbar_deadzone">Регулировать мертвую зону аналогового стика</string>
@@ -114,22 +101,19 @@
     <string name="summary_checkbox_xb1_driver">Включить встроенный USB драйвер для устройств без собственной поддержки контроллеров Xbox</string>
     <string name="title_checkbox_flip_face_buttons">Перевернуть кнопки A/B и X/Y</string>
     <string name="summary_checkbox_flip_face_buttons">Меняет местами кнопки A/B и X/Y на геймпадах и экранных кнопках</string>
-
     <string name="category_ui_settings">Настройки Интерфейса</string>
     <string name="title_language_list">Язык</string>
     <string name="summary_language_list">Язык, который будет использоваться в Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Использовать маленькие иконки</string>
     <string name="summary_checkbox_small_icon_mode">Использовать маленькие иконки в сетке для отображения большего числа элементов на экране</string>
-
     <string name="category_host_settings">Настройки Хоста</string>
     <string name="title_checkbox_enable_sops">Оптимизировать игровые настройки</string>
     <string name="summary_checkbox_enable_sops">Разрешить GFE изменять настройки игр для оптимальной трансляции</string>
     <string name="title_checkbox_host_audio">Проигрывать звук на PC</string>
     <string name="summary_checkbox_host_audio">Проигрывать звук на компьютере и текущем устройстве</string>
-
     <string name="category_advanced_settings">Расширенные Настройки</string>
-    <string name="title_video_format">Изменить настройки H.265</string>
-    <string name="summary_video_format">H.265 снижает требования к пропускной способности, но требует очень нового устройства</string>
+    <string name="title_video_format">Изменить настройки HEVC</string>
+    <string name="summary_video_format">HEVC снижает требования к пропускной способности, но требует очень нового устройства</string>
     <string name="category_on_screen_controls_settings">Настройки Экранных Кнопок</string>
     <string name="title_checkbox_show_onscreen_controls">Показывать экранные кнопки</string>
     <string name="summary_checkbox_show_onscreen_controls">Отображать оверлей виртуального контроллера на сенсорном экране</string>
@@ -167,7 +151,6 @@
     <string name="summary_enable_hdr">Транслировать в HDR если игра и GPU компьютера поддерживают это. HDR требует видеокарты GTX 1000 серии или более новой.</string>
     <string name="title_enable_post_stream_toast">Показывать отчёт о задержке после трансляции</string>
     <string name="summary_enable_post_stream_toast">Отобразить сообщение с информацией о задержке после окончания трансляции.</string>
-
     <string name="title_checkbox_vibrate_osc">Включить вибрацию</string>
     <string name="title_fps_list">Частота кадров</string>
     <string name="applist_menu_details">Детали</string>
@@ -192,9 +175,40 @@
     <string name="slow_connection_msg">Медленное подключение к PC\nУменьшите битрейт</string>
     <string name="summary_unlock_fps">Трансляция со скоростью 90 или 120 кадров в секунду может уменьшить задержку на устройствах высокого класса, но может вызвать задержки или сбой на устройствах без поддержки этого функционала</string>
     <string name="summary_enable_perf_overlay">Отображение оверлея на экране с информацией о производительности во время трансляции в режиме реального времени</string>
-    <string name="perf_overlay_text">Разрешение видео: %1$s\nДекодер: %2$s\nРасчетная частота кадров PC-хоста: %3$.2f FPS\nВходящая частота кадров из сети: %4$.2f FPS\nЧастота кадров при рендеринге: %5$.2f FPS\nОтброшеных кадров вашей сетью: %6$.2f%%\nСреднее время получения: %7$.2f ms\nСреднее время декодирования: %8$.2f ms</string>
+    <string name="perf_overlay_decoder">Декодер: %1$s</string>
+    <string name="perf_overlay_incomingfps">Входящая частота кадров из сети: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Частота кадров при рендеринге: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Отброшеных кадров вашей сетью: %1$.2f%%</string>
+    <string name="perf_overlay_dectime">Среднее время декодирования: %1$.2f ms</string>
     <string name="summary_fps_list">Увеличение для более плавного видео потока. Уменьшите для лучшей производительности на более слабых устройствах.</string>
     <string name="scut_invalid_uuid">Указанный PC недействителен</string>
     <string name="scut_invalid_app_id">Указанное приложение недействительно</string>
     <string name="suffix_osc_opacity">%</string>
+    <string name="suffix_seekbar_bitrate_mbps">Мб/с</string>
+    <string name="applist_menu_hide_app">Скрыть приложение</string>
+    <string name="pcview_menu_test_network">Тестовое подключение к сети</string>
+    <string name="pcview_menu_header_unknown">Обновление</string>
+    <string name="pcview_menu_header_offline">Оффлайн</string>
+    <string name="pcview_menu_header_online">Онлайн</string>
+    <string name="title_osc_opacity">Изменить прозрачность экранных элементов управления</string>
+    <string name="check_ports_msg">Проверьте свой брандмауэр и правила переадресации портов для порта(ов):</string>
+    <string name="early_termination_error">Что-то пошло не так на вашем хост-компьютере при запуске трансляции.
+\n
+\nУбедитесь, что на вашем компьютере нет содержимого, защищенного DRM. Вы также можете попробовать перезагрузить компьютер.
+\n
+\nЕсли проблема сохраняется, попробуйте переустановить драйверы для GPU и GeForce Experience.</string>
+    <string name="no_frame_received_error">Ваше сетевое подключение не справляется с заданными настройками. Попробуйте изменить битрейт или использовать более быстрое подключение.</string>
+    <string name="no_video_received_error">Видео от хоста не получено.</string>
+    <string name="nettest_text_blocked">Текущее сетевое соединение вашего устройства блокирует Moonlight. Потоковая передача через Интернет может не работать при подключении к этой сети.</string>
+    <string name="resolution_prefix_native">Родное</string>
+    <string name="text_native_res_dialog">Режимы родного разрешения официально не поддерживаются GeForce Experience, поэтому он не будет устанавливать разрешение экрана вашего хоста самостоятельно. Вам нужно будет установить его вручную во время игры.
+\n
+\nЕсли вы решите создать пользовательское разрешение в Панели управления NVIDIA в соответствии с разрешением вашего устройства, убедитесь, что вы прочитали и поняли предупреждение NVIDIA относительно возможного повреждения монитора, нестабильности ПК и других потенциальных проблем.
+\n
+\nМы не несем ответственности за какие-либо проблемы, возникающие в результате создания пользовательского разрешения на вашем ПК.
+\n
+\nНаконец, ваше устройство или хост-компьютер может не поддерживать потоковую передачу в родном разрешении. Если это не работает на вашем устройстве, к сожалению, вам просто не повезло.</string>
+    <string name="title_native_res_dialog">Предупреждение о родном разрешении</string>
+    <string name="video_decoder_init_failed">Видеодекодер не инициализирован. Ваше устройство может не поддерживать выбранное разрешение или частоту кадров.</string>
+    <string name="perf_overlay_streamdetails">Видеострим: %1$s %2$.2f FPS</string>
 </resources>

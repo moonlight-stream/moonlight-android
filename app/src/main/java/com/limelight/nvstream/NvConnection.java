@@ -122,7 +122,7 @@ public class NvConnection {
         }
         else if ((context.streamConfig.getWidth() > 4096 || context.streamConfig.getHeight() > 4096) &&
                 !context.streamConfig.getHevcSupported()) {
-            context.connListener.displayMessage("Your streaming device must support H.265 to stream at resolutions above 4K.");
+            context.connListener.displayMessage("Your streaming device must support HEVC to stream at resolutions above 4K.");
             return false;
         }
         else if (context.streamConfig.getHeight() >= 2160 && !h.supports4K(serverInfo)) {
@@ -275,7 +275,7 @@ public class NvConnection {
                 synchronized (MoonBridge.class) {
                     MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
                     int ret = MoonBridge.startConnection(context.serverAddress,
-                            context.serverAppVersion, context.serverGfeVersion,
+                            context.serverAppVersion, context.serverGfeVersion, context.rtspSessionUrl,
                             context.negotiatedWidth, context.negotiatedHeight,
                             context.streamConfig.getRefreshRate(), context.streamConfig.getBitrate(),
                             context.streamConfig.getMaxPacketSize(),
@@ -284,6 +284,7 @@ public class NvConnection {
                             context.negotiatedHdr,
                             context.streamConfig.getHevcBitratePercentageMultiplier(),
                             context.streamConfig.getClientRefreshRateX100(),
+                            context.streamConfig.getEncryptionFlags(),
                             context.riKey.getEncoded(), ib.array(),
                             context.videoCapabilities);
                     if (ret != 0) {

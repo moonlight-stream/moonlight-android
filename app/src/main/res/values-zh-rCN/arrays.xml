@@ -8,9 +8,9 @@
     </string-array>
 
     <string-array name="video_format_names">
-        <item>如果稳定才使用H.265</item>
-        <item>强制使用H.265（不稳定）</item>
-        <item>不使用H.265</item>
+        <item>如果稳定才使用HEVC</item>
+        <item>强制使用HEVC（不稳定）</item>
+        <item>不使用HEVC</item>
     </string-array>
     
     <string-array name="audio_config_names">

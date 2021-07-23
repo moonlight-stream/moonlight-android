@@ -1,16 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
-    ndkVersion "22.0.7026061"
+    ndkVersion "22.1.7171670"
 
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdkVersion 31
 
-        versionName "9.8.3"
-        versionCode = 254
+        versionName "9.10"
+        versionCode = 270
     }
 
     flavorDimensions "root"
@@ -67,7 +67,6 @@ android {
             applicationIdSuffix ".debug"
 
             minifyEnabled true
-            useProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
@@ -113,13 +112,16 @@ android {
             path "src/main/jni/Android.mk"
         }
     }
+
+    // Generate native debug symbols to allow Google Play to symbolicate our native crashes
+    android.defaultConfig.ndk.debugSymbolLevel = 'FULL'
 }
 
 dependencies {
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.66'
-    implementation 'org.bouncycastle:bcpkix-jdk15on:1.66'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.69'
+    implementation 'org.bouncycastle:bcpkix-jdk15on:1.69'
     implementation 'org.jcodec:jcodec:0.2.3'
-    implementation 'com.squareup.okhttp3:okhttp:3.12.12'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okio:okio:1.17.5'
-    implementation 'org.jmdns:jmdns:3.5.5'
+    implementation 'org.jmdns:jmdns:3.5.7'
 }

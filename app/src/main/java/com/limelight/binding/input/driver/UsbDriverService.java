@@ -127,7 +127,12 @@ public class UsbDriverService extends Service implements UsbDriverListener {
                     // just returning a false result or returning 0 enumerated devices,
                     // they throw an undocumented SecurityException from this call, crashing
                     // the whole app. :(
-                    usbManager.requestPermission(device, PendingIntent.getBroadcast(UsbDriverService.this, 0, new Intent(ACTION_USB_PERMISSION), 0));
+                    int intentFlags = 0;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        // This PendingIntent must be mutable to allow the framework to populate EXTRA_DEVICE and EXTRA_PERMISSION_GRANTED.
+                        intentFlags |= PendingIntent.FLAG_MUTABLE;
+                    }
+                    usbManager.requestPermission(device, PendingIntent.getBroadcast(UsbDriverService.this, 0, new Intent(ACTION_USB_PERMISSION), intentFlags));
                 } catch (SecurityException e) {
                     Toast.makeText(this, this.getText(R.string.error_usb_prohibited), Toast.LENGTH_LONG).show();
                 }

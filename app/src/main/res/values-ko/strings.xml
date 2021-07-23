@@ -3,18 +3,15 @@
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc">PC 삭제됨</string>
     <string name="scut_not_paired">PC와 페어링되지 않음</string>
-
     <!-- Help strings -->
     <string name="help_loading_title">도움말 뷰어</string>
     <string name="help_loading_msg">도움말 페이지 로딩중…</string>
-
     <!-- PC view menu entries -->
-    <string name="pcview_menu_app_list">게임 리스트 보이기</string>
+    <string name="pcview_menu_app_list">모든 게임 보기</string>
     <string name="pcview_menu_pair_pc">PC와 페어링</string>
     <string name="pcview_menu_unpair_pc">페어링 해제</string>
     <string name="pcview_menu_send_wol">Wake-On-LAN request 보내기</string>
     <string name="pcview_menu_delete_pc">PC 삭제</string>
-
     <!-- Pair messages -->
     <string name="pairing">페어링 중…</string>
     <string name="pair_pc_offline">컴퓨터가 오프라인입니다.</string>
@@ -24,34 +21,28 @@
     <string name="pair_incorrect_pin">PIN이 올바르지 않음</string>
     <string name="pair_fail">페어링 실패</string>
     <string name="pair_already_in_progress">페어링이 이미 진행중입니다</string>
-
     <!-- WOL messages -->
     <string name="wol_pc_online">컴퓨터가 온라인 상태입니다</string>
-    <string name="wol_no_mac">Geforce Experience가 MAC 주소를 보내지 않아 PC를 깨울 수 없습니다.</string>
+    <string name="wol_no_mac">Geforce Experience가 MAC 주소를 보내지 않아 PC를 켤 수 없습니다.</string>
     <string name="wol_waking_pc">PC를 깨우는 중…</string>
-    <string name="wol_waking_msg">PC를 깨우는 데에 약간의 시간이 걸립니다.
-        PC가 깨워지지 않으면, Wake-On-Lan이 설정되어있는지 확인하세요.
-    </string>
+    <string name="wol_waking_msg">PC를 켜는 데에 약간의 시간이 걸립니다. PC가 켜지지 않으면, Wake-On-Lan이 설정되어있는지 확인하세요.</string>
     <string name="wol_fail">Wake-On-LAN 패킷을 보내는 데에 실패했습니다</string>
-
     <!-- Unpair messages -->
     <string name="unpairing">페어링 해제중…</string>
     <string name="unpair_success">페어링 해제 완료</string>
     <string name="unpair_fail">페어링 해제 실패</string>
     <string name="unpair_error">장치가 페어링되지 않음</string>
-
     <!-- Errors -->
     <string name="error_pc_offline">컴퓨터가 오프라인 상태입니다</string>
-    <string name="error_manager_not_running">ComputerManager 서비스가 실행되지 않고 있습니다. 몇 초 기다리거나 앱을 다시 시작하세요.</string>
+    <string name="error_manager_not_running">ComputerManager 서비스가 실행되지 않고 있습니다. 잠시 기다리거나 앱을 다시 시작하세요.</string>
     <string name="error_unknown_host">호스트 응답에 실패함</string>
     <string name="error_404">GFE가 HTTP 404에러를 보냈습니다. 지원되는 GPU가 설치되어 있는지 확인하세요.
 	    원격 데스트톱 응용 프로그램을 사용하는 것도 이 에러를 유발할 수 있습니다. PC를 다시 시작하거나 Geforce Experience를 다시 설치해보세요. 
     </string>
-
     <!-- Start application messages -->
-    <string name="conn_establishing_title">연결 수립중</string>
+    <string name="conn_establishing_title">연결 시도중</string>
     <string name="conn_establishing_msg">연결 시작</string>
-    <string name="conn_metered">경고: 데이터 요금이 부과될 수 있습니다.</string>
+    <string name="conn_metered">경고: 데이터 요금이 부과될 수 있습니다!</string>
     <string name="conn_client_latency">평균 프레임 디코딩 지연:</string>
     <string name="conn_client_latency_hw">하드웨어 디코더 지연:</string>
     <string name="conn_hardware_latency">평균 하드웨어 디코딩 지연:</string>
@@ -60,7 +51,6 @@
     <string name="conn_error_msg">시작 실패</string>
     <string name="conn_terminated_title">연결 종료 됨</string>
     <string name="conn_terminated_msg">연결이 종료되었습니다</string>
-
     <!-- General strings -->
     <string name="ip_hint">GeForce PC의 IP 주소</string>
     <string name="searching_pc">GameStream이 실행중인 PC를 검색중…\n\n
@@ -69,7 +59,6 @@
     <string name="no">아니오</string>
     <string name="lost_connection">PC 연결 끊김</string>
     <string name="help">도움말</string>
-
     <!-- AppList activity -->
     <string name="applist_connect_msg">PC에 연결중…</string>
     <string name="applist_menu_resume">세션 계속</string>
@@ -77,60 +66,158 @@
     <string name="applist_menu_quit_and_start">현재 게임 종료 후 시작</string>
     <string name="applist_menu_cancel">취소</string>
     <string name="applist_refresh_title">앱 리스트</string>
-    <string name="applist_refresh_msg">앱 다시 로드 중…</string>
+    <string name="applist_refresh_msg">앱 로드 중…</string>
     <string name="applist_refresh_error_title">오류</string>
     <string name="applist_refresh_error_msg">앱 리스트를 얻는데 실패함</string>
     <string name="applist_quit_app">종료중</string>
     <string name="applist_quit_success">종료됨</string>
-    <string name="applist_quit_fail">종료에 실패함</string>
-    <string name="applist_quit_confirmation">실행되고 있는 앱을 종료하길 원하시나요? 모든 저장되지 않은 데이터가 삭제됩니다</string>
-
+    <string name="applist_quit_fail">종료 실패</string>
+    <string name="applist_quit_confirmation">실행되고 있는 앱을 종료하길 원하시나요\? 모든 저장되지 않은 데이터가 삭제됩니다.</string>
     <!-- Add computer manually activity -->
-    <string name="title_add_pc">고급 설정으로 PC 추가</string>
+    <string name="title_add_pc">수동으로 PC 추가</string>
     <string name="msg_add_pc">PC에 연결 중…</string>
     <string name="addpc_fail">지정된 컴퓨터에 연결하는 데에 실패했습니다. PC의 방화벽과 적절한 포트 설정을 확인하세요.</string>
     <string name="addpc_success">컴퓨터 추가 성공</string>
-    <string name="addpc_unknown_host">PC의 IP주소를 확인할 수 없습니다. Make sure you didn\'t make a typo in the address.</string>
-    <string name="addpc_enter_ip">반드시 IP주소를 입력해야 합니다.</string>
-
+    <string name="addpc_unknown_host">PC의 IP주소를 확인할 수 없습니다. 주소에 오타가 없는지 확인하십시오.</string>
+    <string name="addpc_enter_ip">반드시 IP주소를 입력해야 합니다</string>
     <!-- Preferences -->
     <string name="category_basic_settings">기본 설정</string>
-    <string name="title_resolution_list">해상도와 FPS 타겟 지정</string>
-    <string name="summary_resolution_list">세팅 값이 자신의 PC 성능보다 너무 높으면 렉이나 깨짐을 유발할 수 있습니다.</string>
+    <string name="title_resolution_list">해상도 설정</string>
+    <string name="summary_resolution_list">해상도가 높을수록 선명하지만 저사양기기를 사용하거나 네트워크 연결이 느리다면 해상도를 낮추십시오.</string>
     <string name="title_seekbar_bitrate">비트레이트 타겟 지정</string>
     <string name="summary_seekbar_bitrate">낮은 비트레이트는 끊김을 줄이고, 높은 비트레이트는 품질을 높입니다.</string>
-    <string name="title_checkbox_stretch_video">전체 화면으로 렌더링 스크린 늘이기</string>
+    <string name="title_checkbox_stretch_video">화면을 늘려 전체화면으로 사용</string>
     <string name="title_checkbox_disable_warnings">경고 메세지 끄기</string>
     <string name="summary_checkbox_disable_warnings">화면 상의 연결 경고 메세지를 스트리밍 중에 비활성화합니다.</string>
-
     <string name="category_audio_settings">오디오 설정</string>
-
     <string name="title_checkbox_multi_controller">다중 컨트롤러 지원</string>
     <string name="summary_checkbox_multi_controller">이 옵션을 선택하지 않으면 모든 컨트롤러가 하나로 표시됩니다</string>
     <string name="title_seekbar_deadzone">아날로그 스틱 데드존 설정</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One 컨트롤러 드라이버</string>
-    <string name="summary_checkbox_xb1_driver">네이티브 Xbox 컨트롤러 지원 없이 빌드인 USB드라이버를 활성화합니다.</string>
-
+    <string name="summary_checkbox_xb1_driver">네이티브 Xbox 컨트롤러 지원 없이 빌드인 USB드라이버를 활성화합니다</string>
     <string name="category_on_screen_controls_settings">화면 상의 컨트롤 설정</string>
     <string name="title_checkbox_show_onscreen_controls">화면 위에 컨트롤러 표시</string>
-    <string name="summary_checkbox_show_onscreen_controls">터치스크린에 가상 컨트롤러 오버레이를 표시합니다.</string>
-
+    <string name="summary_checkbox_show_onscreen_controls">터치스크린에 가상 컨트롤러 오버레이를 표시합니다</string>
     <string name="category_ui_settings">UI 설정</string>
     <string name="title_language_list">언어</string>
-    <string name="summary_language_list">Moonlight에서 사용할 언어를 선택합니다.</string>
+    <string name="summary_language_list">Moonlight에서 사용할 언어를 선택합니다</string>
     <string name="title_checkbox_small_icon_mode">작은 아이콘 사용</string>
-    <string name="summary_checkbox_small_icon_mode">더 많이 표시하기 위해 그리드 표시에서 작은 아이콘을 사용합니다.</string>
-
+    <string name="summary_checkbox_small_icon_mode">한 화면에서 더 많은 게임을 볼 수 있게 게임을 더 작게 표시합니다</string>
     <string name="category_host_settings">호스트 설정</string>
     <string name="title_checkbox_enable_sops">게임 설정 최적화</string>
     <string name="summary_checkbox_enable_sops">최적의 스트리밍을 위해 Geforce Experience가 게임 설정을 수정하도록 허용합니다.</string>
     <string name="title_checkbox_host_audio">PC에서 소리 재생</string>
     <string name="summary_checkbox_host_audio">이 장치와 컴퓨터에서 소리를 재생합니다.</string>
-
     <string name="category_advanced_settings">고급 설정</string>
-    <string name="title_video_format">H.265 설정 변경</string>
-    <string name="summary_video_format">H.265는 비디오 대역폭 요구사항을 낮춰주지만 최신 장치가 필요합니다.</string>
+    <string name="title_video_format">HEVC 설정 변경</string>
+    <string name="summary_video_format">HEVC는 낮은 대역폭으로 더 좋은 화질을 볼 수 있게 해주지만 최신 장치가 필요합니다.</string>
     <string name="suffix_osc_opacity">%</string>
-
+    <string name="title_checkbox_enable_pip">PIP모드 활성화</string>
+    <string name="summary_checkbox_vibrate_fallback">게임 패드가 진동을 지원하지 않는 경우 장치를 진동 시켜 진동을 활성화합니다</string>
+    <string name="title_checkbox_vibrate_fallback">게임패드 진동을 장치에서 사용하기</string>
+    <string name="summary_checkbox_touchscreen_trackpad">활성화시 터치 스크린이 트랙 패드처럼 작동합니다. 비활성화 된 경우 터치 스크린처럼 작동합니다.</string>
+    <string name="title_checkbox_touchscreen_trackpad">터치 스크린을 트랙 패드로 사용하기</string>
+    <string name="category_input_settings">입력 설정</string>
+    <string name="summary_audio_config_list">홈 시어터 시스템을 위한 5.1 또는 7.1 서라운드 사운드 활성화</string>
+    <string name="title_audio_config_list">서라운드 사운드 설정</string>
+    <string name="resolution_prefix_native">네이티브</string>
+    <string name="summary_fps_list">높을수록 화면이 더 부드러워집니다. 저사양 기기에서는 낮추는것이 좋습니다.</string>
+    <string name="title_fps_list">FPS 설정</string>
+    <string name="text_native_res_dialog">1. 네이티브 해상도 모드는 GeForce Experience에서 공식적으로 지원되지 않으므로 호스트PC의 디스플레이 해상도는 변경되지 않습니다. 따라서 스트리밍 중에 수동으로 해상도를 변경해야합니다.
+\n
+\n2. 장치 해상도와 일치하도록 NVIDIA 제어판에서 사용자 정의 해상도를 생성 할 경우 호스트 PC의 모니터 손상, 기타 잠재적 문제에 대한 NVIDIA의 경고를 읽고 이해했는지 확인하십시오.
+\n 
+\n3. Moonlight는 PC에서 사용자 정의 해상도를 생성하여 발생하는 문제에 대해 책임을 지지 않습니다.
+\n
+\n4. 장치 또는 호스트 PC가 네이티브 해상도의 스트리밍을 지원하지 않을 수 있습니다.</string>
+    <string name="title_native_res_dialog">네이티브 해상도 주의사항</string>
+    <string name="addpc_wrong_sitelocal">주소가 잘못된 것 같습니다. 인터넷을 통해 스트리밍하려면 라우터의 공용 IP 주소를 사용해야합니다.</string>
+    <string name="applist_details_id">앱 ID:</string>
+    <string name="applist_menu_hide_app">게임 숨기기</string>
+    <string name="applist_menu_scut">바로가기 만들기</string>
+    <string name="applist_menu_details">세부사항</string>
+    <string name="perf_overlay_dectime">평균 디코딩 시간 : %1$.2f ms</string>
+    <string name="perf_overlay_netlatency">평균 네트워크 지연 시간 : %1$d ms (편차 : %2$d ms)</string>
+    <string name="perf_overlay_netdrops">네트워크에 의해 손실 된 프레임 : %1$.2f%%</string>
+    <string name="perf_overlay_renderingfps">렌더링 프레임속도 : %1$.2f FPS</string>
+    <string name="perf_overlay_incomingfps">네트워크를 통해 받은 프레임속도: %1$.2f FPS</string>
+    <string name="perf_overlay_decoder">디코더:%1$s</string>
+    <string name="poor_connection_msg">PC와의 연결이 불안정함</string>
+    <string name="slow_connection_msg">PC와의 연결이 불안정합니다.
+\n비트레이트를 줄이세요</string>
+    <string name="delete_pc_msg">이 PC를 삭제 하시겠습니까\?</string>
+    <string name="title_details">세부정보</string>
+    <string name="check_ports_msg">다음 포트의 방화벽 및 포트 포워딩 설정을 확인하십시오:</string>
+    <string name="early_termination_error">스트림을 시작할 때 호스트 PC에서 문제가 발생했습니다.
+\n
+\n호스트 PC에 DRM으로 보호 된 콘텐츠가 열려 있지 않은지 확인하거나 호스트 PC를 재부팅하십시오 .
+\n
+\n문제가 지속되면 GPU 드라이버와 GeForce Experience를 다시 설치해보십시오.</string>
+    <string name="no_frame_received_error">네트워크 연결이 불안정합니다. 비트레이트를 낮추거나 더 빠른 네트워크에 연결하십시오.</string>
+    <string name="no_video_received_error">호스트로부터 비디오를 받지 못했습니다.</string>
+    <string name="video_decoder_init_failed">비디오 디코더를 실행하지 못했습니다. 이 장치가 선택한 해상도 또는 프레임 속도를 지원하지 않을 수 있습니다.</string>
+    <string name="error_usb_prohibited">기기 관리자에 의해 USB 액세스가 차단되었습니다. Knox 또는 MDM 설정을 확인하십시오.</string>
+    <string name="message_decoding_reset">선택한 스트리밍 설정에서 장치의 비디오 디코더가 계속 문제가 발생합니다. 스트리밍 설정이 기본값으로 재설정되었습니다.</string>
+    <string name="title_decoding_reset">비디오 설정 초기화</string>
+    <string name="message_decoding_error">이 장치의 비디오 디코더와 호환되지 않아 Moonlight에서 오류가 발생했습니다. GeForce Experience가 PC의 최신 버전으로 업데이트되었는지 확인하십시오. 충돌이 계속되면 스트리밍 설정을 조정 해보십시오.</string>
+    <string name="title_decoding_error">비디오 디코더 오류</string>
+    <string name="nettest_text_blocked">기기의 현재 네트워크가 Moonlight를 차단하고 있습니다. 이 네트워크에 연결되어 있으면 인터넷을 통한 스트리밍이 작동하지 않을 수 있습니다.</string>
+    <string name="nettest_text_failure">기기의 현재 네트워크가 Moonlight를 차단하는 것 같습니다. 이 네트워크에 연결되어 있으면 인터넷을 통한 스트리밍이 작동하지 않을 수 있습니다.
+\n
+\n차단된 네트워크 포트:
+\n</string>
+    <string name="nettest_text_inconclusive">Moonlight의 테스트 서버에 연결할 수 없기 때문에 네트워크 테스트를 할 수 없습니다. 인터넷 연결을 확인하거나 나중에 다시 시도하십시오.</string>
+    <string name="nettest_text_success">네트워크가 Moonlight를 차단하지 않는 것 같습니다. 여전히 연결에 문제가 있으면 PC의 방화벽 설정을 확인하십시오
+\n
+\n인터넷을 통해 연결하려는 경우 PC에 Moonlight Internet Hosting Tool을 설치하고 Internet Streaming Tester를 실행하여 PC의 인터넷 연결을 확인하십시오.</string>
+    <string name="nettest_title_done">네트워크 연결 테스트 완료</string>
+    <string name="nettest_text_waiting">NVIDIA GameStream이 차단되었는지 확인하기 위해 네트워크 연결을 테스트하고 있습니다.
+\n
+\n잠시 기다려 주세요…</string>
+    <string name="pcview_menu_header_unknown">상태 확인중</string>
+    <string name="pcview_menu_test_network">네트워크 연결 테스트</string>
+    <string name="pcview_menu_header_offline">오프라인</string>
+    <string name="pcview_menu_header_online">온라인</string>
+    <string name="nettest_title_waiting">네트워크 연결을 테스트하는 중</string>
+    <string name="pcview_menu_details">PC 세부정보</string>
+    <string name="scut_pc_not_found">PC를 찾을 수 없음</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="applist_menu_tv_channel">채널 추가하기</string>
+    <string name="scut_invalid_uuid">PC를 사용할 수 없음</string>
+    <string name="scut_invalid_app_id">앱을 사용할 수 없음</string>
+    <string name="summary_enable_post_stream_toast">스트림 종료 후 지연시간 정보 표시</string>
+    <string name="title_enable_post_stream_toast">스트리밍 후 지연시간 정보 표시</string>
+    <string name="title_enable_perf_overlay">스트리밍 중 성능 정보 표시</string>
+    <string name="summary_enable_perf_overlay">스트리밍하는 동안 실시간 스트림 성능 정보 표시</string>
+    <string name="summary_enable_hdr">게임 및 PC의 GPU가 HDR을 지원하는 경우 HDR을 활성화합니다. HDR에는 GTX 1000 시리즈 또는 그 이상의 GPU가 필요합니다.</string>
+    <string name="title_enable_hdr">HDR활성화 (실험중인 기능)</string>
+    <string name="summary_disable_frame_drop">일부 장치에서 미세한 끊김 현상을 줄일 수 있지만 지연 시간이 늘어날 수 있습니다.</string>
+    <string name="title_disable_frame_drop">프레임드랍 최적화</string>
+    <string name="summary_unlock_fps">90 또는 120FPS로 스트리밍하면 지연 시간이 줄어들 수 있지만 이를 지원할 수 없는 장치에서는 지연 또는 불안정 할 수 있습니다</string>
+    <string name="title_unlock_fps">모든 프레임 속도 잠금 해제</string>
+    <string name="summary_checkbox_enable_pip">PIP모드를 사용하는 중에 화면은 볼 수 있지만 제어는 할 수 없습니다</string>
+    <string name="dialog_title_osc_opacity">투명도 조절</string>
+    <string name="summary_osc_opacity">가상컨트롤러의 투명도를 조절할 수 있습니다</string>
+    <string name="title_osc_opacity">가상컨트롤러의 투명도 설정</string>
+    <string name="toast_reset_osc_success">가상 컨트롤러 배치가 초기화되었습니다</string>
+    <string name="dialog_text_reset_osc">저장된 가상 컨트롤러 배치를 초기화 하시겠습니까\?</string>
+    <string name="dialog_title_reset_osc">가상 컨트롤러 배치 초기화</string>
+    <string name="summary_reset_osc">가상 컨트롤러를 기본 크기 및 위치로 초기화합니다</string>
+    <string name="title_reset_osc">가상 컨트롤러 배치 초기화</string>
+    <string name="summary_only_l3r3">L3 및 R3을 제외한 모든 가상 버튼을 숨깁니다</string>
+    <string name="title_only_l3r3">L3와 R3버튼만 표시하기</string>
+    <string name="summary_checkbox_flip_face_buttons">게임 패드 및 가상 컨트롤러의 A / B 와 X / Y 버튼을 바꿉니다</string>
+    <string name="summary_checkbox_vibrate_osc">가상 컨트롤러에서 장치를 진동하여 게임패드 진동을 구현합니다</string>
+    <string name="title_checkbox_vibrate_osc">진동 활성화</string>
+    <string name="title_checkbox_flip_face_buttons">버튼 바꾸기</string>
+    <string name="summary_checkbox_mouse_nav_buttons">이 옵션을 활성화하면 일부 장치에서 오른쪽 클릭에 문제가 있을 수 있습니다</string>
+    <string name="title_checkbox_mouse_nav_buttons">마우스 사이드버튼 활성화</string>
+    <string name="summary_checkbox_mouse_emulation">패드의 Start 버튼을 길게 누르면 게임 패드가 마우스 모드로 전환됩니다</string>
+    <string name="summary_checkbox_usb_bind_all">Xbox 컨트롤러를 기본으로 지원하는 경우에도 지원되는 모든 게임 패드에 Moonlight의 USB 드라이버를 사용합니다</string>
+    <string name="title_checkbox_usb_bind_all">기본 Xbox 게임 패드 지원 무시</string>
+    <string name="title_checkbox_mouse_emulation">게임패드를 마우스처럼 사용하기</string>
+    <string name="perf_overlay_streamdetails">비디오 스트림 : %1$s %2$.2f FPS</string>
+    <string name="unable_to_pin_shortcut">현재 런처에서는 바로가기 생성이 불가능합니다.</string>
+    <string name="resolution_prefix_native_fullscreen">네이티브 (전체화면)</string>
 </resources>

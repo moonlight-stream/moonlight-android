@@ -160,6 +160,11 @@ public class RelativeTouchContext implements TouchContext {
                         return;
                     }
 
+                    // The drag should only be processed for the primary finger
+                    if (actionIndex != maxPointerCountInGesture - 1) {
+                        return;
+                    }
+
                     // Check if someone cancelled us
                     if (dragTimer == null) {
                         return;

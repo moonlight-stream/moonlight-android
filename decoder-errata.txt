@@ -41,3 +41,6 @@ This file serves to document some of the decoder errata when using MediaCodec ha
 
 14. Some HEVC decoders lag when receiving a stream with 16 reference frames
 	- Affected decoders: Tegra X1 in Pixel C (but NOT in SHIELD TV darcy)
+
+15. Some devices that support Android 11's FEATURE_LowLatency don't support it on their first compatible H.264/HEVC decoder. It is important to examine *all* decoders for FEATURE_LowLatency before deciding on one.
+    - Affected devices: Pixel 4 (c2.qti.avc.decoder.low_latency vs c2.qti.avc.decoder) and Galaxy S21 Exynos (OMX.Exynos.avc.dec [FEATURE_LowLatency] vs C2.Exynos.avc.decoder [no FEATURE_LowLatency])

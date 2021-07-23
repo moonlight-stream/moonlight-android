@@ -1,0 +1,4 @@
+- Added separate notched and full-screen native resolution options
+- Fixed audio problems with old versions of GeForce Experience and Sunshine/OpenStream
+- Fixed unexpected left click in some cases when performing a right click
+- Added Hungarian translation from the Weblate community

@@ -78,7 +78,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
-import java.lang.reflect.Field;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -118,6 +117,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
     private boolean connected = false;
+    private boolean autoEnterPip = false;
     private boolean surfaceCreated = false;
     private boolean attemptedConnection = false;
 
@@ -214,9 +214,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         prefConfig = PreferenceConfiguration.readPreferences(this);
         tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
 
-        if (prefConfig.stretchVideo) {
+        if (prefConfig.stretchVideo || shouldIgnoreInsetsForResolution(prefConfig.width, prefConfig.height)) {
             // Allow the activity to layout under notches if the fill-screen option
-            // was turned on by the user
+            // was turned on by the user or it's a full-screen native resolution
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 getWindow().getAttributes().layoutInDisplayCutoutMode =
                         WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
@@ -377,9 +377,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             Toast.makeText(this, "Decoder does not support HEVC Main10HDR10", Toast.LENGTH_LONG).show();
         }
 
-        // Display a message to the user if H.265 was forced on but we still didn't find a decoder
+        // Display a message to the user if HEVC was forced on but we still didn't find a decoder
         if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
-            Toast.makeText(this, "No H.265 decoder found.\nFalling back to H.264.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "No HEVC decoder found.\nFalling back to H.264.", Toast.LENGTH_LONG).show();
         }
 
         int gamepadMask = ControllerHandler.getAttachedControllerMask(this);
@@ -473,6 +473,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setAttachedGamepadMask(gamepadMask)
                 .setClientRefreshRateX100((int)(displayRefreshRate * 100))
                 .setAudioConfiguration(prefConfig.audioConfiguration)
+                .setAudioEncryption(true)
                 .build();
 
         // Initialize the connection
@@ -570,23 +571,49 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.O)
+    private PictureInPictureParams getPictureInPictureParams(boolean autoEnter) {
+        PictureInPictureParams.Builder builder =
+                new PictureInPictureParams.Builder()
+                        .setAspectRatio(new Rational(prefConfig.width, prefConfig.height))
+                        .setSourceRectHint(new Rect(
+                                streamView.getLeft(), streamView.getTop(),
+                                streamView.getRight(), streamView.getBottom()));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(autoEnter);
+            builder.setSeamlessResizeEnabled(true);
+        }
+
+        return builder.build();
+    }
+
+    private void setPipAutoEnter(boolean autoEnter) {
+        if (!prefConfig.enablePip) {
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            setPictureInPictureParams(getPictureInPictureParams(autoEnter));
+        }
+        else {
+            autoEnterPip = autoEnter;
+        }
+    }
+
     @Override
     public void onUserLeaveHint() {
         super.onUserLeaveHint();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (prefConfig.enablePip && connected) {
+        // PiP is only supported on Oreo and later, and we don't need to manually enter PiP on
+        // Android S and later.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            if (autoEnterPip) {
                 try {
                     // This has thrown all sorts of weird exceptions on Samsung devices
                     // running Oreo. Just eat them and close gracefully on leave, rather
                     // than crashing.
-                    enterPictureInPictureMode(
-                            new PictureInPictureParams.Builder()
-                                    .setAspectRatio(new Rational(prefConfig.width, prefConfig.height))
-                                    .setSourceRectHint(new Rect(
-                                            streamView.getLeft(), streamView.getTop(),
-                                            streamView.getRight(), streamView.getBottom()))
-                                    .build());
+                    enterPictureInPictureMode(getPictureInPictureParams(false));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -624,6 +651,26 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean isRefreshRateGoodMatch(float refreshRate) {
         return refreshRate >= prefConfig.fps &&
                 Math.round(refreshRate) % prefConfig.fps <= 3;
+    }
+
+    private boolean shouldIgnoreInsetsForResolution(int width, int height) {
+        // Never ignore insets for non-native resolutions
+        if (!PreferenceConfiguration.isNativeResolution(width, height)) {
+            return false;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Display display = getWindowManager().getDefaultDisplay();
+            for (Display.Mode candidate : display.getSupportedModes()) {
+                // Ignore insets if this is an exact match for the display resolution
+                if ((width == candidate.getPhysicalWidth() && height == candidate.getPhysicalHeight()) ||
+                        (height == candidate.getPhysicalWidth() && width == candidate.getPhysicalHeight())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private float prepareDisplayForRendering() {
@@ -779,6 +826,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private final Runnable hideSystemUi = new Runnable() {
             @Override
             public void run() {
+                // TODO: Do we want to use WindowInsetsController here on R+ instead of
+                // SYSTEM_UI_FLAG_IMMERSIVE_STICKY? They seem to do the same thing as of S...
+
                 // In multi-window mode on N+, we need to drop our layout flags or we'll
                 // be drawing underneath the system UI.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode()) {
@@ -898,10 +948,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // Add the video codec to the post-stream toast
                 if (message != null) {
                     if (videoFormat == MoonBridge.VIDEO_FORMAT_H265_MAIN10) {
-                        message += " [H.265 HDR]";
+                        message += " [HEVC HDR]";
                     }
                     else if (videoFormat == MoonBridge.VIDEO_FORMAT_H265) {
-                        message += " [H.265]";
+                        message += " [HEVC]";
                     }
                     else if (videoFormat == MoonBridge.VIDEO_FORMAT_H264) {
                         message += " [H.264]";
@@ -1039,8 +1089,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Handle a synthetic back button event that some Android OS versions
         // create as a result of a right-click. This event WILL repeat if
         // the right mouse button is held down, so we ignore those.
-        if ((event.getSource() == InputDevice.SOURCE_MOUSE ||
-                event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) &&
+        int eventSource = event.getSource();
+        if ((eventSource == InputDevice.SOURCE_MOUSE ||
+                eventSource == InputDevice.SOURCE_MOUSE_RELATIVE) &&
                 event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
 
             // Send the right mouse button event if mouse back and forward
@@ -1109,8 +1160,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Handle a synthetic back button event that some Android OS versions
         // create as a result of a right-click.
-        if ((event.getSource() == InputDevice.SOURCE_MOUSE ||
-                event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) &&
+        int eventSource = event.getSource();
+        if ((eventSource == InputDevice.SOURCE_MOUSE ||
+                eventSource == InputDevice.SOURCE_MOUSE_RELATIVE) &&
                 event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
 
             // Send the right mouse button event if mouse back and forward
@@ -1183,18 +1235,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return false;
         }
 
-        if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
+        int eventSource = event.getSource();
+        if ((eventSource & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
             if (controllerHandler.handleMotionEvent(event)) {
                 return true;
             }
         }
-        else if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0 ||
-                  event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE)
+        else if ((eventSource & InputDevice.SOURCE_CLASS_POINTER) != 0 ||
+                 (eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 ||
+                 eventSource == InputDevice.SOURCE_MOUSE_RELATIVE)
         {
             // This case is for mice and non-finger touch devices
-            if (event.getSource() == InputDevice.SOURCE_MOUSE ||
-                    event.getSource() == InputDevice.SOURCE_TOUCHPAD ||
-                    event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE ||
+            if (eventSource == InputDevice.SOURCE_MOUSE ||
+                    (eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 || // SOURCE_TOUCHPAD
+                    eventSource == InputDevice.SOURCE_MOUSE_RELATIVE ||
                     (event.getPointerCount() >= 1 &&
                             (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE ||
                                     event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS ||
@@ -1221,8 +1275,34 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         conn.sendMouseMove(deltaX, deltaY);
                     }
                 }
+                else if ((eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0) {
+                    // If this input device is not associated with the view itself (like a trackpad),
+                    // we'll convert the device-specific coordinates to use to send the cursor position.
+                    // This really isn't ideal but it's probably better than nothing.
+                    //
+                    // Trackpad on newer versions of Android (Oreo and later) should be caught by the
+                    // relative axes case above. If we get here, we're on an older version that doesn't
+                    // support pointer capture.
+                    InputDevice device = event.getDevice();
+                    if (device != null) {
+                        InputDevice.MotionRange xRange = device.getMotionRange(MotionEvent.AXIS_X, eventSource);
+                        InputDevice.MotionRange yRange = device.getMotionRange(MotionEvent.AXIS_Y, eventSource);
+
+                        // All touchpads coordinate planes should start at (0, 0)
+                        if (xRange != null && yRange != null && xRange.getMin() == 0 && yRange.getMin() == 0) {
+                            int xMax = (int)xRange.getMax();
+                            int yMax = (int)yRange.getMax();
+
+                            // Touchpads must be smaller than (65535, 65535)
+                            if (xMax <= Short.MAX_VALUE && yMax <= Short.MAX_VALUE) {
+                                conn.sendMousePosition((short)event.getX(), (short)event.getY(),
+                                                       (short)xMax, (short)yMax);
+                            }
+                        }
+                    }
+                }
                 else if (view != null) {
-                    // Otherwise send absolute position
+                    // Otherwise send absolute position based on the view for SOURCE_CLASS_POINTER
                     updateMousePosition(view, event);
                 }
 
@@ -1517,6 +1597,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     private void stopConnection() {
         if (connecting || connected) {
+            setPipAutoEnter(false);
             connecting = connected = false;
 
             controllerHandler.stop();
@@ -1615,6 +1696,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                                     break;
 
                                 case MoonBridge.ML_ERROR_UNEXPECTED_EARLY_TERMINATION:
+                                case MoonBridge.ML_ERROR_PROTECTED_CONTENT:
                                     message = getResources().getString(R.string.early_termination_error);
                                     break;
 
@@ -1680,6 +1762,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     spinner = null;
                 }
 
+                setPipAutoEnter(true);
                 connected = true;
                 connecting = false;
 

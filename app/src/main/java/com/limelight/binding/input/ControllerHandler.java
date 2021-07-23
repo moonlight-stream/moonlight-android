@@ -1,5 +1,6 @@
 package com.limelight.binding.input;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.input.InputManager;
@@ -7,9 +8,11 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.media.AudioAttributes;
 import android.os.Build;
+import android.os.CombinedVibration;
 import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.os.VibratorManager;
 import android.util.SparseArray;
 import android.view.InputDevice;
 import android.view.InputEvent;
@@ -155,11 +158,36 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
+    // This can happen when gaining/losing input focus with some devices.
+    // Input devices that have a trackpad may gain/lose AXIS_RELATIVE_X/Y.
     @Override
     public void onInputDeviceChanged(int deviceId) {
-        // Remove and re-add 
-        onInputDeviceRemoved(deviceId);
-        onInputDeviceAdded(deviceId);
+        InputDevice device = InputDevice.getDevice(deviceId);
+        if (device == null) {
+            return;
+        }
+
+        // If we don't have a context for this device, we don't need to update anything
+        InputDeviceContext existingContext = inputDeviceContexts.get(deviceId);
+        if (existingContext == null) {
+            return;
+        }
+
+        LimeLog.info("Device changed: "+existingContext.name+" ("+deviceId+")");
+
+        // Don't release the controller number, because we will carry it over if it is present.
+        // We also want to make sure the change is invisible to the host PC to avoid an add/remove
+        // cycle for the gamepad which may break some games.
+        existingContext.destroy();
+
+        InputDeviceContext newContext = createInputDeviceContextForDevice(device);
+
+        // Copy over existing controller number state
+        newContext.assignedControllerNumber = existingContext.assignedControllerNumber;
+        newContext.reservedControllerNumber = existingContext.reservedControllerNumber;
+        newContext.controllerNumber = existingContext.controllerNumber;
+
+        inputDeviceContexts.put(deviceId, newContext);
     }
 
     public void stop() {
@@ -487,7 +515,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.productId = dev.getProductId();
         }
 
-        if (dev.getVibrator().hasVibrator()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && hasDualAmplitudeControlledRumbleVibrators(dev.getVibratorManager())) {
+            context.vibratorManager = dev.getVibratorManager();
+        }
+        else if (dev.getVibrator().hasVibrator()) {
             context.vibrator = dev.getVibrator();
         }
 
@@ -1283,7 +1314,58 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
-    private void rumbleVibrator(Vibrator vibrator, short lowFreqMotor, short highFreqMotor) {
+    @TargetApi(31)
+    private boolean hasDualAmplitudeControlledRumbleVibrators(VibratorManager vm) {
+        int[] vibratorIds = vm.getVibratorIds();
+
+        // There must be exactly 2 vibrators on this device
+        if (vibratorIds.length != 2) {
+            return false;
+        }
+
+        // Both vibrators must have amplitude control
+        for (int vid : vibratorIds) {
+            if (!vm.getVibrator(vid).hasAmplitudeControl()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // This must only be called if hasDualAmplitudeControlledRumbleVibrators() is true!
+    @TargetApi(31)
+    private void rumbleDualVibrators(VibratorManager vm, short lowFreqMotor, short highFreqMotor) {
+        // Normalize motor values to 0-255 amplitudes for VibrationManager
+        highFreqMotor = (short)((highFreqMotor >> 8) & 0xFF);
+        lowFreqMotor = (short)((lowFreqMotor >> 8) & 0xFF);
+
+        // If they're both zero, we can just call cancel().
+        if (lowFreqMotor == 0 && highFreqMotor == 0) {
+            vm.cancel();
+            return;
+        }
+
+        // There's no documentation that states that vibrators for FF_RUMBLE input devices will
+        // always be enumerated in this order, but it seems consistent between Xbox Series X (USB),
+        // PS3 (USB), and PS4 (USB+BT) controllers on Android 12 Beta 3.
+        int[] vibratorIds = vm.getVibratorIds();
+        int[] vibratorAmplitudes = new int[] { highFreqMotor, lowFreqMotor };
+
+        CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
+
+        for (int i = 0; i < vibratorIds.length; i++) {
+            // It's illegal to create a VibrationEffect with an amplitude of 0.
+            // Simply excluding that vibrator from our ParallelCombination will turn it off.
+            if (vibratorAmplitudes[i] != 0) {
+                combo.addVibrator(vibratorIds[i], VibrationEffect.createOneShot(60000, vibratorAmplitudes[i]));
+            }
+        }
+
+        vm.vibrate(combo.combine());
+    }
+
+    private void rumbleSingleVibrator(Vibrator vibrator, short lowFreqMotor, short highFreqMotor) {
         // Since we can only use a single amplitude value, compute the desired amplitude
         // by taking 80% of the big motor and 33% of the small motor, then capping to 255.
         // NB: This value is now 0-255 as required by VibrationEffect.
@@ -1339,9 +1421,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             if (deviceContext.controllerNumber == controllerNumber) {
                 foundMatchingDevice = true;
 
-                if (deviceContext.vibrator != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && deviceContext.vibratorManager != null) {
                     vibrated = true;
-                    rumbleVibrator(deviceContext.vibrator, lowFreqMotor, highFreqMotor);
+                    rumbleDualVibrators(deviceContext.vibratorManager, lowFreqMotor, highFreqMotor);
+                }
+                else if (deviceContext.vibrator != null) {
+                    vibrated = true;
+                    rumbleSingleVibrator(deviceContext.vibrator, lowFreqMotor, highFreqMotor);
                 }
             }
         }
@@ -1361,12 +1447,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // controls that triggered the rumble. Vibrate the device if
             // the user has requested that behavior.
             if (!foundMatchingDevice && prefConfig.onscreenController && !prefConfig.onlyL3R3 && prefConfig.vibrateOsc) {
-                rumbleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
+                rumbleSingleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
             }
             else if (foundMatchingDevice && !vibrated && prefConfig.vibrateFallbackToDevice) {
                 // We found a device to vibrate but it didn't have rumble support. The user
                 // has requested us to vibrate the device in this case.
-                rumbleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
+                rumbleSingleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
             }
         }
     }
@@ -1803,6 +1889,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     class InputDeviceContext extends GenericControllerContext {
         public String name;
+        public VibratorManager vibratorManager;
         public Vibrator vibrator;
 
         public int leftStickXAxis = -1;
@@ -1849,7 +1936,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public void destroy() {
             super.destroy();
 
-            if (vibrator != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && vibratorManager != null) {
+                vibratorManager.cancel();
+            }
+            else if (vibrator != null) {
                 vibrator.cancel();
             }
         }

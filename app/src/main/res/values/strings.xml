@@ -104,7 +104,13 @@
     <string name="delete_pc_msg">Really delete this PC?</string>
     <string name="slow_connection_msg">Slow connection to PC\nReduce your bitrate</string>
     <string name="poor_connection_msg">Poor connection to PC</string>
-    <string name="perf_overlay_text">Video dimensions: %1$s\nDecoder: %2$s\nEstimated host PC frame rate: %3$.2f FPS\nIncoming frame rate from network: %4$.2f FPS\nRendering frame rate: %5$.2f FPS\nFrames dropped by your network connection: %6$.2f%%\nAverage receive time: %7$.2f ms\nAverage decoding time: %8$.2f ms</string>
+    <string name="perf_overlay_streamdetails">Video stream: %1$s %2$.2f FPS</string>
+    <string name="perf_overlay_decoder">Decoder: %1$s</string>
+    <string name="perf_overlay_incomingfps">Incoming frame rate from network: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Rendering frame rate: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Frames dropped by your network connection: %1$.2f%%</string>
+    <string name="perf_overlay_netlatency">Average network latency: %1$d ms (variance: %2$d ms)</string>
+    <string name="perf_overlay_dectime">Average decoding time: %1$.2f ms</string>
 
     <!-- AppList activity -->
     <string name="applist_connect_msg">Connecting to PC…</string>
@@ -148,6 +154,7 @@
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
     <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
     <string name="resolution_prefix_native">Native</string>
+    <string name="resolution_prefix_native_fullscreen">Native Full-Screen</string>
 
     <string name="category_audio_settings">Audio</string>
     <string name="title_audio_config_list">Surround sound setup</string>
@@ -210,14 +217,14 @@
     <string name="title_checkbox_disable_warnings">No warning messages</string>
     <string name="summary_checkbox_disable_warnings">Turs off connection warning messages while streaming</string>
     <string name="title_disable_frame_drop">Never drop frames</string>
-    <string name="summary_disable_frame_drop">May reduce micro-stuttering on some devices and increase latency</string>
-    <string name="title_video_format">H.265 settings</string>
-    <string name="summary_video_format">H.265 uses less bandwidth, but only works on newer device</string>
+    <string name="summary_disable_frame_drop">May reduce micro-stuttering on some devices, but can increase latency</string>
+    <string name="title_video_format">Change HEVC settings</string>
+    <string name="summary_video_format">HEVC lowers video bandwidth requirements but requires a newer device</string>
     <string name="title_enable_hdr">HDR (Experimental)</string>
-    <string name="summary_enable_hdr">Stream HDR when the game and PC GPU supports it. Requires a GTX 1000 series GPU or later.</string>
+    <string name="summary_enable_hdr">Stream HDR when the game and PC GPU support it. Requires a GTX 1000 series GPU or later.</string>
     <string name="title_enable_perf_overlay">Performance stats while streaming</string>
-    <string name="summary_enable_perf_overlay">Display real-time stream performance info during streaming</string>
-    <string name="title_enable_post_stream_toast">Latency info after streaming</string>
+    <string name="summary_enable_perf_overlay">Display real-time stream performance info when streaming</string>
+    <string name="title_enable_post_stream_toast">Latency message after streaming</string>
     <string name="summary_enable_post_stream_toast">Display a latency info message after the stream ends</string>
 
 </resources>

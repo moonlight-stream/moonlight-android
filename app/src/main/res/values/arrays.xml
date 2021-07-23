@@ -58,6 +58,9 @@
         <item>Deutsch</item>
         <item>Română</item>
         <item>Українська</item>
+        <item>Norwegian Bokmål</item>
+        <item>Tiếng Việt</item>
+        <item>Magyar</item>
     </string-array>
     <string-array name="language_values" translatable="false">
         <item>default</item>
@@ -74,6 +77,9 @@
         <item>de</item>
         <item>ro</item>
         <item>uk</item>
+        <item>nb-NO</item>
+        <item>vi</item>
+        <item>hu</item>
     </string-array>
 
     <string-array name="decoder_names">
@@ -88,9 +94,9 @@
     </string-array>
 
     <string-array name="video_format_names">
-        <item>Use H.265 only if stable</item>
-        <item>Always use H.265 (may crash)</item>
-        <item>Never use H.265</item>
+        <item>Use HEVC only if stable</item>
+        <item>Always use HEVC (may crash)</item>
+        <item>Never use HEVC</item>
     </string-array>
     <string-array name="video_format_values" translatable="false">
         <item>auto</item>

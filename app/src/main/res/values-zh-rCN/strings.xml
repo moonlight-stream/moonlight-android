@@ -1,64 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc"> 电脑已删除 </string>
     <string name="scut_not_paired"> 电脑未配对 </string>
     <string name="scut_pc_not_found"> 电脑未找到 </string>
     <string name="scut_invalid_uuid"> 提供的电脑无效 </string>
     <string name="scut_invalid_app_id"> 提供的App无效 </string>
-
     <!-- Help strings -->
     <string name="help_loading_title"> 查看帮助 </string>
     <string name="help_loading_msg"> 正在加载帮助页面…… </string>
-
     <!-- PC view menu entries -->
     <string name="pcview_menu_app_list"> 浏览游戏列表 </string>
     <string name="pcview_menu_pair_pc"> 和电脑配对 </string>
     <string name="pcview_menu_unpair_pc"> 取消配对 </string>
     <string name="pcview_menu_send_wol"> 发送 Wake-On-LAN 请求 </string>
     <string name="pcview_menu_delete_pc"> 删除电脑 </string>
-    <string name="pcview_menu_details"> 查看详情 </string>														
-
+    <string name="pcview_menu_details"> 查看详情 </string>
     <!-- Pair messages -->
     <string name="pairing"> 配对中…… </string>
     <string name="pair_pc_offline"> 电脑离线中 </string>
-    <string name="pair_pc_ingame"> 电脑正在游戏中，在配对之前你必须先退出游戏 </string>
+    <string name="pair_pc_ingame">电脑正在游戏中，在配对之前你必须先退出游戏。</string>
     <string name="pair_pairing_title"> 配对中 </string>
     <string name="pair_pairing_msg"> 请在目标电脑上输入以下PIN码： </string>
     <string name="pair_incorrect_pin"> PIN码错误 </string>
     <string name="pair_fail"> 配对失败 </string>
     <string name="pair_already_in_progress"> 配对中，请稍候 </string>
-
     <!-- WOL messages -->
     <string name="wol_pc_online"> 电脑在线中 </string>
     <string name="wol_no_mac"> 无法唤醒电脑因为GFE没有返回MAC地址 </string>
     <string name="wol_waking_pc"> 唤醒电脑中…… </string>
-    <string name="wol_waking_msg"> 唤醒电脑需要一些时间\n
-    	如果电脑没有唤醒，请确保Wake-On-LAN设置无误
-    </string>
+    <string name="wol_waking_msg">唤醒电脑需要一些时间。如果电脑没有唤醒，请确保 Wake-On-LAN 设置无误。</string>
     <string name="wol_fail"> 无法发送Wake-On-LAN数据包 </string>
-
     <!-- Unpair messages -->
     <string name="unpairing"> 取消配对中…… </string>
     <string name="unpair_success"> 成功取消配对 </string>
     <string name="unpair_fail"> 无法配对 </string>
     <string name="unpair_error"> 设备没有配对过 </string>
-
     <!-- Errors -->
     <string name="error_pc_offline"> 电脑离线中 </string>
-    <string name="error_manager_not_running"> ComputerManager服务未运行。\n请稍等几秒或重启App </string>
+    <string name="error_manager_not_running">ComputerManager 服务未运行。请稍等几秒或重启App。</string>
     <string name="error_unknown_host"> 无法解析主机地址 </string>
-    <string name="error_404"> GFE返回了HTTP 404 错误，确保你的电脑显卡支持串流。\n
-	    使用远程桌面软件同样会引起此错误，请尝试重启电脑或重装GFE
-    </string>
+    <string name="error_404">GFE返回了HTTP 404 错误，确保你的电脑显卡支持串流。使用远程桌面软件同样会引起此错误，请尝试重启电脑或重装GFE。</string>
     <string name="title_decoding_error"> 视频解码器崩溃 </string>
     <string name="message_decoding_error"> 由于与该设备的视频解码器不兼容，Moonlight已崩溃。确保你电脑上的GFE已更新至最新版本，如果崩溃继续，请尝试调整串流设置。 </string>
     <string name="title_decoding_reset"> 重置视频设置 </string>
     <string name="message_decoding_reset"> 由于设备的视频解码器在你选择的串流设置上持续崩溃，已重置你的串流设置。 </string>
     <string name="error_usb_prohibited"> 设备管理员已禁止USB访问。请检查您的Knox或MDM设置。 </string>
-    <string name="unable_to_pin_shortcut"> 您当前的桌面启动器不允许创建长按子菜单。 </string>																	  
-
+    <string name="unable_to_pin_shortcut"> 您当前的桌面启动器不允许创建长按子菜单。 </string>
     <!-- Start application messages -->
     <string name="conn_establishing_title"> 建立连接中 </string>
     <string name="conn_establishing_msg"> 启动连接中 </string>
@@ -66,16 +54,16 @@
     <string name="conn_client_latency"> 平均每帧解码延迟：</string>
     <string name="conn_client_latency_hw"> 硬件解码器延迟：</string>
     <string name="conn_hardware_latency"> 硬件解码器平均延迟：</string>
-    <string name="conn_starting"> 启动中…… </string>
+    <string name="conn_starting">启动中</string>
     <string name="conn_error_title"> 连接错误 </string>
     <string name="conn_error_msg"> 启动失败 </string>
     <string name="conn_terminated_title"> 连接终结 </string>
     <string name="conn_terminated_msg"> 连接已被终结 </string>
-
     <!-- General strings -->
     <string name="ip_hint"> 串流电脑的IP地址 </string>
-    <string name="searching_pc"> 正在搜寻运行GAMESTREAM的电脑…… \n
-        请确保GFE SHIELD设置里的GAMESTREAM已开启。 </string>
+    <string name="searching_pc">正在搜寻运行GAMESTREAM的电脑……
+\n
+\n 请确保GFE SHIELD设置里的GAMESTREAM已开启。</string>
     <string name="yes"> 确定 </string>
     <string name="no"> 取消 </string>
     <string name="lost_connection"> 与电脑失去连接 </string>
@@ -84,8 +72,11 @@
     <string name="delete_pc_msg"> 你确定要删除这台电脑？ </string>
     <string name="slow_connection_msg"> 与电脑连接过慢 \n 请降低码率 </string>
     <string name="poor_connection_msg"> 与电脑连接不良 </string>
-    <string name="perf_overlay_text"> 视频分辨率： %1$s\n解码器： %2$s\n估计主机帧数： %3$.2f FPS\n网络接收帧数： %4$.2f FPS\n渲染帧数： %5$.2f FPS\n网络丢失帧： %6$.2f%%\n平均接收时间： %7$.2f ms\n平均解码时间： %8$.2f ms </string>
-
+    <string name="perf_overlay_decoder">解码器： %1$s</string>
+    <string name="perf_overlay_incomingfps">网络接收帧数： %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">渲染帧数： %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">网络丢失帧： %1$.2f%%</string>
+    <string name="perf_overlay_dectime">平均解码时间： %1$.2f ms</string>
     <!-- AppList activity -->
     <string name="applist_connect_msg"> 正在连接电脑…… </string>
     <string name="applist_menu_resume"> 恢复串流 </string>
@@ -94,7 +85,7 @@
     <string name="applist_menu_cancel"> 取消 </string>
     <string name="applist_menu_details"> 查看详情 </string>
     <string name="applist_menu_scut"> 创建快捷方式 </string>
-    <string name="applist_menu_tv_channel"> 添加到频道 </string>															 
+    <string name="applist_menu_tv_channel"> 添加到频道 </string>
     <string name="applist_refresh_title"> 游戏列表 </string>
     <string name="applist_refresh_msg"> 刷新中…… </string>
     <string name="applist_refresh_error_title"> 错误 </string>
@@ -102,45 +93,41 @@
     <string name="applist_quit_app"> 退出中 </string>
     <string name="applist_quit_success"> 成功退出串流 </string>
     <string name="applist_quit_fail"> 退出串流失败 </string>
-    <string name="applist_quit_confirmation"> 您确定要退出当前游戏？\n所有未保存的数据将丢失。 </string>
-    <string name="applist_details_id">App ID：</string>												  
-
+    <string name="applist_quit_confirmation">您确定要退出当前游戏？所有未保存的数据将丢失。</string>
+    <string name="applist_details_id">App ID：</string>
     <!-- Add computer manually activity -->
     <string name="title_add_pc"> 手动添加电脑 </string>
     <string name="msg_add_pc"> 正在连接电脑…… </string>
-    <string name="addpc_fail"> 无法连接至指定电脑。请确保所需端口没有被防火墙阻止 </string>
+    <string name="addpc_fail">无法连接至指定电脑。请确保所需端口没有被防火墙阻止。</string>
     <string name="addpc_success"> 成功添加电脑 </string>
-    <string name="addpc_unknown_host"> 无法解析电脑的IP地址，请确保IP地址输入无误 </string>
-    <string name="addpc_enter_ip"> 请输入一个IP地址！ </string>
-    <string name="addpc_wrong_sitelocal"> 该地址似乎不正确。 您必须使用路由器的公共IP地址通过Internet进行串流。 </string>																																							  
-
+    <string name="addpc_unknown_host">无法解析电脑的IP地址，请确保IP地址输入无误。</string>
+    <string name="addpc_enter_ip">请输入一个IP地址</string>
+    <string name="addpc_wrong_sitelocal"> 该地址似乎不正确。 您必须使用路由器的公共IP地址通过Internet进行串流。 </string>
     <!-- Preferences -->
     <string name="category_basic_settings"> 基本设置 </string>
     <string name="title_resolution_list"> 视频分辨率 </string>
-    <string name="summary_resolution_list"> 高分辨率提升图像清晰度。 \n 低分辨率提升在低端设备和较慢网络中的串流体验。 </string>
+    <string name="summary_resolution_list">高分辨率提升图像清晰度。低分辨率提升在低端设备和较慢网络中的串流体验。</string>
     <string name="title_fps_list"> 视频帧数 </string>
-    <string name="summary_fps_list"> 高帧数提升视频流流畅度。 \n 低帧数提升在低端设备中的串流体验。</string>													   																																	
+    <string name="summary_fps_list">高帧数提升视频流流畅度。低帧数提升在低端设备中的串流体验。</string>
     <string name="title_seekbar_bitrate"> 视频码率 </string>
-    <string name="summary_seekbar_bitrate"> 高码率提升图像质量。 \n 低码率提升在较慢网络中的串流体验。 </string>
+    <string name="summary_seekbar_bitrate">高码率提升图像质量。低码率提升在较慢网络中的串流体验。</string>
     <string name="title_unlock_fps"> 解锁所有可用帧数 </string>
-    <string name="summary_unlock_fps"> 以90或120帧串流可能会减少在高端设备上的网络延迟，但会在不支持的设备上造成卡顿或崩溃。 </string>																																																														   
+    <string name="summary_unlock_fps">以90或120帧串流可能会减少在高端设备上的网络延迟，但会在不支持的设备上造成卡顿或崩溃</string>
     <string name="title_checkbox_stretch_video"> 将画面拉伸至全屏 </string>
     <string name="title_checkbox_disable_warnings"> 禁用错误提示 </string>
     <string name="summary_checkbox_disable_warnings"> 串流中禁用连接错误提示 </string>
     <string name="title_checkbox_enable_pip">启用画中画观察模式</string>
-    <string name="summary_checkbox_enable_pip">允许多任务时观看串流画面（但不操作）</string>																							 																															  
-
+    <string name="summary_checkbox_enable_pip">允许多任务时观看串流画面（但不操作）</string>
     <string name="category_audio_settings"> 音频设置 </string>
     <string name="title_audio_config_list"> 环绕声设置 </string>
     <string name="summary_audio_config_list"> 为家庭影院系统启用5.1或7.1环绕声 </string>
-
     <string name="category_input_settings">输入设置</string>
     <string name="title_checkbox_touchscreen_trackpad">将触控屏作为触控板使用</string>
-    <string name="summary_checkbox_touchscreen_trackpad">如果启用，则将触控屏作为触控板使用。 如果禁止，则触控屏直接控制鼠标光标</string>
+    <string name="summary_checkbox_touchscreen_trackpad">如果启用，则将触控屏作为触控板使用。 如果禁止，则触控屏直接控制鼠标光标。</string>
     <string name="title_checkbox_multi_controller"> 自动检测手柄 </string>
     <string name="summary_checkbox_multi_controller"> 禁用此项所有手柄将视为一个手柄 </string>
     <string name="title_checkbox_vibrate_fallback"> 用设备震动模拟游戏震动效果 </string>
-    <string name="summary_checkbox_vibrate_fallback"> 如果你的手柄不支持震动，则震动设备以模拟游戏震动效果 </string>																																		
+    <string name="summary_checkbox_vibrate_fallback"> 如果你的手柄不支持震动，则震动设备以模拟游戏震动效果 </string>
     <string name="title_seekbar_deadzone"> 调整摇杆死区 </string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One 手柄驱动 </string>
@@ -153,7 +140,6 @@
     <string name="summary_checkbox_mouse_nav_buttons"> 在一些支持不佳的设备上启用此项可能会使其右键失效 </string>
     <string name="title_checkbox_flip_face_buttons"> 反转技能键 </string>
     <string name="summary_checkbox_flip_face_buttons"> 为手柄和虚拟手柄调转A/B和X/Y技能键 </string>
-
     <string name="category_on_screen_controls_settings"> 屏幕控制按钮设置 </string>
     <string name="title_checkbox_show_onscreen_controls"> 显示屏幕控制按钮 </string>
     <string name="summary_checkbox_show_onscreen_controls"> 在触摸屏上显示一层虚拟手柄 </string>
@@ -165,25 +151,22 @@
     <string name="summary_reset_osc"> 重置所有屏幕控制按钮为默认大小和位置 </string>
     <string name="dialog_title_reset_osc"> 重置按钮布局 </string>
     <string name="dialog_text_reset_osc"> 你确定要删除所保存的屏幕按钮布局吗？ </string>
-    <string name="toast_reset_osc_success"> 屏幕按钮布局已经重置 </string>																	   																														  
-
+    <string name="toast_reset_osc_success"> 屏幕按钮布局已经重置 </string>
     <string name="category_ui_settings"> 界面设置 </string>
     <string name="title_language_list"> 语言 </string>
     <string name="summary_language_list"> 选择Moonlight显示的语言 </string>
     <string name="title_checkbox_small_icon_mode"> 使用小图标 </string>
     <string name="summary_checkbox_small_icon_mode"> 使用小图标以在屏幕上显示更多项目 </string>
-
     <string name="category_host_settings"> 主机设置 </string>
     <string name="title_checkbox_enable_sops"> 优化游戏设置 </string>
     <string name="summary_checkbox_enable_sops"> 允许GFE为最佳串流效果自动更改游戏设置 </string>
     <string name="title_checkbox_host_audio"> 在电脑上播放声音 </string>
     <string name="summary_checkbox_host_audio"> 在电脑和本设备同时输出声音 </string>
-
     <string name="category_advanced_settings"> 高级设置 </string>
     <string name="title_disable_frame_drop"> 永不掉帧 </string>
     <string name="summary_disable_frame_drop"> 可能会减少在一些设备上的卡顿，但会增加延迟 </string>
-    <string name="title_video_format"> 更改H.265设置 </string>
-    <string name="summary_video_format">H.265能降低视频带宽需求，但需要较新的设备才能支持</string>
+    <string name="title_video_format"> 更改HEVC设置 </string>
+    <string name="summary_video_format">HEVC能降低视频带宽需求，但需要较新的设备才能支持</string>
     <string name="title_enable_hdr"> 启用 HDR （实验） </string>
     <string name="summary_enable_hdr"> 当游戏和显卡支持时以HDR模式串流。 HDR需要GTX 1000系列或更高规格显卡。 </string>
     <string name="title_enable_perf_overlay"> 启用性能信息 </string>
@@ -194,6 +177,44 @@
     <string name="dialog_title_osc_opacity">透明度</string>
     <string name="suffix_osc_opacity">%</string>
     <string name="summary_osc_opacity">令屏幕按钮变得更透明/更不透明</string>
-
-
+    <string name="nettest_text_failure">您设备的当前网络似乎正在阻止Moonlight。连接到该网络时，可能无法通过互联网串流。
+\n
+\n以下网络端口被阻止：
+\n</string>
+    <string name="nettest_text_inconclusive">网络测试无法执行，因为无法连接到Moonlight的连接测试服务器。检查您的互联网连接或稍后再试。</string>
+    <string name="nettest_text_success">您的网络似乎没有屏蔽Moonlight。如果您仍然无法连接，请检查您的电脑的防火墙设置。
+\n
+\n如果您想通过互联网进行流媒体传输，请在您的电脑上安装Moonlight互联网主机工具，并运行附带的互联网流媒体测试器来检查您的电脑的互联网连接。</string>
+    <string name="nettest_title_done">网络测试完成</string>
+    <string name="nettest_text_waiting">Moonlight正在测试你的网络连接，以确定NVIDIA GameStream是否被阻止。
+\n
+\n这可能需要几秒钟……</string>
+    <string name="nettest_title_waiting">测试网络连接中</string>
+    <string name="pcview_menu_test_network">测试网络连接</string>
+    <string name="pcview_menu_header_unknown">刷新中</string>
+    <string name="pcview_menu_header_offline">离线</string>
+    <string name="pcview_menu_header_online">在线</string>
+    <string name="resolution_prefix_native">本地</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="text_native_res_dialog">本地分辨率模式不受GFE的官方支持，因此不会自动设置主机的显示分辨率。您需要在游戏中手动进行设置。
+\n
+\n如果您选择在NVIDIA控制面板中创建自定义分辨率以匹配设备分辨率，请确保您已阅读并理解NVIDIA关于可能导致显示器损坏和电脑不稳定以及其他潜在问题的警告。
+\n
+\n对于您在您的电脑上创建自定义分辨率而导致的任何问题，我们概不负责。
+\n
+\n最后，您的设备或主机电脑可能不支持以本地分辨率串流。如果此模式无法在您的设备上正常运行，那很遗憾您运气欠佳。</string>
+    <string name="title_native_res_dialog">本地分辨率警告</string>
+    <string name="applist_menu_hide_app">隐藏游戏</string>
+    <string name="check_ports_msg">请检查您的防火墙和端口转发规则中的端口：</string>
+    <string name="early_termination_error">开始串流时您的主机电脑出了点问题。
+\n
+\n请确保没有在主机电脑上开启任何受DRM保护的内容。您也可以尝试重新启动主机电脑。
+\n
+\n如果问题仍然存在，请尝试重新安装GPU驱动和GFE。</string>
+    <string name="no_frame_received_error">您的网络连接质量不佳。请降低视频码率设置或更换更快的网络连接。</string>
+    <string name="no_video_received_error">没有接收到来自主机的视频。</string>
+    <string name="video_decoder_init_failed">视频解码器初始化失败。您的设备可能不支持选定的分辨率或帧数。</string>
+    <string name="nettest_text_blocked">您设备当前的网络连接拦截了Moonlight。连接到该网络时可能无法通过互联网串流。</string>
+    <string name="perf_overlay_netlatency">平均网络延迟： %1$d ms (抖动： %2$d ms)</string>
+    <string name="perf_overlay_streamdetails">视频流： %1$s %2$.2f FPS</string>
 </resources>

@@ -7,8 +7,8 @@
   </string-array>
 
   <string-array name="video_format_names">
-    <item>Verwende H.265 so fern stabile Unterstützung vorhanden ist</item>
-    <item>Immer H.265 verwenden (könnte Crashes verursachen)</item>
-    <item>Nie H.265 verwenden</item>
+    <item>Verwende HEVC so fern stabile Unterstützung vorhanden ist</item>
+    <item>Immer HEVC verwenden (könnte Crashes verursachen)</item>
+    <item>Nie HEVC verwenden</item>
   </string-array>
 </resources>

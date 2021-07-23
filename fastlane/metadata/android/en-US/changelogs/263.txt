@@ -1,0 +1,4 @@
+- Fixed an issue that could cause increased audio latency on some connections
+- Fixed incorrect native resolution on some devices running Android 5.1 or older
+- Fixed an issue that could cause persistent video artifacts when streaming 4K after periods of packet loss
+- Updated community-contributed translations from Weblate

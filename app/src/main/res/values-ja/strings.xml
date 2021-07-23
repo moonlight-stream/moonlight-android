@@ -114,8 +114,8 @@
     <string name="summary_checkbox_host_audio">音声をコンピュータとこのデバイスの両方で再生します</string>
 
     <string name="category_advanced_settings">高度な設定</string>
-    <string name="title_video_format">H.265</string>
-    <string name="summary_video_format">H.265は動画に必要な帯域幅を圧縮します。この機能にはなるべく新しいデバイスが必要です</string>
+    <string name="title_video_format">HEVC</string>
+    <string name="summary_video_format">HEVCは動画に必要な帯域幅を圧縮します。この機能にはなるべく新しいデバイスが必要です</string>
     <string name="suffix_osc_opacity">%</string>
     <string name="dialog_title_osc_opacity">透過率</string>
     <string name="title_osc_opacity">透過率</string>

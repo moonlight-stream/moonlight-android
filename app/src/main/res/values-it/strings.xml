@@ -150,8 +150,8 @@
     <string name="category_advanced_settings">Impostazioni avanzate</string>
     <string name="title_disable_frame_drop">Non saltare i fotogrammi</string>
     <string name="summary_disable_frame_drop">Potrebbe ridurre il micro-stuttering su alcuni dispositivi, ma può aumentare la latenza</string>
-    <string name="title_video_format">Modifica impostazioni H.265</string>
-    <string name="summary_video_format">H.265 riduce i requisiti di larghezza di banda video ma richiede un dispositivo molto recente</string>
+    <string name="title_video_format">Modifica impostazioni HEVC</string>
+    <string name="summary_video_format">HEVC riduce i requisiti di larghezza di banda video ma richiede un dispositivo molto recente</string>
     <string name="title_enable_hdr">Abilita HDR (sperimentale)</string>
     <string name="summary_enable_hdr">Utilizza l\'HDR quando il gioco e la scheda video del PC lo supportano. L\'HDR richiede una scheda video serie GTX 1000 o sucessive.</string>
     <string name="suffix_osc_opacity">%</string>

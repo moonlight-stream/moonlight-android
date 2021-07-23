@@ -18,6 +18,10 @@ public class MoonBridge {
     public static final int VIDEO_FORMAT_MASK_H264 = 0x00FF;
     public static final int VIDEO_FORMAT_MASK_H265 = 0xFF00;
 
+    public static final int ENCFLG_NONE = 0;
+    public static final int ENCFLG_AUDIO = 1;
+    public static final int ENCFLG_ALL = 0xFFFFFFFF;
+
     public static final int BUFFER_TYPE_PICDATA = 0;
     public static final int BUFFER_TYPE_SPS = 1;
     public static final int BUFFER_TYPE_PPS = 2;
@@ -37,6 +41,7 @@ public class MoonBridge {
     public static final int ML_ERROR_NO_VIDEO_TRAFFIC = -100;
     public static final int ML_ERROR_NO_VIDEO_FRAME = -101;
     public static final int ML_ERROR_UNEXPECTED_EARLY_TERMINATION = -102;
+    public static final int ML_ERROR_PROTECTED_CONTENT = -103;
 
     public static final int ML_PORT_INDEX_TCP_47984 = 0;
     public static final int ML_PORT_INDEX_TCP_47989 = 1;
@@ -248,12 +253,14 @@ public class MoonBridge {
     }
 
     public static native int startConnection(String address, String appVersion, String gfeVersion,
+                                              String rtspSessionUrl,
                                               int width, int height, int fps,
                                               int bitrate, int packetSize, int streamingRemotely,
                                               int audioConfiguration, boolean supportsHevc,
                                               boolean enableHdr,
                                               int hevcBitratePercentageMultiplier,
                                               int clientRefreshRateX100,
+                                              int encryptionFlags,
                                               byte[] riAesKey, byte[] riAesIv,
                                               int videoCapabilities);
 
@@ -299,6 +306,9 @@ public class MoonBridge {
     public static native int getPortFlagsFromTerminationErrorCode(int errorCode);
 
     public static native String stringifyPortFlags(int portFlags, String separator);
+
+    // The RTT is in the top 32 bits, and the RTT variance is in the bottom 32 bits
+    public static native long getEstimatedRttInfo();
 
     public static native void init();
 }

@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc">PC supprimé</string>
     <string name="scut_not_paired">PC non appairé</string>
     <string name="scut_pc_not_found">PC non trouvé</string>
     <string name="scut_invalid_uuid">Le PC fourni n\'est pas valide</string>
     <string name="scut_invalid_app_id">L\'application fournie n\'est pas valide</string>
-
     <!-- Help strings -->
     <string name="help_loading_title">Visionneuse d\'aide</string>
     <string name="help_loading_msg">Chargement de la page d\'aide…</string>
-
     <!-- PC view menu entries -->
     <string name="pcview_menu_app_list">Afficher la liste des jeux</string>
     <string name="pcview_menu_pair_pc">Appairer avec PC</string>
@@ -19,26 +16,28 @@
     <string name="pcview_menu_send_wol">Envoyer la requête Wake-On-LAN</string>
     <string name="pcview_menu_delete_pc">Supprimer PC</string>
     <string name="pcview_menu_details">Voir les détails</string>
-    
     <!-- Network test strings -->
     <string name="nettest_title_waiting">Test de la connexion réseau</string>
-    <string name="nettest_text_waiting">Moonlight teste votre connexion réseau pour déterminer si NVIDIA GameStream est bloqué.\n\nCela peut prendre quelques secondes.</string>
+    <string name="nettest_text_waiting">Moonlight teste votre connexion réseau pour déterminer si NVIDIA GameStream est bloqué.
+\n
+\nCela peut prendre quelques secondes…</string>
     <string name="nettest_title_done">Test du réseau terminé</string>
     <string name="nettest_text_success">Votre réseau ne semble pas bloquer Moonlight. Si vous avez encore de la difficulté à vous connecter, vérifiez les paramètres du pare-feu de votre PC.\n\nSi vous essayez de diffuser sur Internet, installez l\'outil d\'hébergement Internet Moonlight sur votre PC et exécutez le testeur de streaming Internet inclus pour vérifier la connexion Internet de votre PC.</string>
     <string name="nettest_text_inconclusive">Le test réseau n’a pas pu être effectué car aucun des serveurs de test de connexion Moonlight n’était accessible. Vérifiez votre connexion Internet ou réessayez plus tard.</string>
-    <string name="nettest_text_failure">La connexion réseau actuelle de votre appareil semble bloquer Moonlight. Le streaming sur Internet peut ne pas fonctionner lorsqu’il est connecté à ce réseau.\n\nLes ports réseau suivants ont été bloqués:\n</string>
+    <string name="nettest_text_failure">La connexion réseau actuelle de votre appareil semble bloquer Moonlight. Le streaming sur Internet peut ne pas fonctionner lorsqu’il est connecté à ce réseau.
+\n
+\nLes ports réseau suivants ont été bloqués :
+\n</string>
     <string name="nettest_text_blocked">La connexion réseau actuelle de votre appareil bloque Moonlight. Le streaming sur Internet peut ne pas fonctionner lorsqu’il est connecté à ce réseau.</string>
-
     <!-- Pair messages -->
     <string name="pairing">Appariement…</string>
     <string name="pair_pc_offline">L\'ordinateur est hors ligne</string>
     <string name="pair_pc_ingame">L\'ordinateur est actuellement dans un jeu. Vous devez fermer le jeu avant l\'appariement.</string>
     <string name="pair_pairing_title">Appariement</string>
-    <string name="pair_pairing_msg">SVP entrer le code PIN suivant sur le PC concerné:</string>
+    <string name="pair_pairing_msg">SVP entrer le code PIN suivant sur le PC concerné :</string>
     <string name="pair_incorrect_pin">Code PIN incorrect</string>
     <string name="pair_fail">Échec de l\'appariement</string>
     <string name="pair_already_in_progress">Appariement déjà en cours</string>
-
     <!-- WOL messages -->
     <string name="wol_pc_online">L\'ordinateur est en ligne</string>
     <string name="wol_no_mac">Impossible de réveiller le PC car GFE n\'a pas envoyé d\'adresse MAC</string>
@@ -47,13 +46,11 @@
         Si ce n\'est pas le cas, assurez-vous qu\'il est correctement configuré pour Wake-On-LAN.
     </string>
     <string name="wol_fail">Échec de l\'envoi des paquets Wake-On-LAN</string>
-
     <!-- Unpair messages -->
     <string name="unpairing">Désappariage…</string>
     <string name="unpair_success">Désapparié avec succès</string>
     <string name="unpair_fail">Échec de désappariement</string>
     <string name="unpair_error">Le périphérique n\'a pas été appareillé</string>
-
     <!-- Errors -->
     <string name="error_pc_offline">L\'ordinateur est déconnecté</string>
     <string name="error_manager_not_running">Le service ComputerManager n\'est pas en cours d\'exécution. Veuillez patienter quelques secondes ou redémarrer l\'application.</string>
@@ -67,20 +64,18 @@
     <string name="message_decoding_reset">Le décodeur vidéo de votre appareil continue de planter avec les paramètres de diffusion sélectionnés. Vos paramètres de diffusion ont été réinitialisés par défaut.</string>
     <string name="error_usb_prohibited">L\'accès USB est interdit par votre appareil. Vérifiez vos paramètres Knox ou MDM.</string>
     <string name="unable_to_pin_shortcut">Votre lanceur actuel ne permet pas de créer des raccourcis épinglés.</string>
-
     <!-- Start application messages -->
     <string name="conn_establishing_title">Établissement de la connexion</string>
     <string name="conn_establishing_msg">Démarrage de la connection</string>
-    <string name="conn_metered">Attention: Votre connexion réseau active est mesurée!</string>
-    <string name="conn_client_latency">Latence moyenne de décodage de trame:</string>
-    <string name="conn_client_latency_hw">Latence du décodeur matériel:</string>
-    <string name="conn_hardware_latency">Latence moyenne du décodage matériel:</string>
+    <string name="conn_metered">Attention : Votre connexion réseau active est mesurée !</string>
+    <string name="conn_client_latency">Latence moyenne de décodage de trame :</string>
+    <string name="conn_client_latency_hw">Latence du décodeur matériel :</string>
+    <string name="conn_hardware_latency">Latence moyenne du décodage matériel :</string>
     <string name="conn_starting">Démarrage</string>
     <string name="conn_error_title">Erreur de connexion</string>
     <string name="conn_error_msg">Impossible de démarrer</string>
     <string name="conn_terminated_title">Connexion terminée</string>
     <string name="conn_terminated_msg">La connexion a été interrompue</string>
-
     <!-- General strings -->
     <string name="ip_hint">Adresse IP de GeForce PC</string>
     <string name="searching_pc">Recherche de PC avec GameStream en cours…\n\n
@@ -90,11 +85,14 @@
     <string name="lost_connection">Perte de connexion avec le PC</string>
     <string name="title_details">Détails</string>
     <string name="help">Aide</string>
-    <string name="delete_pc_msg">Êtes-vous sûr de vouloir supprimer ce PC?</string>
+    <string name="delete_pc_msg">Êtes-vous sûr de vouloir supprimer ce PC \?</string>
     <string name="slow_connection_msg">Connexion lente au PC\nRéduisez votre débit</string>
     <string name="poor_connection_msg">Mauvaise connexion au PC</string>
-    <string name="perf_overlay_text">Video dimensions: %1$s\nDécodeur: %2$s\nEstimation de la fréquence d\'images de l\'ordinateur hôte: %3$.2f FPS\nFréquence d\'images entrantes du réseau: %4$.2f FPS\nTaux de rendu: %5$.2f FPS\nImages envoyé par votre connexion réseau: %6$.2f%%\nTemps moyen de réception: %7$.2f ms\nTemps de décodage moyen: %8$.2f ms</string>
-
+    <string name="perf_overlay_decoder">Décodeur : %1$s</string>
+    <string name="perf_overlay_incomingfps">Fréquence d\'images entrantes du réseau : %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Fréquence d\'images de rendu : %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Images perdues par votre connexion réseau : %1$.2f%%</string>
+    <string name="perf_overlay_dectime">Temps moyen de décodage : %1$.2f ms</string>
     <!-- AppList activity -->
     <string name="applist_connect_msg">Connexion au PC…</string>
     <string name="applist_menu_resume">Reprise de la session</string>
@@ -111,9 +109,8 @@
     <string name="applist_quit_app">Fermeture</string>
     <string name="applist_quit_success">Fermeture avec succès</string>
     <string name="applist_quit_fail">Échec de la fermeture</string>
-    <string name="applist_quit_confirmation">Voulez-vous vraiment quitter l\'application en cours d\'exécution? Toutes les données non enregistrées seront perdues.</string>
-    <string name="applist_details_id">ID app:</string>
-
+    <string name="applist_quit_confirmation">Voulez-vous vraiment quitter l\'application en cours d\'exécution \? Toutes les données non enregistrées seront perdues.</string>
+    <string name="applist_details_id">ID de l\'appli :</string>
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Ajouter un PC manuellement</string>
     <string name="msg_add_pc">Connexion au PC…</string>
@@ -122,11 +119,10 @@
     <string name="addpc_unknown_host">Impossible de résoudre l\'adresse du PC. Assurez-vous que vous n\'avez pas fait une faute de frappe dans l\'adresse.</string>
     <string name="addpc_enter_ip">Vous devez entrer une adresse IP</string>
     <string name="addpc_wrong_sitelocal">Cette adresse ne semble pas correcte. Vous devez utiliser l\'adresse IP publique de votre routeur pour la diffusion en continu sur Internet..</string>
-
     <!-- Preferences -->
     <string name="category_basic_settings">Paramètres de base</string>
     <string name="title_resolution_list">Résolution vidéo</string>
-    <string name="summary_resolution_list">Le réglage de valeurs trop élevées pour votre appareil peut provoquer un retard ou un plantage</string>
+    <string name="summary_resolution_list">Le réglage de valeurs trop élevées pour votre appareil peut provoquer un retard ou un plantage.</string>
     <string name="title_fps_list">Fréquence d\'images vidéo</string>
     <string name="summary_fps_list">Augmenter pour un flux vidéo plus lisse. Diminution pour de meilleures performances sur les périphériques bas de gamme.</string>
     <string name="title_seekbar_bitrate">Sélectionnez le bitrate vidéo à obtenir</string>
@@ -135,11 +131,9 @@
     <string name="title_checkbox_disable_warnings">Désactiver les messages d\'avertissement</string>
     <string name="title_checkbox_enable_pip">Activer le mode observateur dans l\'image</string>
     <string name="summary_checkbox_enable_pip">Permet de visualiser le flux (sans le contrôleur) tout en multitâche</string>
-
     <string name="category_audio_settings">Paramètres audio</string>
     <string name="title_audio_config_list">Configuration son surround</string>
     <string name="summary_audio_config_list">Activer le son surround 5.1 ou 7.1 pour les systèmes home cinéma</string>
-
     <string name="category_input_settings">Paramètres d\'entrée</string>
     <string name="title_checkbox_touchscreen_trackpad">Utilisez l\'écran tactile comme trackpad</string>
     <string name="summary_checkbox_touchscreen_trackpad">S\'il est activé, l\'écran tactile agit comme un trackpad. S\'il est désactivé, l\'écran tactile contrôle directement le curseur de la souris.</string>
@@ -150,16 +144,15 @@
     <string name="title_seekbar_deadzone">Régler la zone morte du stick analogique</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Pilote de contrôleur Xbox 360/One</string>
-    <string name="summary_checkbox_xb1_driver">Active un pilote USB intégré pour les périphériques sans prise en charge du contrôleur Xbox natif.</string>
+    <string name="summary_checkbox_xb1_driver">Active un pilote USB intégré pour les périphériques sans prise en charge du contrôleur Xbox natif</string>
     <string name="title_checkbox_usb_bind_all">Ignorer le support du contrôleur Android</string>
     <string name="summary_checkbox_usb_bind_all">Force le pilote USB de Moonlight à prendre en charge tous les gamepads Xbox pris en charge</string>
     <string name="title_checkbox_mouse_emulation">Emulation de la souris via le gamepad</string>
-    <string name="summary_checkbox_mouse_emulation">Appuyez longuement sur le bouton Start pour faire basculer la manette de jeu en mode souris.</string>
+    <string name="summary_checkbox_mouse_emulation">Appuyez longuement sur le bouton Start pour faire basculer la manette en mode souris</string>
     <string name="title_checkbox_mouse_nav_buttons">Activer les boutons de la souris arrière et avant</string>
-    <string name="summary_checkbox_mouse_nav_buttons">L\' activation de cette option peut entraîner un clic droit sur certains périphériques.</string>
+    <string name="summary_checkbox_mouse_nav_buttons">L\' activation de cette option peut casser le clic droit sur certains appareils bogués</string>
     <string name="title_checkbox_flip_face_buttons">Boutons de face inversé</string>
     <string name="summary_checkbox_flip_face_buttons">Commute les boutons de face A/B et X/Y pour les manettes de jeu et les commandes à l\'écran</string>
-
     <string name="category_on_screen_controls_settings">Paramètres des contrôles à l\'écran</string>
     <string name="title_checkbox_show_onscreen_controls">Afficher les commandes à l\'écran</string>
     <string name="summary_checkbox_show_onscreen_controls">Afficher la superposition du contrôleur virtuel sur l\'écran tactile</string>
@@ -170,37 +163,61 @@
     <string name="title_reset_osc">Effacer la disposition des commandes à l\'écran sauvegardée</string>
     <string name="summary_reset_osc">Rétablit la taille et la position par défaut de tous les contrôles à l\'écran</string>
     <string name="dialog_title_reset_osc">Réinitialiser la mise en page</string>
-    <string name="dialog_text_reset_osc">Êtes-vous sûr de vouloir supprimer la disposition des commandes à l\'écran que vous avez sauvegardée?</string>
+    <string name="dialog_text_reset_osc">Êtes-vous sûr de vouloir supprimer la disposition des commandes à l\'écran que vous avez sauvegardée \?</string>
     <string name="toast_reset_osc_success">Les contrôles à l\'écran sont réinitialisés</string>
     <string name="title_osc_opacity">Modifier l\'opacité des contrôles à l\'écran</string>
     <string name="summary_osc_opacity">Rendre les contrôles à l\'écran plus/moins transparents</string>
     <string name="dialog_title_osc_opacity">Modifiez l\'opacité</string>
     <string name="suffix_osc_opacity">%</string>
-
     <string name="category_ui_settings">Paramètres de l\'interface utilisateur</string>
     <string name="title_language_list">Langue</string>
     <string name="summary_language_list">Langue à utiliser pour Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Utiliser des petites icônes</string>
     <string name="summary_checkbox_small_icon_mode">Utilisez les petites icônes dans les éléments de la grille pour permettre plus d\'éléments à l\'écran</string>
-
     <string name="category_host_settings">Paramètres de l\'hôte</string>
     <string name="title_checkbox_enable_sops">Optimiser les paramètres de jeu</string>
     <string name="summary_checkbox_enable_sops">Autoriser GFE à modifier les paramètres de jeu pour une diffusion optimale</string>
     <string name="title_checkbox_host_audio">Jouer l\'audio sur le PC</string>
     <string name="summary_checkbox_host_audio">Lire l\'audio de l\'ordinateur et de ce périphérique</string>
-
     <string name="category_advanced_settings">Réglages avancés</string>
     <string name="title_unlock_fps">Débloquez toutes les fréquences d\'images possibles</string>
     <string name="summary_unlock_fps">Le streaming à 90 ou 120 FPS peut réduire la latence sur les appareils haut de gamme, mais peut entraîner un décalage ou une instabilité sur les appareils qui ne peuvent pas le prendre en charge</string>
     <string name="summary_checkbox_disable_warnings">Désactiver les messages d\'avertissement de connexion à l\'écran pendant la diffusion</string>
     <string name="title_disable_frame_drop">Ne jamais laisser tomber les frames</string>
     <string name="summary_disable_frame_drop">Peut réduire les micro-saccades sur certains appareils, mais peut augmenter la latence</string>
-    <string name="title_video_format">Modifier les paramètres H.265</string>
-    <string name="summary_video_format">H.265 réduit les besoins en bande passante vidéo mais nécessite un périphérique très récent</string>
+    <string name="title_video_format">Modifier les paramètres HEVC</string>
+    <string name="summary_video_format">HEVC réduit les besoins en bande passante vidéo mais nécessite un périphérique très récent</string>
     <string name="title_enable_hdr">Activer le HDR (expérimental)</string>
     <string name="summary_enable_hdr">Diffuser du HDR lorsque le jeu et le processeur graphique du PC le prennent en charge. HDR nécessite un GPU série GTX 1000 ou une version ultérieure.</string>
     <string name="title_enable_perf_overlay">Activer la superposition de performance</string>
     <string name="summary_enable_perf_overlay">Afficher une superposition à l\'écran avec des informations de performance en temps réel pendant la lecture en continu</string>
     <string name="title_enable_post_stream_toast">Afficher le message de latence après la diffusion en continu</string>
     <string name="summary_enable_post_stream_toast">Afficher un message d’informations de latence après la fin du flux</string>
+    <string name="no_video_received_error">Aucune vidéo reçue depuis l\'hôte.</string>
+    <string name="video_decoder_init_failed">Le décodeur vidéo n\'a pas pu démarrer. Vérifiez que votre appareil supporte la résolution ou la fréquence d\'images choisie.</string>
+    <string name="pcview_menu_test_network">Tester la connection réseau</string>
+    <string name="pcview_menu_header_unknown">Actualisation</string>
+    <string name="pcview_menu_header_offline">Hors ligne</string>
+    <string name="pcview_menu_header_online">En ligne</string>
+    <string name="resolution_prefix_native">Native</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="text_native_res_dialog">Les modes de résolution native ne sont pas officiellement supportées par GeForce Experience, l\'écran de votre hôte ne changera donc pas sa résolution. Vous devrez changer la résolution de chaque jeu dans les paramètres de celui-ci.
+\n
+\nSi vous créez une résolution personnalisée dans le panneau de contrôle NVIDIA identique à celle de votre appareil, gardez à l\'esprit les avertissement de NVIDIA en ce qui est des potentiels dégâts à votre moniteur, une instabilité générale, et encore d\'autres problèmes.
+\n
+\nNous ne sommes pas responsables des problèmes qui peuvent arriver suite à l\'utilisation de cette fonctionnalité.
+\n
+\nEnfin, votre appareil et/ou vôtre PC hôte peut ne pas supporter cette fonctionnalité. Si ça ne marche pas, on ne peut malheureusement rien y faire.</string>
+    <string name="title_native_res_dialog">Avertissement résolution native</string>
+    <string name="applist_menu_hide_app">Cacher l\'application</string>
+    <string name="check_ports_msg">Vérifiez vos règles de pare-feu pour les ports suivants :</string>
+    <string name="early_termination_error">Quelque chose s\'est mal passé sur votre PC hôte en démarrant le flux.
+\n
+\nVérifiez qu\'aucune application utilisant un DRM n\'est ouverte sur votre PC hôte. Vous pouvez aussi essayer de redémarrer votre PC hôte.
+\n
+\nSi le problème persiste, essayez de réinstaller les pilotes de votre GPU ainsi que GeForce Experience.</string>
+    <string name="no_frame_received_error">Votre connexion ne fonctionne pas bien. Baissez votre paramètres de débit ou utilisez une connexion plus rapide.</string>
+    <string name="resolution_prefix_native_fullscreen">Plein-écran natif</string>
+    <string name="perf_overlay_netlatency">Latence réseau moyenne : %1$d ms (variance : %2$d ms)</string>
+    <string name="perf_overlay_streamdetails">Stream vidéo : %1$s %2$.2f FPS</string>
 </resources>

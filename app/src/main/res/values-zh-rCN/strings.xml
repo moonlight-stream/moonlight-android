@@ -217,4 +217,5 @@
     <string name="nettest_text_blocked">您设备当前的网络连接拦截了Moonlight。连接到该网络时可能无法通过互联网串流。</string>
     <string name="perf_overlay_netlatency">平均网络延迟： %1$d ms (抖动： %2$d ms)</string>
     <string name="perf_overlay_streamdetails">视频流： %1$s %2$.2f FPS</string>
+    <string name="resolution_prefix_native_fullscreen">本地全屏</string>
 </resources>

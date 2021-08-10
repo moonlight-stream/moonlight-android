@@ -367,6 +367,12 @@ public class NvConnection {
         }
     }
 
+    public void sendUtf8Text(final String text) {
+        if (!isMonkey) {
+            MoonBridge.sendUtf8Text(text);
+        }
+    }
+
     public static String findExternalAddressForMdns(String stunHostname, int stunPort) {
         return MoonBridge.findExternalAddressIP4(stunHostname, stunPort);
     }

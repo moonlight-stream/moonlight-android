@@ -4,6 +4,7 @@
 #include <android/log.h>
 
 #include <arpa/inet.h>
+#include <string.h>
 
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendMouseMove(JNIEnv *env, jclass clazz, jshort deltaX, jshort deltaY) {
@@ -52,6 +53,13 @@ Java_com_limelight_nvstream_jni_MoonBridge_sendMouseScroll(JNIEnv *env, jclass c
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendMouseHighResScroll(JNIEnv *env, jclass clazz, jshort scrollAmount) {
     LiSendHighResScrollEvent(scrollAmount);
+}
+
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendUtf8Text(JNIEnv *env, jclass clazz, jstring text) {
+    const char* utf8Text = (*env)->GetStringUTFChars(env, text, NULL);
+    LiSendUtf8TextEvent(utf8Text, strlen(utf8Text));
+    (*env)->ReleaseStringUTFChars(env, text, utf8Text);
 }
 
 JNIEXPORT void JNICALL

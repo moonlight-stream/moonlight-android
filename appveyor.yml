@@ -14,6 +14,6 @@ build_script:
   - gradlew.bat build connectedCheck
 
 after_build:
-  - 'appveyor PushArtifact app\build\reports\lint-results.html'
+  - 'appveyor PushArtifact app\build\reports\lint-results-nonRootDebug.html'
 
 deploy: off

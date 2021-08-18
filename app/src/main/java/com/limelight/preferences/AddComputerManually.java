@@ -88,10 +88,10 @@ public class AddComputerManually extends Activity {
 
             // Couldn't find a matching interface
             return true;
-        } catch (SocketException e) {
+        } catch (Exception e) {
+            // Catch all exceptions because some broken Android devices
+            // will throw an NPE from inside getNetworkInterfaces().
             e.printStackTrace();
-            return false;
-        } catch (UnknownHostException e) {
             return false;
         }
     }

@@ -44,7 +44,7 @@ public class StreamSettings extends Activity {
     void reloadSettings() {
         getFragmentManager().beginTransaction().replace(
                 R.id.stream_settings, new SettingsFragment()
-        ).commit();
+        ).commitAllowingStateLoss();
     }
 
     @Override

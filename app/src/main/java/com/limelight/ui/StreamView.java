@@ -1,10 +1,15 @@
 package com.limelight.ui;
 
-import android.annotation.TargetApi;
 import android.content.Context;
+import android.text.InputType;
 import android.util.AttributeSet;
+import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.inputmethod.BaseInputConnection;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
 
 public class StreamView extends SurfaceView {
     private double desiredAspectRatio;
@@ -20,19 +25,18 @@ public class StreamView extends SurfaceView {
 
     public StreamView(Context context) {
         super(context);
+
+        setFocusableInTouchMode(true);
+        setFocusable(true);
+        requestFocus();
     }
 
     public StreamView(Context context, AttributeSet attrs) {
         super(context, attrs);
-    }
 
-    public StreamView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-    }
-
-    @TargetApi(21)
-    public StreamView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
+        setFocusableInTouchMode(true);
+        setFocusable(true);
+        requestFocus();
     }
 
     @Override
@@ -79,8 +83,62 @@ public class StreamView extends SurfaceView {
         return super.onKeyPreIme(keyCode, event);
     }
 
+    @Override
+    public boolean onCheckIsTextEditor() {
+        return true;
+    }
+
+    @Override
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+        outAttrs.inputType = InputType.TYPE_CLASS_TEXT;
+
+        // TYPE_TEXT_VARIATION_VISIBLE_PASSWORD disables a bunch of the fancy IME
+        // stuff that we don't support (suggestions, auto-correct, GIFs, etc).
+        outAttrs.inputType |= InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
+
+        // Don't show suggestions in the IME. We want everything to go through
+        // commitText() rather than setComposingText().
+        outAttrs.inputType |= InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+
+        // Don't take up the whole screen in landscape mode, since the user
+        // needs to see at least some of the PC's screen.
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN;
+
+        return new StreamViewInputConnection(this, true);
+    }
+
+    class StreamViewInputConnection extends BaseInputConnection {
+        private final KeyCharacterMap kcm;
+
+        private StreamViewInputConnection(View targetView, boolean fullEditor) {
+            super(targetView, fullEditor);
+            kcm = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD);
+        }
+
+        @Override
+        public boolean commitText(CharSequence text, int newCursorPosition) {
+            if (inputCallbacks != null) {
+                // If all characters have a direct KeyEvent mapping, we'll send this
+                // text as normal key up/down events.
+                KeyEvent[] keyEvents = kcm.getEvents(text.toString().toCharArray());
+                if (keyEvents != null) {
+                    for (KeyEvent event : keyEvents) {
+                        sendKeyEvent(event);
+                    }
+                }
+                else {
+                    // Otherwise we'll send it as UTF-8 text
+                    inputCallbacks.handleTextEvent(text.toString());
+                }
+            }
+
+            return super.commitText(text, newCursorPosition);
+        }
+    }
+
     public interface InputCallbacks {
         boolean handleKeyUp(KeyEvent event);
         boolean handleKeyDown(KeyEvent event);
+        void handleTextEvent(String text);
     }
 }

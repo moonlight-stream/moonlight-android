@@ -1210,6 +1210,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return true;
     }
 
+    @Override
+    public void handleTextEvent(String text) {
+        conn.sendUtf8Text(text);
+    }
+
     private TouchContext getTouchContext(int actionIndex)
     {
         if (actionIndex < touchContextMap.length) {

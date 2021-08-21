@@ -1,0 +1,2 @@
+- Fixed crash on Android 12 when using USB driver
+- Fixed several other rare user-reported crashes

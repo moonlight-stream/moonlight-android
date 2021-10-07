@@ -34,4 +34,8 @@
     <string name="scut_pc_not_found">PC bulunamadı</string>
     <string name="scut_not_paired">PC eşleştirilmedi</string>
     <string name="scut_deleted_pc">PC silindi</string>
+    <string name="help_loading_msg">Yardım sayfası yükleniyor…</string>
+    <string name="help_loading_title">Yardım</string>
+    <string name="scut_invalid_app_id">Tanımlanmış uygulama geçerli değil</string>
+    <string name="scut_invalid_uuid">Tanımlanmış bilgisayar geçerli değil</string>
 </resources>

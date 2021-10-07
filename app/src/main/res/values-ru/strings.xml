@@ -211,4 +211,6 @@
     <string name="title_native_res_dialog">Предупреждение о родном разрешении</string>
     <string name="video_decoder_init_failed">Видеодекодер не инициализирован. Ваше устройство может не поддерживать выбранное разрешение или частоту кадров.</string>
     <string name="perf_overlay_streamdetails">Видеострим: %1$s %2$.2f FPS</string>
+    <string name="resolution_prefix_native_fullscreen">Родной полноэкранный режим</string>
+    <string name="perf_overlay_netlatency">Средняя задержка сети: %1$d мс (дисперсия: %2$d мс)</string>
 </resources>

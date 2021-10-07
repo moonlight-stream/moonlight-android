@@ -217,4 +217,5 @@
     <string name="pcview_menu_header_online">線上</string>
     <string name="perf_overlay_netlatency">平均網路延遲： %1$d ms (抖動： %2$d ms)</string>
     <string name="perf_overlay_streamdetails">視頻流： %1$s %2$.2f FPS</string>
+    <string name="resolution_prefix_native_fullscreen">本地全屏</string>
 </resources>

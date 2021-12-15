@@ -36,7 +36,7 @@ public class RelativeTouchContext implements TouchContext {
     private static final int TAP_TIME_THRESHOLD = 250;
     private static final int DRAG_TIME_THRESHOLD = 650;
 
-    private static final int SCROLL_SPEED_DIVISOR = 20;
+    private static final int SCROLL_SPEED_FACTOR = 5;
 
     public RelativeTouchContext(NvConnection conn, int actionIndex,
                                 int referenceWidth, int referenceHeight, View view)
@@ -248,9 +248,7 @@ public class RelativeTouchContext implements TouchContext {
 
                 if (pointerCount == 2) {
                     if (confirmedScroll) {
-                        deltaY /= SCROLL_SPEED_DIVISOR;
-
-                        conn.sendMouseHighResScroll((short) deltaY);
+                        conn.sendMouseHighResScroll((short)(deltaY * SCROLL_SPEED_FACTOR));
                     }
                 } else {
                     conn.sendMouseMove((short) deltaX, (short) deltaY);

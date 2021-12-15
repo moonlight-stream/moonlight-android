@@ -23,13 +23,12 @@ public class AbsoluteTouchContext implements TouchContext {
     private boolean confirmedTap;
     private Timer longPressTimer;
     private Timer tapDownTimer;
-    private float accumulatedScrollDelta;
 
     private final NvConnection conn;
     private final int actionIndex;
     private final View targetView;
 
-    private static final int SCROLL_SPEED_DIVISOR = 20;
+    private static final int SCROLL_SPEED_FACTOR = 3;
 
     private static final int LONG_PRESS_TIME_THRESHOLD = 650;
     private static final int LONG_PRESS_DISTANCE_THRESHOLD = 30;
@@ -65,7 +64,6 @@ public class AbsoluteTouchContext implements TouchContext {
         lastTouchLocationY = lastTouchDownY = eventY;
         lastTouchDownTime = SystemClock.uptimeMillis();
         cancelled = confirmedTap = confirmedLongPress = false;
-        accumulatedScrollDelta = 0;
 
         if (actionIndex == 0) {
             // Start the timers
@@ -228,11 +226,7 @@ public class AbsoluteTouchContext implements TouchContext {
             }
         }
         else if (actionIndex == 1) {
-            accumulatedScrollDelta += (eventY - lastTouchLocationY) / (float)SCROLL_SPEED_DIVISOR;
-            if ((short)accumulatedScrollDelta != 0) {
-                conn.sendMouseHighResScroll((short)accumulatedScrollDelta);
-                accumulatedScrollDelta -= (short)accumulatedScrollDelta;
-            }
+            conn.sendMouseHighResScroll((short)((eventY - lastTouchLocationY) * SCROLL_SPEED_FACTOR));
         }
 
         lastTouchLocationX = eventX;

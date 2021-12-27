@@ -70,7 +70,8 @@
     <string name="title_details"> 詳情 </string>
     <string name="help"> 幫助 </string>
     <string name="delete_pc_msg"> 你確定要刪除這台電腦？ </string>
-    <string name="slow_connection_msg"> 與電腦連接過慢 \n 請降低碼率 </string>
+    <string name="slow_connection_msg">與電腦連接過慢
+\n 請降低位元速率</string>
     <string name="poor_connection_msg"> 與電腦連接不良 </string>
     <string name="perf_overlay_decoder">解碼器： %1$s</string>
     <string name="perf_overlay_incomingfps">網路接收影格數： %1$.2f FPS</string>
@@ -109,8 +110,8 @@
     <string name="summary_resolution_list">高解析度提升圖像清晰度。低解析度提升在低效能裝置和較慢網路中的串流體驗。</string>
     <string name="title_fps_list">視訊影格數</string>
     <string name="summary_fps_list">高影格數提升視訊串流流暢度。低影格數提升在低效能裝置中的串流體驗。</string>
-    <string name="title_seekbar_bitrate">視訊碼率</string>
-    <string name="summary_seekbar_bitrate">高碼率提升圖像品質。低碼率提升在較慢網路中的串流體驗。</string>
+    <string name="title_seekbar_bitrate">視訊位元速率</string>
+    <string name="summary_seekbar_bitrate">高位元速率提升圖像品質。低位元速率提升在較慢網路中的串流體驗。</string>
     <string name="title_unlock_fps">解鎖所有可用畫面更新率</string>
     <string name="summary_unlock_fps">以90或120畫面更新率串流可能會減少在高效能裝置上的網路延遲，但會在不支援的裝置上造成卡頓或崩潰</string>
     <string name="title_checkbox_stretch_video">將畫面拉伸至全螢幕</string>

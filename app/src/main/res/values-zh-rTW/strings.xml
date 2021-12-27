@@ -70,7 +70,7 @@
     <string name="title_details"> 詳情 </string>
     <string name="help"> 幫助 </string>
     <string name="delete_pc_msg"> 你確定要刪除這台電腦？ </string>
-    <string name="slow_connection_msg"> 與電腦連接過慢 \n 請降低碼率 </string>
+    <string name="slow_connection_msg"> 與電腦連接過慢 \n 請降低位元速率 </string>
     <string name="poor_connection_msg"> 與電腦連接不良 </string>
     <string name="perf_overlay_decoder">解碼器： %1$s</string>
     <string name="perf_overlay_incomingfps">網路接收影格數： %1$.2f FPS</string>
@@ -109,8 +109,8 @@
     <string name="summary_resolution_list">高解析度提升圖像清晰度。低解析度提升在低效能裝置和較慢網路中的串流體驗。</string>
     <string name="title_fps_list">視訊影格數</string>
     <string name="summary_fps_list">高影格數提升視訊串流流暢度。低影格數提升在低效能裝置中的串流體驗。</string>
-    <string name="title_seekbar_bitrate">視訊碼率</string>
-    <string name="summary_seekbar_bitrate">高碼率提升圖像品質。低碼率提升在較慢網路中的串流體驗。</string>
+    <string name="title_seekbar_bitrate">視訊位元速率</string>
+    <string name="summary_seekbar_bitrate">高位元速率提升圖像品質。低位元速率提升在較慢網路中的串流體驗。</string>
     <string name="title_unlock_fps">解鎖所有可用畫面更新率</string>
     <string name="summary_unlock_fps">以90或120畫面更新率串流可能會減少在高效能裝置上的網路延遲，但會在不支援的裝置上造成卡頓或崩潰</string>
     <string name="title_checkbox_stretch_video">將畫面拉伸至全螢幕</string>
@@ -122,8 +122,8 @@
     <string name="title_audio_config_list">環繞聲設定</string>
     <string name="summary_audio_config_list"> 為家庭劇院系統啟用5.1或7.1環繞聲 </string>
     <string name="category_input_settings">輸入設定</string>
-    <string name="title_checkbox_touchscreen_trackpad"> 將觸控屏作為觸控板使用 </string>
-    <string name="summary_checkbox_touchscreen_trackpad">如果啟用，則將觸控屏作為觸控板使用。 如果禁止，則觸控屏直接控制滑鼠游標。</string>
+    <string name="title_checkbox_touchscreen_trackpad">將觸控式螢幕作為觸控板使用</string>
+    <string name="summary_checkbox_touchscreen_trackpad">如果啟用，則將觸控式螢幕作為觸控板使用。 如果禁止，則觸控式螢幕直接控制滑鼠游標。</string>
     <string name="title_checkbox_multi_controller">自動檢測控制器</string>
     <string name="summary_checkbox_multi_controller">禁用此項所有控制器將視為一個控制器</string>
     <string name="title_checkbox_vibrate_fallback">用裝置震動類比遊戲震動效果</string>
@@ -193,8 +193,8 @@
 \n
 \n請確保沒有在主機電腦上開啟任何受DRM保護的內容。您也可以嘗試重新開機主機電腦。
 \n
-\n如果問題仍然存在，請嘗試重新安裝GPU驅動和GFE。</string>
-    <string name="no_frame_received_error">您的網路連線品質不佳。降低視訊碼率設定或更換更快的連接。</string>
+\n如果問題仍然存在，請嘗試重新安裝GPU驅動程式和GFE。</string>
+    <string name="no_frame_received_error">您的網路連線品質不佳。降低視訊位元速率設定或更換更快的連接。</string>
     <string name="no_video_received_error">沒有接收到來自主機的視訊。</string>
     <string name="video_decoder_init_failed">視訊解碼器初始化失敗。您的裝置可能不支援選定的解析度或畫面更新率。</string>
     <string name="nettest_text_blocked">您裝置當前的網路連線攔截了Moonlight。連接到該網路時可能無法透過網際網路串流。</string>

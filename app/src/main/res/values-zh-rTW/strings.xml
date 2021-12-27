@@ -122,8 +122,8 @@
     <string name="title_audio_config_list">環繞聲設定</string>
     <string name="summary_audio_config_list"> 為家庭劇院系統啟用5.1或7.1環繞聲 </string>
     <string name="category_input_settings">輸入設定</string>
-    <string name="title_checkbox_touchscreen_trackpad"> 將觸控屏作為觸控板使用 </string>
-    <string name="summary_checkbox_touchscreen_trackpad">如果啟用，則將觸控屏作為觸控板使用。 如果禁止，則觸控屏直接控制滑鼠游標。</string>
+    <string name="title_checkbox_touchscreen_trackpad">將觸控式螢幕作為觸控板使用</string>
+    <string name="summary_checkbox_touchscreen_trackpad">如果啟用，則將觸控式螢幕作為觸控板使用。 如果禁止，則觸控式螢幕直接控制滑鼠游標。</string>
     <string name="title_checkbox_multi_controller">自動檢測控制器</string>
     <string name="summary_checkbox_multi_controller">禁用此項所有控制器將視為一個控制器</string>
     <string name="title_checkbox_vibrate_fallback">用裝置震動類比遊戲震動效果</string>
@@ -193,8 +193,8 @@
 \n
 \n請確保沒有在主機電腦上開啟任何受DRM保護的內容。您也可以嘗試重新開機主機電腦。
 \n
-\n如果問題仍然存在，請嘗試重新安裝GPU驅動和GFE。</string>
-    <string name="no_frame_received_error">您的網路連線品質不佳。降低視訊碼率設定或更換更快的連接。</string>
+\n如果問題仍然存在，請嘗試重新安裝GPU驅動程式和GFE。</string>
+    <string name="no_frame_received_error">您的網路連線品質不佳。降低視訊位元速率設定或更換更快的連接。</string>
     <string name="no_video_received_error">沒有接收到來自主機的視訊。</string>
     <string name="video_decoder_init_failed">視訊解碼器初始化失敗。您的裝置可能不支援選定的解析度或畫面更新率。</string>
     <string name="nettest_text_blocked">您裝置當前的網路連線攔截了Moonlight。連接到該網路時可能無法透過網際網路串流。</string>

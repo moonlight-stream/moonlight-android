@@ -7,8 +7,8 @@
     <string name="scut_deleted_pc">PC deleted</string>
     <string name="scut_not_paired">Unpaired PC</string>
     <string name="scut_pc_not_found">PC not found</string>
-    <string name="scut_invalid_uuid">Provided PC not valid</string>
-    <string name="scut_invalid_app_id">Provided app not valid</string>
+    <string name="scut_invalid_uuid">The provided PC is not valid</string>
+    <string name="scut_invalid_app_id">The provided app is not valid</string>
 
     <!-- Help strings -->
     <string name="help_loading_title">Help Viewer</string>
@@ -28,7 +28,7 @@
 
     <!-- Network test strings -->
     <string name="nettest_title_waiting">Testing Network Connection…</string>
-    <string name="nettest_text_waiting"Testing network connection to determine if NVIDIA GameStream is blocked…</string>
+    <string name="nettest_text_waiting"Testing whether NVIDIA GameStream is blocked on the network…</string>
     <string name="nettest_title_done">Network Test Complete</string>
     <string name="nettest_text_success">Moonlight is not blocked by the network. Check your PC\'s firewall settings if you have trouble connecting.\n\nTo stream over the Internet, install the Moonlight Internet Hosting Tool on your PC and run the included Internet Streaming Tester.</string>
     <string name="nettest_text_inconclusive">Could not reach any of Moonlight\'s connection testing servers to thest the network conenction. Check it yourself, or try again later.</string>
@@ -37,8 +37,8 @@
 
     <!-- Pair messages -->
     <string name="pairing">Pairing…</string>
-    <string name="pair_pc_offline">Computer offline</string>
-    <string name="pair_pc_ingame">Computer currently in a game. Close it before pairing.</string>
+    <string name="pair_pc_offline">Host PC offline</string>
+    <string name="pair_pc_ingame">Close the game the Host PC is in before pairing.</string>
     <string name="pair_pairing_title">Pairing</string>
     <string name="pair_pairing_msg">Enter the following PIN on the target PC:</string>
     <string name="pair_incorrect_pin">Incorrect PIN</string>
@@ -46,7 +46,7 @@
     <string name="pair_already_in_progress">Pairing already in progress…</string>
 
     <!-- WOL messages -->
-    <string name="wol_pc_online">Computer online</string>
+    <string name="wol_pc_online">Host PC online</string>
     <string name="wol_no_mac">Cannot wake PC because GFE didn\'t send a MAC address</string>
     <string name="wol_waking_pc">Waking PC…</string>
     <string name="wol_waking_msg">It may take your PC some seconds to wake up.
@@ -61,7 +61,7 @@
     <string name="unpair_error">Could not pair device</string>
 
     <!-- Errors -->
-    <string name="error_pc_offline">Computer offline</string>
+    <string name="error_pc_offline">Host PC offline</string>
     <string name="error_manager_not_running">The ComputerManager service is not running. Wait a few seconds or restart the app.</string>
     <string name="error_unknown_host">Could not resolve host</string>
     <string name="error_404">Got a HTTP 404 error from GFE. Ensure your PC is running a supported GPU.
@@ -93,7 +93,7 @@
     <string name="conn_terminated_msg">The connection was terminated</string>
 
     <!-- General strings -->
-    <string name="ip_hint">Public IP address of GeForce PC</string>
+    <string name="ip_hint">Public IP address of the host PC</string>
     <string name="searching_pc">Searching for PCs with GameStream running…\n\n
         Ensure GameStream is on in the GeForce Experience SHIELD settings.</string>
     <string name="yes">Yes</string>
@@ -135,8 +135,8 @@
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>
     <string name="msg_add_pc">Connecting to the PC…</string>
-    <string name="addpc_fail">Cannot connect to this computer. Ensure the required ports are open in the firewall.</string>
-    <string name="addpc_success">Computer added</string>
+    <string name="addpc_fail">Cannot connect to this host PC. Ensure the required ports are open in the firewall.</string>
+    <string name="addpc_success">Host PC added</string>
     <string name="addpc_unknown_host">Cannot resolve PC address. Ensure the address is correct.</string>
     <string name="addpc_enter_ip">Enter an IP address first</string>
     <string name="addpc_wrong_sitelocal">Use the correct public IP address of your router to stream over the Internet.</string>
@@ -209,13 +209,13 @@
     <string name="title_checkbox_enable_sops">Optimize game settings</string>
     <string name="summary_checkbox_enable_sops">Allow GFE to modify game settings for optimal streaming</string>
     <string name="title_checkbox_host_audio">Play audio on PC</string>
-    <string name="summary_checkbox_host_audio">Play audio from the computer and this device</string>
+    <string name="summary_checkbox_host_audio">Play audio from the host PC and this device</string>
 
     <string name="category_advanced_settings">Advanced</string>
     <string name="title_unlock_fps">Unlock all possible frame rates</string>
     <string name="summary_unlock_fps">Streaming at 90 or 120 FPS may reduce latency on high-end devices and cause lag or instability on devices that can\'t handle it.</string>
     <string name="title_checkbox_disable_warnings">No warning messages</string>
-    <string name="summary_checkbox_disable_warnings">Turs off connection warning messages while streaming</string>
+    <string name="summary_checkbox_disable_warnings">Turns off connection warning messages while streaming</string>
     <string name="title_disable_frame_drop">Never drop frames</string>
     <string name="summary_disable_frame_drop">May reduce micro-stuttering on some devices, but can increase latency</string>
     <string name="title_video_format">Change HEVC settings</string>

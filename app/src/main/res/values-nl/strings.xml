@@ -1,125 +1,224 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-  <!-- PC view menu entries -->
-  <string name="pcview_menu_app_list">Toon Spel Lijst</string>
-  <string name="pcview_menu_pair_pc">Koppel met PC</string>
-  <string name="pcview_menu_unpair_pc">Ontkoppelen</string>
-  <string name="pcview_menu_send_wol">Stuur Wake-On-LAN aanvraag</string>
-  <string name="pcview_menu_delete_pc">Verwijder PC</string>
-
-  <!-- Pair messages -->
-  <string name="pairing">Koppelen…</string>
-  <string name="pair_pc_offline">Computer is onbereikbaar</string>
-  <string name="pair_pc_ingame">Computer is op dit moment in een spel. Sluit het spel voordat je koppelt.</string>
-  <string name="pair_pairing_title">Koppelen</string>
-  <string name="pair_pairing_msg">Voer de volgende PIN in op de doel PC:</string>
-  <string name="pair_incorrect_pin">Ongeldige PIN</string>
-  <string name="pair_fail">Koppelen mislukt</string>
-
-  <!-- WOL messages -->
-  <string name="wol_pc_online">Computer is online</string>
-  <string name="wol_no_mac">Het is niet mogelijk om de PC uit slaapstand te halen, omdat GFE geen MAC adres heeft verstuurd.</string>
-  <string name="wol_waking_pc">PC uit slaapstand halen…</string>
-  <string name="wol_waking_msg"> Het kan even duren voordat de PC reageert.
+    <!-- PC view menu entries -->
+    <string name="pcview_menu_app_list">Toon Spel Lijst</string>
+    <string name="pcview_menu_pair_pc">Koppel met PC</string>
+    <string name="pcview_menu_unpair_pc">Ontkoppelen</string>
+    <string name="pcview_menu_send_wol">Stuur Wake-On-LAN aanvraag</string>
+    <string name="pcview_menu_delete_pc">Verwijder PC</string>
+    <!-- Pair messages -->
+    <string name="pairing">Koppelen…</string>
+    <string name="pair_pc_offline">Computer is onbereikbaar</string>
+    <string name="pair_pc_ingame">Computer is op dit moment in een spel. Sluit het spel voordat je koppelt.</string>
+    <string name="pair_pairing_title">Koppelen</string>
+    <string name="pair_pairing_msg">Voer de volgende PIN in op de doel PC:</string>
+    <string name="pair_incorrect_pin">Ongeldige PIN</string>
+    <string name="pair_fail">Koppelen mislukt</string>
+    <!-- WOL messages -->
+    <string name="wol_pc_online">Computer is online</string>
+    <string name="wol_no_mac">Het is niet mogelijk om de PC uit slaapstand te halen, omdat GFE geen MAC adres heeft verstuurd</string>
+    <string name="wol_waking_pc">PC uit slaapstand halen…</string>
+    <string name="wol_waking_msg"> Het kan even duren voordat de PC reageert.
     Als dit niet gebeurt controleer de Wake-On-LAN instellingen.
   </string>
-  <string name="wol_fail">Wake-On-LAN packets versturen mislukt</string>
-
-  <!-- Unpair messages -->
-  <string name="unpairing">Ontkoppelen…</string>
-  <string name="unpair_success">Ontkoppeling succesvol</string>
-  <string name="unpair_fail">Ontkoppeling mislukt</string>
-  <string name="unpair_error">Apparaat niet gekoppeld</string>
-
-  <!-- Errors -->
-  <string name="error_pc_offline">Computer is offline</string>
-  <string name="error_manager_not_running">De ComputerManager service is niet gestart. Wacht een ogenblik of herstart de app.</string>
-  <string name="error_unknown_host">Host achterhalen mislukt.</string>
-  <string name="error_404">GFE geeft een HTTP 404 fout. Kijk na of de PC een ondersteunde GPU heeft.
+    <string name="wol_fail">Wake-On-LAN packets versturen mislukt</string>
+    <!-- Unpair messages -->
+    <string name="unpairing">Ontkoppelen…</string>
+    <string name="unpair_success">Ontkoppeling succesvol</string>
+    <string name="unpair_fail">Ontkoppeling mislukt</string>
+    <string name="unpair_error">Apparaat niet gekoppeld</string>
+    <!-- Errors -->
+    <string name="error_pc_offline">Computer is offline</string>
+    <string name="error_manager_not_running">De ComputerManager service is niet gestart. Wacht een ogenblik of herstart de app.</string>
+    <string name="error_unknown_host">Host achterhalen mislukt</string>
+    <string name="error_404">GFE geeft een HTTP 404 fout. Kijk na of de PC een ondersteunde GPU heeft.
     Remote desktop software kan soms ook voor deze fout zorgen. Probeer de computer opnieuw op te starten of GFE te herinstalleren.
   </string>
-
-  <!-- Start application messages -->
-  <string name="conn_establishing_title">Verbinding maken</string>
-  <string name="conn_establishing_msg">Verbinding starten</string>
-  <string name="conn_metered">Waarschuwing: Actieve internet verbinding bevat een datalimiet!</string>
-  <string name="conn_client_latency">Gemiddelde frame decoding reactietijd:</string>
-  <string name="conn_client_latency_hw">hardware decoder reactietijd:</string>
-  <string name="conn_hardware_latency">Gemiddelde hardware decoding reactietijd:</string>
-  <string name="conn_starting">Starten</string>
-  <string name="conn_error_title">Verbindingsprobleem</string>
-  <string name="conn_error_msg">Starten mislukt</string>
-  <string name="conn_terminated_title">Verbinding beëindigd</string>
-  <string name="conn_terminated_msg">De verbinding is beëindigd</string>
-
-  <!-- General strings -->
-  <string name="ip_hint">IP adres van GeForce PC</string>
-  <string name="searching_pc">Zoeken naar PCs met GeForce Experience actief…</string>
-  <string name="yes">Ja</string>
-  <string name="no">Nee</string>
-  <string name="lost_connection">Verbinding met PC verloren</string>
-
-  <!-- AppList activity -->
-  <string name="applist_menu_resume">Hervat Sessie</string>
-  <string name="applist_menu_quit">Stop Sessie</string>
-  <string name="applist_menu_quit_and_start">Stop Huidige Spel en Start</string>
-  <string name="applist_menu_cancel">Annuleer</string>
-  <string name="applist_refresh_title">App Lijst</string>
-  <string name="applist_refresh_msg">Apps Verversen…</string>
-  <string name="applist_refresh_error_title">Fout</string>
-  <string name="applist_refresh_error_msg">App lijst ophalen mislukt</string>
-  <string name="applist_quit_app">Stoppen</string>
-  <string name="applist_quit_success">Succesvol gestopt.</string>
-  <string name="applist_quit_fail">Stoppen mislukt</string>
-  <string name="applist_quit_confirmation">Weet je het zeker dat je de app wilt sluiten? Alle niet-opgeslagen gegevens gaan verloren.</string>
-
-  <!-- Add computer manually activity -->
-  <string name="title_add_pc">Voeg handmatig PC toe</string>
-  <string name="msg_add_pc">Verbinding maken met PC…</string>
-  <string name="addpc_fail">Verbinden mislukt. Controleer of de benodigde poorten openstaan in de firewall.</string>
-  <string name="addpc_success">Computer toevoegen succesvol</string>
-  <string name="addpc_unknown_host">Adres achterhalen is mislukt. Controleer het ingevoerde adres op typfouten.</string>
-  <string name="addpc_enter_ip">IP-adres invoeren is verplicht.</string>
-
-  <!-- Preferences -->
-  <string name="category_basic_settings">Algemene Instellingen</string>
-  <string name="title_resolution_list">Selecteer resolutie en FPS doel</string>
-  <string name="summary_resolution_list">Te hoge instellingen kunnen crashes en haperingen veroorzaken.</string>
-  <string name="title_seekbar_bitrate">Selecteer doel video bitsnelheid</string>
-  <string name="summary_seekbar_bitrate">Verlaag bitsnelheid om haperingen te verminderen. Verhoog de bitsnelheid voor een betere videokwaliteit.</string>
-  <string name="title_checkbox_stretch_video">Rek video uit tot volledig scherm</string>
-  <string name="title_checkbox_disable_warnings">Verberg waarschuwingsberichten</string>
-  <string name="summary_checkbox_disable_warnings">Verberg on-screen verbindingswaarschuwingen tijdens het streamen</string>
-
-  <string name="category_audio_settings">Geluidsinstellingen</string>
-
-  <string name="title_checkbox_multi_controller">Multi-gamepad support</string>
-  <string name="summary_checkbox_multi_controller">Wanneer uitgevinkt, alle controllers verschijnen als één.</string>
-  <string name="title_seekbar_deadzone">Pas analoge dodezone aan.</string>
-  <string name="suffix_seekbar_deadzone">%</string>
-  <string name="title_checkbox_xb1_driver">Xbox 360/One controller stuurprogramma</string>
-  <string name="summary_checkbox_xb1_driver">Gebruikt de ingebouwde USB stuurprogramma voor apparaten zonder Xbox controller ondersteuning.</string>
-
-  <string name="category_on_screen_controls_settings">On-screen Controller Instellingen</string>
-  <string name="title_checkbox_show_onscreen_controls">Laat on-screen controls zien</string>
-  <string name="summary_checkbox_show_onscreen_controls">Geeft een virtuele controller weer op het touchscreen.</string>
-
-  <string name="category_ui_settings">UI Installingen</string>
-  <string name="title_language_list">Taal</string>
-  <string name="summary_language_list">Taal te gebruiken in Moonlight</string>
-  <string name="title_checkbox_small_icon_mode">Gebruik kleine iconen</string>
-  <string name="summary_checkbox_small_icon_mode">Gebruik kleine iconen in kolom onderdelen zodat meer items tegelijk zichtbaar worden.</string>
-
-  <string name="category_host_settings">Host Instellingen</string>
-  <string name="title_checkbox_enable_sops">Optimaliseer spel instellingen</string>
-  <string name="summary_checkbox_enable_sops">Sta GFE toe om spel instellingen te veranderen voor een optimale stream</string>
-  <string name="title_checkbox_host_audio">Speel audio af op PC</string>
-  <string name="summary_checkbox_host_audio">Speel audio af op de computer en op dit apparaat</string>
-
-  <string name="category_advanced_settings">Geavanceerde Instellingen</string>
-  <string name="title_video_format">Verander HEVC instellingen</string>
-  <string name="summary_video_format">HEVC verlaagt video bandbreedte vereisten maar benodigdt een recent apparaat.</string>
+    <!-- Start application messages -->
+    <string name="conn_establishing_title">Verbinding maken</string>
+    <string name="conn_establishing_msg">Verbinding starten</string>
+    <string name="conn_metered">Waarschuwing: Actieve internet verbinding bevat een datalimiet!</string>
+    <string name="conn_client_latency">Gemiddelde frame decoding reactietijd:</string>
+    <string name="conn_client_latency_hw">hardware decoder reactietijd:</string>
+    <string name="conn_hardware_latency">Gemiddelde hardware decoding reactietijd:</string>
+    <string name="conn_starting">Starten</string>
+    <string name="conn_error_title">Verbindingsprobleem</string>
+    <string name="conn_error_msg">Starten mislukt</string>
+    <string name="conn_terminated_title">Verbinding beëindigd</string>
+    <string name="conn_terminated_msg">De verbinding is beëindigd</string>
+    <!-- General strings -->
+    <string name="ip_hint">IP adres van GeForce PC</string>
+    <string name="searching_pc">Zoeken naar PCs met GeForce Experience actief…
+\n
+\n Controleer dat GameStream is ingeschakeld in de GeForce Experience SHIELD instellingen.</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nee</string>
+    <string name="lost_connection">Verbinding met PC verloren</string>
+    <!-- AppList activity -->
+    <string name="applist_menu_resume">Hervat Sessie</string>
+    <string name="applist_menu_quit">Stop Sessie</string>
+    <string name="applist_menu_quit_and_start">Stop Huidige Spel en Start</string>
+    <string name="applist_menu_cancel">Annuleer</string>
+    <string name="applist_refresh_title">App Lijst</string>
+    <string name="applist_refresh_msg">Apps Verversen…</string>
+    <string name="applist_refresh_error_title">Fout</string>
+    <string name="applist_refresh_error_msg">App lijst ophalen mislukt</string>
+    <string name="applist_quit_app">Stoppen</string>
+    <string name="applist_quit_success">Succesvol gestopt</string>
+    <string name="applist_quit_fail">Stoppen mislukt</string>
+    <string name="applist_quit_confirmation">Weet je het zeker dat je de app wilt sluiten? Alle niet-opgeslagen gegevens gaan verloren.</string>
+    <!-- Add computer manually activity -->
+    <string name="title_add_pc">Voeg handmatig PC toe</string>
+    <string name="msg_add_pc">Verbinding maken met PC…</string>
+    <string name="addpc_fail">Verbinden mislukt. Controleer of de benodigde poorten openstaan in de firewall.</string>
+    <string name="addpc_success">Computer toevoegen succesvol</string>
+    <string name="addpc_unknown_host">Adres achterhalen is mislukt. Controleer het ingevoerde adres op typfouten.</string>
+    <string name="addpc_enter_ip">IP-adres invoeren is verplicht</string>
+    <!-- Preferences -->
+    <string name="category_basic_settings">Algemene Instellingen</string>
+    <string name="title_resolution_list">Selecteer resolutie en FPS doel</string>
+    <string name="summary_resolution_list">Te hoge instellingen kunnen crashes en haperingen veroorzaken.</string>
+    <string name="title_seekbar_bitrate">Selecteer doel video bitsnelheid</string>
+    <string name="summary_seekbar_bitrate">Verlaag bitsnelheid om haperingen te verminderen. Verhoog de bitsnelheid voor een betere videokwaliteit.</string>
+    <string name="title_checkbox_stretch_video">Rek video uit tot volledig scherm</string>
+    <string name="title_checkbox_disable_warnings">Verberg waarschuwingsberichten</string>
+    <string name="summary_checkbox_disable_warnings">Verberg on-screen verbindingswaarschuwingen tijdens het streamen</string>
+    <string name="category_audio_settings">Geluidsinstellingen</string>
+    <string name="title_checkbox_multi_controller">Multi-gamepad support</string>
+    <string name="summary_checkbox_multi_controller">Deze optie uitvinken zorgt ervoor dat er altijd een gamepad beschikbaar is</string>
+    <string name="title_seekbar_deadzone">Pas analoge dode zone aan</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Xbox 360/One controller stuurprogramma</string>
+    <string name="summary_checkbox_xb1_driver">Gebruikt de ingebouwde USB stuurprogramma voor apparaten zonder Xbox controller ondersteuning</string>
+    <string name="category_on_screen_controls_settings">On-screen Controller Instellingen</string>
+    <string name="title_checkbox_show_onscreen_controls">Laat on-screen controls zien</string>
+    <string name="summary_checkbox_show_onscreen_controls">Geeft een virtuele controller weer op het touchscreen</string>
+    <string name="category_ui_settings">UI Installingen</string>
+    <string name="title_language_list">Taal</string>
+    <string name="summary_language_list">Taal te gebruiken in Moonlight</string>
+    <string name="title_checkbox_small_icon_mode">Gebruik kleine iconen</string>
+    <string name="summary_checkbox_small_icon_mode">Gebruik kleine iconen in kolom onderdelen zodat meer items tegelijk zichtbaar worden</string>
+    <string name="category_host_settings">Host Instellingen</string>
+    <string name="title_checkbox_enable_sops">Optimaliseer spel instellingen</string>
+    <string name="summary_checkbox_enable_sops">Sta GFE toe om spel instellingen te veranderen voor een optimale stream</string>
+    <string name="title_checkbox_host_audio">Speel audio af op PC</string>
+    <string name="summary_checkbox_host_audio">Speel audio af op de computer en op dit apparaat</string>
+    <string name="category_advanced_settings">Geavanceerde Instellingen</string>
+    <string name="title_video_format">Verander HEVC instellingen</string>
+    <string name="summary_video_format">HEVC verlaagt video bandbreedte vereisten maar benodigd een recent apparaat</string>
     <string name="suffix_osc_opacity">%</string>
-
+    <string name="message_decoding_error">Moonlight is gecrasht door een compatibiliteitsprobleem met de video decoder van dit toestel. Zorg ervoor dat GeForce Experience bijgewerkt is naar de laatste versie op uw PC. Probeer de streamingsinstellingen te wijzigen bij blijvende crashes.</string>
+    <string name="scut_deleted_pc">PC verwijderd</string>
+    <string name="scut_not_paired">PC niet gekoppeld</string>
+    <string name="scut_pc_not_found">PC niet gevonden</string>
+    <string name="scut_invalid_uuid">Opgegeven PC is niet geldig</string>
+    <string name="scut_invalid_app_id">Opgegeven App is niet geldig</string>
+    <string name="help_loading_msg">Hulppagina laden…</string>
+    <string name="pcview_menu_header_online">Online</string>
+    <string name="pcview_menu_header_offline">Offline</string>
+    <string name="pcview_menu_header_unknown">Vernieuwen</string>
+    <string name="pcview_menu_test_network">Netwerkconnectie testen</string>
+    <string name="pcview_menu_details">Details Bekijken</string>
+    <string name="nettest_title_waiting">Netwerkconnectie Testen</string>
+    <string name="nettest_text_waiting">Moonlight is uw netwerkverbinding aan het testen om te bepalen of NVIDIA GameStream geblokkeerd is.
+\n
+\nDit kan enkele seconden duren…</string>
+    <string name="nettest_title_done">Netwerktest Compleet</string>
+    <string name="nettest_text_success">Uw netwerk lijkt Moonlight niet te blokkeren. Als u nog steeds problemen ondervindt met verbinden, controleer de firewall instellingen van uw PC.
+\n
+\nAls u probeert te streamen over het internet, installeer de Moonlight Internet Hosting Tool op uw PC en voer de inbegrepen Internet Streaming Tester uit om uw PC\'s internetverbinding te controleren.</string>
+    <string name="nettest_text_inconclusive">De netwerktest kon niet worden uitgevoerd omdat geen Moonlight netwerktesting servers bereikbaar zijn. Controleer uw internetverbinding of probeer later opnieuw.</string>
+    <string name="nettest_text_failure">De internetverbinding van dit toestel lijkt Moonlight te blokkeren. Streamen over het internet werkt mogelijks niet wanneer u verbonden bent met dit netwerk.
+\n
+\nDe volgende netwerkpoorten zijn geblokkeerd:
+\n</string>
+    <string name="nettest_text_blocked">De internetverbinding van dit toestel blokkeert Moonlight. Streamen over het internet werkt mogelijks niet wanneer u verbonden bent met dit netwerk.</string>
+    <string name="pair_already_in_progress">Koppelen al bezig</string>
+    <string name="title_decoding_error">Video Decoder Gecrasht</string>
+    <string name="title_decoding_reset">Video Instellingen Resetten</string>
+    <string name="message_decoding_reset">De videodecoder van uw toestel blijft crashen met uw geselecteerde streamingsinstellingen. De streamingsinstellingen zijn teruggezet naar de standaardinstellingen.</string>
+    <string name="error_usb_prohibited">USB-toegang is uitgeschakeld door uw systeemadministrator. Controleer uw Knox of MDM instellingen.</string>
+    <string name="unable_to_pin_shortcut">Uw huidige laucher laat het pinnen van snelkoppelingen niet toe.</string>
+    <string name="video_decoder_init_failed">Videodecoder niet gestart. Uw apparaat ondersteund mogelijk de geselecteerde resolutie of frame rate niet.</string>
+    <string name="no_video_received_error">Geen video ontvangen van de host.</string>
+    <string name="no_frame_received_error">De kwaliteit van uw netwerkverbinding is niet goed. Verlaag de bitrate of gebruik een snellere verbinding.</string>
+    <string name="check_ports_msg">Controleer uw firewall en port forwarding regels voor de poort(en):</string>
+    <string name="slow_connection_msg">Trage verbinding met PC
+\nVerlaag uw bitrate</string>
+    <string name="poor_connection_msg">Slechte verbinding met PC</string>
+    <string name="applist_connect_msg">Verbinden met PC…</string>
+    <string name="applist_menu_details">Details Bekijken</string>
+    <string name="applist_menu_scut">Snelkoppeling Maken</string>
+    <string name="applist_menu_hide_app">App Verbergen</string>
+    <string name="applist_details_id">App ID:</string>
+    <string name="title_fps_list">Video frame rate</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="resolution_prefix_native">Oorspronkelijk</string>
+    <string name="title_audio_config_list">Surround sound configuratie</string>
+    <string name="category_input_settings">Invoerinstellingen</string>
+    <string name="title_checkbox_touchscreen_trackpad">Gebruik het touchscreen als een trackpad</string>
+    <string name="summary_osc_opacity">Maak de on-screen besturingselementen minder of meer transparant</string>
+    <string name="title_checkbox_mouse_emulation">Muis simulatie via gamepad</string>
+    <string name="summary_checkbox_mouse_emulation">De startknop lang indrukken zal de muis-modus activeren op uw gamepad</string>
+    <string name="title_checkbox_mouse_nav_buttons">Vorige en volgende muisknoppen activeren</string>
+    <string name="summary_checkbox_flip_face_buttons">Schakelt de face-knoppen A/B en X/Y om voor gamepads en voor on-screen besturing</string>
+    <string name="title_checkbox_vibrate_osc">Trillen inschakelen</string>
+    <string name="summary_checkbox_vibrate_osc">Trilt uw apparaat om gerommel te simuleren voor de on-screen besturing</string>
+    <string name="summary_only_l3r3">Alle virtuele knoppen verbergen behalve L3 en R3</string>
+    <string name="title_reset_osc">Opgeslagen on-screen layout wissen</string>
+    <string name="dialog_title_reset_osc">Reset Layout</string>
+    <string name="toast_reset_osc_success">On-screen controle-elementen naar fabrieksinstellingen zetten</string>
+    <string name="title_osc_opacity">Transparantie van on-screen besturingselementen aanpassen</string>
+    <string name="title_checkbox_enable_pip">Scherm-in-Scherm toeschouwermodus inschakelen</string>
+    <string name="title_disable_frame_drop">Frames nooit overslaan</string>
+    <string name="summary_disable_frame_drop">Kan micro-stotteren op sommige toestellen verminderen, maar kan vertraging verhogen</string>
+    <string name="title_enable_hdr">HDR Inschakelen (Experimenteel)</string>
+    <string name="summary_enable_hdr">Stream HDR als het spel en de GPU van de PC dit ondersteund. HDR vereist een GTX 1000-reeks GPU of later.</string>
+    <string name="title_enable_perf_overlay">Prestatiestatistieken tonen tijdens het streamen</string>
+    <string name="title_details">Details</string>
+    <string name="delete_pc_msg">Bent u zeker dat u deze PC wilt verwijderen\?</string>
+    <string name="resolution_prefix_native_fullscreen">Oorspronkelijk Volledig Scherm</string>
+    <string name="help">Help</string>
+    <string name="perf_overlay_streamdetails">Video stream: %1$s %2$.2f FPS</string>
+    <string name="perf_overlay_incomingfps">Binnenkomende frame rate van het netwerk: %1$.2f FPS</string>
+    <string name="early_termination_error">Er is iets misgegaan op de host PC bij het starten van de stream.
+\n
+\nControleer of u geen DRM-beschermde inhoud heeft geopend op uw host PC. U kan ook de host PC proberen opnieuw op te starten.
+\n
+\nAls het probleem blijft duren, probeer uw GPU drivers en GeForce Experience opnieuw te installeren.</string>
+    <string name="perf_overlay_netlatency">Gemiddelde netwerkvertraging: %1$d ms (variantie: %2$d ms)</string>
+    <string name="addpc_wrong_sitelocal">Dat adres lijkt niet te kloppen. U moet het publieke IP-adres van uw router gebruiken om te kunnen streamen over het Internet.</string>
+    <string name="title_native_res_dialog">Oorspronkelijke Resolutie Waarschuwing</string>
+    <string name="text_native_res_dialog">Oorspronkelijke resolutiemodes zijn niet officieel ondersteund door GeForce Experience, hierdoor zal de resolutie van uw host display niet automatisch ingesteld worden. U zal het manueel moeten instellen in het spel.
+\n
+\nAls u kiest om een aangepaste resolutie in het NVIDIA Controle Paneel in te stellen dat overeenkomt met uw de resolutie van uw apparaat, controleer a.u.b. of u NVIDIA\'s waarschuwingen in verband met mogelijke schade aan uw monitor, PC instabiliteit, en andere mogelijke problemen heeft gelezen en deze begrijpt.
+\n
+\nWij zijn niet verantwoordelijk voor problemen veroorzaakt door het instellen van een aangepaste resolutie op uw PC.
+\n
+\nTot slot, uw apparaat of host PC ondersteunt mogelijk streamen met oorspronkelijke resoluties niet. Als het niet werkt op uw toestel heeft u spijtig genoeg gewoon pech.</string>
+    <string name="summary_fps_list">Verhogen voor een vloeiendere video stream. Verlagen voor betere prestaties op minder krachtige apparaten.</string>
+    <string name="summary_audio_config_list">5.1 of 7.1 surround sound inschakelen voor home-cinema systemen</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Wanneer ingeschakeld functioneert het touchscreen als een trackpad. Wanneer uitgeschakeld bedient het touchscreen rechtstreeks de muiscursor.</string>
+    <string name="summary_checkbox_usb_bind_all">Gebruik Moonlight\'s USB driver voor alle ondersteunde gamepads, zelfs als een standaard Xbox controller aanwezig is</string>
+    <string name="dialog_text_reset_osc">Bent u zeker dat u uw opgeslagen on-screen controle-elementen wilt verwijderen\?</string>
+    <string name="summary_enable_perf_overlay">Real-time prestatie-informatie tonen tijdens het streamen</string>
+    <string name="title_checkbox_vibrate_fallback">Simuleer rumble-ondersteuning met trillingen</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Deze optie inschakelen kan problemen veroorzaken met rechts-klikken op sommige buggy apparaten</string>
+    <string name="summary_checkbox_vibrate_fallback">Laat uw apparaat trillen om gerommel te simuleren als uw gamepad dit niet ondersteund</string>
+    <string name="title_only_l3r3">Enkel L3 en R3 tonen</string>
+    <string name="title_checkbox_usb_bind_all">Standaard Xbox gamepad-ondersteuning overschrijven</string>
+    <string name="summary_reset_osc">Herstelt alle on-screen besturingselementen naar hun originele grootte en positie</string>
+    <string name="dialog_title_osc_opacity">Transparantie wijzigen</string>
+    <string name="title_unlock_fps">Alle mogelijke frame rates ontgrendelen</string>
+    <string name="summary_unlock_fps">Streamen op 90 of 120 FPS kan vertraging op high-end apparaten verminderen, maar het kan lag of instabiliteit veroorzaken op toestellen die het niet ondersteunen</string>
+    <string name="summary_checkbox_enable_pip">Laat toe de stream te bekijken (maar niet bedienen) bij het multitasken</string>
+    <string name="title_checkbox_flip_face_buttons">Face-knoppen omdraaien</string>
+    <string name="title_enable_post_stream_toast">Vertragingsbericht tonen na het streamen</string>
+    <string name="summary_enable_post_stream_toast">Toon een informatiebericht van de vertraging na de stream beëindigd is</string>
+    <string name="help_loading_title">Hulpwijzer</string>
+    <string name="perf_overlay_decoder">Decoder: %1$s</string>
+    <string name="perf_overlay_renderingfps">Rendering frame rate: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Frames overgeslagen door uw netwerkverbinding: %1$.2f%%</string>
+    <string name="perf_overlay_dectime">Gemiddelde decodeertijd: %1$.2f ms</string>
+    <string name="applist_menu_tv_channel">Toevoegen aan Kanaal</string>
 </resources>

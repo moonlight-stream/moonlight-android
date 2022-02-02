@@ -1235,6 +1235,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return false;
         }
 
+        //DeviceId : 6 is Samsung Spen
+        //Since I only have Samsung devices, I don't know if this means the stylus for all devices.
+        //If you can get information that means stylus, please change the conditional statement
+
+        //Enable pointer capture on non-stylus devices.
+        if (event.getDeviceId() != 6){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                streamView.requestPointerCapture();
+            }
+        }
         int eventSource = event.getSource();
         if ((eventSource & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
             if (controllerHandler.handleMotionEvent(event)) {

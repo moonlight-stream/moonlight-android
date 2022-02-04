@@ -54,13 +54,10 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
         for (int i = 0; i < event.getHistorySize(); i++) {
             x += event.getHistoricalAxisValue(axis, i);
         }
-        //DeviceId : 6 is Samsung Spen
-        //Since I only have Samsung devices, I don't know if this means the stylus for all devices.
-        //If you can get information that means stylus, please change the conditional statement
 
         //Starting with Android 12, the stylus pen is recognized as a pointing device and works like a mouse.
         //To prevent this, the pointer capture stops when the stylus pen is detected.
-        if (event.getDeviceId() == 6 ){
+        if (event.getToolType(0)== 2){
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ) {
                 targetView.releasePointerCapture();
             }
@@ -76,7 +73,7 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
         for (int i = 0; i < event.getHistorySize(); i++) {
             y += event.getHistoricalAxisValue(axis, i);
         }
-        if (event.getDeviceId() == 6 ){
+        if (event.getToolType(0) == 2){
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ) {
                 targetView.releasePointerCapture();
             }

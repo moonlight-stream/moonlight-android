@@ -3,18 +3,15 @@
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc">PC eliminato</string>
     <string name="scut_not_paired">PC non accoppiato</string>
-
     <!-- Help strings -->
     <string name="help_loading_title">Visualizza assistenza</string>
     <string name="help_loading_msg">Caricamento pagina di assistenza…</string>
-	
     <!-- PC view menu entries -->
-    <string name="pcview_menu_app_list">Lista applicazioni</string>
+    <string name="pcview_menu_app_list">Vedi Tutte le Applicazioni</string>
     <string name="pcview_menu_pair_pc">Accoppia PC</string>
     <string name="pcview_menu_unpair_pc">Disaccoppia PC</string>
     <string name="pcview_menu_send_wol">Invia richiesta Wake-On-LAN</string>
     <string name="pcview_menu_delete_pc">Rimuovi PC</string>
-
     <!-- Pair messages -->
     <string name="pairing">Accoppiamento…</string>
     <string name="pair_pc_offline">Il PC è offline</string>
@@ -24,7 +21,6 @@
     <string name="pair_incorrect_pin">PIN non corretto</string>
     <string name="pair_fail">Accoppiamento fallito</string>
     <string name="pair_already_in_progress">Accoppiamento già in corso</string>
-
     <!-- WOL messages -->
     <string name="wol_pc_online">PC già avviato</string>
     <string name="wol_no_mac">Impossibile risvegliare il PC perché GFE non ha inviato nessun indirizzo MAC</string>
@@ -33,13 +29,11 @@
         Se non succede niente, assicurati che l\'opzione Wake-On-LAN sia configurata correttamente.
     </string>
     <string name="wol_fail">Invio pacchetti Wake-On-LAN fallito</string>
-
     <!-- Unpair messages -->
     <string name="unpairing">Disaccoppiamento…</string>
     <string name="unpair_success">Disaccoppiato con successo</string>
     <string name="unpair_fail">Disaccoppiamento fallito</string>
     <string name="unpair_error">PC non accoppiato</string>
-
     <!-- Errors -->
     <string name="error_pc_offline">PC offline</string>
     <string name="error_manager_not_running">Il servizio ComputerManager non è avviato. Attendi qualche secondo o riavvia l\'applicazione.</string>
@@ -52,7 +46,6 @@
     <string name="title_decoding_reset">Ripristino impostazioni video</string>
     <string name="message_decoding_reset">Il decodificatore video del dispositivo continua a funzionare in modo anomalo con le impostazioni di streaming selezionate. Le impostazioni di streaming sono state ripristinate ai valori predefiniti.</string>
     <string name="error_usb_prohibited">L\'accesso USB è vietato dall\'amministratore del dispositivo. Verifica le impostazioni Knox o MDM.</string>
-
     <!-- Start application messages -->
     <string name="conn_establishing_title">Connessione in corso</string>
     <string name="conn_establishing_msg">Avvio connessione</string>
@@ -60,12 +53,11 @@
     <string name="conn_client_latency">Latenza decodifica fotogrammi media:</string>
     <string name="conn_client_latency_hw">latenza decodificatore hardware:</string>
     <string name="conn_hardware_latency">Latenza decodificatore hardware media:</string>
-    <string name="conn_starting">Avvio in corso…</string>
+    <string name="conn_starting">Avvio in corso</string>
     <string name="conn_error_title">Errore connessione</string>
     <string name="conn_error_msg">Avvio fallito</string>
     <string name="conn_terminated_title">Connessione interrotta</string>
     <string name="conn_terminated_msg">La connessione è stata interrotta</string>
-
     <!-- General strings -->
     <string name="ip_hint">Indirizzo IP del PC</string>
     <string name="searching_pc">Ricerca di PC con GameStream avviato…\n\n
@@ -74,7 +66,6 @@
     <string name="no">No</string>
     <string name="lost_connection">Connessione con il PC persa</string>
     <string name="help">Assistenza</string>
-
     <!-- AppList activity -->
     <string name="applist_connect_msg">Connessione al PC in corso…</string>
     <string name="applist_menu_resume">Riprendi sessione</string>
@@ -85,11 +76,10 @@
     <string name="applist_refresh_msg">Aggiornamento lista in corso…</string>
     <string name="applist_refresh_error_title">Errore</string>
     <string name="applist_refresh_error_msg">Ricezione lista applicazioni fallita</string>
-    <string name="applist_quit_app">Chiusura in corso…</string>
+    <string name="applist_quit_app">Chiusura in corso</string>
     <string name="applist_quit_success">Sessione chiusa con successo</string>
     <string name="applist_quit_fail">Chiusura sessione fallita</string>
     <string name="applist_quit_confirmation">Sei sicuro di voler chiudere l\'applicazione avviata? Tutti i dati non salvati saranno persi.</string>
-
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Aggiungi PC manualmente</string>
     <string name="msg_add_pc">Connessione al PC in corso…</string>
@@ -98,21 +88,18 @@
     <string name="addpc_unknown_host">Impossibile risovere l\'indirizzo del PC. Assicurati di aver scritto correttamente l\'indirizzo.</string>
     <string name="addpc_enter_ip">Devi inserire un indirizzo IP</string>
     <string name="addpc_wrong_sitelocal">Quell\'indirizzo non sembra corretto. È necessario utilizzare l\'indirizzo IP pubblico del router per lo streaming su Internet.</string>
-
     <!-- Preferences -->
     <string name="category_basic_settings">Impostazioni generali</string>
     <string name="title_resolution_list">Risoluzione e FPS</string>
-    <string name="summary_resolution_list">Valori troppo elevati possono causare lag o crash</string>
+    <string name="summary_resolution_list">Aumentare per migliorare la nitidezza dell\'immagine. Diminuire per aumentare le prestazioni su dispositivi di fascia più bassa e reti più lente.</string>
     <string name="title_seekbar_bitrate">Velocità di trasmissione video</string>
-    <string name="summary_seekbar_bitrate">Abbassa la velocità di trasmissione per ridurre lo stuttering; alzala per migliorare la qualità dell\'immagine</string>
+    <string name="summary_seekbar_bitrate">Aumentare per migliorare la qualità dell\'immagine. Diminuire per aumentare le prestazioni su reti più lente.</string>
     <string name="title_checkbox_stretch_video">Forza video a schermo intero</string>
     <string name="title_checkbox_disable_warnings">Disabilita messaggi di warning</string>
     <string name="summary_checkbox_disable_warnings">Disabilita i messaggi di warning sullo schermo durante lo streaming</string>
     <string name="title_checkbox_enable_pip">Abilita modalità spettatore Picture-in-Picture</string>
     <string name="summary_checkbox_enable_pip">Permette di osservare (ma non di controllare) la stream in multitasking</string>
-
     <string name="category_audio_settings">Impostazioni audio</string>
-
     <string name="title_checkbox_multi_controller">Supporto a più controller</string>
     <string name="summary_checkbox_multi_controller">Quando disabilitato, tutti i controller appaiono come uno solo</string>
     <string name="title_seekbar_deadzone">Regola i punti morti degli stick analogici</string>
@@ -123,7 +110,6 @@
     <string name="summary_checkbox_usb_bind_all">Forza i driver USB di Moonlight di assumere il controllo su tutti i controller Xbox supportati</string>
     <string name="title_checkbox_mouse_emulation">Emulazione del mouse tramite controller</string>
     <string name="summary_checkbox_mouse_emulation">Tenendo premuto il pulsante Start, il controller passerà alla modalità mouse</string>
-	
     <string name="category_on_screen_controls_settings">Impostazioni dei controlli a schermo</string>
     <string name="title_checkbox_show_onscreen_controls">Mostra controlli a schermo</string>
     <string name="summary_checkbox_show_onscreen_controls">Mostra l\'overlay virtuale del controller su schermo</string>
@@ -134,19 +120,16 @@
     <string name="dialog_title_reset_osc">Ripristino del layout</string>
     <string name="dialog_text_reset_osc">Sei sicuro di voler ripristinare ai valori predefiniti i layout dei controlli a schermo?</string>
     <string name="toast_reset_osc_success">I controlli a schermo sono stati ripristinati</string>
-
     <string name="category_ui_settings">Impostazioni dell\'interfaccia</string>
     <string name="title_language_list">Lingua</string>
     <string name="summary_language_list">Lingua da usare in Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Usa icone piccole</string>
     <string name="summary_checkbox_small_icon_mode">Usa icone piccole nella griglia per avere più oggetti a schermo</string>
-
     <string name="category_host_settings">Impostazioni del PC host</string>
     <string name="title_checkbox_enable_sops">Ottimizza le impostazioni dei giochi</string>
     <string name="summary_checkbox_enable_sops">Permetti a GFE di modificare le impostazioni dei giochi per uno streaming ottimale</string>
     <string name="title_checkbox_host_audio">Riproduci audio sul PC</string>
     <string name="summary_checkbox_host_audio">Riproduce l\'audio sul PC e su questo dispositivo</string>
-
     <string name="category_advanced_settings">Impostazioni avanzate</string>
     <string name="title_disable_frame_drop">Non saltare i fotogrammi</string>
     <string name="summary_disable_frame_drop">Potrebbe ridurre il micro-stuttering su alcuni dispositivi, ma può aumentare la latenza</string>
@@ -155,5 +138,26 @@
     <string name="title_enable_hdr">Abilita HDR (sperimentale)</string>
     <string name="summary_enable_hdr">Utilizza l\'HDR quando il gioco e la scheda video del PC lo supportano. L\'HDR richiede una scheda video serie GTX 1000 o sucessive.</string>
     <string name="suffix_osc_opacity">%</string>
-
+    <string name="pcview_menu_header_online">Online</string>
+    <string name="scut_pc_not_found">PC non trovato</string>
+    <string name="scut_invalid_uuid">Il PC indicato non è valido</string>
+    <string name="scut_invalid_app_id">L\'App indicata non è valida</string>
+    <string name="pcview_menu_header_offline">Offline</string>
+    <string name="pcview_menu_header_unknown">Aggiornando</string>
+    <string name="pcview_menu_details">Mostra Dettagli</string>
+    <string name="pcview_menu_test_network">Controlla la Connessione di Rete</string>
+    <string name="title_details">Dettagli</string>
+    <string name="delete_pc_msg">Sei sicuro di voler rimuovere questo PC\?</string>
+    <string name="slow_connection_msg">Connessione lenta al PC
+\nRidurre il bitrate</string>
+    <string name="poor_connection_msg">Connessione al PC di bassa qualità</string>
+    <string name="applist_menu_hide_app">Nascondi App</string>
+    <string name="applist_menu_scut">Crea Collegamento</string>
+    <string name="applist_menu_tv_channel">Aggiungi al Canale</string>
+    <string name="applist_menu_details">Mostra Dettagli</string>
+    <string name="summary_fps_list">Aumentare per uno streaming video più fluido. Diminuire per prestazioni migliori su dispositivi di fascia più bassa.</string>
+    <string name="applist_details_id">ID Applicazione:</string>
+    <string name="perf_overlay_decoder">Decoder: %1$s</string>
+    <string name="perf_overlay_dectime">Tempo medio di decodifica: %1$.2f ms</string>
+    <string name="perf_overlay_streamdetails">Flusso video: %1$s %2$.2f FPS</string>
 </resources>

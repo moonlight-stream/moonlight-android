@@ -275,7 +275,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
         String uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
         String pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
-        boolean willStreamHdr = Game.this.getIntent().getBooleanExtra(EXTRA_APP_HDR, false);
+        boolean appSupportsHdr = Game.this.getIntent().getBooleanExtra(EXTRA_APP_HDR, false);
         byte[] derCertData = Game.this.getIntent().getByteArrayExtra(EXTRA_SERVER_CERT);
 
         X509Certificate serverCert = null;
@@ -301,7 +301,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         shortcutHelper.reportComputerShortcutUsed(computer);
         if (appName != null) {
             // This may be null if launched from the "Resume Session" PC context menu item
-            shortcutHelper.reportGameLaunched(computer, new NvApp(appName, appId, willStreamHdr));
+            shortcutHelper.reportGameLaunched(computer, new NvApp(appName, appId, appSupportsHdr));
         }
 
         // Initialize the MediaCodec helper before creating the decoder
@@ -309,41 +309,32 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         MediaCodecHelper.initialize(this, glPrefs.glRenderer);
 
         // Check if the user has enabled HDR
+        boolean willStreamHdr = false;
         if (prefConfig.enableHdr) {
-            // Check if the app supports it
-            if (!willStreamHdr) {
-                Toast.makeText(this, "This game does not support HDR10", Toast.LENGTH_SHORT).show();
-            }
-            // It does, so start our HDR checklist
-            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                // We already know the app supports HDR if willStreamHdr is set.
+            // Start our HDR checklist
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 Display display = getWindowManager().getDefaultDisplay();
                 Display.HdrCapabilities hdrCaps = display.getHdrCapabilities();
 
                 // We must now ensure our display is compatible with HDR10
-                boolean foundHdr10 = false;
                 if (hdrCaps != null) {
                     // getHdrCapabilities() returns null on Lenovo Lenovo Mirage Solo (vega), Android 8.0
                     for (int hdrType : hdrCaps.getSupportedHdrTypes()) {
                         if (hdrType == Display.HdrCapabilities.HDR_TYPE_HDR10) {
-                            foundHdr10 = true;
+                            willStreamHdr = true;
+                            break;
                         }
                     }
                 }
 
-                if (!foundHdr10) {
+                if (!willStreamHdr) {
                     // Nope, no HDR for us :(
-                    willStreamHdr = false;
                     Toast.makeText(this, "Display does not support HDR10", Toast.LENGTH_LONG).show();
                 }
             }
             else {
                 Toast.makeText(this, "HDR requires Android 7.0 or later", Toast.LENGTH_LONG).show();
-                willStreamHdr = false;
             }
-        }
-        else {
-            willStreamHdr = false;
         }
 
         // Check if the user has enabled performance stats overlay
@@ -459,7 +450,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setResolution(prefConfig.width, prefConfig.height)
                 .setLaunchRefreshRate(prefConfig.fps)
                 .setRefreshRate(chosenFrameRate)
-                .setApp(new NvApp(appName != null ? appName : "app", appId, willStreamHdr))
+                .setApp(new NvApp(appName != null ? appName : "app", appId, appSupportsHdr))
                 .setBitrate(prefConfig.bitrate)
                 .setEnableSops(prefConfig.enableSops)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)

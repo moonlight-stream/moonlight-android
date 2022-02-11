@@ -8,14 +8,14 @@
     </string-array>
 
     <string-array name="video_format_names">
-        <item>如果穩定才使用HEVC</item>
-        <item>強制使用HEVC（不穩定）</item>
-        <item>不使用HEVC</item>
+        <item>如果穩定才使用 HEVC</item>
+        <item>強制使用 HEVC (不穩定)</item>
+        <item>不使用 HEVC</item>
     </string-array>
     
     <string-array name="audio_config_names">
-        <item>身歷聲</item>
-        <item>5.1環繞聲</item>
-        <item>7.1環繞聲</item>
+        <item>環繞聲</item>
+        <item>5.1 環繞聲</item>
+        <item>7.1 環繞聲</item>
     </string-array>
 </resources>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="resolution_names">
-        <item>360p</item>
-        <item>480p</item>
-        <item>720p</item>
-        <item>1080p</item>
-        <item>1440p</item>
-        <item>4K</item>
+        <item>@string/resolution_360p</item>
+        <item>@string/resolution_480p</item>
+        <item>@string/resolution_720p</item>
+        <item>@string/resolution_1080p</item>
+        <item>@string/resolution_1440p</item>
+        <item>@string/resolution_4k</item>
     </string-array>
 
     <!-- Keep this in sync with PreferenceConfiguration.isNativeResolution()! -->
@@ -20,10 +20,10 @@
     </string-array>
 
     <string-array name="fps_names">
-        <item>30 FPS</item>
-        <item>60 FPS</item>
-        <item>90 FPS</item>
-        <item>120 FPS</item>
+        <item>@string/fps_30</item>
+        <item>@string/fps_60</item>
+        <item>@string/fps_90</item>
+        <item>@string/fps_120</item>
     </string-array>
     <string-array name="fps_values" translatable="false">
         <item>30</item>
@@ -33,9 +33,9 @@
     </string-array>
 
     <string-array name="audio_config_names">
-        <item>Stereo</item>
-        <item>5.1 Surround Sound</item>
-        <item>7.1 Surround Sound</item>
+        <item>@string/audioconf_stereo</item>
+        <item>@string/audioconf_51surround</item>
+        <item>@string/audioconf_71surround</item>
     </string-array>
     <string-array name="audio_config_values" translatable="false">
         <item>2</item>
@@ -82,21 +82,10 @@
         <item>hu</item>
     </string-array>
 
-    <string-array name="decoder_names">
-        <item>Auto-select Decoder</item>
-        <item>Force Software Decoding</item>
-        <item>Force Hardware Decoding</item>
-    </string-array>
-    <string-array name="decoder_values" translatable="false">
-        <item>auto</item>
-        <item>software</item>
-        <item>hardware</item>
-    </string-array>
-
     <string-array name="video_format_names">
-        <item>Use HEVC only if stable</item>
-        <item>Always use HEVC (may crash)</item>
-        <item>Never use HEVC</item>
+        <item>@string/videoformat_hevcauto</item>
+        <item>@string/videoformat_hevcalways</item>
+        <item>@string/videoformat_hevcnever</item>
     </string-array>
     <string-array name="video_format_values" translatable="false">
         <item>auto</item>

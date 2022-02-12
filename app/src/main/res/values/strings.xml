@@ -227,4 +227,24 @@
     <string name="title_enable_post_stream_toast">Show latency message after streaming</string>
     <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
 
+    <!-- Array strings -->
+    <string name="resolution_360p">360p</string>
+    <string name="resolution_480p">480p</string>
+    <string name="resolution_720p">720p</string>
+    <string name="resolution_1080p">1080p</string>
+    <string name="resolution_1440p">1440p</string>
+    <string name="resolution_4k">4K</string>
+
+    <string name="fps_30">30 FPS</string>
+    <string name="fps_60">60 FPS</string>
+    <string name="fps_90">90 FPS</string>
+    <string name="fps_120">120 FPS</string>
+
+    <string name="audioconf_stereo">Stereo</string>
+    <string name="audioconf_51surround">5.1 Surround Sound</string>
+    <string name="audioconf_71surround">7.1 Surround Sound</string>
+
+    <string name="videoformat_hevcauto">Use HEVC only if stable</string>
+    <string name="videoformat_hevcalways">Always use HEVC (may crash)</string>
+    <string name="videoformat_hevcnever">Never use HEVC</string>
 </resources>

@@ -2,6 +2,7 @@ package com.limelight.binding.input.capture;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.hardware.input.InputManager;
 import android.os.Build;
 import android.os.Handler;
 import android.view.InputDevice;
@@ -13,11 +14,13 @@ import android.view.View;
 // pointer icon hiding behavior over our stream view just in case pointer capture
 // is unavailable on this system (ex: DeX, ChromeOS)
 @TargetApi(Build.VERSION_CODES.O)
-public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptureProvider {
+public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptureProvider implements InputManager.InputDeviceListener {
+    private InputManager inputManager;
     private View targetView;
 
     public AndroidNativePointerCaptureProvider(Activity activity, View targetView) {
         super(activity, targetView);
+        this.inputManager = activity.getSystemService(InputManager.class);
         this.targetView = targetView;
     }
 
@@ -25,15 +28,44 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
 
+    // We only capture the pointer if we have a compatible InputDevice
+    // present. This is a workaround for an Android 12 regression causing
+    // incorrect mouse input when using the SPen.
+    // https://github.com/moonlight-stream/moonlight-android/issues/1030
+    private boolean hasCaptureCompatibleInputDevice() {
+        for (int id : InputDevice.getDeviceIds()) {
+            InputDevice device = InputDevice.getDevice(id);
+            if (device == null) {
+                continue;
+            }
+
+            if (device.supportsSource(InputDevice.SOURCE_MOUSE) ||
+                    device.supportsSource(InputDevice.SOURCE_MOUSE_RELATIVE) ||
+                    device.supportsSource(InputDevice.SOURCE_TOUCHPAD)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     public void enableCapture() {
         super.enableCapture();
-        targetView.requestPointerCapture();
+
+        // Listen for device events to enable/disable capture
+        inputManager.registerInputDeviceListener(this, null);
+
+        // Capture now if we have a capture-capable device
+        if (hasCaptureCompatibleInputDevice()) {
+            targetView.requestPointerCapture();
+        }
     }
 
     @Override
     public void disableCapture() {
         super.disableCapture();
+        inputManager.unregisterInputDeviceListener(this);
         targetView.releasePointerCapture();
     }
 
@@ -51,7 +83,9 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
         h.postDelayed(new Runnable() {
             @Override
             public void run() {
-                targetView.requestPointerCapture();
+                if (hasCaptureCompatibleInputDevice()) {
+                    targetView.requestPointerCapture();
+                }
             }
         }, 500);
     }
@@ -86,5 +120,32 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
             y += event.getHistoricalAxisValue(axis, i);
         }
         return y;
+    }
+
+    @Override
+    public void onInputDeviceAdded(int deviceId) {
+        // Check if we've added a capture-compatible device
+        if (!targetView.hasPointerCapture() && hasCaptureCompatibleInputDevice()) {
+            targetView.requestPointerCapture();
+        }
+    }
+
+    @Override
+    public void onInputDeviceRemoved(int deviceId) {
+        // Check if the capture-compatible device was removed
+        if (targetView.hasPointerCapture() && !hasCaptureCompatibleInputDevice()) {
+            targetView.releasePointerCapture();
+        }
+    }
+
+    @Override
+    public void onInputDeviceChanged(int deviceId) {
+        // Emulating a remove+add should be sufficient for our purposes.
+        //
+        // Note: This callback must be handled carefully because it can happen as a result of
+        // calling requestPointerCapture(). This can cause trackpad devices to gain SOURCE_MOUSE_RELATIVE
+        // and re-enter this callback.
+        onInputDeviceRemoved(deviceId);
+        onInputDeviceAdded(deviceId);
     }
 }

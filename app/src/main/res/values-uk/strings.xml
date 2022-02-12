@@ -217,4 +217,9 @@
     <string name="pcview_menu_header_unknown">Оновлення</string>
     <string name="pcview_menu_header_offline">Поза мережею</string>
     <string name="pcview_menu_header_online">В мережі</string>
+
+    <!-- Array strings -->
+    <string name="videoformat_hevcauto">Використовувати HEVC тільки якщо безпечно</string>
+    <string name="videoformat_hevcalways">Завжди використовувати HEVC якщо доступно</string>
+    <string name="videoformat_hevcnever">Ніколи не використовувати HEVC</string>
 </resources>

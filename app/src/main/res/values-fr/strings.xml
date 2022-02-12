@@ -220,4 +220,19 @@
     <string name="resolution_prefix_native_fullscreen">Plein-écran natif</string>
     <string name="perf_overlay_netlatency">Latence réseau moyenne : %1$d ms (variance : %2$d ms)</string>
     <string name="perf_overlay_streamdetails">Stream vidéo : %1$s %2$.2f FPS</string>
+
+    <!-- Array strings -->
+    <string name="fps_30">30 IPS</string>
+    <string name="fps_60">60 IPS</string>
+    <string name="fps_90">90 IPS</string>
+    <string name="fps_120">120 IPS</string>
+
+    <string name="audioconf_stereo">Stéréo</string>
+    <string name="audioconf_51surround">Son surround 5.1</string>
+    <string name="audioconf_71surround">Son surround 7.1</string>
+
+    <string name="videoformat_hevcauto">Utiliser HEVC uniquement s\'il est stable</string>
+    <string name="videoformat_hevcalways">Utilisez toujours HEVC (mais il peut planter)</string>
+    <string name="videoformat_hevcnever">N\'utilisez jamais HEVC</string>
+    
 </resources>

@@ -220,4 +220,9 @@
     <string name="pcview_menu_header_unknown">Aktualisiere</string>
     <string name="pcview_menu_header_offline">Offline</string>
     <string name="pcview_menu_header_online">Online</string>
+
+    <!-- Array strings -->
+    <string name="videoformat_hevcauto">Verwende HEVC so fern stabile Unterstützung vorhanden ist</string>
+    <string name="videoformat_hevcalways">Immer HEVC verwenden (könnte Crashes verursachen)</string>
+    <string name="videoformat_hevcnever">Nie HEVC verwenden</string>
 </resources>

@@ -191,4 +191,12 @@
     <string name="title_enable_perf_overlay">Activează statisticile de performanță</string>
     <string name="summary_enable_perf_overlay">Afișează în timp real statisticile de performanță ale conexiunii.</string>
 
+    <!-- Array strings -->
+    <string name="audioconf_stereo">Stereo</string>
+    <string name="audioconf_51surround">Sunet Surround 5.1</string>
+    <string name="audioconf_71surround">Sunet Surround 7.1</string>
+
+    <string name="videoformat_hevcauto">Folosește HEVC doar dacă e stabil</string>
+    <string name="videoformat_hevcalways">Folosește HEVC mereu (se poate bloca)</string>
+    <string name="videoformat_hevcnever">Nu folosi HEVC</string>
 </resources>

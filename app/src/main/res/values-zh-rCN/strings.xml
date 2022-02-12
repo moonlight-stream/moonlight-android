@@ -218,4 +218,13 @@
     <string name="perf_overlay_netlatency">平均网络延迟： %1$d ms (抖动： %2$d ms)</string>
     <string name="perf_overlay_streamdetails">视频流： %1$s %2$.2f FPS</string>
     <string name="resolution_prefix_native_fullscreen">本地全屏</string>
+
+    <!-- Array strings -->
+    <string name="audioconf_stereo">立体声</string>
+    <string name="audioconf_51surround">5.1环绕声</string>
+    <string name="audioconf_71surround">7.1环绕声</string>
+
+    <string name="videoformat_hevcauto">如果稳定才使用HEVC</string>
+    <string name="videoformat_hevcalways">强制使用HEVC（不稳定）</string>
+    <string name="videoformat_hevcnever">不使用HEVC</string>
 </resources>

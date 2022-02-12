@@ -130,4 +130,8 @@
     <string name="title_checkbox_vibrate_osc">振動</string>
     <string name="summary_checkbox_vibrate_osc">コントローラの振動を真似します</string>
 
+    <!-- Array strings -->
+    <string name="videoformat_hevcauto">安定している場合にHEVCを有効化</string>
+    <string name="videoformat_hevcalways">HEVCを強制的に有効化(クラッシュする可能性があります)</string>
+    <string name="videoformat_hevcnever">HEVCを無効化</string>
 </resources>

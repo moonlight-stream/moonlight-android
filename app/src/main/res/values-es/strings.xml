@@ -123,4 +123,8 @@
     <string name="title_video_format">Cambiar configuración HEVC</string>
     <string name="summary_video_format">HEVC reduce el ancho de banda de vídeo, pero requiere un dispositivo bastante actual.</string>
 
+    <!-- Array strings -->
+    <string name="videoformat_hevcauto">Usar HEVC solo si es estable</string>
+    <string name="videoformat_hevcalways">Siempre usar HEVC (puede fallar)</string>
+    <string name="videoformat_hevcnever">Nunca usar HEVC</string>
 </resources>

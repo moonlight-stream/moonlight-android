@@ -220,4 +220,9 @@
     <string name="perf_overlay_streamdetails">비디오 스트림 : %1$s %2$.2f FPS</string>
     <string name="unable_to_pin_shortcut">현재 런처에서는 바로가기 생성이 불가능합니다.</string>
     <string name="resolution_prefix_native_fullscreen">네이티브 (전체화면)</string>
+
+    <!-- Array strings -->
+    <string name="videoformat_hevcauto">안정적인 경우에 HEVC 사용</string>
+    <string name="videoformat_hevcalways">항상 HEVC 사용(깨질 가능성 있음)</string>
+    <string name="videoformat_hevcnever">HEVC 사용하지 않기</string>
 </resources>

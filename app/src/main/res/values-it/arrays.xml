@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string-array name="decoder_names">
-        <item>Scegli decoder automaticamente</item>
-        <item>Forza decoder software</item>
-        <item>Forza decoder hardware</item>
-    </string-array>
-</resources>

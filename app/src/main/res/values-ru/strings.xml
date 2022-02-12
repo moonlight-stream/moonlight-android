@@ -213,4 +213,13 @@
     <string name="perf_overlay_streamdetails">Видеострим: %1$s %2$.2f FPS</string>
     <string name="resolution_prefix_native_fullscreen">Родной полноэкранный режим</string>
     <string name="perf_overlay_netlatency">Средняя задержка сети: %1$d мс (дисперсия: %2$d мс)</string>
+
+    <!-- Array strings -->
+    <string name="audioconf_stereo">Стерео</string>
+    <string name="audioconf_51surround">5.1 Объёмный звук</string>
+    <string name="audioconf_71surround">7.1 Объёмный звук</string>
+
+    <string name="videoformat_hevcauto">Использовать HEVC только если безопасно</string>
+    <string name="videoformat_hevcalways">Всегда использовать HEVC если доступно</string>
+    <string name="videoformat_hevcnever">Никогда не использовать HEVC</string>
 </resources>

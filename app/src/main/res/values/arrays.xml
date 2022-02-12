@@ -61,6 +61,7 @@
         <item>Norwegian Bokmål</item>
         <item>Tiếng Việt</item>
         <item>Magyar</item>
+        <item>Ελληνικά</item>
     </string-array>
     <string-array name="language_values" translatable="false">
         <item>default</item>
@@ -80,6 +81,7 @@
         <item>nb-NO</item>
         <item>vi</item>
         <item>hu</item>
+        <item>el</item>
     </string-array>
 
     <string-array name="video_format_names">

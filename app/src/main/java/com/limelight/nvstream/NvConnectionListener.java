@@ -13,4 +13,6 @@ public interface NvConnectionListener {
     void displayTransientMessage(String message);
 
     void rumble(short controllerNumber, short lowFreqMotor, short highFreqMotor);
+
+    void setHdrMode(boolean enabled);
 }

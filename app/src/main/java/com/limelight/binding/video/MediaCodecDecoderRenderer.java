@@ -565,6 +565,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         videoDecoder.release();
     }
 
+    @Override
+    public void setHdrMode(boolean enabled) {
+        // TODO: Set HDR metadata?
+    }
+
     private boolean queueInputBuffer(int inputBufferIndex, int offset, int length, long timestampUs, int codecFlags) {
         try {
             videoDecoder.queueInputBuffer(inputBufferIndex,

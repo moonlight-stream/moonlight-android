@@ -32,6 +32,7 @@ static jmethodID BridgeClConnectionStartedMethod;
 static jmethodID BridgeClConnectionTerminatedMethod;
 static jmethodID BridgeClRumbleMethod;
 static jmethodID BridgeClConnectionStatusUpdateMethod;
+static jmethodID BridgeClSetHdrModeMethod;
 static jbyteArray DecodedFrameBuffer;
 static jshortArray DecodedAudioBuffer;
 
@@ -92,6 +93,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jclass clazz) {
     BridgeClConnectionTerminatedMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClConnectionTerminated", "(I)V");
     BridgeClRumbleMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClRumble", "(SSS)V");
     BridgeClConnectionStatusUpdateMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClConnectionStatusUpdate", "(I)V");
+    BridgeClSetHdrModeMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClSetHdrMode", "(Z)V");
 }
 
 int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
@@ -326,6 +328,16 @@ void BridgeClConnectionStatusUpdate(int connectionStatus) {
     }
 }
 
+void BridgeClSetHdrMode(bool enabled) {
+    JNIEnv* env = GetThreadEnv();
+
+    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClSetHdrModeMethod, enabled);
+    if ((*env)->ExceptionCheck(env)) {
+        // We will crash here
+        (*JVM)->DetachCurrentThread(JVM);
+    }
+}
+
 void BridgeClLogMessage(const char* format, ...) {
     va_list va;
     va_start(va, format);
@@ -359,6 +371,7 @@ static CONNECTION_LISTENER_CALLBACKS BridgeConnListenerCallbacks = {
         .logMessage = BridgeClLogMessage,
         .rumble = BridgeClRumble,
         .connectionStatusUpdate = BridgeClConnectionStatusUpdate,
+        .setHdrMode = BridgeClSetHdrMode,
 };
 
 JNIEXPORT jint JNICALL

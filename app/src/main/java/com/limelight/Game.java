@@ -1793,6 +1793,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
+    public void setHdrMode(boolean enabled) {
+        LimeLog.info("Display HDR mode: " + (enabled ? "enabled" : "disabled"));
+        decoderRenderer.setHdrMode(enabled);
+    }
+
+    @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         if (!surfaceCreated) {
             throw new IllegalStateException("Surface changed before creation!");

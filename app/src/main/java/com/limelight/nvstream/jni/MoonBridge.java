@@ -240,6 +240,12 @@ public class MoonBridge {
         }
     }
 
+    public static void bridgeClSetHdrMode(boolean enabled) {
+        if (connectionListener != null) {
+            connectionListener.setHdrMode(enabled);
+        }
+    }
+
     public static void setupBridge(VideoDecoderRenderer videoRenderer, AudioRenderer audioRenderer, NvConnectionListener connectionListener) {
         MoonBridge.videoRenderer = videoRenderer;
         MoonBridge.audioRenderer = audioRenderer;

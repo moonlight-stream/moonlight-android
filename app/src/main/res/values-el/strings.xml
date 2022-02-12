@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="unable_to_pin_shortcut">Η τρέχουσα εφαρμογή εκκίνησης δεν επιτρέπει τη δημιουργία καρφιτσωμένων συντομεύσεων.</string>
+    <string name="pcview_menu_delete_pc">Διαγραφή υπολογιστή</string>
+    <string name="nettest_text_success">Το δίκτυό σας δεν φαίνεται να μπλοκάρει το Moonlight. Αν εξακολουθείτε να έχετε πρόβλημα σύνδεσης, ελέγξτε τις ρυθμίσεις του τείχους προστασίας του υπολογιστή σας.
+\n
+\nΕάν προσπαθείτε να κάνετε streaming μέσω του Διαδικτύου, εγκαταστήστε το Moonlight Internet Hosting Tool στον υπολογιστή σας και εκτελέστε το συμπεριλαμβανόμενο Internet Streaming Tester για να ελέγξετε τη σύνδεση του υπολογιστή σας στο Διαδίκτυο.</string>
+    <string name="error_manager_not_running">Η υπηρεσία ComputerManager δεν εκτελείται. Περιμένετε μερικά δευτερόλεπτα ή επανεκκινήστε την εφαρμογή.</string>
+    <string name="message_decoding_error">Το Moonlight κατέρρευσε λόγω ασυμβατότητας με τον αποκωδικοποιητή βίντεο αυτής της συσκευής. Βεβαιωθείτε ότι το GeForce Experience έχει ενημερωθεί στην τελευταία έκδοση στον υπολογιστή σας. Δοκιμάστε να προσαρμόσετε τις ρυθμίσεις ροής, εάν οι καταρρεύσεις συνεχίζονται.</string>
+    <string name="help_loading_title">Πρόγραμμα προβολής βοήθειας</string>
+    <string name="help_loading_msg">Φόρτωση σελίδας βοήθειας…</string>
+    <string name="pcview_menu_header_online">Σε σύνδεση</string>
+    <string name="pcview_menu_header_unknown">Ανανέωση</string>
+    <string name="pcview_menu_app_list">Προβολή όλων των εφαρμογών</string>
+    <string name="pcview_menu_pair_pc">Σύζευξη με υπολογιστή</string>
+    <string name="pcview_menu_unpair_pc">Κατάργηση ζεύξης</string>
+    <string name="pcview_menu_send_wol">Αποστολή αιτήματος Wake-On-LAN</string>
+    <string name="nettest_title_waiting">Δοκιμή σύνδεσης δικτύου</string>
+    <string name="nettest_title_done">Ολοκληρώθηκε η δοκιμή δικτύου</string>
+    <string name="nettest_text_inconclusive">Η δοκιμή δικτύου δεν μπορούσε να πραγματοποιηθεί επειδή κανένας από τους διακομιστές δοκιμής σύνδεσης της Moonlight δεν ήταν προσβάσιμος. Ελέγξτε τη σύνδεσή σας στο Internet ή δοκιμάστε ξανά αργότερα.</string>
+    <string name="nettest_text_blocked">Η τρέχουσα σύνδεση δικτύου της συσκευής σας εμποδίζει το Moonlight. Η ροή μέσω του Internet ενδέχεται να μην λειτουργεί ενώ είστε συνδεδεμένοι σε αυτό το δίκτυο.</string>
+    <string name="pairing">Σύζευξη…</string>
+    <string name="pair_pc_offline">Ο υπολογιστής είναι εκτός σύνδεσης</string>
+    <string name="pair_pc_ingame">Ο υπολογιστής βρίσκεται αυτή τη στιγμή σε παιχνίδι. Πρέπει να κλείσετε το παιχνίδι πριν κάνετε σύζευξη.</string>
+    <string name="pair_pairing_title">Σύζευξη</string>
+    <string name="pair_pairing_msg">Εισαγάγετε τον ακόλουθο κωδικό PIN στον υπολογιστή προορισμού:</string>
+    <string name="pair_incorrect_pin">Λανθασμένο PIN</string>
+    <string name="pair_already_in_progress">Η σύζευξη βρίσκεται ήδη σε εξέλιξη</string>
+    <string name="wol_pc_online">Ο υπολογιστής είναι συνδεδεμένος</string>
+    <string name="wol_waking_pc">Αφύπνιση υπολογιστή…</string>
+    <string name="wol_waking_msg">Μπορεί να χρειαστούν μερικά δευτερόλεπτα για να αφυπνισθεί ο υπολογιστής σας. Αν δεν το κάνει, βεβαιωθείτε ότι έχει ρυθμιστεί σωστά για Wake-On-LAN.</string>
+    <string name="scut_invalid_app_id">Η παρεχόμενη εφαρμογή δεν είναι έγκυρη</string>
+    <string name="scut_invalid_uuid">Ο παρεχόμενος υπολογιστής δεν είναι έγκυρος</string>
+    <string name="pcview_menu_details">Προβολή λεπτομερειών</string>
+    <string name="nettest_text_failure">Η τρέχουσα σύνδεση δικτύου της συσκευής σας φαίνεται να εμποδίζει το Moonlight. Η ροή μέσω του Internet ενδέχεται να μην λειτουργεί ενώ είστε συνδεδεμένοι σε αυτό το δίκτυο.
+\n
+\nΟι ακόλουθες θύρες δικτύου αποκλείστηκαν:
+\n</string>
+    <string name="perf_overlay_netlatency">Μέσος λανθάνων χρόνος δικτύου: %1$d MS (διακύμανση: %2$d ms)</string>
+    <string name="applist_menu_hide_app">Απόκρυψη εφαρμογής</string>
+    <string name="applist_refresh_title">Λίστα εφαρμογών</string>
+    <string name="applist_refresh_error_title">Σφάλμα</string>
+    <string name="applist_refresh_error_msg">Απέτυχε η λήψη λίστας εφαρμογών</string>
+    <string name="applist_quit_fail">Αποτυχία διακοπής</string>
+    <string name="applist_quit_confirmation">Είστε σίγουροι ότι θέλετε να τερματίσετε την τρέχουσα εφαρμογή; Όλα τα μη αποθηκευμένα δεδομένα θα χαθούν.</string>
+    <string name="dialog_text_reset_osc">Είστε βέβαιοι ότι θέλετε να διαγράψετε την αποθηκευμένη διάταξη στοιχείων ελέγχου στην οθόνη;</string>
+    <string name="title_enable_perf_overlay">Εμφάνιση στατιστικών στοιχείων απόδοσης κατά τη ροή</string>
+    <string name="unpair_error">Η συσκευή δεν είχε συζευξηθεί</string>
+    <string name="error_pc_offline">Ο υπολογιστής είναι εκτός σύνδεσης</string>
+    <string name="error_unknown_host">Αποτυχία επίλυσης ονόματος κεντρικού υπολογιστή</string>
+    <string name="title_decoding_error">Ο αποκωδικοποιητής βίντεο κατέρρευσε</string>
+    <string name="title_decoding_reset">Επαναφορά ρυθμίσεων βίντεο</string>
+    <string name="message_decoding_reset">Ο αποκωδικοποιητής βίντεο της συσκευής σας συνεχίζει να κολλάει στις επιλεγμένες ρυθμίσεις ροής. Οι ρυθμίσεις ροής σας επαναφέρθηκαν στις προεπιλογές.</string>
+    <string name="error_usb_prohibited">Η πρόσβαση μέσω USB απαγορεύεται από το διαχειριστή της συσκευής σας. Ελέγξτε τις ρυθμίσεις Knox ή MDM.</string>
+    <string name="no_video_received_error">Δεν ελήφθη βίντεο από τον κεντρικό υπολογιστή.</string>
+    <string name="no_frame_received_error">Η σύνδεσή σας στο δίκτυο δεν αποδίδει καλά. Μειώστε το bitrate ή δοκιμάστε μια ταχύτερη σύνδεση.</string>
+    <string name="check_ports_msg">Ελέγξτε το τείχος προστασίας και τους κανόνες προώθησης θυρών για τις θύρες:</string>
+    <string name="conn_establishing_title">Δημιουργία σύνδεσης</string>
+    <string name="conn_establishing_msg">Έναρξη σύνδεσης</string>
+    <string name="conn_metered">Προειδοποίηση: Η ενεργή σύνδεσή σας στο δίκτυο έχει όριο δεδομένων!</string>
+    <string name="conn_client_latency">Μέσος χρόνος αποκωδικοποίησης πλαισίων:</string>
+    <string name="conn_client_latency_hw">Λανθάνων χρόνος αποκωδικοποιητή υλικού:</string>
+    <string name="conn_hardware_latency">Μέση καθυστέρηση αποκωδικοποίησης υλικού:</string>
+    <string name="conn_starting">Εκκίνηση</string>
+    <string name="conn_terminated_msg">Η σύνδεση τερματίστηκε</string>
+    <string name="ip_hint">Διεύθυνση IP του υπολογιστή GeForce</string>
+    <string name="yes">Ναί</string>
+    <string name="perf_overlay_streamdetails">Ροή βίντεο: %1$s %2$.2f FPS</string>
+    <string name="perf_overlay_decoder">Αποκωδικοποιητής: %1$s</string>
+    <string name="perf_overlay_incomingfps">Ρυθμός εισερχόμενων καρέ από το δίκτυο: %1$.2f FPS</string>
+    <string name="applist_menu_cancel">Ακύρωση</string>
+    <string name="applist_menu_tv_channel">Προσθήκη στο κανάλι</string>
+    <string name="applist_refresh_msg">Ανανέωση εφαρμογών…</string>
+    <string name="addpc_success">Ο υπολογιστής προστέθηκε με επιτυχία</string>
+    <string name="addpc_unknown_host">Αδυναμία επίλυσης διεύθυνσης υπολογιστή. Βεβαιωθείτε ότι δεν κάνατε τυπογραφικό λάθος στη διεύθυνση.</string>
+    <string name="title_fps_list">Ρυθμός καρέ βίντεο</string>
+    <string name="summary_fps_list">Αύξηση για πιο ομαλή ροή βίντεο. Μειώστε για καλύτερες επιδόσεις σε συσκευές χαμηλότερων προδιαγραφών.</string>
+    <string name="title_seekbar_bitrate">Ρυθμός bit βίντεο</string>
+    <string name="summary_seekbar_bitrate">Αυξήστε για καλύτερη ποιότητα εικόνας. Μείωση για τη βελτίωση των επιδόσεων σε πιο αργές συνδέσεις.</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="title_checkbox_stretch_video">Επέκταση βίντεο σε πλήρη οθόνη</string>
+    <string name="resolution_prefix_native">Εγγενής</string>
+    <string name="resolution_prefix_native_fullscreen">Εγγενής πλήρης οθόνη</string>
+    <string name="category_audio_settings">Ρυθμίσεις ήχου</string>
+    <string name="title_audio_config_list">Ρύθμιση παραμέτρων ήχου surround</string>
+    <string name="summary_checkbox_vibrate_fallback">Δονεί τη συσκευή σας για να μιμηθεί το rumble αν το gamepad σας δεν το υποστηρίζει</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Πρόγραμμα οδήγησης για Xbox 360/One USB gamepad</string>
+    <string name="summary_checkbox_xb1_driver">Ενεργοποιεί ένα ενσωματωμένο πρόγραμμα οδήγησης USB για συσκευές χωρίς εγγενή υποστήριξη χειριστηρίου Xbox</string>
+    <string name="title_checkbox_usb_bind_all">Παράκαμψη εγγενούς υποστήριξης του Xbox gamepad</string>
+    <string name="summary_checkbox_usb_bind_all">Χρησιμοποιήστε το πρόγραμμα οδήγησης USB του Moonlight για όλα τα υποστηριζόμενα gamepad, ακόμα και αν υπάρχει υποστήριξη εγγενούς ελεγκτή Xbox</string>
+    <string name="title_checkbox_mouse_emulation">Εξομοίωση ποντικιού μέσω gamepad</string>
+    <string name="title_checkbox_mouse_nav_buttons">Ενεργοποίηση κουμπιών ποντικιού πίσω και εμπρός</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Η ενεργοποίηση αυτής της επιλογής μπορεί να διακόψει το δεξί κλικ σε ορισμένες συσκευές με σφάλματα</string>
+    <string name="title_checkbox_flip_face_buttons">Αναστροφή κουμπιών πρόσωψης</string>
+    <string name="summary_checkbox_flip_face_buttons">Αλλάζει τα κουμπιά πρόσοψης A/B και X/Y για τα gamepad και τα χειριστήρια στην οθόνη</string>
+    <string name="summary_checkbox_show_onscreen_controls">Εμφάνιση επικάλυψης εικονικού ελεγκτή στην οθόνη αφής</string>
+    <string name="title_checkbox_vibrate_osc">Ενεργοποίηση δόνησης</string>
+    <string name="title_only_l3r3">Εμφάνιση μόνο των L3 και R3</string>
+    <string name="summary_only_l3r3">Απόκρυψη όλων των εικονικών κουμπιών εκτός των L3 και R3</string>
+    <string name="dialog_title_reset_osc">Επαναφορά διάταξης</string>
+    <string name="toast_reset_osc_success">Επαναφορά των στοιχείων ελέγχου στην οθόνη στις προεπιλογές</string>
+    <string name="title_osc_opacity">Αλλαγή της αδιαφάνειας των στοιχείων ελέγχου στην οθόνη</string>
+    <string name="summary_osc_opacity">Κάντε τα στοιχεία ελέγχου στην οθόνη περισσότερο/λιγότερο διαφανή</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="category_ui_settings">Ρυθμίσεις διεπαφής χρήστη</string>
+    <string name="title_checkbox_enable_pip">Ενεργοποίηση της λειτουργίας παρατηρητή εικόνας μέσα σε εικόνα</string>
+    <string name="summary_checkbox_enable_pip">Επιτρέπει την προβολή της ροής (αλλά όχι τον έλεγχο) κατά την εκτέλεση πολλαπλών εργασιών</string>
+    <string name="title_language_list">Γλώσσα</string>
+    <string name="summary_language_list">Γλώσσα που χρησιμοποιείται για το Moonlight</string>
+    <string name="title_checkbox_small_icon_mode">Χρησιμοποιήστε μικρά κουτιά</string>
+    <string name="scut_not_paired">Ο υπολογιστής δεν έχει συζευχθεί</string>
+    <string name="pcview_menu_header_offline">Εκτός σύνδεσης</string>
+    <string name="pcview_menu_test_network">Δοκιμή σύνδεσης δικτύου</string>
+    <string name="nettest_text_waiting">Το Moonlight δοκιμάζει τη σύνδεση δικτύου σας για να καθορίσει εάν το NVIDIA GameStream είναι αποκλεισμένο.
+\n
+\nΑυτό μπορεί να πάρει μερικά δευτερόλεπτα…</string>
+    <string name="pair_fail">Η σύζευξη απέτυχε</string>
+    <string name="wol_no_mac">Δεν είναι δυνατή η αφύπνιση του υπολογιστή επειδή το GFE δεν έστειλε διεύθυνση MAC</string>
+    <string name="wol_fail">Απέτυχε η αποστολή πακέτων Wake-On-LAN</string>
+    <string name="unpairing">Κατάργηση σύζευξης…</string>
+    <string name="unpair_success">Καταργήθηκε η σύζευξη με επιτυχία</string>
+    <string name="unpair_fail">Αποτυχία κατάργησης σύζευξης</string>
+    <string name="summary_checkbox_small_icon_mode">Το μικρότερο box art στο πλέγμα εφαρμογών επιτρέπει σε περισσότερες εφαρμογές να είναι ορατές στην οθόνη</string>
+    <string name="category_host_settings">Ρυθμίσεις κεντρικού υπολογιστή</string>
+    <string name="title_checkbox_host_audio">Αναπαραγωγή ήχου στον υπολογιστή</string>
+    <string name="summary_checkbox_host_audio">Αναπαραγωγή ήχου από τον υπολογιστή και αυτή τη συσκευή</string>
+    <string name="title_checkbox_disable_warnings">Απενεργοποίηση προειδοποιητικών μηνυμάτων</string>
+    <string name="summary_checkbox_disable_warnings">Απενεργοποίηση των προειδοποιητικών μηνυμάτων σύνδεσης στην οθόνη κατά τη ροή</string>
+    <string name="summary_disable_frame_drop">Μπορεί να μειώσει το micro-stuttering σε ορισμένες συσκευές, αλλά μπορεί να αυξήσει την καθυστέρηση</string>
+    <string name="title_enable_hdr">Ενεργοποίηση HDR (πειραματικό)</string>
+    <string name="summary_enable_hdr">Μεταδώστε HDR όταν το παιχνίδι και η GPU του υπολογιστή το υποστηρίζουν. Το HDR απαιτεί GPU της σειράς GTX 1000 ή νεότερη.</string>
+    <string name="summary_enable_perf_overlay">Εμφάνιση πληροφοριών απόδοσης ροής σε πραγματικό χρόνο κατά τη ροή</string>
+    <string name="summary_enable_post_stream_toast">Εμφάνιση ενός μηνύματος πληροφοριών καθυστέρησης μετά το τέλος της ροής</string>
+    <string name="scut_deleted_pc">Ο υπολογιστής διαγράφηκε</string>
+    <string name="scut_pc_not_found">Ο υπολογιστής δεν βρέθηκε</string>
+    <string name="early_termination_error">Κάτι πήγε στραβά στον κεντρικό υπολογιστή σας κατά την εκκίνηση της ροής.
+\n
+\nΒεβαιωθείτε ότι δεν έχετε ανοιχτό περιεχόμενο που προστατεύεται από DRM στον κεντρικό υπολογιστή σας. Μπορείτε επίσης να δοκιμάσετε να κάνετε επανεκκίνηση του κεντρικού υπολογιστή σας.
+\n
+\nΑν το πρόβλημα παραμένει, δοκιμάστε να επανεγκαταστήσετε τα προγράμματα οδήγησης της κάρτας γραφικών και το GeForce Experience.</string>
+    <string name="conn_terminated_title">Η σύνδεση τερματίστηκε</string>
+    <string name="help">Βοήθεια</string>
+    <string name="perf_overlay_netdrops">Πλαίσια που απορρίπτονται από τη σύνδεση δικτύου σας: %1$.2f%%%</string>
+    <string name="applist_quit_app">Εγκατάλειψη</string>
+    <string name="msg_add_pc">Σύνδεση στον υπολογιστή…</string>
+    <string name="error_404">Το GFE επέστρεψε ένα σφάλμα HTTP 404. Βεβαιωθείτε ότι ο υπολογιστής σας χρησιμοποιεί μια υποστηριζόμενη κάρτα γραφικών. Η χρήση λογισμικού απομακρυσμένης επιφάνειας εργασίας μπορεί επίσης να προκαλέσει αυτό το σφάλμα. Δοκιμάστε την επανεκκίνηση του υπολογιστή σας ή την επανεγκατάσταση του GFE.</string>
+    <string name="video_decoder_init_failed">Απέτυχε η προετοιμασία του αποκωδικοποιητή βίντεο. Η συσκευή σας ενδέχεται να μην υποστηρίζει την επιλεγμένη ανάλυση ή ρυθμό καρέ.</string>
+    <string name="perf_overlay_dectime">Μέσος χρόνος αποκωδικοποίησης: %1$.2f ms</string>
+    <string name="title_add_pc">Προσθήκη υπολογιστή χειροκίνητα</string>
+    <string name="lost_connection">Χάθηκε η σύνδεση με τον υπολογιστή</string>
+    <string name="title_details">Λεπτομέρειες</string>
+    <string name="applist_menu_resume">Συνέχιση περιόδου λειτουργίας</string>
+    <string name="applist_menu_quit">Έξοδος από τη συνεδρία</string>
+    <string name="addpc_wrong_sitelocal">Αυτή η διεύθυνση δεν φαίνεται σωστή. Πρέπει να χρησιμοποιείτε τη δημόσια διεύθυνση IP του δρομολογητή σας για ροή μέσω του Διαδικτύου.</string>
+    <string name="conn_error_title">Σφάλμα σύνδεσης</string>
+    <string name="conn_error_msg">Απέτυχε η εκκίνηση</string>
+    <string name="searching_pc">Αναζήτηση για υπολογιστές με GameStream σε λειτουργία...
+\n
+\n Βεβαιωθείτε ότι το GameStream είναι ενεργοποιημένο στις ρυθμίσεις GeForce Experience SHIELD.</string>
+    <string name="no">Οχι</string>
+    <string name="delete_pc_msg">Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον υπολογιστή;</string>
+    <string name="slow_connection_msg">Αργή σύνδεση με υπολογιστή
+\nΜειώστε το bitrate σας</string>
+    <string name="poor_connection_msg">Κακή σύνδεση με τον υπολογιστή</string>
+    <string name="applist_connect_msg">Σύνδεση σε υπολογιστή…</string>
+    <string name="applist_menu_quit_and_start">Τερματισμός τρέχοντος παιχνιδιού και έναρξη</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Εάν είναι ενεργοποιημένη, η οθόνη αφής λειτουργεί σαν trackpad. Εάν είναι απενεργοποιημένη, η οθόνη αφής ελέγχει απευθείας τον κέρσορα του ποντικιού.</string>
+    <string name="title_checkbox_multi_controller">Αυτόματη ανίχνευση παρουσίας gamepad</string>
+    <string name="applist_menu_details">Προβολή λεπτομερειών</string>
+    <string name="applist_quit_success">Επιτυχής έξοδος</string>
+    <string name="applist_menu_scut">Δημιουργία συντόμευσης</string>
+    <string name="applist_details_id">Αναγνωριστικό εφαρμογής:</string>
+    <string name="addpc_fail">Αδυναμία σύνδεσης με τον καθορισμένο υπολογιστή. Βεβαιωθείτε ότι οι απαιτούμενες θύρες επιτρέπονται μέσω του τείχους προστασίας.</string>
+    <string name="addpc_enter_ip">Πρέπει να εισαγάγετε μια διεύθυνση IP</string>
+    <string name="title_resolution_list">Ανάλυση βίντεο</string>
+    <string name="summary_audio_config_list">Ενεργοποίηση ήχου surround 5.1 ή 7.1 για συστήματα οικιακού κινηματογράφου</string>
+    <string name="category_input_settings">Ρυθμίσεις εισόδου</string>
+    <string name="title_checkbox_touchscreen_trackpad">Χρήση της οθόνης αφής ως trackpad</string>
+    <string name="summary_checkbox_multi_controller">Η απενεργοποίηση αυτής της επιλογής αναγκάζει ένα gamepad να είναι πάντα παρόν</string>
+    <string name="category_basic_settings">Βασικές ρυθμίσεις</string>
+    <string name="summary_resolution_list">Αυξήστε για να βελτιώσετε την ευκρίνεια της εικόνας. Μειώστε για καλύτερη απόδοση σε συσκευές χαμηλότερων επιδόσεων και σε πιο αργά δίκτυα.</string>
+    <string name="title_native_res_dialog">Προειδοποίηση εγγενούς ανάλυσης</string>
+    <string name="text_native_res_dialog">Οι λειτουργίες εγγενούς ανάλυσης δεν υποστηρίζονται επίσημα από το GeForce Experience, επομένως δεν θα ορίσει το ίδιο την ανάλυση της οθόνης υποδοχής σας. Θα πρέπει να τη ρυθμίσετε χειροκίνητα κατά τη διάρκεια του παιχνιδιού.
+\n
+\nΕάν επιλέξετε να δημιουργήσετε μια προσαρμοσμένη ανάλυση στον Πίνακα Ελέγχου της NVIDIA για να ταιριάζει με την ανάλυση της συσκευής σας, βεβαιωθείτε ότι έχετε διαβάσει και κατανοήσει την προειδοποίηση της NVIDIA σχετικά με πιθανή βλάβη της οθόνης, αστάθεια του υπολογιστή και άλλα πιθανά προβλήματα.
+\n
+\nΔεν είμαστε υπεύθυνοι για τυχόν προβλήματα που προκύπτουν από τη δημιουργία προσαρμοσμένης ανάλυσης στον υπολογιστή σας.
+\n
+\nΤέλος, η συσκευή ή ο κεντρικός υπολογιστής σας ενδέχεται να μην υποστηρίζει ροή σε εγγενή ανάλυση. Εάν δεν λειτουργεί στη συσκευή σας, δυστυχώς δεν είστε τυχεροί.</string>
+    <string name="title_checkbox_vibrate_fallback">Μιμηθείτε την υποστήριξη rumble με δόνηση</string>
+    <string name="title_seekbar_deadzone">Ρύθμιση της νεκρής ζώνης του αναλογικού μοχλού</string>
+    <string name="summary_checkbox_mouse_emulation">Με παρατεταμένο πάτημα του κουμπιού Έναρξη θα αλλάξει το gamepad σε λειτουργία ποντικιού</string>
+    <string name="category_on_screen_controls_settings">Ρυθμίσεις στοιχείων ελέγχου στην οθόνη</string>
+    <string name="summary_reset_osc">Επαναφέρει όλα τα στοιχεία ελέγχου στην οθόνη στο προεπιλεγμένο μέγεθος και τη θέση τους</string>
+    <string name="title_unlock_fps">Ξεκλειδώστε όλους τους πιθανούς ρυθμούς καρέ</string>
+    <string name="title_checkbox_show_onscreen_controls">Εμφάνιση στοιχείων ελέγχου στην οθόνη</string>
+    <string name="summary_checkbox_vibrate_osc">Δονεί τη συσκευή σας για να μιμηθεί το rumble για τα χειριστήρια στην οθόνη</string>
+    <string name="title_reset_osc">Εκκαθάριση αποθηκευμένης διάταξης στοιχείων ελέγχου στην οθόνη</string>
+    <string name="dialog_title_osc_opacity">Αλλαγή αδιαφάνειας</string>
+    <string name="title_checkbox_enable_sops">Βελτιστοποίηση ρυθμίσεων παιχνιδιού</string>
+    <string name="summary_checkbox_enable_sops">Επιτρέψτε στη GFE να τροποποιήσει τις ρυθμίσεις του παιχνιδιού για βέλτιστη ροή</string>
+    <string name="category_advanced_settings">Προηγμένες ρυθμίσεις</string>
+    <string name="summary_unlock_fps">Η ροή στα 90 ή 120 FPS μπορεί να μειώσει τον λανθάνοντα χρόνο σε συσκευές υψηλών προδιαγραφών, αλλά μπορεί να προκαλέσει καθυστέρηση ή αστάθεια σε συσκευές που δεν μπορούν να την υποστηρίξουν</string>
+    <string name="title_video_format">Αλλαγή ρυθμίσεων HEVC</string>
+    <string name="title_enable_post_stream_toast">Εμφάνιση μηνύματος λανθάνοντος χρόνου μετά τη ροή</string>
+    <string name="summary_video_format">Το HEVC μειώνει τις απαιτήσεις εύρους ζώνης βίντεο, αλλά απαιτεί μια νεότερη συσκευή</string>
+</resources>

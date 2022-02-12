@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pcview_menu_header_unknown">Recarregando</string>
+    <string name="pcview_menu_unpair_pc">Dessincronize</string>
+    <string name="scut_deleted_pc">PC deletado</string>
+    <string name="scut_not_paired">PC despairado</string>
+    <string name="scut_pc_not_found">PC não encontrado</string>
+    <string name="scut_invalid_uuid">O PC provido não é válido</string>
+    <string name="scut_invalid_app_id">O aplicativo provido não é válido</string>
+    <string name="help_loading_title">Vizualizador da Ajuda</string>
+    <string name="help_loading_msg">Carregando a página de ajuda…</string>
+    <string name="pcview_menu_header_online">Online</string>
+    <string name="pcview_menu_header_offline">Offline</string>
+    <string name="pcview_menu_app_list">Veja todos aplicativos</string>
+    <string name="pcview_menu_pair_pc">Sincronize com o PC</string>
+</resources>

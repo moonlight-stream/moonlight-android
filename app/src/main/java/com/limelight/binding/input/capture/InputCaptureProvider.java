@@ -33,4 +33,6 @@ public abstract class InputCaptureProvider {
     public float getRelativeAxisY(MotionEvent event) {
         return 0;
     }
+
+    public void onWindowFocusChanged(boolean focusActive) {}
 }

@@ -145,7 +145,7 @@
     <string name="title_checkbox_show_onscreen_controls">顯示螢幕控制按鈕</string>
     <string name="summary_checkbox_show_onscreen_controls">在觸控式螢幕上顯示一層虛擬控制器</string>
     <string name="title_checkbox_vibrate_osc"> 啟用震動 </string>
-    <string name="summary_checkbox_vibrate_osc">使用螢幕控制按鈕時震動裝置以類比遊戲低頻音</string>
+    <string name="summary_checkbox_vibrate_osc">使用螢幕控制按鈕時震動裝置以仿真遊戲低頻音</string>
     <string name="title_only_l3r3">只顯示 L3 和 R3</string>
     <string name="summary_only_l3r3">隱藏除 L3 和 R3 外的所有虛擬按鈕</string>
     <string name="title_reset_osc">重設已儲存的螢幕控制按鈕佈局</string>
@@ -157,12 +157,12 @@
     <string name="title_language_list"> 語言 </string>
     <string name="summary_language_list">選擇 Moonlight 顯示的語言</string>
     <string name="title_checkbox_small_icon_mode"> 使用小圖示 </string>
-    <string name="summary_checkbox_small_icon_mode"> 使用小圖示以在螢幕上顯示更多專案 </string>
+    <string name="summary_checkbox_small_icon_mode">使用小圖示以在螢幕上顯示更多應用程式</string>
     <string name="category_host_settings">主機設定</string>
     <string name="title_checkbox_enable_sops">最佳化遊戲設定</string>
     <string name="summary_checkbox_enable_sops">允許 GFE 為最佳串流效果自動更改遊戲設定</string>
-    <string name="title_checkbox_host_audio"> 在電腦上播放聲音 </string>
-    <string name="summary_checkbox_host_audio">在電腦和本裝置同時輸出聲音</string>
+    <string name="title_checkbox_host_audio">在電腦上播放音訊</string>
+    <string name="summary_checkbox_host_audio">在電腦和本裝置同時輸出音訊</string>
     <string name="category_advanced_settings">進階設定</string>
     <string name="title_disable_frame_drop">永不丟失影格</string>
     <string name="summary_disable_frame_drop">可能會減少在一些裝置上的卡頓，但會增加延時</string>

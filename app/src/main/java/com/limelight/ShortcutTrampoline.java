@@ -13,11 +13,13 @@ import com.limelight.computers.ComputerManagerService;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.PairingManager;
+import com.limelight.nvstream.wol.WakeOnLanSender;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -26,6 +28,7 @@ public class ShortcutTrampoline extends Activity {
     private NvApp app;
     private ArrayList<Intent> intentStack = new ArrayList<>();
 
+    private int wakeHostTries = 10;
     private ComputerDetails computer;
     private SpinnerDialog blockingLoadSpinner;
 
@@ -77,6 +80,23 @@ public class ShortcutTrampoline extends Activity {
                             // Don't care about other computers
                             if (!details.uuid.equalsIgnoreCase(uuidString)) {
                                 return;
+                            }
+
+                            // Try to wake the target PC if it's offline (up to some retry limit)
+                            if (details.state == ComputerDetails.State.OFFLINE && --wakeHostTries >= 0) {
+                                try {
+                                    // Make a best effort attempt to wake the target PC
+                                    WakeOnLanSender.sendWolPacket(computer);
+
+                                    // If we sent at least one WoL packet, reset the computer state
+                                    // to force ComputerManager to poll it again.
+                                    managerBinder.invalidateStateForComputer(computer.uuid);
+                                    return;
+                                } catch (IOException e) {
+                                    // If we got an exception, we couldn't send a single WoL packet,
+                                    // so fallthrough into the offline error path.
+                                    e.printStackTrace();
+                                }
                             }
 
                             if (details.state != ComputerDetails.State.UNKNOWN) {

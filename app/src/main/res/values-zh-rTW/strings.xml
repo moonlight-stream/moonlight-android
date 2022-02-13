@@ -145,7 +145,7 @@
     <string name="title_checkbox_show_onscreen_controls">顯示螢幕控制按鈕</string>
     <string name="summary_checkbox_show_onscreen_controls">在觸控式螢幕上顯示一層虛擬控制器</string>
     <string name="title_checkbox_vibrate_osc">啟用震動</string>
-    <string name="summary_checkbox_vibrate_osc">使用螢幕控制按鈕時震動裝置以類比遊戲低頻音</string>
+    <string name="summary_checkbox_vibrate_osc">使用螢幕控制按鈕時震動裝置以仿真遊戲低頻音</string>
     <string name="title_only_l3r3">只顯示 L3 和 R3</string>
     <string name="summary_only_l3r3">隱藏除 L3 和 R3 外的所有虛擬按鈕</string>
     <string name="title_reset_osc">重設已儲存的螢幕控制按鈕佈局</string>

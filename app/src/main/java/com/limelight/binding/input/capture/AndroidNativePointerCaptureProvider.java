@@ -96,7 +96,7 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
         // SOURCE_TOUCHPAD will have relative axes populated iff our view has pointer capture.
         // See https://developer.android.com/reference/android/view/View#requestPointerCapture()
         int eventSource = event.getSource();
-        return eventSource == InputDevice.SOURCE_MOUSE_RELATIVE ||
+        return (eventSource == InputDevice.SOURCE_MOUSE_RELATIVE && event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE) ||
                 (eventSource == InputDevice.SOURCE_TOUCHPAD && targetView.hasPointerCapture());
     }
 

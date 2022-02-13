@@ -7,15 +7,15 @@
     <string name="scut_invalid_uuid"> 提供的電腦無效 </string>
     <string name="scut_invalid_app_id">提供的應用程式無效</string>
     <!-- Help strings -->
-    <string name="help_loading_title">檢視幫助</string>
-    <string name="help_loading_msg"> 正在載入説明頁面…… </string>
+    <string name="help_loading_title">檢視協助</string>
+    <string name="help_loading_msg">正在載入協助頁面……</string>
     <!-- PC view menu entries -->
-    <string name="pcview_menu_app_list">檢視遊戲列表</string>
+    <string name="pcview_menu_app_list">檢視遊戲清單</string>
     <string name="pcview_menu_pair_pc"> 和電腦配對 </string>
     <string name="pcview_menu_unpair_pc"> 取消配對 </string>
     <string name="pcview_menu_send_wol">傳送 Wake-On-LAN 請求</string>
     <string name="pcview_menu_delete_pc"> 刪除電腦 </string>
-    <string name="pcview_menu_details">檢視詳情</string>
+    <string name="pcview_menu_details">檢視詳細資料</string>
     <!-- Pair messages -->
     <string name="pairing"> 配對中…… </string>
     <string name="pair_pc_offline"> 電腦離線中 </string>
@@ -46,7 +46,7 @@
     <string name="title_decoding_reset">重設視訊設定</string>
     <string name="message_decoding_reset">由於裝置的視訊解碼器在你選擇的串流設定上持續崩潰，已重設你的串流設定。</string>
     <string name="error_usb_prohibited">裝置管理員已禁止 USB 訪問。請檢查您的 Knox 或 MDM 設定。</string>
-    <string name="unable_to_pin_shortcut"> 您當前的桌面啟動器不允許創建長按子功能表。 </string>
+    <string name="unable_to_pin_shortcut">您目前的啟動器不允許創建釘選的捷徑。</string>
     <!-- Start application messages -->
     <string name="conn_establishing_title">建立連線中</string>
     <string name="conn_establishing_msg">啟動連線中</string>
@@ -63,12 +63,12 @@
     <string name="ip_hint">串流電腦的 IP 位址</string>
     <string name="searching_pc">正在搜尋執行 GAMESTREAM 的電腦……
 \n
-\n請確保 GFE SHIELD 設定裡的 GAMESTREAM 已開啟。</string>
+\n請確保 GFE SHIELD 設定裡的 GAMESTREAM 已啟用。</string>
     <string name="yes"> 確定 </string>
     <string name="no"> 取消 </string>
     <string name="lost_connection">與電腦失去連線</string>
-    <string name="title_details"> 詳情 </string>
-    <string name="help"> 幫助 </string>
+    <string name="title_details">詳細資料</string>
+    <string name="help">協助</string>
     <string name="delete_pc_msg"> 你確定要刪除這台電腦？ </string>
     <string name="slow_connection_msg">與電腦連線過慢
 \n 請降低位元速率</string>
@@ -80,27 +80,27 @@
     <string name="perf_overlay_dectime">平均解碼時間：%1$.2f ms</string>
     <!-- AppList activity -->
     <string name="applist_connect_msg">正在連線電腦……</string>
-    <string name="applist_menu_resume"> 恢復串流 </string>
-    <string name="applist_menu_quit"> 退出串流 </string>
-    <string name="applist_menu_quit_and_start"> 退出當前遊戲並開始這個遊戲 </string>
+    <string name="applist_menu_resume">恢復對話</string>
+    <string name="applist_menu_quit">退出對話</string>
+    <string name="applist_menu_quit_and_start">退出目前遊戲並開始這個遊戲</string>
     <string name="applist_menu_cancel"> 取消 </string>
-    <string name="applist_menu_details">檢視詳情</string>
-    <string name="applist_menu_scut"> 創建快捷方式 </string>
-    <string name="applist_menu_tv_channel"> 添加到頻道 </string>
-    <string name="applist_refresh_title"> 遊戲列表 </string>
+    <string name="applist_menu_details">檢視詳細資料</string>
+    <string name="applist_menu_scut">創建捷徑</string>
+    <string name="applist_menu_tv_channel">新增至頻道</string>
+    <string name="applist_refresh_title">遊戲清單</string>
     <string name="applist_refresh_msg">重新整理中……</string>
     <string name="applist_refresh_error_title"> 錯誤 </string>
-    <string name="applist_refresh_error_msg"> 獲取列表失敗 </string>
+    <string name="applist_refresh_error_msg">獲取遊戲清單失敗</string>
     <string name="applist_quit_app"> 退出中 </string>
-    <string name="applist_quit_success"> 成功退出串流 </string>
-    <string name="applist_quit_fail"> 退出串流失敗 </string>
-    <string name="applist_quit_confirmation">您確定要退出當前遊戲？所有未保存的資料將丟失。</string>
+    <string name="applist_quit_success">退出成功</string>
+    <string name="applist_quit_fail">退出失敗</string>
+    <string name="applist_quit_confirmation">您確定要退出執行中的遊戲？所有未儲存的資料將丟失。</string>
     <string name="applist_details_id">App ID：</string>
     <!-- Add computer manually activity -->
-    <string name="title_add_pc"> 手動添加電腦 </string>
+    <string name="title_add_pc">手動新增電腦</string>
     <string name="msg_add_pc">正在連線電腦……</string>
     <string name="addpc_fail">無法連線至指定電腦。請確保所需埠沒有被防火牆阻止。</string>
-    <string name="addpc_success"> 成功添加電腦 </string>
+    <string name="addpc_success">成功新增電腦</string>
     <string name="addpc_unknown_host">無法解析電腦的 IP 位址，請確保 IP 位址輸入無誤。</string>
     <string name="addpc_enter_ip">請輸入一個 IP 位址</string>
     <string name="addpc_wrong_sitelocal">該位址似乎不正確。 您必須使用路由器的公共 IP 位址透過乙太網路進行串流。</string>
@@ -109,33 +109,33 @@
     <string name="title_resolution_list">視訊解析度</string>
     <string name="summary_resolution_list">高解析度提升圖像清晰度。低解析度提升在低效能裝置和較慢網路中的串流體驗。</string>
     <string name="title_fps_list">視訊影格速率</string>
-    <string name="summary_fps_list">高影格數提升視訊串流流暢度。低影格數提升在低效能裝置中的串流體驗。</string>
+    <string name="summary_fps_list">提高影格速率以獲得更順暢的視訊串流，降低可在低效能裝置上獲得更好的串流體驗。</string>
     <string name="title_seekbar_bitrate">視訊位元速率</string>
-    <string name="summary_seekbar_bitrate">高位元速率提升圖像品質。低位元速率提升在較慢網路中的串流體驗。</string>
+    <string name="summary_seekbar_bitrate">提高位元速率以提升圖像品質，降低可在較慢的網路中獲得更好的串流體驗。</string>
     <string name="title_unlock_fps">解鎖所有可用影格速率</string>
     <string name="summary_unlock_fps">以 90 或 120 畫面更新率串流可能會減少在高效能裝置上的網路延時，但會在不支援的裝置上造成卡頓或崩潰</string>
     <string name="title_checkbox_stretch_video">將畫面延展至全螢幕</string>
-    <string name="title_checkbox_disable_warnings"> 禁用錯誤提示 </string>
-    <string name="summary_checkbox_disable_warnings">串流中禁用連線錯誤提示</string>
+    <string name="title_checkbox_disable_warnings">停用錯誤訊息</string>
+    <string name="summary_checkbox_disable_warnings">停用串流中連線錯誤訊息</string>
     <string name="title_checkbox_enable_pip">啟用子母畫面觀察模式</string>
     <string name="summary_checkbox_enable_pip">允許多工時檢視串流畫面 (但不操作)</string>
     <string name="category_audio_settings">音訊設定</string>
-    <string name="title_audio_config_list">環繞聲設定</string>
-    <string name="summary_audio_config_list">為家庭劇院系統啟用 5.1 或 7.1 環繞聲</string>
+    <string name="title_audio_config_list">環場音效組態</string>
+    <string name="summary_audio_config_list">為家庭電影院系統啟用 5.1 或 7.1 環場音效</string>
     <string name="category_input_settings">輸入設定</string>
     <string name="title_checkbox_touchscreen_trackpad">將觸控式螢幕作為觸控板使用</string>
-    <string name="summary_checkbox_touchscreen_trackpad">如果啟用，則將觸控式螢幕作為觸控板使用。 如果禁止，則觸控式螢幕直接控制滑鼠游標。</string>
+    <string name="summary_checkbox_touchscreen_trackpad">如果啟用，則將觸控式螢幕作為觸控板使用。 如果停用，則觸控式螢幕直接控制滑鼠游標。</string>
     <string name="title_checkbox_multi_controller">自動偵測手把</string>
     <string name="summary_checkbox_multi_controller">禁用此項所有手把將視為一個手把</string>
-    <string name="title_checkbox_vibrate_fallback">用裝置震動類比遊戲震動效果</string>
-    <string name="summary_checkbox_vibrate_fallback">如果你的手把不支援震動，則震動裝置以類比遊戲震動效果</string>
-    <string name="title_seekbar_deadzone"> 調整搖杆死區 </string>
+    <string name="title_checkbox_vibrate_fallback">用震動仿真遊戲低頻音</string>
+    <string name="summary_checkbox_vibrate_fallback">如果你的手把不支援震動，則震動裝置以仿真遊戲低頻音</string>
+    <string name="title_seekbar_deadzone">調整類比搖杆死區</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One USB 手把驅動程式</string>
-    <string name="summary_checkbox_xb1_driver">為缺少原生 Xbox 控制器支援的裝置啟用內置 USB 驅動程式</string>
-    <string name="title_checkbox_usb_bind_all">覆蓋 Android 手把支援</string>
-    <string name="summary_checkbox_usb_bind_all">強制 Moonlight 的 USB 驅動程式接管所有受支援的 Xbox 控制器</string>
-    <string name="title_checkbox_mouse_emulation">透過手把類比滑鼠</string>
+    <string name="summary_checkbox_xb1_driver">為缺少原生 Xbox 控制器支援的裝置啟用內建 USB 驅動程式</string>
+    <string name="title_checkbox_usb_bind_all">覆蓋原生 Xbox 手把支援</string>
+    <string name="summary_checkbox_usb_bind_all">強制 Moonlight 的 USB 驅動程式接管所有受支援的原生 Xbox 控制器</string>
+    <string name="title_checkbox_mouse_emulation">透過手把仿真滑鼠</string>
     <string name="summary_checkbox_mouse_emulation">長按開始鍵將手把切換為滑鼠模式</string>
     <string name="title_checkbox_mouse_nav_buttons"> 啟用前進後退滑鼠鍵 </string>
     <string name="summary_checkbox_mouse_nav_buttons">在一些支援不佳的裝置上啟用此項可能會使其右鍵失效</string>
@@ -145,13 +145,13 @@
     <string name="title_checkbox_show_onscreen_controls">顯示螢幕控制按鈕</string>
     <string name="summary_checkbox_show_onscreen_controls">在觸控式螢幕上顯示一層虛擬控制器</string>
     <string name="title_checkbox_vibrate_osc"> 啟用震動 </string>
-    <string name="summary_checkbox_vibrate_osc">使用螢幕控制按鈕時震動裝置以類比遊戲震動效果</string>
+    <string name="summary_checkbox_vibrate_osc">使用螢幕控制按鈕時震動裝置以類比遊戲低頻音</string>
     <string name="title_only_l3r3">只顯示 L3 和 R3</string>
     <string name="summary_only_l3r3">隱藏除 L3 和 R3 外的所有虛擬按鈕</string>
-    <string name="title_reset_osc">重設已保存的螢幕控制按鈕佈局</string>
+    <string name="title_reset_osc">重設已儲存的螢幕控制按鈕佈局</string>
     <string name="summary_reset_osc">重設所有螢幕控制按鈕為預設大小和位置</string>
-    <string name="dialog_title_reset_osc"> 重新開機按鈕佈局 </string>
-    <string name="dialog_text_reset_osc"> 你確定要刪除所保存的螢幕按鈕佈局嗎？ </string>
+    <string name="dialog_title_reset_osc">重設按鈕佈局</string>
+    <string name="dialog_text_reset_osc">你確定要刪除已儲存的螢幕按鈕佈局嗎？</string>
     <string name="toast_reset_osc_success">螢幕按鈕佈局已經重設</string>
     <string name="category_ui_settings">介面設定</string>
     <string name="title_language_list"> 語言 </string>
@@ -159,7 +159,7 @@
     <string name="title_checkbox_small_icon_mode"> 使用小圖示 </string>
     <string name="summary_checkbox_small_icon_mode"> 使用小圖示以在螢幕上顯示更多專案 </string>
     <string name="category_host_settings">主機設定</string>
-    <string name="title_checkbox_enable_sops">優化遊戲設定</string>
+    <string name="title_checkbox_enable_sops">最佳化遊戲設定</string>
     <string name="summary_checkbox_enable_sops">允許 GFE 為最佳串流效果自動更改遊戲設定</string>
     <string name="title_checkbox_host_audio"> 在電腦上播放聲音 </string>
     <string name="summary_checkbox_host_audio">在電腦和本裝置同時輸出聲音</string>
@@ -170,7 +170,7 @@
     <string name="summary_video_format">HEVC 能降低視訊頻寬需求，但需要較新的裝置才能支援</string>
     <string name="title_enable_hdr">啟用 HDR (實驗)</string>
     <string name="summary_enable_hdr">當遊戲和顯卡支援時以 HDR 模式串流。 HDR 需要 GTX 1000 系列或更高規格顯卡。</string>
-    <string name="title_enable_perf_overlay">啟用效能資訊</string>
+    <string name="title_enable_perf_overlay">顯示效能資訊</string>
     <string name="summary_enable_perf_overlay">在串流中顯示即時效能資訊</string>
     <string name="title_enable_post_stream_toast">串流完畢顯示延時資訊</string>
     <string name="summary_enable_post_stream_toast">串流結束後顯示延時資訊</string>
@@ -179,15 +179,15 @@
     <string name="suffix_osc_opacity">%</string>
     <string name="summary_osc_opacity">令螢幕按钮變得更透明/更不透明</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
-    <string name="resolution_prefix_native">本地</string>
-    <string name="text_native_res_dialog">本地解析度模式不受 GFE 的官方支援，因此不會自動設定主機的顯示解析度。您需要在遊戲中手動進行設定。
+    <string name="resolution_prefix_native">本機</string>
+    <string name="text_native_res_dialog">本機解析度模式不受 GFE 的官方支援，因此不會自動設定主機的顯示解析度。您需要在遊戲中手動進行設定。
 \n
 \n如果您選擇在 NVIDIA 控制台中創建自訂解析度以匹配裝置解析度，請確保您已閱讀並理解 NVIDIA 關於可能導致顯示器損毀和電腦不穩定以及其他潛在問題的警告。
 \n
 \n對於您在您的電腦上創建自訂解析度而導致的任何問題，我們概不負責。
 \n
-\n最後，您的裝置或主機電腦可能不支援以本地解析度串流。如果此模式在您的裝置上無法正常執行，只能說您運氣欠佳了。</string>
-    <string name="title_native_res_dialog">本地解析度警告</string>
+\n最後，您的裝置或主機電腦可能不支援以本機解析度串流。如果此模式在您的裝置上無法正常執行，只能說您運氣欠佳了。</string>
+    <string name="title_native_res_dialog">本機解析度警告</string>
     <string name="applist_menu_hide_app">隱藏遊戲</string>
     <string name="check_ports_msg">請檢查您的防火牆和埠轉發規則中的埠：</string>
     <string name="early_termination_error">開始串流時您的主機電腦出了點問題。
@@ -198,8 +198,8 @@
     <string name="no_frame_received_error">您的網路連線品質不佳。降低視訊位元速率設定或更換更快的連線。</string>
     <string name="no_video_received_error">沒有接收到來自主機的視訊。</string>
     <string name="video_decoder_init_failed">視訊解碼器初始化失敗。您的裝置可能不支援選定的解析度或影格速率。</string>
-    <string name="nettest_text_blocked">您裝置當前的網路連線攔截了 Moonlight。連線到該網路時可能無法透過網際網路串流。</string>
-    <string name="nettest_text_failure">您裝置當前的網路連線似乎攔截了 Moonlight。連線到該網路時可能無法透過網際網路串流。
+    <string name="nettest_text_blocked">您裝置目前的網路連線攔截了 Moonlight。連線到該網路時可能無法透過網際網路串流。</string>
+    <string name="nettest_text_failure">您裝置目前的網路連線似乎攔截了 Moonlight。連線到該網路時可能無法透過網際網路串流。
 \n
 \n以下網路埠被攔截：
 \n</string>
@@ -218,14 +218,22 @@
     <string name="pcview_menu_header_online">線上</string>
     <string name="perf_overlay_netlatency">平均網路延時：%1$d ms (抖動：%2$d ms)</string>
     <string name="perf_overlay_streamdetails">視訊串流：%1$s %2$.2f FPS</string>
-    <string name="resolution_prefix_native_fullscreen">本地全螢幕</string>
-
+    <string name="resolution_prefix_native_fullscreen">本機全螢幕</string>
     <!-- Array strings -->
-    <string name="audioconf_stereo">環繞聲</string>
-    <string name="audioconf_51surround">5.1 環繞聲</string>
-    <string name="audioconf_71surround">7.1 環繞聲</string>
-
-    <string name="videoformat_hevcauto">如果穩定才使用 HEVC</string>
-    <string name="videoformat_hevcalways">強制使用 HEVC (不穩定)</string>
+    <string name="audioconf_stereo">身歷聲</string>
+    <string name="audioconf_51surround">5.1 環場音效</string>
+    <string name="audioconf_71surround">7.1 環場音效</string>
+    <string name="videoformat_hevcauto">僅在穩定時使用 HEVC</string>
+    <string name="videoformat_hevcalways">強制使用 HEVC (可能會崩潰)</string>
     <string name="videoformat_hevcnever">不使用 HEVC</string>
+    <string name="resolution_4k">4K</string>
+    <string name="fps_30">30 FPS</string>
+    <string name="fps_60">60 FPS</string>
+    <string name="fps_90">90 FPS</string>
+    <string name="fps_120">120 FPS</string>
+    <string name="resolution_360p">360P</string>
+    <string name="resolution_720p">720P</string>
+    <string name="resolution_480p">480P</string>
+    <string name="resolution_1080p">1080P</string>
+    <string name="resolution_1440p">1440P</string>
 </resources>

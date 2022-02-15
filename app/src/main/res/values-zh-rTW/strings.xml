@@ -7,8 +7,8 @@
     <string name="scut_invalid_uuid"> 提供的電腦無效 </string>
     <string name="scut_invalid_app_id">提供的應用程式無效</string>
     <!-- Help strings -->
-    <string name="help_loading_title">檢視協助</string>
-    <string name="help_loading_msg">正在載入協助頁面……</string>
+    <string name="help_loading_title">說明檢視器</string>
+    <string name="help_loading_msg">正在載入說明頁面……</string>
     <!-- PC view menu entries -->
     <string name="pcview_menu_app_list">檢視遊戲清單</string>
     <string name="pcview_menu_pair_pc"> 和電腦配對 </string>
@@ -27,7 +27,7 @@
     <string name="pair_already_in_progress"> 配對中，請稍候 </string>
     <!-- WOL messages -->
     <string name="wol_pc_online"> 電腦線上中 </string>
-    <string name="wol_no_mac">無法喚醒電腦因為 GFE 沒有返回 MAC 位址</string>
+    <string name="wol_no_mac">無法喚醒電腦因為 GFE 沒有傳送 MAC 位址</string>
     <string name="wol_waking_pc"> 喚醒電腦中…… </string>
     <string name="wol_waking_msg">喚醒電腦需要一些時間。如果電腦沒有喚醒，請確保 Wake-On-LAN 設定無誤。</string>
     <string name="wol_fail">無法傳送 Wake-On-LAN 資料包</string>
@@ -68,7 +68,7 @@
     <string name="no"> 取消 </string>
     <string name="lost_connection">與電腦失去連線</string>
     <string name="title_details">詳細資料</string>
-    <string name="help">協助</string>
+    <string name="help">說明</string>
     <string name="delete_pc_msg"> 你確定要刪除這台電腦？ </string>
     <string name="slow_connection_msg">與電腦連線過慢
 \n 請降低位元速率</string>

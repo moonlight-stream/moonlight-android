@@ -160,4 +160,13 @@
     <string name="perf_overlay_decoder">Decoder: %1$s</string>
     <string name="perf_overlay_dectime">Tempo medio di decodifica: %1$.2f ms</string>
     <string name="perf_overlay_streamdetails">Flusso video: %1$s %2$.2f FPS</string>
+    <string name="nettest_title_waiting">Prova della Connessione di Rete</string>
+    <string name="nettest_text_waiting">Moonlight sta testando la tua connessione di rete per controllare se NVIDIA GameStream sia bloccato.
+\n
+\nPotrebbero volerci alcuni secondi…</string>
+    <string name="nettest_title_done">Test della Rete Completato</string>
+    <string name="nettest_text_inconclusive">Il test della rete non è stato effettuato perché nessuno dei server per il test della connessione di Moonlight era raggiungibile. Controlla la tua connessione ad Internet o riprova più tardi.</string>
+    <string name="nettest_text_success">La tua rete non sembra bloccare Moonlight. Se hai ancora problemi di connessione, controlla le impostazioni del firewall del PC.
+\n
+\nSe stai cercando di trasmettere via Internet, installa il Moonlight Internet Hosting Tool sul tuo PC ed avvia il Test per la trasmissione via Internet incluso per controllare la connessione ad Internet del tuo PC.</string>
 </resources>

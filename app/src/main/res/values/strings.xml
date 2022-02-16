@@ -119,6 +119,7 @@
     <string name="applist_menu_quit_and_start">Quit Current Game and Start</string>
     <string name="applist_menu_cancel">Cancel</string>
     <string name="applist_menu_details">View Details</string>
+    <string name="applist_menu_app_profile">Profile</string>
     <string name="applist_menu_scut">Create Shortcut</string>
     <string name="applist_menu_tv_channel">Add to Channel</string>
     <string name="applist_menu_hide_app">Hide App</string>
@@ -144,6 +145,11 @@
     <!-- Preferences -->
     <string name="category_basic_settings">Basic Settings</string>
     <string name="title_resolution_list">Video resolution</string>
+    <string name="profile_save_title">Save to profile…</string>
+    <string name="profile_save_description">Saves the current settings as a profile that can be assigned per game</string>
+    <string name="remove_profile_message">If you use the same name as another profile, it will be replaced</string>
+    <string name="remove_profile_title">Remove Profile</string>
+    <string name="remove_profile_description">Select the profile to remove</string>
     <string name="summary_resolution_list">Increase to improve image clarity. Decrease for better performance on lower end devices and slower networks.</string>
     <string name="title_native_res_dialog">Native Resolution Warning</string>
     <string name="text_native_res_dialog">Native resolution modes are not officially supported by GeForce Experience, so it will not set your host display resolution itself. You will need to set it manually while in game.\n\nIf you choose to create a custom resolution in NVIDIA Control Panel to match your device resolution, please ensure you have read and understood NVIDIA\'s warning regarding possible monitor damage, PC instability, and other potential problems.\n\nWe are not responsible for any problems resulting from creating a custom resolution on your PC.\n\nFinally, your device or host PC may not support streaming at native resolution. If it doesn\'t work on your device, you\'re just out of luck unfortunately.</string>

@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
@@ -34,6 +35,9 @@ import com.limelight.utils.UiHelper;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class StreamSettings extends Activity {
     private PreferenceConfiguration previousPrefs;
@@ -578,6 +582,92 @@ public class StreamSettings extends Activity {
                     return true;
                 }
             });
+
+            final SharedPreferences profileMap = getActivity().getSharedPreferences(PreferenceConfiguration.APP_PROFILES_PREF_FILENAME, MODE_PRIVATE);
+            final Set<String> profileKeys = profileMap.getAll().keySet();
+            if (!profileKeys.isEmpty()) {
+                final ListPreference removeItem = (ListPreference) findPreference(PreferenceConfiguration.RM_PROFILE_STRING);
+                removeItem.setEnabled(true);
+
+                CharSequence[] entries = profileKeys.toArray(new CharSequence[0]);
+                removeItem.setEntries(entries);
+                removeItem.setEntryValues(entries);
+
+                removeItem.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                    @Override
+                    public boolean onPreferenceChange(Preference preference, Object newValue) {
+                        String profileKey = (String) newValue;
+
+                        // Deletes the profile map
+                        profileMap.edit().remove(profileKey).apply();
+
+                        // Deletes the profile configuration file
+                        getActivity().getSharedPreferences(profileKey, MODE_PRIVATE)
+                                .edit().clear().apply();
+
+                        if (profileMap.getAll().isEmpty()) {
+                            removeItem.setEnabled(false);
+                        }
+
+                        StreamSettings settingsActivity = (StreamSettings)SettingsFragment.this.getActivity();
+                        if (settingsActivity != null) {
+                            settingsActivity.reloadSettings();
+                        }
+
+                        // Don't actually update the value of the item.
+                        return false;
+                    }
+                });
+            }
+
+            EditTextPreference textPref = (EditTextPreference)findPreference("text_profile");
+            // Default profile text
+            if (textPref.getText() == null) {
+                textPref.setText("MyProfile");
+            }
+
+            textPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                    String profileName = (String) newValue;
+                    SharedPreferences profilePref = getActivity().getSharedPreferences(profileName, MODE_PRIVATE);
+                    SharedPreferences.Editor ed = profilePref.edit();
+                    ed.clear();
+                    for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+                        Object value = entry.getValue();
+                        String key = entry.getKey();
+                        if (value instanceof String) {
+                            ed.putString(key, ((String) value));
+                        } else if (value instanceof Set) {
+                            ed.putStringSet(key, (Set<String>) value);
+                        } else if (value instanceof Integer) {
+                            ed.putInt(key, (Integer) value);
+                        } else if (value instanceof Long) {
+                            ed.putLong(key, (Long) value);
+                        } else if (value instanceof Float) {
+                            ed.putFloat(key, (Float) value);
+                        } else if (value instanceof Boolean) {
+                            ed.putBoolean(key, (Boolean) value);
+                        }
+                    }
+
+                    ed.apply();
+
+                    // Save profile map as a separate config file
+                    if (!profileMap.contains(profileName)) {
+                        profileMap.edit().putStringSet(profileName, new HashSet<String>()).apply();
+                        findPreference(PreferenceConfiguration.RM_PROFILE_STRING).setEnabled(true);
+                        StreamSettings settingsActivity = (StreamSettings)SettingsFragment.this.getActivity();
+                        if (settingsActivity != null) {
+                            settingsActivity.reloadSettings();
+                        }
+                    }
+
+                    return true;
+                }
+            });
+
         }
     }
 }

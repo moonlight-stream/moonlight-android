@@ -29,6 +29,13 @@
             android:summary="@string/summary_seekbar_bitrate"
             android:text="@string/suffix_seekbar_bitrate_mbps"
             android:title="@string/title_seekbar_bitrate" />
+        <ListPreference
+            android:key="frame_pacing"
+            android:title="@string/title_frame_pacing"
+            android:entries="@array/video_frame_pacing_names"
+            android:entryValues="@array/video_frame_pacing_values"
+            android:summary="@string/summary_frame_pacing"
+            android:defaultValue="latency" />
         <CheckBoxPreference
             android:key="checkbox_stretch_video"
             android:title="@string/title_checkbox_stretch_video"
@@ -183,11 +190,6 @@
             android:entryValues="@array/video_format_values"
             android:summary="@string/summary_video_format"
             android:defaultValue="auto" />
-        <CheckBoxPreference
-            android:key="checkbox_disable_frame_drop"
-            android:title="@string/title_disable_frame_drop"
-            android:summary="@string/summary_disable_frame_drop"
-            android:defaultValue="false" />
         <CheckBoxPreference
             android:key="checkbox_enable_hdr"
             android:title="@string/title_enable_hdr"

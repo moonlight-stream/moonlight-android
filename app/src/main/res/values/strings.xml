@@ -247,4 +247,9 @@
     <string name="videoformat_hevcauto">Use HEVC only if stable</string>
     <string name="videoformat_hevcalways">Always use HEVC (may crash)</string>
     <string name="videoformat_hevcnever">Never use HEVC</string>
+
+    <string name="title_frame_pacing">Video frame pacing</string>
+    <string name="summary_frame_pacing">Specify how to balance video latency and smoothness</string>
+    <string name="pacing_latency">Prefer Lowest Latency</string>
+    <string name="pacing_smoothness">Prefer Smoothest Video</string>
 </resources>

@@ -2,6 +2,7 @@ package com.limelight.binding.video;
 
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.jcodec.codecs.h264.H264Utils;
 import org.jcodec.codecs.h264.io.model.SeqParameterSet;
@@ -20,11 +21,14 @@ import android.media.MediaFormat;
 import android.media.MediaCodec.BufferInfo;
 import android.media.MediaCodec.CodecException;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Range;
+import android.view.Choreographer;
 import android.view.SurfaceHolder;
 
-public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
+public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements Choreographer.FrameCallback {
 
     private static final boolean USE_FRAME_RENDER_TIME = false;
     private static final boolean FRAME_RENDER_TIME_ONLY = USE_FRAME_RENDER_TIME && false;
@@ -58,7 +62,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private int consecutiveCrashCount;
     private String glRenderer;
     private boolean foreground = true;
-    private boolean legacyFrameDropRendering = false;
     private PerfOverlayListener perfListener;
 
     private MediaFormat inputFormat;
@@ -80,6 +83,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     private int lastFrameNumber;
     private int refreshRate;
     private PreferenceConfiguration prefs;
+
+    private LinkedBlockingQueue<Integer> outputBufferQueue = new LinkedBlockingQueue<>();
+    private static final int OUTPUT_BUFFER_QUEUE_LIMIT = 2;
 
     private int numSpsIn;
     private int numPpsIn;
@@ -198,15 +204,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         return avcDecoder != null;
     }
 
-    public boolean isBlacklistedForFrameRate(int frameRate) {
-        return avcDecoder != null && MediaCodecHelper.decoderBlacklistedForFrameRate(avcDecoder.getName(), frameRate);
-    }
-
-    public void enableLegacyFrameDropRendering() {
-        LimeLog.info("Legacy frame drop rendering enabled");
-        legacyFrameDropRendering = true;
-    }
-
     public boolean isHevcMain10Hdr10Supported() {
         if (hevcDecoder == null) {
             return false;
@@ -310,10 +307,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
         // Avoid setting KEY_FRAME_RATE on Lollipop and earlier to reduce compatibility risk
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // We use prefs.fps instead of redrawRate here because the low latency hack in Game.java
-            // may leave us with an odd redrawRate value like 59 or 49 which might cause the decoder
-            // to puke. To be safe, we'll use the unmodified value.
-            videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, prefs.fps);
+            videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, redrawRate);
         }
 
         // Adaptive playback can also be enabled by the whitelist on pre-KitKat devices
@@ -418,6 +412,34 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         }
     }
 
+    @Override
+    public void doFrame(long frameTimeNanos) {
+        // Do nothing if we're stopping
+        if (stopping) {
+            return;
+        }
+
+        // Render up to one frame when in frame pacing mode.
+        //
+        // NB: Since the queue limit is 2, we won't starve the decoder of output buffers
+        // by holding onto them for too long. This also ensures we will have that 1 extra
+        // frame of buffer to smooth over network/rendering jitter.
+        Integer nextOutputBuffer = outputBufferQueue.poll();
+        if (nextOutputBuffer != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                videoDecoder.releaseOutputBuffer(nextOutputBuffer, frameTimeNanos);
+            }
+            else {
+                videoDecoder.releaseOutputBuffer(nextOutputBuffer, true);
+            }
+
+            activeWindowVideoStats.totalFramesRendered++;
+        }
+
+        // Request another callback for next frame
+        Choreographer.getInstance().postFrameCallback(this);
+    }
+
     private void startRendererThread()
     {
         rendererThread = new Thread() {
@@ -434,34 +456,45 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
 
                             numFramesOut++;
 
-                            // Get the last output buffer in the queue
-                            while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
-                                videoDecoder.releaseOutputBuffer(lastIndex, false);
+                            // Render the latest frame now if frame pacing is off
+                            if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_OFF) {
+                                // Get the last output buffer in the queue
+                                while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
+                                    videoDecoder.releaseOutputBuffer(lastIndex, false);
 
-                                numFramesOut++;
+                                    numFramesOut++;
 
-                                lastIndex = outIndex;
-                                presentationTimeUs = info.presentationTimeUs;
-                            }
+                                    lastIndex = outIndex;
+                                    presentationTimeUs = info.presentationTimeUs;
+                                }
 
-                            // Render the last buffer
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                if (legacyFrameDropRendering) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                     // Use a PTS that will cause this frame to be dropped if another comes in within
                                     // the same V-sync period
                                     videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
                                 }
                                 else {
-                                    // Use a PTS that will cause this frame to never be dropped if frame dropping
-                                    // is disabled
-                                    videoDecoder.releaseOutputBuffer(lastIndex, 0);
+                                    videoDecoder.releaseOutputBuffer(lastIndex, true);
                                 }
+
+                                activeWindowVideoStats.totalFramesRendered++;
                             }
                             else {
-                                videoDecoder.releaseOutputBuffer(lastIndex, true);
-                            }
+                                // For the frame pacing case, the Choreographer callback will handle rendering.
+                                // We just put all frames into the output buffer queue and let it handle things.
 
-                            activeWindowVideoStats.totalFramesRendered++;
+                                // Discard the oldest buffer if we've exceeded our limit.
+                                //
+                                // NB: We have to do this on the producer side because the consumer may not
+                                // run for a while (if there is a huge mismatch between stream FPS and display
+                                // refresh rate).
+                                if (outputBufferQueue.size() == OUTPUT_BUFFER_QUEUE_LIMIT) {
+                                    videoDecoder.releaseOutputBuffer(outputBufferQueue.take(), false);
+                                }
+
+                                // Add this buffer
+                                outputBufferQueue.add(lastIndex);
+                            }
 
                             // Add delta time to the totals (excluding probable outliers)
                             long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
@@ -536,6 +569,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
     @Override
     public void start() {
         startRendererThread();
+
+        // Start Choreographer callbacks for rendering with frame pacing enabled
+        // NB: This must be done on a thread with a looper!
+        if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_OFF) {
+            Handler h = new Handler(Looper.getMainLooper());
+            h.post(new Runnable() {
+                @Override
+                public void run() {
+                    Choreographer.getInstance().postFrameCallback(MediaCodecDecoderRenderer.this);
+                }
+            });
+        }
     }
 
     // !!! May be called even if setup()/start() fails !!!
@@ -546,6 +591,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer {
         // Halt the rendering thread
         if (rendererThread != null) {
             rendererThread.interrupt();
+        }
+
+        // Halt further Choreographer callbacks
+        if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_OFF) {
+            Handler h = new Handler(Looper.getMainLooper());
+            h.post(new Runnable() {
+                @Override
+                public void run() {
+                    Choreographer.getInstance().removeFrameCallback(MediaCodecDecoderRenderer.this);
+                }
+            });
         }
     }
 

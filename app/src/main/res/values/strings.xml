@@ -250,6 +250,7 @@
 
     <string name="title_frame_pacing">Video frame pacing</string>
     <string name="summary_frame_pacing">Specify how to balance video latency and smoothness</string>
-    <string name="pacing_latency">Prefer Lowest Latency</string>
-    <string name="pacing_smoothness">Prefer Smoothest Video</string>
+    <string name="pacing_latency">Prefer lowest latency</string>
+    <string name="pacing_balanced">Balanced</string>
+    <string name="pacing_smoothness">Prefer smoothest video (may significantly increase latency)</string>
 </resources>

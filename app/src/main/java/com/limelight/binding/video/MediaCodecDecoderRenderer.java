@@ -456,8 +456,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
                             numFramesOut++;
 
-                            // Render the latest frame now if frame pacing is off
-                            if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_OFF) {
+                            // Render the latest frame now if frame pacing isn't in balanced mode
+                            if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_BALANCED) {
                                 // Get the last output buffer in the queue
                                 while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
                                     videoDecoder.releaseOutputBuffer(lastIndex, false);
@@ -468,19 +468,31 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                                     presentationTimeUs = info.presentationTimeUs;
                                 }
 
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                    // Use a PTS that will cause this frame to be dropped if another comes in within
-                                    // the same V-sync period
-                                    videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
+                                if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_MAX_SMOOTHNESS) {
+                                    // In max smoothness mode, we want to never drop frames
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                        // Use a PTS that will cause this frame to never be dropped
+                                        videoDecoder.releaseOutputBuffer(lastIndex, 0);
+                                    }
+                                    else {
+                                        videoDecoder.releaseOutputBuffer(lastIndex, true);
+                                    }
                                 }
                                 else {
-                                    videoDecoder.releaseOutputBuffer(lastIndex, true);
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                        // Use a PTS that will cause this frame to be dropped if another comes in within
+                                        // the same V-sync period
+                                        videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
+                                    }
+                                    else {
+                                        videoDecoder.releaseOutputBuffer(lastIndex, true);
+                                    }
                                 }
 
                                 activeWindowVideoStats.totalFramesRendered++;
                             }
                             else {
-                                // For the frame pacing case, the Choreographer callback will handle rendering.
+                                // For balanced frame pacing case, the Choreographer callback will handle rendering.
                                 // We just put all frames into the output buffer queue and let it handle things.
 
                                 // Discard the oldest buffer if we've exceeded our limit.
@@ -570,9 +582,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     public void start() {
         startRendererThread();
 
-        // Start Choreographer callbacks for rendering with frame pacing enabled
+        // Start Choreographer callbacks for rendering with frame pacing in balanced mode
         // NB: This must be done on a thread with a looper!
-        if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_OFF) {
+        if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_BALANCED) {
             Handler h = new Handler(Looper.getMainLooper());
             h.post(new Runnable() {
                 @Override
@@ -594,7 +606,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         }
 
         // Halt further Choreographer callbacks
-        if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_OFF) {
+        if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_BALANCED) {
             Handler h = new Handler(Looper.getMainLooper());
             h.post(new Runnable() {
                 @Override

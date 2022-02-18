@@ -78,8 +78,9 @@ public class PreferenceConfiguration {
     public static final int AUTOSELECT_H265 = 0;
     public static final int FORCE_H265_OFF = 1;
 
-    public static final int FRAME_PACING_OFF = 0;
-    public static final int FRAME_PACING_ON = 1;
+    public static final int FRAME_PACING_MIN_LATENCY = 0;
+    public static final int FRAME_PACING_BALANCED = 1;
+    public static final int FRAME_PACING_MAX_SMOOTHNESS = 2;
 
     public static final String RES_360P = "640x360";
     public static final String RES_480P = "854x480";
@@ -276,16 +277,23 @@ public class PreferenceConfiguration {
             boolean legacyNeverDropFrames = prefs.getBoolean(LEGACY_DISABLE_FRAME_DROP_PREF_STRING, false);
             prefs.edit()
                     .remove(LEGACY_DISABLE_FRAME_DROP_PREF_STRING)
-                    .putString(FRAME_PACING_PREF_STRING, legacyNeverDropFrames ? "smoothness" : "latency")
+                    .putString(FRAME_PACING_PREF_STRING, legacyNeverDropFrames ? "balanced" : "latency")
                     .apply();
         }
 
         String str = prefs.getString(FRAME_PACING_PREF_STRING, DEFAULT_FRAME_PACING);
         if (str.equals("latency")) {
-            return FRAME_PACING_OFF;
+            return FRAME_PACING_MIN_LATENCY;
+        }
+        else if (str.equals("balanced")) {
+            return FRAME_PACING_BALANCED;
+        }
+        else if (str.equals("smoothness")) {
+            return FRAME_PACING_MAX_SMOOTHNESS;
         }
         else {
-            return FRAME_PACING_ON;
+            // Should never get here
+            return FRAME_PACING_MIN_LATENCY;
         }
     }
 

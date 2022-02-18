@@ -1198,6 +1198,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             str += "Frame losses: "+renderer.globalVideoStats.framesLost+" in "+renderer.globalVideoStats.frameLossEvents+" loss events\n";
             str += "Average end-to-end client latency: "+renderer.getAverageEndToEndLatency()+"ms\n";
             str += "Average hardware decoder latency: "+renderer.getAverageDecoderLatency()+"ms\n";
+            str += "Frame pacing mode: "+renderer.prefs.framePacing+"\n";
 
             if (currentBuffer != null) {
                 str += "Current buffer: ";

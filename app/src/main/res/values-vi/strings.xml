@@ -207,4 +207,25 @@
     <string name="perf_overlay_netlatency">Độ trễ mạng trung bình: %1$d ms (sai số: %2$d ms)</string>
     <string name="perf_overlay_streamdetails">Tốc độ khung hình: %1$s %2$.2f FPS</string>
     <string name="resolution_prefix_native_fullscreen">Toàn màn hình theo hệ thống</string>
+    <string name="title_frame_pacing">Nhịp độ khung hình video</string>
+    <string name="summary_frame_pacing">Chỉ ra cách cân bằng giữa độ trễ video và độ mượt mà</string>
+    <string name="pacing_latency">Ưu tiên độ trễ thấp nhất</string>
+    <string name="pacing_balanced">Cân bằng</string>
+    <string name="pacing_smoothness">Ưu tiên video mượt nhất (có thể tăng độ trễ đáng kể)</string>
+    <string name="resolution_480p">480p</string>
+    <string name="fps_120">120 FPS</string>
+    <string name="resolution_360p">360p</string>
+    <string name="resolution_720p">720p</string>
+    <string name="resolution_1080p">1080p</string>
+    <string name="resolution_1440p">1440p</string>
+    <string name="resolution_4k">4K</string>
+    <string name="fps_30">30 FPS</string>
+    <string name="fps_60">60 FPS</string>
+    <string name="fps_90">90 FPS</string>
+    <string name="audioconf_stereo">Stereo</string>
+    <string name="audioconf_51surround">Âm thanh vòm 5.1</string>
+    <string name="audioconf_71surround">Âm thanh vòm 7.1</string>
+    <string name="videoformat_hevcauto">Chỉ sử dụng HEVC nếu ổn định</string>
+    <string name="videoformat_hevcalways">Luôn sử dụng HEVC (có thể gây crash)</string>
+    <string name="videoformat_hevcnever">Không bao giờ sử dụng HEVC</string>
 </resources>

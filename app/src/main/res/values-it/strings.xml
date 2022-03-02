@@ -211,4 +211,36 @@
     <string name="videoformat_hevcauto">Usa HEVC solo se stabile</string>
     <string name="videoformat_hevcalways">Usa sempre HEVC (potrebbe essere instabile)</string>
     <string name="videoformat_hevcnever">Non usare mai HEVC</string>
+    <string name="title_frame_pacing">Bilanciamento frame video</string>
+    <string name="summary_frame_pacing">Specifica come bilanciare il ritardo video e la fluidità</string>
+    <string name="summary_enable_perf_overlay">Mostra informazioni real time sulla trasmissione</string>
+    <string name="nettest_text_failure">Sembra che l\'attuale connessione di rete del tuo dispositivo stia bloccando Moonlight. Trasmettere via Internet potrebbe non funzionare mentre sei connesso a questa rete.
+\n
+\nQueste porte di rete sono bloccate:
+\n</string>
+    <string name="nettest_text_blocked">L\'attuale connessione di rete del tuo dispositivo sta bloccando Moonlight. Trasmettere via Internet potrebbe non funzionare mentre sei connesso a questa rete.</string>
+    <string name="unable_to_pin_shortcut">Il tuo launcher non permette la creazione di scorciatoie appuntate.</string>
+    <string name="video_decoder_init_failed">Il decoder video non è riuscito ad inizializzarsi. Il tuo dispositivo potrebbe non supportare la risoluzione o il frame rate selezionati.</string>
+    <string name="check_ports_msg">Controlla il tuo firewall e le regole di inoltro delle seguenti porte:</string>
+    <string name="title_enable_perf_overlay">Mostra le statistiche delle performance durante la trasmissione</string>
+    <string name="title_enable_post_stream_toast">Mostra un messaggio sulla latenza dopo la trasmissione</string>
+    <string name="no_frame_received_error">La tua connessione di rete non sta funzionando bene. Riduci il bitrate video o prova ad usare una connessione più veloce.</string>
+    <string name="early_termination_error">Qualcosa è andato storto sul PC sorgente mentre la trasmissione veniva avviata.
+\n
+\nAssicurati di non avere nessun contenuto protetto da DRM aperto sul PC sorgente. Puoi anche provare a spengere e riaccendere il PC sorgente.
+\n
+\nSe il problema persiste, prova a installare di nuovo i driver della scheda video e GeForce Experience.</string>
+    <string name="summary_unlock_fps">Trasmettere a 90 o 120 FPS potrebbe ridurre il ritardo su dispositivi di fascia alta, ma può provocare ritardi i instabilità sui dispositivi che non lo supportano</string>
+    <string name="summary_enable_post_stream_toast">Molstra un messaggio con informazioni sulla latenza dopo che la trasmissione è conclusa</string>
+    <string name="text_native_res_dialog">Le impostazioni di risoluzione nativa non sono ufficialmente supportate da GeForce Experience, quindi non cambierà automaticamente la risoluzione del monitor del computer sorgente. Dovrai cambiarla manualmente all\'interno del gioco.
+\n
+\nSe scegli di create una risoluzione personalizzata nel Pannello di Controllo NVIDIA per copiare la risoluzione del tuo dispositivo, assicurati di aver letto e capito il messaggio di attenzione di NVIDIA a proposito dei possibili danni al monitor, all\'instabilità del PC e altri potenziali problemi.
+\n
+\nNon saremo responsabili per qualsiasi problema risultante dalla creazione di una risoluzione personalizzata sul tuo PC.
+\n
+\nInfine, il tuo dispositivo o PC sorgente potrebbero non supportare la trasmissione alla risoluzione nativa. Se ciò non funzionasse sul tuo dispositivo, sfortunatamente non ci sono altre soluzioni.</string>
+    <string name="perf_overlay_incomingfps">Frame rate in ingresso dalla rete: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Frame rate renderizzato: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Frame scartati dalla tua connessione di rete: %1$.2f%%</string>
+    <string name="perf_overlay_netlatency">Latenza media della rete: %1$d ms (varianza: %2$d ms)</string>
 </resources>

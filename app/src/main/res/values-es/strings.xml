@@ -1,13 +1,11 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <!-- PC view menu entries -->
     <string name="pcview_menu_app_list">Ver lista de juegos</string>
     <string name="pcview_menu_pair_pc">Emparejar con PC</string>
     <string name="pcview_menu_unpair_pc">Desemparejar</string>
     <string name="pcview_menu_send_wol">Enviar petición Wake-On-LAN</string>
     <string name="pcview_menu_delete_pc">Eliminar PC</string>
-
     <!-- Pair messages -->
     <string name="pairing">Emparejando…</string>
     <string name="pair_pc_offline">El ordenador está apagado</string>
@@ -16,7 +14,6 @@
     <string name="pair_pairing_msg">Por favor, introduce el siguiente PIN en el PC destino:</string>
     <string name="pair_incorrect_pin">PIN incorrecto</string>
     <string name="pair_fail">Fallo al emparejar</string>
-
     <!-- WOL messages -->
     <string name="wol_pc_online">Ordenador encendido</string>
     <string name="wol_no_mac">Imposible iniciar PC porque GFE no ha enviado una dirección MAC</string>
@@ -25,13 +22,11 @@
 	    Si no se inicia asegúrate que está configurado correctamente para Wake-On-LAN.
     </string>
     <string name="wol_fail">Fallo al enviar paquetes Wake-On-LAN</string>
-
     <!-- Unpair messages -->
     <string name="unpairing">Desemparejando…</string>
     <string name="unpair_success">Desemparejado con éxito</string>
     <string name="unpair_fail">Error al desemparejar</string>
     <string name="unpair_error">El dispositivo no estaba emparejado</string>
-
     <!-- Errors -->
     <string name="error_pc_offline">El ordenador está apagado</string>
     <string name="error_manager_not_running">El servicio "ComputerManager" no está en ejecución. Por favor, espera unos segundos o reinicia la aplicación.</string>
@@ -39,7 +34,6 @@
     <string name="error_404">GFE ha devuelto un error HTTP 404. Asegúrate que el PC tiene una GPU soportada.
 	    Usar software de Escritorio Remoto puede causar este error. Intenta reiniciar el equipo o reinstalar GFE.
     </string>
-
     <!-- Start application messages -->
     <string name="conn_establishing_title">Estableciendo conexión</string>
     <string name="conn_establishing_msg">Iniciando conexión</string>
@@ -52,14 +46,12 @@
     <string name="conn_error_msg">Fallo al iniciar</string>
     <string name="conn_terminated_title">Conexión finalizada</string>
     <string name="conn_terminated_msg">La conexión ha finalizando</string>
-
     <!-- General strings -->
     <string name="ip_hint">Dirección IP del PC con GeForce</string>
     <string name="searching_pc">Buscando por PCs con GeForce Experience ejecutándose…</string>
     <string name="yes">Si</string>
     <string name="no">No</string>
     <string name="lost_connection">Conexión perdida</string>
-
     <!-- AppList activity -->
     <string name="applist_menu_resume">Reanudar sesión</string>
     <string name="applist_menu_quit">Cerrar sesión</string>
@@ -73,7 +65,6 @@
     <string name="applist_quit_success">Cerrado satisfactoriamente</string>
     <string name="applist_quit_fail">Error al cerrar</string>
     <string name="applist_quit_confirmation">¿Estás seguro que deseas quitar la aplicación en ejecución? Todo dato sin salvar se perderá.</string>
-
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Añadir PC manualmente</string>
     <string name="msg_add_pc">Conectando al PC…</string>
@@ -81,7 +72,6 @@
     <string name="addpc_success">Ordenador añadido satisfactoriamente</string>
     <string name="addpc_unknown_host">Imposible resolver la dirección del PC. Asegúrate que no hay ningún error en la dirección.</string>
     <string name="addpc_enter_ip">Debes introducir una dirección IP</string>
-
     <!-- Preferences -->
     <string name="category_basic_settings">Configuración básica</string>
     <string name="title_resolution_list">Seleccionar resolución y FPS</string>
@@ -91,40 +81,61 @@
     <string name="title_checkbox_stretch_video">Ajustar vídeo a pantalla completa</string>
     <string name="title_checkbox_disable_warnings">Desactivar mensajes de advertencia</string>
     <string name="summary_checkbox_disable_warnings">Desactivar mensajes de advertencia en pantalla durante la transmisión</string>
-
     <string name="category_audio_settings">Configuración de audio</string>
-
     <string name="title_checkbox_multi_controller">Soporte para múltiples mandos</string>
     <string name="summary_checkbox_multi_controller">Si no está marcado, todos los mandos aparecen como uno solo</string>
     <string name="title_seekbar_deadzone">Ajustar zona muerta del stick analógico</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Driver para mando Xbox 360/One</string>
     <string name="summary_checkbox_xb1_driver">Activa el driver USB incluido para dispositivos sin soporte nativo para mandos de Xbox.</string>
-
     <string name="category_on_screen_controls_settings">Configuración de controles en pantalla</string>
     <string name="title_checkbox_show_onscreen_controls">Mostrar controles en pantalla</string>
     <string name="summary_checkbox_show_onscreen_controls">Muestra controles virtuales superpuestos en la pantalla táctil</string>
     <string name="title_only_l3r3">Solo muestra L3 y R3</string>
     <string name="summary_only_l3r3">Ocultar todo excepto L3 y R3</string>
-
     <string name="category_ui_settings">Configuración de la interfaz</string>
     <string name="title_language_list">Idioma</string>
     <string name="summary_language_list">Idioma a usar por Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Usar iconos pequeños</string>
     <string name="summary_checkbox_small_icon_mode">Usar iconos pequeños en las entradas de cuadrículas para permitir más entradas en la pantalla</string>
-
     <string name="category_host_settings">Configuración de servidor</string>
     <string name="title_checkbox_enable_sops">Optimizar configuración del juego</string>
     <string name="summary_checkbox_enable_sops">Permitir que GFE modifique la configuración del juego para una transmisión óptima</string>
     <string name="title_checkbox_host_audio">Reproducir audio en PC</string>
     <string name="summary_checkbox_host_audio">Reproducir audio en el ordenador y en este dispositivo</string>
-
     <string name="category_advanced_settings">Configuración avanzada</string>
     <string name="title_video_format">Cambiar configuración HEVC</string>
     <string name="summary_video_format">HEVC reduce el ancho de banda de vídeo, pero requiere un dispositivo bastante actual.</string>
-
     <!-- Array strings -->
     <string name="videoformat_hevcauto">Usar HEVC solo si es estable</string>
     <string name="videoformat_hevcalways">Siempre usar HEVC (puede fallar)</string>
     <string name="videoformat_hevcnever">Nunca usar HEVC</string>
+    <string name="nettest_title_done">Prueba de Red Completada</string>
+    <string name="scut_not_paired">PC no emparejado</string>
+    <string name="scut_invalid_uuid">PC proporcionado no es válido</string>
+    <string name="scut_invalid_app_id">App proporcionada no es válida</string>
+    <string name="help_loading_title">Visor de Ayuda</string>
+    <string name="pcview_menu_header_online">En Línea</string>
+    <string name="pcview_menu_header_unknown">Actualizando</string>
+    <string name="pcview_menu_test_network">Probar Conexión de Red</string>
+    <string name="pcview_menu_details">Ver Detalles</string>
+    <string name="nettest_title_waiting">Probando Conexión de Red</string>
+    <string name="nettest_text_waiting">Moonlight esta probando tu conexión de red para determinar si NVIDIA GameStream esta bloqueado.
+\n
+\nEsto puede tomar algunos segundos …</string>
+    <string name="nettest_text_inconclusive">La prueba de red no pudo ejecutarse debido a que no se pudo alcanzar ningún servidor de prueba de conexión de Moonlight. Revisa tu conexión a internet o prueba nuevamente mas tarde.</string>
+    <string name="nettest_text_failure">La actual conexión de red de tu dispositivo parece estar bloqueando Moonlight. La Transmisión mediante Internet puede no funcionar mientras estes conectado a esta red.
+\n
+\nSe han bloqueado los siguientes puertos de red:
+\n</string>
+    <string name="title_decoding_error">Falló el Decodificador de Video</string>
+    <string name="scut_deleted_pc">PC eliminado</string>
+    <string name="scut_pc_not_found">PC no encontrado</string>
+    <string name="help_loading_msg">Cargando página de ayuda …</string>
+    <string name="pcview_menu_header_offline">Fuera de línea</string>
+    <string name="nettest_text_success">Tu red parece no estar bloqueando Moonlight. Si aun tienes problemas de conexión, comprueba la configuración del firewall de tu PC.
+\n
+\nSi estas intentado transmitir mediante Internet, instala en tu pc la Moonlight Internet Hosting Tool y ejecuta el Internet Streaming Tester incluido para comprobar la conexión de tu PC a internet.</string>
+    <string name="nettest_text_blocked">La conexión de red actual de tu dispositivo esta bloqueando Moonlight. La Transmisión mediante Internet puede no funcionar mientras estés conectado a esta red.</string>
+    <string name="pair_already_in_progress">Emparejamiento ya en progreso</string>
 </resources>

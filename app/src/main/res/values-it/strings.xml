@@ -169,4 +169,78 @@
     <string name="nettest_text_success">La tua rete non sembra bloccare Moonlight. Se hai ancora problemi di connessione, controlla le impostazioni del firewall del PC.
 \n
 \nSe stai cercando di trasmettere via Internet, installa il Moonlight Internet Hosting Tool sul tuo PC ed avvia il Test per la trasmissione via Internet incluso per controllare la connessione ad Internet del tuo PC.</string>
+    <string name="title_checkbox_vibrate_osc">Abilita vibrazione</string>
+    <string name="title_audio_config_list">Configurazione suono surround</string>
+    <string name="title_checkbox_touchscreen_trackpad">Usa lo schermo touch come un trackpad</string>
+    <string name="summary_audio_config_list">Abilita il sourround 5.1 o 7.1 per sistemi home-theater</string>
+    <string name="title_fps_list">Frame rate video</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Se abilitato, lo schermo touch si comporta come un trackpad. Se disabilitato, lo schermo touch controlla direttamente il cursore del mouse.</string>
+    <string name="title_checkbox_vibrate_fallback">Emula il supporto per la vibrazione</string>
+    <string name="title_checkbox_mouse_nav_buttons">Abilita i bottoni avanti e indietro del mouse</string>
+    <string name="title_osc_opacity">Cambia l\'opavità dei controlli a schermo</string>
+    <string name="title_unlock_fps">Sblocca tutti i frame rate possibili</string>
+    <string name="pacing_balanced">Bilanciato</string>
+    <string name="pacing_latency">Preferisci ritardi minori</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="resolution_prefix_native">Nativo</string>
+    <string name="no_video_received_error">Nessun video ricevuto dal PC sorgente.</string>
+    <string name="resolution_prefix_native_fullscreen">Schermo intero nativo</string>
+    <string name="category_input_settings">Impostazioni di input</string>
+    <string name="title_native_res_dialog">Avviso Risoluzione Nativa</string>
+    <string name="dialog_title_osc_opacity">Cambia opacità</string>
+    <string name="pacing_smoothness">Preferisci video più fluido (potrebbe aumentare significativamente il ritardo)</string>
+    <string name="summary_osc_opacity">Rende i controlli a schermo più/meno trasparenti</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Abilitare questa opzione può far smettere di funzionare il click destro su alcuni dispositivi</string>
+    <string name="title_checkbox_flip_face_buttons">Inverti i bottoni frontali</string>
+    <string name="summary_checkbox_flip_face_buttons">Inverte i bottoni A/B e X/Y sui controller e sui controlli a schermo</string>
+    <string name="summary_checkbox_vibrate_fallback">Fa vibrare il tuo dispositivo per emulare la vibrazione del controller se questo non la supporta</string>
+    <string name="summary_checkbox_vibrate_osc">Fa vibrare il tuo dispositivo per emulare la vibrazione con i controlli a schermo</string>
+    <string name="resolution_360p">360p</string>
+    <string name="resolution_480p">480p</string>
+    <string name="resolution_720p">720p</string>
+    <string name="resolution_1080p">1080p</string>
+    <string name="resolution_1440p">1440p</string>
+    <string name="resolution_4k">4K</string>
+    <string name="fps_30">30 FPS</string>
+    <string name="fps_60">60 FPS</string>
+    <string name="fps_90">90 FPS</string>
+    <string name="fps_120">120 FPS</string>
+    <string name="audioconf_stereo">Stereo</string>
+    <string name="audioconf_51surround">Surround 5.1</string>
+    <string name="audioconf_71surround">Surround 7.1</string>
+    <string name="videoformat_hevcauto">Usa HEVC solo se stabile</string>
+    <string name="videoformat_hevcalways">Usa sempre HEVC (potrebbe essere instabile)</string>
+    <string name="videoformat_hevcnever">Non usare mai HEVC</string>
+    <string name="title_frame_pacing">Bilanciamento frame video</string>
+    <string name="summary_frame_pacing">Specifica come bilanciare il ritardo video e la fluidità</string>
+    <string name="summary_enable_perf_overlay">Mostra informazioni real time sulla trasmissione</string>
+    <string name="nettest_text_failure">Sembra che l\'attuale connessione di rete del tuo dispositivo stia bloccando Moonlight. Trasmettere via Internet potrebbe non funzionare mentre sei connesso a questa rete.
+\n
+\nQueste porte di rete sono bloccate:
+\n</string>
+    <string name="nettest_text_blocked">L\'attuale connessione di rete del tuo dispositivo sta bloccando Moonlight. Trasmettere via Internet potrebbe non funzionare mentre sei connesso a questa rete.</string>
+    <string name="unable_to_pin_shortcut">Il tuo launcher non permette la creazione di scorciatoie appuntate.</string>
+    <string name="video_decoder_init_failed">Il decoder video non è riuscito ad inizializzarsi. Il tuo dispositivo potrebbe non supportare la risoluzione o il frame rate selezionati.</string>
+    <string name="check_ports_msg">Controlla il tuo firewall e le regole di inoltro delle seguenti porte:</string>
+    <string name="title_enable_perf_overlay">Mostra le statistiche delle performance durante la trasmissione</string>
+    <string name="title_enable_post_stream_toast">Mostra un messaggio sulla latenza dopo la trasmissione</string>
+    <string name="no_frame_received_error">La tua connessione di rete non sta funzionando bene. Riduci il bitrate video o prova ad usare una connessione più veloce.</string>
+    <string name="early_termination_error">Qualcosa è andato storto sul PC sorgente mentre la trasmissione veniva avviata.
+\n
+\nAssicurati di non avere nessun contenuto protetto da DRM aperto sul PC sorgente. Puoi anche provare a spengere e riaccendere il PC sorgente.
+\n
+\nSe il problema persiste, prova a installare di nuovo i driver della scheda video e GeForce Experience.</string>
+    <string name="summary_unlock_fps">Trasmettere a 90 o 120 FPS potrebbe ridurre il ritardo su dispositivi di fascia alta, ma può provocare ritardi i instabilità sui dispositivi che non lo supportano</string>
+    <string name="summary_enable_post_stream_toast">Molstra un messaggio con informazioni sulla latenza dopo che la trasmissione è conclusa</string>
+    <string name="text_native_res_dialog">Le impostazioni di risoluzione nativa non sono ufficialmente supportate da GeForce Experience, quindi non cambierà automaticamente la risoluzione del monitor del computer sorgente. Dovrai cambiarla manualmente all\'interno del gioco.
+\n
+\nSe scegli di create una risoluzione personalizzata nel Pannello di Controllo NVIDIA per copiare la risoluzione del tuo dispositivo, assicurati di aver letto e capito il messaggio di attenzione di NVIDIA a proposito dei possibili danni al monitor, all\'instabilità del PC e altri potenziali problemi.
+\n
+\nNon saremo responsabili per qualsiasi problema risultante dalla creazione di una risoluzione personalizzata sul tuo PC.
+\n
+\nInfine, il tuo dispositivo o PC sorgente potrebbero non supportare la trasmissione alla risoluzione nativa. Se ciò non funzionasse sul tuo dispositivo, sfortunatamente non ci sono altre soluzioni.</string>
+    <string name="perf_overlay_incomingfps">Frame rate in ingresso dalla rete: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Frame rate renderizzato: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Frame scartati dalla tua connessione di rete: %1$.2f%%</string>
+    <string name="perf_overlay_netlatency">Latenza media della rete: %1$d ms (varianza: %2$d ms)</string>
 </resources>

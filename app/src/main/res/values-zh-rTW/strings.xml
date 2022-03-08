@@ -40,7 +40,7 @@
     <string name="error_pc_offline"> 電腦離線中 </string>
     <string name="error_manager_not_running">ComputerManager 服務未執行。請稍等幾秒或重啟應用程式。</string>
     <string name="error_unknown_host"> 無法解析主機位址 </string>
-    <string name="error_404">GFE 返回了 HTTP 404 錯誤。確保你的電腦顯卡支援串流。使用遠端桌面軟體同樣會引起此錯誤，請嘗試重啟電腦或重新安裝 GFE。</string>
+    <string name="error_404">GFE 返回了 HTTP 404 錯誤。確保你的電腦視訊卡支援串流。使用遠端桌面軟體同樣會引起此錯誤，請嘗試重啟電腦或重新安裝 GFE。</string>
     <string name="title_decoding_error">視訊解碼器崩潰</string>
     <string name="message_decoding_error">由於與該裝置的視訊解碼器不相容，Moonlight 已崩潰。確保你電腦上的 GFE 已更新至最新版本，如果崩潰繼續，請嘗試調整串流設定。</string>
     <string name="title_decoding_reset">重設視訊設定</string>
@@ -80,9 +80,9 @@
     <string name="perf_overlay_dectime">平均解碼時間：%1$.2f ms</string>
     <!-- AppList activity -->
     <string name="applist_connect_msg">正在連線電腦……</string>
-    <string name="applist_menu_resume">恢復對話</string>
-    <string name="applist_menu_quit">退出對話</string>
-    <string name="applist_menu_quit_and_start">退出目前遊戲並開始這個遊戲</string>
+    <string name="applist_menu_resume">恢復工作階段</string>
+    <string name="applist_menu_quit">結束工作階段</string>
+    <string name="applist_menu_quit_and_start">結束目前遊戲並開始這個遊戲</string>
     <string name="applist_menu_cancel"> 取消 </string>
     <string name="applist_menu_details">檢視詳細資料</string>
     <string name="applist_menu_scut">創建捷徑</string>
@@ -91,10 +91,10 @@
     <string name="applist_refresh_msg">重新整理中……</string>
     <string name="applist_refresh_error_title"> 錯誤 </string>
     <string name="applist_refresh_error_msg">獲取遊戲清單失敗</string>
-    <string name="applist_quit_app"> 退出中 </string>
-    <string name="applist_quit_success">退出成功</string>
-    <string name="applist_quit_fail">退出失敗</string>
-    <string name="applist_quit_confirmation">您確定要退出執行中的遊戲？所有未儲存的資料將丟失。</string>
+    <string name="applist_quit_app">結束中</string>
+    <string name="applist_quit_success">結束成功</string>
+    <string name="applist_quit_fail">結束失敗</string>
+    <string name="applist_quit_confirmation">您確定要結束執行中的遊戲？所有未儲存的資料將丟失。</string>
     <string name="applist_details_id">App ID：</string>
     <!-- Add computer manually activity -->
     <string name="title_add_pc">手動新增電腦</string>
@@ -126,14 +126,14 @@
     <string name="title_checkbox_touchscreen_trackpad">將觸控式螢幕作為觸控板使用</string>
     <string name="summary_checkbox_touchscreen_trackpad">如果啟用，則將觸控式螢幕作為觸控板使用。 如果停用，則觸控式螢幕直接控制滑鼠游標。</string>
     <string name="title_checkbox_multi_controller">自動偵測手把</string>
-    <string name="summary_checkbox_multi_controller">禁用此項所有手把將視為一個手把</string>
+    <string name="summary_checkbox_multi_controller">取消此項所有手把將視為一個手把</string>
     <string name="title_checkbox_vibrate_fallback">用震動仿真遊戲低頻音</string>
     <string name="summary_checkbox_vibrate_fallback">如果你的手把不支援震動，則震動裝置以仿真遊戲低頻音</string>
     <string name="title_seekbar_deadzone">調整類比搖杆死區</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One USB 手把驅動程式</string>
     <string name="summary_checkbox_xb1_driver">為缺少原生 Xbox 控制器支援的裝置啟用內建 USB 驅動程式</string>
-    <string name="title_checkbox_usb_bind_all">覆蓋原生 Xbox 手把支援</string>
+    <string name="title_checkbox_usb_bind_all">覆寫原生 Xbox 手把支援</string>
     <string name="summary_checkbox_usb_bind_all">強制 Moonlight 的 USB 驅動程式接管所有受支援的原生 Xbox 控制器</string>
     <string name="title_checkbox_mouse_emulation">透過手把仿真滑鼠</string>
     <string name="summary_checkbox_mouse_emulation">長按開始鍵將手把切換為滑鼠模式</string>
@@ -166,16 +166,16 @@
     <string name="category_advanced_settings">進階設定</string>
     <string name="title_disable_frame_drop">永不丟失影格</string>
     <string name="summary_disable_frame_drop">可能會減少在一些裝置上的卡頓，但會增加延時</string>
-    <string name="title_video_format">更改 HEVC 設定</string>
+    <string name="title_video_format">變更 HEVC 設定</string>
     <string name="summary_video_format">HEVC 能降低視訊頻寬需求，但需要較新的裝置才能支援</string>
-    <string name="title_enable_hdr">啟用 HDR (實驗)</string>
-    <string name="summary_enable_hdr">當遊戲和顯卡支援時以 HDR 模式串流。 HDR 需要 GTX 1000 系列或更高規格顯卡。</string>
+    <string name="title_enable_hdr">啟用 HDR (實驗性)</string>
+    <string name="summary_enable_hdr">當遊戲和視訊卡支援時以 HDR 模式串流。 HDR 需要 GTX 1000 系列或更高規格顯卡。</string>
     <string name="title_enable_perf_overlay">顯示效能資訊</string>
     <string name="summary_enable_perf_overlay">在串流中顯示即時效能資訊</string>
     <string name="title_enable_post_stream_toast">串流完畢顯示延時資訊</string>
     <string name="summary_enable_post_stream_toast">串流結束後顯示延時資訊</string>
-    <string name="title_osc_opacity">更改螢幕按鈕透明度</string>
-    <string name="dialog_title_osc_opacity">透明度</string>
+    <string name="title_osc_opacity">變更螢幕按鈕透明度</string>
+    <string name="dialog_title_osc_opacity">變更不透明度</string>
     <string name="suffix_osc_opacity">%</string>
     <string name="summary_osc_opacity">令螢幕按钮變得更透明/更不透明</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
@@ -220,7 +220,7 @@
     <string name="perf_overlay_streamdetails">視訊串流：%1$s %2$.2f FPS</string>
     <string name="resolution_prefix_native_fullscreen">本機全螢幕</string>
     <!-- Array strings -->
-    <string name="audioconf_stereo">身歷聲</string>
+    <string name="audioconf_stereo">立體聲</string>
     <string name="audioconf_51surround">5.1 環場音效</string>
     <string name="audioconf_71surround">7.1 環場音效</string>
     <string name="videoformat_hevcauto">僅在穩定時使用 HEVC</string>
@@ -236,4 +236,9 @@
     <string name="resolution_480p">480P</string>
     <string name="resolution_1080p">1080P</string>
     <string name="resolution_1440p">1440P</string>
+    <string name="title_frame_pacing">視訊影格調步</string>
+    <string name="summary_frame_pacing">指定如何平衡視訊延遲和平滑度</string>
+    <string name="pacing_balanced">平衡</string>
+    <string name="pacing_smoothness">偏好平滑視訊 (可能顯著提高延遲)</string>
+    <string name="pacing_latency">偏好低延遲</string>
 </resources>

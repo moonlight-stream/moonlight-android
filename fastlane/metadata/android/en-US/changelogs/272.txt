@@ -1,0 +1,6 @@
+- Introduced new frame pacing options to balance latency and smoothness
+- The old "Never drop frames" option is now called "Prefer smoothest video"
+- All streams can now be launched in HDR-capable mode (some games require an HDR compatible display on your host PC)
+- Moonlight will automatically attempt to wake your host PC if it is offline when you attempt to stream via a shortcut
+- Improved handling of S-Pen on Android 12
+- Updated community contributed translations from Weblate

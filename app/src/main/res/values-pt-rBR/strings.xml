@@ -8,7 +8,7 @@
     <string name="summary_unlock_fps">Transmitir a 90 ou 120 FPS pode reduzir a latência em dispositivos de última geração, mas pode causar atraso ou instabilidade em dispositivos que não suportam</string>
     <string name="summary_checkbox_vibrate_osc">Vibra seu dispositivo para emular rumble nos controles de tela</string>
     <string name="pcview_menu_header_offline">Indisponível</string>
-    <string name="pcview_menu_header_unknown">Recarregando</string>
+    <string name="pcview_menu_header_unknown">Atualizando</string>
     <string name="pacing_smoothness">Preferir vídeo mais suave (pode aumentar significativamente a latência)</string>
     <string name="summary_frame_pacing">Especifique o equilíbrio entre latência e suavidade do vídeo</string>
     <string name="title_checkbox_disable_warnings">Desabilitar mensagens de alerta</string>
@@ -69,7 +69,7 @@
     <string name="scut_invalid_uuid">O PC informado não é válido</string>
     <string name="scut_invalid_app_id">O aplicativo informado não é válido</string>
     <string name="pcview_menu_header_online">Disponível</string>
-    <string name="pcview_menu_app_list">Ver Todos os Aplicativos</string>
+    <string name="pcview_menu_app_list">Ver Todos os Jogos</string>
     <string name="pcview_menu_unpair_pc">Desparear</string>
     <string name="pcview_menu_delete_pc">Deletar PC</string>
     <string name="pcview_menu_test_network">Testar Conexão com a Internet</string>
@@ -131,14 +131,14 @@
     <string name="perf_overlay_netlatency">Latência média da rede: %1$d ms (variação: %2$d ms)</string>
     <string name="perf_overlay_dectime">Tempo médio de decodificação: %1$.2f ms</string>
     <string name="applist_connect_msg">Conectando ao PC…</string>
-    <string name="applist_menu_resume">Retomar Sessão</string>
-    <string name="applist_menu_quit">Fechar Sessão</string>
+    <string name="applist_menu_resume">Retornar ao Jogo</string>
+    <string name="applist_menu_quit">Sair do Jogo</string>
     <string name="applist_menu_quit_and_start">Sair do Jogo Atual e Iniciar</string>
     <string name="applist_menu_cancel">Cancelar</string>
     <string name="applist_menu_details">Ver Detalhes</string>
     <string name="applist_menu_scut">Criar Atalho</string>
     <string name="applist_menu_tv_channel">Adicionar ao Canal</string>
-    <string name="applist_menu_hide_app">Esconder Aplicativo</string>
+    <string name="applist_menu_hide_app">Esconder Jogo</string>
     <string name="applist_refresh_title">Lista de Aplicativos</string>
     <string name="perf_overlay_netdrops">Quadros dropados pela rede: %1$.2f%%</string>
     <string name="applist_quit_app">Saindo</string>

@@ -132,7 +132,7 @@
     <string name="perf_overlay_dectime">Tempo médio de decodificação: %1$.2f ms</string>
     <string name="applist_connect_msg">Conectando ao PC…</string>
     <string name="applist_menu_resume">Retomar Sessão</string>
-    <string name="applist_menu_quit">Fechar Seção</string>
+    <string name="applist_menu_quit">Fechar Sessão</string>
     <string name="applist_menu_quit_and_start">Sair do Jogo Atual e Iniciar</string>
     <string name="applist_menu_cancel">Cancelar</string>
     <string name="applist_menu_details">Ver Detalhes</string>
@@ -175,7 +175,7 @@
     <string name="resolution_prefix_native_fullscreen">Nativa Tela Cheia</string>
     <string name="category_audio_settings">Configurações de Áudio</string>
     <string name="title_audio_config_list">Configurações de som Surround</string>
-    <string name="summary_audio_config_list">Habilita o som surround 5.1 ou 7.1 para sistemas de home theater</string>
+    <string name="summary_audio_config_list">Habilita o som Surround 5.1 ou 7.1 para sistemas de home theater</string>
     <string name="addpc_wrong_sitelocal">Esse endereço não parece certo. Você deve usar o endereço de IP público do seu roteador para transmitir pela Internet.</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
     <string name="title_checkbox_show_onscreen_controls">Mostrar controles na tela</string>
@@ -183,7 +183,7 @@
     <string name="title_checkbox_vibrate_osc">Habilitar vibração</string>
     <string name="title_only_l3r3">Mostrar somente L3 e R3</string>
     <string name="summary_only_l3r3">Esconde todos os botões virtuais exceto o L3 e R3</string>
-    <string name="title_checkbox_touchscreen_trackpad">Usar a tela um como um trackpad</string>
+    <string name="title_checkbox_touchscreen_trackpad">Usar a tela como um trackpad</string>
     <string name="title_checkbox_multi_controller">Detecção automática de gamepad</string>
     <string name="summary_checkbox_multi_controller">Desmarque esta opção para forçar o gamepad a estar sempre presente</string>
     <string name="title_checkbox_vibrate_fallback">Emular suporte rumble com vibração</string>

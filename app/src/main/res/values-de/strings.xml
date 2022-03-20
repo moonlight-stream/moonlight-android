@@ -97,7 +97,6 @@
     <string name="perf_overlay_renderingfps">Wiedergabe-Bildwiederholungsrate: %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">Wegen Netzwerkübertragung ausgelassene Frames: %1$.2f%%</string>
     <string name="perf_overlay_dectime">Durchschnittliche Dekodierungszeit: %1$.2f ms</string>
-
     <!-- AppList activity -->
     <string name="applist_connect_msg">Verbinde mit Host…</string>
     <string name="applist_menu_resume">Sitzung wiederherstellen</string>
@@ -133,7 +132,7 @@
     <string name="summary_fps_list">Erhöhen für einen gleichmäßigeren Video-Stream. Verringern um auf langsameren Geräten eine bessere Performance zu erzielen.</string>
     <string name="title_seekbar_bitrate">Video Bitrate</string>
     <string name="summary_seekbar_bitrate">Erhöhen für einen schärferen Video-Stream. Verringern um auf langsameren Geräten eine bessere Performance zu erzielen.</string>
-    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbit/s</string>
     <string name="title_checkbox_stretch_video">Video auf Vollbildschirm strecken</string>
     <string name="category_audio_settings">Audio Einstellungen</string>
     <string name="title_audio_config_list">Surround Sound Konfiguration </string>
@@ -192,8 +191,8 @@
     <string name="title_checkbox_disable_warnings">Warnhinweise deaktivieren</string>
     <string name="summary_checkbox_disable_warnings">On-Screen Warnmeldungen während des Streaming deaktivieren</string>
     <string name="summary_disable_frame_drop">Kann das Mikro-Ruckeln auf einigen Geräten reduzieren, allerdings erhöht dies gleichzeitig die Latenz</string>
-    <string name="title_video_format">H265 Einstellungen ändern</string>
-    <string name="summary_video_format">H265 verringert die Video-Bandbreitenanforderung, funktioniert allerdings nur auf sehr neuen Geräten</string>
+    <string name="title_video_format">HEVC Einstellungen ändern</string>
+    <string name="summary_video_format">HEVC verringert die Video-Bandbreitenanforderung, funktioniert allerdings nur auf sehr neuen Geräten</string>
     <string name="title_enable_hdr">HDR aktivieren (experimentell)</string>
     <string name="summary_enable_hdr">HDR-Streaming sofern dies von der Host-GPU unterstützt wird. HDR erfordert eine GPU der GTX 1000 Serie oder neuer.</string>
     <string name="title_enable_perf_overlay">Performance Overlay aktivieren</string>
@@ -218,9 +217,29 @@
     <string name="pcview_menu_header_unknown">Aktualisiere</string>
     <string name="pcview_menu_header_offline">Offline</string>
     <string name="pcview_menu_header_online">Online</string>
-
     <!-- Array strings -->
     <string name="videoformat_hevcauto">Verwende HEVC so fern stabile Unterstützung vorhanden ist</string>
     <string name="videoformat_hevcalways">Immer HEVC verwenden (könnte Crashes verursachen)</string>
     <string name="videoformat_hevcnever">Nie HEVC verwenden</string>
+    <string name="title_frame_pacing">Video Frame-Pacing</string>
+    <string name="summary_frame_pacing">Lege fest, wie die Videolatenz und die flüssige Wiedergabe ausgeglichen werden sollen</string>
+    <string name="resolution_prefix_native_fullscreen">Natives Vollbild</string>
+    <string name="pacing_latency">Bevorzuge niedrigste Latenz</string>
+    <string name="pacing_balanced">Ausgeglichen</string>
+    <string name="pacing_smoothness">Bevorzuge flüssige Bildwiedergabe (kann die Latenzzeit deutlich erhöhen)</string>
+    <string name="perf_overlay_streamdetails">Video Stream: %1$s %2$.2f FPS</string>
+    <string name="resolution_360p">360p</string>
+    <string name="resolution_1080p">1080p</string>
+    <string name="resolution_1440p">1440p</string>
+    <string name="resolution_4k">4K</string>
+    <string name="audioconf_stereo">Stereo</string>
+    <string name="audioconf_51surround">5.1 Surround Sound</string>
+    <string name="audioconf_71surround">7.1 Surround Sound</string>
+    <string name="perf_overlay_netlatency">Durchschnittliche Netzwerklatenz: %1$d ms (Abweichung: %2$d ms)</string>
+    <string name="fps_30">30 FPS</string>
+    <string name="resolution_480p">480p</string>
+    <string name="fps_120">120 FPS</string>
+    <string name="resolution_720p">720p</string>
+    <string name="fps_60">60 FPS</string>
+    <string name="fps_90">90 FPS</string>
 </resources>

@@ -18,7 +18,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
 public class ComputerDatabaseManager {
-    private static final String COMPUTER_DB_NAME = "computers3.db";
+    private static final String COMPUTER_DB_NAME = "computers.db";
     private static final String COMPUTER_TABLE_NAME = "Computers";
     private static final String COMPUTER_UUID_COLUMN_NAME = "UUID";
     private static final String COMPUTER_NAME_COLUMN_NAME = "ComputerName";

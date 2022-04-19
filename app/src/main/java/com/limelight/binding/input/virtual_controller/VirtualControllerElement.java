@@ -14,6 +14,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+import com.limelight.LimeLog;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -111,38 +113,6 @@ public abstract class VirtualControllerElement extends View {
         super.onDraw(canvas);
     }
 
-    /*
-    protected void actionShowNormalColorChooser() {
-        AmbilWarnaDialog colorDialog = new AmbilWarnaDialog(getContext(), normalColor, true, new AmbilWarnaDialog.OnAmbilWarnaListener() {
-            @Override
-            public void onCancel(AmbilWarnaDialog dialog)
-            {}
-
-            @Override
-            public void onOk(AmbilWarnaDialog dialog, int color) {
-                normalColor = color;
-                invalidate();
-            }
-        });
-        colorDialog.show();
-    }
-
-    protected void actionShowPressedColorChooser() {
-        AmbilWarnaDialog colorDialog = new AmbilWarnaDialog(getContext(), normalColor, true, new AmbilWarnaDialog.OnAmbilWarnaListener() {
-            @Override
-            public void onCancel(AmbilWarnaDialog dialog) {
-            }
-
-            @Override
-            public void onOk(AmbilWarnaDialog dialog, int color) {
-                pressedColor = color;
-                invalidate();
-            }
-        });
-        colorDialog.show();
-    }
-    */
-
     protected void actionEnableMove() {
         currentMode = Mode.Move;
     }
@@ -178,11 +148,6 @@ public abstract class VirtualControllerElement extends View {
         CharSequence functions[] = new CharSequence[]{
                 "Move",
                 "Resize",
-            /*election
-            "Set n
-            Disable color sormal color",
-            "Set pressed color",
-            */
                 "Cancel"
         };
 
@@ -199,16 +164,6 @@ public abstract class VirtualControllerElement extends View {
                         actionEnableResize();
                         break;
                     }
-                /*
-                case 2: { // set default color
-                    actionShowNormalColorChooser();
-                    break;
-                }
-                case 3: { // set pressed color
-                    actionShowPressedColorChooser();
-                    break;
-                }
-                */
                     default: { // cancel
                         actionCancel();
                         break;
@@ -282,17 +237,10 @@ public abstract class VirtualControllerElement extends View {
 
     abstract public boolean onElementTouchEvent(MotionEvent event);
 
-    protected static final void _DBG(String text) {
+    protected static void _DBG(String text) {
         if (_PRINT_DEBUG_INFORMATION) {
-            System.out.println(text);
+            LimeLog.info(text);
         }
-    }
-
-    public void setColors(int normalColor, int pressedColor) {
-        this.normalColor = normalColor;
-        this.pressedColor = pressedColor;
-
-        invalidate();
     }
 
 

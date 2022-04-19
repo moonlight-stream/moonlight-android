@@ -18,15 +18,9 @@ import org.json.JSONObject;
 public class VirtualControllerConfigurationLoader {
     public static final String OSC_PREFERENCE = "OSC";
 
-    private static int getPercent(
-            int percent,
-            int total) {
-        return (int) (((float) total / (float) 100) * (float) percent);
-    }
-
     // The default controls are specified using a grid of 128*72 cells at 16:9
     private static int screenScale(int units, int height) {
-        return (int) (((float) height / (float) 72) * (float) units);
+        return (int) (((float) height / (float) FULL_HEIGHT) * (float) units);
     }
 
     private static DigitalPad createDigitalPad(
@@ -149,7 +143,14 @@ public class VirtualControllerConfigurationLoader {
             final Context context) {
         return new RightAnalogStick(controller, context);
     }
+    private static VirtualMouse createVirtualMouse(
+            final VirtualController controller,
+            final Context context) {
+        return new VirtualMouse(controller, context);
+    }
 
+
+    private static final int FULL_HEIGHT = 72;
 
     private static final int TRIGGER_L_BASE_X = 1;
     private static final int TRIGGER_R_BASE_X = 92;
@@ -191,8 +192,12 @@ public class VirtualControllerConfigurationLoader {
 
         int height = screen.heightPixels;
 
-        // NOTE: Some of these getPercent() expressions seem like they can be combined
-        // into a single call. Due to floating point rounding, this isn't actually possible.
+        controller.addVirtualMouse(createVirtualMouse(controller, context),
+                0,
+                0,
+                screen.widthPixels,
+                screen.heightPixels
+        );
 
         if (!config.onlyL3R3)
         {

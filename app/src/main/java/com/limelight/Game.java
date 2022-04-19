@@ -446,6 +446,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     (FrameLayout)streamView.getParent(),
                     this);
             virtualController.refreshLayout();
+            virtualController.initializeVirtualMouse(touchContextMap);
             virtualController.show();
         }
 
@@ -1328,10 +1329,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // This case is for fingers
             else
             {
-                if (virtualController != null &&
-                        (virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons ||
-                         virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)) {
-                    // Ignore presses when the virtual controller is being configured
+                // When the virtual controller is present, the VirtualMouse class handles mouse/keyboard instead
+                if (virtualController != null) {
                     return true;
                 }
 

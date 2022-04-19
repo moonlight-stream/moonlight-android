@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.limelight.R;
 import com.limelight.binding.input.ControllerHandler;
+import com.limelight.binding.input.touch.TouchContext;
 import com.limelight.nvstream.NvConnection;
 
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ public class VirtualController {
     private Button buttonConfigure = null;
 
     private List<VirtualControllerElement> elements = new ArrayList<>();
+    private VirtualMouse virtualMouse = null;
 
     public VirtualController(final ControllerHandler controllerHandler, FrameLayout layout, final Context context) {
         this.controllerHandler = controllerHandler;
@@ -139,6 +141,13 @@ public class VirtualController {
 
         relative_layout.addView(element, layoutParams);
     }
+    public void addVirtualMouse(VirtualMouse element, int x, int y, int width, int height) {
+        virtualMouse = element;
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(width, height);
+        layoutParams.setMargins(x, y, 0, 0);
+
+        relative_layout.addView(element, layoutParams);
+    }
 
     public List<VirtualControllerElement> getElements() {
         return elements;
@@ -169,6 +178,10 @@ public class VirtualController {
 
         // Apply user preferences onto the default layout
         VirtualControllerConfigurationLoader.loadFromPreferences(this, context);
+    }
+
+    public void initializeVirtualMouse(TouchContext[] touchContextMap) {
+        virtualMouse.touchContextMap = touchContextMap;
     }
 
     public ControllerMode getControllerMode() {

@@ -1329,8 +1329,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // This case is for fingers
             else
             {
-                // When the virtual controller is present, the VirtualMouse class handles mouse/keyboard instead
-                if (virtualController != null) {
+                // When the virtual controller is present
+                // Only enable mouse control when the controller is not in resize/move button mode
+                if (virtualController != null &&
+                        virtualController.getControllerMode() != VirtualController.ControllerMode.Active) {
                     return true;
                 }
 

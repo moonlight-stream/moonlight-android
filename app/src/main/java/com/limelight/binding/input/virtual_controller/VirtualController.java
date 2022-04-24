@@ -16,11 +16,13 @@ import com.limelight.R;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.touch.TouchContext;
 import com.limelight.nvstream.NvConnection;
+import com.limelight.ui.StreamView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Stream;
 
 public class VirtualController {
     public static class ControllerInputContext {
@@ -178,10 +180,6 @@ public class VirtualController {
 
         // Apply user preferences onto the default layout
         VirtualControllerConfigurationLoader.loadFromPreferences(this, context);
-    }
-
-    public void initializeVirtualMouse(TouchContext[] touchContextMap) {
-        virtualMouse.touchContextMap = touchContextMap;
     }
 
     public ControllerMode getControllerMode() {

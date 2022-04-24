@@ -446,7 +446,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     (FrameLayout)streamView.getParent(),
                     this);
             virtualController.refreshLayout();
-            virtualController.initializeVirtualMouse(touchContextMap);
             virtualController.show();
         }
 

@@ -143,11 +143,6 @@ public class VirtualControllerConfigurationLoader {
             final Context context) {
         return new RightAnalogStick(controller, context);
     }
-    private static VirtualMouse createVirtualMouse(
-            final VirtualController controller,
-            final Context context) {
-        return new VirtualMouse(controller, context);
-    }
 
 
     private static final int FULL_HEIGHT = 72;
@@ -192,12 +187,14 @@ public class VirtualControllerConfigurationLoader {
 
         int height = screen.heightPixels;
 
-        controller.addVirtualMouse(createVirtualMouse(controller, context),
+
+        controller.addVirtualMouse(new VirtualMouse(context),
                 0,
                 0,
                 screen.widthPixels,
                 screen.heightPixels
         );
+
 
         if (!config.onlyL3R3)
         {

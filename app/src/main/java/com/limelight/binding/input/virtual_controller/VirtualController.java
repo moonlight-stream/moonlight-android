@@ -14,15 +14,12 @@ import android.widget.Toast;
 
 import com.limelight.R;
 import com.limelight.binding.input.ControllerHandler;
-import com.limelight.binding.input.touch.TouchContext;
-import com.limelight.nvstream.NvConnection;
 import com.limelight.ui.StreamView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.stream.Stream;
 
 public class VirtualController {
     public static class ControllerInputContext {
@@ -48,6 +45,7 @@ public class VirtualController {
 
     private FrameLayout frame_layout = null;
     private RelativeLayout relative_layout = null;
+    private StreamView streamView = null;
 
     private Timer retransmitTimer;
 
@@ -57,12 +55,12 @@ public class VirtualController {
     private Button buttonConfigure = null;
 
     private List<VirtualControllerElement> elements = new ArrayList<>();
-    private VirtualMouse virtualMouse = null;
 
-    public VirtualController(final ControllerHandler controllerHandler, FrameLayout layout, final Context context) {
+    public VirtualController(final ControllerHandler controllerHandler, FrameLayout layout, StreamView streamView, final Context context) {
         this.controllerHandler = controllerHandler;
         this.frame_layout = layout;
         this.context = context;
+        this.streamView = streamView;
 
         relative_layout = new RelativeLayout(context);
 
@@ -143,13 +141,6 @@ public class VirtualController {
 
         relative_layout.addView(element, layoutParams);
     }
-    public void addVirtualMouse(VirtualMouse element, int x, int y, int width, int height) {
-        virtualMouse = element;
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(width, height);
-        layoutParams.setMargins(x, y, 0, 0);
-
-        relative_layout.addView(element, layoutParams);
-    }
 
     public List<VirtualControllerElement> getElements() {
         return elements;
@@ -174,6 +165,7 @@ public class VirtualController {
         params.leftMargin = 15;
         params.topMargin = 15;
         relative_layout.addView(buttonConfigure, params);
+        relative_layout.addView(streamView);
 
         // Start with the default layout
         VirtualControllerConfigurationLoader.createDefaultLayout(this, context);

@@ -144,7 +144,6 @@ public class VirtualControllerConfigurationLoader {
         return new RightAnalogStick(controller, context);
     }
 
-
     private static final int FULL_HEIGHT = 72;
 
     private static final int TRIGGER_L_BASE_X = 1;
@@ -186,15 +185,6 @@ public class VirtualControllerConfigurationLoader {
         int rightDisplacement = screen.widthPixels - screen.heightPixels * 16 / 9;
 
         int height = screen.heightPixels;
-
-
-        controller.addVirtualMouse(new VirtualMouse(context),
-                0,
-                0,
-                screen.widthPixels,
-                screen.heightPixels
-        );
-
 
         if (!config.onlyL3R3)
         {

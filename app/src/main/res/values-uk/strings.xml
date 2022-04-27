@@ -217,9 +217,26 @@
     <string name="pcview_menu_header_unknown">Оновлення</string>
     <string name="pcview_menu_header_offline">Поза мережею</string>
     <string name="pcview_menu_header_online">В мережі</string>
-
     <!-- Array strings -->
     <string name="videoformat_hevcauto">Використовувати HEVC тільки якщо безпечно</string>
     <string name="videoformat_hevcalways">Завжди використовувати HEVC якщо доступно</string>
     <string name="videoformat_hevcnever">Ніколи не використовувати HEVC</string>
+    <string name="title_frame_pacing">Швидкість кадрів відео</string>
+    <string name="summary_frame_pacing">Укажіть баланс відео затримки та плавності</string>
+    <string name="pacing_latency">Перевага найменшій затримці</string>
+    <string name="pacing_smoothness">Перевага плавному відео (може значно збільшити затримку)</string>
+    <string name="pacing_balanced">Збалансовано</string>
+    <string name="resolution_360p">360p</string>
+    <string name="resolution_480p">480p</string>
+    <string name="resolution_720p">720p</string>
+    <string name="resolution_1080p">1080p</string>
+    <string name="resolution_1440p">1440p</string>
+    <string name="resolution_4k">4K</string>
+    <string name="fps_30">30 кадрів/сек</string>
+    <string name="fps_60">60 кадрів/сек</string>
+    <string name="fps_90">90 кадрів/сек</string>
+    <string name="fps_120">120 кадрів/сек</string>
+    <string name="audioconf_stereo">Стерео</string>
+    <string name="audioconf_51surround">5.1 Об\'ємний Звук</string>
+    <string name="audioconf_71surround">7.1 Об\'ємний Звук</string>
 </resources>

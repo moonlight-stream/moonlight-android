@@ -98,11 +98,13 @@
     <string-array name="video_frame_pacing_names">
         <item>@string/pacing_latency</item>
         <item>@string/pacing_balanced</item>
+        <item>@string/pacing_balanced_alt</item>
         <item>@string/pacing_smoothness</item>
     </string-array>
     <string-array name="video_frame_pacing_values" translatable="false">
         <item>latency</item>
         <item>balanced</item>
+        <item>cap-fps</item>
         <item>smoothness</item>
     </string-array>
 </resources>

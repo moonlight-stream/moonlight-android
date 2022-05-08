@@ -252,5 +252,6 @@
     <string name="summary_frame_pacing">Specify how to balance video latency and smoothness</string>
     <string name="pacing_latency">Prefer lowest latency</string>
     <string name="pacing_balanced">Balanced</string>
+    <string name="pacing_balanced_alt">Balanced with FPS cap (may perform better on certain devices)</string>
     <string name="pacing_smoothness">Prefer smoothest video (may significantly increase latency)</string>
 </resources>

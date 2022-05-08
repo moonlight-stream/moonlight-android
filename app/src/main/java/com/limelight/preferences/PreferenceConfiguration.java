@@ -80,7 +80,8 @@ public class PreferenceConfiguration {
 
     public static final int FRAME_PACING_MIN_LATENCY = 0;
     public static final int FRAME_PACING_BALANCED = 1;
-    public static final int FRAME_PACING_MAX_SMOOTHNESS = 2;
+    public static final int FRAME_PACING_CAP_FPS = 2;
+    public static final int FRAME_PACING_MAX_SMOOTHNESS = 3;
 
     public static final String RES_360P = "640x360";
     public static final String RES_480P = "854x480";
@@ -287,6 +288,9 @@ public class PreferenceConfiguration {
         }
         else if (str.equals("balanced")) {
             return FRAME_PACING_BALANCED;
+        }
+        else if (str.equals("cap-fps")) {
+            return FRAME_PACING_CAP_FPS;
         }
         else if (str.equals("smoothness")) {
             return FRAME_PACING_MAX_SMOOTHNESS;

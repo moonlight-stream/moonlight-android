@@ -99,6 +99,7 @@
         <activity
             android:name=".preferences.StreamSettings"
             android:resizeableActivity="true"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:label="Streaming Settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -108,6 +109,7 @@
             android:name=".preferences.AddComputerManually"
             android:resizeableActivity="true"
             android:windowSoftInputMode="stateVisible"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:label="Add Computer Manually">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

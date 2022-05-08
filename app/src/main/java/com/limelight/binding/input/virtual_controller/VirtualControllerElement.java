@@ -12,7 +12,7 @@ import android.graphics.Paint;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.RelativeLayout;
+import android.widget.FrameLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,7 +72,7 @@ public abstract class VirtualControllerElement extends View {
         int newPos_x = (int) getX() + x - pressed_x;
         int newPos_y = (int) getY() + y - pressed_y;
 
-        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) getLayoutParams();
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
 
         layoutParams.leftMargin = newPos_x > 0 ? newPos_x : 0;
         layoutParams.topMargin = newPos_y > 0 ? newPos_y : 0;
@@ -83,7 +83,7 @@ public abstract class VirtualControllerElement extends View {
     }
 
     protected void resizeElement(int pressed_x, int pressed_y, int width, int height) {
-        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) getLayoutParams();
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
 
         int newHeight = height + (startSize_y - pressed_y);
         int newWidth = width + (startSize_x - pressed_x);
@@ -316,7 +316,7 @@ public abstract class VirtualControllerElement extends View {
     public JSONObject getConfiguration() throws JSONException {
         JSONObject configuration = new JSONObject();
 
-        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) getLayoutParams();
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
 
         configuration.put("LEFT", layoutParams.leftMargin);
         configuration.put("TOP", layoutParams.topMargin);
@@ -327,7 +327,7 @@ public abstract class VirtualControllerElement extends View {
     }
 
     public void loadConfiguration(JSONObject configuration) throws JSONException {
-        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) getLayoutParams();
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
 
         layoutParams.leftMargin = configuration.getInt("LEFT");
         layoutParams.topMargin = configuration.getInt("TOP");

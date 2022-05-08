@@ -220,19 +220,26 @@
     <string name="resolution_prefix_native_fullscreen">Plein-écran natif</string>
     <string name="perf_overlay_netlatency">Latence réseau moyenne : %1$d ms (variance : %2$d ms)</string>
     <string name="perf_overlay_streamdetails">Stream vidéo : %1$s %2$.2f FPS</string>
-
     <!-- Array strings -->
     <string name="fps_30">30 IPS</string>
     <string name="fps_60">60 IPS</string>
     <string name="fps_90">90 IPS</string>
     <string name="fps_120">120 IPS</string>
-
     <string name="audioconf_stereo">Stéréo</string>
     <string name="audioconf_51surround">Son surround 5.1</string>
     <string name="audioconf_71surround">Son surround 7.1</string>
-
     <string name="videoformat_hevcauto">Utiliser HEVC uniquement s\'il est stable</string>
     <string name="videoformat_hevcalways">Utilisez toujours HEVC (mais il peut planter)</string>
     <string name="videoformat_hevcnever">N\'utilisez jamais HEVC</string>
-    
+    <string name="title_frame_pacing">Frame-pacing vidéo</string>
+    <string name="summary_frame_pacing">Spécifiez comment équilibrer latence et fluidité de la vidéo</string>
+    <string name="pacing_latency">Préférer une latence plus faible</string>
+    <string name="pacing_balanced">Équilibré</string>
+    <string name="resolution_720p">720p</string>
+    <string name="pacing_smoothness">Préférer la qualité vidéo (risque d\'augmenter la latence)</string>
+    <string name="resolution_360p">360p</string>
+    <string name="resolution_480p">480p</string>
+    <string name="resolution_1440p">1440p</string>
+    <string name="resolution_1080p">1080p</string>
+    <string name="resolution_4k">4K</string>
 </resources>

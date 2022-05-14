@@ -5,8 +5,6 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -49,8 +47,7 @@ public class ComputerManagerService extends Service {
     private static final int APPLIST_POLLING_PERIOD_MS = 30000;
     private static final int APPLIST_FAILED_POLLING_RETRY_MS = 2000;
     private static final int MDNS_QUERY_PERIOD_MS = 1000;
-    private static final int FAST_POLL_TIMEOUT = 1000;
-    private static final int OFFLINE_POLL_TRIES = 5;
+    private static final int OFFLINE_POLL_TRIES = 3;
     private static final int INITIAL_POLL_TRIES = 2;
     private static final int EMPTY_LIST_THRESHOLD = 3;
     private static final int POLL_DATA_TTL_MS = 30000;
@@ -528,11 +525,6 @@ public class ComputerManagerService extends Service {
     }
 
     private ComputerDetails tryPollIp(ComputerDetails details, String address) {
-        // Fast poll this address first to determine if we can connect at the TCP layer
-        if (!fastPollIp(address)) {
-            return null;
-        }
-
         try {
             NvHTTP http = new NvHTTP(address, idManager.getUniqueId(), details.serverCert,
                     PlatformBinding.getCryptoProvider(ComputerManagerService.this));
@@ -551,104 +543,113 @@ public class ComputerManagerService extends Service {
                 return null;
             }
 
-            // Set the new active address
-            newDetails.activeAddress = address;
-
             return newDetails;
-        } catch (XmlPullParserException | IOException e) {
+        } catch (XmlPullParserException e) {
             e.printStackTrace();
+            return null;
+        } catch (IOException e) {
             return null;
         }
     }
 
-    // Just try to establish a TCP connection to speculatively detect a running
-    // GFE server
-    private boolean fastPollIp(String address) {
-        if (address == null) {
-            // Don't bother if our address is null
-            return false;
-        }
+    private static class ParallelPollTuple {
+        public String address;
+        public ComputerDetails existingDetails;
 
-        Socket s = new Socket();
-        try {
-            s.connect(new InetSocketAddress(address, NvHTTP.HTTPS_PORT), FAST_POLL_TIMEOUT);
-            s.close();
-            return true;
-        } catch (IOException e) {
-            return false;
+        public boolean complete;
+        public ComputerDetails returnedDetails;
+
+        public ParallelPollTuple(String address, ComputerDetails existingDetails) {
+            this.address = address;
+            this.existingDetails = existingDetails;
         }
     }
 
-    private void startFastPollThread(final String address, final boolean[] info) {
+    private void startParallelPollThread(ParallelPollTuple tuple, HashSet<String> uniqueAddresses) {
+        // Don't bother starting a polling thread for an address that doesn't exist
+        // or if the address has already been polled with an earlier tuple
+        if (tuple.address == null || !uniqueAddresses.add(tuple.address)) {
+            tuple.complete = true;
+            tuple.returnedDetails = null;
+            return;
+        }
+
         Thread t = new Thread() {
             @Override
             public void run() {
-                boolean pollRes = fastPollIp(address);
+                ComputerDetails details = tryPollIp(tuple.existingDetails, tuple.address);
 
-                synchronized (info) {
-                    info[0] = true; // Done
-                    info[1] = pollRes; // Polling result
+                synchronized (tuple) {
+                    tuple.complete = true; // Done
+                    tuple.returnedDetails = details; // Polling result
 
-                    info.notify();
+                    tuple.notify();
                 }
             }
         };
-        t.setName("Fast Poll - "+address);
+        t.setName("Parallel Poll - "+tuple.address+" - "+tuple.existingDetails.name);
         t.start();
     }
 
-    private String fastPollPc(final String localAddress, final String remoteAddress, final String manualAddress, final String ipv6Address) throws InterruptedException {
-        final boolean[] remoteInfo = new boolean[2];
-        final boolean[] localInfo = new boolean[2];
-        final boolean[] manualInfo = new boolean[2];
-        final boolean[] ipv6Info = new boolean[2];
+    private ComputerDetails parallelPollPc(ComputerDetails details) throws InterruptedException {
+        ParallelPollTuple localInfo = new ParallelPollTuple(details.localAddress, details);
+        ParallelPollTuple manualInfo = new ParallelPollTuple(details.manualAddress, details);
+        ParallelPollTuple remoteInfo = new ParallelPollTuple(details.remoteAddress, details);
+        ParallelPollTuple ipv6Info = new ParallelPollTuple(details.ipv6Address, details);
 
-        startFastPollThread(localAddress, localInfo);
-        startFastPollThread(remoteAddress, remoteInfo);
-        startFastPollThread(manualAddress, manualInfo);
-        startFastPollThread(ipv6Address, ipv6Info);
+        // These must be started in order of precedence for the deduplication algorithm
+        // to result in the correct behavior.
+        HashSet<String> uniqueAddresses = new HashSet<>();
+        startParallelPollThread(localInfo, uniqueAddresses);
+        startParallelPollThread(manualInfo, uniqueAddresses);
+        startParallelPollThread(remoteInfo, uniqueAddresses);
+        startParallelPollThread(ipv6Info, uniqueAddresses);
 
         // Check local first
         synchronized (localInfo) {
-            while (!localInfo[0]) {
+            while (!localInfo.complete) {
                 localInfo.wait(500);
             }
 
-            if (localInfo[1]) {
-                return localAddress;
+            if (localInfo.returnedDetails != null) {
+                localInfo.returnedDetails.activeAddress = localInfo.address;
+                return localInfo.returnedDetails;
             }
         }
 
         // Now manual
         synchronized (manualInfo) {
-            while (!manualInfo[0]) {
+            while (!manualInfo.complete) {
                 manualInfo.wait(500);
             }
 
-            if (manualInfo[1]) {
-                return manualAddress;
+            if (manualInfo.returnedDetails != null) {
+                manualInfo.returnedDetails.activeAddress = manualInfo.address;
+                return manualInfo.returnedDetails;
             }
         }
 
         // Now remote IPv4
         synchronized (remoteInfo) {
-            while (!remoteInfo[0]) {
+            while (!remoteInfo.complete) {
                 remoteInfo.wait(500);
             }
 
-            if (remoteInfo[1]) {
-                return remoteAddress;
+            if (remoteInfo.returnedDetails != null) {
+                remoteInfo.returnedDetails.activeAddress = remoteInfo.address;
+                return remoteInfo.returnedDetails;
             }
         }
 
         // Now global IPv6
         synchronized (ipv6Info) {
-            while (!ipv6Info[0]) {
+            while (!ipv6Info.complete) {
                 ipv6Info.wait(500);
             }
 
-            if (ipv6Info[1]) {
-                return ipv6Address;
+            if (ipv6Info.returnedDetails != null) {
+                ipv6Info.returnedDetails.activeAddress = ipv6Info.address;
+                return ipv6Info.returnedDetails;
             }
         }
 
@@ -656,41 +657,10 @@ public class ComputerManagerService extends Service {
     }
 
     private boolean pollComputer(ComputerDetails details) throws InterruptedException {
-        ComputerDetails polledDetails;
-
-        // Do a TCP-level connection to the HTTP server to see if it's listening.
-        // Do not write this address to details.activeAddress because:
-        // a) it's only a candidate and may be wrong (multiple PCs behind a single router)
-        // b) if it's null, it will be unexpectedly nulling the activeAddress of a possibly online PC
-        LimeLog.info("Starting fast poll for "+details.name+" ("+details.localAddress +", "+details.remoteAddress +", "+details.manualAddress+", "+details.ipv6Address+")");
-        String candidateAddress = fastPollPc(details.localAddress, details.remoteAddress, details.manualAddress, details.ipv6Address);
-        LimeLog.info("Fast poll for "+details.name+" returned candidate address: "+candidateAddress);
-
-        // If no connection could be established to either IP address, there's nothing we can do
-        if (candidateAddress == null) {
-            return false;
-        }
-
-        // Try using the active address from fast-poll
-        polledDetails = tryPollIp(details, candidateAddress);
-        if (polledDetails == null) {
-            // If that failed, try all unique addresses except what we've
-            // already tried
-            HashSet<String> uniqueAddresses = new HashSet<>();
-            uniqueAddresses.add(details.localAddress);
-            uniqueAddresses.add(details.manualAddress);
-            uniqueAddresses.add(details.remoteAddress);
-            uniqueAddresses.add(details.ipv6Address);
-            for (String addr : uniqueAddresses) {
-                if (addr == null || addr.equals(candidateAddress)) {
-                    continue;
-                }
-                polledDetails = tryPollIp(details, addr);
-                if (polledDetails != null) {
-                    break;
-                }
-            }
-        }
+        // Poll all addresses in parallel to speed up the process
+        LimeLog.info("Starting parallel poll for "+details.name+" ("+details.localAddress +", "+details.remoteAddress +", "+details.manualAddress+", "+details.ipv6Address+")");
+        ComputerDetails polledDetails = parallelPollPc(details);
+        LimeLog.info("Parallel poll for "+details.name+" returned address: "+details.activeAddress);
 
         if (polledDetails != null) {
             details.update(polledDetails);

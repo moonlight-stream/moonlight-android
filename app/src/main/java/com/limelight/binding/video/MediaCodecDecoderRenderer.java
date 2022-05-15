@@ -86,6 +86,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     private LinkedBlockingQueue<Integer> outputBufferQueue = new LinkedBlockingQueue<>();
     private static final int OUTPUT_BUFFER_QUEUE_LIMIT = 2;
+    private long lastRenderedFrameTimeNanos;
 
     private int numSpsIn;
     private int numPpsIn;
@@ -419,21 +420,28 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             return;
         }
 
-        // Render up to one frame when in frame pacing mode.
-        //
-        // NB: Since the queue limit is 2, we won't starve the decoder of output buffers
-        // by holding onto them for too long. This also ensures we will have that 1 extra
-        // frame of buffer to smooth over network/rendering jitter.
-        Integer nextOutputBuffer = outputBufferQueue.poll();
-        if (nextOutputBuffer != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                videoDecoder.releaseOutputBuffer(nextOutputBuffer, frameTimeNanos);
-            }
-            else {
-                videoDecoder.releaseOutputBuffer(nextOutputBuffer, true);
-            }
+        // Don't render unless a new frame is due. This prevents microstutter when streaming
+        // at a frame rate that doesn't match the display (such as 60 FPS on 120 Hz).
+        long actualFrameTimeDeltaNs = frameTimeNanos - lastRenderedFrameTimeNanos;
+        long expectedFrameTimeDeltaNs = 800000000 / refreshRate; // within 80% of the next frame
+        if (actualFrameTimeDeltaNs >= expectedFrameTimeDeltaNs) {
+            // Render up to one frame when in frame pacing mode.
+            //
+            // NB: Since the queue limit is 2, we won't starve the decoder of output buffers
+            // by holding onto them for too long. This also ensures we will have that 1 extra
+            // frame of buffer to smooth over network/rendering jitter.
+            Integer nextOutputBuffer = outputBufferQueue.poll();
+            if (nextOutputBuffer != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    videoDecoder.releaseOutputBuffer(nextOutputBuffer, frameTimeNanos);
+                }
+                else {
+                    videoDecoder.releaseOutputBuffer(nextOutputBuffer, true);
+                }
 
-            activeWindowVideoStats.totalFramesRendered++;
+                lastRenderedFrameTimeNanos = frameTimeNanos;
+                activeWindowVideoStats.totalFramesRendered++;
+            }
         }
 
         // Request another callback for next frame

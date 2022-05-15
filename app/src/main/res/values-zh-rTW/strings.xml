@@ -241,4 +241,5 @@
     <string name="pacing_balanced">平衡</string>
     <string name="pacing_smoothness">偏好平滑視訊 (可能顯著提高延遲)</string>
     <string name="pacing_latency">偏好低延遲</string>
+    <string name="pacing_balanced_alt">FPS 上限平衡 (在某些裝置上可能有更好的表現)</string>
 </resources>

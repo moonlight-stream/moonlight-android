@@ -395,7 +395,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         int chosenFrameRate = prefConfig.fps;
         if (prefConfig.framePacing == PreferenceConfiguration.FRAME_PACING_CAP_FPS) {
             if (prefConfig.fps >= roundedRefreshRate) {
-                if (prefConfig.unlockFps) {
+                if (prefConfig.fps > roundedRefreshRate + 3) {
                     // Use frame drops when rendering above the screen frame rate
                     prefConfig.framePacing = PreferenceConfiguration.FRAME_PACING_BALANCED;
                     LimeLog.info("Using drop mode for FPS > Hz");

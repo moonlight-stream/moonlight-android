@@ -595,6 +595,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         inputCaptureProvider.onWindowFocusChanged(hasFocus);
     }
 
+    private boolean isRefreshRateEqualMatch(float refreshRate) {
+        return refreshRate >= prefConfig.fps &&
+                refreshRate <= prefConfig.fps + 3;
+    }
+
     private boolean isRefreshRateGoodMatch(float refreshRate) {
         return refreshRate >= prefConfig.fps &&
                 Math.round(refreshRate) % prefConfig.fps <= 3;
@@ -630,6 +635,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             Display.Mode bestMode = display.getMode();
             boolean isNativeResolutionStream = PreferenceConfiguration.isNativeResolution(prefConfig.width, prefConfig.height);
             boolean refreshRateIsGood = isRefreshRateGoodMatch(bestMode.getRefreshRate());
+            boolean refreshRateIsEqual = isRefreshRateEqualMatch(bestMode.getRefreshRate());
             for (Display.Mode candidate : display.getSupportedModes()) {
                 boolean refreshRateReduced = candidate.getRefreshRate() < bestMode.getRefreshRate();
                 boolean resolutionReduced = candidate.getPhysicalWidth() < bestMode.getPhysicalWidth() ||
@@ -661,11 +667,29 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     continue;
                 }
 
-                if (refreshRateIsGood) {
-                    // We have a good matching refresh rate, so we're looking for equal or greater
-                    // that is also a good matching refresh rate for our stream frame rate.
-                    if (refreshRateReduced || !isRefreshRateGoodMatch(candidate.getRefreshRate())) {
+                if (prefConfig.framePacing != PreferenceConfiguration.FRAME_PACING_MIN_LATENCY &&
+                        refreshRateIsEqual && !isRefreshRateEqualMatch(candidate.getRefreshRate())) {
+                    // If we had an equal refresh rate and this one is not, skip it. In min latency
+                    // mode, we want to always prefer the highest frame rate even though it may cause
+                    // microstuttering.
+                    continue;
+                }
+                else if (refreshRateIsGood) {
+                    // We've already got a good match, so if this one isn't also good, it's not
+                    // worth considering at all.
+                    if (!isRefreshRateGoodMatch(candidate.getRefreshRate())) {
                         continue;
+                    }
+
+                    // We don't want ever reduce our refresh rate unless we found an exact
+                    // match and we're not in min latency mode.
+                    if (refreshRateReduced) {
+                        if (prefConfig.framePacing == PreferenceConfiguration.FRAME_PACING_MIN_LATENCY) {
+                            continue;
+                        }
+                        else if (!isRefreshRateEqualMatch(candidate.getRefreshRate())) {
+                            continue;
+                        }
                     }
                 }
                 else if (!isRefreshRateGoodMatch(candidate.getRefreshRate())) {
@@ -683,6 +707,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 bestMode = candidate;
                 refreshRateIsGood = isRefreshRateGoodMatch(candidate.getRefreshRate());
+                refreshRateIsEqual = isRefreshRateEqualMatch(candidate.getRefreshRate());
             }
             LimeLog.info("Selected display mode: "+bestMode.getPhysicalWidth()+"x"+
                     bestMode.getPhysicalHeight()+"x"+bestMode.getRefreshRate());

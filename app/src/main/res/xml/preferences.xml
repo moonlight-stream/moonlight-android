@@ -206,4 +206,19 @@
             android:summary="@string/summary_enable_post_stream_toast"
             android:defaultValue="false"/>
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/category_help"
+        android:key="category_help">
+        <com.limelight.preferences.WebLauncherPreference
+            android:title="@string/title_setup_guide"
+            android:summary="@string/summary_setup_guide"
+            url="https://github.com/moonlight-stream/moonlight-docs/wiki/Setup-Guide"/>
+        <com.limelight.preferences.WebLauncherPreference
+            android:title="@string/title_troubleshooting"
+            android:summary="@string/summary_troubleshooting"
+            url="https://github.com/moonlight-stream/moonlight-docs/wiki/Troubleshooting"/>
+        <com.limelight.preferences.WebLauncherPreference
+            android:title="@string/title_privacy_policy"
+            android:summary="@string/summary_privacy_policy"
+            url="https://moonlight-stream.org/privacy.html"/>
+    </PreferenceCategory>
 </PreferenceScreen>

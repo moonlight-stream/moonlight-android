@@ -8,7 +8,7 @@ import android.net.Uri;
 import com.limelight.HelpActivity;
 
 public class HelpLauncher {
-    private static void launchUrl(Context context, String url) {
+    public static void launchUrl(Context context, String url) {
         // Try to launch the default browser
         try {
             Intent i = new Intent(Intent.ACTION_VIEW);

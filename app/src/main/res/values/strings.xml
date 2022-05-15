@@ -227,6 +227,14 @@
     <string name="title_enable_post_stream_toast">Show latency message after streaming</string>
     <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
 
+    <string name="category_help">Help</string>
+    <string name="title_setup_guide">Setup guide</string>
+    <string name="summary_setup_guide">View instructions on how to set up your gaming PC for streaming</string>
+    <string name="title_troubleshooting">Troubleshooting guide</string>
+    <string name="summary_troubleshooting">View tips for diagnosing and fixing common streaming issues</string>
+    <string name="title_privacy_policy">Privacy policy</string>
+    <string name="summary_privacy_policy">View Moonlight\'s privacy policy</string>
+
     <!-- Array strings -->
     <string name="resolution_360p">360p</string>
     <string name="resolution_480p">480p</string>

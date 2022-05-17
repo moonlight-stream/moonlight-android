@@ -780,8 +780,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             streamView.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
         }
 
-        // FIXME: This assumes the refresh rate will always be successfully applied
-        return displayRefreshRate;
+        if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) ||
+                getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK)) {
+            // TVs may take a few moments to switch refresh rates, and we can probably assume
+            // it will be eventually activated.
+            // TODO: Improve this
+            return displayRefreshRate;
+        }
+        else {
+            // Use the lower of the current refresh rate and the selected refresh rate.
+            // The preferred refresh rate may not actually be applied (ex: Battery Saver mode).
+            return Math.min(getWindowManager().getDefaultDisplay().getRefreshRate(), displayRefreshRate);
+        }
     }
 
     @SuppressLint("InlinedApi")

@@ -2,7 +2,7 @@ version: 0.0.0.{build}
 
 clone_depth: 1
 
-image: Visual Studio 2019
+image: Visual Studio 2022
 
 before_build:
   - 'git submodule update --init --recursive'

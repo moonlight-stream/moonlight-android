@@ -419,6 +419,9 @@ public class PreferenceConfiguration {
         else if (audioConfig.equals("51")) {
             config.audioConfiguration = MoonBridge.AUDIO_CONFIGURATION_51_SURROUND;
         }
+        else if (audioConfig.equals("4")) {
+            config.audioConfiguration = MoonBridge.AUDIO_CONFIGURATION_4_SURROUND;
+        }
         else /* if (audioConfig.equals("2")) */ {
             config.audioConfiguration = MoonBridge.AUDIO_CONFIGURATION_STEREO;
         }

@@ -8,6 +8,7 @@ public class MoonBridge {
     /* See documentation in Limelight.h for information about these functions and constants */
 
     public static final AudioConfiguration AUDIO_CONFIGURATION_STEREO = new AudioConfiguration(2, 0x3);
+    public static final AudioConfiguration AUDIO_CONFIGURATION_4_SURROUND = new AudioConfiguration(4, 0x33);
     public static final AudioConfiguration AUDIO_CONFIGURATION_51_SURROUND = new AudioConfiguration(6, 0x3F);
     public static final AudioConfiguration AUDIO_CONFIGURATION_71_SURROUND = new AudioConfiguration(8, 0x63F);
 

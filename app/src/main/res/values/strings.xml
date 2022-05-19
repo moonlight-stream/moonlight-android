@@ -249,6 +249,7 @@
     <string name="fps_120">120 FPS</string>
 
     <string name="audioconf_stereo">Stereo</string>
+    <string name="audioconf_4surround">4.0 Surround Sound</string>
     <string name="audioconf_51surround">5.1 Surround Sound</string>
     <string name="audioconf_71surround">7.1 Surround Sound</string>
 

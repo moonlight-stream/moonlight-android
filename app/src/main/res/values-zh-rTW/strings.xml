@@ -221,6 +221,7 @@
     <string name="resolution_prefix_native_fullscreen">本機全螢幕</string>
     <!-- Array strings -->
     <string name="audioconf_stereo">立體聲</string>
+    <string name="audioconf_4surround">4.0 環場音效</string>
     <string name="audioconf_51surround">5.1 環場音效</string>
     <string name="audioconf_71surround">7.1 環場音效</string>
     <string name="videoformat_hevcauto">僅在穩定時使用 HEVC</string>

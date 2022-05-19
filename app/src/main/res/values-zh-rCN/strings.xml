@@ -220,6 +220,7 @@
     <string name="resolution_prefix_native_fullscreen">本地全屏</string>
     <!-- Array strings -->
     <string name="audioconf_stereo">立体声</string>
+    <string name="audioconf_4surround">4.0环绕声</string>
     <string name="audioconf_51surround">5.1环绕声</string>
     <string name="audioconf_71surround">7.1环绕声</string>
     <string name="videoformat_hevcauto">如果稳定才使用HEVC</string>

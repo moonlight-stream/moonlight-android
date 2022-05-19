@@ -193,6 +193,7 @@
 
     <!-- Array strings -->
     <string name="audioconf_stereo">Stereo</string>
+    <string name="audioconf_4surround">Sunet Surround 4.0</string>
     <string name="audioconf_51surround">Sunet Surround 5.1</string>
     <string name="audioconf_71surround">Sunet Surround 7.1</string>
 

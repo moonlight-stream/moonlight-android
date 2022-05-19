@@ -216,6 +216,7 @@
 
     <!-- Array strings -->
     <string name="audioconf_stereo">Стерео</string>
+    <string name="audioconf_4surround">4.0 Объёмный звук</string>
     <string name="audioconf_51surround">5.1 Объёмный звук</string>
     <string name="audioconf_71surround">7.1 Объёмный звук</string>
 

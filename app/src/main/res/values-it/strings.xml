@@ -206,6 +206,7 @@
     <string name="fps_90">90 FPS</string>
     <string name="fps_120">120 FPS</string>
     <string name="audioconf_stereo">Stereo</string>
+    <string name="audioconf_4surround">Surround 4.0</string>
     <string name="audioconf_51surround">Surround 5.1</string>
     <string name="audioconf_71surround">Surround 7.1</string>
     <string name="videoformat_hevcauto">Usa HEVC solo se stabile</string>

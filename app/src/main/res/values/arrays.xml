@@ -34,11 +34,13 @@
 
     <string-array name="audio_config_names">
         <item>@string/audioconf_stereo</item>
+        <item>@string/audioconf_4surround</item>
         <item>@string/audioconf_51surround</item>
         <item>@string/audioconf_71surround</item>
     </string-array>
     <string-array name="audio_config_values" translatable="false">
         <item>2</item>
+        <item>4</item>
         <item>51</item>
         <item>71</item>
     </string-array>

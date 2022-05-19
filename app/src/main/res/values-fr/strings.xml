@@ -226,6 +226,7 @@
     <string name="fps_90">90 IPS</string>
     <string name="fps_120">120 IPS</string>
     <string name="audioconf_stereo">Stéréo</string>
+    <string name="audioconf_4surround">Son surround 4.0</string>
     <string name="audioconf_51surround">Son surround 5.1</string>
     <string name="audioconf_71surround">Son surround 7.1</string>
     <string name="videoformat_hevcauto">Utiliser HEVC uniquement s\'il est stable</string>

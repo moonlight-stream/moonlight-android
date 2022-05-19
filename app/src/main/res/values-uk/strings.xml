@@ -237,6 +237,7 @@
     <string name="fps_90">90 кадрів/сек</string>
     <string name="fps_120">120 кадрів/сек</string>
     <string name="audioconf_stereo">Стерео</string>
+    <string name="audioconf_4surround">4.0 Об\'ємний Звук</string>
     <string name="audioconf_51surround">5.1 Об\'ємний Звук</string>
     <string name="audioconf_71surround">7.1 Об\'ємний Звук</string>
 </resources>

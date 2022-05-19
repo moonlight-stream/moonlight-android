@@ -206,7 +206,7 @@
             android:summary="@string/summary_enable_post_stream_toast"
             android:defaultValue="false"/>
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/category_help"
+    <!--PreferenceCategory android:title="@string/category_help"
         android:key="category_help">
         <com.limelight.preferences.WebLauncherPreference
             android:title="@string/title_setup_guide"
@@ -220,5 +220,5 @@
             android:title="@string/title_privacy_policy"
             android:summary="@string/summary_privacy_policy"
             url="https://moonlight-stream.org/privacy.html"/>
-    </PreferenceCategory>
+    </PreferenceCategory-->
 </PreferenceScreen>

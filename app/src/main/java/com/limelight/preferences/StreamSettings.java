@@ -233,11 +233,11 @@ public class StreamSettings extends Activity {
             }
 
             // Fire TV apps are not allowed to use WebViews or browsers, so hide the Help category
-            if (getActivity().getPackageManager().hasSystemFeature("amazon.hardware.fire_tv")) {
+            /*if (getActivity().getPackageManager().hasSystemFeature("amazon.hardware.fire_tv")) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_help");
                 screen.removePreference(category);
-            }
+            }*/
 
             // Remove the vibration options if the device can't vibrate
             if (!((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasVibrator()) {

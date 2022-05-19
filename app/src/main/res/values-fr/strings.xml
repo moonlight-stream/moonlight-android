@@ -242,4 +242,5 @@
     <string name="resolution_1440p">1440p</string>
     <string name="resolution_1080p">1080p</string>
     <string name="resolution_4k">4K</string>
+    <string name="resolution_8k">8K</string>
 </resources>

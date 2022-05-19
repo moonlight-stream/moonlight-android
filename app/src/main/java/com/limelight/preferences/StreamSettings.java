@@ -314,7 +314,10 @@ public class StreamSettings extends Activity {
                         addNativeResolutionEntry(width, height, hasInsets);
                     }
 
-                    if ((width >= 3840 || height >= 2160) && maxSupportedResW < 3840) {
+                    if ((width >= 7680 || height >= 4320) && maxSupportedResW < 7680) {
+                        maxSupportedResW = 7680;
+                    }
+                    else if ((width >= 3840 || height >= 2160) && maxSupportedResW < 3840) {
                         maxSupportedResW = 3840;
                     }
                     else if ((width >= 2560 || height >= 1440) && maxSupportedResW < 2560) {
@@ -343,7 +346,10 @@ public class StreamSettings extends Activity {
 
                     // If 720p is not reported as supported, ignore all results from this API
                     if (avcWidthRange.contains(1280)) {
-                        if (avcWidthRange.contains(3840) && maxSupportedResW < 3840) {
+                        if (avcWidthRange.contains(7680) && maxSupportedResW < 7680) {
+                            maxSupportedResW = 7680;
+                        }
+                        else if (avcWidthRange.contains(3840) && maxSupportedResW < 3840) {
                             maxSupportedResW = 3840;
                         }
                         else if (avcWidthRange.contains(1920) && maxSupportedResW < 1920) {
@@ -362,7 +368,10 @@ public class StreamSettings extends Activity {
 
                     // If 720p is not reported as supported, ignore all results from this API
                     if (hevcWidthRange.contains(1280)) {
-                        if (hevcWidthRange.contains(3840) && maxSupportedResW < 3840) {
+                        if (hevcWidthRange.contains(7680) && maxSupportedResW < 7680) {
+                            maxSupportedResW = 7680;
+                        }
+                        else if (hevcWidthRange.contains(3840) && maxSupportedResW < 3840) {
                             maxSupportedResW = 3840;
                         }
                         else if (hevcWidthRange.contains(1920) && maxSupportedResW < 1920) {
@@ -377,6 +386,17 @@ public class StreamSettings extends Activity {
                 LimeLog.info("Maximum resolution slot: "+maxSupportedResW);
 
                 if (maxSupportedResW != 0) {
+                    if (maxSupportedResW < 7680) {
+                        // 8K is unsupported
+                        removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_8K, new Runnable() {
+                            @Override
+                            public void run() {
+                                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_4K);
+                                resetBitrateToDefault(prefs, null, null);
+                            }
+                        });
+                    }
                     if (maxSupportedResW < 3840) {
                         // 4K is unsupported
                         removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_4K, new Runnable() {

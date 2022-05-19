@@ -523,7 +523,7 @@ public class MediaCodecHelper {
         // since it works fine otherwise. We will also use it for 4K because RFI
         // is currently disabled due to issues with video corruption.
         if (isDecoderInList(deprioritizedHevcDecoders, decoderName)) {
-            if (meteredData || (prefs.width == 3840 && prefs.height == 2160)) {
+            if (meteredData || (prefs.width == 3840 && prefs.height == 2160) || (prefs.width == 7680 && prefs.height == 4320)) {
                 LimeLog.info("Selected deprioritized decoder");
                 return true;
             }

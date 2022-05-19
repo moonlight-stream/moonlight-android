@@ -89,6 +89,7 @@ public class PreferenceConfiguration {
     public static final String RES_1080P = "1920x1080";
     public static final String RES_1440P = "2560x1440";
     public static final String RES_4K = "3840x2160";
+    public static final String RES_8K = "7680x4320";
     public static final String RES_NATIVE = "Native";
 
     public int width, height, fps;
@@ -135,6 +136,9 @@ public class PreferenceConfiguration {
         else if (width == 3840 && height == 2160) {
             return false;
         }
+        else if (width == 7680 && height == 4320) {
+            return false;
+        }
 
         return true;
     }
@@ -157,6 +161,9 @@ public class PreferenceConfiguration {
         }
         else if (resString.equalsIgnoreCase("4K")) {
             return RES_4K;
+        }
+        else if (resString.equalsIgnoreCase("8K")) {
+            return RES_8K;
         }
         else {
             // Should be unreachable
@@ -187,6 +194,8 @@ public class PreferenceConfiguration {
                 return RES_1440P;
             case 2160:
                 return RES_4K;
+            case 4320:
+                return RES_8K;
         }
     }
 
@@ -219,8 +228,11 @@ public class PreferenceConfiguration {
         else if (width * height <= 2560 * 1600) {
             return (int)(20000 * (fps / 30.0));
         }
-        else /* if (width * height <= 3840 * 2160) */ {
+        else if (width * height <= 3840 * 2160) {
             return (int)(40000 * (fps / 30.0));
+        }
+        else /* if (width * height <= 3840 * 2160) */ {
+            return (int)(80000 * (fps / 30.0));
         }
     }
 
@@ -370,6 +382,16 @@ public class PreferenceConfiguration {
             else if (str.equals("4K60")) {
                 config.width = 3840;
                 config.height = 2160;
+                config.fps = 60;
+            }
+            else if (str.equals("8K30")) {
+                config.width = 7680;
+                config.height = 4320;
+                config.fps = 30;
+            }
+            else if (str.equals("8K60")) {
+                config.width = 7680;
+                config.height = 4320;
                 config.fps = 60;
             }
             else {

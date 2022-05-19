@@ -661,7 +661,8 @@ public class NvHTTP {
         boolean enableSops = context.streamConfig.getSops();
         if (context.negotiatedWidth * context.negotiatedHeight > 1280 * 720 &&
                 context.negotiatedWidth * context.negotiatedHeight != 1920 * 1080 &&
-                context.negotiatedWidth * context.negotiatedHeight != 3840 * 2160) {
+                context.negotiatedWidth * context.negotiatedHeight != 3840 * 2160 &&
+                context.negotiatedWidth * context.negotiatedHeight != 7680 * 4320) {
             LimeLog.info("Disabling SOPS due to non-standard resolution: "+context.negotiatedWidth+"x"+context.negotiatedHeight);
             enableSops = false;
         }

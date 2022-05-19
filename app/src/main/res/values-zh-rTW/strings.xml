@@ -227,6 +227,7 @@
     <string name="videoformat_hevcalways">強制使用 HEVC (可能會崩潰)</string>
     <string name="videoformat_hevcnever">不使用 HEVC</string>
     <string name="resolution_4k">4K</string>
+    <string name="resolution_8k">8K</string>
     <string name="fps_30">30 FPS</string>
     <string name="fps_60">60 FPS</string>
     <string name="fps_90">90 FPS</string>

@@ -1,0 +1,6 @@
+- Improved frame pacing when streaming 60 FPS on 120 Hz devices
+- Reduced power usage when streaming below maximum display refresh rate
+- Reintroduced previous frame pacing behavior as "Balanced with FPS limit" option
+- Rewrote PC address detection logic to better handle some network configurations
+- Fixed simultaneous mouse and on-screen controller input
+- Updated community contributed translations from Weblate

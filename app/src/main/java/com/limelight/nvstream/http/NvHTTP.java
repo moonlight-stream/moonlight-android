@@ -205,7 +205,7 @@ public class NvHTTP {
         return "uniqueid="+uniqueId+"&uuid="+UUID.randomUUID();
     }
     
-    static String getXmlString(Reader r, String tagname) throws XmlPullParserException, IOException {
+    static String getXmlString(Reader r, String tagname, boolean throwIfMissing) throws XmlPullParserException, IOException {
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         factory.setNamespaceAware(true);
         XmlPullParser xpp = factory.newPullParser();
@@ -234,11 +234,19 @@ public class NvHTTP {
             eventType = xpp.next();
         }
 
+        if (throwIfMissing) {
+            // We throw an XmlPullParserException here for ease of handling in all the various callers.
+            // We could also throw an IOException, but some callers expect those in cases where the
+            // host may not be reachable. We want to distinguish unreachable hosts vs. hosts that
+            // are returning garbage XML to us, so we use XmlPullParserException instead.
+            throw new XmlPullParserException("Missing mandatory field in host response: "+tagname);
+        }
+
         return null;
     }
 
-    static String getXmlString(String str, String tagname) throws XmlPullParserException, IOException {
-        return getXmlString(new StringReader(str), tagname);
+    static String getXmlString(String str, String tagname, boolean throwIfMissing) throws XmlPullParserException, IOException {
+        return getXmlString(new StringReader(str), tagname, throwIfMissing);
     }
     
     private static void verifyResponseStatus(XmlPullParser xpp) throws GfeHttpResponseException {
@@ -311,21 +319,21 @@ public class NvHTTP {
         ComputerDetails details = new ComputerDetails();
         String serverInfo = getServerInfo();
         
-        details.name = getXmlString(serverInfo, "hostname");
+        details.name = getXmlString(serverInfo, "hostname", false);
         if (details.name == null || details.name.isEmpty()) {
             details.name = "UNKNOWN";
         }
 
-        details.uuid = getXmlString(serverInfo, "uniqueid");
-        details.macAddress = getXmlString(serverInfo, "mac");
-        details.localAddress = getXmlString(serverInfo, "LocalIP");
+        // UUID is mandatory to determine which machine is responding
+        details.uuid = getXmlString(serverInfo, "uniqueid", true);
 
-        // This may be null, but that's okay
-        details.remoteAddress = getXmlString(serverInfo, "ExternalIP");
+        details.macAddress = getXmlString(serverInfo, "mac", false);
+        details.localAddress = getXmlString(serverInfo, "LocalIP", false);
 
-        // This has some extra logic to always report unpaired if the pinned cert isn't there
+        // This is missing on on recent GFE versions
+        details.remoteAddress = getXmlString(serverInfo, "ExternalIP", false);
+
         details.pairState = getPairState(serverInfo);
-        
         details.runningGameId = getCurrentGame(serverInfo);
         
         // We could reach it so it's online
@@ -416,7 +424,8 @@ public class NvHTTP {
     }
 
     public String getServerVersion(String serverInfo) throws XmlPullParserException, IOException {
-        return getXmlString(serverInfo, "appversion");
+        // appversion is present in all supported GFE versions
+        return getXmlString(serverInfo, "appversion", true);
     }
 
     public PairingManager.PairState getPairState() throws IOException, XmlPullParserException {
@@ -424,15 +433,14 @@ public class NvHTTP {
     }
 
     public PairingManager.PairState getPairState(String serverInfo) throws IOException, XmlPullParserException {
-        if (!NvHTTP.getXmlString(serverInfo, "PairStatus").equals("1")) {
-            return PairState.NOT_PAIRED;
-        }
-
-        return PairState.PAIRED;
+        // appversion is present in all supported GFE versions
+        return NvHTTP.getXmlString(serverInfo, "PairStatus", true).equals("1") ?
+                PairState.PAIRED : PairState.NOT_PAIRED;
     }
     
     public long getMaxLumaPixelsH264(String serverInfo) throws XmlPullParserException, IOException {
-        String str = getXmlString(serverInfo, "MaxLumaPixelsH264");
+        // MaxLumaPixelsH264 wasn't present on old GFE versions
+        String str = getXmlString(serverInfo, "MaxLumaPixelsH264", false);
         if (str != null) {
             return Long.parseLong(str);
         } else {
@@ -441,7 +449,8 @@ public class NvHTTP {
     }
     
     public long getMaxLumaPixelsHEVC(String serverInfo) throws XmlPullParserException, IOException {
-        String str = getXmlString(serverInfo, "MaxLumaPixelsHEVC");
+        // MaxLumaPixelsHEVC wasn't present on old GFE versions
+        String str = getXmlString(serverInfo, "MaxLumaPixelsHEVC", false);
         if (str != null) {
             return Long.parseLong(str);
         } else {
@@ -458,7 +467,8 @@ public class NvHTTP {
     // Bit 10: HEVC Main10 4:4:4
     // Bit 11: ???
     public long getServerCodecModeSupport(String serverInfo) throws XmlPullParserException, IOException {
-        String str = getXmlString(serverInfo, "ServerCodecModeSupport");
+        // ServerCodecModeSupport wasn't present on old GFE versions
+        String str = getXmlString(serverInfo, "ServerCodecModeSupport", false);
         if (str != null) {
             return Long.parseLong(str);
         } else {
@@ -467,16 +477,18 @@ public class NvHTTP {
     }
     
     public String getGpuType(String serverInfo) throws XmlPullParserException, IOException {
-        return getXmlString(serverInfo, "gputype");
+        // ServerCodecModeSupport wasn't present on old GFE versions
+        return getXmlString(serverInfo, "gputype", false);
     }
 
     public String getGfeVersion(String serverInfo) throws XmlPullParserException, IOException {
-        return getXmlString(serverInfo, "GfeVersion");
+        // ServerCodecModeSupport wasn't present on old GFE versions
+        return getXmlString(serverInfo, "GfeVersion", false);
     }
     
     public boolean supports4K(String serverInfo) throws XmlPullParserException, IOException {
-        // Only allow 4K on GFE 3.x
-        String gfeVersionStr = getXmlString(serverInfo, "GfeVersion");
+        // Only allow 4K on GFE 3.x. GfeVersion wasn't present on very old versions of GFE.
+        String gfeVersionStr = getXmlString(serverInfo, "GfeVersion", false);
         if (gfeVersionStr == null || gfeVersionStr.startsWith("2.")) {
             return false;
         }
@@ -488,10 +500,8 @@ public class NvHTTP {
         // GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
         // has the semantics that its name would indicate. To contain the effects of this change as much
         // as possible, we'll force the current game to zero if the server isn't in a streaming session.
-        String serverState = getXmlString(serverInfo, "state");
-        if (serverState != null && serverState.endsWith("_SERVER_BUSY")) {
-            String game = getXmlString(serverInfo, "currentgame");
-            return Integer.parseInt(game);
+        if (getXmlString(serverInfo, "state", true).endsWith("_SERVER_BUSY")) {
+            return Integer.parseInt(getXmlString(serverInfo, "currentgame", true));
         }
         else {
             return 0;
@@ -679,9 +689,9 @@ public class NvHTTP {
             (context.streamConfig.getAttachedGamepadMask() != 0 ? "&remoteControllersBitmap=" + context.streamConfig.getAttachedGamepadMask() : "") +
             (context.streamConfig.getAttachedGamepadMask() != 0 ? "&gcmap=" + context.streamConfig.getAttachedGamepadMask() : ""),
             false);
-        String gameSession = getXmlString(xmlStr, "gamesession");
-        if (gameSession != null && !gameSession.equals("0")) {
-            context.rtspSessionUrl = getXmlString(xmlStr, "sessionUrl0");
+        if (!getXmlString(xmlStr, "gamesession", true).equals("0")) {
+            // sessionUrl0 will be missing for older GFE versions
+            context.rtspSessionUrl = getXmlString(xmlStr, "sessionUrl0", false);
             return true;
         }
         else {
@@ -695,9 +705,9 @@ public class NvHTTP {
                 "&rikeyid="+context.riKeyId +
                 "&surroundAudioInfo=" + context.streamConfig.getAudioConfiguration().getSurroundAudioInfo(),
                 false);
-        String resume = getXmlString(xmlStr, "resume");
-        if (Integer.parseInt(resume) != 0) {
-            context.rtspSessionUrl = getXmlString(xmlStr, "sessionUrl0");
+        if (!getXmlString(xmlStr, "resume", true).equals("0")) {
+            // sessionUrl0 will be missing for older GFE versions
+            context.rtspSessionUrl = getXmlString(xmlStr, "sessionUrl0", false);
             return true;
         }
         else {
@@ -707,8 +717,7 @@ public class NvHTTP {
     
     public boolean quitApp() throws IOException, XmlPullParserException {
         String xmlStr = openHttpConnectionToString(baseUrlHttps + "/cancel?" + buildUniqueIdUuidString(), false);
-        String cancel = getXmlString(xmlStr, "cancel");
-        if (Integer.parseInt(cancel) == 0) {
+        if (getXmlString(xmlStr, "cancel", true).equals("0")) {
             return false;
         }
 

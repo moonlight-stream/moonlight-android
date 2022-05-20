@@ -68,7 +68,8 @@ public class PairingManager {
     
     private X509Certificate extractPlainCert(String text) throws XmlPullParserException, IOException
     {
-        String certText = NvHTTP.getXmlString(text, "plaincert");
+        // Plaincert may be null if another client is already trying to pair
+        String certText = NvHTTP.getXmlString(text, "plaincert", false);
         if (certText != null) {
             byte[] certBytes = hexToBytes(certText);
 
@@ -208,7 +209,7 @@ public class PairingManager {
                 "/pair?"+http.buildUniqueIdUuidString()+"&devicename=roth&updateState=1&phrase=getservercert&salt="+
                 bytesToHex(salt)+"&clientcert="+bytesToHex(pemCertBytes),
                 false);
-        if (!NvHTTP.getXmlString(getCert, "paired").equals("1")) {
+        if (!NvHTTP.getXmlString(getCert, "paired", true).equals("1")) {
             return PairState.FAILED;
         }
 
@@ -232,13 +233,13 @@ public class PairingManager {
         String challengeResp = http.openHttpConnectionToString(http.baseUrlHttp + 
                 "/pair?"+http.buildUniqueIdUuidString()+"&devicename=roth&updateState=1&clientchallenge="+bytesToHex(encryptedChallenge),
                 true);
-        if (!NvHTTP.getXmlString(challengeResp, "paired").equals("1")) {
+        if (!NvHTTP.getXmlString(challengeResp, "paired", true).equals("1")) {
             http.openHttpConnectionToString(http.baseUrlHttp + "/unpair?"+http.buildUniqueIdUuidString(), true);
             return PairState.FAILED;
         }
         
         // Decode the server's response and subsequent challenge
-        byte[] encServerChallengeResponse = hexToBytes(NvHTTP.getXmlString(challengeResp, "challengeresponse"));
+        byte[] encServerChallengeResponse = hexToBytes(NvHTTP.getXmlString(challengeResp, "challengeresponse", true));
         byte[] decServerChallengeResponse = decryptAes(encServerChallengeResponse, aesKey);
         
         byte[] serverResponse = Arrays.copyOfRange(decServerChallengeResponse, 0, hashAlgo.getHashLength());
@@ -251,13 +252,13 @@ public class PairingManager {
         String secretResp = http.openHttpConnectionToString(http.baseUrlHttp +
                 "/pair?"+http.buildUniqueIdUuidString()+"&devicename=roth&updateState=1&serverchallengeresp="+bytesToHex(challengeRespEncrypted),
                 true);
-        if (!NvHTTP.getXmlString(secretResp, "paired").equals("1")) {
+        if (!NvHTTP.getXmlString(secretResp, "paired", true).equals("1")) {
             http.openHttpConnectionToString(http.baseUrlHttp + "/unpair?"+http.buildUniqueIdUuidString(), true);
             return PairState.FAILED;
         }
         
         // Get the server's signed secret
-        byte[] serverSecretResp = hexToBytes(NvHTTP.getXmlString(secretResp, "pairingsecret"));
+        byte[] serverSecretResp = hexToBytes(NvHTTP.getXmlString(secretResp, "pairingsecret", true));
         byte[] serverSecret = Arrays.copyOfRange(serverSecretResp, 0, 16);
         byte[] serverSignature = Arrays.copyOfRange(serverSecretResp, 16, 272);
 
@@ -285,7 +286,7 @@ public class PairingManager {
         String clientSecretResp = http.openHttpConnectionToString(http.baseUrlHttp + 
                 "/pair?"+http.buildUniqueIdUuidString()+"&devicename=roth&updateState=1&clientpairingsecret="+bytesToHex(clientPairingSecret),
                 true);
-        if (!NvHTTP.getXmlString(clientSecretResp, "paired").equals("1")) {
+        if (!NvHTTP.getXmlString(clientSecretResp, "paired", true).equals("1")) {
             http.openHttpConnectionToString(http.baseUrlHttp + "/unpair?"+http.buildUniqueIdUuidString(), true);
             return PairState.FAILED;
         }
@@ -293,7 +294,7 @@ public class PairingManager {
         // Do the initial challenge (seems neccessary for us to show as paired)
         String pairChallenge = http.openHttpConnectionToString(http.baseUrlHttps +
                 "/pair?"+http.buildUniqueIdUuidString()+"&devicename=roth&updateState=1&phrase=pairchallenge", true);
-        if (!NvHTTP.getXmlString(pairChallenge, "paired").equals("1")) {
+        if (!NvHTTP.getXmlString(pairChallenge, "paired", true).equals("1")) {
             http.openHttpConnectionToString(http.baseUrlHttp + "/unpair?"+http.buildUniqueIdUuidString(), true);
             return PairState.FAILED;
         }

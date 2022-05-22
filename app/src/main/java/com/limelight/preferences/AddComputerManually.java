@@ -108,15 +108,18 @@ public class AddComputerManually extends Activity {
             ComputerDetails details = new ComputerDetails();
             details.manualAddress = host;
             success = managerBinder.addComputerBlocking(details);
+        } catch (InterruptedException e) {
+            // Propagate the InterruptedException to the caller for proper handling
+            dialog.dismiss();
+            throw e;
         } catch (IllegalArgumentException e) {
             // This can be thrown from OkHttp if the host fails to canonicalize to a valid name.
             // https://github.com/square/okhttp/blob/okhttp_27/okhttp/src/main/java/com/squareup/okhttp/HttpUrl.java#L705
             e.printStackTrace();
             success = false;
-        } finally {
-            dialog.dismiss();
         }
 
+        // Keep the SpinnerDialog open while testing connectivity
         if (!success){
             wrongSiteLocal = isWrongSubnetSiteLocalAddress(host);
         }
@@ -128,6 +131,8 @@ public class AddComputerManually extends Activity {
             // Don't bother with the test if we succeeded or the IP address was bogus
             portTestResult = MoonBridge.ML_TEST_RESULT_INCONCLUSIVE;
         }
+
+        dialog.dismiss();
 
         if (wrongSiteLocal) {
             Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title), getResources().getString(R.string.addpc_wrong_sitelocal), false);

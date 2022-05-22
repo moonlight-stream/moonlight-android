@@ -1,0 +1,2 @@
+- Fixed a few rare crashes and ANR bugs
+- Updated community contributed translations from Weblate

@@ -9,10 +9,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.Socket;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -53,6 +50,7 @@ import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.http.PairingManager.PairState;
 
 import okhttp3.ConnectionPool;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -71,8 +69,8 @@ public class NvHTTP {
     // Print URL and content to logcat on debug builds
     private static boolean verbose = BuildConfig.DEBUG;
 
-    public String baseUrlHttps;
-    public String baseUrlHttp;
+    private HttpUrl baseUrlHttps;
+    private HttpUrl baseUrlHttp;
     
     private OkHttpClient httpClient;
     private OkHttpClient httpClientWithReadTimeout;
@@ -190,21 +188,25 @@ public class NvHTTP {
         initializeHttpState(cryptoProvider);
 
         try {
-            // The URI constructor takes care of escaping IPv6 literals
-            this.baseUrlHttps = new URI("https", null, address, HTTPS_PORT, null, null, null).toString();
-            this.baseUrlHttp = new URI("http", null, address, HTTP_PORT, null, null, null).toString();
-        } catch (URISyntaxException e) {
-            // Encapsulate URISyntaxException into IOException for callers to handle more easily
+            this.baseUrlHttp = new HttpUrl.Builder()
+                    .scheme("http")
+                    .host(address)
+                    .port(HTTP_PORT)
+                    .build();
+
+            this.baseUrlHttps = new HttpUrl.Builder()
+                    .scheme("https")
+                    .host(address)
+                    .port(HTTPS_PORT)
+                    .build();
+        } catch (IllegalArgumentException e) {
+            // Encapsulate IllegalArgumentException into IOException for callers to handle more easily
             throw new IOException(e);
         }
 
         this.pm = new PairingManager(this, cryptoProvider);
     }
-    
-    String buildUniqueIdUuidString() {
-        return "uniqueid="+uniqueId+"&uuid="+UUID.randomUUID();
-    }
-    
+
     static String getXmlString(Reader r, String tagname, boolean throwIfMissing) throws XmlPullParserException, IOException {
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -280,7 +282,7 @@ public class NvHTTP {
         if (serverCert != null) {
             try {
                 try {
-                    resp = openHttpConnectionToString(baseUrlHttps + "/serverinfo?"+buildUniqueIdUuidString(), true);
+                    resp = openHttpConnectionToString(baseUrlHttps, "serverinfo", true);
                 } catch (SSLHandshakeException e) {
                     // Detect if we failed due to a server cert mismatch
                     if (e.getCause() instanceof CertificateException) {
@@ -300,7 +302,7 @@ public class NvHTTP {
             catch (GfeHttpResponseException e) {
                 if (e.getErrorCode() == 401) {
                     // Cert validation error - fall back to HTTP
-                    return openHttpConnectionToString(baseUrlHttp + "/serverinfo", true);
+                    return openHttpConnectionToString(baseUrlHttp, "serverinfo", true);
                 }
 
                 // If it's not a cert validation error, throw it
@@ -311,7 +313,7 @@ public class NvHTTP {
         }
         else {
             // No pinned cert, so use HTTP
-            return openHttpConnectionToString(baseUrlHttp + "/serverinfo", true);
+            return openHttpConnectionToString(baseUrlHttp , "serverinfo", true);
         }
     }
     
@@ -365,12 +367,26 @@ public class NvHTTP {
         }
     }
 
+    private HttpUrl getCompleteUrl(HttpUrl baseUrl, String path, String query) {
+        return baseUrl.newBuilder()
+                .addPathSegment(path)
+                .query(query)
+                .addQueryParameter("uniqueid", uniqueId)
+                .addQueryParameter("uuid", UUID.randomUUID().toString())
+                .build();
+    }
+
+    private ResponseBody openHttpConnection(HttpUrl baseUrl, String path, boolean enableReadTimeout) throws IOException {
+        return openHttpConnection(baseUrl, path, null, enableReadTimeout);
+    }
+
     // Read timeout should be enabled for any HTTP query that requires no outside action
     // on the GFE server. Examples of queries that DO require outside action are launch, resume, and quit.
     // The initial pair query does require outside action (user entering a PIN) but subsequent pairing
     // queries do not.
-    private ResponseBody openHttpConnection(String url, boolean enableReadTimeout) throws IOException {
-        Request request = new Request.Builder().url(url).get().build();
+    private ResponseBody openHttpConnection(HttpUrl baseUrl, String path, String query, boolean enableReadTimeout) throws IOException {
+        HttpUrl completeUrl = getCompleteUrl(baseUrl, path, query);
+        Request request = new Request.Builder().url(completeUrl).get().build();
         Response response;
 
         if (enableReadTimeout) {
@@ -392,25 +408,29 @@ public class NvHTTP {
         }
         
         if (response.code() == 404) {
-            throw new FileNotFoundException(url);
+            throw new FileNotFoundException(completeUrl.toString());
         }
         else {
             throw new GfeHttpResponseException(response.code(), response.message());
         }
     }
-    
-    String openHttpConnectionToString(String url, boolean enableReadTimeout) throws IOException {
+
+    private String openHttpConnectionToString(HttpUrl baseUrl, String path, boolean enableReadTimeout) throws IOException {
+        return openHttpConnectionToString(baseUrl, path, null, enableReadTimeout);
+    }
+
+    private String openHttpConnectionToString(HttpUrl baseUrl, String path, String query, boolean enableReadTimeout) throws IOException {
         try {
             if (verbose) {
-                LimeLog.info("Requesting URL: "+url);
+                LimeLog.info("Requesting URL: "+getCompleteUrl(baseUrl, path, query));
             }
 
-            ResponseBody resp = openHttpConnection(url, enableReadTimeout);
+            ResponseBody resp = openHttpConnection(baseUrl, path, query, enableReadTimeout);
             String respString = resp.string();
             resp.close();
 
             if (verbose) {
-                LimeLog.info(url+" -> "+respString);
+                LimeLog.info(getCompleteUrl(baseUrl, path, query)+" -> "+respString);
             }
 
             return respString;
@@ -598,8 +618,8 @@ public class NvHTTP {
         return appList;
     }
     
-    public String getAppListRaw() throws MalformedURLException, IOException {
-        return openHttpConnectionToString(baseUrlHttps + "/applist?"+buildUniqueIdUuidString(), true);
+    public String getAppListRaw() throws IOException {
+        return openHttpConnectionToString(baseUrlHttps, "applist", true);
     }
     
     public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
@@ -608,20 +628,31 @@ public class NvHTTP {
             return getAppListByReader(new StringReader(getAppListRaw()));
         }
         else {
-            ResponseBody resp = openHttpConnection(baseUrlHttps + "/applist?" + buildUniqueIdUuidString(), true);
+            ResponseBody resp = openHttpConnection(baseUrlHttps, "applist", true);
             LinkedList<NvApp> appList = getAppListByReader(new InputStreamReader(resp.byteStream()));
             resp.close();
             return appList;
         }
     }
-    
+
+    String executePairingCommand(String additionalArguments, boolean enableReadTimeout) throws GfeHttpResponseException, IOException {
+        return openHttpConnectionToString(baseUrlHttp, "pair",
+                "devicename=roth&updateState=1&" + additionalArguments,
+                enableReadTimeout);
+    }
+
+    String executePairingChallenge() throws GfeHttpResponseException, IOException {
+        return openHttpConnectionToString(baseUrlHttps, "pair",
+                "devicename=roth&updateState=1&phrase=pairchallenge",
+                true);
+    }
+
     public void unpair() throws IOException {
-        openHttpConnectionToString(baseUrlHttp + "/unpair?"+buildUniqueIdUuidString(), true);
+        openHttpConnectionToString(baseUrlHttp, "unpair", true);
     }
     
     public InputStream getBoxArt(NvApp app) throws IOException {
-        ResponseBody resp = openHttpConnection(baseUrlHttps + "/appasset?"+ buildUniqueIdUuidString() +
-                "&appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0", true);
+        ResponseBody resp = openHttpConnection(baseUrlHttps, "appasset", "appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0", true);
         return resp.byteStream();
     }
     
@@ -676,9 +707,8 @@ public class NvHTTP {
             enableSops = false;
         }
 
-        String xmlStr = openHttpConnectionToString(baseUrlHttps +
-            "/launch?" + buildUniqueIdUuidString() +
-            "&appid=" + appId +
+        String xmlStr = openHttpConnectionToString(baseUrlHttps, "launch",
+            "appid=" + appId +
             "&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + fps +
             "&additionalStates=1&sops=" + (enableSops ? 1 : 0) +
             "&rikey="+bytesToHex(context.riKey.getEncoded()) +
@@ -700,8 +730,8 @@ public class NvHTTP {
     }
     
     public boolean resumeApp(ConnectionContext context) throws IOException, XmlPullParserException {
-        String xmlStr = openHttpConnectionToString(baseUrlHttps + "/resume?" + buildUniqueIdUuidString() +
-                "&rikey="+bytesToHex(context.riKey.getEncoded()) +
+        String xmlStr = openHttpConnectionToString(baseUrlHttps, "resume",
+                "rikey="+bytesToHex(context.riKey.getEncoded()) +
                 "&rikeyid="+context.riKeyId +
                 "&surroundAudioInfo=" + context.streamConfig.getAudioConfiguration().getSurroundAudioInfo(),
                 false);
@@ -716,7 +746,7 @@ public class NvHTTP {
     }
     
     public boolean quitApp() throws IOException, XmlPullParserException {
-        String xmlStr = openHttpConnectionToString(baseUrlHttps + "/cancel?" + buildUniqueIdUuidString(), false);
+        String xmlStr = openHttpConnectionToString(baseUrlHttps, "cancel", false);
         if (getXmlString(xmlStr, "cancel", true).equals("0")) {
             return false;
         }

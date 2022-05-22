@@ -432,15 +432,20 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             // frame of buffer to smooth over network/rendering jitter.
             Integer nextOutputBuffer = outputBufferQueue.poll();
             if (nextOutputBuffer != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    videoDecoder.releaseOutputBuffer(nextOutputBuffer, frameTimeNanos);
-                }
-                else {
-                    videoDecoder.releaseOutputBuffer(nextOutputBuffer, true);
-                }
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        videoDecoder.releaseOutputBuffer(nextOutputBuffer, frameTimeNanos);
+                    }
+                    else {
+                        videoDecoder.releaseOutputBuffer(nextOutputBuffer, true);
+                    }
 
-                lastRenderedFrameTimeNanos = frameTimeNanos;
-                activeWindowVideoStats.totalFramesRendered++;
+                    lastRenderedFrameTimeNanos = frameTimeNanos;
+                    activeWindowVideoStats.totalFramesRendered++;
+                } catch (Exception e) {
+                    // This will leak nextOutputBuffer, but there's really nothing else we can do
+                    handleDecoderException(e, null, 0, false);
+                }
             }
         }
 

@@ -557,11 +557,18 @@ public class ComputerManagerService extends Service {
         public ComputerDetails existingDetails;
 
         public boolean complete;
+        public Thread pollingThread;
         public ComputerDetails returnedDetails;
 
         public ParallelPollTuple(String address, ComputerDetails existingDetails) {
             this.address = address;
             this.existingDetails = existingDetails;
+        }
+
+        public void interrupt() {
+            if (pollingThread != null) {
+                pollingThread.interrupt();
+            }
         }
     }
 
@@ -574,7 +581,7 @@ public class ComputerManagerService extends Service {
             return;
         }
 
-        Thread t = new Thread() {
+        tuple.pollingThread = new Thread() {
             @Override
             public void run() {
                 ComputerDetails details = tryPollIp(tuple.existingDetails, tuple.address);
@@ -587,8 +594,8 @@ public class ComputerManagerService extends Service {
                 }
             }
         };
-        t.setName("Parallel Poll - "+tuple.address+" - "+tuple.existingDetails.name);
-        t.start();
+        tuple.pollingThread.setName("Parallel Poll - "+tuple.address+" - "+tuple.existingDetails.name);
+        tuple.pollingThread.start();
     }
 
     private ComputerDetails parallelPollPc(ComputerDetails details) throws InterruptedException {
@@ -605,52 +612,61 @@ public class ComputerManagerService extends Service {
         startParallelPollThread(remoteInfo, uniqueAddresses);
         startParallelPollThread(ipv6Info, uniqueAddresses);
 
-        // Check local first
-        synchronized (localInfo) {
-            while (!localInfo.complete) {
-                localInfo.wait(500);
+        try {
+            // Check local first
+            synchronized (localInfo) {
+                while (!localInfo.complete) {
+                    localInfo.wait();
+                }
+
+                if (localInfo.returnedDetails != null) {
+                    localInfo.returnedDetails.activeAddress = localInfo.address;
+                    return localInfo.returnedDetails;
+                }
             }
 
-            if (localInfo.returnedDetails != null) {
-                localInfo.returnedDetails.activeAddress = localInfo.address;
-                return localInfo.returnedDetails;
-            }
-        }
+            // Now manual
+            synchronized (manualInfo) {
+                while (!manualInfo.complete) {
+                    manualInfo.wait();
+                }
 
-        // Now manual
-        synchronized (manualInfo) {
-            while (!manualInfo.complete) {
-                manualInfo.wait(500);
-            }
-
-            if (manualInfo.returnedDetails != null) {
-                manualInfo.returnedDetails.activeAddress = manualInfo.address;
-                return manualInfo.returnedDetails;
-            }
-        }
-
-        // Now remote IPv4
-        synchronized (remoteInfo) {
-            while (!remoteInfo.complete) {
-                remoteInfo.wait(500);
+                if (manualInfo.returnedDetails != null) {
+                    manualInfo.returnedDetails.activeAddress = manualInfo.address;
+                    return manualInfo.returnedDetails;
+                }
             }
 
-            if (remoteInfo.returnedDetails != null) {
-                remoteInfo.returnedDetails.activeAddress = remoteInfo.address;
-                return remoteInfo.returnedDetails;
-            }
-        }
+            // Now remote IPv4
+            synchronized (remoteInfo) {
+                while (!remoteInfo.complete) {
+                    remoteInfo.wait();
+                }
 
-        // Now global IPv6
-        synchronized (ipv6Info) {
-            while (!ipv6Info.complete) {
-                ipv6Info.wait(500);
+                if (remoteInfo.returnedDetails != null) {
+                    remoteInfo.returnedDetails.activeAddress = remoteInfo.address;
+                    return remoteInfo.returnedDetails;
+                }
             }
 
-            if (ipv6Info.returnedDetails != null) {
-                ipv6Info.returnedDetails.activeAddress = ipv6Info.address;
-                return ipv6Info.returnedDetails;
+            // Now global IPv6
+            synchronized (ipv6Info) {
+                while (!ipv6Info.complete) {
+                    ipv6Info.wait();
+                }
+
+                if (ipv6Info.returnedDetails != null) {
+                    ipv6Info.returnedDetails.activeAddress = ipv6Info.address;
+                    return ipv6Info.returnedDetails;
+                }
             }
+        } finally {
+            // Stop any further polling if we've found a working address or we've been
+            // interrupted by an attempt to stop polling.
+            localInfo.interrupt();
+            manualInfo.interrupt();
+            remoteInfo.interrupt();
+            ipv6Info.interrupt();
         }
 
         return null;

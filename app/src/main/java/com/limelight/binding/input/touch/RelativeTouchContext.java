@@ -139,7 +139,14 @@ public class RelativeTouchContext implements TouchContext {
             // do input detection by polling
             try {
                 Thread.sleep(100);
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+
+                // InterruptedException clears the thread's interrupt status. Since we can't
+                // handle that here, we will re-interrupt the thread to set the interrupt
+                // status back to true.
+                Thread.currentThread().interrupt();
+            }
 
             // Raise the mouse button
             conn.sendMouseButtonUp(buttonIndex);

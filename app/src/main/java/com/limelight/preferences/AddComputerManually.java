@@ -96,7 +96,7 @@ public class AddComputerManually extends Activity {
         }
     }
 
-    private void doAddPc(String host) {
+    private void doAddPc(String host) throws InterruptedException {
         boolean wrongSiteLocal = false;
         boolean success;
         int portTestResult;
@@ -113,7 +113,10 @@ public class AddComputerManually extends Activity {
             // https://github.com/square/okhttp/blob/okhttp_27/okhttp/src/main/java/com/squareup/okhttp/HttpUrl.java#L705
             e.printStackTrace();
             success = false;
+        } finally {
+            dialog.dismiss();
         }
+
         if (!success){
             wrongSiteLocal = isWrongSubnetSiteLocalAddress(host);
         }
@@ -125,8 +128,6 @@ public class AddComputerManually extends Activity {
             // Don't bother with the test if we succeeded or the IP address was bogus
             portTestResult = MoonBridge.ML_TEST_RESULT_INCONCLUSIVE;
         }
-
-        dialog.dismiss();
 
         if (wrongSiteLocal) {
             Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title), getResources().getString(R.string.addpc_wrong_sitelocal), false);
@@ -162,15 +163,12 @@ public class AddComputerManually extends Activity {
             @Override
             public void run() {
                 while (!isInterrupted()) {
-                    String computer;
-
                     try {
-                        computer = computersToAdd.take();
+                        String computer = computersToAdd.take();
+                        doAddPc(computer);
                     } catch (InterruptedException e) {
                         return;
                     }
-
-                    doAddPc(computer);
                 }
             }
         };
@@ -184,7 +182,14 @@ public class AddComputerManually extends Activity {
 
             try {
                 addThread.join();
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+
+                // InterruptedException clears the thread's interrupt status. Since we can't
+                // handle that here, we will re-interrupt the thread to set the interrupt
+                // status back to true.
+                Thread.currentThread().interrupt();
+            }
 
             addThread = null;
         }

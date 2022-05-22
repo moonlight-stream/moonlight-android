@@ -639,7 +639,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         // Wait for the renderer thread to shut down
         try {
             rendererThread.join();
-        } catch (InterruptedException ignored) { }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+
+            // InterruptedException clears the thread's interrupt status. Since we can't
+            // handle that here, we will re-interrupt the thread to set the interrupt
+            // status back to true.
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override

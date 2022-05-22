@@ -37,7 +37,9 @@ public abstract class AbstractXboxController extends AbstractController {
                     // around when we call notifyDeviceAdded(), we won't be able to claim
                     // the controller number used by the original InputDevice.
                     Thread.sleep(1000);
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException e) {
+                    return;
+                }
 
                 // Report that we're added _before_ reporting input
                 notifyDeviceAdded();

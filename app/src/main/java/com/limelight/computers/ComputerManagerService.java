@@ -229,7 +229,13 @@ public class ComputerManagerService extends Service {
                         // Wait for the bind notification
                         discoveryServiceConnection.wait(1000);
                     }
-                } catch (InterruptedException ignored) {
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+
+                    // InterruptedException clears the thread's interrupt status. Since we can't
+                    // handle that here, we will re-interrupt the thread to set the interrupt
+                    // status back to true.
+                    Thread.currentThread().interrupt();
                 }
             }
         }
@@ -238,11 +244,18 @@ public class ComputerManagerService extends Service {
             while (activePolls.get() != 0) {
                 try {
                     Thread.sleep(250);
-                } catch (InterruptedException ignored) {}
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+
+                    // InterruptedException clears the thread's interrupt status. Since we can't
+                    // handle that here, we will re-interrupt the thread to set the interrupt
+                    // status back to true.
+                    Thread.currentThread().interrupt();
+                }
             }
         }
 
-        public boolean addComputerBlocking(ComputerDetails fakeDetails) {
+        public boolean addComputerBlocking(ComputerDetails fakeDetails) throws InterruptedException {
             return ComputerManagerService.this.addComputerBlocking(fakeDetails);
         }
 
@@ -396,9 +409,18 @@ public class ComputerManagerService extends Service {
                     details.ipv6Address = computer.getIpv6Address().getHostAddress();
                 }
 
-                // Kick off a serverinfo poll on this machine
-                if (!addComputerBlocking(details)) {
-                    LimeLog.warning("Auto-discovered PC failed to respond: "+details);
+                try {
+                    // Kick off a blocking serverinfo poll on this machine
+                    if (!addComputerBlocking(details)) {
+                        LimeLog.warning("Auto-discovered PC failed to respond: "+details);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+
+                    // InterruptedException clears the thread's interrupt status. Since we can't
+                    // handle that here, we will re-interrupt the thread to set the interrupt
+                    // status back to true.
+                    Thread.currentThread().interrupt();
                 }
             }
 
@@ -446,28 +468,25 @@ public class ComputerManagerService extends Service {
         }
     }
 
-    public boolean addComputerBlocking(ComputerDetails fakeDetails) {
+    public boolean addComputerBlocking(ComputerDetails fakeDetails) throws InterruptedException {
         // Block while we try to fill the details
-        try {
-            // We cannot use runPoll() here because it will attempt to persist the state of the machine
-            // in the database, which would be bad because we don't have our pinned cert loaded yet.
-            if (pollComputer(fakeDetails)) {
-                // See if we have record of this PC to pull its pinned cert
-                synchronized (pollingTuples) {
-                    for (PollingTuple tuple : pollingTuples) {
-                        if (tuple.computer.uuid.equals(fakeDetails.uuid)) {
-                            fakeDetails.serverCert = tuple.computer.serverCert;
-                            break;
-                        }
+
+        // We cannot use runPoll() here because it will attempt to persist the state of the machine
+        // in the database, which would be bad because we don't have our pinned cert loaded yet.
+        if (pollComputer(fakeDetails)) {
+            // See if we have record of this PC to pull its pinned cert
+            synchronized (pollingTuples) {
+                for (PollingTuple tuple : pollingTuples) {
+                    if (tuple.computer.uuid.equals(fakeDetails.uuid)) {
+                        fakeDetails.serverCert = tuple.computer.serverCert;
+                        break;
                     }
                 }
-
-                // Poll again, possibly with the pinned cert, to get accurate pairing information.
-                // This will insert the host into the database too.
-                runPoll(fakeDetails, true, 0);
             }
-        } catch (InterruptedException e) {
-            return false;
+
+            // Poll again, possibly with the pinned cert, to get accurate pairing information.
+            // This will insert the host into the database too.
+            runPoll(fakeDetails, true, 0);
         }
 
         // If the machine is reachable, it was successful

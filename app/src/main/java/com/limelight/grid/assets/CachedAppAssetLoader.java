@@ -128,6 +128,13 @@ public class CachedAppAssetLoader {
             try {
                 Thread.sleep((int) (1000 + (Math.random() * 500)));
             } catch (InterruptedException e) {
+                e.printStackTrace();
+
+                // InterruptedException clears the thread's interrupt status. Since we can't
+                // handle that here, we will re-interrupt the thread to set the interrupt
+                // status back to true.
+                Thread.currentThread().interrupt();
+
                 return null;
             }
         }

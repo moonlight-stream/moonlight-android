@@ -1482,7 +1482,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // UI thread.
             try {
                 Thread.sleep(ControllerHandler.MINIMUM_BUTTON_DOWN_TIME_MS);
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+
+                // InterruptedException clears the thread's interrupt status. Since we can't
+                // handle that here, we will re-interrupt the thread to set the interrupt
+                // status back to true.
+                Thread.currentThread().interrupt();
+            }
         }
 
         switch (keyCode) {
@@ -1591,7 +1598,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
                 try {
                     Thread.sleep(EMULATED_SELECT_UP_DELAY_MS);
-                } catch (InterruptedException ignored) {}
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+
+                    // InterruptedException clears the thread's interrupt status. Since we can't
+                    // handle that here, we will re-interrupt the thread to set the interrupt
+                    // status back to true.
+                    Thread.currentThread().interrupt();
+                }
             }
         }
 
@@ -1609,7 +1623,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
                 try {
                     Thread.sleep(EMULATED_SPECIAL_UP_DELAY_MS);
-                } catch (InterruptedException ignored) {}
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+
+                    // InterruptedException clears the thread's interrupt status. Since we can't
+                    // handle that here, we will re-interrupt the thread to set the interrupt
+                    // status back to true.
+                    Thread.currentThread().interrupt();
+                }
             }
         }
 

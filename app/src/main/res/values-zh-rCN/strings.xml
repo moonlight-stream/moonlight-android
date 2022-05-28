@@ -236,4 +236,16 @@
     <string name="fps_120">120 FPS</string>
     <string name="resolution_1080p">1080p</string>
     <string name="resolution_720p">720p</string>
+    <string name="pacing_balanced">平衡</string>
+    <string name="pacing_smoothness">优先视频流畅度（可能会显著增大延迟）</string>
+    <string name="summary_setup_guide">查看有关如何设置游戏电脑以进行流传输的说明</string>
+    <string name="title_privacy_policy">隐私政策</string>
+    <string name="summary_privacy_policy">查看 Moonlight 隐私政策</string>
+    <string name="category_help">帮助</string>
+    <string name="title_setup_guide">安装向导</string>
+    <string name="title_troubleshooting">解决方案向导</string>
+    <string name="summary_troubleshooting">查看有关诊断和修复常见流传输问题的提示</string>
+    <string name="summary_frame_pacing">指定如何平衡视频延迟和流畅度</string>
+    <string name="pacing_balanced_alt">有FPS限制的平衡</string>
+    <string name="pacing_latency">优先最低延迟</string>
 </resources>

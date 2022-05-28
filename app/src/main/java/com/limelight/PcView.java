@@ -374,8 +374,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     private void doPair(final ComputerDetails computer) {
-        if (computer.state == ComputerDetails.State.OFFLINE ||
-                ServerHelper.getCurrentAddressFromComputer(computer) == null) {
+        if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
             Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -512,8 +511,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     private void doUnpair(final ComputerDetails computer) {
-        if (computer.state == ComputerDetails.State.OFFLINE ||
-                ServerHelper.getCurrentAddressFromComputer(computer) == null) {
+        if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
             Toast.makeText(PcView.this, getResources().getString(R.string.error_pc_offline), Toast.LENGTH_SHORT).show();
             return;
         }

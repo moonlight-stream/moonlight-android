@@ -27,7 +27,10 @@ import java.security.cert.CertificateEncodingException;
 public class ServerHelper {
     public static final String CONNECTION_TEST_SERVER = "android.conntest.moonlight-stream.org";
 
-    public static String getCurrentAddressFromComputer(ComputerDetails computer) {
+    public static String getCurrentAddressFromComputer(ComputerDetails computer) throws IOException {
+        if (computer.activeAddress == null) {
+            throw new IOException("No active address for "+computer.name);
+        }
         return computer.activeAddress;
     }
 
@@ -53,7 +56,7 @@ public class ServerHelper {
     public static Intent createStartIntent(Activity parent, NvApp app, ComputerDetails computer,
                                            ComputerManagerService.ComputerManagerBinder managerBinder) {
         Intent intent = new Intent(parent, Game.class);
-        intent.putExtra(Game.EXTRA_HOST, getCurrentAddressFromComputer(computer));
+        intent.putExtra(Game.EXTRA_HOST, computer.activeAddress);
         intent.putExtra(Game.EXTRA_APP_NAME, app.getAppName());
         intent.putExtra(Game.EXTRA_APP_ID, app.getAppId());
         intent.putExtra(Game.EXTRA_APP_HDR, app.isHdrSupported());
@@ -72,8 +75,7 @@ public class ServerHelper {
 
     public static void doStart(Activity parent, NvApp app, ComputerDetails computer,
                                ComputerManagerService.ComputerManagerBinder managerBinder) {
-        if (computer.state == ComputerDetails.State.OFFLINE ||
-                ServerHelper.getCurrentAddressFromComputer(computer) == null) {
+        if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
             Toast.makeText(parent, parent.getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
             return;
         }

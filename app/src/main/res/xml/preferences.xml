@@ -52,12 +52,13 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_input_settings"
         android:key="category_input_settings">
-        <!--com.limelight.preferences.SeekBarPreference
+        <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_deadzone"
-            android:defaultValue="15"
-            android:max="50"
+            android:defaultValue="7"
+            android:max="20"
+            android:summary="@string/summary_seekbar_deadzone"
             android:text="@string/suffix_seekbar_deadzone"
-            android:title="@string/title_seekbar_deadzone"/-->
+            android:title="@string/title_seekbar_deadzone"/>
         <CheckBoxPreference
             android:key="checkbox_touchscreen_trackpad"
             android:title="@string/title_checkbox_touchscreen_trackpad"

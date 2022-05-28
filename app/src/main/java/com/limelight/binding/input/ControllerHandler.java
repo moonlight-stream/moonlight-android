@@ -72,9 +72,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         this.prefConfig = prefConfig;
         this.deviceVibrator = (Vibrator) activityContext.getSystemService(Context.VIBRATOR_SERVICE);
 
-        // HACK: For now we're hardcoding a 7% deadzone. Some deadzone
-        // is required for controller batching support to work.
-        int deadzonePercentage = 7;
+        int deadzonePercentage = prefConfig.deadzonePercentage;
 
         int[] ids = InputDevice.getDeviceIds();
         for (int id : ids) {
@@ -703,9 +701,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
             // SHIELD controllers will use small stick deadzones
             else if (devName.contains("SHIELD") || devName.contains("NVIDIA Controller")) {
-                context.leftStickDeadzoneRadius = 0.07f;
-                context.rightStickDeadzoneRadius = 0.07f;
-
                 // The big Nvidia button on the Shield controllers acts like a Search button. It
                 // summons the Google Assistant on the Shield TV. On my Pixel 4, it seems to do
                 // nothing, so we can hijack it to act like a mode button.

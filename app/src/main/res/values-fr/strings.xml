@@ -242,4 +242,12 @@
     <string name="resolution_1440p">1440p</string>
     <string name="resolution_1080p">1080p</string>
     <string name="resolution_4k">4K</string>
+    <string name="category_help">Aide</string>
+    <string name="title_setup_guide">Guide de configuration</string>
+    <string name="title_troubleshooting">Guide de dépannage</string>
+    <string name="title_privacy_policy">Politique de confidentialité</string>
+    <string name="summary_privacy_policy">Voir la politique de confidentialité de Moonlight</string>
+    <string name="summary_setup_guide">Afficher les instructions sur la façon de configurer votre PC de jeu pour le streaming</string>
+    <string name="summary_troubleshooting">Afficher des conseils pour diagnostiquer et résoudre les problèmes de streaming courants</string>
+    <string name="pacing_balanced_alt">Équilibré avec limite FPS</string>
 </resources>

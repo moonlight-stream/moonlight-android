@@ -38,4 +38,27 @@
     <string name="help_loading_title">Yardım</string>
     <string name="scut_invalid_app_id">Tanımlanmış uygulama geçerli değil</string>
     <string name="scut_invalid_uuid">Tanımlanmış bilgisayar geçerli değil</string>
+    <string name="nettest_text_waiting">Moonlight, NVIDIA GameStream\'in engellenip engellenmediğini belirlemek için ağ bağlantınızı test ediyor.
+\n
+\nBu birkaç saniye sürebilir…</string>
+    <string name="nettest_title_done">Ağ Testi Tamamlandı</string>
+    <string name="nettest_text_inconclusive">Moonlight\'ın bağlantı testi sunucularından hiçbirine erişilemediği için ağ testi gerçekleştirilemedi. İnternet bağlantınızı kontrol edin veya daha sonra tekrar deneyin.</string>
+    <string name="nettest_text_failure">Cihazınızın mevcut ağ bağlantısı Moonlight\'ı engelliyor gibi görünüyor. Bu ağa bağlıyken İnternet üzerinden yayın akışı çalışmayabilir.
+\n
+\nAşağıdaki ağ bağlantı noktaları engellenmiş:
+\n</string>
+    <string name="nettest_text_blocked">Cihazınızın mevcut ağ bağlantısı Moonlight\'ı engelliyor. Bu ağa bağlıyken internet üzerinden yayın akışı çalışmayabilir.</string>
+    <string name="pair_pc_ingame">Bilgisayar şu anda bir oyunda. Eşleştirmeden önce oyunu kapatmalısınız.</string>
+    <string name="pair_pairing_msg">Lütfen hedef bilgisayarda aşağıdaki PIN kodunu girin:</string>
+    <string name="pair_already_in_progress">Eşleştirme zaten devam ediyor</string>
+    <string name="wol_pc_online">Bilgisayar çevrimiçi</string>
+    <string name="wol_no_mac">GFE bir MAC adresi göndermediği için bilgisayar uyandırılamıyor</string>
+    <string name="wol_waking_pc">Bilgisayar uyandırılıyor…</string>
+    <string name="wol_fail">Yerel Ağda Uyandırma paketleri gönderilemedi</string>
+    <string name="wol_waking_msg">Bilgisayarınızın uyanması birkaç saniye sürebilir. Eğer uyanmazsa, Yerel Ağda Uyandırma için doğru şekilde yapılandırıldığından emin olun.</string>
+    <string name="unpair_fail">Eşleşme kaldırılamadı</string>
+    <string name="unpair_error">Cihaz eşleştirilmedi</string>
+    <string name="nettest_text_success">Ağınız Moonlight\'ı engelliyor gibi görünmüyor. Bağlanmakta hala sorun yaşıyorsanız, bilgisayarınızın güvenlik duvarı ayarlarını kontrol edin.
+\n
+\nİnternet üzerinden yayın yapmaya çalışıyorsanız, Moonlight İnternet Barındırma Aracını bilgisayarınıza yükleyin ve bilgisayarınızın internet bağlantısını kontrol etmek için birlikte verilen İnternet Akış Test Cihazını çalıştırın.</string>
 </resources>

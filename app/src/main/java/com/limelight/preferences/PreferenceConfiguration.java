@@ -44,6 +44,7 @@ public class PreferenceConfiguration {
     private static final String TOUCHSCREEN_TRACKPAD_PREF_STRING = "checkbox_touchscreen_trackpad";
     private static final String LATENCY_TOAST_PREF_STRING = "checkbox_enable_post_stream_toast";
     private static final String FRAME_PACING_PREF_STRING = "frame_pacing";
+    private static final String ABSOLUTE_MOUSE_MODE_PREF_STRING = "checkbox_absolute_mouse_mode";
 
     static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
@@ -73,6 +74,7 @@ public class PreferenceConfiguration {
     private static final String DEFAULT_AUDIO_CONFIG = "2"; // Stereo
     private static final boolean DEFAULT_LATENCY_TOAST = false;
     private static final String DEFAULT_FRAME_PACING = "latency";
+    private static final boolean DEFAULT_ABSOLUTE_MOUSE_MODE = false;
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -114,6 +116,7 @@ public class PreferenceConfiguration {
     public boolean touchscreenTrackpad;
     public MoonBridge.AudioConfiguration audioConfiguration;
     public int framePacing;
+    public boolean absoluteMouseMode;
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
@@ -454,6 +457,7 @@ public class PreferenceConfiguration {
         config.flipFaceButtons = prefs.getBoolean(FLIP_FACE_BUTTONS_PREF_STRING, DEFAULT_FLIP_FACE_BUTTONS);
         config.touchscreenTrackpad = prefs.getBoolean(TOUCHSCREEN_TRACKPAD_PREF_STRING, DEFAULT_TOUCHSCREEN_TRACKPAD);
         config.enableLatencyToast = prefs.getBoolean(LATENCY_TOAST_PREF_STRING, DEFAULT_LATENCY_TOAST);
+        config.absoluteMouseMode = prefs.getBoolean(ABSOLUTE_MOUSE_MODE_PREF_STRING, DEFAULT_ABSOLUTE_MOUSE_MODE);
 
         return config;
     }

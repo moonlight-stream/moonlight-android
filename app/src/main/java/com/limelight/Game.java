@@ -452,7 +452,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             else {
                 touchContextMap[i] = new RelativeTouchContext(conn, i,
                         REFERENCE_HORIZ_RES, REFERENCE_VERT_RES,
-                        streamView);
+                        streamView, prefConfig);
             }
         }
 
@@ -1244,7 +1244,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     short deltaY = (short)inputCaptureProvider.getRelativeAxisY(event);
 
                     if (deltaX != 0 || deltaY != 0) {
-                        conn.sendMouseMove(deltaX, deltaY);
+                        if (prefConfig.absoluteMouseMode) {
+                            conn.sendMouseMoveAsMousePosition(deltaX, deltaY, (short)view.getWidth(), (short)view.getHeight());
+                        }
+                        else {
+                            conn.sendMouseMove(deltaX, deltaY);
+                        }
                     }
                 }
                 else if ((eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0) {

@@ -222,6 +222,15 @@ public class StreamSettings extends Activity {
                 }
             }
 
+            // Hide remote desktop mouse mode on pre-Oreo (which doesn't have pointer capture)
+            // and NVIDIA SHIELD devices (which support raw mouse input in pointer capture mode)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+                    getActivity().getPackageManager().hasSystemFeature("com.nvidia.feature.shield")) {
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_input_settings");
+                category.removePreference(findPreference("checkbox_absolute_mouse_mode"));
+            }
+
             // Remove PiP mode on devices pre-Oreo, where the feature is not available (some low RAM devices),
             // and on Fire OS where it violates the Amazon App Store guidelines for some reason.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||

@@ -5,6 +5,7 @@ import android.view.View;
 
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.MouseButtonPacket;
+import com.limelight.preferences.PreferenceConfiguration;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -30,6 +31,7 @@ public class RelativeTouchContext implements TouchContext {
     private final int referenceWidth;
     private final int referenceHeight;
     private final View targetView;
+    private final PreferenceConfiguration prefConfig;
 
     private static final int TAP_MOVEMENT_THRESHOLD = 20;
     private static final int TAP_DISTANCE_THRESHOLD = 25;
@@ -39,13 +41,15 @@ public class RelativeTouchContext implements TouchContext {
     private static final int SCROLL_SPEED_FACTOR = 5;
 
     public RelativeTouchContext(NvConnection conn, int actionIndex,
-                                int referenceWidth, int referenceHeight, View view)
+                                int referenceWidth, int referenceHeight,
+                                View view, PreferenceConfiguration prefConfig)
     {
         this.conn = conn;
         this.actionIndex = actionIndex;
         this.referenceWidth = referenceWidth;
         this.referenceHeight = referenceHeight;
         this.targetView = view;
+        this.prefConfig = prefConfig;
     }
 
     @Override
@@ -258,7 +262,16 @@ public class RelativeTouchContext implements TouchContext {
                         conn.sendMouseHighResScroll((short)(deltaY * SCROLL_SPEED_FACTOR));
                     }
                 } else {
-                    conn.sendMouseMove((short) deltaX, (short) deltaY);
+                    if (prefConfig.absoluteMouseMode) {
+                        conn.sendMouseMoveAsMousePosition(
+                                (short) deltaX,
+                                (short) deltaY,
+                                (short) targetView.getWidth(),
+                                (short) targetView.getHeight());
+                    }
+                    else {
+                        conn.sendMouseMove((short) deltaX, (short) deltaY);
+                    }
                 }
 
                 // If the scaling factor ended up rounding deltas to zero, wait until they are

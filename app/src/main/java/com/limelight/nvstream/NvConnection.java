@@ -311,7 +311,14 @@ public class NvConnection {
             MoonBridge.sendMousePosition(x, y, referenceWidth, referenceHeight);
         }
     }
-    
+
+    public void sendMouseMoveAsMousePosition(short deltaX, short deltaY, short referenceWidth, short referenceHeight)
+    {
+        if (!isMonkey) {
+            MoonBridge.sendMouseMoveAsMousePosition(deltaX, deltaY, referenceWidth, referenceHeight);
+        }
+    }
+
     public void sendMouseButtonDown(final byte mouseButton)
     {
         if (!isMonkey) {

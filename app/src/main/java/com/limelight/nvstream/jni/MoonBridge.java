@@ -278,6 +278,8 @@ public class MoonBridge {
 
     public static native void sendMousePosition(short x, short y, short referenceWidth, short referenceHeight);
 
+    public static native void sendMouseMoveAsMousePosition(short deltaX, short deltaY, short referenceWidth, short referenceHeight);
+
     public static native void sendMouseButton(byte buttonEvent, byte mouseButton);
 
     public static native void sendMultiControllerInput(short controllerNumber,

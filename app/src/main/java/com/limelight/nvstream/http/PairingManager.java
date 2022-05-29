@@ -1,8 +1,8 @@
 package com.limelight.nvstream.http;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
+import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.engines.AESLightEngine;
+import org.bouncycastle.crypto.params.KeyParameter;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -21,7 +21,6 @@ public class PairingManager {
     
     private PrivateKey pk;
     private X509Certificate cert;
-    private SecretKey aesKey;
     private byte[] pemCertBytes;
 
     private X509Certificate serverCert;
@@ -125,43 +124,35 @@ public class PairingManager {
             throw new RuntimeException(e);
         }
     }
-    
-    private static byte[] decryptAes(byte[] encryptedData, SecretKey secretKey) {
-        try {
-            Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
-        
-            int blockRoundedSize = ((encryptedData.length + 15) / 16) * 16;
-            byte[] blockRoundedEncrypted = Arrays.copyOf(encryptedData, blockRoundedSize);
-            byte[] fullDecrypted = new byte[blockRoundedSize];
 
-            cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            cipher.doFinal(blockRoundedEncrypted, 0,
-                    blockRoundedSize, fullDecrypted);
-            return fullDecrypted;
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+    private static byte[] performBlockCipher(BlockCipher blockCipher, byte[] input) {
+        int blockSize = blockCipher.getBlockSize();
+        int blockRoundedSize = (input.length + (blockSize - 1)) & ~(blockSize - 1);
+
+        byte[] blockRoundedInputData = Arrays.copyOf(input, blockRoundedSize);
+        byte[] blockRoundedOutputData = new byte[blockRoundedSize];
+
+        for (int offset = 0; offset < blockRoundedSize; offset += blockSize) {
+            blockCipher.processBlock(blockRoundedInputData, offset, blockRoundedOutputData, offset);
         }
+
+        return blockRoundedOutputData;
     }
     
-    private static byte[] encryptAes(byte[] data, SecretKey secretKey) {
-        try {
-            Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
-        
-            int blockRoundedSize = ((data.length + 15) / 16) * 16;
-            byte[] blockRoundedData = Arrays.copyOf(data, blockRoundedSize);
-
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-            return cipher.doFinal(blockRoundedData);
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+    private static byte[] decryptAes(byte[] encryptedData, byte[] aesKey) {
+        BlockCipher aesEngine = new AESLightEngine();
+        aesEngine.init(false, new KeyParameter(aesKey));
+        return performBlockCipher(aesEngine, encryptedData);
     }
     
-    private static SecretKey generateAesKey(PairingHashAlgorithm hashAlgo, byte[] keyData) {
-        byte[] aesTruncated = Arrays.copyOf(hashAlgo.hashData(keyData), 16);
-        return new SecretKeySpec(aesTruncated, "AES");
+    private static byte[] encryptAes(byte[] plaintextData, byte[] aesKey) {
+        BlockCipher aesEngine = new AESLightEngine();
+        aesEngine.init(true, new KeyParameter(aesKey));
+        return performBlockCipher(aesEngine, plaintextData);
+    }
+    
+    private static byte[] generateAesKey(PairingHashAlgorithm hashAlgo, byte[] keyData) {
+        return Arrays.copyOf(hashAlgo.hashData(keyData), 16);
     }
     
     private static byte[] concatBytes(byte[] a, byte[] b) {
@@ -200,8 +191,7 @@ public class PairingManager {
         byte[] salt = generateRandomBytes(16);
 
         // Combine the salt and pin, then create an AES key from them
-        byte[] saltAndPin = saltPin(salt, pin);
-        aesKey = generateAesKey(hashAlgo, saltAndPin);
+        byte[] aesKey = generateAesKey(hashAlgo, saltPin(salt, pin));
         
         // Send the salt and get the server cert. This doesn't have a read timeout
         // because the user must enter the PIN before the server responds

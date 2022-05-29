@@ -30,6 +30,7 @@ import com.limelight.ui.GameGestures;
 import com.limelight.ui.StreamView;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.NetHelper;
+import com.limelight.utils.SamsungDexUtils;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
@@ -63,6 +64,9 @@ import android.util.Rational;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.KeyboardShortcutGroup;
+import android.view.KeyboardShortcutInfo;
+import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -78,10 +82,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
+import java.security.Key;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Locale;
+
 
 
 public class Game extends Activity implements SurfaceHolder.Callback,
@@ -232,6 +239,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView.setOnGenericMotionListener(this);
         streamView.setOnTouchListener(this);
         streamView.setInputCallbacks(this);
+        SamsungDexUtils.INSTANCE.dexMetaKeyCapture(this);
+
+
 
         notificationOverlayView = findViewById(R.id.notificationOverlay);
 

@@ -714,7 +714,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     @SuppressWarnings("deprecation")
     @Override
     public int submitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
-                                int frameNumber, long receiveTimeMs, long enqueueTimeMs) {
+                                int frameNumber, int frameType, long receiveTimeMs, long enqueueTimeMs) {
         if (stopping) {
             // Don't bother if we're stopping
             return MoonBridge.DR_OK;
@@ -995,6 +995,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 }
 
                 submitCsdNextCall = false;
+            }
+
+            if (frameType == MoonBridge.FRAME_TYPE_IDR) {
+                codecFlags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
             }
 
             numFramesIn++;

@@ -425,6 +425,25 @@ public class MediaCodecHelper {
         }
     }
 
+    public static boolean decoderSupportsFusedIdrFrame(MediaCodecInfo decoderInfo, String mimeType) {
+        // If adaptive playback is supported, we can submit new CSD together with a keyframe
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            try {
+                if (decoderInfo.getCapabilitiesForType(mimeType).
+                        isFeatureSupported(CodecCapabilities.FEATURE_AdaptivePlayback))
+                {
+                    LimeLog.info("Decoder supports fused IDR frames (FEATURE_AdaptivePlayback)");
+                    return true;
+                }
+            } catch (Exception e) {
+                // Tolerate buggy codecs
+                e.printStackTrace();
+            }
+        }
+
+        return false;
+    }
+
     public static boolean decoderSupportsAdaptivePlayback(MediaCodecInfo decoderInfo, String mimeType) {
         // Possibly enable adaptive playback on KitKat and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {

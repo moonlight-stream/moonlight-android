@@ -49,7 +49,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private MediaCodec videoDecoder;
     private Thread rendererThread;
     private boolean needsSpsBitstreamFixup, isExynos4;
-    private boolean adaptivePlayback, directSubmit;
+    private boolean adaptivePlayback, directSubmit, fusedIdrFrame;
     private boolean constrainedHighProfile;
     private boolean refFrameInvalidationAvc, refFrameInvalidationHevc;
     private boolean refFrameInvalidationActive;
@@ -294,6 +294,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         }
 
         adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(selectedDecoderInfo, mimeType);
+        fusedIdrFrame = MediaCodecHelper.decoderSupportsFusedIdrFrame(selectedDecoderInfo, mimeType);
 
         // Codecs have been known to throw all sorts of crazy runtime exceptions
         // due to implementation problems
@@ -912,9 +913,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             numPpsIn++;
 
             // If this is the first CSD blob or we aren't supporting
-            // adaptive playback, we will submit the CSD blob in a
+            // fused IDR frames, we will submit the CSD blob in a
             // separate input buffer.
-            if (!submittedCsd || !adaptivePlayback) {
+            if (!submittedCsd || !fusedIdrFrame) {
                 inputBufferIndex = dequeueInputBuffer();
                 if (inputBufferIndex < 0) {
                     // We're being torn down now
@@ -1213,6 +1214,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";
             str += "RFI active: "+renderer.refFrameInvalidationActive+"\n";
             str += "Using modern SPS patching: "+(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)+"\n";
+            str += "Fused IDR frames: "+renderer.fusedIdrFrame+"\n";
             str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
             str += "FPS target: "+renderer.refreshRate+"\n";
             str += "Bitrate: "+renderer.prefs.bitrate+" Kbps \n";

@@ -770,20 +770,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             activeWindowVideoStats.measurementStartTimestamp = SystemClock.uptimeMillis();
         }
 
-        activeWindowVideoStats.totalFramesReceived++;
-        activeWindowVideoStats.totalFrames++;
-
         int inputBufferIndex;
         ByteBuffer buf;
 
         long timestampUs = enqueueTimeMs * 1000;
-
-        if (!FRAME_RENDER_TIME_ONLY) {
-            // Count time from first packet received to enqueue time as receive time
-            // We will count DU queue time as part of decoding, because it is directly
-            // caused by a slow decoder.
-            activeWindowVideoStats.totalTimeMs += enqueueTimeMs - receiveTimeMs;
-        }
 
         if (timestampUs <= lastTimestampUs) {
             // We can't submit multiple buffers with the same timestamp
@@ -971,6 +961,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             }
         }
         else {
+            activeWindowVideoStats.totalFramesReceived++;
+            activeWindowVideoStats.totalFrames++;
+
+            if (!FRAME_RENDER_TIME_ONLY) {
+                // Count time from first packet received to enqueue time as receive time
+                // We will count DU queue time as part of decoding, because it is directly
+                // caused by a slow decoder.
+                activeWindowVideoStats.totalTimeMs += enqueueTimeMs - receiveTimeMs;
+            }
+
             inputBufferIndex = dequeueInputBuffer();
             if (inputBufferIndex < 0) {
                 // We're being torn down now

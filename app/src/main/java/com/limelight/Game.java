@@ -30,7 +30,6 @@ import com.limelight.ui.GameGestures;
 import com.limelight.ui.StreamView;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.NetHelper;
-import com.limelight.utils.SamsungDexUtils;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
@@ -60,13 +59,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.util.Log;
 import android.util.Rational;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
-import android.view.KeyboardShortcutGroup;
-import android.view.KeyboardShortcutInfo;
-import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -82,11 +79,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
-import java.security.Key;
+import java.lang.reflect.Method;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.List;
 import java.util.Locale;
 
 
@@ -239,7 +235,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView.setOnGenericMotionListener(this);
         streamView.setOnTouchListener(this);
         streamView.setInputCallbacks(this);
-        SamsungDexUtils.INSTANCE.dexMetaKeyCapture(this);
+        // If moonlight is running on Samsung Dex handle WinKey and Alt+Tab
+        dexMetaKeyCapture();
 
 
 
@@ -1054,6 +1051,23 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     private byte getModifierState() {
         return (byte) modifierFlags;
+    }
+
+    public void dexMetaKeyCapture() {
+        try {
+            Class<?> semWindowManager = Class.forName("com.samsung.android.view.SemWindowManager");
+            Method getInstanceMethod = semWindowManager.getMethod("getInstance");
+            Object manager = getInstanceMethod.invoke(null);
+            Class[] parameterTypes = new Class[2];
+            parameterTypes[0] = String.class;
+            parameterTypes[1] = boolean.class;
+            Method requestMetaKeyEvent = semWindowManager.getDeclaredMethod(
+                    "requestMetaKeyEvent", parameterTypes);
+            requestMetaKeyEvent.invoke(manager, this.getComponentName(), true);
+        }
+        catch (Exception e) {
+            Log.d("DexHandleMetaKey","Could not call com.samsung.android.view.SemWindowManager.requestMetaKeyEvent");
+        }
     }
 
     @Override

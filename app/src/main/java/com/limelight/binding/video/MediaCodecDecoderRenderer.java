@@ -772,17 +772,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
         int inputBufferIndex;
         ByteBuffer buf;
-
-        long timestampUs = enqueueTimeMs * 1000;
-
-        if (timestampUs <= lastTimestampUs) {
-            // We can't submit multiple buffers with the same timestamp
-            // so bump it up by one before queuing
-            timestampUs = lastTimestampUs + 1;
-        }
-
-        lastTimestampUs = timestampUs;
-
+        long timestampUs;
         int codecFlags = 0;
 
         // H264 SPS
@@ -948,6 +938,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
                 // This is the CSD blob
                 codecFlags |= MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+                timestampUs = 0;
             }
             else {
                 // Batch this to submit together with the next I-frame
@@ -1000,6 +991,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             if (frameType == MoonBridge.FRAME_TYPE_IDR) {
                 codecFlags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
             }
+
+            timestampUs = enqueueTimeMs * 1000;
+
+            if (timestampUs <= lastTimestampUs) {
+                // We can't submit multiple buffers with the same timestamp
+                // so bump it up by one before queuing
+                timestampUs = lastTimestampUs + 1;
+            }
+
+            lastTimestampUs = timestampUs;
 
             numFramesIn++;
         }
@@ -1071,8 +1072,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         // Queue the new SPS
         return queueInputBuffer(inputIndex,
                 0, inputBuffer.position(),
-                System.nanoTime() / 1000,
-                MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
+                0, MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
     }
 
     @Override

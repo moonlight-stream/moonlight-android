@@ -1,0 +1,6 @@
+- Added analog stick deadzone adjustment option
+- Added remote desktop mouse mode option for more natural mouse acceleration when not gaming
+- Improved accuracy of performance overlay statistics
+- Minor video decoder changes to improve compatibility
+- Fixed a crash when loading box art
+- Updated community contributed translations from Weblate

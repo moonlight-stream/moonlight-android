@@ -41,6 +41,7 @@ public class MediaCodecHelper {
     private static final List<String> qualcommDecoderPrefixes;
     private static final List<String> kirinDecoderPrefixes;
     private static final List<String> exynosDecoderPrefixes;
+    private static final List<String> mediatekDecoderPrefixes;
 
     public static final boolean IS_EMULATOR = Build.HARDWARE.equals("ranchu") || Build.HARDWARE.equals("cheets");
 
@@ -209,6 +210,12 @@ public class MediaCodecHelper {
         exynosDecoderPrefixes = new LinkedList<>();
 
         exynosDecoderPrefixes.add("omx.exynos");
+    }
+
+    static {
+        mediatekDecoderPrefixes = new LinkedList<>();
+
+        mediatekDecoderPrefixes.add("omx.mtk");
     }
 
     private static boolean isPowerVR(String glRenderer) {
@@ -391,6 +398,15 @@ public class MediaCodecHelper {
     public static void setDecoderLowLatencyOptions(MediaFormat videoFormat, MediaCodecInfo decoderInfo, String mimeType) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && decoderSupportsAndroidRLowLatency(decoderInfo, mimeType)) {
             videoFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1);
+        }
+        else if (isDecoderInList(mediatekDecoderPrefixes, decoderInfo.getName())) {
+            // MediaTek decoders don't use vendor-defined keys for low latency mode. Instead, they have a modified
+            // version of AOSP's ACodec.cpp which supports the "vdec-lowlatency" option. This option is passed down
+            // to the decoder as OMX.MTK.index.param.video.LowLatencyDecode.
+            //
+            // https://github.com/yuan1617/Framwork/blob/master/frameworks/av/media/libstagefright/ACodec.cpp
+            // https://github.com/iykex/vendor_mediatek_proprietary_hardware/blob/master/libomx/video/MtkOmxVdecEx/MtkOmxVdecEx.h
+            videoFormat.setInteger("vdec-lowlatency", 1);
         }
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // MediaCodec supports vendor-defined format keys using the "vendor.<extension name>.<parameter name>" syntax.

@@ -249,4 +249,7 @@
     <string name="title_setup_guide">設定指南</string>
     <string name="summary_troubleshooting">檢視診斷和修正常見串流問題的提示</string>
     <string name="summary_privacy_policy">檢視 Moonlight 的隱私權政策</string>
+    <string name="summary_seekbar_deadzone">注意：有些遊戲可以強制執行一個比 Moonlight 設定大的死區。</string>
+    <string name="title_checkbox_absolute_mouse_mode">遠端桌面滑鼠模式</string>
+    <string name="summary_checkbox_absolute_mouse_mode">這可以讓滑鼠在遠端桌面使用中的加速表現更加自然，但與很多遊戲不相容。</string>
 </resources>

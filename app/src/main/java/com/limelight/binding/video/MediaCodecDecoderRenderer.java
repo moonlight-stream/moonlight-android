@@ -232,6 +232,77 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         return this.videoFormat;
     }
 
+    private MediaFormat createBaseMediaFormat(String mimeType) {
+        MediaFormat videoFormat = MediaFormat.createVideoFormat(mimeType, initialWidth, initialHeight);
+
+        // Avoid setting KEY_FRAME_RATE on Lollipop and earlier to reduce compatibility risk
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, refreshRate);
+        }
+
+        // Adaptive playback can also be enabled by the whitelist on pre-KitKat devices
+        // so we don't fill these pre-KitKat
+        if (adaptivePlayback && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            videoFormat.setInteger(MediaFormat.KEY_MAX_WIDTH, initialWidth);
+            videoFormat.setInteger(MediaFormat.KEY_MAX_HEIGHT, initialHeight);
+        }
+
+        return videoFormat;
+    }
+
+    private boolean tryConfigureDecoder(MediaCodecInfo selectedDecoderInfo, MediaFormat format) {
+        try {
+            videoDecoder = MediaCodec.createByCodecName(selectedDecoderInfo.getName());
+            LimeLog.info("Configuring with format: "+format);
+
+            videoDecoder.configure(format, renderTarget.getSurface(), null, 0);
+
+            configuredFormat = format;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                // This will contain the actual accepted input format attributes
+                inputFormat = videoDecoder.getInputFormat();
+                LimeLog.info("Input format: "+inputFormat);
+            }
+
+            videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+
+            if (USE_FRAME_RENDER_TIME && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                videoDecoder.setOnFrameRenderedListener(new MediaCodec.OnFrameRenderedListener() {
+                    @Override
+                    public void onFrameRendered(MediaCodec mediaCodec, long presentationTimeUs, long renderTimeNanos) {
+                        long delta = (renderTimeNanos / 1000000L) - (presentationTimeUs / 1000);
+                        if (delta >= 0 && delta < 1000) {
+                            if (USE_FRAME_RENDER_TIME) {
+                                activeWindowVideoStats.totalTimeMs += delta;
+                            }
+                        }
+                    }
+                }, null);
+            }
+
+            LimeLog.info("Using codec "+selectedDecoderInfo.getName()+" for hardware decoding "+format.getString(MediaFormat.KEY_MIME));
+
+            // Start the decoder
+            videoDecoder.start();
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                legacyInputBuffers = videoDecoder.getInputBuffers();
+            }
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            if (videoDecoder != null) {
+                videoDecoder.release();
+                videoDecoder = null;
+            }
+
+            return false;
+        }
+    }
+
     @Override
     public int setup(int format, int width, int height, int redrawRate) {
         this.initialWidth = width;
@@ -296,70 +367,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(selectedDecoderInfo, mimeType);
         fusedIdrFrame = MediaCodecHelper.decoderSupportsFusedIdrFrame(selectedDecoderInfo, mimeType);
 
-        // Codecs have been known to throw all sorts of crazy runtime exceptions
-        // due to implementation problems
-        try {
-            videoDecoder = MediaCodec.createByCodecName(selectedDecoderInfo.getName());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return -4;
-        }
+        MediaFormat mediaFormat = createBaseMediaFormat(mimeType);
 
-        MediaFormat videoFormat = MediaFormat.createVideoFormat(mimeType, width, height);
+        MediaCodecHelper.setDecoderLowLatencyOptions(mediaFormat, selectedDecoderInfo, mimeType);
 
-        // Avoid setting KEY_FRAME_RATE on Lollipop and earlier to reduce compatibility risk
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, redrawRate);
-        }
-
-        // Adaptive playback can also be enabled by the whitelist on pre-KitKat devices
-        // so we don't fill these pre-KitKat
-        if (adaptivePlayback && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            videoFormat.setInteger(MediaFormat.KEY_MAX_WIDTH, width);
-            videoFormat.setInteger(MediaFormat.KEY_MAX_HEIGHT, height);
-        }
-
-        MediaCodecHelper.setDecoderLowLatencyOptions(videoFormat, selectedDecoderInfo, mimeType);
-
-        configuredFormat = videoFormat;
-        LimeLog.info("Configuring with format: "+configuredFormat);
-
-        try {
-            videoDecoder.configure(videoFormat, renderTarget.getSurface(), null, 0);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                // This will contain the actual accepted input format attributes
-                inputFormat = videoDecoder.getInputFormat();
-                LimeLog.info("Input format: "+inputFormat);
-            }
-
-            videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-
-            if (USE_FRAME_RENDER_TIME && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                videoDecoder.setOnFrameRenderedListener(new MediaCodec.OnFrameRenderedListener() {
-                    @Override
-                    public void onFrameRendered(MediaCodec mediaCodec, long presentationTimeUs, long renderTimeNanos) {
-                        long delta = (renderTimeNanos / 1000000L) - (presentationTimeUs / 1000);
-                        if (delta >= 0 && delta < 1000) {
-                            if (USE_FRAME_RENDER_TIME) {
-                                activeWindowVideoStats.totalTimeMs += delta;
-                            }
-                        }
-                    }
-                }, null);
-            }
-
-            LimeLog.info("Using codec "+selectedDecoderInfo.getName()+" for hardware decoding "+mimeType);
-
-            // Start the decoder
-            videoDecoder.start();
-
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                legacyInputBuffers = videoDecoder.getInputBuffers();
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (!tryConfigureDecoder(selectedDecoderInfo, mediaFormat)) {
             return -5;
         }
 

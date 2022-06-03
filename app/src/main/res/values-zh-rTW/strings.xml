@@ -90,7 +90,7 @@
     <string name="applist_refresh_title">遊戲清單</string>
     <string name="applist_refresh_msg">正在重新整理…</string>
     <string name="applist_refresh_error_title"> 錯誤 </string>
-    <string name="applist_refresh_error_msg">獲取遊戲清單失敗</string>
+    <string name="applist_refresh_error_msg">取得遊戲清單失敗</string>
     <string name="applist_quit_app">正在結束</string>
     <string name="applist_quit_success">結束成功</string>
     <string name="applist_quit_fail">結束失敗</string>
@@ -118,7 +118,7 @@
     <string name="title_checkbox_disable_warnings">停用錯誤訊息</string>
     <string name="summary_checkbox_disable_warnings">停用串流中連線錯誤訊息</string>
     <string name="title_checkbox_enable_pip">啟用子母畫面觀察模式</string>
-    <string name="summary_checkbox_enable_pip">允許多工時檢視串流畫面 (但不操作)</string>
+    <string name="summary_checkbox_enable_pip">允許多工時檢視串流畫面 (但無法控制)</string>
     <string name="category_audio_settings">音訊設定</string>
     <string name="title_audio_config_list">環場音效組態</string>
     <string name="summary_audio_config_list">為家庭電影院系統啟用 5.1 或 7.1 環場音效</string>
@@ -224,7 +224,7 @@
     <string name="audioconf_51surround">5.1 環場音效</string>
     <string name="audioconf_71surround">7.1 環場音效</string>
     <string name="videoformat_hevcauto">僅在穩定時使用 HEVC</string>
-    <string name="videoformat_hevcalways">強制使用 HEVC (可能會崩潰)</string>
+    <string name="videoformat_hevcalways">強制使用 HEVC (可能會當機)</string>
     <string name="videoformat_hevcnever">不使用 HEVC</string>
     <string name="resolution_4k">4K</string>
     <string name="fps_30">30 FPS</string>

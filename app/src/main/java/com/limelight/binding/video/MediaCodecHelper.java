@@ -42,6 +42,7 @@ public class MediaCodecHelper {
     private static final List<String> kirinDecoderPrefixes;
     private static final List<String> exynosDecoderPrefixes;
     private static final List<String> mediatekDecoderPrefixes;
+    private static final List<String> amlogicDecoderPrefixes;
 
     public static final boolean IS_EMULATOR = Build.HARDWARE.equals("ranchu") || Build.HARDWARE.equals("cheets");
 
@@ -216,6 +217,12 @@ public class MediaCodecHelper {
         mediatekDecoderPrefixes = new LinkedList<>();
 
         mediatekDecoderPrefixes.add("omx.mtk");
+    }
+
+    static {
+        amlogicDecoderPrefixes = new LinkedList<>();
+
+        amlogicDecoderPrefixes.add("omx.amlogic");
     }
 
     private static boolean isPowerVR(String glRenderer) {
@@ -432,6 +439,11 @@ public class MediaCodecHelper {
                 else if (isDecoderInList(exynosDecoderPrefixes, decoderInfo.getName())) {
                     // Exynos low latency option for H.264 decoder
                     videoFormat.setInteger("vendor.rtc-ext-dec-low-latency.enable", 1);
+                }
+                else if (isDecoderInList(amlogicDecoderPrefixes, decoderInfo.getName())) {
+                    // Amlogic low latency vendor extension
+                    // https://github.com/codewalkerster/android_vendor_amlogic_common_prebuilt_libstagefrighthw/commit/41fefc4e035c476d58491324a5fe7666bfc2989e
+                    videoFormat.setInteger("vendor.low-latency.enable", 1);
                 }
             }
 

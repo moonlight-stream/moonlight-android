@@ -367,12 +367,23 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(selectedDecoderInfo, mimeType);
         fusedIdrFrame = MediaCodecHelper.decoderSupportsFusedIdrFrame(selectedDecoderInfo, mimeType);
 
-        MediaFormat mediaFormat = createBaseMediaFormat(mimeType);
+        for (int tryNumber = 0;; tryNumber++) {
+            LimeLog.info("Decoder configuration try: "+tryNumber);
 
-        MediaCodecHelper.setDecoderLowLatencyOptions(mediaFormat, selectedDecoderInfo, mimeType);
+            MediaFormat mediaFormat = createBaseMediaFormat(mimeType);
 
-        if (!tryConfigureDecoder(selectedDecoderInfo, mediaFormat)) {
-            return -5;
+            // This will try low latency options until we find one that works (or we give up).
+            boolean newFormat = MediaCodecHelper.setDecoderLowLatencyOptions(mediaFormat, selectedDecoderInfo, tryNumber);
+
+            if (tryConfigureDecoder(selectedDecoderInfo, mediaFormat)) {
+                // Success!
+                break;
+            }
+
+            if (!newFormat) {
+                // We couldn't even configure a decoder without any low latency options
+                return -5;
+            }
         }
 
         return 0;

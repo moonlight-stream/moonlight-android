@@ -41,7 +41,6 @@ public class MediaCodecHelper {
     private static final List<String> qualcommDecoderPrefixes;
     private static final List<String> kirinDecoderPrefixes;
     private static final List<String> exynosDecoderPrefixes;
-    private static final List<String> mediatekDecoderPrefixes;
     private static final List<String> amlogicDecoderPrefixes;
 
     public static final boolean IS_EMULATOR = Build.HARDWARE.equals("ranchu") || Build.HARDWARE.equals("cheets");
@@ -151,9 +150,9 @@ public class MediaCodecHelper {
         if (Build.MANUFACTURER.equalsIgnoreCase("Amazon")) {
             whitelistedHevcDecoders.add("omx.mtk");
 
-            // This broke at some point on the Fire TV 3 and now the decoder
+            // This requires setting vdec-lowlatency on the Fire TV 3, otherwise the decoder
             // never produces any output frames.
-            //whitelistedHevcDecoders.add("omx.amlogic");
+            whitelistedHevcDecoders.add("omx.amlogic");
         }
 
         // Plot twist: On newer Sony devices (BRAVIA_ATV2, BRAVIA_ATV3_4K, BRAVIA_UR1_4K) the H.264 decoder crashes
@@ -211,12 +210,6 @@ public class MediaCodecHelper {
         exynosDecoderPrefixes = new LinkedList<>();
 
         exynosDecoderPrefixes.add("omx.exynos");
-    }
-
-    static {
-        mediatekDecoderPrefixes = new LinkedList<>();
-
-        mediatekDecoderPrefixes.add("omx.mtk");
     }
 
     static {
@@ -402,55 +395,93 @@ public class MediaCodecHelper {
                 !isAdreno620;
     }
 
-    public static void setDecoderLowLatencyOptions(MediaFormat videoFormat, MediaCodecInfo decoderInfo, String mimeType) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && decoderSupportsAndroidRLowLatency(decoderInfo, mimeType)) {
-            videoFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1);
+    public static boolean setDecoderLowLatencyOptions(MediaFormat videoFormat, MediaCodecInfo decoderInfo, int tryNumber) {
+        // Options here should be tried in the order of most to least risky. The decoder will use
+        // the first MediaFormat that doesn't fail in configure().
+
+        boolean setNewOption = false;
+
+        if (tryNumber < 1) {
+            // Official Android 11+ low latency option (KEY_LOW_LATENCY).
+            videoFormat.setInteger("low-latency", 1);
+            setNewOption = true;
+
+            // If this decoder officially supports FEATURE_LowLatency, we will just use that alone
+            // for try 0. Otherwise, we'll include it as best effort with other options.
+            if (decoderSupportsAndroidRLowLatency(decoderInfo, videoFormat.getString(MediaFormat.KEY_MIME))) {
+                return true;
+            }
         }
-        else if (isDecoderInList(mediatekDecoderPrefixes, decoderInfo.getName())) {
+
+        if (tryNumber < 2) {
             // MediaTek decoders don't use vendor-defined keys for low latency mode. Instead, they have a modified
             // version of AOSP's ACodec.cpp which supports the "vdec-lowlatency" option. This option is passed down
             // to the decoder as OMX.MTK.index.param.video.LowLatencyDecode.
             //
+            // This option is also plumbed for Amazon Amlogic-based devices like the Fire TV 3. Not only does it
+            // reduce latency on Amlogic, it fixes the HEVC bug that causes the decoder to not output any frames.
+            //
             // https://github.com/yuan1617/Framwork/blob/master/frameworks/av/media/libstagefright/ACodec.cpp
             // https://github.com/iykex/vendor_mediatek_proprietary_hardware/blob/master/libomx/video/MtkOmxVdecEx/MtkOmxVdecEx.h
             videoFormat.setInteger("vdec-lowlatency", 1);
+            setNewOption = true;
         }
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // MediaCodec supports vendor-defined format keys using the "vendor.<extension name>.<parameter name>" syntax.
-            // These allow access to functionality that is not exposed through documented MediaFormat.KEY_* values.
-            // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/common/inc/vidc_vendor_extensions.h;l=67
-            //
-            // MediaCodec vendor extension support was introduced in Android 8.0:
-            // https://cs.android.com/android/_/android/platform/frameworks/av/+/01c10f8cdcd58d1e7025f426a72e6e75ba5d7fc2
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // Try vendor-specific low latency options
-                if (isDecoderInList(qualcommDecoderPrefixes, decoderInfo.getName())) {
-                    // Examples of Qualcomm's vendor extensions for Snapdragon 845:
-                    // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/vdec/src/omx_vdec_extensions.hpp
-                    // https://cs.android.com/android/_/android/platform/hardware/qcom/sm8150/media/+/0621ceb1c1b19564999db8293574a0e12952ff6c
-                    videoFormat.setInteger("vendor.qti-ext-dec-low-latency.enable", 1);
+
+        // MediaCodec supports vendor-defined format keys using the "vendor.<extension name>.<parameter name>" syntax.
+        // These allow access to functionality that is not exposed through documented MediaFormat.KEY_* values.
+        // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/common/inc/vidc_vendor_extensions.h;l=67
+        //
+        // MediaCodec vendor extension support was introduced in Android 8.0:
+        // https://cs.android.com/android/_/android/platform/frameworks/av/+/01c10f8cdcd58d1e7025f426a72e6e75ba5d7fc2
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Try vendor-specific low latency options
+            if (isDecoderInList(qualcommDecoderPrefixes, decoderInfo.getName())) {
+                // Examples of Qualcomm's vendor extensions for Snapdragon 845:
+                // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/vdec/src/omx_vdec_extensions.hpp
+                // https://cs.android.com/android/_/android/platform/hardware/qcom/sm8150/media/+/0621ceb1c1b19564999db8293574a0e12952ff6c
+                //
+                // We will first try both, then try vendor.qti-ext-dec-low-latency.enable alone if that fails
+                if (tryNumber < 3) {
+                    videoFormat.setInteger("vendor.qti-ext-dec-picture-order.enable", 1);
+                    setNewOption = true;
                 }
-                else if (isDecoderInList(kirinDecoderPrefixes, decoderInfo.getName())) {
+                if (tryNumber < 4) {
+                    videoFormat.setInteger("vendor.qti-ext-dec-low-latency.enable", 1);
+                    setNewOption = true;
+                }
+            }
+            else if (isDecoderInList(kirinDecoderPrefixes, decoderInfo.getName())) {
+                if (tryNumber < 3) {
                     // Kirin low latency options
                     // https://developer.huawei.com/consumer/cn/forum/topic/0202325564295980115
                     videoFormat.setInteger("vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-req", 1);
                     videoFormat.setInteger("vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-rdy", -1);
+                    setNewOption = true;
                 }
-                else if (isDecoderInList(exynosDecoderPrefixes, decoderInfo.getName())) {
+            }
+            else if (isDecoderInList(exynosDecoderPrefixes, decoderInfo.getName())) {
+                if (tryNumber < 3) {
                     // Exynos low latency option for H.264 decoder
                     videoFormat.setInteger("vendor.rtc-ext-dec-low-latency.enable", 1);
+                    setNewOption = true;
                 }
-                else if (isDecoderInList(amlogicDecoderPrefixes, decoderInfo.getName())) {
+            }
+            else if (isDecoderInList(amlogicDecoderPrefixes, decoderInfo.getName())) {
+                if (tryNumber < 3) {
                     // Amlogic low latency vendor extension
                     // https://github.com/codewalkerster/android_vendor_amlogic_common_prebuilt_libstagefrighthw/commit/41fefc4e035c476d58491324a5fe7666bfc2989e
                     videoFormat.setInteger("vendor.low-latency.enable", 1);
+                    setNewOption = true;
                 }
             }
-
-            if (MediaCodecHelper.decoderSupportsMaxOperatingRate(decoderInfo.getName())) {
-                videoFormat.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
-            }
         }
+
+        // FIXME: We should probably integrate this into the try system
+        if (MediaCodecHelper.decoderSupportsMaxOperatingRate(decoderInfo.getName())) {
+            videoFormat.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
+        }
+
+        return setNewOption;
     }
 
     public static boolean decoderSupportsFusedIdrFrame(MediaCodecInfo decoderInfo, String mimeType) {

@@ -420,6 +420,7 @@ public class MediaCodecHelper {
             //
             // This option is also plumbed for Amazon Amlogic-based devices like the Fire TV 3. Not only does it
             // reduce latency on Amlogic, it fixes the HEVC bug that causes the decoder to not output any frames.
+            // On Fire TV 3, vdec-lowlatency is translated to OMX.amazon.fireos.index.video.lowLatencyDecode.
             //
             // https://github.com/yuan1617/Framwork/blob/master/frameworks/av/media/libstagefright/ACodec.cpp
             // https://github.com/iykex/vendor_mediatek_proprietary_hardware/blob/master/libomx/video/MtkOmxVdecEx/MtkOmxVdecEx.h

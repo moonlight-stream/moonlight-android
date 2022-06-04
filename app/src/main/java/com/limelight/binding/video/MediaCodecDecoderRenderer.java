@@ -106,6 +106,60 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         return decoder;
     }
 
+    private Boolean decoderCanMeetPerformancePoint(MediaCodecInfo.VideoCapabilities caps, PreferenceConfiguration prefs) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaCodecInfo.VideoCapabilities.PerformancePoint targetPerfPoint = new MediaCodecInfo.VideoCapabilities.PerformancePoint(prefs.width, prefs.height, prefs.fps);
+            List<MediaCodecInfo.VideoCapabilities.PerformancePoint> perfPoints = caps.getSupportedPerformancePoints();
+            if (perfPoints != null) {
+                for (MediaCodecInfo.VideoCapabilities.PerformancePoint perfPoint : perfPoints) {
+                    // If we find a performance point that covers our target, we're good to go
+                    if (perfPoint.covers(targetPerfPoint)) {
+                        return true;
+                    }
+                }
+
+                // We had performance point data but none met the specified streaming settings
+                return false;
+            }
+
+            // Fall-through to try the Android M API if there's no performance point data
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                // We'll ask the decoder what it can do for us at this resolution and see if our
+                // requested frame rate falls in the range of achievable frame rates.
+                return caps.getAchievableFrameRatesFor(prefs.width, prefs.height).contains((double) prefs.fps);
+            } catch (IllegalArgumentException e) {
+                // Video size not supported at any frame rate
+                return false;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean decoderCanMeetPerformancePointWithHevcAndNotAvc(MediaCodecInfo avcDecoderInfo, MediaCodecInfo hevcDecoderInfo, PreferenceConfiguration prefs) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            MediaCodecInfo.VideoCapabilities avcCaps = avcDecoderInfo.getCapabilitiesForType("video/avc").getVideoCapabilities();
+            MediaCodecInfo.VideoCapabilities hevcCaps = hevcDecoderInfo.getCapabilitiesForType("video/hevc").getVideoCapabilities();
+
+            Boolean avcCanMeetPP = decoderCanMeetPerformancePoint(avcCaps, prefs);
+            Boolean hevcCanMeetPP = decoderCanMeetPerformancePoint(hevcCaps, prefs);
+
+            // If one or both codecs lack performance data, don't do anything
+            if (avcCanMeetPP == null || hevcCanMeetPP == null) {
+                return false;
+            }
+
+            return !avcCanMeetPP && hevcCanMeetPP;
+        }
+        else {
+            // No performance data
+            return false;
+        }
+    }
+
     private MediaCodecInfo findHevcDecoder(PreferenceConfiguration prefs, boolean meteredNetwork, boolean requestedHdr) {
         // Don't return anything if HEVC is forced off
         if (prefs.videoFormat == PreferenceConfiguration.FORCE_H265_OFF) {
@@ -117,16 +171,26 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         // We need HEVC Main profile, so we could pass that constant to findProbableSafeDecoder, however
         // some decoders (at least Qualcomm's Snapdragon 805) don't properly report support
         // for even required levels of HEVC.
-        MediaCodecInfo decoderInfo = MediaCodecHelper.findProbableSafeDecoder("video/hevc", -1);
-        if (decoderInfo != null) {
-            if (!MediaCodecHelper.decoderIsWhitelistedForHevc(decoderInfo.getName(), meteredNetwork, prefs)) {
-                LimeLog.info("Found HEVC decoder, but it's not whitelisted - "+decoderInfo.getName());
+        MediaCodecInfo hevcDecoderInfo = MediaCodecHelper.findProbableSafeDecoder("video/hevc", -1);
+        if (hevcDecoderInfo != null) {
+            if (!MediaCodecHelper.decoderIsWhitelistedForHevc(hevcDecoderInfo.getName(), meteredNetwork, prefs)) {
+                LimeLog.info("Found HEVC decoder, but it's not whitelisted - "+hevcDecoderInfo.getName());
 
+                // Force HEVC enabled if the user asked for it
+                if (prefs.videoFormat == PreferenceConfiguration.FORCE_H265_ON) {
+                    LimeLog.info("Forcing HEVC enabled despite non-whitelisted decoder");
+                }
                 // HDR implies HEVC forced on, since HEVCMain10HDR10 is required for HDR.
+                else if (requestedHdr) {
+                    LimeLog.info("Forcing HEVC enabled for HDR streaming");
+                }
                 // > 4K streaming also requires HEVC, so force it on there too.
-                if (prefs.videoFormat == PreferenceConfiguration.FORCE_H265_ON || requestedHdr ||
-                        prefs.width > 4096 || prefs.height > 4096) {
-                    LimeLog.info("Forcing H265 enabled despite non-whitelisted decoder");
+                else if (prefs.width > 4096 || prefs.height > 4096) {
+                    LimeLog.info("Forcing HEVC enabled for over 4K streaming");
+                }
+                // Use HEVC if the H.264 decoder is unable to meet the performance point
+                else if (avcDecoder != null && decoderCanMeetPerformancePointWithHevcAndNotAvc(avcDecoder, hevcDecoderInfo, prefs)) {
+                    LimeLog.info("Using non-whitelisted HEVC decoder to meet performance point");
                 }
                 else {
                     return null;
@@ -134,7 +198,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             }
         }
 
-        return decoderInfo;
+        return hevcDecoderInfo;
     }
 
     public void setRenderTarget(SurfaceHolder renderTarget) {

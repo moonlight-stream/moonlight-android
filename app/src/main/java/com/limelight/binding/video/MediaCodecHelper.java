@@ -145,16 +145,6 @@ public class MediaCodecHelper {
             // TODO: This needs a similar fixup to the Tegra 3 otherwise it buffers 16 frames
         }
 
-        // Older Sony ATVs (SVP-DTV15) have broken MediaTek codecs (decoder hangs after rendering the first frame).
-        // I know the Fire TV 2 and 3 works, so I'll whitelist Amazon devices which seem to actually be tested.
-        if (Build.MANUFACTURER.equalsIgnoreCase("Amazon")) {
-            whitelistedHevcDecoders.add("omx.mtk");
-
-            // This requires setting vdec-lowlatency on the Fire TV 3, otherwise the decoder
-            // never produces any output frames.
-            whitelistedHevcDecoders.add("omx.amlogic");
-        }
-
         // Plot twist: On newer Sony devices (BRAVIA_ATV2, BRAVIA_ATV3_4K, BRAVIA_UR1_4K) the H.264 decoder crashes
         // on several configurations (> 60 FPS and 1440p) that work with HEVC, so we'll whitelist those devices for HEVC.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.DEVICE.startsWith("BRAVIA_")) {
@@ -274,6 +264,19 @@ public class MediaCodecHelper {
     public static void initialize(Context context, String glRenderer) {
         if (initialized) {
             return;
+        }
+
+        // Older Sony ATVs (SVP-DTV15) have broken MediaTek codecs (decoder hangs after rendering the first frame).
+        // I know the Fire TV 2 and 3 works, so I'll whitelist Amazon devices which seem to actually be tested.
+        // We still have to check Build.MANUFACTURER to catch Amazon Fire tablets.
+        if (context.getPackageManager().hasSystemFeature("amazon.hardware.fire_tv") ||
+                Build.MANUFACTURER.equalsIgnoreCase("Amazon")) {
+            whitelistedHevcDecoders.add("omx.mtk");
+
+            // This requires setting vdec-lowlatency on the Fire TV 3, otherwise the decoder
+            // never produces any output frames. See comment above for details on why we only
+            // do this for Fire TV devices.
+            whitelistedHevcDecoders.add("omx.amlogic");
         }
 
         ActivityManager activityManager =

@@ -250,4 +250,7 @@
     <string name="summary_setup_guide">Afficher les instructions sur la façon de configurer votre PC de jeu pour le streaming</string>
     <string name="summary_troubleshooting">Afficher des conseils pour diagnostiquer et résoudre les problèmes de streaming courants</string>
     <string name="pacing_balanced_alt">Équilibré avec limite FPS</string>
+    <string name="title_checkbox_absolute_mouse_mode">Mode souris pour bureau à distance</string>
+    <string name="summary_seekbar_deadzone">Remarque : Certains jeux peuvent imposer une zone morte plus grande que celle que Moonlight est configuré pour utiliser.</string>
+    <string name="summary_checkbox_absolute_mouse_mode">Cela peut rendre l\'accélération de la souris plus naturelle pour l\'utilisation du bureau à distance, mais elle est incompatible avec de nombreux jeux.</string>
 </resources>

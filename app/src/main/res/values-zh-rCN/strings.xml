@@ -248,4 +248,7 @@
     <string name="summary_frame_pacing">指定如何平衡视频延迟和流畅度</string>
     <string name="pacing_balanced_alt">有FPS限制的平衡</string>
     <string name="pacing_latency">优先最低延迟</string>
+    <string name="summary_seekbar_deadzone">注意：有些游戏可以执行一个比Moonlight摇杆配置的更大的盲区。</string>
+    <string name="title_checkbox_absolute_mouse_mode">适合远程桌面的鼠标模式</string>
+    <string name="summary_checkbox_absolute_mouse_mode">这可以使得鼠标加速在远程桌面使用中表现得更自然，但它与许多游戏不兼容。</string>
 </resources>

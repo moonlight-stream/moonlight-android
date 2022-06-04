@@ -23,7 +23,8 @@ import android.media.MediaCodec.BufferInfo;
 import android.media.MediaCodec.CodecException;
 import android.os.Build;
 import android.os.Handler;
-import android.os.Looper;
+import android.os.HandlerThread;
+import android.os.Process;
 import android.os.SystemClock;
 import android.util.Range;
 import android.view.Choreographer;
@@ -88,6 +89,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private LinkedBlockingQueue<Integer> outputBufferQueue = new LinkedBlockingQueue<>();
     private static final int OUTPUT_BUFFER_QUEUE_LIMIT = 2;
     private long lastRenderedFrameTimeNanos;
+    private HandlerThread choreographerHandlerThread;
+    private Handler choreographerHandler;
 
     private int numSpsIn;
     private int numPpsIn;
@@ -478,6 +481,26 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         Choreographer.getInstance().postFrameCallback(this);
     }
 
+    private void startChoreographerThread() {
+        if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_BALANCED) {
+            // Not using Choreographer in this pacing mode
+            return;
+        }
+
+        // We use a separate thread to avoid any main thread delays from delaying rendering
+        choreographerHandlerThread = new HandlerThread("Video - Choreographer", Process.THREAD_PRIORITY_DEFAULT + Process.THREAD_PRIORITY_MORE_FAVORABLE);
+        choreographerHandlerThread.start();
+
+        // Start the frame callbacks
+        choreographerHandler = new Handler(choreographerHandlerThread.getLooper());
+        choreographerHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                Choreographer.getInstance().postFrameCallback(MediaCodecDecoderRenderer.this);
+            }
+        });
+    }
+
     private void startRendererThread()
     {
         rendererThread = new Thread() {
@@ -620,18 +643,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     @Override
     public void start() {
         startRendererThread();
-
-        // Start Choreographer callbacks for rendering with frame pacing in balanced mode
-        // NB: This must be done on a thread with a looper!
-        if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_BALANCED) {
-            Handler h = new Handler(Looper.getMainLooper());
-            h.post(new Runnable() {
-                @Override
-                public void run() {
-                    Choreographer.getInstance().postFrameCallback(MediaCodecDecoderRenderer.this);
-                }
-            });
-        }
+        startChoreographerThread();
     }
 
     // !!! May be called even if setup()/start() fails !!!
@@ -644,12 +656,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             rendererThread.interrupt();
         }
 
-        // Halt further Choreographer callbacks
-        if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_BALANCED) {
-            Handler h = new Handler(Looper.getMainLooper());
-            h.post(new Runnable() {
+        // Post a quit message to the Choreographer looper (if we have one)
+        if (choreographerHandler != null) {
+            choreographerHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    // Don't allow any further messages to be queued
+                    choreographerHandlerThread.quit();
+
+                    // Deregister the frame callback (if registered)
                     Choreographer.getInstance().removeFrameCallback(MediaCodecDecoderRenderer.this);
                 }
             });
@@ -660,6 +675,20 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     public void stop() {
         // May be called already, but we'll call it now to be safe
         prepareForStop();
+
+        // Wait for the Choreographer looper to shut down (if we have one)
+        if (choreographerHandlerThread != null) {
+            try {
+                choreographerHandlerThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+
+                // InterruptedException clears the thread's interrupt status. Since we can't
+                // handle that here, we will re-interrupt the thread to set the interrupt
+                // status back to true.
+                Thread.currentThread().interrupt();
+            }
+        }
 
         // Wait for the renderer thread to shut down
         try {

@@ -1,6 +1,7 @@
 package com.limelight.binding.video;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -1232,6 +1233,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 str += "SOC: "+Build.SOC_MANUFACTURER+" - "+Build.SOC_MODEL+"\n";
                 str += "Performance class: "+Build.VERSION.MEDIA_PERFORMANCE_CLASS+"\n";
+                str += "Vendor params: ";
+                List<String> params = renderer.videoDecoder.getSupportedVendorParameters();
+                if (params.isEmpty()) {
+                    str += "NONE";
+                }
+                else {
+                    for (String param : params) {
+                        str += param + " ";
+                    }
+                }
+                str += "\n";
             }
             str += "Foreground: "+renderer.foreground+"\n";
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";

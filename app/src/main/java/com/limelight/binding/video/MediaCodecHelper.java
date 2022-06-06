@@ -136,13 +136,19 @@ public class MediaCodecHelper {
         // Exynos seems to be the only HEVC decoder that works reliably
         whitelistedHevcDecoders.add("omx.exynos");
 
-        // On Darcy (Shield 2017), HEVC runs fine with no fixups required.
-        // For some reason, other X1 implementations require bitstream fixups.
-        if (Build.DEVICE.equalsIgnoreCase("darcy")) {
+        // On Darcy (Shield 2017), HEVC runs fine with no fixups required. For some reason,
+        // other X1 implementations require bitstream fixups. However, since numReferenceFrames
+        // has been supported in GFE since late 2017, we'll go ahead and enable HEVC for all
+        // device models.
+        //
+        // NVIDIA does partial HEVC acceleration on the Shield Tablet. I don't know
+        // whether the performance is good enough to use for streaming, but they're
+        // using the same omx.nvidia.h265.decode name as the Shield TV which has a
+        // fully accelerated HEVC pipeline. AFAIK, the only K1 device with this
+        // partially accelerated HEVC decoder is the Shield Tablet, so I'll
+        // check for it here.
+        if (!Build.DEVICE.equalsIgnoreCase("shieldtablet")) {
             whitelistedHevcDecoders.add("omx.nvidia");
-        }
-        else {
-            // TODO: This needs a similar fixup to the Tegra 3 otherwise it buffers 16 frames
         }
 
         // Plot twist: On newer Sony devices (BRAVIA_ATV2, BRAVIA_ATV3_4K, BRAVIA_UR1_4K) the H.264 decoder crashes
@@ -568,20 +574,6 @@ public class MediaCodecHelper {
     }
 
     public static boolean decoderIsWhitelistedForHevc(String decoderName, boolean meteredData, PreferenceConfiguration prefs) {
-        // TODO: Shield Tablet K1/LTE?
-        //
-        // NVIDIA does partial HEVC acceleration on the Shield Tablet. I don't know
-        // whether the performance is good enough to use for streaming, but they're
-        // using the same omx.nvidia.h265.decode name as the Shield TV which has a
-        // fully accelerated HEVC pipeline. AFAIK, the only K1 device with this
-        // partially accelerated HEVC decoder is the Shield Tablet, so I'll
-        // check for it here.
-        //
-        // TODO: Temporarily disabled with NVIDIA HEVC support
-        /*if (Build.DEVICE.equalsIgnoreCase("shieldtablet")) {
-            return false;
-        }*/
-
         // Google didn't have official support for HEVC (or more importantly, a CTS test) until
         // Lollipop. I've seen some MediaTek devices on 4.4 crash when attempting to use HEVC,
         // so I'm restricting HEVC usage to Lollipop and higher.

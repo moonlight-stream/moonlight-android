@@ -128,8 +128,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 // We'll ask the decoder what it can do for us at this resolution and see if our
-                // requested frame rate falls in the range of achievable frame rates.
-                return caps.getAchievableFrameRatesFor(prefs.width, prefs.height).contains((double) prefs.fps);
+                // requested frame rate falls below or inside the range of achievable frame rates.
+                Range<Double> fpsRange = caps.getAchievableFrameRatesFor(prefs.width, prefs.height);
+                return prefs.fps <= fpsRange.getUpper();
             } catch (IllegalArgumentException e) {
                 // Video size not supported at any frame rate
                 return false;

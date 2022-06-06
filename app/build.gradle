@@ -3,23 +3,26 @@ apply plugin: 'com.android.application'
 android {
     ndkVersion "23.2.8568313"
 
-    compileSdkVersion 32
+    compileSdk 32
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 32
+        minSdk 16
+        targetSdk 32
 
         versionName "10.3"
         versionCode = 278
+
+        // Generate native debug symbols to allow Google Play to symbolicate our native crashes
+        ndk.debugSymbolLevel = 'FULL'
     }
 
-    flavorDimensions "root"
+    flavorDimensions.add("root")
 
     productFlavors {
         root {
             // Android O has native mouse capture, so don't show the rooted
             // version to devices running O on the Play Store.
-            maxSdkVersion 25
+            maxSdk 25
 
             externalNativeBuild {
                 ndkBuild {
@@ -55,7 +58,7 @@ android {
             enableSplit = false
         }
         density {
-            // FIXME: This should not be neccessary but we get
+            // FIXME: This should not be necessary but we get
             // weird crashes due to missing drawable resources
             // when this split is enabled.
             enableSplit = false
@@ -112,9 +115,6 @@ android {
             path "src/main/jni/Android.mk"
         }
     }
-
-    // Generate native debug symbols to allow Google Play to symbolicate our native crashes
-    android.defaultConfig.ndk.debugSymbolLevel = 'FULL'
 }
 
 dependencies {

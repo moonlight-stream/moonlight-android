@@ -2,8 +2,8 @@ package com.limelight.binding.input.capture;
 
 import android.app.Activity;
 
+import com.limelight.BuildConfig;
 import com.limelight.LimeLog;
-import com.limelight.LimelightBuildProps;
 import com.limelight.R;
 import com.limelight.binding.input.evdev.EvdevCaptureProviderShim;
 import com.limelight.binding.input.evdev.EvdevListener;
@@ -16,7 +16,7 @@ public class InputCaptureManager {
         }
         // LineageOS implemented broken NVIDIA capture extensions, so avoid using them on root builds.
         // See https://github.com/LineageOS/android_frameworks_base/commit/d304f478a023430f4712dbdc3ee69d9ad02cebd3
-        else if (!LimelightBuildProps.ROOT_BUILD && ShieldCaptureProvider.isCaptureProviderSupported()) {
+        else if (!BuildConfig.ROOT_BUILD && ShieldCaptureProvider.isCaptureProviderSupported()) {
             LimeLog.info("Using NVIDIA mouse capture extension");
             return new ShieldCaptureProvider(activity);
         }

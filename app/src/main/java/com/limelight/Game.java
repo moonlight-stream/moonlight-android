@@ -516,6 +516,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 performanceOverlayView.setVisibility(View.GONE);
                 notificationOverlayView.setVisibility(View.GONE);
+
+                // Update GameManager state to indicate we're in PiP (still gaming, but interruptible)
+                UiHelper.notifyStreamEnteringPiP(this);
             }
             else {
                 isHidingOverlays = false;
@@ -531,6 +534,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 }
 
                 notificationOverlayView.setVisibility(requestedNotificationOverlayVisibility);
+
+                // Update GameManager state to indicate we're out of PiP (gaming, non-interruptible)
+                UiHelper.notifyStreamExitingPiP(this);
             }
         }
     }
@@ -1600,6 +1606,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             controllerHandler.stop();
 
+            // Update GameManager state to indicate we're no longer in game
+            UiHelper.notifyStreamEnded(this);
+
             // Stop may take a few hundred ms to do some network I/O to tell
             // the server we're going away and clean up. Let it run in a separate
             // thread to keep things smooth for the UI. Inside moonlight-common,
@@ -1780,6 +1789,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // Keep the display on
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+                // Update GameManager state to indicate we're in game
+                UiHelper.notifyStreamConnected(Game.this);
+
                 hideSystemUi(1000);
             }
         });
@@ -1828,6 +1840,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (!attemptedConnection) {
             attemptedConnection = true;
+
+            // Update GameManager state to indicate we're "loading" while connecting
+            UiHelper.notifyStreamConnecting(Game.this);
 
             decoderRenderer.setRenderTarget(holder);
             conn.start(PlatformBinding.getAudioRenderer(), decoderRenderer, Game.this);

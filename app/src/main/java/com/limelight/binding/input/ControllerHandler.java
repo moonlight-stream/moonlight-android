@@ -25,6 +25,7 @@ import com.limelight.LimeLog;
 import com.limelight.binding.input.driver.AbstractController;
 import com.limelight.binding.input.driver.UsbDriverListener;
 import com.limelight.binding.input.driver.UsbDriverService;
+import com.limelight.binding.input.shield.ShieldControllerExtensionsHandler;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
@@ -61,6 +62,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final InputDeviceContext defaultContext = new InputDeviceContext();
     private final GameGestures gestures;
     private final Vibrator deviceVibrator;
+    private final ShieldControllerExtensionsHandler shieldControllerExtensionsHandler;
     private boolean hasGameController;
 
     private final PreferenceConfiguration prefConfig;
@@ -72,6 +74,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         this.gestures = gestures;
         this.prefConfig = prefConfig;
         this.deviceVibrator = (Vibrator) activityContext.getSystemService(Context.VIBRATOR_SERVICE);
+        this.shieldControllerExtensionsHandler = new ShieldControllerExtensionsHandler(activityContext);
 
         int deadzonePercentage = prefConfig.deadzonePercentage;
 
@@ -200,6 +203,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             deviceContext.destroy();
         }
 
+        shieldControllerExtensionsHandler.destroy();
         deviceVibrator.cancel();
     }
 
@@ -505,6 +509,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
         LimeLog.info(dev.toString());
 
+        context.inputDevice = dev;
         context.name = devName;
         context.id = dev.getId();
         context.external = isExternal(dev);
@@ -1440,10 +1445,34 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             if (deviceContext.controllerNumber == controllerNumber) {
                 foundMatchingDevice = true;
 
+                // Cancel pending rumble repeat timer if one exists
+                if (deviceContext.rumbleRepeatTimer != null) {
+                    deviceContext.rumbleRepeatTimer.cancel();
+                    deviceContext.rumbleRepeatTimer = null;
+                }
+
+                // Prefer the documented Android 12 rumble API which can handle dual vibrators on PS/Xbox controllers
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && deviceContext.vibratorManager != null) {
                     vibrated = true;
                     rumbleDualVibrators(deviceContext.vibratorManager, lowFreqMotor, highFreqMotor);
                 }
+                // On Shield devices, we can use their special API to rumble Shield controllers
+                else if (shieldControllerExtensionsHandler.rumble(deviceContext.inputDevice, lowFreqMotor, highFreqMotor)) {
+                    vibrated = true;
+
+                    // The Shield controller can only rumble up to 1 second at a time, so we will call rumble again
+                    // every 500 ms until the host PC gives us another rumble value.
+                    if (lowFreqMotor != 0 || highFreqMotor != 0) {
+                        deviceContext.rumbleRepeatTimer = new Timer("Rumble Repeat - "+deviceContext.name, true);
+                        deviceContext.rumbleRepeatTimer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                shieldControllerExtensionsHandler.rumble(deviceContext.inputDevice, lowFreqMotor, highFreqMotor);
+                            }
+                        }, 500, 500);
+                    }
+                }
+                // If all else fails, we have to try the old Vibrator API
                 else if (deviceContext.vibrator != null) {
                     vibrated = true;
                     rumbleSingleVibrator(deviceContext.vibrator, lowFreqMotor, highFreqMotor);
@@ -1931,6 +1960,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public String name;
         public VibratorManager vibratorManager;
         public Vibrator vibrator;
+        public InputDevice inputDevice;
+        public Timer rumbleRepeatTimer;
 
         public int leftStickXAxis = -1;
         public int leftStickYAxis = -1;
@@ -1981,6 +2012,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
             else if (vibrator != null) {
                 vibrator.cancel();
+            }
+
+            if (rumbleRepeatTimer != null) {
+                rumbleRepeatTimer.cancel();
             }
         }
     }

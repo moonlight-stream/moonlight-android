@@ -120,6 +120,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean autoEnterPip = false;
     private boolean surfaceCreated = false;
     private boolean attemptedConnection = false;
+    private String pcName;
+    private String appName;
 
     private InputCaptureProvider inputCaptureProvider;
     private int modifierFlags = 0;
@@ -269,12 +271,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             lowLatencyWifiLock.acquire();
         }
 
+        appName = Game.this.getIntent().getStringExtra(EXTRA_APP_NAME);
+        pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
+
         String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
-        String appName = Game.this.getIntent().getStringExtra(EXTRA_APP_NAME);
         int appId = Game.this.getIntent().getIntExtra(EXTRA_APP_ID, StreamConfiguration.INVALID_APP_ID);
         String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
         String uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
-        String pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
         boolean appSupportsHdr = Game.this.getIntent().getBooleanExtra(EXTRA_APP_HDR, false);
         byte[] derCertData = Game.this.getIntent().getByteArrayExtra(EXTRA_SERVER_CERT);
 
@@ -544,6 +547,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             builder.setAutoEnterEnabled(autoEnter);
             builder.setSeamlessResizeEnabled(true);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (appName != null) {
+                builder.setTitle(appName);
+                if (pcName != null) {
+                    builder.setSubtitle(pcName);
+                }
+            }
+            else if (pcName != null) {
+                builder.setTitle(pcName);
+            }
         }
 
         return builder.build();

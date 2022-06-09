@@ -1451,7 +1451,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                             return true;
                         }
                     }
-                    context.touchUpEvent(eventX, eventY);
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && (event.getFlags() & MotionEvent.FLAG_CANCELED) != 0) {
+                        context.cancelTouch();
+                    }
+                    else {
+                        context.touchUpEvent(eventX, eventY);
+                    }
+
                     for (TouchContext touchContext : touchContextMap) {
                         touchContext.setPointerCount(event.getPointerCount() - 1);
                     }

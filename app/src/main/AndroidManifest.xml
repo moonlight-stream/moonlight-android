@@ -45,20 +45,27 @@
         android:installLocation="auto"
         android:gwpAsanMode="always"
         android:theme="@style/AppTheme">
+
         <provider
             android:name=".PosterContentProvider"
             android:authorities="poster.${applicationId}"
             android:enabled="true"
             android:exported="true">
         </provider>
+
         <!-- Samsung multi-window support -->
         <uses-library
             android:name="com.sec.android.app.multiwindow"
             android:required="false" />
-
         <meta-data
             android:name="com.sec.android.support.multiwindow"
             android:value="true" />
+
+        <!-- Disable Game Mode downscaling since it can break our UI dialogs and doesn't benefit
+             performance much for us since we don't use GL/Vulkan for rendering anyway -->
+        <meta-data
+            android:name="com.android.graphics.intervention.wm.allowDownscale"
+            android:value="false"/>
 
         <!-- Samsung DeX support requires explicit placement of android:resizeableActivity="true"
              in each activity even though it is implied by targeting API 24+ -->

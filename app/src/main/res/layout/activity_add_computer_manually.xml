@@ -13,6 +13,7 @@
         android:text="@string/title_add_pc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:preferKeepClear="true"
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_alignParentTop="true"/>
@@ -29,6 +30,7 @@
         android:layout_alignParentStart="true"
         android:ems="10"
         android:singleLine="true"
+        android:preferKeepClear="true"
         android:inputType="textNoSuggestions"
         android:hint="@string/ip_hint" >
         
@@ -43,6 +45,7 @@
         android:layout_below="@+id/manuallyAddPcText"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
+        android:preferKeepClear="true"
         android:text="@android:string/ok"/>
 	
 </RelativeLayout>

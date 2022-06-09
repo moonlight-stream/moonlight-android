@@ -107,6 +107,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private static final int THREE_FINGER_TAP_THRESHOLD = 300;
 
     private ControllerHandler controllerHandler;
+    private KeyboardTranslator keyboardTranslator;
     private VirtualController virtualController;
 
     private PreferenceConfiguration prefConfig;
@@ -443,9 +444,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Initialize the connection
         conn = new NvConnection(host, uniqueId, config, PlatformBinding.getCryptoProvider(this), serverCert);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
+        keyboardTranslator = new KeyboardTranslator();
 
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         inputManager.registerInputDeviceListener(controllerHandler, null);
+        inputManager.registerInputDeviceListener(keyboardTranslator, null);
 
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
@@ -886,9 +889,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     protected void onDestroy() {
         super.onDestroy();
 
+        InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         if (controllerHandler != null) {
-            InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
             inputManager.unregisterInputDeviceListener(controllerHandler);
+        }
+        if (keyboardTranslator != null) {
+            inputManager.unregisterInputDeviceListener(keyboardTranslator);
         }
 
         if (lowLatencyWifiLock != null) {
@@ -1109,7 +1115,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (!handled) {
             // Try the keyboard handler
-            short translated = KeyboardTranslator.translate(event.getKeyCode());
+            short translated = keyboardTranslator.translate(event.getKeyCode(), event.getDeviceId());
             if (translated == 0) {
                 return false;
             }
@@ -1179,7 +1185,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (!handled) {
             // Try the keyboard handler
-            short translated = KeyboardTranslator.translate(event.getKeyCode());
+            short translated = keyboardTranslator.translate(event.getKeyCode(), event.getDeviceId());
             if (translated == 0) {
                 return false;
             }
@@ -1922,7 +1928,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void keyboardEvent(boolean buttonDown, short keyCode) {
-        short keyMap = KeyboardTranslator.translate(keyCode);
+        short keyMap = keyboardTranslator.translate(keyCode, -1);
         if (keyMap != 0) {
             // handleSpecialKeys() takes the Android keycode
             if (handleSpecialKeys(keyCode, buttonDown)) {

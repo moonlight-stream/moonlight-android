@@ -1,13 +1,20 @@
 package com.limelight.binding.input;
 
+import android.annotation.TargetApi;
+import android.hardware.input.InputManager;
+import android.os.Build;
+import android.util.SparseArray;
+import android.view.InputDevice;
 import android.view.KeyEvent;
+
+import java.util.Arrays;
 
 /**
  * Class to translate a Android key code into the codes GFE is expecting
  * @author Diego Waxemberg
  * @author Cameron Gutman
  */
-public class KeyboardTranslator {
+public class KeyboardTranslator implements InputManager.InputDeviceListener {
     
     /**
      * GFE's prefix for every key code
@@ -48,6 +55,55 @@ public class KeyboardTranslator {
     public static final int VK_QUOTE = 222;
     public static final int VK_PAUSE = 19;
 
+    private static class KeyboardMapping {
+        private final InputDevice device;
+        private final int[] deviceKeyCodeToQwertyKeyCode;
+
+        @TargetApi(33)
+        public KeyboardMapping(InputDevice device) {
+            int maxKeyCode = KeyEvent.getMaxKeyCode();
+
+            this.device = device;
+            this.deviceKeyCodeToQwertyKeyCode = new int[maxKeyCode + 1];
+
+            // Any unmatched keycodes are treated as unknown
+            Arrays.fill(deviceKeyCodeToQwertyKeyCode, KeyEvent.KEYCODE_UNKNOWN);
+
+            for (int i = 0; i <= maxKeyCode; i++) {
+                int deviceKeyCode = device.getKeyCodeForKeyLocation(i);
+                if (deviceKeyCode != KeyEvent.KEYCODE_UNKNOWN) {
+                    deviceKeyCodeToQwertyKeyCode[deviceKeyCode] = i;
+                }
+            }
+        }
+
+        @TargetApi(33)
+        public int getDeviceKeyCodeForQwertyKeyCode(int qwertyKeyCode) {
+            return device.getKeyCodeForKeyLocation(qwertyKeyCode);
+        }
+
+        public int getQwertyKeyCodeForDeviceKeyCode(int deviceKeyCode) {
+            if (deviceKeyCode > KeyEvent.getMaxKeyCode()) {
+                return KeyEvent.KEYCODE_UNKNOWN;
+            }
+
+            return deviceKeyCodeToQwertyKeyCode[deviceKeyCode];
+        }
+    }
+
+    private final SparseArray<KeyboardMapping> keyboardMappings = new SparseArray<>();
+
+    public KeyboardTranslator() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            for (int deviceId : InputDevice.getDeviceIds()) {
+                InputDevice device = InputDevice.getDevice(deviceId);
+                if (device != null && device.getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC) {
+                    keyboardMappings.set(deviceId, new KeyboardMapping(device));
+                }
+            }
+        }
+    }
+
     public static boolean needsShift(int keycode) {
         switch (keycode)
         {
@@ -65,10 +121,24 @@ public class KeyboardTranslator {
     /**
      * Translates the given keycode and returns the GFE keycode
      * @param keycode the code to be translated
+     * @param deviceId InputDevice.getId() or -1 if unknown
      * @return a GFE keycode for the given keycode
      */
-    public static short translate(int keycode) {
+    public short translate(int keycode, int deviceId) {
         int translated;
+
+        // If a device ID was provided, look up the keyboard mapping
+        if (deviceId >= 0) {
+            KeyboardMapping mapping = keyboardMappings.get(deviceId);
+            if (mapping != null) {
+                // Try to map this device-specific keycode onto a QWERTY layout.
+                // GFE assumes incoming keycodes are from a QWERTY keyboard.
+                int qwertyKeyCode = mapping.getQwertyKeyCodeForDeviceKeyCode(keycode);
+                if (qwertyKeyCode != KeyEvent.KEYCODE_UNKNOWN) {
+                    keycode = qwertyKeyCode;
+                }
+            }
+        }
         
         // This is a poor man's mapping between Android key codes
         // and Windows VK_* codes. For all defined VK_ codes, see:
@@ -294,4 +364,30 @@ public class KeyboardTranslator {
         return (short) ((KEY_PREFIX << 8) | translated);
     }
 
+    @Override
+    public void onInputDeviceAdded(int index) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            InputDevice device = InputDevice.getDevice(index);
+            if (device != null && device.getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC) {
+                keyboardMappings.put(index, new KeyboardMapping(device));
+            }
+        }
+    }
+
+    @Override
+    public void onInputDeviceRemoved(int index) {
+        keyboardMappings.remove(index);
+    }
+
+    @Override
+    public void onInputDeviceChanged(int index) {
+        keyboardMappings.remove(index);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            InputDevice device = InputDevice.getDevice(index);
+            if (device != null && device.getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC) {
+                keyboardMappings.set(index, new KeyboardMapping(device));
+            }
+        }
+    }
 }

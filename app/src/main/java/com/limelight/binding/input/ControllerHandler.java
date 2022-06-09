@@ -10,6 +10,7 @@ import android.media.AudioAttributes;
 import android.os.Build;
 import android.os.CombinedVibration;
 import android.os.SystemClock;
+import android.os.VibrationAttributes;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.VibratorManager;
@@ -1357,7 +1358,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
-        vm.vibrate(combo.combine());
+        VibrationAttributes.Builder vibrationAttributes = new VibrationAttributes.Builder()
+                .setFlags(VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY, VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            vibrationAttributes.setUsage(VibrationAttributes.USAGE_MEDIA);
+        }
+
+        vm.vibrate(combo.combine(), vibrationAttributes.build());
     }
 
     private void rumbleSingleVibrator(Vibrator vibrator, short lowFreqMotor, short highFreqMotor) {
@@ -1382,10 +1390,19 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (vibrator.hasAmplitudeControl()) {
                 VibrationEffect effect = VibrationEffect.createOneShot(60000, simulatedAmplitude);
-                AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_GAME)
-                        .build();
-                vibrator.vibrate(effect, audioAttributes);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    VibrationAttributes vibrationAttributes = new VibrationAttributes.Builder()
+                            .setUsage(VibrationAttributes.USAGE_MEDIA)
+                            .setFlags(VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY, VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY)
+                            .build();
+                    vibrator.vibrate(effect, vibrationAttributes);
+                }
+                else {
+                    AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_GAME)
+                            .build();
+                    vibrator.vibrate(effect, audioAttributes);
+                }
                 return;
             }
         }
@@ -1395,7 +1412,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         long pwmPeriod = 20;
         long onTime = (long)((simulatedAmplitude / 255.0) * pwmPeriod);
         long offTime = pwmPeriod - onTime;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            VibrationAttributes vibrationAttributes = new VibrationAttributes.Builder()
+                    .setUsage(VibrationAttributes.USAGE_MEDIA)
+                    .setFlags(VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY, VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY)
+                    .build();
+            vibrator.vibrate(VibrationEffect.createWaveform(new long[]{0, onTime, offTime}, 0), vibrationAttributes);
+        }
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_GAME)
                     .build();

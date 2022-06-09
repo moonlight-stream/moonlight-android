@@ -234,7 +234,12 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         IntentFilter filter = new IntentFilter();
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         filter.addAction(ACTION_USB_PERMISSION);
-        registerReceiver(receiver, filter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, filter, RECEIVER_NOT_EXPORTED);
+        }
+        else {
+            registerReceiver(receiver, filter);
+        }
 
         // Enumerate existing devices
         for (UsbDevice dev : usbManager.getDeviceList().values()) {

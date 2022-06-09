@@ -293,6 +293,11 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
 
         setContentView(R.layout.activity_app_view);
 
+        // Allow floating expanded PiP overlays while browsing apps
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setShouldDockBigOverlays(false);
+        }
+
         UiHelper.notifyNewRootView(this);
 
         showHiddenApps = getIntent().getBooleanExtra(SHOW_HIDDEN_APPS_EXTRA, false);

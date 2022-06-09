@@ -124,6 +124,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         UiHelper.notifyNewRootView(this);
 
+        // Allow floating expanded PiP overlays while browsing PCs
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setShouldDockBigOverlays(false);
+        }
+
         // Set default preferences if we've never been run
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 

@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.hardware.input.InputManager;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.RemoteException;
@@ -12,9 +13,11 @@ import android.view.InputDevice;
 
 import com.limelight.LimeLog;
 
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ShieldControllerExtensionsHandler {
+public class ShieldControllerExtensionsHandler implements InputManager.InputDeviceListener {
     private Context context;
 
     private IBinder binder;
@@ -47,6 +50,7 @@ public class ShieldControllerExtensionsHandler {
     // of the two-way mapping present). This is fine for our purposes here.
     private ConcurrentHashMap<String, Integer> tokenToDeviceIdMap = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Integer, String> deviceIdToTokenMap = new ConcurrentHashMap<>();
+    private AtomicBoolean needsRefresh = new AtomicBoolean(false);
 
     private int listenerId;
     private IExposedControllerManagerListener.Stub controllerListener = new IExposedControllerManagerListener.Stub() {
@@ -83,6 +87,9 @@ public class ShieldControllerExtensionsHandler {
     public ShieldControllerExtensionsHandler(Context context) {
         this.context = context;
 
+        InputManager inputManager = (InputManager) context.getSystemService(Context.INPUT_SERVICE);
+        inputManager.registerInputDeviceListener(this, null);
+
         Intent intent = new Intent();
         intent.setClassName("com.nvidia.blakepairing", "com.nvidia.blakepairing.AccessoryService");
         if (!context.bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE)) {
@@ -90,8 +97,39 @@ public class ShieldControllerExtensionsHandler {
         }
     }
 
+    private String getControllerToken(InputDevice device) {
+        // Refresh device ID <-> token mappings if one of our devices was removed
+        if (needsRefresh.compareAndSet(true, false)) {
+            try {
+                LimeLog.info("Refreshing controller token mappings");
+
+                // We have to enumerate tokenToDeviceIdMap rather than deviceIdToTokenMap
+                // because we remove the deviceIdToTokenMap entry when the device goes away.
+                HashMap<String, Integer> newTokenToDeviceIdMap = new HashMap<>();
+                HashMap<Integer, String> newDeviceIdToTokenMap = new HashMap<>();
+                for (String existingToken : tokenToDeviceIdMap.keySet()) {
+                    int deviceId = getInputDeviceId(existingToken);
+                    if (deviceId != 0) {
+                        newTokenToDeviceIdMap.put(existingToken, deviceId);
+                        newDeviceIdToTokenMap.put(deviceId, existingToken);
+                    }
+                }
+
+                tokenToDeviceIdMap.clear();
+                deviceIdToTokenMap.clear();
+
+                tokenToDeviceIdMap.putAll(newTokenToDeviceIdMap);
+                deviceIdToTokenMap.putAll(newDeviceIdToTokenMap);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return deviceIdToTokenMap.get(device.getId());
+    }
+
     public boolean rumble(InputDevice device, int lowFreqMotor, int highFreqMotor) {
-        String controllerToken = deviceIdToTokenMap.get(device.getId());
+        String controllerToken = getControllerToken(device);
         if (controllerToken != null) {
             try {
                 return rumble(controllerToken, lowFreqMotor, highFreqMotor);
@@ -103,6 +141,9 @@ public class ShieldControllerExtensionsHandler {
     }
 
     public void destroy() {
+        InputManager inputManager = (InputManager) context.getSystemService(Context.INPUT_SERVICE);
+        inputManager.unregisterInputDeviceListener(this);
+
         tokenToDeviceIdMap.clear();
         deviceIdToTokenMap.clear();
 
@@ -230,6 +271,21 @@ public class ShieldControllerExtensionsHandler {
         } finally {
             input.recycle();
             output.recycle();
+        }
+    }
+
+    @Override
+    public void onInputDeviceAdded(int deviceId) {}
+
+    @Override
+    public void onInputDeviceChanged(int deviceId) {}
+
+    @Override
+    public void onInputDeviceRemoved(int deviceId) {
+        // Remove the device ID to token mapping, but leave the token mapping to device ID
+        // mapping so we will re-enumerate it when we next try to rumble a controller.
+        if (deviceIdToTokenMap.remove(deviceId) != null) {
+            needsRefresh.set(true);
         }
     }
 }

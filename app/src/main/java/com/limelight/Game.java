@@ -87,7 +87,7 @@ import java.util.Locale;
 public class Game extends Activity implements SurfaceHolder.Callback,
     OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
     OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
-    PerfOverlayListener
+    PerfOverlayListener, UsbDriverService.UsbDriverStateListener
 {
     private int lastButtonState = 0;
 
@@ -121,6 +121,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean autoEnterPip = false;
     private boolean surfaceCreated = false;
     private boolean attemptedConnection = false;
+    private int suppressPipRefCount = 0;
     private String pcName;
     private String appName;
 
@@ -153,6 +154,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             UsbDriverService.UsbDriverBinder binder = (UsbDriverService.UsbDriverBinder) iBinder;
             binder.setListener(controllerHandler);
+            binder.setStateListener(Game.this);
+            binder.start();
             connectedToUsbDriverService = true;
         }
 
@@ -573,10 +576,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return builder.build();
     }
 
-    private void setPipAutoEnter(boolean autoEnter) {
+    private void updatePipAutoEnter() {
         if (!prefConfig.enablePip) {
             return;
         }
+
+        boolean autoEnter = connected && suppressPipRefCount == 0;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             setPictureInPictureParams(getPictureInPictureParams(autoEnter));
@@ -1608,8 +1613,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     private void stopConnection() {
         if (connecting || connected) {
-            setPipAutoEnter(false);
             connecting = connected = false;
+            updatePipAutoEnter();
 
             controllerHandler.stop();
 
@@ -1776,9 +1781,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     spinner = null;
                 }
 
-                setPipAutoEnter(true);
                 connected = true;
                 connecting = false;
+                updatePipAutoEnter();
 
                 // Hide the mouse cursor now after a short delay.
                 // Doing it before dismissing the spinner seems to be undone
@@ -1975,5 +1980,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 performanceOverlayView.setText(text);
             }
         });
+    }
+
+    @Override
+    public void onUsbPermissionPromptStarting() {
+        // Disable PiP auto-enter while the USB permission prompt is on-screen. This prevents
+        // us from entering PiP while the user is interacting with the OS permission dialog.
+        suppressPipRefCount++;
+        updatePipAutoEnter();
+    }
+
+    @Override
+    public void onUsbPermissionPromptCompleted() {
+        suppressPipRefCount--;
+        updatePipAutoEnter();
     }
 }

@@ -161,8 +161,14 @@ public class MediaCodecHelper {
 
         // Amlogic requires 1 reference frame for HEVC to avoid hanging. Since it's been years
         // since GFE added support for maxNumReferenceFrames, we'll just enable all Amlogic SoCs
-        // running Android 9 or later. HEVC is much lower latency than H.264 on Sabrina (S905X2).
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        // running Android 9 or later.
+        //
+        // NB: We don't do this on Sabrina (GCWGTV) because H.264 is lower latency when we use
+        // vendor.low-latency.enable. We will still use HEVC if decoderCanMeetPerformancePointWithHevcAndNotAvc()
+        // determines it's the only way to meet the performance requirements.
+        //
+        // FIXME: Should we do this for all Amlogic S905X SoCs?
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !Build.DEVICE.equalsIgnoreCase("sabrina")) {
             whitelistedHevcDecoders.add("omx.amlogic");
         }
 

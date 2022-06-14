@@ -146,8 +146,10 @@ public class MediaCodecHelper {
         // using the same omx.nvidia.h265.decode name as the Shield TV which has a
         // fully accelerated HEVC pipeline. AFAIK, the only K1 device with this
         // partially accelerated HEVC decoder is the Shield Tablet, so I'll
-        // check for it here.
-        if (!Build.DEVICE.equalsIgnoreCase("shieldtablet")) {
+        // check for it here. Since there are 2 models of Shield Tablet (possibly
+        // more with LTE), I will also exclude pre-Oreo OSes since only Shield ATV
+        // got an Oreo update.
+        if (!Build.DEVICE.equalsIgnoreCase("shieldtablet") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             whitelistedHevcDecoders.add("omx.nvidia");
         }
 

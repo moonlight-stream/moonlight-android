@@ -61,4 +61,116 @@
     <string name="nettest_text_success">Ağınız Moonlight\'ı engelliyor gibi görünmüyor. Bağlanmakta hala sorun yaşıyorsanız, bilgisayarınızın güvenlik duvarı ayarlarını kontrol edin.
 \n
 \nİnternet üzerinden yayın yapmaya çalışıyorsanız, Moonlight İnternet Barındırma Aracını bilgisayarınıza yükleyin ve bilgisayarınızın internet bağlantısını kontrol etmek için birlikte verilen İnternet Akış Test Cihazını çalıştırın.</string>
+    <string name="title_checkbox_multi_controller">Otomatik oyun kumandası varlığı algılama</string>
+    <string name="summary_checkbox_multi_controller">Bu seçeneğin işaretinin kaldırılması bir oyun kumandasının her zaman mevcut olmasını zorlar</string>
+    <string name="summary_checkbox_vibrate_fallback">Oyun kumandanız desteklemiyorsa, gürültüyü taklit etmek için cihazınızı titreştirir</string>
+    <string name="title_seekbar_deadzone">Analog çubuk ölü bölgesini ayarlama</string>
+    <string name="summary_checkbox_xb1_driver">Yerel Xbox oyun kumandası desteği olmayan cihazlar için yerleşik USB sürücüsünü etkinleştirir</string>
+    <string name="title_checkbox_mouse_emulation">Oyun kumandası üzerinden fare emülasyonu</string>
+    <string name="title_checkbox_mouse_nav_buttons">Geri ve ileri fare düğmelerini etkinleştirme</string>
+    <string name="category_on_screen_controls_settings">Ekran Kontrolleri Ayarları</string>
+    <string name="title_checkbox_show_onscreen_controls">Ekran kontrollerini göster</string>
+    <string name="error_manager_not_running">ComputerManager hizmeti çalışmıyor. Lütfen birkaç saniye bekleyin veya uygulamayı yeniden başlatın.</string>
+    <string name="error_unknown_host">Ana bilgisayar çözümlenemedi</string>
+    <string name="title_decoding_error">Video Kod Çözücü Çöktü</string>
+    <string name="message_decoding_reset">Cihazınızın video kod çözücüsü, seçtiğiniz akış ayarlarında çökmeye devam ediyor. Akış ayarlarınız varsayılana sıfırlandı.</string>
+    <string name="error_usb_prohibited">USB erişimi cihaz yöneticiniz tarafından yasaklanmıştır. Knox veya MDM ayarlarınızı kontrol edin.</string>
+    <string name="unable_to_pin_shortcut">Mevcut başlatıcınız sabitlenmiş kısayollar oluşturmaya izin vermiyor.</string>
+    <string name="video_decoder_init_failed">Video kod çözücü başlatılamadı. Cihazınız seçilen çözünürlüğü veya kare hızını desteklemiyor olabilir.</string>
+    <string name="no_video_received_error">Ana bilgisayardan video alınmadı.</string>
+    <string name="no_frame_received_error">Ağ bağlantınız iyi performans göstermiyor. Video bit hızı ayarınızı düşürün veya daha hızlı bir bağlantı deneyin.</string>
+    <string name="early_termination_error">Yayını başlatırken ana bilgisayarda bir şeyler ters gitti.
+\n
+\nAna bilgisayarınızda DRM korumalı herhangi bir içeriğin açık olmadığından emin olun. Ana bilgisayarınızı yeniden başlatmayı da deneyebilirsiniz.
+\n
+\nSorun devam ederse GPU sürücülerinizi ve GeForce Experience\'ı yeniden yüklemeyi deneyin.</string>
+    <string name="check_ports_msg">Bağlantı noktaları için güvenlik duvarınızı ve bağlantı noktası yönlendirme kurallarınızı kontrol edin:</string>
+    <string name="conn_establishing_title">Bağlantı kuruluyor</string>
+    <string name="conn_terminated_title">Bağlantı sonlandırıldı</string>
+    <string name="conn_terminated_msg">Bağlantı sonlandırıldı</string>
+    <string name="yes">Evet</string>
+    <string name="lost_connection">Bilgisayar ile bağlantı kesildi</string>
+    <string name="help">Yardım</string>
+    <string name="delete_pc_msg">Bu bilgisayarı silmek istediğinizden emin misiniz\?</string>
+    <string name="slow_connection_msg">Bilgisayara yavaş bağlantı
+\nBit hızınızı düşürün</string>
+    <string name="poor_connection_msg">Bilgisayar ile zayıf bağlantı</string>
+    <string name="perf_overlay_streamdetails">Video akışı: %1$s %2$.2f FPS</string>
+    <string name="perf_overlay_decoder">Kod çözücü: %1$s</string>
+    <string name="perf_overlay_incomingfps">Ağdan gelen kare hızı: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">İşleme kare hızı: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Ağ bağlantınız tarafından düşen kare sayısı: %1$.2f%%</string>
+    <string name="perf_overlay_dectime">Ortalama kod çözme süresi: %1$.2f ms</string>
+    <string name="applist_menu_resume">Oturumu sürdür</string>
+    <string name="applist_menu_quit">Oturumu sonlandır</string>
+    <string name="applist_menu_quit_and_start">Mevcut oyundan çık ve başla</string>
+    <string name="applist_menu_cancel">İptal</string>
+    <string name="applist_menu_details">Detayları göster</string>
+    <string name="applist_menu_scut">Kısayol oluştur</string>
+    <string name="applist_menu_tv_channel">Kanala ekle</string>
+    <string name="applist_menu_hide_app">Uygulamayı gizle</string>
+    <string name="applist_refresh_title">Uygulama listesi</string>
+    <string name="applist_quit_success">Başarıyla çıkıldı</string>
+    <string name="applist_refresh_error_msg">Uygulama listesi alınamadı</string>
+    <string name="applist_quit_app">Çıkılıyor</string>
+    <string name="applist_quit_fail">Çıkılamadı</string>
+    <string name="applist_quit_confirmation">Çalışan uygulamadan çıkmak istediğinizden emin misiniz\? Kaydedilmemiş tüm veriler kaybolacaktır.</string>
+    <string name="applist_details_id">Uygulama kimliği:</string>
+    <string name="msg_add_pc">Bilgisayara bağlanıyor…</string>
+    <string name="addpc_success">Bilgisayar başarıyla eklendi</string>
+    <string name="addpc_fail">Belirtilen bilgisayara bağlanılamıyor. Gerekli bağlantı noktalarına güvenlik duvarı üzerinden izin verildiğinden emin olun.</string>
+    <string name="addpc_unknown_host">Bilgisayar adresi çözümlenemiyor. Adreste yazım hatası yapmadığınızdan emin olun.</string>
+    <string name="addpc_enter_ip">Bir IP adresi girmelisiniz</string>
+    <string name="category_basic_settings">Temel Ayarlar</string>
+    <string name="summary_resolution_list">Görüntü netliğini artırmak için artırın. Düşük uçlu cihazlarda ve daha yavaş ağlarda daha iyi performans için azaltın.</string>
+    <string name="title_native_res_dialog">Yerel çözünürlük uyarısı</string>
+    <string name="title_fps_list">Video kare hızı</string>
+    <string name="title_seekbar_bitrate">Video bit hızı</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Etkinleştirilirse, dokunmatik ekran bir dokunmatik fare gibi davranır. Devre dışı bırakılırsa, dokunmatik ekran doğrudan fare imlecini kontrol eder.</string>
+    <string name="conn_establishing_msg">Bağlantı başlatılıyor</string>
+    <string name="conn_metered">Uyarı: Aktif ağ bağlantınız ölçülüdür!</string>
+    <string name="conn_client_latency">Ortalama kare kod çözme gecikmesi:</string>
+    <string name="conn_client_latency_hw">donanım kod çözücü gecikmesi:</string>
+    <string name="pcview_menu_send_wol">Yerel Ağda Uyandırma isteği gönder</string>
+    <string name="applist_refresh_msg">Uygulamalar yenileniyor…</string>
+    <string name="applist_refresh_error_title">Hata</string>
+    <string name="title_add_pc">Bilgisayarı manuel olarak Ekle</string>
+    <string name="title_resolution_list">Video çözünürlüğü</string>
+    <string name="summary_fps_list">Daha akıcı bir video akışı için artırın. Düşük uçlu cihazlarda daha iyi performans için azaltın.</string>
+    <string name="resolution_prefix_native">Yerel</string>
+    <string name="resolution_prefix_native_fullscreen">Yerel tam ekran</string>
+    <string name="category_audio_settings">Ses Ayarları</string>
+    <string name="title_audio_config_list">Çevresel ses yapılandırması</string>
+    <string name="summary_seekbar_deadzone">Not: Bazı oyunlar Moonlight\'ın kullanmak üzere yapılandırıldığından daha büyük bir ölü bölge uygulayabilir.</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Xbox 360/One USB oyun kumandası sürücüsü</string>
+    <string name="title_checkbox_usb_bind_all">Yerel Xbox oyun kumandası desteğini geçersiz kılma</string>
+    <string name="summary_checkbox_mouse_emulation">Başlat düğmesine uzun süre basmak oyun kumandasını fare moduna geçirir</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Bu seçeneği etkinleştirmek bazı hatalı cihazlarda sağ tıklamayı bozabilir</string>
+    <string name="title_checkbox_flip_face_buttons">Yüz düğmelerini çevirme</string>
+    <string name="title_checkbox_absolute_mouse_mode">Uzak masaüstü fare modu</string>
+    <string name="error_404">GFE bir HTTP 404 hatası bildirdi. Bilgisayarınızın desteklenen bir GPU çalıştırdığından emin olun. Uzak masaüstü yazılımı kullanmak da bu hataya neden olabilir. Cihazınızı yeniden başlatmayı veya GFE\'yi yeniden yüklemeyi deneyin.</string>
+    <string name="message_decoding_error">Moonlight, bu cihazın video kod çözücüsü ile uyumsuzluk nedeniyle çöktü. GeForce Experience\'ın bilgisayarınızdaki en son sürüme güncellendiğinden emin olun. Çökmeler devam ederse akış ayarlarını değiştirmeyi deneyin.</string>
+    <string name="conn_hardware_latency">Ortalama donanım kod çözme gecikmesi:</string>
+    <string name="title_decoding_reset">Video Ayarlarını Sıfırla</string>
+    <string name="searching_pc">GameStream\'in çalıştığı bilgisayarlar aranıyor...
+\n
+\n GeForce Experience SHIELD ayarlarında GameStream\'in etkinleştirildiğinden emin olun.</string>
+    <string name="applist_connect_msg">Bilgisayara bağlanıyor…</string>
+    <string name="no">Hayır</string>
+    <string name="perf_overlay_netlatency">Ortalama ağ gecikmesi: %1$d ms (varyans: %2$d ms)</string>
+    <string name="addpc_wrong_sitelocal">Bu adres doğru görünmüyor. İnternet üzerinden akış için yönlendiricinizin genel IP adresini kullanmanız gerekir.</string>
+    <string name="text_native_res_dialog">Yerel çözünürlük modları GeForce Experience tarafından resmi olarak desteklenmez, bu nedenle ana ekran çözünürlüğünüzü kendisi ayarlamaz. Oyun içindeyken manuel olarak ayarlamanız gerekecektir.
+\n
+\nCihazınızın çözünürlüğüne uyması için NVIDIA Denetim Masası\'nda özel bir çözünürlük oluşturmayı seçerseniz, lütfen NVIDIA\'nın olası monitör hasarı, bilgisayar kararsızlığı ve diğer olası sorunlarla ilgili uyarısını okuyup anladığınızdan emin olun.
+\n
+\nBilgisayarınızda özel bir çözünürlük oluşturulmasından kaynaklanan herhangi bir sorundan sorumlu değiliz.
+\n
+\nSon olarak, cihazınız veya bilgisayarınız doğal çözünürlükte akışı desteklemiyor olabilir. Eğer cihazınızda çalışmıyorsa, ne yazık ki şansınız yok demektir.</string>
+    <string name="summary_seekbar_bitrate">Daha iyi görüntü kalitesi için artırın. Daha yavaş bağlantılarda performansı artırmak için azaltın.</string>
+    <string name="title_checkbox_stretch_video">Videoyu tam ekrana genişlet</string>
+    <string name="title_checkbox_vibrate_fallback">Titreşim ile gürültü desteğini taklit etme</string>
+    <string name="summary_checkbox_usb_bind_all">Yerel Xbox oyun kumandası desteği mevcut olsa bile desteklenen tüm oyun kumandaları için Moonlight\'ın USB sürücüsünü kullan</string>
+    <string name="summary_checkbox_flip_face_buttons">Oyun kumandaları ve ekran kontrolleri için A/B ve X/Y yüz düğmelerini değiştirir</string>
+    <string name="summary_checkbox_absolute_mouse_mode">Bu fare hızlandırmanın uzak masaüstü kullanımı için daha doğal davranmasını sağlayabilir, ancak birçok oyunla uyumsuzdur.</string>
 </resources>

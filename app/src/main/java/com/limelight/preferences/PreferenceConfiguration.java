@@ -319,6 +319,13 @@ public class PreferenceConfiguration {
                 .apply();
     }
 
+    public static boolean isShieldAtvFirmwareWithBrokenHdr() {
+        // This particular Shield TV firmware crashes when using HDR
+        // https://www.nvidia.com/en-us/geforce/forums/notifications/comment/155192/
+        return Build.MANUFACTURER.equalsIgnoreCase("NVIDIA") &&
+                Build.FINGERPRINT.contains("PPR1.180610.011/4079208_2235.1395");
+    }
+
     public static PreferenceConfiguration readPreferences(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         PreferenceConfiguration config = new PreferenceConfiguration();
@@ -445,7 +452,7 @@ public class PreferenceConfiguration {
         config.usbDriver = prefs.getBoolean(USB_DRIVER_PREF_SRING, DEFAULT_USB_DRIVER);
         config.onscreenController = prefs.getBoolean(ONSCREEN_CONTROLLER_PREF_STRING, ONSCREEN_CONTROLLER_DEFAULT);
         config.onlyL3R3 = prefs.getBoolean(ONLY_L3_R3_PREF_STRING, ONLY_L3_R3_DEFAULT);
-        config.enableHdr = prefs.getBoolean(ENABLE_HDR_PREF_STRING, DEFAULT_ENABLE_HDR);
+        config.enableHdr = prefs.getBoolean(ENABLE_HDR_PREF_STRING, DEFAULT_ENABLE_HDR) && !isShieldAtvFirmwareWithBrokenHdr();
         config.enablePip = prefs.getBoolean(ENABLE_PIP_PREF_STRING, DEFAULT_ENABLE_PIP);
         config.enablePerfOverlay = prefs.getBoolean(ENABLE_PERF_OVERLAY_STRING, DEFAULT_ENABLE_PERF_OVERLAY);
         config.bindAllUsb = prefs.getBoolean(BIND_ALL_USB_STRING, DEFAULT_BIND_ALL_USB);

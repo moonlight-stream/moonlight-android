@@ -1,4 +1,4 @@
-Diese App streamt Spiele, Programme oder den kompletten Desktop von NVIDIA GameStream-kompatiebelen PCs mit NVIDIA GeForce Experience oder <a href="https://github.com/SunshineStream/Sunshine">Sunshine Stream</a> über das Lokale Netzwerk oder Internet. Gleichzeitig werden Maus-, Tastatur- und Gamepad-Eingaben von deinem Android Gerät zum PC übertragen.
+Diese App streamt Spiele, Programme oder den kompletten Desktop von NVIDIA GameStream-kompatiebelen PCs oder <a href="https://github.com/SunshineStream/Sunshine">Sunshine Stream</a> über das Lokale Netzwerk oder Internet. Gleichzeitig werden Maus-, Tastatur- und Gamepad-Eingaben von deinem Android Gerät zum PC übertragen.
 
 Die Streamingqualität kann aufgrund des verwendeten Android Geräts und der Netzwerkgegebenheiten variieren. HDR Unterstützung setzt ein HRD10-fähiges Gerät, eine GTX-1000-series GPU und HDR10-kompatibles Spiele voraus.
 

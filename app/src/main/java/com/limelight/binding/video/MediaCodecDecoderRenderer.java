@@ -15,6 +15,7 @@ import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.jni.MoonBridge;
 import com.limelight.preferences.PreferenceConfiguration;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
@@ -106,7 +107,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         return decoder;
     }
 
-    private Boolean decoderCanMeetPerformancePoint(MediaCodecInfo.VideoCapabilities caps, PreferenceConfiguration prefs) {
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private boolean decoderCanMeetPerformancePoint(MediaCodecInfo.VideoCapabilities caps, PreferenceConfiguration prefs) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             MediaCodecInfo.VideoCapabilities.PerformancePoint targetPerfPoint = new MediaCodecInfo.VideoCapabilities.PerformancePoint(prefs.width, prefs.height, prefs.fps);
             List<MediaCodecInfo.VideoCapabilities.PerformancePoint> perfPoints = caps.getSupportedPerformancePoints();
@@ -137,7 +139,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             }
         }
 
-        return null;
+        // As a last resort, we will use areSizeAndRateSupported() which is explicitly NOT a
+        // performance metric, but it can work at least for the purpose of determining if
+        // the codec is going to die when given a stream with the specified settings.
+        return caps.areSizeAndRateSupported(prefs.width, prefs.height, prefs.fps);
     }
 
     private boolean decoderCanMeetPerformancePointWithHevcAndNotAvc(MediaCodecInfo avcDecoderInfo, MediaCodecInfo hevcDecoderInfo, PreferenceConfiguration prefs) {
@@ -145,15 +150,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             MediaCodecInfo.VideoCapabilities avcCaps = avcDecoderInfo.getCapabilitiesForType("video/avc").getVideoCapabilities();
             MediaCodecInfo.VideoCapabilities hevcCaps = hevcDecoderInfo.getCapabilitiesForType("video/hevc").getVideoCapabilities();
 
-            Boolean avcCanMeetPP = decoderCanMeetPerformancePoint(avcCaps, prefs);
-            Boolean hevcCanMeetPP = decoderCanMeetPerformancePoint(hevcCaps, prefs);
-
-            // If one or both codecs lack performance data, don't do anything
-            if (avcCanMeetPP == null || hevcCanMeetPP == null) {
-                return false;
-            }
-
-            return !avcCanMeetPP && hevcCanMeetPP;
+            return !decoderCanMeetPerformancePoint(avcCaps, prefs) && decoderCanMeetPerformancePoint(hevcCaps, prefs);
         }
         else {
             // No performance data

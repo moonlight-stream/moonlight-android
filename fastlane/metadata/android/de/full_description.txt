@@ -1,4 +1,4 @@
-Diese App streamt Spiele, Programme oder den kompletten Desktop von NVIDIA GameStream-kompatiebelen PCs mit NVIDIA GeForce Experience über das Lokale Netzwerk oder Internet. Gleichzeitig werden Maus-, Tastatur- und Gamepad-Eingaben von deinem Android Gerät zum PC übertragen.
+Diese App streamt Spiele, Programme oder den kompletten Desktop von NVIDIA GameStream-kompatiebelen PCs oder <a href="https://github.com/SunshineStream/Sunshine">Sunshine Stream</a> über das Lokale Netzwerk oder Internet. Gleichzeitig werden Maus-, Tastatur- und Gamepad-Eingaben von deinem Android Gerät zum PC übertragen.
 
 Die Streamingqualität kann aufgrund des verwendeten Android Geräts und der Netzwerkgegebenheiten variieren. HDR Unterstützung setzt ein HRD10-fähiges Gerät, eine GTX-1000-series GPU und HDR10-kompatibles Spiele voraus.
 
@@ -13,10 +13,14 @@ Die Streamingqualität kann aufgrund des verwendeten Android Geräts und der Net
 * Kooperatives lokales Spielen mit bis zu 4 verbundenen Eingabegeräten
 * Maussteuerung via Gamepad durch langes gedrückt halten der Starttaste
 
-'''PC Anforderungen'''
+'''PC Anforderungen mit NVIDIA'''
 * NVIDIA GeForce GTX/RTX Serie GPU (''GT-Serie und AMD GPUs werden nicht von NVIDIA GameStream unterstützt'')
 * Windows 7 oder neuer
 * NVIDIA GeForce Experience (GFE) 2.2.2 oder neuer
+
+'''PC Anforderungen mit SunshineStream'''
+* Linux, MacOS, Windows
+* AMD, Nvidia GPUs oder Software-Kodierung
 
 '''Anleitung zur Schnellkonfiguration'''
 # Stellen sie sicher dass GeForce Experience auf ihrem PC installiert ist. Aktivieren sie GameStream in den SHIELD Einstellungen.

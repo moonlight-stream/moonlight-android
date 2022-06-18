@@ -85,7 +85,7 @@
     <string name="applist_menu_quit_and_start">結束目前遊戲並開始這個遊戲</string>
     <string name="applist_menu_cancel"> 取消 </string>
     <string name="applist_menu_details">檢視詳細資料</string>
-    <string name="applist_menu_scut">創建捷徑</string>
+    <string name="applist_menu_scut">建立捷徑</string>
     <string name="applist_menu_tv_channel">新增至頻道</string>
     <string name="applist_refresh_title">遊戲清單</string>
     <string name="applist_refresh_msg">正在重新整理…</string>
@@ -223,7 +223,7 @@
     <string name="audioconf_stereo">立體聲</string>
     <string name="audioconf_51surround">5.1 環場音效</string>
     <string name="audioconf_71surround">7.1 環場音效</string>
-    <string name="videoformat_hevcauto">僅在穩定時使用 HEVC</string>
+    <string name="videoformat_hevcauto">自動</string>
     <string name="videoformat_hevcalways">強制使用 HEVC (可能會當機)</string>
     <string name="videoformat_hevcnever">不使用 HEVC</string>
     <string name="resolution_4k">4K</string>

@@ -80,16 +80,20 @@ public class StreamSettings extends Activity {
     }
 
     @Override
+    // NOTE: This will NOT be called on Android 13+ with android:enableOnBackInvokedCallback="true"
     public void onBackPressed() {
         finish();
 
-        // Check for changes that require a UI reload to take effect
-        PreferenceConfiguration newPrefs = PreferenceConfiguration.readPreferences(this);
-        if (!newPrefs.language.equals(previousPrefs.language)) {
-            // Restart the PC view to apply UI changes
-            Intent intent = new Intent(this, PcView.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent, null);
+        // Language changes are handled via configuration changes in Android 13+,
+        // so manual activity relaunching is no longer required.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            PreferenceConfiguration newPrefs = PreferenceConfiguration.readPreferences(this);
+            if (!newPrefs.language.equals(previousPrefs.language)) {
+                // Restart the PC view to apply UI changes
+                Intent intent = new Intent(this, PcView.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent, null);
+            }
         }
     }
 

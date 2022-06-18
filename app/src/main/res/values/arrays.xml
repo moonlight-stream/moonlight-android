@@ -43,6 +43,7 @@
         <item>71</item>
     </string-array>
 
+    <!-- Don't forget to update locales_config.xml when you modify this! -->
     <string-array name="language_names" translatable="false">
         <item>Default</item>
         <item>English</item>

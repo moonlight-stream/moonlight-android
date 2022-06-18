@@ -44,6 +44,7 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:installLocation="auto"
         android:gwpAsanMode="always"
+        android:localeConfig="@xml/locales_config"
         android:theme="@style/AppTheme">
 
         <provider

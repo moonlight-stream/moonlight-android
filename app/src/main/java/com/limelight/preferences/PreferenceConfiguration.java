@@ -319,6 +319,12 @@ public class PreferenceConfiguration {
                 .apply();
     }
 
+    public static void completeLanguagePreferenceMigration(Context context) {
+        // Put our language option back to default which tells us that we've already migrated it
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.edit().putString(LANGUAGE_PREF_STRING, DEFAULT_LANGUAGE).apply();
+    }
+
     public static boolean isShieldAtvFirmwareWithBrokenHdr() {
         // This particular Shield TV firmware crashes when using HDR
         // https://www.nvidia.com/en-us/geforce/forums/notifications/comment/155192/

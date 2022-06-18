@@ -92,8 +92,15 @@ public class ShieldControllerExtensionsHandler implements InputManager.InputDevi
 
         Intent intent = new Intent();
         intent.setClassName("com.nvidia.blakepairing", "com.nvidia.blakepairing.AccessoryService");
-        if (!context.bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE)) {
-            LimeLog.info("com.nvidia.blakepairing.AccessoryService is not available on this device");
+        try {
+            // The docs say to call unbindService() even if the bindService() call returns false
+            // or throws a SecurityException.
+            if (!context.bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE)) {
+                LimeLog.info("com.nvidia.blakepairing.AccessoryService is not available on this device");
+                context.unbindService(serviceConnection);
+            }
+        } catch (SecurityException e) {
+            context.unbindService(serviceConnection);
         }
     }
 

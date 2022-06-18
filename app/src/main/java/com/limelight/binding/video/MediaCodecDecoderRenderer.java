@@ -132,7 +132,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 // We'll ask the decoder what it can do for us at this resolution and see if our
                 // requested frame rate falls below or inside the range of achievable frame rates.
                 Range<Double> fpsRange = caps.getAchievableFrameRatesFor(prefs.width, prefs.height);
-                return prefs.fps <= fpsRange.getUpper();
+                if (fpsRange != null) {
+                    return prefs.fps <= fpsRange.getUpper();
+                }
+
+                // Fall-through to try the Android L API if there's no performance point data
             } catch (IllegalArgumentException e) {
                 // Video size not supported at any frame rate
                 return false;

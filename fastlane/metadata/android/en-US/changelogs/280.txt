@@ -1,0 +1,7 @@
+- HEVC will now be used automatically when using settings too high for the H.264 decoder
+- Rumble is now supported on Shield controller when connected to Shield Android TV devices
+- Reduced latency on Chromecast with Google TV by defaulting to H.264 for streaming at 1080p or below
+- Fixed an issue that prevented HEVC from being used by default on some Shield Android TV devices
+- Fixed an issue where parts of the UI were not visible on some Samsung devices
+- Fixed handling of non-QWERTY keyboards using new Android 13 API
+- Fixed stream unexpectedly entering PiP mode when a USB permission prompt appeared

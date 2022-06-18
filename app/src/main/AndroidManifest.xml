@@ -45,6 +45,7 @@
         android:installLocation="auto"
         android:gwpAsanMode="always"
         android:localeConfig="@xml/locales_config"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/AppTheme">
 
         <provider

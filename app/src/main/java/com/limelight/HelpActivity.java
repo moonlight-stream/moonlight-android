@@ -108,6 +108,7 @@ public class HelpActivity extends Activity {
     }
 
     @Override
+    // NOTE: This will NOT be called on Android 13+ with android:enableOnBackInvokedCallback="true"
     public void onBackPressed() {
         // Back goes back through the WebView history
         // until no more history remains

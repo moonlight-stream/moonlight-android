@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.InetAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -171,6 +172,7 @@ public class NvHTTP {
                 .hostnameVerifier(hv)
                 .readTimeout(0, TimeUnit.MILLISECONDS)
                 .connectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
+                .proxy(Proxy.NO_PROXY)
                 .build();
         
         httpClientWithReadTimeout = httpClient.newBuilder()

@@ -265,14 +265,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Make sure Wi-Fi is fully powered up
         WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        highPerfWifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Moonlight High Perf Lock");
-        highPerfWifiLock.setReferenceCounted(false);
-        highPerfWifiLock.acquire();
+        try {
+            highPerfWifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Moonlight High Perf Lock");
+            highPerfWifiLock.setReferenceCounted(false);
+            highPerfWifiLock.acquire();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            lowLatencyWifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "Moonlight Low Latency Lock");
-            lowLatencyWifiLock.setReferenceCounted(false);
-            lowLatencyWifiLock.acquire();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                lowLatencyWifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "Moonlight Low Latency Lock");
+                lowLatencyWifiLock.setReferenceCounted(false);
+                lowLatencyWifiLock.acquire();
+            }
+        } catch (SecurityException e) {
+            // Some Samsung Galaxy S10+/S10e devices throw a SecurityException from
+            // WifiLock.acquire() even though we have android.permission.WAKE_LOCK in our manifest.
+            e.printStackTrace();
         }
 
         appName = Game.this.getIntent().getStringExtra(EXTRA_APP_NAME);

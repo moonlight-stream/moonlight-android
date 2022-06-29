@@ -78,6 +78,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -594,6 +596,35 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
         else {
             autoEnterPip = autoEnter;
+        }
+    }
+
+    public void setMetaKeyCaptureState(boolean enabled) {
+        // This uses custom APIs present on some Samsung devices to allow capture of
+        // meta key events while streaming.
+        try {
+            Class<?> semWindowManager = Class.forName("com.samsung.android.view.SemWindowManager");
+            Method getInstanceMethod = semWindowManager.getMethod("getInstance");
+            Object manager = getInstanceMethod.invoke(null);
+
+            if (manager != null) {
+                Class<?>[] parameterTypes = new Class<?>[2];
+                parameterTypes[0] = String.class;
+                parameterTypes[1] = boolean.class;
+                Method requestMetaKeyEventMethod = semWindowManager.getDeclaredMethod("requestMetaKeyEvent", parameterTypes);
+                requestMetaKeyEventMethod.invoke(manager, this.getComponentName(), enabled);
+            }
+            else {
+                LimeLog.warning("SemWindowManager.getInstance() returned null");
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
     }
 
@@ -1696,6 +1727,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // Enable cursor visibility again
                 inputCaptureProvider.disableCapture();
 
+                // Disable meta key capture
+                setMetaKeyCaptureState(false);
+
                 if (!displayedFailureDialog) {
                     displayedFailureDialog = true;
                     LimeLog.severe("Connection terminated: " + errorCode);
@@ -1806,6 +1840,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 // Keep the display on
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+                // Enable meta key capture
+                setMetaKeyCaptureState(true);
 
                 // Update GameManager state to indicate we're in game
                 UiHelper.notifyStreamConnected(Game.this);

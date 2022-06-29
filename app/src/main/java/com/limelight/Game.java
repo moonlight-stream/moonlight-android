@@ -1231,10 +1231,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void showKeyboard() {
-        LimeLog.info("Showing keyboard overlay");
+    public void toggleKeyboard() {
+        LimeLog.info("Toggling keyboard overlay");
         InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+        inputManager.toggleSoftInput(0, 0);
     }
 
     // Returns true if the event was consumed
@@ -1471,7 +1471,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         // All fingers up
                         if (SystemClock.uptimeMillis() - threeFingerDownTime < THREE_FINGER_TAP_THRESHOLD) {
                             // This is a 3 finger tap to bring up the keyboard
-                            showKeyboard();
+                            toggleKeyboard();
                             return true;
                         }
                     }

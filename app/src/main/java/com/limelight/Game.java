@@ -633,8 +633,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         super.onUserLeaveHint();
 
         // PiP is only supported on Oreo and later, and we don't need to manually enter PiP on
-        // Android S and later.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+        // Android S and later. On Android R, we will use onPictureInPictureRequested() instead.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             if (autoEnterPip) {
                 try {
                     // This has thrown all sorts of weird exceptions on Samsung devices
@@ -646,6 +646,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 }
             }
         }
+    }
+
+    @Override
+    @TargetApi(Build.VERSION_CODES.R)
+    public boolean onPictureInPictureRequested() {
+        // Enter PiP when requested unless we're on Android 12 which supports auto-enter.
+        if (autoEnterPip && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            enterPictureInPictureMode(getPictureInPictureParams(false));
+        }
+        return true;
     }
 
     @Override

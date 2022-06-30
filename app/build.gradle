@@ -130,4 +130,5 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okio:okio:1.17.5'
     implementation 'org.jmdns:jmdns:3.5.7'
+    implementation 'com.github.cgutman:ShieldControllerExtensions:1.0'
 }

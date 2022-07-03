@@ -1285,7 +1285,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (!grabbedInput) {
             return false;
         }
-
+        
+        //Enable pointer capture on non-stylus devices.
+        if (event.getToolType(0) != 2){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                streamView.requestPointerCapture();
+            }
+        }
         int eventSource = event.getSource();
         if ((eventSource & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
             if (controllerHandler.handleMotionEvent(event)) {

@@ -1303,7 +1303,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     (event.getPointerCount() >= 1 &&
                             (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE ||
                                     event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS ||
-                                    event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER)))
+                                    event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER)) ||
+                    eventSource == 12290) // 12290 = Samsung DeX mode desktop mouse
             {
                 int changedButtons = event.getButtonState() ^ lastButtonState;
 

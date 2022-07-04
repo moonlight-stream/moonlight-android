@@ -59,6 +59,14 @@
             android:summary="@string/summary_seekbar_deadzone"
             android:text="@string/suffix_seekbar_deadzone"
             android:title="@string/title_seekbar_deadzone"/>
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_trigger_range"
+            android:min="0"
+            android:defaultValue="100"
+            android:max="100"
+            android:summary="@string/summary_seekbar_trigger_range"
+            android:text="@string/suffix_seekbar_trigger_range"
+            android:title="@string/title_seekbar_trigger_range"/>
         <CheckBoxPreference
             android:key="checkbox_touchscreen_trackpad"
             android:title="@string/title_checkbox_touchscreen_trackpad"
@@ -211,6 +219,16 @@
             android:title="@string/title_enable_post_stream_toast"
             android:summary="@string/summary_enable_post_stream_toast"
             android:defaultValue="false"/>
+        <CheckBoxPreference
+            android:key="checkbox_disable_video"
+            android:title="@string/title_disable_video"
+            android:summary="@string/summary_disable_video"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_disable_audio"
+            android:title="@string/title_disable_audio"
+            android:summary="@string/summary_disable_audio"
+            android:defaultValue="false" />
     </PreferenceCategory>
     <!--PreferenceCategory android:title="@string/category_help"
         android:key="category_help">

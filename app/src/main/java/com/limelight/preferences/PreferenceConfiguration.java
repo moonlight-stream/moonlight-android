@@ -21,6 +21,7 @@ public class PreferenceConfiguration {
     private static final String DISABLE_TOASTS_PREF_STRING = "checkbox_disable_warnings";
     private static final String HOST_AUDIO_PREF_STRING = "checkbox_host_audio";
     private static final String DEADZONE_PREF_STRING = "seekbar_deadzone";
+    private static final String TRIGGERRANGE_PREF_STRING = "seekbar_trigger_range";
     private static final String OSC_OPACITY_PREF_STRING = "seekbar_osc_opacity";
     private static final String LANGUAGE_PREF_STRING = "list_languages";
     private static final String SMALL_ICONS_PREF_STRING = "checkbox_small_icon_mode";
@@ -42,6 +43,8 @@ public class PreferenceConfiguration {
     private static final String VIBRATE_FALLBACK_PREF_STRING = "checkbox_vibrate_fallback";
     private static final String FLIP_FACE_BUTTONS_PREF_STRING = "checkbox_flip_face_buttons";
     private static final String TOUCHSCREEN_TRACKPAD_PREF_STRING = "checkbox_touchscreen_trackpad";
+    private static final String DISABLE_AUDIO_PREF_STRING = "checkbox_disable_audio";
+	  private static final String DISABLE_VIDEO_PREF_STRING = "checkbox_disable_video";
     private static final String LATENCY_TOAST_PREF_STRING = "checkbox_enable_post_stream_toast";
     private static final String FRAME_PACING_PREF_STRING = "frame_pacing";
     private static final String ABSOLUTE_MOUSE_MODE_PREF_STRING = "checkbox_absolute_mouse_mode";
@@ -53,6 +56,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_DISABLE_TOASTS = false;
     private static final boolean DEFAULT_HOST_AUDIO = false;
     private static final int DEFAULT_DEADZONE = 7;
+    private static final int DEFAULT_TRIGGERRANGE = 100;
     private static final int DEFAULT_OPACITY = 90;
     public static final String DEFAULT_LANGUAGE = "default";
     private static final boolean DEFAULT_MULTI_CONTROLLER = true;
@@ -67,6 +71,8 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_MOUSE_EMULATION = true;
     private static final boolean DEFAULT_MOUSE_NAV_BUTTONS = false;
     private static final boolean DEFAULT_UNLOCK_FPS = false;
+    private static final boolean DEFAULT_DISABLE_VIDEO = false;
+    private static final boolean DEFAULT_DISABLE_AUDIO = false;
     private static final boolean DEFAULT_VIBRATE_OSC = true;
     private static final boolean DEFAULT_VIBRATE_FALLBACK = false;
     private static final boolean DEFAULT_FLIP_FACE_BUTTONS = false;
@@ -97,6 +103,7 @@ public class PreferenceConfiguration {
     public int bitrate;
     public int videoFormat;
     public int deadzonePercentage;
+    public int triggerRangePercentage;
     public int oscOpacity;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
     public String language;
@@ -444,6 +451,8 @@ public class PreferenceConfiguration {
 
         config.deadzonePercentage = prefs.getInt(DEADZONE_PREF_STRING, DEFAULT_DEADZONE);
 
+        config.triggerRangePercentage = prefs.getInt(TRIGGERRANGE_PREF_STRING, DEFAULT_TRIGGERRANGE);
+
         config.oscOpacity = prefs.getInt(OSC_OPACITY_PREF_STRING, DEFAULT_OPACITY);
 
         config.language = prefs.getString(LANGUAGE_PREF_STRING, DEFAULT_LANGUAGE);
@@ -471,6 +480,8 @@ public class PreferenceConfiguration {
         config.touchscreenTrackpad = prefs.getBoolean(TOUCHSCREEN_TRACKPAD_PREF_STRING, DEFAULT_TOUCHSCREEN_TRACKPAD);
         config.enableLatencyToast = prefs.getBoolean(LATENCY_TOAST_PREF_STRING, DEFAULT_LATENCY_TOAST);
         config.absoluteMouseMode = prefs.getBoolean(ABSOLUTE_MOUSE_MODE_PREF_STRING, DEFAULT_ABSOLUTE_MOUSE_MODE);
+        MoonBridge.setAudioDisable(prefs.getBoolean(DISABLE_AUDIO_PREF_STRING, DEFAULT_DISABLE_AUDIO));
+		    MoonBridge.setVideoDisable(prefs.getBoolean(DISABLE_VIDEO_PREF_STRING, DEFAULT_DISABLE_VIDEO));
 
         return config;
     }

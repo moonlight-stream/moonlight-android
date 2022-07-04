@@ -520,6 +520,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             context.vendorId = dev.getVendorId();
             context.productId = dev.getProductId();
+            if (context.vendorId == 0x2dc8 && context.productId == 0x2100)
+            {
+              context.is8BitdoSn30Xcloud = true;
+            }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && hasDualAmplitudeControlledRumbleVibrators(dev.getVibratorManager())) {
@@ -568,6 +572,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // Others use THROTTLE and BRAKE (like Xiaomi)
             context.leftTriggerAxis = MotionEvent.AXIS_BRAKE;
             context.rightTriggerAxis = MotionEvent.AXIS_THROTTLE;
+        }
+        else if (context.is8BitdoSn30Xcloud)
+        {
+          context.leftTriggerAxis = MotionEvent.AXIS_RX;
+                context.rightTriggerAxis = MotionEvent.AXIS_RY;
+          context.triggersIdleNegative = false;
+          context.triggerDeadzone = 0.30f;
+          context.hasSelect = true;
+          context.hasMode = true;
         }
         else
         {
@@ -929,6 +942,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (context.vendorId == 0x2dc8 && event.getScanCode() == 306) {
             return KeyEvent.KEYCODE_BUTTON_MODE;
         }
+        if (context.is8BitdoSn30Xcloud)
+        {
+          switch(event.getScanCode())
+          {
+            case 312:
+              return KeyEvent.KEYCODE_BUTTON_SELECT;
+            default:
+          }
+
+        }
 
         // This mapping was adding in Android 10, then changed based on
         // kernel changes (adding hid-nintendo) in Android 11. If we're
@@ -1264,8 +1287,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         if (context.leftTriggerAxis != -1 && context.rightTriggerAxis != -1) {
-            lt = event.getAxisValue(context.leftTriggerAxis);
-            rt = event.getAxisValue(context.rightTriggerAxis);
+            float percentage = prefConfig.triggerRangePercentage;
+            percentage = percentage / 100;
+            //LimeLog.info("Percentage trigger: " + prefConfig.triggerRangePercentage);
+            lt = event.getAxisValue(context.leftTriggerAxis) / percentage;
+            lt = lt > 1 ? 1 : lt;
+            rt = event.getAxisValue(context.rightTriggerAxis) / percentage;
+            rt = rt > 1 ? 1 : rt;
         }
 
         if (context.hatXAxis != -1 && context.hatYAxis != -1) {
@@ -1963,6 +1991,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean hatXAxisUsed, hatYAxisUsed;
 
         public boolean isNonStandardDualShock4;
+        public boolean is8BitdoSn30Xcloud;
         public boolean usesLinuxGamepadStandardFaceButtons;
         public boolean isNonStandardXboxBtController;
         public boolean isServal;

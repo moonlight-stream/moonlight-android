@@ -68,6 +68,8 @@ public class MoonBridge {
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;
+    private static boolean disableVideo;
+    private static boolean disableAudio;
 
     static {
         System.loadLibrary("moonlight-core");
@@ -159,13 +161,23 @@ public class MoonBridge {
     public static int bridgeDrSubmitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                                int frameNumber, int frameType,
                                                long receiveTimeMs, long enqueueTimeMs) {
-        if (videoRenderer != null) {
+        if (videoRenderer != null && !disableVideo) {
             return videoRenderer.submitDecodeUnit(decodeUnitData, decodeUnitLength,
                     decodeUnitType, frameNumber, frameType, receiveTimeMs, enqueueTimeMs);
         }
         else {
             return DR_OK;
         }
+    }
+
+    public static void setAudioDisable(boolean value)
+    {
+        disableAudio = value;
+    }
+
+    public static void setVideoDisable(boolean value)
+    {
+        disableVideo = value;
     }
 
     public static int bridgeArInit(int audioConfiguration, int sampleRate, int samplesPerFrame) {
@@ -196,7 +208,7 @@ public class MoonBridge {
     }
 
     public static void bridgeArPlaySample(short[] pcmData) {
-        if (audioRenderer != null) {
+        if (audioRenderer != null && !disableAudio) {
             audioRenderer.playDecodedAudio(pcmData);
         }
     }

@@ -167,6 +167,9 @@
     <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>
     <string name="summary_seekbar_deadzone">Note: Some games can enforce a larger deadzone than what Moonlight is configured to use.</string>
     <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_seekbar_trigger_range">Adjust trigger press value</string>
+    <string name="suffix_seekbar_trigger_range">%</string>
+    <string name="summary_seekbar_trigger_range">Modify max range for a full pressed (ex. set as 50% when you want press the trigger half-way but registering as a full pressed)</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One USB gamepad driver</string>
     <string name="summary_checkbox_xb1_driver">Enables a built-in USB driver for devices without native Xbox controller support</string>
     <string name="title_checkbox_usb_bind_all">Override native Xbox gamepad support</string>
@@ -226,6 +229,10 @@
     <string name="summary_enable_perf_overlay">Display real-time stream performance information while streaming</string>
     <string name="title_enable_post_stream_toast">Show latency message after streaming</string>
     <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
+    <string name="title_disable_video">Disable video output</string>
+    <string name="summary_disable_video">Show a black/blank screen instead</string>
+    <string name="title_disable_audio">Disable audio output</string>
+    <string name="summary_disable_audio">Mute audio</string>
 
     <string name="category_help">Help</string>
     <string name="title_setup_guide">Setup guide</string>

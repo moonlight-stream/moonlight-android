@@ -1,0 +1,4 @@
+- 3 finger tap can now dismiss the keyboard too
+- Fixed crash on some Samsung devices when starting to stream
+- Added meta key handling for DeX on newer Samsung devices
+- Updated community contributed translations from Weblate

@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.limelight.nvstream.jni.MoonBridge;
 
@@ -90,6 +91,7 @@ public class PreferenceConfiguration {
     public static final String RES_720P = "1280x720";
     public static final String RES_1080P = "1920x1080";
     public static final String RES_1440P = "2560x1440";
+    public static final String RES_1600P = "2560x1600";
     public static final String RES_4K = "3840x2160";
     public static final String RES_NATIVE = "Native";
 
@@ -135,6 +137,9 @@ public class PreferenceConfiguration {
         else if (width == 2560 && height == 1440) {
             return false;
         }
+        else if (width == 2560 && height == 1600) {
+            return false;
+        }
         else if (width == 3840 && height == 2160) {
             return false;
         }
@@ -157,6 +162,9 @@ public class PreferenceConfiguration {
         }
         else if (resString.equalsIgnoreCase("1440p")) {
             return RES_1440P;
+        }
+        else if (resString.equalsIgnoreCase("1600p")) {
+            return RES_1600P;
         }
         else if (resString.equalsIgnoreCase("4K")) {
             return RES_4K;
@@ -188,6 +196,8 @@ public class PreferenceConfiguration {
                 return RES_1080P;
             case 1440:
                 return RES_1440P;
+            case 1600:
+                return RES_1600P;
             case 2160:
                 return RES_4K;
         }
@@ -398,7 +408,7 @@ public class PreferenceConfiguration {
             prefs.edit()
                     .remove(LEGACY_RES_FPS_PREF_STRING)
                     .putString(RESOLUTION_PREF_STRING, getResolutionString(config.width, config.height))
-                    .putString(FPS_PREF_STRING, ""+config.fps)
+                    .putString(FPS_PREF_STRING, "" + config.fps)
                     .apply();
         }
         else {

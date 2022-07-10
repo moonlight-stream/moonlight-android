@@ -50,6 +50,7 @@
     <string name="resolution_720p">720p</string>
     <string name="resolution_1080p">1080p</string>
     <string name="resolution_1440p">1440p</string>
+    <string name="resolution_1600p">1600p</string>
     <string name="resolution_4k">4K</string>
     <string name="fps_30">30 FPS</string>
     <string name="fps_60">60 FPS</string>

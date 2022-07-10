@@ -6,6 +6,7 @@
         <item>@string/resolution_720p</item>
         <item>@string/resolution_1080p</item>
         <item>@string/resolution_1440p</item>
+        <item>@string/resolution_1600p</item>
         <item>@string/resolution_4k</item>
     </string-array>
 
@@ -16,6 +17,7 @@
         <item>1280x720</item>
         <item>1920x1080</item>
         <item>2560x1440</item>
+        <item>2560x1600</item>
         <item>3840x2160</item>
     </string-array>
 

@@ -231,6 +231,7 @@
     <string name="resolution_360p">360p</string>
     <string name="resolution_1080p">1080p</string>
     <string name="resolution_1440p">1440p</string>
+    <string name="resolution_1600p">1600p</string>
     <string name="resolution_4k">4K</string>
     <string name="audioconf_stereo">Stereo</string>
     <string name="audioconf_51surround">5.1 Surround Sound</string>

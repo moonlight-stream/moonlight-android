@@ -236,6 +236,7 @@
     <string name="resolution_480p">480P</string>
     <string name="resolution_1080p">1080P</string>
     <string name="resolution_1440p">1440P</string>
+    <string name="resolution_1600p">1600p</string>
     <string name="title_frame_pacing">視訊影格調步</string>
     <string name="summary_frame_pacing">指定如何平衡視訊延遲和平滑度</string>
     <string name="pacing_balanced">平衡</string>

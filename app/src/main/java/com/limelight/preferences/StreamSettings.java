@@ -412,6 +412,15 @@ public class StreamSettings extends Activity {
                                 resetBitrateToDefault(prefs, null, null);
                             }
                         });
+                        // 1600p is unsupported
+                        removeValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_1600P, new Runnable() {
+                            @Override
+                            public void run() {
+                                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_1080P);
+                                resetBitrateToDefault(prefs, null, null);
+                            }
+                        });
                     }
                     if (maxSupportedResW < 1920) {
                         // 1080p is unsupported

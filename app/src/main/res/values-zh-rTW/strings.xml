@@ -99,7 +99,7 @@
     <!-- Add computer manually activity -->
     <string name="title_add_pc">手動新增電腦</string>
     <string name="msg_add_pc">正在連線電腦…</string>
-    <string name="addpc_fail">無法連線至指定電腦。請確保所需通訊埠沒有被防火牆阻止。</string>
+    <string name="addpc_fail">無法連線至指定電腦。請確保必要通訊埠未被防火牆封鎖。</string>
     <string name="addpc_success">成功新增電腦</string>
     <string name="addpc_unknown_host">無法解析電腦的 IP 位址，請確保 IP 位址輸入無誤。</string>
     <string name="addpc_enter_ip">請輸入一個 IP 位址</string>

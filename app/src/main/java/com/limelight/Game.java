@@ -712,6 +712,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             boolean isNativeResolutionStream = PreferenceConfiguration.isNativeResolution(prefConfig.width, prefConfig.height);
             boolean refreshRateIsGood = isRefreshRateGoodMatch(bestMode.getRefreshRate());
             boolean refreshRateIsEqual = isRefreshRateEqualMatch(bestMode.getRefreshRate());
+            boolean isTelevision = getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
+
             for (Display.Mode candidate : display.getSupportedModes()) {
                 boolean refreshRateReduced = candidate.getRefreshRate() < bestMode.getRefreshRate();
                 boolean resolutionReduced = candidate.getPhysicalWidth() < bestMode.getPhysicalWidth() ||
@@ -764,6 +766,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                             continue;
                         }
                         else if (!isRefreshRateEqualMatch(candidate.getRefreshRate())) {
+                            continue;
+                        }
+
+                        // For refresh rates lower than 50hz, we want to check if the device is a TV.
+                        // Some TV's may have issues when attempting to lower its refresh rate
+                        // As opposed to mobile devices, which are designed to lower refresh rate
+                        // for battery life reasons.
+                        else if(isTelevision && candidate.getRefreshRate() < 50) {
                             continue;
                         }
                     }

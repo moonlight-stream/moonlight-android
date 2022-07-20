@@ -573,7 +573,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.rightTriggerAxis = MotionEvent.AXIS_THROTTLE;
         }
         else if (context.is8BitdoSn30Xcloud) 
-		{
+        {
             context.leftTriggerAxis = MotionEvent.AXIS_RX;
             context.rightTriggerAxis = MotionEvent.AXIS_RY;
             context.triggersIdleNegative = false;

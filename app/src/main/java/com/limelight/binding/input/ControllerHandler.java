@@ -582,7 +582,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.hasSelect = true;
             context.hasMode = true;
         }
-		else
+        else
         {
             InputDevice.MotionRange rxRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RX);
             InputDevice.MotionRange ryRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RY);

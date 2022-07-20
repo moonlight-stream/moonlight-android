@@ -520,9 +520,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             context.vendorId = dev.getVendorId();
             context.productId = dev.getProductId();
-            if (context.vendorId == 0x2dc8 && context.productId == 0x2100)
-            {
-              context.is8BitdoSn30Xcloud = true;
+            if (context.vendorId == 0x2dc8 && context.productId == 0x2100) {
+                context.is8BitdoSn30Xcloud = true;
             }
         }
 
@@ -573,16 +572,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.leftTriggerAxis = MotionEvent.AXIS_BRAKE;
             context.rightTriggerAxis = MotionEvent.AXIS_THROTTLE;
         }
-        else if (context.is8BitdoSn30Xcloud)
-        {
-          context.leftTriggerAxis = MotionEvent.AXIS_RX;
-          context.rightTriggerAxis = MotionEvent.AXIS_RY;
-          context.triggersIdleNegative = false;
-          context.triggerDeadzone = 0.30f;
-          context.hasSelect = true;
-          context.hasMode = true;
+        else if (context.is8BitdoSn30Xcloud) 
+		{
+            context.leftTriggerAxis = MotionEvent.AXIS_RX;
+            context.rightTriggerAxis = MotionEvent.AXIS_RY;
+            context.triggersIdleNegative = false;
+            context.triggerDeadzone = 0.30f;
+            context.hasSelect = true;
+            context.hasMode = true;
         }
-        else
+		else
         {
             InputDevice.MotionRange rxRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RX);
             InputDevice.MotionRange ryRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RY);
@@ -942,15 +941,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (context.vendorId == 0x2dc8 && event.getScanCode() == 306) {
             return KeyEvent.KEYCODE_BUTTON_MODE;
         }
-        if (context.is8BitdoSn30Xcloud)
-        {
-          switch(event.getScanCode())
-          {
-            case 312:
-              return KeyEvent.KEYCODE_BUTTON_SELECT;
-            default:
-          }
-
+		// Override select button for 8BitDo SN30 Pro for Xbox
+        if (context.is8BitdoSn30Xcloud) {
+            switch(event.getScanCode()) {
+                case 312:
+                    return KeyEvent.KEYCODE_BUTTON_SELECT;
+                default:
+            }
         }
 
         // This mapping was adding in Android 10, then changed based on

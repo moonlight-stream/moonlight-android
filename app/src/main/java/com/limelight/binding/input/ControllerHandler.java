@@ -573,7 +573,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.rightTriggerAxis = MotionEvent.AXIS_THROTTLE;
         }
         else if (context.is8BitdoSn30Xcloud) 
-		{
+        {
+            // Specific configs for 8BitDo SN30 Pro for Xbox
             context.leftTriggerAxis = MotionEvent.AXIS_RX;
             context.rightTriggerAxis = MotionEvent.AXIS_RY;
             context.triggersIdleNegative = false;
@@ -941,7 +942,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (context.vendorId == 0x2dc8 && event.getScanCode() == 306) {
             return KeyEvent.KEYCODE_BUTTON_MODE;
         }
-		// Override select button for 8BitDo SN30 Pro for Xbox
+        // Override select button for 8BitDo SN30 Pro for Xbox
         if (context.is8BitdoSn30Xcloud) {
             switch(event.getScanCode()) {
                 case 312:

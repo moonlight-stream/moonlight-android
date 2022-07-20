@@ -13,7 +13,7 @@
     <string name="pcview_menu_app_list">檢視遊戲清單</string>
     <string name="pcview_menu_pair_pc"> 和電腦配對 </string>
     <string name="pcview_menu_unpair_pc"> 取消配對 </string>
-    <string name="pcview_menu_send_wol">傳送 Wake-On-LAN 請求</string>
+    <string name="pcview_menu_send_wol">傳送 Wake-On-LAN 要求</string>
     <string name="pcview_menu_delete_pc"> 刪除電腦 </string>
     <string name="pcview_menu_details">檢視詳細資料</string>
     <!-- Pair messages -->
@@ -44,7 +44,7 @@
     <string name="title_decoding_error">視訊解碼器崩潰</string>
     <string name="message_decoding_error">由於與該裝置的視訊解碼器不相容，Moonlight 已崩潰。確保你電腦上的 GFE 已更新至最新版本，如果崩潰繼續，請嘗試調整串流設定。</string>
     <string name="title_decoding_reset">重設視訊設定</string>
-    <string name="message_decoding_reset">由於裝置的視訊解碼器在你選擇的串流設定上持續崩潰，已重設你的串流設定。</string>
+    <string name="message_decoding_reset">由於裝置的視訊解碼器在你選取的串流設定上持續崩潰，已重設你的串流設定。</string>
     <string name="error_usb_prohibited">裝置管理員已禁止 USB 訪問。請檢查您的 Knox 或 MDM 設定。</string>
     <string name="unable_to_pin_shortcut">您目前的啟動器不允許創建釘選的捷徑。</string>
     <!-- Start application messages -->
@@ -197,7 +197,7 @@
 \n如果問題仍然存在，請嘗試重新安裝 GPU 驅動程式和 GFE。</string>
     <string name="no_frame_received_error">您的網路連線品質不佳。降低視訊位元速率設定或更換更快的連線。</string>
     <string name="no_video_received_error">沒有接收到來自主機的視訊。</string>
-    <string name="video_decoder_init_failed">視訊解碼器初始化失敗。您的裝置可能不支援選定的解析度或影格速率。</string>
+    <string name="video_decoder_init_failed">視訊解碼器初始化失敗。您的裝置可能不支援選取的解析度或影格速率。</string>
     <string name="nettest_text_blocked">您裝置目前的網路連線封鎖了 Moonlight。連線到該網路時可能無法透過網際網路串流。</string>
     <string name="nettest_text_failure">您裝置目前的網路連線似乎封鎖了 Moonlight。連線到該網路時可能無法透過網際網路串流。
 \n

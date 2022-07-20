@@ -212,18 +212,21 @@ public class MediaCodecHelper {
         kirinDecoderPrefixes = new LinkedList<>();
 
         kirinDecoderPrefixes.add("omx.hisi");
+        kirinDecoderPrefixes.add("c2.hisi"); // Unconfirmed
     }
 
     static {
         exynosDecoderPrefixes = new LinkedList<>();
 
         exynosDecoderPrefixes.add("omx.exynos");
+        exynosDecoderPrefixes.add("c2.exynos");
     }
 
     static {
         amlogicDecoderPrefixes = new LinkedList<>();
 
         amlogicDecoderPrefixes.add("omx.amlogic");
+        amlogicDecoderPrefixes.add("c2.amlogic"); // Unconfirmed
     }
 
     private static boolean isPowerVR(String glRenderer) {

@@ -1264,8 +1264,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         if (context.leftTriggerAxis != -1 && context.rightTriggerAxis != -1) {
-            lt = event.getAxisValue(context.leftTriggerAxis);
-            rt = event.getAxisValue(context.rightTriggerAxis);
+            float percentage = prefConfig.triggerRangePercentage;
+            percentage = percentage / 100;
+            lt = event.getAxisValue(context.leftTriggerAxis) / percentage;
+            lt = lt > 1 ? 1 : lt;
+            rt = event.getAxisValue(context.rightTriggerAxis) / percentage;
+            rt = rt > 1 ? 1 : rt;
         }
 
         if (context.hatXAxis != -1 && context.hatYAxis != -1) {

@@ -61,7 +61,7 @@
             android:title="@string/title_seekbar_deadzone"/>
         <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_trigger_range"
-            android:min="0"
+            android:min="1"
             android:defaultValue="100"
             android:max="100"
             android:summary="@string/summary_seekbar_trigger_range"

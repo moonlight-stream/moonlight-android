@@ -1366,8 +1366,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
-        VibrationAttributes.Builder vibrationAttributes = new VibrationAttributes.Builder()
-                .setFlags(VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY, VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY);
+        VibrationAttributes.Builder vibrationAttributes = new VibrationAttributes.Builder();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             vibrationAttributes.setUsage(VibrationAttributes.USAGE_MEDIA);
@@ -1401,7 +1400,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     VibrationAttributes vibrationAttributes = new VibrationAttributes.Builder()
                             .setUsage(VibrationAttributes.USAGE_MEDIA)
-                            .setFlags(VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY, VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY)
                             .build();
                     vibrator.vibrate(effect, vibrationAttributes);
                 }
@@ -1423,7 +1421,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             VibrationAttributes vibrationAttributes = new VibrationAttributes.Builder()
                     .setUsage(VibrationAttributes.USAGE_MEDIA)
-                    .setFlags(VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY, VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY)
                     .build();
             vibrator.vibrate(VibrationEffect.createWaveform(new long[]{0, onTime, offTime}, 0), vibrationAttributes);
         }

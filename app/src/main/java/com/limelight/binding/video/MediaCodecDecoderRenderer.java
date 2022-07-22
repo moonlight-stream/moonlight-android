@@ -55,6 +55,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private boolean adaptivePlayback, directSubmit, fusedIdrFrame;
     private boolean constrainedHighProfile;
     private boolean refFrameInvalidationAvc, refFrameInvalidationHevc;
+    private byte optimalSlicesPerFrame;
     private boolean refFrameInvalidationActive;
     private int initialWidth, initialHeight;
     private int videoFormat;
@@ -249,6 +250,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             directSubmit = MediaCodecHelper.decoderCanDirectSubmit(avcDecoder.getName());
             refFrameInvalidationAvc = MediaCodecHelper.decoderSupportsRefFrameInvalidationAvc(avcDecoder.getName(), prefs.height);
             refFrameInvalidationHevc = MediaCodecHelper.decoderSupportsRefFrameInvalidationHevc(avcDecoder.getName());
+            optimalSlicesPerFrame = MediaCodecHelper.getDecoderOptimalSlicesPerFrame(avcDecoder.getName());
 
             if (consecutiveCrashCount % 2 == 1) {
                 refFrameInvalidationAvc = refFrameInvalidationHevc = false;
@@ -264,6 +266,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             if (refFrameInvalidationHevc) {
                 LimeLog.info("Decoder "+avcDecoder.getName()+" will use reference frame invalidation for HEVC");
             }
+            LimeLog.info("Decoder "+avcDecoder.getName()+" will use "+optimalSlicesPerFrame+" slices per frame");
         }
     }
 
@@ -1199,8 +1202,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     public int getCapabilities() {
         int capabilities = 0;
 
-        // We always request 4 slices per frame to speed up decoding on some hardware
-        capabilities |= MoonBridge.CAPABILITY_SLICES_PER_FRAME((byte) 4);
+        // Request the optimal number of slices per frame for this decoder
+        capabilities |= MoonBridge.CAPABILITY_SLICES_PER_FRAME(optimalSlicesPerFrame);
 
         // Enable reference frame invalidation on supported hardware
         if (refFrameInvalidationAvc) {

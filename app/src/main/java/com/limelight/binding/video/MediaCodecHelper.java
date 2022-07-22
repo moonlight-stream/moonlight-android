@@ -38,6 +38,7 @@ public class MediaCodecHelper {
     private static final List<String> whitelistedHevcDecoders;
     private static final List<String> refFrameInvalidationAvcPrefixes;
     private static final List<String> refFrameInvalidationHevcPrefixes;
+    private static final List<String> useFourSlicesPrefixes;
     private static final List<String> qualcommDecoderPrefixes;
     private static final List<String> kirinDecoderPrefixes;
     private static final List<String> exynosDecoderPrefixes;
@@ -202,6 +203,12 @@ public class MediaCodecHelper {
     }
 
     static {
+        useFourSlicesPrefixes = new LinkedList<>();
+
+        // This decoders are decided at runtime
+    }
+
+    static {
         qualcommDecoderPrefixes = new LinkedList<>();
 
         qualcommDecoderPrefixes.add("omx.qcom");
@@ -345,6 +352,9 @@ public class MediaCodecHelper {
             }
             else {
                 blacklistedDecoderPrefixes.add("OMX.qcom.video.decoder.hevc");
+
+                // These older decoders need 4 slices per frame for best performance
+                useFourSlicesPrefixes.add("omx.qcom");
             }
 
             // Older MediaTek SoCs have issues with HEVC rendering but the newer chips with
@@ -567,6 +577,17 @@ public class MediaCodecHelper {
 
     public static boolean decoderNeedsBaselineSpsHack(String decoderName) {
         return isDecoderInList(baselineProfileHackPrefixes, decoderName);
+    }
+
+    public static byte getDecoderOptimalSlicesPerFrame(String decoderName) {
+        if (isDecoderInList(useFourSlicesPrefixes, decoderName)) {
+            // 4 slices per frame reduces decoding latency on older Qualcomm devices
+            return 4;
+        }
+        else {
+            // 1 slice per frame produces the optimal encoding efficiency
+            return 1;
+        }
     }
 
     public static boolean decoderSupportsRefFrameInvalidationAvc(String decoderName, int videoHeight) {

@@ -205,7 +205,13 @@ public class MediaCodecHelper {
     static {
         useFourSlicesPrefixes = new LinkedList<>();
 
-        // This decoders are decided at runtime
+        // Software decoders will use 4 slices per frame to allow for slice multithreading
+        useFourSlicesPrefixes.add("omx.google");
+        useFourSlicesPrefixes.add("AVCDecoder");
+        useFourSlicesPrefixes.add("omx.ffmpeg");
+        useFourSlicesPrefixes.add("c2.android");
+
+        // Old Qualcomm decoders are detected at runtime
     }
 
     static {

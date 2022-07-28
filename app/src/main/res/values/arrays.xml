@@ -63,7 +63,7 @@
         <item>Tiếng Việt</item>
         <item>Magyar</item>
         <item>Ελληνικά</item>
-        <item>Português</item>
+        <item>Português do Brasil</item>
     </string-array>
     <string-array name="language_values" translatable="false">
         <item>default</item>

@@ -48,9 +48,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private static final int EMULATING_SPECIAL = 0x1;
     private static final int EMULATING_SELECT = 0x2;
 
-    private static final int EMULATED_SPECIAL_UP_DELAY_MS = 100;
-    private static final int EMULATED_SELECT_UP_DELAY_MS = 30;
-
     private final Vector2d inputVector = new Vector2d();
 
     private final SparseArray<InputDeviceContext> inputDeviceContexts = new SparseArray<>();
@@ -1625,17 +1622,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.inputMap &= ~ControllerPacket.BACK_FLAG;
 
                 context.emulatingButtonFlags &= ~ControllerHandler.EMULATING_SELECT;
-
-                try {
-                    Thread.sleep(EMULATED_SELECT_UP_DELAY_MS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-
-                    // InterruptedException clears the thread's interrupt status. Since we can't
-                    // handle that here, we will re-interrupt the thread to set the interrupt
-                    // status back to true.
-                    Thread.currentThread().interrupt();
-                }
             }
         }
 
@@ -1650,17 +1636,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.inputMap &= ~ControllerPacket.SPECIAL_BUTTON_FLAG;
 
                 context.emulatingButtonFlags &= ~ControllerHandler.EMULATING_SPECIAL;
-
-                try {
-                    Thread.sleep(EMULATED_SPECIAL_UP_DELAY_MS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-
-                    // InterruptedException clears the thread's interrupt status. Since we can't
-                    // handle that here, we will re-interrupt the thread to set the interrupt
-                    // status back to true.
-                    Thread.currentThread().interrupt();
-                }
             }
         }
 

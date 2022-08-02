@@ -5,9 +5,9 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
+import android.os.SystemClock;
 
 import com.limelight.LimeLog;
-import com.limelight.binding.video.MediaCodecHelper;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -58,7 +58,7 @@ public abstract class AbstractXboxController extends AbstractController {
 
                     do {
                         // Read the next input state packet
-                        long lastMillis = MediaCodecHelper.getMonotonicMillis();
+                        long lastMillis = SystemClock.uptimeMillis();
                         res = connection.bulkTransfer(inEndpt, buffer, buffer.length, 3000);
 
                         // If we get a zero length response, treat it as an error
@@ -66,7 +66,7 @@ public abstract class AbstractXboxController extends AbstractController {
                             res = -1;
                         }
 
-                        if (res == -1 && MediaCodecHelper.getMonotonicMillis() - lastMillis < 1000) {
+                        if (res == -1 && SystemClock.uptimeMillis() - lastMillis < 1000) {
                             LimeLog.warning("Detected device I/O error");
                             AbstractXboxController.this.stop();
                             break;

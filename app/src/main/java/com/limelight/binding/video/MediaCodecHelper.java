@@ -400,10 +400,6 @@ public class MediaCodecHelper {
         return false;
     }
 
-    public static long getMonotonicMillis() {
-        return System.nanoTime() / 1000000L;
-    }
-
     private static boolean decoderSupportsAndroidRLowLatency(MediaCodecInfo decoderInfo, String mimeType) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {

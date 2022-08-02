@@ -651,7 +651,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                             }
 
                             // Add delta time to the totals (excluding probable outliers)
-                            long delta = MediaCodecHelper.getMonotonicMillis() - (presentationTimeUs / 1000);
+                            long delta = SystemClock.uptimeMillis() - (presentationTimeUs / 1000);
                             if (delta >= 0 && delta < 1000) {
                                 activeWindowVideoStats.decoderTimeMs += delta;
                                 if (!USE_FRAME_RENDER_TIME) {
@@ -686,7 +686,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         int index = -1;
         long startTime;
 
-        startTime = MediaCodecHelper.getMonotonicMillis();
+        startTime = SystemClock.uptimeMillis();
 
         try {
             while (index < 0 && !stopping) {
@@ -697,7 +697,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             return MediaCodec.INFO_TRY_AGAIN_LATER;
         }
 
-        int deltaMs = (int)(MediaCodecHelper.getMonotonicMillis() - startTime);
+        int deltaMs = (int)(SystemClock.uptimeMillis() - startTime);
 
         if (deltaMs >= 20) {
             LimeLog.warning("Dequeue input buffer ran long: " + deltaMs + " ms");

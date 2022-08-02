@@ -59,7 +59,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.util.Rational;
 import android.view.Display;
 import android.view.InputDevice;
@@ -1432,14 +1431,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 if (event.getPointerCount() == 1 && event.getActionIndex() == 0) {
                     if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
                         if (event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS) {
-                            lastAbsTouchDownTime = SystemClock.uptimeMillis();
+                            lastAbsTouchDownTime = event.getEventTime();
                             lastAbsTouchDownX = event.getX(0);
                             lastAbsTouchDownY = event.getY(0);
 
                             // Stylus is left click
                             conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_LEFT);
                         } else if (event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER) {
-                            lastAbsTouchDownTime = SystemClock.uptimeMillis();
+                            lastAbsTouchDownTime = event.getEventTime();
                             lastAbsTouchDownX = event.getX(0);
                             lastAbsTouchDownY = event.getY(0);
 
@@ -1449,14 +1448,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                     else if (event.getActionMasked() == MotionEvent.ACTION_UP || event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
                         if (event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS) {
-                            lastAbsTouchUpTime = SystemClock.uptimeMillis();
+                            lastAbsTouchUpTime = event.getEventTime();
                             lastAbsTouchUpX = event.getX(0);
                             lastAbsTouchUpY = event.getY(0);
 
                             // Stylus is left click
                             conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_LEFT);
                         } else if (event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER) {
-                            lastAbsTouchUpTime = SystemClock.uptimeMillis();
+                            lastAbsTouchUpTime = event.getEventTime();
                             lastAbsTouchUpX = event.getX(0);
                             lastAbsTouchUpY = event.getY(0);
 
@@ -1492,7 +1491,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN &&
                         event.getPointerCount() == 3) {
                     // Three fingers down
-                    threeFingerDownTime = SystemClock.uptimeMillis();
+                    threeFingerDownTime = event.getEventTime();
 
                     // Cancel the first and second touches to avoid
                     // erroneous events
@@ -1515,14 +1514,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     for (TouchContext touchContext : touchContextMap) {
                         touchContext.setPointerCount(event.getPointerCount());
                     }
-                    context.touchDownEvent(eventX, eventY, true);
+                    context.touchDownEvent(eventX, eventY, event.getEventTime(), true);
                     break;
                 case MotionEvent.ACTION_POINTER_UP:
                 case MotionEvent.ACTION_UP:
                     if (event.getPointerCount() == 1 &&
                             (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || (event.getFlags() & MotionEvent.FLAG_CANCELED) == 0)) {
                         // All fingers up
-                        if (SystemClock.uptimeMillis() - threeFingerDownTime < THREE_FINGER_TAP_THRESHOLD) {
+                        if (event.getEventTime() - threeFingerDownTime < THREE_FINGER_TAP_THRESHOLD) {
                             // This is a 3 finger tap to bring up the keyboard
                             toggleKeyboard();
                             return true;
@@ -1533,7 +1532,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         context.cancelTouch();
                     }
                     else {
-                        context.touchUpEvent(eventX, eventY);
+                        context.touchUpEvent(eventX, eventY, event.getEventTime());
                     }
 
                     for (TouchContext touchContext : touchContextMap) {
@@ -1541,7 +1540,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                     if (actionIndex == 0 && event.getPointerCount() > 1 && !context.isCancelled()) {
                         // The original secondary touch now becomes primary
-                        context.touchDownEvent((int)event.getX(1), (int)event.getY(1), false);
+                        context.touchDownEvent((int)event.getX(1), (int)event.getY(1), event.getEventTime(), false);
                     }
                     break;
                 case MotionEvent.ACTION_MOVE:
@@ -1555,7 +1554,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                             {
                                 aTouchContextMap.touchMoveEvent(
                                         (int)event.getHistoricalX(aTouchContextMap.getActionIndex(), i),
-                                        (int)event.getHistoricalY(aTouchContextMap.getActionIndex(), i));
+                                        (int)event.getHistoricalY(aTouchContextMap.getActionIndex(), i),
+                                        event.getHistoricalEventTime(i));
                             }
                         }
                     }
@@ -1566,7 +1566,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         {
                             aTouchContextMap.touchMoveEvent(
                                     (int)event.getX(aTouchContextMap.getActionIndex()),
-                                    (int)event.getY(aTouchContextMap.getActionIndex()));
+                                    (int)event.getY(aTouchContextMap.getActionIndex()),
+                                    event.getEventTime());
                         }
                     }
                     break;
@@ -1615,7 +1616,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 case MotionEvent.ACTION_HOVER_ENTER:
                 case MotionEvent.ACTION_HOVER_EXIT:
                 case MotionEvent.ACTION_HOVER_MOVE:
-                    if (SystemClock.uptimeMillis() - lastAbsTouchUpTime <= STYLUS_UP_DEAD_ZONE_DELAY &&
+                    if (event.getEventTime() - lastAbsTouchUpTime <= STYLUS_UP_DEAD_ZONE_DELAY &&
                             Math.sqrt(Math.pow(eventX - lastAbsTouchUpX, 2) + Math.pow(eventY - lastAbsTouchUpY, 2)) <= STYLUS_UP_DEAD_ZONE_RADIUS) {
                         // Enforce a small deadzone between touch up and hover or touch down to allow more precise double-clicking
                         return;
@@ -1624,7 +1625,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 case MotionEvent.ACTION_MOVE:
                 case MotionEvent.ACTION_UP:
-                    if (SystemClock.uptimeMillis() - lastAbsTouchDownTime <= STYLUS_DOWN_DEAD_ZONE_DELAY &&
+                    if (event.getEventTime() - lastAbsTouchDownTime <= STYLUS_DOWN_DEAD_ZONE_DELAY &&
                             Math.sqrt(Math.pow(eventX - lastAbsTouchDownX, 2) + Math.pow(eventY - lastAbsTouchDownY, 2)) <= STYLUS_DOWN_DEAD_ZONE_RADIUS) {
                         // Enforce a small deadzone between touch down and move or touch up to allow more precise double-clicking
                         return;

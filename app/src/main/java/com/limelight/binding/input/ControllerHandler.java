@@ -9,7 +9,6 @@ import android.hardware.usb.UsbManager;
 import android.media.AudioAttributes;
 import android.os.Build;
 import android.os.CombinedVibration;
-import android.os.SystemClock;
 import android.os.VibrationAttributes;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -1506,7 +1505,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // If the button hasn't been down long enough, sleep for a bit before sending the up event
         // This allows "instant" button presses (like OUYA's virtual menu button) to work. This
         // path should not be triggered during normal usage.
-        if (SystemClock.uptimeMillis() - event.getDownTime() < ControllerHandler.MINIMUM_BUTTON_DOWN_TIME_MS)
+        int buttonDownTime = (int)(event.getEventTime() - event.getDownTime());
+        if (buttonDownTime < ControllerHandler.MINIMUM_BUTTON_DOWN_TIME_MS)
         {
             // Since our sleep time is so short (10 ms), it shouldn't cause a problem doing this in the
             // UI thread.
@@ -1532,7 +1532,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // Make sure it's real by checking that the key is actually down before taking
             // any action.
             if ((context.inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
-                    SystemClock.uptimeMillis() - context.startDownTime > ControllerHandler.START_DOWN_TIME_MOUSE_MODE_MS &&
+                    event.getEventTime() - context.startDownTime > ControllerHandler.START_DOWN_TIME_MOUSE_MODE_MS &&
                     prefConfig.mouseEmulation) {
                 toggleMouseEmulation(context);
             }
@@ -1585,11 +1585,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             break;
         case KeyEvent.KEYCODE_BUTTON_L1:
             context.inputMap &= ~ControllerPacket.LB_FLAG;
-            context.lastLbUpTime = SystemClock.uptimeMillis();
+            context.lastLbUpTime = event.getEventTime();
             break;
         case KeyEvent.KEYCODE_BUTTON_R1:
             context.inputMap &= ~ControllerPacket.RB_FLAG;
-            context.lastRbUpTime = SystemClock.uptimeMillis();
+            context.lastRbUpTime = event.getEventTime();
             break;
         case KeyEvent.KEYCODE_BUTTON_THUMBL:
             context.inputMap &= ~ControllerPacket.LS_CLK_FLAG;
@@ -1698,7 +1698,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         case KeyEvent.KEYCODE_BUTTON_START:
         case KeyEvent.KEYCODE_MENU:
             if (event.getRepeatCount() == 0) {
-                context.startDownTime = SystemClock.uptimeMillis();
+                context.startDownTime = event.getEventTime();
             }
             context.inputMap |= ControllerPacket.PLAY_FLAG;
             break;
@@ -1789,7 +1789,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (!context.hasSelect) {
             if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG) ||
                     (context.inputMap == ControllerPacket.PLAY_FLAG &&
-                            SystemClock.uptimeMillis() - context.lastLbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
+                            event.getEventTime() - context.lastLbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
             {
                 context.inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.LB_FLAG);
                 context.inputMap |= ControllerPacket.BACK_FLAG;
@@ -1812,7 +1812,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             else {
                 if (context.inputMap == (ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG) ||
                         (context.inputMap == ControllerPacket.PLAY_FLAG &&
-                                SystemClock.uptimeMillis() - context.lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
+                                event.getEventTime() - context.lastRbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
                 {
                     context.inputMap &= ~(ControllerPacket.PLAY_FLAG | ControllerPacket.RB_FLAG);
                     context.inputMap |= ControllerPacket.SPECIAL_BUTTON_FLAG;

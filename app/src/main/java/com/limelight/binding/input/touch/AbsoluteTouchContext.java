@@ -1,6 +1,5 @@
 package com.limelight.binding.input.touch;
 
-import android.os.SystemClock;
 import android.view.View;
 
 import com.limelight.nvstream.NvConnection;
@@ -53,7 +52,7 @@ public class AbsoluteTouchContext implements TouchContext {
     }
 
     @Override
-    public boolean touchDownEvent(int eventX, int eventY, boolean isNewFinger)
+    public boolean touchDownEvent(int eventX, int eventY, long eventTime, boolean isNewFinger)
     {
         if (!isNewFinger) {
             // We don't handle finger transitions for absolute mode
@@ -62,7 +61,7 @@ public class AbsoluteTouchContext implements TouchContext {
 
         lastTouchLocationX = lastTouchDownX = eventX;
         lastTouchLocationY = lastTouchDownY = eventY;
-        lastTouchDownTime = SystemClock.uptimeMillis();
+        lastTouchDownTime = eventTime;
         cancelled = confirmedTap = confirmedLongPress = false;
 
         if (actionIndex == 0) {
@@ -90,7 +89,7 @@ public class AbsoluteTouchContext implements TouchContext {
     }
 
     @Override
-    public void touchUpEvent(int eventX, int eventY)
+    public void touchUpEvent(int eventX, int eventY, long eventTime)
     {
         if (cancelled) {
             return;
@@ -130,7 +129,7 @@ public class AbsoluteTouchContext implements TouchContext {
 
         lastTouchLocationX = lastTouchUpX = eventX;
         lastTouchLocationY = lastTouchUpY = eventY;
-        lastTouchUpTime = SystemClock.uptimeMillis();
+        lastTouchUpTime = eventTime;
     }
 
     private synchronized void startLongPressTimer() {
@@ -214,7 +213,7 @@ public class AbsoluteTouchContext implements TouchContext {
     }
 
     @Override
-    public boolean touchMoveEvent(int eventX, int eventY)
+    public boolean touchMoveEvent(int eventX, int eventY, long eventTime)
     {
         if (cancelled) {
             return true;

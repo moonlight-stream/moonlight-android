@@ -1,6 +1,5 @@
 package com.limelight.binding.input.touch;
 
-import android.os.SystemClock;
 import android.view.View;
 
 import com.limelight.nvstream.NvConnection;
@@ -66,7 +65,7 @@ public class RelativeTouchContext implements TouchContext {
                 yDelta <= TAP_MOVEMENT_THRESHOLD;
     }
 
-    private boolean isTap()
+    private boolean isTap(long eventTime)
     {
         if (confirmedDrag || confirmedMove || confirmedScroll) {
             return false;
@@ -79,7 +78,7 @@ public class RelativeTouchContext implements TouchContext {
             return false;
         }
 
-        long timeDelta = SystemClock.uptimeMillis() - originalTouchTime;
+        long timeDelta = eventTime - originalTouchTime;
         return isWithinTapBounds(lastTouchX, lastTouchY) && timeDelta <= TAP_TIME_THRESHOLD;
     }
 
@@ -94,7 +93,7 @@ public class RelativeTouchContext implements TouchContext {
     }
 
     @Override
-    public boolean touchDownEvent(int eventX, int eventY, boolean isNewFinger)
+    public boolean touchDownEvent(int eventX, int eventY, long eventTime, boolean isNewFinger)
     {
         // Get the view dimensions to scale inputs on this touch
         xFactor = referenceWidth / (double)targetView.getWidth();
@@ -105,7 +104,7 @@ public class RelativeTouchContext implements TouchContext {
 
         if (isNewFinger) {
             maxPointerCountInGesture = pointerCount;
-            originalTouchTime = SystemClock.uptimeMillis();
+            originalTouchTime = eventTime;
             cancelled = confirmedDrag = confirmedMove = confirmedScroll = false;
             distanceMoved = 0;
 
@@ -119,7 +118,7 @@ public class RelativeTouchContext implements TouchContext {
     }
 
     @Override
-    public void touchUpEvent(int eventX, int eventY)
+    public void touchUpEvent(int eventX, int eventY, long eventTime)
     {
         if (cancelled) {
             return;
@@ -134,7 +133,7 @@ public class RelativeTouchContext implements TouchContext {
             // Raise the button after a drag
             conn.sendMouseButtonUp(buttonIndex);
         }
-        else if (isTap())
+        else if (isTap(eventTime))
         {
             // Lower the mouse button
             conn.sendMouseButtonDown(buttonIndex);
@@ -229,7 +228,7 @@ public class RelativeTouchContext implements TouchContext {
     }
 
     @Override
-    public boolean touchMoveEvent(int eventX, int eventY)
+    public boolean touchMoveEvent(int eventX, int eventY, long eventTime)
     {
         if (cancelled) {
             return true;

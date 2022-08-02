@@ -243,19 +243,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
         // Set attributes that are queried in getCapabilities(). This must be done here
         // because getCapabilities() may be called before setup() in current versions of the common
-        // library. The limitation of this is that we don't know whether we're using HEVC or AVC, so
-        // we just assume AVC. This isn't really a problem because the capabilities are usually
-        // shared between AVC and HEVC decoders on the same device.
+        // library. The limitation of this is that we don't know whether we're using HEVC or AVC.
+        int avcOptimalSlicesPerFrame = 0;
+        int hevcOptimalSlicesPerFrame = 0;
         if (avcDecoder != null) {
             directSubmit = MediaCodecHelper.decoderCanDirectSubmit(avcDecoder.getName());
             refFrameInvalidationAvc = MediaCodecHelper.decoderSupportsRefFrameInvalidationAvc(avcDecoder.getName(), prefs.height);
-            refFrameInvalidationHevc = MediaCodecHelper.decoderSupportsRefFrameInvalidationHevc(avcDecoder.getName());
-            optimalSlicesPerFrame = MediaCodecHelper.getDecoderOptimalSlicesPerFrame(avcDecoder.getName());
-
-            if (consecutiveCrashCount % 2 == 1) {
-                refFrameInvalidationAvc = refFrameInvalidationHevc = false;
-                LimeLog.warning("Disabling RFI due to previous crash");
-            }
+            avcOptimalSlicesPerFrame = MediaCodecHelper.getDecoderOptimalSlicesPerFrame(avcDecoder.getName());
 
             if (directSubmit) {
                 LimeLog.info("Decoder "+avcDecoder.getName()+" will use direct submit");
@@ -263,10 +257,27 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             if (refFrameInvalidationAvc) {
                 LimeLog.info("Decoder "+avcDecoder.getName()+" will use reference frame invalidation for AVC");
             }
+            LimeLog.info("Decoder "+avcDecoder.getName()+" wants "+avcOptimalSlicesPerFrame+" slices per frame");
+        }
+
+        if (hevcDecoder != null) {
+            refFrameInvalidationHevc = MediaCodecHelper.decoderSupportsRefFrameInvalidationHevc(hevcDecoder.getName());
+            hevcOptimalSlicesPerFrame = MediaCodecHelper.getDecoderOptimalSlicesPerFrame(hevcDecoder.getName());
+
             if (refFrameInvalidationHevc) {
-                LimeLog.info("Decoder "+avcDecoder.getName()+" will use reference frame invalidation for HEVC");
+                LimeLog.info("Decoder "+hevcDecoder.getName()+" will use reference frame invalidation for HEVC");
             }
-            LimeLog.info("Decoder "+avcDecoder.getName()+" will use "+optimalSlicesPerFrame+" slices per frame");
+
+            LimeLog.info("Decoder "+hevcDecoder.getName()+" wants "+hevcOptimalSlicesPerFrame+" slices per frame");
+        }
+
+        // Use the larger of the two slices per frame preferences
+        optimalSlicesPerFrame = (byte)Math.max(avcOptimalSlicesPerFrame, hevcOptimalSlicesPerFrame);
+        LimeLog.info("Requesting "+optimalSlicesPerFrame+" slices per frame");
+
+        if (consecutiveCrashCount % 2 == 1) {
+            refFrameInvalidationAvc = refFrameInvalidationHevc = false;
+            LimeLog.warning("Disabling RFI due to previous crash");
         }
     }
 

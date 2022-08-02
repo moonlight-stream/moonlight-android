@@ -1505,10 +1505,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         int buttonDownTime = (int)(event.getEventTime() - event.getDownTime());
         if (buttonDownTime < ControllerHandler.MINIMUM_BUTTON_DOWN_TIME_MS)
         {
-            // Since our sleep time is so short (10 ms), it shouldn't cause a problem doing this in the
-            // UI thread.
+            // Since our sleep time is so short (<= 25 ms), it shouldn't cause a problem doing this
+            // in the UI thread.
             try {
-                Thread.sleep(ControllerHandler.MINIMUM_BUTTON_DOWN_TIME_MS);
+                Thread.sleep(ControllerHandler.MINIMUM_BUTTON_DOWN_TIME_MS - buttonDownTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
 

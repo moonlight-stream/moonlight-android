@@ -1,5 +1,7 @@
 package com.limelight.binding.input.touch;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 
 import com.limelight.nvstream.NvConnection;
@@ -31,6 +33,41 @@ public class RelativeTouchContext implements TouchContext {
     private final int referenceHeight;
     private final View targetView;
     private final PreferenceConfiguration prefConfig;
+    private final Handler handler;
+
+    // Indexed by MouseButtonPacket.BUTTON_XXX - 1
+    private final Runnable[] buttonUpRunnables = new Runnable[] {
+            new Runnable() {
+                @Override
+                public void run() {
+                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_LEFT);
+                }
+            },
+            new Runnable() {
+                @Override
+                public void run() {
+                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_MIDDLE);
+                }
+            },
+            new Runnable() {
+                @Override
+                public void run() {
+                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
+                }
+            },
+            new Runnable() {
+                @Override
+                public void run() {
+                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_X1);
+                }
+            },
+            new Runnable() {
+                @Override
+                public void run() {
+                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_X2);
+                }
+            }
+    };
 
     private static final int TAP_MOVEMENT_THRESHOLD = 20;
     private static final int TAP_DISTANCE_THRESHOLD = 25;
@@ -49,6 +86,7 @@ public class RelativeTouchContext implements TouchContext {
         this.referenceHeight = referenceHeight;
         this.targetView = view;
         this.prefConfig = prefConfig;
+        this.handler = new Handler(Looper.getMainLooper());
     }
 
     @Override
@@ -138,21 +176,11 @@ public class RelativeTouchContext implements TouchContext {
             // Lower the mouse button
             conn.sendMouseButtonDown(buttonIndex);
 
-            // We need to sleep a bit here because some games
-            // do input detection by polling
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-
-                // InterruptedException clears the thread's interrupt status. Since we can't
-                // handle that here, we will re-interrupt the thread to set the interrupt
-                // status back to true.
-                Thread.currentThread().interrupt();
-            }
-
-            // Raise the mouse button
-            conn.sendMouseButtonUp(buttonIndex);
+            // Release the mouse button in 100ms to allow for apps that use polling
+            // to detect mouse button presses.
+            Runnable buttonUpRunnable = buttonUpRunnables[buttonIndex - 1];
+            handler.removeCallbacks(buttonUpRunnable);
+            handler.postDelayed(buttonUpRunnable, 100);
         }
     }
 

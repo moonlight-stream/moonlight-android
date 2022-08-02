@@ -252,4 +252,6 @@
     <string name="summary_seekbar_deadzone">注意：有些遊戲可以強制執行一個比 Moonlight 設定大的死區。</string>
     <string name="title_checkbox_absolute_mouse_mode">遠端桌面滑鼠模式</string>
     <string name="summary_checkbox_absolute_mouse_mode">這可以讓滑鼠在遠端桌面使用中的加速表現更加自然，但與很多遊戲不相容。</string>
+    <string name="title_checkbox_enable_audiofx">啟用系統等化器支援</string>
+    <string name="summary_checkbox_enable_audiofx">允許音訊效果在串流中發揮作用，但可能會增加音訊延遲</string>
 </resources>

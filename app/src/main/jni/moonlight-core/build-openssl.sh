@@ -1,4 +1,4 @@
-PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
+PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
 OUTPUT_DIR=~/openssl
 
 BASE_ARGS="no-shared no-ssl3 no-stdio no-engine no-hw"

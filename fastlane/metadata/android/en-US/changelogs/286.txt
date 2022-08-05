@@ -1,0 +1,7 @@
+- Slightly improved video encoding bandwidth efficiency
+- Fixed a crash on certain 32-bit Android TV devices
+- Improved input handling to process touch and gamepad events more quickly and accurately
+- Improved DeX touchpad mouse behavior on newer Samsung devices
+- Added an option to enable system-wide equalizer apps to work while streaming
+- Added a workaround for TVs with frame pacing problems at 30 Hz
+- Updated community contributed translations from Weblate

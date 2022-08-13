@@ -253,4 +253,6 @@
     <string name="category_help">Hilfe</string>
     <string name="title_setup_guide">Einstellungsanleitung</string>
     <string name="summary_privacy_policy">Moonlight\'s Datenschutzbestimmungen anzeigen</string>
+    <string name="summary_seekbar_deadzone">Hinweis: Einige Spiele können eine größere Totzone erzwingen als die, die in Moonlight konfiguriert ist.</string>
+    <string name="summary_checkbox_enable_audiofx">Ermöglicht das Funktionieren von Audioeffekten beim Streaming, kann aber die Audio-Latenz erhöhen</string>
 </resources>

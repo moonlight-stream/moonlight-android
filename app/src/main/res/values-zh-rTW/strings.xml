@@ -146,7 +146,7 @@
     <string name="summary_checkbox_show_onscreen_controls">在觸控式螢幕上顯示一層虛擬控制器</string>
     <string name="title_checkbox_vibrate_osc"> 啟用震動 </string>
     <string name="summary_checkbox_vibrate_osc">使用螢幕控制按鈕時震動裝置以仿真遊戲低頻音</string>
-    <string name="title_only_l3r3">只顯示 L3 和 R3</string>
+    <string name="title_only_l3r3">僅顯示 L3 和 R3</string>
     <string name="summary_only_l3r3">隱藏除 L3 和 R3 外的所有虛擬按鈕</string>
     <string name="title_reset_osc">重設已儲存的螢幕控制按鈕版面配置</string>
     <string name="summary_reset_osc">重設所有螢幕控制按鈕為預設大小和位置</string>
@@ -170,9 +170,9 @@
     <string name="summary_video_format">HEVC 能降低視訊頻寬需求，但需要較新的裝置才能支援</string>
     <string name="title_enable_hdr">啟用 HDR (實驗性)</string>
     <string name="summary_enable_hdr">當遊戲和顯示卡支援時以 HDR 模式串流。 HDR 需要 GTX 1000 系列或更高規格顯示卡。</string>
-    <string name="title_enable_perf_overlay">顯示效能資訊</string>
+    <string name="title_enable_perf_overlay">串流時顯示效能資訊</string>
     <string name="summary_enable_perf_overlay">在串流中顯示即時效能資訊</string>
-    <string name="title_enable_post_stream_toast">串流完畢顯示延時資訊</string>
+    <string name="title_enable_post_stream_toast">串流後顯示延時資訊</string>
     <string name="summary_enable_post_stream_toast">串流結束後顯示延時資訊</string>
     <string name="title_osc_opacity">變更螢幕按鈕透明度</string>
     <string name="dialog_title_osc_opacity">變更不透明度</string>

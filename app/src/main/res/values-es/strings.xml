@@ -48,7 +48,9 @@
     <string name="conn_terminated_msg">La conexión ha finalizando</string>
     <!-- General strings -->
     <string name="ip_hint">Dirección IP del PC con GeForce</string>
-    <string name="searching_pc">Buscando por PCs con GeForce Experience ejecutándose…</string>
+    <string name="searching_pc">Buscando por PCs con GameStream ejecutándose...
+\n
+\nVerifica que GameStream esté activado en las opciones de SHIELD dentro de GeForce Experience.</string>
     <string name="yes">Si</string>
     <string name="no">No</string>
     <string name="lost_connection">Conexión perdida</string>
@@ -75,7 +77,7 @@
     <!-- Preferences -->
     <string name="category_basic_settings">Configuración básica</string>
     <string name="title_resolution_list">Seleccionar resolución y FPS</string>
-    <string name="summary_resolution_list">Establecer unos valores demasiado altos puede causar lag o cierres inesperados</string>
+    <string name="summary_resolution_list">Establecer unos valores demasiado altos puede causar retraso o cierres inesperados.</string>
     <string name="title_seekbar_bitrate">Seleccionar bitrate de vídeo</string>
     <string name="summary_seekbar_bitrate">Usa bitrate bajo para reducir "parpadeo". Incrementa el bitrate para mayor calidad de imagen.</string>
     <string name="title_checkbox_stretch_video">Ajustar vídeo a pantalla completa</string>
@@ -87,7 +89,7 @@
     <string name="title_seekbar_deadzone">Ajustar zona muerta del stick analógico</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Driver para mando Xbox 360/One</string>
-    <string name="summary_checkbox_xb1_driver">Activa el driver USB incluido para dispositivos sin soporte nativo para mandos de Xbox.</string>
+    <string name="summary_checkbox_xb1_driver">Activa el driver USB incluido para dispositivos sin soporte nativo para mandos de Xbox</string>
     <string name="category_on_screen_controls_settings">Configuración de controles en pantalla</string>
     <string name="title_checkbox_show_onscreen_controls">Mostrar controles en pantalla</string>
     <string name="summary_checkbox_show_onscreen_controls">Muestra controles virtuales superpuestos en la pantalla táctil</string>
@@ -105,17 +107,17 @@
     <string name="summary_checkbox_host_audio">Reproducir audio en el ordenador y en este dispositivo</string>
     <string name="category_advanced_settings">Configuración avanzada</string>
     <string name="title_video_format">Cambiar configuración HEVC</string>
-    <string name="summary_video_format">HEVC reduce el ancho de banda de vídeo, pero requiere un dispositivo bastante actual.</string>
+    <string name="summary_video_format">HEVC reduce el ancho de banda de vídeo, pero requiere un dispositivo reciente</string>
     <!-- Array strings -->
-    <string name="videoformat_hevcauto">Usar HEVC solo si es estable</string>
+    <string name="videoformat_hevcauto">Usar HEVC sólo si es estable</string>
     <string name="videoformat_hevcalways">Siempre usar HEVC (puede fallar)</string>
     <string name="videoformat_hevcnever">Nunca usar HEVC</string>
     <string name="nettest_title_done">Prueba de Red Completada</string>
     <string name="scut_not_paired">PC no emparejado</string>
-    <string name="scut_invalid_uuid">PC proporcionado no es válido</string>
-    <string name="scut_invalid_app_id">App proporcionada no es válida</string>
-    <string name="help_loading_title">Visor de Ayuda</string>
-    <string name="pcview_menu_header_online">En Línea</string>
+    <string name="scut_invalid_uuid">El PC proporcionado no es válido</string>
+    <string name="scut_invalid_app_id">La App proporcionada no es válida</string>
+    <string name="help_loading_title">Visor de ayuda</string>
+    <string name="pcview_menu_header_online">En línea</string>
     <string name="pcview_menu_header_unknown">Actualizando</string>
     <string name="pcview_menu_test_network">Probar Conexión de Red</string>
     <string name="pcview_menu_details">Ver Detalles</string>
@@ -131,11 +133,127 @@
     <string name="title_decoding_error">Falló el Decodificador de Video</string>
     <string name="scut_deleted_pc">PC eliminado</string>
     <string name="scut_pc_not_found">PC no encontrado</string>
-    <string name="help_loading_msg">Cargando página de ayuda …</string>
+    <string name="help_loading_msg">Cargando página de ayuda…</string>
     <string name="pcview_menu_header_offline">Fuera de línea</string>
     <string name="nettest_text_success">Tu red parece no estar bloqueando Moonlight. Si aun tienes problemas de conexión, comprueba la configuración del firewall de tu PC.
 \n
 \nSi estas intentado transmitir mediante Internet, instala en tu pc la Moonlight Internet Hosting Tool y ejecuta el Internet Streaming Tester incluido para comprobar la conexión de tu PC a internet.</string>
     <string name="nettest_text_blocked">La conexión de red actual de tu dispositivo esta bloqueando Moonlight. La Transmisión mediante Internet puede no funcionar mientras estés conectado a esta red.</string>
     <string name="pair_already_in_progress">Emparejamiento ya en progreso</string>
+    <string name="resolution_prefix_native_fullscreen">Pantalla Completa Nativa</string>
+    <string name="title_audio_config_list">Configuración de Sonido Envolvente</string>
+    <string name="title_decoding_reset">Reiniciar Opciones de Video</string>
+    <string name="no_video_received_error">No se recibe video desde el equipo anfitrión.</string>
+    <string name="applist_details_id">ID de Aplicación:</string>
+    <string name="title_checkbox_mouse_emulation">Emulación de ratón usando el mando</string>
+    <string name="pacing_latency">Preferir la menor latencia posible</string>
+    <string name="pacing_balanced">Equilibrado</string>
+    <string name="pacing_smoothness">Preferir mayor fluidez de video (puede incrementar significativamente la latencia)</string>
+    <string name="perf_overlay_decoder">Decodificador: %1$s</string>
+    <string name="perf_overlay_incomingfps">Tasa de cuadros obtenida de la red: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Tasa de Cuadros Renderizada: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Cuadros perdidos por tu conexión de internet: %1$.2f%%</string>
+    <string name="perf_overlay_netlatency">Latencia promedio de red:%1$d ms (variación: %2$d ms)</string>
+    <string name="perf_overlay_dectime">Tiempo promedio de descodificado: %1$.2f ms</string>
+    <string name="perf_overlay_streamdetails">Transmisión video: %1$s %2$.2f FPS</string>
+    <string name="title_fps_list">Tasa de cuadros en el video</string>
+    <string name="summary_fps_list">Incrementar para una experiencia mas fluida en la transmisión. Disminuir para una mejoría en el rendimiento en dispositivos de gama de entrada.</string>
+    <string name="summary_reset_osc">Reiniciar toda la configuración a las predeterminadas de tamaño y posición para los controles en pantalla</string>
+    <string name="summary_troubleshooting">Mostrar consejos para diagnosticar y corregir errores comunes respecto a la transmisión</string>
+    <string name="title_privacy_policy">Política de Privacidad</string>
+    <string name="resolution_360p">360p</string>
+    <string name="resolution_1440p">1440p</string>
+    <string name="resolution_4k">4K</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="title_checkbox_enable_pip">Actividad modo Pantalla-en-Pantalla para observador</string>
+    <string name="resolution_720p">720p</string>
+    <string name="fps_120">120 FPS</string>
+    <string name="audioconf_71surround">7.1 Sonido Envolvente</string>
+    <string name="title_troubleshooting">Guía de Solución de Errores</string>
+    <string name="resolution_1080p">1080p</string>
+    <string name="summary_frame_pacing">Especificar como balancear la latencia de video y la fluidez</string>
+    <string name="pacing_balanced_alt">Equilibrado con limitador de FPS (Cuadros por Segundo)</string>
+    <string name="audioconf_51surround">5.1 Sonido Envolvente</string>
+    <string name="audioconf_stereo">Estéreo</string>
+    <string name="check_ports_msg">Revisa la configuración de tu firewall, así como, las reglas de redireccionamiento para él(los) puerto(s):</string>
+    <string name="error_usb_prohibited">El acceso a USB está restringido en tu dispositivo por el administrador. Revisar tus ajustes en MDM o Knox.</string>
+    <string name="message_decoding_error">Moonlight se ha cerrado debido a una incompatibilidad con el decodificador de vídeo de este dispositivo. Asegúrate de que GeForce Experience está actualizado a la última versión en tu PC. Intenta ajustar la configuración de streaming si los bloqueos continúan.</string>
+    <string name="message_decoding_reset">La decodificación de video de tu equipo sigue fallando con las opciones elegidas. Las opciones de la transmisión han sido revertidas a las predeterminadas.</string>
+    <string name="video_decoder_init_failed">El descodificador de video no pudo ser iniciado. Tu dispositivo puede no soportar la resolución elegida o la tasa de cuadros por segundo.</string>
+    <string name="no_frame_received_error">La conexión de internet no está teniendo un buen desempeño. Reduce la tasa de bits de video o prueba en una conexión de mayor velocidad.</string>
+    <string name="unable_to_pin_shortcut">Tu lanzador predeterminado no permite la creación de accesos directos anclados.</string>
+    <string name="early_termination_error">Algo ha salido mal en el PC anfitrión cuando se inicio la transmisión.
+\n
+\nVerifica que no tengas ningún contenido protegido por DRM abierto en el equipo. También prueba reiniciando el equipo anfitrión.
+\n
+\nSi el problema persiste, intenta reinstalar los controladores de la tarjeta de video (GPU) además de GeForce Experience.</string>
+    <string name="title_details">Detalles</string>
+    <string name="poor_connection_msg">Conexión pobre al PC</string>
+    <string name="applist_menu_details">Ver Detalles</string>
+    <string name="applist_menu_scut">Crear Acceso Directo</string>
+    <string name="applist_menu_tv_channel">Agregar al Canal</string>
+    <string name="applist_menu_hide_app">Esconder Aplicación</string>
+    <string name="applist_connect_msg">Conectando al Equipo…</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Activar esta opción puede desconfigurar la función de clic derecho en algunos dispositivos inestables</string>
+    <string name="text_native_res_dialog">Modos de resolución nativa no son oficialmente soportados por GeForce Experience, así que no se no se aplicarán por su cuenta en la pantalla del equipo anfitrión. Vas a necesitar ajustarlos manualmente en el juego.
+\n
+\nSi eliges crear una resolución personalizada en el Panel de Control de Nvidia para ajustarse a la resolución de tu dispositivo, por favor considera haber leído y entendido la advertencia de NVIDIA respectivo a cualquier daño posible a tu monitor, inestabilidad del equipo, y otros problemas potencialmente posibles.
+\n
+\nNo somos responsables de cualquier problema por haber creador una resolución personalizada en tu PC.
+\n
+\nFinalmente, tu dispositivo o tu Pc anfitrión, podrían no soportar la transmisión a resolución nativa. Si no funciona en tu equipo, puede que solo no tengas suerte de momento.</string>
+    <string name="resolution_prefix_native">Nativo</string>
+    <string name="summary_audio_config_list">Activar sonido envolvente de 5.1 o 7.1 canales para sistemas de teatro en casa</string>
+    <string name="title_checkbox_vibrate_fallback">Emular la vibración del mando con vibración del equipo</string>
+    <string name="summary_checkbox_enable_audiofx">Permitir funcionar efectos de sonido durante la transmisión, pero podría incrementar la latencia del sonido</string>
+    <string name="summary_checkbox_usb_bind_all">Usar el controlador de USB de Moonlight para todos los mandos soportados, incluso si el control de Xbox se encuentra presente</string>
+    <string name="summary_checkbox_mouse_emulation">Presionar por un periodo largo el botón de inicio hará cambiar el mando a modo de ratón</string>
+    <string name="title_checkbox_mouse_nav_buttons">Activar los botones atrás y adelante del ratón</string>
+    <string name="title_unlock_fps">Desbloquear todas las opciones de tasa de cuadros disponibles</string>
+    <string name="summary_unlock_fps">Transmitir a 90 o 120 FPS puede reducir latencia en dispositivos de gama alta pero puede causar retrasos en dispositivos que no lo soporten</string>
+    <string name="title_enable_perf_overlay">Mostrar estadísticas de rendimiento mientras la transmisión está activa</string>
+    <string name="summary_enable_post_stream_toast">Mostrar un mensaje sobre la información de latencia cuando la transmisión termine</string>
+    <string name="help">Ayuda</string>
+    <string name="delete_pc_msg">¿Estás seguro de eliminar este PC\?</string>
+    <string name="slow_connection_msg">Conexión lenta al PC
+\nReduce la tasa de bits</string>
+    <string name="addpc_wrong_sitelocal">La dirección no luce correcta. Debes usar la dirección IP Pública de tu Rúter para la transmisión por Internet.</string>
+    <string name="title_native_res_dialog">Advertencia Resolución Nativa</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="category_input_settings">Opciones de Entrada</string>
+    <string name="title_checkbox_touchscreen_trackpad">Usa la pantalla táctil como panel táctil</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Si está activo, la pantalla táctil funcionará como panel táctil. Si está desactivado, la pantalla táctil directamente controlará el cursor del ratón.</string>
+    <string name="summary_seekbar_deadzone">Nota: Algunos juegos pueden forzar una zona muerta mayor a la que Moonlight esta configurada a usar.</string>
+    <string name="title_checkbox_flip_face_buttons">Invertir botones frontales</string>
+    <string name="summary_checkbox_absolute_mouse_mode">Esto puede hacer que la aceleración de mouse se comporte mas natural para uso de escritorio remoto, pero es incompatible con muchos juegos.</string>
+    <string name="title_checkbox_enable_audiofx">Activar el soporte para ecualizador de sistema</string>
+    <string name="summary_checkbox_vibrate_fallback">Vibrar el dispositivo para emular el retumbe si tu mando de control no lo soporta</string>
+    <string name="title_checkbox_usb_bind_all">Sobrescribir el soporte nativo del control de Xbox</string>
+    <string name="summary_checkbox_flip_face_buttons">Invertir botones frontales A/B y X/Y para los mandos y los botones sobre la pantalla</string>
+    <string name="title_checkbox_absolute_mouse_mode">Modo de ratón para escritorio remoto</string>
+    <string name="title_checkbox_vibrate_osc">Activar vibración</string>
+    <string name="summary_checkbox_vibrate_osc">Hacer vibrar tu dispositivo para emular la vibración del juego para los controles en pantalla</string>
+    <string name="title_reset_osc">Borrar la configuración guardada de la plantilla para el control en pantalla</string>
+    <string name="dialog_title_reset_osc">Reiniciar a Plantilla Predeterminada</string>
+    <string name="dialog_text_reset_osc">¿Estás seguro de que quieres eliminar tus configuraciones guardadas para las plantillas de los controles en pantalla\?</string>
+    <string name="toast_reset_osc_success">Establecer Controles en Pantalla en modo Predeterminado</string>
+    <string name="title_osc_opacity">Cambiar la transparencia de los controles en pantalla</string>
+    <string name="summary_osc_opacity">Hacer los controles en pantalla más/menos transparentes</string>
+    <string name="dialog_title_osc_opacity">Cambiar opacidad</string>
+    <string name="summary_checkbox_enable_pip">Permite que la transmisión sea vista (pero no controlable) mientras se usa la multitarea</string>
+    <string name="title_disable_frame_drop">Nunca disminuir cuadros</string>
+    <string name="summary_disable_frame_drop">Puede reducir micro-tartamudeos (Stuttering) en algunos dispositivos , pero puede incrementar latencia</string>
+    <string name="title_enable_hdr">Activar HDR (Alto Rango Dinámico / Experimental)</string>
+    <string name="summary_enable_hdr">Transmitir HDR (Alto Rango Dinámico) cuando el juego, el PC y la Tarjeta de Video (GPU) lo soporten. HDR requiere de una Tarjeta de Video de la serie GTX 1000 o superior.</string>
+    <string name="summary_enable_perf_overlay">Mostrar en tiempo real la información del desempeño de la transmisión mientras está activa la misma</string>
+    <string name="title_enable_post_stream_toast">Mostrar mensajes sobre latencia mientras se transmite</string>
+    <string name="category_help">Ayuda</string>
+    <string name="title_setup_guide">Guía para la Configuración</string>
+    <string name="summary_setup_guide">Mostrar instrucciones para como configurar tu PC para juegos para la transmisión</string>
+    <string name="summary_privacy_policy">Mostrar la política de privacidad de Moonlight</string>
+    <string name="resolution_480p">480p</string>
+    <string name="fps_30">30 FPS</string>
+    <string name="fps_60">60 FPS</string>
+    <string name="fps_90">90 FPS</string>
+    <string name="title_frame_pacing">Ritmo de cuadros por segundo en video</string>
 </resources>

@@ -80,7 +80,7 @@
     <string name="perf_overlay_dectime">平均解碼時間：%1$.2f ms</string>
     <!-- AppList activity -->
     <string name="applist_connect_msg">正在連線電腦…</string>
-    <string name="applist_menu_resume">恢復工作階段</string>
+    <string name="applist_menu_resume">繼續工作階段</string>
     <string name="applist_menu_quit">結束工作階段</string>
     <string name="applist_menu_quit_and_start">結束目前遊戲並開始這個遊戲</string>
     <string name="applist_menu_cancel"> 取消 </string>

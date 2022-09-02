@@ -154,21 +154,15 @@ public class DiskAssetLoader {
     }
 
     public void populateCacheWithStream(CachedAppAssetLoader.LoaderTuple tuple, InputStream input) {
-        OutputStream out = null;
         boolean success = false;
-        try {
-            out = CacheHelper.openCacheFileForOutput(cacheDir, "boxart", tuple.computer.uuid, tuple.app.getAppId() + ".png");
+        try (final OutputStream out = CacheHelper.openCacheFileForOutput(
+                cacheDir, "boxart", tuple.computer.uuid, tuple.app.getAppId() + ".png")
+        ) {
             CacheHelper.writeInputStreamToOutputStream(input, out, MAX_ASSET_SIZE);
             success = true;
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException ignored) {}
-            }
-
             if (!success) {
                 LimeLog.warning("Unable to populate cache with tuple: "+tuple);
                 CacheHelper.deleteCacheFile(cacheDir, "boxart", tuple.computer.uuid, tuple.app.getAppId() + ".png");

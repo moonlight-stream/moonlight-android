@@ -849,18 +849,12 @@ public class ComputerManagerService extends Service {
                             if (!appList.isEmpty() &&
                                     (!list.isEmpty() || emptyAppListResponses >= EMPTY_LIST_THRESHOLD)) {
                                 // Open the cache file
-                                OutputStream cacheOut = null;
-                                try {
-                                    cacheOut = CacheHelper.openCacheFileForOutput(getCacheDir(), "applist", computer.uuid);
+                                try (final OutputStream cacheOut = CacheHelper.openCacheFileForOutput(
+                                        getCacheDir(), "applist", computer.uuid)
+                                ) {
                                     CacheHelper.writeStringToOutputStream(cacheOut, appList);
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                } finally {
-                                    try {
-                                        if (cacheOut != null) {
-                                            cacheOut.close();
-                                        }
-                                    } catch (IOException ignored) {}
                                 }
 
                                 // Reset empty count if it wasn't empty this time

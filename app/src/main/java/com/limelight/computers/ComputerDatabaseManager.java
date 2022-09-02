@@ -136,28 +136,26 @@ public class ComputerDatabaseManager {
     }
 
     public List<ComputerDetails> getAllComputers() {
-        Cursor c = computerDb.rawQuery("SELECT * FROM "+COMPUTER_TABLE_NAME, null);
-        LinkedList<ComputerDetails> computerList = new LinkedList<>();
-        while (c.moveToNext()) {
-            computerList.add(getComputerFromCursor(c));
+        try (final Cursor c = computerDb.rawQuery("SELECT * FROM "+COMPUTER_TABLE_NAME, null)) {
+            LinkedList<ComputerDetails> computerList = new LinkedList<>();
+            while (c.moveToNext()) {
+                computerList.add(getComputerFromCursor(c));
+            }
+            return computerList;
         }
-
-        c.close();
-
-        return computerList;
     }
 
     public ComputerDetails getComputerByUUID(String uuid) {
-        Cursor c = computerDb.query(COMPUTER_TABLE_NAME, null, COMPUTER_UUID_COLUMN_NAME+"=?", new String[]{ uuid }, null, null, null);
-        if (!c.moveToFirst()) {
-            // No matching computer
-            c.close();
-            return null;
+        try (final Cursor c = computerDb.query(
+                COMPUTER_TABLE_NAME, null, COMPUTER_UUID_COLUMN_NAME+"=?",
+                new String[]{ uuid }, null, null, null)
+        ) {
+            if (!c.moveToFirst()) {
+                // No matching computer
+                return null;
+            }
+
+            return getComputerFromCursor(c);
         }
-
-        ComputerDetails details = getComputerFromCursor(c);
-        c.close();
-
-        return details;
     }
 }

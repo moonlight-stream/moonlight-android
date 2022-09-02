@@ -49,37 +49,34 @@ public class LegacyDatabaseReader2 {
     }
 
     public static List<ComputerDetails> getAllComputers(SQLiteDatabase computerDb) {
-        Cursor c = computerDb.rawQuery("SELECT * FROM "+COMPUTER_TABLE_NAME, null);
-        LinkedList<ComputerDetails> computerList = new LinkedList<>();
-        while (c.moveToNext()) {
-            ComputerDetails details = getComputerFromCursor(c);
+        try (final Cursor c = computerDb.rawQuery("SELECT * FROM "+COMPUTER_TABLE_NAME, null)) {
+            LinkedList<ComputerDetails> computerList = new LinkedList<>();
+            while (c.moveToNext()) {
+                ComputerDetails details = getComputerFromCursor(c);
 
-            // If a critical field is corrupt or missing, skip the database entry
-            if (details.uuid == null) {
-                continue;
+                // If a critical field is corrupt or missing, skip the database entry
+                if (details.uuid == null) {
+                    continue;
+                }
+
+                computerList.add(details);
             }
 
-            computerList.add(details);
+            return computerList;
         }
-
-        c.close();
-
-        return computerList;
     }
 
     public static List<ComputerDetails> migrateAllComputers(Context c) {
-        SQLiteDatabase computerDb = null;
-        try {
+        try (final SQLiteDatabase computerDb = SQLiteDatabase.openDatabase(
+                c.getDatabasePath(COMPUTER_DB_NAME).getPath(),
+                null, SQLiteDatabase.OPEN_READONLY)
+        ) {
             // Open the existing database
-            computerDb = SQLiteDatabase.openDatabase(c.getDatabasePath(COMPUTER_DB_NAME).getPath(), null, SQLiteDatabase.OPEN_READONLY);
             return getAllComputers(computerDb);
         } catch (SQLiteException e) {
             return new LinkedList<ComputerDetails>();
         } finally {
             // Close and delete the old DB
-            if (computerDb != null) {
-                computerDb.close();
-            }
             c.deleteDatabase(COMPUTER_DB_NAME);
         }
     }

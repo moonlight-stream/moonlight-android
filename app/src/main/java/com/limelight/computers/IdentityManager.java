@@ -33,12 +33,11 @@ public class IdentityManager {
     private static String loadUniqueId(Context c) {
         // 2 Hex digits per byte
         char[] uid = new char[UID_SIZE_IN_BYTES * 2];
-        InputStreamReader reader = null;
         LimeLog.info("Reading UID from disk");
-        try {
-            reader = new InputStreamReader(c.openFileInput(UNIQUE_ID_FILE_NAME));
-            if (reader.read(uid) != UID_SIZE_IN_BYTES * 2)
-            {
+        try (final InputStreamReader reader =
+                     new InputStreamReader(c.openFileInput(UNIQUE_ID_FILE_NAME))
+        ) {
+            if (reader.read(uid) != UID_SIZE_IN_BYTES * 2) {
                 LimeLog.severe("UID file data is truncated");
                 return null;
             }
@@ -50,12 +49,6 @@ public class IdentityManager {
             LimeLog.severe("Error while reading UID file");
             e.printStackTrace();
             return null;
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException ignored) {}
-            }
         }
     }
 
@@ -64,20 +57,14 @@ public class IdentityManager {
         LimeLog.info("Generating new UID");
         String uidStr = String.format((Locale)null, "%016x", new Random().nextLong());
 
-        OutputStreamWriter writer = null;
-        try {
-            writer = new OutputStreamWriter(c.openFileOutput(UNIQUE_ID_FILE_NAME, 0));
+        try (final OutputStreamWriter writer =
+                     new OutputStreamWriter(c.openFileOutput(UNIQUE_ID_FILE_NAME, 0))
+        ) {
             writer.write(uidStr);
             LimeLog.info("UID written to disk");
         } catch (IOException e) {
             LimeLog.severe("Error while writing UID file");
             e.printStackTrace();
-        } finally {
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException ignored) {}
-            }
         }
 
         // We can return a UID even if I/O fails

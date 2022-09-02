@@ -887,8 +887,7 @@ public class MediaCodecHelper {
     
     public static String readCpuinfo() throws Exception {
         StringBuilder cpuInfo = new StringBuilder();
-        BufferedReader br = new BufferedReader(new FileReader(new File("/proc/cpuinfo")));
-        try {
+        try (final BufferedReader br = new BufferedReader(new FileReader(new File("/proc/cpuinfo")))) {
             for (;;) {
                 int ch = br.read();
                 if (ch == -1)
@@ -897,8 +896,6 @@ public class MediaCodecHelper {
             }
 
             return cpuInfo.toString();
-        } finally {
-            br.close();
         }
     }
     

@@ -48,6 +48,12 @@ android {
         }
     }
 
+    compileOptions {
+        encoding "UTF-8"
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
     lint {
         disable 'MissingTranslation'
         lintConfig file('lint.xml')
@@ -129,6 +135,7 @@ dependencies {
     implementation 'org.jcodec:jcodec:0.2.3'
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okio:okio:1.17.5'
+    // 3.5.8 requires minSdk 19, uses StandardCharsets.UTF_8 internally
     implementation 'org.jmdns:jmdns:3.5.7'
     implementation 'com.github.cgutman:ShieldControllerExtensions:1.0'
 }

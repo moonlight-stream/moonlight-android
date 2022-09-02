@@ -67,14 +67,12 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
             return null;
         }
 
-        try {
-            FileInputStream fin = new FileInputStream(f);
+        try (final FileInputStream fin = new FileInputStream(f)) {
             byte[] fileData = new byte[(int) f.length()];
             if (fin.read(fileData) != f.length()) {
                 // Failed to read
                 fileData = null;
             }
-            fin.close();
             return fileData;
         } catch (IOException e) {
             return null;
@@ -160,31 +158,27 @@ public class AndroidCryptoProvider implements LimelightCryptoProvider {
     }
 
     private void saveCertKeyPair() {
-        try {
-            FileOutputStream certOut = new FileOutputStream(certFile);
-            FileOutputStream keyOut = new FileOutputStream(keyFile);
-
+        try (final FileOutputStream certOut = new FileOutputStream(certFile);
+             final FileOutputStream keyOut = new FileOutputStream(keyFile)
+        ) {
             // Write the certificate in OpenSSL PEM format (important for the server)
             StringWriter strWriter = new StringWriter();
-            JcaPEMWriter pemWriter = new JcaPEMWriter(strWriter);
-            pemWriter.writeObject(cert);
-            pemWriter.close();
+            try (final JcaPEMWriter pemWriter = new JcaPEMWriter(strWriter)) {
+                pemWriter.writeObject(cert);
+            }
 
             // Line endings MUST be UNIX for the PC to accept the cert properly
-            OutputStreamWriter certWriter = new OutputStreamWriter(certOut);
-            String pemStr = strWriter.getBuffer().toString();
-            for (int i = 0; i < pemStr.length(); i++) {
-                char c = pemStr.charAt(i);
-                if (c != '\r')
-                    certWriter.append(c);
+            try (final OutputStreamWriter certWriter = new OutputStreamWriter(certOut)) {
+                String pemStr = strWriter.getBuffer().toString();
+                for (int i = 0; i < pemStr.length(); i++) {
+                    char c = pemStr.charAt(i);
+                    if (c != '\r')
+                        certWriter.append(c);
+                }
             }
-            certWriter.close();
 
             // Write the private out in PKCS8 format
             keyOut.write(key.getEncoded());
-
-            certOut.close();
-            keyOut.close();
 
             LimeLog.info("Saved generated key pair to disk");
         } catch (IOException e) {

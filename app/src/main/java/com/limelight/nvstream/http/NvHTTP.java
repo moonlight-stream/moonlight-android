@@ -627,10 +627,9 @@ public class NvHTTP {
             return getAppListByReader(new StringReader(getAppListRaw()));
         }
         else {
-            ResponseBody resp = openHttpConnection(baseUrlHttps, "applist", true);
-            LinkedList<NvApp> appList = getAppListByReader(new InputStreamReader(resp.byteStream()));
-            resp.close();
-            return appList;
+            try (final ResponseBody resp = openHttpConnection(baseUrlHttps, "applist", true)) {
+                return getAppListByReader(new InputStreamReader(resp.byteStream()));
+            }
         }
     }
 

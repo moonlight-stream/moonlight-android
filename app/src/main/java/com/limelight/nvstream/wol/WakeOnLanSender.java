@@ -17,12 +17,11 @@ public class WakeOnLanSender {
     };
     
     public static void sendWolPacket(ComputerDetails computer) throws IOException {
-        DatagramSocket sock = new DatagramSocket(0);
         byte[] payload = createWolPayload(computer);
         IOException lastException = null;
         boolean sentWolPacket = false;
 
-        try {
+        try (final DatagramSocket sock = new DatagramSocket(0)) {
             // Try all resolved remote and local addresses and IPv4 broadcast address.
             // The broadcast address is required to avoid stale ARP cache entries
             // making the sleeping machine unreachable.
@@ -52,8 +51,6 @@ public class WakeOnLanSender {
                     lastException = e;
                 }
             }
-        } finally {
-            sock.close();
         }
 
         // Propagate the DNS resolution exception if we didn't
@@ -65,18 +62,20 @@ public class WakeOnLanSender {
     
     private static byte[] macStringToBytes(String macAddress) {
         byte[] macBytes = new byte[6];
-        @SuppressWarnings("resource")
-        Scanner scan = new Scanner(macAddress).useDelimiter(":");
-        for (int i = 0; i < macBytes.length && scan.hasNext(); i++) {
-            try {
-                macBytes[i] = (byte) Integer.parseInt(scan.next(), 16);
-            } catch (NumberFormatException e) {
-                LimeLog.warning("Malformed MAC address: "+macAddress+" (index: "+i+")");
-                break;
+
+        try (@SuppressWarnings("resource")
+             final Scanner scan = new Scanner(macAddress).useDelimiter(":")
+        ) {
+            for (int i = 0; i < macBytes.length && scan.hasNext(); i++) {
+                try {
+                    macBytes[i] = (byte) Integer.parseInt(scan.next(), 16);
+                } catch (NumberFormatException e) {
+                    LimeLog.warning("Malformed MAC address: " + macAddress + " (index: " + i + ")");
+                    break;
+                }
             }
+            return macBytes;
         }
-        scan.close();
-        return macBytes;
     }
     
     private static byte[] createWolPayload(ComputerDetails computer) {

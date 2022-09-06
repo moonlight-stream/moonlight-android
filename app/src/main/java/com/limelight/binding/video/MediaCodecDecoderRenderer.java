@@ -910,13 +910,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         int codecFlags = 0;
 
         // H264 SPS
-        if (decodeUnitData[4] == 0x67) {
+        if (decodeUnitType == MoonBridge.BUFFER_TYPE_SPS && (videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
             numSpsIn++;
 
             ByteBuffer spsBuf = ByteBuffer.wrap(decodeUnitData);
+            int startSeqLen = decodeUnitData[2] == 0x01 ? 3 : 4;
 
             // Skip to the start of the NALU data
-            spsBuf.position(5);
+            spsBuf.position(startSeqLen + 1);
 
             // The H264Utils.readSPS function safely handles
             // Annex B NALUs (including NALUs with escape sequences)
@@ -1020,9 +1021,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             ByteBuffer escapedNalu = H264Utils.writeSPS(sps, decodeUnitLength);
 
             // Batch this to submit together with PPS
-            spsBuffer = new byte[5 + escapedNalu.limit()];
-            System.arraycopy(decodeUnitData, 0, spsBuffer, 0, 5);
-            escapedNalu.get(spsBuffer, 5, escapedNalu.limit());
+            spsBuffer = new byte[startSeqLen + 1 + escapedNalu.limit()];
+            System.arraycopy(decodeUnitData, 0, spsBuffer, 0, startSeqLen + 1);
+            escapedNalu.get(spsBuffer, startSeqLen + 1, escapedNalu.limit());
             return MoonBridge.DR_OK;
         }
         else if (decodeUnitType == MoonBridge.BUFFER_TYPE_VPS) {

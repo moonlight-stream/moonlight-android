@@ -48,6 +48,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private boolean submittedCsd;
     private boolean submitCsdNextCall;
 
+    private int nextInputBufferIndex = -1;
+    private ByteBuffer nextInputBuffer;
+
     private Context context;
     private MediaCodec videoDecoder;
     private Thread rendererThread;
@@ -374,6 +377,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 legacyInputBuffers = videoDecoder.getInputBuffers();
             }
 
+            fetchNextInputBuffer();
+
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -682,19 +687,37 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         rendererThread.start();
     }
 
-    private int dequeueInputBuffer() {
-        int index = -1;
+    private boolean fetchNextInputBuffer() {
         long startTime;
+
+        if (nextInputBufferIndex >= 0) {
+            // We already have an input buffer
+            return true;
+        }
 
         startTime = SystemClock.uptimeMillis();
 
         try {
-            while (index < 0 && !stopping) {
-                index = videoDecoder.dequeueInputBuffer(10000);
+            while (nextInputBufferIndex < 0 && !stopping) {
+                nextInputBufferIndex = videoDecoder.dequeueInputBuffer(10000);
+            }
+
+            if (nextInputBufferIndex >= 0) {
+                // Using the new getInputBuffer() API on Lollipop allows
+                // the framework to do some performance optimizations for us
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    nextInputBuffer = videoDecoder.getInputBuffer(nextInputBufferIndex);
+                }
+                else {
+                    nextInputBuffer = legacyInputBuffers[nextInputBufferIndex];
+
+                    // Clear old input data pre-Lollipop
+                    nextInputBuffer.clear();
+                }
             }
         } catch (Exception e) {
             handleDecoderException(e, null, 0, true);
-            return MediaCodec.INFO_TRY_AGAIN_LATER;
+            return false;
         }
 
         int deltaMs = (int)(SystemClock.uptimeMillis() - startTime);
@@ -703,7 +726,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             LimeLog.warning("Dequeue input buffer ran long: " + deltaMs + " ms");
         }
 
-        if (index < 0) {
+        if (nextInputBufferIndex < 0) {
             // We've been hung for 5 seconds and no other exception was reported,
             // so generate a decoder hung exception
             if (deltaMs >= 5000 && initialException == null) {
@@ -714,10 +737,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 }
                 throw new RendererException(this, decoderHungException);
             }
-            return index;
+
+            return false;
         }
 
-        return index;
+        return true;
     }
 
     @Override
@@ -793,39 +817,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         // TODO: Set HDR metadata?
     }
 
-    private boolean queueInputBuffer(int inputBufferIndex, int offset, int length, long timestampUs, int codecFlags) {
+    private boolean queueNextInputBuffer(long timestampUs, int codecFlags) {
         try {
-            videoDecoder.queueInputBuffer(inputBufferIndex,
-                    offset, length,
+            videoDecoder.queueInputBuffer(nextInputBufferIndex,
+                    0, nextInputBuffer.position(),
                     timestampUs, codecFlags);
-            return true;
         } catch (Exception e) {
             handleDecoderException(e, null, codecFlags, true);
             return false;
-        }
-    }
-
-    // Using the new getInputBuffer() API on Lollipop allows
-    // the framework to do some performance optimizations for us
-    private ByteBuffer getEmptyInputBuffer(int inputBufferIndex) {
-        ByteBuffer buf;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                buf = videoDecoder.getInputBuffer(inputBufferIndex);
-            } catch (Exception e) {
-                handleDecoderException(e, null, 0, true);
-                return null;
-            }
-        }
-        else {
-            buf = legacyInputBuffers[inputBufferIndex];
-
-            // Clear old input data pre-Lollipop
-            buf.clear();
+        } finally {
+            nextInputBufferIndex = -1;
+            nextInputBuffer = null;
         }
 
-        return buf;
+        // Fetch a new input buffer now while we have some time between frames
+        // to have it ready immediately when the next frame arrives.
+        fetchNextInputBuffer();
+
+        return true;
     }
 
     private void doProfileSpecificSpsPatching(SeqParameterSet sps) {
@@ -904,8 +913,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             activeWindowVideoStats.measurementStartTimestamp = SystemClock.uptimeMillis();
         }
 
-        int inputBufferIndex;
-        ByteBuffer buf;
         long timestampUs;
         int codecFlags = 0;
 
@@ -1050,25 +1057,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             // fused IDR frames, we will submit the CSD blob in a
             // separate input buffer.
             if (!submittedCsd || !fusedIdrFrame) {
-                inputBufferIndex = dequeueInputBuffer();
-                if (inputBufferIndex < 0) {
-                    // We're being torn down now
-                    return MoonBridge.DR_NEED_IDR;
-                }
-
-                buf = getEmptyInputBuffer(inputBufferIndex);
-                if (buf == null) {
-                    // We're being torn down now
+                if (!fetchNextInputBuffer()) {
                     return MoonBridge.DR_NEED_IDR;
                 }
 
                 // When we get the PPS, submit the VPS and SPS together with
                 // the PPS, as required by AOSP docs on use of MediaCodec.
                 if (vpsBuffer != null) {
-                    buf.put(vpsBuffer);
+                    nextInputBuffer.put(vpsBuffer);
                 }
                 if (spsBuffer != null) {
-                    buf.put(spsBuffer);
+                    nextInputBuffer.put(spsBuffer);
                 }
 
                 // This is the CSD blob
@@ -1097,27 +1096,19 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 activeWindowVideoStats.totalTimeMs += enqueueTimeMs - receiveTimeMs;
             }
 
-            inputBufferIndex = dequeueInputBuffer();
-            if (inputBufferIndex < 0) {
-                // We're being torn down now
-                return MoonBridge.DR_NEED_IDR;
-            }
-
-            buf = getEmptyInputBuffer(inputBufferIndex);
-            if (buf == null) {
-                // We're being torn down now
+            if (!fetchNextInputBuffer()) {
                 return MoonBridge.DR_NEED_IDR;
             }
 
             if (submitCsdNextCall) {
                 if (vpsBuffer != null) {
-                    buf.put(vpsBuffer);
+                    nextInputBuffer.put(vpsBuffer);
                 }
                 if (spsBuffer != null) {
-                    buf.put(spsBuffer);
+                    nextInputBuffer.put(spsBuffer);
                 }
                 if (ppsBuffer != null) {
-                    buf.put(ppsBuffer);
+                    nextInputBuffer.put(ppsBuffer);
                 }
 
                 submitCsdNextCall = false;
@@ -1140,9 +1131,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             numFramesIn++;
         }
 
-        if (decodeUnitLength > buf.limit() - buf.position()) {
+        if (decodeUnitLength > nextInputBuffer.limit() - nextInputBuffer.position()) {
             IllegalArgumentException exception = new IllegalArgumentException(
-                    "Decode unit length "+decodeUnitLength+" too large for input buffer "+buf.limit());
+                    "Decode unit length "+decodeUnitLength+" too large for input buffer "+nextInputBuffer.limit());
             if (!reportedCrash) {
                 reportedCrash = true;
                 crashListener.notifyCrash(exception);
@@ -1151,11 +1142,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         }
 
         // Copy data from our buffer list into the input buffer
-        buf.put(decodeUnitData, 0, decodeUnitLength);
+        nextInputBuffer.put(decodeUnitData, 0, decodeUnitLength);
 
-        if (!queueInputBuffer(inputBufferIndex,
-                0, buf.position(),
-                timestampUs, codecFlags)) {
+        if (!queueNextInputBuffer(timestampUs, codecFlags)) {
             return MoonBridge.DR_NEED_IDR;
         }
 
@@ -1177,18 +1166,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     }
 
     private boolean replaySps() {
-        int inputIndex = dequeueInputBuffer();
-        if (inputIndex < 0) {
-            return false;
-        }
-
-        ByteBuffer inputBuffer = getEmptyInputBuffer(inputIndex);
-        if (inputBuffer == null) {
+        if (!fetchNextInputBuffer()) {
             return false;
         }
 
         // Write the Annex B header
-        inputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
+        nextInputBuffer.put(new byte[]{0x00, 0x00, 0x00, 0x01, 0x67});
 
         // Switch the H264 profile back to high
         savedSps.profileIdc = 100;
@@ -1199,15 +1182,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         // The H264Utils.writeSPS function safely handles
         // Annex B NALUs (including NALUs with escape sequences)
         ByteBuffer escapedNalu = H264Utils.writeSPS(savedSps, 128);
-        inputBuffer.put(escapedNalu);
+        nextInputBuffer.put(escapedNalu);
 
         // No need for the SPS anymore
         savedSps = null;
 
         // Queue the new SPS
-        return queueInputBuffer(inputIndex,
-                0, inputBuffer.position(),
-                0, MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
+        return queueNextInputBuffer(0, MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
     }
 
     @Override

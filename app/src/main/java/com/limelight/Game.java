@@ -199,9 +199,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
         }
 
-        // Enter landscape unless we're on a square screen
-        setPreferredOrientationForCurrentDisplay();
-
         // Listen for UI visibility events
         getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(this);
 
@@ -218,6 +215,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Read the stream preferences
         prefConfig = PreferenceConfiguration.readPreferences(this);
         tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
+
+        // Enter landscape unless we're on a square screen
+        setPreferredOrientationForCurrentDisplay();
 
         if (prefConfig.stretchVideo || shouldIgnoreInsetsForResolution(prefConfig.width, prefConfig.height)) {
             // Allow the activity to layout under notches if the fill-screen option
@@ -526,9 +526,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     private void setPreferredOrientationForCurrentDisplay() {
-        // If the display is somewhat square, allow any orientation. Otherwise, request landscape.
+        // If the display is somewhat square and OSC is disabled, allow any orientation. Otherwise, request landscape.
+        // The OSC code assumes a landscape display, so we force landscape if OSC is enabled.
         Display display = getWindowManager().getDefaultDisplay();
-        if (PreferenceConfiguration.isSquarishScreen(display.getWidth(), display.getHeight())) {
+        if (!prefConfig.onscreenController && PreferenceConfiguration.isSquarishScreen(display.getWidth(), display.getHeight())) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
             }

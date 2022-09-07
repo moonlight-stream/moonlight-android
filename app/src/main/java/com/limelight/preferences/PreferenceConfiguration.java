@@ -46,6 +46,7 @@ public class PreferenceConfiguration {
     private static final String FRAME_PACING_PREF_STRING = "frame_pacing";
     private static final String ABSOLUTE_MOUSE_MODE_PREF_STRING = "checkbox_absolute_mouse_mode";
     private static final String ENABLE_AUDIO_FX_PREF_STRING = "checkbox_enable_audiofx";
+    private static final String REDUCE_REFRESH_RATE_PREF_STRING = "checkbox_reduce_refresh_rate";
 
     static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
@@ -77,6 +78,7 @@ public class PreferenceConfiguration {
     private static final String DEFAULT_FRAME_PACING = "latency";
     private static final boolean DEFAULT_ABSOLUTE_MOUSE_MODE = false;
     private static final boolean DEFAULT_ENABLE_AUDIO_FX = false;
+    private static final boolean DEFAULT_REDUCE_REFRESH_RATE = false;
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -120,6 +122,7 @@ public class PreferenceConfiguration {
     public int framePacing;
     public boolean absoluteMouseMode;
     public boolean enableAudioFx;
+    public boolean reduceRefreshRate;
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
@@ -475,6 +478,7 @@ public class PreferenceConfiguration {
         config.enableLatencyToast = prefs.getBoolean(LATENCY_TOAST_PREF_STRING, DEFAULT_LATENCY_TOAST);
         config.absoluteMouseMode = prefs.getBoolean(ABSOLUTE_MOUSE_MODE_PREF_STRING, DEFAULT_ABSOLUTE_MOUSE_MODE);
         config.enableAudioFx = prefs.getBoolean(ENABLE_AUDIO_FX_PREF_STRING, DEFAULT_ENABLE_AUDIO_FX);
+        config.reduceRefreshRate = prefs.getBoolean(REDUCE_REFRESH_RATE_PREF_STRING, DEFAULT_REDUCE_REFRESH_RATE);
 
         return config;
     }

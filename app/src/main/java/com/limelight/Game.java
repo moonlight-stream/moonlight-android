@@ -719,6 +719,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return false;
     }
 
+    private boolean mayReduceRefreshRate() {
+        return prefConfig.framePacing == PreferenceConfiguration.FRAME_PACING_CAP_FPS ||
+                prefConfig.framePacing == PreferenceConfiguration.FRAME_PACING_MAX_SMOOTHNESS ||
+                (prefConfig.framePacing == PreferenceConfiguration.FRAME_PACING_BALANCED && prefConfig.reduceRefreshRate);
+    }
+
     private float prepareDisplayForRendering() {
         Display display = getWindowManager().getDefaultDisplay();
         WindowManager.LayoutParams windowLayoutParams = getWindow().getAttributes();
@@ -763,8 +769,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     continue;
                 }
 
-                if (prefConfig.framePacing != PreferenceConfiguration.FRAME_PACING_MIN_LATENCY &&
-                        refreshRateIsEqual && !isRefreshRateEqualMatch(candidate.getRefreshRate())) {
+                if (mayReduceRefreshRate() && refreshRateIsEqual && !isRefreshRateEqualMatch(candidate.getRefreshRate())) {
                     // If we had an equal refresh rate and this one is not, skip it. In min latency
                     // mode, we want to always prefer the highest frame rate even though it may cause
                     // microstuttering.
@@ -778,9 +783,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
 
                     // We don't want ever reduce our refresh rate unless we found an exact
-                    // match and we're not in min latency mode.
+                    // match and refresh rate reduction is allowed by user preferences
                     if (refreshRateReduced) {
-                        if (prefConfig.framePacing == PreferenceConfiguration.FRAME_PACING_MIN_LATENCY) {
+                        if (!mayReduceRefreshRate()) {
                             continue;
                         }
                         else if (!isRefreshRateEqualMatch(candidate.getRefreshRate())) {

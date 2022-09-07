@@ -190,6 +190,11 @@
             android:summary="@string/summary_unlock_fps"
             android:defaultValue="false" />
         <CheckBoxPreference
+            android:key="checkbox_reduce_refresh_rate"
+            android:title="@string/title_checkbox_reduce_refresh_rate"
+            android:summary="@string/summary_checkbox_reduce_refresh_rate"
+            android:defaultValue="false" />
+        <CheckBoxPreference
             android:key="checkbox_disable_warnings"
             android:title="@string/title_checkbox_disable_warnings"
             android:summary="@string/summary_checkbox_disable_warnings"

@@ -241,6 +241,24 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView.setOnTouchListener(this);
         streamView.setInputCallbacks(this);
 
+        boolean needsInputBatching = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Request unbuffered input event dispatching for all input classes we handle here.
+            // Without this, input events are buffered to be delivered in lock-step with VBlank,
+            // artificially increasing input latency while streaming.
+            streamView.requestUnbufferedDispatch(
+                    InputDevice.SOURCE_CLASS_BUTTON | // Keyboards
+                    InputDevice.SOURCE_CLASS_JOYSTICK | // Gamepads
+                    InputDevice.SOURCE_CLASS_POINTER | // Touchscreens and mice (w/o pointer capture)
+                    InputDevice.SOURCE_CLASS_POSITION | // Touchpads
+                    InputDevice.SOURCE_CLASS_TRACKBALL // Mice (pointer capture)
+            );
+
+            // Since the OS isn't going to batch for us, we have to batch mouse events to
+            // avoid triggering a bug in GeForce Experience that can lead to massive latency.
+            needsInputBatching = true;
+        }
+
         notificationOverlayView = findViewById(R.id.notificationOverlay);
 
         performanceOverlayView = findViewById(R.id.performanceOverlay);
@@ -453,7 +471,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .build();
 
         // Initialize the connection
-        conn = new NvConnection(host, uniqueId, config, PlatformBinding.getCryptoProvider(this), serverCert);
+        conn = new NvConnection(host, uniqueId, config, PlatformBinding.getCryptoProvider(this), serverCert, needsInputBatching);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
         keyboardTranslator = new KeyboardTranslator();
 
@@ -1652,6 +1670,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View view, MotionEvent event) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                // Tell the OS not to buffer input events for us
+                view.requestUnbufferedDispatch(event);
+            }
+        }
         return handleMotionEvent(view, event);
     }
 

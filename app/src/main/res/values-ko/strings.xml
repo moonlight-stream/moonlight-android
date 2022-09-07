@@ -254,4 +254,5 @@
     <string name="audioconf_71surround">7.1 서라운드 사운드</string>
     <string name="title_frame_pacing">비디오 프레임 처리방식</string>
     <string name="pacing_smoothness">가장 부드러운 비디오 선호(대기 시간이 크게 증가할 수 있음)</string>
+    <string name="category_help">도움말</string>
 </resources>

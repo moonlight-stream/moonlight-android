@@ -199,11 +199,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
         }
 
-        // We specified userLandscape in the manifest which isn't supported until 4.3,
-        // so we must fall back at runtime to sensorLandscape.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-        }
+        // Enter landscape unless we're on a square screen
+        setPreferredOrientationForCurrentDisplay();
 
         // Listen for UI visibility events
         getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(this);
@@ -528,9 +525,33 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView.getHolder().addCallback(this);
     }
 
+    private void setPreferredOrientationForCurrentDisplay() {
+        // If the display is somewhat square, allow any orientation. Otherwise, request landscape.
+        Display display = getWindowManager().getDefaultDisplay();
+        if (PreferenceConfiguration.isSquarishScreen(display.getWidth(), display.getHeight())) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
+            }
+            else {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+            }
+        }
+        else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+            }
+            else {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            }
+        }
+    }
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+
+        // Set requested orientation for possible new screen size
+        setPreferredOrientationForCurrentDisplay();
 
         if (virtualController != null) {
             // Refresh layout of OSC for possible new screen size

@@ -148,6 +148,16 @@ public class PreferenceConfiguration {
         return true;
     }
 
+    // If we have a screen that has semi-square dimensions, we may want to change our behavior
+    // to allow any orientation and vertical+horizontal resolutions.
+    public static boolean isSquarishScreen(int width, int height) {
+        float longDim = Math.max(width, height);
+        float shortDim = Math.min(width, height);
+
+        // We just put the arbitrary cutoff for a square-ish screen at 1.3
+        return longDim / shortDim < 1.3f;
+    }
+
     private static String convertFromLegacyResolutionString(String resString) {
         if (resString.equalsIgnoreCase("360p")) {
             return RES_360P;

@@ -124,11 +124,9 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.limelight.PcView" />
         </activity>
-        <!-- This will fall back to sensorLandscape at runtime on Android 4.2 and below -->
         <activity
             android:name=".Game"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
-            android:screenOrientation="userLandscape"
             android:noHistory="true"
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true"

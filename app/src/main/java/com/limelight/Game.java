@@ -1339,7 +1339,27 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                                     event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER)) ||
                     eventSource == 12290) // 12290 = Samsung DeX mode desktop mouse
             {
-                int changedButtons = event.getButtonState() ^ lastButtonState;
+                int buttonState = event.getButtonState();
+                int changedButtons = buttonState ^ lastButtonState;
+
+                // The DeX touchpad on the Fold 4 sends proper right click events using BUTTON_SECONDARY,
+                // but doesn't send BUTTON_PRIMARY for a regular click. Instead it sends ACTION_DOWN/UP,
+                // so we need to fix that up to look like a sane input event to process it correctly.
+                if (eventSource == 12290) {
+                    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                        buttonState |= MotionEvent.BUTTON_PRIMARY;
+                    }
+                    else if (event.getAction() == MotionEvent.ACTION_UP) {
+                        buttonState &= ~MotionEvent.BUTTON_PRIMARY;
+                    }
+                    else {
+                        // We may be faking the primary button down from a previous event,
+                        // so be sure to add that bit back into the button state.
+                        buttonState |= (lastButtonState & MotionEvent.BUTTON_PRIMARY);
+                    }
+
+                    changedButtons = buttonState ^ lastButtonState;
+                }
 
                 // Ignore mouse input if we're not capturing from our input source
                 if (!inputCaptureProvider.isCapturingActive()) {
@@ -1402,7 +1422,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 }
 
                 if ((changedButtons & MotionEvent.BUTTON_PRIMARY) != 0) {
-                    if ((event.getButtonState() & MotionEvent.BUTTON_PRIMARY) != 0) {
+                    if ((buttonState & MotionEvent.BUTTON_PRIMARY) != 0) {
                         conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_LEFT);
                     }
                     else {
@@ -1412,7 +1432,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 // Mouse secondary or stylus primary is right click (stylus down is left click)
                 if ((changedButtons & (MotionEvent.BUTTON_SECONDARY | MotionEvent.BUTTON_STYLUS_PRIMARY)) != 0) {
-                    if ((event.getButtonState() & (MotionEvent.BUTTON_SECONDARY | MotionEvent.BUTTON_STYLUS_PRIMARY)) != 0) {
+                    if ((buttonState & (MotionEvent.BUTTON_SECONDARY | MotionEvent.BUTTON_STYLUS_PRIMARY)) != 0) {
                         conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
                     }
                     else {
@@ -1422,7 +1442,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 // Mouse tertiary or stylus secondary is middle click
                 if ((changedButtons & (MotionEvent.BUTTON_TERTIARY | MotionEvent.BUTTON_STYLUS_SECONDARY)) != 0) {
-                    if ((event.getButtonState() & (MotionEvent.BUTTON_TERTIARY | MotionEvent.BUTTON_STYLUS_SECONDARY)) != 0) {
+                    if ((buttonState & (MotionEvent.BUTTON_TERTIARY | MotionEvent.BUTTON_STYLUS_SECONDARY)) != 0) {
                         conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_MIDDLE);
                     }
                     else {
@@ -1432,7 +1452,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 if (prefConfig.mouseNavButtons) {
                     if ((changedButtons & MotionEvent.BUTTON_BACK) != 0) {
-                        if ((event.getButtonState() & MotionEvent.BUTTON_BACK) != 0) {
+                        if ((buttonState & MotionEvent.BUTTON_BACK) != 0) {
                             conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_X1);
                         }
                         else {
@@ -1441,7 +1461,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
 
                     if ((changedButtons & MotionEvent.BUTTON_FORWARD) != 0) {
-                        if ((event.getButtonState() & MotionEvent.BUTTON_FORWARD) != 0) {
+                        if ((buttonState & MotionEvent.BUTTON_FORWARD) != 0) {
                             conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_X2);
                         }
                         else {
@@ -1488,7 +1508,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                 }
 
-                lastButtonState = event.getButtonState();
+                lastButtonState = buttonState;
             }
             // This case is for fingers
             else

@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.view.Display;
 
 import com.limelight.nvstream.jni.MoonBridge;
 
@@ -156,6 +157,21 @@ public class PreferenceConfiguration {
 
         // We just put the arbitrary cutoff for a square-ish screen at 1.3
         return longDim / shortDim < 1.3f;
+    }
+
+    public static boolean isSquarishScreen(Display display) {
+        int width, height;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            width = display.getMode().getPhysicalWidth();
+            height = display.getMode().getPhysicalHeight();
+        }
+        else {
+            width = display.getWidth();
+            height = display.getHeight();
+        }
+
+        return isSquarishScreen(width, height);
     }
 
     private static String convertFromLegacyResolutionString(String resString) {

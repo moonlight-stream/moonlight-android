@@ -152,6 +152,8 @@
     <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
     <string name="resolution_prefix_native">Native</string>
     <string name="resolution_prefix_native_fullscreen">Native Full-Screen</string>
+    <string name="resolution_prefix_native_landscape">(Landscape)</string>
+    <string name="resolution_prefix_native_portrait">(Portrait)</string>
 
     <string name="category_audio_settings">Audio Settings</string>
     <string name="title_audio_config_list">Surround sound configuration</string>

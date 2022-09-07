@@ -526,18 +526,55 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     private void setPreferredOrientationForCurrentDisplay() {
-        // If the display is somewhat square and OSC is disabled, allow any orientation. Otherwise, request landscape.
-        // The OSC code assumes a landscape display, so we force landscape if OSC is enabled.
         Display display = getWindowManager().getDefaultDisplay();
-        if (!prefConfig.onscreenController && PreferenceConfiguration.isSquarishScreen(display.getWidth(), display.getHeight())) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
+
+        // For semi-square displays, we use more complex logic to determine which orientation to use (if any)
+        if (PreferenceConfiguration.isSquarishScreen(display)) {
+            int desiredOrientation = Configuration.ORIENTATION_UNDEFINED;
+
+            // OSC doesn't properly support portrait displays, so don't use it in portrait mode by default
+            if (prefConfig.onscreenController) {
+                desiredOrientation = Configuration.ORIENTATION_LANDSCAPE;
+            }
+
+            // For native resolution, we will lock the orientation to the one that matches the specified resolution
+            if (PreferenceConfiguration.isNativeResolution(prefConfig.width, prefConfig.height)) {
+                if (prefConfig.width > prefConfig.height) {
+                    desiredOrientation = Configuration.ORIENTATION_LANDSCAPE;
+                }
+                else {
+                    desiredOrientation = Configuration.ORIENTATION_PORTRAIT;
+                }
+            }
+
+            if (desiredOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+                }
+                else {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                }
+            }
+            else if (desiredOrientation == Configuration.ORIENTATION_PORTRAIT) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
+                }
+                else {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+                }
             }
             else {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+                // If we don't have a reason to lock to portrait or landscape, allow any orientation
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
+                }
+                else {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+                }
             }
         }
         else {
+            // For regular displays, we always request landscape
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
             }

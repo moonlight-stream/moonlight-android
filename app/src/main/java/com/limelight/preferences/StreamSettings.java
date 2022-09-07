@@ -157,10 +157,10 @@ public class StreamSettings extends Activity {
         }
 
         private void addNativeResolutionEntries(int nativeWidth, int nativeHeight, boolean insetsRemoved) {
-            addNativeResolutionEntry(nativeWidth, nativeHeight, insetsRemoved, false);
             if (PreferenceConfiguration.isSquarishScreen(nativeWidth, nativeHeight)) {
                 addNativeResolutionEntry(nativeHeight, nativeWidth, insetsRemoved, true);
             }
+            addNativeResolutionEntry(nativeWidth, nativeHeight, insetsRemoved, false);
         }
 
         private void removeValue(String preferenceKey, String value, Runnable onMatched) {

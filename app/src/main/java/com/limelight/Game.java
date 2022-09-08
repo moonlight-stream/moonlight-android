@@ -840,13 +840,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         continue;
                     }
 
-                    // We don't want ever reduce our refresh rate unless we found an exact
-                    // match and refresh rate reduction is allowed by user preferences
-                    if (refreshRateReduced) {
-                        if (!mayReduceRefreshRate()) {
+                    if (mayReduceRefreshRate()) {
+                        // User asked for the lowest possible refresh rate, so don't raise it if we
+                        // have a good match already
+                        if (candidate.getRefreshRate() > bestMode.getRefreshRate()) {
                             continue;
                         }
-                        else if (!isRefreshRateEqualMatch(candidate.getRefreshRate())) {
+                    }
+                    else {
+                        // User asked for the highest possible refresh rate, so don't reduce it if we
+                        // have a good match already
+                        if (refreshRateReduced) {
                             continue;
                         }
                     }

@@ -239,4 +239,10 @@
     <string name="pacing_balanced_alt">Equilibrado com limite de FPS</string>
     <string name="summary_seekbar_deadzone">Nota: Alguns jogos podem impor uma zona morta maior do que o Moonlight está configurado para usar.</string>
     <string name="title_checkbox_absolute_mouse_mode">Modo de mouse para área de trabalho remota</string>
+    <string name="resolution_prefix_native_landscape">(Paisagem)</string>
+    <string name="title_checkbox_reduce_refresh_rate">Permitir redução de taxa de atualização</string>
+    <string name="summary_checkbox_reduce_refresh_rate">Taxas menores de atualização do display podem salvar energia ao custo de latência de video adicional</string>
+    <string name="resolution_prefix_native_portrait">(Retrato)</string>
+    <string name="title_checkbox_enable_audiofx">Habilitar sistema de suporte à equalização</string>
+    <string name="summary_checkbox_enable_audiofx">Permitir que efeitos de audio funcionem durante o streaming, pode acrescentar latência de audio</string>
 </resources>

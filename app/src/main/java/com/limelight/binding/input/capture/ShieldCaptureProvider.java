@@ -5,6 +5,8 @@ import android.content.Context;
 import android.hardware.input.InputManager;
 import android.view.MotionEvent;
 
+import androidx.core.content.ContextCompat;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -50,7 +52,8 @@ public class ShieldCaptureProvider extends InputCaptureProvider {
 
     private boolean setCursorVisibility(boolean visible) {
         try {
-            methodSetCursorVisibility.invoke(context.getSystemService(Context.INPUT_SERVICE), visible);
+            methodSetCursorVisibility.invoke(
+                    ContextCompat.getSystemService(context, InputManager.class), visible);
             return true;
         } catch (InvocationTargetException e) {
             e.printStackTrace();

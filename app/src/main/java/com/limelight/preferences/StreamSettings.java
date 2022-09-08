@@ -1,6 +1,5 @@
 package com.limelight.preferences;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -25,6 +24,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
+
+import androidx.core.content.ContextCompat;
 
 import com.limelight.LimeLog;
 import com.limelight.PcView;
@@ -270,7 +271,7 @@ public class StreamSettings extends Activity {
             }*/
 
             // Remove the vibration options if the device can't vibrate
-            if (!((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasVibrator()) {
+            if (!ContextCompat.getSystemService(getActivity(), Vibrator.class).hasVibrator()) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_input_settings");
                 category.removePreference(findPreference("checkbox_vibrate_fallback"));

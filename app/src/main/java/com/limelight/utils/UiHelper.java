@@ -17,6 +17,8 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 
+import androidx.core.content.ContextCompat;
+
 import com.limelight.Game;
 import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
@@ -112,7 +114,7 @@ public class UiHelper {
     public static void notifyNewRootView(final Activity activity)
     {
         View rootView = activity.findViewById(android.R.id.content);
-        UiModeManager modeMgr = (UiModeManager) activity.getSystemService(Context.UI_MODE_SERVICE);
+        UiModeManager modeMgr = ContextCompat.getSystemService(activity, UiModeManager.class);
 
         // Set GameState.MODE_NONE initially for all activities
         setGameModeStatus(activity, false, false, false);

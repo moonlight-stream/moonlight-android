@@ -12,6 +12,8 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.view.MotionEvent;
 
+import androidx.core.content.ContextCompat;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -160,7 +162,7 @@ public class DigitalButton extends VirtualControllerElement {
         canvas.drawOval(rect, paint);
 
         if (icon != -1) {
-            Drawable d = getResources().getDrawable(icon);
+            Drawable d = ContextCompat.getDrawable(getContext(), icon);
             d.setBounds(5, 5, getWidth() - 5, getHeight() - 5);
             d.draw(canvas);
         } else {

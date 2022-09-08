@@ -16,6 +16,8 @@ import android.os.IBinder;
 import android.view.InputDevice;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
+
 import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.preferences.PreferenceConfiguration;
@@ -299,7 +301,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
     @Override
     public void onCreate() {
-        this.usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        this.usbManager = ContextCompat.getSystemService(this, UsbManager.class);
         this.prefConfig = PreferenceConfiguration.readPreferences(this);
     }
 

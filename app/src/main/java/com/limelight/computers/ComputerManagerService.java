@@ -29,7 +29,6 @@ import com.limelight.utils.ServerHelper;
 
 import android.app.Service;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.ConnectivityManager;
@@ -39,6 +38,8 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.SystemClock;
+
+import androidx.core.content.ContextCompat;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -331,7 +332,7 @@ public class ComputerManagerService extends Service {
     private void populateExternalAddress(ComputerDetails details) {
         boolean boundToNetwork = false;
         boolean activeNetworkIsVpn = NetHelper.isActiveNetworkVpn(this);
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connMgr = ContextCompat.getSystemService(this, ConnectivityManager.class);
 
         // Check if we're currently connected to a VPN which may send our
         // STUN request from an unexpected interface

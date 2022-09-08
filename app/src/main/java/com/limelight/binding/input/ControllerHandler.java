@@ -20,6 +20,8 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
+
 import com.limelight.LimeLog;
 import com.limelight.binding.input.driver.AbstractController;
 import com.limelight.binding.input.driver.UsbDriverListener;
@@ -70,7 +72,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         this.conn = conn;
         this.gestures = gestures;
         this.prefConfig = prefConfig;
-        this.deviceVibrator = (Vibrator) activityContext.getSystemService(Context.VIBRATOR_SERVICE);
+        this.deviceVibrator = ContextCompat.getSystemService(activityContext, Vibrator.class);
 
         this.sceManager = new SceManager(activityContext);
         this.sceManager.start();
@@ -257,7 +259,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         short mask = 0;
 
         // Count all input devices that are gamepads
-        InputManager im = (InputManager) context.getSystemService(Context.INPUT_SERVICE);
+        InputManager im = ContextCompat.getSystemService(context, InputManager.class);
         for (int id : im.getInputDeviceIds()) {
             InputDevice dev = im.getInputDevice(id);
             if (dev == null) {
@@ -272,7 +274,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         // Count all USB devices that match our drivers
         if (PreferenceConfiguration.readPreferences(context).usbDriver) {
-            UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+            UsbManager usbManager = ContextCompat.getSystemService(context, UsbManager.class);
             for (UsbDevice dev : usbManager.getDeviceList().values()) {
                 // We explicitly check not to claim devices that appear as InputDevices
                 // otherwise we will double count them.
@@ -457,7 +459,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         //
         // First, check if this is an internal device we're being called on.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && !isExternal(dev)) {
-            InputManager im = (InputManager) activityContext.getSystemService(Context.INPUT_SERVICE);
+            InputManager im = ContextCompat.getSystemService(activityContext, InputManager.class);
 
             boolean foundInternalGamepad = false;
             boolean foundInternalSelect = false;

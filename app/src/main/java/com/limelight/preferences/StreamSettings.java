@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.media.MediaCodecInfo;
 import android.os.Build;
 import android.os.Bundle;
@@ -38,11 +39,16 @@ import java.util.Arrays;
 
 public class StreamSettings extends Activity {
     private PreferenceConfiguration previousPrefs;
+    private int previousDisplayPixelCount;
 
     // HACK for Android 9
     static DisplayCutout displayCutoutP;
 
     void reloadSettings() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Display.Mode mode = getWindowManager().getDefaultDisplay().getMode();
+            previousDisplayPixelCount = mode.getPhysicalWidth() * mode.getPhysicalHeight();
+        }
         getFragmentManager().beginTransaction().replace(
                 R.id.stream_settings, new SettingsFragment()
         ).commitAllowingStateLoss();
@@ -77,6 +83,24 @@ public class StreamSettings extends Activity {
         }
 
         reloadSettings();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Display.Mode mode = getWindowManager().getDefaultDisplay().getMode();
+
+            // If the display's physical pixel count has changed, we consider that it's a new display
+            // and we should reload our settings (which include display-dependent values).
+            //
+            // NB: We aren't using displayId here because that stays the same (DEFAULT_DISPLAY) when
+            // switching between screens on a foldable device.
+            if (mode.getPhysicalWidth() * mode.getPhysicalHeight() != previousDisplayPixelCount) {
+                reloadSettings();
+            }
+        }
     }
 
     @Override

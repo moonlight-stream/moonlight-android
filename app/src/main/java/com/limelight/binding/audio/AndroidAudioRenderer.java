@@ -43,25 +43,25 @@ public class AndroidAudioRenderer implements AudioRenderer {
                     .setChannelMask(channelConfig)
                     .build();
 
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                // Use FLAG_LOW_LATENCY on L through N
-                if (lowLatency) {
-                    attributesBuilder.setFlags(AudioAttributes.FLAG_LOW_LATENCY);
-                }
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 AudioTrack.Builder trackBuilder = new AudioTrack.Builder()
                         .setAudioFormat(format)
-                        .setAudioAttributes(attributesBuilder.build())
                         .setTransferMode(AudioTrack.MODE_STREAM)
                         .setBufferSizeInBytes(bufferSize);
 
-                // Use PERFORMANCE_MODE_LOW_LATENCY on O and later
                 if (lowLatency) {
-                    trackBuilder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                            && Build.VERSION.SDK_INT < Build.VERSION_CODES.O
+                    ) {
+                        // Use FLAG_LOW_LATENCY on N through N_MR1
+                        attributesBuilder.setFlags(AudioAttributes.FLAG_LOW_LATENCY);
+                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        // Use PERFORMANCE_MODE_LOW_LATENCY on O and later
+                        trackBuilder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY);
+                    }
                 }
 
+                trackBuilder.setAudioAttributes(attributesBuilder.build());
                 return trackBuilder.build();
             }
             else {

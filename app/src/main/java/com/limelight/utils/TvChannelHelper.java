@@ -98,7 +98,7 @@ public class TvChannelHelper {
 
     @TargetApi(Build.VERSION_CODES.O)
     private void updateChannelIcon(long channelId) {
-        Bitmap logo = drawableToBitmap(context.getResources().getDrawable(R.drawable.ic_channel));
+        Bitmap logo = drawableToBitmap(context.getDrawable(R.drawable.ic_channel));
         try {
             Uri localUri = TvContract.buildChannelLogoUri(channelId);
             try (OutputStream outputStream = context.getContentResolver().openOutputStream(localUri)) {

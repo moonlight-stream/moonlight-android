@@ -449,13 +449,17 @@ public class MediaCodecHelper {
             }
         }
 
-        if (tryNumber < 2) {
+        if (tryNumber < 2 &&
+                (!Build.MANUFACTURER.equalsIgnoreCase("xiaomi") || Build.VERSION.SDK_INT > Build.VERSION_CODES.M)) {
             // MediaTek decoders don't use vendor-defined keys for low latency mode. Instead, they have a modified
             // version of AOSP's ACodec.cpp which supports the "vdec-lowlatency" option. This option is passed down
             // to the decoder as OMX.MTK.index.param.video.LowLatencyDecode.
             //
             // This option is also plumbed for Amazon Amlogic-based devices like the Fire TV 3. Not only does it
             // reduce latency on Amlogic, it fixes the HEVC bug that causes the decoder to not output any frames.
+            // Unfortunately, it does the exact opposite for the Xiaomi MITV4-ANSM0, breaking it in the way that
+            // Fire TV was broken prior to vdec-lowlatency :(
+            //
             // On Fire TV 3, vdec-lowlatency is translated to OMX.amazon.fireos.index.video.lowLatencyDecode.
             //
             // https://github.com/yuan1617/Framwork/blob/master/frameworks/av/media/libstagefright/ACodec.cpp

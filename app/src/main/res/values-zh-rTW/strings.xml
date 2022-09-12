@@ -254,4 +254,8 @@
     <string name="summary_checkbox_absolute_mouse_mode">這可以讓滑鼠在遠端桌面使用中的加速表現更加自然，但與很多遊戲不相容。</string>
     <string name="title_checkbox_enable_audiofx">啟用系統等化器支援</string>
     <string name="summary_checkbox_enable_audiofx">允許音訊效果在串流中發揮作用，但可能會增加音訊延遲</string>
+    <string name="resolution_prefix_native_landscape">(橫向)</string>
+    <string name="resolution_prefix_native_portrait">(直向)</string>
+    <string name="title_checkbox_reduce_refresh_rate">允許減小重新整理率</string>
+    <string name="summary_checkbox_reduce_refresh_rate">更低的顯示器重新整理速率可在犧牲一些額外視訊延遲的狀況下節省電力</string>
 </resources>

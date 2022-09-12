@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.ImageDecoder;
 import android.os.Build;
 
+import androidx.core.content.ContextCompat;
+
 import com.limelight.LimeLog;
 import com.limelight.utils.CacheHelper;
 
@@ -30,7 +32,7 @@ public class DiskAssetLoader {
         this.cacheDir = context.getCacheDir();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             this.isLowRamDevice =
-                    ((ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE)).isLowRamDevice();
+                    ContextCompat.getSystemService(context, ActivityManager.class).isLowRamDevice();
         }
         else {
             // Use conservative low RAM behavior on very old devices

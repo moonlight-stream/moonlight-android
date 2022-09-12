@@ -21,6 +21,8 @@ import android.media.MediaCodecInfo.CodecProfileLevel;
 import android.media.MediaFormat;
 import android.os.Build;
 
+import androidx.core.content.ContextCompat;
+
 import com.limelight.LimeLog;
 import com.limelight.preferences.PreferenceConfiguration;
 
@@ -314,7 +316,7 @@ public class MediaCodecHelper {
         }
 
         ActivityManager activityManager =
-                (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+                ContextCompat.getSystemService(context, ActivityManager.class);
         ConfigurationInfo configInfo = activityManager.getDeviceConfigurationInfo();
         if (configInfo.reqGlEsVersion != ConfigurationInfo.GL_ES_VERSION_UNDEFINED) {
             LimeLog.info("OpenGL ES version: "+configInfo.reqGlEsVersion);

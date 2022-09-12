@@ -124,6 +124,10 @@ android {
 }
 
 dependencies {
+/** AndroidX **/
+    implementation 'androidx.core:core:1.8.0'
+
+/** Third-party **/
     implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.70'
     implementation 'org.jcodec:jcodec:0.2.3'

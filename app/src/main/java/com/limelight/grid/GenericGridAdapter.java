@@ -23,7 +23,7 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
         this.context = context;
         this.layoutId = layoutId;
 
-        this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        this.inflater = LayoutInflater.from(context);
     }
 
     void setLayoutId(int layoutId) {

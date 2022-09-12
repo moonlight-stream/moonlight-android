@@ -2,6 +2,8 @@ package com.limelight.grid.assets;
 
 import android.util.LruCache;
 
+import androidx.core.graphics.BitmapCompat;
+
 import com.limelight.LimeLog;
 
 import java.lang.ref.SoftReference;
@@ -13,7 +15,7 @@ public class MemoryAssetLoader {
         @Override
         protected int sizeOf(String key, ScaledBitmap bitmap) {
             // Sizeof returns kilobytes
-            return bitmap.bitmap.getByteCount() / 1024;
+            return BitmapCompat.getAllocationByteCount(bitmap.bitmap) / 1024;
         }
 
         @Override

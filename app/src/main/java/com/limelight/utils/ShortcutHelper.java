@@ -1,16 +1,12 @@
 package com.limelight.utils;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Intent;
-import android.content.pm.ShortcutInfo;
-import android.content.pm.ShortcutManager;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Icon;
-import android.os.Build;
 
-import com.limelight.AppView;
-import com.limelight.ShortcutTrampoline;
+import androidx.core.content.pm.ShortcutInfoCompat;
+import androidx.core.content.pm.ShortcutManagerCompat;
+import androidx.core.graphics.drawable.IconCompat;
+
 import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
@@ -21,48 +17,40 @@ import java.util.List;
 
 public class ShortcutHelper {
 
-    private final ShortcutManager sm;
     private final Activity context;
     private final TvChannelHelper tvChannelHelper;
 
     public ShortcutHelper(Activity context) {
         this.context = context;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            sm = context.getSystemService(ShortcutManager.class);
-        }
-        else {
-            sm = null;
-        }
         this.tvChannelHelper = new TvChannelHelper(context);
     }
 
-    @TargetApi(Build.VERSION_CODES.N_MR1)
     private void reapShortcutsForDynamicAdd() {
-        List<ShortcutInfo> dynamicShortcuts = sm.getDynamicShortcuts();
-        while (!dynamicShortcuts.isEmpty() && dynamicShortcuts.size() >= sm.getMaxShortcutCountPerActivity()) {
-            ShortcutInfo maxRankShortcut = dynamicShortcuts.get(0);
-            for (ShortcutInfo scut : dynamicShortcuts) {
+        List<ShortcutInfoCompat> dynamicShortcuts = ShortcutManagerCompat.getDynamicShortcuts(context);
+        while (!dynamicShortcuts.isEmpty() && dynamicShortcuts.size()
+                >= ShortcutManagerCompat.getMaxShortcutCountPerActivity(context)
+        ) {
+            ShortcutInfoCompat maxRankShortcut = dynamicShortcuts.get(0);
+            for (ShortcutInfoCompat scut : dynamicShortcuts) {
                 if (maxRankShortcut.getRank() < scut.getRank()) {
                     maxRankShortcut = scut;
                 }
             }
-            sm.removeDynamicShortcuts(Collections.singletonList(maxRankShortcut.getId()));
+            ShortcutManagerCompat.removeDynamicShortcuts(
+                    context, Collections.singletonList(maxRankShortcut.getId()));
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.N_MR1)
-    private List<ShortcutInfo> getAllShortcuts() {
-        LinkedList<ShortcutInfo> list = new LinkedList<>();
-        list.addAll(sm.getDynamicShortcuts());
-        list.addAll(sm.getPinnedShortcuts());
-        return list;
+    private List<ShortcutInfoCompat> getAllShortcuts() {
+        return ShortcutManagerCompat.getShortcuts(context,
+                ShortcutManagerCompat.FLAG_MATCH_DYNAMIC
+                        | ShortcutManagerCompat.FLAG_MATCH_PINNED);
     }
 
-    @TargetApi(Build.VERSION_CODES.N_MR1)
-    private ShortcutInfo getInfoForId(String id) {
-        List<ShortcutInfo> shortcuts = getAllShortcuts();
+    private ShortcutInfoCompat getInfoForId(String id) {
+        List<ShortcutInfoCompat> shortcuts = getAllShortcuts();
 
-        for (ShortcutInfo info : shortcuts) {
+        for (ShortcutInfoCompat info : shortcuts) {
             if (info.getId().equals(id)) {
                 return info;
             }
@@ -71,9 +59,8 @@ public class ShortcutHelper {
         return null;
     }
 
-    @TargetApi(Build.VERSION_CODES.N_MR1)
     private boolean isExistingDynamicShortcut(String id) {
-        for (ShortcutInfo si : sm.getDynamicShortcuts()) {
+        for (ShortcutInfoCompat si : ShortcutManagerCompat.getDynamicShortcuts(context)) {
             if (si.getId().equals(id)) {
                 return true;
             }
@@ -83,10 +70,8 @@ public class ShortcutHelper {
     }
 
     public void reportComputerShortcutUsed(ComputerDetails computer) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            if (getInfoForId(computer.uuid) != null) {
-                sm.reportShortcutUsed(computer.uuid);
-            }
+        if (getInfoForId(computer.uuid) != null) {
+            ShortcutManagerCompat.reportShortcutUsed(context, computer.uuid);
         }
     }
 
@@ -96,40 +81,39 @@ public class ShortcutHelper {
     }
 
     public void createAppViewShortcut(ComputerDetails computer, boolean forceAdd, boolean newlyPaired) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            ShortcutInfo sinfo = new ShortcutInfo.Builder(context, computer.uuid)
-                    .setIntent(ServerHelper.createPcShortcutIntent(context, computer))
-                    .setShortLabel(computer.name)
-                    .setLongLabel(computer.name)
-                    .setIcon(Icon.createWithResource(context, R.mipmap.ic_pc_scut))
-                    .build();
+        ShortcutInfoCompat sinfo = new ShortcutInfoCompat.Builder(context, computer.uuid)
+                .setIntent(ServerHelper.createPcShortcutIntent(context, computer))
+                .setShortLabel(computer.name)
+                .setLongLabel(computer.name)
+                .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_pc_scut))
+                .build();
 
-            ShortcutInfo existingSinfo = getInfoForId(computer.uuid);
-            if (existingSinfo != null) {
-                // Update in place
-                sm.updateShortcuts(Collections.singletonList(sinfo));
-                sm.enableShortcuts(Collections.singletonList(computer.uuid));
+        ShortcutInfoCompat existingSinfo = getInfoForId(computer.uuid);
+        if (existingSinfo != null) {
+            // Update in place
+            ShortcutManagerCompat.updateShortcuts(context, Collections.singletonList(sinfo));
+            ShortcutManagerCompat.enableShortcuts(context, Collections.singletonList(sinfo));
+        }
+
+        // Reap shortcuts to make space for this if it's new
+        // NOTE: This CAN'T be an else on the above if, because it's
+        // possible that we have an existing shortcut but it's not a dynamic one.
+        if (!isExistingDynamicShortcut(computer.uuid)) {
+            // To avoid a random carousel of shortcuts popping in and out based on polling status,
+            // we only add shortcuts if it's not at the limit or the user made a conscious action
+            // to interact with this PC.
+
+            if (forceAdd) {
+                // This should free an entry for us to add one below
+                reapShortcutsForDynamicAdd();
             }
 
-            // Reap shortcuts to make space for this if it's new
-            // NOTE: This CAN'T be an else on the above if, because it's
-            // possible that we have an existing shortcut but it's not a dynamic one.
-            if (!isExistingDynamicShortcut(computer.uuid)) {
-                // To avoid a random carousel of shortcuts popping in and out based on polling status,
-                // we only add shortcuts if it's not at the limit or the user made a conscious action
-                // to interact with this PC.
-
-                if (forceAdd) {
-                    // This should free an entry for us to add one below
-                    reapShortcutsForDynamicAdd();
-                }
-
-                // We still need to check the maximum shortcut count even after reaping,
-                // because there's a possibility that it could be zero.
-                if (sm.getDynamicShortcuts().size() < sm.getMaxShortcutCountPerActivity()) {
-                    // Add a shortcut if there is room
-                    sm.addDynamicShortcuts(Collections.singletonList(sinfo));
-                }
+            // We still need to check the maximum shortcut count even after reaping,
+            // because there's a possibility that it could be zero.
+            if (ShortcutManagerCompat.getDynamicShortcuts(context).size()
+                    < ShortcutManagerCompat.getMaxShortcutCountPerActivity(context)) {
+                // Add a shortcut if there is room
+                ShortcutManagerCompat.addDynamicShortcuts(context, Collections.singletonList(sinfo));
             }
         }
 
@@ -148,24 +132,24 @@ public class ShortcutHelper {
         return computer.uuid + app.getAppId();
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
     public boolean createPinnedGameShortcut(ComputerDetails computer, NvApp app, Bitmap iconBits) {
-        if (sm.isRequestPinShortcutSupported()) {
-            Icon appIcon;
+        if (ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
+            IconCompat appIcon;
 
             if (iconBits != null) {
-                appIcon = Icon.createWithAdaptiveBitmap(iconBits);
+                appIcon = IconCompat.createWithAdaptiveBitmap(iconBits);
             } else {
-                appIcon = Icon.createWithResource(context, R.mipmap.ic_pc_scut);
+                appIcon = IconCompat.createWithResource(context, R.mipmap.ic_pc_scut);
             }
 
-            ShortcutInfo sInfo = new ShortcutInfo.Builder(context, getShortcutIdForGame(computer, app))
-                .setIntent(ServerHelper.createAppShortcutIntent(context, computer, app))
-                .setShortLabel(app.getAppName() + " (" + computer.name + ")")
-                .setIcon(appIcon)
-                .build();
+            ShortcutInfoCompat sInfo =
+                    new ShortcutInfoCompat.Builder(context, getShortcutIdForGame(computer, app))
+                            .setIntent(ServerHelper.createAppShortcutIntent(context, computer, app))
+                            .setShortLabel(app.getAppName() + " (" + computer.name + ")")
+                            .setIcon(appIcon)
+                            .build();
 
-            return sm.requestPinShortcut(sInfo, null);
+            return ShortcutManagerCompat.requestPinShortcut(context, sInfo, null);
         } else {
             return false;
         }
@@ -173,40 +157,35 @@ public class ShortcutHelper {
 
     public void disableComputerShortcut(ComputerDetails computer, CharSequence reason) {
         tvChannelHelper.deleteChannel(computer);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            // Delete the computer shortcut itself
-            if (getInfoForId(computer.uuid) != null) {
-                sm.disableShortcuts(Collections.singletonList(computer.uuid), reason);
-            }
-
-            // Delete all associated app shortcuts too
-            List<ShortcutInfo> shortcuts = getAllShortcuts();
-            LinkedList<String> appShortcutIds = new LinkedList<>();
-            for (ShortcutInfo info : shortcuts) {
-                if (info.getId().startsWith(computer.uuid)) {
-                    appShortcutIds.add(info.getId());
-                }
-            }
-            sm.disableShortcuts(appShortcutIds, reason);
+        // Delete the computer shortcut itself
+        if (getInfoForId(computer.uuid) != null) {
+            ShortcutManagerCompat.disableShortcuts(context, Collections.singletonList(computer.uuid), reason);
         }
+
+        // Delete all associated app shortcuts too
+        List<ShortcutInfoCompat> shortcuts = getAllShortcuts();
+        LinkedList<String> appShortcutIds = new LinkedList<>();
+        for (ShortcutInfoCompat info : shortcuts) {
+            if (info.getId().startsWith(computer.uuid)) {
+                appShortcutIds.add(info.getId());
+            }
+        }
+        ShortcutManagerCompat.disableShortcuts(context, appShortcutIds, reason);
     }
 
     public void disableAppShortcut(ComputerDetails computer, NvApp app, CharSequence reason) {
         tvChannelHelper.deleteProgram(computer, app);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            String id = getShortcutIdForGame(computer, app);
-            if (getInfoForId(id) != null) {
-                sm.disableShortcuts(Collections.singletonList(id), reason);
-            }
+        String id = getShortcutIdForGame(computer, app);
+        if (getInfoForId(id) != null) {
+            ShortcutManagerCompat.disableShortcuts(context, Collections.singletonList(id), reason);
         }
     }
 
     public void enableAppShortcut(ComputerDetails computer, NvApp app) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            String id = getShortcutIdForGame(computer, app);
-            if (getInfoForId(id) != null) {
-                sm.enableShortcuts(Collections.singletonList(id));
-            }
+        String id = getShortcutIdForGame(computer, app);
+        if (getInfoForId(id) != null) {
+            ShortcutManagerCompat.enableShortcuts(
+                    context, Collections.singletonList(getInfoForId(id)));
         }
     }
 }

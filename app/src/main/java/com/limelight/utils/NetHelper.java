@@ -7,9 +7,11 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.os.Build;
 
+import androidx.core.content.ContextCompat;
+
 public class NetHelper {
     public static boolean isActiveNetworkVpn(Context context) {
-        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connMgr = ContextCompat.getSystemService(context, ConnectivityManager.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Network activeNetwork = connMgr.getActiveNetwork();
             if (activeNetwork != null) {

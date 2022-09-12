@@ -77,6 +77,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
+
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -275,13 +277,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Warn the user if they're on a metered connection
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connMgr = ContextCompat.getSystemService(this, ConnectivityManager.class);
         if (connMgr.isActiveNetworkMetered()) {
             displayTransientMessage(getResources().getString(R.string.conn_metered));
         }
 
         // Make sure Wi-Fi is fully powered up
-        WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiMgr = ContextCompat.getSystemService(getApplicationContext(), WifiManager.class);
         try {
             highPerfWifiLock = wifiMgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Moonlight High Perf Lock");
             highPerfWifiLock.setReferenceCounted(false);
@@ -472,7 +474,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
         keyboardTranslator = new KeyboardTranslator();
 
-        InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
+        InputManager inputManager = ContextCompat.getSystemService(this, InputManager.class);
         inputManager.registerInputDeviceListener(controllerHandler, null);
         inputManager.registerInputDeviceListener(keyboardTranslator, null);
 
@@ -1028,7 +1030,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     protected void onDestroy() {
         super.onDestroy();
 
-        InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
+        InputManager inputManager = ContextCompat.getSystemService(this, InputManager.class);
         if (controllerHandler != null) {
             inputManager.unregisterInputDeviceListener(controllerHandler);
         }
@@ -1361,7 +1363,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     public void toggleKeyboard() {
         LimeLog.info("Toggling keyboard overlay");
-        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager inputManager = ContextCompat.getSystemService(this, InputMethodManager.class);
         inputManager.toggleSoftInput(0, 0);
     }
 

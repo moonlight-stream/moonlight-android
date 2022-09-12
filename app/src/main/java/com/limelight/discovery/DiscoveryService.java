@@ -7,12 +7,13 @@ import com.limelight.nvstream.mdns.MdnsDiscoveryAgent;
 import com.limelight.nvstream.mdns.MdnsDiscoveryListener;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.os.Binder;
 import android.os.IBinder;
+
+import androidx.core.content.ContextCompat;
 
 public class DiscoveryService extends Service {
 
@@ -42,7 +43,7 @@ public class DiscoveryService extends Service {
 
     @Override
     public void onCreate() {
-        WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiMgr = ContextCompat.getSystemService(getApplicationContext(), WifiManager.class);
         multicastLock = wifiMgr.createMulticastLock("Limelight mDNS");
         multicastLock.setReferenceCounted(false);
 

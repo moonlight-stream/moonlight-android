@@ -1,0 +1,2 @@
+- Fixed streaming from hosts running Sunshine
+- Updated community contributed translations from Weblate

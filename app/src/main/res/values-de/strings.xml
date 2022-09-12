@@ -253,6 +253,10 @@
     <string name="category_help">Hilfe</string>
     <string name="title_setup_guide">Einstellungsanleitung</string>
     <string name="summary_privacy_policy">Moonlight\'s Datenschutzbestimmungen anzeigen</string>
-    <string name="summary_seekbar_deadzone">Hinweis: Einige Spiele können eine größere Totzone erzwingen als die, die in Moonlight konfiguriert ist.</string>
+    <string name="summary_seekbar_deadzone">Hinweis: Einige Spiele können eine größere Controller-Totzone erzwingen als die, die in Moonlight konfiguriert ist.</string>
     <string name="summary_checkbox_enable_audiofx">Ermöglicht das Funktionieren von Audioeffekten beim Streaming, kann aber die Audio-Latenz erhöhen</string>
+    <string name="resolution_prefix_native_portrait">(Portrait)</string>
+    <string name="title_checkbox_reduce_refresh_rate">Aktualisierungsrate verringern erlauben</string>
+    <string name="summary_checkbox_reduce_refresh_rate">Durch das Verringern der Display Aktualisierungsrate, kann, auf Kosten der Video-Latenz, der Akkuverbrauch reduziert werden</string>
+    <string name="resolution_prefix_native_landscape">(Landscape)</string>
 </resources>

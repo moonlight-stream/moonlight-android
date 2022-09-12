@@ -217,7 +217,7 @@
     <string name="nettest_text_blocked">您设备当前的网络连接拦截了Moonlight。连接到该网络时可能无法通过互联网串流。</string>
     <string name="perf_overlay_netlatency">平均网络延迟： %1$d ms (抖动： %2$d ms)</string>
     <string name="perf_overlay_streamdetails">视频流： %1$s %2$.2f FPS</string>
-    <string name="resolution_prefix_native_fullscreen">本地全屏</string>
+    <string name="resolution_prefix_native_fullscreen">原生全屏</string>
     <!-- Array strings -->
     <string name="audioconf_stereo">立体声</string>
     <string name="audioconf_51surround">5.1环绕声</string>
@@ -251,4 +251,10 @@
     <string name="summary_seekbar_deadzone">注意：有些游戏可以执行一个比Moonlight摇杆配置的更大的盲区。</string>
     <string name="title_checkbox_absolute_mouse_mode">适合远程桌面的鼠标模式</string>
     <string name="summary_checkbox_absolute_mouse_mode">这可以使得鼠标加速在远程桌面使用中表现得更自然，但它与许多游戏不兼容。</string>
+    <string name="resolution_prefix_native_landscape">（横向）</string>
+    <string name="resolution_prefix_native_portrait">（纵向）</string>
+    <string name="title_checkbox_enable_audiofx">启用对系统均衡器的支持</string>
+    <string name="summary_checkbox_enable_audiofx">串流时允许音效工作，可能会导致音频延迟增加</string>
+    <string name="title_checkbox_reduce_refresh_rate">允许降低刷新率</string>
+    <string name="summary_checkbox_reduce_refresh_rate">较低的屏幕刷新率可以在增加一些视频延迟的情况下省电</string>
 </resources>

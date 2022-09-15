@@ -709,6 +709,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 // the framework to do some performance optimizations for us
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     nextInputBuffer = videoDecoder.getInputBuffer(nextInputBufferIndex);
+                    if (nextInputBuffer == null) {
+                        // According to the Android docs, getInputBuffer() can return null "if the
+                        // index is not a dequeued input buffer". I don't think this ever should
+                        // happen but if it does, let's try to get a new input buffer next time.
+                        nextInputBufferIndex = -1;
+                    }
                 }
                 else {
                     nextInputBuffer = legacyInputBuffers[nextInputBufferIndex];

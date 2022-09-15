@@ -70,10 +70,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private String glRenderer;
     private boolean foreground = true;
     private PerfOverlayListener perfListener;
+
+    private static final int CR_TIMEOUT_MS = 5000;
     private volatile boolean needsRestart;
     private volatile boolean needsReset;
     private final Object codecRecoveryMonitor = new Object();
 
+    // Each thread that touches the MediaCodec object or any associated buffers must have a flag
+    // here and must call doCodecRecoveryIfRequired() on a regular basis.
     private static final int CR_FLAG_INPUT_THREAD = 0x1;
     private static final int CR_FLAG_RENDER_THREAD = 0x2;
     private static final int CR_FLAG_CHOREOGRAPHER = 0x4;
@@ -500,6 +504,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         return initializeDecoder();
     }
 
+    // All threads that interact with the MediaCodec instance must call this function regularly!
     private boolean doCodecRecoveryIfRequired(int quiescenceFlag) {
         if (!needsReset && !needsRestart) {
             // Common case
@@ -547,9 +552,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             else {
                 // If we haven't quiesced all threads yet, wait to be signalled after recovery.
                 // The final thread to be quiesced will handle the codec recovery.
+                long startTime = SystemClock.uptimeMillis();
                 while (needsReset || needsRestart) {
                     try {
-                        codecRecoveryMonitor.wait();
+                        if (SystemClock.uptimeMillis() - startTime >= CR_TIMEOUT_MS) {
+                            throw new IllegalStateException("Decoder failed to recover within timeout");
+                        }
+                        codecRecoveryMonitor.wait(CR_TIMEOUT_MS);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
 

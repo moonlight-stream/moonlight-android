@@ -601,8 +601,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             }
         }
 
-        // Only throw if we're not stopping
-        if (!stopping) {
+        // Only throw if we're not stopping and aren't in the middle of codec recovery
+        if (!stopping && !needsReset && !needsRestart) {
             //
             // There seems to be a race condition with decoder/surface teardown causing some
             // decoders to to throw IllegalStateExceptions even before 'stopping' is set.

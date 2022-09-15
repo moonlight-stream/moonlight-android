@@ -478,15 +478,16 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         return 0;
     }
 
-    private void handleDecoderException(Exception e, ByteBuffer buf, int codecFlags, boolean throwOnTransient) {
+    // Returns true if the exception is transient
+    private boolean handleDecoderException(Exception e, ByteBuffer buf, int codecFlags) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (e instanceof CodecException) {
                 CodecException codecExc = (CodecException) e;
 
-                if (codecExc.isTransient() && !throwOnTransient) {
+                if (codecExc.isTransient()) {
                     // We'll let transient exceptions go
                     LimeLog.warning(codecExc.getDiagnosticInfo());
-                    return;
+                    return true;
                 }
 
                 LimeLog.severe(codecExc.getDiagnosticInfo());
@@ -524,6 +525,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 initialExceptionTimestamp = SystemClock.uptimeMillis();
             }
         }
+
+        // Not transient
+        return false;
     }
 
     @Override
@@ -555,9 +559,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
                     lastRenderedFrameTimeNanos = frameTimeNanos;
                     activeWindowVideoStats.totalFramesRendered++;
-                } catch (Exception e) {
-                    // This will leak nextOutputBuffer, but there's really nothing else we can do
-                    handleDecoderException(e, null, 0, false);
+                } catch (Exception ignored) {
+                    try {
+                        // Try to avoid leaking the output buffer by releasing it without rendering
+                        videoDecoder.releaseOutputBuffer(nextOutputBuffer, false);
+                    } catch (Exception e) {
+                        // This will leak nextOutputBuffer, but there's really nothing else we can do
+                        handleDecoderException(e, null, 0);
+                    }
                 }
             }
         }
@@ -677,7 +686,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                             }
                         }
                     } catch (Exception e) {
-                        handleDecoderException(e, null, 0, false);
+                        handleDecoderException(e, null, 0);
                     }
                 }
             }
@@ -724,7 +733,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 }
             }
         } catch (Exception e) {
-            handleDecoderException(e, null, 0, true);
+            handleDecoderException(e, null, 0);
             return false;
         }
 
@@ -830,12 +839,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             videoDecoder.queueInputBuffer(nextInputBufferIndex,
                     0, nextInputBuffer.position(),
                     timestampUs, codecFlags);
-        } catch (Exception e) {
-            handleDecoderException(e, null, codecFlags, true);
-            return false;
-        } finally {
+
+            // We need a new buffer now
             nextInputBufferIndex = -1;
             nextInputBuffer = null;
+        } catch (Exception e) {
+            if (handleDecoderException(e, null, codecFlags)) {
+                // We encountered a transient error. In this case, just hold onto the buffer
+                // (to avoid leaking it), clear it, and keep it for the next frame. We'll return
+                // false to trigger an IDR frame to recover.
+                nextInputBuffer.clear();
+            }
+            else {
+                // We encountered a non-transient error. In this case, we will simply leak the
+                // buffer because we cannot be sure we will ever succeed in queuing it.
+                nextInputBufferIndex = -1;
+                nextInputBuffer = null;
+            }
+            return false;
         }
 
         // Fetch a new input buffer now while we have some time between frames

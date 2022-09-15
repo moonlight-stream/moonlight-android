@@ -84,6 +84,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Locale;
+import java.util.Timer;
 
 
 public class Game extends Activity implements SurfaceHolder.Callback,
@@ -94,6 +95,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private int lastButtonState = 0;
 
     // Only 2 touches are supported
+    private Timer touchTimer;
     private final TouchContext[] touchContextMap = new TouchContext[2];
     private long threeFingerDownTime = 0;
 
@@ -477,14 +479,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         inputManager.registerInputDeviceListener(keyboardTranslator, null);
 
         // Initialize touch contexts
+        touchTimer = new Timer("TouchTimer", true);
         for (int i = 0; i < touchContextMap.length; i++) {
             if (!prefConfig.touchscreenTrackpad) {
-                touchContextMap[i] = new AbsoluteTouchContext(conn, i, streamView);
+                touchContextMap[i] = new AbsoluteTouchContext(conn, i, streamView, touchTimer);
             }
             else {
                 touchContextMap[i] = new RelativeTouchContext(conn, i,
                         REFERENCE_HORIZ_RES, REFERENCE_VERT_RES,
-                        streamView, prefConfig);
+                        streamView, prefConfig, touchTimer);
             }
         }
 
@@ -1027,6 +1030,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        if (touchTimer != null) {
+            touchTimer.cancel();
+        }
 
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         if (controllerHandler != null) {

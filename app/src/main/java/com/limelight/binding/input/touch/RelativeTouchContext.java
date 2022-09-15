@@ -21,7 +21,7 @@ public class RelativeTouchContext implements TouchContext {
     private boolean confirmedMove;
     private boolean confirmedDrag;
     private boolean confirmedScroll;
-    private Timer dragTimer;
+    private TimerTask dragTimerTask;
     private double distanceMoved;
     private double xFactor, yFactor;
     private int pointerCount;
@@ -33,6 +33,7 @@ public class RelativeTouchContext implements TouchContext {
     private final int referenceHeight;
     private final View targetView;
     private final PreferenceConfiguration prefConfig;
+    private final Timer timer;
     private final Handler handler;
 
     // Indexed by MouseButtonPacket.BUTTON_XXX - 1
@@ -78,7 +79,8 @@ public class RelativeTouchContext implements TouchContext {
 
     public RelativeTouchContext(NvConnection conn, int actionIndex,
                                 int referenceWidth, int referenceHeight,
-                                View view, PreferenceConfiguration prefConfig)
+                                View view, PreferenceConfiguration prefConfig,
+                                Timer timer)
     {
         this.conn = conn;
         this.actionIndex = actionIndex;
@@ -86,6 +88,7 @@ public class RelativeTouchContext implements TouchContext {
         this.referenceHeight = referenceHeight;
         this.targetView = view;
         this.prefConfig = prefConfig;
+        this.timer = timer;
         this.handler = new Handler(Looper.getMainLooper());
     }
 
@@ -185,11 +188,8 @@ public class RelativeTouchContext implements TouchContext {
     }
 
     private synchronized void startDragTimer() {
-        // Cancel any existing drag timers
         cancelDragTimer();
-
-        dragTimer = new Timer(true);
-        dragTimer.schedule(new TimerTask() {
+        dragTimerTask = new TimerTask() {
             @Override
             public void run() {
                 synchronized (RelativeTouchContext.this) {
@@ -204,25 +204,26 @@ public class RelativeTouchContext implements TouchContext {
                     }
 
                     // Check if someone cancelled us
-                    if (dragTimer == null) {
+                    if (dragTimerTask == null) {
                         return;
                     }
 
                     // Uncancellable now
-                    dragTimer = null;
+                    dragTimerTask = null;
 
                     // We haven't been cancelled before the timer expired so begin dragging
                     confirmedDrag = true;
                     conn.sendMouseButtonDown(getMouseButtonIndex());
                 }
             }
-        }, DRAG_TIME_THRESHOLD);
+        };
+        timer.schedule(dragTimerTask, DRAG_TIME_THRESHOLD);
     }
 
     private synchronized void cancelDragTimer() {
-        if (dragTimer != null) {
-            dragTimer.cancel();
-            dragTimer = null;
+        if (dragTimerTask != null) {
+            dragTimerTask.cancel();
+            dragTimerTask = null;
         }
     }
 

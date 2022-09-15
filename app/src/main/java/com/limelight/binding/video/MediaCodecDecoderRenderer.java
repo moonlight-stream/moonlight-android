@@ -690,7 +690,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private boolean fetchNextInputBuffer() {
         long startTime;
 
-        if (nextInputBufferIndex >= 0) {
+        if (nextInputBuffer != null) {
             // We already have an input buffer
             return true;
         }
@@ -698,10 +698,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         startTime = SystemClock.uptimeMillis();
 
         try {
+            // If we don't have an input buffer index yet, fetch one now
             while (nextInputBufferIndex < 0 && !stopping) {
                 nextInputBufferIndex = videoDecoder.dequeueInputBuffer(10000);
             }
 
+            // Get the backing ByteBuffer for the input buffer index
             if (nextInputBufferIndex >= 0) {
                 // Using the new getInputBuffer() API on Lollipop allows
                 // the framework to do some performance optimizations for us
@@ -726,7 +728,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             LimeLog.warning("Dequeue input buffer ran long: " + deltaMs + " ms");
         }
 
-        if (nextInputBufferIndex < 0) {
+        if (nextInputBuffer == null) {
             // We've been hung for 5 seconds and no other exception was reported,
             // so generate a decoder hung exception
             if (deltaMs >= 5000 && initialException == null) {

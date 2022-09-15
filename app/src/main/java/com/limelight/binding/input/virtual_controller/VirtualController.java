@@ -41,10 +41,10 @@ public class VirtualController {
 
     private final ControllerHandler controllerHandler;
     private final Context context;
+    private final Timer timer;
 
+    private TimerTask retransmitTimerTask;
     private FrameLayout frame_layout = null;
-
-    private Timer retransmitTimer;
 
     ControllerMode currentMode = ControllerMode.Active;
     ControllerInputContext inputContext = new ControllerInputContext();
@@ -57,6 +57,7 @@ public class VirtualController {
         this.controllerHandler = controllerHandler;
         this.frame_layout = layout;
         this.context = context;
+        this.timer = new Timer("OSC timer", true);
 
         buttonConfigure = new Button(context);
         buttonConfigure.setAlpha(0.25f);
@@ -91,8 +92,12 @@ public class VirtualController {
 
     }
 
+    Timer getTimer() {
+        return timer;
+    }
+
     public void hide() {
-        retransmitTimer.cancel();
+        retransmitTimerTask.cancel();
 
         for (VirtualControllerElement element : elements) {
             element.setVisibility(View.INVISIBLE);
@@ -112,13 +117,13 @@ public class VirtualController {
         // very shortly after another. This can be critical if an axis zeroing packet
         // is lost and causes an analog stick to get stuck. To avoid this, we send
         // a gamepad input packet every 100 ms to ensure any loss can be recovered.
-        retransmitTimer = new Timer("OSC timer", true);
-        retransmitTimer.schedule(new TimerTask() {
+        retransmitTimerTask = new TimerTask() {
             @Override
             public void run() {
                 sendControllerInputContext();
             }
-        }, 100, 100);
+        };
+        timer.schedule(retransmitTimerTask, 100, 100);
     }
 
     public void removeElements() {

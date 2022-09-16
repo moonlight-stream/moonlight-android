@@ -72,6 +72,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private PerfOverlayListener perfListener;
 
     private static final int CR_TIMEOUT_MS = 5000;
+    private static final int CR_MAX_TRIES = 10;
     private volatile boolean needsRestart;
     private volatile boolean needsReset;
     private final Object codecRecoveryMonitor = new Object();
@@ -83,6 +84,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private static final int CR_FLAG_CHOREOGRAPHER = 0x4;
     private static final int CR_FLAG_ALL = CR_FLAG_INPUT_THREAD | CR_FLAG_RENDER_THREAD | CR_FLAG_CHOREOGRAPHER;
     private int codecRecoveryThreadQuiescedFlags = 0;
+    private int codecRecoveryAttempts = 0;
 
     private MediaFormat inputFormat;
     private MediaFormat outputFormat;
@@ -520,6 +522,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
             if (codecRecoveryThreadQuiescedFlags == CR_FLAG_ALL) {
                 // This is the final thread to quiesce, so let's perform the codec recovery now.
+                codecRecoveryAttempts++;
 
                 // Input and output buffers are invalidated by stop() and reset().
                 nextInputBuffer = null;
@@ -577,6 +580,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     // Returns true if the exception is transient
     private boolean handleDecoderException(RuntimeException e, ByteBuffer buf, int codecFlags) {
+        // Print the stack trace for debugging purposes
+        e.printStackTrace();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (e instanceof CodecException) {
                 CodecException codecExc = (CodecException) e;
@@ -590,15 +596,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 LimeLog.severe(codecExc.getDiagnosticInfo());
 
                 // We can attempt a recovery or reset at this stage to try to start decoding again
-                if (codecExc.isRecoverable()) {
-                    needsRestart = true;
-                }
-                else {
-                    needsReset = true;
-                }
+                if (codecRecoveryAttempts < CR_MAX_TRIES) {
+                    if (codecExc.isRecoverable()) {
+                        needsRestart = true;
+                    }
+                    else {
+                        needsReset = true;
+                    }
 
-                // The recovery will take place when all threads reach doCodecRecoveryIfRequired().
-                return false;
+                    // The recovery will take place when all threads reach doCodecRecoveryIfRequired().
+                    return false;
+                }
             }
         }
 

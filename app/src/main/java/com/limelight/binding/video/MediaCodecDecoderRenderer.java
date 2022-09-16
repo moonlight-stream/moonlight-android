@@ -577,7 +577,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     }
 
     // Returns true if the exception is transient
-    private boolean handleDecoderException(Exception e, ByteBuffer buf, int codecFlags) {
+    private boolean handleDecoderException(RuntimeException e, ByteBuffer buf, int codecFlags) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (e instanceof CodecException) {
                 CodecException codecExc = (CodecException) e;
@@ -668,11 +668,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
                     lastRenderedFrameTimeNanos = frameTimeNanos;
                     activeWindowVideoStats.totalFramesRendered++;
-                } catch (Exception ignored) {
+                } catch (RuntimeException ignored) {
                     try {
                         // Try to avoid leaking the output buffer by releasing it without rendering
                         videoDecoder.releaseOutputBuffer(nextOutputBuffer, false);
-                    } catch (Exception e) {
+                    } catch (RuntimeException e) {
                         // This will leak nextOutputBuffer, but there's really nothing else we can do
                         handleDecoderException(e, null, 0);
                     }
@@ -768,7 +768,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                                 // run for a while (if there is a huge mismatch between stream FPS and display
                                 // refresh rate).
                                 if (outputBufferQueue.size() == OUTPUT_BUFFER_QUEUE_LIMIT) {
-                                    videoDecoder.releaseOutputBuffer(outputBufferQueue.take(), false);
+                                    try {
+                                        videoDecoder.releaseOutputBuffer(outputBufferQueue.take(), false);
+                                    } catch (InterruptedException e) {
+                                        // We're shutting down, so we can just drop this buffer on the floor
+                                        // and it will be reclaimed when the codec is released.
+                                        return;
+                                    }
                                 }
 
                                 // Add this buffer
@@ -796,7 +802,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                                     break;
                             }
                         }
-                    } catch (Exception e) {
+                    } catch (RuntimeException e) {
                         handleDecoderException(e, null, 0);
                     } finally {
                         doCodecRecoveryIfRequired(CR_FLAG_RENDER_THREAD);
@@ -845,7 +851,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                     nextInputBuffer.clear();
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             handleDecoderException(e, null, 0);
             return false;
         } finally {
@@ -964,7 +970,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             nextInputBufferIndex = -1;
             nextInputBuffer = null;
             ret = true;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             if (handleDecoderException(e, null, codecFlags)) {
                 // We encountered a transient error. In this case, just hold onto the buffer
                 // (to avoid leaking it), clear it, and keep it for the next frame. We'll return

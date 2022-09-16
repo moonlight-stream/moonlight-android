@@ -8,9 +8,6 @@ import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.preferences.PreferenceConfiguration;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class RelativeTouchContext implements TouchContext {
     private int lastTouchX = 0;
     private int lastTouchY = 0;
@@ -21,7 +18,6 @@ public class RelativeTouchContext implements TouchContext {
     private boolean confirmedMove;
     private boolean confirmedDrag;
     private boolean confirmedScroll;
-    private TimerTask dragTimerTask;
     private double distanceMoved;
     private double xFactor, yFactor;
     private int pointerCount;
@@ -33,8 +29,26 @@ public class RelativeTouchContext implements TouchContext {
     private final int referenceHeight;
     private final View targetView;
     private final PreferenceConfiguration prefConfig;
-    private final Timer timer;
     private final Handler handler;
+
+    private final Runnable dragTimerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            // Check if someone already set move
+            if (confirmedMove) {
+                return;
+            }
+
+            // The drag should only be processed for the primary finger
+            if (actionIndex != maxPointerCountInGesture - 1) {
+                return;
+            }
+
+            // We haven't been cancelled before the timer expired so begin dragging
+            confirmedDrag = true;
+            conn.sendMouseButtonDown(getMouseButtonIndex());
+        }
+    };
 
     // Indexed by MouseButtonPacket.BUTTON_XXX - 1
     private final Runnable[] buttonUpRunnables = new Runnable[] {
@@ -79,8 +93,7 @@ public class RelativeTouchContext implements TouchContext {
 
     public RelativeTouchContext(NvConnection conn, int actionIndex,
                                 int referenceWidth, int referenceHeight,
-                                View view, PreferenceConfiguration prefConfig,
-                                Timer timer)
+                                View view, PreferenceConfiguration prefConfig)
     {
         this.conn = conn;
         this.actionIndex = actionIndex;
@@ -88,7 +101,6 @@ public class RelativeTouchContext implements TouchContext {
         this.referenceHeight = referenceHeight;
         this.targetView = view;
         this.prefConfig = prefConfig;
-        this.timer = timer;
         this.handler = new Handler(Looper.getMainLooper());
     }
 
@@ -187,47 +199,16 @@ public class RelativeTouchContext implements TouchContext {
         }
     }
 
-    private synchronized void startDragTimer() {
+    private void startDragTimer() {
         cancelDragTimer();
-        dragTimerTask = new TimerTask() {
-            @Override
-            public void run() {
-                synchronized (RelativeTouchContext.this) {
-                    // Check if someone already set move
-                    if (confirmedMove) {
-                        return;
-                    }
-
-                    // The drag should only be processed for the primary finger
-                    if (actionIndex != maxPointerCountInGesture - 1) {
-                        return;
-                    }
-
-                    // Check if someone cancelled us
-                    if (dragTimerTask == null) {
-                        return;
-                    }
-
-                    // Uncancellable now
-                    dragTimerTask = null;
-
-                    // We haven't been cancelled before the timer expired so begin dragging
-                    confirmedDrag = true;
-                    conn.sendMouseButtonDown(getMouseButtonIndex());
-                }
-            }
-        };
-        timer.schedule(dragTimerTask, DRAG_TIME_THRESHOLD);
+        handler.postDelayed(dragTimerRunnable, DRAG_TIME_THRESHOLD);
     }
 
-    private synchronized void cancelDragTimer() {
-        if (dragTimerTask != null) {
-            dragTimerTask.cancel();
-            dragTimerTask = null;
-        }
+    private void cancelDragTimer() {
+        handler.removeCallbacks(dragTimerRunnable);
     }
 
-    private synchronized void checkForConfirmedMove(int eventX, int eventY) {
+    private void checkForConfirmedMove(int eventX, int eventY) {
         // If we've already confirmed something, get out now
         if (confirmedMove || confirmedDrag) {
             return;

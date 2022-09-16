@@ -5,6 +5,8 @@
 package com.limelight.binding.input.virtual_controller;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
@@ -42,6 +44,7 @@ public class VirtualController {
     private final ControllerHandler controllerHandler;
     private final Context context;
     private final Timer timer;
+    private final Handler handler;
 
     private TimerTask retransmitTimerTask;
     private FrameLayout frame_layout = null;
@@ -58,6 +61,7 @@ public class VirtualController {
         this.frame_layout = layout;
         this.context = context;
         this.timer = new Timer("OSC timer", true);
+        this.handler = new Handler(Looper.getMainLooper());
 
         buttonConfigure = new Button(context);
         buttonConfigure.setAlpha(0.25f);
@@ -92,8 +96,8 @@ public class VirtualController {
 
     }
 
-    Timer getTimer() {
-        return timer;
+    Handler getHandler() {
+        return handler;
     }
 
     public void hide() {

@@ -378,8 +378,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             legacyInputBuffers = videoDecoder.getInputBuffers();
         }
-
-        fetchNextInputBuffer();
     }
 
     private boolean tryConfigureDecoder(MediaCodecInfo selectedDecoderInfo, MediaFormat format) {
@@ -552,6 +550,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             else {
                 // If we haven't quiesced all threads yet, wait to be signalled after recovery.
                 // The final thread to be quiesced will handle the codec recovery.
+                LimeLog.info("Waiting to quiesce decoder threads: "+codecRecoveryThreadQuiescedFlags);
                 long startTime = SystemClock.uptimeMillis();
                 while (needsReset || needsRestart) {
                     try {
@@ -812,6 +811,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     private boolean fetchNextInputBuffer() {
         long startTime;
+        boolean codecRecovered;
 
         if (nextInputBuffer != null) {
             // We already have an input buffer
@@ -850,10 +850,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             handleDecoderException(e, null, 0);
             return false;
         } finally {
-            // This will reset nextInputBuffer if codec recovery is required, so we will return
-            // false below. This will trigger the caller to request an IDR frame to complete
-            // the decoder recovery process.
-            doCodecRecoveryIfRequired(CR_FLAG_INPUT_THREAD);
+            codecRecovered = doCodecRecoveryIfRequired(CR_FLAG_INPUT_THREAD);
+        }
+
+        // If codec recovery is required, always return false to ensure the caller will request
+        // an IDR frame to complete the codec recovery.
+        if (codecRecovered) {
+            return false;
         }
 
         int deltaMs = (int)(SystemClock.uptimeMillis() - startTime);
@@ -954,7 +957,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     }
 
     private boolean queueNextInputBuffer(long timestampUs, int codecFlags) {
-        boolean ret;
+        boolean codecRecovered;
 
         try {
             videoDecoder.queueInputBuffer(nextInputBufferIndex,
@@ -964,7 +967,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             // We need a new buffer now
             nextInputBufferIndex = -1;
             nextInputBuffer = null;
-            ret = true;
         } catch (RuntimeException e) {
             if (handleDecoderException(e, nextInputBuffer, codecFlags)) {
                 // We encountered a transient error. In this case, just hold onto the buffer
@@ -978,20 +980,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 nextInputBufferIndex = -1;
                 nextInputBuffer = null;
             }
-            ret = false;
+            return false;
+        } finally {
+            codecRecovered = doCodecRecoveryIfRequired(CR_FLAG_INPUT_THREAD);
         }
 
         // If codec recovery is required, always return false to ensure the caller will request
         // an IDR frame to complete the codec recovery.
-        if (doCodecRecoveryIfRequired(CR_FLAG_INPUT_THREAD)) {
-            ret = false;
+        if (codecRecovered) {
+            return false;
         }
 
         // Fetch a new input buffer now while we have some time between frames
         // to have it ready immediately when the next frame arrives.
-        fetchNextInputBuffer();
-
-        return ret;
+        //
+        // We must propagate the return value here in order to properly handle
+        // codec recovery happening in fetchNextInputBuffer(). If we don't, we'll
+        // never get an IDR frame to complete the recovery process.
+        return fetchNextInputBuffer();
     }
 
     private void doProfileSpecificSpsPatching(SeqParameterSet sps) {

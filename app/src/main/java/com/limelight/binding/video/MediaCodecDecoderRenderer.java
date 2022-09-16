@@ -566,6 +566,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                         // handle that here, we will re-interrupt the thread to set the interrupt
                         // status back to true.
                         Thread.currentThread().interrupt();
+
+                        break;
                     }
                 }
             }

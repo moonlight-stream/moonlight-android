@@ -610,6 +610,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             }
         }
 
+        // If we got here, this is most likely an IllegalStateException which was used prior to L
+        // to indicate codec errors (unexpected transition to the error state). Recovery from this
+        // requires a full decoder reset.
+        if (codecRecoveryAttempts < CR_MAX_TRIES) {
+            needsReset = true;
+            return false;
+        }
+
         // Only throw if we're not stopping and aren't in the middle of codec recovery
         if (!stopping && !needsReset && !needsRestart) {
             //

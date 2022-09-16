@@ -625,12 +625,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             }
             else {
                 // This is the first exception we've hit
-                if (buf != null || codecFlags != 0) {
-                    initialException = new RendererException(this, e, buf, codecFlags);
-                }
-                else {
-                    initialException = new RendererException(this, e);
-                }
+                initialException = new RendererException(this, e, buf, codecFlags);
                 initialExceptionTimestamp = SystemClock.uptimeMillis();
             }
         }
@@ -971,7 +966,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             nextInputBuffer = null;
             ret = true;
         } catch (RuntimeException e) {
-            if (handleDecoderException(e, null, codecFlags)) {
+            if (handleDecoderException(e, nextInputBuffer, codecFlags)) {
                 // We encountered a transient error. In this case, just hold onto the buffer
                 // (to avoid leaking it), clear it, and keep it for the next frame. We'll return
                 // false to trigger an IDR frame to recover.
@@ -1449,7 +1444,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 str = "ErrorWhileStreaming";
             }
 
-            str += ": 1\n";
             str += "Format: "+String.format("%x", renderer.videoFormat)+"\n";
             str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+"\n";
             str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+"\n";
@@ -1482,11 +1476,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             str += "Output format: "+renderer.outputFormat+"\n";
             str += "Adaptive playback: "+renderer.adaptivePlayback+"\n";
             str += "GL Renderer: "+renderer.glRenderer+"\n";
-            str += "Build fingerprint: "+Build.FINGERPRINT+"\n";
+            //str += "Build fingerprint: "+Build.FINGERPRINT+"\n";
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 str += "SOC: "+Build.SOC_MANUFACTURER+" - "+Build.SOC_MODEL+"\n";
                 str += "Performance class: "+Build.VERSION.MEDIA_PERFORMANCE_CLASS+"\n";
-                str += "Vendor params: ";
+                /*str += "Vendor params: ";
                 List<String> params = renderer.videoDecoder.getSupportedVendorParameters();
                 if (params.isEmpty()) {
                     str += "NONE";
@@ -1496,7 +1490,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                         str += param + " ";
                     }
                 }
-                str += "\n";
+                str += "\n";*/
             }
             str += "Foreground: "+renderer.foreground+"\n";
             str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";
@@ -1525,8 +1519,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 str += "Buffer codec flags: "+currentCodecFlags+"\n";
             }
 
-            str += "Is Exynos 4: "+renderer.isExynos4+"\n";
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 if (originalException instanceof CodecException) {
                     CodecException ce = (CodecException) originalException;
@@ -1539,20 +1531,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                         str += "Codec Error Code: "+ce.getErrorCode()+"\n";
                     }
                 }
-            }
-
-            str += "/proc/cpuinfo:\n";
-            try {
-                str += MediaCodecHelper.readCpuinfo();
-            } catch (Exception e) {
-                str += e.getMessage();
-            }
-
-            str += "Full decoder dump:\n";
-            try {
-                str += MediaCodecHelper.dumpDecoders();
-            } catch (Exception e) {
-                str += e.getMessage();
             }
 
             str += originalException.toString();

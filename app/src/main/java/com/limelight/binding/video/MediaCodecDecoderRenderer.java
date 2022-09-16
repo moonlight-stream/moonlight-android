@@ -529,24 +529,52 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 nextInputBufferIndex = -1;
                 outputBufferQueue.clear();
 
-                if (needsReset) {
-                    // For "non-recoverable" exceptions, we have to release and recreate the decoder.
+                // For "recoverable" exceptions, we can just stop, reconfigure, and restart.
+                if (needsRestart) {
+                    LimeLog.warning("Trying to restart decoder after CodecException");
+                    try {
+                        videoDecoder.stop();
+                        configureAndStartDecoder(configuredFormat);
+                        needsRestart = false;
+                    } catch (RuntimeException e) {
+                        e.printStackTrace();
+
+                        // Something went wrong during the restart, let's use a bigger hammer
+                        // and try a reset instead.
+                        needsRestart = false;
+                        needsReset = true;
+                    }
+                }
+
+                // For "non-recoverable" exceptions on L+, we can call reset() to recover
+                // without having to recreate the entire decoder again.
+                if (needsReset && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     LimeLog.warning("Trying to reset decoder after CodecException");
+                    try {
+                        videoDecoder.reset();
+                        configureAndStartDecoder(configuredFormat);
+                        needsReset = false;
+                    } catch (RuntimeException e) {
+                        e.printStackTrace();
+
+                        // Something went wrong during the reset, we'll have to resort to
+                        // releasing and recreating the decoder now.
+                    }
+                }
+
+                // If we _still_ haven't managed to recover, go for the nuclear option and just
+                // throw away the old decoder and reinitialize a new one from scratch.
+                if (needsReset) {
+                    LimeLog.warning("Trying to recreate decoder after CodecException");
                     videoDecoder.release();
                     int err = initializeDecoder();
                     if (err != 0) {
                         throw new IllegalStateException("Decoder reset failed: " + err);
                     }
-                }
-                else {
-                    // For "recoverable" exceptions, we can just stop, reconfigure, and restart.
-                    LimeLog.warning("Trying to recover decoder after CodecException");
-                    videoDecoder.stop();
-                    configureAndStartDecoder(configuredFormat);
+                    needsReset = false;
                 }
 
                 // Wake all quiesced threads and allow them to begin work again
-                needsReset = needsRestart = false;
                 codecRecoveryThreadQuiescedFlags = 0;
                 codecRecoveryMonitor.notifyAll();
             }

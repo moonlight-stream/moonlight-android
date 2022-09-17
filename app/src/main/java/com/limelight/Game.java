@@ -1688,18 +1688,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return false;
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return handleMotionEvent(null, event) || super.onTouchEvent(event);
-
-    }
-
-    @Override
-    public boolean onGenericMotionEvent(MotionEvent event) {
-        return handleMotionEvent(null, event) || super.onGenericMotionEvent(event);
-
-    }
-
     private void updateMousePosition(View view, MotionEvent event) {
         // X and Y are already relative to the provided view object
         float eventX = event.getX(0);

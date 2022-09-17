@@ -506,6 +506,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     // All threads that interact with the MediaCodec instance must call this function regularly!
     private boolean doCodecRecoveryIfRequired(int quiescenceFlag) {
+        // NB: We cannot check 'stopping' here because we could end up bailing in a partially
+        // quiesced state that will cause the quiesced threads to never wake up.
         if (!needsReset && !needsRestart) {
             // Common case
             return false;
@@ -611,6 +613,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         // Print the stack trace for debugging purposes
         e.printStackTrace();
 
+        // Eat decoder exceptions if we're in the process of stopping
+        if (stopping) {
+            return false;
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (e instanceof CodecException) {
                 CodecException codecExc = (CodecException) e;
@@ -646,8 +653,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             return false;
         }
 
-        // Only throw if we're not stopping and aren't in the middle of codec recovery
-        if (!stopping && !needsReset && !needsRestart) {
+        // Only throw if we're not in the middle of codec recovery
+        if (!needsReset && !needsRestart) {
             //
             // There seems to be a race condition with decoder/surface teardown causing some
             // decoders to to throw IllegalStateExceptions even before 'stopping' is set.

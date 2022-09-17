@@ -44,7 +44,8 @@ public class MediaCodecHelper {
     private static final List<String> exynosDecoderPrefixes;
     private static final List<String> amlogicDecoderPrefixes;
 
-    public static final boolean IS_EMULATOR = Build.HARDWARE.equals("ranchu") || Build.HARDWARE.equals("cheets");
+    public static final boolean SHOULD_BYPASS_SOFTWARE_BLOCK =
+            Build.HARDWARE.equals("ranchu") || Build.HARDWARE.equals("cheets") || Build.BRAND.equals("Android-x86");
 
     private static boolean isLowEndSnapdragon = false;
     private static boolean isAdreno620 = false;
@@ -82,18 +83,18 @@ public class MediaCodecHelper {
     static {
         blacklistedDecoderPrefixes = new LinkedList<>();
 
-        // Blacklist software decoders that don't support H264 high profile,
-        // but exclude the official AOSP and CrOS emulator from this restriction.
-        if (!IS_EMULATOR) {
+        // Blacklist software decoders that don't support H264 high profile except on systems
+        // that are expected to only have software decoders (like emulators).
+        if (!SHOULD_BYPASS_SOFTWARE_BLOCK) {
             blacklistedDecoderPrefixes.add("omx.google");
             blacklistedDecoderPrefixes.add("AVCDecoder");
-        }
 
-        // We want to avoid ffmpeg decoders since they're software decoders,
-        // but on Android-x86 they might be all we have (and also relatively
-        // performant on a modern x86 processor).
-        if (!Build.BRAND.equals("Android-x86")) {
-            blacklistedDecoderPrefixes.add("OMX.ffmpeg");
+            // We want to avoid ffmpeg decoders since they're usually software decoders,
+            // but we'll defer to the Android 10 isSoftwareOnly() API on newer devices
+            // to determine if we should use these or not.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                blacklistedDecoderPrefixes.add("OMX.ffmpeg");
+            }
         }
 
         // Force these decoders disabled because:
@@ -721,7 +722,7 @@ public class MediaCodecHelper {
     private static boolean isCodecBlacklisted(MediaCodecInfo codecInfo) {
         // Use the new isSoftwareOnly() function on Android Q
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (!IS_EMULATOR && codecInfo.isSoftwareOnly()) {
+            if (!SHOULD_BYPASS_SOFTWARE_BLOCK && codecInfo.isSoftwareOnly()) {
                 LimeLog.info("Skipping software-only decoder: "+codecInfo.getName());
                 return true;
             }

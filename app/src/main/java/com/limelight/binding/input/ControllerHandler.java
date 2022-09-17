@@ -9,6 +9,8 @@ import android.hardware.usb.UsbManager;
 import android.media.AudioAttributes;
 import android.os.Build;
 import android.os.CombinedVibration;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.VibrationAttributes;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -34,8 +36,6 @@ import com.limelight.utils.Vector2d;
 import org.cgutman.shieldcontrollerextensions.SceManager;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class ControllerHandler implements InputManager.InputDeviceListener, UsbDriverListener {
 
@@ -60,6 +60,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final GameGestures gestures;
     private final Vibrator deviceVibrator;
     private final SceManager sceManager;
+    private final Handler handler;
     private boolean hasGameController;
 
     private final PreferenceConfiguration prefConfig;
@@ -71,6 +72,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         this.gestures = gestures;
         this.prefConfig = prefConfig;
         this.deviceVibrator = (Vibrator) activityContext.getSystemService(Context.VIBRATOR_SERVICE);
+        this.handler = new Handler(Looper.getMainLooper());
 
         this.sceManager = new SceManager(activityContext);
         this.sceManager.start();
@@ -1292,28 +1294,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
-    private void toggleMouseEmulation(final GenericControllerContext context) {
-        if (context.mouseEmulationTimer != null) {
-            context.mouseEmulationTimer.cancel();
-            context.mouseEmulationTimer = null;
-        }
-
-        context.mouseEmulationActive = !context.mouseEmulationActive;
-        Toast.makeText(activityContext, "Mouse emulation is: " + (context.mouseEmulationActive ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
-
-        if (context.mouseEmulationActive) {
-            context.mouseEmulationTimer = new Timer();
-            context.mouseEmulationTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    // Send mouse movement events from analog sticks
-                    sendEmulatedMouseEvent(context.leftStickX, context.leftStickY);
-                    sendEmulatedMouseEvent(context.rightStickX, context.rightStickY);
-                }
-            }, 50, 50);
-        }
-    }
-
     @TargetApi(31)
     private boolean hasDualAmplitudeControlledRumbleVibrators(VibratorManager vm) {
         int[] vibratorIds = vm.getVibratorIds();
@@ -1531,7 +1511,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             if ((context.inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
                     event.getEventTime() - context.startDownTime > ControllerHandler.START_DOWN_TIME_MOUSE_MODE_MS &&
                     prefConfig.mouseEmulation) {
-                toggleMouseEmulation(context);
+                context.toggleMouseEmulation();
             }
             context.inputMap &= ~ControllerPacket.PLAY_FLAG;
             break;
@@ -1878,7 +1858,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         usbDeviceContexts.put(controller.getControllerId(), context);
     }
 
-    static class GenericControllerContext {
+    class GenericControllerContext {
         public int id;
         public boolean external;
 
@@ -1902,14 +1882,38 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public short leftStickY = 0x0000;
 
         public boolean mouseEmulationActive;
-        public Timer mouseEmulationTimer;
         public short mouseEmulationLastInputMap;
+        public final int mouseEmulationReportPeriod = 50;
+
+        public final Runnable mouseEmulationRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!mouseEmulationActive) {
+                    return;
+                }
+
+                // Send mouse movement events from analog sticks
+                sendEmulatedMouseEvent(leftStickX, leftStickY);
+                sendEmulatedMouseEvent(rightStickX, rightStickY);
+
+                // Requeue the callback
+                handler.postDelayed(this, mouseEmulationReportPeriod);
+            }
+        };
+
+        public void toggleMouseEmulation() {
+            handler.removeCallbacks(mouseEmulationRunnable);
+            mouseEmulationActive = !mouseEmulationActive;
+            Toast.makeText(activityContext, "Mouse emulation is: " + (mouseEmulationActive ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
+
+            if (mouseEmulationActive) {
+                handler.postDelayed(mouseEmulationRunnable, mouseEmulationReportPeriod);
+            }
+        }
 
         public void destroy() {
-            if (mouseEmulationTimer != null) {
-                mouseEmulationTimer.cancel();
-                mouseEmulationTimer = null;
-            }
+            mouseEmulationActive = false;
+            handler.removeCallbacks(mouseEmulationRunnable);
         }
     }
 

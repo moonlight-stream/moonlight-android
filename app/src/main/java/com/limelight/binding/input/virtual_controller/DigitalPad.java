@@ -162,7 +162,6 @@ public class DigitalPad extends VirtualControllerElement {
         // get masked (not specific to a pointer) action
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_POINTER_DOWN:
             case MotionEvent.ACTION_MOVE: {
                 direction = 0;
 
@@ -184,8 +183,7 @@ public class DigitalPad extends VirtualControllerElement {
                 return true;
             }
             case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_POINTER_UP: {
+            case MotionEvent.ACTION_UP: {
                 direction = 0;
                 newDirectionCallback(direction);
                 invalidate();

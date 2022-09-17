@@ -305,8 +305,7 @@ public class AnalogStick extends VirtualControllerElement {
         // handle event depending on action
         switch (event.getActionMasked()) {
             // down event (touch event)
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_POINTER_DOWN: {
+            case MotionEvent.ACTION_DOWN: {
                 // set to dead zoned, will be corrected in update position if necessary
                 stick_state = STICK_STATE.MOVED_IN_DEAD_ZONE;
                 // check for double click
@@ -325,8 +324,7 @@ public class AnalogStick extends VirtualControllerElement {
                 break;
             }
             // up event (revoke touch)
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_POINTER_UP: {
+            case MotionEvent.ACTION_UP: {
                 setPressed(false);
                 break;
             }

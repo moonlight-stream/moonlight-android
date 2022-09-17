@@ -200,8 +200,7 @@ public class DigitalButton extends VirtualControllerElement {
         int action = event.getActionMasked();
 
         switch (action) {
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_POINTER_DOWN: {
+            case MotionEvent.ACTION_DOWN: {
                 movingButton = null;
                 setPressed(true);
                 onClickCallback();
@@ -216,8 +215,7 @@ public class DigitalButton extends VirtualControllerElement {
                 return true;
             }
             case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_POINTER_UP: {
+            case MotionEvent.ACTION_UP: {
                 setPressed(false);
                 onReleaseCallback();
 

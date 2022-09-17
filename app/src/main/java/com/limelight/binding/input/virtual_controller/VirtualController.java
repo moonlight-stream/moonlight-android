@@ -43,23 +43,12 @@ public class VirtualController {
     private final Context context;
     private final Handler handler;
 
-    // HACK: GFE sometimes discards gamepad packets when they are received
-    // very shortly after another. This can be critical if an axis zeroing packet
-    // is lost and causes an analog stick to get stuck. To avoid this, we send
-    // a gamepad input packet every 100 ms to ensure any loss can be recovered.
-    private static final int RETRANSMIT_PERIOD_MS = 100;
-    private final Runnable retransmitRunnable = new Runnable() {
+    private final Runnable delayedRetransmitRunnable = new Runnable() {
         @Override
         public void run() {
-            if (hidden) {
-                return;
-            }
-
-            sendControllerInputContext();
-            handler.postDelayed(this, RETRANSMIT_PERIOD_MS);
+            sendControllerInputContextInternal();
         }
     };
-    private boolean hidden;
 
     private FrameLayout frame_layout = null;
 
@@ -114,9 +103,6 @@ public class VirtualController {
     }
 
     public void hide() {
-        hidden = true;
-        handler.removeCallbacks(retransmitRunnable);
-
         for (VirtualControllerElement element : elements) {
             element.setVisibility(View.INVISIBLE);
         }
@@ -125,15 +111,11 @@ public class VirtualController {
     }
 
     public void show() {
-        hidden = false;
-
         for (VirtualControllerElement element : elements) {
             element.setVisibility(View.VISIBLE);
         }
 
         buttonConfigure.setVisibility(View.VISIBLE);
-
-        handler.postDelayed(retransmitRunnable, RETRANSMIT_PERIOD_MS);
     }
 
     public void removeElements() {
@@ -196,7 +178,7 @@ public class VirtualController {
         return inputContext;
     }
 
-    void sendControllerInputContext() {
+    private void sendControllerInputContextInternal() {
         _DBG("INPUT_MAP + " + inputContext.inputMap);
         _DBG("LEFT_TRIGGER " + inputContext.leftTrigger);
         _DBG("RIGHT_TRIGGER " + inputContext.rightTrigger);
@@ -214,5 +196,20 @@ public class VirtualController {
                     inputContext.rightTrigger
             );
         }
+    }
+
+    void sendControllerInputContext() {
+        // Cancel retransmissions of prior gamepad inputs
+        handler.removeCallbacks(delayedRetransmitRunnable);
+
+        sendControllerInputContextInternal();
+
+        // HACK: GFE sometimes discards gamepad packets when they are received
+        // very shortly after another. This can be critical if an axis zeroing packet
+        // is lost and causes an analog stick to get stuck. To avoid this, we retransmit
+        // the gamepad state a few times unless another input event happens before then.
+        handler.postDelayed(delayedRetransmitRunnable, 25);
+        handler.postDelayed(delayedRetransmitRunnable, 50);
+        handler.postDelayed(delayedRetransmitRunnable, 75);
     }
 }

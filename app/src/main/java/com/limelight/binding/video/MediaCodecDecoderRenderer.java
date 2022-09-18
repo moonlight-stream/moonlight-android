@@ -618,39 +618,43 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             return false;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (e instanceof CodecException) {
-                CodecException codecExc = (CodecException) e;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && e instanceof CodecException) {
+            CodecException codecExc = (CodecException) e;
 
-                if (codecExc.isTransient()) {
-                    // We'll let transient exceptions go
-                    LimeLog.warning(codecExc.getDiagnosticInfo());
-                    return true;
+            if (codecExc.isTransient()) {
+                // We'll let transient exceptions go
+                LimeLog.warning(codecExc.getDiagnosticInfo());
+                return true;
+            }
+
+            LimeLog.severe(codecExc.getDiagnosticInfo());
+
+            // We can attempt a recovery or reset at this stage to try to start decoding again
+            if (codecRecoveryAttempts < CR_MAX_TRIES) {
+                if (codecExc.isRecoverable()) {
+                    needsRestart = true;
+                }
+                else {
+                    needsReset = true;
                 }
 
-                LimeLog.severe(codecExc.getDiagnosticInfo());
-
-                // We can attempt a recovery or reset at this stage to try to start decoding again
-                if (codecRecoveryAttempts < CR_MAX_TRIES) {
-                    if (codecExc.isRecoverable()) {
-                        needsRestart = true;
-                    }
-                    else {
-                        needsReset = true;
-                    }
-
-                    // The recovery will take place when all threads reach doCodecRecoveryIfRequired().
-                    return false;
-                }
+                // The recovery will take place when all threads reach doCodecRecoveryIfRequired().
+                return false;
             }
         }
-
-        // If we got here, this is most likely an IllegalStateException which was used prior to L
-        // to indicate codec errors (unexpected transition to the error state). Recovery from this
-        // requires a full decoder reset.
-        if (codecRecoveryAttempts < CR_MAX_TRIES) {
-            needsReset = true;
-            return false;
+        else if (e instanceof IllegalStateException) {
+            // IllegalStateException was primarily used prior to the introduction of CodecException.
+            // Recovery from this requires a full decoder reset.
+            //
+            // NB: CodecException is an IllegalStateException, so we must check for it first.
+            if (codecRecoveryAttempts < CR_MAX_TRIES) {
+                needsReset = true;
+                return false;
+            }
+        }
+        else {
+            // If it's not a CodecException or IllegalStateException, it's not an "expected" failure.
+            throw e;
         }
 
         // Only throw if we're not in the middle of codec recovery

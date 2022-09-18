@@ -2,7 +2,6 @@ package com.limelight.binding.video;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.jcodec.codecs.h264.H264Utils;
@@ -525,6 +524,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             if (codecRecoveryThreadQuiescedFlags == CR_FLAG_ALL) {
                 // This is the final thread to quiesce, so let's perform the codec recovery now.
                 codecRecoveryAttempts++;
+                LimeLog.info("Codec recovery attempt: "+codecRecoveryAttempts);
 
                 // Input and output buffers are invalidated by stop() and reset().
                 nextInputBuffer = null;
@@ -609,7 +609,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     }
 
     // Returns true if the exception is transient
-    private boolean handleDecoderException(RuntimeException e, ByteBuffer buf, int codecFlags) {
+    private boolean handleDecoderException(IllegalStateException e) {
         // Print the stack trace for debugging purposes
         e.printStackTrace();
 
@@ -642,7 +642,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 return false;
             }
         }
-        else if (e instanceof IllegalStateException) {
+        else {
             // IllegalStateException was primarily used prior to the introduction of CodecException.
             // Recovery from this requires a full decoder reset.
             //
@@ -651,10 +651,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 needsReset = true;
                 return false;
             }
-        }
-        else {
-            // If it's not a CodecException or IllegalStateException, it's not an "expected" failure.
-            throw e;
         }
 
         // Only throw if we're not in the middle of codec recovery
@@ -679,7 +675,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             }
             else {
                 // This is the first exception we've hit
-                initialException = new RendererException(this, e, buf, codecFlags);
+                initialException = new RendererException(this, e);
                 initialExceptionTimestamp = SystemClock.uptimeMillis();
             }
         }
@@ -717,13 +713,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
                     lastRenderedFrameTimeNanos = frameTimeNanos;
                     activeWindowVideoStats.totalFramesRendered++;
-                } catch (RuntimeException ignored) {
+                } catch (IllegalStateException ignored) {
                     try {
                         // Try to avoid leaking the output buffer by releasing it without rendering
                         videoDecoder.releaseOutputBuffer(nextOutputBuffer, false);
-                    } catch (RuntimeException e) {
+                    } catch (IllegalStateException e) {
                         // This will leak nextOutputBuffer, but there's really nothing else we can do
-                        handleDecoderException(e, null, 0);
+                        handleDecoderException(e);
                     }
                 } finally {
                     doCodecRecoveryIfRequired(CR_FLAG_CHOREOGRAPHER);
@@ -851,8 +847,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                                     break;
                             }
                         }
-                    } catch (RuntimeException e) {
-                        handleDecoderException(e, null, 0);
+                    } catch (IllegalStateException e) {
+                        handleDecoderException(e);
                     } finally {
                         doCodecRecoveryIfRequired(CR_FLAG_RENDER_THREAD);
                     }
@@ -901,8 +897,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                     nextInputBuffer.clear();
                 }
             }
-        } catch (RuntimeException e) {
-            handleDecoderException(e, null, 0);
+        } catch (IllegalStateException e) {
+            handleDecoderException(e);
             return false;
         } finally {
             codecRecovered = doCodecRecoveryIfRequired(CR_FLAG_INPUT_THREAD);
@@ -1022,8 +1018,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             // We need a new buffer now
             nextInputBufferIndex = -1;
             nextInputBuffer = null;
-        } catch (RuntimeException e) {
-            if (handleDecoderException(e, nextInputBuffer, codecFlags)) {
+        } catch (IllegalStateException e) {
+            if (handleDecoderException(e)) {
                 // We encountered a transient error. In this case, just hold onto the buffer
                 // (to avoid leaking it), clear it, and keep it for the next frame. We'll return
                 // false to trigger an IDR frame to recover.
@@ -1475,18 +1471,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         private String text;
 
         RendererException(MediaCodecDecoderRenderer renderer, Exception e) {
-            this.text = generateText(renderer, e, null, 0);
-        }
-
-        RendererException(MediaCodecDecoderRenderer renderer, Exception e, ByteBuffer currentBuffer, int currentCodecFlags) {
-            this.text = generateText(renderer, e, currentBuffer, currentCodecFlags);
+            this.text = generateText(renderer, e);
         }
 
         public String toString() {
             return text;
         }
 
-        private String generateText(MediaCodecDecoderRenderer renderer, Exception originalException, ByteBuffer currentBuffer, int currentCodecFlags) {
+        private String generateText(MediaCodecDecoderRenderer renderer, Exception originalException) {
             String str;
 
             if (renderer.numVpsIn == 0 && renderer.numSpsIn == 0 && renderer.numPpsIn == 0) {
@@ -1575,16 +1567,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             str += "Average end-to-end client latency: "+renderer.getAverageEndToEndLatency()+"ms\n";
             str += "Average hardware decoder latency: "+renderer.getAverageDecoderLatency()+"ms\n";
             str += "Frame pacing mode: "+renderer.prefs.framePacing+"\n";
-
-            if (currentBuffer != null) {
-                str += "Current buffer: ";
-                currentBuffer.flip();
-                while (currentBuffer.hasRemaining() && currentBuffer.position() < 10) {
-                    str += String.format((Locale)null, "%02x ", currentBuffer.get());
-                }
-                str += "\n";
-                str += "Buffer codec flags: "+currentCodecFlags+"\n";
-            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 if (originalException instanceof CodecException) {

@@ -1,8 +1,10 @@
 package com.limelight.binding.video;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jcodec.codecs.h264.H264Utils;
 import org.jcodec.codecs.h264.io.model.SeqParameterSet;
@@ -72,8 +74,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     private static final int CR_TIMEOUT_MS = 5000;
     private static final int CR_MAX_TRIES = 10;
-    private volatile boolean needsRestart;
-    private volatile boolean needsReset;
+    private static final int CR_RECOVERY_TYPE_NONE = 0;
+    private static final int CR_RECOVERY_TYPE_RESTART = 1;
+    private static final int CR_RECOVERY_TYPE_RESET = 2;
+    private AtomicInteger codecRecoveryType = new AtomicInteger(CR_RECOVERY_TYPE_NONE);
     private final Object codecRecoveryMonitor = new Object();
 
     // Each thread that touches the MediaCodec object or any associated buffers must have a flag
@@ -381,25 +385,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         }
     }
 
-    private boolean tryConfigureDecoder(MediaCodecInfo selectedDecoderInfo, MediaFormat format) {
-        try {
-            videoDecoder = MediaCodec.createByCodecName(selectedDecoderInfo.getName());
-            configureAndStartDecoder(format);
-            LimeLog.info("Using codec "+selectedDecoderInfo.getName()+" for hardware decoding "+format.getString(MediaFormat.KEY_MIME));
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            if (videoDecoder != null) {
-                videoDecoder.release();
-                videoDecoder = null;
-            }
-
-            return false;
-        }
+    private void tryConfigureDecoder(MediaCodecInfo selectedDecoderInfo, MediaFormat format) throws IOException {
+        videoDecoder = MediaCodec.createByCodecName(selectedDecoderInfo.getName());
+        configureAndStartDecoder(format);
+        LimeLog.info("Using codec " + selectedDecoderInfo.getName() + " for hardware decoding " + format.getString(MediaFormat.KEY_MIME));
     }
 
-    public int initializeDecoder() {
+    public int initializeDecoder(boolean throwOnCodecError) {
         String mimeType;
         MediaCodecInfo selectedDecoderInfo;
 
@@ -457,7 +449,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(selectedDecoderInfo, mimeType);
         fusedIdrFrame = MediaCodecHelper.decoderSupportsFusedIdrFrame(selectedDecoderInfo, mimeType);
 
-        for (int tryNumber = 0;; tryNumber++) {
+        boolean configured = false;
+        for (int tryNumber = 0; !configured; tryNumber++) {
             LimeLog.info("Decoder configuration try: "+tryNumber);
 
             MediaFormat mediaFormat = createBaseMediaFormat(mimeType);
@@ -465,12 +458,32 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             // This will try low latency options until we find one that works (or we give up).
             boolean newFormat = MediaCodecHelper.setDecoderLowLatencyOptions(mediaFormat, selectedDecoderInfo, tryNumber);
 
-            if (tryConfigureDecoder(selectedDecoderInfo, mediaFormat)) {
-                // Success!
-                break;
+            try {
+                tryConfigureDecoder(selectedDecoderInfo, mediaFormat);
+                configured = true;
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+                if (throwOnCodecError) {
+                    throw e;
+                }
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+                if (throwOnCodecError) {
+                    throw e;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                if (throwOnCodecError) {
+                    throw new RuntimeException(e);
+                }
+            } finally {
+                if (!configured && videoDecoder != null) {
+                    videoDecoder.release();
+                    videoDecoder = null;
+                }
             }
 
-            if (!newFormat) {
+            if (!configured && !newFormat) {
                 // We couldn't even configure a decoder without any low latency options
                 return -5;
             }
@@ -500,14 +513,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         this.videoFormat = format;
         this.refreshRate = redrawRate;
 
-        return initializeDecoder();
+        return initializeDecoder(false);
     }
 
     // All threads that interact with the MediaCodec instance must call this function regularly!
     private boolean doCodecRecoveryIfRequired(int quiescenceFlag) {
         // NB: We cannot check 'stopping' here because we could end up bailing in a partially
         // quiesced state that will cause the quiesced threads to never wake up.
-        if (!needsReset && !needsRestart) {
+        if (codecRecoveryType.get() == CR_RECOVERY_TYPE_NONE) {
             // Common case
             return false;
         }
@@ -532,31 +545,42 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 outputBufferQueue.clear();
 
                 // For "recoverable" exceptions, we can just stop, reconfigure, and restart.
-                if (needsRestart) {
+                if (codecRecoveryType.get() == CR_RECOVERY_TYPE_RESTART) {
                     LimeLog.warning("Trying to restart decoder after CodecException");
                     try {
                         videoDecoder.stop();
                         configureAndStartDecoder(configuredFormat);
-                        needsRestart = false;
-                    } catch (RuntimeException e) {
+                        codecRecoveryType.set(CR_RECOVERY_TYPE_NONE);
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+
+                        // Our Surface is probably invalid, so just stop
+                        stopping = true;
+                        codecRecoveryType.set(CR_RECOVERY_TYPE_NONE);
+                    } catch (IllegalStateException e) {
                         e.printStackTrace();
 
                         // Something went wrong during the restart, let's use a bigger hammer
                         // and try a reset instead.
-                        needsRestart = false;
-                        needsReset = true;
+                        codecRecoveryType.set(CR_RECOVERY_TYPE_RESET);
                     }
                 }
 
                 // For "non-recoverable" exceptions on L+, we can call reset() to recover
                 // without having to recreate the entire decoder again.
-                if (needsReset && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (codecRecoveryType.get() == CR_RECOVERY_TYPE_RESET && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     LimeLog.warning("Trying to reset decoder after CodecException");
                     try {
                         videoDecoder.reset();
                         configureAndStartDecoder(configuredFormat);
-                        needsReset = false;
-                    } catch (RuntimeException e) {
+                        codecRecoveryType.set(CR_RECOVERY_TYPE_NONE);
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+
+                        // Our Surface is probably invalid, so just stop
+                        stopping = true;
+                        codecRecoveryType.set(CR_RECOVERY_TYPE_NONE);
+                    } catch (IllegalStateException e) {
                         e.printStackTrace();
 
                         // Something went wrong during the reset, we'll have to resort to
@@ -566,14 +590,23 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
                 // If we _still_ haven't managed to recover, go for the nuclear option and just
                 // throw away the old decoder and reinitialize a new one from scratch.
-                if (needsReset) {
+                if (codecRecoveryType.get() == CR_RECOVERY_TYPE_RESET) {
                     LimeLog.warning("Trying to recreate decoder after CodecException");
                     videoDecoder.release();
-                    int err = initializeDecoder();
-                    if (err != 0) {
-                        throw new IllegalStateException("Decoder reset failed: " + err);
+
+                    try {
+                        int err = initializeDecoder(true);
+                        if (err != 0) {
+                            throw new IllegalStateException("Decoder reset failed: " + err);
+                        }
+                        codecRecoveryType.set(CR_RECOVERY_TYPE_NONE);
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+
+                        // Our Surface is probably invalid, so just stop
+                        stopping = true;
+                        codecRecoveryType.set(CR_RECOVERY_TYPE_NONE);
                     }
-                    needsReset = false;
                 }
 
                 // Wake all quiesced threads and allow them to begin work again
@@ -585,7 +618,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 // The final thread to be quiesced will handle the codec recovery.
                 LimeLog.info("Waiting to quiesce decoder threads: "+codecRecoveryThreadQuiescedFlags);
                 long startTime = SystemClock.uptimeMillis();
-                while (needsReset || needsRestart) {
+                while (codecRecoveryType.get() != CR_RECOVERY_TYPE_NONE) {
                     try {
                         if (SystemClock.uptimeMillis() - startTime >= CR_TIMEOUT_MS) {
                             throw new IllegalStateException("Decoder failed to recover within timeout");
@@ -610,9 +643,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     // Returns true if the exception is transient
     private boolean handleDecoderException(IllegalStateException e) {
-        // Print the stack trace for debugging purposes
-        e.printStackTrace();
-
         // Eat decoder exceptions if we're in the process of stopping
         if (stopping) {
             return false;
@@ -631,11 +661,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
             // We can attempt a recovery or reset at this stage to try to start decoding again
             if (codecRecoveryAttempts < CR_MAX_TRIES) {
-                if (codecExc.isRecoverable()) {
-                    needsRestart = true;
+                // If the exception is non-recoverable or we already require a reset, perform a reset.
+                // If we have no prior unrecoverable failure, we will try a restart instead.
+                if (codecExc.isRecoverable() && codecRecoveryType.compareAndSet(CR_RECOVERY_TYPE_NONE, CR_RECOVERY_TYPE_RESTART)) {
+                    LimeLog.info("Decoder requires restart for recoverable CodecException");
+                    e.printStackTrace();
                 }
-                else {
-                    needsReset = true;
+                else if (!codecExc.isRecoverable()) {
+                    if (codecRecoveryType.compareAndSet(CR_RECOVERY_TYPE_NONE, CR_RECOVERY_TYPE_RESET)) {
+                        LimeLog.info("Decoder requires reset for non-recoverable CodecException");
+                        e.printStackTrace();
+                    }
+                    else if (codecRecoveryType.compareAndSet(CR_RECOVERY_TYPE_RESTART, CR_RECOVERY_TYPE_RESET)) {
+                        LimeLog.info("Decoder restart promoted to reset for non-recoverable CodecException");
+                        e.printStackTrace();
+                    }
+                    else if (codecRecoveryType.get() != CR_RECOVERY_TYPE_RESET) {
+                        throw new IllegalStateException("Unexpected codec recovery type" + codecRecoveryType.get());
+                    }
                 }
 
                 // The recovery will take place when all threads reach doCodecRecoveryIfRequired().
@@ -648,13 +691,24 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             //
             // NB: CodecException is an IllegalStateException, so we must check for it first.
             if (codecRecoveryAttempts < CR_MAX_TRIES) {
-                needsReset = true;
+                if (codecRecoveryType.compareAndSet(CR_RECOVERY_TYPE_NONE, CR_RECOVERY_TYPE_RESET)) {
+                    LimeLog.info("Decoder requires reset for IllegalStateException");
+                    e.printStackTrace();
+                }
+                else if (codecRecoveryType.compareAndSet(CR_RECOVERY_TYPE_RESTART, CR_RECOVERY_TYPE_RESET)) {
+                    LimeLog.info("Decoder restart promoted to reset for IllegalStateException");
+                    e.printStackTrace();
+                }
+                else if (codecRecoveryType.get() != CR_RECOVERY_TYPE_RESET) {
+                    throw new IllegalStateException("Unexpected codec recovery type: " + codecRecoveryType.get());
+                }
+
                 return false;
             }
         }
 
         // Only throw if we're not in the middle of codec recovery
-        if (!needsReset && !needsRestart) {
+        if (codecRecoveryType.get() == CR_RECOVERY_TYPE_NONE) {
             //
             // There seems to be a race condition with decoder/surface teardown causing some
             // decoders to to throw IllegalStateExceptions even before 'stopping' is set.
@@ -719,6 +773,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                         videoDecoder.releaseOutputBuffer(nextOutputBuffer, false);
                     } catch (IllegalStateException e) {
                         // This will leak nextOutputBuffer, but there's really nothing else we can do
+                        e.printStackTrace();
                         handleDecoderException(e);
                     }
                 } finally {

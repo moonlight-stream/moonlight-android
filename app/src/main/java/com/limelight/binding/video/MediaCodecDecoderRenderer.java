@@ -1019,6 +1019,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             rendererThread.interrupt();
         }
 
+        // Stop any active codec recovery operations
+        synchronized (codecRecoveryMonitor) {
+            codecRecoveryType.set(CR_RECOVERY_TYPE_NONE);
+            codecRecoveryMonitor.notifyAll();
+        }
+
         // Post a quit message to the Choreographer looper (if we have one)
         if (choreographerHandler != null) {
             choreographerHandler.post(new Runnable() {

@@ -253,4 +253,10 @@
     <string name="title_checkbox_absolute_mouse_mode">Mode souris pour bureau à distance</string>
     <string name="summary_seekbar_deadzone">Remarque : Certains jeux peuvent imposer une zone morte plus grande que celle que Moonlight est configuré pour utiliser.</string>
     <string name="summary_checkbox_absolute_mouse_mode">Cela peut rendre l\'accélération de la souris plus naturelle pour l\'utilisation du bureau à distance, mais elle est incompatible avec de nombreux jeux.</string>
+    <string name="resolution_prefix_native_landscape">(Paysage)</string>
+    <string name="resolution_prefix_native_portrait">(Portrait)</string>
+    <string name="title_checkbox_reduce_refresh_rate">Autoriser la réduction du taux de rafraîchissement</string>
+    <string name="summary_checkbox_reduce_refresh_rate">Des taux de rafraîchissement d\'affichage plus bas peuvent économiser de l\'énergie au détriment d\'une latence vidéo plus importante</string>
+    <string name="summary_checkbox_enable_audiofx">Permet aux effets audio de fonctionner lors du streaming, mais peut augmenter la latence</string>
+    <string name="title_checkbox_enable_audiofx">Activer le support de l\'égalisateur système</string>
 </resources>

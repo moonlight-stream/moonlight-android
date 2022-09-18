@@ -385,10 +385,35 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         }
     }
 
-    private void tryConfigureDecoder(MediaCodecInfo selectedDecoderInfo, MediaFormat format) throws IOException {
-        videoDecoder = MediaCodec.createByCodecName(selectedDecoderInfo.getName());
-        configureAndStartDecoder(format);
-        LimeLog.info("Using codec " + selectedDecoderInfo.getName() + " for hardware decoding " + format.getString(MediaFormat.KEY_MIME));
+    private boolean tryConfigureDecoder(MediaCodecInfo selectedDecoderInfo, MediaFormat format, boolean throwOnCodecError) {
+        boolean configured = false;
+        try {
+            videoDecoder = MediaCodec.createByCodecName(selectedDecoderInfo.getName());
+            configureAndStartDecoder(format);
+            LimeLog.info("Using codec " + selectedDecoderInfo.getName() + " for hardware decoding " + format.getString(MediaFormat.KEY_MIME));
+            configured = true;
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            if (throwOnCodecError) {
+                throw e;
+            }
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            if (throwOnCodecError) {
+                throw e;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            if (throwOnCodecError) {
+                throw new RuntimeException(e);
+            }
+        } finally {
+            if (!configured && videoDecoder != null) {
+                videoDecoder.release();
+                videoDecoder = null;
+            }
+        }
+        return configured;
     }
 
     public int initializeDecoder(boolean throwOnCodecError) {
@@ -449,8 +474,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         adaptivePlayback = MediaCodecHelper.decoderSupportsAdaptivePlayback(selectedDecoderInfo, mimeType);
         fusedIdrFrame = MediaCodecHelper.decoderSupportsFusedIdrFrame(selectedDecoderInfo, mimeType);
 
-        boolean configured = false;
-        for (int tryNumber = 0; !configured; tryNumber++) {
+        for (int tryNumber = 0;; tryNumber++) {
             LimeLog.info("Decoder configuration try: "+tryNumber);
 
             MediaFormat mediaFormat = createBaseMediaFormat(mimeType);
@@ -458,32 +482,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             // This will try low latency options until we find one that works (or we give up).
             boolean newFormat = MediaCodecHelper.setDecoderLowLatencyOptions(mediaFormat, selectedDecoderInfo, tryNumber);
 
-            try {
-                tryConfigureDecoder(selectedDecoderInfo, mediaFormat);
-                configured = true;
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-                if (throwOnCodecError) {
-                    throw e;
-                }
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-                if (throwOnCodecError) {
-                    throw e;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                if (throwOnCodecError) {
-                    throw new RuntimeException(e);
-                }
-            } finally {
-                if (!configured && videoDecoder != null) {
-                    videoDecoder.release();
-                    videoDecoder = null;
-                }
+            // Throw the underlying codec exception on the last attempt if the caller requested it
+            if (tryConfigureDecoder(selectedDecoderInfo, mediaFormat, !newFormat && throwOnCodecError)) {
+                // Success!
+                break;
             }
 
-            if (!configured && !newFormat) {
+            if (!newFormat) {
                 // We couldn't even configure a decoder without any low latency options
                 return -5;
             }

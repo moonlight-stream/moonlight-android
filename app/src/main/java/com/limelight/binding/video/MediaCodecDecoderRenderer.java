@@ -783,11 +783,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                         e.printStackTrace();
                         handleDecoderException(e);
                     }
-                } finally {
-                    doCodecRecoveryIfRequired(CR_FLAG_CHOREOGRAPHER);
                 }
             }
         }
+
+        // Attempt codec recovery even if we have nothing to render right now. Recovery can still
+        // be required even if the codec died before giving any output.
+        doCodecRecoveryIfRequired(CR_FLAG_CHOREOGRAPHER);
 
         // Request another callback for next frame
         Choreographer.getInstance().postFrameCallback(this);

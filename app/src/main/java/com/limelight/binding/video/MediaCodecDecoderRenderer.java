@@ -1185,7 +1185,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
             // GFE 2.5.11 changed the SPS to add additional extensions
             // Some devices don't like these so we remove them here on old devices.
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O && sps.vuiParams != null) {
                 sps.vuiParams.videoSignalTypePresentFlag = false;
                 sps.vuiParams.colourDescriptionPresentFlag = false;
                 sps.vuiParams.chromaLocInfoPresentFlag = false;
@@ -1196,6 +1196,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             if (needsSpsBitstreamFixup || isExynos4 || Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 // The SPS that comes in the current H264 bytestream doesn't set bitstream_restriction_flag
                 // or max_dec_frame_buffering which increases decoding latency on Tegra.
+
+                // If the encoder didn't include VUI parameters in the SPS, add them now
+                if (sps.vuiParams == null) {
+                    LimeLog.info("Adding VUI parameters");
+                    sps.vuiParams = new VUIParameters();
+                }
 
                 // GFE 2.5.11 started sending bitstream restrictions
                 if (sps.vuiParams.bitstreamRestriction == null) {
@@ -1221,7 +1227,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 // log2_max_mv_length_horizontal and log2_max_mv_length_vertical are set to more
                 // conservative values by GFE 2.5.11. We'll let those values stand.
             }
-            else {
+            else if (sps.vuiParams != null) {
                 // Devices that didn't/couldn't get bitstream restrictions before GFE 2.5.11
                 // will continue to not receive them now
                 sps.vuiParams.bitstreamRestriction = null;

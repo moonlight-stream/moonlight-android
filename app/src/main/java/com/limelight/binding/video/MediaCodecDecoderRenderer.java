@@ -606,6 +606,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                         // Our Surface is probably invalid, so just stop
                         stopping = true;
                         codecRecoveryType.set(CR_RECOVERY_TYPE_NONE);
+                    } catch (IllegalStateException e) {
+                        // If we failed to recover after all of these attempts, just crash
+                        if (!reportedCrash) {
+                            reportedCrash = true;
+                            crashListener.notifyCrash(e);
+                        }
+                        throw e;
                     }
                 }
 

@@ -97,6 +97,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     // Only 2 touches are supported
     private final TouchContext[] touchContextMap = new TouchContext[2];
     private long threeFingerDownTime = 0;
+    private View primaryTouchOwner;
 
     private static final int REFERENCE_HORIZ_RES = 1280;
     private static final int REFERENCE_VERT_RES = 720;
@@ -244,15 +245,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // for this rather than just handling it at the Activity level, because that
         // allows proper touch splitting, which the OSC relies upon.
         View backgroundTouchView = findViewById(R.id.backgroundTouchView);
-        backgroundTouchView.setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                // We pass this to handleMotionEvent() as if it came from the Activity-level
-                // onTouchEvent() callback, otherwise it will assume it's from the StreamView
-                // and compute the incorrect video bounds when handling absolute input.
-                return handleMotionEvent(null, event);
-            }
-        });
+        backgroundTouchView.setOnTouchListener(this);
 
         boolean needsInputBatching = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -646,6 +639,37 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 UiHelper.notifyStreamExitingPiP(this);
             }
         }
+    }
+
+    private boolean handlePrimaryTouchOwner(View view, MotionEvent event) {
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            if (primaryTouchOwner == null) {
+                // This is the first dispatch, so we become the primary touch owner
+                primaryTouchOwner = view;
+            }
+
+            // Fall-through
+        }
+        else if (event.getActionMasked() == MotionEvent.ACTION_UP ||
+                event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+            if (primaryTouchOwner == view) {
+                // This is the concluding event on the primary touch owner, so we
+                // are no longer the primary touch owner now.
+                primaryTouchOwner = null;
+                return true;
+            }
+            else if (view != streamView && primaryTouchOwner == streamView) {
+                // If we hit this codepath, the StreamView didn't handle the UP/CANCEL event.
+                // This is unexpected, but we can recover by allowing the background view
+                // to handle it and resetting the primary touch owner.
+                LimeLog.warning("Unhandled StreamView touch event: "+event);
+                primaryTouchOwner = null;
+                return true;
+            }
+        }
+
+        // For all down/move events, handle the event if we're the primary touch owner.
+        return view == primaryTouchOwner;
     }
 
     @TargetApi(Build.VERSION_CODES.O)
@@ -1590,15 +1614,22 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     return true;
                 }
 
-                if (view == null && !prefConfig.touchscreenTrackpad) {
-                    // Absolute touch events should be dropped outside our view.
-                    return true;
+                // If this is the parent view, we'll offset our coordinates to appear as if they
+                // are relative to the StreamView like our StreamView touch events are.
+                float xOffset, yOffset;
+                if (view != streamView && !prefConfig.touchscreenTrackpad) {
+                    xOffset = -streamView.getX();
+                    yOffset = -streamView.getY();
+                }
+                else {
+                    xOffset = 0.f;
+                    yOffset = 0.f;
                 }
 
                 int actionIndex = event.getActionIndex();
 
-                int eventX = (int)event.getX(actionIndex);
-                int eventY = (int)event.getY(actionIndex);
+                int eventX = (int)(event.getX(actionIndex) + xOffset);
+                int eventY = (int)(event.getY(actionIndex) + yOffset);
 
                 // Special handling for 3 finger gesture
                 if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN &&
@@ -1653,7 +1684,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     }
                     if (actionIndex == 0 && event.getPointerCount() > 1 && !context.isCancelled()) {
                         // The original secondary touch now becomes primary
-                        context.touchDownEvent((int)event.getX(1), (int)event.getY(1), event.getEventTime(), false);
+                        context.touchDownEvent(
+                                (int)(event.getX(1) + xOffset),
+                                (int)(event.getY(1) + yOffset),
+                                event.getEventTime(), false);
                     }
                     break;
                 case MotionEvent.ACTION_MOVE:
@@ -1666,8 +1700,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                             if (aTouchContextMap.getActionIndex() < event.getPointerCount())
                             {
                                 aTouchContextMap.touchMoveEvent(
-                                        (int)event.getHistoricalX(aTouchContextMap.getActionIndex(), i),
-                                        (int)event.getHistoricalY(aTouchContextMap.getActionIndex(), i),
+                                        (int)(event.getHistoricalX(aTouchContextMap.getActionIndex(), i) + xOffset),
+                                        (int)(event.getHistoricalY(aTouchContextMap.getActionIndex(), i) + yOffset),
                                         event.getHistoricalEventTime(i));
                             }
                         }
@@ -1678,8 +1712,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         if (aTouchContextMap.getActionIndex() < event.getPointerCount())
                         {
                             aTouchContextMap.touchMoveEvent(
-                                    (int)event.getX(aTouchContextMap.getActionIndex()),
-                                    (int)event.getY(aTouchContextMap.getActionIndex()),
+                                    (int)(event.getX(aTouchContextMap.getActionIndex()) + xOffset),
+                                    (int)(event.getY(aTouchContextMap.getActionIndex()) + yOffset),
                                     event.getEventTime());
                         }
                     }
@@ -1709,10 +1743,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     }
 
-    private void updateMousePosition(View view, MotionEvent event) {
+    private void updateMousePosition(View touchedView, MotionEvent event) {
         // X and Y are already relative to the provided view object
-        float eventX = event.getX(0);
-        float eventY = event.getY(0);
+        float eventX, eventY;
+
+        // For our StreamView itself, we can use the coordinates unmodified.
+        if (touchedView == streamView) {
+            eventX = event.getX(0);
+            eventY = event.getY(0);
+        }
+        else {
+            // For the containing background view, we must subtract the origin
+            // of the StreamView to get video-relative coordinates.
+            eventX = event.getX(0) - streamView.getX();
+            eventY = event.getY(0) - streamView.getY();
+        }
 
         if (event.getPointerCount() == 1 && event.getActionIndex() == 0 &&
                 (event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER ||
@@ -1745,10 +1790,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Normalize these to the view size. We can't just drop them because we won't always get an event
         // right at the boundary of the view, so dropping them would result in our cursor never really
         // reaching the sides of the screen.
-        eventX = Math.min(Math.max(eventX, 0), view.getWidth());
-        eventY = Math.min(Math.max(eventY, 0), view.getHeight());
+        eventX = Math.min(Math.max(eventX, 0), streamView.getWidth());
+        eventY = Math.min(Math.max(eventY, 0), streamView.getHeight());
 
-        conn.sendMousePosition((short)eventX, (short)eventY, (short)view.getWidth(), (short)view.getHeight());
+        conn.sendMousePosition((short)eventX, (short)eventY, (short)streamView.getWidth(), (short)streamView.getHeight());
     }
 
     @Override
@@ -1759,6 +1804,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View view, MotionEvent event) {
+        // If we're not the primary touch owner, ignore this event to allow the original
+        // view to take care of it (allowing multi-finger gestures across views to work).
+        if (!handlePrimaryTouchOwner(view, event)) {
+            return false;
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 // Tell the OS not to buffer input events for us
@@ -1767,6 +1818,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 view.requestUnbufferedDispatch(event);
             }
         }
+
         return handleMotionEvent(view, event);
     }
 

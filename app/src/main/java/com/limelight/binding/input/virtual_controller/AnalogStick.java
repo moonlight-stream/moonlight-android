@@ -324,6 +324,7 @@ public class AnalogStick extends VirtualControllerElement {
                 break;
             }
             // up event (revoke touch)
+            case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP: {
                 setPressed(false);
                 break;

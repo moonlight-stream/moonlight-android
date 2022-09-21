@@ -617,7 +617,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                             reportedCrash = true;
                             crashListener.notifyCrash(e);
                         }
-                        throw e;
+                        throw new RendererException(this, e);
                     }
                 }
 

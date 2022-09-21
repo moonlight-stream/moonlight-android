@@ -239,6 +239,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView.setOnTouchListener(this);
         streamView.setInputCallbacks(this);
 
+        // Listen for touch events outside of the game surface to enable trackpad mode
+        // to work on areas outside of the StreamView itself. We use a separate View
+        // for this rather than just handling it at the Activity level, because that
+        // allows proper touch splitting, which the OSC relies upon.
+        View backgroundTouchView = findViewById(R.id.backgroundTouchView);
+        backgroundTouchView.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                // We pass this to handleMotionEvent() as if it came from the Activity-level
+                // onTouchEvent() callback, otherwise it will assume it's from the StreamView
+                // and compute the incorrect video bounds when handling absolute input.
+                return handleMotionEvent(null, event);
+            }
+        });
+
         boolean needsInputBatching = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Request unbuffered input event dispatching for all input classes we handle here.

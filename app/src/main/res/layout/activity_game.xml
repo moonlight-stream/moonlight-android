@@ -4,6 +4,12 @@
     android:layout_height="match_parent"
     tools:context=".Game" >
 
+    <View
+        android:id="@+id/backgroundTouchView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
+
     <com.limelight.ui.StreamView
         android:id="@+id/surfaceView"
         android:layout_width="match_parent"

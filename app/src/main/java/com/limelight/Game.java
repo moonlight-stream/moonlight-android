@@ -84,7 +84,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Locale;
-import java.util.Timer;
 
 
 public class Game extends Activity implements SurfaceHolder.Callback,
@@ -97,7 +96,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     // Only 2 touches are supported
     private final TouchContext[] touchContextMap = new TouchContext[2];
     private long threeFingerDownTime = 0;
-    private View primaryTouchOwner;
 
     private static final int REFERENCE_HORIZ_RES = 1280;
     private static final int REFERENCE_VERT_RES = 720;
@@ -234,13 +232,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
         }
 
-        // Listen for events on the game surface
+        // Listen for non-touch events on the game surface
         streamView = findViewById(R.id.surfaceView);
         streamView.setOnGenericMotionListener(this);
-        streamView.setOnTouchListener(this);
         streamView.setInputCallbacks(this);
 
-        // Listen for touch events outside of the game surface to enable trackpad mode
+        // Listen for touch events on the background touch view to enable trackpad mode
         // to work on areas outside of the StreamView itself. We use a separate View
         // for this rather than just handling it at the Activity level, because that
         // allows proper touch splitting, which the OSC relies upon.
@@ -639,37 +636,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 UiHelper.notifyStreamExitingPiP(this);
             }
         }
-    }
-
-    private boolean handlePrimaryTouchOwner(View view, MotionEvent event) {
-        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-            if (primaryTouchOwner == null) {
-                // This is the first dispatch, so we become the primary touch owner
-                primaryTouchOwner = view;
-            }
-
-            // Fall-through
-        }
-        else if (event.getActionMasked() == MotionEvent.ACTION_UP ||
-                event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
-            if (primaryTouchOwner == view) {
-                // This is the concluding event on the primary touch owner, so we
-                // are no longer the primary touch owner now.
-                primaryTouchOwner = null;
-                return true;
-            }
-            else if (view != streamView && primaryTouchOwner == streamView) {
-                // If we hit this codepath, the StreamView didn't handle the UP/CANCEL event.
-                // This is unexpected, but we can recover by allowing the background view
-                // to handle it and resetting the primary touch owner.
-                LimeLog.warning("Unhandled StreamView touch event: "+event);
-                primaryTouchOwner = null;
-                return true;
-            }
-        }
-
-        // For all down/move events, handle the event if we're the primary touch owner.
-        return view == primaryTouchOwner;
     }
 
     @TargetApi(Build.VERSION_CODES.O)
@@ -1804,12 +1770,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View view, MotionEvent event) {
-        // If we're not the primary touch owner, ignore this event to allow the original
-        // view to take care of it (allowing multi-finger gestures across views to work).
-        if (!handlePrimaryTouchOwner(view, event)) {
-            return false;
-        }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 // Tell the OS not to buffer input events for us

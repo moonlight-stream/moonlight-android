@@ -11,7 +11,7 @@ import java.util.List;
 
 public class KeyboardAccessibilityService extends AccessibilityService {
 
-    private final static List<int> BLACKLISTED_KEYS = Arrays.asList(
+    private final static List BLACKLISTED_KEYS = Arrays.asList(
             KeyEvent.KEYCODE_VOLUME_UP,
             KeyEvent.KEYCODE_VOLUME_DOWN,
             KeyEvent.KEYCODE_POWER

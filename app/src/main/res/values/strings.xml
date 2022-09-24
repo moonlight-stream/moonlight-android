@@ -268,4 +268,6 @@
     <string name="pacing_balanced">Balanced</string>
     <string name="pacing_balanced_alt">Balanced with FPS limit</string>
     <string name="pacing_smoothness">Prefer smoothest video (may significantly increase latency)</string>
+    <string name="keyboard_service_label">Moonlight Physical Keyboard Service</string>
+    <string name="accessibility_description_text">These permissions are only used to detect when buttons are pressed so they can be sent to PC without triggering default action on your device.\n\nMoonlight does NOT observe the text you type and does NOT collect your passwords, credit card numbers or any other information.</string>
 </resources>

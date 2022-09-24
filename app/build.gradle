@@ -46,6 +46,21 @@ android {
             dimension "root"
             buildConfigField "boolean", "ROOT_BUILD", "false"
         }
+
+        nonRootAccessibility {
+            // canRequestFilterKeyEvents requires minimum SDK 18
+            minSdk 18
+
+            externalNativeBuild {
+                ndkBuild {
+                    arguments "PRODUCT_FLAVOR=nonRoot"
+                }
+            }
+
+            applicationId "com.limelight"
+            dimension "root"
+            buildConfigField "boolean", "ROOT_BUILD", "false"
+        }
     }
 
     lint {

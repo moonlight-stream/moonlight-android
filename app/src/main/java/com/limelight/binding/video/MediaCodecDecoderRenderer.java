@@ -1283,6 +1283,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                     LimeLog.info("Adding bitstream restrictions");
                     sps.vuiParams.bitstreamRestriction = new VUIParameters.BitstreamRestriction();
                     sps.vuiParams.bitstreamRestriction.motionVectorsOverPicBoundariesFlag = true;
+                    sps.vuiParams.bitstreamRestriction.maxBytesPerPicDenom = 2;
+                    sps.vuiParams.bitstreamRestriction.maxBitsPerMbDenom = 1;
                     sps.vuiParams.bitstreamRestriction.log2MaxMvLengthHorizontal = 16;
                     sps.vuiParams.bitstreamRestriction.log2MaxMvLengthVertical = 16;
                     sps.vuiParams.bitstreamRestriction.numReorderFrames = 0;
@@ -1296,8 +1298,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
                 // These values are the defaults for the fields, but they are more aggressive
                 // than what GFE sends in 2.5.11, but it doesn't seem to cause picture problems.
-                sps.vuiParams.bitstreamRestriction.maxBytesPerPicDenom = 2;
-                sps.vuiParams.bitstreamRestriction.maxBitsPerMbDenom = 1;
+                // We'll leave these alone for "modern" devices just in case they care.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                    sps.vuiParams.bitstreamRestriction.maxBytesPerPicDenom = 2;
+                    sps.vuiParams.bitstreamRestriction.maxBitsPerMbDenom = 1;
+                }
 
                 // log2_max_mv_length_horizontal and log2_max_mv_length_vertical are set to more
                 // conservative values by GFE 2.5.11. We'll let those values stand.

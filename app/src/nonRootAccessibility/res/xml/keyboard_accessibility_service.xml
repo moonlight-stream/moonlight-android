@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<accessibility-service
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/accessibility_description_text"
+    android:summary="@string/keyboard_service_label"
+    android:accessibilityEventTypes="typeContextClicked|typeViewClicked|typeViewFocused|typeViewScrolled|typeViewSelected|typeWindowContentChanged|typeWindowStateChanged"
+    android:accessibilityFeedbackType="feedbackAllMask"
+    android:accessibilityFlags="flagDefault|flagRequestFilterKeyEvents|flagRetrieveInteractiveWindows"
+    android:canRequestFilterKeyEvents="true"
+    android:canRetrieveWindowContent="true"
+    android:notificationTimeout="50"
+    android:settingsActivity=""/>

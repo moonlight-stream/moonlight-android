@@ -91,6 +91,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
     PerfOverlayListener, UsbDriverService.UsbDriverStateListener
 {
+    public static Game instance = null;
+
     private int lastButtonState = 0;
 
     // Only 2 touches are supported
@@ -119,7 +121,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private SpinnerDialog spinner;
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
-    private boolean connected = false;
+    public boolean connected = false;
     private boolean autoEnterPip = false;
     private boolean surfaceCreated = false;
     private boolean attemptedConnection = false;
@@ -179,6 +181,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        instance = this;
 
         UiHelper.setLocale(this);
 
@@ -1061,6 +1065,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     protected void onStop() {
         super.onStop();
+
+        instance = null;
 
         SpinnerDialog.closeDialogs(this);
         Dialog.closeDialogs();

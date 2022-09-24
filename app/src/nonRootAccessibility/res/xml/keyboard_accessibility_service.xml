@@ -9,5 +9,4 @@
     android:canRequestFilterKeyEvents="true"
     android:canRetrieveWindowContent="true"
     android:notificationTimeout="50"
-    android:packageNames="com.limelight.debug"
     android:settingsActivity=""/>

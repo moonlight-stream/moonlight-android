@@ -689,6 +689,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             Class<?> semWindowManager = Class.forName("com.samsung.android.view.SemWindowManager");
             Method getInstanceMethod = semWindowManager.getMethod("getInstance");
             Object manager = getInstanceMethod.invoke(null);
+
             if (manager != null) {
                 Class<?>[] parameterTypes = new Class<?>[2];
                 parameterTypes[0] = ComponentName.class;

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="scut_not_paired">Komputer tidak terpasang</string>
+    <string name="scut_pc_not_found">Komputer tidak ditemukan</string>
+    <string name="scut_invalid_uuid">Komputer yang diberikan tidak valid</string>
+    <string name="help_loading_title">Lihat bantuan</string>
+    <string name="help_loading_msg">Memuat laman bantuan…</string>
+    <string name="pcview_menu_header_online">Tersedia</string>
+    <string name="pcview_menu_header_offline">Tidak tersedia</string>
+    <string name="pcview_menu_header_unknown">Memuat ulang</string>
+    <string name="pcview_menu_app_list">Lihat semua aplikasi</string>
+    <string name="pcview_menu_pair_pc">Pasangkan dengan komputer</string>
+    <string name="pcview_menu_unpair_pc">Batalkan pemasangan</string>
+    <string name="pcview_menu_send_wol">Kirim permintaan Wake-On-LAN</string>
+    <string name="pcview_menu_delete_pc">Hapus komputer</string>
+    <string name="nettest_title_waiting">Menguji koneksi jaringan</string>
+    <string name="nettest_text_waiting">Moonlight sedang menguji koneksi jaringan untuk mencari tahu apakah NVIDIA GameStream diblokir.
+\n
+\nIni mungkin membutuhkan beberapa saat…</string>
+    <string name="nettest_text_inconclusive">Uji koneksi jaringan tidak dapat dilakukan karena tidak ada server pengujian Moonlight yang bisa dijangkau. Cek koneksi Internet Anda atau coba lagi nanti.</string>
+    <string name="nettest_text_failure">Koneksi jaringan perangkat anda sepertinya memblokir Moonlight. Streaming lewat Internet mungkin tidak bekerja ketika terhubung dengan jaringan ini.
+\n
+\nPort-port ini telah diblokir:
+\n</string>
+    <string name="nettest_text_blocked">Koneksi jaringan perangkat anda memblokir Moonlight. Streaming lewat Internet mungkin tidak bekerja ketika terhubung dengan jaringan ini.</string>
+    <string name="pair_pc_offline">Komputer tidak tersedia</string>
+    <string name="pair_pairing_title">Memasang</string>
+    <string name="pair_pairing_msg">Mohon isi PIN ini di komputer target:</string>
+    <string name="pair_incorrect_pin">PIN salah</string>
+    <string name="pair_fail">Pemasangan gagal</string>
+    <string name="pair_already_in_progress">Pemasangan sedang berlangsung</string>
+    <string name="wol_pc_online">Komputer tersedia</string>
+    <string name="wol_no_mac">Tidak bisa membangunkan komputer karena GFE tidak mengirimkan alamat MAC</string>
+    <string name="wol_waking_pc">Membangunkan komputer…</string>
+    <string name="wol_waking_msg">Membangunkan komputer mungkin akan membutuhkan beberapa saat. Jika tidak bisa, pastikan konfigurasi Wake-On-LAN sudah benar.</string>
+    <string name="unpairing">Memutuskan pemasangan…</string>
+    <string name="unpair_success">Pemutusan pemasangan berhasil</string>
+    <string name="unpair_fail">Gagal memutuskan pemasangan</string>
+    <string name="error_pc_offline">Komputer tidak tersedia</string>
+    <string name="title_decoding_error">Dekoder video berhenti bekerja</string>
+    <string name="message_decoding_error">Moonlight telah berhenti bekerja dikarenakan inkompatibilitas dengan dekoder video perangkat ini. Pastikan GeForce Experience sudah diperbarui ke versi terkini pada komputer Anda. Coba ganti pengaturan stream jika masih berlanjut.</string>
+    <string name="title_decoding_reset">Pengaturan video dipulihkan</string>
+    <string name="message_decoding_reset">Dekoder video perangkat Anda terus-menerus berhenti pada pengaturan stream yang dipilih. Pengaturan stream Anda telah dipulihkan ke bawaan.</string>
+    <string name="error_usb_prohibited">Akses USB dilarang oleh Administrator perangkat Anda. Cek pengaturan Knox atau MDM Anda.</string>
+    <string name="no_video_received_error">Tidak ada video yang diterima dari host.</string>
+    <string name="no_frame_received_error">Kinerja koneksi jaringan anda tidak baik. Kurangi pengaturan bitrate video Anda atau coba koneksi yang lebih cepat.</string>
+    <string name="check_ports_msg">Cek pengaturan firewall dan port forwarding untuk port-port ini:</string>
+    <string name="conn_establishing_title">Membangun koneksi</string>
+    <string name="conn_establishing_msg">Memulai koneksi</string>
+    <string name="conn_metered">Peringatan: Koneksi aktif Anda terbatas!</string>
+    <string name="conn_client_latency">Rata-rata latensi dekoding bingkai:</string>
+    <string name="conn_client_latency_hw">Latensi dekoder perangkat keras:</string>
+    <string name="conn_hardware_latency">Rata-rata latensi dekoder perangkat keras:</string>
+    <string name="conn_starting">Memulai</string>
+    <string name="conn_error_title">Koneksi eror</string>
+    <string name="conn_error_msg">Gagal untuk memulai</string>
+    <string name="conn_terminated_title">Koneksi dihentikan</string>
+    <string name="conn_terminated_msg">Koneksi telah terhenti</string>
+    <string name="ip_hint">Alamat IP komputer GeForce</string>
+    <string name="searching_pc">Mencari komputer yang menjalankan GameStream...
+\n
+\nPastikan GameStream diaktifkan pada pengaturan SHIELD GeForce Experience.</string>
+    <string name="yes">Ya</string>
+    <string name="no">Tidak</string>
+    <string name="lost_connection">Koneksi dengan komputer hilang</string>
+    <string name="title_details">Rincian</string>
+    <string name="delete_pc_msg">Apakah Anda yakin ingin menghapus komputer ini\?</string>
+    <string name="slow_connection_msg">Koneksi terhadap komputer lambat
+\nKurangi bitrate anda</string>
+    <string name="poor_connection_msg">Koneksi dengan komputer buruk</string>
+    <string name="perf_overlay_streamdetails">Stream video: %1$s %2$.2f FPS</string>
+    <string name="perf_overlay_decoder">Dekoder: %1$s</string>
+    <string name="perf_overlay_incomingfps">Kecepatan bingkai masuk dari jaringan: %1$.2f FPS</string>
+    <string name="scut_deleted_pc">Komputer dihapus</string>
+    <string name="scut_invalid_app_id">Aplikasi yang diberikan tidak valid</string>
+    <string name="pcview_menu_test_network">Uji koneksi jaringan</string>
+    <string name="pcview_menu_details">Lihat rincian</string>
+    <string name="nettest_title_done">Uji jaringan selesai</string>
+    <string name="pairing">Memasang…</string>
+    <string name="nettest_text_success">Jaringan Anda sepertinya tidak memblokir Moonlight. Jika Anda masih mengalami masalah menghubungkan, cek pengaturan firewall komputer Anda.
+\n
+\nJika anda mencoba stream lewat internet, install Moonlight Internet Hosting Tool pada komputer anda dan jalankan Internet Streaming Tester untuk mengecek koneksi Internet komputer Anda.</string>
+    <string name="pair_pc_ingame">Komputer sedang ada di game. Anda harus menutupnya terlebih dahulu.</string>
+    <string name="wol_fail">Gagal mengirim paket Wake-On-LAN</string>
+    <string name="unpair_error">Perangkat tidak terpasang</string>
+    <string name="error_manager_not_running">ComputerManager tidak berjalan. Mohon tunggu beberapa saat atau mulai ulang aplikasi.</string>
+    <string name="error_404">GFE memberikan eror HTTP 404. Pastikan komputer anda menggunakan kartu grafis yang didukung. Penggunaan aplikasi remote desktop juga dapat menyebabakan eror ini. Coba mulai ulang perangkat Anda atau install ulang GFE.</string>
+    <string name="unable_to_pin_shortcut">Peluncur Anda tidak memperbolehkan pembuatan shortcut yang disematkan.</string>
+    <string name="video_decoder_init_failed">Gagal memulai dekoder video. Perangkat Anda mungkin tidak mendukung resolusi atau kecepatan bingkai yang dipilih.</string>
+    <string name="early_termination_error">Ada yang salah dengan komputer host anda ketika memulai stream.
+\n
+\nPastikan tidak ada konten yang dilindungi DRM yang terbuka di komputer host Anda. Coba mulai ulang komputer host.
+\n
+\nJika masalah berkelanjutan, coba install ulang GeForce Experience dan driver video grafis Anda.</string>
+    <string name="help">Bantuan</string>
+</resources>

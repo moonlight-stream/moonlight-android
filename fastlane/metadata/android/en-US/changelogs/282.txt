@@ -1,0 +1,4 @@
+- Implemented per-app language preferences on Android 13
+- Improved automatic HEVC selection logic on older devices
+- Fixed a few crashing bugs
+- Updated community contributed translations from Weblate

@@ -5,6 +5,8 @@
 package com.limelight.binding.input.virtual_controller;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
@@ -17,8 +19,6 @@ import com.limelight.binding.input.ControllerHandler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class VirtualController {
     public static class ControllerInputContext {
@@ -41,10 +41,16 @@ public class VirtualController {
 
     private final ControllerHandler controllerHandler;
     private final Context context;
+    private final Handler handler;
+
+    private final Runnable delayedRetransmitRunnable = new Runnable() {
+        @Override
+        public void run() {
+            sendControllerInputContextInternal();
+        }
+    };
 
     private FrameLayout frame_layout = null;
-
-    private Timer retransmitTimer;
 
     ControllerMode currentMode = ControllerMode.Active;
     ControllerInputContext inputContext = new ControllerInputContext();
@@ -57,6 +63,7 @@ public class VirtualController {
         this.controllerHandler = controllerHandler;
         this.frame_layout = layout;
         this.context = context;
+        this.handler = new Handler(Looper.getMainLooper());
 
         buttonConfigure = new Button(context);
         buttonConfigure.setAlpha(0.25f);
@@ -91,9 +98,11 @@ public class VirtualController {
 
     }
 
-    public void hide() {
-        retransmitTimer.cancel();
+    Handler getHandler() {
+        return handler;
+    }
 
+    public void hide() {
         for (VirtualControllerElement element : elements) {
             element.setVisibility(View.INVISIBLE);
         }
@@ -107,18 +116,6 @@ public class VirtualController {
         }
 
         buttonConfigure.setVisibility(View.VISIBLE);
-
-        // HACK: GFE sometimes discards gamepad packets when they are received
-        // very shortly after another. This can be critical if an axis zeroing packet
-        // is lost and causes an analog stick to get stuck. To avoid this, we send
-        // a gamepad input packet every 100 ms to ensure any loss can be recovered.
-        retransmitTimer = new Timer("OSC timer", true);
-        retransmitTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                sendControllerInputContext();
-            }
-        }, 100, 100);
     }
 
     public void removeElements() {
@@ -181,7 +178,7 @@ public class VirtualController {
         return inputContext;
     }
 
-    void sendControllerInputContext() {
+    private void sendControllerInputContextInternal() {
         _DBG("INPUT_MAP + " + inputContext.inputMap);
         _DBG("LEFT_TRIGGER " + inputContext.leftTrigger);
         _DBG("RIGHT_TRIGGER " + inputContext.rightTrigger);
@@ -199,5 +196,20 @@ public class VirtualController {
                     inputContext.rightTrigger
             );
         }
+    }
+
+    void sendControllerInputContext() {
+        // Cancel retransmissions of prior gamepad inputs
+        handler.removeCallbacks(delayedRetransmitRunnable);
+
+        sendControllerInputContextInternal();
+
+        // HACK: GFE sometimes discards gamepad packets when they are received
+        // very shortly after another. This can be critical if an axis zeroing packet
+        // is lost and causes an analog stick to get stuck. To avoid this, we retransmit
+        // the gamepad state a few times unless another input event happens before then.
+        handler.postDelayed(delayedRetransmitRunnable, 25);
+        handler.postDelayed(delayedRetransmitRunnable, 50);
+        handler.postDelayed(delayedRetransmitRunnable, 75);
     }
 }

@@ -152,7 +152,7 @@
     <string name="title_checkbox_vibrate_fallback">Емуляція вібровіддачі</string>
     <string name="summary_checkbox_vibrate_osc">Вібрація пристрою для емуляції вібровіддачі при екранному управлінні</string>
     <string name="summary_checkbox_vibrate_fallback">Вібрує пристрій для емуляції вібровіддачі, якщо під\'єднаний контролер не підтримує її</string>
-    <string name="summary_checkbox_mouse_nav_buttons">Включення цієї опції може привести до неправильної роботи правої клавіші миші на деяких пристроях</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Вмикання цієї опції може привести до неправильної роботи правої клавіші миші на деяких пристроях</string>
     <string name="title_checkbox_flip_face_buttons">Перевернути ґудзики</string>
     <string name="summary_checkbox_flip_face_buttons">Перемикає ґудзики A/B та X/Y для контролерів та екранних елементів керування</string>
     <string name="scut_pc_not_found">Пристрій не знайдено</string>

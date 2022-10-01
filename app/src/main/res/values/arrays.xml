@@ -43,6 +43,7 @@
         <item>71</item>
     </string-array>
 
+    <!-- Don't forget to update locales_config.xml when you modify this! -->
     <string-array name="language_names" translatable="false">
         <item>Default</item>
         <item>English</item>
@@ -52,16 +53,17 @@
         <item>Nederlands</item>
         <item>中文(简体)</item>
         <item>中文(繁體)</item>
-        <item>Korean</item>
+        <item>한국어</item>
         <item>Español</item>
         <item>Français</item>
         <item>Deutsch</item>
         <item>Română</item>
         <item>Українська</item>
-        <item>Norwegian Bokmål</item>
+        <item>Norsk bokmål</item>
         <item>Tiếng Việt</item>
         <item>Magyar</item>
         <item>Ελληνικά</item>
+        <item>Português do Brasil</item>
     </string-array>
     <string-array name="language_values" translatable="false">
         <item>default</item>
@@ -82,6 +84,7 @@
         <item>vi</item>
         <item>hu</item>
         <item>el</item>
+        <item>pt-BR</item>
     </string-array>
 
     <string-array name="video_format_names">

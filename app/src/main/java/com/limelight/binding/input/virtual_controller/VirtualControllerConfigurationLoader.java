@@ -40,27 +40,31 @@ public class VirtualControllerConfigurationLoader {
                 VirtualController.ControllerInputContext inputContext =
                         controller.getControllerInputContext();
 
-                if (direction == DigitalPad.DIGITAL_PAD_DIRECTION_NO_DIRECTION) {
-                    inputContext.inputMap &= ~ControllerPacket.LEFT_FLAG;
-                    inputContext.inputMap &= ~ControllerPacket.RIGHT_FLAG;
-                    inputContext.inputMap &= ~ControllerPacket.UP_FLAG;
-                    inputContext.inputMap &= ~ControllerPacket.DOWN_FLAG;
-
-                    controller.sendControllerInputContext();
-                    return;
-                }
-                if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_LEFT) > 0) {
+                if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_LEFT) != 0) {
                     inputContext.inputMap |= ControllerPacket.LEFT_FLAG;
                 }
-                if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_RIGHT) > 0) {
+                else {
+                    inputContext.inputMap &= ~ControllerPacket.LEFT_FLAG;
+                }
+                if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_RIGHT) != 0) {
                     inputContext.inputMap |= ControllerPacket.RIGHT_FLAG;
                 }
-                if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_UP) > 0) {
+                else {
+                    inputContext.inputMap &= ~ControllerPacket.RIGHT_FLAG;
+                }
+                if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_UP) != 0) {
                     inputContext.inputMap |= ControllerPacket.UP_FLAG;
                 }
-                if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_DOWN) > 0) {
+                else {
+                    inputContext.inputMap &= ~ControllerPacket.UP_FLAG;
+                }
+                if ((direction & DigitalPad.DIGITAL_PAD_DIRECTION_DOWN) != 0) {
                     inputContext.inputMap |= ControllerPacket.DOWN_FLAG;
                 }
+                else {
+                    inputContext.inputMap &= ~ControllerPacket.DOWN_FLAG;
+                }
+
                 controller.sendControllerInputContext();
             }
         });

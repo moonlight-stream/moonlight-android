@@ -208,7 +208,7 @@
     <string name="audioconf_stereo">Stereo</string>
     <string name="audioconf_51surround">Surround 5.1</string>
     <string name="audioconf_71surround">Surround 7.1</string>
-    <string name="videoformat_hevcauto">Usa HEVC solo se stabile</string>
+    <string name="videoformat_hevcauto">Automatico</string>
     <string name="videoformat_hevcalways">Usa sempre HEVC (potrebbe essere instabile)</string>
     <string name="videoformat_hevcnever">Non usare mai HEVC</string>
     <string name="title_frame_pacing">Bilanciamento frame video</string>
@@ -243,4 +243,15 @@
     <string name="perf_overlay_renderingfps">Frame rate renderizzato: %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">Frame scartati dalla tua connessione di rete: %1$.2f%%</string>
     <string name="perf_overlay_netlatency">Latenza media della rete: %1$d ms (varianza: %2$d ms)</string>
+    <string name="category_help">Aiuto</string>
+    <string name="title_setup_guide">Guida configurazione</string>
+    <string name="pacing_balanced_alt">Bilanciato con il limite FPS</string>
+    <string name="summary_seekbar_deadzone">Nota: Alcuni giochi possono imporre una deadzone più grande di quella che Moonlight è configurato per utilizzare.</string>
+    <string name="title_checkbox_absolute_mouse_mode">Modalità mouse desktop remoto</string>
+    <string name="summary_checkbox_absolute_mouse_mode">Questo può rendere l\'accelerazione del mouse più naturale per l\'utilizzo del desktop remoto, ma è incompatibile con molti giochi.</string>
+    <string name="summary_setup_guide">Visualizza le istruzioni su come configurare il tuo PC da gaming per lo streaming</string>
+    <string name="title_troubleshooting">Guida alla risoluzione dei problemi</string>
+    <string name="title_privacy_policy">Informativa sulla privacy</string>
+    <string name="summary_troubleshooting">Visualizza i suggerimenti per la diagnosi e la risoluzione dei problemi di streaming più comuni</string>
+    <string name="summary_privacy_policy">Visualizza l\'informativa sulla privacy di Moonlight</string>
 </resources>

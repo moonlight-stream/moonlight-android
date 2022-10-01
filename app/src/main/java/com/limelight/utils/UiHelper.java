@@ -2,6 +2,9 @@ package com.limelight.utils;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.GameManager;
+import android.app.GameState;
+import android.app.LocaleManager;
 import android.app.UiModeManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,10 +12,12 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Insets;
 import android.os.Build;
+import android.os.LocaleList;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 
+import com.limelight.Game;
 import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.preferences.PreferenceConfiguration;
@@ -24,25 +29,66 @@ public class UiHelper {
     private static final int TV_VERTICAL_PADDING_DP = 15;
     private static final int TV_HORIZONTAL_PADDING_DP = 15;
 
+    private static void setGameModeStatus(Context context, boolean streaming, boolean loading, boolean interruptible) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            GameManager gameManager = context.getSystemService(GameManager.class);
+
+            if (streaming) {
+                gameManager.setGameState(new GameState(loading, interruptible ? GameState.MODE_GAMEPLAY_INTERRUPTIBLE : GameState.MODE_GAMEPLAY_UNINTERRUPTIBLE));
+            }
+            else {
+                gameManager.setGameState(new GameState(loading, GameState.MODE_NONE));
+            }
+        }
+    }
+
+    public static void notifyStreamConnecting(Context context) {
+        setGameModeStatus(context, true, true, true);
+    }
+
+    public static void notifyStreamConnected(Context context) {
+        setGameModeStatus(context, true, false, false);
+    }
+
+    public static void notifyStreamEnteringPiP(Context context) {
+        setGameModeStatus(context, true, false, true);
+    }
+
+    public static void notifyStreamExitingPiP(Context context) {
+        setGameModeStatus(context, true, false, false);
+    }
+
+    public static void notifyStreamEnded(Context context) {
+        setGameModeStatus(context, false, false, false);
+    }
+
     public static void setLocale(Activity activity)
     {
         String locale = PreferenceConfiguration.readPreferences(activity).language;
         if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
-            Configuration config = new Configuration(activity.getResources().getConfiguration());
-
-            // Some locales include both language and country which must be separated
-            // before calling the Locale constructor.
-            if (locale.contains("-"))
-            {
-                config.locale = new Locale(locale.substring(0, locale.indexOf('-')),
-                        locale.substring(locale.indexOf('-') + 1));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // On Android 13, migrate this non-default language setting into the OS native API
+                LocaleManager localeManager = activity.getSystemService(LocaleManager.class);
+                localeManager.setApplicationLocales(LocaleList.forLanguageTags(locale));
+                PreferenceConfiguration.completeLanguagePreferenceMigration(activity);
             }
-            else
-            {
-                config.locale = new Locale(locale);
-            }
+            else {
+                Configuration config = new Configuration(activity.getResources().getConfiguration());
 
-            activity.getResources().updateConfiguration(config, activity.getResources().getDisplayMetrics());
+                // Some locales include both language and country which must be separated
+                // before calling the Locale constructor.
+                if (locale.contains("-"))
+                {
+                    config.locale = new Locale(locale.substring(0, locale.indexOf('-')),
+                            locale.substring(locale.indexOf('-') + 1));
+                }
+                else
+                {
+                    config.locale = new Locale(locale);
+                }
+
+                activity.getResources().updateConfiguration(config, activity.getResources().getDisplayMetrics());
+            }
         }
     }
 
@@ -67,6 +113,9 @@ public class UiHelper {
     {
         View rootView = activity.findViewById(android.R.id.content);
         UiModeManager modeMgr = (UiModeManager) activity.getSystemService(Context.UI_MODE_SERVICE);
+
+        // Set GameState.MODE_NONE initially for all activities
+        setGameModeStatus(activity, false, false, false);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // Allow this non-streaming activity to layout under notches.

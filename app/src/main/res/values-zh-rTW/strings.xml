@@ -13,7 +13,7 @@
     <string name="pcview_menu_app_list">檢視遊戲清單</string>
     <string name="pcview_menu_pair_pc"> 和電腦配對 </string>
     <string name="pcview_menu_unpair_pc"> 取消配對 </string>
-    <string name="pcview_menu_send_wol">傳送 Wake-On-LAN 請求</string>
+    <string name="pcview_menu_send_wol">傳送 Wake-On-LAN 要求</string>
     <string name="pcview_menu_delete_pc"> 刪除電腦 </string>
     <string name="pcview_menu_details">檢視詳細資料</string>
     <!-- Pair messages -->
@@ -44,7 +44,7 @@
     <string name="title_decoding_error">視訊解碼器崩潰</string>
     <string name="message_decoding_error">由於與該裝置的視訊解碼器不相容，Moonlight 已崩潰。確保你電腦上的 GFE 已更新至最新版本，如果崩潰繼續，請嘗試調整串流設定。</string>
     <string name="title_decoding_reset">重設視訊設定</string>
-    <string name="message_decoding_reset">由於裝置的視訊解碼器在你選擇的串流設定上持續崩潰，已重設你的串流設定。</string>
+    <string name="message_decoding_reset">由於裝置的視訊解碼器在你選取的串流設定上持續崩潰，已重設你的串流設定。</string>
     <string name="error_usb_prohibited">裝置管理員已禁止 USB 訪問。請檢查您的 Knox 或 MDM 設定。</string>
     <string name="unable_to_pin_shortcut">您目前的啟動器不允許創建釘選的捷徑。</string>
     <!-- Start application messages -->
@@ -80,17 +80,17 @@
     <string name="perf_overlay_dectime">平均解碼時間：%1$.2f ms</string>
     <!-- AppList activity -->
     <string name="applist_connect_msg">正在連線電腦…</string>
-    <string name="applist_menu_resume">恢復工作階段</string>
+    <string name="applist_menu_resume">繼續工作階段</string>
     <string name="applist_menu_quit">結束工作階段</string>
     <string name="applist_menu_quit_and_start">結束目前遊戲並開始這個遊戲</string>
     <string name="applist_menu_cancel"> 取消 </string>
     <string name="applist_menu_details">檢視詳細資料</string>
-    <string name="applist_menu_scut">創建捷徑</string>
+    <string name="applist_menu_scut">建立捷徑</string>
     <string name="applist_menu_tv_channel">新增至頻道</string>
     <string name="applist_refresh_title">遊戲清單</string>
     <string name="applist_refresh_msg">正在重新整理…</string>
     <string name="applist_refresh_error_title"> 錯誤 </string>
-    <string name="applist_refresh_error_msg">獲取遊戲清單失敗</string>
+    <string name="applist_refresh_error_msg">取得遊戲清單失敗</string>
     <string name="applist_quit_app">正在結束</string>
     <string name="applist_quit_success">結束成功</string>
     <string name="applist_quit_fail">結束失敗</string>
@@ -99,7 +99,7 @@
     <!-- Add computer manually activity -->
     <string name="title_add_pc">手動新增電腦</string>
     <string name="msg_add_pc">正在連線電腦…</string>
-    <string name="addpc_fail">無法連線至指定電腦。請確保所需通訊埠沒有被防火牆阻止。</string>
+    <string name="addpc_fail">無法連線至指定電腦。請確保必要通訊埠未被防火牆封鎖。</string>
     <string name="addpc_success">成功新增電腦</string>
     <string name="addpc_unknown_host">無法解析電腦的 IP 位址，請確保 IP 位址輸入無誤。</string>
     <string name="addpc_enter_ip">請輸入一個 IP 位址</string>
@@ -118,7 +118,7 @@
     <string name="title_checkbox_disable_warnings">停用錯誤訊息</string>
     <string name="summary_checkbox_disable_warnings">停用串流中連線錯誤訊息</string>
     <string name="title_checkbox_enable_pip">啟用子母畫面觀察模式</string>
-    <string name="summary_checkbox_enable_pip">允許多工時檢視串流畫面 (但不操作)</string>
+    <string name="summary_checkbox_enable_pip">允許多工時檢視串流畫面 (但無法控制)</string>
     <string name="category_audio_settings">音訊設定</string>
     <string name="title_audio_config_list">環場音效組態</string>
     <string name="summary_audio_config_list">為家庭電影院系統啟用 5.1 或 7.1 環場音效</string>
@@ -146,7 +146,7 @@
     <string name="summary_checkbox_show_onscreen_controls">在觸控式螢幕上顯示一層虛擬控制器</string>
     <string name="title_checkbox_vibrate_osc"> 啟用震動 </string>
     <string name="summary_checkbox_vibrate_osc">使用螢幕控制按鈕時震動裝置以仿真遊戲低頻音</string>
-    <string name="title_only_l3r3">只顯示 L3 和 R3</string>
+    <string name="title_only_l3r3">僅顯示 L3 和 R3</string>
     <string name="summary_only_l3r3">隱藏除 L3 和 R3 外的所有虛擬按鈕</string>
     <string name="title_reset_osc">重設已儲存的螢幕控制按鈕版面配置</string>
     <string name="summary_reset_osc">重設所有螢幕控制按鈕為預設大小和位置</string>
@@ -170,9 +170,9 @@
     <string name="summary_video_format">HEVC 能降低視訊頻寬需求，但需要較新的裝置才能支援</string>
     <string name="title_enable_hdr">啟用 HDR (實驗性)</string>
     <string name="summary_enable_hdr">當遊戲和顯示卡支援時以 HDR 模式串流。 HDR 需要 GTX 1000 系列或更高規格顯示卡。</string>
-    <string name="title_enable_perf_overlay">顯示效能資訊</string>
+    <string name="title_enable_perf_overlay">串流時顯示效能資訊</string>
     <string name="summary_enable_perf_overlay">在串流中顯示即時效能資訊</string>
-    <string name="title_enable_post_stream_toast">串流完畢顯示延時資訊</string>
+    <string name="title_enable_post_stream_toast">串流後顯示延時資訊</string>
     <string name="summary_enable_post_stream_toast">串流結束後顯示延時資訊</string>
     <string name="title_osc_opacity">變更螢幕按鈕透明度</string>
     <string name="dialog_title_osc_opacity">變更不透明度</string>
@@ -197,7 +197,7 @@
 \n如果問題仍然存在，請嘗試重新安裝 GPU 驅動程式和 GFE。</string>
     <string name="no_frame_received_error">您的網路連線品質不佳。降低視訊位元速率設定或更換更快的連線。</string>
     <string name="no_video_received_error">沒有接收到來自主機的視訊。</string>
-    <string name="video_decoder_init_failed">視訊解碼器初始化失敗。您的裝置可能不支援選定的解析度或影格速率。</string>
+    <string name="video_decoder_init_failed">視訊解碼器初始化失敗。您的裝置可能不支援選取的解析度或影格速率。</string>
     <string name="nettest_text_blocked">您裝置目前的網路連線封鎖了 Moonlight。連線到該網路時可能無法透過網際網路串流。</string>
     <string name="nettest_text_failure">您裝置目前的網路連線似乎封鎖了 Moonlight。連線到該網路時可能無法透過網際網路串流。
 \n
@@ -223,8 +223,8 @@
     <string name="audioconf_stereo">立體聲</string>
     <string name="audioconf_51surround">5.1 環場音效</string>
     <string name="audioconf_71surround">7.1 環場音效</string>
-    <string name="videoformat_hevcauto">僅在穩定時使用 HEVC</string>
-    <string name="videoformat_hevcalways">強制使用 HEVC (可能會崩潰)</string>
+    <string name="videoformat_hevcauto">自動</string>
+    <string name="videoformat_hevcalways">強制使用 HEVC (可能會當機)</string>
     <string name="videoformat_hevcnever">不使用 HEVC</string>
     <string name="resolution_4k">4K</string>
     <string name="fps_30">30 FPS</string>
@@ -249,4 +249,13 @@
     <string name="title_setup_guide">設定指南</string>
     <string name="summary_troubleshooting">檢視診斷和修正常見串流問題的提示</string>
     <string name="summary_privacy_policy">檢視 Moonlight 的隱私權政策</string>
+    <string name="summary_seekbar_deadzone">注意：有些遊戲可以強制執行一個比 Moonlight 設定大的死區。</string>
+    <string name="title_checkbox_absolute_mouse_mode">遠端桌面滑鼠模式</string>
+    <string name="summary_checkbox_absolute_mouse_mode">這可以讓滑鼠在遠端桌面使用中的加速表現更加自然，但與很多遊戲不相容。</string>
+    <string name="title_checkbox_enable_audiofx">啟用系統等化器支援</string>
+    <string name="summary_checkbox_enable_audiofx">允許音訊效果在串流中發揮作用，但可能會增加音訊延遲</string>
+    <string name="resolution_prefix_native_landscape">(橫向)</string>
+    <string name="resolution_prefix_native_portrait">(直向)</string>
+    <string name="title_checkbox_reduce_refresh_rate">允許減小重新整理率</string>
+    <string name="summary_checkbox_reduce_refresh_rate">更低的顯示器重新整理速率可在犧牲一些額外視訊延遲的狀況下節省電力</string>
 </resources>

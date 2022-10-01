@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.view.Display;
 
 import com.limelight.nvstream.jni.MoonBridge;
 
@@ -45,6 +46,8 @@ public class PreferenceConfiguration {
     private static final String LATENCY_TOAST_PREF_STRING = "checkbox_enable_post_stream_toast";
     private static final String FRAME_PACING_PREF_STRING = "frame_pacing";
     private static final String ABSOLUTE_MOUSE_MODE_PREF_STRING = "checkbox_absolute_mouse_mode";
+    private static final String ENABLE_AUDIO_FX_PREF_STRING = "checkbox_enable_audiofx";
+    private static final String REDUCE_REFRESH_RATE_PREF_STRING = "checkbox_reduce_refresh_rate";
 
     static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
@@ -75,6 +78,8 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_LATENCY_TOAST = false;
     private static final String DEFAULT_FRAME_PACING = "latency";
     private static final boolean DEFAULT_ABSOLUTE_MOUSE_MODE = false;
+    private static final boolean DEFAULT_ENABLE_AUDIO_FX = false;
+    private static final boolean DEFAULT_REDUCE_REFRESH_RATE = false;
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -117,6 +122,8 @@ public class PreferenceConfiguration {
     public MoonBridge.AudioConfiguration audioConfiguration;
     public int framePacing;
     public boolean absoluteMouseMode;
+    public boolean enableAudioFx;
+    public boolean reduceRefreshRate;
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
@@ -140,6 +147,31 @@ public class PreferenceConfiguration {
         }
 
         return true;
+    }
+
+    // If we have a screen that has semi-square dimensions, we may want to change our behavior
+    // to allow any orientation and vertical+horizontal resolutions.
+    public static boolean isSquarishScreen(int width, int height) {
+        float longDim = Math.max(width, height);
+        float shortDim = Math.min(width, height);
+
+        // We just put the arbitrary cutoff for a square-ish screen at 1.3
+        return longDim / shortDim < 1.3f;
+    }
+
+    public static boolean isSquarishScreen(Display display) {
+        int width, height;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            width = display.getMode().getPhysicalWidth();
+            height = display.getMode().getPhysicalHeight();
+        }
+        else {
+            width = display.getWidth();
+            height = display.getHeight();
+        }
+
+        return isSquarishScreen(width, height);
     }
 
     private static String convertFromLegacyResolutionString(String resString) {
@@ -319,6 +351,19 @@ public class PreferenceConfiguration {
                 .apply();
     }
 
+    public static void completeLanguagePreferenceMigration(Context context) {
+        // Put our language option back to default which tells us that we've already migrated it
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.edit().putString(LANGUAGE_PREF_STRING, DEFAULT_LANGUAGE).apply();
+    }
+
+    public static boolean isShieldAtvFirmwareWithBrokenHdr() {
+        // This particular Shield TV firmware crashes when using HDR
+        // https://www.nvidia.com/en-us/geforce/forums/notifications/comment/155192/
+        return Build.MANUFACTURER.equalsIgnoreCase("NVIDIA") &&
+                Build.FINGERPRINT.contains("PPR1.180610.011/4079208_2235.1395");
+    }
+
     public static PreferenceConfiguration readPreferences(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         PreferenceConfiguration config = new PreferenceConfiguration();
@@ -445,7 +490,7 @@ public class PreferenceConfiguration {
         config.usbDriver = prefs.getBoolean(USB_DRIVER_PREF_SRING, DEFAULT_USB_DRIVER);
         config.onscreenController = prefs.getBoolean(ONSCREEN_CONTROLLER_PREF_STRING, ONSCREEN_CONTROLLER_DEFAULT);
         config.onlyL3R3 = prefs.getBoolean(ONLY_L3_R3_PREF_STRING, ONLY_L3_R3_DEFAULT);
-        config.enableHdr = prefs.getBoolean(ENABLE_HDR_PREF_STRING, DEFAULT_ENABLE_HDR);
+        config.enableHdr = prefs.getBoolean(ENABLE_HDR_PREF_STRING, DEFAULT_ENABLE_HDR) && !isShieldAtvFirmwareWithBrokenHdr();
         config.enablePip = prefs.getBoolean(ENABLE_PIP_PREF_STRING, DEFAULT_ENABLE_PIP);
         config.enablePerfOverlay = prefs.getBoolean(ENABLE_PERF_OVERLAY_STRING, DEFAULT_ENABLE_PERF_OVERLAY);
         config.bindAllUsb = prefs.getBoolean(BIND_ALL_USB_STRING, DEFAULT_BIND_ALL_USB);
@@ -458,6 +503,8 @@ public class PreferenceConfiguration {
         config.touchscreenTrackpad = prefs.getBoolean(TOUCHSCREEN_TRACKPAD_PREF_STRING, DEFAULT_TOUCHSCREEN_TRACKPAD);
         config.enableLatencyToast = prefs.getBoolean(LATENCY_TOAST_PREF_STRING, DEFAULT_LATENCY_TOAST);
         config.absoluteMouseMode = prefs.getBoolean(ABSOLUTE_MOUSE_MODE_PREF_STRING, DEFAULT_ABSOLUTE_MOUSE_MODE);
+        config.enableAudioFx = prefs.getBoolean(ENABLE_AUDIO_FX_PREF_STRING, DEFAULT_ENABLE_AUDIO_FX);
+        config.reduceRefreshRate = prefs.getBoolean(REDUCE_REFRESH_RATE_PREF_STRING, DEFAULT_REDUCE_REFRESH_RATE);
 
         return config;
     }

@@ -1,25 +1,28 @@
 apply plugin: 'com.android.application'
 
 android {
-    ndkVersion "23.1.7779620"
+    ndkVersion "23.2.8568313"
 
-    compileSdkVersion 32
+    compileSdk 33
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 32
+        minSdk 16
+        targetSdk 33
 
-        versionName "10.2"
-        versionCode = 275
+        versionName "10.8.4"
+        versionCode = 293
+
+        // Generate native debug symbols to allow Google Play to symbolicate our native crashes
+        ndk.debugSymbolLevel = 'FULL'
     }
 
-    flavorDimensions "root"
+    flavorDimensions.add("root")
 
     productFlavors {
         root {
             // Android O has native mouse capture, so don't show the rooted
             // version to devices running O on the Play Store.
-            maxSdkVersion 25
+            maxSdk 25
 
             externalNativeBuild {
                 ndkBuild {
@@ -29,6 +32,7 @@ android {
 
             applicationId "com.limelight.root"
             dimension "root"
+            buildConfigField "boolean", "ROOT_BUILD", "true"
         }
 
         nonRoot {
@@ -40,6 +44,7 @@ android {
 
             applicationId "com.limelight"
             dimension "root"
+            buildConfigField "boolean", "ROOT_BUILD", "false"
         }
     }
 
@@ -55,7 +60,7 @@ android {
             enableSplit = false
         }
         density {
-            // FIXME: This should not be neccessary but we get
+            // FIXME: This should not be necessary but we get
             // weird crashes due to missing drawable resources
             // when this split is enabled.
             enableSplit = false
@@ -65,6 +70,8 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
+            resValue "string", "app_label", "Moonlight (Debug)"
+            resValue "string", "app_label_root", "Moonlight (Root Debug)"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -101,6 +108,8 @@ android {
             //
             // TL;DR: Leave the following line alone!
             applicationIdSuffix ".unofficial"
+            resValue "string", "app_label", "Moonlight"
+            resValue "string", "app_label_root", "Moonlight (Root)"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -112,9 +121,6 @@ android {
             path "src/main/jni/Android.mk"
         }
     }
-
-    // Generate native debug symbols to allow Google Play to symbolicate our native crashes
-    android.defaultConfig.ndk.debugSymbolLevel = 'FULL'
 }
 
 dependencies {
@@ -124,4 +130,5 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okio:okio:1.17.5'
     implementation 'org.jmdns:jmdns:3.5.7'
+    implementation 'com.github.cgutman:ShieldControllerExtensions:1.0'
 }

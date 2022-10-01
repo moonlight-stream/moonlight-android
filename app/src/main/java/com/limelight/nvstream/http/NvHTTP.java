@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.InetAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -171,6 +172,7 @@ public class NvHTTP {
                 .hostnameVerifier(hv)
                 .readTimeout(0, TimeUnit.MILLISECONDS)
                 .connectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
+                .proxy(Proxy.NO_PROXY)
                 .build();
         
         httpClientWithReadTimeout = httpClient.newBuilder()
@@ -421,21 +423,18 @@ public class NvHTTP {
 
     private String openHttpConnectionToString(HttpUrl baseUrl, String path, String query, boolean enableReadTimeout) throws IOException {
         try {
-            if (verbose) {
-                LimeLog.info("Requesting URL: "+getCompleteUrl(baseUrl, path, query));
-            }
-
             ResponseBody resp = openHttpConnection(baseUrl, path, query, enableReadTimeout);
             String respString = resp.string();
             resp.close();
 
-            if (verbose) {
+            if (verbose && !path.equals("serverinfo")) {
                 LimeLog.info(getCompleteUrl(baseUrl, path, query)+" -> "+respString);
             }
 
             return respString;
         } catch (IOException e) {
-            if (verbose) {
+            if (verbose && !path.equals("serverinfo")) {
+                LimeLog.warning(getCompleteUrl(baseUrl, path, query)+" -> "+e.getMessage());
                 e.printStackTrace();
             }
             

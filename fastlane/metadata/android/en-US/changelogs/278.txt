@@ -1,0 +1,3 @@
+- Significantly improved video latency on some MediaTek and Amlogic devices
+- Implemented themed app icon support on Android 13
+- Updated community contributed translations from Weblate

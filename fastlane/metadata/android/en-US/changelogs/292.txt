@@ -1,0 +1,3 @@
+- Fixed several input bugs with the on-screen gamepad
+- Implemented recovery logic for video decoder errors
+- Updated community contributed translations from Weblate

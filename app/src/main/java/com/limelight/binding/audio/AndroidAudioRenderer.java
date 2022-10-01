@@ -1,9 +1,12 @@
 package com.limelight.binding.audio;
 
+import android.content.Context;
+import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.media.audiofx.AudioEffect;
 import android.os.Build;
 
 import com.limelight.LimeLog;
@@ -12,7 +15,15 @@ import com.limelight.nvstream.jni.MoonBridge;
 
 public class AndroidAudioRenderer implements AudioRenderer {
 
+    private final Context context;
+    private final boolean enableAudioFx;
+
     private AudioTrack track;
+
+    public AndroidAudioRenderer(Context context, boolean enableAudioFx) {
+        this.context = context;
+        this.enableAudioFx = enableAudioFx;
+    }
 
     private AudioTrack createAudioTrack(int channelConfig, int sampleRate, int bufferSize, boolean lowLatency) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
@@ -161,6 +172,12 @@ public class AndroidAudioRenderer implements AudioRenderer {
                 continue;
             }
 
+            // Skip low latency options when using audio effects, since low latency mode
+            // precludes the use of the audio effect pipeline (as of Android 13).
+            if (enableAudioFx && lowLatency) {
+                continue;
+            }
+
             try {
                 track = createAudioTrack(channelConfig, sampleRate, bufferSize, lowLatency);
                 track.play();
@@ -203,10 +220,27 @@ public class AndroidAudioRenderer implements AudioRenderer {
     }
 
     @Override
-    public void start() {}
+    public void start() {
+        if (enableAudioFx) {
+            // Open an audio effect control session to allow equalizers to apply audio effects
+            Intent i = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
+            i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, track.getAudioSessionId());
+            i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.getPackageName());
+            i.putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_GAME);
+            context.sendBroadcast(i);
+        }
+    }
 
     @Override
-    public void stop() {}
+    public void stop() {
+        if (enableAudioFx) {
+            // Close our audio effect control session when we're stopping
+            Intent i = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
+            i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, track.getAudioSessionId());
+            i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.getPackageName());
+            context.sendBroadcast(i);
+        }
+    }
 
     @Override
     public void cleanup() {

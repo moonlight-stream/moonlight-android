@@ -4,6 +4,12 @@
     android:layout_height="match_parent"
     tools:context=".Game" >
 
+    <View
+        android:id="@+id/backgroundTouchView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
+
     <com.limelight.ui.StreamView
         android:id="@+id/surfaceView"
         android:layout_width="match_parent"
@@ -21,6 +27,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:gravity="left"
         android:background="#80000000"
+        android:preferKeepClear="true"
         android:visibility="gone" />
 
     <TextView
@@ -34,6 +41,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:gravity="right"
         android:background="#80000000"
+        android:preferKeepClear="true"
         android:visibility="gone" />
 
 </merge>

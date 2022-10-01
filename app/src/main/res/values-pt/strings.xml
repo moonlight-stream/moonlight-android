@@ -12,9 +12,15 @@
     <string name="pcview_menu_header_online">Online</string>
     <string name="pcview_menu_header_offline">Offline</string>
     <string name="pcview_menu_app_list">Veja todos aplicativos</string>
-    <string name="pcview_menu_pair_pc">Sincronize com o PC</string>
+    <string name="pcview_menu_pair_pc">Parear com o PC</string>
     <string name="pcview_menu_details">Ver Detalhes</string>
     <string name="pair_pairing_title">Pareando</string>
     <string name="pair_fail">Falha no pareamento</string>
     <string name="nettest_title_waiting">Testar Conexão com a Internet</string>
+    <string name="pcview_menu_send_wol">Enviar requisição Wake-On-LAN</string>
+    <string name="pcview_menu_delete_pc">Deletar PC</string>
+    <string name="pcview_menu_test_network">Testar Conexão com a Internet</string>
+    <string name="nettest_text_waiting">Moonlight está testando sua conexão com a rede para determinar se o NVIDIA GameStream está bloqueado.
+\n
+\nEste processo pode demorar alguns segundos…</string>
 </resources>

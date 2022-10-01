@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <string name="app_label" translatable="false">Moonlight (Debug)</string>
-    <string name="app_label_root" translatable="false">Moonlight (Root Debug)</string>
-
-</resources>

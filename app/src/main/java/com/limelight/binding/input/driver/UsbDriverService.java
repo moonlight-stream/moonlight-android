@@ -29,6 +29,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
     private UsbManager usbManager;
     private PreferenceConfiguration prefConfig;
+    private boolean started;
 
     private final UsbEventReceiver receiver = new UsbEventReceiver();
     private final UsbDriverBinder binder = new UsbDriverBinder();
@@ -36,6 +37,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
     private final ArrayList<AbstractController> controllers = new ArrayList<>();
 
     private UsbDriverListener listener;
+    private UsbDriverStateListener stateListener;
     private int nextDeviceId;
 
     @Override
@@ -93,6 +95,11 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             else if (action.equals(ACTION_USB_PERMISSION)) {
                 UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
+                // Permission dialog is now closed
+                if (stateListener != null) {
+                    stateListener.onUsbPermissionPromptCompleted();
+                }
+
                 // If we got this far, we've already found we're able to handle this device
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                     handleUsbDeviceState(device);
@@ -112,6 +119,18 @@ public class UsbDriverService extends Service implements UsbDriverListener {
                 }
             }
         }
+
+        public void setStateListener(UsbDriverStateListener stateListener) {
+            UsbDriverService.this.stateListener = stateListener;
+        }
+
+        public void start() {
+            UsbDriverService.this.start();
+        }
+
+        public void stop() {
+            UsbDriverService.this.stop();
+        }
     }
 
     private void handleUsbDeviceState(UsbDevice device) {
@@ -121,20 +140,29 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             if (!usbManager.hasPermission(device)) {
                 // Let's ask for permission
                 try {
+                    // Tell the state listener that we're about to display a permission dialog
+                    if (stateListener != null) {
+                        stateListener.onUsbPermissionPromptStarting();
+                    }
+
+                    int intentFlags = 0;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        // This PendingIntent must be mutable to allow the framework to populate EXTRA_DEVICE and EXTRA_PERMISSION_GRANTED.
+                        intentFlags |= PendingIntent.FLAG_MUTABLE;
+                    }
+
                     // This function is not documented as throwing any exceptions (denying access
                     // is indicated by calling the PendingIntent with a false result). However,
                     // Samsung Knox has some policies which block this request, but rather than
                     // just returning a false result or returning 0 enumerated devices,
                     // they throw an undocumented SecurityException from this call, crashing
                     // the whole app. :(
-                    int intentFlags = 0;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        // This PendingIntent must be mutable to allow the framework to populate EXTRA_DEVICE and EXTRA_PERMISSION_GRANTED.
-                        intentFlags |= PendingIntent.FLAG_MUTABLE;
-                    }
                     usbManager.requestPermission(device, PendingIntent.getBroadcast(UsbDriverService.this, 0, new Intent(ACTION_USB_PERMISSION), intentFlags));
                 } catch (SecurityException e) {
                     Toast.makeText(this, this.getText(R.string.error_usb_prohibited), Toast.LENGTH_LONG).show();
+                    if (stateListener != null) {
+                        stateListener.onUsbPermissionPromptCompleted();
+                    }
                 }
                 return;
             }
@@ -225,16 +253,23 @@ public class UsbDriverService extends Service implements UsbDriverListener {
                 ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360Controller.canClaimDevice(device));
     }
 
-    @Override
-    public void onCreate() {
-        this.usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        this.prefConfig = PreferenceConfiguration.readPreferences(this);
+    private void start() {
+        if (started) {
+            return;
+        }
+
+        started = true;
 
         // Register for USB attach broadcasts and permission completions
         IntentFilter filter = new IntentFilter();
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         filter.addAction(ACTION_USB_PERMISSION);
-        registerReceiver(receiver, filter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, filter, RECEIVER_NOT_EXPORTED);
+        }
+        else {
+            registerReceiver(receiver, filter);
+        }
 
         // Enumerate existing devices
         for (UsbDevice dev : usbManager.getDeviceList().values()) {
@@ -245,13 +280,15 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         }
     }
 
-    @Override
-    public void onDestroy() {
+    private void stop() {
+        if (!started) {
+            return;
+        }
+
+        started = false;
+
         // Stop the attachment receiver
         unregisterReceiver(receiver);
-
-        // Remove listeners
-        listener = null;
 
         // Stop all controllers
         while (controllers.size() > 0) {
@@ -261,7 +298,27 @@ public class UsbDriverService extends Service implements UsbDriverListener {
     }
 
     @Override
+    public void onCreate() {
+        this.usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        this.prefConfig = PreferenceConfiguration.readPreferences(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        stop();
+
+        // Remove listeners
+        listener = null;
+        stateListener = null;
+    }
+
+    @Override
     public IBinder onBind(Intent intent) {
         return binder;
+    }
+
+    public interface UsbDriverStateListener {
+        void onUsbPermissionPromptStarting();
+        void onUsbPermissionPromptCompleted();
     }
 }

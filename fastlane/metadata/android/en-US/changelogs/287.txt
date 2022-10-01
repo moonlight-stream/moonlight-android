@@ -1,0 +1,7 @@
+- Reduced input latency on devices running Android 11 or later
+- Refresh rate reduction is now off by default to reduce display latency
+- Adjusted video decoder buffer processing to slightly reduce decoding latency
+- Added support for portrait and landscape native resolutions on foldables
+- Streaming is no longer locked to landscape orientation on foldables
+- Fixed left clicking using the virtual trackpad on Samsung foldables
+- Updated community contributed translations from Weblate

@@ -198,7 +198,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         // for even required levels of HEVC.
         MediaCodecInfo hevcDecoderInfo = MediaCodecHelper.findProbableSafeDecoder("video/hevc", -1);
         if (hevcDecoderInfo != null) {
-            if (!MediaCodecHelper.decoderIsWhitelistedForHevc(hevcDecoderInfo.getName(), meteredNetwork, prefs)) {
+            if (!MediaCodecHelper.decoderIsWhitelistedForHevc(hevcDecoderInfo.getName())) {
                 LimeLog.info("Found HEVC decoder, but it's not whitelisted - "+hevcDecoderInfo.getName());
 
                 // Force HEVC enabled if the user asked for it

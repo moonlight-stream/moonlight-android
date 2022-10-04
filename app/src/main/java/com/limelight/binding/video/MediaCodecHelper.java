@@ -31,7 +31,6 @@ public class MediaCodecHelper {
     private static final List<String> blacklistedDecoderPrefixes;
     private static final List<String> spsFixupBitstreamFixupDecoderPrefixes;
     private static final List<String> blacklistedAdaptivePlaybackPrefixes;
-    private static final List<String> deprioritizedHevcDecoders;
     private static final List<String> baselineProfileHackPrefixes;
     private static final List<String> directSubmitPrefixes;
     private static final List<String> constrainedHighProfilePrefixes;
@@ -196,14 +195,6 @@ public class MediaCodecHelper {
     }
 
     static {
-        deprioritizedHevcDecoders = new LinkedList<>();
-
-        // These are decoders that work but aren't used by default for various reasons.
-
-        // Qualcomm is currently the only decoders in this group.
-    }
-
-    static {
         useFourSlicesPrefixes = new LinkedList<>();
 
         // Software decoders will use 4 slices per frame to allow for slice multithreading
@@ -325,19 +316,15 @@ public class MediaCodecHelper {
 
             // Tegra K1 and later can do reference frame invalidation properly
             if (configInfo.reqGlEsVersion >= 0x30000) {
-                LimeLog.info("Added omx.nvidia to AVC reference frame invalidation support list");
+                LimeLog.info("Added omx.nvidia to reference frame invalidation support list");
                 refFrameInvalidationAvcPrefixes.add("omx.nvidia");
+                refFrameInvalidationHevcPrefixes.add("omx.nvidia");
 
-                LimeLog.info("Added omx.qcom/c2.qti to AVC reference frame invalidation support list");
+                LimeLog.info("Added omx.qcom/c2.qti to reference frame invalidation support list");
                 refFrameInvalidationAvcPrefixes.add("omx.qcom");
+                refFrameInvalidationHevcPrefixes.add("omx.qcom");
                 refFrameInvalidationAvcPrefixes.add("c2.qti");
-
-                // Prior to M, we were tricking the decoder into using baseline profile, which
-                // won't support RFI properly.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    LimeLog.info("Added omx.intel to AVC reference frame invalidation support list");
-                    refFrameInvalidationAvcPrefixes.add("omx.intel");
-                }
+                refFrameInvalidationHevcPrefixes.add("c2.qti");
             }
 
             // Qualcomm's early HEVC decoders break hard on our HEVC stream. The best check to
@@ -349,13 +336,9 @@ public class MediaCodecHelper {
             // (see comment on isGLES31SnapdragonRenderer).
             //
             if (isGLES31SnapdragonRenderer(glRenderer)) {
-                // We prefer reference frame invalidation support (which is only doable on AVC on
-                // older Qualcomm chips) vs. enabling HEVC by default. The user can override using the settings
-                // to force HEVC on. If HDR or mobile data will be used, we'll override this and use
-                // HEVC anyway.
-                LimeLog.info("Added omx.qcom/c2.qti to deprioritized HEVC decoders based on GLES 3.1+ support");
-                deprioritizedHevcDecoders.add("omx.qcom");
-                deprioritizedHevcDecoders.add("c2.qti");
+                LimeLog.info("Added omx.qcom/c2.qti to HEVC decoders based on GLES 3.1+ support");
+                whitelistedHevcDecoders.add("omx.qcom");
+                whitelistedHevcDecoders.add("c2.qti");
             }
             else {
                 blacklistedDecoderPrefixes.add("OMX.qcom.video.decoder.hevc");
@@ -616,7 +599,7 @@ public class MediaCodecHelper {
         return isDecoderInList(refFrameInvalidationHevcPrefixes, decoderName);
     }
 
-    public static boolean decoderIsWhitelistedForHevc(String decoderName, boolean meteredData, PreferenceConfiguration prefs) {
+    public static boolean decoderIsWhitelistedForHevc(String decoderName) {
         // Google didn't have official support for HEVC (or more importantly, a CTS test) until
         // Lollipop. I've seen some MediaTek devices on 4.4 crash when attempting to use HEVC,
         // so I'm restricting HEVC usage to Lollipop and higher.
@@ -632,21 +615,6 @@ public class MediaCodecHelper {
         //
         if (decoderName.contains("sw")) {
             return false;
-        }
-
-        // Some devices have HEVC decoders that we prefer not to use
-        // typically because it can't support reference frame invalidation.
-        // However, we will use it for HDR and for streaming over mobile networks
-        // since it works fine otherwise. We will also use it for 4K because RFI
-        // is currently disabled due to issues with video corruption.
-        if (isDecoderInList(deprioritizedHevcDecoders, decoderName)) {
-            if (meteredData || (prefs.width == 3840 && prefs.height == 2160)) {
-                LimeLog.info("Selected deprioritized decoder");
-                return true;
-            }
-            else {
-                return false;
-            }
         }
 
         return isDecoderInList(whitelistedHevcDecoders, decoderName);

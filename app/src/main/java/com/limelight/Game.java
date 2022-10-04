@@ -696,7 +696,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             if (manager != null) {
                 Class<?>[] parameterTypes = new Class<?>[2];
-                parameterTypes[0] = String.class;
+                parameterTypes[0] = ComponentName.class;
                 parameterTypes[1] = boolean.class;
                 Method requestMetaKeyEventMethod = semWindowManager.getDeclaredMethod("requestMetaKeyEvent", parameterTypes);
                 requestMetaKeyEventMethod.invoke(manager, this.getComponentName(), enabled);

@@ -87,10 +87,9 @@ import java.util.Locale;
 
 
 public class Game extends Activity implements SurfaceHolder.Callback,
-    OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
-    OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
-    PerfOverlayListener, UsbDriverService.UsbDriverStateListener
-{
+        OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
+        OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
+        PerfOverlayListener, UsbDriverService.UsbDriverStateListener, View.OnKeyListener {
     private int lastButtonState = 0;
 
     // Only 2 touches are supported
@@ -235,6 +234,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Listen for non-touch events on the game surface
         streamView = findViewById(R.id.surfaceView);
         streamView.setOnGenericMotionListener(this);
+        streamView.setOnKeyListener(this);
         streamView.setInputCallbacks(this);
 
         // Listen for touch events on the background touch view to enable trackpad mode
@@ -256,6 +256,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     InputDevice.SOURCE_CLASS_POSITION | // Touchpads
                     InputDevice.SOURCE_CLASS_TRACKBALL // Mice (pointer capture)
             );
+            backgroundTouchView.requestUnbufferedDispatch(
+                    InputDevice.SOURCE_CLASS_BUTTON | // Keyboards
+                    InputDevice.SOURCE_CLASS_JOYSTICK | // Gamepads
+                    InputDevice.SOURCE_CLASS_POINTER | // Touchscreens and mice (w/o pointer capture)
+                    InputDevice.SOURCE_CLASS_POSITION | // Touchpads
+                    InputDevice.SOURCE_CLASS_TRACKBALL // Mice (pointer capture)
+            );
 
             // Since the OS isn't going to batch for us, we have to batch mouse events to
             // avoid triggering a bug in GeForce Experience that can lead to massive latency.
@@ -269,9 +276,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // The view must be focusable for pointer capture to work.
-            streamView.setFocusable(true);
-            streamView.setDefaultFocusHighlightEnabled(false);
             streamView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
                 @Override
                 public boolean onCapturedPointer(View view, MotionEvent motionEvent) {
@@ -2188,5 +2192,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public void onUsbPermissionPromptCompleted() {
         suppressPipRefCount--;
         updatePipAutoEnter();
+    }
+
+    @Override
+    public boolean onKey(View view, int keyCode, KeyEvent keyEvent) {
+        switch (keyEvent.getAction()) {
+            case KeyEvent.ACTION_DOWN:
+                return handleKeyDown(keyEvent);
+            case KeyEvent.ACTION_UP:
+                return handleKeyUp(keyEvent);
+            default:
+                return false;
+        }
     }
 }

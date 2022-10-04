@@ -14,7 +14,13 @@
         android:id="@+id/surfaceView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center" />
+        android:layout_gravity="center"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:focusedByDefault="true"
+        android:defaultFocusHighlightEnabled="false">
+        <requestFocus />
+    </com.limelight.ui.StreamView>
 
     <TextView
         android:id="@+id/performanceOverlay"

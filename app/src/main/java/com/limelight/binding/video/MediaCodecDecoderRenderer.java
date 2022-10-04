@@ -10,6 +10,7 @@ import org.jcodec.codecs.h264.H264Utils;
 import org.jcodec.codecs.h264.io.model.SeqParameterSet;
 import org.jcodec.codecs.h264.io.model.VUIParameters;
 
+import com.limelight.BuildConfig;
 import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
@@ -1538,7 +1539,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         public String toString() {
             String str = "";
 
-            str += "Hang time: "+hangTimeMs+" ms\n";
+            str += "Hang time: "+hangTimeMs+" ms"+ RendererException.DELIMITER;
             str += super.toString();
 
             return str;
@@ -1547,6 +1548,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     static class RendererException extends RuntimeException {
         private static final long serialVersionUID = 8985937536997012406L;
+        protected static final String DELIMITER = BuildConfig.DEBUG ? "\n" : " | ";
 
         private String text;
 
@@ -1583,42 +1585,42 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 str = "ErrorWhileStreaming";
             }
 
-            str += "Format: "+String.format("%x", renderer.videoFormat)+"\n";
-            str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+"\n";
-            str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+"\n";
+            str += "Format: "+String.format("%x", renderer.videoFormat)+DELIMITER;
+            str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+DELIMITER;
+            str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+DELIMITER;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && renderer.avcDecoder != null) {
                 Range<Integer> avcWidthRange = renderer.avcDecoder.getCapabilitiesForType("video/avc").getVideoCapabilities().getSupportedWidths();
-                str += "AVC supported width range: "+avcWidthRange+"\n";
+                str += "AVC supported width range: "+avcWidthRange+DELIMITER;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     try {
                         Range<Double> avcFpsRange = renderer.avcDecoder.getCapabilitiesForType("video/avc").getVideoCapabilities().getAchievableFrameRatesFor(renderer.initialWidth, renderer.initialHeight);
-                        str += "AVC achievable FPS range: "+avcFpsRange+"\n";
+                        str += "AVC achievable FPS range: "+avcFpsRange+DELIMITER;
                     } catch (IllegalArgumentException e) {
-                        str += "AVC achievable FPS range: UNSUPPORTED!\n";
+                        str += "AVC achievable FPS range: UNSUPPORTED!"+DELIMITER;
                     }
                 }
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && renderer.hevcDecoder != null) {
                 Range<Integer> hevcWidthRange = renderer.hevcDecoder.getCapabilitiesForType("video/hevc").getVideoCapabilities().getSupportedWidths();
-                str += "HEVC supported width range: "+hevcWidthRange+"\n";
+                str += "HEVC supported width range: "+hevcWidthRange+DELIMITER;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     try {
                         Range<Double> hevcFpsRange = renderer.hevcDecoder.getCapabilitiesForType("video/hevc").getVideoCapabilities().getAchievableFrameRatesFor(renderer.initialWidth, renderer.initialHeight);
-                        str += "HEVC achievable FPS range: " + hevcFpsRange + "\n";
+                        str += "HEVC achievable FPS range: " + hevcFpsRange + DELIMITER;
                     } catch (IllegalArgumentException e) {
-                        str += "HEVC achievable FPS range: UNSUPPORTED!\n";
+                        str += "HEVC achievable FPS range: UNSUPPORTED!"+DELIMITER;
                     }
                 }
             }
-            str += "Configured format: "+renderer.configuredFormat+"\n";
-            str += "Input format: "+renderer.inputFormat+"\n";
-            str += "Output format: "+renderer.outputFormat+"\n";
-            str += "Adaptive playback: "+renderer.adaptivePlayback+"\n";
-            str += "GL Renderer: "+renderer.glRenderer+"\n";
-            //str += "Build fingerprint: "+Build.FINGERPRINT+"\n";
+            str += "Configured format: "+renderer.configuredFormat+DELIMITER;
+            str += "Input format: "+renderer.inputFormat+DELIMITER;
+            str += "Output format: "+renderer.outputFormat+DELIMITER;
+            str += "Adaptive playback: "+renderer.adaptivePlayback+DELIMITER;
+            str += "GL Renderer: "+renderer.glRenderer+DELIMITER;
+            //str += "Build fingerprint: "+Build.FINGERPRINT+DELIMITER;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                str += "SOC: "+Build.SOC_MANUFACTURER+" - "+Build.SOC_MODEL+"\n";
-                str += "Performance class: "+Build.VERSION.MEDIA_PERFORMANCE_CLASS+"\n";
+                str += "SOC: "+Build.SOC_MANUFACTURER+" - "+Build.SOC_MODEL+DELIMITER;
+                str += "Performance class: "+Build.VERSION.MEDIA_PERFORMANCE_CLASS+DELIMITER;
                 /*str += "Vendor params: ";
                 List<String> params = renderer.videoDecoder.getSupportedVendorParameters();
                 if (params.isEmpty()) {
@@ -1629,35 +1631,34 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                         str += param + " ";
                     }
                 }
-                str += "\n";*/
+                str += DELIMITER;*/
             }
-            str += "Foreground: "+renderer.foreground+"\n";
-            str += "Consecutive crashes: "+renderer.consecutiveCrashCount+"\n";
-            str += "RFI active: "+renderer.refFrameInvalidationActive+"\n";
-            str += "Using modern SPS patching: "+(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)+"\n";
-            str += "Fused IDR frames: "+renderer.fusedIdrFrame+"\n";
-            str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+"\n";
-            str += "FPS target: "+renderer.refreshRate+"\n";
-            str += "Bitrate: "+renderer.prefs.bitrate+" Kbps \n";
-            str += "CSD stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+"\n";
-            str += "Frames in-out: "+renderer.numFramesIn+", "+renderer.numFramesOut+"\n";
-            str += "Total frames received: "+renderer.globalVideoStats.totalFramesReceived+"\n";
-            str += "Total frames rendered: "+renderer.globalVideoStats.totalFramesRendered+"\n";
-            str += "Frame losses: "+renderer.globalVideoStats.framesLost+" in "+renderer.globalVideoStats.frameLossEvents+" loss events\n";
-            str += "Average end-to-end client latency: "+renderer.getAverageEndToEndLatency()+"ms\n";
-            str += "Average hardware decoder latency: "+renderer.getAverageDecoderLatency()+"ms\n";
-            str += "Frame pacing mode: "+renderer.prefs.framePacing+"\n";
+            str += "Consecutive crashes: "+renderer.consecutiveCrashCount+DELIMITER;
+            str += "RFI active: "+renderer.refFrameInvalidationActive+DELIMITER;
+            str += "Using modern SPS patching: "+(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)+DELIMITER;
+            str += "Fused IDR frames: "+renderer.fusedIdrFrame+DELIMITER;
+            str += "Video dimensions: "+renderer.initialWidth+"x"+renderer.initialHeight+DELIMITER;
+            str += "FPS target: "+renderer.refreshRate+DELIMITER;
+            str += "Bitrate: "+renderer.prefs.bitrate+" Kbps"+DELIMITER;
+            str += "CSD stats: "+renderer.numVpsIn+", "+renderer.numSpsIn+", "+renderer.numPpsIn+DELIMITER;
+            str += "Frames in-out: "+renderer.numFramesIn+", "+renderer.numFramesOut+DELIMITER;
+            str += "Total frames received: "+renderer.globalVideoStats.totalFramesReceived+DELIMITER;
+            str += "Total frames rendered: "+renderer.globalVideoStats.totalFramesRendered+DELIMITER;
+            str += "Frame losses: "+renderer.globalVideoStats.framesLost+" in "+renderer.globalVideoStats.frameLossEvents+" loss events"+DELIMITER;
+            str += "Average end-to-end client latency: "+renderer.getAverageEndToEndLatency()+"ms"+DELIMITER;
+            str += "Average hardware decoder latency: "+renderer.getAverageDecoderLatency()+"ms"+DELIMITER;
+            str += "Frame pacing mode: "+renderer.prefs.framePacing+DELIMITER;
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 if (originalException instanceof CodecException) {
                     CodecException ce = (CodecException) originalException;
 
-                    str += "Diagnostic Info: "+ce.getDiagnosticInfo()+"\n";
-                    str += "Recoverable: "+ce.isRecoverable()+"\n";
-                    str += "Transient: "+ce.isTransient()+"\n";
+                    str += "Diagnostic Info: "+ce.getDiagnosticInfo()+DELIMITER;
+                    str += "Recoverable: "+ce.isRecoverable()+DELIMITER;
+                    str += "Transient: "+ce.isTransient()+DELIMITER;
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        str += "Codec Error Code: "+ce.getErrorCode()+"\n";
+                        str += "Codec Error Code: "+ce.getErrorCode()+DELIMITER;
                     }
                 }
             }

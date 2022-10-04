@@ -70,7 +70,10 @@ public class MediaCodecHelper {
 
     static {
         refFrameInvalidationAvcPrefixes = new LinkedList<>();
+
         refFrameInvalidationHevcPrefixes = new LinkedList<>();
+        refFrameInvalidationHevcPrefixes.add("omx.exynos");
+        refFrameInvalidationHevcPrefixes.add("c2.exynos");
 
         // Qualcomm and NVIDIA may be added at runtime
     }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="scut_deleted_pc">PC usunięty</string>
+    <string name="scut_pc_not_found">PC nie znaleziony</string>
+    <string name="pcview_menu_header_unknown">Odświeżanie</string>
+    <string name="scut_not_paired">PC niesparowany</string>
+</resources>

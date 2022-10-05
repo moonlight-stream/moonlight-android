@@ -255,4 +255,8 @@
     <string name="title_frame_pacing">비디오 프레임 처리방식</string>
     <string name="pacing_smoothness">가장 부드러운 비디오 선호(대기 시간이 크게 증가할 수 있음)</string>
     <string name="category_help">도움말</string>
+    <string name="resolution_prefix_native_landscape">(가로)</string>
+    <string name="resolution_prefix_native_portrait">(세로)</string>
+    <string name="title_checkbox_reduce_refresh_rate">주사율 감소 허용</string>
+    <string name="summary_checkbox_reduce_refresh_rate">화면 주사율을 낮춰서 영상 지연 시간이 증가하고 전력을 절약할 수 있습니다.</string>
 </resources>

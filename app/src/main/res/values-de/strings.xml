@@ -259,4 +259,7 @@
     <string name="title_checkbox_reduce_refresh_rate">Aktualisierungsrate verringern erlauben</string>
     <string name="summary_checkbox_reduce_refresh_rate">Durch das Verringern der Display Aktualisierungsrate, kann, auf Kosten der Video-Latenz, der Akkuverbrauch reduziert werden</string>
     <string name="resolution_prefix_native_landscape">(Landscape)</string>
+    <string name="frame_conversion_error">Der Host-PC hat einen schwerwiegenden Videocodierungsfehler gemeldet.
+\n
+\nVersuchen Sie, den HDR-Modus zu deaktivieren, die Streaming-Auflösung zu ändern oder die Bildschirmauflösung des Host-PCs zu ändern.</string>
 </resources>

@@ -1,0 +1,6 @@
+- Qualcomm devices now use HEVC by default for improved efficiency
+- Added system key capture on Samsung devices running Android 10 or later
+- Improved frame loss handling when using HEVC
+- Fixed streaming crash on devices running Android 4.1 to 4.4
+- Fixed streaming at resolutions below 720x540 with GeForce Experience 3.26
+- Updated community contributed translations from Weblate

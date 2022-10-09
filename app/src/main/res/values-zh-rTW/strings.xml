@@ -40,7 +40,7 @@
     <string name="error_pc_offline">電腦已離線</string>
     <string name="error_manager_not_running">ComputerManager 服務未執行。請稍等幾秒或重啟應用程式。</string>
     <string name="error_unknown_host"> 無法解析主機位址 </string>
-    <string name="error_404">GFE 返回了 HTTP 404 錯誤。確保你的電腦顯示卡支援串流。使用遠端桌面軟體同樣會引起此錯誤，請嘗試重啟電腦或重新安裝 GFE。</string>
+    <string name="error_404">GFE 傳回了 HTTP 404 錯誤。確保你的電腦顯示卡支援串流。使用遠端桌面軟體同樣會引起此錯誤，請嘗試重啟電腦或重新安裝 GFE。</string>
     <string name="title_decoding_error">視訊解碼器崩潰</string>
     <string name="message_decoding_error">由於與該裝置的視訊解碼器不相容，Moonlight 已崩潰。確保你電腦上的 GFE 已更新至最新版本，如果崩潰繼續，請嘗試調整串流設定。</string>
     <string name="title_decoding_reset">重設視訊設定</string>
@@ -258,4 +258,7 @@
     <string name="resolution_prefix_native_portrait">(直向)</string>
     <string name="title_checkbox_reduce_refresh_rate">允許減小重新整理率</string>
     <string name="summary_checkbox_reduce_refresh_rate">更低的顯示器重新整理速率可在犧牲一些額外視訊延遲的狀況下節省電力</string>
+    <string name="frame_conversion_error">主機電腦回報了一個嚴重的視訊編碼錯誤。
+\n
+\n嘗試停用 HDR 模式，變更串流解析度，或變更您的主機電腦的顯示器解析度。</string>
 </resources>

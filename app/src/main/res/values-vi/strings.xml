@@ -228,4 +228,11 @@
     <string name="videoformat_hevcauto">Chỉ sử dụng HEVC nếu ổn định</string>
     <string name="videoformat_hevcalways">Luôn sử dụng HEVC (có thể gây crash)</string>
     <string name="videoformat_hevcnever">Không bao giờ sử dụng HEVC</string>
+    <string name="resolution_prefix_native_landscape">(Ngang)</string>
+    <string name="frame_conversion_error">PC chủ đã gặp lỗi mã hoá video nghiêm trọng.
+\n
+\nHãy thử tắt chế độ HDR, đổi độ phân giải stream, hoặc đổi độ phân giải màn hình PC chủ.</string>
+    <string name="title_checkbox_enable_audiofx">Hỗ trợ bộ cân bằng của hệ thống</string>
+    <string name="summary_checkbox_enable_audiofx">Cho phép hiệu ứng âm thanh hoạt động khi stream, nhưng có thể tăng độ trễ âm thanh</string>
+    <string name="resolution_prefix_native_portrait">(Dọc)</string>
 </resources>

@@ -84,7 +84,7 @@
     <!-- Preferences -->
     <string name="category_basic_settings">Общие Настройки</string>
     <string name="title_resolution_list">Выберите разрешение и частоту кадров</string>
-    <string name="summary_resolution_list">Выбор слишком высокого значеня для своего устройства может вызвать тормоза или вылеты</string>
+    <string name="summary_resolution_list">Увеличьте для повышения чёткости изображения. Уменьшите для лучшей производительности на медленных устройствах или сетях.</string>
     <string name="title_seekbar_bitrate">Выберите битрейт видео</string>
     <string name="summary_seekbar_bitrate">Низкий битрейт уменьшит зависания. Увеличение битрейта улучшит качество изображения.</string>
     <string name="title_checkbox_stretch_video">Растягивать видео на весь экран</string>
@@ -184,7 +184,7 @@
     <string name="scut_invalid_uuid">Указанный PC недействителен</string>
     <string name="scut_invalid_app_id">Указанное приложение недействительно</string>
     <string name="suffix_osc_opacity">%</string>
-    <string name="suffix_seekbar_bitrate_mbps">Мб/с</string>
+    <string name="suffix_seekbar_bitrate_mbps">Мбит/с</string>
     <string name="applist_menu_hide_app">Скрыть приложение</string>
     <string name="pcview_menu_test_network">Тестовое подключение к сети</string>
     <string name="pcview_menu_header_unknown">Обновление</string>
@@ -213,13 +213,46 @@
     <string name="perf_overlay_streamdetails">Видеострим: %1$s %2$.2f FPS</string>
     <string name="resolution_prefix_native_fullscreen">Родной полноэкранный режим</string>
     <string name="perf_overlay_netlatency">Средняя задержка сети: %1$d мс (дисперсия: %2$d мс)</string>
-
     <!-- Array strings -->
     <string name="audioconf_stereo">Стерео</string>
     <string name="audioconf_51surround">5.1 Объёмный звук</string>
     <string name="audioconf_71surround">7.1 Объёмный звук</string>
-
-    <string name="videoformat_hevcauto">Использовать HEVC только если безопасно</string>
+    <string name="videoformat_hevcauto">Автоматически</string>
     <string name="videoformat_hevcalways">Всегда использовать HEVC если доступно</string>
     <string name="videoformat_hevcnever">Никогда не использовать HEVC</string>
+    <string name="pacing_latency">Минимальная задержка</string>
+    <string name="pacing_balanced">Баланс</string>
+    <string name="pacing_smoothness">Максимальная плавность (может значительно увеличить задержку)</string>
+    <string name="title_checkbox_enable_audiofx">Включить поддержку системного эквалайзера</string>
+    <string name="summary_checkbox_absolute_mouse_mode">Может сделать движения мыши естественней для удаленного рабочего стола, но несовместимо с большинством игр.</string>
+    <string name="summary_checkbox_reduce_refresh_rate">Сниженная частота обновления может экономить батарею за счет дополнительной задержки видео</string>
+    <string name="resolution_prefix_native_landscape">(Горизонтальный)</string>
+    <string name="fps_60">60 FPS</string>
+    <string name="fps_90">90 FPS</string>
+    <string name="fps_120">120 FPS</string>
+    <string name="frame_conversion_error">Хост-ПК сообщил о критической ошибке кодирования видео.
+\n
+\nПопробуйте выключить HDR, изменить разрешение стрима или разрешение экрана на хост-ПК.</string>
+    <string name="summary_checkbox_enable_audiofx">Позволяет работать аудио эффектам во время стрима, но может увеличить задержку звука</string>
+    <string name="title_setup_guide">Инструкция по настройке</string>
+    <string name="summary_setup_guide">Посмотреть инструкцию о том как настроить ваш пк для стриминга</string>
+    <string name="title_troubleshooting">Руководство по устранению неполадок</string>
+    <string name="summary_frame_pacing">Укажите как сбалансировать задержку и плавностью видео</string>
+    <string name="summary_privacy_policy">Посмотреть политику конфиденциальности Moonlight</string>
+    <string name="title_privacy_policy">Политика конфиденциальности</string>
+    <string name="resolution_360p">360p</string>
+    <string name="resolution_1080p">1080p</string>
+    <string name="resolution_1440p">1440p</string>
+    <string name="summary_troubleshooting">Посмотрите советы по обнаружению и устранению проблем</string>
+    <string name="category_help">Помощь</string>
+    <string name="resolution_720p">720p</string>
+    <string name="resolution_prefix_native_portrait">(Портретный)</string>
+    <string name="summary_seekbar_deadzone">Некоторые игры могут принудительно увеличить мёртвую зону вместо указанной в Moonlight.</string>
+    <string name="title_checkbox_absolute_mouse_mode">Режим удалённого рабочего стола для мыши</string>
+    <string name="title_checkbox_reduce_refresh_rate">Разрешить снижение частоты обновления</string>
+    <string name="resolution_4k">4K</string>
+    <string name="fps_30">30 FPS</string>
+    <string name="title_frame_pacing">Скорость вывода/отрисовки кадра</string>
+    <string name="pacing_balanced_alt">Сбалансированно с лимитом FPS</string>
+    <string name="resolution_480p">480p</string>
 </resources>

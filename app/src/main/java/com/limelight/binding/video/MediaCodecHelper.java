@@ -14,6 +14,7 @@ import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ConfigurationInfo;
+import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaCodecInfo.CodecCapabilities;
@@ -42,6 +43,7 @@ public class MediaCodecHelper {
     private static final List<String> kirinDecoderPrefixes;
     private static final List<String> exynosDecoderPrefixes;
     private static final List<String> amlogicDecoderPrefixes;
+    private static final List<String> knownVendorLowLatencyOptions;
 
     public static final boolean SHOULD_BYPASS_SOFTWARE_BLOCK =
             Build.HARDWARE.equals("ranchu") || Build.HARDWARE.equals("cheets") || Build.BRAND.equals("Android-x86");
@@ -207,6 +209,15 @@ public class MediaCodecHelper {
         useFourSlicesPrefixes.add("c2.android");
 
         // Old Qualcomm decoders are detected at runtime
+    }
+
+    static {
+        knownVendorLowLatencyOptions = new LinkedList<>();
+
+        knownVendorLowLatencyOptions.add("vendor.qti-ext-dec-low-latency.enable");
+        knownVendorLowLatencyOptions.add("vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-req");
+        knownVendorLowLatencyOptions.add("vendor.rtc-ext-dec-low-latency.enable");
+        knownVendorLowLatencyOptions.add("vendor.low-latency.enable");
     }
 
     static {
@@ -403,6 +414,35 @@ public class MediaCodecHelper {
         return false;
     }
 
+    private static boolean decoderSupportsKnownVendorLowLatencyOption(String decoderName) {
+        // It's only possible to probe vendor parameters on Android 12 and above.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MediaCodec testCodec = null;
+            try {
+                // Unfortunately we have to create an actual codec instance to get supported options.
+                testCodec = MediaCodec.createByCodecName(decoderName);
+
+                // See if any of the vendor parameters match ones we know about
+                for (String supportedOption : testCodec.getSupportedVendorParameters()) {
+                    for (String knownLowLatencyOption : knownVendorLowLatencyOptions) {
+                        if (supportedOption.equalsIgnoreCase(knownLowLatencyOption)) {
+                            LimeLog.info(decoderName + " supports known low latency option: " + supportedOption);
+                            return true;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // Tolerate buggy codecs
+                e.printStackTrace();
+            } finally {
+                if (testCodec != null) {
+                    testCodec.release();
+                }
+            }
+        }
+        return false;
+    }
+
     private static boolean decoderSupportsMaxOperatingRate(String decoderName) {
         // Operate at maximum rate to lower latency as much as possible on
         // some Qualcomm platforms. We could also set KEY_PRIORITY to 0 (realtime)
@@ -463,6 +503,8 @@ public class MediaCodecHelper {
         // https://cs.android.com/android/_/android/platform/frameworks/av/+/01c10f8cdcd58d1e7025f426a72e6e75ba5d7fc2
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Try vendor-specific low latency options
+            //
+            // NOTE: Update knownVendorLowLatencyOptions if you modify this code!
             if (isDecoderInList(qualcommDecoderPrefixes, decoderInfo.getName())) {
                 // Examples of Qualcomm's vendor extensions for Snapdragon 845:
                 // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/vdec/src/omx_vdec_extensions.hpp
@@ -598,8 +640,21 @@ public class MediaCodecHelper {
         return isDecoderInList(refFrameInvalidationAvcPrefixes, decoderName);
     }
 
-    public static boolean decoderSupportsRefFrameInvalidationHevc(String decoderName) {
-        return isDecoderInList(refFrameInvalidationHevcPrefixes, decoderName);
+    public static boolean decoderSupportsRefFrameInvalidationHevc(MediaCodecInfo decoderInfo) {
+        // HEVC decoders seem to universally support RFI, but it can have huge latency penalties
+        // for some decoders due to the number of references frames being > 1. Old Amlogic
+        // decoders are known to have this problem.
+        //
+        // If the decoder supports FEATURE_LowLatency or any vendor low latency option,
+        // we will use that as an indication that it can handle HEVC RFI without excessively
+        // buffering frames.
+        if (decoderSupportsAndroidRLowLatency(decoderInfo, "video/hevc") ||
+                decoderSupportsKnownVendorLowLatencyOption(decoderInfo.getName())) {
+            LimeLog.info("Enabling HEVC RFI based on low latency option support");
+            return true;
+        }
+
+        return isDecoderInList(refFrameInvalidationHevcPrefixes, decoderInfo.getName());
     }
 
     public static boolean decoderIsWhitelistedForHevc(String decoderName) {

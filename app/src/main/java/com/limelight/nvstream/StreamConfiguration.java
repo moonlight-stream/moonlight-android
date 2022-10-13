@@ -27,6 +27,8 @@ public class StreamConfiguration {
     private boolean enableHdr;
     private int attachedGamepadMask;
     private int encryptionFlags;
+    private int colorRange;
+    private int colorSpace;
 
     public static class Builder {
         private StreamConfiguration config = new StreamConfiguration();
@@ -131,7 +133,17 @@ public class StreamConfiguration {
             config.supportsHevc = supportsHevc;
             return this;
         }
-        
+
+        public StreamConfiguration.Builder setColorRange(int colorRange) {
+            config.colorRange = colorRange;
+            return this;
+        }
+
+        public StreamConfiguration.Builder setColorSpace(int colorSpace) {
+            config.colorSpace = colorSpace;
+            return this;
+        }
+
         public StreamConfiguration build() {
             return config;
         }
@@ -225,5 +237,13 @@ public class StreamConfiguration {
 
     public int getEncryptionFlags() {
         return encryptionFlags;
+    }
+
+    public int getColorRange() {
+        return colorRange;
+    }
+
+    public int getColorSpace() {
+        return colorSpace;
     }
 }

@@ -475,6 +475,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setClientRefreshRateX100((int)(displayRefreshRate * 100))
                 .setAudioConfiguration(prefConfig.audioConfiguration)
                 .setAudioEncryption(true)
+                .setColorSpace(decoderRenderer.getPreferredColorSpace())
+                .setColorRange(decoderRenderer.getPreferredColorRange())
                 .build();
 
         // Initialize the connection

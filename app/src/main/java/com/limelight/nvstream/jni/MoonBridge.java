@@ -30,6 +30,13 @@ public class MoonBridge {
     public static final int FRAME_TYPE_PFRAME = 0;
     public static final int FRAME_TYPE_IDR = 1;
 
+    public static final int COLORSPACE_REC_601 = 0;
+    public static final int COLORSPACE_REC_709 = 1;
+    public static final int COLORSPACE_REC_2020 = 2;
+
+    public static final int COLOR_RANGE_LIMITED = 0;
+    public static final int COLOR_RANGE_FULL = 1;
+
     public static final int CAPABILITY_DIRECT_SUBMIT = 1;
     public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_AVC = 2;
     public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_HEVC = 4;
@@ -272,7 +279,8 @@ public class MoonBridge {
                                               int clientRefreshRateX100,
                                               int encryptionFlags,
                                               byte[] riAesKey, byte[] riAesIv,
-                                              int videoCapabilities);
+                                              int videoCapabilities,
+                                              int colorSpace, int colorRange);
 
     public static native void stopConnection();
 

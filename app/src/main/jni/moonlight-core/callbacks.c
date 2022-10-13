@@ -386,7 +386,8 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jclass c
                                                            jint clientRefreshRateX100,
                                                            jint encryptionFlags,
                                                            jbyteArray riAesKey, jbyteArray riAesIv,
-                                                           jint videoCapabilities) {
+                                                           jint videoCapabilities,
+                                                           jint colorSpace, jint colorRange) {
     SERVER_INFORMATION serverInfo = {
             .address = (*env)->GetStringUTFChars(env, address, 0),
             .serverInfoAppVersion = (*env)->GetStringUTFChars(env, appVersion, 0),
@@ -406,6 +407,8 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jclass c
             .hevcBitratePercentageMultiplier = hevcBitratePercentageMultiplier,
             .clientRefreshRateX100 = clientRefreshRateX100,
             .encryptionFlags = encryptionFlags,
+            .colorSpace = colorSpace,
+            .colorRange = colorRange
     };
 
     jbyte* riAesKeyBuf = (*env)->GetByteArrayElements(env, riAesKey, NULL);

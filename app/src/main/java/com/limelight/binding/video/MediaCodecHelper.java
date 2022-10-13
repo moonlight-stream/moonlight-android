@@ -77,6 +77,12 @@ public class MediaCodecHelper {
         refFrameInvalidationHevcPrefixes.add("omx.exynos");
         refFrameInvalidationHevcPrefixes.add("c2.exynos");
 
+        // The Chromecast with Google TV 4K works well with HEVC RFI since we also use the
+        // vendor.low-latency.enable option.
+        if (Build.DEVICE.equalsIgnoreCase("sabrina")) {
+            refFrameInvalidationHevcPrefixes.add("omx.amlogic");
+        }
+
         // Qualcomm and NVIDIA may be added at runtime
     }
 
@@ -312,11 +318,13 @@ public class MediaCodecHelper {
         if (context.getPackageManager().hasSystemFeature("amazon.hardware.fire_tv") ||
                 Build.MANUFACTURER.equalsIgnoreCase("Amazon")) {
             whitelistedHevcDecoders.add("omx.mtk");
+            refFrameInvalidationHevcPrefixes.add("omx.mtk");
 
             // This requires setting vdec-lowlatency on the Fire TV 3, otherwise the decoder
             // never produces any output frames. See comment above for details on why we only
             // do this for Fire TV devices.
             whitelistedHevcDecoders.add("omx.amlogic");
+            refFrameInvalidationHevcPrefixes.add("omx.amlogic");
         }
 
         ActivityManager activityManager =

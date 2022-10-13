@@ -320,7 +320,7 @@ public class NvConnection {
                             context.streamConfig.getEncryptionFlags(),
                             context.riKey.getEncoded(), ib.array(),
                             context.videoCapabilities,
-                            context.streamConfig.getColorSpace(),
+                            context.negotiatedHdr ? MoonBridge.COLORSPACE_REC_2020 : context.streamConfig.getColorSpace(),
                             context.streamConfig.getColorRange());
                     if (ret != 0) {
                         // LiStartConnection() failed, so the caller is not expected

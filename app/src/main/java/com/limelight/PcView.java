@@ -383,10 +383,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
             return;
         }
-        if (computer.runningGameId != 0) {
-            Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_ingame), Toast.LENGTH_LONG).show();
-            return;
-        }
         if (managerBinder == null) {
             Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
             return;
@@ -426,7 +422,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                             message = getResources().getString(R.string.pair_incorrect_pin);
                         }
                         else if (pairState == PairState.FAILED) {
-                            message = getResources().getString(R.string.pair_fail);
+                            if (computer.runningGameId != 0) {
+                                message = getResources().getString(R.string.pair_pc_ingame);
+                            }
+                            else {
+                                message = getResources().getString(R.string.pair_fail);
+                            }
                         }
                         else if (pairState == PairState.ALREADY_IN_PROGRESS) {
                             message = getResources().getString(R.string.pair_already_in_progress);

@@ -327,11 +327,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     }
 
     public int getPreferredColorSpace() {
-        return MoonBridge.COLORSPACE_REC_601;
+        return MoonBridge.COLORSPACE_REC_709;
     }
 
     public int getPreferredColorRange() {
-        return MoonBridge.COLOR_RANGE_LIMITED;
+        return MoonBridge.COLOR_RANGE_FULL;
     }
 
     public void notifyVideoForeground() {

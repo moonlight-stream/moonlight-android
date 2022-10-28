@@ -259,4 +259,7 @@
     <string name="resolution_prefix_native_portrait">(세로)</string>
     <string name="title_checkbox_reduce_refresh_rate">주사율 감소 허용</string>
     <string name="summary_checkbox_reduce_refresh_rate">화면 주사율을 낮춰서 영상 지연 시간이 증가하고 전력을 절약할 수 있습니다.</string>
+    <string name="frame_conversion_error">호스트 PC에서 치명적인 비디오 인코딩 오류를 보고했습니다.
+\n
+\nHDR 모드를 비활성화하거나 스트리밍 해상도를 변경하거나 호스트 PC의 디스플레이 해상도를 변경해 보십시오.</string>
 </resources>

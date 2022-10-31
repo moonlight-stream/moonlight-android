@@ -665,7 +665,7 @@ public class MediaCodecHelper {
         return isDecoderInList(refFrameInvalidationHevcPrefixes, decoderInfo.getName());
     }
 
-    public static boolean decoderIsWhitelistedForHevc(String decoderName) {
+    public static boolean decoderIsWhitelistedForHevc(MediaCodecInfo decoderInfo) {
         // Google didn't have official support for HEVC (or more importantly, a CTS test) until
         // Lollipop. I've seen some MediaTek devices on 4.4 crash when attempting to use HEVC,
         // so I'm restricting HEVC usage to Lollipop and higher.
@@ -679,11 +679,33 @@ public class MediaCodecHelper {
         // OMX.qcom.video.decoder.hevcswvdec
         // OMX.SEC.hevc.sw.dec
         //
-        if (decoderName.contains("sw")) {
+        if (decoderInfo.getName().contains("sw")) {
+            LimeLog.info("Disallowing HEVC on software decoder: " + decoderInfo.getName());
+            return false;
+        }
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && (!decoderInfo.isHardwareAccelerated() || decoderInfo.isSoftwareOnly())) {
+            LimeLog.info("Disallowing HEVC on software decoder: " + decoderInfo.getName());
             return false;
         }
 
-        return isDecoderInList(whitelistedHevcDecoders, decoderName);
+        // If this device is media performance class 12 or higher, we will assume any hardware
+        // HEVC decoder present is fast and modern enough for streaming.
+        //
+        // [5.3/H-1-1] MUST NOT drop more than 2 frames in 10 seconds (i.e less than 0.333 percent frame drop) for a 1080p 60 fps video session under load.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Build.VERSION.MEDIA_PERFORMANCE_CLASS >= Build.VERSION_CODES.S) {
+            LimeLog.info("Allowing HEVC based on media performance class: " + Build.VERSION.MEDIA_PERFORMANCE_CLASS);
+            return true;
+        }
+
+        // If the decoder supports FEATURE_LowLatency, we will assume it is fast and modern enough
+        // to be preferable for streaming over H.264 decoders.
+        if (decoderSupportsAndroidRLowLatency(decoderInfo, "video/hevc")) {
+            LimeLog.info("Allowing HEVC based on FEATURE_LowLatency support");
+            return true;
+        }
+
+        // Otherwise, we use our list of known working HEVC decoders
+        return isDecoderInList(whitelistedHevcDecoders, decoderInfo.getName());
     }
     
     @SuppressWarnings("deprecation")

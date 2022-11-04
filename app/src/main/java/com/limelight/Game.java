@@ -30,7 +30,6 @@ import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.GameGestures;
 import com.limelight.ui.StreamView;
 import com.limelight.utils.Dialog;
-import com.limelight.utils.NetHelper;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
@@ -451,11 +450,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
         }
 
-        boolean vpnActive = NetHelper.isActiveNetworkVpn(this);
-        if (vpnActive) {
-            LimeLog.info("Detected active network is a VPN");
-        }
-
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
                 .setLaunchRefreshRate(prefConfig.fps)
@@ -464,10 +458,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setBitrate(prefConfig.bitrate)
                 .setEnableSops(prefConfig.enableSops)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
-                .setMaxPacketSize(vpnActive ? 1024 : 1392) // Lower MTU on VPN
-                .setRemoteConfiguration(vpnActive ? // Use remote optimizations on VPN
-                        StreamConfiguration.STREAM_CFG_REMOTE :
-                        StreamConfiguration.STREAM_CFG_AUTO)
+                .setMaxPacketSize(1392)
+                .setRemoteConfiguration(StreamConfiguration.STREAM_CFG_AUTO) // NvConnection will perform LAN and VPN detection
                 .setHevcBitratePercentageMultiplier(75)
                 .setHevcSupported(decoderRenderer.isHevcSupported())
                 .setEnableHdr(willStreamHdr)
@@ -480,7 +472,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .build();
 
         // Initialize the connection
-        conn = new NvConnection(host, uniqueId, config, PlatformBinding.getCryptoProvider(this), serverCert, needsInputBatching);
+        conn = new NvConnection(getApplicationContext(), host, uniqueId, config, PlatformBinding.getCryptoProvider(this), serverCert, needsInputBatching);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
         keyboardTranslator = new KeyboardTranslator();
 

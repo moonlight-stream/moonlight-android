@@ -22,5 +22,8 @@ public class ConnectionContext {
     public int negotiatedWidth, negotiatedHeight;
     public boolean negotiatedHdr;
 
+    public int negotiatedRemoteStreaming;
+    public int negotiatedPacketSize;
+
     public int videoCapabilities;
 }

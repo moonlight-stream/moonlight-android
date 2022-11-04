@@ -712,7 +712,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                         LimeLog.info("Decoder flush promoted to restart for recoverable CodecException");
                         e.printStackTrace();
                     }
-                    else if (codecRecoveryType.get() != CR_RECOVERY_TYPE_RESET || codecRecoveryType.get() != CR_RECOVERY_TYPE_RESTART) {
+                    else if (codecRecoveryType.get() != CR_RECOVERY_TYPE_RESET && codecRecoveryType.get() != CR_RECOVERY_TYPE_RESTART) {
                         throw new IllegalStateException("Unexpected codec recovery type: " + codecRecoveryType.get());
                     }
                 }

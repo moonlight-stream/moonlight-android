@@ -3,6 +3,7 @@ package com.limelight.binding.video;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -692,9 +693,19 @@ public class MediaCodecHelper {
         // HEVC decoder present is fast and modern enough for streaming.
         //
         // [5.3/H-1-1] MUST NOT drop more than 2 frames in 10 seconds (i.e less than 0.333 percent frame drop) for a 1080p 60 fps video session under load.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Build.VERSION.MEDIA_PERFORMANCE_CLASS >= Build.VERSION_CODES.S) {
-            LimeLog.info("Allowing HEVC based on media performance class: " + Build.VERSION.MEDIA_PERFORMANCE_CLASS);
-            return true;
+        //
+        // NB: We use reflection here because this field seems to be absent on Amazon Fire OS devices
+        try {
+            Field mediaClassField = Build.VERSION.class.getDeclaredField("MEDIA_PERFORMANCE_CLASS");
+            int mediaClass = mediaClassField.getInt(null);
+            if (mediaClass >= Build.VERSION_CODES.S) {
+                LimeLog.info("Allowing HEVC based on media performance class: " + mediaClass);
+                return true;
+            }
+        } catch (NoSuchFieldException e) {
+            LimeLog.info("Build.VERSION.MEDIA_PERFORMANCE_CLASS not present");
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
 
         // If the decoder supports FEATURE_LowLatency, we will assume it is fast and modern enough

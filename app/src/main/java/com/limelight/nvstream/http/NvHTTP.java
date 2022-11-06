@@ -62,7 +62,7 @@ public class NvHTTP {
     private String uniqueId;
     private PairingManager pm;
 
-    public static final int HTTPS_PORT = 47984;
+    private static final int DEFAULT_HTTPS_PORT = 47984;
     public static final int HTTP_PORT = 47989;
     public static final int CONNECTION_TIMEOUT = 3000;
     public static final int READ_TIMEOUT = 5000;
@@ -70,8 +70,9 @@ public class NvHTTP {
     // Print URL and content to logcat on debug builds
     private static boolean verbose = BuildConfig.DEBUG;
 
-    private HttpUrl baseUrlHttps;
     private HttpUrl baseUrlHttp;
+
+    private int httpsPort;
     
     private OkHttpClient httpClient;
     private OkHttpClient httpClientWithReadTimeout;
@@ -179,6 +180,15 @@ public class NvHTTP {
                 .readTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS)
                 .build();
     }
+
+    public HttpUrl getHttpsUrl() throws IOException {
+        if (httpsPort == 0) {
+            // Fetch the HTTPS port if we don't have it already
+            httpsPort = getHttpsPort(openHttpConnectionToString(baseUrlHttp, "serverinfo", true));
+        }
+
+        return new HttpUrl.Builder().scheme("https").host(baseUrlHttp.host()).port(httpsPort).build();
+    }
     
     public NvHTTP(String address, String uniqueId, X509Certificate serverCert, LimelightCryptoProvider cryptoProvider) throws IOException {
         // Use the same UID for all Moonlight clients so we can quit games
@@ -194,12 +204,6 @@ public class NvHTTP {
                     .scheme("http")
                     .host(address)
                     .port(HTTP_PORT)
-                    .build();
-
-            this.baseUrlHttps = new HttpUrl.Builder()
-                    .scheme("https")
-                    .host(address)
-                    .port(HTTPS_PORT)
                     .build();
         } catch (IllegalArgumentException e) {
             // Encapsulate IllegalArgumentException into IOException for callers to handle more easily
@@ -284,7 +288,7 @@ public class NvHTTP {
         if (serverCert != null) {
             try {
                 try {
-                    resp = openHttpConnectionToString(baseUrlHttps, "serverinfo", true);
+                    resp = openHttpConnectionToString(getHttpsUrl(), "serverinfo", true);
                 } catch (SSLHandshakeException e) {
                     // Detect if we failed due to a server cert mismatch
                     if (e.getCause() instanceof CertificateException) {
@@ -315,7 +319,7 @@ public class NvHTTP {
         }
         else {
             // No pinned cert, so use HTTP
-            return openHttpConnectionToString(baseUrlHttp , "serverinfo", true);
+            return openHttpConnectionToString(baseUrlHttp, "serverinfo", true);
         }
     }
     
@@ -527,6 +531,18 @@ public class NvHTTP {
         }
     }
 
+    public int getHttpsPort(String serverInfo) {
+        try {
+            return Integer.parseInt(getXmlString(serverInfo, "HttpsPort", true));
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+            return DEFAULT_HTTPS_PORT;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return DEFAULT_HTTPS_PORT;
+        }
+    }
+
     public NvApp getAppById(int appId) throws IOException, XmlPullParserException {
         LinkedList<NvApp> appList = getAppList();
         for (NvApp appFromList : appList) {
@@ -618,7 +634,7 @@ public class NvHTTP {
     }
     
     public String getAppListRaw() throws IOException {
-        return openHttpConnectionToString(baseUrlHttps, "applist", true);
+        return openHttpConnectionToString(getHttpsUrl(), "applist", true);
     }
     
     public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
@@ -627,7 +643,7 @@ public class NvHTTP {
             return getAppListByReader(new StringReader(getAppListRaw()));
         }
         else {
-            try (final ResponseBody resp = openHttpConnection(baseUrlHttps, "applist", true)) {
+            try (final ResponseBody resp = openHttpConnection(getHttpsUrl(), "applist", true)) {
                 return getAppListByReader(new InputStreamReader(resp.byteStream()));
             }
         }
@@ -640,7 +656,7 @@ public class NvHTTP {
     }
 
     String executePairingChallenge() throws GfeHttpResponseException, IOException {
-        return openHttpConnectionToString(baseUrlHttps, "pair",
+        return openHttpConnectionToString(getHttpsUrl(), "pair",
                 "devicename=roth&updateState=1&phrase=pairchallenge",
                 true);
     }
@@ -650,7 +666,7 @@ public class NvHTTP {
     }
     
     public InputStream getBoxArt(NvApp app) throws IOException {
-        ResponseBody resp = openHttpConnection(baseUrlHttps, "appasset", "appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0", true);
+        ResponseBody resp = openHttpConnection(getHttpsUrl(), "appasset", "appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0", true);
         return resp.byteStream();
     }
     
@@ -705,7 +721,7 @@ public class NvHTTP {
             enableSops = false;
         }
 
-        String xmlStr = openHttpConnectionToString(baseUrlHttps, "launch",
+        String xmlStr = openHttpConnectionToString(getHttpsUrl(), "launch",
             "appid=" + appId +
             "&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + fps +
             "&additionalStates=1&sops=" + (enableSops ? 1 : 0) +
@@ -728,7 +744,7 @@ public class NvHTTP {
     }
     
     public boolean resumeApp(ConnectionContext context) throws IOException, XmlPullParserException {
-        String xmlStr = openHttpConnectionToString(baseUrlHttps, "resume",
+        String xmlStr = openHttpConnectionToString(getHttpsUrl(), "resume",
                 "rikey="+bytesToHex(context.riKey.getEncoded()) +
                 "&rikeyid="+context.riKeyId +
                 "&surroundAudioInfo=" + context.streamConfig.getAudioConfiguration().getSurroundAudioInfo(),
@@ -744,7 +760,7 @@ public class NvHTTP {
     }
     
     public boolean quitApp() throws IOException, XmlPullParserException {
-        String xmlStr = openHttpConnectionToString(baseUrlHttps, "cancel", false);
+        String xmlStr = openHttpConnectionToString(getHttpsUrl(), "cancel", false);
         if (getXmlString(xmlStr, "cancel", true).equals("0")) {
             return false;
         }

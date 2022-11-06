@@ -6,6 +6,8 @@ import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -96,7 +98,7 @@ public class AddComputerManually extends Activity {
         }
     }
 
-    private void doAddPc(String host) throws InterruptedException {
+    private void doAddPc(String rawUserInput) throws InterruptedException {
         boolean wrongSiteLocal = false;
         boolean success;
         int portTestResult;
@@ -106,8 +108,28 @@ public class AddComputerManually extends Activity {
 
         try {
             ComputerDetails details = new ComputerDetails();
-            details.manualAddress = host;
+
+            // Use URI-style parsing for the host address input
+            URI uri = new URI("moonlight://" + rawUserInput);
+
+            String host = uri.getHost();
+            int port = uri.getPort();
+
+            // URI allows empty hosts, but we don't want that
+            if (host == null || host.isEmpty()) {
+                throw new URISyntaxException(rawUserInput, "Host failed to parse");
+            }
+
+            // If a port was not specified, use the default
+            if (port == -1) {
+                port = NvHTTP.DEFAULT_HTTP_PORT;
+            }
+
+            details.manualAddress = new ComputerDetails.AddressTuple(host, port);
             success = managerBinder.addComputerBlocking(details);
+            if (!success){
+                wrongSiteLocal = isWrongSubnetSiteLocalAddress(host);
+            }
         } catch (InterruptedException e) {
             // Propagate the InterruptedException to the caller for proper handling
             dialog.dismiss();
@@ -117,12 +139,12 @@ public class AddComputerManually extends Activity {
             // https://github.com/square/okhttp/blob/okhttp_27/okhttp/src/main/java/com/squareup/okhttp/HttpUrl.java#L705
             e.printStackTrace();
             success = false;
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            success = false;
         }
 
         // Keep the SpinnerDialog open while testing connectivity
-        if (!success){
-            wrongSiteLocal = isWrongSubnetSiteLocalAddress(host);
-        }
         if (!success && !wrongSiteLocal) {
             // Run the test before dismissing the spinner because it can take a few seconds.
             portTestResult = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER, 443,

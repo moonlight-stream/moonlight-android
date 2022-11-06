@@ -32,6 +32,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import com.limelight.LimeLog;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.GfeHttpResponseException;
 import com.limelight.nvstream.http.LimelightCryptoProvider;
 import com.limelight.nvstream.http.NvApp;
@@ -42,7 +43,7 @@ import com.limelight.nvstream.jni.MoonBridge;
 
 public class NvConnection {
     // Context parameters
-    private String host;
+    private ComputerDetails.AddressTuple host;
     private LimelightCryptoProvider cryptoProvider;
     private String uniqueId;
     private ConnectionContext context;
@@ -57,7 +58,7 @@ public class NvConnection {
     private short relMouseX, relMouseY, relMouseWidth, relMouseHeight;
     private short absMouseX, absMouseY, absMouseWidth, absMouseHeight;
 
-    public NvConnection(Context appContext, String host, String uniqueId, StreamConfiguration config, LimelightCryptoProvider cryptoProvider, X509Certificate serverCert, boolean batchMouseInput)
+    public NvConnection(Context appContext, ComputerDetails.AddressTuple host, String uniqueId, StreamConfiguration config, LimelightCryptoProvider cryptoProvider, X509Certificate serverCert, boolean batchMouseInput)
     {
         this.appContext = appContext;
         this.host = host;
@@ -134,11 +135,11 @@ public class NvConnection {
 
     private InetAddress resolveServerAddress() throws IOException {
         // Try to find an address that works for this host
-        InetAddress[] addrs = InetAddress.getAllByName(context.serverAddress);
+        InetAddress[] addrs = InetAddress.getAllByName(context.serverAddress.address);
         for (InetAddress addr : addrs) {
             try (Socket s = new Socket()) {
                 s.setSoLinger(true, 0);
-                s.connect(new InetSocketAddress(addr, 47989), 1000);
+                s.connect(new InetSocketAddress(addr, context.serverAddress.port), 1000);
                 return addr;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -252,7 +253,7 @@ public class NvConnection {
     
     private boolean startApp() throws XmlPullParserException, IOException
     {
-        NvHTTP h = new NvHTTP(context.serverAddress, uniqueId, context.serverCert, cryptoProvider);
+        NvHTTP h = new NvHTTP(context.serverAddress, 0, uniqueId, context.serverCert, cryptoProvider);
 
         String serverInfo = h.getServerInfo();
         
@@ -452,7 +453,7 @@ public class NvConnection {
                 // we must not invoke that functionality in parallel.
                 synchronized (MoonBridge.class) {
                     MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
-                    int ret = MoonBridge.startConnection(context.serverAddress,
+                    int ret = MoonBridge.startConnection(context.serverAddress.address,
                             context.serverAppVersion, context.serverGfeVersion, context.rtspSessionUrl,
                             context.negotiatedWidth, context.negotiatedHeight,
                             context.streamConfig.getRefreshRate(), context.streamConfig.getBitrate(),

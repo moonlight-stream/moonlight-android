@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.NvHTTP;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -27,6 +28,7 @@ public class ComputerDatabaseManager {
     private static final String SERVER_CERT_COLUMN_NAME = "ServerCert";
 
     private static final char ADDRESS_DELIMITER = ';';
+    private static final char PORT_DELIMITER = '_';
 
     private SQLiteDatabase computerDb;
 
@@ -74,10 +76,10 @@ public class ComputerDatabaseManager {
         values.put(COMPUTER_NAME_COLUMN_NAME, details.name);
 
         StringBuilder addresses = new StringBuilder();
-        addresses.append(details.localAddress != null ? details.localAddress : "");
-        addresses.append(ADDRESS_DELIMITER).append(details.remoteAddress != null ? details.remoteAddress : "");
-        addresses.append(ADDRESS_DELIMITER).append(details.manualAddress != null ? details.manualAddress : "");
-        addresses.append(ADDRESS_DELIMITER).append(details.ipv6Address != null ? details.ipv6Address : "");
+        addresses.append(details.localAddress != null ? splitTupleToAddress(details.localAddress) : "");
+        addresses.append(ADDRESS_DELIMITER).append(details.remoteAddress != null ? splitTupleToAddress(details.remoteAddress) : "");
+        addresses.append(ADDRESS_DELIMITER).append(details.manualAddress != null ? splitTupleToAddress(details.manualAddress) : "");
+        addresses.append(ADDRESS_DELIMITER).append(details.ipv6Address != null ? splitTupleToAddress(details.ipv6Address) : "");
 
         values.put(ADDRESSES_COLUMN_NAME, addresses.toString());
         values.put(MAC_ADDRESS_COLUMN_NAME, details.macAddress);
@@ -103,6 +105,24 @@ public class ComputerDatabaseManager {
         return input;
     }
 
+    private static ComputerDetails.AddressTuple splitAddressToTuple(String input) {
+        if (input == null) {
+            return null;
+        }
+
+        String[] parts = input.split(""+PORT_DELIMITER, -1);
+        if (parts.length == 1) {
+            return new ComputerDetails.AddressTuple(parts[0], NvHTTP.DEFAULT_HTTP_PORT);
+        }
+        else {
+            return new ComputerDetails.AddressTuple(parts[0], Integer.parseInt(parts[1]));
+        }
+    }
+
+    private static String splitTupleToAddress(ComputerDetails.AddressTuple tuple) {
+        return tuple.address+PORT_DELIMITER+tuple.port;
+    }
+
     private ComputerDetails getComputerFromCursor(Cursor c) {
         ComputerDetails details = new ComputerDetails();
 
@@ -111,10 +131,18 @@ public class ComputerDatabaseManager {
 
         String[] addresses = c.getString(2).split(""+ADDRESS_DELIMITER, -1);
 
-        details.localAddress = readNonEmptyString(addresses[0]);
-        details.remoteAddress = readNonEmptyString(addresses[1]);
-        details.manualAddress = readNonEmptyString(addresses[2]);
-        details.ipv6Address = readNonEmptyString(addresses[3]);
+        details.localAddress = splitAddressToTuple(readNonEmptyString(addresses[0]));
+        details.remoteAddress = splitAddressToTuple(readNonEmptyString(addresses[1]));
+        details.manualAddress = splitAddressToTuple(readNonEmptyString(addresses[2]));
+        details.ipv6Address = splitAddressToTuple(readNonEmptyString(addresses[3]));
+
+        // External port is persisted in the remote address field
+        if (details.remoteAddress != null) {
+            details.externalPort = details.remoteAddress.port;
+        }
+        else {
+            details.externalPort = NvHTTP.DEFAULT_HTTP_PORT;
+        }
 
         details.macAddress = c.getString(3);
 

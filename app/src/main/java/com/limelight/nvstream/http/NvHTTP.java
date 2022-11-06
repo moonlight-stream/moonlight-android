@@ -63,7 +63,7 @@ public class NvHTTP {
     private PairingManager pm;
 
     private static final int DEFAULT_HTTPS_PORT = 47984;
-    public static final int HTTP_PORT = 47989;
+    public static final int DEFAULT_HTTP_PORT = 47989;
     public static final int CONNECTION_TIMEOUT = 3000;
     public static final int READ_TIMEOUT = 5000;
 
@@ -190,7 +190,7 @@ public class NvHTTP {
         return new HttpUrl.Builder().scheme("https").host(baseUrlHttp.host()).port(httpsPort).build();
     }
     
-    public NvHTTP(String address, String uniqueId, X509Certificate serverCert, LimelightCryptoProvider cryptoProvider) throws IOException {
+    public NvHTTP(ComputerDetails.AddressTuple address, int httpsPort, String uniqueId, X509Certificate serverCert, LimelightCryptoProvider cryptoProvider) throws IOException {
         // Use the same UID for all Moonlight clients so we can quit games
         // started by other Moonlight clients.
         this.uniqueId = "0123456789ABCDEF";
@@ -199,11 +199,13 @@ public class NvHTTP {
 
         initializeHttpState(cryptoProvider);
 
+        this.httpsPort = httpsPort;
+
         try {
             this.baseUrlHttp = new HttpUrl.Builder()
                     .scheme("http")
-                    .host(address)
-                    .port(HTTP_PORT)
+                    .host(address.address)
+                    .port(address.port)
                     .build();
         } catch (IllegalArgumentException e) {
             // Encapsulate IllegalArgumentException into IOException for callers to handle more easily
@@ -322,6 +324,14 @@ public class NvHTTP {
             return openHttpConnectionToString(baseUrlHttp, "serverinfo", true);
         }
     }
+
+    private static ComputerDetails.AddressTuple makeTuple(String address, int port) {
+        if (address == null) {
+            return null;
+        }
+
+        return new ComputerDetails.AddressTuple(address, port);
+    }
     
     public ComputerDetails getComputerDetails() throws IOException, XmlPullParserException {
         ComputerDetails details = new ComputerDetails();
@@ -335,11 +345,16 @@ public class NvHTTP {
         // UUID is mandatory to determine which machine is responding
         details.uuid = getXmlString(serverInfo, "uniqueid", true);
 
-        details.macAddress = getXmlString(serverInfo, "mac", false);
-        details.localAddress = getXmlString(serverInfo, "LocalIP", false);
+        details.httpsPort = getHttpsPort(serverInfo);
 
-        // This is missing on on recent GFE versions
-        details.remoteAddress = getXmlString(serverInfo, "ExternalIP", false);
+        details.macAddress = getXmlString(serverInfo, "mac", false);
+
+        // FIXME: Do we want to use the current port?
+        details.localAddress = makeTuple(getXmlString(serverInfo, "LocalIP", false), baseUrlHttp.port());
+
+        // This is missing on on recent GFE versions, but it's present on Sunshine
+        details.externalPort = getExternalPort(serverInfo);
+        details.remoteAddress = makeTuple(getXmlString(serverInfo, "ExternalIP", false), details.externalPort);
 
         details.pairState = getPairState(serverInfo);
         details.runningGameId = getCurrentGame(serverInfo);
@@ -540,6 +555,20 @@ public class NvHTTP {
         } catch (IOException e) {
             e.printStackTrace();
             return DEFAULT_HTTPS_PORT;
+        }
+    }
+
+    public int getExternalPort(String serverInfo) {
+        // This is an extension which is not present in GFE. It is present for Sunshine to be able
+        // to support dynamic HTTP WAN ports without requiring the user to manually enter the port.
+        try {
+            return Integer.parseInt(getXmlString(serverInfo, "ExternalPort", true));
+        } catch (XmlPullParserException e) {
+            // Expected on non-Sunshine servers
+            return DEFAULT_HTTP_PORT;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return DEFAULT_HTTP_PORT;
         }
     }
 

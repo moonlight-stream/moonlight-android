@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.NvHTTP;
 
 import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateException;
@@ -23,9 +24,9 @@ public class LegacyDatabaseReader2 {
 
         details.uuid = c.getString(0);
         details.name = c.getString(1);
-        details.localAddress = c.getString(2);
-        details.remoteAddress = c.getString(3);
-        details.manualAddress = c.getString(4);
+        details.localAddress = new ComputerDetails.AddressTuple(c.getString(2), NvHTTP.DEFAULT_HTTP_PORT);
+        details.remoteAddress = new ComputerDetails.AddressTuple(c.getString(3), NvHTTP.DEFAULT_HTTP_PORT);
+        details.manualAddress = new ComputerDetails.AddressTuple(c.getString(4), NvHTTP.DEFAULT_HTTP_PORT);
         details.macAddress = c.getString(5);
 
         // This column wasn't always present in the old schema

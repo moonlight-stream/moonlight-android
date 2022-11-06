@@ -139,7 +139,7 @@ public class ComputerManagerService extends Service {
                     // then use STUN to populate the external address field if
                     // it's not set already.
                     if (details.remoteAddress == null) {
-                        InetAddress addr = InetAddress.getByName(details.activeAddress);
+                        InetAddress addr = InetAddress.getByName(details.activeAddress.address);
                         if (addr.isSiteLocalAddress()) {
                             populateExternalAddress(details);
                         }
@@ -369,7 +369,12 @@ public class ComputerManagerService extends Service {
 
         // Perform the STUN request if we're not on a VPN or if we bound to a network
         if (!activeNetworkIsVpn || boundToNetwork) {
-            details.remoteAddress = NvConnection.findExternalAddressForMdns("stun.moonlight-stream.org", 3478);
+            String stunResolvedAddress = NvConnection.findExternalAddressForMdns("stun.moonlight-stream.org", 3478);
+            if (stunResolvedAddress != null) {
+                // We don't know for sure what the external port is, so we will have to guess.
+                // When we contact the PC (if we haven't already), it will update the port.
+                details.remoteAddress = new ComputerDetails.AddressTuple(stunResolvedAddress, details.guessExternalPort());
+            }
         }
 
         // Unbind from the network
@@ -396,7 +401,7 @@ public class ComputerManagerService extends Service {
 
                 // Populate the computer template with mDNS info
                 if (computer.getLocalAddress() != null) {
-                    details.localAddress = computer.getLocalAddress().getHostAddress();
+                    details.localAddress = new ComputerDetails.AddressTuple(computer.getLocalAddress().getHostAddress(), computer.getPort());
 
                     // Since we're on the same network, we can use STUN to find
                     // our WAN address, which is also very likely the WAN address
@@ -406,7 +411,7 @@ public class ComputerManagerService extends Service {
                     }
                 }
                 if (computer.getIpv6Address() != null) {
-                    details.ipv6Address = computer.getIpv6Address().getHostAddress();
+                    details.ipv6Address = new ComputerDetails.AddressTuple(computer.getIpv6Address().getHostAddress(), computer.getPort());
                 }
 
                 try {
@@ -543,9 +548,9 @@ public class ComputerManagerService extends Service {
         }
     }
 
-    private ComputerDetails tryPollIp(ComputerDetails details, String address) {
+    private ComputerDetails tryPollIp(ComputerDetails details, ComputerDetails.AddressTuple address) {
         try {
-            NvHTTP http = new NvHTTP(address, idManager.getUniqueId(), details.serverCert,
+            NvHTTP http = new NvHTTP(address, 0, idManager.getUniqueId(), details.serverCert,
                     PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
             ComputerDetails newDetails = http.getComputerDetails();
@@ -572,14 +577,14 @@ public class ComputerManagerService extends Service {
     }
 
     private static class ParallelPollTuple {
-        public String address;
+        public ComputerDetails.AddressTuple address;
         public ComputerDetails existingDetails;
 
         public boolean complete;
         public Thread pollingThread;
         public ComputerDetails returnedDetails;
 
-        public ParallelPollTuple(String address, ComputerDetails existingDetails) {
+        public ParallelPollTuple(ComputerDetails.AddressTuple address, ComputerDetails existingDetails) {
             this.address = address;
             this.existingDetails = existingDetails;
         }
@@ -591,7 +596,7 @@ public class ComputerManagerService extends Service {
         }
     }
 
-    private void startParallelPollThread(ParallelPollTuple tuple, HashSet<String> uniqueAddresses) {
+    private void startParallelPollThread(ParallelPollTuple tuple, HashSet<ComputerDetails.AddressTuple> uniqueAddresses) {
         // Don't bother starting a polling thread for an address that doesn't exist
         // or if the address has already been polled with an earlier tuple
         if (tuple.address == null || !uniqueAddresses.add(tuple.address)) {
@@ -625,7 +630,7 @@ public class ComputerManagerService extends Service {
 
         // These must be started in order of precedence for the deduplication algorithm
         // to result in the correct behavior.
-        HashSet<String> uniqueAddresses = new HashSet<>();
+        HashSet<ComputerDetails.AddressTuple> uniqueAddresses = new HashSet<>();
         startParallelPollThread(localInfo, uniqueAddresses);
         startParallelPollThread(manualInfo, uniqueAddresses);
         startParallelPollThread(remoteInfo, uniqueAddresses);
@@ -821,7 +826,7 @@ public class ComputerManagerService extends Service {
                         PollingTuple tuple = getPollingTuple(computer);
 
                         try {
-                            NvHTTP http = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer), idManager.getUniqueId(),
+                            NvHTTP http = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer), computer.httpsPort, idManager.getUniqueId(),
                                     computer.serverCert, PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
                             String appList;

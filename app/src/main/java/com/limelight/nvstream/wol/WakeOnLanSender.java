@@ -10,11 +10,53 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.http.ComputerDetails;
 
 public class WakeOnLanSender {
-    private static final int[] PORTS_TO_TRY = new int[] {
+    // These ports will always be tried as-is.
+    private static final int[] STATIC_PORTS_TO_TRY = new int[] {
         9, // Standard WOL port (privileged port)
-        47998, 47999, 48000, 48002, 48010, // Ports opened by GFE
         47009, // Port opened by Moonlight Internet Hosting Tool for WoL (non-privileged port)
     };
+
+    // These ports will be offset by the base port number (47989) to support alternate ports.
+    private static final int[] DYNAMIC_PORTS_TO_TRY = new int[] {
+        47998, 47999, 48000, 48002, 48010, // Ports opened by GFE
+    };
+
+    private static void sendPacketsForAddress(InetAddress address, int httpPort, DatagramSocket sock, byte[] payload) throws IOException {
+        IOException lastException = null;
+        boolean sentWolPacket = false;
+
+        // Try the static ports
+        for (int port : STATIC_PORTS_TO_TRY) {
+            try {
+                DatagramPacket dp = new DatagramPacket(payload, payload.length);
+                dp.setAddress(address);
+                dp.setPort(port);
+                sock.send(dp);
+                sentWolPacket = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                lastException = e;
+            }
+        }
+
+        // Try the dynamic ports
+        for (int port : DYNAMIC_PORTS_TO_TRY) {
+            try {
+                DatagramPacket dp = new DatagramPacket(payload, payload.length);
+                dp.setAddress(address);
+                dp.setPort((port - 47989) + httpPort);
+                sock.send(dp);
+                sentWolPacket = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                lastException = e;
+            }
+        }
+
+        if (!sentWolPacket) {
+            throw lastException;
+        }
+    }
     
     public static void sendWolPacket(ComputerDetails computer) throws IOException {
         byte[] payload = createWolPayload(computer);
@@ -22,26 +64,21 @@ public class WakeOnLanSender {
         boolean sentWolPacket = false;
 
         try (final DatagramSocket sock = new DatagramSocket(0)) {
-            // Try all resolved remote and local addresses and IPv4 broadcast address.
+            // Try all resolved remote and local addresses and broadcast addresses.
             // The broadcast address is required to avoid stale ARP cache entries
             // making the sleeping machine unreachable.
-            for (String unresolvedAddress : new String[] {
-                    computer.localAddress, computer.remoteAddress, computer.manualAddress, computer.ipv6Address, "255.255.255.255"
+            for (ComputerDetails.AddressTuple address : new ComputerDetails.AddressTuple[] {
+                    computer.localAddress, computer.remoteAddress,
+                    computer.manualAddress, computer.ipv6Address,
             }) {
-                if (unresolvedAddress == null) {
+                if (address == null) {
                     continue;
                 }
 
                 try {
-                    for (InetAddress resolvedAddress : InetAddress.getAllByName(unresolvedAddress)) {
-                        // Try all the ports for each resolved address
-                        for (int port : PORTS_TO_TRY) {
-                            DatagramPacket dp = new DatagramPacket(payload, payload.length);
-                            dp.setAddress(resolvedAddress);
-                            dp.setPort(port);
-                            sock.send(dp);
-                            sentWolPacket = true;
-                        }
+                    sendPacketsForAddress(InetAddress.getByName("255.255.255.255"), address.port, sock, payload);
+                    for (InetAddress resolvedAddress : InetAddress.getAllByName(address.address)) {
+                        sendPacketsForAddress(resolvedAddress, address.port, sock, payload);
                     }
                 } catch (IOException e) {
                     // We may have addresses that don't resolve on this subnet,

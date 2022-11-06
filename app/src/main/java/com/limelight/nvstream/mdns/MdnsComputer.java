@@ -6,12 +6,14 @@ import java.net.InetAddress;
 public class MdnsComputer {
     private InetAddress localAddr;
     private Inet6Address v6Addr;
+    private int port;
     private String name;
 
-    public MdnsComputer(String name, InetAddress localAddress, Inet6Address v6Addr) {
+    public MdnsComputer(String name, InetAddress localAddress, Inet6Address v6Addr, int port) {
         this.name = name;
         this.localAddr = localAddress;
         this.v6Addr = v6Addr;
+        this.port = port;
     }
 
     public String getName() {
@@ -26,6 +28,10 @@ public class MdnsComputer {
         return v6Addr;
     }
 
+    public int getPort() {
+        return port;
+    }
+
     @Override
     public int hashCode() {
         return name.hashCode();
@@ -36,7 +42,7 @@ public class MdnsComputer {
         if (o instanceof MdnsComputer) {
             MdnsComputer other = (MdnsComputer)o;
 
-            if (!other.name.equals(name)) {
+            if (!other.name.equals(name) || other.port != port) {
                 return false;
             }
 

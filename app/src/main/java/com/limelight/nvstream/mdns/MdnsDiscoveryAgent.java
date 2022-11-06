@@ -260,7 +260,7 @@ public class MdnsDiscoveryAgent implements ServiceListener {
         // Add a computer object for each IPv4 address reported by the PC
         for (Inet4Address v4Addr : v4Addrs) {
             synchronized (computers) {
-                MdnsComputer computer = new MdnsComputer(info.getName(), v4Addr, v6GlobalAddr);
+                MdnsComputer computer = new MdnsComputer(info.getName(), v4Addr, v6GlobalAddr, info.getPort());
                 if (computers.put(computer.getLocalAddress(), computer) == null) {
                     // This was a new entry
                     listener.notifyComputerAdded(computer);
@@ -273,7 +273,7 @@ public class MdnsDiscoveryAgent implements ServiceListener {
             Inet6Address v6LocalAddr = getLocalAddress(v6Addrs);
 
             if (v6LocalAddr != null || v6GlobalAddr != null) {
-                MdnsComputer computer = new MdnsComputer(info.getName(), v6LocalAddr, v6GlobalAddr);
+                MdnsComputer computer = new MdnsComputer(info.getName(), v6LocalAddr, v6GlobalAddr, info.getPort());
                 if (computers.put(v6LocalAddr != null ?
                         computer.getLocalAddress() : computer.getIpv6Address(), computer) == null) {
                     // This was a new entry

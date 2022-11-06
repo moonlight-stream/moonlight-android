@@ -132,23 +132,27 @@ public class NvConnection {
         }
     }
 
-    private InetAddress resolveServerAddress() {
-        try {
-            InetAddress[] addrs = InetAddress.getAllByName(context.serverAddress);
-            for (InetAddress addr : addrs) {
-                try (Socket s = new Socket()) {
-                    s.setSoLinger(true, 0);
-                    s.connect(new InetSocketAddress(addr, 47989), 1000);
-                    return addr;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+    private InetAddress resolveServerAddress() throws IOException {
+        // Try to find an address that works for this host
+        InetAddress[] addrs = InetAddress.getAllByName(context.serverAddress);
+        for (InetAddress addr : addrs) {
+            try (Socket s = new Socket()) {
+                s.setSoLinger(true, 0);
+                s.connect(new InetSocketAddress(addr, 47989), 1000);
+                return addr;
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
         }
 
-        return null;
+        // If we made it here, we didn't manage to find a working address. If DNS returned any
+        // address, we'll use the first available address and hope for the best.
+        if (addrs.length > 0) {
+            return addrs[0];
+        }
+        else {
+            throw new IOException("No addresses found for "+context.serverAddress);
+        }
     }
 
     private int detectServerConnectionType() {
@@ -173,7 +177,15 @@ public class NvConnection {
                 // Check if the server address is on-link
                 LinkProperties linkProperties = connMgr.getLinkProperties(activeNetwork);
                 if (linkProperties != null) {
-                    InetAddress serverAddress = resolveServerAddress();
+                    InetAddress serverAddress;
+                    try {
+                        serverAddress = resolveServerAddress();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+
+                        // We can't decide without being able to resolve the server address
+                        return StreamConfiguration.STREAM_CFG_AUTO;
+                    }
 
                     // If the address is in the NAT64 prefix, always treat it as remote
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

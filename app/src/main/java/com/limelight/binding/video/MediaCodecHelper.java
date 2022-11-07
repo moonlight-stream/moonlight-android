@@ -318,6 +318,11 @@ public class MediaCodecHelper {
         // We still have to check Build.MANUFACTURER to catch Amazon Fire tablets.
         if (context.getPackageManager().hasSystemFeature("amazon.hardware.fire_tv") ||
                 Build.MANUFACTURER.equalsIgnoreCase("Amazon")) {
+            // HEVC and RFI have been confirmed working on Fire TV 2, Fire TV Stick 2, Fire TV 4K Max,
+            // Fire HD 8 2020, and Fire HD 8 2022 models.
+            //
+            // This is probably a good enough sample to conclude that all MediaTek Fire OS devices
+            // are likely to be okay.
             whitelistedHevcDecoders.add("omx.mtk");
             refFrameInvalidationHevcPrefixes.add("omx.mtk");
 
@@ -325,7 +330,19 @@ public class MediaCodecHelper {
             // never produces any output frames. See comment above for details on why we only
             // do this for Fire TV devices.
             whitelistedHevcDecoders.add("omx.amlogic");
-            refFrameInvalidationHevcPrefixes.add("omx.amlogic");
+
+            // Fire TV 3 seems to produce random artifacts on HEVC streams after packet loss.
+            // Enabling RFI turns these artifacts into full decoder output hangs, so let's not enable
+            // that for Fire OS 6 Amlogic devices. We will leave HEVC enabled because that's the only
+            // way these devices can hit 4K. Hopefully this is just a problem with the BSP used in
+            // the Fire OS 6 Amlogic devices, so we will leave this enabled for Fire OS 7+.
+            //
+            // Apart from a few TV models, the main Amlogic-based Fire TV devices are the Fire TV
+            // Cubes and Fire TV 3. This check will exclude the Fire TV 3 and Fire TV Cube 1, but
+            // allow the newer Fire TV Cubes to use HEVC RFI.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                refFrameInvalidationHevcPrefixes.add("omx.amlogic");
+            }
         }
 
         ActivityManager activityManager =

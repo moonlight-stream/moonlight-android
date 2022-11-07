@@ -325,6 +325,7 @@ public class MediaCodecHelper {
             // are likely to be okay.
             whitelistedHevcDecoders.add("omx.mtk");
             refFrameInvalidationHevcPrefixes.add("omx.mtk");
+            refFrameInvalidationHevcPrefixes.add("c2.mtk");
 
             // This requires setting vdec-lowlatency on the Fire TV 3, otherwise the decoder
             // never produces any output frames. See comment above for details on why we only
@@ -342,6 +343,7 @@ public class MediaCodecHelper {
             // allow the newer Fire TV Cubes to use HEVC RFI.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 refFrameInvalidationHevcPrefixes.add("omx.amlogic");
+                refFrameInvalidationHevcPrefixes.add("c2.amlogic");
             }
         }
 
@@ -356,9 +358,11 @@ public class MediaCodecHelper {
 
             // Tegra K1 and later can do reference frame invalidation properly
             if (configInfo.reqGlEsVersion >= 0x30000) {
-                LimeLog.info("Added omx.nvidia to reference frame invalidation support list");
+                LimeLog.info("Added omx.nvidia/c2.nvidia to reference frame invalidation support list");
                 refFrameInvalidationAvcPrefixes.add("omx.nvidia");
                 refFrameInvalidationHevcPrefixes.add("omx.nvidia");
+                refFrameInvalidationAvcPrefixes.add("c2.nvidia"); // Unconfirmed
+                refFrameInvalidationHevcPrefixes.add("c2.nvidia"); // Unconfirmed
 
                 LimeLog.info("Added omx.qcom/c2.qti to reference frame invalidation support list");
                 refFrameInvalidationAvcPrefixes.add("omx.qcom");
@@ -398,8 +402,9 @@ public class MediaCodecHelper {
                 // decoder hangs on the newer GE8100, GE8300, and GE8320 GPUs, so we limit it to the
                 // Series6XT GPUs where we know it works.
                 if (glRenderer.contains("GX6")) {
-                    LimeLog.info("Added omx.mtk to RFI list for HEVC");
+                    LimeLog.info("Added omx.mtk/c2.mtk to RFI list for HEVC");
                     refFrameInvalidationHevcPrefixes.add("omx.mtk");
+                    refFrameInvalidationHevcPrefixes.add("c2.mtk");
                 }
             }
         }

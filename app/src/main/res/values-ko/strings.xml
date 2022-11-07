@@ -191,7 +191,7 @@
     <string name="title_enable_perf_overlay">스트리밍 중 성능 정보 표시</string>
     <string name="summary_enable_perf_overlay">스트리밍하는 동안 실시간 스트림 성능 정보 표시</string>
     <string name="summary_enable_hdr">게임 및 PC의 GPU가 HDR을 지원하는 경우 HDR을 활성화합니다. HDR에는 GTX 1000 시리즈 또는 그 이상의 GPU가 필요합니다.</string>
-    <string name="title_enable_hdr">HDR활성화 (실험중인 기능)</string>
+    <string name="title_enable_hdr">HDR활성화 (실험용)</string>
     <string name="summary_disable_frame_drop">일부 장치에서 미세한 끊김 현상을 줄일 수 있지만 지연 시간이 늘어날 수 있습니다.</string>
     <string name="title_disable_frame_drop">프레임드랍 최적화</string>
     <string name="summary_unlock_fps">90 또는 120FPS로 스트리밍하면 지연 시간이 줄어들 수 있지만 이를 지원할 수 없는 장치에서는 지연 또는 불안정 할 수 있습니다</string>
@@ -259,4 +259,7 @@
     <string name="resolution_prefix_native_portrait">(세로)</string>
     <string name="title_checkbox_reduce_refresh_rate">주사율 감소 허용</string>
     <string name="summary_checkbox_reduce_refresh_rate">화면 주사율을 낮춰서 영상 지연 시간이 증가하고 전력을 절약할 수 있습니다.</string>
+    <string name="frame_conversion_error">호스트 PC에서 치명적인 비디오 인코딩 오류를 보고했습니다.
+\n
+\nHDR 모드를 비활성화하거나 스트리밍 해상도를 변경하거나 호스트 PC의 디스플레이 해상도를 변경해 보십시오.</string>
 </resources>

@@ -257,4 +257,7 @@
     <string name="summary_checkbox_enable_audiofx">串流时允许音效工作，可能会导致音频延迟增加</string>
     <string name="title_checkbox_reduce_refresh_rate">允许降低刷新率</string>
     <string name="summary_checkbox_reduce_refresh_rate">较低的屏幕刷新率可以在增加一些视频延迟的情况下省电</string>
+    <string name="frame_conversion_error">主机 PC 报告了致命的视频编码错误。
+\n
+\n尝试禁用 HDR 模式、更改流分辨率或更改主机 PC 的显示分辨率。</string>
 </resources>

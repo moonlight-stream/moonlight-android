@@ -107,11 +107,12 @@ public class ComputerDetails {
         }
         if (details.remoteAddress != null) {
             this.remoteAddress = details.remoteAddress;
-
-            // If the port is unknown, populate it from the external port field
-            if (this.remoteAddress.port == 0) {
-                this.remoteAddress.port = externalPort;
-            }
+        }
+        else if (this.remoteAddress != null && details.externalPort != 0) {
+            // If we have a remote address already (perhaps via STUN) but our updated details
+            // don't have a new one (because GFE doesn't send one), propagate the external
+            // port to the current remote address. We may have tried to guess it previously.
+            this.remoteAddress.port = details.externalPort;
         }
         if (details.manualAddress != null) {
             this.manualAddress = details.manualAddress;

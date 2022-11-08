@@ -1,8 +1,14 @@
 package com.limelight.nvstream.jni;
 
+import android.os.AsyncTask;
+
+import com.limelight.LimeLog;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+
+import com.limelight.observer_stream.ConnectionClassManager;
+import com.limelight.observer_stream.ConnectionQuality;
 
 public class MoonBridge {
     /* See documentation in Limelight.h for information about these functions and constants */
@@ -68,6 +74,9 @@ public class MoonBridge {
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;
+    private static ConnectionClassManager mConnectionClassManager;
+    private static ConnectionChangedListener mListener;
+    private static ConnectionQuality mConnectionClass = ConnectionQuality.UNKNOWN;
 
     static {
         System.loadLibrary("moonlight-core");
@@ -131,6 +140,9 @@ public class MoonBridge {
 
     public static int bridgeDrSetup(int videoFormat, int width, int height, int redrawRate) {
         if (videoRenderer != null) {
+            mConnectionClassManager = ConnectionClassManager.getInstance();
+            mConnectionClassManager.register(mListener);
+            mListener = new ConnectionChangedListener();
             return videoRenderer.setup(videoFormat, width, height, redrawRate);
         }
         else {
@@ -140,12 +152,14 @@ public class MoonBridge {
 
     public static void bridgeDrStart() {
         if (videoRenderer != null) {
+            mConnectionClassManager.register(mListener);
             videoRenderer.start();
         }
     }
 
     public static void bridgeDrStop() {
         if (videoRenderer != null) {
+            mConnectionClassManager.register(mListener);
             videoRenderer.stop();
         }
     }
@@ -156,15 +170,60 @@ public class MoonBridge {
         }
     }
 
+    private static class MyVideoMeasurementParams {
+        int decodeUnitLength;
+        long receiveTime;
+        MyVideoMeasurementParams(int decodeUnitLength, long receiveTime) {
+            this.decodeUnitLength = decodeUnitLength;
+            this.receiveTime = receiveTime;
+        }
+    }
+
     public static int bridgeDrSubmitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
-                                               int frameNumber, int frameType,
-                                               long receiveTimeMs, long enqueueTimeMs) {
+                                        int frameNumber, int frameType,
+                                        long receiveTimeMs, long enqueueTimeMs) {
         if (videoRenderer != null) {
+//            new MeasurementStream().execute(new MyVideoMeasurementParams(decodeUnitLength = decodeUnitLength, receiveTimeMs = receiveTimeMs));
             return videoRenderer.submitDecodeUnit(decodeUnitData, decodeUnitLength,
                     decodeUnitType, frameNumber, frameType, receiveTimeMs, enqueueTimeMs);
         }
         else {
             return DR_OK;
+        }
+    }
+    static long convertToLong(byte[] bytes)
+    {
+        long value = 0l;
+        // Iterating through for loop
+        for (byte b : bytes) {
+            // Shifting previous value 8 bits to right and
+            // add it with next value
+            value = (value << 8) + (b & 255);
+        }
+        return value;
+    }
+
+    private static class MeasurementStream extends AsyncTask<MyVideoMeasurementParams, Void, Void> {
+        @Override
+            protected Void doInBackground(MyVideoMeasurementParams... params) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        LimeLog.info("Decode Unit Length: "+ Integer.toString(params[1].decodeUnitLength));
+                        LimeLog.info("Receive Time: "+ Long.toString(params[1].receiveTime));
+                    }
+                }).start();
+                return null;
+        }
+    }
+
+    private static class ConnectionChangedListener
+    implements ConnectionClassManager.ConnectionClassStateChangeListener {
+
+        @Override
+        public void onBandwidthStateChange(ConnectionQuality bandwidthState) {
+            mConnectionClass = bandwidthState;
+            LimeLog.info("Measurement Decode Video: " + mConnectionClass.toString());
         }
     }
 

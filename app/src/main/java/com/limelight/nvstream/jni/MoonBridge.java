@@ -182,8 +182,8 @@ public class MoonBridge {
     public static int bridgeDrSubmitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                         int frameNumber, int frameType,
                                         long receiveTimeMs, long enqueueTimeMs) {
+        new MeasurementStream().execute(new MyVideoMeasurementParams(decodeUnitLength = decodeUnitLength, receiveTimeMs = receiveTimeMs));
         if (videoRenderer != null) {
-//            new MeasurementStream().execute(new MyVideoMeasurementParams(decodeUnitLength = decodeUnitLength, receiveTimeMs = receiveTimeMs));
             return videoRenderer.submitDecodeUnit(decodeUnitData, decodeUnitLength,
                     decodeUnitType, frameNumber, frameType, receiveTimeMs, enqueueTimeMs);
         }
@@ -209,8 +209,8 @@ public class MoonBridge {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        LimeLog.info("Decode Unit Length: "+ Integer.toString(params[1].decodeUnitLength));
-                        LimeLog.info("Receive Time: "+ Long.toString(params[1].receiveTime));
+                        LimeLog.info("Decode Unit Length: "+ Integer.toString(params[0].decodeUnitLength));
+                        LimeLog.info("Receive Time: "+ Long.toString(params[0].receiveTime));
                     }
                 }).start();
                 return null;

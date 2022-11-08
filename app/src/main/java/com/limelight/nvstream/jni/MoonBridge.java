@@ -7,8 +7,6 @@ import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 
-import com.limelight.observer_stream.ConnectionClassManager;
-import com.limelight.observer_stream.ConnectionQuality;
 
 public class MoonBridge {
     /* See documentation in Limelight.h for information about these functions and constants */
@@ -74,9 +72,6 @@ public class MoonBridge {
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;
-    private static ConnectionClassManager mConnectionClassManager;
-    private static ConnectionChangedListener mListener;
-    private static ConnectionQuality mConnectionClass = ConnectionQuality.UNKNOWN;
 
     static {
         System.loadLibrary("moonlight-core");
@@ -140,9 +135,6 @@ public class MoonBridge {
 
     public static int bridgeDrSetup(int videoFormat, int width, int height, int redrawRate) {
         if (videoRenderer != null) {
-            mConnectionClassManager = ConnectionClassManager.getInstance();
-            mConnectionClassManager.register(mListener);
-            mListener = new ConnectionChangedListener();
             return videoRenderer.setup(videoFormat, width, height, redrawRate);
         }
         else {
@@ -152,14 +144,12 @@ public class MoonBridge {
 
     public static void bridgeDrStart() {
         if (videoRenderer != null) {
-            mConnectionClassManager.register(mListener);
             videoRenderer.start();
         }
     }
 
     public static void bridgeDrStop() {
         if (videoRenderer != null) {
-            mConnectionClassManager.register(mListener);
             videoRenderer.stop();
         }
     }
@@ -191,17 +181,6 @@ public class MoonBridge {
             return DR_OK;
         }
     }
-    static long convertToLong(byte[] bytes)
-    {
-        long value = 0l;
-        // Iterating through for loop
-        for (byte b : bytes) {
-            // Shifting previous value 8 bits to right and
-            // add it with next value
-            value = (value << 8) + (b & 255);
-        }
-        return value;
-    }
 
     private static class MeasurementStream extends AsyncTask<MyVideoMeasurementParams, Void, Void> {
         @Override
@@ -217,15 +196,6 @@ public class MoonBridge {
         }
     }
 
-    private static class ConnectionChangedListener
-    implements ConnectionClassManager.ConnectionClassStateChangeListener {
-
-        @Override
-        public void onBandwidthStateChange(ConnectionQuality bandwidthState) {
-            mConnectionClass = bandwidthState;
-            LimeLog.info("Measurement Decode Video: " + mConnectionClass.toString());
-        }
-    }
 
     public static int bridgeArInit(int audioConfiguration, int sampleRate, int samplesPerFrame) {
         if (audioRenderer != null) {

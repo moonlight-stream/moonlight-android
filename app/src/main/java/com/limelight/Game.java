@@ -1446,7 +1446,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     short deltaX = (short)inputCaptureProvider.getRelativeAxisX(event);
                     short deltaY = (short)inputCaptureProvider.getRelativeAxisY(event);
 
-                    if(event.getSource() == InputDevice.SOURCE_TOUCHPAD){
+
+                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                            event.getSource() == InputDevice.SOURCE_TOUCHPAD){
                         trackpadHandler.trackPadHandler(event);
                     }
                     else if (deltaX != 0 || deltaY != 0) {

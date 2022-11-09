@@ -1,5 +1,6 @@
 package com.limelight.binding.input.trackpad.Core;
 
+import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
@@ -130,6 +131,7 @@ public class TrackpadFramework {
         return true;
     }
 
+    @TargetApi(Build.VERSION_CODES.Q)
     private float[][] axisManager(MotionEvent motionEvent){
         float[][] raw = new float[2][5];
         for(int i = 0; i< motionEvent.getPointerCount(); i++){
@@ -228,8 +230,10 @@ public class TrackpadFramework {
                 break;
 
             default:
-                System.out.println("New Action!! : "+MotionEvent.actionToString(motionEvent.getAction())+
-                        " : "+motionEvent.getAction());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    System.out.println("New Action!! : "+MotionEvent.actionToString(motionEvent.getAction())+
+                            " : "+motionEvent.getAction());
+                }
                 break;
 
         }
@@ -316,52 +320,56 @@ public class TrackpadFramework {
 
             // Button Action
             case MotionEvent.ACTION_BUTTON_PRESS:
-                switch (motionEvent.getActionButton()){
-                    case MotionEvent.BUTTON_PRIMARY:
-                        buttonTimer = new Timer(true);
-                        buttonTimer.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                trackpadListener.mouseButton(KEY_DOWN,BUTTON_LEFT);
-                            }
-                        },25);
-                        clickTimer = new Timer(true);
-                        break;
-                    case MotionEvent.BUTTON_SECONDARY:
-                        buttonTimer = new Timer(true);
-                        buttonTimer.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                trackpadListener.mouseButton(KEY_DOWN,BUTTON_RIGHT);
-                            }
-                        },100);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    switch (motionEvent.getActionButton()){
+                        case MotionEvent.BUTTON_PRIMARY:
+                            buttonTimer = new Timer(true);
+                            buttonTimer.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    trackpadListener.mouseButton(KEY_DOWN,BUTTON_LEFT);
+                                }
+                            },25);
+                            clickTimer = new Timer(true);
+                            break;
+                        case MotionEvent.BUTTON_SECONDARY:
+                            buttonTimer = new Timer(true);
+                            buttonTimer.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    trackpadListener.mouseButton(KEY_DOWN,BUTTON_RIGHT);
+                                }
+                            },100);
 
-                        clickTimer = new Timer(true);
-                        break;
+                            clickTimer = new Timer(true);
+                            break;
+                    }
                 }
 
                 break;
             case MotionEvent.ACTION_BUTTON_RELEASE:
-                switch (motionEvent.getActionButton()){
-                    case MotionEvent.BUTTON_PRIMARY:
-                        Timer t = new Timer(true);
-                        t.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                trackpadListener.mouseButton(KEY_UP,BUTTON_LEFT);
-                            }
-                        },100);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    switch (motionEvent.getActionButton()){
+                        case MotionEvent.BUTTON_PRIMARY:
+                            Timer t = new Timer(true);
+                            t.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    trackpadListener.mouseButton(KEY_UP,BUTTON_LEFT);
+                                }
+                            },100);
 
-                        break;
-                    case MotionEvent.BUTTON_SECONDARY:
-                        Timer ts = new Timer(true);
-                        ts.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                trackpadListener.mouseButton(KEY_UP,BUTTON_RIGHT);
-                            }
-                        },100);
-                        break;
+                            break;
+                        case MotionEvent.BUTTON_SECONDARY:
+                            Timer ts = new Timer(true);
+                            ts.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    trackpadListener.mouseButton(KEY_UP,BUTTON_RIGHT);
+                                }
+                            },100);
+                            break;
+                    }
                 }
                 break;
 
@@ -444,7 +452,6 @@ public class TrackpadFramework {
                 break;
 
             default:
-                System.out.println("New Action!! : "+MotionEvent.actionToString(motionEvent.getAction())+" : "+motionEvent.getAction());
                 break;
         }
     }
@@ -566,8 +573,6 @@ public class TrackpadFramework {
                 }
 
             default:
-                System.out.println("New Action!! : "+MotionEvent.actionToString(motionEvent.getAction())+
-                        " : "+motionEvent.getAction());
                 break;
 
         }
@@ -704,8 +709,6 @@ public class TrackpadFramework {
                 break;
 
             default:
-                System.out.println("New Action!! : "+MotionEvent.actionToString(motionEvent.getAction())+
-                        " : "+motionEvent.getAction());
                 break;
 
         }

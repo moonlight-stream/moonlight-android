@@ -3,6 +3,7 @@ package com.limelight.nvstream.jni;
 import android.os.AsyncTask;
 
 import com.limelight.LimeLog;
+import com.limelight.adaptive.ListenerStream;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
@@ -72,6 +73,8 @@ public class MoonBridge {
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;
+
+     private static ListenerStream listenerStream;
 
     static {
         System.loadLibrary("moonlight-core");
@@ -144,12 +147,14 @@ public class MoonBridge {
 
     public static void bridgeDrStart() {
         if (videoRenderer != null) {
+            listenerStream = new ListenerStream();
             videoRenderer.start();
         }
     }
 
     public static void bridgeDrStop() {
         if (videoRenderer != null) {
+            listenerStream.remove();
             videoRenderer.stop();
         }
     }
@@ -160,20 +165,11 @@ public class MoonBridge {
         }
     }
 
-    private static class MyVideoMeasurementParams {
-        int decodeUnitLength;
-        long receiveTime;
-        MyVideoMeasurementParams(int decodeUnitLength, long receiveTime) {
-            this.decodeUnitLength = decodeUnitLength;
-            this.receiveTime = receiveTime;
-        }
-    }
-
     public static int bridgeDrSubmitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                         int frameNumber, int frameType,
                                         long receiveTimeMs, long enqueueTimeMs) {
-        new MeasurementStream().execute(new MyVideoMeasurementParams(decodeUnitLength = decodeUnitLength, receiveTimeMs = receiveTimeMs));
         if (videoRenderer != null) {
+            listenerStream.add(decodeUnitLength, receiveTimeMs);
             return videoRenderer.submitDecodeUnit(decodeUnitData, decodeUnitLength,
                     decodeUnitType, frameNumber, frameType, receiveTimeMs, enqueueTimeMs);
         }
@@ -181,21 +177,6 @@ public class MoonBridge {
             return DR_OK;
         }
     }
-
-    private static class MeasurementStream extends AsyncTask<MyVideoMeasurementParams, Void, Void> {
-        @Override
-            protected Void doInBackground(MyVideoMeasurementParams... params) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        LimeLog.info("Decode Unit Length: "+ Integer.toString(params[0].decodeUnitLength));
-                        LimeLog.info("Receive Time: "+ Long.toString(params[0].receiveTime));
-                    }
-                }).start();
-                return null;
-        }
-    }
-
 
     public static int bridgeArInit(int audioConfiguration, int sampleRate, int samplesPerFrame) {
         if (audioRenderer != null) {

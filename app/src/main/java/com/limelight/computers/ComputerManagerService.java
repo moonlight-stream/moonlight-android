@@ -550,14 +550,18 @@ public class ComputerManagerService extends Service {
 
     private ComputerDetails tryPollIp(ComputerDetails details, ComputerDetails.AddressTuple address) {
         try {
-            // If this PC is currently online at this address, provide the known HTTPS port number
-            // and extend the timeouts to allow more time for the PC to respond.
-            boolean isActiveAddress = details.state == ComputerDetails.State.ONLINE && address.equals(details.activeAddress);
+            // If the current address's port number matches the active address's port number, we can also assume
+            // the HTTPS port will also match. This assumption is currently safe because Sunshine sets all ports
+            // as offsets from the base HTTP port and doesn't allow custom HttpsPort responses for WAN vs LAN.
+            boolean portMatchesActiveAddress = details.activeAddress != null && address.port == details.activeAddress.port;
 
-            NvHTTP http = new NvHTTP(address, isActiveAddress ? details.httpsPort : 0, idManager.getUniqueId(), details.serverCert,
+            NvHTTP http = new NvHTTP(address, portMatchesActiveAddress ? details.httpsPort : 0, idManager.getUniqueId(), details.serverCert,
                     PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
-            ComputerDetails newDetails = http.getComputerDetails(isActiveAddress);
+            // If this PC is currently online at this address, extend the timeouts to allow more time for the PC to respond.
+            boolean isLikelyOnline = details.state == ComputerDetails.State.ONLINE && address.equals(details.activeAddress);
+
+            ComputerDetails newDetails = http.getComputerDetails(isLikelyOnline);
 
             // Check if this is the PC we expected
             if (newDetails.uuid == null) {

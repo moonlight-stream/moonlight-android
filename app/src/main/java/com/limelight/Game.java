@@ -168,6 +168,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     public static final String EXTRA_HOST = "Host";
     public static final String EXTRA_PORT = "Port";
+    public static final String EXTRA_HTTPS_PORT = "HttpsPort";
     public static final String EXTRA_APP_NAME = "AppName";
     public static final String EXTRA_APP_ID = "AppId";
     public static final String EXTRA_UNIQUEID = "UniqueId";
@@ -314,6 +315,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
         int port = Game.this.getIntent().getIntExtra(EXTRA_PORT, NvHTTP.DEFAULT_HTTP_PORT);
+        int httpsPort = Game.this.getIntent().getIntExtra(EXTRA_HTTPS_PORT, 0); // 0 is treated as unknown
         int appId = Game.this.getIntent().getIntExtra(EXTRA_APP_ID, StreamConfiguration.INVALID_APP_ID);
         String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
         String uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
@@ -477,7 +479,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Initialize the connection
         conn = new NvConnection(getApplicationContext(),
                 new ComputerDetails.AddressTuple(host, port),
-                uniqueId, config,
+                httpsPort, uniqueId, config,
                 PlatformBinding.getCryptoProvider(this), serverCert,
                 needsInputBatching);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);

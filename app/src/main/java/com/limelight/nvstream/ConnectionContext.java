@@ -8,6 +8,7 @@ import javax.crypto.SecretKey;
 
 public class ConnectionContext {
     public ComputerDetails.AddressTuple serverAddress;
+    public int httpsPort;
     public X509Certificate serverCert;
     public StreamConfiguration streamConfig;
     public NvConnectionListener connListener;

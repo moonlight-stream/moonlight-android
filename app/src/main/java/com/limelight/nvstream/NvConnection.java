@@ -43,7 +43,6 @@ import com.limelight.nvstream.jni.MoonBridge;
 
 public class NvConnection {
     // Context parameters
-    private ComputerDetails.AddressTuple host;
     private LimelightCryptoProvider cryptoProvider;
     private String uniqueId;
     private ConnectionContext context;
@@ -58,21 +57,22 @@ public class NvConnection {
     private short relMouseX, relMouseY, relMouseWidth, relMouseHeight;
     private short absMouseX, absMouseY, absMouseWidth, absMouseHeight;
 
-    public NvConnection(Context appContext, ComputerDetails.AddressTuple host, String uniqueId, StreamConfiguration config, LimelightCryptoProvider cryptoProvider, X509Certificate serverCert, boolean batchMouseInput)
+    public NvConnection(Context appContext, ComputerDetails.AddressTuple host, int httpsPort, String uniqueId, StreamConfiguration config, LimelightCryptoProvider cryptoProvider, X509Certificate serverCert, boolean batchMouseInput)
     {
         this.appContext = appContext;
-        this.host = host;
         this.cryptoProvider = cryptoProvider;
         this.uniqueId = uniqueId;
         this.batchMouseInput = batchMouseInput;
 
         this.context = new ConnectionContext();
+        this.context.serverAddress = host;
+        this.context.httpsPort = httpsPort;
         this.context.streamConfig = config;
         this.context.serverCert = serverCert;
 
         // This is unique per connection
         this.context.riKey = generateRiAesKey();
-        context.riKeyId = generateRiKeyId();
+        this.context.riKeyId = generateRiKeyId();
 
         this.isMonkey = ActivityManager.isUserAMonkey();
     }
@@ -253,7 +253,7 @@ public class NvConnection {
     
     private boolean startApp() throws XmlPullParserException, IOException
     {
-        NvHTTP h = new NvHTTP(context.serverAddress, 0, uniqueId, context.serverCert, cryptoProvider);
+        NvHTTP h = new NvHTTP(context.serverAddress, context.httpsPort, uniqueId, context.serverCert, cryptoProvider);
 
         String serverInfo = h.getServerInfo();
         
@@ -415,7 +415,6 @@ public class NvConnection {
 
                 String appName = context.streamConfig.getApp().getAppName();
 
-                context.serverAddress = host;
                 context.connListener.stageStarting(appName);
 
                 try {

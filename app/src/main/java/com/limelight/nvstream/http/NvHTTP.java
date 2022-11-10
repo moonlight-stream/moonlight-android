@@ -565,10 +565,10 @@ public class NvHTTP {
             return Integer.parseInt(getXmlString(serverInfo, "ExternalPort", true));
         } catch (XmlPullParserException e) {
             // Expected on non-Sunshine servers
-            return DEFAULT_HTTP_PORT;
+            return baseUrlHttp.port();
         } catch (IOException e) {
             e.printStackTrace();
-            return DEFAULT_HTTP_PORT;
+            return baseUrlHttp.port();
         }
     }
 

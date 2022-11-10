@@ -64,8 +64,9 @@ public class NvHTTP {
 
     private static final int DEFAULT_HTTPS_PORT = 47984;
     public static final int DEFAULT_HTTP_PORT = 47989;
-    public static final int CONNECTION_TIMEOUT = 3000;
-    public static final int READ_TIMEOUT = 5000;
+    public static final int SHORT_CONNECTION_TIMEOUT = 3000;
+    public static final int LONG_CONNECTION_TIMEOUT = 5000;
+    public static final int READ_TIMEOUT = 7000;
 
     // Print URL and content to logcat on debug builds
     private static boolean verbose = BuildConfig.DEBUG;
@@ -74,8 +75,9 @@ public class NvHTTP {
 
     private int httpsPort;
     
-    private OkHttpClient httpClient;
-    private OkHttpClient httpClientWithReadTimeout;
+    private OkHttpClient httpClientLongConnectTimeout;
+    private OkHttpClient httpClientLongConnectNoReadTimeout;
+    private OkHttpClient httpClientShortConnectTimeout;
 
     private X509TrustManager defaultTrustManager;
     private X509TrustManager trustManager;
@@ -168,23 +170,28 @@ public class NvHTTP {
             }
         };
 
-        httpClient = new OkHttpClient.Builder()
+        httpClientLongConnectTimeout = new OkHttpClient.Builder()
                 .connectionPool(new ConnectionPool(0, 1, TimeUnit.MILLISECONDS))
                 .hostnameVerifier(hv)
-                .readTimeout(0, TimeUnit.MILLISECONDS)
-                .connectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
+                .readTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS)
+                .connectTimeout(LONG_CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
                 .proxy(Proxy.NO_PROXY)
                 .build();
-        
-        httpClientWithReadTimeout = httpClient.newBuilder()
-                .readTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS)
+
+        httpClientShortConnectTimeout = httpClientLongConnectTimeout.newBuilder()
+                .connectTimeout(SHORT_CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
+                .build();
+
+        httpClientLongConnectNoReadTimeout = httpClientLongConnectTimeout.newBuilder()
+                .readTimeout(0, TimeUnit.MILLISECONDS)
                 .build();
     }
 
-    public HttpUrl getHttpsUrl() throws IOException {
+    public HttpUrl getHttpsUrl(boolean likelyOnline) throws IOException {
         if (httpsPort == 0) {
             // Fetch the HTTPS port if we don't have it already
-            httpsPort = getHttpsPort(openHttpConnectionToString(baseUrlHttp, "serverinfo", true));
+            httpsPort = getHttpsPort(openHttpConnectionToString(likelyOnline ? httpClientLongConnectTimeout : httpClientShortConnectTimeout,
+                    baseUrlHttp, "serverinfo"));
         }
 
         return new HttpUrl.Builder().scheme("https").host(baseUrlHttp.host()).port(httpsPort).build();
@@ -277,8 +284,11 @@ public class NvHTTP {
         }
     }
     
-    public String getServerInfo() throws IOException, XmlPullParserException {
+    public String getServerInfo(boolean likelyOnline) throws IOException, XmlPullParserException {
         String resp;
+
+        // If we believe the PC is online, give it a little extra time to respond
+        OkHttpClient client = likelyOnline ? httpClientLongConnectTimeout : httpClientShortConnectTimeout;
         
         //
         // TODO: Shield Hub uses HTTP for this and is able to get an accurate PairStatus with HTTP.
@@ -290,7 +300,7 @@ public class NvHTTP {
         if (serverCert != null) {
             try {
                 try {
-                    resp = openHttpConnectionToString(getHttpsUrl(), "serverinfo", true);
+                    resp = openHttpConnectionToString(client, getHttpsUrl(likelyOnline), "serverinfo");
                 } catch (SSLHandshakeException e) {
                     // Detect if we failed due to a server cert mismatch
                     if (e.getCause() instanceof CertificateException) {
@@ -310,7 +320,7 @@ public class NvHTTP {
             catch (GfeHttpResponseException e) {
                 if (e.getErrorCode() == 401) {
                     // Cert validation error - fall back to HTTP
-                    return openHttpConnectionToString(baseUrlHttp, "serverinfo", true);
+                    return openHttpConnectionToString(client, baseUrlHttp, "serverinfo");
                 }
 
                 // If it's not a cert validation error, throw it
@@ -321,7 +331,7 @@ public class NvHTTP {
         }
         else {
             // No pinned cert, so use HTTP
-            return openHttpConnectionToString(baseUrlHttp, "serverinfo", true);
+            return openHttpConnectionToString(client, baseUrlHttp, "serverinfo");
         }
     }
 
@@ -333,9 +343,9 @@ public class NvHTTP {
         return new ComputerDetails.AddressTuple(address, port);
     }
     
-    public ComputerDetails getComputerDetails() throws IOException, XmlPullParserException {
+    public ComputerDetails getComputerDetails(boolean likelyOnline) throws IOException, XmlPullParserException {
         ComputerDetails details = new ComputerDetails();
-        String serverInfo = getServerInfo();
+        String serverInfo = getServerInfo(likelyOnline);
         
         details.name = getXmlString(serverInfo, "hostname", false);
         if (details.name == null || details.name.isEmpty()) {
@@ -397,25 +407,18 @@ public class NvHTTP {
                 .build();
     }
 
-    private ResponseBody openHttpConnection(HttpUrl baseUrl, String path, boolean enableReadTimeout) throws IOException {
-        return openHttpConnection(baseUrl, path, null, enableReadTimeout);
+    private ResponseBody openHttpConnection(OkHttpClient client, HttpUrl baseUrl, String path) throws IOException {
+        return openHttpConnection(client, baseUrl, path, null);
     }
 
     // Read timeout should be enabled for any HTTP query that requires no outside action
     // on the GFE server. Examples of queries that DO require outside action are launch, resume, and quit.
     // The initial pair query does require outside action (user entering a PIN) but subsequent pairing
     // queries do not.
-    private ResponseBody openHttpConnection(HttpUrl baseUrl, String path, String query, boolean enableReadTimeout) throws IOException {
+    private ResponseBody openHttpConnection(OkHttpClient client, HttpUrl baseUrl, String path, String query) throws IOException {
         HttpUrl completeUrl = getCompleteUrl(baseUrl, path, query);
         Request request = new Request.Builder().url(completeUrl).get().build();
-        Response response;
-
-        if (enableReadTimeout) {
-            response = performAndroidTlsHack(httpClientWithReadTimeout).newCall(request).execute();
-        }
-        else {
-            response = performAndroidTlsHack(httpClient).newCall(request).execute();
-        }
+        Response response = performAndroidTlsHack(client).newCall(request).execute();
 
         ResponseBody body = response.body();
         
@@ -436,13 +439,13 @@ public class NvHTTP {
         }
     }
 
-    private String openHttpConnectionToString(HttpUrl baseUrl, String path, boolean enableReadTimeout) throws IOException {
-        return openHttpConnectionToString(baseUrl, path, null, enableReadTimeout);
+    private String openHttpConnectionToString(OkHttpClient client, HttpUrl baseUrl, String path) throws IOException {
+        return openHttpConnectionToString(client, baseUrl, path, null);
     }
 
-    private String openHttpConnectionToString(HttpUrl baseUrl, String path, String query, boolean enableReadTimeout) throws IOException {
+    private String openHttpConnectionToString(OkHttpClient client, HttpUrl baseUrl, String path, String query) throws IOException {
         try {
-            ResponseBody resp = openHttpConnection(baseUrl, path, query, enableReadTimeout);
+            ResponseBody resp = openHttpConnection(client, baseUrl, path, query);
             String respString = resp.string();
             resp.close();
 
@@ -467,7 +470,7 @@ public class NvHTTP {
     }
 
     public PairingManager.PairState getPairState() throws IOException, XmlPullParserException {
-        return getPairState(getServerInfo());
+        return getPairState(getServerInfo(true));
     }
 
     public PairingManager.PairState getPairState(String serverInfo) throws IOException, XmlPullParserException {
@@ -663,7 +666,7 @@ public class NvHTTP {
     }
     
     public String getAppListRaw() throws IOException {
-        return openHttpConnectionToString(getHttpsUrl(), "applist", true);
+        return openHttpConnectionToString(httpClientLongConnectTimeout, getHttpsUrl(true), "applist");
     }
     
     public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
@@ -672,30 +675,28 @@ public class NvHTTP {
             return getAppListByReader(new StringReader(getAppListRaw()));
         }
         else {
-            try (final ResponseBody resp = openHttpConnection(getHttpsUrl(), "applist", true)) {
+            try (final ResponseBody resp = openHttpConnection(httpClientLongConnectTimeout, getHttpsUrl(true), "applist")) {
                 return getAppListByReader(new InputStreamReader(resp.byteStream()));
             }
         }
     }
 
     String executePairingCommand(String additionalArguments, boolean enableReadTimeout) throws GfeHttpResponseException, IOException {
-        return openHttpConnectionToString(baseUrlHttp, "pair",
-                "devicename=roth&updateState=1&" + additionalArguments,
-                enableReadTimeout);
+        return openHttpConnectionToString(enableReadTimeout ? httpClientLongConnectTimeout : httpClientLongConnectNoReadTimeout,
+                baseUrlHttp, "pair", "devicename=roth&updateState=1&" + additionalArguments);
     }
 
     String executePairingChallenge() throws GfeHttpResponseException, IOException {
-        return openHttpConnectionToString(getHttpsUrl(), "pair",
-                "devicename=roth&updateState=1&phrase=pairchallenge",
-                true);
+        return openHttpConnectionToString(httpClientLongConnectTimeout, getHttpsUrl(true),
+                "pair", "devicename=roth&updateState=1&phrase=pairchallenge");
     }
 
     public void unpair() throws IOException {
-        openHttpConnectionToString(baseUrlHttp, "unpair", true);
+        openHttpConnectionToString(httpClientLongConnectTimeout, baseUrlHttp, "unpair");
     }
     
     public InputStream getBoxArt(NvApp app) throws IOException {
-        ResponseBody resp = openHttpConnection(getHttpsUrl(), "appasset", "appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0", true);
+        ResponseBody resp = openHttpConnection(httpClientLongConnectTimeout, getHttpsUrl(true), "appasset", "appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0");
         return resp.byteStream();
     }
     
@@ -750,7 +751,7 @@ public class NvHTTP {
             enableSops = false;
         }
 
-        String xmlStr = openHttpConnectionToString(getHttpsUrl(), "launch",
+        String xmlStr = openHttpConnectionToString(httpClientLongConnectNoReadTimeout, getHttpsUrl(true), "launch",
             "appid=" + appId +
             "&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + fps +
             "&additionalStates=1&sops=" + (enableSops ? 1 : 0) +
@@ -760,8 +761,7 @@ public class NvHTTP {
             "&localAudioPlayMode=" + (context.streamConfig.getPlayLocalAudio() ? 1 : 0) +
             "&surroundAudioInfo=" + context.streamConfig.getAudioConfiguration().getSurroundAudioInfo() +
             (context.streamConfig.getAttachedGamepadMask() != 0 ? "&remoteControllersBitmap=" + context.streamConfig.getAttachedGamepadMask() : "") +
-            (context.streamConfig.getAttachedGamepadMask() != 0 ? "&gcmap=" + context.streamConfig.getAttachedGamepadMask() : ""),
-            false);
+            (context.streamConfig.getAttachedGamepadMask() != 0 ? "&gcmap=" + context.streamConfig.getAttachedGamepadMask() : ""));
         if (!getXmlString(xmlStr, "gamesession", true).equals("0")) {
             // sessionUrl0 will be missing for older GFE versions
             context.rtspSessionUrl = getXmlString(xmlStr, "sessionUrl0", false);
@@ -773,11 +773,10 @@ public class NvHTTP {
     }
     
     public boolean resumeApp(ConnectionContext context) throws IOException, XmlPullParserException {
-        String xmlStr = openHttpConnectionToString(getHttpsUrl(), "resume",
+        String xmlStr = openHttpConnectionToString(httpClientLongConnectNoReadTimeout, getHttpsUrl(true), "resume",
                 "rikey="+bytesToHex(context.riKey.getEncoded()) +
                 "&rikeyid="+context.riKeyId +
-                "&surroundAudioInfo=" + context.streamConfig.getAudioConfiguration().getSurroundAudioInfo(),
-                false);
+                "&surroundAudioInfo=" + context.streamConfig.getAudioConfiguration().getSurroundAudioInfo());
         if (!getXmlString(xmlStr, "resume", true).equals("0")) {
             // sessionUrl0 will be missing for older GFE versions
             context.rtspSessionUrl = getXmlString(xmlStr, "sessionUrl0", false);
@@ -789,14 +788,14 @@ public class NvHTTP {
     }
     
     public boolean quitApp() throws IOException, XmlPullParserException {
-        String xmlStr = openHttpConnectionToString(getHttpsUrl(), "cancel", false);
+        String xmlStr = openHttpConnectionToString(httpClientLongConnectNoReadTimeout, getHttpsUrl(true), "cancel");
         if (getXmlString(xmlStr, "cancel", true).equals("0")) {
             return false;
         }
 
         // Newer GFE versions will just return success even if quitting fails
         // if we're not the original requestor.
-        if (getCurrentGame(getServerInfo()) != 0) {
+        if (getCurrentGame(getServerInfo(true)) != 0) {
             // Generate a synthetic GfeResponseException letting the caller know
             // that they can't kill someone else's stream.
             throw new GfeHttpResponseException(599, "");

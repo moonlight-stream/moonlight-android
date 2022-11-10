@@ -553,7 +553,7 @@ public class ComputerManagerService extends Service {
             NvHTTP http = new NvHTTP(address, 0, idManager.getUniqueId(), details.serverCert,
                     PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
-            ComputerDetails newDetails = http.getComputerDetails();
+            ComputerDetails newDetails = http.getComputerDetails(false);
 
             // Check if this is the PC we expected
             if (newDetails.uuid == null) {

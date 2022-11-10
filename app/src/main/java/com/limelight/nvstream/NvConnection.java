@@ -255,7 +255,7 @@ public class NvConnection {
     {
         NvHTTP h = new NvHTTP(context.serverAddress, context.httpsPort, uniqueId, context.serverCert, cryptoProvider);
 
-        String serverInfo = h.getServerInfo();
+        String serverInfo = h.getServerInfo(true);
         
         context.serverAppVersion = h.getServerVersion(serverInfo);
         if (context.serverAppVersion == null) {

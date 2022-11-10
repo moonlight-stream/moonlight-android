@@ -550,10 +550,14 @@ public class ComputerManagerService extends Service {
 
     private ComputerDetails tryPollIp(ComputerDetails details, ComputerDetails.AddressTuple address) {
         try {
-            NvHTTP http = new NvHTTP(address, 0, idManager.getUniqueId(), details.serverCert,
+            // If this PC is currently online at this address, provide the known HTTPS port number
+            // and extend the timeouts to allow more time for the PC to respond.
+            boolean isActiveAddress = details.state == ComputerDetails.State.ONLINE && address.equals(details.activeAddress);
+
+            NvHTTP http = new NvHTTP(address, isActiveAddress ? details.httpsPort : 0, idManager.getUniqueId(), details.serverCert,
                     PlatformBinding.getCryptoProvider(ComputerManagerService.this));
 
-            ComputerDetails newDetails = http.getComputerDetails(false);
+            ComputerDetails newDetails = http.getComputerDetails(isActiveAddress);
 
             // Check if this is the PC we expected
             if (newDetails.uuid == null) {

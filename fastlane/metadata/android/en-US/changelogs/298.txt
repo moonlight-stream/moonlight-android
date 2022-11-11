@@ -1,0 +1,6 @@
+- Added support for custom ports when hosting on Sunshine
+- Enabled HEVC by default on additional devices
+- Enabled fast HEVC frame loss recovery on additional devices
+- Improved audio quality when streaming remotely
+- Improved video performance and audio quality when streaming locally over IPv6
+- Updated community contributed translations from Weblate

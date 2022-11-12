@@ -254,4 +254,13 @@
     <string name="title_privacy_policy">Informativa sulla privacy</string>
     <string name="summary_troubleshooting">Visualizza i suggerimenti per la diagnosi e la risoluzione dei problemi di streaming più comuni</string>
     <string name="summary_privacy_policy">Visualizza l\'informativa sulla privacy di Moonlight</string>
+    <string name="frame_conversion_error">Il PC host ha segnalato un errore fatale di codifica video.
+\n
+\nProva a disabilitare la modalità HDR, modificare la risoluzione dello streaming o la risoluzione del display del tuo PC host.</string>
+    <string name="summary_checkbox_reduce_refresh_rate">Una minore frequenza di aggiornamento del display può risparmiare energia a scapito di una latenza video aggiuntiva</string>
+    <string name="resolution_prefix_native_landscape">(Panorama)</string>
+    <string name="resolution_prefix_native_portrait">(Ritratto)</string>
+    <string name="title_checkbox_enable_audiofx">Abilita il supporto per l\'equalizzatore di sistema</string>
+    <string name="summary_checkbox_enable_audiofx">Consente agli effetti audio di funzionare durante lo streaming, ma può aumentare la latenza audio</string>
+    <string name="title_checkbox_reduce_refresh_rate">Consenti riduzione della frequenza di aggiornamento</string>
 </resources>

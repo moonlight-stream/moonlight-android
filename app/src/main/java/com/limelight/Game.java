@@ -1164,6 +1164,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                  androidKeyCode == KeyEvent.KEYCODE_ALT_RIGHT) {
             modifierMask = KeyboardPacket.MODIFIER_ALT;
         }
+        else if (androidKeyCode == KeyEvent.KEYCODE_META_LEFT ||
+                androidKeyCode == KeyEvent.KEYCODE_META_RIGHT) {
+            modifierMask = KeyboardPacket.MODIFIER_META;
+        }
 
         if (down) {
             this.modifierFlags |= modifierMask;
@@ -1225,6 +1229,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
         if (event.isAltPressed()) {
             modifier |= KeyboardPacket.MODIFIER_ALT;
+        }
+        if (event.isMetaPressed()) {
+            modifier |= KeyboardPacket.MODIFIER_META;
         }
         return modifier;
     }

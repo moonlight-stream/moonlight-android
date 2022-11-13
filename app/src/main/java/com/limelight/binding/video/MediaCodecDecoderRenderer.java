@@ -328,7 +328,19 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     }
 
     public int getPreferredColorSpace() {
-        return MoonBridge.COLORSPACE_REC_601;
+        // Default to Rec 709 which is probably better supported on modern devices.
+        //
+        // We are sticking to Rec 601 on older devices unless the device has an HEVC decoder
+        // to avoid possible regressions (and they are < 5% of installed devices). If we have
+        // an HEVC decoder, we will use Rec 709 (even for H.264) since we can't choose a
+        // colorspace by codec (and it's probably safe to say a SoC with HEVC decoding is
+        // plenty modern enough to handle H.264 VUI colorspace info).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O || hevcDecoder != null) {
+            return MoonBridge.COLORSPACE_REC_709;
+        }
+        else {
+            return MoonBridge.COLORSPACE_REC_601;
+        }
     }
 
     public int getPreferredColorRange() {
@@ -1303,9 +1315,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 sps.numRefFrames = 1;
             }
 
-            // GFE 2.5.11 changed the SPS to add additional extensions
-            // Some devices don't like these so we remove them here on old devices.
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O && sps.vuiParams != null) {
+            // GFE 2.5.11 changed the SPS to add additional extensions. Some devices don't like these
+            // so we remove them here on old devices unless these devices also support HEVC.
+            // See getPreferredColorSpace() for further information.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O && hevcDecoder == null && sps.vuiParams != null) {
                 sps.vuiParams.videoSignalTypePresentFlag = false;
                 sps.vuiParams.colourDescriptionPresentFlag = false;
                 sps.vuiParams.chromaLocInfoPresentFlag = false;

@@ -1126,17 +1126,25 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         finish();
     }
 
+    private void setInputGrabState(boolean grab) {
+        // Grab/ungrab the mouse cursor
+        if (grab) {
+            inputCaptureProvider.disableCapture();
+        }
+        else {
+            inputCaptureProvider.enableCapture();
+        }
+
+        // Grab/ungrab system keyboard shortcuts
+        setMetaKeyCaptureState(grab);
+
+        grabbedInput = grab;
+    }
+
     private final Runnable toggleGrab = new Runnable() {
         @Override
         public void run() {
-            if (grabbedInput) {
-                inputCaptureProvider.disableCapture();
-            }
-            else {
-                inputCaptureProvider.enableCapture();
-            }
-
-            grabbedInput = !grabbedInput;
+            setInputGrabState(!grabbedInput);
         }
     };
 
@@ -1881,11 +1889,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // Let the display go to sleep now
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-                // Enable cursor visibility again
-                inputCaptureProvider.disableCapture();
-
-                // Disable meta key capture
-                setMetaKeyCaptureState(false);
+                // Ungrab input
+                setInputGrabState(false);
 
                 if (!displayedFailureDialog) {
                     displayedFailureDialog = true;
@@ -1995,15 +2000,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 h.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        inputCaptureProvider.enableCapture();
+                        setInputGrabState(true);
                     }
                 }, 500);
 
                 // Keep the display on
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-                // Enable meta key capture
-                setMetaKeyCaptureState(true);
 
                 // Update GameManager state to indicate we're in game
                 UiHelper.notifyStreamConnected(Game.this);

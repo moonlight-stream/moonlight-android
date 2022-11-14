@@ -77,12 +77,6 @@ public class MediaCodecHelper {
         refFrameInvalidationHevcPrefixes.add("omx.exynos");
         refFrameInvalidationHevcPrefixes.add("c2.exynos");
 
-        // The Chromecast with Google TV 4K works well with HEVC RFI since we also use the
-        // vendor.low-latency.enable option.
-        if (Build.DEVICE.equalsIgnoreCase("sabrina")) {
-            refFrameInvalidationHevcPrefixes.add("omx.amlogic");
-        }
-
         // Qualcomm and NVIDIA may be added at runtime
     }
 
@@ -182,6 +176,9 @@ public class MediaCodecHelper {
         // NB: We don't do this on Sabrina (GCWGTV) because H.264 is lower latency when we use
         // vendor.low-latency.enable. We will still use HEVC if decoderCanMeetPerformancePointWithHevcAndNotAvc()
         // determines it's the only way to meet the performance requirements.
+        //
+        // With the Android 12 update, Sabrina now uses HEVC (with RFI) based upon FEATURE_LowLatency
+        // support, which provides equivalent latency to H.264 now.
         //
         // FIXME: Should we do this for all Amlogic S905X SoCs?
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !Build.DEVICE.equalsIgnoreCase("sabrina")) {

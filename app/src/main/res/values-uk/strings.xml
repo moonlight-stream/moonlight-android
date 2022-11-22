@@ -218,7 +218,7 @@
     <string name="pcview_menu_header_offline">Поза мережею</string>
     <string name="pcview_menu_header_online">В мережі</string>
     <!-- Array strings -->
-    <string name="videoformat_hevcauto">Використовувати HEVC тільки якщо безпечно</string>
+    <string name="videoformat_hevcauto">Автоматично</string>
     <string name="videoformat_hevcalways">Завжди використовувати HEVC якщо доступно</string>
     <string name="videoformat_hevcnever">Ніколи не використовувати HEVC</string>
     <string name="title_frame_pacing">Швидкість кадрів відео</string>
@@ -239,4 +239,24 @@
     <string name="audioconf_stereo">Стерео</string>
     <string name="audioconf_51surround">5.1 Об\'ємний Звук</string>
     <string name="audioconf_71surround">7.1 Об\'ємний Звук</string>
+    <string name="summary_checkbox_enable_audiofx">Дозволяє аудіоефектам функціонувати під час потокового передавання, але може збільшити затримку звуку</string>
+    <string name="title_troubleshooting">Гайд з усунення несправностей</string>
+    <string name="title_privacy_policy">Політика конфіденційності</string>
+    <string name="summary_troubleshooting">Переглянути поради щодо діагностики та усунення поширених проблем з потоковою передачею</string>
+    <string name="summary_checkbox_reduce_refresh_rate">Більш низька частота оновлення дисплея може заощадити енергію за рахунок деякої додаткової затримки відео</string>
+    <string name="summary_seekbar_deadzone">Примітка: Деякі ігри можуть встановлювати більшу мертву зону, ніж та, на яку налаштовано Moonlight.</string>
+    <string name="title_checkbox_absolute_mouse_mode">Режим миші віддаленого робочого столу</string>
+    <string name="title_setup_guide">Гайд по налаштуванню</string>
+    <string name="summary_setup_guide">Переглянути інструкцію, як налаштувати ігровий ПК для стрімінгу</string>
+    <string name="pacing_balanced_alt">Збалансований з лімітом FPS</string>
+    <string name="resolution_prefix_native_landscape">(Горизонтальний)</string>
+    <string name="resolution_prefix_native_portrait">(Портретний)</string>
+    <string name="title_checkbox_enable_audiofx">Увімкнення підтримки системного еквалайзера</string>
+    <string name="summary_checkbox_absolute_mouse_mode">Це може зробити прискорення миші більш природним під час використання віддаленого робочого столу, але воно несумісне з багатьма іграми.</string>
+    <string name="title_checkbox_reduce_refresh_rate">Дозволити зниження частоти оновлення</string>
+    <string name="category_help">Допомога</string>
+    <string name="summary_privacy_policy">Переглянути політику конфіденційності Moonlight</string>
+    <string name="frame_conversion_error">Головний комп\'ютер повідомив про фатальну помилку кодування відео.
+\n
+\nСпробуйте вимкнути режим HDR, змінити роздільну здатність потокового відео або змінити роздільну здатність дисплея головного комп\'ютера.</string>
 </resources>

@@ -64,6 +64,8 @@ public class ComputerManagerService extends Service {
     private boolean pollingActive = false;
     private final Lock defaultNetworkLock = new ReentrantLock();
 
+    private ConnectivityManager.NetworkCallback networkCallback;
+
     private DiscoveryService.DiscoveryBinder discoveryBinder;
     private final ServiceConnection discoveryServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder binder) {
@@ -744,10 +746,49 @@ public class ComputerManagerService extends Service {
         }
 
         releaseLocalDatabaseReference();
+
+        // Monitor for network changes to invalidate our PC state
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            networkCallback = new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(Network network) {
+                    LimeLog.info("Resetting PC state for new available network");
+                    synchronized (pollingTuples) {
+                        for (PollingTuple tuple : pollingTuples) {
+                            tuple.computer.state = ComputerDetails.State.UNKNOWN;
+                            if (listener != null) {
+                                listener.notifyComputerUpdated(tuple.computer);
+                            }
+                        }
+                    }
+                }
+
+                @Override
+                public void onLost(Network network) {
+                    LimeLog.info("Offlining PCs due to network loss");
+                    synchronized (pollingTuples) {
+                        for (PollingTuple tuple : pollingTuples) {
+                            tuple.computer.state = ComputerDetails.State.OFFLINE;
+                            if (listener != null) {
+                                listener.notifyComputerUpdated(tuple.computer);
+                            }
+                        }
+                    }
+                }
+            };
+
+            ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            connMgr.registerDefaultNetworkCallback(networkCallback);
+        }
     }
 
     @Override
     public void onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            connMgr.unregisterNetworkCallback(networkCallback);
+        }
+
         if (discoveryBinder != null) {
             // Unbind from the discovery service
             unbindService(discoveryServiceConnection);

@@ -259,8 +259,8 @@
     <string name="audioconf_51surround">5.1 Surround Sound</string>
     <string name="audioconf_71surround">7.1 Surround Sound</string>
 
-    <string name="videoformat_hevcauto">Automatic</string>
-    <string name="videoformat_hevcalways">Always use HEVC (may crash)</string>
+    <string name="videoformat_hevcauto">Automatic (Recommended)</string>
+    <string name="videoformat_hevcalways">Prefer HEVC</string>
     <string name="videoformat_hevcnever">Never use HEVC</string>
 
     <string name="title_frame_pacing">Video frame pacing</string>

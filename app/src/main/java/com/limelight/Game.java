@@ -1176,10 +1176,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             this.modifierFlags &= ~modifierMask;
         }
 
-        // Check if Ctrl+Shift+Z is pressed
+        // Check if Ctrl+Alt+Shift+Z is pressed
         if (androidKeyCode == KeyEvent.KEYCODE_Z &&
-            (modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_SHIFT)) ==
-                (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_SHIFT))
+            (modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT)) ==
+                (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT))
         {
             if (down) {
                 // Now that we've pressed the magic combo

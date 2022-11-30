@@ -90,15 +90,15 @@ public class PreferenceConfiguration {
     public static final int FRAME_PACING_CAP_FPS = 2;
     public static final int FRAME_PACING_MAX_SMOOTHNESS = 3;
 
-    public static final String RES_360P = "640x360";
-    public static final String RES_480P = "854x480";
-    public static final String RES_720P = "1280x720";
-    public static final String RES_1080P = "1920x1080";
-    public static final String RES_1440P = "2560x1440";
-    public static final String RES_4K = "3840x2160";
-    public static final String RES_NATIVE = "Native";
+    public static final String RES_360P = "s_640x360";
+    public static final String RES_480P = "s_854x480";
+    public static final String RES_720P = "s_1280x720";
+    public static final String RES_1080P = "s_1920x1080";
+    public static final String RES_1440P = "s_2560x1440";
+    public static final String RES_4K = "s_3840x2160";
 
-    public int width, height, fps;
+    public StreamResolution resolution;
+    public int fps;
     public int bitrate;
     public int videoFormat;
     public int deadzonePercentage;
@@ -125,7 +125,9 @@ public class PreferenceConfiguration {
     public boolean enableAudioFx;
     public boolean reduceRefreshRate;
 
-    public static boolean isNativeResolution(int width, int height) {
+    // This is used only for migration to the new type code format of resolution strings
+    // It doesn't properly handle custom resolutions!
+    private static boolean legacyIsNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
         if (width == 640 && height == 360) {
             return false;
@@ -175,59 +177,47 @@ public class PreferenceConfiguration {
     }
 
     private static String convertFromLegacyResolutionString(String resString) {
-        if (resString.equalsIgnoreCase("360p")) {
-            return RES_360P;
+        if (!resString.contains("x")) {
+            // Convert from hardcoded strings to strings with dimensions embedded
+            if (resString.equalsIgnoreCase("360p")) {
+                return RES_360P;
+            }
+            else if (resString.equalsIgnoreCase("480p")) {
+                return RES_480P;
+            }
+            else if (resString.equalsIgnoreCase("720p")) {
+                return RES_720P;
+            }
+            else if (resString.equalsIgnoreCase("1080p")) {
+                return RES_1080P;
+            }
+            else if (resString.equalsIgnoreCase("1440p")) {
+                return RES_1440P;
+            }
+            else if (resString.equalsIgnoreCase("4K")) {
+                return RES_4K;
+            }
+            else {
+                // Should be unreachable
+                return RES_720P;
+            }
         }
-        else if (resString.equalsIgnoreCase("480p")) {
-            return RES_480P;
-        }
-        else if (resString.equalsIgnoreCase("720p")) {
-            return RES_720P;
-        }
-        else if (resString.equalsIgnoreCase("1080p")) {
-            return RES_1080P;
-        }
-        else if (resString.equalsIgnoreCase("1440p")) {
-            return RES_1440P;
-        }
-        else if (resString.equalsIgnoreCase("4K")) {
-            return RES_4K;
+        else if (Character.isDigit(resString.charAt(0))) {
+            // Convert to type code prefix format
+            String[] dims = resString.split("x");
+            int width = Integer.parseInt(dims[0]);
+            int height = Integer.parseInt(dims[1]);
+            return new StreamResolution(width, height,
+                    legacyIsNativeResolution(width, height) ? StreamResolution.ResolutionType.NATIVE : StreamResolution.ResolutionType.STANDARD)
+                    .toPrefString();
         }
         else {
-            // Should be unreachable
-            return RES_720P;
-        }
-    }
-
-    private static int getWidthFromResolutionString(String resString) {
-        return Integer.parseInt(resString.split("x")[0]);
-    }
-
-    private static int getHeightFromResolutionString(String resString) {
-        return Integer.parseInt(resString.split("x")[1]);
-    }
-
-    private static String getResolutionString(int width, int height) {
-        switch (height) {
-            case 360:
-                return RES_360P;
-            case 480:
-                return RES_480P;
-            default:
-            case 720:
-                return RES_720P;
-            case 1080:
-                return RES_1080P;
-            case 1440:
-                return RES_1440P;
-            case 2160:
-                return RES_4K;
+            return resString;
         }
     }
 
     public static int getDefaultBitrate(String resString, String fpsString) {
-        int width = getWidthFromResolutionString(resString);
-        int height = getHeightFromResolutionString(resString);
+        StreamResolution res = new StreamResolution(resString);
         int fps = Integer.parseInt(fpsString);
 
         // This table prefers 16:10 resolutions because they are
@@ -238,23 +228,23 @@ public class PreferenceConfiguration {
         // This logic is shamelessly stolen from Moonlight Qt:
         // https://github.com/moonlight-stream/moonlight-qt/blob/master/app/settings/streamingpreferences.cpp
 
-        if (width * height <= 640 * 360) {
+        if (res.width * res.height <= 640 * 360) {
             return (int)(1000 * (fps / 30.0));
         }
-        else if (width * height <= 854 * 480) {
+        else if (res.width * res.height <= 854 * 480) {
             return (int)(1500 * (fps / 30.0));
         }
         // This covers 1280x720 and 1280x800 too
-        else if (width * height <= 1366 * 768) {
+        else if (res.width * res.height <= 1366 * 768) {
             return (int)(5000 * (fps / 30.0));
         }
-        else if (width * height <= 1920 * 1200) {
+        else if (res.width * res.height <= 1920 * 1200) {
             return (int)(10000 * (fps / 30.0));
         }
-        else if (width * height <= 2560 * 1600) {
+        else if (res.width * res.height <= 2560 * 1600) {
             return (int)(20000 * (fps / 30.0));
         }
-        else /* if (width * height <= 3840 * 2160) */ {
+        else /* if (res.width * res.height <= 3840 * 2160) */ {
             return (int)(40000 * (fps / 30.0));
         }
     }
@@ -381,55 +371,46 @@ public class PreferenceConfiguration {
         String str = prefs.getString(LEGACY_RES_FPS_PREF_STRING, null);
         if (str != null) {
             if (str.equals("360p30")) {
-                config.width = 640;
-                config.height = 360;
+                config.resolution = new StreamResolution(640, 360, StreamResolution.ResolutionType.STANDARD);
                 config.fps = 30;
             }
             else if (str.equals("360p60")) {
-                config.width = 640;
-                config.height = 360;
+                config.resolution = new StreamResolution(640, 360, StreamResolution.ResolutionType.STANDARD);
                 config.fps = 60;
             }
             else if (str.equals("720p30")) {
-                config.width = 1280;
-                config.height = 720;
+                config.resolution = new StreamResolution(1280, 720, StreamResolution.ResolutionType.STANDARD);
                 config.fps = 30;
             }
             else if (str.equals("720p60")) {
-                config.width = 1280;
-                config.height = 720;
+                config.resolution = new StreamResolution(1280, 720, StreamResolution.ResolutionType.STANDARD);
                 config.fps = 60;
             }
             else if (str.equals("1080p30")) {
-                config.width = 1920;
-                config.height = 1080;
+                config.resolution = new StreamResolution(1920, 1080, StreamResolution.ResolutionType.STANDARD);
                 config.fps = 30;
             }
             else if (str.equals("1080p60")) {
-                config.width = 1920;
-                config.height = 1080;
+                config.resolution = new StreamResolution(1920, 1080, StreamResolution.ResolutionType.STANDARD);
                 config.fps = 60;
             }
             else if (str.equals("4K30")) {
-                config.width = 3840;
-                config.height = 2160;
+                config.resolution = new StreamResolution(3840, 2160, StreamResolution.ResolutionType.STANDARD);
                 config.fps = 30;
             }
             else if (str.equals("4K60")) {
-                config.width = 3840;
-                config.height = 2160;
+                config.resolution = new StreamResolution(3840, 2160, StreamResolution.ResolutionType.STANDARD);
                 config.fps = 60;
             }
             else {
                 // Should never get here
-                config.width = 1280;
-                config.height = 720;
+                config.resolution = new StreamResolution(1280, 720, StreamResolution.ResolutionType.STANDARD);
                 config.fps = 60;
             }
 
             prefs.edit()
                     .remove(LEGACY_RES_FPS_PREF_STRING)
-                    .putString(RESOLUTION_PREF_STRING, getResolutionString(config.width, config.height))
+                    .putString(RESOLUTION_PREF_STRING, config.resolution.toPrefString())
                     .putString(FPS_PREF_STRING, ""+config.fps)
                     .apply();
         }
@@ -438,13 +419,12 @@ public class PreferenceConfiguration {
             String resStr = prefs.getString(RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION);
 
             // Convert legacy resolution strings to the new style
-            if (!resStr.contains("x")) {
+            if (Character.isDigit(resStr.charAt(0)) || !resStr.contains("x")) {
                 resStr = PreferenceConfiguration.convertFromLegacyResolutionString(resStr);
                 prefs.edit().putString(RESOLUTION_PREF_STRING, resStr).apply();
             }
 
-            config.width = PreferenceConfiguration.getWidthFromResolutionString(resStr);
-            config.height = PreferenceConfiguration.getHeightFromResolutionString(resStr);
+            config.resolution = new StreamResolution(resStr);
             config.fps = Integer.parseInt(prefs.getString(FPS_PREF_STRING, PreferenceConfiguration.DEFAULT_FPS));
         }
 
@@ -507,5 +487,113 @@ public class PreferenceConfiguration {
         config.reduceRefreshRate = prefs.getBoolean(REDUCE_REFRESH_RATE_PREF_STRING, DEFAULT_REDUCE_REFRESH_RATE);
 
         return config;
+    }
+
+    public static class StreamResolution {
+        public int width;
+        public int height;
+        public ResolutionType type;
+        public boolean portrait;
+        public boolean fullScreen;
+
+        private static final char RES_START_DELIMITER = '_';
+        private static final char RES_DIM_DELIMITER = 'x';
+
+        private static final char TYPE_CODE_STANDARD = 's';
+        private static final char TYPE_CODE_NATIVE = 'n';
+
+        private static final char OPTION_CODE_PORTRAIT = 'p';
+        private static final char OPTION_CODE_FULL_SCREEN = 'f';
+
+        public enum ResolutionType {
+            STANDARD,
+            NATIVE
+        }
+
+        private StreamResolution(int width, int height, ResolutionType type) {
+            this.width = width;
+            this.height = height;
+            this.type = type;
+
+            // Just guess for the options, since we don't know for sure
+            this.portrait = height > width;
+            this.fullScreen = false;
+        }
+
+        public StreamResolution(int width, int height, ResolutionType type, boolean portrait, boolean fullScreen) {
+            this.width = width;
+            this.height = height;
+            this.type = type;
+            this.portrait = portrait;
+            this.fullScreen = fullScreen;
+        }
+
+        StreamResolution(String resString) {
+            // Type code is the first character in the string
+            switch (resString.charAt(0)) {
+                case TYPE_CODE_NATIVE:
+                    this.type = StreamResolution.ResolutionType.NATIVE;
+                    break;
+                case TYPE_CODE_STANDARD:
+                    this.type = StreamResolution.ResolutionType.STANDARD;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid type code: " + resString.charAt(0));
+            }
+
+            // Parse options until we reach the resolution start delimiter
+            int currentIndex = 1;
+            while (resString.charAt(currentIndex) != RES_START_DELIMITER) {
+                switch (resString.charAt(currentIndex)) {
+                    case OPTION_CODE_PORTRAIT:
+                        portrait = true;
+                        break;
+                    case OPTION_CODE_FULL_SCREEN:
+                        fullScreen = true;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid option code: " + resString.charAt(currentIndex));
+                }
+
+                currentIndex++;
+            }
+
+            // Skip the type code before splitting
+            String[] dims = resString.substring(currentIndex).split(""+RES_DIM_DELIMITER);
+            this.width = Integer.parseInt(dims[0]);
+            this.height = Integer.parseInt(dims[1]);
+        }
+
+        public String toPrefString() {
+            String str = "";
+
+            // Start with the type code
+            switch (type) {
+                case NATIVE:
+                    str += TYPE_CODE_NATIVE;
+                    break;
+                case STANDARD:
+                    str += TYPE_CODE_STANDARD;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid type: "+type);
+            }
+
+            // Now any option codes that may apply
+            if (portrait) {
+                str += OPTION_CODE_PORTRAIT;
+            }
+            if (fullScreen) {
+                str += OPTION_CODE_FULL_SCREEN;
+            }
+
+            // And finally the dimensions
+            str += RES_START_DELIMITER;
+            str += width;
+            str += RES_DIM_DELIMITER;
+            str += height;
+
+            return str;
+        }
     }
 }

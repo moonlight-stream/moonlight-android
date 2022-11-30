@@ -220,7 +220,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Enter landscape unless we're on a square screen
         setPreferredOrientationForCurrentDisplay();
 
-        if (prefConfig.stretchVideo || shouldIgnoreInsetsForResolution(prefConfig.width, prefConfig.height)) {
+        if (prefConfig.stretchVideo || prefConfig.resolution.fullScreen) {
             // Allow the activity to layout under notches if the fill-screen option
             // was turned on by the user or it's a full-screen native resolution
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -456,7 +456,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         StreamConfiguration config = new StreamConfiguration.Builder()
-                .setResolution(prefConfig.width, prefConfig.height)
+                .setResolution(prefConfig.resolution.width, prefConfig.resolution.height)
                 .setLaunchRefreshRate(prefConfig.fps)
                 .setRefreshRate(chosenFrameRate)
                 .setApp(new NvApp(appName != null ? appName : "app", appId, appSupportsHdr))
@@ -551,12 +551,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
 
             // For native resolution, we will lock the orientation to the one that matches the specified resolution
-            if (PreferenceConfiguration.isNativeResolution(prefConfig.width, prefConfig.height)) {
-                if (prefConfig.width > prefConfig.height) {
-                    desiredOrientation = Configuration.ORIENTATION_LANDSCAPE;
+            if (prefConfig.resolution.type == PreferenceConfiguration.StreamResolution.ResolutionType.NATIVE) {
+                if (prefConfig.resolution.portrait) {
+                    desiredOrientation = Configuration.ORIENTATION_PORTRAIT;
                 }
                 else {
-                    desiredOrientation = Configuration.ORIENTATION_PORTRAIT;
+                    desiredOrientation = Configuration.ORIENTATION_LANDSCAPE;
                 }
             }
 
@@ -649,7 +649,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private PictureInPictureParams getPictureInPictureParams(boolean autoEnter) {
         PictureInPictureParams.Builder builder =
                 new PictureInPictureParams.Builder()
-                        .setAspectRatio(new Rational(prefConfig.width, prefConfig.height))
+                        .setAspectRatio(new Rational(prefConfig.resolution.width, prefConfig.resolution.height))
                         .setSourceRectHint(new Rect(
                                 streamView.getLeft(), streamView.getTop(),
                                 streamView.getRight(), streamView.getBottom()));
@@ -771,26 +771,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 Math.round(refreshRate) % prefConfig.fps <= 3;
     }
 
-    private boolean shouldIgnoreInsetsForResolution(int width, int height) {
-        // Never ignore insets for non-native resolutions
-        if (!PreferenceConfiguration.isNativeResolution(width, height)) {
-            return false;
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Display display = getWindowManager().getDefaultDisplay();
-            for (Display.Mode candidate : display.getSupportedModes()) {
-                // Ignore insets if this is an exact match for the display resolution
-                if ((width == candidate.getPhysicalWidth() && height == candidate.getPhysicalHeight()) ||
-                        (height == candidate.getPhysicalWidth() && width == candidate.getPhysicalHeight())) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     private boolean mayReduceRefreshRate() {
         return prefConfig.framePacing == PreferenceConfiguration.FRAME_PACING_CAP_FPS ||
                 prefConfig.framePacing == PreferenceConfiguration.FRAME_PACING_MAX_SMOOTHNESS ||
@@ -805,7 +785,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // On M, we can explicitly set the optimal display mode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Display.Mode bestMode = display.getMode();
-            boolean isNativeResolutionStream = PreferenceConfiguration.isNativeResolution(prefConfig.width, prefConfig.height);
             boolean refreshRateIsGood = isRefreshRateGoodMatch(bestMode.getRefreshRate());
             boolean refreshRateIsEqual = isRefreshRateEqualMatch(bestMode.getRefreshRate());
 
@@ -813,13 +792,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 boolean refreshRateReduced = candidate.getRefreshRate() < bestMode.getRefreshRate();
                 boolean resolutionReduced = candidate.getPhysicalWidth() < bestMode.getPhysicalWidth() ||
                         candidate.getPhysicalHeight() < bestMode.getPhysicalHeight();
-                boolean resolutionFitsStream = candidate.getPhysicalWidth() >= prefConfig.width &&
-                        candidate.getPhysicalHeight() >= prefConfig.height;
+                boolean resolutionFitsStream = candidate.getPhysicalWidth() >= prefConfig.resolution.width &&
+                        candidate.getPhysicalHeight() >= prefConfig.resolution.height;
 
                 LimeLog.info("Examining display mode: "+candidate.getPhysicalWidth()+"x"+
                         candidate.getPhysicalHeight()+"x"+candidate.getRefreshRate());
 
-                if (candidate.getPhysicalWidth() > 4096 && prefConfig.width <= 4096) {
+                if (candidate.getPhysicalWidth() > 4096 && prefConfig.resolution.width <= 4096) {
                     // Avoid resolutions options above 4K to be safe
                     continue;
                 }
@@ -827,7 +806,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // On non-4K streams, we force the resolution to never change unless it's above
                 // 60 FPS, which may require a resolution reduction due to HDMI bandwidth limitations,
                 // or it's a native resolution stream.
-                if (prefConfig.width < 3840 && prefConfig.fps <= 60 && !isNativeResolutionStream) {
+                if (prefConfig.resolution.width < 3840 && prefConfig.fps <= 60 &&
+                        prefConfig.resolution.type != PreferenceConfiguration.StreamResolution.ResolutionType.NATIVE) {
                     if (display.getMode().getPhysicalWidth() != candidate.getPhysicalWidth() ||
                             display.getMode().getPhysicalHeight() != candidate.getPhysicalHeight()) {
                         continue;
@@ -940,7 +920,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             display.getSize(screenSize);
 
             double screenAspectRatio = ((double)screenSize.y) / screenSize.x;
-            double streamAspectRatio = ((double)prefConfig.height) / prefConfig.width;
+            double streamAspectRatio = ((double)prefConfig.resolution.height) / prefConfig.resolution.width;
             if (Math.abs(screenAspectRatio - streamAspectRatio) < 0.001) {
                 LimeLog.info("Stream has compatible aspect ratio with output display");
                 aspectRatioMatch = true;
@@ -949,11 +929,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (prefConfig.stretchVideo || aspectRatioMatch) {
             // Set the surface to the size of the video
-            streamView.getHolder().setFixedSize(prefConfig.width, prefConfig.height);
+            streamView.getHolder().setFixedSize(prefConfig.resolution.width, prefConfig.resolution.height);
         }
         else {
             // Set the surface to scale based on the aspect ratio of the stream
-            streamView.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
+            streamView.setDesiredAspectRatio((double)prefConfig.resolution.width / (double)prefConfig.resolution.height);
         }
 
         if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) ||

@@ -122,44 +122,49 @@ public class StreamSettings extends Activity {
     }
 
     public static class SettingsFragment extends PreferenceFragment {
-        private int nativeResolutionStartIndex = Integer.MAX_VALUE;
-
         private void setValue(String preferenceKey, String value) {
             ListPreference pref = (ListPreference) findPreference(preferenceKey);
 
             pref.setValue(value);
         }
 
-        private void addNativeResolutionEntry(int nativeWidth, int nativeHeight, boolean insetsRemoved, boolean portrait) {
+        private void addResolutionEntry(int width, int height, PreferenceConfiguration.StreamResolution.ResolutionType type,
+                                        boolean insetsRemoved, boolean portrait) {
             ListPreference pref = (ListPreference) findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING);
+            PreferenceConfiguration.StreamResolution newRes =
+                    new PreferenceConfiguration.StreamResolution(width, height, type, portrait, insetsRemoved);
 
             String newName;
 
-            if (insetsRemoved) {
-                newName = getResources().getString(R.string.resolution_prefix_native_fullscreen);
-            }
-            else {
-                newName = getResources().getString(R.string.resolution_prefix_native);
-            }
-
-            if (PreferenceConfiguration.isSquarishScreen(nativeWidth, nativeHeight)) {
-                if (portrait) {
-                    newName += " " + getResources().getString(R.string.resolution_prefix_native_portrait);
+            if (type == PreferenceConfiguration.StreamResolution.ResolutionType.NATIVE) {
+                if (insetsRemoved) {
+                    newName = getResources().getString(R.string.resolution_prefix_native_fullscreen);
                 }
                 else {
-                    newName += " " + getResources().getString(R.string.resolution_prefix_native_landscape);
+                    newName = getResources().getString(R.string.resolution_prefix_native);
+                }
+
+                if (PreferenceConfiguration.isSquarishScreen(width, height)) {
+                    if (portrait) {
+                        newName += " " + getResources().getString(R.string.resolution_prefix_native_portrait);
+                    }
+                    else {
+                        newName += " " + getResources().getString(R.string.resolution_prefix_native_landscape);
+                    }
                 }
             }
+            else {
+                newName = null;
+            }
 
-            newName += " ("+nativeWidth+"x"+nativeHeight+")";
-
-            String newValue = nativeWidth+"x"+nativeHeight;
+            newName += " ("+width+"x"+height+")";
 
             CharSequence[] values = pref.getEntryValues();
 
-            // Check if the native resolution is already present
+            // Check if the new resolution is already present
             for (CharSequence value : values) {
-                if (newValue.equals(value.toString())) {
+                PreferenceConfiguration.StreamResolution existingResolution = new PreferenceConfiguration.StreamResolution(value.toString());
+                if (existingResolution.width == newRes.width && existingResolution.height == newRes.height) {
                     // It is present in the default list, so don't add it again
                     return;
                 }
@@ -168,23 +173,23 @@ public class StreamSettings extends Activity {
             CharSequence[] newEntries = Arrays.copyOf(pref.getEntries(), pref.getEntries().length + 1);
             CharSequence[] newValues = Arrays.copyOf(values, values.length + 1);
 
-            // Add the new native option
+            // Add the new resolution option
             newEntries[newEntries.length - 1] = newName;
-            newValues[newValues.length - 1] = newValue;
+            newValues[newValues.length - 1] = newRes.toPrefString();
 
             pref.setEntries(newEntries);
             pref.setEntryValues(newValues);
-
-            if (newValues.length - 1 < nativeResolutionStartIndex) {
-                nativeResolutionStartIndex = newValues.length - 1;
-            }
         }
 
         private void addNativeResolutionEntries(int nativeWidth, int nativeHeight, boolean insetsRemoved) {
             if (PreferenceConfiguration.isSquarishScreen(nativeWidth, nativeHeight)) {
-                addNativeResolutionEntry(nativeHeight, nativeWidth, insetsRemoved, true);
+                addResolutionEntry(nativeHeight, nativeWidth,
+                        PreferenceConfiguration.StreamResolution.ResolutionType.NATIVE,
+                        insetsRemoved, true);
             }
-            addNativeResolutionEntry(nativeWidth, nativeHeight, insetsRemoved, false);
+            addResolutionEntry(nativeWidth, nativeHeight,
+                    PreferenceConfiguration.StreamResolution.ResolutionType.NATIVE,
+                    insetsRemoved, false);
         }
 
         private void removeValue(String preferenceKey, String value, Runnable onMatched) {
@@ -608,20 +613,10 @@ public class StreamSettings extends Activity {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
                     String valueStr = (String) newValue;
-
-                    // Detect if this value is the native resolution option
-                    CharSequence[] values = ((ListPreference)preference).getEntryValues();
-                    boolean isNativeRes = true;
-                    for (int i = 0; i < values.length; i++) {
-                        // Look for a match prior to the start of the native resolution entries
-                        if (valueStr.equals(values[i].toString()) && i < nativeResolutionStartIndex) {
-                            isNativeRes = false;
-                            break;
-                        }
-                    }
+                    PreferenceConfiguration.StreamResolution resolution = new PreferenceConfiguration.StreamResolution(valueStr);
 
                     // If this is native resolution, show the warning dialog
-                    if (isNativeRes) {
+                    if (resolution.type == PreferenceConfiguration.StreamResolution.ResolutionType.NATIVE) {
                         Dialog.displayDialog(getActivity(),
                                 getResources().getString(R.string.title_native_res_dialog),
                                 getResources().getString(R.string.text_native_res_dialog),

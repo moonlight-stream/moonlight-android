@@ -9,14 +9,13 @@
         <item>@string/resolution_4k</item>
     </string-array>
 
-    <!-- Keep this in sync with PreferenceConfiguration.isNativeResolution()! -->
     <string-array name="resolution_values" translatable="false">
-        <item>640x360</item>
-        <item>854x480</item>
-        <item>1280x720</item>
-        <item>1920x1080</item>
-        <item>2560x1440</item>
-        <item>3840x2160</item>
+        <item>s_640x360</item>
+        <item>s_854x480</item>
+        <item>s_1280x720</item>
+        <item>s_1920x1080</item>
+        <item>s_2560x1440</item>
+        <item>s_3840x2160</item>
     </string-array>
 
     <string-array name="fps_names">

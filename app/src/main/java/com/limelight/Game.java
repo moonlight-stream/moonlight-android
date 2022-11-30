@@ -1129,10 +1129,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private void setInputGrabState(boolean grab) {
         // Grab/ungrab the mouse cursor
         if (grab) {
-            inputCaptureProvider.disableCapture();
+            inputCaptureProvider.enableCapture();
         }
         else {
-            inputCaptureProvider.enableCapture();
+            inputCaptureProvider.disableCapture();
         }
 
         // Grab/ungrab system keyboard shortcuts

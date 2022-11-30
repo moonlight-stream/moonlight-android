@@ -212,6 +212,11 @@
             android:summary="@string/summary_enable_hdr"
             android:defaultValue="false" />
         <CheckBoxPreference
+            android:key="checkbox_full_range"
+            android:title="@string/title_full_range"
+            android:summary="@string/summary_full_range"
+            android:defaultValue="false" />
+        <CheckBoxPreference
             android:key="checkbox_enable_perf_overlay"
             android:title="@string/title_enable_perf_overlay"
             android:summary="@string/summary_enable_perf_overlay"

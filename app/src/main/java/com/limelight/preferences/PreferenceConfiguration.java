@@ -48,6 +48,7 @@ public class PreferenceConfiguration {
     private static final String ABSOLUTE_MOUSE_MODE_PREF_STRING = "checkbox_absolute_mouse_mode";
     private static final String ENABLE_AUDIO_FX_PREF_STRING = "checkbox_enable_audiofx";
     private static final String REDUCE_REFRESH_RATE_PREF_STRING = "checkbox_reduce_refresh_rate";
+    private static final String FULL_RANGE_PREF_STRING = "checkbox_full_range";
 
     static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
@@ -80,6 +81,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_ABSOLUTE_MOUSE_MODE = false;
     private static final boolean DEFAULT_ENABLE_AUDIO_FX = false;
     private static final boolean DEFAULT_REDUCE_REFRESH_RATE = false;
+    private static final boolean DEFAULT_FULL_RANGE = false;
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -124,6 +126,7 @@ public class PreferenceConfiguration {
     public boolean absoluteMouseMode;
     public boolean enableAudioFx;
     public boolean reduceRefreshRate;
+    public boolean fullRange;
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
@@ -348,6 +351,7 @@ public class PreferenceConfiguration {
                 .remove(VIDEO_FORMAT_PREF_STRING)
                 .remove(ENABLE_HDR_PREF_STRING)
                 .remove(UNLOCK_FPS_STRING)
+                .remove(FULL_RANGE_PREF_STRING)
                 .apply();
     }
 
@@ -505,6 +509,7 @@ public class PreferenceConfiguration {
         config.absoluteMouseMode = prefs.getBoolean(ABSOLUTE_MOUSE_MODE_PREF_STRING, DEFAULT_ABSOLUTE_MOUSE_MODE);
         config.enableAudioFx = prefs.getBoolean(ENABLE_AUDIO_FX_PREF_STRING, DEFAULT_ENABLE_AUDIO_FX);
         config.reduceRefreshRate = prefs.getBoolean(REDUCE_REFRESH_RATE_PREF_STRING, DEFAULT_REDUCE_REFRESH_RATE);
+        config.fullRange = prefs.getBoolean(FULL_RANGE_PREF_STRING, DEFAULT_FULL_RANGE);
 
         return config;
     }

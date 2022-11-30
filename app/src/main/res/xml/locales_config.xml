@@ -19,4 +19,5 @@
     <locale android:name="hu"/>
     <locale android:name="el"/>
     <locale android:name="pt-BR"/>
+    <locale android:name="cs"/>
 </locale-config>

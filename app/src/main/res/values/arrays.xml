@@ -64,6 +64,7 @@
         <item>Magyar</item>
         <item>Ελληνικά</item>
         <item>Português do Brasil</item>
+        <item>Čeština</item>
     </string-array>
     <string-array name="language_values" translatable="false">
         <item>default</item>
@@ -85,6 +86,7 @@
         <item>hu</item>
         <item>el</item>
         <item>pt-BR</item>
+        <item>cs</item>
     </string-array>
 
     <string-array name="video_format_names">

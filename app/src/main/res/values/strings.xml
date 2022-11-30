@@ -229,8 +229,8 @@
     <string name="summary_video_format">HEVC lowers video bandwidth requirements but requires a newer device</string>
     <string name="title_enable_hdr">Enable HDR (Experimental)</string>
     <string name="summary_enable_hdr">Stream HDR when the game and PC GPU support it. HDR requires a GTX 1000 series GPU or later.</string>
-    <string name="title_full_range">Use full (0–255) color range</string>
-    <string name="summary_full_range">This may cause video issues or crashes if your device or display doesn\'t properly handle full range content.</string>
+    <string name="title_full_range">Force full range video (Experimental)</string>
+    <string name="summary_full_range">This will cause loss of detail in light and dark areas if your device doesn\'t properly display full range video content.</string>
     <string name="title_enable_perf_overlay">Show performance stats while streaming</string>
     <string name="summary_enable_perf_overlay">Display real-time stream performance information while streaming</string>
     <string name="title_enable_post_stream_toast">Show latency message after streaming</string>

@@ -259,4 +259,7 @@
     <string name="summary_checkbox_reduce_refresh_rate">Des taux de rafraîchissement d\'affichage plus bas peuvent économiser de l\'énergie au détriment d\'une latence vidéo plus importante</string>
     <string name="summary_checkbox_enable_audiofx">Permet aux effets audio de fonctionner lors du streaming, mais peut augmenter la latence</string>
     <string name="title_checkbox_enable_audiofx">Activer le support de l\'égalisateur système</string>
+    <string name="frame_conversion_error">Le PC hôte a signalé une erreur d\'encodage fatale.
+\n
+\nEssayez de désactiver le mode HDR, de changer la résolution du flux ou la résolution de votre PC hôte.</string>
 </resources>

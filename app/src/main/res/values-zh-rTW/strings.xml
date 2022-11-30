@@ -56,7 +56,7 @@
     <string name="conn_hardware_latency">硬體解碼器平均延時：</string>
     <string name="conn_starting">正在啟動</string>
     <string name="conn_error_title">連線錯誤</string>
-    <string name="conn_error_msg"> 啟動失敗 </string>
+    <string name="conn_error_msg">無法啟動</string>
     <string name="conn_terminated_title">連線已終止</string>
     <string name="conn_terminated_msg">連線已終止</string>
     <!-- General strings -->
@@ -90,10 +90,10 @@
     <string name="applist_refresh_title">遊戲清單</string>
     <string name="applist_refresh_msg">正在重新整理…</string>
     <string name="applist_refresh_error_title"> 錯誤 </string>
-    <string name="applist_refresh_error_msg">取得遊戲清單失敗</string>
+    <string name="applist_refresh_error_msg">無法取得遊戲清單</string>
     <string name="applist_quit_app">正在結束</string>
     <string name="applist_quit_success">結束成功</string>
-    <string name="applist_quit_fail">結束失敗</string>
+    <string name="applist_quit_fail">無法結束</string>
     <string name="applist_quit_confirmation">您確定要結束執行中的遊戲？所有未儲存的資料將丟失。</string>
     <string name="applist_details_id">App ID：</string>
     <!-- Add computer manually activity -->
@@ -109,9 +109,9 @@
     <string name="title_resolution_list">視訊解析度</string>
     <string name="summary_resolution_list">高解析度提升圖像清晰度。低解析度提升在低效能裝置和較慢網路中的串流體驗。</string>
     <string name="title_fps_list">視訊影格速率</string>
-    <string name="summary_fps_list">提高影格速率以獲得更順暢的視訊串流，降低可在低效能裝置上獲得更好的串流體驗。</string>
+    <string name="summary_fps_list">提高影格速率以取得更順暢的視訊串流，降低可在低效能裝置上取得更好的串流體驗。</string>
     <string name="title_seekbar_bitrate">視訊位元速率</string>
-    <string name="summary_seekbar_bitrate">提高位元速率以提升圖像品質，降低可在較慢的網路中獲得更好的串流體驗。</string>
+    <string name="summary_seekbar_bitrate">提高位元速率以提升圖像品質，降低可在較慢的網路中取得更好的串流體驗。</string>
     <string name="title_unlock_fps">解鎖所有可用影格速率</string>
     <string name="summary_unlock_fps">以 90 或 120 畫面更新率串流可能會減少在高效能裝置上的網路延時，但會在不支援的裝置上造成卡頓或崩潰</string>
     <string name="title_checkbox_stretch_video">將畫面延展至全螢幕</string>
@@ -197,7 +197,7 @@
 \n如果問題仍然存在，請嘗試重新安裝 GPU 驅動程式和 GFE。</string>
     <string name="no_frame_received_error">您的網路連線品質不佳。降低視訊位元速率設定或更換更快的連線。</string>
     <string name="no_video_received_error">沒有接收到來自主機的視訊。</string>
-    <string name="video_decoder_init_failed">視訊解碼器初始化失敗。您的裝置可能不支援選取的解析度或影格速率。</string>
+    <string name="video_decoder_init_failed">無法初始化視訊解碼器，您的裝置可能不支援選取的解析度或影格速率。</string>
     <string name="nettest_text_blocked">您裝置目前的網路連線封鎖了 Moonlight。連線到該網路時可能無法透過網際網路串流。</string>
     <string name="nettest_text_failure">您裝置目前的網路連線似乎封鎖了 Moonlight。連線到該網路時可能無法透過網際網路串流。
 \n

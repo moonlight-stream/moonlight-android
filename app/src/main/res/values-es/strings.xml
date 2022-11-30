@@ -76,7 +76,7 @@
     <string name="addpc_enter_ip">Debes introducir una dirección IP</string>
     <!-- Preferences -->
     <string name="category_basic_settings">Configuración básica</string>
-    <string name="title_resolution_list">Seleccionar resolución y FPS</string>
+    <string name="title_resolution_list">Seleccionar resolución</string>
     <string name="summary_resolution_list">Establecer unos valores demasiado altos puede causar retraso o cierres inesperados.</string>
     <string name="title_seekbar_bitrate">Seleccionar bitrate de vídeo</string>
     <string name="summary_seekbar_bitrate">Usa bitrate bajo para reducir "parpadeo". Incrementa el bitrate para mayor calidad de imagen.</string>
@@ -165,7 +165,7 @@
     <string name="resolution_1440p">1440p</string>
     <string name="resolution_4k">4K</string>
     <string name="suffix_osc_opacity">%</string>
-    <string name="title_checkbox_enable_pip">Actividad modo Pantalla-en-Pantalla para observador</string>
+    <string name="title_checkbox_enable_pip">Activar modo Pantalla-en-Pantalla para modo espectador</string>
     <string name="resolution_720p">720p</string>
     <string name="fps_120">120 FPS</string>
     <string name="audioconf_71surround">7.1 Sonido Envolvente</string>
@@ -256,4 +256,11 @@
     <string name="fps_60">60 FPS</string>
     <string name="fps_90">90 FPS</string>
     <string name="title_frame_pacing">Ritmo de cuadros por segundo en video</string>
+    <string name="resolution_prefix_native_portrait">(Retrato)</string>
+    <string name="frame_conversion_error">El PC anfitrión ha reportado un error fatal en el codificador de video.
+\n
+\nIntenta deshabilitar el modo HDR, cambiar la resolución de la transmisión, o cambiar la resolución de pantalla del PC anfitrión.</string>
+    <string name="resolution_prefix_native_landscape">(Panorama)</string>
+    <string name="summary_checkbox_reduce_refresh_rate">Tasa de refresco menores pueden ahorrar energía a cambio de una mayor latencia de video</string>
+    <string name="title_checkbox_reduce_refresh_rate">Permitir reducción de la tasa de refresco</string>
 </resources>

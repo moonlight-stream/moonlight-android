@@ -223,8 +223,8 @@
     <string name="audioconf_stereo">立體聲</string>
     <string name="audioconf_51surround">5.1 環場音效</string>
     <string name="audioconf_71surround">7.1 環場音效</string>
-    <string name="videoformat_hevcauto">自動</string>
-    <string name="videoformat_hevcalways">強制使用 HEVC (可能會當機)</string>
+    <string name="videoformat_hevcauto">自動 (建議)</string>
+    <string name="videoformat_hevcalways">優先使用 HEVC</string>
     <string name="videoformat_hevcnever">不使用 HEVC</string>
     <string name="resolution_4k">4K</string>
     <string name="fps_30">30 FPS</string>
@@ -261,4 +261,6 @@
     <string name="frame_conversion_error">主機電腦回報了一個嚴重的視訊編碼錯誤。
 \n
 \n嘗試停用 HDR 模式，變更串流解析度，或變更您的主機電腦的顯示器解析度。</string>
+    <string name="title_full_range">強制全範圍視訊 (實驗性)</string>
+    <string name="summary_full_range">若您的裝置無法正確地顯示全範圍視訊內容，將會導致淺色區域和深色區域的細節遺失。</string>
 </resources>

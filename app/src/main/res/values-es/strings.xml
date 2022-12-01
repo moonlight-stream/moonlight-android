@@ -109,8 +109,8 @@
     <string name="title_video_format">Cambiar configuración HEVC</string>
     <string name="summary_video_format">HEVC reduce el ancho de banda de vídeo, pero requiere un dispositivo reciente</string>
     <!-- Array strings -->
-    <string name="videoformat_hevcauto">Usar HEVC sólo si es estable</string>
-    <string name="videoformat_hevcalways">Siempre usar HEVC (puede fallar)</string>
+    <string name="videoformat_hevcauto">Automático (Recomendado)</string>
+    <string name="videoformat_hevcalways">Preferir HEVC</string>
     <string name="videoformat_hevcnever">Nunca usar HEVC</string>
     <string name="nettest_title_done">Prueba de Red Completada</string>
     <string name="scut_not_paired">PC no emparejado</string>
@@ -263,4 +263,6 @@
     <string name="resolution_prefix_native_landscape">(Panorama)</string>
     <string name="summary_checkbox_reduce_refresh_rate">Tasa de refresco menores pueden ahorrar energía a cambio de una mayor latencia de video</string>
     <string name="title_checkbox_reduce_refresh_rate">Permitir reducción de la tasa de refresco</string>
+    <string name="title_full_range">Usar rango (0-255) de color completo</string>
+    <string name="summary_full_range">Esto puede causar problemas de video o bloqueos si la pantalla de tu dispositivo no puede manejar contenido de rango completo.</string>
 </resources>

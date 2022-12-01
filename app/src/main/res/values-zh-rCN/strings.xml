@@ -222,8 +222,8 @@
     <string name="audioconf_stereo">立体声</string>
     <string name="audioconf_51surround">5.1环绕声</string>
     <string name="audioconf_71surround">7.1环绕声</string>
-    <string name="videoformat_hevcauto">自动</string>
-    <string name="videoformat_hevcalways">强制使用HEVC（不稳定）</string>
+    <string name="videoformat_hevcauto">自动（推荐）</string>
+    <string name="videoformat_hevcalways">首选 HEVC</string>
     <string name="videoformat_hevcnever">不使用HEVC</string>
     <string name="title_frame_pacing">视频帧速调节</string>
     <string name="resolution_360p">360p</string>

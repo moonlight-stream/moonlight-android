@@ -20,6 +20,11 @@ public class ComputerDetails {
                 throw new IllegalArgumentException("Invalid port");
             }
 
+            // If this was an escaped IPv6 address, remove the brackets
+            if (address.startsWith("[") && address.endsWith("]")) {
+                address = address.substring(1, address.length() - 1);
+            }
+
             this.address = address;
             this.port = port;
         }
@@ -40,7 +45,14 @@ public class ComputerDetails {
         }
 
         public String toString() {
-            return address + ":" + port;
+            if (address.contains(":")) {
+                // IPv6
+                return "[" + address + "]:" + port;
+            }
+            else {
+                // IPv4 and hostnames
+                return address + ":" + port;
+            }
         }
     }
 

@@ -53,8 +53,8 @@
     <string name="resolution_4k">4K</string>
     <string name="fps_30">30 FPS</string>
     <string name="fps_60">60 FPS</string>
-    <string name="videoformat_hevcalways">Sempre usar HEVC (talvez crashe)</string>
-    <string name="videoformat_hevcauto">Automático</string>
+    <string name="videoformat_hevcalways">Prefira HEVC</string>
+    <string name="videoformat_hevcauto">Automático (recomendado)</string>
     <string name="fps_120">120 FPS</string>
     <string name="audioconf_stereo">Stereo</string>
     <string name="audioconf_51surround">5.1 Surround</string>
@@ -245,4 +245,9 @@
     <string name="resolution_prefix_native_portrait">(Retrato)</string>
     <string name="title_checkbox_enable_audiofx">Habilitar sistema de suporte à equalização</string>
     <string name="summary_checkbox_enable_audiofx">Permitir que efeitos de audio funcionem durante o streaming, pode acrescentar latência de audio</string>
+    <string name="title_full_range">Forçar vídeo de gama completa de cores (Experimental)</string>
+    <string name="frame_conversion_error">O PC host relatou um erro fatal de codificação de vídeo.
+\n
+\nTente desativar o modo HDR, alterar a resolução de streaming ou alterar a resolução do PC host.</string>
+    <string name="summary_full_range">Isso causará perda de detalhes em áreas claras e escuras se o seu dispositivo não exibir corretamente todo o conteúdo de vídeo em cores.</string>
 </resources>

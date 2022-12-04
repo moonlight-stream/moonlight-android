@@ -1,0 +1,7 @@
+- Changed the default SDR colorspace from BT.601 to BT.709
+- Changed the input capture toggle shortcut from Ctrl+Shift+Z to Ctrl+Alt+Shift+Z for consistency with other clients
+- Toggling input capture now properly toggles keyboard capture on Samsung devices
+- PC state is now refreshed more quickly after a network change
+- Fixed entering IPv6 addresses on the Add PC page
+- Added an experimental option to request full range video
+- Updated community contributed translations from Weblate

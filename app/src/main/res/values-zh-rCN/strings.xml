@@ -261,4 +261,5 @@
 \n
 \n尝试禁用 HDR 模式、更改流分辨率或更改主机 PC 的显示分辨率。</string>
     <string name="summary_full_range">如果你的设备无法正确显示全范围视频内容，这会导致明暗区域的细节丢失。</string>
+    <string name="title_full_range">强制完全动态范围视频 (实验性)</string>
 </resources>

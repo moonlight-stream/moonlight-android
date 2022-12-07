@@ -260,4 +260,5 @@
     <string name="frame_conversion_error">主机 PC 报告了致命的视频编码错误。
 \n
 \n尝试禁用 HDR 模式、更改流分辨率或更改主机 PC 的显示分辨率。</string>
+    <string name="summary_full_range">如果你的设备无法正确显示全范围视频内容，这会导致明暗区域的细节丢失。</string>
 </resources>

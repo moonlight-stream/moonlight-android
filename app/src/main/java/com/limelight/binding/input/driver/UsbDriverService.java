@@ -251,10 +251,31 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         }
     }
 
+    public static boolean kernelSupportsXbox360W() {
+        String kernelVersion = System.getProperty("os.version");
+        LimeLog.info("Kernel Version: "+kernelVersion);
+
+        if (kernelVersion == null) {
+            // We'll assume this is some newer version of Android
+            // that doesn't let you read the kernel version this way.
+            return true;
+        }
+        else if (kernelVersion.startsWith("2.") ||
+                kernelVersion.startsWith("3.") ||
+                kernelVersion.startsWith("4.")){
+            // Starting 4.2, Linux kernels support Xbox 360 W but none are AOSP.
+            return false;
+        }
+        else {
+            // The next AOSP common kernels are 5+ which have working Xbox 360 wireless controller support
+            return true;
+        }
+    }
+
     public static boolean shouldClaimDevice(UsbDevice device, boolean claimAllAvailable) {
         return ((!kernelSupportsXboxOne() || !isRecognizedInputDevice(device) || claimAllAvailable) && XboxOneController.canClaimDevice(device)) ||
                 ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360Controller.canClaimDevice(device)) ||
-                ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360WirelessController.canClaimDevice(device));
+                ((!kernelSupportsXbox360W() || !isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360WirelessController.canClaimDevice(device));
     }
 
     private void start() {

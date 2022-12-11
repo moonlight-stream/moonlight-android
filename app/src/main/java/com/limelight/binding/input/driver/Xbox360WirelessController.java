@@ -35,67 +35,9 @@ public class Xbox360WirelessController extends AbstractXboxController {
         super(device, connection, deviceId, listener);
     }
 
-    private int unsignByte(byte b) {
-        if (b < 0) {
-            return b + 256;
-        }
-        else {
-            return b;
-        }
-    }
-
     @Override
     protected boolean handleRead(ByteBuffer buffer) {
-        if (buffer.remaining() < 14) {
-            LimeLog.severe("Read too small: "+buffer.remaining());
-            return false;
-        }
-
-        // Skip first short
-        buffer.position(buffer.position() + 2);
-
-        // DPAD
-        byte b = buffer.get();
-        setButtonFlag(ControllerPacket.LEFT_FLAG, b & 0x04);
-        setButtonFlag(ControllerPacket.RIGHT_FLAG, b & 0x08);
-        setButtonFlag(ControllerPacket.UP_FLAG, b & 0x01);
-        setButtonFlag(ControllerPacket.DOWN_FLAG, b & 0x02);
-
-        // Start/Select
-        setButtonFlag(ControllerPacket.PLAY_FLAG, b & 0x10);
-        setButtonFlag(ControllerPacket.BACK_FLAG, b & 0x20);
-
-        // LS/RS
-        setButtonFlag(ControllerPacket.LS_CLK_FLAG, b & 0x40);
-        setButtonFlag(ControllerPacket.RS_CLK_FLAG, b & 0x80);
-
-        // ABXY buttons
-        b = buffer.get();
-        setButtonFlag(ControllerPacket.A_FLAG, b & 0x10);
-        setButtonFlag(ControllerPacket.B_FLAG, b & 0x20);
-        setButtonFlag(ControllerPacket.X_FLAG, b & 0x40);
-        setButtonFlag(ControllerPacket.Y_FLAG, b & 0x80);
-
-        // LB/RB
-        setButtonFlag(ControllerPacket.LB_FLAG, b & 0x01);
-        setButtonFlag(ControllerPacket.RB_FLAG, b & 0x02);
-
-        // Xbox button
-        setButtonFlag(ControllerPacket.SPECIAL_BUTTON_FLAG, b & 0x04);
-
-        // Triggers
-        leftTrigger = unsignByte(buffer.get()) / 255.0f;
-        rightTrigger = unsignByte(buffer.get()) / 255.0f;
-
-        // Left stick
-        leftStickX = buffer.getShort() / 32767.0f;
-        leftStickY = ~buffer.getShort() / 32767.0f;
-
-        // Right stick
-        rightStickX = buffer.getShort() / 32767.0f;
-        rightStickY = ~buffer.getShort() / 32767.0f;
-
-        // Return true to send input
+        // Unreachable
         return true;
     }
 
@@ -128,22 +70,13 @@ public class Xbox360WirelessController extends AbstractXboxController {
         // Turn the LED on corresponding to our device ID
         sendLedCommand((byte)(2 + (getControllerId() % 4)));
 
+        // Close the interface and return false to give control back to the kernel.
         connection.releaseInterface(device.getInterface(0));
-
-        // Return control to the kernel.
         return false;
     }
 
     @Override
     public void rumble(short lowFreqMotor, short highFreqMotor) {
-        byte[] data = {
-                0x00, 0x08, 0x00,
-                (byte)(lowFreqMotor >> 8), (byte)(highFreqMotor >> 8),
-                0x00, 0x00, 0x00
-        };
-        int res = connection.bulkTransfer(outEndpt, data, data.length, 100);
-        if (res != data.length) {
-            LimeLog.warning("Rumble transfer failed: "+res);
-        }
+        // Unreachable.
     }
 }

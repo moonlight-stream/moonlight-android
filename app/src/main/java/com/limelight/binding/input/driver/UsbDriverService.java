@@ -183,6 +183,9 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             else if (Xbox360Controller.canClaimDevice(device)) {
                 controller = new Xbox360Controller(device, connection, nextDeviceId++, this);
             }
+            else if (Xbox360WirelessController.canClaimDevice(device)) {
+                controller = new Xbox360WirelessController(device, connection, nextDeviceId++, this);
+            }
             else {
                 // Unreachable
                 return;
@@ -250,7 +253,8 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
     public static boolean shouldClaimDevice(UsbDevice device, boolean claimAllAvailable) {
         return ((!kernelSupportsXboxOne() || !isRecognizedInputDevice(device) || claimAllAvailable) && XboxOneController.canClaimDevice(device)) ||
-                ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360Controller.canClaimDevice(device));
+                ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360Controller.canClaimDevice(device)) ||
+                ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360WirelessController.canClaimDevice(device));
     }
 
     private void start() {

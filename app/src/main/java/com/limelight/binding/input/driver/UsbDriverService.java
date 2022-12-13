@@ -263,7 +263,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         else if (kernelVersion.startsWith("2.") ||
                 kernelVersion.startsWith("3.") ||
                 kernelVersion.startsWith("4.")){
-            // Starting 4.2, Linux kernels support Xbox 360 W but none are AOSP.
+            // Starting 4.2, Linux kernels support Xbox 360 W but many still have this code disabled.
             return false;
         }
         else {

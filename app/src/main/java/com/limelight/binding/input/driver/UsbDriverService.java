@@ -20,6 +20,7 @@ import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.preferences.PreferenceConfiguration;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class UsbDriverService extends Service implements UsbDriverListener {
@@ -252,24 +253,25 @@ public class UsbDriverService extends Service implements UsbDriverListener {
     }
 
     public static boolean kernelSupportsXbox360W() {
-        String kernelVersion = System.getProperty("os.version");
-        LimeLog.info("Kernel Version: "+kernelVersion);
-
-        if (kernelVersion == null) {
-            // We'll assume this is some newer version of Android
-            // that doesn't let you read the kernel version this way.
-            return true;
+        File systemDir = new File("/sys/class/leds");
+        File[] files = systemDir.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.getName().equals("xpad0") ||
+                    f.getName().equals("xpad1") ||
+                    f.getName().equals("xpad2") ||
+                    f.getName().equals("xpad3") ||
+                    f.getName().equals("xpad4") ||
+                    f.getName().equals("xpad5") ||
+                    f.getName().equals("xpad6") ||
+                    f.getName().equals("xpad7") ||
+                    f.getName().equals("xpad8") ||
+                    f.getName().equals("xpad9")) {
+                        return true;
+                }
+            }
         }
-        else if (kernelVersion.startsWith("2.") ||
-                kernelVersion.startsWith("3.") ||
-                kernelVersion.startsWith("4.")){
-            // Starting 4.2, Linux kernels support Xbox 360 W but many still have this code disabled.
-            return false;
-        }
-        else {
-            // The next AOSP common kernels are 5+ which have working Xbox 360 wireless controller support
-            return true;
-        }
+        return false;
     }
 
     public static boolean shouldClaimDevice(UsbDevice device, boolean claimAllAvailable) {

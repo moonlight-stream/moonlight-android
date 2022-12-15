@@ -253,24 +253,36 @@ public class UsbDriverService extends Service implements UsbDriverListener {
     }
 
     public static boolean kernelSupportsXbox360W() {
+        // Check if this kernel is 4.2+ to see if the xpad driver sets Xbox 360 wireless LEDs
+        // https://github.com/torvalds/linux/commit/75b7f05d2798ee3a1cc5bbdd54acd0e318a80396
+        String kernelVersion = System.getProperty("os.version");
+        if (kernelVersion != null) {
+            if (kernelVersion.startsWith("2.") || kernelVersion.startsWith("3.") ||
+                    kernelVersion.startsWith("4.0.") || kernelVersion.startsWith("4.1.")) {
+                // Even if LED devices are present, the driver won't set the initial LED state.
+                return false;
+            }
+        }
+
+        // We know we have a kernel that should set Xbox 360 wireless LEDs, but we still don't
+        // know if CONFIG_JOYSTICK_XPAD_LEDS was enabled during the kernel build. To detect this,
+        // we will look for an xpad LED device. If we find even a single match here, that tells us
+        // that CONFIG_JOYSTICK_XPAD_LEDS is enabled and we can assume (based on our version check
+        // above) that the kernel will handle setting LEDs on the wireless controllers on its own.
+        //
+        // NB: This will be inaccurate when called without any Xbox 360 or Xbox 360 wireless gamepad
+        // attached, but it will be correct when it matters (when we're actually checking a real
+        // matching device).
         File systemDir = new File("/sys/class/leds");
         File[] files = systemDir.listFiles();
         if (files != null) {
             for (File f : files) {
-                if (f.getName().equals("xpad0") ||
-                    f.getName().equals("xpad1") ||
-                    f.getName().equals("xpad2") ||
-                    f.getName().equals("xpad3") ||
-                    f.getName().equals("xpad4") ||
-                    f.getName().equals("xpad5") ||
-                    f.getName().equals("xpad6") ||
-                    f.getName().equals("xpad7") ||
-                    f.getName().equals("xpad8") ||
-                    f.getName().equals("xpad9")) {
-                        return true;
+                if (f.getName().startsWith("xpad")) {
+                    return true;
                 }
             }
         }
+
         return false;
     }
 

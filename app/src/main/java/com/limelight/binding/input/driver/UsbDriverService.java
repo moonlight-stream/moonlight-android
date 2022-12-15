@@ -20,6 +20,7 @@ import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.preferences.PreferenceConfiguration;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class UsbDriverService extends Service implements UsbDriverListener {
@@ -183,6 +184,9 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             else if (Xbox360Controller.canClaimDevice(device)) {
                 controller = new Xbox360Controller(device, connection, nextDeviceId++, this);
             }
+            else if (Xbox360WirelessController.canClaimDevice(device)) {
+                controller = new Xbox360WirelessController(device, connection, nextDeviceId++, this);
+            }
             else {
                 // Unreachable
                 return;
@@ -248,9 +252,32 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         }
     }
 
+    public static boolean kernelSupportsXbox360W() {
+        File systemDir = new File("/sys/class/leds");
+        File[] files = systemDir.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.getName().equals("xpad0") ||
+                    f.getName().equals("xpad1") ||
+                    f.getName().equals("xpad2") ||
+                    f.getName().equals("xpad3") ||
+                    f.getName().equals("xpad4") ||
+                    f.getName().equals("xpad5") ||
+                    f.getName().equals("xpad6") ||
+                    f.getName().equals("xpad7") ||
+                    f.getName().equals("xpad8") ||
+                    f.getName().equals("xpad9")) {
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static boolean shouldClaimDevice(UsbDevice device, boolean claimAllAvailable) {
         return ((!kernelSupportsXboxOne() || !isRecognizedInputDevice(device) || claimAllAvailable) && XboxOneController.canClaimDevice(device)) ||
-                ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360Controller.canClaimDevice(device));
+                ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360Controller.canClaimDevice(device)) ||
+                ((!kernelSupportsXbox360W() || !isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360WirelessController.canClaimDevice(device));
     }
 
     private void start() {

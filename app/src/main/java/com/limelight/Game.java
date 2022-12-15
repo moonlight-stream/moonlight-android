@@ -809,6 +809,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             boolean refreshRateIsGood = isRefreshRateGoodMatch(bestMode.getRefreshRate());
             boolean refreshRateIsEqual = isRefreshRateEqualMatch(bestMode.getRefreshRate());
 
+            LimeLog.info("Current display mode: "+bestMode.getPhysicalWidth()+"x"+
+                    bestMode.getPhysicalHeight()+"x"+bestMode.getRefreshRate());
+
             for (Display.Mode candidate : display.getSupportedModes()) {
                 boolean refreshRateReduced = candidate.getRefreshRate() < bestMode.getRefreshRate();
                 boolean resolutionReduced = candidate.getPhysicalWidth() < bestMode.getPhysicalWidth() ||
@@ -885,9 +888,30 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 refreshRateIsGood = isRefreshRateGoodMatch(candidate.getRefreshRate());
                 refreshRateIsEqual = isRefreshRateEqualMatch(candidate.getRefreshRate());
             }
-            LimeLog.info("Selected display mode: "+bestMode.getPhysicalWidth()+"x"+
+
+            LimeLog.info("Best display mode: "+bestMode.getPhysicalWidth()+"x"+
                     bestMode.getPhysicalHeight()+"x"+bestMode.getRefreshRate());
-            windowLayoutParams.preferredDisplayModeId = bestMode.getModeId();
+
+            // Only apply new window layout parameters if we've actually changed the display mode
+            if (display.getMode().getModeId() != bestMode.getModeId()) {
+                // If we only changed refresh rate and we're on an OS that supports Surface.setFrameRate()
+                // use that instead of using preferredDisplayModeId to avoid the possibility of triggering
+                // bugs that can cause the system to switch from 4K60 to 4K24 on Chromecast 4K.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+                        display.getMode().getPhysicalWidth() != bestMode.getPhysicalWidth() ||
+                        display.getMode().getPhysicalHeight() != bestMode.getPhysicalHeight()) {
+                    // Apply the display mode change
+                    windowLayoutParams.preferredDisplayModeId = bestMode.getModeId();
+                    getWindow().setAttributes(windowLayoutParams);
+                }
+                else {
+                    LimeLog.info("Using setFrameRate() instead of preferredDisplayModeId due to matching resolution");
+                }
+            }
+            else {
+                LimeLog.info("Current display mode is already the best display mode");
+            }
+
             displayRefreshRate = bestMode.getRefreshRate();
         }
         // On L, we can at least tell the OS that we want a refresh rate
@@ -907,23 +931,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     bestRefreshRate = candidate;
                 }
             }
+
             LimeLog.info("Selected refresh rate: "+bestRefreshRate);
             windowLayoutParams.preferredRefreshRate = bestRefreshRate;
             displayRefreshRate = bestRefreshRate;
+
+            // Apply the refresh rate change
+            getWindow().setAttributes(windowLayoutParams);
         }
         else {
             // Otherwise, the active display refresh rate is just
             // whatever is currently in use.
             displayRefreshRate = display.getRefreshRate();
         }
-
-        // Enable HDMI ALLM (game mode) on Android R
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            windowLayoutParams.preferMinimalPostProcessing = true;
-        }
-
-        // Apply the display mode change
-        getWindow().setAttributes(windowLayoutParams);
 
         // From 4.4 to 5.1 we can't ask for a 4K display mode, so we'll
         // need to hint the OS to provide one.
@@ -2079,8 +2099,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public void surfaceCreated(SurfaceHolder holder) {
         surfaceCreated = true;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Tell the OS about our frame rate to allow it to adapt the display refresh rate appropriately
+        // Tell the OS about our frame rate to allow it to adapt the display refresh rate appropriately
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // We want to change frame rate even if it's not seamless, since prepareDisplayForRendering()
+            // will not set the display mode on S+ if it only differs by the refresh rate. It depends
+            // on us to trigger the frame rate switch here.
+            holder.getSurface().setFrameRate(prefConfig.fps,
+                    Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE,
+                    Surface.CHANGE_FRAME_RATE_ALWAYS);
+        }
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             holder.getSurface().setFrameRate(prefConfig.fps, Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE);
         }
     }

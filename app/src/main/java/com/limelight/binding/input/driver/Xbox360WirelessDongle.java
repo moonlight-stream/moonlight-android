@@ -5,6 +5,8 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
+import android.os.Build;
+import android.view.InputDevice;
 
 import com.limelight.LimeLog;
 
@@ -85,7 +87,32 @@ public class Xbox360WirelessDongle extends AbstractController {
 
     @Override
     public boolean start() {
-        int controllerIndex = getControllerId();
+        int controllerIndex = 0;
+
+        // On KitKat, there is a controller number associated with input devices.
+        // We can use this to approximate the likely controller number. This won't
+        // be completely accurate because there's no guarantee the order of interfaces
+        // matches the order that devices were enumerated by xpad, but it's probably
+        // better than nothing.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            for (int id : InputDevice.getDeviceIds()) {
+                InputDevice inputDev = InputDevice.getDevice(id);
+                if (inputDev == null) {
+                    // Device was removed while looping
+                    continue;
+                }
+
+                // Newer xpad versions use a special product ID (0x02a1) for controllers
+                // rather than copying the product ID of the dongle itself.
+                if (inputDev.getVendorId() == device.getVendorId() &&
+                        (inputDev.getProductId() == device.getProductId() ||
+                                inputDev.getProductId() == 0x02a1) &&
+                        inputDev.getControllerNumber() > 0) {
+                    controllerIndex = inputDev.getControllerNumber() - 1;
+                    break;
+                }
+            }
+        }
 
         // Send LED commands on the out endpoint of each interface. There is one interface
         // corresponding to each possible attached controller.
@@ -99,9 +126,6 @@ public class Xbox360WirelessDongle extends AbstractController {
                 continue;
             }
 
-            // UsbDriverService assumes each device corresponds to a single controller. That isn't
-            // true for this dongle, so we will use a little hack to assign consecutive IDs for
-            // each attached controller.
             sendLedCommandToInterface(iface, controllerIndex++);
         }
 

@@ -265,31 +265,19 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         }
 
         // We know we have a kernel that should set Xbox 360 wireless LEDs, but we still don't
-        // know if CONFIG_JOYSTICK_XPAD_LEDS was enabled during the kernel build. To detect this,
-        // we will look for an xpad LED device. If we find even a single match here, that tells us
-        // that CONFIG_JOYSTICK_XPAD_LEDS is enabled and we can assume (based on our version check
-        // above) that the kernel will handle setting LEDs on the wireless controllers on its own.
-        //
-        // NB: This will be inaccurate when called without any Xbox 360 or Xbox 360 wireless gamepad
-        // attached, but it will be correct when it matters (when we're actually checking a real
-        // matching device).
-        File systemDir = new File("/sys/class/leds");
-        File[] files = systemDir.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                if (f.getName().startsWith("xpad")) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        // know if CONFIG_JOYSTICK_XPAD_LEDS was enabled during the kernel build. Unfortunately
+        // it's not possible to detect this reliably due to Android's app sandboxing. Reading
+        // /proc/config.gz and enumerating /sys/class/leds are both blocked by SELinux on any
+        // relatively modern device. We will assume that CONFIG_JOYSTICK_XPAD_LEDS=y on these
+        // kernels and users can override by using the settings option to claim all devices.
+        return true;
     }
 
     public static boolean shouldClaimDevice(UsbDevice device, boolean claimAllAvailable) {
         return ((!kernelSupportsXboxOne() || !isRecognizedInputDevice(device) || claimAllAvailable) && XboxOneController.canClaimDevice(device)) ||
                 ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360Controller.canClaimDevice(device)) ||
-                ((!kernelSupportsXbox360W() || !isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360WirelessDongle.canClaimDevice(device));
+                // We must not call isRecognizedInputDevice() because wireless controllers don't share the same product ID as the dongle
+                ((!kernelSupportsXbox360W() || claimAllAvailable) && Xbox360WirelessDongle.canClaimDevice(device));
     }
 
     private void start() {

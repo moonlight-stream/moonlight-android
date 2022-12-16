@@ -125,6 +125,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private int suppressPipRefCount = 0;
     private String pcName;
     private String appName;
+    private float desiredRefreshRate;
 
     private InputCaptureProvider inputCaptureProvider;
     private int modifierFlags = 0;
@@ -975,6 +976,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Set the surface to scale based on the aspect ratio of the stream
             streamView.setDesiredAspectRatio((double)prefConfig.width / (double)prefConfig.height);
         }
+
+        // Set the desired refresh rate that will get passed into setFrameRate() later
+        desiredRefreshRate = displayRefreshRate;
 
         if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) ||
                 getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK)) {
@@ -2097,19 +2101,37 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        float desiredFrameRate;
+
         surfaceCreated = true;
+
+        // Android will pick the lowest matching refresh rate for a given frame rate value, so we want
+        // to report the true FPS value if refresh rate reduction is enabled. We also report the true
+        // FPS value if there's no suitable matching refresh rate. In that case, Android could try to
+        // select a lower refresh rate that avoids uneven pull-down (ex: 30 Hz for a 60 FPS stream on
+        // a display that maxes out at 50 Hz).
+        if (mayReduceRefreshRate() || desiredRefreshRate < prefConfig.fps) {
+            desiredFrameRate = prefConfig.fps;
+        }
+        else {
+            // Otherwise, we will pretend that our frame rate matches the refresh rate we picked in
+            // prepareDisplayForRendering(). This will usually be the highest refresh rate that our
+            // frame rate evenly divides into, which ensures the lowest possible display latency.
+            desiredFrameRate = desiredRefreshRate;
+        }
 
         // Tell the OS about our frame rate to allow it to adapt the display refresh rate appropriately
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // We want to change frame rate even if it's not seamless, since prepareDisplayForRendering()
             // will not set the display mode on S+ if it only differs by the refresh rate. It depends
             // on us to trigger the frame rate switch here.
-            holder.getSurface().setFrameRate(prefConfig.fps,
+            holder.getSurface().setFrameRate(desiredFrameRate,
                     Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE,
                     Surface.CHANGE_FRAME_RATE_ALWAYS);
         }
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            holder.getSurface().setFrameRate(prefConfig.fps, Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE);
+            holder.getSurface().setFrameRate(desiredFrameRate,
+                    Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE);
         }
     }
 

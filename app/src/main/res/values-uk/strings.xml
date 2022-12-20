@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- PC view menu entries -->
-    <string name="pcview_menu_app_list">Подивитися перелік додатків</string>
+    <string name="pcview_menu_app_list">Подивитися перелік застосунків</string>
     <string name="pcview_menu_pair_pc">Створити пару з пристроєм</string>
     <string name="pcview_menu_unpair_pc">Розірвати пару</string>
     <string name="pcview_menu_send_wol">Надіслати запит Wake-On-LAN</string>
@@ -27,7 +27,7 @@
     <string name="unpair_error">Пристрій не було спарено</string>
     <!-- Errors -->
     <string name="error_pc_offline">Пристрій вимкнено чи знаходиться поза мережею</string>
-    <string name="error_manager_not_running">Сервіс ComputerManager не запущено. Будь ласка, зачекайте кілька секунд або перезапустіть додаток.</string>
+    <string name="error_manager_not_running">Сервіс ComputerManager не запущено. Будь ласка, зачекайте кілька секунд або перезапустіть застосунок.</string>
     <string name="error_unknown_host">Неможливо знайти хоста</string>
     <string name="error_404">GFE повернув помилку HTTP 404. Переконайтеся що ваш пристрій використовує підтримуваний GPU. Використання програм для віддаленого доступу також може викликати цю помилку. Спробуйте перезавантажити пристрій або перевстановити GFE.</string>
     <!-- Start application messages -->
@@ -56,14 +56,14 @@
     <string name="applist_menu_quit_and_start">Вийти з поточної гри і запустити</string>
     <string name="applist_menu_cancel">Скасувати</string>
     <string name="applist_menu_tv_channel">Додати на канал</string>
-    <string name="applist_refresh_title">Перелік додатків</string>
-    <string name="applist_refresh_msg">Оновлення додатків…</string>
+    <string name="applist_refresh_title">Перелік застосунків</string>
+    <string name="applist_refresh_msg">Оновлення застосунків…</string>
     <string name="applist_refresh_error_title">Помилка</string>
-    <string name="applist_refresh_error_msg">Помилка отримання переліку додатків</string>
+    <string name="applist_refresh_error_msg">Помилка отримання переліку застосунків</string>
     <string name="applist_quit_app">Виходимо з</string>
     <string name="applist_quit_success">Успішний вихід з</string>
     <string name="applist_quit_fail">Помилка при виході</string>
-    <string name="applist_quit_confirmation">Ви впевнені, що хочете вийти з запущеного додатку? Усі незбережені дані будуть втрачені.</string>
+    <string name="applist_quit_confirmation">Ви впевнені, що хочете вийти з запущеного застосунку\? Усі незбережені дані будуть втрачені.</string>
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Додати пристрій вручну</string>
     <string name="msg_add_pc">З\'єднання з пристроєм…</string>
@@ -93,7 +93,7 @@
     <string name="title_language_list">Мова</string>
     <string name="summary_language_list">Мова, яка буде використовуватися в Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Використовувати маленькі іконки</string>
-    <string name="summary_checkbox_small_icon_mode">Використовувати маленькі іконки в сітці додатків, для відображення більшої кількості елементів на екрані</string>
+    <string name="summary_checkbox_small_icon_mode">Використовувати маленькі іконки в сітці застосунків, для відображення більшої кількості елементів на екрані</string>
     <string name="category_host_settings">Налаштування хоста</string>
     <string name="title_checkbox_enable_sops">Оптимізувати ігрові налаштування</string>
     <string name="summary_checkbox_enable_sops">Дозволити GFE змінювати налаштування ігор для оптимальної трансляції</string>
@@ -121,7 +121,7 @@
     <string name="error_usb_prohibited">USB доступ заборонений адміністратором пристрою. Перевірте налаштування Knox або MDM.</string>
     <string name="addpc_wrong_sitelocal">Вказана адреса неправильна. Ви повинні ввести публічну IP-адресу вашого мережника (роутера) для передачі через інтернет.</string>
     <string name="title_checkbox_enable_pip">Увімкнути режим перегляду \"Картинка в картинці\"</string>
-    <string name="summary_checkbox_enable_pip">Дозволяє переглядати трансляцію (але не керувати нею) під час роботи в інших додатках</string>
+    <string name="summary_checkbox_enable_pip">Дозволяє переглядати стрім (але не контролювати) під час багатозадачності</string>
     <string name="title_checkbox_usb_bind_all">Вимкнути рідну підтримку Xbox контролерів від Андроїда</string>
     <string name="summary_checkbox_usb_bind_all">Використовувати USB драйвер Moonlight для усіх підтриманих контролерів, навіть якщо існує рідна підтримка</string>
     <string name="title_checkbox_mouse_emulation">Емуляція миші через контролер</string>
@@ -148,7 +148,7 @@
     <string name="title_details">Деталі</string>
     <string name="title_enable_perf_overlay">Увімкнути відображення статистики</string>
     <string name="title_unlock_fps">Розблокувати всі можливі частоти кадрів</string>
-    <string name="applist_details_id">ID додатку:</string>
+    <string name="applist_details_id">ID застосунку:</string>
     <string name="title_checkbox_vibrate_fallback">Емуляція вібровіддачі</string>
     <string name="summary_checkbox_vibrate_osc">Вібрація пристрою для емуляції вібровіддачі при екранному управлінні</string>
     <string name="summary_checkbox_vibrate_fallback">Вібрує пристрій для емуляції вібровіддачі, якщо під\'єднаний контролер не підтримує її</string>
@@ -169,7 +169,7 @@
     <string name="perf_overlay_dectime">Середній час розцифрування: %1$.2f мс</string>
     <string name="summary_fps_list">Збільшіть для плавнішого відео потоку. Зменшіть для кращої продуктивності на повільних пристроях.</string>
     <string name="scut_invalid_uuid">Зазначений пристрій недійсний</string>
-    <string name="scut_invalid_app_id">Зазначений додаток недійсний</string>
+    <string name="scut_invalid_app_id">Зазначений застосунок недійсний</string>
     <string name="title_osc_opacity">Змінити прозорість екранних елементів керування</string>
     <string name="summary_osc_opacity">Зробити екранні елементи керування більш/менш прозорими</string>
     <string name="dialog_title_osc_opacity">Зміна прозорості</string>
@@ -178,9 +178,9 @@
     <string name="summary_enable_post_stream_toast">Показувати статистику затримки після закінчення трансляції</string>
     <string name="early_termination_error">Щось пішло не так на пристрої хоста при початку трансляції.
 \n
-\nВпевніться що у вас не відкриті додатки з DRM змістом на пристрої хоста. Ви також можете спробувати перезапустити його.
+\nПереконайтеся, що на головному ПК немає відкритого вмісту, захищеного DRM. Ви також можете спробувати перезавантажити головний ПК.
 \n
-\nЯкщо проблема не виправиться, спробуйте перевстановити драйвера для вашої відео карти та, GeForce Experience якщо встановлено.</string>
+\nЯкщо проблема не зникає, спробуйте перевстановити драйвери GPU та GeForce Experience.</string>
     <string name="nettest_text_success">Схоже що ваша мережа не блокує Moonlight. Якщо у вас й надалі проблеми з підключенням, перевірте налаштування брандмауера.
 \n
 \nЯкщо ви намагаєтеся транслювати через Інтернет, встановіть на своєму пристрої Moonlight Internet Hosting Tool, та запустіть випробування мережі щоб перевірити ваше з\'єднання до Інтернету.</string>
@@ -195,7 +195,7 @@
 \n
 \nЗрештою, пристрої клієнта чи хоста можуть не підтримувати трансляції рідною роздільною здатністю. Якщо це не працює на вашому пристрої, вам на жаль просто не пощастило.</string>
     <string name="title_native_res_dialog">Застереження про рідну роздільну здатність</string>
-    <string name="applist_menu_hide_app">Сховати додаток</string>
+    <string name="applist_menu_hide_app">Сховати застосунок</string>
     <string name="perf_overlay_netlatency">Середня затримка мережі: %1$d мс (розбіжність %2$d мс)</string>
     <string name="perf_overlay_streamdetails">Відео трансл: %1$s %2$.2f FPS</string>
     <string name="check_ports_msg">Перевірте правила брандмауера та переадресації для наступних портів:</string>

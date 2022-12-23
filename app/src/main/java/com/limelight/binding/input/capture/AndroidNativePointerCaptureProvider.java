@@ -45,14 +45,18 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
             // with SOURCE_TOUCHSCREEN, SOURCE_KEYBOARD, and SOURCE_MOUSE.
             // Upon enabling pointer capture, that device will switch to
             // SOURCE_KEYBOARD and SOURCE_TOUCHPAD.
+
+            if (device.getSources() == (InputDevice.SOURCE_TOUCHSCREEN | InputDevice.SOURCE_MOUSE)) {
+                return true;
+            }
+
             if (device.supportsSource(InputDevice.SOURCE_TOUCHSCREEN)) {
                 continue;
             }
 
             if (device.supportsSource(InputDevice.SOURCE_MOUSE) ||
                     device.supportsSource(InputDevice.SOURCE_MOUSE_RELATIVE) ||
-                    device.supportsSource(InputDevice.SOURCE_TOUCHPAD)||
-                    device.supportsSource(InputDevice.SOURCE_KEYBOARD)) {
+                    device.supportsSource(InputDevice.SOURCE_TOUCHPAD)) {
                 return true;
             }
         }

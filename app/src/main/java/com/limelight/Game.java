@@ -2271,4 +2271,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return false;
         }
     }
+
+    @Override
+    public boolean onKeyMultiple(int keyCode, int repeatCount, KeyEvent event) {
+        conn.sendUtf8Text(event.getCharacters());
+        return super.onKeyMultiple(keyCode, repeatCount, event);
+    }
 }

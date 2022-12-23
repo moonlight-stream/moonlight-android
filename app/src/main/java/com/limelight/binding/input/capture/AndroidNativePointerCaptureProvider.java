@@ -39,11 +39,17 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
                 continue;
             }
 
+
             // Skip touchscreens when considering compatible capture devices.
             // Samsung devices on Android 12 will report a sec_touchpad device
             // with SOURCE_TOUCHSCREEN, SOURCE_KEYBOARD, and SOURCE_MOUSE.
             // Upon enabling pointer capture, that device will switch to
             // SOURCE_KEYBOARD and SOURCE_TOUCHPAD.
+
+            if (device.getSources() == (InputDevice.SOURCE_TOUCHSCREEN | InputDevice.SOURCE_MOUSE)) {
+                return true;
+            }
+
             if (device.supportsSource(InputDevice.SOURCE_TOUCHSCREEN)) {
                 continue;
             }

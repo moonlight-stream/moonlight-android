@@ -12,6 +12,7 @@ import com.limelight.binding.input.touch.RelativeTouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
+import com.limelight.binding.input.trackpad.TrackpadHandler;
 import com.limelight.binding.input.virtual_controller.VirtualController;
 import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
@@ -110,6 +111,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private ControllerHandler controllerHandler;
     private KeyboardTranslator keyboardTranslator;
     private VirtualController virtualController;
+
+    private TrackpadHandler trackpadHandler;
 
     private PreferenceConfiguration prefConfig;
     private SharedPreferences tombstonePrefs;
@@ -489,6 +492,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         inputManager.registerInputDeviceListener(controllerHandler, null);
         inputManager.registerInputDeviceListener(keyboardTranslator, null);
+
+        trackpadHandler = new TrackpadHandler(conn,prefConfig.absoluteMouseMode,streamView);
 
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
@@ -1482,7 +1487,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     short deltaX = (short)inputCaptureProvider.getRelativeAxisX(event);
                     short deltaY = (short)inputCaptureProvider.getRelativeAxisY(event);
 
-                    if (deltaX != 0 || deltaY != 0) {
+
+                    if(event.getSource() == InputDevice.SOURCE_TOUCHPAD){
+                        trackpadHandler.trackPadHandler(event);
+                        return true;
+                    }
+                    else if (deltaX != 0 || deltaY != 0) {
                         if (prefConfig.absoluteMouseMode) {
                             conn.sendMouseMoveAsMousePosition(deltaX, deltaY, (short)view.getWidth(), (short)view.getHeight());
                         }
@@ -1490,6 +1500,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                             conn.sendMouseMove(deltaX, deltaY);
                         }
                     }
+
                 }
                 else if ((eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0) {
                     // If this input device is not associated with the view itself (like a trackpad),

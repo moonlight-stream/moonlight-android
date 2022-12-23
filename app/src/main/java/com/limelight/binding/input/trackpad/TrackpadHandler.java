@@ -2,6 +2,7 @@ package com.limelight.binding.input.trackpad;
 
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 
 import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.input.trackpad.Core.TrackpadFramework;
@@ -15,16 +16,19 @@ public class TrackpadHandler implements TrackpadListener {
     private final KeyboardTranslator keyboardTranslator = new KeyboardTranslator();
 
     private final NvConnection conn;
-    private final float sense;
 
     // Bring the Core Class
     private final TrackpadFramework framework;
 
+    private final boolean absolute;
+    private final View view;
+
     // You should call it from a class that requires trackpad input.
-    public TrackpadHandler(NvConnection conn,float sense){
+    public TrackpadHandler(NvConnection conn,boolean absolute,View view){
         framework = new TrackpadFramework(this);
         this.conn = conn;
-        this.sense = sense;
+        this.absolute = absolute;
+        this.view = view;
     }
 
     // Send a Motion Event signal to this method
@@ -37,9 +41,13 @@ public class TrackpadHandler implements TrackpadListener {
     // Call the returned value from the method below
     @Override
     public void mouseMove(float x, float y) {
-        short X = dataHandler.floatToShort(0,x*sense);
-        short Y = dataHandler.floatToShort(1,y*sense);
-        if (X != 0 || Y != 0) conn.sendMouseMove(X,Y);
+        short X = dataHandler.floatToShort(0,x);
+        short Y = dataHandler.floatToShort(1,y);
+        if (X != 0 || Y != 0) {
+
+            if(absolute) conn.sendMouseMoveAsMousePosition(X,Y,(short) view.getWidth(),(short) view.getHeight());
+            else conn.sendMouseMove(X,Y);
+        }
     }
 
     @Override
@@ -75,38 +83,5 @@ public class TrackpadHandler implements TrackpadListener {
     @Override
     public void mouseScroll(float y) {
         conn.sendMouseHighResScroll((short) y);
-    }
-
-    @Override
-    public void onKeyEvent(int direction, int key, byte modify) {
-        // Keyboard Event
-        byte mDirection = 0;
-        byte mModify = 0;
-
-        short translated = keyboardTranslator.translate(key,0);
-
-        switch (direction){
-            case TrackpadFramework.KEY_DOWN:
-                mDirection = KeyboardPacket.KEY_DOWN;
-                break;
-            case TrackpadFramework.KEY_UP:
-                mDirection = KeyboardPacket.KEY_UP;
-                break;
-        }
-        switch (modify){
-            case TrackpadFramework.MODIFIER_SHIFT:
-                mModify = KeyboardPacket.MODIFIER_SHIFT;
-                break;
-            case TrackpadFramework.MODIFIER_CTRL:
-                mModify = KeyboardPacket.MODIFIER_CTRL;
-                break;
-            case TrackpadFramework.MODIFIER_ALT:
-                mModify = KeyboardPacket.MODIFIER_ALT;
-                break;
-            case TrackpadFramework.MODIFIER_WIN:
-                mModify = (byte) 0x08;
-                break;
-        }
-        conn.sendKeyboardInput(translated, mDirection,modify);
     }
 }

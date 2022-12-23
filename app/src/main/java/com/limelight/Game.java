@@ -490,7 +490,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         inputManager.registerInputDeviceListener(controllerHandler, null);
         inputManager.registerInputDeviceListener(keyboardTranslator, null);
 
-        trackpadHandler = new TrackpadHandler(conn,1);
+        trackpadHandler = new TrackpadHandler(conn,prefConfig.absoluteMouseMode,streamView);
 
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
@@ -1447,9 +1447,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     short deltaY = (short)inputCaptureProvider.getRelativeAxisY(event);
 
 
-                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-                            event.getSource() == InputDevice.SOURCE_TOUCHPAD){
+                    if(event.getSource() == InputDevice.SOURCE_TOUCHPAD){
                         trackpadHandler.trackPadHandler(event);
+                        return true;
                     }
                     else if (deltaX != 0 || deltaY != 0) {
                         if (prefConfig.absoluteMouseMode) {

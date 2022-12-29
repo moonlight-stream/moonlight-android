@@ -140,7 +140,7 @@
     <string name="title_checkbox_mouse_nav_buttons"> 啟用前進後退滑鼠鍵 </string>
     <string name="summary_checkbox_mouse_nav_buttons">在一些支援不佳的裝置上啟用此項可能會使其右鍵失效</string>
     <string name="title_checkbox_flip_face_buttons">反轉技能鍵</string>
-    <string name="summary_checkbox_flip_face_buttons">為手把和虛擬控制器交換 A/B 和 X/Y 技能按鍵</string>
+    <string name="summary_checkbox_flip_face_buttons">為手把和螢幕控制按鈕交換 A/B 和 X/Y 技能按鍵</string>
     <string name="category_on_screen_controls_settings">螢幕控制按鈕設定</string>
     <string name="title_checkbox_show_onscreen_controls">顯示螢幕控制按鈕</string>
     <string name="summary_checkbox_show_onscreen_controls">在觸控式螢幕上顯示一層虛擬控制器</string>
@@ -152,7 +152,7 @@
     <string name="summary_reset_osc">重設所有螢幕控制按鈕為預設大小和位置</string>
     <string name="dialog_title_reset_osc">重設按鈕版面配置</string>
     <string name="dialog_text_reset_osc">你確定要刪除已儲存的螢幕按鈕版面配置嗎？</string>
-    <string name="toast_reset_osc_success">螢幕按鈕佈局已經重設</string>
+    <string name="toast_reset_osc_success">螢幕控制按鈕已重設為預設值</string>
     <string name="category_ui_settings">使用者介面設定</string>
     <string name="title_language_list"> 語言 </string>
     <string name="summary_language_list">選擇 Moonlight 顯示的語言</string>
@@ -174,10 +174,10 @@
     <string name="summary_enable_perf_overlay">在串流中顯示即時效能資訊</string>
     <string name="title_enable_post_stream_toast">串流後顯示延時資訊</string>
     <string name="summary_enable_post_stream_toast">串流結束後顯示延時資訊</string>
-    <string name="title_osc_opacity">變更螢幕按鈕透明度</string>
+    <string name="title_osc_opacity">變更螢幕控制按鈕透明度</string>
     <string name="dialog_title_osc_opacity">變更不透明度</string>
     <string name="suffix_osc_opacity">%</string>
-    <string name="summary_osc_opacity">令螢幕按钮變得更透明/更不透明</string>
+    <string name="summary_osc_opacity">使螢幕控制按钮變得更透明/更不透明</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
     <string name="resolution_prefix_native">本機</string>
     <string name="text_native_res_dialog">本機解析度模式不受 GFE 的官方支援，因此不會自動設定主機的顯示解析度。您需要在遊戲中手動進行設定。

@@ -9,7 +9,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.LimelightCryptoProvider;
 import com.limelight.nvstream.http.NvHTTP;
 
 import android.content.ContentValues;
@@ -17,6 +19,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class ComputerDatabaseManager {
     private static final String COMPUTER_DB_NAME = "computers3.db";
@@ -26,9 +32,6 @@ public class ComputerDatabaseManager {
     private static final String ADDRESSES_COLUMN_NAME = "Addresses";
     private static final String MAC_ADDRESS_COLUMN_NAME = "MacAddress";
     private static final String SERVER_CERT_COLUMN_NAME = "ServerCert";
-
-    private static final char ADDRESS_DELIMITER = ';';
-    private static final char PORT_DELIMITER = '_';
 
     private SQLiteDatabase computerDb;
 
@@ -75,13 +78,17 @@ public class ComputerDatabaseManager {
         values.put(COMPUTER_UUID_COLUMN_NAME, details.uuid);
         values.put(COMPUTER_NAME_COLUMN_NAME, details.name);
 
-        StringBuilder addresses = new StringBuilder();
-        addresses.append(details.localAddress != null ? splitTupleToAddress(details.localAddress) : "");
-        addresses.append(ADDRESS_DELIMITER).append(details.remoteAddress != null ? splitTupleToAddress(details.remoteAddress) : "");
-        addresses.append(ADDRESS_DELIMITER).append(details.manualAddress != null ? splitTupleToAddress(details.manualAddress) : "");
-        addresses.append(ADDRESS_DELIMITER).append(details.ipv6Address != null ? splitTupleToAddress(details.ipv6Address) : "");
+        try {
+            JSONObject addresses = new JSONObject();
+            addresses.put("local", ComputerDetails.AddressTuple.toJson((details.localAddress)));
+            addresses.put("remote", ComputerDetails.AddressTuple.toJson((details.remoteAddress)));
+            addresses.put("manual", ComputerDetails.AddressTuple.toJson((details.manualAddress)));
+            addresses.put("ipv6", ComputerDetails.AddressTuple.toJson((details.ipv6Address)));
+            values.put(ADDRESSES_COLUMN_NAME, addresses.toString());
+        } catch (JSONException e) {
+            LimeLog.warning("JSON error, failed to write computer address information, " + e.getMessage());
+        }
 
-        values.put(ADDRESSES_COLUMN_NAME, addresses.toString());
         values.put(MAC_ADDRESS_COLUMN_NAME, details.macAddress);
         try {
             if (details.serverCert != null) {
@@ -105,36 +112,20 @@ public class ComputerDatabaseManager {
         return input;
     }
 
-    private static ComputerDetails.AddressTuple splitAddressToTuple(String input) {
-        if (input == null) {
-            return null;
-        }
-
-        String[] parts = input.split(""+PORT_DELIMITER, -1);
-        if (parts.length == 1) {
-            return new ComputerDetails.AddressTuple(parts[0], NvHTTP.DEFAULT_HTTP_PORT);
-        }
-        else {
-            return new ComputerDetails.AddressTuple(parts[0], Integer.parseInt(parts[1]));
-        }
-    }
-
-    private static String splitTupleToAddress(ComputerDetails.AddressTuple tuple) {
-        return tuple.address+PORT_DELIMITER+tuple.port;
-    }
-
     private ComputerDetails getComputerFromCursor(Cursor c) {
         ComputerDetails details = new ComputerDetails();
 
         details.uuid = c.getString(0);
         details.name = c.getString(1);
-
-        String[] addresses = c.getString(2).split(""+ADDRESS_DELIMITER, -1);
-
-        details.localAddress = splitAddressToTuple(readNonEmptyString(addresses[0]));
-        details.remoteAddress = splitAddressToTuple(readNonEmptyString(addresses[1]));
-        details.manualAddress = splitAddressToTuple(readNonEmptyString(addresses[2]));
-        details.ipv6Address = splitAddressToTuple(readNonEmptyString(addresses[3]));
+        try {
+            JSONObject addresses = new JSONObject(c.getString(2));
+            details.localAddress = ComputerDetails.AddressTuple.fromJson(addresses.getJSONObject("local"));
+            details.remoteAddress = ComputerDetails.AddressTuple.fromJson(addresses.getJSONObject("remote"));
+            details.manualAddress = ComputerDetails.AddressTuple.fromJson(addresses.getJSONObject("manual"));
+            details.ipv6Address = ComputerDetails.AddressTuple.fromJson(addresses.getJSONObject("ipv6"));
+        } catch (JSONException e) {
+            LimeLog.warning("JSON error, failed to read computer address information, " + e.getMessage());
+         }
 
         // External port is persisted in the remote address field
         if (details.remoteAddress != null) {

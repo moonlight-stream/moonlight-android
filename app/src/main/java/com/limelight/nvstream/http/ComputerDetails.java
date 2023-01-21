@@ -1,5 +1,8 @@
 package com.limelight.nvstream.http;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.security.cert.X509Certificate;
 
 
@@ -31,7 +34,7 @@ public class ComputerDetails {
 
         @Override
         public int hashCode() {
-            return address.hashCode();
+            return new Object[] {address, port}.hashCode();
         }
 
         @Override
@@ -53,6 +56,25 @@ public class ComputerDetails {
                 // IPv4 and hostnames
                 return address + ":" + port;
             }
+        }
+
+        public static JSONObject toJson(AddressTuple tuple) throws JSONException {
+            if (tuple == null) {
+                return null;
+            }
+            JSONObject json = new JSONObject();
+            json.put("address", tuple.address);
+            json.put("port", tuple.port);
+
+            return json;
+        }
+
+        public static AddressTuple fromJson(JSONObject json) throws JSONException {
+            if (json == null) {
+                return null;
+            }
+
+            return new AddressTuple(json.getString("address"), json.getInt("port"));
         }
     }
 

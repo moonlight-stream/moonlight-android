@@ -133,16 +133,16 @@
     <string name="applist_quit_confirmation">Are you sure you want to quit the running app? All unsaved data will be lost.</string>
     <string name="applist_details_id">App ID:</string>
 
-    <!-- Game back menu -->
-    <string name="back_menu_disconnect">Disconnect</string>
-    <string name="back_menu_cancel">Cancel</string>
-    <string name="back_menu_send_keys">Send special key(s)</string>
-    <string name="back_menu_send_keys_esc">Send ESC (Menu)</string>
-    <string name="back_menu_send_keys_f11">Send F11 (Exit full screen)</string>
-    <string name="back_menu_send_keys_win">Send WIN (Open Start Menu)</string>
-    <string name="back_menu_send_keys_win_d">Send WIN + D (Switch to Desktop)</string>
-    <string name="back_menu_send_keys_win_g">Send WIN + G (Open Xbox Game Bar)</string>
-    <string name="back_menu_send_keys_shift_tab">Send SHIFT + TAB (Open Steam Overlay)</string>
+    <!-- In Game menu -->
+    <string name="game_menu_disconnect">Disconnect</string>
+    <string name="game_menu_cancel">Cancel</string>
+    <string name="game_menu_send_keys">Send special key(s)</string>
+    <string name="game_menu_send_keys_esc">Send ESC (Menu)</string>
+    <string name="game_menu_send_keys_f11">Send F11 (Toggle full screen)</string>
+    <string name="game_menu_send_keys_win">Send WIN (Toggle Windows start menu)</string>
+    <string name="game_menu_send_keys_win_d">Send WIN + D (Switch to Desktop)</string>
+    <string name="game_menu_send_keys_win_g">Send WIN + G (Open Xbox Game Bar)</string>
+    <string name="game_menu_send_keys_shift_tab">Send SHIFT + TAB (Open Steam Overlay)</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>

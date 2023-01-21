@@ -13,16 +13,6 @@ import com.limelight.nvstream.input.KeyboardPacket;
  */
 public class GameMenu {
 
-    private final String ACTION_SEND_SPECIAL_KEYS;
-    private final String ACTION_DISCONNECT;
-    private final String ACTION_CANCEL;
-
-    private final String ACTION_SEND_SPECIAL_KEYS_ESC;
-    private final String ACTION_SEND_SPECIAL_KEYS_F11;
-    private final String ACTION_SEND_SPECIAL_KEYS_WIN;
-    private final String ACTION_SEND_SPECIAL_KEYS_WIN_D;
-    private final String ACTION_SEND_SPECIAL_KEYS_WIN_G;
-
     private static class MenuOption {
         private final String label;
         private final Runnable runnable;
@@ -33,23 +23,12 @@ public class GameMenu {
         }
     }
 
-
     private final Game game;
     private final NvConnection conn;
 
     public GameMenu(Game game, NvConnection conn) {
         this.game = game;
         this.conn = conn;
-
-        this.ACTION_SEND_SPECIAL_KEYS = getString(R.string.back_menu_send_keys);
-        this.ACTION_DISCONNECT = getString(R.string.back_menu_disconnect);
-        this.ACTION_CANCEL = getString(R.string.back_menu_cancel);
-
-        this.ACTION_SEND_SPECIAL_KEYS_ESC = getString(R.string.back_menu_send_keys_esc);
-        this.ACTION_SEND_SPECIAL_KEYS_F11 = getString(R.string.back_menu_send_keys_f11);
-        this.ACTION_SEND_SPECIAL_KEYS_WIN = getString(R.string.back_menu_send_keys_win);
-        this.ACTION_SEND_SPECIAL_KEYS_WIN_D = getString(R.string.back_menu_send_keys_win_d);
-        this.ACTION_SEND_SPECIAL_KEYS_WIN_G = getString(R.string.back_menu_send_keys_win_g);
 
         showMenu();
     }
@@ -97,31 +76,31 @@ public class GameMenu {
     }
 
     private void showSpecialKeysMenu() {
-        showMenuDialog(ACTION_SEND_SPECIAL_KEYS, new MenuOption[]{
-                new MenuOption(ACTION_SEND_SPECIAL_KEYS_ESC, () -> sendKeySequence(
+        showMenuDialog(getString(R.string.game_menu_send_keys), new MenuOption[]{
+                new MenuOption(getString(R.string.game_menu_send_keys_esc), () -> sendKeySequence(
                         (byte) 0, new short[]{0x18})),
-                new MenuOption(ACTION_SEND_SPECIAL_KEYS_F11, () -> sendKeySequence(
+                new MenuOption(getString(R.string.game_menu_send_keys_f11), () -> sendKeySequence(
                         (byte) 0, new short[]{0x7a})),
-                new MenuOption(ACTION_SEND_SPECIAL_KEYS_WIN, () -> sendKeySequence(
+                new MenuOption(getString(R.string.game_menu_send_keys_win), () -> sendKeySequence(
                         (byte) 0, new short[]{0x5B})),
-                new MenuOption(ACTION_SEND_SPECIAL_KEYS_WIN_D, () -> sendKeySequence(
+                new MenuOption(getString(R.string.game_menu_send_keys_win_d), () -> sendKeySequence(
                         (byte) 0, new short[]{0x5B, 0x44})),
-                new MenuOption(ACTION_SEND_SPECIAL_KEYS_WIN_G, () -> sendKeySequence(
+                new MenuOption(getString(R.string.game_menu_send_keys_win_g), () -> sendKeySequence(
                         (byte) 0, new short[]{0x5B, 0x47})),
                 /*
-                TODO: Currently not working
-                new MenuDialogOption(ACTION_SEND_SPECIAL_KEYS_SHIFT_TAB, () -> sendKeySequence(
+                // TODO: Currently not working
+                new MenuDialogOption(getString(R.string.game_menu_send_keys_shift_tab), () -> sendKeySequence(
                         (byte) 0, new short[]{0xA0, 0x09})),
                 */
-                new MenuOption(ACTION_CANCEL, null),
+                new MenuOption(getString(R.string.game_menu_cancel), null),
         });
     }
 
     private void showMenu() {
         showMenuDialog("Game Menu", new MenuOption[]{
-                new MenuOption(ACTION_SEND_SPECIAL_KEYS, () -> showSpecialKeysMenu()),
-                new MenuOption(ACTION_DISCONNECT, () -> game.onBackPressed()),
-                new MenuOption(ACTION_CANCEL, null),
+                new MenuOption(getString(R.string.game_menu_send_keys), () -> showSpecialKeysMenu()),
+                new MenuOption(getString(R.string.game_menu_disconnect), () -> game.onBackPressed()),
+                new MenuOption(getString(R.string.game_menu_cancel), null),
         });
     }
 }

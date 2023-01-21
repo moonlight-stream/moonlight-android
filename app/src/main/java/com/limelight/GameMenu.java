@@ -6,7 +6,12 @@ import android.widget.ArrayAdapter;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.KeyboardPacket;
 
-public class GameBackMenu {
+/**
+ * Provide options for ongoing Game Stream.
+ *
+ * Shown on back action in game activity.
+ */
+public class GameMenu {
 
     private final String ACTION_SEND_SPECIAL_KEYS;
     private final String ACTION_DISCONNECT;
@@ -32,7 +37,7 @@ public class GameBackMenu {
     private final Game game;
     private final NvConnection conn;
 
-    public GameBackMenu(Game game, NvConnection conn) {
+    public GameMenu(Game game, NvConnection conn) {
         this.game = game;
         this.conn = conn;
 
@@ -46,7 +51,7 @@ public class GameBackMenu {
         this.ACTION_SEND_SPECIAL_KEYS_WIN_D = getString(R.string.back_menu_send_keys_win_d);
         this.ACTION_SEND_SPECIAL_KEYS_WIN_G = getString(R.string.back_menu_send_keys_win_g);
 
-        showBackMenu();
+        showMenu();
     }
 
     private String getString(int id) {
@@ -112,8 +117,8 @@ public class GameBackMenu {
         });
     }
 
-    private void showBackMenu() {
-        showMenuDialog("Back Menu", new MenuOption[]{
+    private void showMenu() {
+        showMenuDialog("Game Menu", new MenuOption[]{
                 new MenuOption(ACTION_SEND_SPECIAL_KEYS, () -> showSpecialKeysMenu()),
                 new MenuOption(ACTION_DISCONNECT, () -> game.onBackPressed()),
                 new MenuOption(ACTION_CANCEL, null),

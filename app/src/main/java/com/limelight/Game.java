@@ -39,12 +39,10 @@ import com.limelight.utils.UiHelper;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.PictureInPictureParams;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -66,10 +64,7 @@ import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MotionEvent;
-import android.view.SubMenu;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -78,15 +73,12 @@ import android.view.View.OnSystemUiVisibilityChangeListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
-import java.io.PipedOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.cert.CertificateException;
@@ -2311,9 +2303,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     return true;
 
                 // Intercept back key event before android handles it
-                // Always handle the request, the user has to select "Disconnect" within the back menu to actually disconnect
+                // Always handle the request, the user has to select "Disconnect" within the game menu to actually disconnect
                 if (keyCode == keyEvent.KEYCODE_BACK) {
-                    new GameBackMenu(this, conn);
+                    new GameMenu(this, conn);
                     return true;
                 }
             case KeyEvent.ACTION_UP:

@@ -90,6 +90,8 @@ public class GameMenu {
                         () -> sendKeys(new short[]{KeyboardTranslator.VK_ESCAPE})),
                 new MenuOption(getString(R.string.game_menu_send_keys_f11),
                         () -> sendKeys(new short[]{KeyboardTranslator.VK_F11})),
+                new MenuOption(getString(R.string.game_menu_send_keys_ctrl_v),
+                        () -> sendKeys(new short[]{KeyboardTranslator.VK_LCONTROL, KeyboardTranslator.VK_V})),
                 new MenuOption(getString(R.string.game_menu_send_keys_win),
                         () -> sendKeys(new short[]{KeyboardTranslator.VK_LWIN})),
                 new MenuOption(getString(R.string.game_menu_send_keys_win_d),

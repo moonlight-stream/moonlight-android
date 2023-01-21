@@ -24,8 +24,10 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
     public static final int VK_0 = 48;
     public static final int VK_9 = 57;
     public static final int VK_A = 65;
+    public static final int VK_C = 67;
     public static final int VK_D = 68;
     public static final int VK_G = 71;
+    public static final int VK_V = 86;
     public static final int VK_Z = 90;
     public static final int VK_NUMPAD0 = 96;
     public static final int VK_BACK_SLASH = 92;
@@ -59,6 +61,7 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
     public static final int VK_PAUSE = 19;
     public static final int VK_LWIN = 91;
     public static final int VK_LSHIFT = 160;
+    public static final int VK_LCONTROL = 162;
 
     private static class KeyboardMapping {
         private final InputDevice device;
@@ -193,7 +196,7 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
                 break;
                 
             case KeyEvent.KEYCODE_CTRL_LEFT:
-                translated = 0xA2;
+                translated = VK_LCONTROL;
                 break;
 
             case KeyEvent.KEYCODE_CTRL_RIGHT:

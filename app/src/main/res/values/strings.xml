@@ -138,6 +138,7 @@
     <string name="game_menu_send_keys">Send special key(s)</string>
     <string name="game_menu_send_keys_esc">Send ESC (Menu)</string>
     <string name="game_menu_send_keys_f11">Send F11 (Toggle full screen)</string>
+    <string name="game_menu_send_keys_ctrl_v">Send CTRL + V (Paste clipboard)</string>
     <string name="game_menu_send_keys_win">Send WIN (Toggle Windows start menu)</string>
     <string name="game_menu_send_keys_win_d">Send WIN + D (Switch to Desktop)</string>
     <string name="game_menu_send_keys_win_g">Send WIN + G (Open Xbox Game Bar)</string>

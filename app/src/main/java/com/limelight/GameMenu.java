@@ -1,17 +1,21 @@
 package com.limelight;
 
 import android.app.AlertDialog;
+import android.os.Handler;
 import android.widget.ArrayAdapter;
 
+import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.KeyboardPacket;
 
 /**
  * Provide options for ongoing Game Stream.
- *
+ * <p>
  * Shown on back action in game activity.
  */
 public class GameMenu {
+
+    private static final long KEY_UP_DELAY = 25;
 
     private static class MenuOption {
         private final String label;
@@ -37,14 +41,19 @@ public class GameMenu {
         return game.getResources().getString(id);
     }
 
-    private void sendKeySequence(byte modifier, short[] keys) {
-        for (short key : keys)
-            conn.sendKeyboardInput(key, KeyboardPacket.KEY_DOWN,
-                    (byte) (modifier | KeyboardPacket.KEY_DOWN));
+    private void sendKeys(short[] keys) {
+        for (short key : keys) {
+            conn.sendKeyboardInput(key, KeyboardPacket.KEY_DOWN, (byte) 0);
+        }
 
-        for (int pos = keys.length - 1; pos >= 0; pos--)
-            conn.sendKeyboardInput(keys[pos], KeyboardPacket.KEY_UP,
-                    (byte) (modifier | KeyboardPacket.KEY_UP));
+        new Handler().postDelayed((() -> {
+
+            for (int pos = keys.length - 1; pos >= 0; pos--) {
+                short key = keys[pos];
+
+                conn.sendKeyboardInput(key, KeyboardPacket.KEY_UP, (byte) 0);
+            }
+        }), KEY_UP_DELAY);
     }
 
     private void showMenuDialog(String title, MenuOption[] options) {
@@ -77,21 +86,18 @@ public class GameMenu {
 
     private void showSpecialKeysMenu() {
         showMenuDialog(getString(R.string.game_menu_send_keys), new MenuOption[]{
-                new MenuOption(getString(R.string.game_menu_send_keys_esc), () -> sendKeySequence(
-                        (byte) 0, new short[]{0x18})),
-                new MenuOption(getString(R.string.game_menu_send_keys_f11), () -> sendKeySequence(
-                        (byte) 0, new short[]{0x7a})),
-                new MenuOption(getString(R.string.game_menu_send_keys_win), () -> sendKeySequence(
-                        (byte) 0, new short[]{0x5B})),
-                new MenuOption(getString(R.string.game_menu_send_keys_win_d), () -> sendKeySequence(
-                        (byte) 0, new short[]{0x5B, 0x44})),
-                new MenuOption(getString(R.string.game_menu_send_keys_win_g), () -> sendKeySequence(
-                        (byte) 0, new short[]{0x5B, 0x47})),
-                /*
-                // TODO: Currently not working
-                new MenuDialogOption(getString(R.string.game_menu_send_keys_shift_tab), () -> sendKeySequence(
-                        (byte) 0, new short[]{0xA0, 0x09})),
-                */
+                new MenuOption(getString(R.string.game_menu_send_keys_esc),
+                        () -> sendKeys(new short[]{KeyboardTranslator.VK_ESCAPE})),
+                new MenuOption(getString(R.string.game_menu_send_keys_f11),
+                        () -> sendKeys(new short[]{KeyboardTranslator.VK_F11})),
+                new MenuOption(getString(R.string.game_menu_send_keys_win),
+                        () -> sendKeys(new short[]{KeyboardTranslator.VK_LWIN})),
+                new MenuOption(getString(R.string.game_menu_send_keys_win_d),
+                        () -> sendKeys(new short[]{KeyboardTranslator.VK_LWIN, KeyboardTranslator.VK_D})),
+                new MenuOption(getString(R.string.game_menu_send_keys_win_g),
+                        () -> sendKeys(new short[]{KeyboardTranslator.VK_LWIN, KeyboardTranslator.VK_G})),
+                new MenuOption(getString(R.string.game_menu_send_keys_shift_tab),
+                        () -> sendKeys(new short[]{KeyboardTranslator.VK_LSHIFT, KeyboardTranslator.VK_TAB})),
                 new MenuOption(getString(R.string.game_menu_cancel), null),
         });
     }

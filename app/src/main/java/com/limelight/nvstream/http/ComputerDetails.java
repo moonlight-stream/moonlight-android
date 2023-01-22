@@ -1,6 +1,7 @@
 package com.limelight.nvstream.http;
 
 import java.security.cert.X509Certificate;
+import java.util.Objects;
 
 
 public class ComputerDetails {
@@ -31,7 +32,7 @@ public class ComputerDetails {
 
         @Override
         public int hashCode() {
-            return address.hashCode();
+            return Objects.hash(address, port);
         }
 
         @Override

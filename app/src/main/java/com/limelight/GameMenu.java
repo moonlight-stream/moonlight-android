@@ -41,9 +41,29 @@ public class GameMenu {
         return game.getResources().getString(id);
     }
 
+    private static byte getModifier(short key) {
+        switch (key) {
+            case KeyboardTranslator.VK_LSHIFT:
+                return KeyboardPacket.MODIFIER_SHIFT;
+            case KeyboardTranslator.VK_LCONTROL:
+                return KeyboardPacket.MODIFIER_CTRL;
+            case KeyboardTranslator.VK_LWIN:
+                return KeyboardPacket.MODIFIER_META;
+
+            default:
+                return 0;
+        }
+    }
+
     private void sendKeys(short[] keys) {
+        final byte[] modifier = {(byte) 0};
+
         for (short key : keys) {
-            conn.sendKeyboardInput(key, KeyboardPacket.KEY_DOWN, (byte) 0);
+            conn.sendKeyboardInput(key, KeyboardPacket.KEY_DOWN, modifier[0]);
+
+            // Apply the modifier of the pressed key, e.g. CTRL first issues a CTRL event (without
+            // modifier) and then sends the following keys with the CTRL modifier applied
+            modifier[0] |= getModifier(key);
         }
 
         new Handler().postDelayed((() -> {
@@ -51,7 +71,10 @@ public class GameMenu {
             for (int pos = keys.length - 1; pos >= 0; pos--) {
                 short key = keys[pos];
 
-                conn.sendKeyboardInput(key, KeyboardPacket.KEY_UP, (byte) 0);
+                // Remove the keys modifier before releasing the key
+                modifier[0] &= ~getModifier(key);
+
+                conn.sendKeyboardInput(key, KeyboardPacket.KEY_UP, modifier[0]);
             }
         }), KEY_UP_DELAY);
     }

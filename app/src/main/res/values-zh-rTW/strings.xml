@@ -92,7 +92,7 @@
     <string name="applist_refresh_error_title"> 錯誤 </string>
     <string name="applist_refresh_error_msg">無法取得遊戲清單</string>
     <string name="applist_quit_app">正在結束</string>
-    <string name="applist_quit_success">結束成功</string>
+    <string name="applist_quit_success">成功結束</string>
     <string name="applist_quit_fail">無法結束</string>
     <string name="applist_quit_confirmation">您確定要結束執行中的遊戲？所有未儲存的資料將丟失。</string>
     <string name="applist_details_id">App ID：</string>

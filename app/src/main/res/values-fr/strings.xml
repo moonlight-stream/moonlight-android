@@ -137,7 +137,7 @@
     <string name="category_input_settings">Paramètres d\'entrée</string>
     <string name="title_checkbox_touchscreen_trackpad">Utilisez l\'écran tactile comme trackpad</string>
     <string name="summary_checkbox_touchscreen_trackpad">S\'il est activé, l\'écran tactile agit comme un trackpad. S\'il est désactivé, l\'écran tactile contrôle directement le curseur de la souris.</string>
-    <string name="title_checkbox_multi_controller">Prise en charge de plusieurs contrôleurs</string>
+    <string name="title_checkbox_multi_controller">Forcer la présence d\'un contrôleur</string>
     <string name="summary_checkbox_multi_controller">Lorsqu\'elle n\'est pas cochée, tous les contrôleurs sont regroupés</string>
     <string name="title_checkbox_vibrate_fallback">Emuler support vibration de secours</string>
     <string name="summary_checkbox_vibrate_fallback">Emuler des tremblements si votre manette ne le prend pas en charge</string>

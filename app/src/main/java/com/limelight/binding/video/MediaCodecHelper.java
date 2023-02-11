@@ -356,7 +356,14 @@ public class MediaCodecHelper {
             if (configInfo.reqGlEsVersion >= 0x30000) {
                 LimeLog.info("Added omx.nvidia/c2.nvidia to reference frame invalidation support list");
                 refFrameInvalidationAvcPrefixes.add("omx.nvidia");
-                refFrameInvalidationHevcPrefixes.add("omx.nvidia");
+
+                // Exclude HEVC RFI on Pixel C and Tegra devices prior to Android 11. Misbehaving RFI
+                // on these devices can cause hundreds of milliseconds of latency, so it's not worth
+                // using it unless we're absolutely sure that it will not cause increased latency.
+                if (!Build.DEVICE.equalsIgnoreCase("dragon") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    refFrameInvalidationHevcPrefixes.add("omx.nvidia");
+                }
+
                 refFrameInvalidationAvcPrefixes.add("c2.nvidia"); // Unconfirmed
                 refFrameInvalidationHevcPrefixes.add("c2.nvidia"); // Unconfirmed
 

@@ -221,8 +221,8 @@
     <string name="unable_to_pin_shortcut">현재 런처에서는 바로가기 생성이 불가능합니다.</string>
     <string name="resolution_prefix_native_fullscreen">네이티브 (전체화면)</string>
     <!-- Array strings -->
-    <string name="videoformat_hevcauto">자동</string>
-    <string name="videoformat_hevcalways">항상 HEVC 사용(깨질 가능성 있음)</string>
+    <string name="videoformat_hevcauto">자동 (권장)</string>
+    <string name="videoformat_hevcalways">HEVC 선호</string>
     <string name="videoformat_hevcnever">HEVC 사용하지 않기</string>
     <string name="summary_seekbar_deadzone">참고: 일부 게임은 이 설정값보다 더 큰 데드존이 적용되있을 수 있습니다.</string>
     <string name="resolution_1080p">1080p</string>
@@ -262,4 +262,6 @@
     <string name="frame_conversion_error">호스트 PC에서 치명적인 비디오 인코딩 오류를 보고했습니다.
 \n
 \nHDR 모드를 비활성화하거나 스트리밍 해상도를 변경하거나 호스트 PC의 디스플레이 해상도를 변경해 보십시오.</string>
+    <string name="summary_full_range">밝기범위를 \"전체(0~255)\"로 설정합니다. 장치의 디스플레이가 \"제한(16~235)\" 범위로 출력하는 경우 밝기가 제대로 표현되지 않습니다.</string>
+    <string name="title_full_range">전체 범위 비디오 활성화 (실험용)</string>
 </resources>

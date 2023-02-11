@@ -208,8 +208,8 @@
     <string name="audioconf_stereo">Stereo</string>
     <string name="audioconf_51surround">Surround 5.1</string>
     <string name="audioconf_71surround">Surround 7.1</string>
-    <string name="videoformat_hevcauto">Automatico</string>
-    <string name="videoformat_hevcalways">Usa sempre HEVC (potrebbe essere instabile)</string>
+    <string name="videoformat_hevcauto">Automatico (Consigliato)</string>
+    <string name="videoformat_hevcalways">Preferisci HEVC</string>
     <string name="videoformat_hevcnever">Non usare mai HEVC</string>
     <string name="title_frame_pacing">Bilanciamento frame video</string>
     <string name="summary_frame_pacing">Specifica come bilanciare il ritardo video e la fluidità</string>
@@ -263,4 +263,6 @@
     <string name="title_checkbox_enable_audiofx">Abilita il supporto per l\'equalizzatore di sistema</string>
     <string name="summary_checkbox_enable_audiofx">Consente agli effetti audio di funzionare durante lo streaming, ma può aumentare la latenza audio</string>
     <string name="title_checkbox_reduce_refresh_rate">Consenti riduzione della frequenza di aggiornamento</string>
+    <string name="summary_full_range">Ciò causerà la perdita di dettagli in aree chiare e scure se il dispositivo non visualizza correttamente i contenuti video a gamma completa.</string>
+    <string name="title_full_range">Forza video full range (sperimentale)</string>
 </resources>

@@ -35,16 +35,16 @@
     <string name="unpairing">正在取消配對…</string>
     <string name="unpair_success"> 成功取消配對 </string>
     <string name="unpair_fail"> 無法配對 </string>
-    <string name="unpair_error">裝置沒有配對過</string>
+    <string name="unpair_error">裝置尚未配對</string>
     <!-- Errors -->
     <string name="error_pc_offline">電腦已離線</string>
-    <string name="error_manager_not_running">ComputerManager 服務未執行。請稍等幾秒或重啟應用程式。</string>
+    <string name="error_manager_not_running">ComputerManager 服務未在執行。請稍等幾秒或重啟應用程式。</string>
     <string name="error_unknown_host"> 無法解析主機位址 </string>
     <string name="error_404">GFE 傳回了 HTTP 404 錯誤。確保你的電腦顯示卡支援串流。使用遠端桌面軟體同樣會引起此錯誤，請嘗試重啟電腦或重新安裝 GFE。</string>
-    <string name="title_decoding_error">視訊解碼器崩潰</string>
-    <string name="message_decoding_error">由於與該裝置的視訊解碼器不相容，Moonlight 已崩潰。確保你電腦上的 GFE 已更新至最新版本，如果崩潰繼續，請嘗試調整串流設定。</string>
+    <string name="title_decoding_error">視訊解碼器已當機</string>
+    <string name="message_decoding_error">由於與該裝置的視訊解碼器不相容，Moonlight 已當機。確保你電腦上的 GFE 已更新至最新版本，若繼續當機，請嘗試調整串流設定。</string>
     <string name="title_decoding_reset">重設視訊設定</string>
-    <string name="message_decoding_reset">由於裝置的視訊解碼器在你選取的串流設定上持續崩潰，已重設你的串流設定。</string>
+    <string name="message_decoding_reset">由於裝置的視訊解碼器在你選取的串流設定上持續當機，已重設你的串流設定。</string>
     <string name="error_usb_prohibited">裝置管理員已禁止 USB 訪問。請檢查您的 Knox 或 MDM 設定。</string>
     <string name="unable_to_pin_shortcut">您目前的啟動器不允許創建釘選的捷徑。</string>
     <!-- Start application messages -->
@@ -74,8 +74,8 @@
 \n 請降低位元速率</string>
     <string name="poor_connection_msg">與電腦連線不良</string>
     <string name="perf_overlay_decoder">解碼器：%1$s</string>
-    <string name="perf_overlay_incomingfps">網路接收影格數：%1$.2f FPS</string>
-    <string name="perf_overlay_renderingfps">渲染影格數：%1$.2f FPS</string>
+    <string name="perf_overlay_incomingfps">網路接收影格速率：%1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">轉譯影格速率：%1$.2f FPS</string>
     <string name="perf_overlay_netdrops">網路丟失影格：%1$.2f%%</string>
     <string name="perf_overlay_dectime">平均解碼時間：%1$.2f ms</string>
     <!-- AppList activity -->
@@ -92,7 +92,7 @@
     <string name="applist_refresh_error_title"> 錯誤 </string>
     <string name="applist_refresh_error_msg">無法取得遊戲清單</string>
     <string name="applist_quit_app">正在結束</string>
-    <string name="applist_quit_success">結束成功</string>
+    <string name="applist_quit_success">成功結束</string>
     <string name="applist_quit_fail">無法結束</string>
     <string name="applist_quit_confirmation">您確定要結束執行中的遊戲？所有未儲存的資料將丟失。</string>
     <string name="applist_details_id">App ID：</string>
@@ -113,7 +113,7 @@
     <string name="title_seekbar_bitrate">視訊位元速率</string>
     <string name="summary_seekbar_bitrate">提高位元速率以提升圖像品質，降低可在較慢的網路中取得更好的串流體驗。</string>
     <string name="title_unlock_fps">解鎖所有可用影格速率</string>
-    <string name="summary_unlock_fps">以 90 或 120 畫面更新率串流可能會減少在高效能裝置上的網路延時，但會在不支援的裝置上造成卡頓或崩潰</string>
+    <string name="summary_unlock_fps">以 90 或 120 畫面更新率串流可能會減少在高效能裝置上的網路延時，但在不支援的裝置上會卡頓或不穩定的狀況</string>
     <string name="title_checkbox_stretch_video">將畫面延展至全螢幕</string>
     <string name="title_checkbox_disable_warnings">停用錯誤訊息</string>
     <string name="summary_checkbox_disable_warnings">停用串流中連線錯誤訊息</string>
@@ -140,7 +140,7 @@
     <string name="title_checkbox_mouse_nav_buttons"> 啟用前進後退滑鼠鍵 </string>
     <string name="summary_checkbox_mouse_nav_buttons">在一些支援不佳的裝置上啟用此項可能會使其右鍵失效</string>
     <string name="title_checkbox_flip_face_buttons">反轉技能鍵</string>
-    <string name="summary_checkbox_flip_face_buttons">為手把和虛擬控制器交換 A/B 和 X/Y 技能按鍵</string>
+    <string name="summary_checkbox_flip_face_buttons">為手把和螢幕控制按鈕交換 A/B 和 X/Y 技能按鍵</string>
     <string name="category_on_screen_controls_settings">螢幕控制按鈕設定</string>
     <string name="title_checkbox_show_onscreen_controls">顯示螢幕控制按鈕</string>
     <string name="summary_checkbox_show_onscreen_controls">在觸控式螢幕上顯示一層虛擬控制器</string>
@@ -152,7 +152,7 @@
     <string name="summary_reset_osc">重設所有螢幕控制按鈕為預設大小和位置</string>
     <string name="dialog_title_reset_osc">重設按鈕版面配置</string>
     <string name="dialog_text_reset_osc">你確定要刪除已儲存的螢幕按鈕版面配置嗎？</string>
-    <string name="toast_reset_osc_success">螢幕按鈕佈局已經重設</string>
+    <string name="toast_reset_osc_success">螢幕控制按鈕已重設為預設值</string>
     <string name="category_ui_settings">使用者介面設定</string>
     <string name="title_language_list"> 語言 </string>
     <string name="summary_language_list">選擇 Moonlight 顯示的語言</string>
@@ -174,10 +174,10 @@
     <string name="summary_enable_perf_overlay">在串流中顯示即時效能資訊</string>
     <string name="title_enable_post_stream_toast">串流後顯示延時資訊</string>
     <string name="summary_enable_post_stream_toast">串流結束後顯示延時資訊</string>
-    <string name="title_osc_opacity">變更螢幕按鈕透明度</string>
+    <string name="title_osc_opacity">變更螢幕控制按鈕透明度</string>
     <string name="dialog_title_osc_opacity">變更不透明度</string>
     <string name="suffix_osc_opacity">%</string>
-    <string name="summary_osc_opacity">令螢幕按钮變得更透明/更不透明</string>
+    <string name="summary_osc_opacity">使螢幕控制按钮變得更透明/更不透明</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
     <string name="resolution_prefix_native">本機</string>
     <string name="text_native_res_dialog">本機解析度模式不受 GFE 的官方支援，因此不會自動設定主機的顯示解析度。您需要在遊戲中手動進行設定。

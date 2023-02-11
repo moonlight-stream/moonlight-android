@@ -6,13 +6,12 @@ import android.widget.Toast;
 
 import com.limelight.AppView;
 import com.limelight.Game;
-import com.limelight.PcView;
 import com.limelight.R;
 import com.limelight.ShortcutTrampoline;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.nvstream.http.ComputerDetails;
-import com.limelight.nvstream.http.GfeHttpResponseException;
+import com.limelight.nvstream.http.HostHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.jni.MoonBridge;
@@ -135,7 +134,7 @@ public class ServerHelper {
                     } else {
                         message = parent.getResources().getString(R.string.applist_quit_fail) + " " + app.getAppName();
                     }
-                } catch (GfeHttpResponseException e) {
+                } catch (HostHttpResponseException e) {
                     if (e.getErrorCode() == 599) {
                         message = "This session wasn't started by this device," +
                                 " so it cannot be quit. End streaming on the original " +

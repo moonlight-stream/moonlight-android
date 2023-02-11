@@ -412,7 +412,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
                         // Spin the dialog off in a thread because it blocks
                         Dialog.displayDialog(PcView.this, getResources().getString(R.string.pair_pairing_title),
-                                getResources().getString(R.string.pair_pairing_msg)+" "+pinStr, false);
+                                getResources().getString(R.string.pair_pairing_msg)+" "+pinStr+"\n\n"+
+                                getResources().getString(R.string.pair_pairing_help), false);
 
                         PairingManager pm = httpConn.getPairingManager();
 

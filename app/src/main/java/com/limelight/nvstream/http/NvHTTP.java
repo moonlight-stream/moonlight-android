@@ -266,7 +266,7 @@ public class NvHTTP {
         return getXmlString(new StringReader(str), tagname, throwIfMissing);
     }
     
-    private static void verifyResponseStatus(XmlPullParser xpp) throws GfeHttpResponseException {
+    private static void verifyResponseStatus(XmlPullParser xpp) throws HostHttpResponseException {
         // We use Long.parseLong() because in rare cases GFE can send back a status code of
         // 0xFFFFFFFF, which will cause Integer.parseInt() to throw a NumberFormatException due
         // to exceeding Integer.MAX_VALUE. We'll get the desired error code of -1 by just casting
@@ -280,7 +280,7 @@ public class NvHTTP {
                 statusCode = 418;
                 statusMsg = "Missing audio capture device. Reinstall GeForce Experience.";
             }
-            throw new GfeHttpResponseException(statusCode, statusMsg);
+            throw new HostHttpResponseException(statusCode, statusMsg);
         }
     }
     
@@ -306,7 +306,7 @@ public class NvHTTP {
                     if (e.getCause() instanceof CertificateException) {
                         // Jump to the GfeHttpResponseException exception handler to retry
                         // over HTTP which will allow us to pair again to update the cert
-                        throw new GfeHttpResponseException(401, "Server certificate mismatch");
+                        throw new HostHttpResponseException(401, "Server certificate mismatch");
                     }
                     else {
                         throw e;
@@ -317,7 +317,7 @@ public class NvHTTP {
                 // We want this because it will throw us into the HTTP case if the client is unpaired.
                 getServerVersion(resp);
             }
-            catch (GfeHttpResponseException e) {
+            catch (HostHttpResponseException e) {
                 if (e.getErrorCode() == 401) {
                     // Cert validation error - fall back to HTTP
                     return openHttpConnectionToString(client, baseUrlHttp, "serverinfo");
@@ -435,7 +435,7 @@ public class NvHTTP {
             throw new FileNotFoundException(completeUrl.toString());
         }
         else {
-            throw new GfeHttpResponseException(response.code(), response.message());
+            throw new HostHttpResponseException(response.code(), response.message());
         }
     }
 
@@ -669,7 +669,7 @@ public class NvHTTP {
         return openHttpConnectionToString(httpClientLongConnectTimeout, getHttpsUrl(true), "applist");
     }
     
-    public LinkedList<NvApp> getAppList() throws GfeHttpResponseException, IOException, XmlPullParserException {
+    public LinkedList<NvApp> getAppList() throws HostHttpResponseException, IOException, XmlPullParserException {
         if (verbose) {
             // Use the raw function so the app list is printed
             return getAppListByReader(new StringReader(getAppListRaw()));
@@ -681,12 +681,12 @@ public class NvHTTP {
         }
     }
 
-    String executePairingCommand(String additionalArguments, boolean enableReadTimeout) throws GfeHttpResponseException, IOException {
+    String executePairingCommand(String additionalArguments, boolean enableReadTimeout) throws HostHttpResponseException, IOException {
         return openHttpConnectionToString(enableReadTimeout ? httpClientLongConnectTimeout : httpClientLongConnectNoReadTimeout,
                 baseUrlHttp, "pair", "devicename=roth&updateState=1&" + additionalArguments);
     }
 
-    String executePairingChallenge() throws GfeHttpResponseException, IOException {
+    String executePairingChallenge() throws HostHttpResponseException, IOException {
         return openHttpConnectionToString(httpClientLongConnectTimeout, getHttpsUrl(true),
                 "pair", "devicename=roth&updateState=1&phrase=pairchallenge");
     }
@@ -798,7 +798,7 @@ public class NvHTTP {
         if (getCurrentGame(getServerInfo(true)) != 0) {
             // Generate a synthetic GfeResponseException letting the caller know
             // that they can't kill someone else's stream.
-            throw new GfeHttpResponseException(599, "");
+            throw new HostHttpResponseException(599, "");
         }
 
         return true;

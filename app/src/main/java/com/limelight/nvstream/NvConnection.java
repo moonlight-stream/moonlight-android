@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -33,7 +32,7 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.av.audio.AudioRenderer;
 import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.http.ComputerDetails;
-import com.limelight.nvstream.http.GfeHttpResponseException;
+import com.limelight.nvstream.http.HostHttpResponseException;
 import com.limelight.nvstream.http.LimelightCryptoProvider;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
@@ -345,7 +344,7 @@ public class NvConnection {
                 } else {
                     return quitAndLaunch(h, context);
                 }
-            } catch (GfeHttpResponseException e) {
+            } catch (HostHttpResponseException e) {
                 if (e.getErrorCode() == 470) {
                     // This is the error you get when you try to resume a session that's not yours.
                     // Because this is fairly common, we'll display a more detailed message.
@@ -378,7 +377,7 @@ public class NvConnection {
                 context.connListener.displayMessage("Failed to quit previous session! You must quit it manually");
                 return false;
             } 
-        } catch (GfeHttpResponseException e) {
+        } catch (HostHttpResponseException e) {
             if (e.getErrorCode() == 599) {
                 context.connListener.displayMessage("This session wasn't started by this device," +
                         " so it cannot be quit. End streaming on the original " +
@@ -423,7 +422,7 @@ public class NvConnection {
                         return;
                     }
                     context.connListener.stageComplete(appName);
-                } catch (GfeHttpResponseException e) {
+                } catch (HostHttpResponseException e) {
                     e.printStackTrace();
                     context.connListener.displayMessage(e.getMessage());
                     context.connListener.stageFailed(appName, 0, e.getErrorCode());

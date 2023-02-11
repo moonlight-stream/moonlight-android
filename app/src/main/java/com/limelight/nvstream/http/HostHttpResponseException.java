@@ -2,13 +2,13 @@ package com.limelight.nvstream.http;
 
 import java.io.IOException;
 
-public class GfeHttpResponseException extends IOException {
+public class HostHttpResponseException extends IOException {
     private static final long serialVersionUID = 1543508830807804222L;
     
     private int errorCode;
     private String errorMsg;
     
-    public GfeHttpResponseException(int errorCode, String errorMsg) {
+    public HostHttpResponseException(int errorCode, String errorMsg) {
         this.errorCode = errorCode;
         this.errorMsg = errorMsg;
     }
@@ -23,6 +23,6 @@ public class GfeHttpResponseException extends IOException {
     
     @Override
     public String getMessage() {
-        return "GeForce Experience returned error: "+errorMsg+" (Error code: "+errorCode+")";
+        return "Host PC returned error: "+errorMsg+" (Error code: "+errorCode+")";
     }
 }

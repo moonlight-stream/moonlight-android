@@ -1,0 +1,83 @@
+name: moonlight-android
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout moonlight-android repo 
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        
+    - name: Install build dependencies
+      run: |
+        git submodule update --init --recursive
+        
+    - name: Change java version
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Build artifact
+      run: |
+        .\gradlew.bat build connectedCheck
+
+    - name: Upload app-nonRoot-debug artifact
+      uses: actions/upload-artifact@v3
+      with: 
+        name: app-nonRoot-debug
+        path: ${{ github.workspace }}/app/build/outputs/apk/nonRoot/debug/app-nonRoot-debug.apk
+
+    - name: Upload app-root-debug artifact
+      uses: actions/upload-artifact@v3
+      with: 
+        name: app-root-debug
+        path: ${{ github.workspace }}/app/build/outputs/apk/root/debug/app-root-debug.apk
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+    - name: Checkout moonlight-android repo
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        
+    - name: Download Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: dist
+
+    - name: Re-zip artifacts
+      run: |
+        cd dist
+        for artifact in *
+        do 
+          echo "-> Creating ${artifact}.zip"
+          pushd "$artifact"
+          zip -r "../${artifact}.zip" *
+          popd
+        done
+
+    - name: Update Git Tag
+      run: |
+        git tag -f Pre-release
+        git push -f origin Pre-release
+    
+    - name: Create Release
+      uses: ncipollo/release-action@v1
+      with:
+        prerelease: true
+        allowUpdates: true
+        removeArtifacts: true
+        replacesArtifacts: false
+        tag: Pre-release
+        artifacts: "dist/*.zip"

@@ -4,6 +4,7 @@ package com.limelight;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.audio.AndroidAudioRenderer;
 import com.limelight.binding.input.ControllerHandler;
+import com.limelight.binding.input.GameInputDevice;
 import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.input.capture.InputCaptureManager;
 import com.limelight.binding.input.capture.InputCaptureProvider;
@@ -2467,6 +2468,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
+    public void showGameMenu(GameInputDevice device) {
+        new GameMenu(this, conn, device);
+    }
+
+    @Override
     public boolean onKey(View view, int keyCode, KeyEvent keyEvent) {
         switch (keyEvent.getAction()) {
             case KeyEvent.ACTION_DOWN:
@@ -2477,7 +2483,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // Intercept back key event before android handles it
                 // Always handle the request, the user has to select "Disconnect" within the game menu to actually disconnect
                 if (keyCode == keyEvent.KEYCODE_BACK) {
-                    new GameMenu(this, conn);
+                    showGameMenu(null);
                     return true;
                 }
             case KeyEvent.ACTION_UP:

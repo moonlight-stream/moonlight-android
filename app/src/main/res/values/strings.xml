@@ -134,13 +134,16 @@
     <string name="applist_details_id">App ID:</string>
 
     <!-- In Game menu -->
+    <string name="game_menu_toggle_keyboard">Toggle On-screen Keyboard</string>
+    <string name="game_menu_toggle_mouse_on">Enable Controller Mouse Emulation</string>
+    <string name="game_menu_toggle_mouse_off">Disable Controller Mouse Emulation</string>
     <string name="game_menu_disconnect">Disconnect</string>
     <string name="game_menu_cancel">Cancel</string>
-    <string name="game_menu_send_keys">Send special key(s)</string>
+    <string name="game_menu_send_keys">Send special Key(s)</string>
     <string name="game_menu_send_keys_esc">Send ESC (Menu)</string>
-    <string name="game_menu_send_keys_f11">Send F11 (Toggle full screen)</string>
-    <string name="game_menu_send_keys_ctrl_v">Send CTRL + V (Paste clipboard)</string>
-    <string name="game_menu_send_keys_win">Send WIN (Toggle Windows start menu)</string>
+    <string name="game_menu_send_keys_f11">Send F11 (Toggle Full Screen)</string>
+    <string name="game_menu_send_keys_ctrl_v">Send CTRL + V (Paste Clipboard)</string>
+    <string name="game_menu_send_keys_win">Send WIN (Toggle Windows Start Menu)</string>
     <string name="game_menu_send_keys_win_d">Send WIN + D (Switch to Desktop)</string>
     <string name="game_menu_send_keys_win_g">Send WIN + G (Open Xbox Game Bar)</string>
     <string name="game_menu_send_keys_shift_tab">Send SHIFT + TAB (Open Steam Overlay)</string>

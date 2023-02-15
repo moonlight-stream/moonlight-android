@@ -31,7 +31,9 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
+import com.limelight.GameMenu;
 import com.limelight.LimeLog;
+import com.limelight.R;
 import com.limelight.binding.input.driver.AbstractController;
 import com.limelight.binding.input.driver.UsbDriverListener;
 import com.limelight.binding.input.driver.UsbDriverService;
@@ -49,6 +51,8 @@ import org.cgutman.shieldcontrollerextensions.SceManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ControllerHandler implements InputManager.InputDeviceListener, UsbDriverListener {
 
@@ -2026,7 +2030,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             if ((context.inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
                     event.getEventTime() - context.startDownTime > ControllerHandler.START_DOWN_TIME_MOUSE_MODE_MS &&
                     prefConfig.mouseEmulation) {
-                context.toggleMouseEmulation();
+                gestures.showGameMenu(context);
             }
             context.inputMap &= ~ControllerPacket.PLAY_FLAG;
             break;
@@ -2490,7 +2494,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         usbDeviceContexts.put(controller.getControllerId(), context);
     }
 
-    class GenericControllerContext {
+    class GenericControllerContext implements GameInputDevice {
         public int id;
         public boolean external;
 
@@ -2532,6 +2536,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 handler.postDelayed(this, mouseEmulationReportPeriod);
             }
         };
+
+        @Override
+        public List<GameMenu.MenuOption> getGameMenuOptions() {
+            List<GameMenu.MenuOption> options = new ArrayList<>();
+            options.add(new GameMenu.MenuOption(activityContext.getString(mouseEmulationActive ?
+                    R.string.game_menu_toggle_mouse_off : R.string.game_menu_toggle_mouse_on),
+                    () -> toggleMouseEmulation()));
+
+            return options;
+        }
 
         public void toggleMouseEmulation() {
             handler.removeCallbacks(mouseEmulationRunnable);

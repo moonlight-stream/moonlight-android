@@ -1289,8 +1289,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyDown(KeyEvent event) {
-        // Pass-through virtual navigation keys
+        // Handle (virtual) Navigation Keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
+            // Show Game Menu on back action instead of finishing the activity, the user has to
+            // select "Disconnect" within the game menu to actually disconnect
+            if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                showGameMenu(null);
+                return true;
+            }
+
+            // Pass-through other navigation keys
             return false;
         }
 
@@ -2476,16 +2484,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public boolean onKey(View view, int keyCode, KeyEvent keyEvent) {
         switch (keyEvent.getAction()) {
             case KeyEvent.ACTION_DOWN:
-                boolean handled = handleKeyDown(keyEvent);
-                if (handled)
-                    return true;
-
-                // Intercept back key event before android handles it
-                // Always handle the request, the user has to select "Disconnect" within the game menu to actually disconnect
-                if (keyCode == keyEvent.KEYCODE_BACK) {
-                    showGameMenu(null);
-                    return true;
-                }
+                return handleKeyDown(keyEvent);
             case KeyEvent.ACTION_UP:
                 return handleKeyUp(keyEvent);
             case KeyEvent.ACTION_MULTIPLE:

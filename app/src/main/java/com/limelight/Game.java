@@ -247,7 +247,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         View backgroundTouchView = findViewById(R.id.backgroundTouchView);
         backgroundTouchView.setOnTouchListener(this);
 
-        boolean needsInputBatching = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Request unbuffered input event dispatching for all input classes we handle here.
             // Without this, input events are buffered to be delivered in lock-step with VBlank,
@@ -266,10 +265,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     InputDevice.SOURCE_CLASS_POSITION | // Touchpads
                     InputDevice.SOURCE_CLASS_TRACKBALL // Mice (pointer capture)
             );
-
-            // Since the OS isn't going to batch for us, we have to batch mouse events to
-            // avoid triggering a bug in GeForce Experience that can lead to massive latency.
-            needsInputBatching = true;
         }
 
         notificationOverlayView = findViewById(R.id.notificationOverlay);
@@ -481,8 +476,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         conn = new NvConnection(getApplicationContext(),
                 new ComputerDetails.AddressTuple(host, port),
                 httpsPort, uniqueId, config,
-                PlatformBinding.getCryptoProvider(this), serverCert,
-                needsInputBatching);
+                PlatformBinding.getCryptoProvider(this), serverCert);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
         keyboardTranslator = new KeyboardTranslator();
 
@@ -1816,7 +1810,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View view, MotionEvent event) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 // Tell the OS not to buffer input events for us
                 //

@@ -252,17 +252,16 @@ public class StreamSettings extends Activity {
             PreferenceScreen screen = getPreferenceScreen();
 
             // hide on-screen controls category on non touch screen devices
-            if (!getActivity().getPackageManager().
-                    hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
-                {
-                    PreferenceCategory category =
-                            (PreferenceCategory) findPreference("category_onscreen_controls");
-                    screen.removePreference(category);
-                }
+            if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_onscreen_controls");
+                screen.removePreference(category);
 
-                {
-                    PreferenceCategory category =
-                            (PreferenceCategory) findPreference("category_input_settings");
+                // Perform a slightly stricter check to remove the touchscreen trackpad option. This is
+                // still useful for non-touch input devices that emulate touchscreens.
+                if (getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) ||
+                        getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK)) {
+                    category = (PreferenceCategory) findPreference("category_input_settings");
                     category.removePreference(findPreference("checkbox_touchscreen_trackpad"));
                 }
             }

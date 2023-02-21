@@ -16,7 +16,7 @@
     <string name="pair_fail">Fallo al emparejar</string>
     <!-- WOL messages -->
     <string name="wol_pc_online">Ordenador encendido</string>
-    <string name="wol_no_mac">Imposible iniciar PC porque GFE no ha enviado una dirección MAC</string>
+    <string name="wol_no_mac">No se puede activar el PC porque no hay ninguna dirección MAC almacenada</string>
     <string name="wol_waking_pc">Iniciando PC…</string>
     <string name="wol_waking_msg">Puede tomar algunos segundos iniciar tu PC.
 	    Si no se inicia asegúrate que está configurado correctamente para Wake-On-LAN.
@@ -47,10 +47,10 @@
     <string name="conn_terminated_title">Conexión finalizada</string>
     <string name="conn_terminated_msg">La conexión ha finalizando</string>
     <!-- General strings -->
-    <string name="ip_hint">Dirección IP del PC con GeForce</string>
-    <string name="searching_pc">Buscando por PCs con GameStream ejecutándose...
+    <string name="ip_hint">Dirección IP del host del ordenador</string>
+    <string name="searching_pc">Buscando el hostal del PC en tu red local...
 \n
-\nVerifica que GameStream esté activado en las opciones de SHIELD dentro de GeForce Experience.</string>
+\n Asegúrate de que Sunshine se está ejecutando en el PC anfitrión o de que GameStream está activado en los ajustes de GeForce Experience SHIELD.</string>
     <string name="yes">Si</string>
     <string name="no">No</string>
     <string name="lost_connection">Conexión perdida</string>
@@ -122,9 +122,9 @@
     <string name="pcview_menu_test_network">Probar Conexión de Red</string>
     <string name="pcview_menu_details">Ver Detalles</string>
     <string name="nettest_title_waiting">Probando Conexión de Red</string>
-    <string name="nettest_text_waiting">Moonlight esta probando tu conexión de red para determinar si NVIDIA GameStream esta bloqueado.
+    <string name="nettest_text_waiting">Moonlight está probando tu conexión a la red para determinar si algún puerto necesario está bloqueado.
 \n
-\nEsto puede tomar algunos segundos …</string>
+\nEsto puede tardar unos segundos…</string>
     <string name="nettest_text_inconclusive">La prueba de red no pudo ejecutarse debido a que no se pudo alcanzar ningún servidor de prueba de conexión de Moonlight. Revisa tu conexión a internet o prueba nuevamente mas tarde.</string>
     <string name="nettest_text_failure">La actual conexión de red de tu dispositivo parece estar bloqueando Moonlight. La Transmisión mediante Internet puede no funcionar mientras estes conectado a esta red.
 \n
@@ -177,16 +177,14 @@
     <string name="audioconf_stereo">Estéreo</string>
     <string name="check_ports_msg">Revisa la configuración de tu firewall, así como, las reglas de redireccionamiento para él(los) puerto(s):</string>
     <string name="error_usb_prohibited">El acceso a USB está restringido en tu dispositivo por el administrador. Revisar tus ajustes en MDM o Knox.</string>
-    <string name="message_decoding_error">Moonlight se ha cerrado debido a una incompatibilidad con el decodificador de vídeo de este dispositivo. Asegúrate de que GeForce Experience está actualizado a la última versión en tu PC. Intenta ajustar la configuración de streaming si los bloqueos continúan.</string>
+    <string name="message_decoding_error">Moonlight se ha bloqueado debido a una incompatibilidad con el descodificador de vídeo de este dispositivo. Intenta ajustar la configuración de streaming si los bloqueos continúan.</string>
     <string name="message_decoding_reset">La decodificación de video de tu equipo sigue fallando con las opciones elegidas. Las opciones de la transmisión han sido revertidas a las predeterminadas.</string>
     <string name="video_decoder_init_failed">El descodificador de video no pudo ser iniciado. Tu dispositivo puede no soportar la resolución elegida o la tasa de cuadros por segundo.</string>
     <string name="no_frame_received_error">La conexión de internet no está teniendo un buen desempeño. Reduce la tasa de bits de video o prueba en una conexión de mayor velocidad.</string>
     <string name="unable_to_pin_shortcut">Tu lanzador predeterminado no permite la creación de accesos directos anclados.</string>
-    <string name="early_termination_error">Algo ha salido mal en el PC anfitrión cuando se inicio la transmisión.
+    <string name="early_termination_error">Algo ha fallado en tu ordenador al iniciar la transmisión.
 \n
-\nVerifica que no tengas ningún contenido protegido por DRM abierto en el equipo. También prueba reiniciando el equipo anfitrión.
-\n
-\nSi el problema persiste, intenta reinstalar los controladores de la tarjeta de video (GPU) además de GeForce Experience.</string>
+\nAsegúrate de que no tienes ningún contenido protegido por DRM abierto en tu ordenador. También puedes probar a reiniciar el ordenador.</string>
     <string name="title_details">Detalles</string>
     <string name="poor_connection_msg">Conexión pobre al PC</string>
     <string name="applist_menu_details">Ver Detalles</string>
@@ -244,7 +242,7 @@
     <string name="title_disable_frame_drop">Nunca disminuir cuadros</string>
     <string name="summary_disable_frame_drop">Puede reducir micro-tartamudeos (Stuttering) en algunos dispositivos , pero puede incrementar latencia</string>
     <string name="title_enable_hdr">Activar HDR (Alto Rango Dinámico / Experimental)</string>
-    <string name="summary_enable_hdr">Transmitir HDR (Alto Rango Dinámico) cuando el juego, el PC y la Tarjeta de Video (GPU) lo soporten. HDR requiere de una Tarjeta de Video de la serie GTX 1000 o superior.</string>
+    <string name="summary_enable_hdr">Transmite en HDR cuando el juego y la GPU del PC lo admitan. HDR requiere una GPU compatible con la codificación HEVC Main 10.</string>
     <string name="summary_enable_perf_overlay">Mostrar en tiempo real la información del desempeño de la transmisión mientras está activa la misma</string>
     <string name="title_enable_post_stream_toast">Mostrar mensajes sobre latencia mientras se transmite</string>
     <string name="category_help">Ayuda</string>
@@ -265,4 +263,5 @@
     <string name="title_checkbox_reduce_refresh_rate">Permitir reducción de la tasa de refresco</string>
     <string name="title_full_range">Forzar video de rango completo (Experimental)</string>
     <string name="summary_full_range">Esto provocará la pérdida de detalles en las áreas claras y oscuras si su dispositivo no muestra correctamente el contenido de video de rango completo.</string>
+    <string name="pair_pairing_help">Si el hostal del ordenador ejecuta Sunshine, navegue a la interfaz de usuario web de Sunshine para ingresar el PIN.</string>
 </resources>

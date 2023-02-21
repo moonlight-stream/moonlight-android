@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 public class ConnectionContext {
     public ComputerDetails.AddressTuple serverAddress;
     public int httpsPort;
+    public boolean isNvidiaServerSoftware;
     public X509Certificate serverCert;
     public StreamConfiguration streamConfig;
     public NvConnectionListener connListener;

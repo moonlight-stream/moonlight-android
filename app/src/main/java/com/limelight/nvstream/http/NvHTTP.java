@@ -342,11 +342,10 @@ public class NvHTTP {
 
         return new ComputerDetails.AddressTuple(address, port);
     }
-    
-    public ComputerDetails getComputerDetails(boolean likelyOnline) throws IOException, XmlPullParserException {
+
+    public ComputerDetails getComputerDetails(String serverInfo) throws IOException, XmlPullParserException {
         ComputerDetails details = new ComputerDetails();
-        String serverInfo = getServerInfo(likelyOnline);
-        
+
         details.name = getXmlString(serverInfo, "hostname", false);
         if (details.name == null || details.name.isEmpty()) {
             details.name = "UNKNOWN";
@@ -368,11 +367,18 @@ public class NvHTTP {
 
         details.pairState = getPairState(serverInfo);
         details.runningGameId = getCurrentGame(serverInfo);
-        
+
+        // The MJOLNIR codename was used by GFE but never by any third-party server
+        details.nvidiaServer = getXmlString(serverInfo, "state", true).contains("MJOLNIR");
+
         // We could reach it so it's online
         details.state = ComputerDetails.State.ONLINE;
-        
+
         return details;
+    }
+    
+    public ComputerDetails getComputerDetails(boolean likelyOnline) throws IOException, XmlPullParserException {
+        return getComputerDetails(getServerInfo(likelyOnline));
     }
 
     // This hack is Android-specific but we do it on all platforms
@@ -731,27 +737,30 @@ public class NvHTTP {
         return new String(hexChars);
     }
     
-    public boolean launchApp(ConnectionContext context, int appId, boolean enableHdr) throws IOException, XmlPullParserException {
+    public boolean launchApp(ConnectionContext context, String verb, int appId, boolean enableHdr) throws IOException, XmlPullParserException {
         // Using an FPS value over 60 causes SOPS to default to 720p60,
         // so force it to 0 to ensure the correct resolution is set. We
         // used to use 60 here but that locked the frame rate to 60 FPS
         // on GFE 3.20.3.
-        int fps = context.streamConfig.getLaunchRefreshRate() > 60 ? 0 : context.streamConfig.getLaunchRefreshRate();
+        int fps = context.isNvidiaServerSoftware && context.streamConfig.getLaunchRefreshRate() > 60 ?
+                0 : context.streamConfig.getLaunchRefreshRate();
 
-        // Using an unsupported resolution (not 720p, 1080p, or 4K) causes
-        // GFE to force SOPS to 720p60. This is fine for < 720p resolutions like
-        // 360p or 480p, but it is not ideal for 1440p and other resolutions.
-        // When we detect an unsupported resolution, disable SOPS unless it's under 720p.
-        // FIXME: Detect support resolutions using the serverinfo response, not a hardcoded list
         boolean enableSops = context.streamConfig.getSops();
-        if (context.negotiatedWidth * context.negotiatedHeight > 1280 * 720 &&
-                context.negotiatedWidth * context.negotiatedHeight != 1920 * 1080 &&
-                context.negotiatedWidth * context.negotiatedHeight != 3840 * 2160) {
-            LimeLog.info("Disabling SOPS due to non-standard resolution: "+context.negotiatedWidth+"x"+context.negotiatedHeight);
-            enableSops = false;
+        if (context.isNvidiaServerSoftware) {
+            // Using an unsupported resolution (not 720p, 1080p, or 4K) causes
+            // GFE to force SOPS to 720p60. This is fine for < 720p resolutions like
+            // 360p or 480p, but it is not ideal for 1440p and other resolutions.
+            // When we detect an unsupported resolution, disable SOPS unless it's under 720p.
+            // FIXME: Detect support resolutions using the serverinfo response, not a hardcoded list
+            if (context.negotiatedWidth * context.negotiatedHeight > 1280 * 720 &&
+                    context.negotiatedWidth * context.negotiatedHeight != 1920 * 1080 &&
+                    context.negotiatedWidth * context.negotiatedHeight != 3840 * 2160) {
+                LimeLog.info("Disabling SOPS due to non-standard resolution: "+context.negotiatedWidth+"x"+context.negotiatedHeight);
+                enableSops = false;
+            }
         }
 
-        String xmlStr = openHttpConnectionToString(httpClientLongConnectNoReadTimeout, getHttpsUrl(true), "launch",
+        String xmlStr = openHttpConnectionToString(httpClientLongConnectNoReadTimeout, getHttpsUrl(true), verb,
             "appid=" + appId +
             "&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + fps +
             "&additionalStates=1&sops=" + (enableSops ? 1 : 0) +
@@ -760,24 +769,11 @@ public class NvHTTP {
             (!enableHdr ? "" : "&hdrMode=1&clientHdrCapVersion=0&clientHdrCapSupportedFlagsInUint32=0&clientHdrCapMetaDataId=NV_STATIC_METADATA_TYPE_1&clientHdrCapDisplayData=0x0x0x0x0x0x0x0x0x0x0") +
             "&localAudioPlayMode=" + (context.streamConfig.getPlayLocalAudio() ? 1 : 0) +
             "&surroundAudioInfo=" + context.streamConfig.getAudioConfiguration().getSurroundAudioInfo() +
-            (context.streamConfig.getAttachedGamepadMask() != 0 ? "&remoteControllersBitmap=" + context.streamConfig.getAttachedGamepadMask() : "") +
-            (context.streamConfig.getAttachedGamepadMask() != 0 ? "&gcmap=" + context.streamConfig.getAttachedGamepadMask() : ""));
-        if (!getXmlString(xmlStr, "gamesession", true).equals("0")) {
-            // sessionUrl0 will be missing for older GFE versions
-            context.rtspSessionUrl = getXmlString(xmlStr, "sessionUrl0", false);
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    
-    public boolean resumeApp(ConnectionContext context) throws IOException, XmlPullParserException {
-        String xmlStr = openHttpConnectionToString(httpClientLongConnectNoReadTimeout, getHttpsUrl(true), "resume",
-                "rikey="+bytesToHex(context.riKey.getEncoded()) +
-                "&rikeyid="+context.riKeyId +
-                "&surroundAudioInfo=" + context.streamConfig.getAudioConfiguration().getSurroundAudioInfo());
-        if (!getXmlString(xmlStr, "resume", true).equals("0")) {
+            "&remoteControllersBitmap=" + context.streamConfig.getAttachedGamepadMask() +
+            "&gcmap=" + context.streamConfig.getAttachedGamepadMask() +
+            "&gcpersist="+(context.streamConfig.getPersistGamepadsAfterDisconnect() ? 1 : 0));
+        if ((verb.equals("launch") && !getXmlString(xmlStr, "gamesession", true).equals("0") ||
+                (verb.equals("resume") && !getXmlString(xmlStr, "resume", true).equals("0")))) {
             // sessionUrl0 will be missing for older GFE versions
             context.rtspSessionUrl = getXmlString(xmlStr, "sessionUrl0", false);
             return true;

@@ -470,6 +470,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setAudioEncryption(true)
                 .setColorSpace(decoderRenderer.getPreferredColorSpace())
                 .setColorRange(decoderRenderer.getPreferredColorRange())
+                .setPersistGamepadsAfterDisconnect(!prefConfig.multiController)
                 .build();
 
         // Initialize the connection

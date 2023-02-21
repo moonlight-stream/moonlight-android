@@ -75,6 +75,7 @@ public class ComputerDetails {
     public PairingManager.PairState pairState;
     public int runningGameId;
     public String rawAppList;
+    public boolean nvidiaServer;
 
     public ComputerDetails() {
         // Use defaults
@@ -143,6 +144,7 @@ public class ComputerDetails {
         this.httpsPort = details.httpsPort;
         this.pairState = details.pairState;
         this.runningGameId = details.runningGameId;
+        this.nvidiaServer = details.nvidiaServer;
         this.rawAppList = details.rawAppList;
     }
 

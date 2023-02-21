@@ -29,6 +29,7 @@ public class StreamConfiguration {
     private int encryptionFlags;
     private int colorRange;
     private int colorSpace;
+    private boolean persistGamepadsAfterDisconnect;
 
     public static class Builder {
         private StreamConfiguration config = new StreamConfiguration();
@@ -106,6 +107,11 @@ public class StreamConfiguration {
                     config.attachedGamepadMask |= 1 << i;
                 }
             }
+            return this;
+        }
+
+        public StreamConfiguration.Builder setPersistGamepadsAfterDisconnect(boolean value) {
+            config.persistGamepadsAfterDisconnect = value;
             return this;
         }
 
@@ -229,6 +235,10 @@ public class StreamConfiguration {
 
     public int getAttachedGamepadMask() {
         return attachedGamepadMask;
+    }
+
+    public boolean getPersistGamepadsAfterDisconnect() {
+        return persistGamepadsAfterDisconnect;
     }
 
     public int getClientRefreshRateX100() {

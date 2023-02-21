@@ -11,7 +11,6 @@ import java.util.Locale;
 
 import com.limelight.LimeLog;
 import com.limelight.nvstream.http.ComputerDetails;
-import com.limelight.nvstream.http.LimelightCryptoProvider;
 import com.limelight.nvstream.http.NvHTTP;
 
 import android.content.ContentValues;
@@ -20,7 +19,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -91,6 +89,7 @@ public class ComputerDatabaseManager {
         if (tuple == null) {
             return null;
         }
+
         JSONObject json = new JSONObject();
         json.put(AddressFields.ADDRESS, tuple.address);
         json.put(AddressFields.PORT, tuple.port);
@@ -98,13 +97,14 @@ public class ComputerDatabaseManager {
         return json;
     }
 
-    public static ComputerDetails.AddressTuple tupleFromJson(JSONObject json) throws JSONException {
-        if (json == null) {
+    public static ComputerDetails.AddressTuple tupleFromJson(JSONObject json, String name) throws JSONException {
+        if (!json.has(name)) {
             return null;
         }
 
+        JSONObject address = json.getJSONObject(name);
         return new ComputerDetails.AddressTuple(
-                json.getString(AddressFields.ADDRESS), json.getInt(AddressFields.PORT));
+                address.getString(AddressFields.ADDRESS), address.getInt(AddressFields.PORT));
     }
 
     public boolean updateComputer(ComputerDetails details) {
@@ -114,13 +114,13 @@ public class ComputerDatabaseManager {
 
         try {
             JSONObject addresses = new JSONObject();
-            addresses.put(AddressFields.LOCAL, tupleToJson((details.localAddress)));
-            addresses.put(AddressFields.REMOTE, tupleToJson((details.remoteAddress)));
-            addresses.put(AddressFields.MANUAL, tupleToJson((details.manualAddress)));
-            addresses.put(AddressFields.IPv6, tupleToJson((details.ipv6Address)));
+            addresses.put(AddressFields.LOCAL, tupleToJson(details.localAddress));
+            addresses.put(AddressFields.REMOTE, tupleToJson(details.remoteAddress));
+            addresses.put(AddressFields.MANUAL, tupleToJson(details.manualAddress));
+            addresses.put(AddressFields.IPv6, tupleToJson(details.ipv6Address));
             values.put(ADDRESSES_COLUMN_NAME, addresses.toString());
         } catch (JSONException e) {
-            LimeLog.warning("JSON error, failed to write computer address information, " + e.getMessage());
+            throw new RuntimeException(e);
         }
 
         values.put(MAC_ADDRESS_COLUMN_NAME, details.macAddress);
@@ -138,14 +138,6 @@ public class ComputerDatabaseManager {
         return -1 != computerDb.insertWithOnConflict(COMPUTER_TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
     }
 
-    private static String readNonEmptyString(String input) {
-        if (input.isEmpty()) {
-            return null;
-        }
-
-        return input;
-    }
-
     private ComputerDetails getComputerFromCursor(Cursor c) {
         ComputerDetails details = new ComputerDetails();
 
@@ -153,12 +145,12 @@ public class ComputerDatabaseManager {
         details.name = c.getString(1);
         try {
             JSONObject addresses = new JSONObject(c.getString(2));
-            details.localAddress = tupleFromJson(addresses.getJSONObject(AddressFields.LOCAL));
-            details.remoteAddress = tupleFromJson(addresses.getJSONObject(AddressFields.REMOTE));
-            details.manualAddress = tupleFromJson(addresses.getJSONObject(AddressFields.MANUAL));
-            details.ipv6Address = tupleFromJson(addresses.getJSONObject(AddressFields.IPv6));
+            details.localAddress = tupleFromJson(addresses, AddressFields.LOCAL);
+            details.remoteAddress = tupleFromJson(addresses, AddressFields.REMOTE);
+            details.manualAddress = tupleFromJson(addresses, AddressFields.MANUAL);
+            details.ipv6Address = tupleFromJson(addresses, AddressFields.IPv6);
         } catch (JSONException e) {
-            LimeLog.warning("JSON error, failed to read computer address information, " + e.getMessage());
+            throw new RuntimeException(e);
          }
 
         // External port is persisted in the remote address field

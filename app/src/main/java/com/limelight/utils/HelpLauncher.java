@@ -44,4 +44,8 @@ public class HelpLauncher {
     public static void launchTroubleshooting(Context context) {
         launchUrl(context, "https://github.com/moonlight-stream/moonlight-docs/wiki/Troubleshooting");
     }
+
+    public static void launchGameStreamEolFaq(Context context) {
+        launchUrl(context, "https://github.com/moonlight-stream/moonlight-docs/wiki/NVIDIA-GameStream-End-Of-Service-Announcement-FAQ");
+    }
 }

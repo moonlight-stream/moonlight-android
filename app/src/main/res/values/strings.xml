@@ -22,6 +22,7 @@
     <string name="pcview_menu_delete_pc">Delete PC</string>
     <string name="pcview_menu_test_network">Test Network Connection</string>
     <string name="pcview_menu_details">View Details</string>
+    <string name="pcview_menu_eol">NVIDIA GameStream End-of-Service</string>
 
     <!-- Network test strings -->
     <string name="nettest_title_waiting">Testing Network Connection</string>

@@ -38,7 +38,8 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
         public void run() {
             int deltaX = 0;
             int deltaY = 0;
-            byte deltaScroll = 0;
+            byte deltaVScroll = 0;
+            byte deltaHScroll = 0;
 
             // Bind a local listening socket for evdevreader to connect to
             try {
@@ -115,9 +116,13 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
                             listener.mouseMove(deltaX, deltaY);
                             deltaX = deltaY = 0;
                         }
-                        if (deltaScroll != 0) {
-                            listener.mouseScroll(deltaScroll);
-                            deltaScroll = 0;
+                        if (deltaVScroll != 0) {
+                            listener.mouseVScroll(deltaVScroll);
+                            deltaVScroll = 0;
+                        }
+                        if (deltaHScroll != 0) {
+                            listener.mouseHScroll(deltaHScroll);
+                            deltaHScroll = 0;
                         }
                         break;
 
@@ -129,8 +134,11 @@ public class EvdevCaptureProvider extends InputCaptureProvider {
                             case EvdevEvent.REL_Y:
                                 deltaY = event.value;
                                 break;
+                            case EvdevEvent.REL_HWHEEL:
+                                deltaHScroll = (byte) event.value;
+                                break;
                             case EvdevEvent.REL_WHEEL:
-                                deltaScroll = (byte) event.value;
+                                deltaVScroll = (byte) event.value;
                                 break;
                         }
                         break;

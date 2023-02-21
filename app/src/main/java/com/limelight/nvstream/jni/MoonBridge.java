@@ -307,11 +307,11 @@ public class MoonBridge {
                                     short leftStickX, short leftStickY,
                                     short rightStickX, short rightStickY);
 
-
-    public static native void sendMouseScroll(byte scrollClicks);
     public static native void sendKeyboardInput(short keyMap, byte keyDirection, byte modifier, byte flags);
 
     public static native void sendMouseHighResScroll(short scrollAmount);
+
+    public static native void sendMouseHighResHScroll(short scrollAmount);
 
     public static native void sendUtf8Text(String text);
 

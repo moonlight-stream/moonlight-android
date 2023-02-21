@@ -1521,6 +1521,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) {
                     // Send the vertical scroll packet
                     conn.sendMouseHighResScroll((short)(event.getAxisValue(MotionEvent.AXIS_VSCROLL) * 120));
+                    conn.sendMouseHighResHScroll((short)(event.getAxisValue(MotionEvent.AXIS_HSCROLL) * 120));
                 }
 
                 if ((changedButtons & MotionEvent.BUTTON_PRIMARY) != 0) {
@@ -2187,8 +2188,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void mouseScroll(byte amount) {
+    public void mouseVScroll(byte amount) {
         conn.sendMouseScroll(amount);
+    }
+
+    @Override
+    public void mouseHScroll(byte amount) {
+        conn.sendMouseHScroll(amount);
     }
 
     @Override

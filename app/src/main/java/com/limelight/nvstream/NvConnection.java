@@ -513,13 +513,25 @@ public class NvConnection {
     
     public void sendMouseScroll(final byte scrollClicks) {
         if (!isMonkey) {
-            MoonBridge.sendMouseScroll(scrollClicks);
+            MoonBridge.sendMouseHighResScroll((short)(scrollClicks * 120)); // WHEEL_DELTA
+        }
+    }
+
+    public void sendMouseHScroll(final byte scrollClicks) {
+        if (!isMonkey) {
+            MoonBridge.sendMouseHighResHScroll((short)(scrollClicks * 120)); // WHEEL_DELTA
         }
     }
 
     public void sendMouseHighResScroll(final short scrollAmount) {
         if (!isMonkey) {
             MoonBridge.sendMouseHighResScroll(scrollAmount);
+        }
+    }
+
+    public void sendMouseHighResHScroll(final short scrollAmount) {
+        if (!isMonkey) {
+            MoonBridge.sendMouseHighResHScroll(scrollAmount);
         }
     }
 

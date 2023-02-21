@@ -52,13 +52,13 @@ Java_com_limelight_nvstream_jni_MoonBridge_sendKeyboardInput(JNIEnv *env, jclass
 }
 
 JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_sendMouseScroll(JNIEnv *env, jclass clazz, jbyte scrollClicks) {
-    LiSendScrollEvent(scrollClicks);
+Java_com_limelight_nvstream_jni_MoonBridge_sendMouseHighResScroll(JNIEnv *env, jclass clazz, jshort scrollAmount) {
+    LiSendHighResScrollEvent(scrollAmount);
 }
 
 JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_sendMouseHighResScroll(JNIEnv *env, jclass clazz, jshort scrollAmount) {
-    LiSendHighResScrollEvent(scrollAmount);
+Java_com_limelight_nvstream_jni_MoonBridge_sendMouseHighResHScroll(JNIEnv *env, jclass clazz, jshort scrollAmount) {
+    LiSendHighResHScrollEvent(scrollAmount);
 }
 
 JNIEXPORT void JNICALL

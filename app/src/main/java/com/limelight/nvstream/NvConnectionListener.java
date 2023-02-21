@@ -14,5 +14,5 @@ public interface NvConnectionListener {
 
     void rumble(short controllerNumber, short lowFreqMotor, short highFreqMotor);
 
-    void setHdrMode(boolean enabled);
+    void setHdrMode(boolean enabled, byte[] hdrMetadata);
 }

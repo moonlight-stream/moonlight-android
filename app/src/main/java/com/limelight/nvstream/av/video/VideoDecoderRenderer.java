@@ -16,5 +16,5 @@ public abstract class VideoDecoderRenderer {
 
     public abstract int getCapabilities();
 
-    public abstract void setHdrMode(boolean enabled);
+    public abstract void setHdrMode(boolean enabled, byte[] hdrMetadata);
 }

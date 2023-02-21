@@ -253,9 +253,9 @@ public class MoonBridge {
         }
     }
 
-    public static void bridgeClSetHdrMode(boolean enabled) {
+    public static void bridgeClSetHdrMode(boolean enabled, byte[] hdrMetadata) {
         if (connectionListener != null) {
-            connectionListener.setHdrMode(enabled);
+            connectionListener.setHdrMode(enabled, hdrMetadata);
         }
     }
 

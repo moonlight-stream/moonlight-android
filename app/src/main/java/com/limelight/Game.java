@@ -2073,9 +2073,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
-    public void setHdrMode(boolean enabled) {
+    public void setHdrMode(boolean enabled, byte[] hdrMetadata) {
         LimeLog.info("Display HDR mode: " + (enabled ? "enabled" : "disabled"));
-        decoderRenderer.setHdrMode(enabled);
+        decoderRenderer.setHdrMode(enabled, hdrMetadata);
     }
 
     @Override

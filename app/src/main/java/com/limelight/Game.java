@@ -1324,7 +1324,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             if (KeyboardTranslator.needsShift(event.getKeyCode())) {
                 modifiers |= KeyboardPacket.MODIFIER_SHIFT;
             }
-            conn.sendKeyboardInput(translated, KeyboardPacket.KEY_DOWN, modifiers);
+            conn.sendKeyboardInput(translated, KeyboardPacket.KEY_DOWN, modifiers,
+                    keyboardTranslator.hasNormalizedMapping(event.getKeyCode(), event.getDeviceId()) ? 0 : MoonBridge.SS_KBE_FLAG_NON_NORMALIZED);
         }
 
         return true;
@@ -1388,7 +1389,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             if (KeyboardTranslator.needsShift(event.getKeyCode())) {
                 modifiers |= KeyboardPacket.MODIFIER_SHIFT;
             }
-            conn.sendKeyboardInput(translated, KeyboardPacket.KEY_UP, modifiers);
+            conn.sendKeyboardInput(translated, KeyboardPacket.KEY_UP, modifiers,
+                    keyboardTranslator.hasNormalizedMapping(event.getKeyCode(), event.getDeviceId()) ? 0 : MoonBridge.SS_KBE_FLAG_NON_NORMALIZED);
         }
 
         return true;
@@ -2199,10 +2201,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
 
             if (buttonDown) {
-                conn.sendKeyboardInput(keyMap, KeyboardPacket.KEY_DOWN, getModifierState());
+                conn.sendKeyboardInput(keyMap, KeyboardPacket.KEY_DOWN, getModifierState(), (byte)0);
             }
             else {
-                conn.sendKeyboardInput(keyMap, KeyboardPacket.KEY_UP, getModifierState());
+                conn.sendKeyboardInput(keyMap, KeyboardPacket.KEY_UP, getModifierState(), (byte)0);
             }
         }
     }

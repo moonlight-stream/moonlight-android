@@ -505,9 +505,9 @@ public class NvConnection {
         }
     }
     
-    public void sendKeyboardInput(final short keyMap, final byte keyDirection, final byte modifier) {
+    public void sendKeyboardInput(final short keyMap, final byte keyDirection, final byte modifier, final byte flags) {
         if (!isMonkey) {
-            MoonBridge.sendKeyboardInput(keyMap, keyDirection, modifier);
+            MoonBridge.sendKeyboardInput(keyMap, keyDirection, modifier, flags);
         }
     }
     

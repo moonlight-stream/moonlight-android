@@ -118,6 +118,22 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
         }
     }
 
+    public boolean hasNormalizedMapping(int keycode, int deviceId) {
+        if (deviceId >= 0) {
+            KeyboardMapping mapping = keyboardMappings.get(deviceId);
+            if (mapping != null) {
+                // Try to map this device-specific keycode onto a QWERTY layout.
+                // GFE assumes incoming keycodes are from a QWERTY keyboard.
+                int qwertyKeyCode = mapping.getQwertyKeyCodeForDeviceKeyCode(keycode);
+                if (qwertyKeyCode != KeyEvent.KEYCODE_UNKNOWN) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Translates the given keycode and returns the GFE keycode
      * @param keycode the code to be translated

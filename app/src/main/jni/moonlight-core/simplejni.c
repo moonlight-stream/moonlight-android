@@ -47,8 +47,8 @@ Java_com_limelight_nvstream_jni_MoonBridge_sendControllerInput(JNIEnv *env, jcla
 }
 
 JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_sendKeyboardInput(JNIEnv *env, jclass clazz, jshort keyCode, jbyte keyAction, jbyte modifiers) {
-    LiSendKeyboardEvent(keyCode, keyAction, modifiers);
+Java_com_limelight_nvstream_jni_MoonBridge_sendKeyboardInput(JNIEnv *env, jclass clazz, jshort keyCode, jbyte keyAction, jbyte modifiers, jbyte flags) {
+    LiSendKeyboardEvent2(keyCode, keyAction, modifiers, flags);
 }
 
 JNIEXPORT void JNICALL

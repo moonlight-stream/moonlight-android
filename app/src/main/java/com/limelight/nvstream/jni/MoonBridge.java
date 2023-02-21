@@ -73,6 +73,8 @@ public class MoonBridge {
 
     public static final int ML_TEST_RESULT_INCONCLUSIVE = 0xFFFFFFFF;
 
+    public static final byte SS_KBE_FLAG_NON_NORMALIZED = 0x01;
+
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;
@@ -305,9 +307,9 @@ public class MoonBridge {
                                     short leftStickX, short leftStickY,
                                     short rightStickX, short rightStickY);
 
-    public static native void sendKeyboardInput(short keyMap, byte keyDirection, byte modifier);
 
     public static native void sendMouseScroll(byte scrollClicks);
+    public static native void sendKeyboardInput(short keyMap, byte keyDirection, byte modifier, byte flags);
 
     public static native void sendMouseHighResScroll(short scrollAmount);
 

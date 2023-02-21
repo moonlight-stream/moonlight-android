@@ -77,8 +77,21 @@ public class WakeOnLanSender {
 
                 try {
                     sendPacketsForAddress(InetAddress.getByName("255.255.255.255"), address.port, sock, payload);
+                    sentWolPacket = true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    lastException = e;
+                }
+
+                try {
                     for (InetAddress resolvedAddress : InetAddress.getAllByName(address.address)) {
-                        sendPacketsForAddress(resolvedAddress, address.port, sock, payload);
+                        try {
+                            sendPacketsForAddress(resolvedAddress, address.port, sock, payload);
+                            sentWolPacket = true;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            lastException = e;
+                        }
                     }
                 } catch (IOException e) {
                     // We may have addresses that don't resolve on this subnet,

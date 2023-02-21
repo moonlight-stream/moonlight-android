@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.Proxy;
 import java.net.Socket;
@@ -209,9 +210,21 @@ public class NvHTTP {
         this.httpsPort = httpsPort;
 
         try {
+            // If this is an IPv4-mapped IPv6 address, OkHTTP will choke on it if it's
+            // in IPv6 form, because InetAddress.getByName() will return an Inet4Address
+            // for what OkHTTP thinks is an IPv6 address. Normalize it into IPv4 form
+            // to avoid triggering this bug.
+            String addressString = address.address;
+            if (addressString.contains(":") && addressString.contains(".")) {
+                InetAddress addr = InetAddress.getByName(addressString);
+                if (addr instanceof Inet4Address) {
+                    addressString = ((Inet4Address)addr).getHostAddress();
+                }
+            }
+
             this.baseUrlHttp = new HttpUrl.Builder()
                     .scheme("http")
-                    .host(address.address)
+                    .host(addressString)
                     .port(address.port)
                     .build();
         } catch (IllegalArgumentException e) {

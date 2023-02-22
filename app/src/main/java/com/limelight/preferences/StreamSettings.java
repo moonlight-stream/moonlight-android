@@ -256,14 +256,6 @@ public class StreamSettings extends Activity {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_onscreen_controls");
                 screen.removePreference(category);
-
-                // Perform a slightly stricter check to remove the touchscreen trackpad option. This is
-                // still useful for non-touch input devices that emulate touchscreens.
-                if (getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) ||
-                        getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK)) {
-                    category = (PreferenceCategory) findPreference("category_input_settings");
-                    category.removePreference(findPreference("checkbox_touchscreen_trackpad"));
-                }
             }
 
             // Hide remote desktop mouse mode on pre-Oreo (which doesn't have pointer capture)

@@ -5,6 +5,8 @@ android {
 
     compileSdk 33
 
+    namespace 'com.limelight'
+
     defaultConfig {
         minSdk 16
         targetSdk 33

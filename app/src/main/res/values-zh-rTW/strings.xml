@@ -262,4 +262,5 @@
     <string name="title_full_range">強制全範圍視訊 (實驗性)</string>
     <string name="summary_full_range">若您的裝置無法正確地顯示全範圍視訊內容，將會導致淺色區域和深色區域的細節遺失。</string>
     <string name="pair_pairing_help">若您的主機電腦正在執行 Sunshine，請導覽至 Sunshine 網頁 UI 並輸入 PIN 碼。</string>
+    <string name="pcview_menu_eol">NVIDIA GameStream 終止服務</string>
 </resources>

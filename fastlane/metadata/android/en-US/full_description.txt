@@ -1,6 +1,6 @@
-This app streams games, programs, or your full desktop from an NVIDIA GameStream-compatible PC or <a href="https://github.com/SunshineStream/Sunshine">Sunshine Stream</a> on your local network or the Internet. Mouse, keyboard, and controller input is sent from your Android device to the PC.
+This app streams games, programs, or your full desktop from your PC or <a href="https://github.com/LizardByte/Sunshine">Sunshine</a> on your local network or the Internet. Mouse, keyboard, and controller input is sent from your Android device to the PC.
 
-Streaming performance may vary based on your client device and network setup. HDR requires an HDR10-capable device, GTX 1000-series GPU, and HDR10-enabled game.
+Streaming performance may vary based on your client device and network setup. HDR requires an HDR10-capable device, a GPU that can encode HEVC Main 10, and an HDR10-enabled game.
 
 '''Features'''
 * Open-source and completely free (no ads, IAPs, or "Pro")
@@ -9,23 +9,20 @@ Streaming performance may vary based on your client device and network setup. HD
 * Up to 4K 120 FPS HDR streaming with 7.1 surround sound
 * Keyboard and mouse support (best with Android 8.0 or later)
 * Stylus/S-Pen support
-* Supports PS3, PS4, Xbox 360, Xbox One, and Android gamepads
+* Supports PS3/4/5, Xbox 360/One/Series, and Android gamepads
 * Force feedback support
 * Local co-op with up to 4 connected controllers
 * Mouse control via gamepad by long-pressing Start
 
-'''PC Requirements for NVIDIA'''
-* NVIDIA GeForce GTX/RTX or NVIDIA Quadro GPU
-* Windows 7 or later
-* NVIDIA GeForce Experience or NVIDIA Quadro Experience installed
-
-'''PC Requirements for SunshineStream'''
-* Linux, MacOS, Windows
-* AMD, Nvidia GPUs or Software encoding
-
-'''Quick Setup Instructions'''
-# Make sure GeForce/Quadro Experience is open on your PC. Turn on GameStream in the SHIELD settings page.
+'''Quick Setup Host Instructions for GeForce Experience (NVIDIA-only)'''
+# Make sure GeForce Experience is open on your PC. Turn on GameStream in the SHIELD settings page.
 # Tap on the PC in Moonlight and type the PIN on your PC
+# Start streaming!
+
+'''Quick Setup Host Instructions for Sunshine (all GPUs)'''
+# Install Sunshine on your PC from https://github.com/LizardByte/Sunshine/releases
+# Navigate to the Sunshine Web UI on your PC for first-time setup
+# Tap on the PC in Moonlight and type the PIN in the Sunshine Web UI on your PC
 # Start streaming!
 
 To have a good experience, you need a mid to high-end wireless router with a good wireless connection to your Android device (5 GHz highly recommended) and a good connection from your PC to your router (Ethernet highly recommended).

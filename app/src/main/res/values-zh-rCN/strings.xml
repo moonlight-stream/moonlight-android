@@ -261,4 +261,5 @@
     <string name="summary_full_range">如果你的设备无法正确显示全范围视频内容，这会导致明暗区域的细节丢失。</string>
     <string name="title_full_range">强制完全动态范围视频 (实验性)</string>
     <string name="pair_pairing_help">如果你的主机运行的是 Sunshine，那请前往Sunshine的网页界面输入PIN码。</string>
+    <string name="pcview_menu_eol">NVIDIA GameStream 终止服务</string>
 </resources>

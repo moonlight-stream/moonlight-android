@@ -44,7 +44,10 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
             // with SOURCE_TOUCHSCREEN, SOURCE_KEYBOARD, and SOURCE_MOUSE.
             // Upon enabling pointer capture, that device will switch to
             // SOURCE_KEYBOARD and SOURCE_TOUCHPAD.
-            if (device.supportsSource(InputDevice.SOURCE_TOUCHSCREEN)) {
+            // Only skip on non ChromeOS devices cause the ChromeOS pointer else
+            // gets disabled removing relative mouse capabilities
+            // on Chromebooks with touchscreens
+            if (device.supportsSource(InputDevice.SOURCE_TOUCHSCREEN) && !targetView.getContext().getPackageManager().hasSystemFeature("org.chromium.arc.device_management")) {
                 continue;
             }
 

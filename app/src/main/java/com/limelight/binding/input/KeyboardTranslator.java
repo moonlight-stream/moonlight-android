@@ -104,20 +104,6 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
         }
     }
 
-    public static boolean needsShift(int keycode) {
-        switch (keycode)
-        {
-            case KeyEvent.KEYCODE_AT:
-            case KeyEvent.KEYCODE_POUND:
-            case KeyEvent.KEYCODE_PLUS:
-            case KeyEvent.KEYCODE_STAR:
-                return true;
-
-            default:
-                return false;
-        }
-    }
-
     public boolean hasNormalizedMapping(int keycode, int deviceId) {
         if (deviceId >= 0) {
             KeyboardMapping mapping = keyboardMappings.get(deviceId);
@@ -359,20 +345,7 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
                 translated = 0x6E;
                 break;
 
-            case KeyEvent.KEYCODE_AT:
-                translated = 2 + VK_0;
-                break;
-
-            case KeyEvent.KEYCODE_POUND:
-                translated = 3 + VK_0;
-                break;
-
-            case KeyEvent.KEYCODE_STAR:
-                translated = 8 + VK_0;
-                break;
-
             default:
-                System.out.println("No key for "+keycode);
                 return 0;
             }
         }

@@ -144,7 +144,7 @@ public class GameMenu {
         }
 
         options.add(new MenuOption(getString(R.string.game_menu_send_keys), () -> showSpecialKeysMenu()));
-        options.add(new MenuOption(getString(R.string.game_menu_disconnect), () -> game.onBackPressed()));
+        options.add(new MenuOption(getString(R.string.game_menu_disconnect), () -> game.disconnect()));
         options.add(new MenuOption(getString(R.string.game_menu_cancel), null));
 
         showMenuDialog("Game Menu", options.toArray(new MenuOption[options.size()]));

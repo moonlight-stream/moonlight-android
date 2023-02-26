@@ -76,7 +76,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private boolean foreground = true;
     private PerfOverlayListener perfListener;
 
-    private static final int CR_TIMEOUT_MS = 5000;
     private static final int CR_MAX_TRIES = 10;
     private static final int CR_RECOVERY_TYPE_NONE = 0;
     private static final int CR_RECOVERY_TYPE_FLUSH = 1;
@@ -730,14 +729,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             else {
                 // If we haven't quiesced all threads yet, wait to be signalled after recovery.
                 // The final thread to be quiesced will handle the codec recovery.
-                LimeLog.info("Waiting to quiesce decoder threads: "+codecRecoveryThreadQuiescedFlags);
-                long startTime = SystemClock.uptimeMillis();
                 while (codecRecoveryType.get() != CR_RECOVERY_TYPE_NONE) {
                     try {
-                        if (SystemClock.uptimeMillis() - startTime >= CR_TIMEOUT_MS) {
-                            throw new IllegalStateException("Decoder failed to recover within timeout");
-                        }
-                        codecRecoveryMonitor.wait(CR_TIMEOUT_MS);
+                        LimeLog.info("Waiting to quiesce decoder threads: "+codecRecoveryThreadQuiescedFlags);
+                        codecRecoveryMonitor.wait(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
 

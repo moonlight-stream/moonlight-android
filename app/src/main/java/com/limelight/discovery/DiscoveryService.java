@@ -55,13 +55,6 @@ public class DiscoveryService extends Service {
             }
 
             @Override
-            public void notifyComputerRemoved(MdnsComputer computer) {
-                if (boundListener != null) {
-                    boundListener.notifyComputerRemoved(computer);
-                }
-            }
-
-            @Override
             public void notifyDiscoveryFailure(Exception e) {
                 if (boundListener != null) {
                     boundListener.notifyDiscoveryFailure(e);

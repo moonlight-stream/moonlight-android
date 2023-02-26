@@ -432,11 +432,6 @@ public class ComputerManagerService extends Service {
             }
 
             @Override
-            public void notifyComputerRemoved(MdnsComputer computer) {
-                // Nothing to do here
-            }
-
-            @Override
             public void notifyDiscoveryFailure(Exception e) {
                 LimeLog.severe("mDNS discovery failed");
                 e.printStackTrace();

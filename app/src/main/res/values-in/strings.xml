@@ -14,7 +14,7 @@
     <string name="pcview_menu_send_wol">Kirim permintaan Wake-On-LAN</string>
     <string name="pcview_menu_delete_pc">Hapus komputer</string>
     <string name="nettest_title_waiting">Menguji koneksi jaringan</string>
-    <string name="nettest_text_waiting">Moonlight sedang menguji koneksi jaringan untuk mencari tahu apakah NVIDIA GameStream diblokir.
+    <string name="nettest_text_waiting">Moonlight sedang menguji koneksi jaringan untuk mencari tahu apakah jalur diblokir.
 \n
 \nIni mungkin membutuhkan beberapa saat…</string>
     <string name="nettest_text_inconclusive">Uji koneksi jaringan tidak dapat dilakukan karena tidak ada server pengujian Moonlight yang bisa dijangkau. Cek koneksi Internet Anda atau coba lagi nanti.</string>
@@ -93,4 +93,5 @@
 \n
 \nJika masalah berkelanjutan, coba install ulang GeForce Experience dan driver video grafis Anda.</string>
     <string name="help">Bantuan</string>
+    <string name="pcview_menu_eol">NVIDIA GameStream End-of-Service</string>
 </resources>

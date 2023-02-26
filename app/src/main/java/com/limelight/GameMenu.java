@@ -65,7 +65,7 @@ public class GameMenu {
         final byte[] modifier = {(byte) 0};
 
         for (short key : keys) {
-            conn.sendKeyboardInput(key, KeyboardPacket.KEY_DOWN, modifier[0]);
+            conn.sendKeyboardInput(key, KeyboardPacket.KEY_DOWN, modifier[0], (byte) 0);
 
             // Apply the modifier of the pressed key, e.g. CTRL first issues a CTRL event (without
             // modifier) and then sends the following keys with the CTRL modifier applied
@@ -80,7 +80,7 @@ public class GameMenu {
                 // Remove the keys modifier before releasing the key
                 modifier[0] &= ~getModifier(key);
 
-                conn.sendKeyboardInput(key, KeyboardPacket.KEY_UP, modifier[0]);
+                conn.sendKeyboardInput(key, KeyboardPacket.KEY_UP, modifier[0], (byte) 0);
             }
         }), KEY_UP_DELAY);
     }

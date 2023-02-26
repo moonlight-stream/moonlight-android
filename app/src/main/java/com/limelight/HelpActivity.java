@@ -71,12 +71,6 @@ public class HelpActivity extends Activity {
 
                 refreshBackDispatchState();
             }
-
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return !(url.toUpperCase().startsWith("https://github.com/moonlight-stream/moonlight-docs/wiki/".toUpperCase()) ||
-                        url.toUpperCase().startsWith("http://github.com/moonlight-stream/moonlight-docs/wiki/".toUpperCase()));
-            }
         });
 
         webView.loadUrl(getIntent().getData().toString());

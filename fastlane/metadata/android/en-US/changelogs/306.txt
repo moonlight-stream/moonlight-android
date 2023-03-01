@@ -1,0 +1,10 @@
+- Added support for horizontal scrolling with Sunshine hosts
+- Enhanced HDR tonemapping when streaming from Sunshine hosts
+- Reduced input latency via increased input polling rate
+- Added support for typing non-ASCII characters with the software keyboard
+- Fixed issues detecting Sunshine and GFE running on the same PC
+- Fixed relative mouse mode not working on some Chrome OS devices
+- Fixed error message appearing after Wake-on-LAN even when it was successful
+- Fixed a bug handling PCs with addresses that contain underscores
+- Fixed a bug that could cause Chromecasts to enter 24 Hz mode when streaming
+- Fixed touchscreen trackpad mode toggle not appearing on certain devices

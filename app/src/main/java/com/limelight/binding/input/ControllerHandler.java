@@ -900,6 +900,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     conn.sendMouseScroll((byte) -1);
                 }
             }
+            if ((changedMask & ControllerPacket.RIGHT_FLAG) != 0) {
+                if ((inputMap & ControllerPacket.RIGHT_FLAG) != 0) {
+                    conn.sendMouseHScroll((byte) 1);
+                }
+            }
+            if ((changedMask & ControllerPacket.LEFT_FLAG) != 0) {
+                if ((inputMap & ControllerPacket.LEFT_FLAG) != 0) {
+                    conn.sendMouseHScroll((byte) -1);
+                }
+            }
 
             conn.sendControllerInput(controllerNumber, getActiveControllerMask(),
                     (short)0, (byte)0, (byte)0, (short)0, (short)0, (short)0, (short)0);

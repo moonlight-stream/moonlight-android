@@ -2315,7 +2315,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     public void disconnect() {
-        super.onBackPressed();
+        finish();
     }
 
     @Override

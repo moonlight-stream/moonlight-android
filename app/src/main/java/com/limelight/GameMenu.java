@@ -19,15 +19,22 @@ import java.util.List;
  */
 public class GameMenu {
 
+    private static final long TEST_GAME_FOCUS_DELAY = 10;
     private static final long KEY_UP_DELAY = 25;
 
     public static class MenuOption {
         private final String label;
+        private final boolean withGameFocus;
         private final Runnable runnable;
 
-        public MenuOption(String label, Runnable runnable) {
+        public MenuOption(String label, boolean withGameFocus, Runnable runnable) {
             this.label = label;
+            this.withGameFocus = withGameFocus;
             this.runnable = runnable;
+        }
+
+        public MenuOption(String label, Runnable runnable) {
+            this(label, false, runnable);
         }
     }
 
@@ -85,6 +92,32 @@ public class GameMenu {
         }), KEY_UP_DELAY);
     }
 
+    private void runWithGameFocus(Runnable runnable) {
+        // Ensure that the Game activity is still active (not finished)
+        if (game.isFinishing()) {
+            return;
+        }
+        // Check if the game window has focus again, if not try again after delay
+        if (!game.hasWindowFocus()) {
+            new Handler().postDelayed(() -> runWithGameFocus(runnable), TEST_GAME_FOCUS_DELAY);
+            return;
+        }
+        // Game Activity has focus, run runnable
+        runnable.run();
+    }
+
+    private void run(MenuOption option) {
+        if (option.runnable == null) {
+            return;
+        }
+
+        if (option.withGameFocus) {
+            runWithGameFocus(option.runnable);
+        } else {
+            option.runnable.run();
+        }
+    }
+
     private void showMenuDialog(String title, MenuOption[] options) {
         AlertDialog.Builder builder = new AlertDialog.Builder(game);
         builder.setTitle(title);
@@ -103,9 +136,7 @@ public class GameMenu {
                     continue;
                 }
 
-                if (option.runnable != null) {
-                    option.runnable.run();
-                }
+                run(option);
                 break;
             }
         });
@@ -136,7 +167,7 @@ public class GameMenu {
     private void showMenu() {
         List<MenuOption> options = new ArrayList<>();
 
-        options.add(new MenuOption(getString(R.string.game_menu_toggle_keyboard),
+        options.add(new MenuOption(getString(R.string.game_menu_toggle_keyboard), true,
                 () -> game.toggleKeyboard()));
 
         if (device != null) {

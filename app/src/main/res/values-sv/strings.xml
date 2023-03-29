@@ -1,2 +1,253 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="scut_deleted_pc">PC raderad</string>
+    <string name="scut_not_paired">PC inte kopplad</string>
+    <string name="scut_pc_not_found">PC inte hittad</string>
+    <string name="scut_invalid_uuid">Den angivna PC:n är inte giltig</string>
+    <string name="scut_invalid_app_id">Angiven App är inte giltlig</string>
+    <string name="help_loading_title">Hjälpvisare</string>
+    <string name="help_loading_msg">Laddar hjälpsida…</string>
+    <string name="pcview_menu_header_online">Online</string>
+    <string name="pcview_menu_header_offline">Offline</string>
+    <string name="pcview_menu_header_unknown">Uppdaterar</string>
+    <string name="pcview_menu_app_list">Visa alla appar</string>
+    <string name="pcview_menu_pair_pc">Para ihop med PC</string>
+    <string name="pcview_menu_unpair_pc">Koppla bort</string>
+    <string name="pcview_menu_send_wol">Skicka begäran om Wake-On-LAN</string>
+    <string name="pcview_menu_delete_pc">Radera PC</string>
+    <string name="pcview_menu_test_network">Testa nätverksanslutning</string>
+    <string name="pcview_menu_details">Visa detaljer</string>
+    <string name="pcview_menu_eol">NVIDIA GameStream upphör att fungera</string>
+    <string name="nettest_title_waiting">Testning av nätverksanslutning</string>
+    <string name="nettest_text_waiting">Moonlight testar din nätverksanslutning för att avgöra om några nödvändiga portar är blockerade.
+\n
+\nDetta kan ta några sekunder…</string>
+    <string name="pair_pc_ingame">Datorn är för närvarande i ett spel. Du måste stänga spelet innan fogning.</string>
+    <string name="pairing">Fogar…</string>
+    <string name="pair_pairing_title">Fogning</string>
+    <string name="pair_pairing_msg">Ange följande PIN-kod på måldatorn:</string>
+    <string name="pair_pairing_help">Om värddatorn kör Sunshine går du till Sunshine-webbgränssnittet för att ange PIN-koden.</string>
+    <string name="pair_incorrect_pin">Felaktig PIN-kod</string>
+    <string name="pair_fail">Fogning misslyckad</string>
+    <string name="pair_already_in_progress">Fogning redan i utveckling</string>
+    <string name="wol_pc_online">Datorn är online</string>
+    <string name="wol_no_mac">Det går inte att väcka datorn eftersom det inte finns någon lagrad MAC-adress</string>
+    <string name="wol_waking_pc">Väcker dator…</string>
+    <string name="wol_waking_msg">Det kan ta några sekunder innan datorn vaknar upp. Om den inte gör det, kontrollera att den är korrekt konfigurerad för Wake-On-LAN.</string>
+    <string name="wol_fail">Misslyckades med att skicka Wake-On-LAN-paket</string>
+    <string name="unpairing">Bortkopplar…</string>
+    <string name="unpair_success">Bortkoppling framgångsrik</string>
+    <string name="unpair_fail">Misslyckad bortkoppling</string>
+    <string name="unpair_error">Enheten blev inte fogad</string>
+    <string name="error_pc_offline">Dator är offline</string>
+    <string name="error_unknown_host">Misslyckades med att lösa värd</string>
+    <string name="title_decoding_error">Videoavkodare brakade</string>
+    <string name="message_decoding_error">Moonlight har brakat på grund av en inkompatibilitet med den här enhetens videodekoder. Försök att jämka streaminginställningarna om braket fortsätter.</string>
+    <string name="title_decoding_reset">Återställning av videoinställningar</string>
+    <string name="error_usb_prohibited">USB-åtkomst är förbjuden av enhetens administratör. Kontrollera dina Knox- eller MDM-inställningar.</string>
+    <string name="unable_to_pin_shortcut">Din nuvarande lanseringsprogramvara tillåter inte att du skapar genvägar som är fastlåsta.</string>
+    <string name="no_video_received_error">Ingen video har tagits emot från värden.</string>
+    <string name="no_frame_received_error">Din nätverksanslutning fungerar inte bra. Minska inställningen för videobitrate eller prova en snabbare anslutning.</string>
+    <string name="check_ports_msg">Kontrollera din brandvägg och dina regler för portvidarebefordran för port(er):</string>
+    <string name="conn_establishing_title">Upprättar fogning</string>
+    <string name="conn_establishing_msg">Startar fogning</string>
+    <string name="conn_metered">Varning: Din aktiva nätverksfogning är mätbar!</string>
+    <string name="conn_client_latency">Genomsnittlig latenstid för ramavkodning:</string>
+    <string name="conn_client_latency_hw">Latency för hårdvaruavkodare:</string>
+    <string name="conn_hardware_latency">Genomsnittlig latenstid för maskinvaruavkodning:</string>
+    <string name="conn_starting">Börjar</string>
+    <string name="conn_error_title">Fogningsfel</string>
+    <string name="conn_error_msg">Misslyckades att börja</string>
+    <string name="conn_terminated_title">Fogning förstörd</string>
+    <string name="conn_terminated_msg">Fogningen har förstörts</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nej</string>
+    <string name="lost_connection">Tappade fogning till dator</string>
+    <string name="title_details">Detaljer</string>
+    <string name="help">Hjälp</string>
+    <string name="delete_pc_msg">Är du säker på att du vill ta bort den här datorn\?</string>
+    <string name="slow_connection_msg">Långsam anslutning till datorn
+\nMinska din bithastighet</string>
+    <string name="poor_connection_msg">Dålig anslutning till datorn</string>
+    <string name="perf_overlay_streamdetails">Videoström: %1$s %2$.2f FPS</string>
+    <string name="perf_overlay_decoder">Avkodare: %1$s</string>
+    <string name="perf_overlay_incomingfps">Inkommande bildfrekvens från nätverket: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">Renderingens bildfrekvens: %1$.2f FPS</string>
+    <string name="perf_overlay_netdrops">Ramar som tappats av din nätverksanslutning: %1$.2f%%%</string>
+    <string name="perf_overlay_dectime">Genomsnittlig avkodningstid: %1$.2f ms</string>
+    <string name="applist_connect_msg">Fogar till dator…</string>
+    <string name="applist_menu_resume">Återuppta session</string>
+    <string name="applist_menu_quit">Avsluta session</string>
+    <string name="applist_menu_quit_and_start">Avsluta aktuellt spel och starta</string>
+    <string name="applist_menu_cancel">Avbryt</string>
+    <string name="applist_menu_details">Visa detaljer</string>
+    <string name="applist_menu_scut">Skapa genväg</string>
+    <string name="applist_menu_tv_channel">Lägg till i kanal</string>
+    <string name="applist_menu_hide_app">Dölj appen</string>
+    <string name="applist_refresh_title">Applista</string>
+    <string name="applist_refresh_msg">Friskar upp appar…</string>
+    <string name="applist_refresh_error_title">Fel</string>
+    <string name="applist_refresh_error_msg">Misslyckades att få app lista</string>
+    <string name="applist_quit_app">Avslutar</string>
+    <string name="applist_quit_success">Framgångsrikt avslutad</string>
+    <string name="applist_quit_confirmation">Är du säker på att du vill avsluta den pågående appen\? Alla osparade datamatrial kommer att gå förlorade.</string>
+    <string name="title_add_pc">Lägg till en dator manuellt</string>
+    <string name="msg_add_pc">Fogar till datorn…</string>
+    <string name="addpc_fail">Det går inte att foga till den angivna datorn. Kontrollera att de nödvändiga portarna tillåts genom brandväggen.</string>
+    <string name="addpc_success">Lyckades lägga till dator</string>
+    <string name="addpc_unknown_host">Det går inte att lösa PC-adressen. Kontrollera att du inte har skrivit fel i adressen.</string>
+    <string name="applist_details_id">Applikations identitet:</string>
+    <string name="addpc_enter_ip">Du måste ange en IP-adress</string>
+    <string name="addpc_wrong_sitelocal">Den adressen ser inte rätt ut. Du måste använda routerns offentliga IP-adress för att streama via Internet.</string>
+    <string name="category_basic_settings">Grundinställningar</string>
+    <string name="title_resolution_list">Videoupplösning</string>
+    <string name="summary_resolution_list">Öka för att förbättra bildens tydlighet. Sänk för bättre prestanda på mindre avancerade enheter och långsammare nätverk.</string>
+    <string name="title_fps_list">Videobildfrekvens</string>
+    <string name="summary_fps_list">Öka för en jämnare videoström. Sänk för bättre prestanda på enheter med lägre prestanda.</string>
+    <string name="title_seekbar_bitrate">Videobitrate</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbit/s</string>
+    <string name="resolution_prefix_native">Ursprung</string>
+    <string name="resolution_prefix_native_fullscreen">Ursprungshelskärm</string>
+    <string name="resolution_prefix_native_landscape">(Landskap)</string>
+    <string name="resolution_prefix_native_portrait">(Porträtt)</string>
+    <string name="category_audio_settings">Ljudinställningar</string>
+    <string name="title_audio_config_list">Konfiguration av surroundljud</string>
+    <string name="title_checkbox_enable_audiofx">Aktivera stöd för systemets equalizer</string>
+    <string name="category_input_settings">Inmatningsinställningar</string>
+    <string name="title_checkbox_touchscreen_trackpad">Använd pekskärmen som en styrplatta</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Om den är aktiverad fungerar pekskärmen som en styrplatta. Om den är inaktiverad styr pekskärmen direkt muspekaren.</string>
+    <string name="title_checkbox_multi_controller">Automatiskt upptäckande av närvarande spelkontroll</string>
+    <string name="title_checkbox_vibrate_fallback">Efterlikna stöd för rumble med vibrationer</string>
+    <string name="summary_checkbox_vibrate_fallback">Vibrerar enheten för att efterlikna rumble om din spelplatta inte har stöd för det</string>
+    <string name="summary_seekbar_deadzone">Observera: Vissa spel kan kräva en större dödzon än vad Moonlight är konfigurerat för att använda.</string>
+    <string name="title_seekbar_deadzone">Jämka analogstickans dödzon</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_xb1_driver">Drivrutin för Xbox 360/One USB-spelplatta</string>
+    <string name="summary_checkbox_xb1_driver">Aktiverar en inbyggd USB-drivrutin för enheter som inte har stöd för Xbox-kontroller</string>
+    <string name="title_checkbox_usb_bind_all">Behärska det ursprungliga stödet för Xbox-spelplatta</string>
+    <string name="title_checkbox_mouse_emulation">Erterliknande av mus genom spelplatta</string>
+    <string name="summary_checkbox_mouse_emulation">Om du trycker länge på startknappen skiftar du spelplatta till musläge</string>
+    <string name="title_checkbox_mouse_nav_buttons">Sätt på musknapparna bakåt och framåt</string>
+    <string name="summary_checkbox_flip_face_buttons">Skiftar ansiktsknapparna A/B och X/Y för spelplattor och kontroller på skärmen</string>
+    <string name="title_checkbox_flip_face_buttons">Skifta ansiktsknappar</string>
+    <string name="title_checkbox_absolute_mouse_mode">Musläget för fjärrskrivbord</string>
+    <string name="summary_checkbox_absolute_mouse_mode">Detta kan göra musacceleration mer naturligt för fjärrskrivbordsanvändning, men det är oförenligt med många spel.</string>
+    <string name="category_on_screen_controls_settings">Inställningar för kontroller på skärmen</string>
+    <string name="title_checkbox_vibrate_osc">Sätt på darrning</string>
+    <string name="summary_checkbox_vibrate_osc">Darrar din enhet för att ge svar på skärmkontrollerna</string>
+    <string name="title_only_l3r3">Visa bara L3 och R3</string>
+    <string name="summary_only_l3r3">Dölj alla synliga knappar utom L3 och R3</string>
+    <string name="title_reset_osc">Rensa sparad formgivning för kontroller på skärmen</string>
+    <string name="dialog_title_reset_osc">Återställ formgivning</string>
+    <string name="dialog_text_reset_osc">Är du säker på att du vill ta bort din sparade layout för skärmenheterna\?</string>
+    <string name="toast_reset_osc_success">Kontroller på skärmen återställs till ursprungsinställningen</string>
+    <string name="title_osc_opacity">Jämka genomskinligheten av skärmkontrollerna</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="title_checkbox_enable_pip">Sätt på bild-i-bild-observatörsläge</string>
+    <string name="title_language_list">Språk</string>
+    <string name="summary_language_list">Språk att använda för Moonlight</string>
+    <string name="title_checkbox_small_icon_mode">Använd liten omslagskonst</string>
+    <string name="summary_checkbox_small_icon_mode">Mindre lådor i appgallret gör att fler appar syns på skärmen</string>
+    <string name="category_host_settings">Värdinställningar</string>
+    <string name="title_checkbox_enable_sops">Optimera spelinställningarna</string>
+    <string name="summary_checkbox_enable_sops">Tillåt GFE att ändra spelinställningar för optimal strömning</string>
+    <string name="title_checkbox_host_audio">Spela upp ljud på datorn</string>
+    <string name="summary_checkbox_host_audio">Spela upp ljud från datorn och den här enheten</string>
+    <string name="category_advanced_settings">Utvecklade inställningar</string>
+    <string name="title_unlock_fps">Lås upp alla möjliga bildfrekvenser</string>
+    <string name="title_checkbox_reduce_refresh_rate">Tillåt minskning av uppdateringsfrekvensen</string>
+    <string name="title_checkbox_disable_warnings">Ta bort varningsmedelanden</string>
+    <string name="summary_checkbox_disable_warnings">Ta bort varningsmeddelanden om inmatning på skärmen när du strömmar</string>
+    <string name="title_disable_frame_drop">Tappa aldrig bildramar</string>
+    <string name="summary_disable_frame_drop">Kan minska mikrohack på vissa enheter, men kan öka latensen</string>
+    <string name="title_video_format">Ändra HEVC-inställningar</string>
+    <string name="summary_video_format">HEVC sänker kraven på videobandbredd men kräver en nyare enhet</string>
+    <string name="title_enable_hdr">Sätt på HDR (Prövning)</string>
+    <string name="summary_enable_hdr">Strömma HDR när spelet och datorns GPU stöder det. HDR kräver en GPU med stöd för HEVC Main 10-kodning.</string>
+    <string name="title_full_range">Tvinga video med fullt omfång (Prövning)</string>
+    <string name="title_enable_perf_overlay">Visa prestandastatistik under ströming</string>
+    <string name="summary_enable_perf_overlay">Visa information om strömningens duglighet i nutid medans du strömmar</string>
+    <string name="summary_enable_post_stream_toast">Visa ett meddelande med information om latens när strömmen avslutas</string>
+    <string name="category_help">Hjälp</string>
+    <string name="title_setup_guide">Installationsguide</string>
+    <string name="title_troubleshooting">Vägledning för felsökning</string>
+    <string name="summary_troubleshooting">Visa gissningar för att utvärdera och åtgärda vanliga strömningsbeskymmer</string>
+    <string name="title_privacy_policy">Integritetspolicy</string>
+    <string name="summary_privacy_policy">Visa Moonlights integritetspolicy</string>
+    <string name="resolution_360p">360p</string>
+    <string name="resolution_480p">480p</string>
+    <string name="resolution_720p">720p</string>
+    <string name="resolution_1440p">1440p</string>
+    <string name="resolution_4k">4K</string>
+    <string name="fps_30">30 FPS</string>
+    <string name="fps_90">90 FPS</string>
+    <string name="audioconf_stereo">Stereo</string>
+    <string name="audioconf_51surround">5.1 surroundljud</string>
+    <string name="audioconf_71surround">7.1 surroundljud</string>
+    <string name="videoformat_hevcauto">Automatisk (rekommenderas)</string>
+    <string name="videoformat_hevcalways">Föredrar HEVC</string>
+    <string name="videoformat_hevcnever">Använd aldrig HEVC</string>
+    <string name="title_frame_pacing">Videorams fart</string>
+    <string name="pacing_latency">Föredrar lägsta latenstid</string>
+    <string name="pacing_balanced">Balanserad</string>
+    <string name="pacing_balanced_alt">Balanserad med FPS-gräns</string>
+    <string name="pacing_smoothness">Föredrar smidigast video (kan öka latensen avsevärt)</string>
+    <string name="nettest_title_done">Nätverkstestet fullföljt</string>
+    <string name="nettest_text_failure">Din enhets aktuella nätverksanslutning verkar blockera Moonlight. Streaming via Internet kanske inte fungerar när du är ansluten till det här nätverket.
+\n
+\nFöljande nätverksportar blockerades:
+\n</string>
+    <string name="nettest_text_success">Ditt nätverk verkar inte blockera Moonlight. Om du fortfarande har problem med anslutningen kan du kontrollera datorns brandväggsinställningar.
+\n
+\nOm du försöker streama via Internet installerar du Moonlight Internet Hosting Tool på din dator och kör den medföljande Internet Streaming Tester för att kontrollera datorns Internetanslutning.</string>
+    <string name="nettest_text_inconclusive">Nätverkstestet kunde inte utföras eftersom ingen av Moonlights servrar för anslutningstestning kunde nås. Kontrollera din internetanslutning eller försök igen senare.</string>
+    <string name="nettest_text_blocked">Enhetens aktuella nätverksanslutning blockerar Moonlight. Streaming via Internet kanske inte fungerar när du är ansluten till det här nätverket.</string>
+    <string name="pair_pc_offline">Dator är offline</string>
+    <string name="error_manager_not_running">Tjänsten ComputerManager körs inte. Vänta några sekunder eller starta om programmet.</string>
+    <string name="error_404">GFE returnerade ett HTTP 404-fel. Kontrollera att din dator har en GPU som stöds. Användning av fjärrskrivbordsprogram kan också orsaka det här felet. Försök att starta om maskinen eller installera om GFE.</string>
+    <string name="message_decoding_reset">Enhetens videoavkodare fortsätter att braka vid de valda streaminginställningarna. Dina streaminginställningar har återställts till standardinställningen.</string>
+    <string name="video_decoder_init_failed">Videodekodern misslyckades med att initialisera. Din enhet kanske inte stöder den valda upplösningen eller bildfrekvensen.</string>
+    <string name="early_termination_error">Något gick fel på din värddator när du startade strömmen.
+\n
+\nKontrollera att du inte har något DRM-skyddat innehåll öppet på din värddator. Du kan också försöka starta om din värddator.</string>
+    <string name="frame_conversion_error">Värddatorn rapporterade ett allvarligt fel i videokodningen.
+\n
+\nFörsök att inaktivera HDR-läget, ändra streamingupplösningen eller ändra värddatorns skärmupplösning.</string>
+    <string name="ip_hint">IP-adress för värddatorn</string>
+    <string name="searching_pc">Söker efter värddatorer i det lokala nätverket...
+\n
+\n Kontrollera att Sunshine körs på värddatorn eller att GameStream är aktiverat i inställningarna för GeForce Experience SHIELD.</string>
+    <string name="perf_overlay_netlatency">Genomsnittlig nätverksfördröjning: %1$d ms (varians: %2$d ms)</string>
+    <string name="applist_quit_fail">Misslyckades att avsluta</string>
+    <string name="title_native_res_dialog">Varning för ursprunglig upplösning</string>
+    <string name="text_native_res_dialog">Lägen med native upplösning stöds inte officiellt av GeForce Experience, så det kommer inte att ställa in upplösningen på värdskärmen själv. Du måste ställa in den manuellt i spelet.
+\n
+\nOm du väljer att skapa en anpassad upplösning i NVIDIA Control Panel för att matcha enhetens upplösning ska du se till att du har läst och förstått NVIDIAs varning om möjliga skador på skärmen, instabilitet i datorn och andra potentiella problem.
+\n
+\nVi är inte ansvariga för eventuella problem som uppstår till följd av att du skapar en anpassad upplösning på din dator.
+\n
+\nSlutligen kan det hända att din enhet eller värddator inte stöder streaming i den ursprungliga upplösningen. Om det inte fungerar på din enhet har du tyvärr bara otur.</string>
+    <string name="summary_seekbar_bitrate">Öka för bättre bildkvalitet. Minska för att förbättra prestandan på långsammare anslutningar.</string>
+    <string name="title_checkbox_stretch_video">Sträck ut videon till helskärm</string>
+    <string name="summary_audio_config_list">Aktivera 5.1 eller 7.1 surroundljud för hemmabiosystem</string>
+    <string name="summary_checkbox_enable_audiofx">Ljudeffekter kan fungera under streaming, men kan öka ljudfördröjningen</string>
+    <string name="summary_checkbox_multi_controller">Om du avmarkerar det här alternativet tvingas en spelplatta att alltid finnas med</string>
+    <string name="summary_checkbox_usb_bind_all">Använd Moonlights USB-drivrutin för alla gamepads som stöds, även om det finns stöd för Xbox-kontroller i original</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Om du lägger till det här alternativet kan högerklickandet gå sönder på vissa felaktiga enheter</string>
+    <string name="title_checkbox_show_onscreen_controls">Visa kontrollerna på skärmen</string>
+    <string name="summary_checkbox_show_onscreen_controls">Visa en virtuell styrenhet på pekskärmen</string>
+    <string name="summary_reset_osc">Återställ alla kontroller på skärmen till deras standard storlek och position</string>
+    <string name="dialog_title_osc_opacity">Jämka genomskinligheten</string>
+    <string name="summary_osc_opacity">Gör kontrollerna på skärmen mer/mindre genomskinliga</string>
+    <string name="summary_checkbox_enable_pip">Gör det möjligt att se strömmen (men inte att styra den) medan du gör andra saker samtidigt</string>
+    <string name="category_ui_settings">Inställningar för användargränssnittet</string>
+    <string name="summary_unlock_fps">Streaming med 90 eller 120 FPS kan minska latenstiden på avancerade enheter, men kan orsaka fördröjning eller instabilitet på enheter som inte har stöd för det</string>
+    <string name="summary_checkbox_reduce_refresh_rate">Lägre uppdateringsfrekvenser på skärmen kan spara ström på bekostnad av ytterligare videolatens</string>
+    <string name="summary_full_range">Detta kan leda till förlust av detalj i ljusa och mörka områden om enheten inte visar videoinnehåll med fullt omfång på rätt sätt.</string>
+    <string name="fps_120">120 FPS</string>
+    <string name="title_enable_post_stream_toast">Visa meddelande om latenstid efter strömning</string>
+    <string name="summary_setup_guide">Visa instruktioner om hur du utformar din speldator för strömning</string>
+    <string name="resolution_1080p">1080p</string>
+    <string name="fps_60">60 FPS</string>
+    <string name="summary_frame_pacing">Ange hur du ska balansera videofördröjning och jämnhet</string>
+</resources>

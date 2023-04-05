@@ -15,7 +15,7 @@ public class PreferenceConfiguration {
 
     static final String RESOLUTION_PREF_STRING = "list_resolution";
     static final String FPS_PREF_STRING = "list_fps";
-    static final String BITRATE_PREF_STRING = "seekbar_bitrate_kbps";
+    static final String BITRATE_PREF_STRING = "seekbar_bitrate_mbps";
     private static final String BITRATE_PREF_OLD_STRING = "seekbar_bitrate";
     private static final String STRETCH_PREF_STRING = "checkbox_stretch_video";
     private static final String SOPS_PREF_STRING = "checkbox_enable_sops";
@@ -242,23 +242,23 @@ public class PreferenceConfiguration {
         // https://github.com/moonlight-stream/moonlight-qt/blob/master/app/settings/streamingpreferences.cpp
 
         if (width * height <= 640 * 360) {
-            return (int)(1000 * (fps / 30.0));
+            return (int)(1 * (fps / 30.0));
         }
         else if (width * height <= 854 * 480) {
-            return (int)(1500 * (fps / 30.0));
+            return (int)(1.5 * (fps / 30.0));
         }
         // This covers 1280x720 and 1280x800 too
         else if (width * height <= 1366 * 768) {
-            return (int)(5000 * (fps / 30.0));
+            return (int)(5 * (fps / 30.0));
         }
         else if (width * height <= 1920 * 1200) {
-            return (int)(10000 * (fps / 30.0));
+            return (int)(10 * (fps / 30.0));
         }
         else if (width * height <= 2560 * 1600) {
-            return (int)(20000 * (fps / 30.0));
+            return (int)(20 * (fps / 30.0));
         }
         else /* if (width * height <= 3840 * 2160) */ {
-            return (int)(40000 * (fps / 30.0));
+            return (int)(40 * (fps / 30.0));
         }
     }
 
@@ -459,7 +459,7 @@ public class PreferenceConfiguration {
         }
 
         // This must happen after the preferences migration to ensure the preferences are populated
-        config.bitrate = prefs.getInt(BITRATE_PREF_STRING, prefs.getInt(BITRATE_PREF_OLD_STRING, 0) * 1000);
+        config.bitrate = prefs.getInt(BITRATE_PREF_STRING, prefs.getInt(BITRATE_PREF_OLD_STRING, 0) * 1000 * 1000);
         if (config.bitrate == 0) {
             config.bitrate = getDefaultBitrate(context);
         }

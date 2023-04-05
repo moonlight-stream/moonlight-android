@@ -19,13 +19,13 @@
             android:entryValues="@array/fps_values"
             android:defaultValue="60" />
         <com.limelight.preferences.SeekBarPreference
-            android:key="seekbar_bitrate_kbps"
+            android:key="seekbar_bitrate_mbps"
             android:dialogMessage="@string/summary_seekbar_bitrate"
-            seekbar:min="500"
-            android:max="150000"
-            seekbar:step="500"
-            seekbar:keyStep="1000"
-            seekbar:divisor="1000"
+            seekbar:min="1"
+            android:max="150"
+            seekbar:step="1"
+            seekbar:keyStep="1"
+            seekbar:divisor="1"
             android:summary="@string/summary_seekbar_bitrate"
             android:text="@string/suffix_seekbar_bitrate_mbps"
             android:title="@string/title_seekbar_bitrate" />

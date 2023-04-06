@@ -459,9 +459,9 @@ public class PreferenceConfiguration {
         }
 
         // This must happen after the preferences migration to ensure the preferences are populated
-        config.bitrate = prefs.getInt(BITRATE_PREF_STRING, prefs.getInt(BITRATE_PREF_OLD_STRING, 0) * 1000 * 1000);
+        config.bitrate = prefs.getInt(BITRATE_PREF_STRING, prefs.getInt(BITRATE_PREF_OLD_STRING, 0) * 1000) * 1000;
         if (config.bitrate == 0) {
-            config.bitrate = getDefaultBitrate(context);
+            config.bitrate = getDefaultBitrate(context) * 1000000;
         }
 
         String audioConfig = prefs.getString(AUDIO_CONFIG_PREF_STRING, DEFAULT_AUDIO_CONFIG);

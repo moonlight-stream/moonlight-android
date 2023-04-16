@@ -52,6 +52,9 @@ import android.content.res.Configuration;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.input.InputManager;
+import android.hardware.SensorEventListener;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
@@ -77,6 +80,7 @@ import android.widget.FrameLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.hardware.SensorManager;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -90,7 +94,7 @@ import java.util.Locale;
 public class Game extends Activity implements SurfaceHolder.Callback,
         OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
         OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
-        PerfOverlayListener, UsbDriverService.UsbDriverStateListener, View.OnKeyListener {
+        PerfOverlayListener, UsbDriverService.UsbDriverStateListener, View.OnKeyListener, SensorEventListener {
     private int lastButtonState = 0;
 
     // Only 2 touches are supported
@@ -152,6 +156,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private WifiManager.WifiLock lowLatencyWifiLock;
 
     private boolean connectedToUsbDriverService = false;
+
+    private SensorManager sensorManager;
+    private Sensor gameRotationVectorSensor;
+    private float gyroSensitivity;
+
     private ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -180,8 +189,26 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public static final String EXTRA_SERVER_CERT = "ServerCert";
 
     @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+            float dx = event.values[0];
+            float dy = event.values[1];
+
+            short x = (short) (dx * -gyroSensitivity);
+            short y = (short) (dy * gyroSensitivity);
+            conn.sendMouseMove(x, y);
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        this.gameRotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
         UiHelper.setLocale(this);
 
@@ -533,6 +560,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // The connection will be started when the surface gets created
         streamView.getHolder().addCallback(this);
+        sensorManager.registerListener(this, gameRotationVectorSensor, SensorManager.SENSOR_DELAY_GAME);
+        gyroSensitivity = (float)prefConfig.gyroSensitivity;
     }
 
     private void setPreferredOrientationForCurrentDisplay() {

@@ -130,4 +130,26 @@
     <string name="addpc_fail">לא ניתן להתחבר למחשב שנבחר. נא לבדוק שהפורטים הנחוצים פתוחים בחומת האש.</string>
     <string name="addpc_wrong_sitelocal">הכתובת לא נראת נכונה. צריך להשתמש בכתובת IP הציבורית בכדי להתחבר דרך האינטרנט.</string>
     <string name="summary_resolution_list">להגביר לשיפור איכות התמונה. להוריד לשיפור ביצועים על מערכות ישנות ורשתות איטיות.</string>
+    <string name="text_native_res_dialog">רזולוציות טבעיות אינן נתמכות רשמית דרך Geforce Expereience, הרזולוציה לא מוגדרת במסך המארח. יש להגדירה ידנית בזמן משחק.
+\n
+\nיש לקרוא ולהבין את ההנחיות של NVIDIA לגבי אי יציבות ונזקים אם מגדירים רזולוציה מותאמת אישית דרך פאנל הניהול.
+\n
+\nמונלייט אינו אחראי לבעיות או נזקים שנגרמים כתוצאה משימוש ברזולוציה מותאמת אישית.
+\n
+\nהמכשיר שלך כנראה ואינו תומך ברזולוציה טבעית.</string>
+    <string name="summary_seekbar_bitrate">הגבר לשיפור איכות התמונה. הנמך בכדי לשפר ביצועים על גבי חיבור רשת איטי.</string>
+    <string name="summary_audio_config_list">הפעל קול היקפי בהגדרת 5.1 או 7.1 עבור מערכות קולנוע ביתי</string>
+    <string name="summary_checkbox_enable_audiofx">אפשר לאפקטי סאונד לפעול בזמן הזרמה, יגרום להשהיית אודיו</string>
+    <string name="conn_hardware_latency">זמן פענוח ממוצע:</string>
+    <string name="summary_fps_list">הגבר להזרמת וידיאו חלקה יותר. הנמך לביצועים ויציבות במכשירים חלשים.</string>
+    <string name="title_seekbar_bitrate">וידיאו ביטרייט</string>
+    <string name="suffix_seekbar_bitrate_mbps">מגהביט</string>
+    <string name="title_checkbox_stretch_video">מתחית וידיאו למסך מלא</string>
+    <string name="resolution_prefix_native">טבעי</string>
+    <string name="resolution_prefix_native_fullscreen">טבעי במסך מלא</string>
+    <string name="category_audio_settings">הגדרות אודיו</string>
+    <string name="title_audio_config_list">הגדרת קול היקפי (Surround sound)</string>
+    <string name="title_checkbox_enable_audiofx">הפעל תמיכה באקולייזר</string>
+    <string name="category_input_settings">הגדרות קלט</string>
+    <string name="title_checkbox_touchscreen_trackpad">השתמש במסך מגע כמשטח מגע</string>
 </resources>

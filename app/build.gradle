@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    ndkVersion "23.2.8568313"
+    ndkVersion '25.2.9519653'
 
     compileSdk 33
 

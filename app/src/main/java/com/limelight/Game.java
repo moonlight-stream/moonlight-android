@@ -96,6 +96,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     // Only 2 touches are supported
     private final TouchContext[] touchContextMap = new TouchContext[2];
     private long threeFingerDownTime = 0;
+    private long twoFingerDownTime = 0;
 
     private static final int REFERENCE_HORIZ_RES = 1280;
     private static final int REFERENCE_VERT_RES = 720;
@@ -107,6 +108,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private static final int STYLUS_UP_DEAD_ZONE_RADIUS = 50;
 
     private static final int THREE_FINGER_TAP_THRESHOLD = 300;
+    private static final int TWO_FINGER_TAP_THRESHOLD = 300;
 
     private ControllerHandler controllerHandler;
     private KeyboardTranslator keyboardTranslator;
@@ -489,7 +491,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
             if (!prefConfig.touchscreenTrackpad) {
-                touchContextMap[i] = new AbsoluteTouchContext(conn, i, streamView);
+                touchContextMap[i] = new AbsoluteTouchContext(conn, i, streamView, prefConfig);
             }
             else {
                 touchContextMap[i] = new RelativeTouchContext(conn, i,
@@ -1687,6 +1689,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     return true;
                 }
 
+                // Special handling for 2 finger right click, same as above
+                if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN &&
+                        event.getPointerCount() == 2 && prefConfig.twoFingerRightClick) {
+                    twoFingerDownTime = event.getEventTime();
+                    for (TouchContext aTouchContext : touchContextMap) {
+                        aTouchContext.cancelTouch();
+                    }
+
+                    return true;
+                }
+
                 TouchContext context = getTouchContext(actionIndex);
                 if (context == null) {
                     return false;
@@ -1709,6 +1722,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         if (event.getEventTime() - threeFingerDownTime < THREE_FINGER_TAP_THRESHOLD) {
                             // This is a 3 finger tap to bring up the keyboard
                             toggleKeyboard();
+                            return true;
+                        }
+                    }
+
+                    if (event.getPointerCount() == 1 &&
+                            (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || (event.getFlags() & MotionEvent.FLAG_CANCELED) == 0)) {
+                        if (event.getEventTime() - twoFingerDownTime < TWO_FINGER_TAP_THRESHOLD) {
+                            // This is a 2 finger tap to right click
+                            conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
+                            conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
                             return true;
                         }
                     }

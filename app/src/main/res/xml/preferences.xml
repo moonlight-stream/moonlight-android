@@ -65,10 +65,17 @@
             android:text="@string/suffix_seekbar_deadzone"
             android:title="@string/title_seekbar_deadzone"/>
         <CheckBoxPreference
+            android:defaultValue="true"
+            android:disableDependentsState="true"
             android:key="checkbox_touchscreen_trackpad"
-            android:title="@string/title_checkbox_touchscreen_trackpad"
             android:summary="@string/summary_checkbox_touchscreen_trackpad"
-            android:defaultValue="true" />
+            android:title="@string/title_checkbox_touchscreen_trackpad" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:disableDependentsState="false"
+            android:key="checkbox_two_right_click"
+            android:summary="@string/summary_double_tap_right_click"
+            android:title="@string/title_double_tap_right_click" />
         <CheckBoxPreference
             android:key="checkbox_multi_controller"
             android:title="@string/title_checkbox_multi_controller"

@@ -50,6 +50,8 @@ public class PreferenceConfiguration {
     private static final String REDUCE_REFRESH_RATE_PREF_STRING = "checkbox_reduce_refresh_rate";
     private static final String FULL_RANGE_PREF_STRING = "checkbox_full_range";
 
+    private static final String TWO_FINGER_RIGHT_CLICK_PREF_STRING = "checkbox_two_right_click";
+
     static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
     private static final boolean DEFAULT_STRETCH = false;
@@ -82,6 +84,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_ENABLE_AUDIO_FX = false;
     private static final boolean DEFAULT_REDUCE_REFRESH_RATE = false;
     private static final boolean DEFAULT_FULL_RANGE = false;
+    private static final boolean DEFAULT_TWO_FINGER_RIGHT_CLICK = false;
 
     public static final int FORCE_H265_ON = -1;
     public static final int AUTOSELECT_H265 = 0;
@@ -127,6 +130,7 @@ public class PreferenceConfiguration {
     public boolean enableAudioFx;
     public boolean reduceRefreshRate;
     public boolean fullRange;
+    public boolean twoFingerRightClick;
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
@@ -510,6 +514,7 @@ public class PreferenceConfiguration {
         config.enableAudioFx = prefs.getBoolean(ENABLE_AUDIO_FX_PREF_STRING, DEFAULT_ENABLE_AUDIO_FX);
         config.reduceRefreshRate = prefs.getBoolean(REDUCE_REFRESH_RATE_PREF_STRING, DEFAULT_REDUCE_REFRESH_RATE);
         config.fullRange = prefs.getBoolean(FULL_RANGE_PREF_STRING, DEFAULT_FULL_RANGE);
+        config.twoFingerRightClick = prefs.getBoolean(TWO_FINGER_RIGHT_CLICK_PREF_STRING, DEFAULT_TWO_FINGER_RIGHT_CLICK);
 
         return config;
     }

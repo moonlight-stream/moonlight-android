@@ -108,6 +108,7 @@
     <string name="perf_overlay_decoder">Decoder: %1$s</string>
     <string name="perf_overlay_incomingfps">Incoming frame rate from network: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Rendering frame rate: %1$.2f FPS</string>
+    <string name="perf_overlay_hostprocessinglatency">Host processing latency min/max/average: %1$.1f/%2$.1f/%3$.1f ms</string>
     <string name="perf_overlay_netdrops">Frames dropped by your network connection: %1$.2f%%</string>
     <string name="perf_overlay_netlatency">Average network latency: %1$d ms (variance: %2$d ms)</string>
     <string name="perf_overlay_dectime">Average decoding time: %1$.2f ms</string>

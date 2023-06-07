@@ -1292,7 +1292,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     @SuppressWarnings("deprecation")
     @Override
     public int submitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
-                                int frameNumber, int frameType, long receiveTimeMs, long enqueueTimeMs) {
+                                int frameNumber, int frameType, char frameHostProcessingLatency,
+                                long receiveTimeMs, long enqueueTimeMs) {
         if (stopping) {
             // Don't bother if we're stopping
             return MoonBridge.DR_OK;
@@ -1334,6 +1335,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 sb.append(context.getString(R.string.perf_overlay_decoder, decoder)).append('\n');
                 sb.append(context.getString(R.string.perf_overlay_incomingfps, fps.receivedFps)).append('\n');
                 sb.append(context.getString(R.string.perf_overlay_renderingfps, fps.renderedFps)).append('\n');
+                sb.append(context.getString(R.string.perf_overlay_hostprocessinglatency,
+                        (float)lastTwo.minHostProcessingLatency / 10,
+                        (float)lastTwo.maxHostProcessingLatency / 10,
+                        (float)lastTwo.totalHostProcessingLatency / 10 / Math.max(lastTwo.framesWithHostProcessingLatency, 1))).append('\n');
                 sb.append(context.getString(R.string.perf_overlay_netdrops,
                         (float)lastTwo.framesLost / lastTwo.totalFrames * 100)).append('\n');
                 sb.append(context.getString(R.string.perf_overlay_netlatency,
@@ -1533,6 +1538,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             }
         }
         else {
+            if (frameHostProcessingLatency != 0) {
+                if (activeWindowVideoStats.minHostProcessingLatency != 0) {
+                    activeWindowVideoStats.minHostProcessingLatency = (char) Math.min(activeWindowVideoStats.minHostProcessingLatency, frameHostProcessingLatency);
+                } else {
+                    activeWindowVideoStats.minHostProcessingLatency = frameHostProcessingLatency;
+                }
+                activeWindowVideoStats.framesWithHostProcessingLatency += 1;
+            }
+            activeWindowVideoStats.maxHostProcessingLatency = (char) Math.max(activeWindowVideoStats.maxHostProcessingLatency, frameHostProcessingLatency);
+            activeWindowVideoStats.totalHostProcessingLatency += frameHostProcessingLatency;
+
             activeWindowVideoStats.totalFramesReceived++;
             activeWindowVideoStats.totalFrames++;
 

@@ -143,6 +143,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private TextView notificationOverlayView;
     private int requestedNotificationOverlayVisibility = View.GONE;
     private TextView performanceOverlayView;
+    private int requestedPerformanceOverlayVisibility = View.GONE;
 
     private ShortcutHelper shortcutHelper;
 
@@ -377,11 +378,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             else {
                 Toast.makeText(this, "HDR requires Android 7.0 or later", Toast.LENGTH_LONG).show();
             }
-        }
-
-        // Check if the user has enabled performance stats overlay
-        if (prefConfig.enablePerfOverlay) {
-            performanceOverlayView.setVisibility(View.VISIBLE);
         }
 
         decoderRenderer = new MediaCodecDecoderRenderer(
@@ -631,10 +627,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     virtualController.show();
                 }
 
-                if (prefConfig.enablePerfOverlay) {
-                    performanceOverlayView.setVisibility(View.VISIBLE);
-                }
-
+                performanceOverlayView.setVisibility(requestedPerformanceOverlayVisibility);
                 notificationOverlayView.setVisibility(requestedNotificationOverlayVisibility);
 
                 // Update GameManager state to indicate we're out of PiP (gaming, non-interruptible)
@@ -2282,6 +2275,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
+    public boolean isPerfOverlayVisible() {
+        return requestedPerformanceOverlayVisibility == View.VISIBLE;
+    }
+
+    @Override
     public void onUsbPermissionPromptStarting() {
         // Disable PiP auto-enter while the USB permission prompt is on-screen. This prevents
         // us from entering PiP while the user is interacting with the OS permission dialog.
@@ -2328,5 +2326,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // ensures that Android properly handles the back key when needed and only open the game
         // menu when the activity would be closed.
         showGameMenu(null);
+    }
+
+    public void togglePerformanceOverlay() {
+        if (requestedPerformanceOverlayVisibility == View.VISIBLE) {
+            requestedPerformanceOverlayVisibility = View.GONE;
+        } else {
+            requestedPerformanceOverlayVisibility = View.VISIBLE;
+        }
+        performanceOverlayView.setVisibility(requestedPerformanceOverlayVisibility);
     }
 }

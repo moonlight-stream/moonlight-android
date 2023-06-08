@@ -188,8 +188,6 @@
     <string name="summary_video_format">HEVC funcționează cu o conexiune mai slaba, dar necesită un dispozitiv recent, performant</string>
     <string name="title_enable_hdr">Activează HDR (Experimental)</string>
     <string name="summary_enable_hdr">Folosește HDR daca aplicația si placa video suportă. Necesită o placa video seria GTX 1000 sau mai nouă.</string>
-    <string name="title_enable_perf_overlay">Activează statisticile de performanță</string>
-    <string name="summary_enable_perf_overlay">Afișează în timp real statisticile de performanță ale conexiunii.</string>
 
     <!-- Array strings -->
     <string name="audioconf_stereo">Stereo</string>

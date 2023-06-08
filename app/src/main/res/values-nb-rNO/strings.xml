@@ -143,8 +143,6 @@
 \nFølgende nettverksporter ble blokkert:
 \n</string>
     <string name="nettest_text_inconclusive">Nettverkstesten kunne ikke utføres fordi ingen av Moonlight sine tilkoblingstesttjenere kunne nås. Sjekk din tilkobling til Internett og prøv igjen senere.</string>
-    <string name="summary_enable_perf_overlay">Viser ytelsesinfo i sanntid under strømming</string>
-    <string name="title_enable_perf_overlay">Vis ytelsesstatistikk under strømming</string>
     <string name="summary_enable_hdr">Strøm HDR når spillet og PC-ens skjermkort støtter det. HDR krever GTX 1000-eller nyere.</string>
     <string name="summary_checkbox_enable_pip">Tillater strømmen å vises (men ikke kontrolleres) under fleroppgaveløsning</string>
     <string name="title_checkbox_enable_pip">Skru på bilde-i-bilde-observatørmodus</string>

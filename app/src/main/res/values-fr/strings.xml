@@ -189,8 +189,6 @@
     <string name="summary_video_format">HEVC réduit les besoins en bande passante vidéo mais nécessite un périphérique très récent</string>
     <string name="title_enable_hdr">Activer le HDR (expérimental)</string>
     <string name="summary_enable_hdr">Diffuser du HDR lorsque le jeu et le processeur graphique du PC le prennent en charge. HDR nécessite un GPU série GTX 1000 ou une version ultérieure.</string>
-    <string name="title_enable_perf_overlay">Activer la superposition de performance</string>
-    <string name="summary_enable_perf_overlay">Afficher une superposition à l\'écran avec des informations de performance en temps réel pendant la lecture en continu</string>
     <string name="title_enable_post_stream_toast">Afficher le message de latence après la diffusion en continu</string>
     <string name="summary_enable_post_stream_toast">Afficher un message d’informations de latence après la fin du flux</string>
     <string name="no_video_received_error">Aucune vidéo reçue depuis l\'hôte.</string>

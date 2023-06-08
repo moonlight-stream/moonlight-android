@@ -195,8 +195,6 @@
     <string name="summary_video_format">HEVC verringert die Video-Bandbreitenanforderung, funktioniert allerdings nur auf sehr neuen Geräten</string>
     <string name="title_enable_hdr">HDR aktivieren (experimentell)</string>
     <string name="summary_enable_hdr">HDR-Streaming sofern dies von der Host-GPU unterstützt wird. HDR erfordert eine GPU der GTX 1000 Serie oder neuer.</string>
-    <string name="title_enable_perf_overlay">Performance Overlay aktivieren</string>
-    <string name="summary_enable_perf_overlay">Leistungsmerkmale während des Streamens in Echtzeit einblenden</string>
     <string name="title_enable_post_stream_toast">Zeige Latenz-Informationen nach dem Streaming</string>
     <string name="summary_enable_post_stream_toast">Anzeige einer Informationsmeldung über die Latenz nach dem Ende des Streams</string>
     <string name="resolution_prefix_native">Nativ</string>

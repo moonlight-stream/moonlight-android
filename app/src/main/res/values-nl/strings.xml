@@ -174,7 +174,6 @@
     <string name="summary_disable_frame_drop">Kan micro-stotteren op sommige toestellen verminderen, maar kan vertraging verhogen</string>
     <string name="title_enable_hdr">HDR Inschakelen (Experimenteel)</string>
     <string name="summary_enable_hdr">Stream HDR als het spel en de GPU van de PC dit ondersteund. HDR vereist een GTX 1000-reeks GPU of later.</string>
-    <string name="title_enable_perf_overlay">Prestatiestatistieken tonen tijdens het streamen</string>
     <string name="title_details">Details</string>
     <string name="delete_pc_msg">Bent u zeker dat u deze PC wilt verwijderen\?</string>
     <string name="resolution_prefix_native_fullscreen">Oorspronkelijk Volledig Scherm</string>
@@ -201,7 +200,6 @@
     <string name="summary_checkbox_touchscreen_trackpad">Wanneer ingeschakeld functioneert het touchscreen als een trackpad. Wanneer uitgeschakeld bedient het touchscreen rechtstreeks de muiscursor.</string>
     <string name="summary_checkbox_usb_bind_all">Gebruik Moonlight\'s USB driver voor alle ondersteunde gamepads, zelfs als een standaard Xbox controller aanwezig is</string>
     <string name="dialog_text_reset_osc">Bent u zeker dat u uw opgeslagen on-screen controle-elementen wilt verwijderen\?</string>
-    <string name="summary_enable_perf_overlay">Real-time prestatie-informatie tonen tijdens het streamen</string>
     <string name="title_checkbox_vibrate_fallback">Simuleer rumble-ondersteuning met trillingen</string>
     <string name="summary_checkbox_mouse_nav_buttons">Deze optie inschakelen kan problemen veroorzaken met rechts-klikken op sommige buggy apparaten</string>
     <string name="summary_checkbox_vibrate_fallback">Laat uw apparaat trillen om gerommel te simuleren als uw gamepad dit niet ondersteund</string>

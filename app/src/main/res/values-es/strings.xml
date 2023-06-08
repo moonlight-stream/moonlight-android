@@ -209,7 +209,6 @@
     <string name="title_checkbox_mouse_nav_buttons">Activar los botones atrás y adelante del ratón</string>
     <string name="title_unlock_fps">Desbloquear todas las opciones de tasa de cuadros disponibles</string>
     <string name="summary_unlock_fps">Transmitir a 90 o 120 FPS puede reducir latencia en dispositivos de gama alta pero puede causar retrasos en dispositivos que no lo soporten</string>
-    <string name="title_enable_perf_overlay">Mostrar estadísticas de rendimiento mientras la transmisión está activa</string>
     <string name="summary_enable_post_stream_toast">Mostrar un mensaje sobre la información de latencia cuando la transmisión termine</string>
     <string name="help">Ayuda</string>
     <string name="delete_pc_msg">¿Estás seguro de eliminar este PC\?</string>
@@ -243,7 +242,6 @@
     <string name="summary_disable_frame_drop">Puede reducir micro-tartamudeos (Stuttering) en algunos dispositivos , pero puede incrementar latencia</string>
     <string name="title_enable_hdr">Activar HDR (Alto Rango Dinámico / Experimental)</string>
     <string name="summary_enable_hdr">Transmite en HDR cuando el juego y la GPU del PC lo admitan. HDR requiere una GPU compatible con la codificación HEVC Main 10.</string>
-    <string name="summary_enable_perf_overlay">Mostrar en tiempo real la información del desempeño de la transmisión mientras está activa la misma</string>
     <string name="title_enable_post_stream_toast">Mostrar mensajes sobre latencia mientras se transmite</string>
     <string name="category_help">Ayuda</string>
     <string name="title_setup_guide">Guía para la Configuración</string>

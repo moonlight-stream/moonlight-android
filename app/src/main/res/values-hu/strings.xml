@@ -2,8 +2,6 @@
 <resources>
     <string name="summary_enable_post_stream_toast">Késleltetési információs üzenet megjelenítése az adatfolyam vége után</string>
     <string name="title_enable_post_stream_toast">A késleltetési üzenet megjelenítése streaming után</string>
-    <string name="summary_enable_perf_overlay">Valós idejű adatfolyam-adat megjelenítése streaming közben</string>
-    <string name="title_enable_perf_overlay">Teljesítmény statisztikák megjelenítése közvetítés közben</string>
     <string name="summary_enable_hdr">Streaming HDR, amikor a játék és a PC GPU támogatja. A HDR-hez GTX 1000 sorozatú vagy újabb verzió szükséges.</string>
     <string name="title_enable_hdr">HDR engedélyezése (kísérleti)</string>
     <string name="summary_video_format">A HEVC csökkenti a video sávszélesség követelményeit, de újabb eszközt igényel</string>

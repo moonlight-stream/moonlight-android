@@ -117,7 +117,6 @@
     <string name="title_enable_hdr">Ativar HDR (Experimental)</string>
     <string name="summary_full_range">Isso causará perda de detalhes em áreas claras e escuras se o seu aparelho não exibir corretamente todo o conteúdo de vídeo em cores.</string>
     <string name="title_disable_frame_drop">Nunca dropar quadros</string>
-    <string name="summary_enable_perf_overlay">Exibe informações de performance em tempo real durante a transmissão</string>
     <string name="title_enable_post_stream_toast">Mostrar aviso de latência após terminar a transmissão</string>
     <string name="title_troubleshooting">Guia de solução de problemas</string>
     <string name="summary_troubleshooting">Veja dicas para diagnosticar e corrigir problemas comuns de streaming</string>
@@ -209,7 +208,6 @@
     <string name="title_checkbox_disable_warnings">Desativar mensagens de alerta</string>
     <string name="title_video_format">Mudar configurações do HEVC</string>
     <string name="summary_enable_hdr">Transmita HDR quando o jogo e a GPU do PC suportarem. O HDR requer uma GPU da série GTX 1000 ou posterior.</string>
-    <string name="title_enable_perf_overlay">Mostrar status de performance durante a transmissão</string>
     <string name="nettest_title_done">Teste de Internet Completo</string>
     <string name="nettest_text_inconclusive">O teste de rede não pôde ser executado porque nenhum dos servidores de teste de conexão do Moonlight estava acessível. Verifique a sua conexão com a Internet ou tente novamente mais tarde.</string>
     <string name="pairing">A parear…</string>

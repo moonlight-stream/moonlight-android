@@ -174,6 +174,7 @@ public class GameMenu {
             options.addAll(device.getGameMenuOptions());
         }
 
+        options.add(new MenuOption(getString(R.string.game_menu_toggle_performance_overlay), () -> game.togglePerformanceOverlay()));
         options.add(new MenuOption(getString(R.string.game_menu_send_keys), () -> showSpecialKeysMenu()));
         options.add(new MenuOption(getString(R.string.game_menu_disconnect), () -> game.disconnect()));
         options.add(new MenuOption(getString(R.string.game_menu_cancel), null));

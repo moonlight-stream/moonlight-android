@@ -44,7 +44,6 @@
     <string name="applist_quit_fail">Αποτυχία διακοπής</string>
     <string name="applist_quit_confirmation">Είστε σίγουροι ότι θέλετε να τερματίσετε την τρέχουσα εφαρμογή; Όλα τα μη αποθηκευμένα δεδομένα θα χαθούν.</string>
     <string name="dialog_text_reset_osc">Είστε βέβαιοι ότι θέλετε να διαγράψετε την αποθηκευμένη διάταξη στοιχείων ελέγχου στην οθόνη;</string>
-    <string name="title_enable_perf_overlay">Εμφάνιση στατιστικών στοιχείων απόδοσης κατά τη ροή</string>
     <string name="unpair_error">Η συσκευή δεν είχε συζευξηθεί</string>
     <string name="error_pc_offline">Ο υπολογιστής είναι εκτός σύνδεσης</string>
     <string name="error_unknown_host">Αποτυχία επίλυσης ονόματος κεντρικού υπολογιστή</string>
@@ -130,7 +129,6 @@
     <string name="summary_disable_frame_drop">Μπορεί να μειώσει το micro-stuttering σε ορισμένες συσκευές, αλλά μπορεί να αυξήσει την καθυστέρηση</string>
     <string name="title_enable_hdr">Ενεργοποίηση HDR (πειραματικό)</string>
     <string name="summary_enable_hdr">Μεταδώστε HDR όταν το παιχνίδι και η GPU του υπολογιστή το υποστηρίζουν. Το HDR απαιτεί GPU της σειράς GTX 1000 ή νεότερη.</string>
-    <string name="summary_enable_perf_overlay">Εμφάνιση πληροφοριών απόδοσης ροής σε πραγματικό χρόνο κατά τη ροή</string>
     <string name="summary_enable_post_stream_toast">Εμφάνιση ενός μηνύματος πληροφοριών καθυστέρησης μετά το τέλος της ροής</string>
     <string name="scut_deleted_pc">Ο υπολογιστής διαγράφηκε</string>
     <string name="scut_pc_not_found">Ο υπολογιστής δεν βρέθηκε</string>

@@ -132,6 +132,22 @@
     <string name="applist_quit_confirmation">Are you sure you want to quit the running app? All unsaved data will be lost.</string>
     <string name="applist_details_id">App ID:</string>
 
+    <!-- In Game menu -->
+    <string name="game_menu_toggle_keyboard">Toggle On-screen Keyboard</string>
+    <string name="game_menu_toggle_performance_overlay">Toggle Performance Overlay</string>
+    <string name="game_menu_toggle_mouse_on">Enable Controller Mouse Emulation</string>
+    <string name="game_menu_toggle_mouse_off">Disable Controller Mouse Emulation</string>
+    <string name="game_menu_disconnect">Disconnect</string>
+    <string name="game_menu_cancel">Cancel</string>
+    <string name="game_menu_send_keys">Send special Key(s)</string>
+    <string name="game_menu_send_keys_esc">Send ESC (Menu)</string>
+    <string name="game_menu_send_keys_f11">Send F11 (Toggle Full Screen)</string>
+    <string name="game_menu_send_keys_ctrl_v">Send CTRL + V (Paste Clipboard)</string>
+    <string name="game_menu_send_keys_win">Send WIN (Toggle Windows Start Menu)</string>
+    <string name="game_menu_send_keys_win_d">Send WIN + D (Switch to Desktop)</string>
+    <string name="game_menu_send_keys_win_g">Send WIN + G (Open Xbox Game Bar)</string>
+    <string name="game_menu_send_keys_shift_tab">Send SHIFT + TAB (Open Steam Overlay)</string>
+
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>
     <string name="msg_add_pc">Connecting to the PC…</string>
@@ -233,8 +249,6 @@
     <string name="summary_enable_hdr">Stream HDR when the game and PC GPU support it. HDR requires a GPU with HEVC Main 10 encoding support.</string>
     <string name="title_full_range">Force full range video (Experimental)</string>
     <string name="summary_full_range">This will cause loss of detail in light and dark areas if your device doesn\'t properly display full range video content.</string>
-    <string name="title_enable_perf_overlay">Show performance stats while streaming</string>
-    <string name="summary_enable_perf_overlay">Display real-time stream performance information while streaming</string>
     <string name="title_enable_post_stream_toast">Show latency message after streaming</string>
     <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
 

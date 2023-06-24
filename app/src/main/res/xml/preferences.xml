@@ -217,11 +217,6 @@
             android:summary="@string/summary_full_range"
             android:defaultValue="false" />
         <CheckBoxPreference
-            android:key="checkbox_enable_perf_overlay"
-            android:title="@string/title_enable_perf_overlay"
-            android:summary="@string/summary_enable_perf_overlay"
-            android:defaultValue="false"/>
-        <CheckBoxPreference
             android:key="checkbox_enable_post_stream_toast"
             android:title="@string/title_enable_post_stream_toast"
             android:summary="@string/summary_enable_post_stream_toast"

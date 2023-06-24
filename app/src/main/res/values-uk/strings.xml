@@ -146,7 +146,6 @@
     <string name="pcview_menu_details">Деталі</string>
     <string name="poor_connection_msg">Слабке з\'єднання з пристроєм</string>
     <string name="title_details">Деталі</string>
-    <string name="title_enable_perf_overlay">Увімкнути відображення статистики</string>
     <string name="title_unlock_fps">Розблокувати всі можливі частоти кадрів</string>
     <string name="applist_details_id">ID застосунку:</string>
     <string name="title_checkbox_vibrate_fallback">Емуляція вібровіддачі</string>
@@ -161,7 +160,6 @@
     <string name="slow_connection_msg">Повільне підключення
 \nЗменшіть швидкість потоку</string>
     <string name="summary_unlock_fps">Трансляція зі швидкістю 90 або 120 кадрів на секунду може зменшити затримку на швидких пристроях але, може викликати затримки або збої на слабших</string>
-    <string name="summary_enable_perf_overlay">Відображає статистику продуктивності під час трансляції, в режимі реального часу</string>
     <string name="perf_overlay_decoder">Розцифрувач: %1$s</string>
     <string name="perf_overlay_incomingfps">Вхідна частота кадрів з мережі: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Частота кадрів при відтворенні: %1$.2f FPS</string>

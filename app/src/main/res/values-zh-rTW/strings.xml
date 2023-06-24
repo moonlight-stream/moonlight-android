@@ -170,8 +170,6 @@
     <string name="summary_video_format">HEVC 能降低視訊頻寬需求，但需要較新的裝置才能支援</string>
     <string name="title_enable_hdr">啟用 HDR (實驗性)</string>
     <string name="summary_enable_hdr">在遊戲和 GPU 支援時以 HDR 模式串流，HDR 模式需要支援 HEVC Main 10 編碼的 GPU。</string>
-    <string name="title_enable_perf_overlay">串流時顯示效能資訊</string>
-    <string name="summary_enable_perf_overlay">在串流中顯示即時效能資訊</string>
     <string name="title_enable_post_stream_toast">串流後顯示延時資訊</string>
     <string name="summary_enable_post_stream_toast">串流結束後顯示延時資訊</string>
     <string name="title_osc_opacity">變更螢幕控制按鈕透明度</string>

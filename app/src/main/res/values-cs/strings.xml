@@ -90,8 +90,6 @@
     <string name="category_help">Nápověda</string>
     <string name="summary_checkbox_disable_warnings">Zakáže varování o pomalém připojení během streamování</string>
     <string name="title_disable_frame_drop">Nezahazovat snímky</string>
-    <string name="title_enable_perf_overlay">Zobrazit během streamování informace o výkonu</string>
-    <string name="summary_enable_perf_overlay">Zobrazit realtime informace o výkonu streamu během streamování</string>
     <string name="resolution_4k">4K</string>
     <string name="fps_30">30 FPS</string>
     <string name="title_troubleshooting">Průvodce řešením problémů</string>

@@ -2,8 +2,6 @@
 <resources>
     <string name="summary_enable_post_stream_toast">Hiển thị một thông báo thông tin độ trễ sau khi kết thúc stream</string>
     <string name="title_enable_post_stream_toast">Hiện thông báo độ trễ sau khi stream</string>
-    <string name="summary_enable_perf_overlay">Hiển thị thông tin hiệu năng stream theo thời gian thực trong khi stream</string>
-    <string name="title_enable_perf_overlay">Hiện thống kê hiệu năng trong khi stream</string>
     <string name="summary_enable_hdr">Stream HDR khi trò chơi và GPU của PC hỗ trợ nó. HDR yêu cầu GPU GTX series 1000 hoặc mới hơn.</string>
     <string name="title_enable_hdr">Bật HDR (Thử nghiệm)</string>
     <string name="summary_video_format">HEVC làm giảm yêu cầu băng thông video nhưng yêu cầu một thiết bị mới hơn</string>

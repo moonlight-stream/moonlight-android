@@ -48,6 +48,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private static final int EMULATING_SPECIAL = 0x1;
     private static final int EMULATING_SELECT = 0x2;
 
+    private static final short MAX_GAMEPADS = 16; // Limited by bits in activeGamepadMask
+
     private final Vector2d inputVector = new Vector2d();
 
     private final SparseArray<InputDeviceContext> inputDeviceContexts = new SparseArray<>();
@@ -333,7 +335,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.controllerNumber = 0;
 
                 LimeLog.info("Reserving the next available controller number");
-                for (short i = 0; i < 4; i++) {
+                for (short i = 0; i < MAX_GAMEPADS; i++) {
                     if ((currentControllers & (1 << i)) == 0) {
                         // Found an unused controller value
                         currentControllers |= (1 << i);
@@ -357,7 +359,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.controllerNumber = 0;
 
                 LimeLog.info("Reserving the next available controller number");
-                for (short i = 0; i < 4; i++) {
+                for (short i = 0; i < MAX_GAMEPADS; i++) {
                     if ((currentControllers & (1 << i)) == 0) {
                         // Found an unused controller value
                         currentControllers |= (1 << i);

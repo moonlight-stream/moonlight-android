@@ -1594,6 +1594,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         case KeyEvent.KEYCODE_BUTTON_THUMBR:
             context.inputMap &= ~ControllerPacket.RS_CLK_FLAG;
             break;
+        case KeyEvent.KEYCODE_MEDIA_RECORD: // Xbox Series X Share button
+            context.inputMap &= ~ControllerPacket.MISC_FLAG;
+            break;
         case KeyEvent.KEYCODE_BUTTON_L2:
             if (context.leftTriggerAxisUsed) {
                 // Suppress this digital event if an analog trigger is active
@@ -1734,6 +1737,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             break;
         case KeyEvent.KEYCODE_BUTTON_THUMBR:
             context.inputMap |= ControllerPacket.RS_CLK_FLAG;
+            break;
+        case KeyEvent.KEYCODE_MEDIA_RECORD: // Xbox Series X Share button
+            context.inputMap |= ControllerPacket.MISC_FLAG;
             break;
         case KeyEvent.KEYCODE_BUTTON_L2:
             if (context.leftTriggerAxisUsed) {

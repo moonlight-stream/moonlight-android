@@ -8,10 +8,12 @@ public abstract class AbstractController {
 
     private UsbDriverListener listener;
 
-    protected short buttonFlags;
+    protected int buttonFlags, supportedButtonFlags;
     protected float leftTrigger, rightTrigger;
     protected float rightStickX, rightStickY;
     protected float leftStickX, leftStickY;
+    protected short capabilities;
+    protected byte type;
 
     public int getControllerId() {
         return deviceId;
@@ -23,6 +25,18 @@ public abstract class AbstractController {
 
     public int getProductId() {
         return productId;
+    }
+
+    public int getSupportedButtonFlags() {
+        return supportedButtonFlags;
+    }
+
+    public short getCapabilities() {
+        return capabilities;
+    }
+
+    public byte getType() {
+        return type;
     }
 
     protected void setButtonFlag(int buttonFlag, int data) {
@@ -50,6 +64,8 @@ public abstract class AbstractController {
     }
 
     public abstract void rumble(short lowFreqMotor, short highFreqMotor);
+
+    public abstract void rumbleTriggers(short leftTrigger, short rightTrigger);
 
     protected void notifyDeviceRemoved() {
         listener.deviceRemoved(this);

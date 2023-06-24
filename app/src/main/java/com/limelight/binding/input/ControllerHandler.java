@@ -522,8 +522,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.productId = dev.getProductId();
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && hasDualAmplitudeControlledRumbleVibrators(dev.getVibratorManager())) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && hasQuadAmplitudeControlledRumbleVibrators(dev.getVibratorManager())) {
             context.vibratorManager = dev.getVibratorManager();
+            context.quadVibrators = true;
+        }
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && hasDualAmplitudeControlledRumbleVibrators(dev.getVibratorManager())) {
+            context.vibratorManager = dev.getVibratorManager();
+            context.quadVibrators = false;
         }
         else if (dev.getVibrator().hasVibrator()) {
             context.vibrator = dev.getVibrator();
@@ -1363,6 +1368,64 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         vm.vibrate(combo.combine(), vibrationAttributes.build());
     }
 
+    @TargetApi(31)
+    private boolean hasQuadAmplitudeControlledRumbleVibrators(VibratorManager vm) {
+        int[] vibratorIds = vm.getVibratorIds();
+
+        // There must be exactly 4 vibrators on this device
+        if (vibratorIds.length != 4) {
+            return false;
+        }
+
+        // All vibrators must have amplitude control
+        for (int vid : vibratorIds) {
+            if (!vm.getVibrator(vid).hasAmplitudeControl()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // This must only be called if hasQuadAmplitudeControlledRumbleVibrators() is true!
+    @TargetApi(31)
+    private void rumbleQuadVibrators(VibratorManager vm, short lowFreqMotor, short highFreqMotor, short leftTrigger, short rightTrigger) {
+        // Normalize motor values to 0-255 amplitudes for VibrationManager
+        highFreqMotor = (short)((highFreqMotor >> 8) & 0xFF);
+        lowFreqMotor = (short)((lowFreqMotor >> 8) & 0xFF);
+        leftTrigger = (short)((leftTrigger >> 8) & 0xFF);
+        rightTrigger = (short)((rightTrigger >> 8) & 0xFF);
+
+        // If they're all zero, we can just call cancel().
+        if (lowFreqMotor == 0 && highFreqMotor == 0 && leftTrigger == 0 && rightTrigger == 0) {
+            vm.cancel();
+            return;
+        }
+
+        // This is a guess based upon the behavior of FF_RUMBLE, but untested due to lack of Linux
+        // support for trigger rumble!
+        int[] vibratorIds = vm.getVibratorIds();
+        int[] vibratorAmplitudes = new int[] { highFreqMotor, lowFreqMotor, leftTrigger, rightTrigger };
+
+        CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
+
+        for (int i = 0; i < vibratorIds.length; i++) {
+            // It's illegal to create a VibrationEffect with an amplitude of 0.
+            // Simply excluding that vibrator from our ParallelCombination will turn it off.
+            if (vibratorAmplitudes[i] != 0) {
+                combo.addVibrator(vibratorIds[i], VibrationEffect.createOneShot(60000, vibratorAmplitudes[i]));
+            }
+        }
+
+        VibrationAttributes.Builder vibrationAttributes = new VibrationAttributes.Builder();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            vibrationAttributes.setUsage(VibrationAttributes.USAGE_MEDIA);
+        }
+
+        vm.vibrate(combo.combine(), vibrationAttributes.build());
+    }
+
     private void rumbleSingleVibrator(Vibrator vibrator, short lowFreqMotor, short highFreqMotor) {
         // Since we can only use a single amplitude value, compute the desired amplitude
         // by taking 80% of the big motor and 33% of the small motor, then capping to 255.
@@ -1433,19 +1496,30 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             if (deviceContext.controllerNumber == controllerNumber) {
                 foundMatchingDevice = true;
 
+                deviceContext.lowFreqMotor = lowFreqMotor;
+                deviceContext.highFreqMotor = highFreqMotor;
+
                 // Prefer the documented Android 12 rumble API which can handle dual vibrators on PS/Xbox controllers
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && deviceContext.vibratorManager != null) {
                     vibrated = true;
-                    rumbleDualVibrators(deviceContext.vibratorManager, lowFreqMotor, highFreqMotor);
+                    if (deviceContext.quadVibrators) {
+                        rumbleQuadVibrators(deviceContext.vibratorManager,
+                                deviceContext.lowFreqMotor, deviceContext.highFreqMotor,
+                                deviceContext.leftTriggerMotor, deviceContext.rightTriggerMotor);
+                    }
+                    else {
+                        rumbleDualVibrators(deviceContext.vibratorManager,
+                                deviceContext.lowFreqMotor, deviceContext.highFreqMotor);
+                    }
                 }
                 // On Shield devices, we can use their special API to rumble Shield controllers
-                else if (sceManager.rumble(deviceContext.inputDevice, lowFreqMotor, highFreqMotor)) {
+                else if (sceManager.rumble(deviceContext.inputDevice, deviceContext.lowFreqMotor, deviceContext.highFreqMotor)) {
                     vibrated = true;
                 }
                 // If all else fails, we have to try the old Vibrator API
                 else if (deviceContext.vibrator != null) {
                     vibrated = true;
-                    rumbleSingleVibrator(deviceContext.vibrator, lowFreqMotor, highFreqMotor);
+                    rumbleSingleVibrator(deviceContext.vibrator, deviceContext.lowFreqMotor, deviceContext.highFreqMotor);
                 }
             }
         }
@@ -1455,7 +1529,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
             if (deviceContext.controllerNumber == controllerNumber) {
                 foundMatchingDevice = vibrated = true;
-                deviceContext.device.rumble((short)lowFreqMotor, (short)highFreqMotor);
+                deviceContext.device.rumble(lowFreqMotor, highFreqMotor);
             }
         }
 
@@ -1476,7 +1550,28 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public void handleRumbleTriggers(short controllerNumber, short leftTrigger, short rightTrigger) {
-        // TODO
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            for (int i = 0; i < inputDeviceContexts.size(); i++) {
+                InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
+
+                deviceContext.leftTriggerMotor = leftTrigger;
+                deviceContext.rightTriggerMotor = rightTrigger;
+
+                if (deviceContext.controllerNumber == controllerNumber && deviceContext.quadVibrators) {
+                    rumbleQuadVibrators(deviceContext.vibratorManager,
+                            deviceContext.lowFreqMotor, deviceContext.highFreqMotor,
+                            deviceContext.leftTriggerMotor, deviceContext.rightTriggerMotor);
+                }
+            }
+        }
+
+        for (int i = 0; i < usbDeviceContexts.size(); i++) {
+            UsbDeviceContext deviceContext = usbDeviceContexts.valueAt(i);
+
+            if (deviceContext.controllerNumber == controllerNumber) {
+                deviceContext.device.rumbleTriggers(leftTrigger, rightTrigger);
+            }
+        }
     }
 
     public void handleSetMotionEventState(short controllerNumber, byte motionType, short reportRateHz) {
@@ -1947,6 +2042,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public String name;
         public VibratorManager vibratorManager;
         public Vibrator vibrator;
+        public boolean quadVibrators;
+        public short lowFreqMotor, highFreqMotor;
+        public short leftTriggerMotor, rightTriggerMotor;
+
         public InputDevice inputDevice;
 
         public int leftStickXAxis = -1;

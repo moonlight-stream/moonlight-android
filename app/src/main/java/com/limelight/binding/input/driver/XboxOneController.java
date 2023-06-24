@@ -6,6 +6,7 @@ import android.hardware.usb.UsbDeviceConnection;
 
 import com.limelight.LimeLog;
 import com.limelight.nvstream.input.ControllerPacket;
+import com.limelight.nvstream.jni.MoonBridge;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -54,9 +55,14 @@ public class XboxOneController extends AbstractXboxController {
     };
 
     private byte seqNum = 0;
+    private short lowFreqMotor = 0;
+    private short highFreqMotor = 0;
+    private short leftTriggerMotor = 0;
+    private short rightTriggerMotor = 0;
 
     public XboxOneController(UsbDevice device, UsbDeviceConnection connection, int deviceId, UsbDriverListener listener) {
         super(device, connection, deviceId, listener);
+        capabilities |= MoonBridge.LI_CCAP_TRIGGER_RUMBLE;
     }
 
     private void processButtons(ByteBuffer buffer) {
@@ -176,18 +182,34 @@ public class XboxOneController extends AbstractXboxController {
         return true;
     }
 
-    @Override
-    public void rumble(short lowFreqMotor, short highFreqMotor) {
+    private void sendRumblePacket() {
         byte[] data = {
                 0x09, 0x00, seqNum++, 0x09, 0x00,
-                0x0F, 0x00, 0x00,
-                (byte)(lowFreqMotor >> 9), (byte)(highFreqMotor >> 9),
+                0x0F,
+                (byte)(leftTriggerMotor >> 9),
+                (byte)(rightTriggerMotor >> 9),
+                (byte)(lowFreqMotor >> 9),
+                (byte)(highFreqMotor >> 9),
                 (byte)0xFF, 0x00, (byte)0xFF
         };
         int res = connection.bulkTransfer(outEndpt, data, data.length, 100);
         if (res != data.length) {
             LimeLog.warning("Rumble transfer failed: "+res);
         }
+    }
+
+    @Override
+    public void rumble(short lowFreqMotor, short highFreqMotor) {
+        this.lowFreqMotor = lowFreqMotor;
+        this.highFreqMotor = highFreqMotor;
+        sendRumblePacket();
+    }
+
+    @Override
+    public void rumbleTriggers(short leftTrigger, short rightTrigger) {
+        this.leftTriggerMotor = leftTrigger;
+        this.rightTriggerMotor = rightTrigger;
+        sendRumblePacket();
     }
 
     private static class InitPacket {

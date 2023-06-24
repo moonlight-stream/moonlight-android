@@ -142,4 +142,9 @@ public class Xbox360WirelessDongle extends AbstractController {
     public void rumble(short lowFreqMotor, short highFreqMotor) {
         // Unreachable.
     }
+
+    @Override
+    public void rumbleTriggers(short leftTrigger, short rightTrigger) {
+        // Unreachable.
+    }
 }

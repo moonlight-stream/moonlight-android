@@ -156,4 +156,9 @@ public class Xbox360Controller extends AbstractXboxController {
             LimeLog.warning("Rumble transfer failed: "+res);
         }
     }
+
+    @Override
+    public void rumbleTriggers(short leftTrigger, short rightTrigger) {
+        // Trigger motors not present on Xbox 360 controllers
+    }
 }

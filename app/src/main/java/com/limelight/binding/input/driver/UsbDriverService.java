@@ -42,7 +42,8 @@ public class UsbDriverService extends Service implements UsbDriverListener {
     private int nextDeviceId;
 
     @Override
-    public void reportControllerState(int controllerId, short buttonFlags, float leftStickX, float leftStickY, float rightStickX, float rightStickY, float leftTrigger, float rightTrigger) {
+    public void reportControllerState(int controllerId, int buttonFlags, float leftStickX, float leftStickY,
+                                      float rightStickX, float rightStickY, float leftTrigger, float rightTrigger) {
         // Call through to the client's listener
         if (listener != null) {
             listener.reportControllerState(controllerId, buttonFlags, leftStickX, leftStickY, rightStickX, rightStickY, leftTrigger, rightTrigger);

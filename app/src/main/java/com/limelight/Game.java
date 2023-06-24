@@ -2105,9 +2105,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
+    public void rumbleTriggers(short controllerNumber, short leftTrigger, short rightTrigger) {
+        LimeLog.info(String.format((Locale)null, "Rumble on gamepad triggers %d: %04x %04x", controllerNumber, leftTrigger, rightTrigger));
+
+        controllerHandler.handleRumbleTriggers(controllerNumber, leftTrigger, rightTrigger);
+    }
+
+    @Override
     public void setHdrMode(boolean enabled, byte[] hdrMetadata) {
         LimeLog.info("Display HDR mode: " + (enabled ? "enabled" : "disabled"));
         decoderRenderer.setHdrMode(enabled, hdrMetadata);
+    }
+
+    @Override
+    public void setMotionEventState(short controllerNumber, byte motionType, short reportRateHz) {
+        controllerHandler.handleSetMotionEventState(controllerNumber, motionType, reportRateHz);
     }
 
     @Override

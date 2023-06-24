@@ -817,7 +817,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         // Take the context's controller number and fuse all inputs with the same number
         short controllerNumber = originalContext.controllerNumber;
-        short inputMap = 0;
+        int inputMap = 0;
         byte leftTrigger = 0;
         byte rightTrigger = 0;
         short leftStickX = 0;
@@ -1473,6 +1473,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
+    public void handleRumbleTriggers(short controllerNumber, short leftTrigger, short rightTrigger) {
+        // TODO
+    }
+
+    public void handleSetMotionEventState(short controllerNumber, byte motionType, short reportRateHz) {
+        // TODO
+    }
+
     public boolean handleButtonUp(KeyEvent event) {
         InputDeviceContext context = getContextForEvent(event);
         if (context == null) {
@@ -1794,7 +1802,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return true;
     }
 
-    public void reportOscState(short buttonFlags,
+    public void reportOscState(int buttonFlags,
                                short leftStickX, short leftStickY,
                                short rightStickX, short rightStickY,
                                byte leftTrigger, byte rightTrigger) {
@@ -1813,7 +1821,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     @Override
-    public void reportControllerState(int controllerId, short buttonFlags,
+    public void reportControllerState(int controllerId, int buttonFlags,
                                       float leftStickX, float leftStickY,
                                       float rightStickX, float rightStickY,
                                       float leftTrigger, float rightTrigger) {
@@ -1883,7 +1891,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean reservedControllerNumber;
         public short controllerNumber;
 
-        public short inputMap = 0x0000;
+        public int inputMap = 0;
         public byte leftTrigger = 0x00;
         public byte rightTrigger = 0x00;
         public short rightStickX = 0x0000;
@@ -1892,7 +1900,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public short leftStickY = 0x0000;
 
         public boolean mouseEmulationActive;
-        public short mouseEmulationLastInputMap;
+        public int mouseEmulationLastInputMap;
         public final int mouseEmulationReportPeriod = 50;
 
         public final Runnable mouseEmulationRunnable = new Runnable() {

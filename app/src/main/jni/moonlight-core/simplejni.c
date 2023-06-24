@@ -30,7 +30,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_sendMouseButton(JNIEnv *env, jclass c
 
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendMultiControllerInput(JNIEnv *env, jclass clazz, jshort controllerNumber,
-                                                           jshort activeGamepadMask, jshort buttonFlags,
+                                                           jshort activeGamepadMask, jint buttonFlags,
                                                            jbyte leftTrigger, jbyte rightTrigger,
                                                            jshort leftStickX, jshort leftStickY,
                                                            jshort rightStickX, jshort rightStickY) {
@@ -38,12 +38,47 @@ Java_com_limelight_nvstream_jni_MoonBridge_sendMultiControllerInput(JNIEnv *env,
         leftTrigger, rightTrigger, leftStickX, leftStickY, rightStickX, rightStickY);
 }
 
-JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_sendControllerInput(JNIEnv *env, jclass clazz, jshort buttonFlags,
-                                                      jbyte leftTrigger, jbyte rightTrigger,
-                                                      jshort leftStickX, jshort leftStickY,
-                                                      jshort rightStickX, jshort rightStickY) {
-    LiSendControllerEvent(buttonFlags, leftTrigger, rightTrigger, leftStickX, leftStickY, rightStickX, rightStickY);
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendTouchEvent(JNIEnv *env, jclass clazz,
+                                                          jbyte eventType, jint pointerId,
+                                                          jfloat x, jfloat y, jfloat pressure) {
+    return LiSendTouchEvent(eventType, pointerId, x, y, pressure);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendPenEvent(JNIEnv *env, jclass clazz, jbyte eventType,
+                                                        jbyte toolType, jbyte penButtons,
+                                                        jfloat x, jfloat y, jfloat pressure,
+                                                        jshort rotation, jbyte tiltX,
+                                                        jbyte tiltY) {
+    return LiSendPenEvent(eventType, toolType, penButtons, x, y, pressure, rotation, tiltX, tiltY);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendControllerArrivalEvent(JNIEnv *env, jclass clazz,
+                                                                      jbyte controllerNumber,
+                                                                      jshort activeGamepadMask,
+                                                                      jbyte type,
+                                                                      jint supportedButtonFlags,
+                                                                      jshort capabilities) {
+    return LiSendControllerArrivalEvent(controllerNumber, activeGamepadMask, type, supportedButtonFlags, capabilities);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendControllerTouchEvent(JNIEnv *env, jclass clazz,
+                                                                    jbyte controllerNumber,
+                                                                    jbyte eventType,
+                                                                    jint pointerId, jfloat x,
+                                                                    jfloat y, jfloat pressure) {
+    return LiSendControllerTouchEvent(controllerNumber, eventType, pointerId, x, y, pressure);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendControllerMotionEvent(JNIEnv *env, jclass clazz,
+                                                                     jbyte controllerNumber,
+                                                                     jbyte motionType, jfloat x,
+                                                                     jfloat y, jfloat z) {
+    return LiSendControllerMotionEvent(controllerNumber, motionType, x, y, z);
 }
 
 JNIEXPORT void JNICALL

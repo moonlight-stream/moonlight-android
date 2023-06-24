@@ -75,6 +75,39 @@ public class MoonBridge {
 
     public static final byte SS_KBE_FLAG_NON_NORMALIZED = 0x01;
 
+    public static final int LI_ERR_UNSUPPORTED = -5501;
+
+    public static final byte LI_TOUCH_EVENT_HOVER  = 0x00;
+    public static final byte LI_TOUCH_EVENT_DOWN   = 0x01;
+    public static final byte LI_TOUCH_EVENT_UP     = 0x02;
+    public static final byte LI_TOUCH_EVENT_MOVE   = 0x03;
+    public static final byte LI_TOUCH_EVENT_CANCEL = 0x04;
+
+    public static final byte LI_TOOL_TYPE_PEN = 0x01;
+    public static final byte LI_TOOL_TYPE_ERASER = 0x02;
+
+    public static final byte LI_PEN_BUTTON_PRIMARY = 0x01;
+    public static final byte LI_PEN_BUTTON_SECONDARY = 0x02;
+    public static final byte LI_PEN_BUTTON_TERTIARY = 0x04;
+
+    public static final byte LI_TILT_UNKNOWN = (byte)0xFF;
+    public static final byte LI_ROT_UNKNOWN = (byte)0xFF;
+
+    public static final byte LI_CTYPE_UNKNOWN  = 0x00;
+    public static final byte LI_CTYPE_XBOX     = 0x01;
+    public static final byte LI_CTYPE_PS       = 0x02;
+    public static final byte LI_CTYPE_NINTENDO = 0x03;
+
+    public static final short LI_CCAP_ANALOG_TRIGGERS = 0x01;
+    public static final short LI_CCAP_RUMBLE          = 0x02;
+    public static final short LI_CCAP_TRIGGER_RUMBLE  = 0x04;
+    public static final short LI_CCAP_TOUCHPAD        = 0x08;
+    public static final short LI_CCAP_ACCEL           = 0x10;
+    public static final short LI_CCAP_GYRO            = 0x20;
+
+    public static final byte LI_MOTION_TYPE_ACCEL = 0x01;
+    public static final byte LI_MOTION_TYPE_GYRO  = 0x02;
+
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;
@@ -259,6 +292,18 @@ public class MoonBridge {
         }
     }
 
+    public static void bridgeClRumbleTriggers(short controllerNumber, short leftTrigger, short rightTrigger) {
+        if (connectionListener != null) {
+            connectionListener.rumbleTriggers(controllerNumber, leftTrigger, rightTrigger);
+        }
+    }
+
+    public static void bridgeClSetMotionEventState(short controllerNumber, byte eventType, short sampleRateHz) {
+        if (connectionListener != null) {
+            connectionListener.setMotionEventState(controllerNumber, eventType, sampleRateHz);
+        }
+    }
+
     public static void setupBridge(VideoDecoderRenderer videoRenderer, AudioRenderer audioRenderer, NvConnectionListener connectionListener) {
         MoonBridge.videoRenderer = videoRenderer;
         MoonBridge.audioRenderer = audioRenderer;
@@ -297,15 +342,21 @@ public class MoonBridge {
     public static native void sendMouseButton(byte buttonEvent, byte mouseButton);
 
     public static native void sendMultiControllerInput(short controllerNumber,
-                                    short activeGamepadMask, short buttonFlags,
+                                    short activeGamepadMask, int buttonFlags,
                                     byte leftTrigger, byte rightTrigger,
                                     short leftStickX, short leftStickY,
                                     short rightStickX, short rightStickY);
 
-    public static native void sendControllerInput(short buttonFlags,
-                                    byte leftTrigger, byte rightTrigger,
-                                    short leftStickX, short leftStickY,
-                                    short rightStickX, short rightStickY);
+    public static native int sendTouchEvent(byte eventType, int pointerId, float x, float y, float pressure);
+
+    public static native int sendPenEvent(byte eventType, byte toolType, byte penButtons, float x, float y,
+                                          float pressure, short rotation, byte tiltX, byte tiltY);
+
+    public static native int sendControllerArrivalEvent(byte controllerNumber, short activeGamepadMask, byte type, int supportedButtonFlags, short capabilities);
+
+    public static native int sendControllerTouchEvent(byte controllerNumber, byte eventType, int pointerId, float x, float y, float pressure);
+
+    public static native int sendControllerMotionEvent(byte controllerNumber, byte motionType, float x, float y, float z);
 
     public static native void sendKeyboardInput(short keyMap, byte keyDirection, byte modifier, byte flags);
 

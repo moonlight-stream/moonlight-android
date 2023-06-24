@@ -20,6 +20,10 @@ android {
 
     flavorDimensions.add("root")
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     productFlavors {
         root {
             // Android O has native mouse capture, so don't show the rooted

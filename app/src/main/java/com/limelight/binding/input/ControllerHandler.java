@@ -3,6 +3,10 @@ package com.limelight.binding.input;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.hardware.input.InputManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
@@ -29,6 +33,7 @@ import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
+import com.limelight.nvstream.jni.MoonBridge;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.GameGestures;
 import com.limelight.utils.Vector2d;
@@ -1574,8 +1579,63 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
-    public void handleSetMotionEventState(short controllerNumber, byte motionType, short reportRateHz) {
-        // TODO
+    public void handleSetMotionEventState(final short controllerNumber, final byte motionType, short reportRateHz) {
+        // Report rate is restricted to <= 200 Hz without the HIGH_SAMPLING_RATE_SENSORS permission
+        reportRateHz = (short) Math.min(200, reportRateHz);
+
+        SensorEventListener newSensorListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent sensorEvent) {
+                conn.sendControllerMotionEvent((byte) controllerNumber,
+                        motionType,
+                        sensorEvent.values[0],
+                        sensorEvent.values[1],
+                        sensorEvent.values[2]);
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+        };
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            for (int i = 0; i < inputDeviceContexts.size(); i++) {
+                InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
+
+                if (deviceContext.controllerNumber == controllerNumber) {
+                    SensorManager sm = deviceContext.inputDevice.getSensorManager();
+
+                    switch (motionType) {
+                        case MoonBridge.LI_MOTION_TYPE_ACCEL:
+                            if (deviceContext.accelListener != null) {
+                                sm.unregisterListener(deviceContext.accelListener);
+                                deviceContext.accelListener = null;
+                            }
+
+                            // Enable the accelerometer if requested
+                            Sensor accelSensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, false);
+                            if (reportRateHz != 0 && accelSensor != null) {
+                                sm.registerListener(newSensorListener, accelSensor, 1000000 / reportRateHz);
+                                deviceContext.accelListener = newSensorListener;
+                            }
+                            break;
+                        case MoonBridge.LI_MOTION_TYPE_GYRO:
+                            if (deviceContext.gyroListener != null) {
+                                sm.unregisterListener(deviceContext.gyroListener);
+                                deviceContext.gyroListener = null;
+                            }
+
+                            // Enable the gyroscope if requested
+                            Sensor gyroSensor = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE, false);
+                            if (reportRateHz != 0 && gyroSensor != null) {
+                                sm.registerListener(newSensorListener, gyroSensor,1000000 / reportRateHz);
+                                deviceContext.gyroListener = newSensorListener;
+                            }
+                            break;
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     public boolean handleButtonUp(KeyEvent event) {
@@ -2046,6 +2106,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public short lowFreqMotor, highFreqMotor;
         public short leftTriggerMotor, rightTriggerMotor;
 
+        public SensorEventListener gyroListener;
+        public SensorEventListener accelListener;
+
         public InputDevice inputDevice;
 
         public int leftStickXAxis = -1;
@@ -2097,6 +2160,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
             else if (vibrator != null) {
                 vibrator.cancel();
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (gyroListener != null) {
+                    inputDevice.getSensorManager().unregisterListener(gyroListener);
+                }
+                if (accelListener != null) {
+                    inputDevice.getSensorManager().unregisterListener(accelListener);
+                }
             }
         }
     }

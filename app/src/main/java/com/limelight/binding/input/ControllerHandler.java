@@ -74,7 +74,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             Map.entry(KeyEvent.KEYCODE_BUTTON_SELECT, ControllerPacket.BACK_FLAG),
             Map.entry(KeyEvent.KEYCODE_BACK, ControllerPacket.BACK_FLAG),
             Map.entry(KeyEvent.KEYCODE_BUTTON_MODE, ControllerPacket.SPECIAL_BUTTON_FLAG),
-            Map.entry(KeyEvent.KEYCODE_MEDIA_RECORD, ControllerPacket.MISC_FLAG)
+
+            // This is the Xbox Series X Share button
+            Map.entry(KeyEvent.KEYCODE_MEDIA_RECORD, ControllerPacket.MISC_FLAG),
+
+            // This is a weird one, but it's what Android does prior to 4.10 kernels
+            // where DualShock/DualSense touchpads weren't mapped as separate devices.
+            // https://android.googlesource.com/platform/frameworks/base/+/master/data/keyboards/Vendor_054c_Product_0ce6_fallback.kl
+            // https://android.googlesource.com/platform/frameworks/base/+/master/data/keyboards/Vendor_054c_Product_09cc.kl
+            Map.entry(KeyEvent.KEYCODE_BUTTON_1, ControllerPacket.TOUCHPAD_FLAG)
+
             // FIXME: Paddles?
     );
 
@@ -1892,6 +1901,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         case KeyEvent.KEYCODE_MEDIA_RECORD: // Xbox Series X Share button
             context.inputMap &= ~ControllerPacket.MISC_FLAG;
             break;
+        case KeyEvent.KEYCODE_BUTTON_1: // PS4/PS5 touchpad button (prior to 4.10)
+            context.inputMap &= ~ControllerPacket.TOUCHPAD_FLAG;
+            break;
         case KeyEvent.KEYCODE_BUTTON_L2:
             if (context.leftTriggerAxisUsed) {
                 // Suppress this digital event if an analog trigger is active
@@ -2035,6 +2047,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             break;
         case KeyEvent.KEYCODE_MEDIA_RECORD: // Xbox Series X Share button
             context.inputMap |= ControllerPacket.MISC_FLAG;
+            break;
+        case KeyEvent.KEYCODE_BUTTON_1: // PS4/PS5 touchpad button (prior to 4.10)
+            context.inputMap |= ControllerPacket.TOUCHPAD_FLAG;
             break;
         case KeyEvent.KEYCODE_BUTTON_L2:
             if (context.leftTriggerAxisUsed) {

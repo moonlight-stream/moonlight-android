@@ -41,6 +41,7 @@ import com.limelight.utils.Vector2d;
 import org.cgutman.shieldcontrollerextensions.SceManager;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 public class ControllerHandler implements InputManager.InputDeviceListener, UsbDriverListener {
 
@@ -54,6 +55,28 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private static final int EMULATING_SELECT = 0x2;
 
     private static final short MAX_GAMEPADS = 16; // Limited by bits in activeGamepadMask
+
+    private static final Map<Integer, Integer> ANDROID_TO_LI_BUTTON_MAP = Map.ofEntries(
+            Map.entry(KeyEvent.KEYCODE_BUTTON_A, ControllerPacket.A_FLAG),
+            Map.entry(KeyEvent.KEYCODE_BUTTON_B, ControllerPacket.B_FLAG),
+            Map.entry(KeyEvent.KEYCODE_BUTTON_X, ControllerPacket.X_FLAG),
+            Map.entry(KeyEvent.KEYCODE_BUTTON_Y, ControllerPacket.Y_FLAG),
+            Map.entry(KeyEvent.KEYCODE_DPAD_UP, ControllerPacket.UP_FLAG),
+            Map.entry(KeyEvent.KEYCODE_DPAD_DOWN, ControllerPacket.DOWN_FLAG),
+            Map.entry(KeyEvent.KEYCODE_DPAD_LEFT, ControllerPacket.LEFT_FLAG),
+            Map.entry(KeyEvent.KEYCODE_DPAD_RIGHT, ControllerPacket.RIGHT_FLAG),
+            Map.entry(KeyEvent.KEYCODE_BUTTON_L1, ControllerPacket.LB_FLAG),
+            Map.entry(KeyEvent.KEYCODE_BUTTON_R1, ControllerPacket.RB_FLAG),
+            Map.entry(KeyEvent.KEYCODE_BUTTON_THUMBL, ControllerPacket.LS_CLK_FLAG),
+            Map.entry(KeyEvent.KEYCODE_BUTTON_THUMBR, ControllerPacket.RS_CLK_FLAG),
+            Map.entry(KeyEvent.KEYCODE_BUTTON_START, ControllerPacket.PLAY_FLAG),
+            Map.entry(KeyEvent.KEYCODE_MENU, ControllerPacket.PLAY_FLAG),
+            Map.entry(KeyEvent.KEYCODE_BUTTON_SELECT, ControllerPacket.BACK_FLAG),
+            Map.entry(KeyEvent.KEYCODE_BACK, ControllerPacket.BACK_FLAG),
+            Map.entry(KeyEvent.KEYCODE_BUTTON_MODE, ControllerPacket.SPECIAL_BUTTON_FLAG),
+            Map.entry(KeyEvent.KEYCODE_MEDIA_RECORD, ControllerPacket.MISC_FLAG)
+            // FIXME: Paddles?
+    );
 
     private final Vector2d inputVector = new Vector2d();
 
@@ -386,6 +409,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         LimeLog.info("Assigned as controller "+context.controllerNumber);
         context.assignedControllerNumber = true;
+
+        // Report attributes of this new controller to the host
+        context.sendControllerArrival();
     }
 
     private UsbDeviceContext createUsbDeviceContextForDevice(AbstractController device) {
@@ -2183,6 +2209,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             mouseEmulationActive = false;
             handler.removeCallbacks(mouseEmulationRunnable);
         }
+
+        public void sendControllerArrival() {}
     }
 
     class InputDeviceContext extends GenericControllerContext {
@@ -2262,6 +2290,80 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 }
             }
         }
+
+        @Override
+        public void sendControllerArrival() {
+            // Below KitKat we can't get enough information to report controller details accurately
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                return;
+            }
+
+            byte type = MoonBridge.LI_CTYPE_UNKNOWN;
+            switch (inputDevice.getVendorId()) {
+                case 0x045e: // Microsoft
+                    type = MoonBridge.LI_CTYPE_XBOX;
+                    break;
+                case 0x054c: // Sony
+                    type = MoonBridge.LI_CTYPE_PS;
+                    break;
+                case 0x057e: // Nintendo
+                    type = MoonBridge.LI_CTYPE_NINTENDO;
+                    break;
+            }
+
+            int supportedButtonFlags = 0;
+            for (Map.Entry<Integer, Integer> entry : ANDROID_TO_LI_BUTTON_MAP.entrySet()) {
+                if (inputDevice.hasKeys(entry.getKey())[0]) {
+                    supportedButtonFlags |= entry.getValue();
+                }
+            }
+
+            if (getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_HAT_X) != null) {
+                supportedButtonFlags |= ControllerPacket.LEFT_FLAG | ControllerPacket.RIGHT_FLAG;
+            }
+            if (getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_HAT_Y) != null) {
+                supportedButtonFlags |= ControllerPacket.UP_FLAG | ControllerPacket.DOWN_FLAG;
+            }
+
+            short capabilities = 0;
+            if (getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_LTRIGGER) != null ||
+                    getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_RTRIGGER) != null ||
+                    getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_BRAKE) != null ||
+                    getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_GAS) != null ||
+                    getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_THROTTLE) != null) {
+                capabilities |= MoonBridge.LI_CCAP_ANALOG_TRIGGERS;
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (hasQuadAmplitudeControlledRumbleVibrators(inputDevice.getVibratorManager())) {
+                    capabilities |= MoonBridge.LI_CCAP_RUMBLE | MoonBridge.LI_CCAP_TRIGGER_RUMBLE;
+                }
+                else if (hasDualAmplitudeControlledRumbleVibrators(inputDevice.getVibratorManager())) {
+                    capabilities |= MoonBridge.LI_CCAP_RUMBLE;
+                }
+
+                if (inputDevice.getSensorManager().getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
+                    capabilities |= MoonBridge.LI_CCAP_ACCEL;
+                }
+                if (inputDevice.getSensorManager().getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
+                    capabilities |= MoonBridge.LI_CCAP_GYRO;
+                }
+            }
+
+            if (inputDevice.getVibrator().hasVibrator()) {
+                capabilities |= MoonBridge.LI_CCAP_RUMBLE;
+            }
+
+            if ((inputDevice.getSources() & InputDevice.SOURCE_TOUCHPAD) == InputDevice.SOURCE_TOUCHPAD) {
+                capabilities |= MoonBridge.LI_CCAP_TOUCHPAD;
+
+                // FIXME: Can we actually tell a clickpad from a touchpad using Android APIs?
+                supportedButtonFlags |= ControllerPacket.TOUCHPAD_FLAG;
+            }
+
+            conn.sendControllerArrivalEvent((byte)controllerNumber, getActiveControllerMask(),
+                    type, supportedButtonFlags, capabilities);
+        }
     }
 
     class UsbDeviceContext extends GenericControllerContext {
@@ -2272,6 +2374,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             super.destroy();
 
             // Nothing for now
+        }
+
+        @Override
+        public void sendControllerArrival() {
+            conn.sendControllerArrivalEvent((byte)controllerNumber, getActiveControllerMask(),
+                    device.getType(), device.getSupportedButtonFlags(), device.getCapabilities());
         }
     }
 }

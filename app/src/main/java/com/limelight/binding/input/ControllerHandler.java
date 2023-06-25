@@ -1697,13 +1697,40 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         reportRateHz = (short) Math.min(200, reportRateHz);
 
         SensorEventListener newSensorListener = new SensorEventListener() {
+            private float[] lastValues = new float[3];
+
             @Override
             public void onSensorChanged(SensorEvent sensorEvent) {
-                conn.sendControllerMotionEvent((byte) controllerNumber,
-                        motionType,
-                        sensorEvent.values[0],
-                        sensorEvent.values[1],
-                        sensorEvent.values[2]);
+                // Android will invoke our callback any time we get a new reading,
+                // even if the values are the same as last time. Don't report a
+                // duplicate set of values to save bandwidth.
+                if (sensorEvent.values[0] == lastValues[0] &&
+                        sensorEvent.values[1] == lastValues[1] &&
+                        sensorEvent.values[2] == lastValues[2]) {
+                    return;
+                }
+                else {
+                    lastValues[0] = sensorEvent.values[0];
+                    lastValues[1] = sensorEvent.values[1];
+                    lastValues[2] = sensorEvent.values[2];
+                }
+
+                if (motionType == MoonBridge.LI_MOTION_TYPE_GYRO) {
+                    // Convert from rad/s to deg/s
+                    conn.sendControllerMotionEvent((byte) controllerNumber,
+                            motionType,
+                            sensorEvent.values[0] * 57.2957795f,
+                            sensorEvent.values[1] * 57.2957795f,
+                            sensorEvent.values[2] * 57.2957795f);
+                }
+                else {
+                    // Pass m/s^2 directly without conversion
+                    conn.sendControllerMotionEvent((byte) controllerNumber,
+                            motionType,
+                            sensorEvent.values[0],
+                            sensorEvent.values[1],
+                            sensorEvent.values[2]);
+                }
             }
 
             @Override

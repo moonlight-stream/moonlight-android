@@ -1481,6 +1481,29 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
+    private float[] getStreamViewRelativeNormalizedXY(View view, MotionEvent event) {
+        float normalizedX = event.getX(event.getActionIndex());
+        float normalizedY = event.getY(event.getActionIndex());
+
+        // For the containing background view, we must subtract the origin
+        // of the StreamView to get video-relative coordinates.
+        if (view != streamView) {
+            normalizedX -= streamView.getX();
+            normalizedY -= streamView.getY();
+        }
+
+        normalizedX = Math.max(normalizedX, 0.0f);
+        normalizedY = Math.max(normalizedY, 0.0f);
+
+        normalizedX = Math.min(normalizedX, streamView.getWidth());
+        normalizedY = Math.min(normalizedY, streamView.getHeight());
+
+        normalizedX /= streamView.getWidth();
+        normalizedY /= streamView.getHeight();
+
+        return new float[] { normalizedX, normalizedY };
+    }
+
     private boolean trySendPenEvent(View view, MotionEvent event) {
         byte eventType = getLiTouchTypeFromEvent(event);
         if (eventType < 0) {
@@ -1507,18 +1530,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             penButtons |= MoonBridge.LI_PEN_BUTTON_SECONDARY;
         }
 
-        float normalizedX = event.getX(event.getActionIndex());
-        float normalizedY = event.getY(event.getActionIndex());
-
-        normalizedX = Math.max(normalizedX, 0.0f);
-        normalizedY = Math.max(normalizedY, 0.0f);
-
-        normalizedX = Math.min(normalizedX, view.getWidth());
-        normalizedY = Math.min(normalizedY, view.getHeight());
-
-        normalizedX /= view.getWidth();
-        normalizedY /= view.getHeight();
-
         short rotationDegrees = MoonBridge.LI_ROT_UNKNOWN;
         byte tiltDegrees = MoonBridge.LI_TILT_UNKNOWN;
         InputDevice dev = event.getDevice();
@@ -1534,8 +1545,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
         }
 
+        float[] normalizedCoords = getStreamViewRelativeNormalizedXY(view, event);
         return conn.sendPenEvent(eventType, toolType, penButtons,
-                normalizedX, normalizedY,
+                normalizedCoords[0], normalizedCoords[1],
                 event.getPressure(event.getActionIndex()),
                 rotationDegrees, tiltDegrees) != MoonBridge.LI_ERR_UNSUPPORTED;
     }
@@ -1546,20 +1558,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return false;
         }
 
-        float normalizedX = event.getX(event.getActionIndex());
-        float normalizedY = event.getY(event.getActionIndex());
-
-        normalizedX = Math.max(normalizedX, 0.0f);
-        normalizedY = Math.max(normalizedY, 0.0f);
-
-        normalizedX = Math.min(normalizedX, view.getWidth());
-        normalizedY = Math.min(normalizedY, view.getHeight());
-
-        normalizedX /= view.getWidth();
-        normalizedY /= view.getHeight();
-
+        float[] normalizedCoords = getStreamViewRelativeNormalizedXY(view, event);
         return conn.sendTouchEvent(eventType, event.getPointerId(event.getActionIndex()),
-                normalizedX, normalizedY, event.getPressure(event.getActionIndex())) != MoonBridge.LI_ERR_UNSUPPORTED;
+                normalizedCoords[0], normalizedCoords[1],
+                event.getPressure(event.getActionIndex())) != MoonBridge.LI_ERR_UNSUPPORTED;
     }
 
     // Returns true if the event was consumed

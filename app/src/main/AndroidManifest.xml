@@ -75,6 +75,7 @@
             android:name=".PcView"
             android:exported="true"
             android:resizeableActivity="true"
+            android:enableOnBackInvokedCallback="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -91,6 +92,7 @@
             android:noHistory="true"
             android:exported="true"
             android:resizeableActivity="true"
+            android:enableOnBackInvokedCallback="true"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -99,6 +101,7 @@
         <activity
             android:name=".AppView"
             android:resizeableActivity="true"
+            android:enableOnBackInvokedCallback="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -107,6 +110,7 @@
         <activity
             android:name=".preferences.StreamSettings"
             android:resizeableActivity="true"
+            android:enableOnBackInvokedCallback="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:label="Streaming Settings">
             <meta-data
@@ -117,6 +121,7 @@
             android:name=".preferences.AddComputerManually"
             android:resizeableActivity="true"
             android:windowSoftInputMode="stateVisible"
+            android:enableOnBackInvokedCallback="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:label="Add Computer Manually">
             <meta-data
@@ -129,6 +134,7 @@
             android:noHistory="true"
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true"
+            android:enableOnBackInvokedCallback="false"
             android:launchMode="singleTask"
             android:excludeFromRecents="true"
             android:theme="@style/StreamTheme"
@@ -160,6 +166,7 @@
         <activity
             android:name=".HelpActivity"
             android:resizeableActivity="true"
+            android:enableOnBackInvokedCallback="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

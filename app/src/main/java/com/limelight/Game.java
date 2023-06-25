@@ -1525,6 +1525,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (dev != null) {
             if (dev.getMotionRange(MotionEvent.AXIS_ORIENTATION, event.getSource()) != null) {
                 rotationDegrees = (short)Math.toDegrees(event.getOrientation(event.getActionIndex()));
+                if (rotationDegrees < 0) {
+                    rotationDegrees += 360;
+                }
             }
             if (dev.getMotionRange(MotionEvent.AXIS_TILT, event.getSource()) != null) {
                 tiltDegrees = (byte)Math.toDegrees(event.getAxisValue(MotionEvent.AXIS_TILT, event.getActionIndex()));

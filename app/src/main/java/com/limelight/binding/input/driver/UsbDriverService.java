@@ -159,7 +159,12 @@ public class UsbDriverService extends Service implements UsbDriverListener {
                     // just returning a false result or returning 0 enumerated devices,
                     // they throw an undocumented SecurityException from this call, crashing
                     // the whole app. :(
-                    usbManager.requestPermission(device, PendingIntent.getBroadcast(UsbDriverService.this, 0, new Intent(ACTION_USB_PERMISSION), intentFlags));
+
+                    // Use an explicit intent to activate our unexported broadcast receiver, as required on Android 14+
+                    Intent i = new Intent(ACTION_USB_PERMISSION);
+                    i.setPackage(getPackageName());
+
+                    usbManager.requestPermission(device, PendingIntent.getBroadcast(UsbDriverService.this, 0, i, intentFlags));
                 } catch (SecurityException e) {
                     Toast.makeText(this, this.getText(R.string.error_usb_prohibited), Toast.LENGTH_LONG).show();
                     if (stateListener != null) {

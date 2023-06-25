@@ -547,6 +547,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.hasSelect = buttons[1] || buttons[2];
         }
 
+        context.touchpadXRange = dev.getMotionRange(MotionEvent.AXIS_X, InputDevice.SOURCE_TOUCHPAD);
+        context.touchpadYRange = dev.getMotionRange(MotionEvent.AXIS_Y, InputDevice.SOURCE_TOUCHPAD);
+        context.touchpadPressureRange = dev.getMotionRange(MotionEvent.AXIS_PRESSURE, InputDevice.SOURCE_TOUCHPAD);
+
         context.leftStickXAxis = MotionEvent.AXIS_X;
         context.leftStickYAxis = MotionEvent.AXIS_Y;
         if (getMotionRangeForJoystickAxis(dev, context.leftStickXAxis) != null &&
@@ -1260,6 +1264,89 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         sendControllerInputPacket(context);
+    }
+
+    // Normalize the given raw float value into a 0.0-1.0f range
+    private float normalizeRawValueWithRange(float value, InputDevice.MotionRange range) {
+        value = Math.max(value, range.getMin());
+        value = Math.min(value, range.getMax());
+
+        value -= range.getMin();
+
+        return value / range.getRange();
+    }
+
+    public boolean tryHandleTouchpadEvent(MotionEvent event) {
+        // Bail if this is not a touchpad event
+        if (event.getSource() != InputDevice.SOURCE_TOUCHPAD) {
+            return false;
+        }
+
+        // Only get a context if one already exists. We want to ensure we don't report non-gamepads.
+        InputDeviceContext context = inputDeviceContexts.get(event.getDeviceId());
+        if (context == null) {
+            return false;
+        }
+
+        byte touchType;
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN:
+                touchType = MoonBridge.LI_TOUCH_EVENT_DOWN;
+                break;
+
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
+                if ((event.getFlags() & MotionEvent.FLAG_CANCELED) != 0) {
+                    touchType = MoonBridge.LI_TOUCH_EVENT_CANCEL;
+                }
+                else {
+                    touchType = MoonBridge.LI_TOUCH_EVENT_UP;
+                }
+                break;
+
+            case MotionEvent.ACTION_MOVE:
+                touchType = MoonBridge.LI_TOUCH_EVENT_MOVE;
+                break;
+
+            case MotionEvent.ACTION_CANCEL:
+                touchType = MoonBridge.LI_TOUCH_EVENT_CANCEL;
+                break;
+
+            case MotionEvent.ACTION_BUTTON_PRESS:
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && event.getActionButton() == MotionEvent.BUTTON_PRIMARY) {
+                    context.inputMap |= ControllerPacket.TOUCHPAD_FLAG;
+                    sendControllerInputPacket(context);
+                    return true;
+                }
+                return false;
+
+            case MotionEvent.ACTION_BUTTON_RELEASE:
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && event.getActionButton() == MotionEvent.BUTTON_PRIMARY) {
+                    context.inputMap &= ~ControllerPacket.TOUCHPAD_FLAG;
+                    sendControllerInputPacket(context);
+                    return true;
+                }
+                return false;
+
+            default:
+                return false;
+        }
+
+        // If we don't have X and Y ranges, we can't process this event
+        if (context.touchpadXRange == null || context.touchpadYRange == null) {
+            return false;
+        }
+
+        float normalizedX = normalizeRawValueWithRange(event.getX(event.getActionIndex()), context.touchpadXRange);
+        float normalizedY = normalizeRawValueWithRange(event.getY(event.getActionIndex()), context.touchpadYRange);
+        float normalizedPressure = context.touchpadPressureRange != null ?
+                normalizeRawValueWithRange(event.getPressure(event.getActionIndex()), context.touchpadPressureRange)
+                        : 0;
+
+        return conn.sendControllerTouchEvent((byte)context.controllerNumber, touchType,
+                event.getPointerId(event.getActionIndex()),
+                normalizedX, normalizedY, normalizedPressure) != MoonBridge.LI_ERR_UNSUPPORTED;
     }
 
     public boolean handleMotionEvent(MotionEvent event) {
@@ -2125,6 +2212,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public int hatXAxis = -1;
         public int hatYAxis = -1;
         public boolean hatXAxisUsed, hatYAxisUsed;
+
+        InputDevice.MotionRange touchpadXRange;
+        InputDevice.MotionRange touchpadYRange;
+        InputDevice.MotionRange touchpadPressureRange;
 
         public boolean isNonStandardDualShock4;
         public boolean usesLinuxGamepadStandardFaceButtons;

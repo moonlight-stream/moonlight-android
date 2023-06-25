@@ -23,6 +23,7 @@ import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
+import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.nvstream.jni.MoonBridge;
@@ -1445,6 +1446,119 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         inputManager.toggleSoftInput(0, 0);
     }
 
+    private byte getLiTouchTypeFromEvent(MotionEvent event) {
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN:
+                return MoonBridge.LI_TOUCH_EVENT_DOWN;
+
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
+                if ((event.getFlags() & MotionEvent.FLAG_CANCELED) != 0) {
+                    return MoonBridge.LI_TOUCH_EVENT_CANCEL;
+                }
+                else {
+                    return MoonBridge.LI_TOUCH_EVENT_UP;
+                }
+
+            case MotionEvent.ACTION_MOVE:
+                return MoonBridge.LI_TOUCH_EVENT_MOVE;
+
+            case MotionEvent.ACTION_CANCEL:
+                return MoonBridge.LI_TOUCH_EVENT_CANCEL;
+
+            case MotionEvent.ACTION_HOVER_ENTER:
+            case MotionEvent.ACTION_HOVER_MOVE:
+            case MotionEvent.ACTION_HOVER_EXIT:
+                return MoonBridge.LI_TOUCH_EVENT_HOVER;
+
+            case MotionEvent.ACTION_BUTTON_PRESS:
+            case MotionEvent.ACTION_BUTTON_RELEASE:
+                return MoonBridge.LI_TOUCH_EVENT_BUTTON_ONLY;
+
+            default:
+               return -1;
+        }
+    }
+
+    private boolean trySendPenEvent(View view, MotionEvent event) {
+        byte eventType = getLiTouchTypeFromEvent(event);
+        if (eventType < 0) {
+            return false;
+        }
+
+        byte toolType;
+        switch (event.getToolType(event.getActionIndex())) {
+            case MotionEvent.TOOL_TYPE_ERASER:
+                toolType = MoonBridge.LI_TOOL_TYPE_ERASER;
+                break;
+            case MotionEvent.TOOL_TYPE_STYLUS:
+                toolType = MoonBridge.LI_TOOL_TYPE_PEN;
+                break;
+            default:
+                return false;
+        }
+
+        byte penButtons = 0;
+        if ((event.getButtonState() & MotionEvent.BUTTON_STYLUS_PRIMARY) != 0) {
+            penButtons |= MoonBridge.LI_PEN_BUTTON_PRIMARY;
+        }
+        if ((event.getButtonState() & MotionEvent.BUTTON_STYLUS_SECONDARY) != 0) {
+            penButtons |= MoonBridge.LI_PEN_BUTTON_SECONDARY;
+        }
+
+        float normalizedX = event.getX(event.getActionIndex());
+        float normalizedY = event.getY(event.getActionIndex());
+
+        normalizedX = Math.max(normalizedX, 0.0f);
+        normalizedY = Math.max(normalizedY, 0.0f);
+
+        normalizedX = Math.min(normalizedX, view.getWidth());
+        normalizedY = Math.min(normalizedY, view.getHeight());
+
+        normalizedX /= view.getWidth();
+        normalizedY /= view.getHeight();
+
+        short rotationDegrees = MoonBridge.LI_ROT_UNKNOWN;
+        byte tiltDegrees = MoonBridge.LI_TILT_UNKNOWN;
+        InputDevice dev = event.getDevice();
+        if (dev != null) {
+            if (dev.getMotionRange(MotionEvent.AXIS_ORIENTATION, event.getSource()) != null) {
+                rotationDegrees = (short)Math.toDegrees(event.getOrientation(event.getActionIndex()));
+            }
+            if (dev.getMotionRange(MotionEvent.AXIS_TILT, event.getSource()) != null) {
+                tiltDegrees = (byte)Math.toDegrees(event.getAxisValue(MotionEvent.AXIS_TILT, event.getActionIndex()));
+            }
+        }
+
+        return conn.sendPenEvent(eventType, toolType, penButtons,
+                normalizedX, normalizedY,
+                event.getPressure(event.getActionIndex()),
+                rotationDegrees, tiltDegrees) != MoonBridge.LI_ERR_UNSUPPORTED;
+    }
+
+    private boolean trySendTouchEvent(View view, MotionEvent event) {
+        byte eventType = getLiTouchTypeFromEvent(event);
+        if (eventType < 0) {
+            return false;
+        }
+
+        float normalizedX = event.getX(event.getActionIndex());
+        float normalizedY = event.getY(event.getActionIndex());
+
+        normalizedX = Math.max(normalizedX, 0.0f);
+        normalizedY = Math.max(normalizedY, 0.0f);
+
+        normalizedX = Math.min(normalizedX, view.getWidth());
+        normalizedY = Math.min(normalizedY, view.getHeight());
+
+        normalizedX /= view.getWidth();
+        normalizedY /= view.getHeight();
+
+        return conn.sendTouchEvent(eventType, event.getPointerId(event.getActionIndex()),
+                normalizedX, normalizedY, event.getPressure(event.getActionIndex())) != MoonBridge.LI_ERR_UNSUPPORTED;
+    }
+
     // Returns true if the event was consumed
     // NB: View is only present if called from a view callback
     private boolean handleMotionEvent(View view, MotionEvent event) {
@@ -1548,6 +1662,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                             }
                         }
                     }
+                }
+                else if (view != null && trySendPenEvent(view, event)) {
+                    // If our host supports pen events, send it directly
+                    return true;
                 }
                 else if (view != null) {
                     // Otherwise send absolute position based on the view for SOURCE_CLASS_POINTER
@@ -1688,6 +1806,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         aTouchContext.cancelTouch();
                     }
 
+                    return true;
+                }
+
+                if (!prefConfig.touchscreenTrackpad && trySendTouchEvent(view, event)) {
+                    // If this host supports touch events and absolute touch is enabled,
+                    // send it directly as a touch event.
                     return true;
                 }
 

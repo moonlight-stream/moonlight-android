@@ -49,9 +49,8 @@ JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendPenEvent(JNIEnv *env, jclass clazz, jbyte eventType,
                                                         jbyte toolType, jbyte penButtons,
                                                         jfloat x, jfloat y, jfloat pressure,
-                                                        jshort rotation, jbyte tiltX,
-                                                        jbyte tiltY) {
-    return LiSendPenEvent(eventType, toolType, penButtons, x, y, pressure, rotation, tiltX, tiltY);
+                                                        jshort rotation, jbyte tilt) {
+    return LiSendPenEvent(eventType, toolType, penButtons, x, y, pressure, rotation, tilt);
 }
 
 JNIEXPORT jint JNICALL

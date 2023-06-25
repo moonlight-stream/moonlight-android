@@ -537,9 +537,9 @@ public class NvConnection {
     }
 
     public int sendPenEvent(byte eventType, byte toolType, byte penButtons, float x, float y,
-                            float pressure, short rotation, byte tiltX, byte tiltY) {
+                            float pressure, short rotation, byte tilt) {
         if (!isMonkey) {
-            return MoonBridge.sendPenEvent(eventType, toolType, penButtons, x, y, pressure, rotation, tiltX, tiltY);
+            return MoonBridge.sendPenEvent(eventType, toolType, penButtons, x, y, pressure, rotation, tilt);
         }
         else {
             return MoonBridge.LI_ERR_UNSUPPORTED;

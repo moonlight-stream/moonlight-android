@@ -1469,8 +1469,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             case MotionEvent.ACTION_HOVER_ENTER:
             case MotionEvent.ACTION_HOVER_MOVE:
-            case MotionEvent.ACTION_HOVER_EXIT:
                 return MoonBridge.LI_TOUCH_EVENT_HOVER;
+
+            case MotionEvent.ACTION_HOVER_EXIT:
+                return MoonBridge.LI_TOUCH_EVENT_HOVER_LEAVE;
 
             case MotionEvent.ACTION_BUTTON_PRESS:
             case MotionEvent.ACTION_BUTTON_RELEASE:

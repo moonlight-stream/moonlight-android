@@ -83,6 +83,7 @@ public class MoonBridge {
     public static final byte LI_TOUCH_EVENT_MOVE        = 0x03;
     public static final byte LI_TOUCH_EVENT_CANCEL      = 0x04;
     public static final byte LI_TOUCH_EVENT_BUTTON_ONLY = 0x05;
+    public static final byte LI_TOUCH_EVENT_HOVER_LEAVE = 0x06;
 
     public static final byte LI_TOOL_TYPE_PEN = 0x01;
     public static final byte LI_TOOL_TYPE_ERASER = 0x02;

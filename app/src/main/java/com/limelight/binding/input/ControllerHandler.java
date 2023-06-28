@@ -1951,7 +1951,24 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.rightTrigger = 0;
             break;
         default:
-            return false;
+            // Paddles aren't mapped in any of the Android key layout files,
+            // so we need to handle the evdev key codes directly.
+            switch (event.getScanCode()) {
+                case 0x2c4: // BTN_TRIGGER_HAPPY5
+                    context.inputMap &= ~ControllerPacket.PADDLE1_FLAG;
+                    break;
+                case 0x2c5: // BTN_TRIGGER_HAPPY6
+                    context.inputMap &= ~ControllerPacket.PADDLE2_FLAG;
+                    break;
+                case 0x2c6: // BTN_TRIGGER_HAPPY7
+                    context.inputMap &= ~ControllerPacket.PADDLE3_FLAG;
+                    break;
+                case 0x2c7: // BTN_TRIGGER_HAPPY8
+                    context.inputMap &= ~ControllerPacket.PADDLE4_FLAG;
+                    break;
+                default:
+                    return false;
+            }
         }
 
         // Check if we're emulating the select button
@@ -2126,7 +2143,24 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.rightTrigger = (byte)0xFF;
             break;
         default:
-            return false;
+            // Paddles aren't mapped in any of the Android key layout files,
+            // so we need to handle the evdev key codes directly.
+            switch (event.getScanCode()) {
+                case 0x2c4: // BTN_TRIGGER_HAPPY5
+                    context.inputMap |= ControllerPacket.PADDLE1_FLAG;
+                    break;
+                case 0x2c5: // BTN_TRIGGER_HAPPY6
+                    context.inputMap |= ControllerPacket.PADDLE2_FLAG;
+                    break;
+                case 0x2c6: // BTN_TRIGGER_HAPPY7
+                    context.inputMap |= ControllerPacket.PADDLE3_FLAG;
+                    break;
+                case 0x2c7: // BTN_TRIGGER_HAPPY8
+                    context.inputMap |= ControllerPacket.PADDLE4_FLAG;
+                    break;
+                default:
+                    return false;
+            }
         }
 
         // Start+Back+LB+RB is the quit combo

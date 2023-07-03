@@ -346,7 +346,7 @@ public class MoonBridge {
                                               int width, int height, int fps,
                                               int bitrate, int packetSize, int streamingRemotely,
                                               int audioConfiguration, int supportedVideoFormats,
-                                              boolean enableHdr,
+                                              int serverCodecModeSupport,
                                               int hevcBitratePercentageMultiplier,
                                               int av1BitratePercentageMultiplier,
                                               int clientRefreshRateX100,

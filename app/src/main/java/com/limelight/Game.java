@@ -424,13 +424,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         int supportedVideoFormats = MoonBridge.VIDEO_FORMAT_H264;
         if (decoderRenderer.isHevcSupported()) {
             supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_H265;
-            if (decoderRenderer.isHevcMain10Hdr10Supported()) {
+            if (willStreamHdr && decoderRenderer.isHevcMain10Hdr10Supported()) {
                 supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_H265_MAIN10;
             }
         }
         if (decoderRenderer.isAv1Supported()) {
             supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_AV1_MAIN8;
-            if (decoderRenderer.isAv1Main10Supported()) {
+            if (willStreamHdr && decoderRenderer.isAv1Main10Supported()) {
                 supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_AV1_MAIN10;
             }
         }
@@ -486,7 +486,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setHevcBitratePercentageMultiplier(75)
                 .setAv1BitratePercentageMultiplier(60)
                 .setSupportedVideoFormats(supportedVideoFormats)
-                .setEnableHdr(willStreamHdr)
                 .setAttachedGamepadMask(gamepadMask)
                 .setClientRefreshRateX100((int)(displayRefreshRate * 100))
                 .setAudioConfiguration(prefConfig.audioConfiguration)

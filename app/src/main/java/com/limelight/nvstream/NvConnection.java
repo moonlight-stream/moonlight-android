@@ -242,9 +242,11 @@ public class NvConnection {
             return false;
         }
 
-        context.negotiatedHdr = context.streamConfig.getEnableHdr();
-        if ((h.getServerCodecModeSupport(serverInfo) & 0x200) == 0 && context.negotiatedHdr) {
-            context.connListener.displayTransientMessage("Your GPU does not support streaming HDR. The stream will be SDR.");
+        context.serverCodecModeSupport = (int)h.getServerCodecModeSupport(serverInfo);
+
+        context.negotiatedHdr = (context.streamConfig.getSupportedVideoFormats() & MoonBridge.VIDEO_FORMAT_MASK_10BIT) != 0;
+        if ((context.serverCodecModeSupport & 0x20200) == 0 && context.negotiatedHdr) {
+            context.connListener.displayTransientMessage("Your PC GPU does not support streaming HDR. The stream will be SDR.");
             context.negotiatedHdr = false;
         }
         
@@ -254,7 +256,7 @@ public class NvConnection {
         
         // Check for a supported stream resolution
         if ((context.streamConfig.getWidth() > 4096 || context.streamConfig.getHeight() > 4096) &&
-                (h.getServerCodecModeSupport(serverInfo) & 0x200) == 0) {
+                (h.getServerCodecModeSupport(serverInfo) & 0x200) == 0 && context.isNvidiaServerSoftware) {
             context.connListener.displayMessage("Your host PC does not support streaming at resolutions above 4K.");
             return false;
         }
@@ -430,7 +432,7 @@ public class NvConnection {
                             context.negotiatedPacketSize, context.negotiatedRemoteStreaming,
                             context.streamConfig.getAudioConfiguration().toInt(),
                             context.streamConfig.getSupportedVideoFormats(),
-                            context.negotiatedHdr,
+                            context.serverCodecModeSupport,
                             context.streamConfig.getHevcBitratePercentageMultiplier(),
                             context.streamConfig.getAv1BitratePercentageMultiplier(),
                             context.streamConfig.getClientRefreshRateX100(),

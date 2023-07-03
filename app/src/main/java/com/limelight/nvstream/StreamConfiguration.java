@@ -25,7 +25,6 @@ public class StreamConfiguration {
     private int supportedVideoFormats;
     private int hevcBitratePercentageMultiplier;
     private int av1BitratePercentageMultiplier;
-    private boolean enableHdr;
     private int attachedGamepadMask;
     private int encryptionFlags;
     private int colorRange;
@@ -93,11 +92,6 @@ public class StreamConfiguration {
 
         public StreamConfiguration.Builder setAv1BitratePercentageMultiplier(int multiplier) {
             config.av1BitratePercentageMultiplier = multiplier;
-            return this;
-        }
-
-        public StreamConfiguration.Builder setEnableHdr(boolean enableHdr) {
-            config.enableHdr = enableHdr;
             return this;
         }
 
@@ -236,10 +230,6 @@ public class StreamConfiguration {
 
     public int getAv1BitratePercentageMultiplier() {
         return av1BitratePercentageMultiplier;
-    }
-
-    public boolean getEnableHdr() {
-        return enableHdr;
     }
 
     public int getAttachedGamepadMask() {

@@ -342,11 +342,10 @@ public class MoonBridge {
     }
 
     public static native int startConnection(String address, String appVersion, String gfeVersion,
-                                              String rtspSessionUrl,
+                                              String rtspSessionUrl, int serverCodecModeSupport,
                                               int width, int height, int fps,
                                               int bitrate, int packetSize, int streamingRemotely,
                                               int audioConfiguration, int supportedVideoFormats,
-                                              int serverCodecModeSupport,
                                               int hevcBitratePercentageMultiplier,
                                               int av1BitratePercentageMultiplier,
                                               int clientRefreshRateX100,

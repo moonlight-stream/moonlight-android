@@ -427,12 +427,12 @@ public class NvConnection {
                     MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
                     int ret = MoonBridge.startConnection(context.serverAddress.address,
                             context.serverAppVersion, context.serverGfeVersion, context.rtspSessionUrl,
+                            context.serverCodecModeSupport,
                             context.negotiatedWidth, context.negotiatedHeight,
                             context.streamConfig.getRefreshRate(), context.streamConfig.getBitrate(),
                             context.negotiatedPacketSize, context.negotiatedRemoteStreaming,
                             context.streamConfig.getAudioConfiguration().toInt(),
                             context.streamConfig.getSupportedVideoFormats(),
-                            context.serverCodecModeSupport,
                             context.streamConfig.getHevcBitratePercentageMultiplier(),
                             context.streamConfig.getAv1BitratePercentageMultiplier(),
                             context.streamConfig.getClientRefreshRateX100(),

@@ -429,11 +429,10 @@ static CONNECTION_LISTENER_CALLBACKS BridgeConnListenerCallbacks = {
 JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jclass clazz,
                                                            jstring address, jstring appVersion, jstring gfeVersion,
-                                                           jstring rtspSessionUrl,
+                                                           jstring rtspSessionUrl, jint serverCodecModeSupport,
                                                            jint width, jint height, jint fps,
                                                            jint bitrate, jint packetSize, jint streamingRemotely,
                                                            jint audioConfiguration, jint supportedVideoFormats,
-                                                           jint serverCodecModeSupport,
                                                            jint hevcBitratePercentageMultiplier,
                                                            jint av1BitratePercentageMultiplier,
                                                            jint clientRefreshRateX100,
@@ -446,6 +445,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jclass c
             .serverInfoAppVersion = (*env)->GetStringUTFChars(env, appVersion, 0),
             .serverInfoGfeVersion = gfeVersion ? (*env)->GetStringUTFChars(env, gfeVersion, 0) : NULL,
             .rtspSessionUrl = rtspSessionUrl ? (*env)->GetStringUTFChars(env, rtspSessionUrl, 0) : NULL,
+            .serverCodecModeSupport = serverCodecModeSupport,
     };
     STREAM_CONFIGURATION streamConfig = {
             .width = width,
@@ -456,7 +456,6 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jclass c
             .streamingRemotely = streamingRemotely,
             .audioConfiguration = audioConfiguration,
             .supportedVideoFormats = supportedVideoFormats,
-            .serverCodecModeSupport = serverCodecModeSupport,
             .hevcBitratePercentageMultiplier = hevcBitratePercentageMultiplier,
             .av1BitratePercentageMultiplier = av1BitratePercentageMultiplier,
             .clientRefreshRateX100 = clientRefreshRateX100,

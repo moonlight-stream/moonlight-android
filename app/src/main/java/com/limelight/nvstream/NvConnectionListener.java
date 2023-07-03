@@ -18,4 +18,6 @@ public interface NvConnectionListener {
     void setHdrMode(boolean enabled, byte[] hdrMetadata);
 
     void setMotionEventState(short controllerNumber, byte motionType, short reportRateHz);
+
+    void setControllerLED(short controllerNumber, byte r, byte g, byte b);
 }

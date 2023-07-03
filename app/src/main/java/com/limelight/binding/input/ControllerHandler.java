@@ -3,11 +3,16 @@ package com.limelight.binding.input;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.hardware.BatteryState;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.input.InputManager;
+import android.hardware.lights.Light;
+import android.hardware.lights.LightState;
+import android.hardware.lights.LightsManager;
+import android.hardware.lights.LightsRequest;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.media.AudioAttributes;
@@ -55,6 +60,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private static final int EMULATING_SELECT = 0x2;
 
     private static final short MAX_GAMEPADS = 16; // Limited by bits in activeGamepadMask
+
+    private static final int BATTERY_RECHECK_INTERVAL_MS = 120 * 1000;
 
     private static final Map<Integer, Integer> ANDROID_TO_LI_BUTTON_MAP = Map.ofEntries(
             Map.entry(KeyEvent.KEYCODE_BUTTON_A, ControllerPacket.A_FLAG),
@@ -864,6 +871,68 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         else {
             // Only Player 1 is active with multi-controller disabled
             return 1;
+        }
+    }
+
+    private static boolean areBatteryCapacitiesEqual(float first, float second) {
+        // With no NaNs involved, it is a simple equality comparison.
+        if (!Float.isNaN(first) && !Float.isNaN(second)) {
+            return first == second;
+        }
+        else {
+            // If we have a NaN in one or both positions, compare NaN-ness instead.
+            // Equality comparisons will always return false for NaN.
+            return Float.isNaN(first) == Float.isNaN(second);
+        }
+    }
+
+    private void sendControllerBatteryPacket(InputDeviceContext context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            int currentBatteryStatus = context.inputDevice.getBatteryState().getStatus();
+            float currentBatteryCapacity = context.inputDevice.getBatteryState().getCapacity();
+
+            if (currentBatteryStatus != context.lastReportedBatteryStatus ||
+                    !areBatteryCapacitiesEqual(currentBatteryCapacity, context.lastReportedBatteryCapacity)) {
+                byte state;
+                byte percentage;
+
+                switch (currentBatteryStatus) {
+                    case BatteryState.STATUS_UNKNOWN:
+                        state = MoonBridge.LI_BATTERY_STATE_UNKNOWN;
+                        break;
+
+                    case BatteryState.STATUS_CHARGING:
+                        state = MoonBridge.LI_BATTERY_STATE_CHARGING;
+                        break;
+
+                    case BatteryState.STATUS_DISCHARGING:
+                        state = MoonBridge.LI_BATTERY_STATE_DISCHARGING;
+                        break;
+
+                    case BatteryState.STATUS_NOT_CHARGING:
+                        state = MoonBridge.LI_BATTERY_STATE_NOT_CHARGING;
+                        break;
+
+                    case BatteryState.STATUS_FULL:
+                        state = MoonBridge.LI_BATTERY_STATE_FULL;
+                        break;
+
+                    default:
+                        return;
+                }
+
+                if (Float.isNaN(currentBatteryCapacity)) {
+                    percentage = MoonBridge.LI_BATTERY_PERCENTAGE_UNKNOWN;
+                }
+                else {
+                    percentage = (byte)(currentBatteryCapacity * 100);
+                }
+
+                conn.sendControllerBatteryEvent((byte)context.controllerNumber, state, percentage);
+
+                context.lastReportedBatteryStatus = currentBatteryStatus;
+                context.lastReportedBatteryCapacity = currentBatteryCapacity;
+            }
         }
     }
 
@@ -1685,13 +1754,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             for (int i = 0; i < inputDeviceContexts.size(); i++) {
                 InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
 
-                deviceContext.leftTriggerMotor = leftTrigger;
-                deviceContext.rightTriggerMotor = rightTrigger;
+                if (deviceContext.controllerNumber == controllerNumber) {
+                    deviceContext.leftTriggerMotor = leftTrigger;
+                    deviceContext.rightTriggerMotor = rightTrigger;
 
-                if (deviceContext.controllerNumber == controllerNumber && deviceContext.quadVibrators) {
-                    rumbleQuadVibrators(deviceContext.vibratorManager,
-                            deviceContext.lowFreqMotor, deviceContext.highFreqMotor,
-                            deviceContext.leftTriggerMotor, deviceContext.rightTriggerMotor);
+                    if (deviceContext.quadVibrators) {
+                        rumbleQuadVibrators(deviceContext.vibratorManager,
+                                deviceContext.lowFreqMotor, deviceContext.highFreqMotor,
+                                deviceContext.leftTriggerMotor, deviceContext.rightTriggerMotor);
+                    }
                 }
             }
         }
@@ -1786,6 +1857,36 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                             break;
                     }
                     break;
+                }
+            }
+        }
+    }
+
+    public void handleSetControllerLED(short controllerNumber, byte r, byte g, byte b) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            for (int i = 0; i < inputDeviceContexts.size(); i++) {
+                InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
+
+                if (deviceContext.controllerNumber == controllerNumber) {
+                    // Create a new light session if one doesn't already exist
+                    if (deviceContext.lightsSession == null) {
+                        deviceContext.lightsSession = deviceContext.inputDevice.getLightsManager().openSession();
+                    }
+
+                    // Convert the RGB components into the integer value that LightState uses
+                    int argbValue = 0xFF000000 | ((r << 16) & 0xFF0000) | ((g << 8) & 0xFF00) | (b & 0xFF);
+                    LightState lightState = new LightState.Builder().setColor(argbValue).build();
+
+                    // Set the RGB value for each RGB-controllable LED on the device
+                    LightsRequest.Builder lightsRequestBuilder = new LightsRequest.Builder();
+                    for (Light light : deviceContext.inputDevice.getLightsManager().getLights()) {
+                        if (light.hasRgbControl()) {
+                            lightsRequestBuilder.addLight(light, lightState);
+                        }
+                    }
+
+                    // Apply the LED changes
+                    deviceContext.lightsSession.requestLights(lightsRequestBuilder.build());
                 }
             }
         }
@@ -2362,6 +2463,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         public InputDevice inputDevice;
 
+        public LightsManager.LightsSession lightsSession;
+
+        // These are BatteryState values, not Moonlight values
+        public int lastReportedBatteryStatus;
+        public float lastReportedBatteryCapacity;
+
         public int leftStickXAxis = -1;
         public int leftStickYAxis = -1;
 
@@ -2406,6 +2513,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         public long startDownTime = 0;
 
+        public final Runnable batteryStateUpdateRunnable = new Runnable() {
+            @Override
+            public void run() {
+                sendControllerBatteryPacket(InputDeviceContext.this);
+
+                // Requeue the callback
+                handler.postDelayed(this, BATTERY_RECHECK_INTERVAL_MS);
+            }
+        };
+
         @Override
         public void destroy() {
             super.destroy();
@@ -2424,7 +2541,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 if (accelListener != null) {
                     inputDevice.getSensorManager().unregisterListener(accelListener);
                 }
+
+                if (lightsSession != null) {
+                    lightsSession.close();
+                }
             }
+
+            handler.removeCallbacks(batteryStateUpdateRunnable);
         }
 
         @Override
@@ -2484,6 +2607,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 if (inputDevice.getSensorManager().getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
                     capabilities |= MoonBridge.LI_CCAP_GYRO;
                 }
+
+                if (inputDevice.getBatteryState().isPresent()) {
+                    capabilities |= MoonBridge.LI_CCAP_BATTERY_STATE;
+                }
+
+                for (Light light : inputDevice.getLightsManager().getLights()) {
+                    if (light.hasRgbControl()) {
+                        capabilities |= MoonBridge.LI_CCAP_RGB_LED;
+                    }
+                }
             }
 
             if (inputDevice.getVibrator().hasVibrator()) {
@@ -2499,6 +2632,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
             conn.sendControllerArrivalEvent((byte)controllerNumber, getActiveControllerMask(),
                     type, supportedButtonFlags, capabilities);
+
+            // After reporting arrival to the host, send initial battery state and begin monitoring
+            sendControllerBatteryPacket(this);
+            handler.postDelayed(batteryStateUpdateRunnable, BATTERY_RECHECK_INTERVAL_MS);
         }
     }
 

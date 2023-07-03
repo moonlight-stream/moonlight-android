@@ -571,6 +571,10 @@ public class NvConnection {
         }
     }
 
+    public void sendControllerBatteryEvent(byte controllerNumber, byte batteryState, byte batteryPercentage) {
+        MoonBridge.sendControllerBatteryEvent(controllerNumber, batteryState, batteryPercentage);
+    }
+
     public void sendUtf8Text(final String text) {
         if (!isMonkey) {
             MoonBridge.sendUtf8Text(text);

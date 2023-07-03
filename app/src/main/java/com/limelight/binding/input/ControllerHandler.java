@@ -1052,13 +1052,25 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
-    // Return a valid keycode, 0 to consume, or -1 to not consume the event
+    private final int REMAP_IGNORE = -1;
+    private final int REMAP_CONSUME = -2;
+
+    // Return a valid keycode, -2 to consume, or -1 to not consume the event
     // Device MAY BE NULL
     private int handleRemapping(InputDeviceContext context, KeyEvent event) {
         // Don't capture the back button if configured
         if (context.ignoreBack) {
             if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                return -1;
+                return REMAP_IGNORE;
+            }
+        }
+
+        // If we know this gamepad has a share button and receive an unmapped
+        // KEY_RECORD event, report that as a share button press.
+        if (context.hasShare) {
+            if (event.getKeyCode() == KeyEvent.KEYCODE_UNKNOWN &&
+                    event.getScanCode() == 167) {
+                return KeyEvent.KEYCODE_MEDIA_RECORD;
             }
         }
 
@@ -1148,7 +1160,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 case 316:
                     return KeyEvent.KEYCODE_BUTTON_MODE;
                 default:
-                    return 0;
+                    return REMAP_CONSUME;
             }
         }
         // If this is a Serval controller sending an unknown key code, it's probably
@@ -1904,13 +1916,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         int keyCode = handleRemapping(context, event);
+        if (keyCode < 0) {
+            return (keyCode == REMAP_CONSUME);
+        }
 
         if (prefConfig.flipFaceButtons) {
             keyCode = handleFlipFaceButtons(keyCode);
-        }
-
-        if (keyCode == 0) {
-            return true;
         }
 
         // If the button hasn't been down long enough, sleep for a bit before sending the up event
@@ -2056,25 +2067,33 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
             context.rightTrigger = 0;
             break;
-        default:
+        case KeyEvent.KEYCODE_UNKNOWN:
             // Paddles aren't mapped in any of the Android key layout files,
             // so we need to handle the evdev key codes directly.
-            switch (event.getScanCode()) {
-                case 0x2c4: // BTN_TRIGGER_HAPPY5
-                    context.inputMap &= ~ControllerPacket.PADDLE1_FLAG;
-                    break;
-                case 0x2c5: // BTN_TRIGGER_HAPPY6
-                    context.inputMap &= ~ControllerPacket.PADDLE2_FLAG;
-                    break;
-                case 0x2c6: // BTN_TRIGGER_HAPPY7
-                    context.inputMap &= ~ControllerPacket.PADDLE3_FLAG;
-                    break;
-                case 0x2c7: // BTN_TRIGGER_HAPPY8
-                    context.inputMap &= ~ControllerPacket.PADDLE4_FLAG;
-                    break;
-                default:
-                    return false;
+            if (context.hasPaddles) {
+                switch (event.getScanCode()) {
+                    case 0x2c4: // BTN_TRIGGER_HAPPY5
+                        context.inputMap &= ~ControllerPacket.PADDLE1_FLAG;
+                        break;
+                    case 0x2c5: // BTN_TRIGGER_HAPPY6
+                        context.inputMap &= ~ControllerPacket.PADDLE2_FLAG;
+                        break;
+                    case 0x2c6: // BTN_TRIGGER_HAPPY7
+                        context.inputMap &= ~ControllerPacket.PADDLE3_FLAG;
+                        break;
+                    case 0x2c7: // BTN_TRIGGER_HAPPY8
+                        context.inputMap &= ~ControllerPacket.PADDLE4_FLAG;
+                        break;
+                    default:
+                        return false;
+                }
             }
+            else {
+                return false;
+            }
+            break;
+        default:
+            return false;
         }
 
         // Check if we're emulating the select button
@@ -2121,13 +2140,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         int keyCode = handleRemapping(context, event);
+        if (keyCode < 0) {
+            return (keyCode == REMAP_CONSUME);
+        }
 
         if (prefConfig.flipFaceButtons) {
             keyCode = handleFlipFaceButtons(keyCode);
-        }
-
-        if (keyCode == 0) {
-            return true;
         }
 
         switch (keyCode) {
@@ -2248,25 +2266,33 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
             context.rightTrigger = (byte)0xFF;
             break;
-        default:
+        case KeyEvent.KEYCODE_UNKNOWN:
             // Paddles aren't mapped in any of the Android key layout files,
             // so we need to handle the evdev key codes directly.
-            switch (event.getScanCode()) {
-                case 0x2c4: // BTN_TRIGGER_HAPPY5
-                    context.inputMap |= ControllerPacket.PADDLE1_FLAG;
-                    break;
-                case 0x2c5: // BTN_TRIGGER_HAPPY6
-                    context.inputMap |= ControllerPacket.PADDLE2_FLAG;
-                    break;
-                case 0x2c6: // BTN_TRIGGER_HAPPY7
-                    context.inputMap |= ControllerPacket.PADDLE3_FLAG;
-                    break;
-                case 0x2c7: // BTN_TRIGGER_HAPPY8
-                    context.inputMap |= ControllerPacket.PADDLE4_FLAG;
-                    break;
-                default:
-                    return false;
+            if (context.hasPaddles) {
+                switch (event.getScanCode()) {
+                    case 0x2c4: // BTN_TRIGGER_HAPPY5
+                        context.inputMap |= ControllerPacket.PADDLE1_FLAG;
+                        break;
+                    case 0x2c5: // BTN_TRIGGER_HAPPY6
+                        context.inputMap |= ControllerPacket.PADDLE2_FLAG;
+                        break;
+                    case 0x2c6: // BTN_TRIGGER_HAPPY7
+                        context.inputMap |= ControllerPacket.PADDLE3_FLAG;
+                        break;
+                    case 0x2c7: // BTN_TRIGGER_HAPPY8
+                        context.inputMap |= ControllerPacket.PADDLE4_FLAG;
+                        break;
+                    default:
+                        return false;
+                }
             }
+            else {
+                return false;
+            }
+            break;
+        default:
+            return false;
         }
 
         // Start+Back+LB+RB is the quit combo

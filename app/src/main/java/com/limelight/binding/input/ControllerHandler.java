@@ -571,6 +571,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             context.vendorId = dev.getVendorId();
             context.productId = dev.getProductId();
+
+            // These aren't always present in the Android key layout files, so they won't show up
+            // in our normal InputDevice.hasKeys() probing.
+            context.hasPaddles = MoonBridge.guessControllerHasPaddles(context.vendorId, context.productId);
+            context.hasShare = MoonBridge.guessControllerHasShareButton(context.vendorId, context.productId);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && hasQuadAmplitudeControlledRumbleVibrators(dev.getVibratorManager())) {
@@ -2502,6 +2507,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public int emulatingButtonFlags = 0;
         public boolean hasSelect;
         public boolean hasMode;
+        public boolean hasPaddles;
+        public boolean hasShare;
 
         // Used for OUYA bumper state tracking since they force all buttons
         // up when the OUYA button goes down. We watch the last time we get
@@ -2568,6 +2575,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 case 0x057e: // Nintendo
                     type = MoonBridge.LI_CTYPE_NINTENDO;
                     break;
+                default:
+                    // Consult SDL's controller type list to see if it knows
+                    type = MoonBridge.guessControllerType(inputDevice.getVendorId(), inputDevice.getProductId());
+                    break;
             }
 
             int supportedButtonFlags = 0;
@@ -2575,6 +2586,18 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 if (inputDevice.hasKeys(entry.getKey())[0]) {
                     supportedButtonFlags |= entry.getValue();
                 }
+            }
+
+            // Add non-standard button flags that may not be mapped in the Android kl file
+            if (hasPaddles) {
+                supportedButtonFlags |=
+                        ControllerPacket.PADDLE1_FLAG |
+                        ControllerPacket.PADDLE2_FLAG |
+                        ControllerPacket.PADDLE3_FLAG |
+                        ControllerPacket.PADDLE4_FLAG;
+            }
+            if (hasShare) {
+                supportedButtonFlags |= ControllerPacket.MISC_FLAG;
             }
 
             if (getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_HAT_X) != null) {
@@ -2626,8 +2649,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             if ((inputDevice.getSources() & InputDevice.SOURCE_TOUCHPAD) == InputDevice.SOURCE_TOUCHPAD) {
                 capabilities |= MoonBridge.LI_CCAP_TOUCHPAD;
 
+                // If this is a PlayStation controller with a touchpad, we know it has a clickpad.
                 // FIXME: Can we actually tell a clickpad from a touchpad using Android APIs?
-                supportedButtonFlags |= ControllerPacket.TOUCHPAD_FLAG;
+                if (type == MoonBridge.LI_CTYPE_PS) {
+                    supportedButtonFlags |= ControllerPacket.TOUCHPAD_FLAG;
+                }
             }
 
             conn.sendControllerArrivalEvent((byte)controllerNumber, getActiveControllerMask(),

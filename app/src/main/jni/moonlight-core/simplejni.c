@@ -6,6 +6,10 @@
 #include <arpa/inet.h>
 #include <string.h>
 
+#include "minisdl.h"
+#include "controller_type.h"
+#include "controller_list.h"
+
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendMouseMove(JNIEnv *env, jclass clazz, jshort deltaX, jshort deltaY) {
     LiSendMouseMoveEvent(deltaX, deltaY);
@@ -201,4 +205,47 @@ Java_com_limelight_nvstream_jni_MoonBridge_getEstimatedRttInfo(JNIEnv *env, jcla
     }
 
     return ((uint64_t)rtt << 32U) | variance;
+}
+
+JNIEXPORT jbyte JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_guessControllerType(JNIEnv *env, jclass clazz, jint vendorId, jint productId) {
+    unsigned int unDeviceID = MAKE_CONTROLLER_ID(vendorId, productId);
+    for (int i = 0; i < sizeof(arrControllers) / sizeof(arrControllers[0]); i++) {
+        if (unDeviceID == arrControllers[i].m_unDeviceID) {
+            switch (arrControllers[i].m_eControllerType) {
+                case k_eControllerType_XBox360Controller:
+                case k_eControllerType_XBoxOneController:
+                    return LI_CTYPE_XBOX;
+
+                case k_eControllerType_PS3Controller:
+                case k_eControllerType_PS4Controller:
+                case k_eControllerType_PS5Controller:
+                    return LI_CTYPE_PS;
+
+                case k_eControllerType_WiiController:
+                case k_eControllerType_SwitchProController:
+                case k_eControllerType_SwitchJoyConLeft:
+                case k_eControllerType_SwitchJoyConRight:
+                case k_eControllerType_SwitchJoyConPair:
+                case k_eControllerType_SwitchInputOnlyController:
+                    return LI_CTYPE_NINTENDO;
+
+                default:
+                    return LI_CTYPE_UNKNOWN;
+            }
+        }
+    }
+    return LI_CTYPE_UNKNOWN;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_guessControllerHasPaddles(JNIEnv *env, jclass clazz, jint vendorId, jint productId) {
+    // Xbox Elite and DualSense Edge controllers have paddles
+    return SDL_IsJoystickXboxOneElite(vendorId, productId) || SDL_IsJoystickDualSenseEdge(vendorId, productId);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_guessControllerHasShareButton(JNIEnv *env, jclass clazz, jint vendorId, jint productId) {
+    // Xbox Elite and DualSense Edge controllers have paddles
+    return SDL_IsJoystickXboxSeriesX(vendorId, productId);
 }

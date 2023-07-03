@@ -14,9 +14,13 @@ public class MoonBridge {
     public static final int VIDEO_FORMAT_H264 = 0x0001;
     public static final int VIDEO_FORMAT_H265 = 0x0100;
     public static final int VIDEO_FORMAT_H265_MAIN10 = 0x0200;
+    public static final int VIDEO_FORMAT_AV1_MAIN8 = 0x1000;
+    public static final int VIDEO_FORMAT_AV1_MAIN10 = 0x2000;
 
-    public static final int VIDEO_FORMAT_MASK_H264 = 0x00FF;
-    public static final int VIDEO_FORMAT_MASK_H265 = 0xFF00;
+    public static final int VIDEO_FORMAT_MASK_H264 = 0x000F;
+    public static final int VIDEO_FORMAT_MASK_H265 = 0x0F00;
+    public static final int VIDEO_FORMAT_MASK_AV1 = 0xF000;
+    public static final int VIDEO_FORMAT_MASK_10BIT = 0x2200;
 
     public static final int ENCFLG_NONE = 0;
     public static final int ENCFLG_AUDIO = 1;
@@ -40,6 +44,7 @@ public class MoonBridge {
     public static final int CAPABILITY_DIRECT_SUBMIT = 1;
     public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_AVC = 2;
     public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_HEVC = 4;
+    public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_AV1 = 0x40;
 
     public static final int DR_OK = 0;
     public static final int DR_NEED_IDR = -1;
@@ -340,9 +345,10 @@ public class MoonBridge {
                                               String rtspSessionUrl,
                                               int width, int height, int fps,
                                               int bitrate, int packetSize, int streamingRemotely,
-                                              int audioConfiguration, boolean supportsHevc,
+                                              int audioConfiguration, int supportedVideoFormats,
                                               boolean enableHdr,
                                               int hevcBitratePercentageMultiplier,
+                                              int av1BitratePercentageMultiplier,
                                               int clientRefreshRateX100,
                                               int encryptionFlags,
                                               byte[] riAesKey, byte[] riAesIv,

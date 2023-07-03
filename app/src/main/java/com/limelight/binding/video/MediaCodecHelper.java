@@ -691,6 +691,17 @@ public class MediaCodecHelper {
         return isDecoderInList(refFrameInvalidationHevcPrefixes, decoderInfo.getName());
     }
 
+    public static boolean decoderSupportsRefFrameInvalidationAv1(MediaCodecInfo decoderInfo) {
+        // We'll use the same heuristics as HEVC for now
+        if (decoderSupportsAndroidRLowLatency(decoderInfo, "video/av01") ||
+                decoderSupportsKnownVendorLowLatencyOption(decoderInfo.getName())) {
+            LimeLog.info("Enabling AV1 RFI based on low latency option support");
+            return true;
+        }
+
+        return false;
+    }
+
     public static boolean decoderIsWhitelistedForHevc(MediaCodecInfo decoderInfo) {
         // Google didn't have official support for HEVC (or more importantly, a CTS test) until
         // Lollipop. I've seen some MediaTek devices on 4.4 crash when attempting to use HEVC,

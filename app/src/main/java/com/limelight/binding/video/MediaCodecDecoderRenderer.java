@@ -46,6 +46,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     private MediaCodecInfo avcDecoder;
     private MediaCodecInfo hevcDecoder;
+    private MediaCodecInfo av1Decoder;
 
     private byte[] vpsBuffer;
     private byte[] spsBuffer;
@@ -64,7 +65,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private boolean needsSpsBitstreamFixup, isExynos4;
     private boolean adaptivePlayback, directSubmit, fusedIdrFrame;
     private boolean constrainedHighProfile;
-    private boolean refFrameInvalidationAvc, refFrameInvalidationHevc;
+    private boolean refFrameInvalidationAvc, refFrameInvalidationHevc, refFrameInvalidationAv1;
     private byte optimalSlicesPerFrame;
     private boolean refFrameInvalidationActive;
     private int initialWidth, initialHeight;
@@ -231,6 +232,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         return hevcDecoderInfo;
     }
 
+    private MediaCodecInfo findAv1Decoder(PreferenceConfiguration prefs) {
+        return MediaCodecHelper.findProbableSafeDecoder("video/av01", -1);
+    }
+
     public void setRenderTarget(SurfaceHolder renderTarget) {
         this.renderTarget = renderTarget;
     }
@@ -269,6 +274,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             LimeLog.info("No HEVC decoder found");
         }
 
+        av1Decoder = findAv1Decoder(prefs);
+        if (av1Decoder != null) {
+            LimeLog.info("Selected AV1 decoder: "+av1Decoder.getName());
+        }
+        else {
+            LimeLog.info("No AV1 decoder found");
+        }
+
         // Set attributes that are queried in getCapabilities(). This must be done here
         // because getCapabilities() may be called before setup() in current versions of the common
         // library. The limitation of this is that we don't know whether we're using HEVC or AVC.
@@ -297,6 +310,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             }
 
             LimeLog.info("Decoder "+hevcDecoder.getName()+" wants "+hevcOptimalSlicesPerFrame+" slices per frame");
+        }
+
+        if (av1Decoder != null) {
+            refFrameInvalidationAv1 = MediaCodecHelper.decoderSupportsRefFrameInvalidationAv1(av1Decoder);
+
+            if (refFrameInvalidationAv1) {
+                LimeLog.info("Decoder "+av1Decoder.getName()+" will use reference frame invalidation for AV1");
+            }
         }
 
         // Use the larger of the two slices per frame preferences
@@ -332,6 +353,25 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         return false;
     }
 
+    public boolean isAv1Supported() {
+        return av1Decoder != null;
+    }
+
+    public boolean isAv1Main10Supported() {
+        if (av1Decoder == null) {
+            return false;
+        }
+
+        for (MediaCodecInfo.CodecProfileLevel profileLevel : av1Decoder.getCapabilitiesForType("video/av01").profileLevels) {
+            if (profileLevel.profile == MediaCodecInfo.CodecProfileLevel.AV1ProfileMain10HDR10) {
+                LimeLog.info("AV1 decoder "+av1Decoder.getName()+" supports AV1 Main 10 HDR10");
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public int getPreferredColorSpace() {
         // Default to Rec 709 which is probably better supported on modern devices.
         //
@@ -340,7 +380,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         // an HEVC decoder, we will use Rec 709 (even for H.264) since we can't choose a
         // colorspace by codec (and it's probably safe to say a SoC with HEVC decoding is
         // plenty modern enough to handle H.264 VUI colorspace info).
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O || hevcDecoder != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O || hevcDecoder != null || av1Decoder != null) {
             return MoonBridge.COLORSPACE_REC_709;
         }
         else {
@@ -550,6 +590,17 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             }
 
             refFrameInvalidationActive = refFrameInvalidationHevc;
+        }
+        else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_AV1) != 0) {
+            mimeType = "video/av01";
+            selectedDecoderInfo = av1Decoder;
+
+            if (av1Decoder == null) {
+                LimeLog.severe("No available AV1 decoder!");
+                return -2;
+            }
+
+            refFrameInvalidationActive = refFrameInvalidationAv1;
         }
         else {
             // Unknown format
@@ -1324,6 +1375,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                     decoder = avcDecoder.getName();
                 } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
                     decoder = hevcDecoder.getName();
+                } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_AV1) != 0) {
+                    decoder = av1Decoder.getName();
                 } else {
                     decoder = "(unknown)";
                 }
@@ -1669,6 +1722,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         }
         if (refFrameInvalidationHevc) {
             capabilities |= MoonBridge.CAPABILITY_REFERENCE_FRAME_INVALIDATION_HEVC;
+        }
+        if (refFrameInvalidationAv1) {
+            capabilities |= MoonBridge.CAPABILITY_REFERENCE_FRAME_INVALIDATION_AV1;
         }
 
         // Enable direct submit on supported hardware

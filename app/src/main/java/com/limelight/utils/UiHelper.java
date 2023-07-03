@@ -29,37 +29,37 @@ public class UiHelper {
     private static final int TV_VERTICAL_PADDING_DP = 15;
     private static final int TV_HORIZONTAL_PADDING_DP = 15;
 
-    private static void setGameModeStatus(Context context, boolean streaming, boolean loading, boolean interruptible) {
+    private static void setGameModeStatus(Context context, boolean streaming, boolean interruptible) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             GameManager gameManager = context.getSystemService(GameManager.class);
 
             if (streaming) {
-                gameManager.setGameState(new GameState(loading, interruptible ? GameState.MODE_GAMEPLAY_INTERRUPTIBLE : GameState.MODE_GAMEPLAY_UNINTERRUPTIBLE));
+                gameManager.setGameState(new GameState(false, interruptible ? GameState.MODE_GAMEPLAY_INTERRUPTIBLE : GameState.MODE_GAMEPLAY_UNINTERRUPTIBLE));
             }
             else {
-                gameManager.setGameState(new GameState(loading, GameState.MODE_NONE));
+                gameManager.setGameState(new GameState(false, GameState.MODE_NONE));
             }
         }
     }
 
     public static void notifyStreamConnecting(Context context) {
-        setGameModeStatus(context, true, true, true);
+        setGameModeStatus(context, true, true);
     }
 
     public static void notifyStreamConnected(Context context) {
-        setGameModeStatus(context, true, false, false);
+        setGameModeStatus(context, true, false);
     }
 
     public static void notifyStreamEnteringPiP(Context context) {
-        setGameModeStatus(context, true, false, true);
+        setGameModeStatus(context, true, true);
     }
 
     public static void notifyStreamExitingPiP(Context context) {
-        setGameModeStatus(context, true, false, false);
+        setGameModeStatus(context, true, false);
     }
 
     public static void notifyStreamEnded(Context context) {
-        setGameModeStatus(context, false, false, false);
+        setGameModeStatus(context, false, false);
     }
 
     public static void setLocale(Activity activity)
@@ -115,7 +115,7 @@ public class UiHelper {
         UiModeManager modeMgr = (UiModeManager) activity.getSystemService(Context.UI_MODE_SERVICE);
 
         // Set GameState.MODE_NONE initially for all activities
-        setGameModeStatus(activity, false, false, false);
+        setGameModeStatus(activity, false, false);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // Allow this non-streaming activity to layout under notches.

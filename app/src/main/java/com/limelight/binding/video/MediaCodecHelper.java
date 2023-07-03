@@ -747,7 +747,33 @@ public class MediaCodecHelper {
         // Otherwise, we use our list of known working HEVC decoders
         return isDecoderInList(whitelistedHevcDecoders, decoderInfo.getName());
     }
-    
+
+    public static boolean isDecoderWhitelistedForAv1(MediaCodecInfo decoderInfo) {
+        // Google didn't have official support for AV1 (or more importantly, a CTS test) until
+        // Android 10, so don't use any decoder before then.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            return false;
+        }
+
+        //
+        // Software decoders are terrible and we never want to use them.
+        // We want to catch decoders like:
+        // OMX.qcom.video.decoder.hevcswvdec
+        // OMX.SEC.hevc.sw.dec
+        //
+        if (decoderInfo.getName().contains("sw")) {
+            LimeLog.info("Disallowing AV1 on software decoder: " + decoderInfo.getName());
+            return false;
+        }
+        else if (!decoderInfo.isHardwareAccelerated() || decoderInfo.isSoftwareOnly()) {
+            LimeLog.info("Disallowing AV1 on software decoder: " + decoderInfo.getName());
+            return false;
+        }
+
+        // TODO: Test some AV1 decoders
+        return false;
+    }
+
     @SuppressWarnings("deprecation")
     @SuppressLint("NewApi")
     private static LinkedList<MediaCodecInfo> getMediaCodecList() {

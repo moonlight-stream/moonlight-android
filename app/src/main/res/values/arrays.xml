@@ -100,6 +100,17 @@
         <item>neverh265</item>
     </string-array>
 
+    <string-array name="av1_format_names">
+        <item>@string/av1_format_auto</item>
+        <item>@string/av1_format_always</item>
+        <item>@string/av1_format_never</item>
+    </string-array>
+    <string-array name="av1_format_values" translatable="false">
+        <item>auto</item>
+        <item>force</item>
+        <item>never</item>
+    </string-array>
+
     <string-array name="video_frame_pacing_names">
         <item>@string/pacing_latency</item>
         <item>@string/pacing_balanced</item>

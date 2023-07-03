@@ -193,7 +193,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     private MediaCodecInfo findHevcDecoder(PreferenceConfiguration prefs, boolean meteredNetwork, boolean requestedHdr) {
         // Don't return anything if HEVC is forced off
-        if (prefs.videoFormat == PreferenceConfiguration.FORCE_H265_OFF) {
+        if (prefs.hevcFormat == PreferenceConfiguration.FormatOption.FORCE_OFF) {
             return null;
         }
 
@@ -208,7 +208,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 LimeLog.info("Found HEVC decoder, but it's not whitelisted - "+hevcDecoderInfo.getName());
 
                 // Force HEVC enabled if the user asked for it
-                if (prefs.videoFormat == PreferenceConfiguration.FORCE_H265_ON) {
+                if (prefs.hevcFormat == PreferenceConfiguration.FormatOption.FORCE_ON) {
                     LimeLog.info("Forcing HEVC enabled despite non-whitelisted decoder");
                 }
                 // HDR implies HEVC forced on, since HEVCMain10HDR10 is required for HDR.
@@ -233,7 +233,27 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     }
 
     private MediaCodecInfo findAv1Decoder(PreferenceConfiguration prefs) {
-        return MediaCodecHelper.findProbableSafeDecoder("video/av01", -1);
+        // Don't return anything if AV1 is forced off
+        if (prefs.av1Format == PreferenceConfiguration.FormatOption.FORCE_OFF) {
+            return null;
+        }
+
+        MediaCodecInfo decoderInfo = MediaCodecHelper.findProbableSafeDecoder("video/av01", -1);
+        if (decoderInfo != null) {
+            if (!MediaCodecHelper.isDecoderWhitelistedForAv1(decoderInfo)) {
+                LimeLog.info("Found AV1 decoder, but it's not whitelisted - "+decoderInfo.getName());
+
+                // Force HEVC enabled if the user asked for it
+                if (prefs.av1Format == PreferenceConfiguration.FormatOption.FORCE_ON) {
+                    LimeLog.info("Forcing AV1 enabled despite non-whitelisted decoder");
+                }
+                else {
+                    return null;
+                }
+            }
+        }
+
+        return decoderInfo;
     }
 
     public void setRenderTarget(SurfaceHolder renderTarget) {

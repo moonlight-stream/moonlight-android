@@ -411,11 +411,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Display a message to the user if HEVC was forced on but we still didn't find a decoder
-        if (prefConfig.videoFormat == PreferenceConfiguration.FORCE_H265_ON && !decoderRenderer.isHevcSupported()) {
-            Toast.makeText(this, "No HEVC decoder found.\nFalling back to H.264.", Toast.LENGTH_LONG).show();
+        if (prefConfig.hevcFormat == PreferenceConfiguration.FormatOption.FORCE_ON && !decoderRenderer.isHevcSupported()) {
+            Toast.makeText(this, "No HEVC decoder found", Toast.LENGTH_LONG).show();
         }
 
-        // TODO: Display a message to the user if HEVC was forced on but we still didn't find a decoder
+        // Display a message to the user if AV1 was forced on but we still didn't find a decoder
+        if (prefConfig.av1Format == PreferenceConfiguration.FormatOption.FORCE_ON && !decoderRenderer.isAv1Supported()) {
+            Toast.makeText(this, "No AV1 decoder found", Toast.LENGTH_LONG).show();
+        }
 
         // H.264 is always supported
         int supportedVideoFormats = MoonBridge.VIDEO_FORMAT_H264;

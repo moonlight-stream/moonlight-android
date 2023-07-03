@@ -232,6 +232,8 @@
     <string name="summary_disable_frame_drop">May reduce micro-stuttering on some devices, but can increase latency</string>
     <string name="title_video_format">Change HEVC settings</string>
     <string name="summary_video_format">HEVC lowers video bandwidth requirements but requires a newer device</string>
+    <string name="title_av1_format">Change AV1 settings (Experimental)</string>
+    <string name="summary_av1_format">AV1 lowers video bandwidth requirements more than HEVC, but is currently experimental.</string>
     <string name="title_enable_hdr">Enable HDR (Experimental)</string>
     <string name="summary_enable_hdr">Stream HDR when the game and PC GPU support it. HDR requires a GPU with HEVC Main 10 encoding support.</string>
     <string name="title_full_range">Force full range video (Experimental)</string>
@@ -269,6 +271,10 @@
     <string name="videoformat_hevcauto">Automatic (Recommended)</string>
     <string name="videoformat_hevcalways">Prefer HEVC</string>
     <string name="videoformat_hevcnever">Never use HEVC</string>
+
+    <string name="av1_format_auto">Automatic (Recommended)</string>
+    <string name="av1_format_always">Prefer AV1</string>
+    <string name="av1_format_never">Never use AV1</string>
 
     <string name="title_frame_pacing">Video frame pacing</string>
     <string name="summary_frame_pacing">Specify how to balance video latency and smoothness</string>

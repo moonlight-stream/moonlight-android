@@ -206,6 +206,13 @@
             android:entryValues="@array/video_format_values"
             android:summary="@string/summary_video_format"
             android:defaultValue="auto" />
+        <ListPreference
+            android:key="av1_format"
+            android:title="@string/title_av1_format"
+            android:entries="@array/av1_format_names"
+            android:entryValues="@array/av1_format_values"
+            android:summary="@string/summary_av1_format"
+            android:defaultValue="auto" />
         <CheckBoxPreference
             android:key="checkbox_enable_hdr"
             android:title="@string/title_enable_hdr"

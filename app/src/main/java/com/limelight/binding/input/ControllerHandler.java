@@ -43,6 +43,8 @@ import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.GameGestures;
 import com.limelight.utils.Vector2d;
 
+import org.cgutman.shieldcontrollerextensions.SceChargingState;
+import org.cgutman.shieldcontrollerextensions.SceConnectionType;
 import org.cgutman.shieldcontrollerextensions.SceManager;
 
 import java.lang.reflect.InvocationTargetException;
@@ -892,52 +894,109 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     private void sendControllerBatteryPacket(InputDeviceContext context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            int currentBatteryStatus = context.inputDevice.getBatteryState().getStatus();
-            float currentBatteryCapacity = context.inputDevice.getBatteryState().getCapacity();
+        int currentBatteryStatus;
+        float currentBatteryCapacity;
 
-            if (currentBatteryStatus != context.lastReportedBatteryStatus ||
-                    !areBatteryCapacitiesEqual(currentBatteryCapacity, context.lastReportedBatteryCapacity)) {
-                byte state;
-                byte percentage;
+        // Use the BatteryState object introduced in Android S, if it's available and present.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && context.inputDevice.getBatteryState().isPresent()) {
+            currentBatteryStatus = context.inputDevice.getBatteryState().getStatus();
+            currentBatteryCapacity = context.inputDevice.getBatteryState().getCapacity();
+        }
+        else if (sceManager.isRecognizedDevice(context.inputDevice)) {
+            // On the SHIELD Android TV, we can use a proprietary API to access battery/charge state.
+            // We will convert it to the same form used by BatteryState to share code.
+            int batteryPercentage = sceManager.getBatteryPercentage(context.inputDevice);
+            if (batteryPercentage < 0) {
+                currentBatteryCapacity = Float.NaN;
+            }
+            else {
+                currentBatteryCapacity = batteryPercentage / 100.f;
+            }
 
-                switch (currentBatteryStatus) {
-                    case BatteryState.STATUS_UNKNOWN:
-                        state = MoonBridge.LI_BATTERY_STATE_UNKNOWN;
-                        break;
+            SceConnectionType connectionType = sceManager.getConnectionType(context.inputDevice);
+            SceChargingState chargingState = sceManager.getChargingState(context.inputDevice);
 
-                    case BatteryState.STATUS_CHARGING:
-                        state = MoonBridge.LI_BATTERY_STATE_CHARGING;
-                        break;
-
-                    case BatteryState.STATUS_DISCHARGING:
-                        state = MoonBridge.LI_BATTERY_STATE_DISCHARGING;
-                        break;
-
-                    case BatteryState.STATUS_NOT_CHARGING:
-                        state = MoonBridge.LI_BATTERY_STATE_NOT_CHARGING;
-                        break;
-
-                    case BatteryState.STATUS_FULL:
-                        state = MoonBridge.LI_BATTERY_STATE_FULL;
-                        break;
-
-                    default:
-                        return;
+            // We can make some assumptions about charge state based on the connection type
+            if (connectionType == SceConnectionType.WIRED || connectionType == SceConnectionType.BOTH) {
+                if (batteryPercentage == 100) {
+                    currentBatteryStatus = BatteryState.STATUS_FULL;
                 }
-
-                if (Float.isNaN(currentBatteryCapacity)) {
-                    percentage = MoonBridge.LI_BATTERY_PERCENTAGE_UNKNOWN;
+                else if (chargingState == SceChargingState.NOT_CHARGING) {
+                    currentBatteryStatus = BatteryState.STATUS_NOT_CHARGING;
                 }
                 else {
-                    percentage = (byte)(currentBatteryCapacity * 100);
+                    currentBatteryStatus = BatteryState.STATUS_CHARGING;
                 }
-
-                conn.sendControllerBatteryEvent((byte)context.controllerNumber, state, percentage);
-
-                context.lastReportedBatteryStatus = currentBatteryStatus;
-                context.lastReportedBatteryCapacity = currentBatteryCapacity;
             }
+            else if (connectionType == SceConnectionType.WIRELESS) {
+                if (chargingState == SceChargingState.CHARGING) {
+                    currentBatteryStatus = BatteryState.STATUS_CHARGING;
+                }
+                else {
+                    currentBatteryStatus = BatteryState.STATUS_DISCHARGING;
+                }
+            }
+            else {
+                // If connection type is unknown, just use the charge state
+                if (batteryPercentage == 100) {
+                    currentBatteryStatus = BatteryState.STATUS_FULL;
+                }
+                else if (chargingState == SceChargingState.NOT_CHARGING) {
+                    currentBatteryStatus = BatteryState.STATUS_DISCHARGING;
+                }
+                else if (chargingState == SceChargingState.CHARGING) {
+                    currentBatteryStatus = BatteryState.STATUS_CHARGING;
+                }
+                else {
+                    currentBatteryStatus = BatteryState.STATUS_UNKNOWN;
+                }
+            }
+        }
+        else {
+            return;
+        }
+
+        if (currentBatteryStatus != context.lastReportedBatteryStatus ||
+                !areBatteryCapacitiesEqual(currentBatteryCapacity, context.lastReportedBatteryCapacity)) {
+            byte state;
+            byte percentage;
+
+            switch (currentBatteryStatus) {
+                case BatteryState.STATUS_UNKNOWN:
+                    state = MoonBridge.LI_BATTERY_STATE_UNKNOWN;
+                    break;
+
+                case BatteryState.STATUS_CHARGING:
+                    state = MoonBridge.LI_BATTERY_STATE_CHARGING;
+                    break;
+
+                case BatteryState.STATUS_DISCHARGING:
+                    state = MoonBridge.LI_BATTERY_STATE_DISCHARGING;
+                    break;
+
+                case BatteryState.STATUS_NOT_CHARGING:
+                    state = MoonBridge.LI_BATTERY_STATE_NOT_CHARGING;
+                    break;
+
+                case BatteryState.STATUS_FULL:
+                    state = MoonBridge.LI_BATTERY_STATE_FULL;
+                    break;
+
+                default:
+                    return;
+            }
+
+            if (Float.isNaN(currentBatteryCapacity)) {
+                percentage = MoonBridge.LI_BATTERY_PERCENTAGE_UNKNOWN;
+            }
+            else {
+                percentage = (byte)(currentBatteryCapacity * 100);
+            }
+
+            conn.sendControllerBatteryEvent((byte)context.controllerNumber, state, percentage);
+
+            context.lastReportedBatteryStatus = currentBatteryStatus;
+            context.lastReportedBatteryCapacity = currentBatteryCapacity;
         }
     }
 
@@ -2634,14 +2693,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
 
             short capabilities = 0;
-            if (getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_LTRIGGER) != null ||
-                    getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_RTRIGGER) != null ||
-                    getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_BRAKE) != null ||
-                    getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_GAS) != null ||
-                    getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_THROTTLE) != null) {
-                capabilities |= MoonBridge.LI_CCAP_ANALOG_TRIGGERS;
-            }
 
+            // Most of the advanced InputDevice capabilities came in Android S
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (hasQuadAmplitudeControlledRumbleVibrators(inputDevice.getVibratorManager())) {
                     capabilities |= MoonBridge.LI_CCAP_RUMBLE | MoonBridge.LI_CCAP_TRIGGER_RUMBLE;
@@ -2668,8 +2721,19 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 }
             }
 
-            if (inputDevice.getVibrator().hasVibrator()) {
+            // Report analog triggers if we have at least one trigger axis
+            if (leftTriggerAxis != -1 || rightTriggerAxis != -1) {
+                capabilities |= MoonBridge.LI_CCAP_ANALOG_TRIGGERS;
+            }
+
+            // We can perform basic rumble with any vibrator
+            if (vibrator != null) {
                 capabilities |= MoonBridge.LI_CCAP_RUMBLE;
+            }
+
+            // Shield controllers use special APIs for rumble and battery state
+            if (sceManager.isRecognizedDevice(inputDevice)) {
+                capabilities |= MoonBridge.LI_CCAP_RUMBLE | MoonBridge.LI_CCAP_BATTERY_STATE;
             }
 
             if ((inputDevice.getSources() & InputDevice.SOURCE_TOUCHPAD) == InputDevice.SOURCE_TOUCHPAD) {

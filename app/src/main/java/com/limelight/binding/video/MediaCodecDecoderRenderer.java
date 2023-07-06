@@ -178,12 +178,38 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         return caps.areSizeAndRateSupported(prefs.width, prefs.height, prefs.fps);
     }
 
-    private boolean decoderCanMeetPerformancePointWithHevcAndNotAvc(MediaCodecInfo avcDecoderInfo, MediaCodecInfo hevcDecoderInfo, PreferenceConfiguration prefs) {
+    private boolean decoderCanMeetPerformancePointWithHevcAndNotAvc(MediaCodecInfo hevcDecoderInfo, MediaCodecInfo avcDecoderInfo, PreferenceConfiguration prefs) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             MediaCodecInfo.VideoCapabilities avcCaps = avcDecoderInfo.getCapabilitiesForType("video/avc").getVideoCapabilities();
             MediaCodecInfo.VideoCapabilities hevcCaps = hevcDecoderInfo.getCapabilitiesForType("video/hevc").getVideoCapabilities();
 
             return !decoderCanMeetPerformancePoint(avcCaps, prefs) && decoderCanMeetPerformancePoint(hevcCaps, prefs);
+        }
+        else {
+            // No performance data
+            return false;
+        }
+    }
+
+    private boolean decoderCanMeetPerformancePointWithAv1AndNotHevc(MediaCodecInfo av1DecoderInfo, MediaCodecInfo hevcDecoderInfo, PreferenceConfiguration prefs) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            MediaCodecInfo.VideoCapabilities av1Caps = av1DecoderInfo.getCapabilitiesForType("video/av01").getVideoCapabilities();
+            MediaCodecInfo.VideoCapabilities hevcCaps = hevcDecoderInfo.getCapabilitiesForType("video/hevc").getVideoCapabilities();
+
+            return !decoderCanMeetPerformancePoint(hevcCaps, prefs) && decoderCanMeetPerformancePoint(av1Caps, prefs);
+        }
+        else {
+            // No performance data
+            return false;
+        }
+    }
+
+    private boolean decoderCanMeetPerformancePointWithAv1AndNotAvc(MediaCodecInfo av1DecoderInfo, MediaCodecInfo avcDecoderInfo, PreferenceConfiguration prefs) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            MediaCodecInfo.VideoCapabilities avcCaps = avcDecoderInfo.getCapabilitiesForType("video/avc").getVideoCapabilities();
+            MediaCodecInfo.VideoCapabilities av1Caps = av1DecoderInfo.getCapabilitiesForType("video/av01").getVideoCapabilities();
+
+            return !decoderCanMeetPerformancePoint(avcCaps, prefs) && decoderCanMeetPerformancePoint(av1Caps, prefs);
         }
         else {
             // No performance data
@@ -220,7 +246,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                     LimeLog.info("Forcing HEVC enabled for over 4K streaming");
                 }
                 // Use HEVC if the H.264 decoder is unable to meet the performance point
-                else if (avcDecoder != null && decoderCanMeetPerformancePointWithHevcAndNotAvc(avcDecoder, hevcDecoderInfo, prefs)) {
+                else if (avcDecoder != null && decoderCanMeetPerformancePointWithHevcAndNotAvc(hevcDecoderInfo, avcDecoder, prefs)) {
                     LimeLog.info("Using non-whitelisted HEVC decoder to meet performance point");
                 }
                 else {
@@ -246,6 +272,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 // Force HEVC enabled if the user asked for it
                 if (prefs.av1Format == PreferenceConfiguration.FormatOption.FORCE_ON) {
                     LimeLog.info("Forcing AV1 enabled despite non-whitelisted decoder");
+                }
+                // Use AV1 if the HEVC decoder is unable to meet the performance point
+                else if (hevcDecoder != null && decoderCanMeetPerformancePointWithAv1AndNotHevc(decoderInfo, hevcDecoder, prefs)) {
+                    LimeLog.info("Using non-whitelisted AV1 decoder to meet performance point");
+                }
+                // Use AV1 if the H.264 decoder is unable to meet the performance point and we have no HEVC decoder
+                else if (hevcDecoder == null && decoderCanMeetPerformancePointWithAv1AndNotAvc(decoderInfo, avcDecoder, prefs)) {
+                    LimeLog.info("Using non-whitelisted AV1 decoder to meet performance point");
                 }
                 else {
                     return null;
@@ -1487,7 +1521,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             // GFE 2.5.11 changed the SPS to add additional extensions. Some devices don't like these
             // so we remove them here on old devices unless these devices also support HEVC.
             // See getPreferredColorSpace() for further information.
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O && hevcDecoder == null && sps.vuiParams != null) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O &&
+                    sps.vuiParams != null &&
+                    hevcDecoder == null &&
+                    av1Decoder == null) {
                 sps.vuiParams.videoSignalTypePresentFlag = false;
                 sps.vuiParams.colourDescriptionPresentFlag = false;
                 sps.vuiParams.chromaLocInfoPresentFlag = false;
@@ -1828,6 +1865,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             str += "Format: "+String.format("%x", renderer.videoFormat)+DELIMITER;
             str += "AVC Decoder: "+((renderer.avcDecoder != null) ? renderer.avcDecoder.getName():"(none)")+DELIMITER;
             str += "HEVC Decoder: "+((renderer.hevcDecoder != null) ? renderer.hevcDecoder.getName():"(none)")+DELIMITER;
+            str += "AV1 Decoder: "+((renderer.av1Decoder != null) ? renderer.av1Decoder.getName():"(none)")+DELIMITER;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && renderer.avcDecoder != null) {
                 Range<Integer> avcWidthRange = renderer.avcDecoder.getCapabilitiesForType("video/avc").getVideoCapabilities().getSupportedWidths();
                 str += "AVC supported width range: "+avcWidthRange+DELIMITER;
@@ -1849,6 +1887,18 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                         str += "HEVC achievable FPS range: " + hevcFpsRange + DELIMITER;
                     } catch (IllegalArgumentException e) {
                         str += "HEVC achievable FPS range: UNSUPPORTED!"+DELIMITER;
+                    }
+                }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && renderer.av1Decoder != null) {
+                Range<Integer> av1WidthRange = renderer.av1Decoder.getCapabilitiesForType("video/av01").getVideoCapabilities().getSupportedWidths();
+                str += "AV1 supported width range: "+av1WidthRange+DELIMITER;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    try {
+                        Range<Double> av1FpsRange = renderer.av1Decoder.getCapabilitiesForType("video/av01").getVideoCapabilities().getAchievableFrameRatesFor(renderer.initialWidth, renderer.initialHeight);
+                        str += "AV1 achievable FPS range: " + av1FpsRange + DELIMITER;
+                    } catch (IllegalArgumentException e) {
+                        str += "AV1 achievable FPS range: UNSUPPORTED!"+DELIMITER;
                     }
                 }
             }

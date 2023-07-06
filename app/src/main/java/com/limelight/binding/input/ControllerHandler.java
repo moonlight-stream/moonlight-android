@@ -1133,6 +1133,17 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
+        // The Shield's key layout files map the DualShock 4 clickpad button to
+        // BUTTON_SELECT instead of something sane like BUTTON_1 as the standard AOSP
+        // mapping does. If we get a button from a Sony device reported as BUTTON_SELECT
+        // that matches the keycode used by hid-sony for the clickpad, remap it to
+        // BUTTON_1 to match the current AOSP layout and trigger our touchpad button logic.
+        if (context.vendorId == 0x054c &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT &&
+                event.getScanCode() == 317) {
+            return KeyEvent.KEYCODE_BUTTON_1;
+        }
+
         // Override mode button for 8BitDo controllers
         if (context.vendorId == 0x2dc8 && event.getScanCode() == 306) {
             return KeyEvent.KEYCODE_BUTTON_MODE;

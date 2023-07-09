@@ -1477,6 +1477,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             return false;
         }
 
+        // Bail if the user wants gamepad touchpads to control the mouse
+        if (prefConfig.gamepadTouchpadAsMouse) {
+            return false;
+        }
+
         // Only get a context if one already exists. We want to ensure we don't report non-gamepads.
         InputDeviceContext context = inputDeviceContexts.get(event.getDeviceId());
         if (context == null) {
@@ -1864,6 +1869,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public void handleSetMotionEventState(final short controllerNumber, final byte motionType, short reportRateHz) {
+        // Don't use motion sensors if the user turned them off
+        if (!prefConfig.gamepadMotionSensors) {
+            return;
+        }
+
         // Report rate is restricted to <= 200 Hz without the HIGH_SAMPLING_RATE_SENSORS permission
         reportRateHz = (short) Math.min(200, reportRateHz);
 

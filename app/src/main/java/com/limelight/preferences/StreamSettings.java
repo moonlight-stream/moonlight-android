@@ -288,6 +288,14 @@ public class StreamSettings extends Activity {
                 category.removePreference(findPreference("checkbox_absolute_mouse_mode"));
             }
 
+            // Hide gamepad motion sensor option when running on OSes before Android 12.
+            // Support for motion, LED, battery, and other extensions were introduced in S.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_gamepad_settings");
+                category.removePreference(findPreference("checkbox_gamepad_motion_sensors"));
+            }
+
             // Remove PiP mode on devices pre-Oreo, where the feature is not available (some low RAM devices),
             // and on Fire OS where it violates the Amazon App Store guidelines for some reason.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
@@ -308,7 +316,7 @@ public class StreamSettings extends Activity {
             // Remove the vibration options if the device can't vibrate
             if (!((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasVibrator()) {
                 PreferenceCategory category =
-                        (PreferenceCategory) findPreference("category_input_settings");
+                        (PreferenceCategory) findPreference("category_gamepad_settings");
                 category.removePreference(findPreference("checkbox_vibrate_fallback"));
 
                 // The entire OSC category may have already been removed by the touchscreen check above

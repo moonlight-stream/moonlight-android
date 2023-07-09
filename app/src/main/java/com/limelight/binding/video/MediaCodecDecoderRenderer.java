@@ -218,8 +218,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     }
 
     private MediaCodecInfo findHevcDecoder(PreferenceConfiguration prefs, boolean meteredNetwork, boolean requestedHdr) {
-        // Don't return anything if HEVC is forced off
-        if (prefs.hevcFormat == PreferenceConfiguration.FormatOption.FORCE_OFF) {
+        // Don't return anything if H.264 is forced
+        if (prefs.videoFormat == PreferenceConfiguration.FormatOption.FORCE_H264) {
             return null;
         }
 
@@ -234,7 +234,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 LimeLog.info("Found HEVC decoder, but it's not whitelisted - "+hevcDecoderInfo.getName());
 
                 // Force HEVC enabled if the user asked for it
-                if (prefs.hevcFormat == PreferenceConfiguration.FormatOption.FORCE_ON) {
+                if (prefs.videoFormat == PreferenceConfiguration.FormatOption.FORCE_HEVC) {
                     LimeLog.info("Forcing HEVC enabled despite non-whitelisted decoder");
                 }
                 // HDR implies HEVC forced on, since HEVCMain10HDR10 is required for HDR.
@@ -259,8 +259,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     }
 
     private MediaCodecInfo findAv1Decoder(PreferenceConfiguration prefs) {
-        // Don't return anything if AV1 is forced off
-        if (prefs.av1Format == PreferenceConfiguration.FormatOption.FORCE_OFF) {
+        // For now, don't use AV1 unless explicitly requested
+        if (prefs.videoFormat != PreferenceConfiguration.FormatOption.FORCE_AV1) {
             return null;
         }
 
@@ -270,7 +270,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 LimeLog.info("Found AV1 decoder, but it's not whitelisted - "+decoderInfo.getName());
 
                 // Force HEVC enabled if the user asked for it
-                if (prefs.av1Format == PreferenceConfiguration.FormatOption.FORCE_ON) {
+                if (prefs.videoFormat == PreferenceConfiguration.FormatOption.FORCE_AV1) {
                     LimeLog.info("Forcing AV1 enabled despite non-whitelisted decoder");
                 }
                 // Use AV1 if the HEVC decoder is unable to meet the performance point

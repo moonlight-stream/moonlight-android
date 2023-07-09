@@ -96,25 +96,16 @@
     </string-array>
 
     <string-array name="video_format_names">
-        <item>@string/videoformat_hevcauto</item>
+        <item>@string/videoformat_auto</item>
+        <item>@string/videoformat_av1always</item>
         <item>@string/videoformat_hevcalways</item>
-        <item>@string/videoformat_hevcnever</item>
+        <item>@string/videoformat_h264always</item>
     </string-array>
     <string-array name="video_format_values" translatable="false">
         <item>auto</item>
+        <item>forceav1</item>
         <item>forceh265</item>
         <item>neverh265</item>
-    </string-array>
-
-    <string-array name="av1_format_names">
-        <item>@string/av1_format_auto</item>
-        <item>@string/av1_format_always</item>
-        <item>@string/av1_format_never</item>
-    </string-array>
-    <string-array name="av1_format_values" translatable="false">
-        <item>auto</item>
-        <item>force</item>
-        <item>never</item>
     </string-array>
 
     <string-array name="video_frame_pacing_names">

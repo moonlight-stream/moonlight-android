@@ -411,12 +411,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Display a message to the user if HEVC was forced on but we still didn't find a decoder
-        if (prefConfig.hevcFormat == PreferenceConfiguration.FormatOption.FORCE_ON && !decoderRenderer.isHevcSupported()) {
+        if (prefConfig.videoFormat == PreferenceConfiguration.FormatOption.FORCE_HEVC && !decoderRenderer.isHevcSupported()) {
             Toast.makeText(this, "No HEVC decoder found", Toast.LENGTH_LONG).show();
         }
 
         // Display a message to the user if AV1 was forced on but we still didn't find a decoder
-        if (prefConfig.av1Format == PreferenceConfiguration.FormatOption.FORCE_ON && !decoderRenderer.isAv1Supported()) {
+        if (prefConfig.videoFormat == PreferenceConfiguration.FormatOption.FORCE_AV1 && !decoderRenderer.isAv1Supported()) {
             Toast.makeText(this, "No AV1 decoder found", Toast.LENGTH_LONG).show();
         }
 

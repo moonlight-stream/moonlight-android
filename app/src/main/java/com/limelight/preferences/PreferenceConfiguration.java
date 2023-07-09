@@ -12,8 +12,9 @@ import com.limelight.nvstream.jni.MoonBridge;
 public class PreferenceConfiguration {
     public enum FormatOption {
         AUTO,
-        FORCE_ON,
-        FORCE_OFF
+        FORCE_AV1,
+        FORCE_HEVC,
+        FORCE_H264,
     };
 
     private static final String LEGACY_RES_FPS_PREF_STRING = "list_resolution_fps";
@@ -34,8 +35,7 @@ public class PreferenceConfiguration {
     private static final String MULTI_CONTROLLER_PREF_STRING = "checkbox_multi_controller";
     static final String AUDIO_CONFIG_PREF_STRING = "list_audio_config";
     private static final String USB_DRIVER_PREF_SRING = "checkbox_usb_driver";
-    private static final String HEVC_FORMAT_PREF_STRING = "video_format";
-    private static final String AV1_FORMAT_PREF_STRING = "av1_format";
+    private static final String VIDEO_FORMAT_PREF_STRING = "video_format";
     private static final String ONSCREEN_CONTROLLER_PREF_STRING = "checkbox_show_onscreen_controls";
     private static final String ONLY_L3_R3_PREF_STRING = "checkbox_only_show_L3R3";
     private static final String LEGACY_DISABLE_FRAME_DROP_PREF_STRING = "checkbox_disable_frame_drop";
@@ -70,8 +70,7 @@ public class PreferenceConfiguration {
     public static final String DEFAULT_LANGUAGE = "default";
     private static final boolean DEFAULT_MULTI_CONTROLLER = true;
     private static final boolean DEFAULT_USB_DRIVER = true;
-    private static final String DEFAULT_HEVC_FORMAT = "auto";
-    private static final String DEFAULT_AV1_FORMAT = "never";
+    private static final String DEFAULT_VIDEO_FORMAT = "auto";
 
     private static final boolean ONSCREEN_CONTROLLER_DEFAULT = false;
     private static final boolean ONLY_L3_R3_DEFAULT = false;
@@ -111,8 +110,7 @@ public class PreferenceConfiguration {
 
     public int width, height, fps;
     public int bitrate;
-    public FormatOption hevcFormat;
-    public FormatOption av1Format;
+    public FormatOption videoFormat;
     public int deadzonePercentage;
     public int oscOpacity;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
@@ -301,37 +299,21 @@ public class PreferenceConfiguration {
                 prefs.getString(FPS_PREF_STRING, DEFAULT_FPS));
     }
 
-    private static FormatOption getHevcFormatValue(Context context) {
+    private static FormatOption getVideoFormatValue(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-        String str = prefs.getString(HEVC_FORMAT_PREF_STRING, DEFAULT_HEVC_FORMAT);
+        String str = prefs.getString(VIDEO_FORMAT_PREF_STRING, DEFAULT_VIDEO_FORMAT);
         if (str.equals("auto")) {
             return FormatOption.AUTO;
+        }
+        else if (str.equals("forceav1")) {
+            return FormatOption.FORCE_AV1;
         }
         else if (str.equals("forceh265")) {
-            return FormatOption.FORCE_ON;
+            return FormatOption.FORCE_HEVC;
         }
         else if (str.equals("neverh265")) {
-            return FormatOption.FORCE_OFF;
-        }
-        else {
-            // Should never get here
-            return FormatOption.AUTO;
-        }
-    }
-
-    private static FormatOption getAV1FormatValue(Context context) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-
-        String str = prefs.getString(AV1_FORMAT_PREF_STRING, DEFAULT_AV1_FORMAT);
-        if (str.equals("auto")) {
-            return FormatOption.AUTO;
-        }
-        else if (str.equals("force")) {
-            return FormatOption.FORCE_ON;
-        }
-        else if (str.equals("never")) {
-            return FormatOption.FORCE_OFF;
+            return FormatOption.FORCE_H264;
         }
         else {
             // Should never get here
@@ -379,8 +361,7 @@ public class PreferenceConfiguration {
                 .remove(LEGACY_RES_FPS_PREF_STRING)
                 .remove(RESOLUTION_PREF_STRING)
                 .remove(FPS_PREF_STRING)
-                .remove(HEVC_FORMAT_PREF_STRING)
-                .remove(AV1_FORMAT_PREF_STRING)
+                .remove(VIDEO_FORMAT_PREF_STRING)
                 .remove(ENABLE_HDR_PREF_STRING)
                 .remove(UNLOCK_FPS_STRING)
                 .remove(FULL_RANGE_PREF_STRING)
@@ -507,8 +488,7 @@ public class PreferenceConfiguration {
             config.audioConfiguration = MoonBridge.AUDIO_CONFIGURATION_STEREO;
         }
 
-        config.hevcFormat = getHevcFormatValue(context);
-        config.av1Format = getAV1FormatValue(context);
+        config.videoFormat = getVideoFormatValue(context);
         config.framePacing = getFramePacingValue(context);
 
         config.deadzonePercentage = prefs.getInt(DEADZONE_PREF_STRING, DEFAULT_DEADZONE);

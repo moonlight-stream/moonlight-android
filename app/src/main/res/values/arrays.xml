@@ -65,6 +65,9 @@
         <item>Ελληνικά</item>
         <item>Português do Brasil</item>
         <item>Čeština</item>
+        <item>עִבְרִית</item>
+        <item>Svenska</item>
+        <item>Indonesia</item>
     </string-array>
     <string-array name="language_values" translatable="false">
         <item>default</item>
@@ -87,6 +90,9 @@
         <item>el</item>
         <item>pt-BR</item>
         <item>cs</item>
+        <item>iw</item>
+        <item>sv</item>
+        <item>in</item>
     </string-array>
 
     <string-array name="video_format_names">

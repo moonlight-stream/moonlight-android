@@ -143,7 +143,7 @@ extern "C" {
   * <a href="https://www.xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-810004.3.9">Vorbis
   * channel ordering</a>. A decoder may wish to apply an additional permutation
   * to the mapping the encoder used to achieve a different output channel
-  * order (e.g. for outputing in WAV order).
+  * order (e.g. for outputting in WAV order).
   *
   * Each multistream packet contains an Opus packet for each stream, and all of
   * the Opus packets in a single multistream packet must have the same
@@ -510,7 +510,7 @@ OPUS_EXPORT OPUS_WARN_UNUSED_RESULT OpusMSDecoder *opus_multistream_decoder_crea
       int *error
 ) OPUS_ARG_NONNULL(5);
 
-/** Intialize a previously allocated decoder state object.
+/** Initialize a previously allocated decoder state object.
   * The memory pointed to by \a st must be at least the size returned by
   * opus_multistream_encoder_get_size().
   * This is intended for applications which use their own allocator instead of

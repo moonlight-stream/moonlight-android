@@ -1113,7 +1113,7 @@ int EC_KEY_set_method(EC_KEY *key, const EC_KEY_METHOD *meth);
 EC_KEY *EC_KEY_new_method(ENGINE *engine);
 
 /** The old name for ecdh_KDF_X9_63
- *  The ECDH KDF specification has been mistakingly attributed to ANSI X9.62,
+ *  The ECDH KDF specification has been mistakenly attributed to ANSI X9.62,
  *  it is actually specified in ANSI X9.63.
  *  This identifier is retained for backwards compatibility
  */
@@ -1470,7 +1470,7 @@ void EC_KEY_METHOD_get_verify(const EC_KEY_METHOD *meth,
 # define EVP_PKEY_ECDH_KDF_NONE                          1
 # define EVP_PKEY_ECDH_KDF_X9_63                         2
 /** The old name for EVP_PKEY_ECDH_KDF_X9_63
- *  The ECDH KDF specification has been mistakingly attributed to ANSI X9.62,
+ *  The ECDH KDF specification has been mistakenly attributed to ANSI X9.62,
  *  it is actually specified in ANSI X9.63.
  *  This identifier is retained for backwards compatibility
  */

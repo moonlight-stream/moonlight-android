@@ -103,7 +103,7 @@ extern "C" {
   * @endcode
   *
   * where opus_encoder_get_size() returns the required size for the encoder state. Note that
-  * future versions of this code may change the size, so no assuptions should be made about it.
+  * future versions of this code may change the size, so no assumptions should be made about it.
   *
   * The encoder state is always continuous in memory and only a shallow copy is sufficient
   * to copy it (e.g. memcpy())
@@ -357,7 +357,7 @@ OPUS_EXPORT int opus_encoder_ctl(OpusEncoder *st, int request, ...) OPUS_ARG_NON
   * error = opus_decoder_init(dec, Fs, channels);
   * @endcode
   * where opus_decoder_get_size() returns the required size for the decoder state. Note that
-  * future versions of this code may change the size, so no assuptions should be made about it.
+  * future versions of this code may change the size, so no assumptions should be made about it.
   *
   * The decoder state is always continuous in memory and only a shallow copy is sufficient
   * to copy it (e.g. memcpy())

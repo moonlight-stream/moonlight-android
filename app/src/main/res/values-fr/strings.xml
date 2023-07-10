@@ -265,4 +265,7 @@
     <string name="summary_full_range">Ceci entraînera une perte de détails dans les zones claires et sombres si votre appareil n\'affiche pas correctement le contenu vidéo de la gamme complète de couleurs.</string>
     <string name="pcview_menu_eol">NVIDIA GameStream : fin de service</string>
     <string name="pair_pairing_help">Si votre PC hôte utilise Sunshine, accédez à l\'interface web de Sunshine pour saisir le code PIN.</string>
+    <string name="category_gamepad_settings">Paramètres manette</string>
+    <string name="perf_overlay_hostprocessinglatency">Latence de traitement de l\'hôte min/max/moyenne : %1$.1f/%2$.1f/%3$.1f ms</string>
+    <string name="fps_suffix_fps">FPS</string>
 </resources>

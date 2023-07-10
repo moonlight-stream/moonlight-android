@@ -160,8 +160,8 @@
     <string name="summary_checkbox_disable_warnings">Ta bort varningsmeddelanden om inmatning på skärmen när du strömmar</string>
     <string name="title_disable_frame_drop">Tappa aldrig bildramar</string>
     <string name="summary_disable_frame_drop">Kan minska mikrohack på vissa enheter, men kan öka latensen</string>
-    <string name="title_video_format">Ändra HEVC-inställningar</string>
-    <string name="summary_video_format">HEVC sänker kraven på videobandbredd men kräver en nyare enhet</string>
+    <string name="title_video_format">Ändra codec-inställningar</string>
+    <string name="summary_video_format">Nyare codecs kan sänka videobandbreddskraven om din enhet stöder dem. Codec-val kan ignoreras om det inte stöds av värdprogramvaran eller GPU:n.</string>
     <string name="title_enable_hdr">Sätt på HDR (Prövning)</string>
     <string name="summary_enable_hdr">Strömma HDR när spelet och datorns GPU stöder det. HDR kräver en GPU med stöd för HEVC Main 10-kodning.</string>
     <string name="title_full_range">Tvinga video med fullt omfång (Prövning)</string>
@@ -250,4 +250,15 @@
     <string name="resolution_1080p">1080p</string>
     <string name="fps_60">60 FPS</string>
     <string name="summary_frame_pacing">Ange hur du ska balansera videofördröjning och jämnhet</string>
+    <string name="fps_suffix_fps">FPS</string>
+    <string name="title_native_fps_dialog">Native FPS varning</string>
+    <string name="category_gamepad_settings">Spelkontroller inställningar</string>
+    <string name="title_checkbox_gamepad_motion_sensors">Tillåt användning av spelkontrollens rörelsesensorer</string>
+    <string name="videoformat_auto">Automatisk (Rekommenderad)</string>
+    <string name="videoformat_av1always">Föredra AV1 (experimentell)</string>
+    <string name="videoformat_h264always">Föredra H.264</string>
+    <string name="perf_overlay_hostprocessinglatency">Värdbearbetningsfördröjning min/max/genomsnitt: %1$.1f/%2$.1f/%3$.1f ms</string>
+    <string name="title_checkbox_gamepad_touchpad_as_mouse">Styr alltid musen med pekplatta</string>
+    <string name="summary_checkbox_gamepad_touchpad_as_mouse">Tvingar indata från spelkontroll pekplattan att styra värdmusen, även när man emulerar en spelkontroll med en pekplatta.</string>
+    <string name="summary_checkbox_gamepad_motion_sensors">Aktiverar stöd för värden att begära rörelsesensor data när du emulerar en spelkontroll med rörelsesensorer. Inaktivering kan minska ström och nätverksanvändningen något om rörelsesensorer inte används i spelet.</string>
 </resources>

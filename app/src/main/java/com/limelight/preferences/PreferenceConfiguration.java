@@ -92,7 +92,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_ENABLE_AUDIO_FX = false;
     private static final boolean DEFAULT_REDUCE_REFRESH_RATE = false;
     private static final boolean DEFAULT_FULL_RANGE = false;
-    private static final boolean DEFAULT_GAMEPAD_TOUCHPAD_AS_MOUSE = true;
+    private static final boolean DEFAULT_GAMEPAD_TOUCHPAD_AS_MOUSE = false;
     private static final boolean DEFAULT_GAMEPAD_MOTION_SENSORS = true;
 
     public static final int FRAME_PACING_MIN_LATENCY = 0;

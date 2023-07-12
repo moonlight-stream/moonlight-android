@@ -99,7 +99,7 @@
             android:key="checkbox_gamepad_touchpad_as_mouse"
             android:title="@string/title_checkbox_gamepad_touchpad_as_mouse"
             android:summary="@string/summary_checkbox_gamepad_touchpad_as_mouse"
-            android:defaultValue="true" />
+            android:defaultValue="false" />
         <CheckBoxPreference
             android:key="checkbox_gamepad_motion_sensors"
             android:title="@string/title_checkbox_gamepad_motion_sensors"

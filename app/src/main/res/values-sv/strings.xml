@@ -73,7 +73,7 @@
     <string name="perf_overlay_decoder">Avkodare: %1$s</string>
     <string name="perf_overlay_incomingfps">Inkommande bildfrekvens från nätverket: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Renderingens bildfrekvens: %1$.2f FPS</string>
-    <string name="perf_overlay_netdrops">Ramar som tappats av din nätverksanslutning: %1$.2f%%%</string>
+    <string name="perf_overlay_netdrops">Ramar som tappats av din nätverksanslutning: %1$.2f%%</string>
     <string name="perf_overlay_dectime">Genomsnittlig avkodningstid: %1$.2f ms</string>
     <string name="applist_connect_msg">Fogar till dator…</string>
     <string name="applist_menu_resume">Återuppta session</string>

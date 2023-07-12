@@ -221,7 +221,7 @@
     <string name="unable_to_pin_shortcut">현재 런처에서는 바로가기 생성이 불가능합니다.</string>
     <string name="resolution_prefix_native_fullscreen">네이티브 (전체화면)</string>
     <!-- Array strings -->
-    <string name="videoformat_hevcauto">자동 (권장)</string>
+    <string name="videoformat_auto">자동 (권장)</string>
     <string name="videoformat_hevcalways">HEVC 선호</string>
     <string name="summary_seekbar_deadzone">참고: 일부 게임은 이 설정값보다 더 큰 데드존이 적용되있을 수 있습니다.</string>
     <string name="resolution_1080p">1080p</string>

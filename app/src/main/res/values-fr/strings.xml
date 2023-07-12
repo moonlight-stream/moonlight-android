@@ -227,7 +227,7 @@
     <string name="audioconf_stereo">Stéréo</string>
     <string name="audioconf_51surround">Son surround 5.1</string>
     <string name="audioconf_71surround">Son surround 7.1</string>
-    <string name="videoformat_hevcauto">Automatique (recommandé)</string>
+    <string name="videoformat_auto">Automatique (recommandé)</string>
     <string name="videoformat_hevcalways">Préférez le HEVC</string>
     <string name="title_frame_pacing">Frame-pacing vidéo</string>
     <string name="summary_frame_pacing">Spécifiez comment équilibrer latence et fluidité de la vidéo</string>

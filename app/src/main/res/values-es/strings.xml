@@ -109,7 +109,7 @@
     <string name="title_video_format">Cambiar la configuración del códec</string>
     <string name="summary_video_format">Los códecs más recientes pueden reducir los requisitos del ancho de banda del vídeo si tu dispositivo los admite. Las selecciones de los códecs pueden ignorarse si no son compatibles con el software del host o la GPU.</string>
     <!-- Array strings -->
-    <string name="videoformat_hevcauto">Automático (Recomendado)</string>
+    <string name="videoformat_auto">Automático (Recomendado)</string>
     <string name="videoformat_hevcalways">Preferir HEVC</string>
     <string name="nettest_title_done">Prueba de Red Completada</string>
     <string name="scut_not_paired">PC no emparejado</string>
@@ -274,5 +274,4 @@
     <string name="summary_checkbox_gamepad_touchpad_as_mouse">Fuerza la entrada del touchpad del gamepad para controlar el ratón del host, incluso cuando se emula un gamepad con touchpad.</string>
     <string name="title_checkbox_gamepad_touchpad_as_mouse">Controla siempre el ratón con el touchpad</string>
     <string name="summary_checkbox_gamepad_motion_sensors">Permite a los hosts compatibles solicitar datos de los sensores de movimiento al emular un gamepad con los sensores de movimiento. La desactivación puede reducir ligeramente el consumo de energía y el uso de la red si los sensores de movimiento no se utilizan en el juego.</string>
-    <string name="videoformat_auto">Automático (recomendado)</string>
 </resources>

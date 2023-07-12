@@ -218,7 +218,7 @@
     <string name="pcview_menu_header_offline">Offline</string>
     <string name="pcview_menu_header_online">Online</string>
     <!-- Array strings -->
-    <string name="videoformat_hevcauto">Automatisch</string>
+    <string name="videoformat_auto">Automatisch</string>
     <string name="videoformat_hevcalways">Immer HEVC verwenden (könnte Crashes verursachen)</string>
     <string name="title_frame_pacing">Video Frame-Pacing</string>
     <string name="summary_frame_pacing">Lege fest, wie die Videolatenz und die flüssige Wiedergabe ausgeglichen werden sollen</string>

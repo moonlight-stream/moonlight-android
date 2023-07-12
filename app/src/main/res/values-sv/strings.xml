@@ -184,8 +184,6 @@
     <string name="audioconf_stereo">Stereo</string>
     <string name="audioconf_51surround">5.1 surroundljud</string>
     <string name="audioconf_71surround">7.1 surroundljud</string>
-    <string name="videoformat_hevcauto">Automatisk (rekommenderas)</string>
-    <string name="videoformat_hevcalways">Föredrar HEVC</string>
     <string name="title_frame_pacing">Videorams fart</string>
     <string name="pacing_latency">Föredrar lägsta latenstid</string>
     <string name="pacing_balanced">Balanserad</string>
@@ -255,6 +253,7 @@
     <string name="title_checkbox_gamepad_motion_sensors">Tillåt användning av spelkontrollens rörelsesensorer</string>
     <string name="videoformat_auto">Automatisk (Rekommenderad)</string>
     <string name="videoformat_av1always">Föredra AV1 (experimentell)</string>
+    <string name="videoformat_hevcalways">Föredra HEVC</string>
     <string name="videoformat_h264always">Föredra H.264</string>
     <string name="perf_overlay_hostprocessinglatency">Värdbearbetningsfördröjning min/max/genomsnitt: %1$.1f/%2$.1f/%3$.1f ms</string>
     <string name="title_checkbox_gamepad_touchpad_as_mouse">Styr alltid musen med pekplatta</string>

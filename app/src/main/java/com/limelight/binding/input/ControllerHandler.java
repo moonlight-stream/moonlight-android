@@ -1482,11 +1482,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             return false;
         }
 
-        // Bail if the user wants gamepad touchpads to control the mouse
-        if (prefConfig.gamepadTouchpadAsMouse) {
-            return false;
-        }
-
         // Only get a context if one already exists. We want to ensure we don't report non-gamepads.
         InputDeviceContext context = inputDeviceContexts.get(event.getDeviceId());
         if (context == null) {
@@ -1522,7 +1517,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && event.getActionButton() == MotionEvent.BUTTON_PRIMARY) {
                     context.inputMap |= ControllerPacket.TOUCHPAD_FLAG;
                     sendControllerInputPacket(context);
-                    return true;
+                    return !prefConfig.gamepadTouchpadAsMouse; // Report as unhandled event to trigger mouse handling
                 }
                 return false;
 
@@ -1530,12 +1525,21 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && event.getActionButton() == MotionEvent.BUTTON_PRIMARY) {
                     context.inputMap &= ~ControllerPacket.TOUCHPAD_FLAG;
                     sendControllerInputPacket(context);
-                    return true;
+                    return !prefConfig.gamepadTouchpadAsMouse; // Report as unhandled event to trigger mouse handling
                 }
                 return false;
 
             default:
                 return false;
+        }
+
+        // Bail if the user wants gamepad touchpads to control the mouse
+        //
+        // NB: We do this after processing ACTION_BUTTON_PRESS and ACTION_BUTTON_RELEASE
+        // because we want to still send the touchpad button via the gamepad even when
+        // configured to use the touchpad for mouse control.
+        if (prefConfig.gamepadTouchpadAsMouse) {
+            return false;
         }
 
         // If we don't have X and Y ranges, we can't process this event

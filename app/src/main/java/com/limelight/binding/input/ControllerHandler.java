@@ -251,6 +251,20 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         deviceVibrator.cancel();
     }
 
+    public void disableSensors() {
+        for (int i = 0; i < inputDeviceContexts.size(); i++) {
+            InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
+            deviceContext.disableSensors();
+        }
+    }
+
+    public void enableSensors() {
+        for (int i = 0; i < inputDeviceContexts.size(); i++) {
+            InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
+            deviceContext.enableSensors();
+        }
+    }
+
     private static boolean hasJoystickAxes(InputDevice device) {
         return (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK &&
                 getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_X) != null &&
@@ -1928,6 +1942,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                             if (reportRateHz != 0 && accelSensor != null) {
                                 sm.registerListener(newSensorListener, accelSensor, 1000000 / reportRateHz);
                                 deviceContext.accelListener = newSensorListener;
+                                deviceContext.accelReportRateHz = reportRateHz;
+                            }
+                            else {
+                                deviceContext.accelReportRateHz = 0;
                             }
                             break;
                         case MoonBridge.LI_MOTION_TYPE_GYRO:
@@ -1941,6 +1959,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                             if (reportRateHz != 0 && gyroSensor != null) {
                                 sm.registerListener(newSensorListener, gyroSensor,1000000 / reportRateHz);
                                 deviceContext.gyroListener = newSensorListener;
+                                deviceContext.gyroReportRateHz = reportRateHz;
+                            }
+                            else {
+                                deviceContext.gyroReportRateHz = 0;
                             }
                             break;
                     }
@@ -2561,7 +2583,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public short leftTriggerMotor, rightTriggerMotor;
 
         public SensorEventListener gyroListener;
+        public short gyroReportRateHz;
         public SensorEventListener accelListener;
+        public short accelReportRateHz;
 
         public InputDevice inputDevice;
 
@@ -2769,6 +2793,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public void migrateContext(InputDeviceContext oldContext) {
             // Take ownership of the sensor and light sessions
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                this.gyroReportRateHz = oldContext.gyroReportRateHz;
+                this.accelReportRateHz = oldContext.accelReportRateHz;
                 this.lightsSession = oldContext.lightsSession;
                 this.gyroListener = oldContext.gyroListener;
                 this.accelListener = oldContext.accelListener;
@@ -2790,6 +2816,35 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // Refresh battery state and start the battery state polling again
             sendControllerBatteryPacket(this);
             handler.postDelayed(batteryStateUpdateRunnable, BATTERY_RECHECK_INTERVAL_MS);
+        }
+
+        public void disableSensors() {
+            // Unregister all sensor listeners
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (gyroListener != null) {
+                    inputDevice.getSensorManager().unregisterListener(gyroListener);
+                    gyroListener = null;
+
+                    // Send a gyro event to ensure the virtual controller is stationary
+                    conn.sendControllerMotionEvent((byte) controllerNumber, MoonBridge.LI_MOTION_TYPE_GYRO, 0.f, 0.f, 0.f);
+                }
+                if (accelListener != null) {
+                    inputDevice.getSensorManager().unregisterListener(accelListener);
+                    accelListener = null;
+
+                    // We leave the acceleration as-is to preserve the attitude of the controller
+                }
+            }
+        }
+
+        public void enableSensors() {
+            // Turn back on any sensors that should be reporting but are currently unregistered
+            if (accelReportRateHz != 0 && accelListener == null) {
+                handleSetMotionEventState(controllerNumber, MoonBridge.LI_MOTION_TYPE_ACCEL, accelReportRateHz);
+            }
+            if (gyroReportRateHz != 0 && gyroListener == null) {
+                handleSetMotionEventState(controllerNumber, MoonBridge.LI_MOTION_TYPE_GYRO, gyroReportRateHz);
+            }
         }
     }
 

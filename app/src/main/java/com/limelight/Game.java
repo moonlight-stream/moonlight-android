@@ -639,6 +639,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 performanceOverlayView.setVisibility(View.GONE);
                 notificationOverlayView.setVisibility(View.GONE);
 
+                // Disable sensors while in PiP mode
+                controllerHandler.disableSensors();
+
                 // Update GameManager state to indicate we're in PiP (still gaming, but interruptible)
                 UiHelper.notifyStreamEnteringPiP(this);
             }
@@ -656,6 +659,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 }
 
                 notificationOverlayView.setVisibility(requestedNotificationOverlayVisibility);
+
+                // Enable sensors again after exiting PiP
+                controllerHandler.enableSensors();
 
                 // Update GameManager state to indicate we're out of PiP (gaming, non-interruptible)
                 UiHelper.notifyStreamExitingPiP(this);

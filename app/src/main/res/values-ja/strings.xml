@@ -116,7 +116,6 @@
     <!-- Array strings -->
     <string name="videoformat_hevcauto">安定している場合にHEVCを有効化</string>
     <string name="videoformat_hevcalways">HEVCを強制的に有効化(クラッシュする可能性があります)</string>
-    <string name="videoformat_hevcnever">HEVCを無効化</string>
     <string name="scut_not_paired">コンピュータとペアリングされてません</string>
     <string name="scut_invalid_uuid">指定したコンピュータは有効ではないです</string>
     <string name="scut_invalid_app_id">指定したアプリは無効です</string>

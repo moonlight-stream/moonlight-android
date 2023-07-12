@@ -229,7 +229,6 @@
     <string name="audioconf_71surround">Son surround 7.1</string>
     <string name="videoformat_hevcauto">Automatique (recommandé)</string>
     <string name="videoformat_hevcalways">Préférez le HEVC</string>
-    <string name="videoformat_hevcnever">N\'utilisez jamais HEVC</string>
     <string name="title_frame_pacing">Frame-pacing vidéo</string>
     <string name="summary_frame_pacing">Spécifiez comment équilibrer latence et fluidité de la vidéo</string>
     <string name="pacing_latency">Préférer une latence plus faible</string>

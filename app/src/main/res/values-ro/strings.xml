@@ -198,5 +198,4 @@
 
     <string name="videoformat_hevcauto">Folosește HEVC doar dacă e stabil</string>
     <string name="videoformat_hevcalways">Folosește HEVC mereu (se poate bloca)</string>
-    <string name="videoformat_hevcnever">Nu folosi HEVC</string>
 </resources>

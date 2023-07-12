@@ -111,7 +111,6 @@
     <!-- Array strings -->
     <string name="videoformat_hevcauto">Automático (Recomendado)</string>
     <string name="videoformat_hevcalways">Preferir HEVC</string>
-    <string name="videoformat_hevcnever">Nunca usar HEVC</string>
     <string name="nettest_title_done">Prueba de Red Completada</string>
     <string name="scut_not_paired">PC no emparejado</string>
     <string name="scut_invalid_uuid">El PC proporcionado no es válido</string>

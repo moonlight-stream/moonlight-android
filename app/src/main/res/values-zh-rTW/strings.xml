@@ -223,7 +223,6 @@
     <string name="audioconf_71surround">7.1 環場音效</string>
     <string name="videoformat_hevcauto">自動 (建議)</string>
     <string name="videoformat_hevcalways">優先使用 HEVC</string>
-    <string name="videoformat_hevcnever">不使用 HEVC</string>
     <string name="resolution_4k">4K</string>
     <string name="fps_30">30 FPS</string>
     <string name="fps_60">60 FPS</string>

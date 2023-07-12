@@ -186,7 +186,6 @@
     <string name="audioconf_71surround">7.1 surroundljud</string>
     <string name="videoformat_hevcauto">Automatisk (rekommenderas)</string>
     <string name="videoformat_hevcalways">Föredrar HEVC</string>
-    <string name="videoformat_hevcnever">Använd aldrig HEVC</string>
     <string name="title_frame_pacing">Videorams fart</string>
     <string name="pacing_latency">Föredrar lägsta latenstid</string>
     <string name="pacing_balanced">Balanserad</string>

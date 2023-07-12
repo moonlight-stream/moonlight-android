@@ -225,5 +225,4 @@
     <!-- Array strings -->
     <string name="videoformat_hevcauto">Gebruik HEVC alleen als het stabiel is.</string>
     <string name="videoformat_hevcalways">Gebruik HEVC altijd (mogelijkheid tot crashes)</string>
-    <string name="videoformat_hevcnever">Gebruik HEVC nooit</string>
 </resources>

@@ -223,7 +223,6 @@
     <!-- Array strings -->
     <string name="videoformat_hevcauto">자동 (권장)</string>
     <string name="videoformat_hevcalways">HEVC 선호</string>
-    <string name="videoformat_hevcnever">HEVC 사용하지 않기</string>
     <string name="summary_seekbar_deadzone">참고: 일부 게임은 이 설정값보다 더 큰 데드존이 적용되있을 수 있습니다.</string>
     <string name="resolution_1080p">1080p</string>
     <string name="resolution_360p">360p</string>

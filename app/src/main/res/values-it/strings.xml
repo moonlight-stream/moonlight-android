@@ -210,7 +210,6 @@
     <string name="audioconf_71surround">Surround 7.1</string>
     <string name="videoformat_hevcauto">Automatico (Consigliato)</string>
     <string name="videoformat_hevcalways">Preferisci HEVC</string>
-    <string name="videoformat_hevcnever">Non usare mai HEVC</string>
     <string name="title_frame_pacing">Bilanciamento frame video</string>
     <string name="summary_frame_pacing">Specifica come bilanciare il ritardo video e la fluidità</string>
     <string name="summary_enable_perf_overlay">Mostra informazioni real time sulla trasmissione</string>

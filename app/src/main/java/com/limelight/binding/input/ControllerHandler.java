@@ -230,18 +230,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         LimeLog.info("Device changed: "+existingContext.name+" ("+deviceId+")");
 
-        // Don't release the controller number, because we will carry it over if it is present.
-        // We also want to make sure the change is invisible to the host PC to avoid an add/remove
-        // cycle for the gamepad which may break some games.
-        existingContext.destroy();
-
+        // Migrate the existing context into this new one by moving any stateful elements
         InputDeviceContext newContext = createInputDeviceContextForDevice(device);
-
-        // Copy over existing controller number state
-        newContext.assignedControllerNumber = existingContext.assignedControllerNumber;
-        newContext.reservedControllerNumber = existingContext.reservedControllerNumber;
-        newContext.controllerNumber = existingContext.controllerNumber;
-
+        newContext.migrateContext(existingContext);
         inputDeviceContexts.put(deviceId, newContext);
     }
 
@@ -2771,6 +2762,32 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     type, supportedButtonFlags, capabilities);
 
             // After reporting arrival to the host, send initial battery state and begin monitoring
+            sendControllerBatteryPacket(this);
+            handler.postDelayed(batteryStateUpdateRunnable, BATTERY_RECHECK_INTERVAL_MS);
+        }
+
+        public void migrateContext(InputDeviceContext oldContext) {
+            // Take ownership of the sensor and light sessions
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                this.lightsSession = oldContext.lightsSession;
+                this.gyroListener = oldContext.gyroListener;
+                this.accelListener = oldContext.accelListener;
+                oldContext.lightsSession = null;
+                oldContext.gyroListener = null;
+                oldContext.accelListener = null;
+            }
+
+            // Don't release the controller number, because we will carry it over if it is present.
+            // We also want to make sure the change is invisible to the host PC to avoid an add/remove
+            // cycle for the gamepad which may break some games.
+            oldContext.destroy();
+
+            // Copy over existing controller number state
+            this.assignedControllerNumber = oldContext.assignedControllerNumber;
+            this.reservedControllerNumber = oldContext.reservedControllerNumber;
+            this.controllerNumber = oldContext.controllerNumber;
+
+            // Refresh battery state and start the battery state polling again
             sendControllerBatteryPacket(this);
             handler.postDelayed(batteryStateUpdateRunnable, BATTERY_RECHECK_INTERVAL_MS);
         }

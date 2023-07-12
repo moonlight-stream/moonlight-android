@@ -196,6 +196,5 @@
     <string name="audioconf_51surround">Sunet Surround 5.1</string>
     <string name="audioconf_71surround">Sunet Surround 7.1</string>
 
-    <string name="videoformat_hevcauto">Folosește HEVC doar dacă e stabil</string>
     <string name="videoformat_hevcalways">Folosește HEVC mereu (se poate bloca)</string>
 </resources>

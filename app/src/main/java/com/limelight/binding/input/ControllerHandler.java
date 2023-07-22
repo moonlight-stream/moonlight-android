@@ -458,6 +458,32 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return context;
     }
 
+    private static boolean hasButtonUnderTouchpad(InputDevice dev, byte type) {
+        // It has to have a touchpad to have a button under it
+        if ((dev.getSources() & InputDevice.SOURCE_TOUCHPAD) != InputDevice.SOURCE_TOUCHPAD) {
+            return false;
+        }
+
+        // Landroid/view/InputDevice;->hasButtonUnderPad()Z is blocked after O
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
+            try {
+                return (Boolean) dev.getClass().getMethod("hasButtonUnderPad").invoke(dev);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (ClassCastException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // We can't use the platform API, so we'll have to just guess based on the gamepad type.
+        // If this is a PlayStation controller with a touchpad, we know it has a clickpad.
+        return type == MoonBridge.LI_CTYPE_PS;
+    }
+
     private static boolean isExternal(InputDevice dev) {
         // The ASUS Tinker Board inaccurately reports Bluetooth gamepads as internal,
         // causing shouldIgnoreBack() to believe it should pass through back as a
@@ -2779,9 +2805,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             if ((inputDevice.getSources() & InputDevice.SOURCE_TOUCHPAD) == InputDevice.SOURCE_TOUCHPAD) {
                 capabilities |= MoonBridge.LI_CCAP_TOUCHPAD;
 
-                // If this is a PlayStation controller with a touchpad, we know it has a clickpad.
-                // FIXME: Can we actually tell a clickpad from a touchpad using Android APIs?
-                if (type == MoonBridge.LI_CTYPE_PS) {
+                // Use the platform API or internal heuristics to determine if this has a clickpad
+                if (hasButtonUnderTouchpad(inputDevice, type)) {
                     supportedButtonFlags |= ControllerPacket.TOUCHPAD_FLAG;
                 }
             }

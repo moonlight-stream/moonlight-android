@@ -530,9 +530,11 @@ public class NvConnection {
         }
     }
 
-    public int sendTouchEvent(byte eventType, int pointerId, float x, float y, float pressure) {
+    public int sendTouchEvent(byte eventType, int pointerId, float x, float y, float pressureOrDistance,
+                              float contactAreaMajor, float contactAreaMinor, short rotation) {
         if (!isMonkey) {
-            return MoonBridge.sendTouchEvent(eventType, pointerId, x, y, pressure);
+            return MoonBridge.sendTouchEvent(eventType, pointerId, x, y, pressureOrDistance,
+                    contactAreaMajor, contactAreaMinor, rotation);
         }
         else {
             return MoonBridge.LI_ERR_UNSUPPORTED;
@@ -540,9 +542,11 @@ public class NvConnection {
     }
 
     public int sendPenEvent(byte eventType, byte toolType, byte penButtons, float x, float y,
-                            float pressure, short rotation, byte tilt) {
+                            float pressureOrDistance, float contactAreaMajor, float contactAreaMinor,
+                            short rotation, byte tilt) {
         if (!isMonkey) {
-            return MoonBridge.sendPenEvent(eventType, toolType, penButtons, x, y, pressure, rotation, tilt);
+            return MoonBridge.sendPenEvent(eventType, toolType, penButtons, x, y, pressureOrDistance,
+                    contactAreaMajor, contactAreaMinor, rotation, tilt);
         }
         else {
             return MoonBridge.LI_ERR_UNSUPPORTED;

@@ -372,10 +372,12 @@ public class MoonBridge {
                                     short leftStickX, short leftStickY,
                                     short rightStickX, short rightStickY);
 
-    public static native int sendTouchEvent(byte eventType, int pointerId, float x, float y, float pressure);
+    public static native int sendTouchEvent(byte eventType, int pointerId, float x, float y, float pressure,
+                                            float contactAreaMajor, float contactAreaMinor, short rotation);
 
     public static native int sendPenEvent(byte eventType, byte toolType, byte penButtons, float x, float y,
-                                          float pressure, short rotation, byte tilt);
+                                          float pressure, float contactAreaMajor, float contactAreaMinor,
+                                          short rotation, byte tilt);
 
     public static native int sendControllerArrivalEvent(byte controllerNumber, short activeGamepadMask, byte type, int supportedButtonFlags, short capabilities);
 

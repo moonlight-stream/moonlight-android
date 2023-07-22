@@ -1532,6 +1532,100 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return new float[] { normalizedX, normalizedY };
     }
 
+    private static float normalizeValueInRange(float value, InputDevice.MotionRange range) {
+        return (value - range.getMin()) / range.getRange();
+    }
+
+    private static float getPressureOrDistance(MotionEvent event) {
+        InputDevice dev = event.getDevice();
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_HOVER_ENTER:
+            case MotionEvent.ACTION_HOVER_MOVE:
+            case MotionEvent.ACTION_HOVER_EXIT:
+                // Hover events report distance
+                if (dev != null) {
+                    InputDevice.MotionRange distanceRange = dev.getMotionRange(MotionEvent.AXIS_DISTANCE, event.getSource());
+                    if (distanceRange != null) {
+                        return normalizeValueInRange(event.getAxisValue(MotionEvent.AXIS_DISTANCE, event.getActionIndex()), distanceRange);
+                    }
+                }
+                return 0.0f;
+
+            default:
+                // Other events report pressure
+                return event.getPressure(event.getActionIndex());
+        }
+    }
+
+    private static short getRotationDegrees(MotionEvent event) {
+        InputDevice dev = event.getDevice();
+        if (dev != null) {
+            if (dev.getMotionRange(MotionEvent.AXIS_ORIENTATION, event.getSource()) != null) {
+                short rotationDegrees = (short) Math.toDegrees(event.getOrientation(event.getActionIndex()));
+                if (rotationDegrees < 0) {
+                    rotationDegrees += 360;
+                }
+                return rotationDegrees;
+            }
+        }
+        return MoonBridge.LI_ROT_UNKNOWN;
+    }
+
+    private static float[] polarToCartesian(float r, float theta) {
+        return new float[] { (float)(r * Math.cos(theta)), (float)(r * Math.sin(theta)) };
+    }
+
+    private static float cartesianToR(float[] point) {
+        return (float)Math.sqrt(Math.pow(point[0], 2) + Math.pow(point[1], 2));
+    }
+
+    private float[] getStreamViewNormalizedContactArea(MotionEvent event) {
+        float orientation;
+
+        // If the orientation is unknown, we'll just assume it's at a 45 degree angle and scale it by
+        // X and Y scaling factors evenly.
+        if (event.getDevice() == null || event.getDevice().getMotionRange(MotionEvent.AXIS_ORIENTATION, event.getSource()) == null) {
+            orientation = (float)(Math.PI / 4);
+        }
+        else {
+            orientation = event.getOrientation(event.getActionIndex());
+        }
+
+        float contactAreaMajor, contactAreaMinor;
+        switch (event.getActionMasked()) {
+            // Hover events report the tool size
+            case MotionEvent.ACTION_HOVER_ENTER:
+            case MotionEvent.ACTION_HOVER_MOVE:
+            case MotionEvent.ACTION_HOVER_EXIT:
+                contactAreaMajor = event.getToolMajor(event.getActionIndex());
+                contactAreaMinor = event.getToolMinor(event.getActionIndex());
+                break;
+
+            // Other events report contact area
+            default:
+                contactAreaMajor = event.getTouchMajor(event.getActionIndex());
+                contactAreaMinor = event.getTouchMinor(event.getActionIndex());
+                break;
+        }
+
+        // The contact area major axis is parallel to the orientation, so we simply convert
+        // polar to cartesian coordinates using the orientation as theta.
+        float[] contactAreaMajorCartesian = polarToCartesian(contactAreaMajor, orientation);
+
+        // The contact area minor axis is perpendicular to the contact area major axis (and thus
+        // the orientation), so rotate the orientation angle by 90 degrees.
+        float[] contactAreaMinorCartesian = polarToCartesian(contactAreaMinor, (float)(orientation + (Math.PI / 2)));
+
+        // Normalize the contact area to the stream view size
+        contactAreaMajorCartesian[0] = Math.min(Math.abs(contactAreaMajorCartesian[0]), streamView.getWidth()) / streamView.getWidth();
+        contactAreaMinorCartesian[0] = Math.min(Math.abs(contactAreaMinorCartesian[0]), streamView.getWidth()) / streamView.getWidth();
+        contactAreaMajorCartesian[1] = Math.min(Math.abs(contactAreaMajorCartesian[1]), streamView.getHeight()) / streamView.getHeight();
+        contactAreaMinorCartesian[1] = Math.min(Math.abs(contactAreaMinorCartesian[1]), streamView.getHeight()) / streamView.getHeight();
+
+        // Convert the normalized values back into polar coordinates
+        return new float[] { cartesianToR(contactAreaMajorCartesian), cartesianToR(contactAreaMinorCartesian) };
+    }
+
     private boolean trySendPenEvent(View view, MotionEvent event) {
         byte eventType = getLiTouchTypeFromEvent(event);
         if (eventType < 0) {
@@ -1558,26 +1652,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             penButtons |= MoonBridge.LI_PEN_BUTTON_SECONDARY;
         }
 
-        short rotationDegrees = MoonBridge.LI_ROT_UNKNOWN;
         byte tiltDegrees = MoonBridge.LI_TILT_UNKNOWN;
         InputDevice dev = event.getDevice();
         if (dev != null) {
-            if (dev.getMotionRange(MotionEvent.AXIS_ORIENTATION, event.getSource()) != null) {
-                rotationDegrees = (short)Math.toDegrees(event.getOrientation(event.getActionIndex()));
-                if (rotationDegrees < 0) {
-                    rotationDegrees += 360;
-                }
-            }
             if (dev.getMotionRange(MotionEvent.AXIS_TILT, event.getSource()) != null) {
                 tiltDegrees = (byte)Math.toDegrees(event.getAxisValue(MotionEvent.AXIS_TILT, event.getActionIndex()));
             }
         }
 
         float[] normalizedCoords = getStreamViewRelativeNormalizedXY(view, event);
+        float[] normalizedContactArea = getStreamViewNormalizedContactArea(event);
         return conn.sendPenEvent(eventType, toolType, penButtons,
                 normalizedCoords[0], normalizedCoords[1],
-                event.getPressure(event.getActionIndex()),
-                rotationDegrees, tiltDegrees) != MoonBridge.LI_ERR_UNSUPPORTED;
+                getPressureOrDistance(event),
+                normalizedContactArea[0], normalizedContactArea[1],
+                getRotationDegrees(event), tiltDegrees) != MoonBridge.LI_ERR_UNSUPPORTED;
     }
 
     private boolean trySendTouchEvent(View view, MotionEvent event) {
@@ -1587,9 +1676,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         float[] normalizedCoords = getStreamViewRelativeNormalizedXY(view, event);
+        float[] normalizedContactArea = getStreamViewNormalizedContactArea(event);
         return conn.sendTouchEvent(eventType, event.getPointerId(event.getActionIndex()),
                 normalizedCoords[0], normalizedCoords[1],
-                event.getPressure(event.getActionIndex())) != MoonBridge.LI_ERR_UNSUPPORTED;
+                getPressureOrDistance(event),
+                normalizedContactArea[0], normalizedContactArea[1],
+                getRotationDegrees(event)) != MoonBridge.LI_ERR_UNSUPPORTED;
     }
 
     // Returns true if the event was consumed

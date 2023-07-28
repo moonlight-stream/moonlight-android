@@ -1502,6 +1502,18 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return value / range.getRange();
     }
 
+    private boolean sendTouchpadEventForPointer(InputDeviceContext context, MotionEvent event, byte touchType, int pointerIndex) {
+        float normalizedX = normalizeRawValueWithRange(event.getX(pointerIndex), context.touchpadXRange);
+        float normalizedY = normalizeRawValueWithRange(event.getY(pointerIndex), context.touchpadYRange);
+        float normalizedPressure = context.touchpadPressureRange != null ?
+                normalizeRawValueWithRange(event.getPressure(pointerIndex), context.touchpadPressureRange)
+                : 0;
+
+        return conn.sendControllerTouchEvent((byte)context.controllerNumber, touchType,
+                event.getPointerId(pointerIndex),
+                normalizedX, normalizedY, normalizedPressure) != MoonBridge.LI_ERR_UNSUPPORTED;
+    }
+
     public boolean tryHandleTouchpadEvent(MotionEvent event) {
         // Bail if this is not a touchpad event
         if (event.getSource() != InputDevice.SOURCE_TOUCHPAD) {
@@ -1573,15 +1585,20 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             return false;
         }
 
-        float normalizedX = normalizeRawValueWithRange(event.getX(event.getActionIndex()), context.touchpadXRange);
-        float normalizedY = normalizeRawValueWithRange(event.getY(event.getActionIndex()), context.touchpadYRange);
-        float normalizedPressure = context.touchpadPressureRange != null ?
-                normalizeRawValueWithRange(event.getPressure(event.getActionIndex()), context.touchpadPressureRange)
-                        : 0;
-
-        return conn.sendControllerTouchEvent((byte)context.controllerNumber, touchType,
-                event.getPointerId(event.getActionIndex()),
-                normalizedX, normalizedY, normalizedPressure) != MoonBridge.LI_ERR_UNSUPPORTED;
+        if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
+            // Move events may impact all active pointers
+            for (int i = 0; i < event.getPointerCount(); i++) {
+                if (!sendTouchpadEventForPointer(context, event, touchType, i)) {
+                    // Controller touch events are not supported by the host
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            // Down and Up events impact the action index pointer
+            return sendTouchpadEventForPointer(context, event, touchType, event.getActionIndex());
+        }
     }
 
     public boolean handleMotionEvent(MotionEvent event) {

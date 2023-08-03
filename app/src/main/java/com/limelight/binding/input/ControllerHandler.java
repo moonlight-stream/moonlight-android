@@ -1548,7 +1548,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 break;
 
             case MotionEvent.ACTION_CANCEL:
-                touchType = MoonBridge.LI_TOUCH_EVENT_CANCEL;
+                // ACTION_CANCEL applies to *all* pointers in the gesture, so it maps to CANCEL_ALL
+                // rather than CANCEL. For a single pointer cancellation, that's indicated via
+                // FLAG_CANCELED on a ACTION_POINTER_UP.
+                // https://developer.android.com/develop/ui/views/touch-and-input/gestures/multi
+                touchType = MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL;
                 break;
 
             case MotionEvent.ACTION_BUTTON_PRESS:
@@ -1594,6 +1598,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 }
             }
             return true;
+        }
+        else if (event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+            // Cancel impacts all active pointers
+            return conn.sendControllerTouchEvent((byte)context.controllerNumber, MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL,
+                    0, 0, 0, 0) != MoonBridge.LI_ERR_UNSUPPORTED;
         }
         else {
             // Down and Up events impact the action index pointer

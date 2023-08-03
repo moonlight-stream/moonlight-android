@@ -1491,7 +1491,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return MoonBridge.LI_TOUCH_EVENT_MOVE;
 
             case MotionEvent.ACTION_CANCEL:
-                return MoonBridge.LI_TOUCH_EVENT_CANCEL;
+                // ACTION_CANCEL applies to *all* pointers in the gesture, so it maps to CANCEL_ALL
+                // rather than CANCEL. For a single pointer cancellation, that's indicated via
+                // FLAG_CANCELED on a ACTION_POINTER_UP.
+                // https://developer.android.com/develop/ui/views/touch-and-input/gestures/multi
+                return MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL;
 
             case MotionEvent.ACTION_HOVER_ENTER:
             case MotionEvent.ACTION_HOVER_MOVE:
@@ -1690,8 +1694,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
             return handledStylusEvent;
         }
+        else if (event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+            // Cancel impacts all active pointers
+            return conn.sendPenEvent(MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL, MoonBridge.LI_TOOL_TYPE_UNKNOWN, (byte)0,
+                    0, 0, 0, 0, 0,
+                    MoonBridge.LI_ROT_UNKNOWN, MoonBridge.LI_TILT_UNKNOWN) != MoonBridge.LI_ERR_UNSUPPORTED;
+        }
         else {
-            // Up, Down, Hover, and Cancel events are specific to the action index
+            // Up, Down, and Hover events are specific to the action index
             byte toolType = convertToolTypeToStylusToolType(event, event.getActionIndex());
             if (toolType == MoonBridge.LI_TOOL_TYPE_UNKNOWN) {
                 // Not a stylus event
@@ -1726,8 +1736,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
             return true;
         }
+        else if (event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+            // Cancel impacts all active pointers
+            return conn.sendTouchEvent(MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL, 0,
+                    0, 0, 0, 0, 0,
+                    MoonBridge.LI_ROT_UNKNOWN) != MoonBridge.LI_ERR_UNSUPPORTED;
+        }
         else {
-            // Up, Down, Hover, and Cancel events are specific to the action index
+            // Up, Down, and Hover events are specific to the action index
             return sendTouchEventForPointer(view, event, eventType, event.getActionIndex());
         }
     }

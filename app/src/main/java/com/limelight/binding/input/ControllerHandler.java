@@ -2808,7 +2808,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
                 for (Light light : inputDevice.getLightsManager().getLights()) {
                     if (light.hasRgbControl()) {
-                        capabilities |= MoonBridge.LI_CCAP_RGB_LED;
+                        // Light.hasRgbControl() was totally broken prior to Android 14.
+                        // It always returned true because LIGHT_CAPABILITY_RGB was defined as 0,
+                        // so we will just guess RGB is supported if it's a PlayStation controller.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE || type == MoonBridge.LI_CTYPE_PS) {
+                            capabilities |= MoonBridge.LI_CCAP_RGB_LED;
+                        }
                     }
                 }
             }

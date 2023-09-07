@@ -217,13 +217,13 @@
     <string name="perf_overlay_netlatency">Genomsnittlig nätverksfördröjning: %1$d ms (varians: %2$d ms)</string>
     <string name="applist_quit_fail">Misslyckades att avsluta</string>
     <string name="title_native_res_dialog">Varning för ursprunglig upplösning</string>
-    <string name="text_native_res_dialog">Lägen med native upplösning stöds inte officiellt av GeForce Experience, så det kommer inte att ställa in upplösningen på värdskärmen själv. Du måste ställa in den manuellt i spelet.
+    <string name="text_native_res_dialog">Inbyggd upplösning och/eller FPS kanske inte stöds av streamingservern. Du kommer förmodligen att behöva konfigurera ett matchande anpassat visningsläge för värddatorn manuellt.
 \n
-\nOm du väljer att skapa en anpassad upplösning i NVIDIA Control Panel för att matcha enhetens upplösning ska du se till att du har läst och förstått NVIDIAs varning om möjliga skador på skärmen, instabilitet i datorn och andra potentiella problem.
+\nOm du väljer att skapa en anpassad upplösning i NVIDIAs kontrollpanel för att matcha dina skärminställningar, se till att du har läst och förstått NVIDIAs varning om möjlig bildskärmsskada, PC-instabilitet och andra potentiella problem.
 \n
-\nVi är inte ansvariga för eventuella problem som uppstår till följd av att du skapar en anpassad upplösning på din dator.
+\nVi är inte ansvariga för eventuella problem som uppstår av att skapa en anpassad upplösning på din PC.
 \n
-\nSlutligen kan det hända att din enhet eller värddator inte stöder streaming i den ursprungliga upplösningen. Om det inte fungerar på din enhet har du tyvärr bara otur.</string>
+\nDet kan vara så att din bildskärm inte stöder en nödvändig bildskärmskonfiguration. Om så är fallet kan du försöka ställa in en virtuell skärm. Slutligen, om din enhet eller värddator inte stöder streaming med en specifik upplösning eller uppdateringsfrekvens, har du tyvärr ingen tur.</string>
     <string name="summary_seekbar_bitrate">Öka för bättre bildkvalitet. Minska för att förbättra prestandan på långsammare anslutningar.</string>
     <string name="title_checkbox_stretch_video">Sträck ut videon till helskärm</string>
     <string name="summary_audio_config_list">Aktivera 5.1 eller 7.1 surroundljud för hemmabiosystem</string>

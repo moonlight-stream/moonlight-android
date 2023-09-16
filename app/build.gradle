@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+// Shaga
+apply plugin: 'kotlin-android'
+
+
 android {
     ndkVersion "23.2.8568313"
 
@@ -8,7 +12,7 @@ android {
     namespace 'com.limelight'
 
     defaultConfig {
-        minSdk 16
+        minSdk 21
         targetSdk 34
 
         versionName "11.0"
@@ -54,11 +58,19 @@ android {
         }
     }
 
+    // Shaga
     compileOptions {
         encoding "UTF-8"
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
+
+    // Shaga
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+
 
     lint {
         disable 'MissingTranslation'
@@ -135,12 +147,29 @@ android {
     }
 }
 
+/*
+android {
+    packagingOptions {
+        exclude 'org/bouncycastle/x509/CertPathReviewerMessages_de.properties'
+    }
+}
+*/
+
 dependencies {
+    // Shaga
+    // implementation 'com.solana:solana:1.14.25'
+    // implementation 'org.libsodium:jni:1.0.18-RELEASE'
+    //implementation 'com.github.solana-labs:solana:1.16.13'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.10'
+    implementation ('com.github.metaplex-foundation:SolanaKT:2.1.1') {
+        exclude group: 'org.bouncycastle'
+    }
+
     implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.70'
     implementation 'org.jcodec:jcodec:0.2.3'
-    implementation 'com.squareup.okhttp3:okhttp:3.12.13'
-    implementation 'com.squareup.okio:okio:1.17.5'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.2'
+    implementation 'com.squareup.okio:okio:2.9.0'
     // 3.5.8 requires minSdk 19, uses StandardCharsets.UTF_8 internally
     implementation 'org.jmdns:jmdns:3.5.7'
     implementation 'com.github.cgutman:ShieldControllerExtensions:1.0'

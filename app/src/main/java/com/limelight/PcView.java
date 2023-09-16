@@ -59,6 +59,11 @@ import org.xmlpull.v1.XmlPullParserException;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+
+// Shaga
+import com.limelight.utils.SolanaUtilManualTest;
+
+
 public class PcView extends Activity implements AdapterFragmentCallbacks {
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
@@ -185,6 +190,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //Shaga
+        SolanaUtilManualTest.INSTANCE.testSolanaInitialization();
+
+
 
         // Assume we're in the foreground when created to avoid a race
         // between binding to CMS and onResume()

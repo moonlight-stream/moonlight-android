@@ -186,8 +186,8 @@
     <string name="summary_checkbox_disable_warnings">Désactiver les messages d\'avertissement de connexion à l\'écran pendant la diffusion</string>
     <string name="title_disable_frame_drop">Ne jamais laisser tomber les frames</string>
     <string name="summary_disable_frame_drop">Peut réduire les micro-saccades sur certains appareils, mais peut augmenter la latence</string>
-    <string name="title_video_format">Modifier les paramètres HEVC</string>
-    <string name="summary_video_format">HEVC réduit les besoins en bande passante vidéo mais nécessite un périphérique très récent</string>
+    <string name="title_video_format">Modifier les paramètres de codec</string>
+    <string name="summary_video_format">Les nouveaux codecs peuvent réduire la bande passante vidéo requise si votre appareil les prend en charge. Les codecs séléctionnés peuvent être ignorés si ils ne sont pas prises en charge par le logiciel hôte ou le GPU.</string>
     <string name="title_enable_hdr">Activer le HDR (expérimental)</string>
     <string name="summary_enable_hdr">Diffuser du HDR lorsque le jeu et le processeur graphique du PC le prennent en charge. Le HDR nécessite un GPU pouvant encoder en HEVC Main 10.</string>
     <string name="title_enable_perf_overlay">Activer la superposition de performance</string>
@@ -202,13 +202,13 @@
     <string name="pcview_menu_header_online">En ligne</string>
     <string name="resolution_prefix_native">Native</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
-    <string name="text_native_res_dialog">Les modes de résolution native ne sont pas officiellement supportées par GeForce Experience, l\'écran de votre hôte ne changera donc pas sa résolution. Vous devrez changer la résolution de chaque jeu dans les paramètres de celui-ci.
+    <string name="text_native_res_dialog">La résolution native et/ou le FPS peuvent ne pas être pris en charge par le serveur de streaming. Vous devrez probablement configurer manuellement un mode d\'affichage personnalisé correspondant pour le PC hôte.
 \n
-\nSi vous créez une résolution personnalisée dans le panneau de contrôle NVIDIA identique à celle de votre appareil, gardez à l\'esprit les avertissement de NVIDIA en ce qui est des potentiels dégâts à votre moniteur, une instabilité générale, et encore d\'autres problèmes.
+\nSi vous choisissez de créer une résolution personnalisée dans le panneau de configuration NVIDIA pour correspondre aux paramètres de votre écran, assurez-vous d\'avoir lu et compris l\'avertissement de NVIDIA concernant les dommages possibles au moniteur, l\'instabilité du PC et d\'autres problèmes potentiels.
 \n
-\nNous ne sommes pas responsables des problèmes qui peuvent arriver suite à l\'utilisation de cette fonctionnalité.
+\nNous ne sommes pas responsables des problèmes résultant de la création d\'une résolution personnalisée sur votre PC.
 \n
-\nEnfin, votre appareil et/ou vôtre PC hôte peut ne pas supporter cette fonctionnalité. Si ça ne marche pas, on ne peut malheureusement rien y faire.</string>
+\nIl se peut que votre moniteur ne prenne pas en charge la configuration d\'affichage requise. Si c\'est le cas, vous pouvez essayer de configurer un moniteur virtuel. Enfin, si votre appareil ou votre PC hôte ne prend pas en charge le streaming à une résolution ou à un taux de rafraîchissement spécifique, vous ne pourrez pas y faire grand chose malheureusement.</string>
     <string name="title_native_res_dialog">Avertissement résolution native</string>
     <string name="applist_menu_hide_app">Cacher l\'application</string>
     <string name="check_ports_msg">Vérifiez vos règles de pare-feu pour les ports suivants :</string>
@@ -267,4 +267,11 @@
     <string name="category_gamepad_settings">Paramètres manette</string>
     <string name="perf_overlay_hostprocessinglatency">Latence de traitement de l\'hôte min/max/moyenne : %1$.1f/%2$.1f/%3$.1f ms</string>
     <string name="fps_suffix_fps">FPS</string>
+    <string name="title_native_fps_dialog">Avertissement FPS natif</string>
+    <string name="title_checkbox_gamepad_motion_sensors">Autoriser l\'utilisation des capteurs de mouvement de la manette</string>
+    <string name="videoformat_av1always">Préférer AV1 (expérimental)</string>
+    <string name="videoformat_h264always">Préférer H.264</string>
+    <string name="title_checkbox_gamepad_touchpad_as_mouse">Toujours controller la souris avec le pavé tactile</string>
+    <string name="summary_checkbox_gamepad_touchpad_as_mouse">Force le pavé tactile de la manette à contrôler la souris de l\'hôte, même quand l\'émulation d\'une manette par le pavé tactile est activée.</string>
+    <string name="summary_checkbox_gamepad_motion_sensors">Permet aux hôtes pris en charge de demander des données de capteur de mouvement lors de l\'émulation d\'une manette avec des capteurs de mouvement. Désactiver ce paramètre peut réduire légèrement l\'utilisation de l\'alimentation et du réseau si les capteurs de mouvement ne sont pas utilisés en jeu.</string>
 </resources>

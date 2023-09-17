@@ -29,6 +29,7 @@ import android.view.InputDevice;
 import android.view.InputEvent;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.widget.Toast;
 
 import com.limelight.LimeLog;
@@ -1970,11 +1971,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
-    public void handleSetMotionEventState(final short controllerNumber, final byte motionType, short reportRateHz) {
-        // Report rate is restricted to <= 200 Hz without the HIGH_SAMPLING_RATE_SENSORS permission
-        reportRateHz = (short) Math.min(200, reportRateHz);
-
-        SensorEventListener newSensorListener = new SensorEventListener() {
+    private SensorEventListener createSensorListener(final short controllerNumber, final byte motionType, final boolean needsDeviceOrientationCorrection) {
+        return new SensorEventListener() {
             private float[] lastValues = new float[3];
 
             @Override
@@ -1993,27 +1991,73 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     lastValues[2] = sensorEvent.values[2];
                 }
 
+                int x = 0;
+                int y = 1;
+                int z = 2;
+                int xFactor = 1;
+                int yFactor = 1;
+                int zFactor = 1;
+
+                if (needsDeviceOrientationCorrection) {
+                    int deviceRotation = activityContext.getWindowManager().getDefaultDisplay().getRotation();
+                    switch (deviceRotation) {
+                        case Surface.ROTATION_0:
+                        case Surface.ROTATION_180:
+                            x = 0;
+                            y = 2;
+                            z = 1;
+                            break;
+
+                        case Surface.ROTATION_90:
+                        case Surface.ROTATION_270:
+                            x = 1;
+                            y = 2;
+                            z = 0;
+                            break;
+                    }
+
+                    switch (deviceRotation) {
+                        case Surface.ROTATION_0:
+                            zFactor = -1;
+                            break;
+                        case Surface.ROTATION_90:
+                            xFactor = -1;
+                            zFactor = -1;
+                            break;
+                        case Surface.ROTATION_180:
+                            xFactor = -1;
+                            break;
+                        case Surface.ROTATION_270:
+                            break;
+                    }
+                }
+
                 if (motionType == MoonBridge.LI_MOTION_TYPE_GYRO) {
                     // Convert from rad/s to deg/s
                     conn.sendControllerMotionEvent((byte) controllerNumber,
                             motionType,
-                            sensorEvent.values[0] * 57.2957795f,
-                            sensorEvent.values[1] * 57.2957795f,
-                            sensorEvent.values[2] * 57.2957795f);
+                            sensorEvent.values[x] * xFactor * 57.2957795f,
+                            sensorEvent.values[y] * yFactor * 57.2957795f,
+                            sensorEvent.values[z] * zFactor * 57.2957795f);
                 }
                 else {
                     // Pass m/s^2 directly without conversion
                     conn.sendControllerMotionEvent((byte) controllerNumber,
                             motionType,
-                            sensorEvent.values[0],
-                            sensorEvent.values[1],
-                            sensorEvent.values[2]);
+                            sensorEvent.values[x] * xFactor,
+                            sensorEvent.values[y] * yFactor,
+                            sensorEvent.values[z] * zFactor);
                 }
             }
 
             @Override
             public void onAccuracyChanged(Sensor sensor, int accuracy) {}
         };
+    }
+
+    public void handleSetMotionEventState(final short controllerNumber, final byte motionType, short reportRateHz) {
+        // Report rate is restricted to <= 200 Hz without the HIGH_SAMPLING_RATE_SENSORS permission
+        reportRateHz = (short) Math.min(200, reportRateHz);
 
         for (int i = 0; i < inputDeviceContexts.size(); i++) {
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
@@ -2034,8 +2078,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                         // Enable the accelerometer if requested
                         Sensor accelSensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, false);
                         if (reportRateHz != 0 && accelSensor != null) {
-                            sm.registerListener(newSensorListener, accelSensor, 1000000 / reportRateHz);
-                            deviceContext.accelListener = newSensorListener;
+                            deviceContext.accelListener = createSensorListener(controllerNumber, motionType, sm == deviceSensorManager);
+                            sm.registerListener(deviceContext.accelListener, accelSensor, 1000000 / reportRateHz);
                             deviceContext.accelReportRateHz = reportRateHz;
                         }
                         else {
@@ -2051,8 +2095,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                         // Enable the gyroscope if requested
                         Sensor gyroSensor = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE, false);
                         if (reportRateHz != 0 && gyroSensor != null) {
-                            sm.registerListener(newSensorListener, gyroSensor,1000000 / reportRateHz);
-                            deviceContext.gyroListener = newSensorListener;
+                            deviceContext.gyroListener = createSensorListener(controllerNumber, motionType, sm == deviceSensorManager);
+                            sm.registerListener(deviceContext.gyroListener, gyroSensor, 1000000 / reportRateHz);
                             deviceContext.gyroReportRateHz = reportRateHz;
                         }
                         else {

@@ -105,7 +105,11 @@
             android:title="@string/title_checkbox_gamepad_motion_sensors"
             android:summary="@string/summary_checkbox_gamepad_motion_sensors"
             android:defaultValue="true" />
-
+        <CheckBoxPreference
+            android:key="checkbox_gamepad_motion_fallback"
+            android:title="@string/title_checkbox_gamepad_motion_fallback"
+            android:summary="@string/summary_checkbox_gamepad_motion_fallback"
+            android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_input_settings"
         android:key="category_input_settings">

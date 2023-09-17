@@ -296,6 +296,14 @@ public class StreamSettings extends Activity {
                 category.removePreference(findPreference("checkbox_gamepad_motion_sensors"));
             }
 
+            // Hide gamepad motion sensor fallback option if the device has no gyro or accelerometer
+            if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) &&
+                    !getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE)) {
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_gamepad_settings");
+                category.removePreference(findPreference("checkbox_gamepad_motion_fallback"));
+            }
+
             // Remove PiP mode on devices pre-Oreo, where the feature is not available (some low RAM devices),
             // and on Fire OS where it violates the Amazon App Store guidelines for some reason.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||

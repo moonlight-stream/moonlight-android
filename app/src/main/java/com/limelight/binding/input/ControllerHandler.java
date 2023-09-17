@@ -497,7 +497,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 deviceName.contains("joy_key") || // These are the gamepad buttons on the Archos Gamepad 2
                 deviceName.contains("keypad") || // These are gamepad buttons on the XPERIA Play
                 deviceName.equalsIgnoreCase("NVIDIA Corporation NVIDIA Controller v01.01") || // Gamepad on Shield Portable
-                deviceName.equalsIgnoreCase("NVIDIA Corporation NVIDIA Controller v01.02")) // Gamepad on Shield Portable (?)
+                deviceName.equalsIgnoreCase("NVIDIA Corporation NVIDIA Controller v01.02") || // Gamepad on Shield Portable (?)
+                deviceName.equalsIgnoreCase("GR0006") // Gamepad on Logitech G Cloud
+        )
         {
             LimeLog.info(dev.getName()+" is internal by hardcoded mapping");
             return false;

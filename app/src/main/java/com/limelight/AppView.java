@@ -49,6 +49,9 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+// Shaga
+import com.limelight.solanaWallet.WalletInitializer;
+
 public class AppView extends Activity implements AdapterFragmentCallbacks {
     private AppGridAdapter appGridAdapter;
     private String uuidString;
@@ -313,6 +316,13 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         TextView label = findViewById(R.id.appListText);
         setTitle(computerName);
         label.setText(computerName);
+
+
+        // Shaga wallet startup
+        // You don't instantiate it as it's a Kotlin object (Singleton)
+        WalletInitializer.INSTANCE.initialize(getApplicationContext());
+
+
 
         // Bind to the computer manager service
         bindService(new Intent(this, ComputerManagerService.class), serviceConnection,

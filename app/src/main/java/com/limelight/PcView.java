@@ -6,22 +6,28 @@ import java.net.UnknownHostException;
 
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.crypto.AndroidCryptoProvider;
+
 import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
+
 import com.limelight.grid.PcGridAdapter;
 import com.limelight.grid.assets.DiskAssetLoader;
+
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.http.PairingManager;
 import com.limelight.nvstream.http.PairingManager.PairState;
 import com.limelight.nvstream.wol.WakeOnLanSender;
+
 import com.limelight.preferences.AddComputerManually;
 import com.limelight.preferences.GlPreferences;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.preferences.StreamSettings;
+
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
+
 import com.limelight.utils.Dialog;
 import com.limelight.utils.HelpLauncher;
 import com.limelight.utils.ServerHelper;
@@ -31,21 +37,28 @@ import com.limelight.utils.UiHelper;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Service;
+
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.opengl.GLSurfaceView;
+
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+
 import android.preference.PreferenceManager;
+
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
+// Shaga
+
+
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -61,7 +74,6 @@ import javax.microedition.khronos.opengles.GL10;
 
 
 // Shaga
-import com.limelight.utils.SolanaUtilManualTest;
 
 
 public class PcView extends Activity implements AdapterFragmentCallbacks {
@@ -191,9 +203,26 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        /*
         //Shaga
-        SolanaUtilManualTest.INSTANCE.testSolanaInitialization();
+        TextView solanaBalanceTextView = findViewById(R.id.solanaBalanceTextView);
 
+        SolanaUtil.INSTANCE.getBalance("YourWalletAddressHere", new SolanaUtil.BalanceCallback() {
+            @Override
+            public void onBalanceReceived(Double balance) {
+                runOnUiThread(() -> {
+                    if (balance != null) {
+                        solanaBalanceTextView.setText("Solana Balance: " + balance.toString());
+                    } else {
+                        solanaBalanceTextView.setText("Failed to fetch balance");
+                    }
+                });
+            }
+        });
+
+
+        // SolanaUtilManualTest.INSTANCE.testSolanaInitialization();
+*/
 
 
         // Assume we're in the foreground when created to avoid a race

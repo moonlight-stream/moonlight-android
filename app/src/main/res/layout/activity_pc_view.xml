@@ -43,6 +43,17 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:gravity="center"
                 android:text="@string/searching_pc"/>
+
+            <TextView
+                android:id="@+id/solanaBalanceTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:padding="16dp"
+                android:text="@string/solana_balance"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+
         </RelativeLayout>
 
     </RelativeLayout>

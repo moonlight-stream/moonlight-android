@@ -30,7 +30,7 @@ public class StreamView extends SurfaceView {
         super(context, attrs, defStyleAttr);
     }
 
-    @TargetApi(21)
+    @TargetApi(24)
     public StreamView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }

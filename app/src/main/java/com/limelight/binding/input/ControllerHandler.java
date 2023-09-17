@@ -33,6 +33,7 @@ import android.view.Surface;
 import android.widget.Toast;
 
 import com.limelight.LimeLog;
+import com.limelight.R;
 import com.limelight.binding.input.driver.AbstractController;
 import com.limelight.binding.input.driver.UsbDriverListener;
 import com.limelight.binding.input.driver.UsbDriverService;
@@ -2904,6 +2905,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
             if (sensorManager != null && sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
                 capabilities |= MoonBridge.LI_CCAP_GYRO;
+            }
+
+            // Override the detected controller type if we're emulating motion sensors on an Xbox controller
+            if (type != MoonBridge.LI_CTYPE_PS && sensorManager != null) {
+                Toast.makeText(activityContext, activityContext.getResources().getText(R.string.toast_controller_type_changed), Toast.LENGTH_LONG).show();
+                type = MoonBridge.LI_CTYPE_UNKNOWN;
             }
 
             // We can perform basic rumble with any vibrator

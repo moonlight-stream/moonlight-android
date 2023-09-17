@@ -2077,7 +2077,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                         }
 
                         // Enable the accelerometer if requested
-                        Sensor accelSensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, false);
+                        Sensor accelSensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
                         if (reportRateHz != 0 && accelSensor != null) {
                             deviceContext.accelListener = createSensorListener(controllerNumber, motionType, sm == deviceSensorManager);
                             sm.registerListener(deviceContext.accelListener, accelSensor, 1000000 / reportRateHz);
@@ -2094,7 +2094,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                         }
 
                         // Enable the gyroscope if requested
-                        Sensor gyroSensor = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE, false);
+                        Sensor gyroSensor = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
                         if (reportRateHz != 0 && gyroSensor != null) {
                             deviceContext.gyroListener = createSensorListener(controllerNumber, motionType, sm == deviceSensorManager);
                             sm.registerListener(deviceContext.gyroListener, gyroSensor, 1000000 / reportRateHz);

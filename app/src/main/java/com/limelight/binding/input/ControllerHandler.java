@@ -111,6 +111,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final InputDeviceContext defaultContext = new InputDeviceContext();
     private final GameGestures gestures;
     private final Vibrator deviceVibrator;
+    private final VibratorManager deviceVibratorManager;
     private final SceManager sceManager;
     private final Handler handler;
     private boolean hasGameController;
@@ -125,6 +126,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         this.prefConfig = prefConfig;
         this.deviceVibrator = (Vibrator) activityContext.getSystemService(Context.VIBRATOR_SERVICE);
         this.handler = new Handler(Looper.getMainLooper());
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            this.deviceVibratorManager = (VibratorManager) activityContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
+        }
+        else {
+            this.deviceVibratorManager = null;
+        }
 
         this.sceManager = new SceManager(activityContext);
         this.sceManager.start();
@@ -613,6 +621,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.hasShare = MoonBridge.guessControllerHasShareButton(context.vendorId, context.productId);
         }
 
+        // Try to use the InputDevice's associated vibrators first
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && hasQuadAmplitudeControlledRumbleVibrators(dev.getVibratorManager())) {
             context.vibratorManager = dev.getVibratorManager();
             context.quadVibrators = true;
@@ -623,6 +632,20 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
         else if (dev.getVibrator().hasVibrator()) {
             context.vibrator = dev.getVibrator();
+        }
+        else if (!context.external) {
+            // If this is an internal controller, try to use the device's vibrator
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && hasQuadAmplitudeControlledRumbleVibrators(deviceVibratorManager)) {
+                context.vibratorManager = deviceVibratorManager;
+                context.quadVibrators = true;
+            }
+            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && hasDualAmplitudeControlledRumbleVibrators(deviceVibratorManager)) {
+                context.vibratorManager = deviceVibratorManager;
+                context.quadVibrators = false;
+            }
+            else if (deviceVibrator.hasVibrator()) {
+                context.vibrator = deviceVibrator;
+            }
         }
 
         // Detect if the gamepad has Mode and Select buttons according to the Android key layouts.
@@ -2790,10 +2813,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
             // Most of the advanced InputDevice capabilities came in Android S
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (hasQuadAmplitudeControlledRumbleVibrators(inputDevice.getVibratorManager())) {
+                if (quadVibrators) {
                     capabilities |= MoonBridge.LI_CCAP_RUMBLE | MoonBridge.LI_CCAP_TRIGGER_RUMBLE;
                 }
-                else if (hasDualAmplitudeControlledRumbleVibrators(inputDevice.getVibratorManager())) {
+                else if (vibratorManager != null || vibrator != null) {
                     capabilities |= MoonBridge.LI_CCAP_RUMBLE;
                 }
 

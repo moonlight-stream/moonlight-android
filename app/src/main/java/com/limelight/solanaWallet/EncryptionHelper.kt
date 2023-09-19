@@ -1,4 +1,4 @@
 package com.limelight.solanaWallet
 
-class SolanaApi {
+class EncryptionHelper {
 }

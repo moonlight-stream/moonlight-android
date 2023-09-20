@@ -42,6 +42,17 @@ import android.os.SystemClock;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+/* Shaga
+import com.limelight.utils.Loggatore;
+
+
+import com.limelight.utils.Loggatore;
+import com.limelight.solanaWallet.WalletInitializer;
+import com.limelight.solanaWallet.WalletManager;
+import com.limelight.solanaWallet.SolanaAccount;
+import com.limelight.solanaWallet.SolanaApi;
+import com.limelight.solanaWallet.BalanceCallback;
+*/
 public class ComputerManagerService extends Service {
     private static final int SERVERINFO_POLLING_PERIOD_MS = 1500;
     private static final int APPLIST_POLLING_PERIOD_MS = 30000;

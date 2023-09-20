@@ -2,6 +2,14 @@
 <resources>
 
     <string name="solana_balance">Solana Balance: </string>
+    <string name="balance_format">Balance: %.2f SOL</string>
+    <string name="balance_fetch_error">Balance fetch error</string>
+    <string name="account_fetch_error">Error fetching account details.</string>
+    <string name="no_balance_message">No Sol, deposit at least 0.1 Sol</string>
+    <string name="public_key_not_found_error">Error fetching public key</string>
+    <string name="pubkey_fetch_error">Error fetching public key</string>
+    <string name="pubkey_local_client">Solana public key: </string>
+
 
 
 

@@ -30,6 +30,7 @@ import com.limelight.ui.AdapterFragmentCallbacks;
 
 import com.limelight.utils.Dialog;
 import com.limelight.utils.HelpLauncher;
+import com.limelight.utils.Loggatore;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.UiHelper;
@@ -56,12 +57,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
-// Shaga
-
 
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -74,9 +74,18 @@ import javax.microedition.khronos.opengles.GL10;
 
 
 // Shaga
+import android.widget.TextView;
+import com.limelight.solanaWallet.WalletInitializer;
+import com.limelight.solanaWallet.WalletManager;
+import com.limelight.solanaWallet.SolanaPreferenceManager;
+import com.solana.core.PublicKey;
 
 
 public class PcView extends Activity implements AdapterFragmentCallbacks {
+    //Shaga                                                         // , WalletManager.BalanceUpdateCallback
+    private TextView solanaBalanceTextView;
+    private WalletManager walletManager;
+    private TextView walletPublicKeyTextView;
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
     private ShortcutHelper shortcutHelper;
@@ -157,6 +166,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         ImageButton settingsButton = findViewById(R.id.settingsButton);
         ImageButton addComputerButton = findViewById(R.id.manuallyAddPc);
         ImageButton helpButton = findViewById(R.id.helpButton);
+        // Initializing the TextViews here before they are used in any other methods <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        solanaBalanceTextView = findViewById(R.id.solanaBalanceTextView);
+        walletPublicKeyTextView = findViewById(R.id.walletPublicKeyTextView);
+
 
         settingsButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -186,45 +199,40 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }
 
         getFragmentManager().beginTransaction()
-            .replace(R.id.pcFragmentContainer, new AdapterFragment())
-            .commitAllowingStateLoss();
+                .replace(R.id.pcFragmentContainer, new AdapterFragment())
+                .commitAllowingStateLoss();
 
         noPcFoundLayout = findViewById(R.id.no_pc_found_layout);
         if (pcGridAdapter.getCount() == 0) {
             noPcFoundLayout.setVisibility(View.VISIBLE);
-        }
-        else {
+        } else {
             noPcFoundLayout.setVisibility(View.INVISIBLE);
         }
         pcGridAdapter.notifyDataSetChanged();
+        // Initialize and set up the "Sync with Solana" button
+        Button syncWithSolanaButton = findViewById(R.id.syncWithSolanaButton);
+        syncWithSolanaButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Fetch the public key string from SharedPreferences
+                PublicKey publicKey = SolanaPreferenceManager.getStoredPublicKey();
+
+                // Check if publicKeyString is not null and not empty
+                if(publicKey != null) {
+                    // Call the method to fetch and display the new balance
+                    walletManager.fetchAndDisplayBalance(publicKey);
+                    Loggatore.d("OOOOO PORCO DIOOOOO", "Public Key: " + publicKey.toString());
+                } else {
+                    // Log an error message if publicKeyString is null or empty
+                    Loggatore.d("WalletDebug", "Public key not found in SharedPreferences.");
+                }
+            }
+        });
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        /*
-        //Shaga
-        TextView solanaBalanceTextView = findViewById(R.id.solanaBalanceTextView);
-
-        SolanaUtil.INSTANCE.getBalance("YourWalletAddressHere", new SolanaUtil.BalanceCallback() {
-            @Override
-            public void onBalanceReceived(Double balance) {
-                runOnUiThread(() -> {
-                    if (balance != null) {
-                        solanaBalanceTextView.setText("Solana Balance: " + balance.toString());
-                    } else {
-                        solanaBalanceTextView.setText("Failed to fetch balance");
-                    }
-                });
-            }
-        });
-
-
-        // SolanaUtilManualTest.INSTANCE.testSolanaInitialization();
-*/
-
-
         // Assume we're in the foreground when created to avoid a race
         // between binding to CMS and onResume()
         inForeground = true;
@@ -281,7 +289,21 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         pcGridAdapter = new PcGridAdapter(this, PreferenceConfiguration.readPreferences(this));
 
-        initializeViews();
+        //Shaga
+        walletManager = WalletManager.getInstance();
+
+        initializeViews();  // Initializing views after setting up the WalletManager
+
+        walletManager.setup(this, balance -> walletManager.updateUIWithBalance(), solanaBalanceTextView, walletPublicKeyTextView);
+        WalletManager.initializeUIWithPlaceholderBalance();
+
+        // Shaga wallet startup and the remaining initialization code
+        WalletInitializer walletInitializer = WalletInitializer.INSTANCE;
+        SolanaPreferenceManager.initialize(this);
+        if (!SolanaPreferenceManager.getIsWalletInitialized()) {
+            walletInitializer.initializeWallet(this);
+            SolanaPreferenceManager.setIsWalletInitialized(true);
+        }
     }
 
     private void startComputerUpdates() {

@@ -43,3 +43,4 @@ app/.externalNativeBuild/
 # NDK stuff
 .cxx/
 
+app/src/main/res/layout/balance_text_view.xml

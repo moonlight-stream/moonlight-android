@@ -1,8 +1,10 @@
+package com.limelight.utils;
+
 import android.util.Log;
 
-public class WalletLogger {
+public class Loggatore {
 
-    private static final String TAG_PREFIX = "Wallet_";
+    private static final String TAG_PREFIX = "PORCODIOOOOOOO";
 
     public static void d(String tag, String message) {
         Log.d(TAG_PREFIX + tag, message);

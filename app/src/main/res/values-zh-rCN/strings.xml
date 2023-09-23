@@ -271,4 +271,8 @@
     <string name="summary_checkbox_gamepad_motion_sensors">使支持的主机能够在模拟具有运动传感器的游戏手柄时请求运动传感器数据。如果在游戏中未使用运动传感器，禁用可能会略微降低电源和网络使用量。</string>
     <string name="videoformat_av1always">首选 AV1（实验性）</string>
     <string name="videoformat_h264always">首选 H.264</string>
+    <string name="toast_controller_type_changed">游戏手柄类型可能会因运动传感器模拟而改变</string>
+    <string name="summary_checkbox_gamepad_motion_fallback">如果你连接的游戏手柄或 Android 版本不支持游戏手柄传感器，请使用设备的内置运动传感器。
+\n注意：启用此选项可能会导致您的游戏手柄在主机上被识别为 PlayStation 4控制器。</string>
+    <string name="title_checkbox_gamepad_motion_fallback">模拟游戏手柄运动传感器支持</string>
 </resources>

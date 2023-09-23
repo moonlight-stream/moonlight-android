@@ -263,7 +263,7 @@
     <string name="summary_full_range">밝기범위를 \"전체(0~255)\"로 설정합니다. 장치의 디스플레이가 \"제한(16~235)\" 범위로 출력하는 경우 밝기가 제대로 표현되지 않습니다.</string>
     <string name="title_full_range">전체 범위 비디오 활성화 (실험용)</string>
     <string name="title_checkbox_gamepad_motion_sensors">컨트롤러 모션 센서 사용 허용</string>
-    <string name="summary_checkbox_gamepad_motion_sensors">모션 센서로 컨트롤러를 에뮬레이션할 때 지원되는 호스트가 모션 센서 데이터를 요청할 수 있습니다. 비활성화하면 게임에서 동작 센서를 사용하지 않는 경우 전원 및 네트워크 사용량이 약간 줄어들 수 있습니다.</string>
+    <string name="summary_checkbox_gamepad_motion_sensors">모션 센서가 있는 컨트롤러를 에뮬레이션할 때 지원되는 호스트가 모션 센서 데이터를 요청할 수 있습니다. 비활성화하면 게임에서 동작 센서를 사용하지 않는 경우 전원 및 네트워크 사용량이 약간 줄어들 수 있습니다.</string>
     <string name="summary_checkbox_gamepad_touchpad_as_mouse">터치패드로 컨트롤러를 에뮬레이션하는 경우에도 호스트 마우스를 제어하기 위해 컨트롤러 터치패드 입력을 강제합니다.</string>
     <string name="pcview_menu_eol">NVIDIA GameStream 지원 종료</string>
     <string name="pair_pairing_help">호스트 PC에서 Sunshine을 실행 중인 경우 Sunshine 웹 UI로 이동하여 PIN을 입력합니다.</string>
@@ -274,4 +274,8 @@
     <string name="title_checkbox_gamepad_touchpad_as_mouse">항상 터치패드로 마우스 제어</string>
     <string name="videoformat_av1always">AV1 선호 (실험용)</string>
     <string name="videoformat_h264always">H.264 선호</string>
+    <string name="toast_controller_type_changed">모션 센서 에뮬레이션으로 인해 컨트롤러 유형이 변경될 수 있습니다</string>
+    <string name="summary_checkbox_gamepad_motion_fallback">연결된 컨트롤러 또는 기기의 Android 버전에서 컨트롤러 센서가 지원되지 않는 경우 장치에 내장된 모션 센서를 사용합니다.
+\n참고: 이 옵션을 활성화하면 사용 중인 컨트롤러가 호스트에서 PlayStation 컨트롤러로 나타날 수 있습니다.</string>
+    <string name="title_checkbox_gamepad_motion_fallback">컨트롤러의 모션 센서 에뮬레이션 지원</string>
 </resources>

@@ -132,7 +132,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private InputCaptureProvider inputCaptureProvider;
     private int modifierFlags = 0;
     private boolean grabbedInput = true;
-    private boolean grabComboDown = false;
+    private boolean cursorVisible = false;
+    private boolean waitingForAllModifiersUp = false;
+    private int specialKeyCode = KeyEvent.KEYCODE_UNKNOWN;
     private StreamView streamView;
     private long lastAbsTouchUpTime = 0;
     private long lastAbsTouchDownTime = 0;
@@ -1188,6 +1190,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Grab/ungrab the mouse cursor
         if (grab) {
             inputCaptureProvider.enableCapture();
+
+            // Enabling capture may hide the cursor again, so
+            // we will need to show it again.
+            if (cursorVisible) {
+                inputCaptureProvider.showCursor();
+            }
         }
         else {
             inputCaptureProvider.disableCapture();
@@ -1209,6 +1217,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     // Returns true if the key stroke was consumed
     private boolean handleSpecialKeys(int androidKeyCode, boolean down) {
         int modifierMask = 0;
+        int nonModifierKeyCode = KeyEvent.KEYCODE_UNKNOWN;
 
         if (androidKeyCode == KeyEvent.KEYCODE_CTRL_LEFT ||
             androidKeyCode == KeyEvent.KEYCODE_CTRL_RIGHT) {
@@ -1226,6 +1235,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 androidKeyCode == KeyEvent.KEYCODE_META_RIGHT) {
             modifierMask = KeyboardPacket.MODIFIER_META;
         }
+        else {
+            nonModifierKeyCode = androidKeyCode;
+        }
 
         if (down) {
             this.modifierFlags |= modifierMask;
@@ -1234,36 +1246,62 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             this.modifierFlags &= ~modifierMask;
         }
 
-        // Check if Ctrl+Alt+Shift+Z is pressed
-        if (androidKeyCode == KeyEvent.KEYCODE_Z &&
-            (modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT)) ==
-                (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT))
-        {
-            if (down) {
-                // Now that we've pressed the magic combo
-                // we'll wait for one of the keys to come up
-                grabComboDown = true;
+        // Handle the special combos on the key up
+        if (waitingForAllModifiersUp || specialKeyCode != KeyEvent.KEYCODE_UNKNOWN) {
+            if (specialKeyCode == androidKeyCode) {
+                // If this is a key up for the special key itself, eat that because the host never saw the original key down
+                return true;
+            }
+            else if (modifierFlags != 0) {
+                // While we're waiting for modifiers to come up, eat all key downs and allow all key ups to pass
+                return down;
             }
             else {
-                // Toggle the grab if Z comes up
-                Handler h = getWindow().getDecorView().getHandler();
-                if (h != null) {
-                    h.postDelayed(toggleGrab, 250);
+                // When all modifiers are up, perform the special action
+                switch (specialKeyCode) {
+                    // Toggle input grab
+                    case KeyEvent.KEYCODE_Z:
+                        Handler h = getWindow().getDecorView().getHandler();
+                        if (h != null) {
+                            h.postDelayed(toggleGrab, 250);
+                        }
+                        break;
+
+                    // Quit
+                    case KeyEvent.KEYCODE_Q:
+                        finish();
+                        break;
+
+                    // Toggle cursor visibility
+                    case KeyEvent.KEYCODE_C:
+                        if (!grabbedInput) {
+                            inputCaptureProvider.enableCapture();
+                            grabbedInput = true;
+                        }
+                        cursorVisible = !cursorVisible;
+                        if (cursorVisible) {
+                            inputCaptureProvider.showCursor();
+                        } else {
+                            inputCaptureProvider.hideCursor();
+                        }
+                        break;
+
+                    default:
+                        break;
                 }
 
-                grabComboDown = false;
+                // Reset special key state
+                specialKeyCode = KeyEvent.KEYCODE_UNKNOWN;
+                waitingForAllModifiersUp = false;
             }
-
-            return true;
         }
-        // Toggle the grab if control or shift comes up
-        else if (grabComboDown) {
-            Handler h = getWindow().getDecorView().getHandler();
-            if (h != null) {
-                h.postDelayed(toggleGrab, 250);
-            }
-
-            grabComboDown = false;
+        // Check if Ctrl+Alt+Shift is down when a non-modifier key is pressed
+        else if ((modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT)) ==
+                (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT) &&
+                (down && nonModifierKeyCode != KeyEvent.KEYCODE_UNKNOWN)) {
+            // Remember that a special key combo was activated, so we can consume all key events until the modifiers come up
+            specialKeyCode = androidKeyCode;
+            waitingForAllModifiersUp = true;
             return true;
         }
 
@@ -1762,7 +1800,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     // Returns true if the event was consumed
     // NB: View is only present if called from a view callback
     private boolean handleMotionEvent(View view, MotionEvent event) {
-        // Pass through keyboard input if we're not grabbing
+        // Pass through mouse/touch/joystick input if we're not grabbing
         if (!grabbedInput) {
             return false;
         }

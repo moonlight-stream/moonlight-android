@@ -266,14 +266,14 @@
     <string name="title_native_fps_dialog">原生 FPS 警告</string>
     <string name="category_gamepad_settings">手把設定</string>
     <string name="title_checkbox_gamepad_touchpad_as_mouse">一律使用觸摸板控制滑鼠</string>
-    <string name="summary_checkbox_gamepad_motion_sensors">在使用動作感應器模擬手把時啟用支援的主機以要求動作感應器資料，若動作感應器未在遊戲中使用，停用後可能會輕微降低電力和網路使用量。</string>
+    <string name="summary_checkbox_gamepad_motion_sensors">在使用動態感測器模擬手把時啟用支援的主機以要求動態感測器資料，若動態感測器未在遊戲中使用，停用後可能會輕微降低電力和網路使用量。</string>
     <string name="videoformat_h264always">偏好 H.264</string>
     <string name="perf_overlay_hostprocessinglatency">主機處理延遲最小值/最大值/平均值：%1$.1f/%2$.1f/%3$.1f ms</string>
     <string name="summary_checkbox_gamepad_touchpad_as_mouse">強制手把觸摸板輸入以控制主機滑鼠，即使在使用觸摸板模擬手把時。</string>
-    <string name="title_checkbox_gamepad_motion_sensors">一律使用手把動作感應器</string>
+    <string name="title_checkbox_gamepad_motion_sensors">一律使用手把動態感測器</string>
     <string name="videoformat_av1always">偏好 AV1 (實驗性)</string>
-    <string name="toast_controller_type_changed">游戏手柄類型可能會因動態感應裝置模仿而改變</string>
-    <string name="summary_checkbox_gamepad_motion_fallback">如果您連接的遊戲手柄或 Android 版本不支援遊戲手柄感應器，請使用裝置內建的動態感應器。
-\n 注意：啟用此選項可能會讓您的遊戲手柄在主機端被辨識為 PlayStation 4 控制器。</string>
-    <string name="title_checkbox_gamepad_motion_fallback">模拟遊戲手柄動態感應器支援</string>
+    <string name="toast_controller_type_changed">手把類型可能會因動態感測器模擬而變更</string>
+    <string name="summary_checkbox_gamepad_motion_fallback">如果您連線的手把或 Android 版本不支援手把感測器，請使用裝置內建的動態感測器。
+\n注意：啟用此選項可能會導致您的手把在主機被辨識為 PlayStation 控制器。</string>
+    <string name="title_checkbox_gamepad_motion_fallback">模擬手把動態感測器支援</string>
 </resources>

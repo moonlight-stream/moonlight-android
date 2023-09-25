@@ -15,6 +15,9 @@ import java.security.cert.*;
 import java.util.Arrays;
 import java.util.Locale;
 
+import com.limelight.solanaWallet.EncryptionHelper;
+import com.limelight.solanaWallet.SolanaPreferenceManager;
+
 public class PairingManager {
 
     private NvHTTP http;
@@ -172,6 +175,131 @@ public class PairingManager {
     public X509Certificate getPairedCert() {
         return serverCert;
     }
+    // Shaga
+    public PairState pairShaga(String serverInfo, String pin, byte[] x25519PublicKey) throws IOException, XmlPullParserException {
+
+        PairingHashAlgorithm hashAlgo;
+
+        int serverMajorVersion = http.getServerMajorVersion(serverInfo);
+        LimeLog.info("Pairing with server generation: "+serverMajorVersion);
+        if (serverMajorVersion >= 7) {
+            // Gen 7+ uses SHA-256 hashing
+            hashAlgo = new Sha256PairingHash();
+        }
+        else {
+            // Prior to Gen 7, SHA-1 is used
+            hashAlgo = new Sha1PairingHash();
+        }
+
+        // Load the Ed25519 private key from Android KeyStore
+        byte[] ed25519PrivateKey = SolanaPreferenceManager.loadPrivateKeyFromKeyStore();
+        if (ed25519PrivateKey == null) {
+            // Handle the error. Maybe log it or show a user message.
+            return PairState.FAILED;
+        }
+        // Convert Ed25519 private key to X25519 private key
+        byte[] x25519PrivateKey = EncryptionHelper.mapSecretEd25519ToX25519(ed25519PrivateKey);
+        // Generate a salt for hashing the PIN
+        byte[] salt = generateRandomBytes(16);
+        // Combine the salt and pin, then create an AES key from them
+        byte[] aesKey = generateAesKey(hashAlgo, saltPin(salt, pin));
+        // Encrypt the PIN using the converted X25519 private key
+        byte[] encryptedPin = EncryptionHelper.encryptPinWithX25519PublicKey(pin, x25519PublicKey, x25519PrivateKey);
+        // Convert encrypted PIN to hex
+        String hexEncryptedPin = bytesToHex(encryptedPin);
+        // Make the HTTP request to pair with the server, sending the salt and the encrypted PIN
+        String getCert = http.executePairingCommand("phrase=getservercert&salt=" +
+                        bytesToHex(salt) + "&clientcert=" + bytesToHex(pemCertBytes) +
+                        "&encryptedPin=" + hexEncryptedPin,
+                false);
+
+
+        if (!NvHTTP.getXmlString(getCert, "paired", true).equals("1")) {
+            return PairState.FAILED;
+        }
+
+        // Save this cert for retrieval later
+        serverCert = extractPlainCert(getCert);
+        if (serverCert == null) {
+            // Attempting to pair while another device is pairing will cause GFE
+            // to give an empty cert in the response.
+            http.unpair();
+            return PairState.ALREADY_IN_PROGRESS;
+        }
+
+        // Require this cert for TLS to this host
+        http.setServerCert(serverCert);
+
+        // Generate a random challenge and encrypt it with our AES key
+        byte[] randomChallenge = generateRandomBytes(16);
+        byte[] encryptedChallenge = encryptAes(randomChallenge, aesKey);
+
+        // Send the encrypted challenge to the server
+        String challengeResp = http.executePairingCommand("clientchallenge="+bytesToHex(encryptedChallenge), true);
+        if (!NvHTTP.getXmlString(challengeResp, "paired", true).equals("1")) {
+            http.unpair();
+            return PairState.FAILED;
+        }
+
+        // Decode the server's response and subsequent challenge
+        byte[] encServerChallengeResponse = hexToBytes(NvHTTP.getXmlString(challengeResp, "challengeresponse", true));
+        byte[] decServerChallengeResponse = decryptAes(encServerChallengeResponse, aesKey);
+
+        byte[] serverResponse = Arrays.copyOfRange(decServerChallengeResponse, 0, hashAlgo.getHashLength());
+        byte[] serverChallenge = Arrays.copyOfRange(decServerChallengeResponse, hashAlgo.getHashLength(), hashAlgo.getHashLength() + 16);
+
+        // Using another 16 bytes secret, compute a challenge response hash using the secret, our cert sig, and the challenge
+        byte[] clientSecret = generateRandomBytes(16);
+        byte[] challengeRespHash = hashAlgo.hashData(concatBytes(concatBytes(serverChallenge, cert.getSignature()), clientSecret));
+        byte[] challengeRespEncrypted = encryptAes(challengeRespHash, aesKey);
+        String secretResp = http.executePairingCommand("serverchallengeresp="+bytesToHex(challengeRespEncrypted), true);
+        if (!NvHTTP.getXmlString(secretResp, "paired", true).equals("1")) {
+            http.unpair();
+            return PairState.FAILED;
+        }
+
+        // Get the server's signed secret
+        byte[] serverSecretResp = hexToBytes(NvHTTP.getXmlString(secretResp, "pairingsecret", true));
+        byte[] serverSecret = Arrays.copyOfRange(serverSecretResp, 0, 16);
+        byte[] serverSignature = Arrays.copyOfRange(serverSecretResp, 16, 272);
+
+        // Ensure the authenticity of the data
+        if (!verifySignature(serverSecret, serverSignature, serverCert)) {
+            // Cancel the pairing process
+            http.unpair();
+
+            // Looks like a MITM
+            return PairState.FAILED;
+        }
+
+        // Ensure the server challenge matched what we expected (aka the PIN was correct)
+        byte[] serverChallengeRespHash = hashAlgo.hashData(concatBytes(concatBytes(randomChallenge, serverCert.getSignature()), serverSecret));
+        if (!Arrays.equals(serverChallengeRespHash, serverResponse)) {
+            // Cancel the pairing process
+            http.unpair();
+
+            // Probably got the wrong PIN
+            return PairState.PIN_WRONG;
+        }
+
+        // Send the server our signed secret
+        byte[] clientPairingSecret = concatBytes(clientSecret, signData(clientSecret, pk));
+        String clientSecretResp = http.executePairingCommand("clientpairingsecret="+bytesToHex(clientPairingSecret), true);
+        if (!NvHTTP.getXmlString(clientSecretResp, "paired", true).equals("1")) {
+            http.unpair();
+            return PairState.FAILED;
+        }
+
+        // Do the initial challenge (seems necessary for us to show as paired)
+        String pairChallenge = http.executePairingChallenge();
+        if (!NvHTTP.getXmlString(pairChallenge, "paired", true).equals("1")) {
+            http.unpair();
+            return PairState.FAILED;
+        }
+
+        return PairState.PAIRED;
+    }
+    // Shaga
     
     public PairState pair(String serverInfo, String pin) throws IOException, XmlPullParserException {
         PairingHashAlgorithm hashAlgo;

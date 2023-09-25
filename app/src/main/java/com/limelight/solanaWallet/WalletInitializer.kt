@@ -6,6 +6,13 @@ import com.solana.core.DerivationPath
 import com.solana.core.HotAccount
 import com.solana.vendor.bip39.Mnemonic
 import com.solana.vendor.bip39.WordCount
+import java.security.KeyStore
+import javax.crypto.spec.SecretKeySpec
+import android.security.keystore.KeyProperties
+import android.security.keystore.KeyProtection
+import com.solana.vendor.bip32.wallet.DerivableType
+import com.solana.vendor.bip32.wallet.SolanaBip44
+import org.bitcoinj.crypto.MnemonicCode
 
 
 object WalletInitializer {
@@ -45,10 +52,14 @@ object WalletInitializer {
         val account = HotAccount.fromMnemonic(mnemonicPhrase, "", DerivationPath.BIP44_M_44H_501H_0H)
 
         SolanaPreferenceManager.storePublicKey(account.publicKey)
-
         WalletUtils.storeMnemonicSecurely(context, mnemonicPhrase)
         SolanaPreferenceManager.isWalletInitialized = true
-
+        // Generate and store the private key (secret key) using the mnemonic
+        val seed = MnemonicCode.toSeed(mnemonicPhrase, "")
+        val solanaBip44 = SolanaBip44()
+        val privateKey = solanaBip44.getPrivateKeyFromSeed(seed, DerivableType.BIP44)
+        // Store the private key securely
+        SolanaPreferenceManager.storePrivateKey(privateKey, context)
         return account
     }
 

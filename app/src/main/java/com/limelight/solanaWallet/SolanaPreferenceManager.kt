@@ -2,13 +2,16 @@ package com.limelight.solanaWallet
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.security.keystore.KeyProperties
+import android.security.keystore.KeyProtection
 import android.util.Base64
 import android.util.Log
+import com.limelight.utils.Loggatore
 import com.solana.core.DerivationPath
 import com.solana.core.HotAccount
 import com.solana.core.PublicKey
-
-
+import java.security.KeyStore
+import javax.crypto.spec.SecretKeySpec
 
 
 object SolanaPreferenceManager {
@@ -55,6 +58,36 @@ object SolanaPreferenceManager {
         return PublicKey(publicKeyString) // Create a PublicKey object using the base58 encoded string
     }
 
+    fun storePrivateKey(secretKey: ByteArray, context: Context) {
+        try {
+            val keyStore = KeyStore.getInstance("AndroidKeyStore")
+            keyStore.load(null)
+
+            val secretKeySpec = SecretKeySpec(secretKey, "AES")
+
+            val keyProtection = KeyProtection.Builder(KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .build()
+
+            keyStore.setEntry("PrivateKeyAlias", KeyStore.SecretKeyEntry(secretKeySpec), keyProtection)
+        } catch (e: Exception) {
+            Loggatore.d("WalletDebug", "Exception while storing private key: ${e.message}")
+        }
+    }
+
+    @JvmStatic
+    fun loadPrivateKeyFromKeyStore(): ByteArray? {
+        try {
+            val keyStore = KeyStore.getInstance("AndroidKeyStore")
+            keyStore.load(null)
+            val secretKeyEntry = keyStore.getEntry("PrivateKeyAlias", null) as? KeyStore.SecretKeyEntry
+            return secretKeyEntry?.secretKey?.encoded
+        } catch (e: Exception) {
+            Loggatore.d("WalletDebug", "Exception while retrieving private key: ${e.message}")
+        }
+        return null
+    }
 
 
     var encryptedMnemonic: String?

@@ -79,7 +79,8 @@ import com.limelight.solanaWallet.WalletInitializer;
 import com.limelight.solanaWallet.WalletManager;
 import com.limelight.solanaWallet.SolanaPreferenceManager;
 import com.solana.core.PublicKey;
-
+import com.limelight.solanaWallet.EncryptionHelper;
+import org.libsodium.jni.Sodium;
 
 public class PcView extends Activity implements AdapterFragmentCallbacks {
     //Shaga                                                         // , WalletManager.BalanceUpdateCallback
@@ -447,6 +448,117 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         // returns to the foreground.
         startComputerUpdates();
     }
+
+    //Shaga
+    private void doPairShaga(final ComputerDetails computer, PublicKey solanaPublicKey) {
+        if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
+            Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (managerBinder == null) {
+            Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Toast.makeText(PcView.this, getResources().getString(R.string.pairing), Toast.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NvHTTP httpConn;
+                String message;
+                boolean success = false;
+                try {
+                    // Stop updates and wait while pairing
+                    stopComputerUpdates(true);
+
+                    httpConn = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer),
+                            computer.httpsPort, managerBinder.getUniqueId(), computer.serverCert,
+                            PlatformBinding.getCryptoProvider(PcView.this));
+                    if (httpConn.getPairState() == PairState.PAIRED) {
+                        // Don't display any toast, but open the app list
+                        message = null;
+                        success = true;
+                    }
+                    else {
+                        final String pinStr = PairingManager.generatePinString();
+
+                        // Spin the dialog off in a thread because it blocks
+                        Dialog.displayDialog(PcView.this, getResources().getString(R.string.pair_pairing_title),
+                                getResources().getString(R.string.pair_pairing_msg)+" "+pinStr+"\n\n"+
+                                        getResources().getString(R.string.pair_pairing_help), false);
+
+                        PairingManager pm = httpConn.getPairingManager();
+
+                        byte[] ed25519PublicKey = solanaPublicKey.toByteArray();
+                        byte[] x25519PublicKey = EncryptionHelper.mapPublicEd25519ToX25519(ed25519PublicKey);
+
+
+                        PairState pairState = pm.pairShaga(httpConn.getServerInfo(true), pinStr, x25519PublicKey);
+                        if (pairState == PairState.PIN_WRONG) {
+                            message = getResources().getString(R.string.pair_incorrect_pin);
+                        }
+                        else if (pairState == PairState.FAILED) {
+                            if (computer.runningGameId != 0) {
+                                message = getResources().getString(R.string.pair_pc_ingame);
+                            }
+                            else {
+                                message = getResources().getString(R.string.pair_fail);
+                            }
+                        }
+                        else if (pairState == PairState.ALREADY_IN_PROGRESS) {
+                            message = getResources().getString(R.string.pair_already_in_progress);
+                        }
+                        else if (pairState == PairState.PAIRED) {
+                            // Just navigate to the app view without displaying a toast
+                            message = null;
+                            success = true;
+
+                            // Pin this certificate for later HTTPS use
+                            managerBinder.getComputer(computer.uuid).serverCert = pm.getPairedCert();
+
+                            // Invalidate reachability information after pairing to force
+                            // a refresh before reading pair state again
+                            managerBinder.invalidateStateForComputer(computer.uuid);
+                        }
+                        else {
+                            // Should be no other values
+                            message = null;
+                        }
+                    }
+                } catch (UnknownHostException e) {
+                    message = getResources().getString(R.string.error_unknown_host);
+                } catch (FileNotFoundException e) {
+                    message = getResources().getString(R.string.error_404);
+                } catch (XmlPullParserException | IOException e) {
+                    e.printStackTrace();
+                    message = e.getMessage();
+                }
+
+                Dialog.closeDialogs();
+
+                final String toastMessage = message;
+                final boolean toastSuccess = success;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (toastMessage != null) {
+                            Toast.makeText(PcView.this, toastMessage, Toast.LENGTH_LONG).show();
+                        }
+
+                        if (toastSuccess) {
+                            // Open the app list after a successful pairing attempt
+                            doAppList(computer, true, false);
+                        }
+                        else {
+                            // Start polling again if we're still in the foreground
+                            startComputerUpdates();
+                        }
+                    }
+                });
+            }
+        }).start();
+    }
+    //Shaga
 
     private void doPair(final ComputerDetails computer) {
         if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {

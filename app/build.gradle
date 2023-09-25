@@ -156,6 +156,7 @@ dependencies {
     // Shaga
     //implementation 'androidx.security:security-crypto-ktx:1.0.0'
     //implementation 'com.solana:solana:'
+    implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
     testImplementation 'junit:junit:4.13.2'
     implementation "io.github.instantwebp2p:tweetnacl-java:1.1.2"
@@ -166,7 +167,7 @@ dependencies {
         exclude group: 'org.bouncycastle'
     }
     // ---A all solana stuff
-    implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.1'
+    //implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.1'
     implementation 'com.google.code.gson:gson:2.8.8'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.10'
 

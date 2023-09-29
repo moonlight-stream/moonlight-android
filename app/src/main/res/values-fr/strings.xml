@@ -274,4 +274,8 @@
     <string name="title_checkbox_gamepad_touchpad_as_mouse">Toujours controller la souris avec le pavé tactile</string>
     <string name="summary_checkbox_gamepad_touchpad_as_mouse">Force le pavé tactile de la manette à contrôler la souris de l\'hôte, même quand l\'émulation d\'une manette par le pavé tactile est activée.</string>
     <string name="summary_checkbox_gamepad_motion_sensors">Permet aux hôtes pris en charge de demander des données de capteur de mouvement lors de l\'émulation d\'une manette avec des capteurs de mouvement. Désactiver ce paramètre peut réduire légèrement l\'utilisation de l\'alimentation et du réseau si les capteurs de mouvement ne sont pas utilisés en jeu.</string>
+    <string name="toast_controller_type_changed">Le type de manette peut être modifié en raison de l\'émulation du capteur de mouvement</string>
+    <string name="summary_checkbox_gamepad_motion_fallback">Utilise les capteurs de mouvement de votre appareil si la manette connéctée n\'en a pas, ou qu\'ils ne sont pas pris en charge par votre version d\'Android.
+\nRemarque : l\'activation de cette option peut faire apparaître votre manette de jeu comme une manette PlayStation du côté hôte.</string>
+    <string name="title_checkbox_gamepad_motion_fallback">Émuler les capteurs de mouvement de la manette</string>
 </resources>

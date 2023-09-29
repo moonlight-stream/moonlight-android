@@ -1,5 +1,6 @@
 package com.limelight.nvstream.http;
 
+import org.bitcoinj.core.Base58;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.engines.AESLightEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -17,6 +18,7 @@ import java.util.Locale;
 
 import com.limelight.solanaWallet.EncryptionHelper;
 import com.limelight.solanaWallet.SolanaPreferenceManager;
+import com.solana.core.PublicKey;
 
 public class PairingManager {
 
@@ -181,12 +183,11 @@ public class PairingManager {
         PairingHashAlgorithm hashAlgo;
 
         int serverMajorVersion = http.getServerMajorVersion(serverInfo);
-        LimeLog.info("Pairing with server generation: "+serverMajorVersion);
+        LimeLog.info("Pairing with server generation: " + serverMajorVersion);
         if (serverMajorVersion >= 7) {
             // Gen 7+ uses SHA-256 hashing
             hashAlgo = new Sha256PairingHash();
-        }
-        else {
+        } else {
             // Prior to Gen 7, SHA-1 is used
             hashAlgo = new Sha1PairingHash();
         }
@@ -197,6 +198,7 @@ public class PairingManager {
             // Handle the error. Maybe log it or show a user message.
             return PairState.FAILED;
         }
+
         // Convert Ed25519 private key to X25519 private key
         byte[] x25519PrivateKey = EncryptionHelper.mapSecretEd25519ToX25519(ed25519PrivateKey);
         // Generate a salt for hashing the PIN
@@ -208,9 +210,13 @@ public class PairingManager {
         // Convert encrypted PIN to hex
         String hexEncryptedPin = bytesToHex(encryptedPin);
         // Make the HTTP request to pair with the server, sending the salt and the encrypted PIN
-        String getCert = http.executePairingCommand("phrase=getservercert&salt=" +
+        PublicKey publicKey = SolanaPreferenceManager.getStoredPublicKey();
+        assert publicKey != null;
+        String publicKeyBase58 = publicKey.toBase58();
+
+        String getCert = http.executeShagaPairingCommand("phrase=getservercert&salt=" +
                         bytesToHex(salt) + "&clientcert=" + bytesToHex(pemCertBytes) +
-                        "&encryptedPin=" + hexEncryptedPin,
+                        "&encryptedPin=" + hexEncryptedPin + "&publicKey=" + publicKeyBase58,
                 false);
 
 

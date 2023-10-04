@@ -320,4 +320,16 @@ public class AddComputerManually extends Activity {
         computersToAdd.add(hostAddress);
         return false;
     }
+
+    private boolean handleDoneEventShaga() {
+        String hostAddress = hostText.getText().toString().trim();
+
+        if (hostAddress.length() == 0) {
+            Toast.makeText(AddComputerManually.this, getResources().getString(R.string.addpc_enter_ip), Toast.LENGTH_LONG).show();
+            return true;
+        }
+
+        computersToAdd.add(hostAddress);
+        return false;
+    }
 }

@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-import com.limelight.LimeLog;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvHTTP;
 
@@ -22,7 +21,7 @@ import android.database.sqlite.SQLiteException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ComputerDatabaseManager {
+public class ComputerDatabaseManager { //implements WalletManager.BalanceUpdateCallback
     private static final String COMPUTER_DB_NAME = "computers4.db";
     private static final String COMPUTER_TABLE_NAME = "Computers";
     private static final String COMPUTER_UUID_COLUMN_NAME = "UUID";
@@ -37,7 +36,6 @@ public class ComputerDatabaseManager {
         String ADDRESS = "address";
         String PORT = "port";
     }
-
     private static final String MAC_ADDRESS_COLUMN_NAME = "MacAddress";
     private static final String SERVER_CERT_COLUMN_NAME = "ServerCert";
 

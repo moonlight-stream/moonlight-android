@@ -700,6 +700,13 @@ public class NvHTTP {
         }
     }
 
+    //Shaga
+    String executeShagaPairingCommand(String additionalArguments, boolean enableReadTimeout) throws HostHttpResponseException, IOException {
+        return openHttpConnectionToString(enableReadTimeout ? httpClientLongConnectTimeout : httpClientLongConnectNoReadTimeout,
+                baseUrlHttp, "pairShaga", "devicename=roth&updateState=1&" + additionalArguments);
+    }
+
+
     String executePairingCommand(String additionalArguments, boolean enableReadTimeout) throws HostHttpResponseException, IOException {
         return openHttpConnectionToString(enableReadTimeout ? httpClientLongConnectTimeout : httpClientLongConnectNoReadTimeout,
                 baseUrlHttp, "pair", "devicename=roth&updateState=1&" + additionalArguments);

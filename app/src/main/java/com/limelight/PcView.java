@@ -6,24 +6,32 @@ import java.net.UnknownHostException;
 
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.crypto.AndroidCryptoProvider;
+
 import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
+
 import com.limelight.grid.PcGridAdapter;
 import com.limelight.grid.assets.DiskAssetLoader;
+
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.http.PairingManager;
 import com.limelight.nvstream.http.PairingManager.PairState;
 import com.limelight.nvstream.wol.WakeOnLanSender;
+
 import com.limelight.preferences.AddComputerManually;
 import com.limelight.preferences.GlPreferences;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.preferences.StreamSettings;
+
+import com.limelight.shagaMap.MapActivity;
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
+
 import com.limelight.utils.Dialog;
 import com.limelight.utils.HelpLauncher;
+import com.limelight.utils.Loggatore;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.UiHelper;
@@ -31,24 +39,30 @@ import com.limelight.utils.UiHelper;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Service;
+
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.opengl.GLSurfaceView;
+
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+
 import android.preference.PreferenceManager;
+
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
+
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -59,7 +73,20 @@ import org.xmlpull.v1.XmlPullParserException;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+
+// Shaga
+import android.widget.TextView;
+import com.limelight.solanaWallet.WalletInitializer;
+import com.limelight.solanaWallet.WalletManager;
+import com.limelight.solanaWallet.SolanaPreferenceManager;
+import com.solana.core.PublicKey;
+import com.limelight.solanaWallet.EncryptionHelper;
+
 public class PcView extends Activity implements AdapterFragmentCallbacks {
+    //Shaga                                                         // , WalletManager.BalanceUpdateCallback
+    private TextView solanaBalanceTextView;
+    private WalletManager walletManager;
+    private TextView walletPublicKeyTextView;
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
     private ShortcutHelper shortcutHelper;
@@ -140,6 +167,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         ImageButton settingsButton = findViewById(R.id.settingsButton);
         ImageButton addComputerButton = findViewById(R.id.manuallyAddPc);
         ImageButton helpButton = findViewById(R.id.helpButton);
+        // Initializing the TextViews here before they are used in any other methods <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        solanaBalanceTextView = findViewById(R.id.solanaBalanceTextView);
+        walletPublicKeyTextView = findViewById(R.id.walletPublicKeyTextView);
+        // Shaga
 
         settingsButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -169,23 +200,51 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }
 
         getFragmentManager().beginTransaction()
-            .replace(R.id.pcFragmentContainer, new AdapterFragment())
-            .commitAllowingStateLoss();
+                .replace(R.id.pcFragmentContainer, new AdapterFragment())
+                .commitAllowingStateLoss();
 
         noPcFoundLayout = findViewById(R.id.no_pc_found_layout);
         if (pcGridAdapter.getCount() == 0) {
             noPcFoundLayout.setVisibility(View.VISIBLE);
-        }
-        else {
+        } else {
             noPcFoundLayout.setVisibility(View.INVISIBLE);
         }
         pcGridAdapter.notifyDataSetChanged();
+        // Initialize and set up the "Sync with Solana" button
+        Button syncWithSolanaButton = findViewById(R.id.syncWithSolanaButton);
+        syncWithSolanaButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Fetch the public key string from SharedPreferences
+                PublicKey publicKey = SolanaPreferenceManager.getStoredPublicKey();
+
+                // Check if publicKeyString is not null and not empty
+                if(publicKey != null) {
+                    // Call the method to fetch and display the new balance
+                    walletManager.fetchAndDisplayBalance(publicKey);
+                    Loggatore.d("OOOOO PORCO DIOOOOO", "Public Key: " + publicKey.toString());
+                } else {
+                    // Log an error message if publicKeyString is null or empty
+                    Loggatore.d("WalletDebug", "Public key not found in SharedPreferences.");
+                }
+            }
+        });
+
+        // Initialize and set up the "Open Map Activity" button
+        Button openMapButton = findViewById(R.id.openMapActivityButton); // Make sure this ID matches what you set in XML
+        openMapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(PcView.this, MapActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         // Assume we're in the foreground when created to avoid a race
         // between binding to CMS and onResume()
         inForeground = true;
@@ -242,8 +301,23 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         pcGridAdapter = new PcGridAdapter(this, PreferenceConfiguration.readPreferences(this));
 
-        initializeViews();
+        //Shaga
+        walletManager = WalletManager.getInstance();
+
+        initializeViews();  // Initializing views after setting up the WalletManager
+
+        walletManager.setup(this, balance -> walletManager.updateUIWithBalance(), solanaBalanceTextView, walletPublicKeyTextView);
+        WalletManager.initializeUIWithPlaceholderBalance();
+
+        // Shaga wallet startup and the remaining initialization code
+        WalletInitializer walletInitializer = WalletInitializer.INSTANCE;
+        SolanaPreferenceManager.initialize(this);
+        if (!SolanaPreferenceManager.getIsWalletInitialized()) {
+            walletInitializer.initializeWallet(this);
+            SolanaPreferenceManager.setIsWalletInitialized(true);
+        }
     }
+
 
     private void startComputerUpdates() {
         // Only allow polling to start if we're bound to CMS, polling is not already running,
@@ -386,6 +460,121 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         // returns to the foreground.
         startComputerUpdates();
     }
+
+    //Shaga
+    public void publicDoPairShaga(final ComputerDetails computer, PublicKey solanaLenderPublicKey) {
+        doPairShaga(computer, solanaLenderPublicKey);
+    }
+
+    private void doPairShaga(final ComputerDetails computer, PublicKey solanaLenderPublicKey) {
+        if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
+            Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (managerBinder == null) {
+            Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Toast.makeText(PcView.this, getResources().getString(R.string.pairing), Toast.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NvHTTP httpConn;
+                String message;
+                boolean success = false;
+                try {
+                    // Stop updates and wait while pairing
+                    stopComputerUpdates(true);
+
+                    httpConn = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer),
+                            computer.httpsPort, managerBinder.getUniqueId(), computer.serverCert,
+                            PlatformBinding.getCryptoProvider(PcView.this));
+                    if (httpConn.getPairState() == PairState.PAIRED) {
+                        // Don't display any toast, but open the app list
+                        message = null;
+                        success = true;
+                    }
+                    else {
+                        final String pinStr = PairingManager.generatePinString();
+
+                        // Spin the dialog off in a thread because it blocks
+                        Dialog.displayDialog(PcView.this, getResources().getString(R.string.pair_pairing_title),
+                                getResources().getString(R.string.pair_pairing_msg)+" "+pinStr+"\n\n"+
+                                        getResources().getString(R.string.pair_pairing_help), false);
+
+                        PairingManager pm = httpConn.getPairingManager();
+                        // Shaga Lender key to x25519
+                        byte[] ed25519PublicKey = solanaLenderPublicKey.getPubkey();
+                        byte[] x25519PublicKey = EncryptionHelper.mapPublicEd25519ToX25519(ed25519PublicKey);
+
+
+                        PairState pairState = pm.publicPairShaga(httpConn.getServerInfo(true), pinStr, x25519PublicKey);
+                        if (pairState == PairState.PIN_WRONG) {
+                            message = getResources().getString(R.string.pair_incorrect_pin);
+                        }
+                        else if (pairState == PairState.FAILED) {
+                            if (computer.runningGameId != 0) {
+                                message = getResources().getString(R.string.pair_pc_ingame);
+                            }
+                            else {
+                                message = getResources().getString(R.string.pair_fail);
+                            }
+                        }
+                        else if (pairState == PairState.ALREADY_IN_PROGRESS) {
+                            message = getResources().getString(R.string.pair_already_in_progress);
+                        }
+                        else if (pairState == PairState.PAIRED) {
+                            // Just navigate to the app view without displaying a toast
+                            message = null;
+                            success = true;
+
+                            // Pin this certificate for later HTTPS use
+                            managerBinder.getComputer(computer.uuid).serverCert = pm.getPairedCert();
+
+                            // Invalidate reachability information after pairing to force
+                            // a refresh before reading pair state again
+                            managerBinder.invalidateStateForComputer(computer.uuid);
+                        }
+                        else {
+                            // Should be no other values
+                            message = null;
+                        }
+                    }
+                } catch (UnknownHostException e) {
+                    message = getResources().getString(R.string.error_unknown_host);
+                } catch (FileNotFoundException e) {
+                    message = getResources().getString(R.string.error_404);
+                } catch (XmlPullParserException | IOException e) {
+                    e.printStackTrace();
+                    message = e.getMessage();
+                }
+
+                Dialog.closeDialogs();
+
+                final String toastMessage = message;
+                final boolean toastSuccess = success;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (toastMessage != null) {
+                            Toast.makeText(PcView.this, toastMessage, Toast.LENGTH_LONG).show();
+                        }
+
+                        if (toastSuccess) {
+                            // Open the app list after a successful pairing attempt
+                            doAppList(computer, true, false);
+                        }
+                        else {
+                            // Start polling again if we're still in the foreground
+                            startComputerUpdates();
+                        }
+                    }
+                });
+            }
+        }).start();
+    }
+    //Shaga
 
     private void doPair(final ComputerDetails computer) {
         if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {

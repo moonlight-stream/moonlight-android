@@ -1,0 +1,153 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="#F6D5A0">
+
+
+    <!-- TextViews for GamingPC Specs -->
+    <TextView
+        android:id="@+id/solanaBalance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/solana_balance"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- TextView for User's Solana Balance -->
+
+    <!-- Slider for choosing rental time -->
+    <com.google.android.material.slider.Slider
+        android:id="@+id/rentalTimeSlider"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:valueFrom="0"
+        android:valueTo="100"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/specsTitle" />
+
+    <!-- Button to proceed -->
+    <Button
+        android:id="@+id/proceedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Proceed"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rentalTimeSlider" />
+
+    <!-- TextView for Payloads  -->
+    <TextView
+        android:id="@+id/specsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="GamingPC Specs"
+        android:textSize="22sp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rentalTimeSlider" />
+
+
+    <TextView
+        android:id="@+id/latency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Latency: "
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/proceedButton" />
+
+    <TextView
+        android:id="@+id/gpuName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="GPU Model: "
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/latency" />
+
+    <TextView
+        android:id="@+id/cpuName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CPU Model: "
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gpuName" />
+
+    <TextView
+        android:id="@+id/totalRamGb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total RAM: "
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cpuName" />
+
+    <TextView
+        android:id="@+id/usdcPerHour"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cost per hour: "
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/totalRamGb" />
+
+
+    <TextView
+        android:id="@+id/affairTerminationTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rent available until: "
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/usdcPerHour" />
+
+    <TextView
+        android:id="@+id/solanaLenderPublicKey"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lender's ID : "
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/affairTerminationTime" />
+
+    <!-- TextView for Expected Rent Cost -->
+    <TextView
+        android:id="@+id/expectedRentCost"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Expected Rent Cost: "
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/solanaLenderPublicKey" />
+
+
+    <!-- TextView for Rental Time -->
+    <TextView
+        android:id="@+id/selectedRentTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Selected Time: "
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/expectedRentCost" />
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

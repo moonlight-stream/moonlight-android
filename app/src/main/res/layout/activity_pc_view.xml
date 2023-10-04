@@ -72,7 +72,53 @@
         android:src="@drawable/ic_help"
         android:preferKeepClear="true"
         style="?android:attr/borderlessButtonStyle"/>
-    
+
+    <TextView
+        android:id="@+id/solanaBalanceTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:padding="16dp"
+        android:text="@string/solana_balance"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="50sp"
+        android:textColor="#FF0000"
+        android:background="#00FF00"
+    />
+    <TextView
+        android:id="@+id/walletPublicKeyTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/solanaBalanceTextView"
+        android:padding="16dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="25sp"
+        android:textColor="#9D00FF"
+        />
+
+    <Button
+        android:id="@+id/openMapActivityButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Open Map"
+        android:layout_below="@id/syncWithSolanaButton"
+        android:padding="50dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="30sp"
+        />
+
+    <Button
+        android:id="@+id/syncWithSolanaButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/walletPublicKeyTextView"
+        android:text="Sync with Solana"
+        android:padding="16dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="16sp"
+        />
+
+
     <ImageButton
         android:id="@+id/manuallyAddPc"
         android:layout_width="70dp"

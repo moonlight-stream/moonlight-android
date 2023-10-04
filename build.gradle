@@ -8,23 +8,9 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.1'
-
-
-
         // Shaga
         classpath 'com.android.tools.build:gradle:8.1.1'
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10'
     }
 }
 
-allprojects {
-    repositories {
-        mavenCentral()
-        google()
-
-        maven {
-            url "https://www.jitpack.io"
-        }
-    }
-}

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="#F6D5A0">
+
+    <TextView
+        android:id="@+id/latency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Latency: "
+        android:textSize="18sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <TextView
+        android:id="@+id/gpuName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="GPU Model: "
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@+id/latency"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="8dp"/>
+
+    <TextView
+        android:id="@+id/cpuName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CPU Model: "
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@+id/gpuName"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <TextView
+        android:id="@+id/totalRamGb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total RAM: "
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@+id/cpuName"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <TextView
+        android:id="@+id/usdcPerHour"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cost per hour: "
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@+id/totalRamGb"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+
+    <TextView
+        android:id="@+id/affairTerminationTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rent available until: "
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@+id/usdcPerHour"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <TextView
+        android:id="@+id/solanaLenderPublicKey"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lender's ID : "
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@+id/affairTerminationTime"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+
+
+    <Button
+        android:id="@+id/closeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Close"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@+id/solanaLenderPublicKey"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <Button
+        android:id="@+id/startRentingButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start Renting"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@+id/closeButton"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

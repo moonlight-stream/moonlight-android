@@ -152,12 +152,16 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
-
     // Shaga
-    //implementation 'androidx.security:security-crypto-ktx:1.0.0'
-    //implementation 'com.solana:solana:'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
+    implementation 'com.mapbox.maps:android:10.16.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4' // Version may differ, please check for the latest version
     implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
+    implementation 'org.jetbrains:annotations:15.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.9.0'
     testImplementation 'junit:junit:4.13.2'
     implementation "io.github.instantwebp2p:tweetnacl-java:1.1.2"
     testImplementation 'org.mockito:mockito-core:3.9.0'

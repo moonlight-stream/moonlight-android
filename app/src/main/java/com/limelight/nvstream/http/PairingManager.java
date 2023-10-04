@@ -178,7 +178,12 @@ public class PairingManager {
         return serverCert;
     }
     // Shaga
-    public PairState pairShaga(String serverInfo, String pin, byte[] x25519PublicKey) throws IOException, XmlPullParserException {
+
+    public PairState publicPairShaga(String serverInfo, String pin, byte[] x25519PublicKey) throws IOException, XmlPullParserException {
+        return pairShaga(serverInfo, pin, x25519PublicKey);
+    }
+
+    private PairState pairShaga(String serverInfo, String pin, byte[] x25519PublicKey) throws IOException, XmlPullParserException {
 
         PairingHashAlgorithm hashAlgo;
 
@@ -192,7 +197,7 @@ public class PairingManager {
             hashAlgo = new Sha1PairingHash();
         }
 
-        // Load the Ed25519 private key from Android KeyStore
+        // Load the client Ed25519 private key from Android KeyStore
         byte[] ed25519PrivateKey = SolanaPreferenceManager.loadPrivateKeyFromKeyStore();
         if (ed25519PrivateKey == null) {
             // Handle the error. Maybe log it or show a user message.
@@ -213,6 +218,7 @@ public class PairingManager {
         PublicKey publicKey = SolanaPreferenceManager.getStoredPublicKey();
         assert publicKey != null;
         String publicKeyBase58 = publicKey.toBase58();
+
 
         String getCert = http.executeShagaPairingCommand("phrase=getservercert&salt=" +
                         bytesToHex(salt) + "&clientcert=" + bytesToHex(pemCertBytes) +

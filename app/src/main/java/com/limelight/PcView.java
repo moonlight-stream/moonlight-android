@@ -25,6 +25,7 @@ import com.limelight.preferences.GlPreferences;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.preferences.StreamSettings;
 
+import com.limelight.shagaMap.MapActivity;
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
 
@@ -80,7 +81,6 @@ import com.limelight.solanaWallet.WalletManager;
 import com.limelight.solanaWallet.SolanaPreferenceManager;
 import com.solana.core.PublicKey;
 import com.limelight.solanaWallet.EncryptionHelper;
-import org.libsodium.jni.Sodium;
 
 public class PcView extends Activity implements AdapterFragmentCallbacks {
     //Shaga                                                         // , WalletManager.BalanceUpdateCallback
@@ -170,7 +170,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         // Initializing the TextViews here before they are used in any other methods <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         solanaBalanceTextView = findViewById(R.id.solanaBalanceTextView);
         walletPublicKeyTextView = findViewById(R.id.walletPublicKeyTextView);
-
+        // Shaga
 
         settingsButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -229,6 +229,17 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 }
             }
         });
+
+        // Initialize and set up the "Open Map Activity" button
+        Button openMapButton = findViewById(R.id.openMapActivityButton); // Make sure this ID matches what you set in XML
+        openMapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(PcView.this, MapActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
 
     @Override
@@ -306,6 +317,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             SolanaPreferenceManager.setIsWalletInitialized(true);
         }
     }
+
 
     private void startComputerUpdates() {
         // Only allow polling to start if we're bound to CMS, polling is not already running,
@@ -450,7 +462,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     //Shaga
-    private void doPairShaga(final ComputerDetails computer, PublicKey solanaPublicKey) {
+    public void publicDoPairShaga(final ComputerDetails computer, PublicKey solanaLenderPublicKey) {
+        doPairShaga(computer, solanaLenderPublicKey);
+    }
+
+    private void doPairShaga(final ComputerDetails computer, PublicKey solanaLenderPublicKey) {
         if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
             Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
             return;
@@ -488,12 +504,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                                         getResources().getString(R.string.pair_pairing_help), false);
 
                         PairingManager pm = httpConn.getPairingManager();
-
-                        byte[] ed25519PublicKey = solanaPublicKey.toByteArray();
+                        // Shaga Lender key to x25519
+                        byte[] ed25519PublicKey = solanaLenderPublicKey.getPubkey();
                         byte[] x25519PublicKey = EncryptionHelper.mapPublicEd25519ToX25519(ed25519PublicKey);
 
 
-                        PairState pairState = pm.pairShaga(httpConn.getServerInfo(true), pinStr, x25519PublicKey);
+                        PairState pairState = pm.publicPairShaga(httpConn.getServerInfo(true), pinStr, x25519PublicKey);
                         if (pairState == PairState.PIN_WRONG) {
                             message = getResources().getString(R.string.pair_incorrect_pin);
                         }

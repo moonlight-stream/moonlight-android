@@ -97,6 +97,17 @@
         />
 
     <Button
+        android:id="@+id/openMapActivityButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Open Map"
+        android:layout_below="@id/syncWithSolanaButton"
+        android:padding="50dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="30sp"
+        />
+
+    <Button
         android:id="@+id/syncWithSolanaButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

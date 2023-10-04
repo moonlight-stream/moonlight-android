@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <!-- Shaga's -->
     <string name="solana_balance">Solana Balance: </string>
+
     <string name="balance_format">Balance: %.2f SOL</string>
     <string name="balance_fetch_error">Balance fetch error</string>
     <string name="account_fetch_error">Error fetching account details.</string>
+
     <string name="no_balance_message">No Sol, deposit at least 0.1 Sol</string>
     <string name="public_key_not_found_error">Error fetching public key</string>
     <string name="pubkey_fetch_error">Error fetching public key</string>
+
     <string name="pubkey_local_client">Solana public key: </string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiaGFzYWRvYmVuZGlkYSIsImEiOiJjbG43a3NuODYwYm1hMnNydHJkaHBtNTQxIn0.NhpWaoAscYpsVwvDb_fxnA</string>
+    <string name="affairs_list_address">YOUR_SOLANA_ADDRESS_HERE</string>
 
-
+    <string name="rapidapi_key">dbee35b62emshd16864d6d9f1b26p173e31jsnddf66b45a8f8</string>
+    <string name="rapidapi_host">ip-location5.p.rapidapi.com</string>
+    <string name="ip_to_coordinates_url">https://ip-location5.p.rapidapi.com/get_geo_info?ip=%1$s</string>
+    <!-- TODO: -->
 
 
     <!-- Shortcut strings -->

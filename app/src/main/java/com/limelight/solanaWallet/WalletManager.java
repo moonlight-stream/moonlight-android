@@ -48,11 +48,6 @@ public class WalletManager implements BalanceCallback {
         });
     }
 
-
-    public void onBalanceUpdate(Double balance) {
-        updateUIWithBalance();
-    }
-
     public static void initializeUIWithPlaceholderBalance() {
         balanceTextView.setText("Loading balance...");
         walletPublicKeyTextView.setText("Loading public key...");

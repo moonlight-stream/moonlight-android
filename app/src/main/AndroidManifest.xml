@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Shaga Map -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -50,6 +53,10 @@
         android:localeConfig="@xml/locales_config"
         android:enableOnBackInvokedCallback="false"
         android:theme="@style/AppTheme">
+
+        <meta-data
+            android:name="com.mapbox.token"
+            android:value="@string/mapbox_access_token"/>
 
         <provider
             android:name=".PosterContentProvider"
@@ -176,6 +183,18 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.limelight.PcView" />
         </activity>
+
+        <!-- Add this line to register MapActivity -->
+        <activity android:name=".shagaMap.MapActivity"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+            <!-- Intent filters go here, if any -->
+        </activity>
+
+        <activity android:name=".shagaMap.RentingActivity"
+            android:theme="@style/RentingActivityTheme">
+            <!-- Intent filters go here, if any -->
+        </activity>
+
     </application>
 
 </manifest>

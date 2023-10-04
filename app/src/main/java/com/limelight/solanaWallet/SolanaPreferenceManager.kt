@@ -6,6 +6,7 @@ import android.security.keystore.KeyProperties
 import android.security.keystore.KeyProtection
 import android.util.Base64
 import android.util.Log
+import com.limelight.shagaMap.RentingActivity
 import com.limelight.utils.Loggatore
 import com.solana.core.DerivationPath
 import com.solana.core.HotAccount
@@ -51,6 +52,9 @@ object SolanaPreferenceManager {
         sharedPreferences?.edit()?.putString(PUBLIC_KEY, publicKeyString)?.apply()
     }
 
+    fun getStoredBalance(): Float {
+        return sharedPreferences?.getFloat("user_balance", 0.0f) ?: 0.0f
+    }
 
     @JvmStatic
     fun getStoredPublicKey(): PublicKey? {

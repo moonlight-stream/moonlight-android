@@ -191,18 +191,18 @@ class RentingActivity : AppCompatActivity() {
         }
 
         val proceedButton: Button = findViewById(R.id.proceedButton)
-        proceedButton.setOnClickListener {
+        proceedButton.setOnClickListener { clickedView ->
             // Convert the selected time back to milliseconds for the transaction
             val selectedRentTimeMillis = selectedRentTimeMinutes * 60 * 1000
             // Add these two functions
-            startSolanaTransaction(selectedRentTimeMillis)
-            startShagaPairingProcedure()
+            //startSolanaTransaction(selectedRentTimeMillis)
+            startShagaPairingProcedure(view = clickedView)
         }
     }
 
-    startSolanaTransaction(selectedRentTimeMillis) {
-        return
-    }
+    //startSolanaTransaction(selectedRentTimeMillis) {
+    //    return
+   // }
 
     private fun populateTextViews(latency: Long, data: SolanaApi.AffairsData) {
         // Decode Base64 encoded values

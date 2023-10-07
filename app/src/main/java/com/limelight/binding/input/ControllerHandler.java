@@ -19,6 +19,7 @@ import android.media.AudioAttributes;
 import android.os.Build;
 import android.os.CombinedVibration;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.VibrationAttributes;
 import android.os.VibrationEffect;
@@ -116,7 +117,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final VibratorManager deviceVibratorManager;
     private final SensorManager deviceSensorManager;
     private final SceManager sceManager;
-    private final Handler handler;
+    private final Handler mainThreadHandler;
+    private final HandlerThread backgroundHandlerThread;
+    private final Handler backgroundThreadHandler;
     private boolean hasGameController;
     private boolean stopped = false;
 
@@ -130,7 +133,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         this.prefConfig = prefConfig;
         this.deviceVibrator = (Vibrator) activityContext.getSystemService(Context.VIBRATOR_SERVICE);
         this.deviceSensorManager = (SensorManager) activityContext.getSystemService(Context.SENSOR_SERVICE);
-        this.handler = new Handler(Looper.getMainLooper());
+        this.mainThreadHandler = new Handler(Looper.getMainLooper());
+
+        // Create a HandlerThread to process battery state updates. These can be slow enough
+        // that they lead to ANRs if we do them on the main thread.
+        this.backgroundHandlerThread = new HandlerThread("ControllerHandler");
+        this.backgroundHandlerThread.start();
+        this.backgroundThreadHandler = new Handler(backgroundHandlerThread.getLooper());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             this.deviceVibratorManager = (VibratorManager) activityContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
@@ -272,6 +281,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         sceManager.stop();
+        backgroundHandlerThread.quit();
     }
 
     public void disableSensors() {
@@ -982,6 +992,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
+    // This must not be called on the main thread due to risk of ANRs!
     private void sendControllerBatteryPacket(InputDeviceContext context) {
         int currentBatteryStatus;
         float currentBatteryCapacity;
@@ -2709,23 +2720,23 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 sendEmulatedMouseEvent(rightStickX, rightStickY);
 
                 // Requeue the callback
-                handler.postDelayed(this, mouseEmulationReportPeriod);
+                mainThreadHandler.postDelayed(this, mouseEmulationReportPeriod);
             }
         };
 
         public void toggleMouseEmulation() {
-            handler.removeCallbacks(mouseEmulationRunnable);
+            mainThreadHandler.removeCallbacks(mouseEmulationRunnable);
             mouseEmulationActive = !mouseEmulationActive;
             Toast.makeText(activityContext, "Mouse emulation is: " + (mouseEmulationActive ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
 
             if (mouseEmulationActive) {
-                handler.postDelayed(mouseEmulationRunnable, mouseEmulationReportPeriod);
+                mainThreadHandler.postDelayed(mouseEmulationRunnable, mouseEmulationReportPeriod);
             }
         }
 
         public void destroy() {
             mouseEmulationActive = false;
-            handler.removeCallbacks(mouseEmulationRunnable);
+            mainThreadHandler.removeCallbacks(mouseEmulationRunnable);
         }
 
         public void sendControllerArrival() {}
@@ -2805,7 +2816,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 sendControllerBatteryPacket(InputDeviceContext.this);
 
                 // Requeue the callback
-                handler.postDelayed(this, BATTERY_RECHECK_INTERVAL_MS);
+                backgroundThreadHandler.postDelayed(this, BATTERY_RECHECK_INTERVAL_MS);
             }
         };
 
@@ -2833,7 +2844,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 }
             }
 
-            handler.removeCallbacks(batteryStateUpdateRunnable);
+            backgroundThreadHandler.removeCallbacks(batteryStateUpdateRunnable);
         }
 
         @Override
@@ -2955,8 +2966,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     type, supportedButtonFlags, capabilities);
 
             // After reporting arrival to the host, send initial battery state and begin monitoring
-            sendControllerBatteryPacket(this);
-            handler.postDelayed(batteryStateUpdateRunnable, BATTERY_RECHECK_INTERVAL_MS);
+            backgroundThreadHandler.post(batteryStateUpdateRunnable);
         }
 
         public void migrateContext(InputDeviceContext oldContext) {
@@ -2988,8 +2998,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
 
             // Refresh battery state and start the battery state polling again
-            sendControllerBatteryPacket(this);
-            handler.postDelayed(batteryStateUpdateRunnable, BATTERY_RECHECK_INTERVAL_MS);
+            backgroundThreadHandler.post(batteryStateUpdateRunnable);
         }
 
         public void disableSensors() {

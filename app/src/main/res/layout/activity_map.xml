@@ -12,18 +12,29 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/populateMapButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:src="@drawable/gaming_pc"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:backgroundTint="#FF0000"
-        android:contentDescription="Sunshine Server" />
+    <FrameLayout
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        app:layout_constraintBottom_toTopOf="@id/goToWalletActivityButton"
+        app:layout_constraintEnd_toEndOf="parent">
+        <!-- Floating Action Button in the background -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/populateMapButton"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:elevation="6dp"/>
+        <!-- ImageView on top of the Floating Action Button -->
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:elevation="7dp"
+            android:src="@drawable/gaming_pc"
+            android:scaleType="centerCrop"/>
+    </FrameLayout>
+
+
 
 
     <TextView
@@ -48,14 +59,34 @@
         android:padding="16dp"
     />
 
+    <!-- Back Button -->
     <Button
         android:id="@+id/backButton"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_margin="16dp"
         android:text="Back"
+        android:padding="16dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/goToWalletActivityButton"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"/>
+
+    <!-- Wallet Button -->
+    <Button
+        android:id="@+id/goToWalletActivityButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Wallet"
         android:padding="16dp"
-        />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/backButton"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     
 </androidx.constraintlayout.widget.ConstraintLayout>

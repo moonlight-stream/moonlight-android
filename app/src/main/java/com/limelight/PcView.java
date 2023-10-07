@@ -26,6 +26,7 @@ import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.preferences.StreamSettings;
 
 import com.limelight.shagaMap.MapActivity;
+import com.limelight.solanaWallet.WalletActivity;
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
 
@@ -74,19 +75,13 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 
-// Shaga
-import android.widget.TextView;
-import com.limelight.solanaWallet.WalletInitializer;
-import com.limelight.solanaWallet.WalletManager;
+
 import com.limelight.solanaWallet.SolanaPreferenceManager;
 import com.solana.core.PublicKey;
 import com.limelight.solanaWallet.EncryptionHelper;
 
 public class PcView extends Activity implements AdapterFragmentCallbacks {
-    //Shaga                                                         // , WalletManager.BalanceUpdateCallback
-    private TextView solanaBalanceTextView;
-    private WalletManager walletManager;
-    private TextView walletPublicKeyTextView;
+
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
     private ShortcutHelper shortcutHelper;
@@ -167,10 +162,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         ImageButton settingsButton = findViewById(R.id.settingsButton);
         ImageButton addComputerButton = findViewById(R.id.manuallyAddPc);
         ImageButton helpButton = findViewById(R.id.helpButton);
-        // Initializing the TextViews here before they are used in any other methods <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        solanaBalanceTextView = findViewById(R.id.solanaBalanceTextView);
-        walletPublicKeyTextView = findViewById(R.id.walletPublicKeyTextView);
-        // Shaga
 
         settingsButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -210,23 +201,15 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             noPcFoundLayout.setVisibility(View.INVISIBLE);
         }
         pcGridAdapter.notifyDataSetChanged();
-        // Initialize and set up the "Sync with Solana" button
-        Button syncWithSolanaButton = findViewById(R.id.syncWithSolanaButton);
-        syncWithSolanaButton.setOnClickListener(new View.OnClickListener() {
+
+        // Shaga buttons
+        // Initialize and set up the "Open Wallet Activity" button
+        Button openWalletButton = findViewById(R.id.openWalletActivityButton); // Make sure this ID matches what you set in XML
+        openWalletButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Fetch the public key string from SharedPreferences
-                PublicKey publicKey = SolanaPreferenceManager.getStoredPublicKey();
-
-                // Check if publicKeyString is not null and not empty
-                if(publicKey != null) {
-                    // Call the method to fetch and display the new balance
-                    walletManager.fetchAndDisplayBalance(publicKey);
-                    Loggatore.d("OOOOO PORCO DIOOOOO", "Public Key: " + publicKey.toString());
-                } else {
-                    // Log an error message if publicKeyString is null or empty
-                    Loggatore.d("WalletDebug", "Public key not found in SharedPreferences.");
-                }
+                Intent intent = new Intent(PcView.this, WalletActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -301,21 +284,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         pcGridAdapter = new PcGridAdapter(this, PreferenceConfiguration.readPreferences(this));
 
-        //Shaga
-        walletManager = WalletManager.getInstance();
-
         initializeViews();  // Initializing views after setting up the WalletManager
-
-        walletManager.setup(this, balance -> walletManager.updateUIWithBalance(), solanaBalanceTextView, walletPublicKeyTextView);
-        WalletManager.initializeUIWithPlaceholderBalance();
-
-        // Shaga wallet startup and the remaining initialization code
-        WalletInitializer walletInitializer = WalletInitializer.INSTANCE;
-        SolanaPreferenceManager.initialize(this);
-        if (!SolanaPreferenceManager.getIsWalletInitialized()) {
-            walletInitializer.initializeWallet(this);
-            SolanaPreferenceManager.setIsWalletInitialized(true);
-        }
     }
 
 

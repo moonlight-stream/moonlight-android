@@ -195,6 +195,12 @@
             <!-- Intent filters go here, if any -->
         </activity>
 
+        <activity android:name=".solanaWallet.WalletActivity"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+            <!-- Add intent filters here if necessary -->
+        </activity>
+
+
     </application>
 
 </manifest>

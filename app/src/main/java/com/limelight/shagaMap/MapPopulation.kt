@@ -220,7 +220,7 @@ class MapPopulation {
                     cpuName = cpuNameString,
                     solanaLenderPublicKey = authorityString,
                     totalRamMb = affair.totalRamMb,
-                    usdcPerHour = affair.usdcPerHour,
+                    usdcPerHour = affair.solPerHour.toInt(),
                     affairState = affairStateString,
                     affairStartTime = affair.activeRentalStartTime,
                     affairTerminationTime = affair.affairTerminationTime

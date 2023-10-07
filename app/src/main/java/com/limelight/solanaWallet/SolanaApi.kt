@@ -15,7 +15,8 @@ import com.solana.networking.RPCEndpoint
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import com.solana.api.getMultipleAccounts
-
+import com.solana.networking.serialization.serializers.solana.PublicKeyAs32ByteSerializer
+import kotlinx.serialization.SerialName
 
 
 object SolanaApi {
@@ -24,24 +25,31 @@ object SolanaApi {
     val solana = Solana(network)
     val scope = CoroutineScope(Dispatchers.IO)
 
+
     @Serializable
-    data class AffairsListData(val pubKeys: List<String>)
+    data class AffairsListData(
+        val activeAffairs: List<String>  // These are the public keys
+    )
 
     @Serializable
     data class AffairsData(
-        val authority: String, // publicKey in Solana
-        val client: String?, // publicKey in Solana
-        val rental: String?, // option<publicKey> in Solana
-        val ipAddress: String, // Array<u8, 15> in Solana
-        val cpuName: String, // Array<u8, 64> in Solana
-        val gpuName: String, // Array<u8, 64> in Solana
-        val totalRamMb: Int, // u32 in Solana
-        val usdcPerHour: Int, // u32 in Solana
+        val accountDiscriminator: String,  // Base64 encoded
+        val authority: String,
+        val client: String,
+        val rental: String?,
+        val ipAddress: String,
+        val cpuName: String,
+        val gpuName: String,
+        val totalRamMb: Int,
+        val solPerHour: Long,
         val affairState: String,
-        val affairTerminationTime: Long, // u64 in Solana
-        val activeRentalStartTime: Long?, // u64 in Solana
-        val dueRentAmount: Long? // u64 in Solana
+        val affairTerminationTime: Long,
+        val activeRentalStartTime: Long,
+        val dueRentAmount: Long
     )
+
+
+
 
     interface BalanceCallback {
         fun onBalanceReceived(balanceInLamports: Long?)
@@ -52,55 +60,6 @@ object SolanaApi {
         scope.launch {
             val result = solana.api.getBalance(publicKey)
             callback.onBalanceReceived(result.getOrNull())
-        }
-    }
-
-
-    // Used to get Affairs list from source: strings.xml <string name="affairs_list_address">
-    // Source: https://github.com/metaplex-foundation/SolanaKT/blob/master/solana/src/main/java/com/solana/api/getAccountInfo.kt
-    interface AccountInfoCallback<T> {
-        fun onAccountInfoReceived(accountInfo: T?)
-    }
-
-    inline fun <reified T> getAccountInfo(
-        accountAddress: String,
-        serializer: KSerializer<T>,
-        crossinline onComplete: (Result<T>) -> Unit
-    ) {
-        val publicKey = PublicKey(accountAddress)
-        scope.launch {
-            val requestResult: Result<T> = solana.api.getAccountInfo(
-                serializer,
-                publicKey,
-                Commitment.MAX,
-                Encoding.base64,
-                null,
-                null
-            )
-            onComplete(requestResult)
-        }
-    }
-
-
-    // used to get Affairs Payload to use them in MapActivity & MapPopulation
-    interface MultipleAccountsCallback<T> {
-        fun onMultipleAccountsReceived(accountInfos: List<AccountInfo<T>?>?)
-    }
-
-    // source: https://github.com/metaplex-foundation/SolanaKT/blob/master/solana/src/main/java/com/solana/api/getMultipleAccounts.kt
-    inline fun <reified T> getMultipleAccounts(
-        accountAddresses: List<String>,
-        serializer: KSerializer<T>,
-        crossinline onComplete: (Result<List<AccountInfo<T>?>>) -> Unit
-    ) {
-        val publicKeys = accountAddresses.map { PublicKey(it) }
-        scope.launch {
-            solana.api.getMultipleAccounts(
-                serializer,
-                publicKeys
-            ) { result: Result<List<AccountInfo<T>?>> ->
-                onComplete(result)
-            }
         }
     }
 }

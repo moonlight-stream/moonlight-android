@@ -48,6 +48,19 @@ import com.mapbox.maps.Style
  import com.mapbox.maps.EdgeInsets
  import org.bitcoinj.core.Base58
  import android.util.Base64
+ import com.limelight.solanaWallet.SolanaApi.solana
+ import com.limelight.solanaWallet.WalletActivity
+ import com.solana.api.AccountInfo
+ import com.solana.api.AccountInfoSerializer
+ import com.solana.api.getAccountInfo
+ import com.solana.api.getMultipleAccountsInfo
+ import com.solana.core.PublicKey
+ import com.solana.models.buffer.AccountInfoData
+ import com.solana.networking.serialization.serializers.base64.BorshAsBase64JsonArraySerializer
+ import com.solana.networking.serialization.serializers.solana.AnchorAccountSerializer
+ import com.solana.rxsolana.api.getAccountInfo
+ import kotlinx.coroutines.CoroutineScope
+ import kotlinx.serialization.KSerializer
 
 /* simplified flow:
 Map initializes.
@@ -110,7 +123,14 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
         initializeBackButton()
 
-        initializeTestButton()
+        // Initialize new Go To Wallet Activity Button
+        val goToWalletActivityButton: Button = findViewById(R.id.goToWalletActivityButton)
+        goToWalletActivityButton.setOnClickListener {
+            val intent = Intent(this@MapActivity, WalletActivity::class.java)
+            startActivity(intent)
+        }
+
+        //initializeTestButton()
     }
 
 
@@ -205,6 +225,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
     }
 
 
+    /*
     private fun initializeTestButton() {
         val testButton: Button = findViewById(R.id.testButton)
         testButton.setOnClickListener {
@@ -272,6 +293,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             }
         }
     }
+    */
 
 
     private fun initializeLocation() {
@@ -329,109 +351,153 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
         }
     }
 
-
-    private fun initializePopulateMapButton() { // TODO: TEST
+    // Function to fetch AffairsList
+    private fun initializePopulateMapButton() {
         val button = findViewById<FloatingActionButton>(R.id.populateMapButton)
 
         button.setOnClickListener {
-            Log.d("Button", "Populate Map Button Clicked")
-            // Fetch the Solana Address for the Affairs List from strings.xml
+            Log.d("DebugFlow", "Populate Map Button Clicked")
             val affairsListAddress = getString(R.string.affairs_list_address)
 
-            // Prepare serializer for the Affairs List
-            val affairsListSerializer = SolanaApi.AffairsListData.serializer()
+            // Serializer for AffairsListData
+            val affairsListDataSerializer = AccountInfoSerializer(
+                AnchorAccountSerializer(
+                    SolanaApi.AffairsListData.serializer()
+                )
+            )
 
-            // Fetch the Affairs List
-            SolanaApi.getAccountInfo<SolanaApi.AffairsListData>(affairsListAddress, affairsListSerializer) { result ->
-                // Handle Failure Case
-                if (result.isFailure) {
-                    Log.e("AffairsListFetch", "Failed to fetch the Affairs List.")
-                    return@getAccountInfo
-                }
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    Log.d("DebugFlow", "Fetching the AffairsListData")
+                    Log.d("DebugFlow", "Serializer: $affairsListDataSerializer")
+                    Log.d("DebugFlow", "Public Key: ${PublicKey(affairsListAddress)}")
 
-                val affairsList = result.getOrNull() ?: run {
-                    Log.e("AffairsListFetch", "Affairs list is null.")
-                    return@getAccountInfo
-                }
+                    // Fetch the AffairsListData
+                    val result = solana.api.getAccountInfo(
+                        serializer = affairsListDataSerializer,
+                        account = PublicKey(affairsListAddress)
+                    ).getOrThrow()
 
-                // Fetch the multiple accounts (Affairs) using the Affairs List
-                val affairsAddresses = affairsList.pubKeys ?: run {
-                    Log.e("AffairsListFetch", "Affairs addresses are empty or null.")
-                    return@getAccountInfo
-                }
+                    // Check if data is null or empty
+                    val affairsListData: SolanaApi.AffairsListData? = result?.data
+                    if (affairsListData == null) {
+                        Log.e("DebugFlow", "Affairs list data is null.")
+                        return@launch
+                    }
 
-                // Prepare serializer for the Affairs
-                val affairsSerializer = SolanaApi.AffairsData.serializer()
+                    Log.d("DebugFlow", "Extracting the list of public keys")
 
+                    // Extract the list of public keys
+                    val publicKeys: List<String> = affairsListData.activeAffairs
+                    val publicKeyObjects = publicKeys.map { PublicKey(it) }
 
-                    // Fetch the multiple accounts (Affairs)
-                SolanaApi.getMultipleAccounts<SolanaApi.AffairsData>(
-                        affairsAddresses,
-                        affairsSerializer
-                    ) { multipleAccountsResult ->
-                        // Check if the fetching operation was successful
-                        if (multipleAccountsResult.isSuccess) {
-                            // If successful, extract the accountsInfo or log an error if null
-                            val accountsInfo = multipleAccountsResult.getOrNull() ?: run {
-                                Log.e("MultipleAccountsFetch", "Accounts info is null.")
-                                return@getMultipleAccounts
-                            }
+                    // Fetch multiple accounts' data
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            Log.d("DebugFlow", "Fetching multiple accounts")
 
-                            // Filter out null AccountInfo and extract the AffairsData
-                            val affairsList: List<SolanaApi.AffairsData> = accountsInfo
-                                .filterNotNull()  // Remove null AccountInfo objects if any
-                                .mapNotNull { it.data } // Extract AffairsData from each AccountInfo
+                            // Fetch multiple accounts
+                            val multipleAccountsResult = solana.api.getMultipleAccountsInfo(
+                                serializer = AccountInfoSerializer(
+                                    BorshAsBase64JsonArraySerializer(
+                                        SolanaApi.AffairsData.serializer()
+                                    )
+                                ),
+                                accounts = publicKeyObjects
+                            )
 
-                            // Validate that we have at least one affair to process
-                            if (affairsList.isEmpty()) {
-                                Log.e("MultipleAccountsFetch", "No valid affairs data found.")
-                                return@getMultipleAccounts
-                            }
+                            // Check for success
+                            if (multipleAccountsResult.isSuccess) {
+                                val multipleAccountsData = multipleAccountsResult.getOrNull()
 
-                            // Save the fetched AffairData to the local HashMap
-                            affairsList.forEach { affairData ->
-                                val authorityKey = Base58.encode(String(Base64.decode(affairData.authority, android.util.Base64.DEFAULT)).toByteArray())
-                                AffairsDataHolder.affairsMap[authorityKey] = affairData
-                            }
-                            Log.d("MapActivity", "affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
-
-
-                            // Initialize MapPopulation
-                            val mapPopulation = MapPopulation()
-
-                            lifecycleScope.launch(Dispatchers.IO) {
-                            // Convert the raw SolanaApi.AffairsData to MarkerProperties
-                            val markerPropertiesResult = affairsList.map {
-                                mapPopulation.buildMarkerProperties(
-                                    this@MapActivity,
-                                    it
-                                )
-                            }
-                            val validMarkerProperties =
-                                markerPropertiesResult.filter { it.isSuccess }
-                                    .map { it.getOrThrow() }
-
-                            // Add markers to map using MapActivity's method
-                            validMarkerProperties.forEach { markerProperty ->
-                                addGamingPCMarkerWithProperties(markerProperty)
-                            }
-
-                                // Adjust the camera to fit all markers and user's location
-                                userLocation?.let { nonNullUserLocation ->
-                                    if (validMarkerProperties.isNotEmpty()) {
-                                        adjustCameraToShowAllPoints(validMarkerProperties, nonNullUserLocation, mapView)
-                                    } else {
-                                        Log.e("adjustCamera", "No valid marker properties found")
-                                    }
-                                } ?: run {
-                                    Log.e("adjustCamera", "User location is null")
+                                // If the data is null, log an error and return
+                                if (multipleAccountsData == null) {
+                                    Log.e("DebugFlow", "Multiple accounts data is null.")
+                                    return@launch
                                 }
+
+                                Log.d("DebugFlow", "Filtering and extracting data")
+
+                                // Filter out nulls and extract data
+                                val affairsDataList: List<AccountInfo<SolanaApi.AffairsData?>> =
+                                    multipleAccountsData.filterNotNull().mapNotNull { it.data }
+
+                                // If the list is empty, log an error and return
+                                if (affairsDataList.isEmpty()) {
+                                    Log.e("DebugFlow", "No valid AffairsData found.")
+                                    return@launch
+                                }
+
+                                Log.d("DebugFlow", "Saving the fetched AffairsData to local HashMap")
+
+                                // Save the fetched AffairsData to the local HashMap
+                                affairsDataList.forEach { affairData ->
+                                    affairData?.data?.let { nonNullData ->
+                                        nonNullData.authority?.let { authority ->
+                                            val authorityKey = Base58.encode(
+                                                String(
+                                                    Base64.decode(
+                                                        authority,
+                                                        android.util.Base64.DEFAULT
+                                                    )
+                                                ).toByteArray()
+                                            )
+                                            AffairsDataHolder.affairsMap[authorityKey] = nonNullData
+                                        }
+                                    }
+                                }
+
+                                Log.d("DebugFlow", "AffairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
+
+                                // Initialize MapPopulation
+                                val mapPopulation = MapPopulation()
+
+                                // Start another coroutine to work on UI
+                                lifecycleScope.launch(Dispatchers.IO) {
+                                    Log.d("DebugFlow", "Starting UI coroutine")
+
+                                    // Convert the raw AffairsData to MarkerProperties
+                                    val validMarkerProperties = affairsDataList.mapNotNull {
+                                        it.data?.let { data ->
+                                            mapPopulation.buildMarkerProperties(this@MapActivity, data)
+                                        }
+                                    }.filter { it.isSuccess }
+                                        .mapNotNull { it.getOrNull() } // Handle nulls gracefully
+
+                                    Log.d("DebugFlow", "Adding markers to map")
+
+                                    validMarkerProperties.forEach { markerProperty ->
+                                        addGamingPCMarkerWithProperties(markerProperty)
+                                    }
+
+                                    // Adjust the camera to fit all markers and user's location
+                                    userLocation?.let { nonNullUserLocation ->
+                                        if (validMarkerProperties.isNotEmpty()) {
+                                            Log.d("DebugFlow", "Adjusting camera")
+                                            adjustCameraToShowAllPoints(
+                                                validMarkerProperties,
+                                                nonNullUserLocation,
+                                                mapView
+                                            )
+                                        } else {
+                                            Log.e("DebugFlow", "No valid marker properties found")
+                                        }
+                                    } ?: run {
+                                        Log.e("DebugFlow", "User location is null")
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("DebugFlow", "Nested Coroutine Error: ${e.message}")
                         }
                     }
+                } catch (e: Exception) {
+                    Log.e("DebugFlow", "Main Coroutine Error: ${e.message}")
                 }
             }
         }
     }
+
 
 
     private fun initializeBackButton() {

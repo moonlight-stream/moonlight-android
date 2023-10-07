@@ -183,7 +183,7 @@ class RentingActivity : AppCompatActivity() {
 
             // Convert back to milliseconds for cost calculation
             val selectedRentTimeMillis = value * 60 * 1000
-            val expectedRentCost = (selectedRentTimeMillis / (60 * 60 * 1000.0)) * data.usdcPerHour // Calculate the cost in USDC
+            val expectedRentCost = (selectedRentTimeMillis / (60 * 60 * 1000.0)) * data.solPerHour // Calculate the cost in USDC
 
             // Update the UI
             findViewById<TextView>(R.id.expectedRentCost).text = "Expected Rent Cost: ${String.format("%.2f", expectedRentCost)} USDC"
@@ -220,7 +220,7 @@ class RentingActivity : AppCompatActivity() {
         val totalRamGb = data.totalRamMb / 1024.0  // Convert MB to GB
         findViewById<TextView>(R.id.totalRamGb).text = "Total RAM: ${String.format("%.2f", totalRamGb)} GB"
 
-        findViewById<TextView>(R.id.usdcPerHour).text = "Cost per hour: ${data.usdcPerHour} USDC"
+        findViewById<TextView>(R.id.usdcPerHour).text = "Cost per hour: ${data.solPerHour} SOL"
 
         // Convert Unix timestamp to a human-readable date
         val affairTerminationTimeInMillis = data.affairTerminationTime * 1000

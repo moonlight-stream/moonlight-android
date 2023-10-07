@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/qrCodeImageView"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@null"
+        app:layout_constraintTop_toBottomOf="@+id/qrCodeDepositButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Balance TextView -->
+    <TextView
+        android:id="@+id/solanaBalanceTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:padding="16dp"
+        android:text="@string/solana_balance"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="50sp"
+        android:textColor="#000000"
+        android:background="#F6D5A0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <!-- Wallet Public Key TextView -->
+    <TextView
+        android:id="@+id/walletPublicKeyTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="7dp"
+        android:layout_marginEnd="16dp"
+        android:padding="0dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="19.7sp"
+        android:textColor="#9D00FF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/solanaBalanceTextView"/>
+
+    <!-- Create wallet Button -->
+
+    <Button
+        android:id="@+id/createWalletButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="Create Wallet"
+        android:padding="16dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/solanaBalanceTextView"/>
+
+    <!-- Sync Button -->
+    <Button
+        android:id="@+id/syncWithSolanaButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
+        android:text="Sync with Solana"
+        android:padding="16dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/solanaBalanceTextView"/>
+
+    <!-- QR Code Deposit Button -->
+    <Button
+        android:id="@+id/qrCodeDepositButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="QR Code Deposit"
+        android:padding="16dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/syncWithSolanaButton"/>
+
+    <!-- Back Button -->
+    <Button
+        android:id="@+id/backButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Back"
+        android:padding="16dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/mapButton"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"/>
+
+    <!-- Map Button -->
+    <Button
+        android:id="@+id/mapButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Map"
+        android:padding="16dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/backButton"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

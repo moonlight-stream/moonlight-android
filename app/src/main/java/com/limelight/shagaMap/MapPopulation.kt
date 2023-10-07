@@ -2,44 +2,19 @@ package com.limelight.shagaMap
 
 import android.content.Context
 import android.util.Log
-import android.view.View
-import com.google.gson.JsonObject
 import com.limelight.R
-import com.limelight.shagaMap.MapPopulation.NetworkUtils.isValidIpAddress
 import com.limelight.solanaWallet.SolanaApi
-import com.mapbox.geojson.Feature
-import com.mapbox.geojson.FeatureCollection
-import com.mapbox.geojson.Point
-import com.mapbox.maps.MapboxMap
-import com.mapbox.maps.ViewAnnotationAnchor
-import com.mapbox.maps.extension.style.layers.addLayer
-import com.mapbox.maps.extension.style.layers.getLayer
-import com.mapbox.maps.extension.style.StyleContract
-import com.mapbox.maps.extension.style.sources.addSource
-import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
-import com.mapbox.maps.extension.style.sources.getSource
-import com.mapbox.maps.extension.style.sources.getSourceAs
-import com.mapbox.maps.viewannotation.ViewAnnotationManager
-import com.mapbox.maps.viewannotation.viewAnnotationOptions
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.FormBody
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.bitcoinj.core.Base58
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.math.BigInteger
 import java.util.regex.Pattern
-import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 class MapPopulation {
@@ -51,11 +26,11 @@ class MapPopulation {
         val gpuName: String,
         val cpuName: String,
         val solanaLenderPublicKey: String,
-        val totalRamMb: Int,
-        val usdcPerHour: Int,
+        val totalRamMb: UInt,
+        val solPerHour: ULong,
         val affairState: String,
-        val affairStartTime: Long?,
-        val affairTerminationTime: Long
+        val affairStartTime: ULong,
+        val affairTerminationTime: ULong
     )
 
     // Function to build marker properties, ip & latency are calculated in MapUtils.kt
@@ -196,22 +171,26 @@ class MapPopulation {
 
 
         suspend fun buildMarkerProperties(context: Context, affair: SolanaApi.AffairsData): Result<MarkerProperties> {
-            // Convert List<Byte> back to ByteArray for NetworkUtils functions
-            val ipAddressString = String(android.util.Base64.decode(affair.ipAddress, android.util.Base64.DEFAULT))
+            // Convert List<Byte> to ByteArray
+            val ipAddressByteArray = affair.ipAddress.toByteArray()
+            val ipAddressString = String(ipAddressByteArray)
+
             val coordinatesResult = NetworkUtils.ipToCoordinates(context, ipAddressString)
             val latencyResult = NetworkUtils.pingIpAddress(ipAddressString)
+            Log.d("buildMarkerProperties", "Coordinates Result: $coordinatesResult, Latency Result: $latencyResult")
 
-            Log.d("buildMarkerProperties", "Coordinates Result: $coordinatesResult, Latency Result: $latencyResult")  // Log the results
+            if (coordinatesResult.isSuccess && latencyResult.isSuccess) {
+                // Convert List<Byte> to String
+                val cpuNameString = String(affair.cpuName.toByteArray())
+                val gpuNameString = String(affair.gpuName.toByteArray())
 
+                // Convert PublicKey to its string representation, if the class provides such a method.
+                val authorityString = affair.authority.toString()  // Replace `toString()` with the actual method if available
 
-            return if (coordinatesResult.isSuccess && latencyResult.isSuccess) {
-                // Convert List<Byte> back to String for MarkerProperties
-                val cpuNameString = String(android.util.Base64.decode(affair.cpuName, android.util.Base64.DEFAULT))
-                val gpuNameString = String(android.util.Base64.decode(affair.gpuName, android.util.Base64.DEFAULT))
-                val authorityString = Base58.encode(String(android.util.Base64.decode(affair.authority, android.util.Base64.DEFAULT)).toByteArray())
-                Log.d("buildMarkerProperties", "Encoded authorityKey: $authorityString")
-                val affairStateString = String(android.util.Base64.decode(affair.affairState, android.util.Base64.DEFAULT))
+                // Use the `name` property of the enum for the string representation.
+                val affairStateString = affair.affairState.name
 
+                // Now build MarkerProperties
                 val markerProperties = MarkerProperties(
                     ipAddress = ipAddressString,
                     coordinates = coordinatesResult.getOrThrow(),
@@ -220,7 +199,7 @@ class MapPopulation {
                     cpuName = cpuNameString,
                     solanaLenderPublicKey = authorityString,
                     totalRamMb = affair.totalRamMb,
-                    usdcPerHour = affair.solPerHour.toInt(),
+                    solPerHour = affair.solPerHour,
                     affairState = affairStateString,
                     affairStartTime = affair.activeRentalStartTime,
                     affairTerminationTime = affair.affairTerminationTime
@@ -228,14 +207,13 @@ class MapPopulation {
 
                 Log.d("buildMarkerProperties", "Created MarkerProperties: $markerProperties") // Log the created MarkerProperties object
 
-                Result.success(markerProperties)
-
+                return Result.success(markerProperties)  // Added 'return' here
             } else {
                 val failureReasons = mutableListOf<String>()
                 coordinatesResult.exceptionOrNull()?.let { failureReasons.add("coordinates: ${it.message}") }
                 latencyResult.exceptionOrNull()?.let { failureReasons.add("latency: ${it.message}") }
 
-                Result.failure(Exception("Failed to build marker properties due to: ${failureReasons.joinToString(", ")}"))
+                return Result.failure(Exception("Failed to build marker properties due to: ${failureReasons.joinToString(", ")}"))  // Added 'return' here
             }
         }
 

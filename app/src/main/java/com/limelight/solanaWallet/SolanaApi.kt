@@ -28,25 +28,32 @@ object SolanaApi {
 
     @Serializable
     data class AffairsListData(
-        val activeAffairs: List<String>  // These are the public keys
+        val activeAffairs: List<@Serializable(with = PublicKeyAs32ByteSerializer::class) PublicKey>
     )
 
+    enum class AffairState {
+        Unavailable,
+        Available
+    }
     @Serializable
     data class AffairsData(
-        val accountDiscriminator: String,  // Base64 encoded
-        val authority: String,
-        val client: String,
-        val rental: String?,
-        val ipAddress: String,
-        val cpuName: String,
-        val gpuName: String,
-        val totalRamMb: Int,
-        val solPerHour: Long,
-        val affairState: String,
-        val affairTerminationTime: Long,
-        val activeRentalStartTime: Long,
-        val dueRentAmount: Long
+        @Serializable(with = PublicKeyAs32ByteSerializer::class) val authority: PublicKey,
+        @Serializable(with = PublicKeyAs32ByteSerializer::class) val client: PublicKey,
+        @Serializable(with = PublicKeyAs32ByteSerializer::class) val rental: PublicKey?,
+        val ipAddress: List<Byte>,
+        val cpuName: List<Byte>,
+        val gpuName: List<Byte>,
+        val totalRamMb: UInt,
+        val solPerHour: ULong,
+        val affairState: AffairState,
+        val affairTerminationTime: ULong,
+        val activeRentalStartTime: ULong,
+        val dueRentAmount: ULong
     )
+
+
+
+
 
 
 

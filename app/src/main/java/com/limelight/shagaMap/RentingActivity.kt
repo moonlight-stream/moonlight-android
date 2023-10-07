@@ -1,7 +1,6 @@
 package com.limelight.shagaMap
 
 import android.os.Bundle
-import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -18,7 +17,6 @@ import com.limelight.solanaWallet.SolanaApi
 import com.limelight.solanaWallet.SolanaPreferenceManager
 import com.limelight.solanaWallet.WalletManager
 import com.solana.core.PublicKey
-import org.bitcoinj.core.Base58
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -27,8 +25,22 @@ import java.util.Locale
 
 // Singleton to hold AffairsData
 object AffairsDataHolder {
-    val affairsMap: HashMap<String, SolanaApi.AffairsData> = HashMap()
+    val affairsMap: HashMap<String, DecodedAffairsData> = HashMap()
 }
+data class DecodedAffairsData(
+    val authority: PublicKey,
+    val client: PublicKey,
+    val rental: PublicKey?,
+    val ipAddress: String,
+    val cpuName: String,
+    val gpuName: String,
+    val totalRamMb: UInt,
+    val solPerHour: ULong,
+    val affairState: SolanaApi.AffairState,
+    val affairTerminationTime: ULong,
+    val activeRentalStartTime: ULong,
+    val dueRentAmount: ULong
+)
 
 class RentingActivity : AppCompatActivity() {
     private lateinit var walletManager: WalletManager
@@ -150,22 +162,22 @@ class RentingActivity : AppCompatActivity() {
     }
 
 
-    private fun setupSlider(data: SolanaApi.AffairsData) {
+    private fun setupSlider(data: DecodedAffairsData) {
         // Step 1: Get current time in milliseconds
         val currentTime = System.currentTimeMillis()
 
         // Step 2: Calculate the maximum and minimum time for renting in milliseconds
         val minTimeMillis = 600000 // 10 minutes in milliseconds
-        var maxTimeMillis = (data.affairTerminationTime * 1000 - currentTime).coerceAtLeast(minTimeMillis.toLong())
+        var maxTimeMillis = (data.affairTerminationTime * 1000u - currentTime.toUInt()).coerceAtLeast(minTimeMillis.toULong())
 
         // Safety check
-        if (maxTimeMillis <= minTimeMillis) {
-            maxTimeMillis = minTimeMillis + 1000000L // Add extra time for safety
+        if (maxTimeMillis <= minTimeMillis.toUInt()) {
+            maxTimeMillis = (minTimeMillis + 1000000L).toULong() // Add extra time for safety
         }
 
         // Convert the time from milliseconds to minutes for the slider
         val minTimeMinutes = minTimeMillis / (60 * 1000)
-        val maxTimeMinutes = maxTimeMillis / (60 * 1000)
+        val maxTimeMinutes = maxTimeMillis / (60 * 1000).toUInt()
 
         // Setup slider
         val rentalTimeSlider: Slider = findViewById(R.id.rentalTimeSlider)
@@ -183,10 +195,10 @@ class RentingActivity : AppCompatActivity() {
 
             // Convert back to milliseconds for cost calculation
             val selectedRentTimeMillis = value * 60 * 1000
-            val expectedRentCost = (selectedRentTimeMillis / (60 * 60 * 1000.0)) * data.solPerHour // Calculate the cost in USDC
+            val expectedRentCost = (selectedRentTimeMillis / (60 * 60 * 1000.0)) * data.solPerHour.toDouble()
 
             // Update the UI
-            findViewById<TextView>(R.id.expectedRentCost).text = "Expected Rent Cost: ${String.format("%.2f", expectedRentCost)} USDC"
+            findViewById<TextView>(R.id.expectedRentCost).text = "Expected Rent Cost: ${String.format("%.2f", expectedRentCost)} SOL"
             findViewById<TextView>(R.id.selectedRentTime).text = "Selected Time: ${selectedTimeHours}h ${remainingTimeMinutes}m"
         }
 
@@ -204,31 +216,34 @@ class RentingActivity : AppCompatActivity() {
     //    return
    // }
 
-    private fun populateTextViews(latency: Long, data: SolanaApi.AffairsData) {
-        // Decode Base64 encoded values
-        val decodedGpuName = String(android.util.Base64.decode(data.gpuName, android.util.Base64.DEFAULT))
-        val decodedCpuName = String(android.util.Base64.decode(data.cpuName, android.util.Base64.DEFAULT))
-        val decodedAuthority = Base58.encode(String(android.util.Base64.decode(data.authority, android.util.Base64.DEFAULT)).toByteArray())
+    private fun populateTextViews(latency: Long, data: DecodedAffairsData) {
+        // Convert List<Byte> to ByteArray for decoding
+        val decodedGpuName = String(data.gpuName.toByteArray())
+        val decodedCpuName = String(data.cpuName.toByteArray())
 
-        // Existing logic for latency
+        // Assuming you have a method to convert PublicKey to String
+        val decodedAuthority = data.authority.toString()
+
+        // Populate the views
         findViewById<TextView>(R.id.latency).text = "Latency: $latency ms"
-
-        // New logic to populate decoded and formatted values
         findViewById<TextView>(R.id.gpuName).text = "GPU Model: $decodedGpuName"
         findViewById<TextView>(R.id.cpuName).text = "CPU Model: $decodedCpuName"
 
-        val totalRamGb = data.totalRamMb / 1024.0  // Convert MB to GB
+        // Convert UInt to Double for division
+        val totalRamGb = data.totalRamMb.toDouble() / 1024.0
         findViewById<TextView>(R.id.totalRamGb).text = "Total RAM: ${String.format("%.2f", totalRamGb)} GB"
 
-        findViewById<TextView>(R.id.usdcPerHour).text = "Cost per hour: ${data.solPerHour} SOL"
+        // Convert ULong to String for SOL per hour
+        findViewById<TextView>(R.id.usdcPerHour).text = "Cost per hour: ${data.solPerHour.toString()} SOL"
 
-        // Convert Unix timestamp to a human-readable date
-        val affairTerminationTimeInMillis = data.affairTerminationTime * 1000
+        // Convert ULong to Long for date conversion
+        val affairTerminationTimeInMillis = data.affairTerminationTime.toLong() * 1000
         val affairTerminationDate = Date(affairTerminationTimeInMillis)
         val format = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
         findViewById<TextView>(R.id.affairTerminationTime).text = "Rent available until: ${format.format(affairTerminationDate)}"
 
         findViewById<TextView>(R.id.solanaLenderPublicKey).text = "Lender's ID: $decodedAuthority"
     }
+
 
 }

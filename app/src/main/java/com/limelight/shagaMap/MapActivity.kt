@@ -58,9 +58,11 @@ import com.mapbox.maps.Style
  import com.solana.models.buffer.AccountInfoData
  import com.solana.networking.serialization.serializers.base64.BorshAsBase64JsonArraySerializer
  import com.solana.networking.serialization.serializers.solana.AnchorAccountSerializer
+ import com.solana.networking.serialization.serializers.solana.PublicKeyAs32ByteSerializer
  import com.solana.rxsolana.api.getAccountInfo
  import kotlinx.coroutines.CoroutineScope
  import kotlinx.serialization.KSerializer
+ import kotlinx.serialization.Serializable
 
 /* simplified flow:
 Map initializes.
@@ -190,22 +192,20 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
     private fun populateViewAnnotationWithMarkerProperties(view: View, markerProperties: MapPopulation.MarkerProperties): Boolean {
         return try {
-
             // Populate Latency
             val latencyTextView: TextView = view.findViewById(R.id.latency)
-            latencyTextView.text = "Latency: ${markerProperties.latency} ms"  // Assuming latency is in milliseconds
+            latencyTextView.text = "Latency: ${markerProperties.latency} ms"
             // Populate GPU Model
             view.findViewById<TextView>(R.id.gpuName).text = "GPU Model: ${markerProperties.gpuName}"
             // Populate CPU Model
             view.findViewById<TextView>(R.id.cpuName).text = "CPU Model: ${markerProperties.cpuName}"
             // Populate Total RAM
-            val totalRamGb = markerProperties.totalRamMb / 1024.0  // Assuming RAM is initially in MB
+            val totalRamGb = markerProperties.totalRamMb.toDouble() / 1024.0
             view.findViewById<TextView>(R.id.totalRamGb).text = "Total RAM: ${String.format("%.2f", totalRamGb)} GB"
             // Populate Cost per Hour
-            view.findViewById<TextView>(R.id.usdcPerHour).text = "Cost per hour: ${markerProperties.usdcPerHour} USDC"
+            view.findViewById<TextView>(R.id.usdcPerHour).text = "Cost per hour: ${markerProperties.solPerHour} SOL"
             // Populate Rent Available Until
-            // Convert Unix timestamp (seconds) to milliseconds
-            val affairTerminationTimeInMillis = markerProperties.affairTerminationTime * 1000
+            val affairTerminationTimeInMillis = markerProperties.affairTerminationTime.toLong() * 1000
             val affairTerminationDate = Date(affairTerminationTimeInMillis)
             val format = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
             view.findViewById<TextView>(R.id.affairTerminationTime).text = "Rent available until: ${format.format(affairTerminationDate)}"
@@ -216,6 +216,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             closeButton.setOnClickListener {
                 (view.parent as? ViewManager)?.removeView(view)
             }
+
             true  // Return true if successful
         } catch (e: Exception) {
             // Handle exception
@@ -223,6 +224,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             false  // Return false if an error occurs
         }
     }
+
 
 
     /*
@@ -359,37 +361,53 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             Log.d("DebugFlow", "Populate Map Button Clicked")
             val affairsListAddress = getString(R.string.affairs_list_address)
 
-            // Serializer for AffairsListData
-            val affairsListDataSerializer = AccountInfoSerializer(
-                AnchorAccountSerializer(
-                    SolanaApi.AffairsListData.serializer()
-                )
-            )
+            // Create a PublicKey object from the string address
+            val affairsListAddressPubkey = PublicKey(affairsListAddress)
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    val serializer = AccountInfoSerializer(BorshAsBase64JsonArraySerializer(AnchorAccountSerializer("AffairsListData", SolanaApi.AffairsListData.serializer())))
                     Log.d("DebugFlow", "Fetching the AffairsListData")
-                    Log.d("DebugFlow", "Serializer: $affairsListDataSerializer")
-                    Log.d("DebugFlow", "Public Key: ${PublicKey(affairsListAddress)}")
+                    Log.d("DebugFlow", "Public Key: $affairsListAddressPubkey")
+                    Log.d("DebugFlow", "Serializer: $serializer")
 
-                    // Fetch the AffairsListData
-                    val result = solana.api.getAccountInfo(
-                        serializer = affairsListDataSerializer,
-                        account = PublicKey(affairsListAddress)
-                    ).getOrThrow()
+                    val result: AccountInfo<SolanaApi.AffairsListData?>? = try {
+                        solana.api.getAccountInfo(
+                            serializer = serializer,
+                            account = affairsListAddressPubkey
+                        ).getOrThrow()
+                    } catch (e: kotlinx.serialization.SerializationException) {
+                        Log.e("DebugFlow", "Serialization Exception: ${e.message}")
+                        null
+                    } catch (e: java.io.IOException) {
+                        Log.e("DebugFlow", "IO Exception: ${e.message}")
+                        null
+                    } catch (e: Exception) {
+                        Log.e("DebugFlow", "Generic Exception: ${e.message}")
+                        null
+                    }
+
+                    // Log the result for debugging
+                    if (result != null) {
+                        Log.d("DebugFlow", "Result: $result")
+                    } else {
+                        Log.e("DebugFlow", "Result is null")
+                    }
 
                     // Check if data is null or empty
-                    val affairsListData: SolanaApi.AffairsListData? = result?.data
-                    if (affairsListData == null) {
+                    val affairsListData: AccountInfo<SolanaApi.AffairsListData?>? = result
+                    if (affairsListData?.data == null) {
                         Log.e("DebugFlow", "Affairs list data is null.")
                         return@launch
                     }
 
+                    // Unwrap the data field from AccountInfo to get SolanaApi.AffairsListData
+                    val actualAffairsListData: SolanaApi.AffairsListData = affairsListData.data!!
+
                     Log.d("DebugFlow", "Extracting the list of public keys")
 
                     // Extract the list of public keys
-                    val publicKeys: List<String> = affairsListData.activeAffairs
-                    val publicKeyObjects = publicKeys.map { PublicKey(it) }
+                    val publicKeys: List<PublicKey> = actualAffairsListData.activeAffairs  // Now it should resolve
 
                     // Fetch multiple accounts' data
                     CoroutineScope(Dispatchers.IO).launch {
@@ -403,7 +421,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                         SolanaApi.AffairsData.serializer()
                                     )
                                 ),
-                                accounts = publicKeyObjects
+                                accounts = publicKeys  // use it directly
                             )
 
                             // Check for success
@@ -430,32 +448,54 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
                                 Log.d("DebugFlow", "Saving the fetched AffairsData to local HashMap")
 
-                                // Save the fetched AffairsData to the local HashMap
+                                // Data transformation & local temporary storage
                                 affairsDataList.forEach { affairData ->
                                     affairData?.data?.let { nonNullData ->
-                                        nonNullData.authority?.let { authority ->
-                                            val authorityKey = Base58.encode(
-                                                String(
-                                                    Base64.decode(
-                                                        authority,
-                                                        android.util.Base64.DEFAULT
-                                                    )
-                                                ).toByteArray()
-                                            )
-                                            AffairsDataHolder.affairsMap[authorityKey] = nonNullData
+                                        nonNullData.authority?.let { authority: PublicKey ->  // Explicitly specify the type
+
+                                            val authorityBytes = authority.toByteArray()  // Convert PublicKey to byte array
+                                            if (authorityBytes.isNotEmpty()) {  // Check for null or empty
+                                                val authorityKey = Base58.encode(authorityBytes)  // Use Base58 encoding
+
+                                                // Convert List<Byte> to ByteArray
+                                                val ipAddressByteArray = nonNullData.ipAddress.toByteArray()
+                                                val cpuNameByteArray = nonNullData.cpuName.toByteArray()
+                                                val gpuNameByteArray = nonNullData.gpuName.toByteArray()
+
+                                                // Decode ByteArray to String using Base64
+                                                val ipAddressString = String(android.util.Base64.decode(ipAddressByteArray, android.util.Base64.DEFAULT))
+                                                val cpuNameString = String(android.util.Base64.decode(cpuNameByteArray, android.util.Base64.DEFAULT))
+                                                val gpuNameString = String(android.util.Base64.decode(gpuNameByteArray, android.util.Base64.DEFAULT))
+
+                                                // Create a new DecodedAffairsData object with decoded and other values
+                                                val decodedData = DecodedAffairsData(
+                                                    authority = nonNullData.authority,
+                                                    client = nonNullData.client,
+                                                    rental = nonNullData.rental,
+                                                    ipAddress = ipAddressString,
+                                                    cpuName = cpuNameString,
+                                                    gpuName = gpuNameString,
+                                                    totalRamMb = nonNullData.totalRamMb,
+                                                    solPerHour = nonNullData.solPerHour,
+                                                    affairState = nonNullData.affairState,
+                                                    affairTerminationTime = nonNullData.affairTerminationTime,
+                                                    activeRentalStartTime = nonNullData.activeRentalStartTime,
+                                                    dueRentAmount = nonNullData.dueRentAmount
+                                                )
+
+                                                // Store the decoded data in the HashMap
+                                                AffairsDataHolder.affairsMap[authorityKey] = decodedData
+                                            }
                                         }
                                     }
                                 }
 
                                 Log.d("DebugFlow", "AffairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
-
                                 // Initialize MapPopulation
                                 val mapPopulation = MapPopulation()
-
                                 // Start another coroutine to work on UI
                                 lifecycleScope.launch(Dispatchers.IO) {
                                     Log.d("DebugFlow", "Starting UI coroutine")
-
                                     // Convert the raw AffairsData to MarkerProperties
                                     val validMarkerProperties = affairsDataList.mapNotNull {
                                         it.data?.let { data ->
@@ -469,7 +509,6 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                     validMarkerProperties.forEach { markerProperty ->
                                         addGamingPCMarkerWithProperties(markerProperty)
                                     }
-
                                     // Adjust the camera to fit all markers and user's location
                                     userLocation?.let { nonNullUserLocation ->
                                         if (validMarkerProperties.isNotEmpty()) {
@@ -493,6 +532,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                     }
                 } catch (e: Exception) {
                     Log.e("DebugFlow", "Main Coroutine Error: ${e.message}")
+                    e.printStackTrace()
                 }
             }
         }

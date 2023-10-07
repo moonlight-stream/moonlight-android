@@ -404,24 +404,32 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                     // Unwrap the data field from AccountInfo to get SolanaApi.AffairsListData
                     val actualAffairsListData: SolanaApi.AffairsListData = affairsListData.data!!
 
+                    Log.d("DebugFlow", "Size of serialized AffairsListData: ${actualAffairsListData.toString().length}")
+
                     Log.d("DebugFlow", "Extracting the list of public keys")
 
-                    // Extract the list of public keys
-                    val publicKeys: List<PublicKey> = actualAffairsListData.activeAffairs  // Now it should resolve
+// Extract the list of public keys
+                    val publicKeys: List<PublicKey> = actualAffairsListData.activeAffairs
+
+                    Log.d("DebugFlow", "Size of the list of public keys: ${publicKeys.size}")
+
+                    publicKeys.forEach {
+                        Log.d("DebugFlow", "Public key: $it")
+                    }
+
+// Heap size logging
+                    Log.d("DebugFlow", "Available heap size: ${Runtime.getRuntime().freeMemory()}")
+                    Log.d("DebugFlow", "Max heap size: ${Runtime.getRuntime().maxMemory()}")
 
                     // Fetch multiple accounts' data
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
                             Log.d("DebugFlow", "Fetching multiple accounts")
-
                             // Fetch multiple accounts
                             val multipleAccountsResult = solana.api.getMultipleAccountsInfo(
-                                serializer = AccountInfoSerializer(
-                                    BorshAsBase64JsonArraySerializer(
-                                        SolanaApi.AffairsData.serializer()
-                                    )
-                                ),
-                                accounts = publicKeys  // use it directly
+                                serializer = SolanaApi.AffairsData.serializer(),
+                                //serializer = AccountInfoSerializer(BorshAsBase64JsonArraySerializer(AnchorAccountSerializer("AffairsData", SolanaApi.AffairsData.serializer()))),
+                                accounts = publicKeys
                             )
 
                             // Check for success
@@ -437,7 +445,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                 Log.d("DebugFlow", "Filtering and extracting data")
 
                                 // Filter out nulls and extract data
-                                val affairsDataList: List<AccountInfo<SolanaApi.AffairsData?>> =
+                                val affairsDataList: List<SolanaApi.AffairsData> =
                                     multipleAccountsData.filterNotNull().mapNotNull { it.data }
 
                                 // If the list is empty, log an error and return
@@ -450,22 +458,45 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
                                 // Data transformation & local temporary storage
                                 affairsDataList.forEach { affairData ->
-                                    affairData?.data?.let { nonNullData ->
-                                        nonNullData.authority?.let { authority: PublicKey ->  // Explicitly specify the type
+                                    affairData.let { nonNullData ->
+                                        nonNullData.authority.let { authority: PublicKey ->  // Explicitly specify the type
 
                                             val authorityBytes = authority.toByteArray()  // Convert PublicKey to byte array
                                             if (authorityBytes.isNotEmpty()) {  // Check for null or empty
                                                 val authorityKey = Base58.encode(authorityBytes)  // Use Base58 encoding
 
-                                                // Convert List<Byte> to ByteArray
-                                                val ipAddressByteArray = nonNullData.ipAddress.toByteArray()
-                                                val cpuNameByteArray = nonNullData.cpuName.toByteArray()
-                                                val gpuNameByteArray = nonNullData.gpuName.toByteArray()
+                                                // Initialize empty strings as default
+                                                var ipAddressString = ""
+                                                var cpuNameString = ""
+                                                var gpuNameString = ""
 
-                                                // Decode ByteArray to String using Base64
-                                                val ipAddressString = String(android.util.Base64.decode(ipAddressByteArray, android.util.Base64.DEFAULT))
-                                                val cpuNameString = String(android.util.Base64.decode(cpuNameByteArray, android.util.Base64.DEFAULT))
-                                                val gpuNameString = String(android.util.Base64.decode(gpuNameByteArray, android.util.Base64.DEFAULT))
+                                                // Convert List<Byte> to ByteArray and Decode to String, if List is not empty
+                                                if (nonNullData.ipAddress.isNotEmpty()) {
+                                                    try {
+                                                        val ipAddressByteArray = nonNullData.ipAddress.toByteArray()
+                                                        ipAddressString = String(android.util.Base64.decode(ipAddressByteArray, android.util.Base64.DEFAULT))
+                                                    } catch (e: Exception) {
+                                                        Log.e("DebugFlow", "Error in decoding ipAddress: ${e.message}")
+                                                    }
+                                                }
+
+                                                if (nonNullData.cpuName.isNotEmpty()) {
+                                                    try {
+                                                        val cpuNameByteArray = nonNullData.cpuName.toByteArray()
+                                                        cpuNameString = String(android.util.Base64.decode(cpuNameByteArray, android.util.Base64.DEFAULT))
+                                                    } catch (e: Exception) {
+                                                        Log.e("DebugFlow", "Error in decoding cpuName: ${e.message}")
+                                                    }
+                                                }
+
+                                                if (nonNullData.gpuName.isNotEmpty()) {
+                                                    try {
+                                                        val gpuNameByteArray = nonNullData.gpuName.toByteArray()
+                                                        gpuNameString = String(android.util.Base64.decode(gpuNameByteArray, android.util.Base64.DEFAULT))
+                                                    } catch (e: Exception) {
+                                                        Log.e("DebugFlow", "Error in decoding gpuName: ${e.message}")
+                                                    }
+                                                }
 
                                                 // Create a new DecodedAffairsData object with decoded and other values
                                                 val decodedData = DecodedAffairsData(
@@ -482,7 +513,6 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                                     activeRentalStartTime = nonNullData.activeRentalStartTime,
                                                     dueRentAmount = nonNullData.dueRentAmount
                                                 )
-
                                                 // Store the decoded data in the HashMap
                                                 AffairsDataHolder.affairsMap[authorityKey] = decodedData
                                             }
@@ -496,25 +526,37 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                 // Start another coroutine to work on UI
                                 lifecycleScope.launch(Dispatchers.IO) {
                                     Log.d("DebugFlow", "Starting UI coroutine")
-                                    // Convert the raw AffairsData to MarkerProperties
-                                    val validMarkerProperties = affairsDataList.mapNotNull {
-                                        it.data?.let { data ->
-                                            mapPopulation.buildMarkerProperties(this@MapActivity, data)
-                                        }
-                                    }.filter { it.isSuccess }
-                                        .mapNotNull { it.getOrNull() } // Handle nulls gracefully
+                                    // Convert the DecodedAffairsData to MarkerProperties
+                                    val validMarkerProperties = AffairsDataHolder.affairsMap.values.mapNotNull { decodedData ->
+                                        // Since we're inside a coroutine, you can call suspending functions
+                                        runCatching {
+                                            mapPopulation.buildMarkerProperties(this@MapActivity, decodedData)
+                                        }.getOrNull()  // Here we use getOrNull to handle exceptions and null gracefully
+                                    }
 
                                     Log.d("DebugFlow", "Adding markers to map")
 
-                                    validMarkerProperties.forEach { markerProperty ->
-                                        addGamingPCMarkerWithProperties(markerProperty)
+                                    validMarkerProperties.forEach { result ->
+                                        result?.let { markerProperty ->  // Unwrap the Result object
+                                            if (markerProperty.isSuccess) {  // Check if it's a successful Result
+                                                addGamingPCMarkerWithProperties(markerProperty.getOrThrow())  // Extract the value and pass it
+                                            } else {
+                                                Log.e("DebugFlow", "MarkerProperty construction failed: ${markerProperty.exceptionOrNull()?.message}")
+                                            }
+                                        }
                                     }
+
                                     // Adjust the camera to fit all markers and user's location
                                     userLocation?.let { nonNullUserLocation ->
-                                        if (validMarkerProperties.isNotEmpty()) {
+                                        // Extract only the successful MarkerProperties into a new list
+                                        val successfulMarkerProperties = validMarkerProperties.mapNotNull { result ->
+                                            result.takeIf { it.isSuccess }?.getOrThrow()
+                                        }
+
+                                        if (successfulMarkerProperties.isNotEmpty()) {
                                             Log.d("DebugFlow", "Adjusting camera")
                                             adjustCameraToShowAllPoints(
-                                                validMarkerProperties,
+                                                successfulMarkerProperties,
                                                 nonNullUserLocation,
                                                 mapView
                                             )

@@ -34,7 +34,7 @@ class MapPopulation {
     )
 
     // Function to build marker properties, ip & latency are calculated in MapUtils.kt
-    suspend fun buildMarkerProperties(context: Context, affair: SolanaApi.AffairsData): Result<MarkerProperties> {
+    suspend fun buildMarkerProperties(context: Context, affair: DecodedAffairsData): Result<MarkerProperties> {
         return MarkerUtils.buildMarkerProperties(context, affair)
     }
 
@@ -170,19 +170,18 @@ class MapPopulation {
     object MarkerUtils {
 
 
-        suspend fun buildMarkerProperties(context: Context, affair: SolanaApi.AffairsData): Result<MarkerProperties> {
-            // Convert List<Byte> to ByteArray
-            val ipAddressByteArray = affair.ipAddress.toByteArray()
-            val ipAddressString = String(ipAddressByteArray)
+        suspend fun buildMarkerProperties(context: Context, affair: DecodedAffairsData): Result<MarkerProperties> {
+            // Use already decoded ipAddress
+            val ipAddressString = affair.ipAddress
 
             val coordinatesResult = NetworkUtils.ipToCoordinates(context, ipAddressString)
             val latencyResult = NetworkUtils.pingIpAddress(ipAddressString)
             Log.d("buildMarkerProperties", "Coordinates Result: $coordinatesResult, Latency Result: $latencyResult")
 
             if (coordinatesResult.isSuccess && latencyResult.isSuccess) {
-                // Convert List<Byte> to String
-                val cpuNameString = String(affair.cpuName.toByteArray())
-                val gpuNameString = String(affair.gpuName.toByteArray())
+                // Use already decoded cpuName and gpuName
+                val cpuNameString = affair.cpuName
+                val gpuNameString = affair.gpuName
 
                 // Convert PublicKey to its string representation, if the class provides such a method.
                 val authorityString = affair.authority.toString()  // Replace `toString()` with the actual method if available
@@ -207,15 +206,16 @@ class MapPopulation {
 
                 Log.d("buildMarkerProperties", "Created MarkerProperties: $markerProperties") // Log the created MarkerProperties object
 
-                return Result.success(markerProperties)  // Added 'return' here
+                return Result.success(markerProperties)
             } else {
                 val failureReasons = mutableListOf<String>()
                 coordinatesResult.exceptionOrNull()?.let { failureReasons.add("coordinates: ${it.message}") }
                 latencyResult.exceptionOrNull()?.let { failureReasons.add("latency: ${it.message}") }
 
-                return Result.failure(Exception("Failed to build marker properties due to: ${failureReasons.joinToString(", ")}"))  // Added 'return' here
+                return Result.failure(Exception("Failed to build marker properties due to: ${failureReasons.joinToString(", ")}"))
             }
         }
+
 
 
     }

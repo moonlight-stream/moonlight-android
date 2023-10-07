@@ -43,11 +43,9 @@ import com.mapbox.maps.Style
  import androidx.lifecycle.lifecycleScope
  import kotlinx.coroutines.Dispatchers
  import kotlinx.coroutines.launch
- import kotlinx.coroutines.withContext
  import com.mapbox.maps.CameraOptions
  import com.mapbox.maps.EdgeInsets
  import org.bitcoinj.core.Base58
- import android.util.Base64
  import com.limelight.solanaWallet.SolanaApi.solana
  import com.limelight.solanaWallet.WalletActivity
  import com.solana.api.AccountInfo
@@ -55,14 +53,9 @@ import com.mapbox.maps.Style
  import com.solana.api.getAccountInfo
  import com.solana.api.getMultipleAccountsInfo
  import com.solana.core.PublicKey
- import com.solana.models.buffer.AccountInfoData
  import com.solana.networking.serialization.serializers.base64.BorshAsBase64JsonArraySerializer
  import com.solana.networking.serialization.serializers.solana.AnchorAccountSerializer
- import com.solana.networking.serialization.serializers.solana.PublicKeyAs32ByteSerializer
- import com.solana.rxsolana.api.getAccountInfo
  import kotlinx.coroutines.CoroutineScope
- import kotlinx.serialization.KSerializer
- import kotlinx.serialization.Serializable
 
 /* simplified flow:
 Map initializes.
@@ -366,14 +359,12 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    val serializer = AccountInfoSerializer(BorshAsBase64JsonArraySerializer(AnchorAccountSerializer("AffairsListData", SolanaApi.AffairsListData.serializer())))
                     Log.d("DebugFlow", "Fetching the AffairsListData")
                     Log.d("DebugFlow", "Public Key: $affairsListAddressPubkey")
-                    Log.d("DebugFlow", "Serializer: $serializer")
 
                     val result: AccountInfo<SolanaApi.AffairsListData?>? = try {
                         solana.api.getAccountInfo(
-                            serializer = serializer,
+                            serializer = AccountInfoSerializer(BorshAsBase64JsonArraySerializer(AnchorAccountSerializer("AffairsListData", SolanaApi.AffairsListData.serializer()))),
                             account = affairsListAddressPubkey
                         ).getOrThrow()
                     } catch (e: kotlinx.serialization.SerializationException) {
@@ -470,11 +461,13 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                                 var cpuNameString = ""
                                                 var gpuNameString = ""
 
-                                                // Convert List<Byte> to ByteArray and Decode to String, if List is not empty
+                                                // Convert List<UByte> to ByteArray and Decode to String, if List is not empty
                                                 if (nonNullData.ipAddress.isNotEmpty()) {
                                                     try {
-                                                        val ipAddressByteArray = nonNullData.ipAddress.toByteArray()
-                                                        ipAddressString = String(android.util.Base64.decode(ipAddressByteArray, android.util.Base64.DEFAULT))
+                                                        val ipAddressUByteArray = nonNullData.ipAddress.toUByteArray()
+                                                        val ipAddressByteArray = ipAddressUByteArray.asByteArray()
+                                                        val decodedByteArray = android.util.Base64.decode(ipAddressByteArray, android.util.Base64.DEFAULT)
+                                                        val ipAddressString = String(decodedByteArray)
                                                     } catch (e: Exception) {
                                                         Log.e("DebugFlow", "Error in decoding ipAddress: ${e.message}")
                                                     }
@@ -482,8 +475,10 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
                                                 if (nonNullData.cpuName.isNotEmpty()) {
                                                     try {
-                                                        val cpuNameByteArray = nonNullData.cpuName.toByteArray()
-                                                        cpuNameString = String(android.util.Base64.decode(cpuNameByteArray, android.util.Base64.DEFAULT))
+                                                        val cpuNameUByteArray = nonNullData.cpuName.toUByteArray()
+                                                        val cpuNameByteArray = cpuNameUByteArray.asByteArray()
+                                                        val decodedCpuNameByteArray = android.util.Base64.decode(cpuNameByteArray, android.util.Base64.DEFAULT)
+                                                        val cpuNameString = String(decodedCpuNameByteArray)
                                                     } catch (e: Exception) {
                                                         Log.e("DebugFlow", "Error in decoding cpuName: ${e.message}")
                                                     }
@@ -491,13 +486,14 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
                                                 if (nonNullData.gpuName.isNotEmpty()) {
                                                     try {
-                                                        val gpuNameByteArray = nonNullData.gpuName.toByteArray()
-                                                        gpuNameString = String(android.util.Base64.decode(gpuNameByteArray, android.util.Base64.DEFAULT))
+                                                        val gpuNameUByteArray = nonNullData.gpuName.toUByteArray()
+                                                        val gpuNameByteArray = gpuNameUByteArray.asByteArray()
+                                                        val decodedGpuNameByteArray = android.util.Base64.decode(gpuNameByteArray, android.util.Base64.DEFAULT)
+                                                        val gpuNameString = String(decodedGpuNameByteArray)
                                                     } catch (e: Exception) {
                                                         Log.e("DebugFlow", "Error in decoding gpuName: ${e.message}")
                                                     }
                                                 }
-
                                                 // Create a new DecodedAffairsData object with decoded and other values
                                                 val decodedData = DecodedAffairsData(
                                                     authority = nonNullData.authority,

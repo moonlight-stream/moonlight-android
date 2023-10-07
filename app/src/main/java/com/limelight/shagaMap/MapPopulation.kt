@@ -3,7 +3,6 @@ package com.limelight.shagaMap
 import android.content.Context
 import android.util.Log
 import com.limelight.R
-import com.limelight.solanaWallet.SolanaApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -26,7 +25,7 @@ class MapPopulation {
         val gpuName: String,
         val cpuName: String,
         val solanaLenderPublicKey: String,
-        val totalRamMb: UInt,
+        val totalRamMb: UShort,
         val solPerHour: ULong,
         val affairState: String,
         val affairStartTime: ULong,

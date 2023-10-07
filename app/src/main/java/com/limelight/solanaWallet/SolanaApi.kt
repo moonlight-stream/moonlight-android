@@ -31,6 +31,7 @@ object SolanaApi {
         val activeAffairs: List<@Serializable(with = PublicKeyAs32ByteSerializer::class) PublicKey>
     )
 
+    @Serializable
     enum class AffairState {
         Unavailable,
         Available
@@ -40,10 +41,10 @@ object SolanaApi {
         @Serializable(with = PublicKeyAs32ByteSerializer::class) val authority: PublicKey,
         @Serializable(with = PublicKeyAs32ByteSerializer::class) val client: PublicKey,
         @Serializable(with = PublicKeyAs32ByteSerializer::class) val rental: PublicKey?,
-        val ipAddress: List<Byte>,
-        val cpuName: List<Byte>,
-        val gpuName: List<Byte>,
-        val totalRamMb: UInt,
+        val ipAddress: List<UByte>,
+        val cpuName: List<UByte>,
+        val gpuName: List<UByte>,
+        val totalRamMb: UShort,
         val solPerHour: ULong,
         val affairState: AffairState,
         val affairTerminationTime: ULong,

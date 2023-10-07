@@ -34,7 +34,7 @@ data class DecodedAffairsData(
     val ipAddress: String,
     val cpuName: String,
     val gpuName: String,
-    val totalRamMb: UInt,
+    val totalRamMb: UShort,
     val solPerHour: ULong,
     val affairState: SolanaApi.AffairState,
     val affairTerminationTime: ULong,

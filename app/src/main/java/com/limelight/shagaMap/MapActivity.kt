@@ -221,7 +221,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
         }
     }
 
-
+/*
     private fun initializeTestButton() {
         val testButton = findViewById<Button>(R.id.testButton)
         testButton.setOnClickListener {
@@ -292,10 +292,12 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
         }
     }
 
+ */
 
 
 
-/*
+
+
         private fun initializeTestButton() {
             val testButton: Button = findViewById(R.id.testButton)
             testButton.setOnClickListener {
@@ -322,7 +324,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                         dueRentAmount = 0uL // Replace with actual value
                     )
                 )
-
+                val decodedAffairsDataList = mutableListOf<DecodedAffairsData>()
                 // Add this block to populate the AffairsDataHolder.affairsMap
                 testPayloads.forEach { affairData ->
                         affairData.let { nonNullData ->
@@ -379,27 +381,24 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                         dueRentAmount = nonNullData.dueRentAmount
                                     )
                                     // Store the decoded data in the HashMap
+                                    decodedAffairsDataList.add(decodedData)
                                     AffairsDataHolder.affairsMap[authorityKey] = decodedData
                                 }
                             }
                         }
                     }
-
-                Log.d("MapActivity", "affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
                 // Log to debug
                 Log.d("MapActivity", "Synthetic affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
                 // Initialize MapPopulation if it's not already
+                Log.d("MapActivity", "affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
                 val mapPopulation = MapPopulation()
-                // Create a list to collect valid MarkerProperties
                 val validMarkerProperties = mutableListOf<MapPopulation.MarkerProperties>()
 
                 lifecycleScope.launch(Dispatchers.IO) {
-                    for (testPayload in testPayloads) {
-                        val conversionResult =
-                            mapPopulation.buildMarkerProperties(this@MapActivity, testPayload)
+                    for (decodedData in decodedAffairsDataList) {
+                        val conversionResult = mapPopulation.buildMarkerProperties(this@MapActivity, decodedData)
                         if (conversionResult.isFailure) {
-                            // Log and handle the failure
-                            Log.e("Test", "Conversion failed for payload: $testPayload")
+                            Log.e("Test", "Conversion failed for payload: $decodedData")
                             continue
                         }
 
@@ -424,7 +423,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             }
         }
 
- */
+
 
 
 

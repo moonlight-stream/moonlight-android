@@ -40,7 +40,8 @@ data class DecodedAffairsData(
     val affairTerminationTime: ULong,
     val activeRentalStartTime: ULong,
     val dueRentAmount: ULong
-) { val affairStateString: String
+)
+{ val affairStateString: String
         get() = when (affairState) {
             0u -> "UNAVAILABLE"
             1u -> "AVAILABLE"

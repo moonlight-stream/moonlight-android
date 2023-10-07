@@ -58,6 +58,8 @@ import com.mapbox.maps.Style
  import com.solana.networking.serialization.serializers.base64.BorshAsBase64JsonArraySerializer
  import com.solana.networking.serialization.serializers.solana.AnchorAccountSerializer
  import kotlinx.coroutines.CoroutineScope
+ import kotlinx.coroutines.withContext
+ import org.bouncycastle.util.encoders.Base64
 
 /* simplified flow:
 Map initializes.
@@ -219,6 +221,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
         }
     }
 
+
     private fun initializeTestButton() {
         val testButton = findViewById<Button>(R.id.testButton)
         testButton.setOnClickListener {
@@ -292,37 +295,99 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
 
 
-        /*
+/*
         private fun initializeTestButton() {
             val testButton: Button = findViewById(R.id.testButton)
             testButton.setOnClickListener {
                 val testPayloads = listOf(
                     SolanaApi.AffairsData(
-                        authority = "5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP", // Assuming this is base64
-                        client = null, // Assuming this is base64
-                        rental = "5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP", // Assuming this is base64
-                        ipAddress = "MTA5LjExOC4xNDYuMTcx", // "109.118.146.171" in base64
-                        cpuName = "SW50ZWwgaTc=", // "Intel i7" in base64
-                        gpuName = "TlZJRElBIEdUWCAxMDYw", // "NVIDIA GTX 1060" in base64
-                        totalRamMb = 4096,
-                        usdcPerHour = 10,
-                        affairState = "U29tZVN0YXRl", // "SomeState" in base64
-                        affairTerminationTime = 1696381504L,
-                        activeRentalStartTime = null,
-                        dueRentAmount = null,
-                    ),
+                        authority = PublicKey("5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP"), // Replace with actual PublicKey object initialization
+                        client = PublicKey("5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP"), // Replace with actual PublicKey object initialization
+                        rental = PublicKey("5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP"), // Replace with actual PublicKey object initialization
+                        // Convert IP address string "109.118.146.171" to byte array
+                        ipAddress = "109.118.146.171".toByteArray(Charsets.US_ASCII),
+                        // Convert CPU name string "Intel i7" to byte array
+                        cpuName = "Intel i7".toByteArray(Charsets.US_ASCII),
+                        // Convert GPU name string "NVIDIA GTX 1060" to byte array
+                        gpuName = "NVIDIA GTX 1060".toByteArray(Charsets.US_ASCII),
+                        // Use UInt for totalRamMb
+                        totalRamMb = 4096u,
+                        // Use ULong for solPerHour
+                        solPerHour = 10uL,
+                        // Use UInt for affairState
+                        affairState = 1u,
+                        // Use ULong for affairTerminationTime, activeRentalStartTime, and dueRentAmount
+                        affairTerminationTime = 1696381504uL,
+                        activeRentalStartTime = 0uL, // Replace with actual value
+                        dueRentAmount = 0uL // Replace with actual value
+                    )
                 )
+
                 // Add this block to populate the AffairsDataHolder.affairsMap
                 testPayloads.forEach { affairData ->
-                    val authorityKey = Base58.encode(String(Base64.decode(affairData.authority, android.util.Base64.DEFAULT)).toByteArray())
-                    AffairsDataHolder.affairsMap[authorityKey] = affairData
-                }
+                        affairData.let { nonNullData ->
+                            nonNullData.authority.let { authority: PublicKey ->  // Explicitly specify the type
+
+                                val authorityBytes = authority.toByteArray()  // Convert PublicKey to byte array
+                                if (authorityBytes.isNotEmpty()) {  // Check for null or empty
+                                    val authorityKey = Base58.encode(authorityBytes)  // Use Base58 encoding
+
+                                    // Initialize empty strings as default
+                                    var ipAddressString = ""
+                                    var cpuNameString = ""
+                                    var gpuNameString = ""
+
+                                    // Use the ipAddressBase64 property for Base64 encoding and decoding
+                                    if (nonNullData.ipAddress.isNotEmpty()) {
+                                        try {
+                                            ipAddressString = nonNullData.ipAddressString
+                                        } catch (e: Exception) {
+                                            Log.e("DebugFlow", "Error in decoding ipAddress: ${e.message}")
+                                        }
+                                    }
+
+                                    // Use the cpuNameBase64 property for Base64 encoding and decoding
+                                    if (nonNullData.cpuName.isNotEmpty()) {
+                                        try {
+                                            cpuNameString = nonNullData.cpuNameString
+                                        } catch (e: Exception) {
+                                            Log.e("DebugFlow", "Error in decoding cpuName: ${e.message}")
+                                        }
+                                    }
+
+                                    // Use the gpuNameBase64 property for Base64 encoding and decoding
+                                    if (nonNullData.gpuName.isNotEmpty()) {
+                                        try {
+                                            gpuNameString = nonNullData.gpuNameString
+                                        } catch (e: Exception) {
+                                            Log.e("DebugFlow", "Error in decoding gpuName: ${e.message}")
+                                        }
+                                    }
+                                    // Create a new DecodedAffairsData object with decoded and other values
+                                    val decodedData = DecodedAffairsData(
+                                        authority = nonNullData.authority,
+                                        client = nonNullData.client,
+                                        rental = nonNullData.rental,
+                                        ipAddress = ipAddressString,
+                                        cpuName = cpuNameString,
+                                        gpuName = gpuNameString,
+                                        totalRamMb = nonNullData.totalRamMb,
+                                        solPerHour = nonNullData.solPerHour,
+                                        affairState = nonNullData.affairState,
+                                        affairTerminationTime = nonNullData.affairTerminationTime,
+                                        activeRentalStartTime = nonNullData.activeRentalStartTime,
+                                        dueRentAmount = nonNullData.dueRentAmount
+                                    )
+                                    // Store the decoded data in the HashMap
+                                    AffairsDataHolder.affairsMap[authorityKey] = decodedData
+                                }
+                            }
+                        }
+                    }
 
                 Log.d("MapActivity", "affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
-
                 // Log to debug
                 Log.d("MapActivity", "Synthetic affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
-
                 // Initialize MapPopulation if it's not already
                 val mapPopulation = MapPopulation()
                 // Create a list to collect valid MarkerProperties
@@ -340,14 +405,12 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
                         val markerProperty = conversionResult.getOrThrow()
                         validMarkerProperties.add(markerProperty)  // Add to the list
-
                         // Switch back to the Main thread to update UI
                         withContext(Dispatchers.Main) {
                             // Add the marker to the map
                             addGamingPCMarkerWithProperties(markerProperty)
                         }
                     }
-
                     // Now adjust the camera, but on the Main thread
                     withContext(Dispatchers.Main) {
                         // Assuming userLocation has been initialized and is non-null
@@ -360,7 +423,9 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                 }
             }
         }
-        */
+
+ */
+
 
 
     private fun initializeLocation() {

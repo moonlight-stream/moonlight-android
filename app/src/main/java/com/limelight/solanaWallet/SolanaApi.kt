@@ -100,7 +100,8 @@ object SolanaApi {
         val dueRentAmount: ULong
     ) {
         var ipAddressString: String
-            get() = String(ipAddress).trimEnd('\u0000')  // Trimming null characters at the end
+            get() = ipAddress.toString(Charsets.UTF_8)
+            // Trimming null characters at the end
             set(value) {
                 val bytes = value.toByteArray()
                 if (bytes.size != 15) throw IllegalArgumentException("ipAddress must contain exactly 15 elements")
@@ -108,14 +109,14 @@ object SolanaApi {
             }
 
         var cpuNameString: String
-            get() = String(cpuName).trimEnd('\u0000')  // Trimming null characters at the end
+            get() = cpuName.toString(Charsets.UTF_8)
             set(value) {
                 val bytes = value.toByteArray()
                 if (bytes.size > 64) throw IllegalArgumentException("cpuName cannot contain more than 64 elements")
                 System.arraycopy(bytes, 0, cpuName, 0, bytes.size)
             }
         var gpuNameString: String
-            get() = String(gpuName).trimEnd('\u0000')  // Trimming null characters at the end
+            get() = gpuName.toString(Charsets.UTF_8)
             set(value) {
                 val bytes = value.toByteArray()
                 if (bytes.size > 64) throw IllegalArgumentException("gpuName cannot contain more than 64 elements")

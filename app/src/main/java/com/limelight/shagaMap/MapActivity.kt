@@ -4,6 +4,7 @@ package com.limelight.shagaMap
  import android.content.Intent
  import android.content.pm.PackageManager
  import android.graphics.BitmapFactory
+ import android.os.Build
  import android.os.Bundle
 import android.util.Log
  import android.view.LayoutInflater
@@ -12,7 +13,8 @@ import android.util.Log
  import android.widget.Button
  import android.widget.FrameLayout
  import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+ import androidx.annotation.RequiresApi
+ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -75,6 +77,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
     private val annotationToPropertiesMap: MutableMap<PointAnnotation, MapPopulation.MarkerProperties> = mutableMapOf()
     private var userLocation: Point? = null
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
@@ -106,8 +109,6 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
             onMapReady()
 
-            //initializeMapInteractions()
-
             initializeLocation() // initialize location
 
             initializeLocationPuck() // this initializes the location
@@ -125,7 +126,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             startActivity(intent)
         }
 
-        //initializeTestButton()
+        initializeTestButton()
     }
 
 
@@ -218,77 +219,148 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
         }
     }
 
-
-
-    /*
     private fun initializeTestButton() {
-        val testButton: Button = findViewById(R.id.testButton)
+        val testButton = findViewById<Button>(R.id.testButton)
         testButton.setOnClickListener {
-            val testPayloads = listOf(
-                SolanaApi.AffairsData(
-                    authority = "5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP", // Assuming this is base64
-                    client = null, // Assuming this is base64
-                    rental = "5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP", // Assuming this is base64
-                    ipAddress = "MTA5LjExOC4xNDYuMTcx", // "109.118.146.171" in base64
-                    cpuName = "SW50ZWwgaTc=", // "Intel i7" in base64
-                    gpuName = "TlZJRElBIEdUWCAxMDYw", // "NVIDIA GTX 1060" in base64
-                    totalRamMb = 4096,
-                    usdcPerHour = 10,
-                    affairState = "U29tZVN0YXRl", // "SomeState" in base64
-                    affairTerminationTime = 1696381504L,
-                    activeRentalStartTime = null,
-                    dueRentAmount = null,
-                ),
-            )
-            // Add this block to populate the AffairsDataHolder.affairsMap
-            testPayloads.forEach { affairData ->
-                val authorityKey = Base58.encode(String(Base64.decode(affairData.authority, android.util.Base64.DEFAULT)).toByteArray())
-                AffairsDataHolder.affairsMap[authorityKey] = affairData
-            }
+            Log.d("DebugFlow", "Test Button Clicked")
+            val targetAddress = "AsCMkK1iqA5jXGGp9TiapbBATNPjbZp1jfcWy7unkevo"
+            val targetAddressPubkey = PublicKey(targetAddress)
+            Log.d("DebugFlow", "Target Public Key: $targetAddressPubkey")
 
-            Log.d("MapActivity", "affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
-
-            // Log to debug
-            Log.d("MapActivity", "Synthetic affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
-
-            // Initialize MapPopulation if it's not already
-            val mapPopulation = MapPopulation()
-            // Create a list to collect valid MarkerProperties
-            val validMarkerProperties = mutableListOf<MapPopulation.MarkerProperties>()
-
-            lifecycleScope.launch(Dispatchers.IO) {
-                for (testPayload in testPayloads) {
-                    val conversionResult =
-                        mapPopulation.buildMarkerProperties(this@MapActivity, testPayload)
-                    if (conversionResult.isFailure) {
-                        // Log and handle the failure
-                        Log.e("Test", "Conversion failed for payload: $testPayload")
-                        continue
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    Log.d("DebugFlow", "Fetching AccountInfo")
+                    val result: AccountInfo<SolanaApi.AffairsData?>? = try {
+                        solana.api.getAccountInfo(
+                            serializer = AccountInfoSerializer(BorshAsBase64JsonArraySerializer(AnchorAccountSerializer("AffairsData", SolanaApi.AffairsData.serializer()))),
+                            account = targetAddressPubkey
+                        ).getOrThrow()
+                    } catch (e: kotlinx.serialization.SerializationException) {
+                        Log.e("DebugFlow", "SerializationException: ${e.message}")
+                        return@launch
+                    } catch (e: Exception) {
+                        Log.e("DebugFlow", "Unknown Exception: ${e.message}")
+                        return@launch
                     }
+                    if (result != null) {
+                        Log.d("DebugFlow", "Fetched data successfully")
 
-                    val markerProperty = conversionResult.getOrThrow()
-                    validMarkerProperties.add(markerProperty)  // Add to the list
+                        // Assume that 'data' is the AffairDummy object fetched
+                        val data: SolanaApi.AffairsData? = result.data
 
-                    // Switch back to the Main thread to update UI
-                    withContext(Dispatchers.Main) {
-                        // Add the marker to the map
-                        addGamingPCMarkerWithProperties(markerProperty)
+                        if (data != null) {
+                            Log.d("DebugFlow", "Authority: ${data.authority}")
+                            Log.d("DebugFlow", "Client: ${data.client}")
+                            Log.d("DebugFlow", "Rental: ${data.rental}")
+                            Log.d("DebugFlow", "Total RAM MB: ${data.totalRamMb}")
+                            Log.d("DebugFlow", "Sol Per Hour: ${data.solPerHour}")
+
+                            // Converting byte arrays to ASCII strings for logging
+                            val ipAddressString = String(data.ipAddress).trimEnd('\u0000')  // Trimming null characters at the end
+                            val cpuNameString = String(data.cpuName).trimEnd('\u0000')      // Trimming null characters at the end
+                            val gpuNameString = String(data.gpuName).trimEnd('\u0000')      // Trimming null characters at the end
+
+
+                            // For demonstration purposes, you can replace these with the actual ByteArray from your data
+                            val demoIpAddress = byteArrayOf(49, 48, 57, 46, 49, 49, 56, 46, 49, 52, 54, 46, 49, 55, 49)
+                            val demoCpuName = byteArrayOf(73, 110, 116, 101, 108, 40, 82, 41, 32, 67, 111, 114, 101, 40, 84, 77, 41, 32, 105, 55, 45, 56, 55, 53, 48, 72, 32, 67, 80, 85, 32, 64, 32, 50, 46, 50, 48, 71, 72, 122, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+                            // Convert byte arrays to ASCII strings
+                            val ZipAddressString = String(demoIpAddress).trimEnd('\u0000')
+                            val ZcpuNameString = String(demoCpuName).trimEnd('\u0000')
+
+                            Log.d("DebugFlow", "IP Address: $ZipAddressString")  // Should log "109.118.146.171"
+                            Log.d("DebugFlow", "CPU Name: $ZcpuNameString")      // Should log "Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz"
+
+
+                            Log.d("DebugFlow", "IP Address: $ipAddressString")
+                            Log.d("DebugFlow", "CPU Name: $cpuNameString")
+                            Log.d("DebugFlow", "GPU Name: $gpuNameString")
+                        } else {
+                            Log.e("DebugFlow", "Fetched data is null")
+                        }
                     }
-                }
-
-                // Now adjust the camera, but on the Main thread
-                withContext(Dispatchers.Main) {
-                    // Assuming userLocation has been initialized and is non-null
-                    userLocation?.let {
-                        adjustCameraToShowAllPoints(validMarkerProperties, it, mapView)
-                    } ?: run {
-                        Log.e("adjustCamera", "User location is null. Cannot adjust camera.")
-                    }
+                } catch (e: OutOfMemoryError) {
+                    Log.e("DebugFlow", "Ran out of memory: ${e.message}")
+                } catch (e: Exception) {
+                    Log.e("DebugFlow", "An unknown error occurred: ${e.message}")
                 }
             }
         }
     }
-    */
+
+
+
+
+        /*
+        private fun initializeTestButton() {
+            val testButton: Button = findViewById(R.id.testButton)
+            testButton.setOnClickListener {
+                val testPayloads = listOf(
+                    SolanaApi.AffairsData(
+                        authority = "5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP", // Assuming this is base64
+                        client = null, // Assuming this is base64
+                        rental = "5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP", // Assuming this is base64
+                        ipAddress = "MTA5LjExOC4xNDYuMTcx", // "109.118.146.171" in base64
+                        cpuName = "SW50ZWwgaTc=", // "Intel i7" in base64
+                        gpuName = "TlZJRElBIEdUWCAxMDYw", // "NVIDIA GTX 1060" in base64
+                        totalRamMb = 4096,
+                        usdcPerHour = 10,
+                        affairState = "U29tZVN0YXRl", // "SomeState" in base64
+                        affairTerminationTime = 1696381504L,
+                        activeRentalStartTime = null,
+                        dueRentAmount = null,
+                    ),
+                )
+                // Add this block to populate the AffairsDataHolder.affairsMap
+                testPayloads.forEach { affairData ->
+                    val authorityKey = Base58.encode(String(Base64.decode(affairData.authority, android.util.Base64.DEFAULT)).toByteArray())
+                    AffairsDataHolder.affairsMap[authorityKey] = affairData
+                }
+
+                Log.d("MapActivity", "affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
+
+                // Log to debug
+                Log.d("MapActivity", "Synthetic affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
+
+                // Initialize MapPopulation if it's not already
+                val mapPopulation = MapPopulation()
+                // Create a list to collect valid MarkerProperties
+                val validMarkerProperties = mutableListOf<MapPopulation.MarkerProperties>()
+
+                lifecycleScope.launch(Dispatchers.IO) {
+                    for (testPayload in testPayloads) {
+                        val conversionResult =
+                            mapPopulation.buildMarkerProperties(this@MapActivity, testPayload)
+                        if (conversionResult.isFailure) {
+                            // Log and handle the failure
+                            Log.e("Test", "Conversion failed for payload: $testPayload")
+                            continue
+                        }
+
+                        val markerProperty = conversionResult.getOrThrow()
+                        validMarkerProperties.add(markerProperty)  // Add to the list
+
+                        // Switch back to the Main thread to update UI
+                        withContext(Dispatchers.Main) {
+                            // Add the marker to the map
+                            addGamingPCMarkerWithProperties(markerProperty)
+                        }
+                    }
+
+                    // Now adjust the camera, but on the Main thread
+                    withContext(Dispatchers.Main) {
+                        // Assuming userLocation has been initialized and is non-null
+                        userLocation?.let {
+                            adjustCameraToShowAllPoints(validMarkerProperties, it, mapView)
+                        } ?: run {
+                            Log.e("adjustCamera", "User location is null. Cannot adjust camera.")
+                        }
+                    }
+                }
+            }
+        }
+        */
 
 
     private fun initializeLocation() {
@@ -347,6 +419,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
     }
 
     // Function to fetch AffairsList
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun initializePopulateMapButton() {
         val button = findViewById<FloatingActionButton>(R.id.populateMapButton)
 
@@ -399,7 +472,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
                     Log.d("DebugFlow", "Extracting the list of public keys")
 
-// Extract the list of public keys
+                    // Extract the list of public keys
                     val publicKeys: List<PublicKey> = actualAffairsListData.activeAffairs
 
                     Log.d("DebugFlow", "Size of the list of public keys: ${publicKeys.size}")
@@ -408,7 +481,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                         Log.d("DebugFlow", "Public key: $it")
                     }
 
-// Heap size logging
+                    // Heap size logging
                     Log.d("DebugFlow", "Available heap size: ${Runtime.getRuntime().freeMemory()}")
                     Log.d("DebugFlow", "Max heap size: ${Runtime.getRuntime().maxMemory()}")
 
@@ -461,35 +534,28 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                                 var cpuNameString = ""
                                                 var gpuNameString = ""
 
-                                                // Convert List<UByte> to ByteArray and Decode to String, if List is not empty
+                                                // Use the ipAddressBase64 property for Base64 encoding and decoding
                                                 if (nonNullData.ipAddress.isNotEmpty()) {
                                                     try {
-                                                        val ipAddressUByteArray = nonNullData.ipAddress.toUByteArray()
-                                                        val ipAddressByteArray = ipAddressUByteArray.asByteArray()
-                                                        val decodedByteArray = android.util.Base64.decode(ipAddressByteArray, android.util.Base64.DEFAULT)
-                                                        val ipAddressString = String(decodedByteArray)
+                                                        ipAddressString = nonNullData.ipAddressString
                                                     } catch (e: Exception) {
                                                         Log.e("DebugFlow", "Error in decoding ipAddress: ${e.message}")
                                                     }
                                                 }
 
+                                                // Use the cpuNameBase64 property for Base64 encoding and decoding
                                                 if (nonNullData.cpuName.isNotEmpty()) {
                                                     try {
-                                                        val cpuNameUByteArray = nonNullData.cpuName.toUByteArray()
-                                                        val cpuNameByteArray = cpuNameUByteArray.asByteArray()
-                                                        val decodedCpuNameByteArray = android.util.Base64.decode(cpuNameByteArray, android.util.Base64.DEFAULT)
-                                                        val cpuNameString = String(decodedCpuNameByteArray)
+                                                        cpuNameString = nonNullData.cpuNameString
                                                     } catch (e: Exception) {
                                                         Log.e("DebugFlow", "Error in decoding cpuName: ${e.message}")
                                                     }
                                                 }
 
+                                                // Use the gpuNameBase64 property for Base64 encoding and decoding
                                                 if (nonNullData.gpuName.isNotEmpty()) {
                                                     try {
-                                                        val gpuNameUByteArray = nonNullData.gpuName.toUByteArray()
-                                                        val gpuNameByteArray = gpuNameUByteArray.asByteArray()
-                                                        val decodedGpuNameByteArray = android.util.Base64.decode(gpuNameByteArray, android.util.Base64.DEFAULT)
-                                                        val gpuNameString = String(decodedGpuNameByteArray)
+                                                        gpuNameString = nonNullData.gpuNameString
                                                     } catch (e: Exception) {
                                                         Log.e("DebugFlow", "Error in decoding gpuName: ${e.message}")
                                                     }

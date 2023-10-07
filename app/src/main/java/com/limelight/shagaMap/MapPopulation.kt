@@ -25,7 +25,7 @@ class MapPopulation {
         val gpuName: String,
         val cpuName: String,
         val solanaLenderPublicKey: String,
-        val totalRamMb: UShort,
+        val totalRamMb: UInt,
         val solPerHour: ULong,
         val affairState: String,
         val affairStartTime: ULong,
@@ -185,8 +185,16 @@ class MapPopulation {
                 // Convert PublicKey to its string representation, if the class provides such a method.
                 val authorityString = affair.authority.toString()  // Replace `toString()` with the actual method if available
 
-                // Use the `name` property of the enum for the string representation.
-                val affairStateString = affair.affairState.name
+                // Initialize the string representation of affairState
+                var affairStateString = "UNKNOWN"  // Default to "UNKNOWN"
+
+// Convert the UInt value to its corresponding string representation
+                when (affair.affairState.toUInt()) {
+                    0u -> affairStateString = "UNAVAILABLE"
+                    1u -> affairStateString = "AVAILABLE"
+                    else -> {}  // Leave it as "UNKNOWN"
+                }
+
 
                 // Now build MarkerProperties
                 val markerProperties = MarkerProperties(

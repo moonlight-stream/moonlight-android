@@ -34,13 +34,20 @@ data class DecodedAffairsData(
     val ipAddress: String,
     val cpuName: String,
     val gpuName: String,
-    val totalRamMb: UShort,
+    val totalRamMb: UInt,
     val solPerHour: ULong,
-    val affairState: SolanaApi.AffairState,
+    val affairState: UInt,
     val affairTerminationTime: ULong,
     val activeRentalStartTime: ULong,
     val dueRentAmount: ULong
-)
+) { val affairStateString: String
+        get() = when (affairState) {
+            0u -> "UNAVAILABLE"
+            1u -> "AVAILABLE"
+            else -> "UNKNOWN"
+        }
+}
+
 
 class RentingActivity : AppCompatActivity() {
     private lateinit var walletManager: WalletManager

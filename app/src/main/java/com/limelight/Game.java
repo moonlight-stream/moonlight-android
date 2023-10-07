@@ -1093,6 +1093,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         if (controllerHandler != null) {
             inputManager.unregisterInputDeviceListener(controllerHandler);
+            controllerHandler.destroy();
         }
         if (keyboardTranslator != null) {
             inputManager.unregisterInputDeviceListener(keyboardTranslator);

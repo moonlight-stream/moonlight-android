@@ -118,6 +118,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final SceManager sceManager;
     private final Handler handler;
     private boolean hasGameController;
+    private boolean stopped = false;
 
     private final PreferenceConfiguration prefConfig;
     private short currentControllers, initialControllers;
@@ -249,6 +250,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public void stop() {
+        // Stop new device contexts from being created or used
+        stopped = true;
+
         for (int i = 0; i < inputDeviceContexts.size(); i++) {
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
             deviceContext.destroy();
@@ -259,8 +263,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             deviceContext.destroy();
         }
 
-        sceManager.stop();
         deviceVibrator.cancel();
+    }
+
+    public void destroy() {
+        if (!stopped) {
+            stop();
+        }
+
+        sceManager.stop();
     }
 
     public void disableSensors() {
@@ -892,8 +903,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     private InputDeviceContext getContextForEvent(InputEvent event) {
-        // Unknown devices use the default context
-        if (event.getDeviceId() == 0) {
+        // Don't return a context if we're stopped
+        if (stopped) {
+            return null;
+        }
+        else if (event.getDeviceId() == 0) {
+            // Unknown devices use the default context
             return defaultContext;
         }
         else if (event.getDevice() == null) {
@@ -2647,6 +2662,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     @Override
     public void deviceAdded(AbstractController controller) {
+        if (stopped) {
+            return;
+        }
+
         UsbDeviceContext context = createUsbDeviceContextForDevice(controller);
         usbDeviceContexts.put(controller.getControllerId(), context);
     }

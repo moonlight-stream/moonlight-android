@@ -25,7 +25,7 @@ class MapPopulation {
         val latency: Long,
         val gpuName: String,
         val cpuName: String,
-        val solanaLenderPublicKey: String,
+        val sunshinePublicKey: String,
         val totalRamMb: UInt,
         val solPerHour: Double,
         val affairState: String,
@@ -135,10 +135,8 @@ class MapPopulation {
                             try {
                                 // Convert to Float first to handle cases like "17.6"
                                 val latencyFloat = timeStr.substring(0, endPos).toFloat()
-
                                 // Round to the nearest Long if your application logic requires it
                                 val latencyLong = latencyFloat.roundToLong()
-
                                 // Now use latencyLong in your application
                                 latency = latencyLong
 
@@ -203,7 +201,7 @@ class MapPopulation {
                     latency = latencyResult.getOrThrow(),
                     gpuName = gpuNameString,
                     cpuName = cpuNameString,
-                    solanaLenderPublicKey = authorityString, // IT'S THE AUTHORITY, NOT THE LENDER, BUT THAT'S OK
+                    sunshinePublicKey = authorityString,
                     totalRamMb = affair.totalRamMb,
                     solPerHour = solPerHourInSol,
                     affairState = affairStateString,

@@ -431,11 +431,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     //Shaga
-    public void publicDoPairShaga(final ComputerDetails computer, PublicKey solanaLenderPublicKey) {
-        doPairShaga(computer, solanaLenderPublicKey);
+    public void publicDoPairShaga(final ComputerDetails computer, PublicKey sunshinePublicKey) {
+        doPairShaga(computer, sunshinePublicKey);
     }
 
-    private void doPairShaga(final ComputerDetails computer, PublicKey solanaLenderPublicKey) {
+    private void doPairShaga(final ComputerDetails computer, PublicKey sunshinePublicKey) {
         if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
             Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
             return;
@@ -474,7 +474,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
                         PairingManager pm = httpConn.getPairingManager();
                         // Shaga Lender key to x25519
-                        byte[] ed25519PublicKey = solanaLenderPublicKey.getPubkey();
+                        byte[] ed25519PublicKey = sunshinePublicKey.getPubkey();
                         byte[] x25519PublicKey = EncryptionHelper.mapPublicEd25519ToX25519(ed25519PublicKey);
 
 

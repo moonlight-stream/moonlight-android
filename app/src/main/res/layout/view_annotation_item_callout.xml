@@ -66,7 +66,7 @@
         app:layout_constraintStart_toStartOf="parent"/>
 
     <TextView
-        android:id="@+id/solanaLenderPublicKey"
+        android:id="@+id/sunshinePublicKey"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Lender's ID : "
@@ -82,7 +82,7 @@
         android:layout_height="wrap_content"
         android:text="Close"
         android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@+id/solanaLenderPublicKey"
+        app:layout_constraintTop_toBottomOf="@+id/sunshinePublicKey"
         app:layout_constraintStart_toStartOf="parent"/>
 
     <Button

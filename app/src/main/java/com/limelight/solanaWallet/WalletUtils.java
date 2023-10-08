@@ -4,11 +4,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.limelight.utils.Loggatore;
 import com.solana.core.DerivationPath;
 import com.solana.core.HotAccount;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.lang.reflect.Type;
 
@@ -48,23 +50,6 @@ public class WalletUtils {
     }
 
 
-    public static HotAccount getAccount(Context context) throws IllegalStateException {
-        SharedPreferences sharedPreferences = getSharedPreferences(context);
-        String encryptedMnemonicJson = SolanaPreferenceManager.INSTANCE.getEncryptedMnemonic();
-
-        if (encryptedMnemonicJson == null || encryptedMnemonicJson.isEmpty()) {
-            throw new IllegalStateException("No account data available");
-        }
-
-        String decryptedMnemonicJson = EncryptionHelper.decrypt(encryptedMnemonicJson);
-        List<String> mnemonic = new Gson().fromJson(decryptedMnemonicJson, new TypeToken<List<String>>() {
-        }.getType());
-        return getAccountFromMnemonic(mnemonic);
-    }
-
-    public static HotAccount getAccountFromMnemonic(List<String> mnemonic) {
-        return SolanaPreferenceManager.INSTANCE.getHotAccountFromMnemonic(mnemonic, "", DerivationPath.BIP44_M_44H_501H_0H_OH.INSTANCE);
-    }
 
     // TODO: Add wallet seed phrase recovery, this is not the focus for now
     //public static HotAccount recoverAccount(List<String> userProvidedMnemonic) {

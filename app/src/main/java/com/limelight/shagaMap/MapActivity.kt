@@ -152,9 +152,9 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             // Step 2: Add OnClickListener
             startRentingButton.setOnClickListener {
                 val intent = Intent(this@MapActivity, RentingActivity::class.java)
-                intent.putExtra("solanaLenderPublicKey", markerProperties.solanaLenderPublicKey) // <<<< It's actually the Authority, not the Lender
+                intent.putExtra("sunshinePublicKey", markerProperties.sunshinePublicKey)
                 intent.putExtra("latency", markerProperties.latency)
-                Log.d("MapActivity", "Sending solanaLenderPublicKey: ${markerProperties.solanaLenderPublicKey}")
+                Log.d("MapActivity", "Sending sunshinePublicKey: ${markerProperties.sunshinePublicKey}")
                 startActivity(intent)
             }
 
@@ -204,7 +204,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             val format = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
             view.findViewById<TextView>(R.id.affairTerminationTime).text = "Rent available until: ${format.format(affairTerminationDate)}"
             // Populate Lender's ID
-            view.findViewById<TextView>(R.id.solanaLenderPublicKey).text = "Lender's ID: ${markerProperties.solanaLenderPublicKey}"
+            view.findViewById<TextView>(R.id.sunshinePublicKey).text = "Lender's ID: ${markerProperties.sunshinePublicKey}"
             // Add close button functionality
             val closeButton: Button = view.findViewById(R.id.closeButton)
             closeButton.setOnClickListener {
@@ -218,195 +218,6 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             false  // Return false if an error occurs
         }
     }
-
-
-
-    /*
-    private fun initializeTestButton() {
-        val testButton = findViewById<Button>(R.id.testButton)
-        testButton.setOnClickListener {
-            Log.d("DebugFlow", "Test Button Clicked")
-            val targetAddress = "7VFAKozUKpYxgjW9TGP16rPvzr6qnMoX7viADgx8V8Nf"
-            val targetAddressPubkey = PublicKey(targetAddress)
-            Log.d("DebugFlow", "Target Public Key: $targetAddressPubkey")
-
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    Log.d("DebugFlow", "Fetching AccountInfo")
-                    val result: AccountInfo<SolanaApi.AffairsData?>? = try {
-                        solana.api.getAccountInfo(
-                            serializer = AccountInfoSerializer(BorshAsBase64JsonArraySerializer(AnchorAccountSerializer("AffairsData", SolanaApi.AffairsData.serializer()))),
-                            account = targetAddressPubkey
-                        ).getOrThrow()
-                    } catch (e: kotlinx.serialization.SerializationException) {
-                        Log.e("DebugFlow", "SerializationException: ${e.message}")
-                        return@launch
-                    } catch (e: Exception) {
-                        Log.e("DebugFlow", "Unknown Exception: ${e.message}")
-                        return@launch
-                    }
-
-                    if (result != null) {
-                        Log.d("DebugFlow", "Fetched data successfully")
-                        val data: SolanaApi.AffairsData? = result.data
-                        if (data != null) {
-                            Log.d("DebugFlow", "Authority: ${data.authority}")
-                            Log.d("DebugFlow", "Client: ${data.client}")
-                            Log.d("DebugFlow", "Rental: ${data.rental}")
-                            Log.d("DebugFlow", "Total RAM MB: ${data.totalRamMb}")
-                            Log.d("DebugFlow", "Sol Per Hour: ${data.solPerHour}")
-                            Log.d("DebugFlow", "Affair State: ${data.affairState}")
-
-                            // Fields are now directly in String format
-                            Log.d("DebugFlow", "IP Address: ${data.ipAddress}")
-                            Log.d("DebugFlow", "CPU Name: ${data.cpuName}")
-                            Log.d("DebugFlow", "GPU Name: ${data.gpuName}")
-
-                        } else {
-                            Log.e("DebugFlow", "Fetched data is null")
-                        }
-                    }
-                } catch (e: OutOfMemoryError) {
-                    Log.e("DebugFlow", "Ran out of memory: ${e.message}")
-                } catch (e: Exception) {
-                    Log.e("DebugFlow", "An unknown error occurred: ${e.message}")
-                }
-            }
-        }
-    }
-
-
-
-        private fun initializeTestButton() {
-            val testButton: Button = findViewById(R.id.testButton)
-            testButton.setOnClickListener {
-                val testPayloads = listOf(
-                    SolanaApi.AffairsData(
-                        authority = PublicKey("5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP"), // Replace with actual PublicKey object initialization
-                        client = PublicKey("5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP"), // Replace with actual PublicKey object initialization
-                        rental = PublicKey("5FrmAaNgQyFfF1YqPTJvMnAKdRTCi8QeDTJs2t9yZZsP"), // Replace with actual PublicKey object initialization
-                        // Convert IP address string "109.118.146.171" to byte array
-                        ipAddress = "109.118.146.171".toByteArray(Charsets.US_ASCII),
-                        // Convert CPU name string "Intel i7" to byte array
-                        cpuName = "Intel i7".toByteArray(Charsets.US_ASCII),
-                        // Convert GPU name string "NVIDIA GTX 1060" to byte array
-                        gpuName = "NVIDIA GTX 1060".toByteArray(Charsets.US_ASCII),
-                        // Use UInt for totalRamMb
-                        totalRamMb = 4096u,
-                        // Use ULong for solPerHour
-                        solPerHour = 10uL,
-                        // Use UInt for affairState
-                        affairState = 1u,
-                        // Use ULong for affairTerminationTime, activeRentalStartTime, and dueRentAmount
-                        affairTerminationTime = 1696381504uL,
-                        activeRentalStartTime = 0uL, // Replace with actual value
-                        dueRentAmount = 0uL // Replace with actual value
-                    )
-                )
-                val decodedAffairsDataList = mutableListOf<DecodedAffairsData>()
-                // Add this block to populate the AffairsDataHolder.affairsMap
-                testPayloads.forEach { affairData ->
-                        affairData.let { nonNullData ->
-                            nonNullData.authority.let { authority: PublicKey ->  // Explicitly specify the type
-
-                                val authorityBytes = authority.toByteArray()  // Convert PublicKey to byte array
-                                if (authorityBytes.isNotEmpty()) {  // Check for null or empty
-                                    val authorityKey = Base58.encode(authorityBytes)  // Use Base58 encoding
-
-                                    // Initialize empty strings as default
-                                    var ipAddressString = ""
-                                    var cpuNameString = ""
-                                    var gpuNameString = ""
-
-                                    // Use the ipAddressBase64 property for Base64 encoding and decoding
-                                    if (nonNullData.ipAddress.isNotEmpty()) {
-                                        try {
-                                            ipAddressString = nonNullData.ipAddressString
-                                        } catch (e: Exception) {
-                                            Log.e("DebugFlow", "Error in decoding ipAddress: ${e.message}")
-                                        }
-                                    }
-
-                                    // Use the cpuNameBase64 property for Base64 encoding and decoding
-                                    if (nonNullData.cpuName.isNotEmpty()) {
-                                        try {
-                                            cpuNameString = nonNullData.cpuNameString
-                                        } catch (e: Exception) {
-                                            Log.e("DebugFlow", "Error in decoding cpuName: ${e.message}")
-                                        }
-                                    }
-
-                                    // Use the gpuNameBase64 property for Base64 encoding and decoding
-                                    if (nonNullData.gpuName.isNotEmpty()) {
-                                        try {
-                                            gpuNameString = nonNullData.gpuNameString
-                                        } catch (e: Exception) {
-                                            Log.e("DebugFlow", "Error in decoding gpuName: ${e.message}")
-                                        }
-                                    }
-                                    // Create a new DecodedAffairsData object with decoded and other values
-                                    val decodedData = DecodedAffairsData(
-                                        authority = nonNullData.authority,
-                                        client = nonNullData.client,
-                                        rental = nonNullData.rental,
-                                        ipAddress = ipAddressString,
-                                        cpuName = cpuNameString,
-                                        gpuName = gpuNameString,
-                                        totalRamMb = nonNullData.totalRamMb,
-                                        solPerHour = nonNullData.solPerHour,
-                                        affairState = nonNullData.affairState,
-                                        affairTerminationTime = nonNullData.affairTerminationTime,
-                                        activeRentalStartTime = nonNullData.activeRentalStartTime,
-                                        dueRentAmount = nonNullData.dueRentAmount
-                                    )
-                                    // Store the decoded data in the HashMap
-                                    decodedAffairsDataList.add(decodedData)
-                                    AffairsDataHolder.affairsMap[authorityKey] = decodedData
-                                }
-                            }
-                        }
-                    }
-                // Log to debug
-                Log.d("MapActivity", "Synthetic affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
-                // Initialize MapPopulation if it's not already
-                Log.d("MapActivity", "affairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
-                val mapPopulation = MapPopulation()
-                val validMarkerProperties = mutableListOf<MapPopulation.MarkerProperties>()
-
-                lifecycleScope.launch(Dispatchers.IO) {
-                    for (decodedData in decodedAffairsDataList) {
-                        val conversionResult = mapPopulation.buildMarkerProperties(this@MapActivity, decodedData)
-                        if (conversionResult.isFailure) {
-                            Log.e("Test", "Conversion failed for payload: $decodedData")
-                            continue
-                        }
-
-                        val markerProperty = conversionResult.getOrThrow()
-                        validMarkerProperties.add(markerProperty)  // Add to the list
-                        // Switch back to the Main thread to update UI
-                        withContext(Dispatchers.Main) {
-                            // Add the marker to the map
-                            addGamingPCMarkerWithProperties(markerProperty)
-                        }
-                    }
-                    // Now adjust the camera, but on the Main thread
-                    withContext(Dispatchers.Main) {
-                        // Assuming userLocation has been initialized and is non-null
-                        userLocation?.let {
-                            adjustCameraToShowAllPoints(validMarkerProperties, it, mapView)
-                        } ?: run {
-                            Log.e("adjustCamera", "User location is null. Cannot adjust camera.")
-                        }
-                    }
-                }
-            }
-        }
-
-
-     */
-
-
-
 
     private fun initializeLocation() {
         if (ActivityCompat.checkSelfPermission(
@@ -482,7 +293,8 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
                     val result: AccountInfo<SolanaApi.AffairsListData?>? = try {
                         solana.api.getAccountInfo(
-                            serializer = AccountInfoSerializer(BorshAsBase64JsonArraySerializer(AnchorAccountSerializer("AffairsListData", SolanaApi.AffairsListData.serializer()))),
+                            serializer = AccountInfoSerializer(BorshAsBase64JsonArraySerializer(AnchorAccountSerializer(
+                                "AffairsListData", SolanaApi.AffairsListData.serializer()))),
                             account = affairsListAddressPubkey
                         ).getOrThrow()
                     } catch (e: kotlinx.serialization.SerializationException) {
@@ -537,7 +349,6 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                             // Fetch multiple accounts
                             val multipleAccountsResult = solana.api.getMultipleAccountsInfo(
                                 serializer = SolanaApi.AffairsData.serializer(),
-                                //serializer = AccountInfoSerializer(BorshAsBase64JsonArraySerializer(AnchorAccountSerializer("AffairsData", SolanaApi.AffairsData.serializer()))),
                                 accounts = publicKeys
                             )
 

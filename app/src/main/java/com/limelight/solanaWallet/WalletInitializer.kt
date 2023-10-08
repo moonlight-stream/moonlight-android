@@ -23,15 +23,13 @@ object WalletInitializer {
         Loggatore.d("WalletDebug", "initializeWallet entered")
         SolanaPreferenceManager.initialize(context)
 
-        val mnemonic = try {
-            WalletUtils.getStoredMnemonic(context)
-        } catch (e: IllegalStateException) {
-            null
-        }
+        // Try to fetch the stored HotAccount
+        val storedAccount = SolanaPreferenceManager.getStoredHotAccount()
 
-        return if (mnemonic != null) {
+        return if (storedAccount != null) {
+            Loggatore.d("WalletDebug", "Wallet already initialized.")
             SolanaPreferenceManager.isWalletInitialized = true
-            WalletUtils.getAccountFromMnemonic(mnemonic)
+            storedAccount
         } else {
             Loggatore.d("WalletDebug", "Wallet not initialized. Setting up...")
             SolanaPreferenceManager.isWalletInitialized = false
@@ -39,34 +37,30 @@ object WalletInitializer {
         }
     }
 
-
-
-
     fun createNewWalletAccount(context: Context): HotAccount? {
         if (SolanaPreferenceManager.isWalletInitialized) {
             Loggatore.d("WalletDebug", "Wallet already exists. Aborting creation of a new account.")
-            return WalletUtils.getAccount(context)
+            return SolanaPreferenceManager.getStoredHotAccount() // Retrieve the stored HotAccount
         }
 
         val mnemonicPhrase = Mnemonic(WordCount.COUNT_24).phrase
         val account = HotAccount.fromMnemonic(mnemonicPhrase, "", DerivationPath.BIP44_M_44H_501H_0H)
 
+        // Store PublicKey and HotAccount
         SolanaPreferenceManager.storePublicKey(account.publicKey)
+        SolanaPreferenceManager.storeHotAccount(account)
+
         WalletUtils.storeMnemonicSecurely(context, mnemonicPhrase)
         SolanaPreferenceManager.isWalletInitialized = true
+
         // Generate and store the private key (secret key) using the mnemonic
         val seed = MnemonicCode.toSeed(mnemonicPhrase, "")
         val solanaBip44 = SolanaBip44()
         val privateKey = solanaBip44.getPrivateKeyFromSeed(seed, DerivableType.BIP44)
+
         // Store the private key securely
         SolanaPreferenceManager.storePrivateKey(privateKey, context)
+
         return account
     }
-
-
-
-    //fun recoverAccount(userProvidedMnemonic: List<String?>?): HotAccount? {
-    //    val cleanedMnemonic = userProvidedMnemonic?.mapNotNull { it } ?: return null
-    //    return HotAccount.fromMnemonic(cleanedMnemonic, "", DerivationPath.BIP44_M_44H_501H_0H)
-    //}
 }

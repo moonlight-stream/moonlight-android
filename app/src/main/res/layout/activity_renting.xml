@@ -18,6 +18,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+
+    <!-- TextView for User's Solana Pubkey -->
+    <TextView
+        android:id="@+id/walletPublicKeyTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Client Public Key: "
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/solanaBalance"
+        app:layout_constraintBottom_toTopOf="@+id/expectedRentCost" />
+
+
     <!-- TextView for Expected Rent Cost (updated) -->
     <TextView
         android:id="@+id/expectedRentCost"
@@ -29,9 +43,6 @@
         android:layout_marginBottom="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-
-    <!-- TextView for User's Solana Balance -->
 
     <!-- Slider for choosing rental time -->
     <com.google.android.material.slider.Slider
@@ -140,7 +151,7 @@
         app:layout_constraintTop_toBottomOf="@+id/usdcPerHour" />
 
     <TextView
-        android:id="@+id/solanaLenderPublicKey"
+        android:id="@+id/sunshinePublicKey"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Lender's ID : "
@@ -158,7 +169,7 @@
         android:textSize="18sp"
         android:layout_marginBottom="8dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/solanaLenderPublicKey" />
+        app:layout_constraintTop_toBottomOf="@+id/sunshinePublicKey" />
 
 
 

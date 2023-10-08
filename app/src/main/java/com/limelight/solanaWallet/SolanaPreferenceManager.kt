@@ -6,6 +6,7 @@ import android.security.keystore.KeyProperties
 import android.security.keystore.KeyProtection
 import android.util.Base64
 import android.util.Log
+import com.google.gson.Gson
 import com.limelight.shagaMap.RentingActivity
 import com.limelight.utils.Loggatore
 import com.solana.core.DerivationPath
@@ -22,7 +23,7 @@ object SolanaPreferenceManager {
     private const val IS_INITIALIZED = "is_initialized"
     private const val PUBLIC_KEY = "public_key"
     private const val ENCRYPTED_MNEMONIC = "encrypted_mnemonic"
-    //private const val ENCRYPTED_SECRET_KEY = "encrypted_secret_key"
+    private const val HOT_ACCOUNT_KEY = "hot_account"
 
     var isWalletInitialized: Boolean
         get() = sharedPreferences?.getBoolean(IS_INITIALIZED, false) ?: false
@@ -36,6 +37,33 @@ object SolanaPreferenceManager {
             sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         }
     }
+
+    fun storeHotAccount(account: HotAccount) {
+        val editor = sharedPreferences?.edit()
+        val gson = Gson()
+        // Step 1: Serialize HotAccount to JSON string
+        val accountJsonString = gson.toJson(account)
+        // Step 2: Encrypt the serialized HotAccount using EncryptionHelper
+        val encryptedAccountString = EncryptionHelper.encrypt(accountJsonString)
+        // Step 3: Store encrypted HotAccount
+        editor?.putString(HOT_ACCOUNT_KEY, encryptedAccountString)
+        editor?.apply()
+    }
+
+    fun getStoredHotAccount(): HotAccount? {
+        val gson = Gson()
+        // Step 1: Retrieve encrypted HotAccount
+        val encryptedAccountString = sharedPreferences?.getString(HOT_ACCOUNT_KEY, null)
+        // Step 2: Return null if nothing is stored
+        if (encryptedAccountString == null) {
+            return null
+        }
+        // Step 3: Decrypt the stored HotAccount
+        val decryptedAccountString = EncryptionHelper.decrypt(encryptedAccountString)
+        // Step 4: Deserialize decrypted HotAccount from JSON string
+        return gson.fromJson(decryptedAccountString, HotAccount::class.java)
+    }
+
 
     @JvmStatic
     fun getIsWalletInitialized(): Boolean {

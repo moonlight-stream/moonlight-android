@@ -2,11 +2,8 @@
 <resources>
     <!-- Shaga's -->
     <string name="solana_balance">Solana Balance: </string>
-    <string name="shaga_program_address">9SwYZxTQUYruFSHYeTqrtB5pTtuGJEGksh7ufpNS1YK5</string>
     <string name="affairs_list_address">HcD1vP1TzV3Su5Tkw5EfrvAZzMAjwDG9yLce5aUGazrz</string>
     <string name="spl_token_program_id">TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA</string>
-    <string name="clockwork_program_id">CLoCKyJ6DXBJqqu2VWx9RLbgnwwR6BMHHuyasVmfMzBh</string>
-
 
     <string name="balance_format">Balance: %.2f SOL</string>
     <string name="balance_fetch_error">Balance fetch error</string>

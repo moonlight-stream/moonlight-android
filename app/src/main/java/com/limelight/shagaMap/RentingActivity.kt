@@ -197,7 +197,7 @@ class RentingActivity : AppCompatActivity() {
         val format = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
         findViewById<TextView>(R.id.affairTerminationTime).text = "Rent available until: ${format.format(affairTerminationDate)}"
 
-        findViewById<TextView>(R.id.sunshinePublicKey).text = "Lender's ID: $decodedAuthority"
+        findViewById<TextView>(R.id.sunshinePublicKey).text = "Sunshine's ID: $decodedAuthority"
     }
 
     private fun setupSlider(data: DecodedAffairsData) {
@@ -256,14 +256,6 @@ class RentingActivity : AppCompatActivity() {
                 val rentalTerminationTimeSeconds = currentTimeSeconds + selectedRentTimeSeconds // Both are ULong
                 Log.e("RentingActivity", "Calculated selectedRentTimeSeconds: $rentalTerminationTimeSeconds")
 
-                // Step 2
-                val solanaClientPublicKey = SolanaPreferenceManager.getStoredPublicKey()
-                if (solanaClientPublicKey == null) {
-                    Log.e("RentingActivity", "Solana public key is missing. Cannot proceed.")
-                    return@launch
-                }
-                Log.e("RentingActivity", "Fetched solanaClientPublicKey: ${solanaClientPublicKey.toBase58()}")
-
                 // Step 3
                 val shagaTransactions = ShagaTransactions()
                 val clientAccount = SolanaPreferenceManager.getStoredHotAccount()
@@ -271,21 +263,17 @@ class RentingActivity : AppCompatActivity() {
                     Log.e("RentingActivity", "Failed to obtain fee payer account. Cannot proceed.")
                     return@launch
                 }
-                Log.e("RentingActivity", "Obtained feePayerAccount, publicKey: ${clientAccount.publicKey.toBase58()}")
+                Log.e("RentingActivity", "Obtained client, publicKey: ${clientAccount.publicKey.toBase58()}")
 
                 // Step 4
                 val rentalArgs = SolanaApi.StartRentalInstructionArgs(rentalTerminationTime = rentalTerminationTimeSeconds)
-                val programIDString = getString(R.string.shaga_program_address)
-                Log.e("RentingActivity", "Prepared rentalArgs and programIDString: $programIDString")
-
                 // Step 5
                 val txInstruction = shagaTransactions.startRental(
                     authority = data.authority,
                     client = clientAccount.publicKey,
-                    programId = PublicKey(programIDString),
                     args = rentalArgs
                 )
-                Log.e("RentingActivity", "Program ID: ${PublicKey(programIDString).toBase58()}")
+                Log.e("RentingActivity", "Authrotiyy ID: ${data.authority.toBase58()}")
                 Log.e("RentingActivity", "Generated transaction instruction.")
 
                 // Step 6

@@ -717,6 +717,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             context.hasJoystickAxes = true;
         }
 
+        // This is hack to deal with the Nvidia Shield's modifications that causes the DS4 clickpad
+        // to work as a duplicate Select button instead of a unique button we can handle separately.
+        context.isDualShockStandaloneTouchpad =
+                context.vendorId == 0x054c && // Sony
+                devName.endsWith(" Touchpad") &&
+                dev.getSources() == (InputDevice.SOURCE_KEYBOARD | InputDevice.SOURCE_MOUSE);
+
         InputDevice.MotionRange leftTriggerRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_LTRIGGER);
         InputDevice.MotionRange rightTriggerRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RTRIGGER);
         InputDevice.MotionRange brakeRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_BRAKE);
@@ -1245,11 +1252,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // The Shield's key layout files map the DualShock 4 clickpad button to
         // BUTTON_SELECT instead of something sane like BUTTON_1 as the standard AOSP
         // mapping does. If we get a button from a Sony device reported as BUTTON_SELECT
-        // that matches the keycode used by hid-sony for the clickpad, remap it to
-        // BUTTON_1 to match the current AOSP layout and trigger our touchpad button logic.
+        // that matches the keycode used by hid-sony for the clickpad or it's from the
+        // separate touchpad input device, remap it to BUTTON_1 to match the current AOSP
+        // layout and trigger our touchpad button logic.
         if (context.vendorId == 0x054c &&
                 event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT &&
-                event.getScanCode() == 317) {
+                (event.getScanCode() == 317 || context.isDualShockStandaloneTouchpad)) {
             return KeyEvent.KEYCODE_BUTTON_1;
         }
 
@@ -2809,6 +2817,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean ignoreBack;
         public boolean hasJoystickAxes;
         public boolean pendingExit;
+        public boolean isDualShockStandaloneTouchpad;
 
         public int emulatingButtonFlags = 0;
         public boolean hasSelect;

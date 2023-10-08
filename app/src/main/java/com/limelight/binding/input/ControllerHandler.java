@@ -1623,16 +1623,17 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     context.inputMap |= ControllerPacket.TOUCHPAD_FLAG;
+                    sendControllerInputPacket(context);
                     break;
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
                     context.inputMap &= ~ControllerPacket.TOUCHPAD_FLAG;
+                    sendControllerInputPacket(context);
                     break;
                 default:
-                    return false;
+                    break;
             }
 
-            sendControllerInputPacket(context);
             return !prefConfig.gamepadTouchpadAsMouse;
         }
 

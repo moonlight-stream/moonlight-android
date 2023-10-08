@@ -404,6 +404,31 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
+    private boolean isAssociatedJoystick(InputDevice originalDevice, InputDevice possibleAssociatedJoystick) {
+        if (possibleAssociatedJoystick == null) {
+            return false;
+        }
+
+        // This can't be an associated joystick if it's not a joystick
+        if ((possibleAssociatedJoystick.getSources() & InputDevice.SOURCE_JOYSTICK) != InputDevice.SOURCE_JOYSTICK) {
+            return false;
+        }
+
+        // Make sure the device names *don't* match in order to prevent us from accidentally matching
+        // on another of the exact same device.
+        if (possibleAssociatedJoystick.getName().equals(originalDevice.getName())) {
+            return false;
+        }
+
+        // Make sure the descriptor matches. This can match in cases where two of the exact same
+        // input device are connected, so we perform the name check to exclude that case.
+        if (!possibleAssociatedJoystick.getDescriptor().equals(originalDevice.getDescriptor())) {
+            return false;
+        }
+
+        return true;
+    }
+
     // Called before sending input but after we've determined that this
     // is definitely a controller (not a keyboard, mouse, or something else)
     private void assignControllerNumberIfNeeded(GenericControllerContext context) {
@@ -435,6 +460,44 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                         context.reservedControllerNumber = true;
                         break;
                     }
+                }
+            }
+            else if (!devContext.hasJoystickAxes) {
+                // If this device doesn't have joystick axes, it may be an input device associated
+                // with another joystick (like a PS4 touchpad). We'll propagate that joystick's
+                // controller number to this associated device.
+
+                context.controllerNumber = 0;
+
+                // For the DS4 case, the associated joystick is the next device after the touchpad.
+                // We'll try the opposite case too, just to be a little future-proof.
+                InputDevice associatedDevice = InputDevice.getDevice(devContext.id + 1);
+                if (!isAssociatedJoystick(devContext.inputDevice, associatedDevice)) {
+                    associatedDevice = InputDevice.getDevice(devContext.id - 1);
+                    if (!isAssociatedJoystick(devContext.inputDevice, associatedDevice)) {
+                        LimeLog.info("No associated joystick device found");
+                        associatedDevice = null;
+                    }
+                }
+
+                if (associatedDevice != null) {
+                    InputDeviceContext associatedDeviceContext = inputDeviceContexts.get(associatedDevice.getId());
+
+                    // Create a new context for the associated device if one doesn't exist
+                    if (associatedDeviceContext == null) {
+                        associatedDeviceContext = createInputDeviceContextForDevice(associatedDevice);
+                        inputDeviceContexts.put(associatedDevice.getId(), associatedDeviceContext);
+                    }
+
+                    // Assign a controller number for the associated device if one isn't assigned
+                    if (!associatedDeviceContext.assignedControllerNumber) {
+                        assignControllerNumberIfNeeded(associatedDeviceContext);
+                    }
+
+                    // Propagate the associated controller number
+                    context.controllerNumber = associatedDeviceContext.controllerNumber;
+
+                    LimeLog.info("Propagated controller number from "+associatedDeviceContext.name);
                 }
             }
             else {

@@ -1601,8 +1601,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public boolean tryHandleTouchpadEvent(MotionEvent event) {
-        // Bail if this is not a touchpad event
-        if (event.getSource() != InputDevice.SOURCE_TOUCHPAD) {
+        // Bail if this is not a touchpad or mouse event
+        if (event.getSource() != InputDevice.SOURCE_TOUCHPAD &&
+                event.getSource() != InputDevice.SOURCE_MOUSE) {
             return false;
         }
 
@@ -1610,6 +1611,29 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         InputDeviceContext context = inputDeviceContexts.get(event.getDeviceId());
         if (context == null) {
             return false;
+        }
+
+        // When we're working with a mouse source instead of a touchpad, we're quite limited in
+        // what useful input we can provide via the controller API. The ABS_X/ABS_Y values are
+        // screen coordinates rather than touchpad coordinates. For now, we will just support
+        // the clickpad button and nothing else.
+        if (event.getSource() == InputDevice.SOURCE_MOUSE) {
+            // Unlike the touchpad where down and up refer to individual touches on the touchpad,
+            // down and up on a mouse indicates the state of the left mouse button.
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    context.inputMap |= ControllerPacket.TOUCHPAD_FLAG;
+                    break;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    context.inputMap &= ~ControllerPacket.TOUCHPAD_FLAG;
+                    break;
+                default:
+                    return false;
+            }
+
+            sendControllerInputPacket(context);
+            return !prefConfig.gamepadTouchpadAsMouse;
         }
 
         byte touchType;

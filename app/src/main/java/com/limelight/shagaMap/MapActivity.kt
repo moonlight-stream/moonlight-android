@@ -58,8 +58,6 @@ import com.mapbox.maps.Style
  import com.solana.networking.serialization.serializers.base64.BorshAsBase64JsonArraySerializer
  import com.solana.networking.serialization.serializers.solana.AnchorAccountSerializer
  import kotlinx.coroutines.CoroutineScope
- import kotlinx.coroutines.withContext
- import org.bouncycastle.util.encoders.Base64
 
 /* simplified flow:
 Map initializes.
@@ -128,7 +126,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             startActivity(intent)
         }
 
-        initializeTestButton()
+        //initializeTestButton()
     }
 
 
@@ -154,7 +152,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             // Step 2: Add OnClickListener
             startRentingButton.setOnClickListener {
                 val intent = Intent(this@MapActivity, RentingActivity::class.java)
-                intent.putExtra("solanaLenderPublicKey", markerProperties.solanaLenderPublicKey)
+                intent.putExtra("solanaLenderPublicKey", markerProperties.solanaLenderPublicKey) // <<<< It's actually the Authority, not the Lender
                 intent.putExtra("latency", markerProperties.latency)
                 Log.d("MapActivity", "Sending solanaLenderPublicKey: ${markerProperties.solanaLenderPublicKey}")
                 startActivity(intent)
@@ -221,12 +219,14 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
         }
     }
 
-/*
+
+
+    /*
     private fun initializeTestButton() {
         val testButton = findViewById<Button>(R.id.testButton)
         testButton.setOnClickListener {
             Log.d("DebugFlow", "Test Button Clicked")
-            val targetAddress = "AsCMkK1iqA5jXGGp9TiapbBATNPjbZp1jfcWy7unkevo"
+            val targetAddress = "7VFAKozUKpYxgjW9TGP16rPvzr6qnMoX7viADgx8V8Nf"
             val targetAddressPubkey = PublicKey(targetAddress)
             Log.d("DebugFlow", "Target Public Key: $targetAddressPubkey")
 
@@ -245,40 +245,23 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                         Log.e("DebugFlow", "Unknown Exception: ${e.message}")
                         return@launch
                     }
+
                     if (result != null) {
                         Log.d("DebugFlow", "Fetched data successfully")
-
-                        // Assume that 'data' is the AffairDummy object fetched
                         val data: SolanaApi.AffairsData? = result.data
-
                         if (data != null) {
                             Log.d("DebugFlow", "Authority: ${data.authority}")
                             Log.d("DebugFlow", "Client: ${data.client}")
                             Log.d("DebugFlow", "Rental: ${data.rental}")
                             Log.d("DebugFlow", "Total RAM MB: ${data.totalRamMb}")
                             Log.d("DebugFlow", "Sol Per Hour: ${data.solPerHour}")
+                            Log.d("DebugFlow", "Affair State: ${data.affairState}")
 
-                            // Converting byte arrays to ASCII strings for logging
-                            val ipAddressString = String(data.ipAddress).trimEnd('\u0000')  // Trimming null characters at the end
-                            val cpuNameString = String(data.cpuName).trimEnd('\u0000')      // Trimming null characters at the end
-                            val gpuNameString = String(data.gpuName).trimEnd('\u0000')      // Trimming null characters at the end
+                            // Fields are now directly in String format
+                            Log.d("DebugFlow", "IP Address: ${data.ipAddress}")
+                            Log.d("DebugFlow", "CPU Name: ${data.cpuName}")
+                            Log.d("DebugFlow", "GPU Name: ${data.gpuName}")
 
-
-                            // For demonstration purposes, you can replace these with the actual ByteArray from your data
-                            val demoIpAddress = byteArrayOf(49, 48, 57, 46, 49, 49, 56, 46, 49, 52, 54, 46, 49, 55, 49)
-                            val demoCpuName = byteArrayOf(73, 110, 116, 101, 108, 40, 82, 41, 32, 67, 111, 114, 101, 40, 84, 77, 41, 32, 105, 55, 45, 56, 55, 53, 48, 72, 32, 67, 80, 85, 32, 64, 32, 50, 46, 50, 48, 71, 72, 122, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-
-                            // Convert byte arrays to ASCII strings
-                            val ZipAddressString = String(demoIpAddress).trimEnd('\u0000')
-                            val ZcpuNameString = String(demoCpuName).trimEnd('\u0000')
-
-                            Log.d("DebugFlow", "IP Address: $ZipAddressString")  // Should log "109.118.146.171"
-                            Log.d("DebugFlow", "CPU Name: $ZcpuNameString")      // Should log "Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz"
-
-
-                            Log.d("DebugFlow", "IP Address: $ipAddressString")
-                            Log.d("DebugFlow", "CPU Name: $cpuNameString")
-                            Log.d("DebugFlow", "GPU Name: $gpuNameString")
                         } else {
                             Log.e("DebugFlow", "Fetched data is null")
                         }
@@ -291,10 +274,6 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             }
         }
     }
-
- */
-
-
 
 
 
@@ -423,6 +402,8 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             }
         }
 
+
+     */
 
 
 
@@ -583,6 +564,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                 }
 
                                 Log.d("DebugFlow", "Saving the fetched AffairsData to local HashMap")
+                                val lamportsToSolConversionRate: ULong = 1_000_000_000uL  // 1 Sol = 1,000,000,000 Lamports
 
                                 // Data transformation & local temporary storage
                                 affairsDataList.forEach { affairData ->
@@ -593,37 +575,11 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                             if (authorityBytes.isNotEmpty()) {  // Check for null or empty
                                                 val authorityKey = Base58.encode(authorityBytes)  // Use Base58 encoding
 
-                                                // Initialize empty strings as default
-                                                var ipAddressString = ""
-                                                var cpuNameString = ""
-                                                var gpuNameString = ""
+                                                // Since ipAddress, cpuName, and gpuName are now Strings, we can use them directly.
+                                                val ipAddressString = nonNullData.ipAddress ?: ""
+                                                val cpuNameString = nonNullData.cpuName ?: ""
+                                                val gpuNameString = nonNullData.gpuName ?: ""
 
-                                                // Use the ipAddressBase64 property for Base64 encoding and decoding
-                                                if (nonNullData.ipAddress.isNotEmpty()) {
-                                                    try {
-                                                        ipAddressString = nonNullData.ipAddressString
-                                                    } catch (e: Exception) {
-                                                        Log.e("DebugFlow", "Error in decoding ipAddress: ${e.message}")
-                                                    }
-                                                }
-
-                                                // Use the cpuNameBase64 property for Base64 encoding and decoding
-                                                if (nonNullData.cpuName.isNotEmpty()) {
-                                                    try {
-                                                        cpuNameString = nonNullData.cpuNameString
-                                                    } catch (e: Exception) {
-                                                        Log.e("DebugFlow", "Error in decoding cpuName: ${e.message}")
-                                                    }
-                                                }
-
-                                                // Use the gpuNameBase64 property for Base64 encoding and decoding
-                                                if (nonNullData.gpuName.isNotEmpty()) {
-                                                    try {
-                                                        gpuNameString = nonNullData.gpuNameString
-                                                    } catch (e: Exception) {
-                                                        Log.e("DebugFlow", "Error in decoding gpuName: ${e.message}")
-                                                    }
-                                                }
                                                 // Create a new DecodedAffairsData object with decoded and other values
                                                 val decodedData = DecodedAffairsData(
                                                     authority = nonNullData.authority,
@@ -633,12 +589,13 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                                     cpuName = cpuNameString,
                                                     gpuName = gpuNameString,
                                                     totalRamMb = nonNullData.totalRamMb,
-                                                    solPerHour = nonNullData.solPerHour,
-                                                    affairState = nonNullData.affairState,
+                                                    solPerHour = nonNullData.solPerHour.toDouble() / lamportsToSolConversionRate.toDouble(),
+                                                    affairState = nonNullData.affairState,  // Assuming affairState is an enum or similar directly usable type
                                                     affairTerminationTime = nonNullData.affairTerminationTime,
                                                     activeRentalStartTime = nonNullData.activeRentalStartTime,
                                                     dueRentAmount = nonNullData.dueRentAmount
                                                 )
+
                                                 // Store the decoded data in the HashMap
                                                 AffairsDataHolder.affairsMap[authorityKey] = decodedData
                                             }

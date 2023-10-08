@@ -6,7 +6,7 @@
     android:background="#F6D5A0">
 
 
-    <!-- TextViews for GamingPC Specs -->
+    <!-- TextViews for Solana Balance (no change) -->
     <TextView
         android:id="@+id/solanaBalance"
         android:layout_width="wrap_content"
@@ -18,6 +18,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- TextView for Expected Rent Cost (updated) -->
+    <TextView
+        android:id="@+id/expectedRentCost"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Expected Rent Cost: "
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
     <!-- TextView for User's Solana Balance -->
 
     <!-- Slider for choosing rental time -->
@@ -27,10 +40,11 @@
         android:layout_height="wrap_content"
         android:valueFrom="0"
         android:valueTo="100"
+        android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/specsTitle" />
+        app:layout_constraintTop_toBottomOf="@+id/expectedRentCost" />
 
     <!-- Button to proceed -->
     <Button
@@ -42,6 +56,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/rentalTimeSlider" />
 
+    <!-- Button to TODO: ADD START RENTAL & MERGE THE TWO BUTTONS Start Pairing -->
+    <Button
+        android:id="@+id/startPairingButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start Pairing"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/proceedButton"
+        app:layout_constraintTop_toBottomOf="@+id/rentalTimeSlider" />
+
     <!-- TextView for Payloads  -->
     <TextView
         android:id="@+id/specsTitle"
@@ -51,7 +75,7 @@
         android:textSize="22sp"
         android:layout_marginBottom="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rentalTimeSlider" />
+        app:layout_constraintTop_toBottomOf="@+id/startPairingButton" />
 
 
     <TextView
@@ -62,7 +86,7 @@
         android:textSize="18sp"
         android:layout_marginBottom="8dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/proceedButton" />
+        app:layout_constraintTop_toBottomOf="@+id/specsTitle" />
 
     <TextView
         android:id="@+id/gpuName"
@@ -125,18 +149,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/affairTerminationTime" />
 
-    <!-- TextView for Expected Rent Cost -->
-    <TextView
-        android:id="@+id/expectedRentCost"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Expected Rent Cost: "
-        android:textSize="18sp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/solanaLenderPublicKey" />
-
-
     <!-- TextView for Rental Time -->
     <TextView
         android:id="@+id/selectedRentTime"
@@ -146,7 +158,7 @@
         android:textSize="18sp"
         android:layout_marginBottom="8dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/expectedRentCost" />
+        app:layout_constraintTop_toBottomOf="@+id/solanaLenderPublicKey" />
 
 
 

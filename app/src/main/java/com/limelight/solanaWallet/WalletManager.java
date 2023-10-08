@@ -42,6 +42,12 @@ public class WalletManager implements BalanceCallback {
         this.walletPublicKeyTextView = walletPublicKeyTextView;
     }
 
+    public void setContextIfNeeded(Context newContext) {
+        if (this.context == null) {
+            this.context = newContext;
+        }
+    }
+
     public void updateBalanceTextView(final String balanceText) {
         ((Activity) context).runOnUiThread(() -> {
             balanceTextView.setText(balanceText);

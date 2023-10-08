@@ -3,6 +3,7 @@ package com.limelight.shagaMap
 import android.content.Context
 import android.util.Log
 import com.limelight.R
+import com.limelight.solanaWallet.SolanaApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -26,7 +27,7 @@ class MapPopulation {
         val cpuName: String,
         val solanaLenderPublicKey: String,
         val totalRamMb: UInt,
-        val solPerHour: ULong,
+        val solPerHour: Double,
         val affairState: String,
         val affairStartTime: ULong,
         val affairTerminationTime: ULong
@@ -185,15 +186,14 @@ class MapPopulation {
                 // Convert PublicKey to its string representation, if the class provides such a method.
                 val authorityString = affair.authority.toString()  // Replace `toString()` with the actual method if available
 
-                // Initialize the string representation of affairState
-                var affairStateString = "UNKNOWN"  // Default to "UNKNOWN"
-
-// Convert the UInt value to its corresponding string representation
-                when (affair.affairState.toUInt()) {
-                    0u -> affairStateString = "UNAVAILABLE"
-                    1u -> affairStateString = "AVAILABLE"
-                    else -> {}  // Leave it as "UNKNOWN"
+                // Initialize the string representation of affairState directly from the enum
+                var affairStateString = when (affair.affairState) {
+                    SolanaApi.AffairState.Available -> "Available"
+                    SolanaApi.AffairState.Unavailable -> "Unavailable"
+                    else -> "UNKNOWN"  // Default to "UNKNOWN"
                 }
+
+                val solPerHourInSol = affair.solPerHour.toDouble()
 
 
                 // Now build MarkerProperties
@@ -203,9 +203,9 @@ class MapPopulation {
                     latency = latencyResult.getOrThrow(),
                     gpuName = gpuNameString,
                     cpuName = cpuNameString,
-                    solanaLenderPublicKey = authorityString,
+                    solanaLenderPublicKey = authorityString, // IT'S THE AUTHORITY, NOT THE LENDER, BUT THAT'S OK
                     totalRamMb = affair.totalRamMb,
-                    solPerHour = affair.solPerHour,
+                    solPerHour = solPerHourInSol,
                     affairState = affairStateString,
                     affairStartTime = affair.activeRentalStartTime,
                     affairTerminationTime = affair.affairTerminationTime

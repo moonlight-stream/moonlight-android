@@ -19,6 +19,11 @@
         -->
     </style>
 
+    <style name="ScaleDownLayout">
+        <item name="android:scaleX">0.8</item>  <!-- Scale down by 20% in X direction -->
+        <item name="android:scaleY">0.8</item>  <!-- Scale down by 20% in Y direction -->
+    </style>
+
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->

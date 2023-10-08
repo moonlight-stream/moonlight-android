@@ -2099,6 +2099,21 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
 
             if (deviceContext.controllerNumber == controllerNumber) {
+                // Store the desired report rate even if we don't have sensors. In some cases,
+                // input devices can be reconfigured at runtime which results in a change where
+                // sensors disappear and reappear. By storing the desired report rate, we can
+                // reapply the desired motion sensor configuration after they reappear.
+                switch (motionType) {
+                    case MoonBridge.LI_MOTION_TYPE_ACCEL:
+                        deviceContext.accelReportRateHz = reportRateHz;
+                        break;
+                    case MoonBridge.LI_MOTION_TYPE_GYRO:
+                        deviceContext.gyroReportRateHz = reportRateHz;
+                        break;
+                }
+
+                backgroundThreadHandler.removeCallbacks(deviceContext.enableSensorRunnable);
+
                 SensorManager sm = deviceContext.sensorManager;
                 if (sm == null) {
                     continue;
@@ -2116,10 +2131,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                         if (reportRateHz != 0 && accelSensor != null) {
                             deviceContext.accelListener = createSensorListener(controllerNumber, motionType, sm == deviceSensorManager);
                             sm.registerListener(deviceContext.accelListener, accelSensor, 1000000 / reportRateHz);
-                            deviceContext.accelReportRateHz = reportRateHz;
-                        }
-                        else {
-                            deviceContext.accelReportRateHz = 0;
                         }
                         break;
                     case MoonBridge.LI_MOTION_TYPE_GYRO:
@@ -2133,10 +2144,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                         if (reportRateHz != 0 && gyroSensor != null) {
                             deviceContext.gyroListener = createSensorListener(controllerNumber, motionType, sm == deviceSensorManager);
                             sm.registerListener(deviceContext.gyroListener, gyroSensor, 1000000 / reportRateHz);
-                            deviceContext.gyroReportRateHz = reportRateHz;
-                        }
-                        else {
-                            deviceContext.gyroReportRateHz = 0;
                         }
                         break;
                 }
@@ -2829,6 +2836,19 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         };
 
+        public final Runnable enableSensorRunnable = new Runnable() {
+            @Override
+            public void run() {
+                // Turn back on any sensors that should be reporting but are currently unregistered
+                if (accelReportRateHz != 0 && accelListener == null) {
+                    handleSetMotionEventState(controllerNumber, MoonBridge.LI_MOTION_TYPE_ACCEL, accelReportRateHz);
+                }
+                if (gyroReportRateHz != 0 && gyroListener == null) {
+                    handleSetMotionEventState(controllerNumber, MoonBridge.LI_MOTION_TYPE_GYRO, gyroReportRateHz);
+                }
+            }
+        };
+
         @Override
         public void destroy() {
             super.destroy();
@@ -2839,6 +2859,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             else if (vibrator != null) {
                 vibrator.cancel();
             }
+
+            backgroundThreadHandler.removeCallbacks(enableSensorRunnable);
 
             if (gyroListener != null) {
                 sensorManager.unregisterListener(gyroListener);
@@ -2984,12 +3006,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 this.lightsSession = oldContext.lightsSession;
                 oldContext.lightsSession = null;
             }
-            this.gyroListener = oldContext.gyroListener;
-            this.accelListener = oldContext.accelListener;
             this.gyroReportRateHz = oldContext.gyroReportRateHz;
             this.accelReportRateHz = oldContext.accelReportRateHz;
-            oldContext.gyroListener = null;
-            oldContext.accelListener = null;
 
             // Don't release the controller number, because we will carry it over if it is present.
             // We also want to make sure the change is invisible to the host PC to avoid an add/remove
@@ -3006,11 +3024,17 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 this.sensorManager = deviceSensorManager;
             }
 
+            // Re-enable sensors on the new context
+            enableSensors();
+
             // Refresh battery state and start the battery state polling again
             backgroundThreadHandler.post(batteryStateUpdateRunnable);
         }
 
         public void disableSensors() {
+            // Stop any pending enablement
+            backgroundThreadHandler.removeCallbacks(enableSensorRunnable);
+
             // Unregister all sensor listeners
             if (gyroListener != null) {
                 sensorManager.unregisterListener(gyroListener);
@@ -3028,13 +3052,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         public void enableSensors() {
-            // Turn back on any sensors that should be reporting but are currently unregistered
-            if (accelReportRateHz != 0 && accelListener == null) {
-                handleSetMotionEventState(controllerNumber, MoonBridge.LI_MOTION_TYPE_ACCEL, accelReportRateHz);
-            }
-            if (gyroReportRateHz != 0 && gyroListener == null) {
-                handleSetMotionEventState(controllerNumber, MoonBridge.LI_MOTION_TYPE_GYRO, gyroReportRateHz);
-            }
+            // We allow 1 second for the input device to settle before re-enabling sensors.
+            // Pointer capture can cause the input device to change, which can cause
+            // InputDeviceSensorManager to crash due to missing null checks on the InputDevice.
+            backgroundThreadHandler.postDelayed(enableSensorRunnable, 1000);
         }
     }
 

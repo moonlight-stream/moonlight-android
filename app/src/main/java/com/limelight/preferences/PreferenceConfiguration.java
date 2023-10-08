@@ -246,33 +246,62 @@ public class PreferenceConfiguration {
         int height = getHeightFromResolutionString(resString);
         int fps = Integer.parseInt(fpsString);
 
-        // This table prefers 16:10 resolutions because they are
-        // only slightly more pixels than the 16:9 equivalents, so
-        // we don't want to bump those 16:10 resolutions up to the
-        // next 16:9 slot.
-        //
         // This logic is shamelessly stolen from Moonlight Qt:
         // https://github.com/moonlight-stream/moonlight-qt/blob/master/app/settings/streamingpreferences.cpp
 
-        if (width * height <= 640 * 360) {
-            return (int)(1000 * (fps / 30.0));
+        // Don't scale bitrate linearly beyond 60 FPS. It's definitely not a linear
+        // bitrate increase for frame rate once we get to values that high.
+        double frameRateFactor = (fps <= 60 ? fps : (Math.sqrt(fps / 60.f) * 60.f)) / 30.f;
+
+        // TODO: Collect some empirical data to see if these defaults make sense.
+        // We're just using the values that the Shield used, as we have for years.
+        int[] pixelVals = {
+            640 * 360,
+            854 * 480,
+            1280 * 720,
+            1920 * 1080,
+            2560 * 1440,
+            3840 * 2160,
+            -1,
+        };
+        int[] factorVals = {
+            1,
+            2,
+            5,
+            10,
+            20,
+            40,
+            -1
+        };
+
+        // Calculate the resolution factor by linear interpolation of the resolution table
+        float resolutionFactor;
+        int pixels = width * height;
+        for (int i = 0; ; i++) {
+            if (pixels == pixelVals[i]) {
+                // We can bail immediately for exact matches
+                resolutionFactor = factorVals[i];
+                break;
+            }
+            else if (pixels < pixelVals[i]) {
+                if (i == 0) {
+                    // Never go below the lowest resolution entry
+                    resolutionFactor = factorVals[i];
+                }
+                else {
+                    // Interpolate between the entry greater than the chosen resolution (i) and the entry less than the chosen resolution (i-1)
+                    resolutionFactor = ((float)(pixels - pixelVals[i-1]) / (pixelVals[i] - pixelVals[i-1])) * (factorVals[i] - factorVals[i-1]) + factorVals[i-1];
+                }
+                break;
+            }
+            else if (pixelVals[i] == -1) {
+                // Never go above the highest resolution entry
+                resolutionFactor = factorVals[i-1];
+                break;
+            }
         }
-        else if (width * height <= 854 * 480) {
-            return (int)(1500 * (fps / 30.0));
-        }
-        // This covers 1280x720 and 1280x800 too
-        else if (width * height <= 1366 * 768) {
-            return (int)(5000 * (fps / 30.0));
-        }
-        else if (width * height <= 1920 * 1200) {
-            return (int)(10000 * (fps / 30.0));
-        }
-        else if (width * height <= 2560 * 1600) {
-            return (int)(20000 * (fps / 30.0));
-        }
-        else /* if (width * height <= 3840 * 2160) */ {
-            return (int)(40000 * (fps / 30.0));
-        }
+
+        return (int)Math.round(resolutionFactor * frameRateFactor) * 1000;
     }
 
     public static boolean getDefaultSmallMode(Context context) {

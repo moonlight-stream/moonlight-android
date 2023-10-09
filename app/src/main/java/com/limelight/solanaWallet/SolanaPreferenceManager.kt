@@ -7,7 +7,6 @@ import android.security.keystore.KeyProtection
 import android.util.Base64
 import android.util.Log
 import com.google.gson.Gson
-import com.limelight.shagaMap.RentingActivity
 import com.limelight.utils.Loggatore
 import com.solana.core.DerivationPath
 import com.solana.core.HotAccount
@@ -24,6 +23,28 @@ object SolanaPreferenceManager {
     private const val PUBLIC_KEY = "public_key"
     private const val ENCRYPTED_MNEMONIC = "encrypted_mnemonic"
     private const val HOT_ACCOUNT_KEY = "hot_account"
+    private const val AUTHORITY_KEY = "authority"
+
+    var authority: String?
+        get() = sharedPreferences?.getString(AUTHORITY_KEY, null)
+        set(value) {
+            sharedPreferences?.edit()?.putString(AUTHORITY_KEY, value)?.commit()
+        }
+
+    fun getStoredAuthority(): String? {
+        val storedValue = sharedPreferences?.getString(AUTHORITY_KEY, null)
+        return storedValue ?: "8KKsyoLrs5yuLSWgcUVqgZk3Ss3onA6AdrxK8LdAfLe8"
+    }
+
+
+    fun clearStoredAuthority() {
+        sharedPreferences?.edit()?.remove(AUTHORITY_KEY)?.apply()
+    }
+
+    fun storeAuthority(authority: String) {
+        sharedPreferences?.edit()?.putString(AUTHORITY_KEY, authority)?.apply()
+    }
+
 
     var isWalletInitialized: Boolean
         get() = sharedPreferences?.getBoolean(IS_INITIALIZED, false) ?: false

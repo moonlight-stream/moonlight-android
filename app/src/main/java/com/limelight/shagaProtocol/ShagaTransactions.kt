@@ -1,24 +1,17 @@
-package com.limelight.shagaMap
+package com.limelight.shagaProtocol
 
-import android.content.Context
 import android.util.Log
-import com.limelight.R
-import com.limelight.shagaMap.ShagaTransactions.ProgramAddressHelper.findAffair
-import com.limelight.shagaMap.ShagaTransactions.ProgramAddressHelper.findAffairList
-import com.limelight.shagaMap.ShagaTransactions.ProgramAddressHelper.findClockworkThreadAccount
-import com.limelight.shagaMap.ShagaTransactions.ProgramAddressHelper.findLender
-import com.limelight.shagaMap.ShagaTransactions.ProgramAddressHelper.findRentAccount
-import com.limelight.shagaMap.ShagaTransactions.ProgramAddressHelper.findRentEscrow
-import com.limelight.shagaMap.ShagaTransactions.ProgramAddressHelper.findRentalThreadId
-import com.limelight.shagaMap.ShagaTransactions.ProgramAddressHelper.findThreadAuthority
-import com.limelight.shagaMap.ShagaTransactions.ProgramAddressHelper.findVault
-import com.limelight.solanaWallet.EncryptionHelper.decrypt
+import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findAffair
+import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findAffairList
+import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findClockworkThreadAccount
+import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findLender
+import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findRentAccount
+import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findRentEscrow
+import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findRentalThreadId
+import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findThreadAuthority
+import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findVault
 import com.limelight.solanaWallet.SolanaApi
-import com.limelight.solanaWallet.SolanaPreferenceManager
-import com.limelight.solanaWallet.WalletUtils
-import com.limelight.utils.Loggatore
 import com.solana.core.AccountMeta
-import com.solana.core.HotAccount
 import com.solana.core.PublicKey
 import com.solana.core.TransactionInstruction
 import java.nio.ByteBuffer
@@ -38,6 +31,8 @@ class ShagaTransactions {
         val PROGRAM_ID: PublicKey = PublicKey(PROGRAM_ID_STRING)
         const val CLOCKWORK_ID_STRING = "CLoCKyJ6DXBJqqu2VWx9RLbgnwwR6BMHHuyasVmfMzBh"
         val CLOCKWORK_ID: PublicKey = PublicKey(CLOCKWORK_ID_STRING)
+        const val SYSTEM_PROGRAM_ID_STRING = "11111111111111111111111111111111"
+        val SYSTEM_PROGRAM_ID: PublicKey = PublicKey(SYSTEM_PROGRAM_ID_STRING)
     }
     fun startRental(
         authority: PublicKey,
@@ -53,21 +48,24 @@ class ShagaTransactions {
         val (escrow, _) = findRentEscrow(lender, client, PROGRAM_ID)
         val (rental, _) = findRentAccount(lender, client, PROGRAM_ID)
         val (threadId, _) = findRentalThreadId(threadAuthority, rental, PROGRAM_ID)
-        val (rentalClockworkThread, _) = findClockworkThreadAccount(threadAuthority, threadId, PROGRAM_ID)
+        val (rentalClockworkThread, _) = findClockworkThreadAccount(threadAuthority, threadId, CLOCKWORK_ID)
         // Initialize the keys list for TransactionInstruction
-        val keys = mutableListOf<AccountMeta>().apply {
-            add(AccountMeta(client, true, true))
-            add(AccountMeta(lender, false, true))
-            add(AccountMeta(affair, false, true))
-            add(AccountMeta(affairsList, false, true))
-            add(AccountMeta(escrow, false, true))
-            add(AccountMeta(rental, false, true))
-            add(AccountMeta(vault, false, true))
-            add(AccountMeta(rentalClockworkThread, false, true))
-            add(AccountMeta(threadAuthority, false, false))
-            add(AccountMeta(CLOCKWORK_ID, false, false))
-        }
+        val keys = mutableListOf<AccountMeta>()
+        keys.add(AccountMeta(client, true, true))
+        keys.add(AccountMeta(lender, false, true))
+        keys.add(AccountMeta(affair, false, true))
+        keys.add(AccountMeta(affairsList, false, true))
+        keys.add(AccountMeta(escrow, false, true))
+        keys.add(AccountMeta(rental, false, true))
+        keys.add(AccountMeta(vault, false, true))
+        keys.add(AccountMeta(rentalClockworkThread, false, true))
+        keys.add(AccountMeta(threadAuthority, false, false))
+        keys.add(AccountMeta(SYSTEM_PROGRAM_ID, false, false))
+        keys.add(AccountMeta(CLOCKWORK_ID, false, false))
         // Encode the arguments (assuming you have a Borsh encoding function)
+        keys.forEach { accountMeta ->
+            Log.d("DebugTag", "Account: ${accountMeta}, isSigner: ${accountMeta.isSigner}, isWritable: ${accountMeta.isWritable}")
+        }
         val data = Borsh.encodeToByteArray(
             AnchorInstructionSerializer("start_rental"),
             args.rentalTerminationTime
@@ -79,6 +77,51 @@ class ShagaTransactions {
             data
         )
     }
+
+
+    fun endRental(
+        authority: PublicKey,
+        client: PublicKey
+    ): TransactionInstruction {
+        // Fetch the necessary public keys for the accounts involved
+        val (affair, _) = findAffair(authority, PROGRAM_ID)
+        val (lender, _) = findLender(authority, PROGRAM_ID)
+        val (affairsList, _) = findAffairList(PROGRAM_ID)
+        val (vault, _) = findVault(PROGRAM_ID)
+        val (threadAuthority, _) = findThreadAuthority(PROGRAM_ID)
+        val (escrow, _) = findRentEscrow(lender, client, PROGRAM_ID)
+        val (rental, _) = findRentAccount(lender, client, PROGRAM_ID)
+        val (threadId, _) = findRentalThreadId(threadAuthority, rental, PROGRAM_ID)
+        val (rentalClockworkThread, _) = findClockworkThreadAccount(threadAuthority, threadId, CLOCKWORK_ID)
+        // Create a list for the AccountMeta objects
+        val keys = mutableListOf<AccountMeta>()
+        keys.add(AccountMeta(client, true, true))
+        keys.add(AccountMeta(lender, false, true))
+        keys.add(AccountMeta(affair, false, true))
+        keys.add(AccountMeta(affairsList, false, true))
+        keys.add(AccountMeta(escrow, false, true))
+        keys.add(AccountMeta(rental, false, true))
+        keys.add(AccountMeta(vault, false, true))
+        keys.add(AccountMeta(rentalClockworkThread, false, true))
+        keys.add(AccountMeta(threadAuthority, false, false))
+        keys.add(AccountMeta(SYSTEM_PROGRAM_ID, false, false))
+        keys.add(AccountMeta(CLOCKWORK_ID, false, false))
+        // Encode the data (assuming you have a Borsh encoding function)
+        keys.forEach { accountMeta ->
+            Log.d("DebugTag", "Account: ${accountMeta}, isSigner: ${accountMeta.isSigner}, isWritable: ${accountMeta.isWritable}")
+        }
+        val data = Borsh.encodeToByteArray(
+            AnchorInstructionSerializer("end_rental"),
+            1
+        )
+
+        return TransactionInstruction(
+            PROGRAM_ID,
+            keys,
+            data
+        )
+    }
+
 
     object ProgramAddressHelper {
         private fun findProgramAddressSync(seeds: List<ByteArray>, programId: PublicKey): Pair<PublicKey, Int> {

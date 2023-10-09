@@ -185,12 +185,12 @@
         </activity>
 
         <!-- Add this line to register MapActivity -->
-        <activity android:name=".shagaMap.MapActivity"
+        <activity android:name=".shagaProtocol.MapActivity"
             android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
             <!-- Intent filters go here, if any -->
         </activity>
 
-        <activity android:name=".shagaMap.RentingActivity"
+        <activity android:name=".shagaProtocol.RentingActivity"
             android:theme="@style/RentingActivityTheme">
             <!-- Intent filters go here, if any -->
         </activity>

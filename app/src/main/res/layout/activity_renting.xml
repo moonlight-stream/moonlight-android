@@ -69,7 +69,7 @@
 
     <!-- Button to TODO: ADD START RENTAL & MERGE THE TWO BUTTONS Start Pairing -->
     <Button
-        android:id="@+id/startPairingButton"
+        android:id="@+id/cancelRental"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Start Pairing"
@@ -86,7 +86,7 @@
         android:textSize="22sp"
         android:layout_marginBottom="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/startPairingButton" />
+        app:layout_constraintTop_toBottomOf="@+id/cancelRental" />
 
 
     <TextView

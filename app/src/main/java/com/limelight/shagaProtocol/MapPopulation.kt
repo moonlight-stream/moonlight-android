@@ -1,4 +1,4 @@
-package com.limelight.shagaMap
+package com.limelight.shagaProtocol
 
 import android.content.Context
 import android.util.Log

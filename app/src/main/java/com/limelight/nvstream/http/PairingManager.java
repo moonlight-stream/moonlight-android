@@ -206,19 +206,16 @@ public class PairingManager {
 
         // Convert Ed25519 private key to X25519 private key
         byte[] x25519PrivateKey = EncryptionHelper.mapSecretEd25519ToX25519(ed25519PrivateKey);
-        // Generate a salt for hashing the PIN
-        byte[] salt = generateRandomBytes(16);
-        // Combine the salt and pin, then create an AES key from them
-        byte[] aesKey = generateAesKey(hashAlgo, saltPin(salt, pin));
-        // Encrypt the PIN using the converted X25519 private key
         byte[] encryptedPin = EncryptionHelper.encryptPinWithX25519PublicKey(pin, x25519PublicKey, x25519PrivateKey);
-        // Convert encrypted PIN to hex
         String hexEncryptedPin = bytesToHex(encryptedPin);
         // Make the HTTP request to pair with the server, sending the salt and the encrypted PIN
         PublicKey publicKey = SolanaPreferenceManager.getStoredPublicKey();
         assert publicKey != null;
         String publicKeyBase58 = publicKey.toBase58();
-
+        // Generate a salt for hashing the PIN
+        byte[] salt = generateRandomBytes(16);
+        // Combine the salt and pin, then create an AES key from them
+        byte[] aesKey = generateAesKey(hashAlgo, saltPin(salt, pin));
 
         String getCert = http.executeShagaPairingCommand("phrase=getservercert&salt=" +
                         bytesToHex(salt) + "&clientcert=" + bytesToHex(pemCertBytes) +

@@ -25,14 +25,14 @@ import com.limelight.preferences.GlPreferences;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.preferences.StreamSettings;
 
-import com.limelight.shagaMap.MapActivity;
+import com.limelight.shagaProtocol.MapActivity;
+import com.limelight.solanaWallet.SolanaPreferenceManager;
 import com.limelight.solanaWallet.WalletActivity;
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
 
 import com.limelight.utils.Dialog;
 import com.limelight.utils.HelpLauncher;
-import com.limelight.utils.Loggatore;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.UiHelper;
@@ -75,13 +75,12 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 
-
-import com.limelight.solanaWallet.SolanaPreferenceManager;
 import com.solana.core.PublicKey;
 import com.limelight.solanaWallet.EncryptionHelper;
 
 public class PcView extends Activity implements AdapterFragmentCallbacks {
 
+    private static PcView instance;
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
     private ShortcutHelper shortcutHelper;
@@ -230,7 +229,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         super.onCreate(savedInstanceState);
         // Assume we're in the foreground when created to avoid a race
         // between binding to CMS and onResume()
+        SolanaPreferenceManager.initialize(getApplicationContext());
+
         inForeground = true;
+
+        instance = this; // added for Shaga PairingActivity to call publicDoPairShaga
 
         // Create a GLSurfaceView to fetch GLRenderer unless we have
         // a cached result already.
@@ -269,6 +272,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             LimeLog.info("Cached GL Renderer: " + glPrefs.glRenderer);
             completeOnCreate();
         }
+    }
+
+    public static PcView getInstance() {
+        return instance;
     }
 
     private void completeOnCreate() {

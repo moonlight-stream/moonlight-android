@@ -39,6 +39,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -410,45 +411,60 @@ public class ComputerManagerService extends Service {
         return new MdnsDiscoveryListener() {
             @Override
             public void notifyComputerAdded(MdnsComputer computer) {
+                Log.d("ShagaPair", "Entered notifyComputerAdded");
+
                 ComputerDetails details = new ComputerDetails();
+
+                Log.d("ShagaPair", "ComputerDetails object created");
 
                 // Populate the computer template with mDNS info
                 if (computer.getLocalAddress() != null) {
                     details.localAddress = new ComputerDetails.AddressTuple(computer.getLocalAddress().getHostAddress(), computer.getPort());
 
-                    // Since we're on the same network, we can use STUN to find
-                    // our WAN address, which is also very likely the WAN address
-                    // of the PC. We can use this later to connect remotely.
+                    Log.d("ShagaPair", "Local Address populated: " + details.localAddress);
+
                     if (computer.getLocalAddress() instanceof Inet4Address) {
                         populateExternalAddress(details);
+                        Log.d("ShagaPair", "Populated external address");
                     }
+                } else {
+                    Log.d("ShagaPair", "Local Address is null");
                 }
+
                 if (computer.getIpv6Address() != null) {
                     details.ipv6Address = new ComputerDetails.AddressTuple(computer.getIpv6Address().getHostAddress(), computer.getPort());
+                    Log.d("ShagaPair", "IPv6 Address populated: " + details.ipv6Address);
+                } else {
+                    Log.d("ShagaPair", "IPv6 Address is null");
                 }
 
                 try {
-                    // Kick off a blocking serverinfo poll on this machine
+                    Log.d("ShagaPair", "Attempting to add computer");
                     if (!addComputerBlocking(details)) {
-                        LimeLog.warning("Auto-discovered PC failed to respond: "+details);
+                        LimeLog.warning("Auto-discovered PC failed to respond: " + details);
+                        Log.d("ShagaPair", "Auto-discovered PC failed to respond");
+                    } else {
+                        Log.d("ShagaPair", "Successfully added computer");
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                    Log.e("ShagaPair", "InterruptedException occurred: " + e.getMessage());
 
-                    // InterruptedException clears the thread's interrupt status. Since we can't
-                    // handle that here, we will re-interrupt the thread to set the interrupt
-                    // status back to true.
+                    // Re-interrupt the thread
                     Thread.currentThread().interrupt();
+                    Log.d("ShagaPair", "Thread re-interrupted");
                 }
             }
 
             @Override
             public void notifyDiscoveryFailure(Exception e) {
                 LimeLog.severe("mDNS discovery failed");
+                Log.e("ShagaPair", "mDNS discovery failed: " + e.getMessage());
                 e.printStackTrace();
             }
         };
     }
+
 
     private void addTuple(ComputerDetails details) {
         synchronized (pollingTuples) {
@@ -482,38 +498,54 @@ public class ComputerManagerService extends Service {
     }
 
     public boolean addComputerBlocking(ComputerDetails fakeDetails) throws InterruptedException {
-        // Block while we try to fill the details
+        // Initial log to indicate method entry
+        LimeLog.info("Polling Service: Entering addComputerBlocking method");
 
-        // We cannot use runPoll() here because it will attempt to persist the state of the machine
-        // in the database, which would be bad because we don't have our pinned cert loaded yet.
+        // Block while we try to fill the details
         if (pollComputer(fakeDetails)) {
+            LimeLog.info("Polling Service: Initial pollComputer was successful");
+
             // See if we have record of this PC to pull its pinned cert
             synchronized (pollingTuples) {
+                boolean certFound = false;
                 for (PollingTuple tuple : pollingTuples) {
                     if (tuple.computer.uuid.equals(fakeDetails.uuid)) {
                         fakeDetails.serverCert = tuple.computer.serverCert;
+                        certFound = true;
                         break;
                     }
                 }
+
+                if(certFound) {
+                    LimeLog.info("ShagaPair: Pinned certificate found");
+                } else {
+                    LimeLog.info("ShagaPair: No pinned certificate found");
+                }
             }
 
-            // Poll again, possibly with the pinned cert, to get accurate pairing information.
-            // This will insert the host into the database too.
+            // Poll again, possibly with the pinned cert, to get accurate pairing information
             runPoll(fakeDetails, true, 0);
+            LimeLog.info("Polling Service: Second poll (runPoll) executed");
+        } else {
+            LimeLog.info("Polling Service: Initial pollComputer failed");
         }
 
-        // If the machine is reachable, it was successful
+        // Check the machine state
         if (fakeDetails.state == ComputerDetails.State.ONLINE) {
-            LimeLog.info("New PC ("+fakeDetails.name+") is UUID "+fakeDetails.uuid);
+            LimeLog.info("Polling Service: New PC ("+fakeDetails.name+") is UUID "+fakeDetails.uuid);
 
             // Start a polling thread for this machine
             addTuple(fakeDetails);
+            LimeLog.info("Polling Service: Computer is ONLINE, returning true");
+
             return true;
         }
         else {
+            LimeLog.info("Polling Service: Computer is not ONLINE, returning false");
             return false;
         }
     }
+
 
     public void removeComputer(ComputerDetails computer) {
         if (!getLocalDatabaseReference()) {
@@ -714,19 +746,31 @@ public class ComputerManagerService extends Service {
     }
 
     private boolean pollComputer(ComputerDetails details) throws InterruptedException {
-        // Poll all addresses in parallel to speed up the process
-        LimeLog.info("Starting parallel poll for "+details.name+" ("+details.localAddress +", "+details.remoteAddress +", "+details.manualAddress+", "+details.ipv6Address+")");
-        ComputerDetails polledDetails = parallelPollPc(details);
-        LimeLog.info("Parallel poll for "+details.name+" returned address: "+details.activeAddress);
+        // Initial log to indicate method entry
+        LimeLog.info("Polling Service: Entering pollComputer method for " + details.name);
 
+        // Poll all addresses in parallel to speed up the process
+        LimeLog.info("Polling Service: Starting parallel poll for " + details.name + " (" + details.localAddress + ", " + details.remoteAddress + ", " + details.manualAddress + ", " + details.ipv6Address + ")");
+        ComputerDetails polledDetails = parallelPollPc(details);
+        LimeLog.info("Polling Service: Parallel poll for " + details.name + " completed");
+
+        // Check the result of parallel polling
         if (polledDetails != null) {
+            LimeLog.info("Polling Service: Poll was successful, updating details");
             details.update(polledDetails);
+
+            // Log that the method is returning true
+            LimeLog.info("Polling Service: pollComputer method is about to return true");
             return true;
-        }
-        else {
+        } else {
+            LimeLog.info("Polling Service: Poll failed, no details updated");
+
+            // Log that the method is returning false
+            LimeLog.info("Polling Service: pollComputer method is about to return false");
             return false;
         }
     }
+
 
     @Override
     public void onCreate() {

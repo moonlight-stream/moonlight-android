@@ -3,20 +3,20 @@ package com.limelight.shagaProtocol
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.slider.Slider
 import com.limelight.R
+import com.limelight.solanaWallet.ShagaHotAccount
 import com.limelight.solanaWallet.SolanaApi
 import com.limelight.solanaWallet.SolanaPreferenceManager
-import com.limelight.solanaWallet.WalletActivity
 import com.limelight.solanaWallet.WalletInitializer
 import com.limelight.solanaWallet.WalletManager
 import com.limelight.utils.Loggatore
-import com.solana.api.getConfirmedTransaction
 import com.solana.api.sendTransaction
+import com.solana.core.HotAccount
 import com.solana.core.PublicKey
 import com.solana.core.TransactionBuilder
 import kotlinx.coroutines.CoroutineScope
@@ -52,8 +52,8 @@ class RentingActivity : AppCompatActivity() {
     private lateinit var solanaBalanceTextView: TextView
     private lateinit var walletPublicKeyTextView: TextView
     private lateinit var proceedButton: Button
-    private lateinit var cancelRental: Button
     private lateinit var rentalTimeSlider: Slider
+    private lateinit var transactionStatusTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,99 +61,13 @@ class RentingActivity : AppCompatActivity() {
 
         // Initialize other views and managers
         proceedButton = findViewById(R.id.proceedButton)
-        cancelRental = findViewById(R.id.cancelRental)
+        transactionStatusTextView = findViewById(R.id.transactionStatus)
 
 
         initializeViews()
         handleIntentExtras()
         setupWalletManager()
         syncWithSolana()
-
-        // Set click listener for the cancelRental button
-        cancelRental.setOnClickListener {
-            cancelRentalOnSolana()
-        }
-    }
-
-    private fun cancelRentalOnSolana() {
-        CoroutineScope(Dispatchers.Main).launch {
-            Log.e("RentingActivity", "Cancel button clicked, starting coroutine.")
-            // Step 1: Load the authority from SharedPreferences
-            val storedAuthority = SolanaPreferenceManager.getStoredAuthority()
-            if (storedAuthority == null) {
-                Log.e("RentingActivity", "Stored authority is null. Cannot proceed.")
-                return@launch
-            }
-            val authorityPublicKey = PublicKey(storedAuthority)
-            // Step 2: Fetch clientAccount, which seems to be a common step in your app.
-            val clientAccount = SolanaPreferenceManager.getStoredHotAccount()
-            if (clientAccount == null) {
-                Log.e("RentingActivity", "Failed to obtain fee payer account. Cannot proceed.")
-                return@launch
-            }
-            val clientPublicKey = clientAccount.publicKey
-            // Log both keys for debugging
-            Log.e(
-                "RentingActivity",
-                "Obtained clientPublicKey: ${clientPublicKey.toBase58()}, authorityPublicKey: ${authorityPublicKey.toBase58()}"
-            )
-            // Step 3: Generate the end rental instruction using the upgraded function
-            val shagaTransactions = ShagaTransactions()
-            val txInstruction = shagaTransactions.endRental(
-                authority = authorityPublicKey,
-                client = clientPublicKey
-            )
-            Log.e("RentingActivity", "Generated end rental transaction instruction.")
-            // Step 4: Fetch recent block hash for the transaction
-            val recentBlockHashResult =
-                withContext(Dispatchers.IO) { SolanaApi.getRecentBlockHashFromApi() }
-            if (recentBlockHashResult.isFailure) {
-                Log.e("RentingActivity", "Failed to fetch recent blockhash.")
-                return@launch
-            }
-            val recentBlockHash = recentBlockHashResult.getOrNull() ?: return@launch
-            Log.e("RentingActivity", "Fetched recentBlockHash: $recentBlockHash")
-            // Step 5: Build the transaction
-            val transaction = TransactionBuilder()
-                .addInstruction(txInstruction)
-                .setRecentBlockHash(recentBlockHash)
-                .setSigners(listOf(clientAccount))
-                .build()
-            Log.e(
-                "RentingActivity",
-                "Built transaction. Instructions count: ${transaction.instructions.size}"
-            )
-            // Step 6: Send the transaction
-            val sendTransactionResult = withContext(Dispatchers.IO) {
-                SolanaApi.solana.api.sendTransaction(
-                    transaction = transaction,
-                    signers = listOf(clientAccount),
-                    recentBlockHash = recentBlockHash
-                )
-            }
-            if (sendTransactionResult.isFailure) {
-                val exception = sendTransactionResult.exceptionOrNull() // Get the exception
-                Log.e(
-                    "RentingActivity",
-                    "Failed to send cancellation transaction: ${exception?.message}",
-                    exception
-                ) // Log it
-                return@launch
-            }
-            val transactionId = sendTransactionResult.getOrNull() ?: return@launch
-            Log.e("RentingActivity", "Cancellation transaction successful, ID: $transactionId")
-
-            // Step 7: Clear the stored authority from SharedPreferences
-            SolanaPreferenceManager.clearStoredAuthority()
-            Log.e("RentingActivity", "Cleared stored authority.")
-
-            // Step 8: Navigate to WalletActivity
-            val intent = Intent(this@RentingActivity, WalletActivity::class.java)
-            startActivity(intent)
-            Log.e("RentingActivity", "Navigated to WalletActivity.")
-
-            Toast.makeText(this@RentingActivity, "Cancellation successful", Toast.LENGTH_SHORT).show()
-        }
     }
 
 
@@ -182,6 +96,94 @@ class RentingActivity : AppCompatActivity() {
         }
     }
 
+
+
+    companion object {
+
+        @JvmStatic
+        public fun cancelRent() {
+            cancelRentalOnSolana()
+        }
+
+        @JvmStatic
+        private fun cancelRentalOnSolana() {
+            CoroutineScope(Dispatchers.Main).launch {
+                Log.e("ShagaPair", "Cancel button clicked, starting coroutine.")
+                // Step 1: Load the authority from SharedPreferences
+                val storedAuthority = SolanaPreferenceManager.getStoredAuthority()
+                if (storedAuthority == null) {
+                    Log.e("ShagaPair", "Stored authority is null. Cannot proceed.")
+                    return@launch
+                }
+                val authorityPublicKey = PublicKey(storedAuthority)
+                // Step 2: Fetch clientAccount, which seems to be a common step in your app.
+                val clientAccount = SolanaPreferenceManager.getStoredHotAccount()
+                if (clientAccount == null) {
+                    Log.e("ShagaPair", "Failed to obtain fee payer account. Cannot proceed.")
+                    return@launch
+                }
+                val secretKey: ByteArray = clientAccount.obtainSecretKey()
+                val intermediateHotAccount: HotAccount = HotAccount(secretKey)
+                // Mental parkour just because secretKey used to encrypt the pin in pairing activity couldn't be accessed from an HotAccount and required ShagaHotAccount
+                val clientPublicKey = clientAccount.publicKey
+                // Log both keys for debugging
+                Log.e(
+                    "RentingActivity",
+                    "Obtained clientPublicKey: ${clientPublicKey.toBase58()}, authorityPublicKey: ${authorityPublicKey.toBase58()}"
+                )
+                // Step 3: Generate the end rental instruction using the upgraded function
+                val shagaTransactions = ShagaTransactions()
+                val txInstruction = shagaTransactions.endRental(
+                    authority = authorityPublicKey,
+                    client = clientPublicKey
+                )
+                Log.e("ShagaPair", "Generated end rental transaction instruction.")
+                // Step 4: Fetch recent block hash for the transaction
+                val recentBlockHashResult =
+                    withContext(Dispatchers.IO) { SolanaApi.getRecentBlockHashFromApi() }
+                if (recentBlockHashResult.isFailure) {
+                    Log.e("ShagaPair", "Failed to fetch recent blockhash.")
+                    return@launch
+                }
+                val recentBlockHash = recentBlockHashResult.getOrNull() ?: return@launch
+                Log.e("ShagaPair", "Fetched recentBlockHash: $recentBlockHash")
+                // Step 5: Build the transaction
+                val transaction = TransactionBuilder()
+                    .addInstruction(txInstruction)
+                    .setRecentBlockHash(recentBlockHash)
+                    .setSigners(listOf(intermediateHotAccount))
+                    .build()
+                Log.e(
+                    "RentingActivity",
+                    "Built transaction. Instructions count: ${transaction.instructions.size}"
+                )
+                // Step 6: Send the transaction
+                val sendTransactionResult = withContext(Dispatchers.IO) {
+                    SolanaApi.solana.api.sendTransaction(
+                        transaction = transaction,
+                        signers = listOf(intermediateHotAccount),
+                        recentBlockHash = recentBlockHash
+                    )
+                }
+                if (sendTransactionResult.isFailure) {
+                    val exception = sendTransactionResult.exceptionOrNull() // Get the exception
+                    Log.e(
+                        "RentingActivity",
+                        "Failed to send cancellation transaction: ${exception?.message}",
+                        exception
+                    ) // Log it
+                    return@launch
+                }
+                val transactionId = sendTransactionResult.getOrNull() ?: return@launch
+                Log.e("ShagaPair", "Cancellation transaction successful, ID: $transactionId")
+
+                // Step 7: Clear the stored authority from SharedPreferences
+                SolanaPreferenceManager.clearStoredAuthority()
+                Log.e("ShagaPair", "Cleared stored authority.")
+            }
+        }
+    }
+
     private fun syncWithSolana() {
         val publicKey: PublicKey? = SolanaPreferenceManager.getStoredPublicKey()
         publicKey?.let {
@@ -201,7 +203,7 @@ class RentingActivity : AppCompatActivity() {
             populateTextViews(latency, affairData)
             setupSlider(affairData)
         } else {
-            Log.e("RentingActivity", "Required data not found.")
+            Log.e("ShagaPair", "Required data not found.")
             finish()
         }
     }
@@ -295,8 +297,7 @@ class RentingActivity : AppCompatActivity() {
 
         proceedButton.setOnClickListener { clickedView ->
             CoroutineScope(Dispatchers.Main).launch {
-                Log.e("RentingActivity", "Button clicked, starting coroutine.")
-
+                Log.d("ShagaPair", "Button clicked, starting coroutine.")
                 // Step 1
                 val selectedRentTimeMillis = (selectedRentTimeMinutes * 60 * 1000).toLong()
                 val selectedRentTimeSeconds = (selectedRentTimeMillis / 1000).toULong()
@@ -304,97 +305,79 @@ class RentingActivity : AppCompatActivity() {
                     (System.currentTimeMillis() / 1000).toULong() // Convert to ULong
                 val rentalTerminationTimeSeconds =
                     currentTimeSeconds + selectedRentTimeSeconds // Both are ULong
-                Log.e(
-                    "RentingActivity",
-                    "Calculated selectedRentTimeSeconds: $rentalTerminationTimeSeconds"
-                )
-
+                Log.d("ShagaPair","Calculated selectedRentTimeSeconds: $rentalTerminationTimeSeconds")
                 // Step 3
                 val shagaTransactions = ShagaTransactions()
                 val clientAccount = SolanaPreferenceManager.getStoredHotAccount()
                 if (clientAccount == null) {
-                    Log.e("RentingActivity", "Failed to obtain fee payer account. Cannot proceed.")
+                    Log.e("ShagaPair", "Failed to obtain fee payer account. Cannot proceed.")
                     return@launch
                 }
-                Log.e(
-                    "RentingActivity",
-                    "Obtained client, publicKey: ${clientAccount.publicKey.toBase58()}"
-                )
-
+                Log.d("ShagaPair","Obtained client, publicKey: ${clientAccount.publicKey.toBase58()}")
+                val secretKey: ByteArray = clientAccount.obtainSecretKey()
+                val intermediateHotAccount: HotAccount = HotAccount(secretKey)
                 // Step 4
-                val rentalArgs =
-                    SolanaApi.StartRentalInstructionArgs(rentalTerminationTime = rentalTerminationTimeSeconds)
+                val rentalArgs = SolanaApi.StartRentalInstructionArgs(rentalTerminationTime = rentalTerminationTimeSeconds)
                 // Step 5
                 val txInstruction = shagaTransactions.startRental(
                     authority = data.authority,
                     client = clientAccount.publicKey,
                     args = rentalArgs
                 )
-                Log.e("RentingActivity", "Authrotiyy ID: ${data.authority.toBase58()}")
-                Log.e("RentingActivity", "Generated transaction instruction.")
-
+                Log.d("ShagaPair", "Authrotiyy ID: ${data.authority.toBase58()}")
+                Log.d("ShagaPair", "Generated transaction instruction.")
                 // Step 6
                 val recentBlockHashResult =
                     withContext(Dispatchers.IO) { SolanaApi.getRecentBlockHashFromApi() }
                 if (recentBlockHashResult.isFailure) {
-                    Log.e("RentingActivity", "Failed to fetch recent blockhash.")
+                    Log.e("ShagaPair", "Failed to fetch recent blockhash.")
                     return@launch
                 }
                 val recentBlockHash = recentBlockHashResult.getOrNull() ?: return@launch
-                Log.e("RentingActivity", "Fetched recentBlockHash: $recentBlockHash")
-
+                Log.d("ShagaPair", "Fetched recentBlockHash: $recentBlockHash")
                 // Step 7
                 val transaction = TransactionBuilder()
                     .addInstruction(txInstruction)
                     .setRecentBlockHash(recentBlockHash)
-                    .setSigners(listOf(clientAccount))
+                    .setSigners(listOf(intermediateHotAccount))
                     .build()
-                Log.e(
-                    "RentingActivity",
-                    "Built transaction. Instructions count: ${transaction.instructions.size}"
-                )
-
+                Log.d("ShagaPair","Built transaction. Instructions count: ${transaction.instructions.size}")
                 // Send the transaction
+                transactionStatusTextView.visibility = View.VISIBLE
+                transactionStatusTextView.text = "Sending transaction..."
+
                 val sendTransactionResult = withContext(Dispatchers.IO) {
                     SolanaApi.solana.api.sendTransaction(
                         transaction = transaction,
-                        signers = listOf(clientAccount),
+                        signers = listOf(intermediateHotAccount),
                         recentBlockHash = recentBlockHash
                     )
                 }
                 if (sendTransactionResult.isFailure) {
                     val exception = sendTransactionResult.exceptionOrNull() // Get the exception
-                    Log.e(
-                        "RentingActivity",
-                        "Failed to send transaction: ${exception?.message}",
-                        exception
-                    ) // Log it
+                    Log.e("ShagaPair","Failed to send transaction: ${exception?.message}", exception)
+                    // Update TextView to say "Transaction failed"
+                    transactionStatusTextView.text = "Transaction failed"
                     return@launch
                 }
+                // Update TextView to indicate transaction is pending confirmation
                 val transactionId = sendTransactionResult.getOrNull() ?: return@launch
-                Log.e("RentingActivity", "Transaction successful, ID: $transactionId")
-
-                // Directly verify the transaction using getConfirmedTransaction
-                val transactionResult = withContext(Dispatchers.IO) {
-                    SolanaApi.solana.api.getConfirmedTransaction(transactionId)
-                }
-
-                if (transactionResult.isSuccess && transactionResult.getOrNull() != null) {
-                    Log.e("RentingActivity", "Transaction verified.")
-
-                    // Start PairingActivity
-                    val intent = Intent(this@RentingActivity, PairingActivity::class.java)
-                    intent.putExtra("clientAccount", clientAccount.toString())
-                    intent.putExtra("ipAddress", data.ipAddress)
-                    val authorityString = data.authority.toString()
-                    SolanaPreferenceManager.storeAuthority(authorityString)
-                    intent.putExtra("authority", authorityString)
-                    Log.d("RentingActivity", "Sending clientAccount: $clientAccount, authority: ${data.authority}, and ipAddress: ${data.ipAddress}")
-                    // Start PairingActivity
-                    startActivity(intent)
-                } else {
-                    Log.e("RentingActivity", "Transaction could not be verified.")
-                }
+                Log.d("ShagaPair", "Transaction successful, ID: $transactionId")
+                transactionStatusTextView.text = "Transaction confirmed"
+                // Start PairingActivity
+                val intent = Intent(this@RentingActivity, PairingActivity::class.java)
+                // load carried state
+                val clientString = clientAccount.publicKey.toString()
+                intent.putExtra("clientAccount", clientString)
+                intent.putExtra("ipAddress", data.ipAddress)
+                val authorityString = data.authority.toString()
+                SolanaPreferenceManager.storeAuthority(authorityString)
+                intent.putExtra("authority", authorityString)
+                Log.d("ShagaPair", "Authority string to store: $authorityString")
+                Log.d("ShagaPair", "SharedPreferences initialized: ${SolanaPreferenceManager.isInitialized()}")
+                Log.d("ShagaPair", "Sending clientAccount: ${clientAccount.publicKey.toString()}, authority: ${authorityString}, and ipAddress: ${data.ipAddress}")
+                // Start PairingActivity
+                startActivity(intent)
             }
         }
     }

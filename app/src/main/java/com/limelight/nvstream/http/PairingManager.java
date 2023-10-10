@@ -1,5 +1,7 @@
 package com.limelight.nvstream.http;
 
+import android.util.Log;
+
 import org.bitcoinj.core.Base58;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.engines.AESLightEngine;
@@ -9,6 +11,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import com.limelight.LimeLog;
 
+import java.net.URLEncoder;
 import java.security.cert.Certificate;
 import java.io.*;
 import java.security.*;
@@ -17,6 +20,7 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import com.limelight.solanaWallet.EncryptionHelper;
+import com.limelight.solanaWallet.ShagaHotAccount;
 import com.limelight.solanaWallet.SolanaPreferenceManager;
 import com.solana.core.PublicKey;
 
@@ -183,67 +187,80 @@ public class PairingManager {
         return pairShaga(serverInfo, pin, x25519PublicKey);
     }
 
+
     private PairState pairShaga(String serverInfo, String pin, byte[] x25519PublicKey) throws IOException, XmlPullParserException {
 
         PairingHashAlgorithm hashAlgo;
 
         int serverMajorVersion = http.getServerMajorVersion(serverInfo);
         LimeLog.info("Pairing with server generation: " + serverMajorVersion);
+
         if (serverMajorVersion >= 7) {
-            // Gen 7+ uses SHA-256 hashing
             hashAlgo = new Sha256PairingHash();
+            Log.d("ShagaPair", "Using SHA-256 for pairing hash algorithm");
         } else {
-            // Prior to Gen 7, SHA-1 is used
             hashAlgo = new Sha1PairingHash();
+            Log.d("ShagaPair", "Using SHA-1 for pairing hash algorithm");
         }
 
-        // Load the client Ed25519 private key from Android KeyStore
-        byte[] ed25519PrivateKey = SolanaPreferenceManager.loadPrivateKeyFromKeyStore();
-        if (ed25519PrivateKey == null) {
-            // Handle the error. Maybe log it or show a user message.
+        // Retrieve stored ShagaHotAccount from SolanaPreferenceManager
+        ShagaHotAccount shagaHotAccount = SolanaPreferenceManager.getStoredHotAccount();
+        // Check if ShagaHotAccount is null
+        if (shagaHotAccount == null) {
+            Log.e("ShagaPair", "No stored ShagaHotAccount found.");
             return PairState.FAILED;
         }
+        // Retrieve the private key from ShagaHotAccount
+        byte[] ed25519PrivateKey = shagaHotAccount.obtainSecretKey();
+        Log.d("ShagaPair", "Successfully loaded Ed25519 private key from ShagaHotAccount");
 
-        // Convert Ed25519 private key to X25519 private key
+
         byte[] x25519PrivateKey = EncryptionHelper.mapSecretEd25519ToX25519(ed25519PrivateKey);
         byte[] encryptedPin = EncryptionHelper.encryptPinWithX25519PublicKey(pin, x25519PublicKey, x25519PrivateKey);
         String hexEncryptedPin = bytesToHex(encryptedPin);
-        // Make the HTTP request to pair with the server, sending the salt and the encrypted PIN
-        PublicKey publicKey = SolanaPreferenceManager.getStoredPublicKey();
-        assert publicKey != null;
+        Log.d("ShagaPair", "Encrypted PIN and converted to hex: " + hexEncryptedPin);
+
+        PublicKey publicKey = shagaHotAccount.getPublicKey();
         String publicKeyBase58 = publicKey.toBase58();
-        // Generate a salt for hashing the PIN
+        Log.d("ShagaPair", "Fetched stored public key: " + publicKeyBase58);
+
         byte[] salt = generateRandomBytes(16);
-        // Combine the salt and pin, then create an AES key from them
         byte[] aesKey = generateAesKey(hashAlgo, saltPin(salt, pin));
+
+
+        String encodedPublicKey = URLEncoder.encode(publicKeyBase58, "UTF-8");
+        String encodedHexEncryptedPin = URLEncoder.encode(hexEncryptedPin, "UTF-8");
+
 
         String getCert = http.executeShagaPairingCommand("phrase=getservercert&salt=" +
                         bytesToHex(salt) + "&clientcert=" + bytesToHex(pemCertBytes) +
-                        "&encryptedPin=" + hexEncryptedPin + "&publicKey=" + publicKeyBase58,
+                        "&encryptedPin=" + encodedHexEncryptedPin + "&publicKey=" + encodedPublicKey,
                 false);
-
+        Log.d("ShagaPair", "Executed pairing command, received certificate: " + getCert);
 
         if (!NvHTTP.getXmlString(getCert, "paired", true).equals("1")) {
+            Log.e("ShagaPair", "Pairing failed during certificate check");
             return PairState.FAILED;
         }
+        Log.d("ShagaPair", "Certificate check passed, pairing successful");
 
-        // Save this cert for retrieval later
         serverCert = extractPlainCert(getCert);
         if (serverCert == null) {
-            // Attempting to pair while another device is pairing will cause GFE
-            // to give an empty cert in the response.
+            Log.e("ShagaPair", "Server certificate extraction failed, pairing already in progress");
             http.unpair();
             return PairState.ALREADY_IN_PROGRESS;
         }
+        Log.d("ShagaPair", "Successfully extracted server certificate");
 
-        // Require this cert for TLS to this host
         http.setServerCert(serverCert);
+        Log.d("ShagaPair", "Set server certificate for TLS");
 
-        // Generate a random challenge and encrypt it with our AES key
         byte[] randomChallenge = generateRandomBytes(16);
-        byte[] encryptedChallenge = encryptAes(randomChallenge, aesKey);
+        Log.d("ShagaPair", "Generated random challenge bytes");
 
-        // Send the encrypted challenge to the server
+        byte[] encryptedChallenge = encryptAes(randomChallenge, aesKey);
+        Log.d("ShagaPair", "Encrypted the random challenge");
+
         String challengeResp = http.executePairingCommand("clientchallenge="+bytesToHex(encryptedChallenge), true);
         if (!NvHTTP.getXmlString(challengeResp, "paired", true).equals("1")) {
             http.unpair();

@@ -200,6 +200,11 @@
             <!-- Add intent filters here if necessary -->
         </activity>
 
+        <activity android:name=".shagaProtocol.PairingActivity"
+            android:theme="@style/RentingActivityTheme">
+            <!-- Add intent filters here if necessary -->
+        </activity>
+
 
     </application>
 

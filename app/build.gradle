@@ -172,7 +172,6 @@ dependencies {
         exclude group: 'org.bouncycastle'
     }
     // ---A all solana stuff
-    //implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.1'
     implementation 'com.google.code.gson:gson:2.8.8'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.10'
 

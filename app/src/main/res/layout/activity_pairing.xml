@@ -15,15 +15,42 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Text view for the loading message -->
+    <!-- TextView for Pairing Status -->
     <TextView
-        android:id="@+id/loadingText"
+        android:id="@+id/pairingStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Connecting to server"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/loadingProgressBar"
+        android:text="Pairing Status: Awaiting..."
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/pairingMessage"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"/>
+
+
+    <!-- TextView for Pairing Messages -->
+    <TextView
+        android:id="@+id/pairingMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/retryButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+
+    <!-- Button to Retry Pairing -->
+    <Button
+        android:id="@+id/retryButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Retry"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

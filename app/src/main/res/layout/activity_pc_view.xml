@@ -82,8 +82,47 @@
         android:layout_alignParentStart="true"
         android:padding="50dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textSize="30sp"
-        />
+        android:textSize="30sp"/>
+
+    <!-- Your Cancel Rental Button -->
+    <Button
+        android:id="@+id/cancelRentalButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Terminate Rental"
+        android:padding="50dp"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@+id/openWalletActivityButton"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="30sp"/>
+
+    <!-- Loading screen -->
+    <!-- Loading screen -->
+    <RelativeLayout
+        android:id="@+id/loadingLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/loadingProgressBar"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_centerInParent="true"
+            android:elevation="4dp"/>
+
+        <TextView
+            android:id="@+id/loadingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/loadingProgressBar"
+            android:layout_centerHorizontal="true"
+            android:text="Terminating the rental..."
+            android:layout_marginTop="10dp"
+            android:textSize="32sp"/>
+
+    </RelativeLayout>
 
     <Button
         android:id="@+id/openWalletActivityButton"
@@ -95,8 +134,7 @@
         android:layout_alignParentEnd="true"
         android:padding="50dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textSize="30sp"
-        />
+        android:textSize="30sp"/>
 
     <ImageButton
         android:id="@+id/manuallyAddPc"

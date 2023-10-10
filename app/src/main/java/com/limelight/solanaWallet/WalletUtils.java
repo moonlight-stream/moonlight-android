@@ -8,7 +8,7 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.limelight.utils.Loggatore;
 import com.solana.core.DerivationPath;
-import com.solana.core.HotAccount;
+import com.limelight.solanaWallet.ShagaHotAccount;
 
 import java.util.ArrayList;
 import java.util.List;

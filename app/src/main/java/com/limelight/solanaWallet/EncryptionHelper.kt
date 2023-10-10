@@ -23,17 +23,6 @@ object EncryptionHelper {
         }
     }
 
-    @JvmStatic
-    fun mapPublicEd25519ToX25519(ed25519PublicKey: ByteArray): ByteArray {
-        val x25519PublicKey = ByteArray(32) // Initialize to proper size
-        // Convert Ed25519 public key to Curve25519 public key
-        val conversionResultPublic = Sodium.crypto_sign_ed25519_pk_to_curve25519(x25519PublicKey, ed25519PublicKey)
-        // Check for conversion success (usually, 0 means success)
-        if (conversionResultPublic != 0) {
-            throw Exception("Public key conversion failed")
-        }
-        return x25519PublicKey
-    }
 
     @JvmStatic
     fun encryptPinWithX25519PublicKey(pin: String, x25519PublicKey: ByteArray, x25519PrivateKey: ByteArray): ByteArray {
@@ -48,6 +37,18 @@ object EncryptionHelper {
         val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
         cipher.init(Cipher.ENCRYPT_MODE, skeySpec)
         return cipher.doFinal(data)
+    }
+
+    @JvmStatic
+    fun mapPublicEd25519ToX25519(ed25519PublicKey: ByteArray): ByteArray {
+        val x25519PublicKey = ByteArray(32) // Initialize to proper size
+        // Convert Ed25519 public key to Curve25519 public key
+        val conversionResultPublic = Sodium.crypto_sign_ed25519_pk_to_curve25519(x25519PublicKey, ed25519PublicKey)
+        // Check for conversion success (usually, 0 means success)
+        if (conversionResultPublic != 0) {
+            throw Exception("Public key conversion failed")
+        }
+        return x25519PublicKey
     }
 
     @JvmStatic

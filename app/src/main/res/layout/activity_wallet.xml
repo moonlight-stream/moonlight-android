@@ -42,7 +42,7 @@
         android:layout_marginEnd="16dp"
         android:padding="0dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textSize="19.7sp"
+        android:textSize="20sp"
         android:textColor="#9D00FF"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

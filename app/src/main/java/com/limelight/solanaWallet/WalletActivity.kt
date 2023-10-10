@@ -1,5 +1,8 @@
 package com.limelight.solanaWallet
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -17,6 +20,7 @@ import com.limelight.R
 import com.limelight.shagaProtocol.MapActivity
 import com.limelight.utils.Loggatore
 import com.solana.core.PublicKey
+
 
 @Throws(WriterException::class)
 fun encodeAsBitmap(str: String, width: Int, height: Int): Bitmap? {
@@ -43,6 +47,7 @@ fun encodeAsBitmap(str: String, width: Int, height: Int): Bitmap? {
 }
 class WalletActivity : AppCompatActivity() {
 
+    private lateinit var clipboard: ClipboardManager
     private lateinit var walletManager: WalletManager
     private lateinit var solanaBalanceTextView: TextView
     private lateinit var walletPublicKeyTextView: TextView
@@ -56,6 +61,7 @@ class WalletActivity : AppCompatActivity() {
         syncWithSolana()
 
         // Initialize Buttons
+        clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val syncWithSolanaButton = findViewById<Button>(R.id.syncWithSolanaButton)
         val qrCodeDepositButton = findViewById<Button>(R.id.qrCodeDepositButton)
         val createWalletButton = findViewById<Button>(R.id.createWalletButton)
@@ -88,6 +94,17 @@ class WalletActivity : AppCompatActivity() {
             val intent = Intent(this, MapActivity::class.java)
             startActivity(intent)
         }
+        walletPublicKeyTextView.setOnClickListener {
+            // Assuming the TextView text is in the form "Public Key: [your_actual_public_key]"
+            val fullText = walletPublicKeyTextView.text.toString()
+            val publicKeyStr = fullText.split(": ").last() // this will get you the part after "Public Key: "
+
+            val clip = ClipData.newPlainText("publicKey", publicKeyStr)
+            clipboard.setPrimaryClip(clip)
+            Toast.makeText(this, "Public key copied to clipboard", Toast.LENGTH_SHORT).show()
+        }
+
+
     }
 
     private fun toggleQRCodeVisibility() {

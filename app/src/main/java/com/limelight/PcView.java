@@ -2,6 +2,7 @@ package com.limelight;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.UnknownHostException;
 
 import com.limelight.binding.PlatformBinding;
@@ -26,6 +27,8 @@ import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.preferences.StreamSettings;
 
 import com.limelight.shagaProtocol.MapActivity;
+import com.limelight.shagaProtocol.RentingActivity;
+import com.limelight.shagaProtocol.ShagaTransactions;
 import com.limelight.solanaWallet.SolanaPreferenceManager;
 import com.limelight.solanaWallet.WalletActivity;
 import com.limelight.ui.AdapterFragment;
@@ -47,12 +50,15 @@ import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.opengl.GLSurfaceView;
 
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 
 import android.preference.PreferenceManager;
 
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -65,21 +71,26 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
+import org.libsodium.jni.NaCl;
 import org.xmlpull.v1.XmlPullParserException;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 
+import com.solana.core.Account;
 import com.solana.core.PublicKey;
 import com.limelight.solanaWallet.EncryptionHelper;
+import android.widget.TextView;
 
 public class PcView extends Activity implements AdapterFragmentCallbacks {
-
+    private ProgressBar loadingProgressBar;
+    private TextView loadingText;
     private static PcView instance;
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
@@ -143,6 +154,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
     private void initializeViews() {
         setContentView(R.layout.activity_pc_view);
+        loadingProgressBar = findViewById(R.id.loadingProgressBar);
+        loadingText = findViewById(R.id.loadingText);
 
         UiHelper.notifyNewRootView(this);
 
@@ -221,15 +234,126 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 startActivity(intent);
             }
         });
-
     }
+
+    /*/ Shaga
+    private void cancelRentalOnSolana() {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                Log.e("PcViewActivity", "Cancel button clicked, starting thread.");
+                // Step 1: Load the authority from SharedPreferences
+                String storedAuthority = SolanaPreferenceManager.getStoredAuthority();
+                if (storedAuthority == null) {
+                    Log.e("PcViewActivity", "Stored authority is null. Cannot proceed.");
+                    return;
+                }
+                PublicKey authorityPublicKey = new PublicKey(storedAuthority);
+                // Step 2: Fetch clientAccount
+                Account clientAccount = SolanaPreferenceManager.getStoredHotAccount();
+                if (clientAccount == null) {
+                    Log.e("PcViewActivity", "Failed to obtain fee payer account. Cannot proceed.");
+                    return;
+                }
+                PublicKey clientPublicKey = clientAccount.getPublicKey();
+                // Log both keys for debugging
+                Log.e("PcViewActivity", "Obtained clientPublicKey: " + clientPublicKey.toBase58() + ", authorityPublicKey: " + authorityPublicKey.toBase58());
+                // Step 3: Generate the end rental instruction
+                ShagaTransactions shagaTransactions = new ShagaTransactions();
+                TransactionInstruction txInstruction = shagaTransactions.endRental(authorityPublicKey, clientPublicKey);
+                Log.e("PcViewActivity", "Generated end rental transaction instruction.");
+                // Step 4: Fetch recent block hash for the transaction
+                final CountDownLatch latch = new CountDownLatch(1);
+                final AtomicReference<String> blockHashRef = new AtomicReference<>();
+                final AtomicReference<Exception> exceptionRef = new AtomicReference<>();
+
+                SolanaApi.getRecentBlockHash(new SolanaApi.JavaCallback() {
+                    @Override
+                    public void onSuccess(String blockHash) {
+                        blockHashRef.set(blockHash);
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        exceptionRef.set(e);
+                        latch.countDown();
+                    }
+                });
+                try {
+                    latch.await();  // wait for the async task to complete
+                } catch (InterruptedException e) {
+                    Log.e("PcViewActivity", "Thread was interrupted", e);
+                    return;
+                }
+
+                if (exceptionRef.get() != null) {
+                    Log.e("PcViewActivity", "Failed to fetch recent blockhash.");
+                    return;
+                }
+
+                String recentBlockHash = blockHashRef.get();
+                if (recentBlockHash == null) {
+                    Log.e("PcViewActivity", "Recent Block Hash is null");
+                    return;
+                }
+
+                Log.e("PcViewActivity", "Fetched recentBlockHash: " + recentBlockHash);
+                // Step 5: Build the transaction
+                TransactionBuilder transactionBuilder = new TransactionBuilder();
+                transactionBuilder.addInstruction(txInstruction);
+                transactionBuilder.setRecentBlockHash(recentBlockHash);
+                transactionBuilder.setSigners(Collections.singletonList(clientAccount));
+                Transaction transaction = transactionBuilder.build();
+
+                Log.e("PcViewActivity", "Built transaction. Instructions count: " + transaction.getInstructions().size());
+
+                // Step 6: Send the transaction
+                Result<String> sendTransactionResult = SolanaApi.solana.api.sendTransaction(transaction, Collections.singletonList(clientAccount), recentBlockHash);
+                if (sendTransactionResult.isFailure()) {
+                    Exception exception = sendTransactionResult.exceptionOrNull();
+                    Log.e("PcViewActivity", "Failed to send cancellation transaction: " + exception.getMessage(), exception);
+                    return null;
+                }
+                String transactionId = sendTransactionResult.getOrNull();
+                if (transactionId == null) return null;
+
+                Log.e("PcViewActivity", "Cancellation transaction successful, ID: " + transactionId);
+
+                // Step 7: Clear the stored authority from SharedPreferences
+                SolanaPreferenceManager.clearStoredAuthority();
+                Log.e("PcViewActivity", "Cleared stored authority.");
+
+                return "Success";
+            }
+
+            @Override
+            protected void onPostExecute(String result) {
+                super.onPostExecute(result);
+                if ("Success".equals(result)) {
+                    // Step 8: Navigate to WalletActivity
+                    Intent intent = new Intent(PcViewActivity.this, WalletActivity.class);
+                    startActivity(intent);
+                    Log.e("PcViewActivity", "Navigated to WalletActivity.");
+                    Toast.makeText(PcViewActivity.this, "Cancellation successful", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.e("PcViewActivity", result);
+                }
+            }
+        }.execute();
+    }
+    Shaga */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Shaga needs this for pin encryption
+        NaCl.sodium();
         // Assume we're in the foreground when created to avoid a race
         // between binding to CMS and onResume()
-        SolanaPreferenceManager.initialize(getApplicationContext());
+        SolanaPreferenceManager.initialize(this);
+        Log.e("PcView", "Button initialized");  // Debug: Confirming button initialization
 
         inForeground = true;
 
@@ -275,6 +399,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     public static PcView getInstance() {
+        if (instance == null) {
+            instance = new PcView();
+        }
         return instance;
     }
 
@@ -317,6 +444,17 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }
     }
 
+
+    // Public static wrapper method
+    public static void publicStopComputerUpdates(boolean value) {
+        PcView instance = PcView.getInstance();
+        if (instance != null) {
+            instance.stopComputerUpdates(value);
+        } else {
+            Log.e("PcView", "Instance is null. Cannot stop computer updates.");
+        }
+    }
+
     private void stopComputerUpdates(boolean wait) {
         if (managerBinder != null) {
             if (!runningPolling) {
@@ -353,6 +491,78 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         inForeground = true;
         startComputerUpdates();
+
+        // Shaga
+        Button cancelRental = findViewById(R.id.cancelRentalButton);
+        if (cancelRental != null) {
+            String storedAuthority = SolanaPreferenceManager.getStoredAuthority();
+            if (storedAuthority != null) {
+                new CheckRentalStatusTask(cancelRental).execute();
+
+                // Update: Single click listener to terminate rental
+                cancelRental.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // Show loading screen
+                        showLoadingScreen();
+                        // Call Kotlin's static function to cancel the rental
+                        RentingActivity.Companion.cancelRent();
+                        // Use a handler to delay the next actions by 2 seconds
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Hide the loading screen
+                                hideLoadingScreen();
+                                // Re-check the rental status
+                                new CheckRentalStatusTask(cancelRental).execute();
+                            }
+                        }, 2000);
+                    }
+                });
+            } else {
+                cancelRental.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void showLoadingScreen() {
+        RelativeLayout loadingLayout = findViewById(R.id.loadingLayout);
+        if (loadingLayout != null) {
+            loadingLayout.setVisibility(View.VISIBLE);
+            loadingText.setText("Terminating the rental...");
+        }
+    }
+
+    private void hideLoadingScreen() {
+        RelativeLayout loadingLayout = findViewById(R.id.loadingLayout);
+        if (loadingLayout != null) {
+            loadingLayout.setVisibility(View.GONE);
+        }
+    }
+
+    private static class CheckRentalStatusTask extends AsyncTask<Void, Void, Boolean> {
+        private final WeakReference<Button> weakButton;
+
+        CheckRentalStatusTask(Button button) {
+            this.weakButton = new WeakReference<>(button);
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            return ShagaTransactions.TransactionsObject.checkRentalStatus();
+        }
+
+        @Override
+        protected void onPostExecute(Boolean isRentalActive) {
+            Button cancelRental = weakButton.get();
+            if (cancelRental != null) {
+                if (isRentalActive) {
+                    cancelRental.setVisibility(View.VISIBLE);
+                } else {
+                    cancelRental.setVisibility(View.GONE);
+                }
+            }
+        }
     }
 
     @Override
@@ -438,10 +648,6 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     //Shaga
-    public void publicDoPairShaga(final ComputerDetails computer, PublicKey sunshinePublicKey) {
-        doPairShaga(computer, sunshinePublicKey);
-    }
-
     private void doPairShaga(final ComputerDetails computer, PublicKey sunshinePublicKey) {
         if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
             Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();

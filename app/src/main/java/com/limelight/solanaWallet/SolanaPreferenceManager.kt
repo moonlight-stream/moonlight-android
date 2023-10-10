@@ -8,8 +8,6 @@ import android.util.Base64
 import android.util.Log
 import com.google.gson.Gson
 import com.limelight.utils.Loggatore
-import com.solana.core.DerivationPath
-import com.solana.core.HotAccount
 import com.solana.core.PublicKey
 import java.security.KeyStore
 import javax.crypto.spec.SecretKeySpec
@@ -25,24 +23,42 @@ object SolanaPreferenceManager {
     private const val HOT_ACCOUNT_KEY = "hot_account"
     private const val AUTHORITY_KEY = "authority"
 
+    @JvmStatic
+    fun initialize(context: Context) {
+        if (sharedPreferences == null) {
+            sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            Log.d("SolanaPreferenceManager", "SharedPreferences initialized.")
+        }
+    }
+
+
+    fun isInitialized(): Boolean {
+        return sharedPreferences != null
+    }
+
+
     var authority: String?
         get() = sharedPreferences?.getString(AUTHORITY_KEY, null)
         set(value) {
             sharedPreferences?.edit()?.putString(AUTHORITY_KEY, value)?.commit()
         }
 
-    fun getStoredAuthority(): String? {
-        val storedValue = sharedPreferences?.getString(AUTHORITY_KEY, null)
-        return storedValue ?: "8KKsyoLrs5yuLSWgcUVqgZk3Ss3onA6AdrxK8LdAfLe8"
+    @JvmStatic
+    fun storeAuthority(authority: String) {
+        Log.d("SolanaPreferenceManager", "Storing authority: $authority")
+        sharedPreferences?.edit()?.putString(AUTHORITY_KEY, authority)?.apply()
     }
 
+    @JvmStatic
+    fun getStoredAuthority(): String? {
+        val stored = sharedPreferences?.getString(AUTHORITY_KEY, null)
+        Log.d("SolanaPreferenceManager", "Retrieved stored authority: $stored")
+        return stored
+    }
 
+    @JvmStatic
     fun clearStoredAuthority() {
         sharedPreferences?.edit()?.remove(AUTHORITY_KEY)?.apply()
-    }
-
-    fun storeAuthority(authority: String) {
-        sharedPreferences?.edit()?.putString(AUTHORITY_KEY, authority)?.apply()
     }
 
 
@@ -53,13 +69,7 @@ object SolanaPreferenceManager {
         }
 
     @JvmStatic
-    fun initialize(context: Context) {
-        if (sharedPreferences == null) {
-            sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        }
-    }
-
-    fun storeHotAccount(account: HotAccount) {
+    fun storeHotAccount(account: ShagaHotAccount) {
         val editor = sharedPreferences?.edit()
         val gson = Gson()
         // Step 1: Serialize HotAccount to JSON string
@@ -71,7 +81,8 @@ object SolanaPreferenceManager {
         editor?.apply()
     }
 
-    fun getStoredHotAccount(): HotAccount? {
+    @JvmStatic
+    fun getStoredHotAccount(): ShagaHotAccount? {
         val gson = Gson()
         // Step 1: Retrieve encrypted HotAccount
         val encryptedAccountString = sharedPreferences?.getString(HOT_ACCOUNT_KEY, null)
@@ -82,7 +93,7 @@ object SolanaPreferenceManager {
         // Step 3: Decrypt the stored HotAccount
         val decryptedAccountString = EncryptionHelper.decrypt(encryptedAccountString)
         // Step 4: Deserialize decrypted HotAccount from JSON string
-        return gson.fromJson(decryptedAccountString, HotAccount::class.java)
+        return gson.fromJson(decryptedAccountString, ShagaHotAccount::class.java)
     }
 
 
@@ -96,11 +107,13 @@ object SolanaPreferenceManager {
         isWalletInitialized = value
     }
 
+    @JvmStatic
     fun storePublicKey(publicKey: PublicKey) {
         val publicKeyString = publicKey.toBase58() // Convert PublicKey to a base58 encoded string
         sharedPreferences?.edit()?.putString(PUBLIC_KEY, publicKeyString)?.apply()
     }
 
+    @JvmStatic
     fun getStoredBalance(): Float {
         return sharedPreferences?.getFloat("user_balance", 0.0f) ?: 0.0f
     }
@@ -111,6 +124,7 @@ object SolanaPreferenceManager {
         return PublicKey(publicKeyString) // Create a PublicKey object using the base58 encoded string
     }
 
+    @JvmStatic
     fun storePrivateKey(secretKey: ByteArray, context: Context) {
         try {
             val keyStore = KeyStore.getInstance("AndroidKeyStore")
@@ -160,12 +174,14 @@ object SolanaPreferenceManager {
             }
         }
 
+    @JvmStatic
     fun storeEncryptionKeyInPrefs(key: ByteArray?) {
         sharedPreferences?.edit()?.putString(ENCRYPTION_KEY, Base64.encodeToString(key, Base64.DEFAULT))?.apply()
     }
 
-    fun getHotAccountFromMnemonic(words: List<String>, passphrase: String, derivationPath: DerivationPath): HotAccount {
-        return HotAccount.fromMnemonic(words, passphrase, derivationPath)
-    }
+//    @JvmStatic
+//    fun getHotAccountFromMnemonic(words: List<String>, passphrase: String, derivationPath: DerivationPath): ShagaHotAccount {
+//        return ShagaHotAccount.fromMnemonic(words, passphrase, DerivationPath.BIP44_M_44H_501H_0H_OH)
+//    }
 
 }

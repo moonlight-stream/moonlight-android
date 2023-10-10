@@ -1,6 +1,7 @@
 package com.limelight.nvstream.http;
 
 import android.os.Build;
+import android.util.Log;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -702,6 +703,11 @@ public class NvHTTP {
 
     //Shaga
     String executeShagaPairingCommand(String additionalArguments, boolean enableReadTimeout) throws HostHttpResponseException, IOException {
+
+        String fullUrl = baseUrlHttp + "pairShaga" + "?" + "devicename=roth&updateState=1&" + additionalArguments;
+        Log.d("ShagaPair", "Attempting to reach endpoint: " + fullUrl);
+
+
         return openHttpConnectionToString(enableReadTimeout ? httpClientLongConnectTimeout : httpClientLongConnectNoReadTimeout,
                 baseUrlHttp, "pairShaga", "devicename=roth&updateState=1&" + additionalArguments);
     }

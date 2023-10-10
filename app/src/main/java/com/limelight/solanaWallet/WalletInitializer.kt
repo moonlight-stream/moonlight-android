@@ -2,14 +2,8 @@ package com.limelight.solanaWallet
 
 import android.content.Context
 import com.limelight.utils.Loggatore
-import com.solana.core.DerivationPath
-import com.solana.core.HotAccount
 import com.solana.vendor.bip39.Mnemonic
 import com.solana.vendor.bip39.WordCount
-import java.security.KeyStore
-import javax.crypto.spec.SecretKeySpec
-import android.security.keystore.KeyProperties
-import android.security.keystore.KeyProtection
 import com.solana.vendor.bip32.wallet.DerivableType
 import com.solana.vendor.bip32.wallet.SolanaBip44
 import org.bitcoinj.crypto.MnemonicCode
@@ -19,7 +13,7 @@ object WalletInitializer {
 
     const val PREFS_NAME = "com.limelight.solanaWallet"
 
-    fun initializeWallet(context: Context): HotAccount? {
+    fun initializeWallet(context: Context): ShagaHotAccount? {
         Loggatore.d("WalletDebug", "initializeWallet entered")
         SolanaPreferenceManager.initialize(context)
 
@@ -37,14 +31,14 @@ object WalletInitializer {
         }
     }
 
-    fun createNewWalletAccount(context: Context): HotAccount? {
+    fun createNewWalletAccount(context: Context): ShagaHotAccount? {
         if (SolanaPreferenceManager.isWalletInitialized) {
             Loggatore.d("WalletDebug", "Wallet already exists. Aborting creation of a new account.")
             return SolanaPreferenceManager.getStoredHotAccount() // Retrieve the stored HotAccount
         }
 
         val mnemonicPhrase = Mnemonic(WordCount.COUNT_24).phrase
-        val account = HotAccount.fromMnemonic(mnemonicPhrase, "", DerivationPath.BIP44_M_44H_501H_0H)
+        val account = ShagaHotAccount.fromMnemonic(mnemonicPhrase, "", DerivationPath.BIP44_M_44H_501H_0H_OH)
 
         // Store PublicKey and HotAccount
         SolanaPreferenceManager.storePublicKey(account.publicKey)

@@ -14,8 +14,14 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
 import kotlin.math.roundToLong
+import java.util.concurrent.FutureTask
+import java.util.concurrent.Callable
+
 
 class MapPopulation {
     data class Coordinates(val latitude: Double, val longitude: Double)
@@ -87,14 +93,14 @@ class MapPopulation {
                     }
 
                     val responseBody = response.body?.string() ?: throw Exception("Empty response body")
-                    Log.d("ipToCoordinates", "Response Body: $responseBody")  // Log the raw response body
+                    Log.d("ShagaPair", "Response Body: $responseBody")  // Log the raw response body
 
                     // Parsing JSON to extract latitude and longitude
                     try {
                         val json = JSONObject(responseBody)
                         val latitude = json.getDouble("latitude")
                         val longitude = json.getDouble("longitude")
-                        Log.d("ipToCoordinates", "Parsed Latitude: $latitude, Longitude: $longitude")  // Log parsed values
+                        Log.d("ShagaPair", "Parsed Latitude: $latitude, Longitude: $longitude")  // Log parsed values
 
                         return@withContext Result.success(Coordinates(latitude, longitude))
                     } catch (jsonException: JSONException) {
@@ -111,7 +117,7 @@ class MapPopulation {
 
 
 
-        fun pingIpAddress(ipAddress: String): Result<Long> {
+        fun pingIpAddress(ipAddress: String, timeoutMs: Long): Result<Long> {
             try {
                 // Step 1: Validate the IP address
                 if (!isValidIpAddress(ipAddress)) {
@@ -120,47 +126,55 @@ class MapPopulation {
 
                 // Step 2: Execute the ping command
                 val process = Runtime.getRuntime().exec("ping -c 1 $ipAddress")
-                val buf = BufferedReader(InputStreamReader(process.inputStream))
+                val future = FutureTask(Callable {
+                    val buf = BufferedReader(InputStreamReader(process.inputStream))
+                    var latency: Long? = null
 
-                // Step 3: Read the output line by line to find the 'time=' substring
-                var latency: Long? = null  // Made it nullable
-                buf.forEachLine { line ->
-                    val timePos = line.indexOf("time=")
-                    if (timePos != -1) {
-                        val timeStr = line.substring(timePos + 5)
-                        val endPos = timeStr.indexOf(" ")
+                    buf.forEachLine { line ->
+                        val timePos = line.indexOf("time=")
+                        if (timePos != -1) {
+                            val timeStr = line.substring(timePos + 5)
+                            val endPos = timeStr.indexOf(" ")
 
-                        // Added check for endPos != -1
-                        if (endPos != -1) {
-                            try {
-                                // Convert to Float first to handle cases like "17.6"
-                                val latencyFloat = timeStr.substring(0, endPos).toFloat()
-                                // Round to the nearest Long if your application logic requires it
-                                val latencyLong = latencyFloat.roundToLong()
-                                // Now use latencyLong in your application
-                                latency = latencyLong
-
-                            } catch (e: NumberFormatException) {
-                                Log.e("pingIpAddress", "Failed to convert latency to Long", e)
-                                throw e
+                            if (endPos != -1) {
+                                try {
+                                    val latencyFloat = timeStr.substring(0, endPos).toFloat()
+                                    val latencyLong = latencyFloat.roundToLong()
+                                    latency = latencyLong
+                                } catch (e: NumberFormatException) {
+                                    Log.e("pingIpAddress", "Failed to convert latency to Long", e)
+                                    throw e
+                                }
+                                return@forEachLine
                             }
-                            return@forEachLine
                         }
                     }
-                }
+                    latency
+                })
+
+                val executor = Executors.newSingleThreadExecutor()
+                executor.execute(future)
+
+                val latency = future.get(timeoutMs, TimeUnit.MILLISECONDS)  // 500ms timeout
+                future.cancel(true) // cancel the future task
 
                 // Step 4: Check if latency was extracted
                 latency?.let {
-                    Log.d("pingIpAddress", "Parsed Latency: $it")  // Log parsed latency
+                    Log.d("ShagaPair", "Parsed Latency: $it")
                     return Result.success(it)
                 } ?: throw Exception("Failed to extract latency from ping output")
 
+            } catch (e: TimeoutException) {
+                // Log timeout and return failure
+                Log.e("ShagaPair", "Ping timed out for IP: $ipAddress")
+                return Result.failure(e)
             } catch (e: Exception) {
-                // Log the error and return failure
-                Log.e("pingIpAddress", "Ping failed for IP: $ipAddress", e)
+                // Log other errors and return failure
+                Log.e("ShagaPair", "Ping failed for IP: $ipAddress", e)
                 return Result.failure(e)
             }
         }
+
 
     }
 
@@ -173,7 +187,8 @@ class MapPopulation {
             val ipAddressString = affair.ipAddress
 
             val coordinatesResult = NetworkUtils.ipToCoordinates(context, ipAddressString)
-            val latencyResult = NetworkUtils.pingIpAddress(ipAddressString)
+            val timeout = 250L // TODO: HAVE A SETTING FOR TOLERATED LATENCY
+            val latencyResult = NetworkUtils.pingIpAddress(ipAddressString, timeout)
             Log.d("buildMarkerProperties", "Coordinates Result: $coordinatesResult, Latency Result: $latencyResult")
 
             if (coordinatesResult.isSuccess && latencyResult.isSuccess) {

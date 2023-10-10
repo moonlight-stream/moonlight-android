@@ -67,16 +67,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/rentalTimeSlider" />
 
-    <!-- Button to TODO: ADD START RENTAL & MERGE THE TWO BUTTONS Start Pairing -->
-    <Button
-        android:id="@+id/cancelRental"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start Pairing"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/proceedButton"
-        app:layout_constraintTop_toBottomOf="@+id/rentalTimeSlider" />
-
     <!-- TextView for Payloads  -->
     <TextView
         android:id="@+id/specsTitle"
@@ -86,7 +76,7 @@
         android:textSize="22sp"
         android:layout_marginBottom="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cancelRental" />
+        app:layout_constraintTop_toBottomOf="@+id/proceedButton" />
 
 
     <TextView
@@ -171,6 +161,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/sunshinePublicKey" />
 
+    <TextView
+        android:id="@+id/transactionStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Awaiting transaction confirmation..."
+        android:textSize="48sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

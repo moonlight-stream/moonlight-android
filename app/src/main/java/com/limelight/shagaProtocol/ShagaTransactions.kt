@@ -11,12 +11,25 @@ import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findRe
 import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findThreadAuthority
 import com.limelight.shagaProtocol.ShagaTransactions.ProgramAddressHelper.findVault
 import com.limelight.solanaWallet.SolanaApi
+import com.limelight.solanaWallet.SolanaApi.solana
+import com.limelight.solanaWallet.SolanaPreferenceManager
+import com.solana.api.AccountInfo
+import com.solana.api.AccountInfoSerializer
+import com.solana.api.getAccountInfo
 import com.solana.core.AccountMeta
 import com.solana.core.PublicKey
 import com.solana.core.TransactionInstruction
-import java.nio.ByteBuffer
 import com.solana.networking.serialization.format.Borsh
+import com.solana.networking.serialization.serializers.base64.BorshAsBase64JsonArraySerializer
+import com.solana.networking.serialization.serializers.solana.AnchorAccountSerializer
 import com.solana.networking.serialization.serializers.solana.AnchorInstructionSerializer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import java.nio.ByteBuffer
 
 class ShagaTransactions {
     companion object {
@@ -34,6 +47,60 @@ class ShagaTransactions {
         const val SYSTEM_PROGRAM_ID_STRING = "11111111111111111111111111111111"
         val SYSTEM_PROGRAM_ID: PublicKey = PublicKey(SYSTEM_PROGRAM_ID_STRING)
     }
+
+    object TransactionsObject {
+        @JvmStatic
+        fun checkRentalStatus(): Boolean {
+            var isRentalActive = false
+            Log.d("shagaPair", "Entering checkRentalStatus function.")
+            runBlocking {
+                // Step 1: Load the authority and hot account from SharedPreferences
+                val storedAuthority = SolanaPreferenceManager.getStoredAuthority()
+                val storedHotAccount = SolanaPreferenceManager.getStoredHotAccount()
+                Log.d("shagaPair", "Stored Authority: $storedAuthority")
+                Log.d("shagaPair", "Stored Hot Account: $storedHotAccount")
+
+                if (storedAuthority != null && storedHotAccount != null) {
+                    val authorityPublicKey = PublicKey(storedAuthority)
+                    val clientPublicKey = storedHotAccount.publicKey
+                    Log.d("shagaPair", "Authority PublicKey: $authorityPublicKey")
+                    Log.d("shagaPair", "Client PublicKey: $clientPublicKey")
+
+                    val (affair, _) = findAffair(authorityPublicKey, PROGRAM_ID)
+                    Log.d("shagaPair", "Affair: $affair")
+
+                    try {
+                        val result = solana.api.getAccountInfo(
+                            serializer = AccountInfoSerializer(
+                                BorshAsBase64JsonArraySerializer(
+                                    AnchorAccountSerializer(
+                                        "AffairData", SolanaApi.AffairsData.serializer()
+                                    )
+                                )
+                            ),
+                            account = affair
+                        ).getOrThrow()
+                        Log.d("shagaPair", "Result: $result")
+
+                        if (result != null && result.data != null) {
+                            // Explicitly cast it, and check for null
+                            val affairData = result.data as? SolanaApi.AffairsData
+                            Log.d("shagaPair", "AffairData: $affairData")
+                            if (affairData != null) {
+                                isRentalActive = affairData.affairState == SolanaApi.AffairState.Unavailable
+                                Log.d("shagaPair", "Is Rental Active: $isRentalActive")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("checkRentalStatus", "An exception occurred: ${e.message}", e)
+                    }
+                }
+            }
+            Log.d("shagaPair", "Exiting checkRentalStatus function with isRentalActive: $isRentalActive")
+            return isRentalActive
+        }
+    }
+
     fun startRental(
         authority: PublicKey,
         client: PublicKey,
@@ -64,7 +131,7 @@ class ShagaTransactions {
         keys.add(AccountMeta(CLOCKWORK_ID, false, false))
         // Encode the arguments (assuming you have a Borsh encoding function)
         keys.forEach { accountMeta ->
-            Log.d("DebugTag", "Account: ${accountMeta}, isSigner: ${accountMeta.isSigner}, isWritable: ${accountMeta.isWritable}")
+            Log.d("ShagaPair", "Account: ${accountMeta}, isSigner: ${accountMeta.isSigner}, isWritable: ${accountMeta.isWritable}")
         }
         val data = Borsh.encodeToByteArray(
             AnchorInstructionSerializer("start_rental"),
@@ -95,7 +162,9 @@ class ShagaTransactions {
         val (rentalClockworkThread, _) = findClockworkThreadAccount(threadAuthority, threadId, CLOCKWORK_ID)
         // Create a list for the AccountMeta objects
         val keys = mutableListOf<AccountMeta>()
-        keys.add(AccountMeta(client, true, true))
+        keys.add(AccountMeta(client, true,true)) // signer
+        keys.add(AccountMeta(client, false, true))
+        keys.add(AccountMeta(threadAuthority, false, false))
         keys.add(AccountMeta(lender, false, true))
         keys.add(AccountMeta(affair, false, true))
         keys.add(AccountMeta(affairsList, false, true))
@@ -103,16 +172,15 @@ class ShagaTransactions {
         keys.add(AccountMeta(rental, false, true))
         keys.add(AccountMeta(vault, false, true))
         keys.add(AccountMeta(rentalClockworkThread, false, true))
-        keys.add(AccountMeta(threadAuthority, false, false))
         keys.add(AccountMeta(SYSTEM_PROGRAM_ID, false, false))
         keys.add(AccountMeta(CLOCKWORK_ID, false, false))
         // Encode the data (assuming you have a Borsh encoding function)
         keys.forEach { accountMeta ->
-            Log.d("DebugTag", "Account: ${accountMeta}, isSigner: ${accountMeta.isSigner}, isWritable: ${accountMeta.isWritable}")
+            Log.d("ShagaPair", "Account: ${accountMeta}, isSigner: ${accountMeta.isSigner}, isWritable: ${accountMeta.isWritable}")
         }
         val data = Borsh.encodeToByteArray(
             AnchorInstructionSerializer("end_rental"),
-            1
+            1.toByte()
         )
 
         return TransactionInstruction(

@@ -21,8 +21,10 @@ import com.solana.networking.serialization.serializers.solana.PublicKeyAs32ByteS
 import com.solana.api.getRecentBlockhash
 import kotlinx.coroutines.launch
 import com.solana.api.getRecentBlockhash
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
+
 
 
 object SolanaApi {
@@ -31,6 +33,23 @@ object SolanaApi {
     val solana = Solana(network)
     val scope = CoroutineScope(Dispatchers.IO)
 
+    // Define a Java-friendly callback interface
+    interface JavaCallback {
+        fun onSuccess(blockHash: String)
+        fun onFailure(e: Exception)
+    }
+
+    @JvmStatic
+    fun getRecentBlockHash(callback: JavaCallback) {
+        GlobalScope.launch {
+            val result = getRecentBlockHashFromApi()
+            if (result.isSuccess) {
+                callback.onSuccess(result.getOrNull() ?: "")
+            } else {
+                callback.onFailure(Exception("Failed to get the block hash."))
+            }
+        }
+    }
     suspend fun getRecentBlockHashFromApi(): Result<String> {
         return suspendCancellableCoroutine { continuation ->
             solana.api.getRecentBlockhash { result ->
@@ -54,6 +73,7 @@ object SolanaApi {
         Unavailable,
         Available
     }
+
     @Serializable
     data class AffairsData(
         @Serializable(with = PublicKeyAs32ByteSerializer::class)

@@ -287,7 +287,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
     }
 
     private void start() {
-        if (started) {
+        if (started || usbManager == null) {
             return;
         }
 

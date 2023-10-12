@@ -365,13 +365,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // Count all USB devices that match our drivers
         if (PreferenceConfiguration.readPreferences(context).usbDriver) {
             UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-            for (UsbDevice dev : usbManager.getDeviceList().values()) {
-                // We explicitly check not to claim devices that appear as InputDevices
-                // otherwise we will double count them.
-                if (UsbDriverService.shouldClaimDevice(dev, false) &&
-                        !UsbDriverService.isRecognizedInputDevice(dev)) {
-                    LimeLog.info("Counting UsbDevice: "+dev.getDeviceName());
-                    mask |= 1 << count++;
+            if (usbManager != null) {
+                for (UsbDevice dev : usbManager.getDeviceList().values()) {
+                    // We explicitly check not to claim devices that appear as InputDevices
+                    // otherwise we will double count them.
+                    if (UsbDriverService.shouldClaimDevice(dev, false) &&
+                            !UsbDriverService.isRecognizedInputDevice(dev)) {
+                        LimeLog.info("Counting UsbDevice: "+dev.getDeviceName());
+                        mask |= 1 << count++;
+                    }
                 }
             }
         }

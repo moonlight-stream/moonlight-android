@@ -128,7 +128,7 @@ class WalletActivity : AppCompatActivity() {
                     Toast.makeText(this, "An error occurred while generating QR code", Toast.LENGTH_SHORT).show()
                 }
             } ?: run {
-                Loggatore.d("WalletDebug", "Public key not found in SharedPreferences.")
+                Loggatore.d("shagaWalletActivity", "Public key not found in SharedPreferences.")
                 Toast.makeText(this, "Public key not found. Please initialize your wallet.", Toast.LENGTH_SHORT).show()
             }
         }
@@ -162,9 +162,9 @@ class WalletActivity : AppCompatActivity() {
         val publicKey: PublicKey? = SolanaPreferenceManager.getStoredPublicKey()
         publicKey?.let {
             walletManager?.fetchAndDisplayBalance(it)
-            Loggatore.d("WalletDebug", "Public Key: $it")
+            Loggatore.d("shagaWalletActivity", "Public Key: $it")
         } ?: run {
-            Loggatore.d("WalletDebug", "Public key not found in SharedPreferences.")
+            Loggatore.d("shagaWalletActivity", "Public key not found in SharedPreferences.")
         }
     }
 }

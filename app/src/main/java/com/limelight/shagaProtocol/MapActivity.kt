@@ -156,7 +156,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                 val intent = Intent(this@MapActivity, RentingActivity::class.java)
                 intent.putExtra("sunshinePublicKey", markerProperties.sunshinePublicKey)
                 intent.putExtra("latency", markerProperties.latency)
-                Log.d("ShagaPair", "Sending sunshinePublicKey: ${markerProperties.sunshinePublicKey}")
+                Log.d("shagaMapActivity", "Sending sunshinePublicKey: ${markerProperties.sunshinePublicKey}")
                 startActivity(intent)
             }
 
@@ -234,7 +234,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
             )
         } else {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                Log.d("ShagaPair", "Success Listener Triggered")
+                Log.d("shagaMapActivity", "Success Listener Triggered")
                 if (location != null) {
                     val lat = location.latitude
                     val lon = location.longitude
@@ -247,7 +247,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                     )
                 }
             }.addOnFailureListener { e ->
-                Log.d("ShagaPair", "Failed to get location: $e")
+                Log.d("shagaMapActivity", "Failed to get location: $e")
             }
         }
     }
@@ -271,7 +271,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                 initializeLocation()
             } else {
                 // Handle permission denial
-                Log.d("ShagaPair", "Location permission denied")
+                Log.d("shagaMapActivity", "Location permission denied")
             }
         }
     }
@@ -282,7 +282,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
         val button = findViewById<FloatingActionButton>(R.id.populateMapButton)
 
         button.setOnClickListener {
-            Log.d("ShagaPair", "Populate Map Button Clicked")
+            Log.d("shagaMapActivity", "Populate Map Button Clicked")
             val affairsListAddress = getString(R.string.affairs_list_address)
 
             // Create a PublicKey object from the string address
@@ -290,8 +290,8 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    Log.d("ShagaPair", "Fetching the AffairsListData")
-                    Log.d("ShagaPair", "Public Key: $affairsListAddressPubkey")
+                    Log.d("shagaMapActivity", "Fetching the AffairsListData")
+                    Log.d("shagaMapActivity", "Public Key: $affairsListAddressPubkey")
 
                     val result: AccountInfo<SolanaApi.AffairsListData?>? = try {
                         solana.api.getAccountInfo(
@@ -300,54 +300,54 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                             account = affairsListAddressPubkey
                         ).getOrThrow()
                     } catch (e: kotlinx.serialization.SerializationException) {
-                        Log.e("shagaPair", "Serialization Exception: ${e.message}")
+                        Log.e("shagaMapActivity", "Serialization Exception: ${e.message}")
                         null
                     } catch (e: java.io.IOException) {
-                        Log.e("shagaPair", "IO Exception: ${e.message}")
+                        Log.e("shagaMapActivity", "IO Exception: ${e.message}")
                         null
                     } catch (e: Exception) {
-                        Log.e("shagaPair", "Generic Exception: ${e.message}")
+                        Log.e("shagaMapActivity", "Generic Exception: ${e.message}")
                         null
                     }
 
                     // Log the result for debugging
                     if (result != null) {
-                        Log.d("shagaPair", "Result: $result")
+                        Log.d("shagaMapActivity", "Result: $result")
                     } else {
-                        Log.e("shagaPair", "Result is null")
+                        Log.e("shagaMapActivity", "Result is null")
                     }
 
                     // Check if data is null or empty
                     val affairsListData: AccountInfo<SolanaApi.AffairsListData?>? = result
                     if (affairsListData?.data == null) {
-                        Log.e("shagaPair", "Affairs list data is null.")
+                        Log.e("shagaMapActivity", "Affairs list data is null.")
                         return@launch
                     }
 
                     // Unwrap the data field from AccountInfo to get SolanaApi.AffairsListData
                     val actualAffairsListData: SolanaApi.AffairsListData = affairsListData.data!!
 
-                    Log.d("shagaPair", "Size of serialized AffairsListData: ${actualAffairsListData.toString().length}")
+                    Log.d("shagaMapActivity", "Size of serialized AffairsListData: ${actualAffairsListData.toString().length}")
 
-                    Log.d("shagaPair", "Extracting the list of public keys")
+                    Log.d("shagaMapActivity", "Extracting the list of public keys")
 
                     // Extract the list of public keys
                     val publicKeys: List<PublicKey> = actualAffairsListData.activeAffairs
 
-                    Log.d("shagaPair", "Size of the list of public keys: ${publicKeys.size}")
+                    Log.d("shagaMapActivity", "Size of the list of public keys: ${publicKeys.size}")
 
                     publicKeys.forEach {
-                        Log.d("shagaPair", "Public key: $it")
+                        Log.d("shagaMapActivity", "Public key: $it")
                     }
 
                     // Heap size logging
-                    Log.d("shagaPair", "Available heap size: ${Runtime.getRuntime().freeMemory()}")
-                    Log.d("shagaPair", "Max heap size: ${Runtime.getRuntime().maxMemory()}")
+                    Log.d("shagaMapActivity", "Available heap size: ${Runtime.getRuntime().freeMemory()}")
+                    Log.d("shagaMapActivity", "Max heap size: ${Runtime.getRuntime().maxMemory()}")
 
                     // Fetch multiple accounts' data
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
-                            Log.d("shagaPair", "Fetching multiple accounts")
+                            Log.d("shagaMapActivity", "Fetching multiple accounts")
                             // Fetch multiple accounts
                             val multipleAccountsResult = solana.api.getMultipleAccountsInfo(
                                 serializer = SolanaApi.AffairsData.serializer(),
@@ -360,11 +360,11 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
                                 // If the data is null, log an error and return
                                 if (multipleAccountsData == null) {
-                                    Log.e("shagaPair", "Multiple accounts data is null.")
+                                    Log.e("shagaMapActivity", "Multiple accounts data is null.")
                                     return@launch
                                 }
 
-                                Log.d("shagaPair", "Filtering and extracting data")
+                                Log.d("shagaMapActivity", "Filtering and extracting data")
 
                                 // Filter out nulls and extract data
                                 val affairsDataList: List<SolanaApi.AffairsData> =
@@ -372,15 +372,26 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
                                 // If the list is empty, log an error and return
                                 if (affairsDataList.isEmpty()) {
-                                    Log.e("shagaPair", "No valid AffairsData found.")
+                                    Log.e("shagaMapActivity", "No valid AffairsData found.")
                                     return@launch
                                 }
 
-                                Log.d("shagaPair", "Saving the fetched AffairsData to local HashMap")
+                                Log.d("shagaMapActivity", "Saving the fetched AffairsData to local HashMap")
                                 val lamportsToSolConversionRate: ULong = 1_000_000_000uL  // 1 Sol = 1,000,000,000 Lamports
 
+
+                                // === DEBUG ONLY: START ===
+                                // Filtering data based on authority
+                                val filteredAffairsDataList = affairsDataList.filter { it.authority.toString() == "FL4hoSQoAj7N7UE9yTyZXgQNsmpYmHk944mLXyZxWsD6" }
+                                if (filteredAffairsDataList.isEmpty()) {
+                                    Log.e("shagaMapActivity", "No valid AffairsData found after filtering.")
+                                    return@launch
+                                }
+                                // === DEBUG ONLY: END ===
+
+
                                 // Data transformation & local temporary storage
-                                val deferreds = affairsDataList.map { affairData ->
+                                val deferreds = filteredAffairsDataList.map { affairData -> // TODO: RESTORE THE OLD val deferreds = affairsDataList.map { affairData ->
                                     async(Dispatchers.IO) {
                                         affairData.let { nonNullData ->
                                             nonNullData.authority.let { authority: PublicKey ->  // Explicitly specify the type
@@ -423,12 +434,12 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                 }
                                 deferreds.awaitAll()
 
-                                Log.d("shagaPair", "AffairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
+                                Log.d("shagaMapActivity", "AffairsMap: ${AffairsDataHolder.affairsMap.keys.joinToString(", ")}")
                                 // Initialize MapPopulation
                                 val mapPopulation = MapPopulation()
                                 // Start another coroutine to work on UI
                                 lifecycleScope.launch(Dispatchers.IO) {
-                                    Log.d("shagaPair", "Starting UI coroutine")
+                                    Log.d("shagaMapActivity", "Starting UI coroutine")
 
                                     // Convert the DecodedAffairsData to MarkerProperties
                                     val deferredMarkerProperties = AffairsDataHolder.affairsMap.values.map { decodedData ->
@@ -441,7 +452,7 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
 
                                     val validMarkerProperties = deferredMarkerProperties.awaitAll()
 
-                                    Log.d("shagaPair", "Adding markers to map")
+                                    Log.d("shagaMapActivity", "Adding markers to map")
 
                                     // Filter and map successful results to their values
                                     val successfulMarkerProperties = validMarkerProperties.mapNotNull { result ->
@@ -456,26 +467,26 @@ class MapActivity : AppCompatActivity(), OnMapClickListener {
                                     // Adjust the camera to fit all markers and user's location
                                     userLocation?.let { nonNullUserLocation ->
                                         if (successfulMarkerProperties.isNotEmpty()) {
-                                            Log.d("shagaPair", "Adjusting camera")
+                                            Log.d("shagaMapActivity", "Adjusting camera")
                                             adjustCameraToShowAllPoints(
                                                 successfulMarkerProperties,
                                                 nonNullUserLocation,
                                                 mapView
                                             )
                                         } else {
-                                            Log.e("shagaPair", "No valid marker properties found")
+                                            Log.e("shagaMapActivity", "No valid marker properties found")
                                         }
                                     } ?: run {
-                                        Log.e("shagaPair", "User location is null")
+                                        Log.e("shagaMapActivity", "User location is null")
                                     }
                                 }
                             }
                         } catch (e: Exception) {
-                            Log.e("shagaPair", "Nested Coroutine Error: ${e.message}")
+                            Log.e("shagaMapActivity", "Nested Coroutine Error: ${e.message}")
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("shagaPair", "Main Coroutine Error: ${e.message}")
+                    Log.e("shagaMapActivity", "Main Coroutine Error: ${e.message}")
                     e.printStackTrace()
                 }
             }

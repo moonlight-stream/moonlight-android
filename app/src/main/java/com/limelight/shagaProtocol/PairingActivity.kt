@@ -12,6 +12,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.limelight.AppView
 import com.limelight.R
 import com.limelight.computers.ComputerManagerService
 import com.limelight.nvstream.http.ComputerDetails
@@ -31,6 +32,8 @@ import com.solana.core.PublicKey
 import okio.FileNotFoundException
 import okio.IOException
 import org.xmlpull.v1.XmlPullParserException
+import java.net.URI
+import java.net.URISyntaxException
 import java.net.UnknownHostException
 
 
@@ -42,27 +45,28 @@ class PairingActivity : AppCompatActivity() {
 
     private var managerBinder: ComputerManagerService.ComputerManagerBinder? = null
     private var addThread: Thread? = null
+    private var isPairingDone = false
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            Log.d("ShagaPair", "Service connected")
+            Log.d("shagaPairingActivity", "Service connected")
             managerBinder = service as ComputerManagerService.ComputerManagerBinder
             startAddThread()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            Log.d("ShagaPair", "Service disconnected")
+            Log.d("shagaPairingActivity", "Service disconnected")
             joinAddThread()
             managerBinder = null
         }
     }
 
     private fun isWrongSubnetSiteLocalAddress(address: String): Boolean {
-        Log.d("ShagaPair", "Checking subnet for address: $address")
+        Log.d("shagaPairingActivity", "Checking subnet for address: $address")
         return try {
             val targetAddress = InetAddress.getByName(address)
             if (targetAddress !is Inet4Address || !targetAddress.isSiteLocalAddress) {
-                Log.d("ShagaPair", "Address is not an IPv4 or not a site local address")
+                Log.d("shagaPairingActivity", "Address is not an IPv4 or not a site local address")
                 false
             } else {
                 var foundMatchingInterface = false
@@ -86,7 +90,7 @@ class PairingActivity : AppCompatActivity() {
                         }
 
                         if (addressMatches) {
-                            Log.d("ShagaPair", "Found matching interface")
+                            Log.d("shagaPairingActivity", "Found matching interface")
                             foundMatchingInterface = true
                             break
                         }
@@ -96,89 +100,110 @@ class PairingActivity : AppCompatActivity() {
                 }
 
                 if (!foundMatchingInterface) {
-                    Log.d("ShagaPair", "Did not find a matching interface")
+                    Log.d("shagaPairingActivity", "Did not find a matching interface")
                 }
 
                 !foundMatchingInterface
             }
         } catch (e: Exception) {
             // Handle exceptions
-            Log.e("ShagaPair", "Exception occurred: ${e.message}")
+            Log.e("shagaPairingActivity", "Exception occurred: ${e.message}")
             e.printStackTrace()
             false
         }
     }
 
+    private fun parseRawUserInputToUri(rawUserInput: String): URI? {
+        try {
+            val uri = URI("moonlight://$rawUserInput")
+            if (uri.host != null && uri.host.isNotEmpty()) {
+                return uri
+            }
+        } catch (ignored: URISyntaxException) { }
+
+        try {
+            val uri = URI("moonlight://[$rawUserInput]")
+            if (uri.host != null && uri.host.isNotEmpty()) {
+                return uri
+            }
+        } catch (ignored: URISyntaxException) { }
+
+        return null
+    }
+
+
     private fun doAddPc() {
-        Log.d("ShagaPair", "Entered doAddPc function")
+        Log.d("shagaPairingActivity", "Entered doAddPc function")
+
         var wrongSiteLocal = false
         var invalidInput = false
         var success = false
-        var portTestResult: Int // In Java, this was an int, initialize later just like Java
+        var portTestResult: Int // Initialize later, similar to Java
 
         val details = ComputerDetails() // Initialize ComputerDetails, same as Java
 
-        // Create a spinner dialog, assuming you have a similar mechanism in Kotlin
-        val dialog = SpinnerDialog.displayDialog(
-            this,
-            getString(R.string.title_add_pc),
-            getString(R.string.msg_add_pc),
-            false
-        )
-
         try {
-            Log.d("ShagaPair", "Attempting to retrieve host and port")
-            val host =
-                intent.getStringExtra("ipAddress") // Directly using the IP address, not from user input
-            val port = NvHTTP.DEFAULT_HTTP_PORT // Default port, same as Java
+            // Fetch the IP address from the intent
+            val rawUserInput = intent.getStringExtra("ipAddress") ?: ""
+            Log.d("shagaPairingActivity", "Raw User Input: $rawUserInput") // Log raw user input
 
-            if (host != null && host.isNotEmpty()) { // Check for a valid host
-                Log.d("ShagaPair", "Got a valid host: $host")
+            // Parse raw user input to URI
+            val uri = parseRawUserInputToUri(rawUserInput)
+            Log.d("shagaPairingActivity", "Parsed URI: $uri") // Log parsed URI
+
+            // Check if we parsed a host address successfully
+            if (uri != null && !uri.host.isNullOrEmpty()) {
+                val host = uri.host
+                val port = uri.port.takeIf { it != -1 } ?: NvHTTP.DEFAULT_HTTP_PORT
+
+                Log.d("shagaPairingActivity", "Parsed Host: $host") // Log parsed host
+                Log.d("shagaPairingActivity", "Parsed Port: $port") // Log parsed port
+
                 details.manualAddress = ComputerDetails.AddressTuple(host, port)
-                details.name = "SunshineLender"
                 success = managerBinder?.addComputerBlocking(details) ?: false
+
+                Log.d("shagaPairingActivity", "Add Computer Blocking Success: $success") // Log the 'success' flag
 
                 if (!success) {
                     wrongSiteLocal = isWrongSubnetSiteLocalAddress(host)
+                    Log.d("shagaPairingActivity", "Wrong Site Local: $wrongSiteLocal") // Log if it is a wrong site local address
                 }
             } else {
-                // Invalid IP address
-                Log.d("ShagaPair", "Invalid host")
                 success = false
                 invalidInput = true
+                Log.d("shagaPairingActivity", "Invalid Input or URI: $invalidInput") // Log invalid input flag
             }
+
         } catch (e: InterruptedException) { // InterruptedException catch block
-            Log.e("ShagaPair", "InterruptedException occurred: ${e.message}")
-            dialog.dismiss()
+            Log.e("shagaPairingActivity", "InterruptedException occurred: ${e.message}")
             throw e // Propagate the exception, same as Java
         } catch (e: IllegalArgumentException) { // IllegalArgumentException catch block
-            Log.e("ShagaPair", "IllegalArgumentException occurred: ${e.message}")
+            Log.e("shagaPairingActivity", "IllegalArgumentException occurred: ${e.message}")
             e.printStackTrace()
             success = false
             invalidInput = true
         }
 
         // Keep the SpinnerDialog open while testing connectivity
-        Log.d("ShagaPair", "Checking connectivity conditions")
+        Log.d("shagaPairingActivity", "Checking connectivity conditions")
         if (!success && !wrongSiteLocal && !invalidInput) {
-            Log.d("ShagaPair", "Testing client connectivity")
+            Log.d("shagaPairingActivity", "Testing client connectivity")
             portTestResult = MoonBridge.testClientConnectivity(
                 ServerHelper.CONNECTION_TEST_SERVER,
                 443,
                 MoonBridge.ML_PORT_FLAG_TCP_47984 or MoonBridge.ML_PORT_FLAG_TCP_47989
             )
         } else {
-            Log.d("ShagaPair", "Skipping client connectivity test")
+            Log.d("shagaPairingActivity", "Skipping client connectivity test")
             portTestResult = MoonBridge.ML_TEST_RESULT_INCONCLUSIVE
         }
 
-        Log.d("ShagaPair", "Dismissing spinner dialog")
-        dialog.dismiss()
+        Log.d("shagaPairingActivity", "Dismissing spinner dialog")
 
-        Log.d("ShagaPair", "Evaluating conditions for displaying dialogs")
+        Log.d("shagaPairingActivity", "Evaluating conditions for displaying dialogs")
         when {
             invalidInput -> {
-                Log.d("ShagaPair", "Showing invalid input dialog")
+                Log.d("shagaPairingActivity", "Showing invalid input dialog")
                 Dialog.displayDialog(
                     this,
                     getString(R.string.conn_error_title),
@@ -187,7 +212,7 @@ class PairingActivity : AppCompatActivity() {
                 )
             }
             wrongSiteLocal -> {
-                Log.d("ShagaPair", "Showing wrong site local dialog")
+                Log.d("shagaPairingActivity", "Showing wrong site local dialog")
                 Dialog.displayDialog(
                     this,
                     getString(R.string.conn_error_title),
@@ -196,7 +221,7 @@ class PairingActivity : AppCompatActivity() {
                 )
             }
             !success -> {
-                Log.d("ShagaPair", "Showing failure dialog")
+                Log.d("shagaPairingActivity", "Showing failure dialog")
                 val dialogText = if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0) {
                     getString(R.string.nettest_text_blocked)
                 } else {
@@ -210,7 +235,7 @@ class PairingActivity : AppCompatActivity() {
                 )
             }
             else -> {
-                Log.d("ShagaPair", "Operation successful, showing success toast and proceeding with pairing")
+                Log.d("shagaPairingActivity", "Operation successful, showing success toast and proceeding with pairing")
                 runOnUiThread {
                     Toast.makeText(this, getString(R.string.addpc_success), Toast.LENGTH_LONG).show()
                     // Call publicDoPairShaga here
@@ -219,27 +244,23 @@ class PairingActivity : AppCompatActivity() {
                         val authority = intent.getStringExtra("authority")
                         authority?.let { PublicKey(it) }?.let { doPairShaga(details, it) } // pass authority as publicKey if not null
                     } else {
-                        Log.e("ShagaPair", "PcView instance is null. Cannot proceed with publicDoPairShaga.")
+                        Log.e("shagaPairingActivity", "PcView instance is null. Cannot proceed with publicDoPairShaga.")
                         Toast.makeText(this, "Failed to initiate pairing; internal error.", Toast.LENGTH_LONG).show()
-                    }
-
-                    if (!isFinishing) {
-                        finish()
                     }
                 }
             }
         }
-        Log.d("ShagaPair", "Exiting doAddPc function")
+        Log.d("shagaPairingActivity", "Exiting doAddPc function")
     }
 
 
     private fun doPairShaga(computer: ComputerDetails, sunshinePublicKey: PublicKey) {
         // Logging entry into the function
-        Log.d("ShagaPair", "Entered doPairShaga")
+        Log.d("shagaPairingActivity", "Entered doPairShaga")
 
         // Check if the computer is offline or active address is null
         if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
-            Log.d("ShagaPair", "Computer is OFFLINE or activeAddress is null")
+            Log.d("shagaPairingActivity", "Computer is OFFLINE or activeAddress is null")
             runOnUiThread {
                 pairingMessageTextView.text = "Computer is OFFLINE or activeAddress is null"
                 retryButton.visibility = View.VISIBLE
@@ -249,14 +270,13 @@ class PairingActivity : AppCompatActivity() {
 
         // Check if managerBinder is null
         if (managerBinder == null) {
-            Log.d("ShagaPair", "managerBinder is null")
+            Log.d("shagaPairingActivity", "managerBinder is null")
             runOnUiThread {
                 pairingMessageTextView.text = "Manager Binder is null"
                 retryButton.visibility = View.VISIBLE
             }
             return
         }
-
         // Initiate a new thread for the pairing logic
         Thread {
             var message: String? = null
@@ -264,7 +284,7 @@ class PairingActivity : AppCompatActivity() {
 
             try {
                 // Logging the stopping of computer updates
-                Log.d("ShagaPair", "Stopping computer updates")
+                Log.d("shagaPairingActivity", "Stopping computer updates")
                 PcView.publicStopComputerUpdates(true)
 
                 // Initialize NvHTTP object
@@ -275,37 +295,36 @@ class PairingActivity : AppCompatActivity() {
                     computer.serverCert,
                     PlatformBinding.getCryptoProvider(this@PairingActivity) // Using PairingActivity's context
                 )
-
                 // Check the current pair state
                 when (httpConn.getPairState()) {
                     PairingManager.PairState.PAIRED -> {
-                        Log.d("ShagaPair", "Already Paired")
+                        Log.d("shagaPairingActivity", "Already Paired")
                         message = null
                         success = true
                     }
                     else -> {
                         // Generate a PIN string for pairing
                         val pinStr = PairingManager.generatePinString()
-                        Log.d("ShagaPair", "Generated PIN String: $pinStr")
+                        Log.d("shagaPairingActivity", "Generated PIN String: $pinStr")
 
                         // Initialize PairingManager
                         val pm = httpConn.getPairingManager()
-                        Log.d("ShagaPair", "PairingManager initialized: $pm")  // Debug log to check if PairingManager is initialized correctly
+                        Log.d("shagaPairingActivity", "PairingManager initialized: $pm")  // Debug log to check if PairingManager is initialized correctly
 
                         // Convert the public key
                         val ed25519PublicKey = sunshinePublicKey.toByteArray()
-                        Log.d("ShagaPair", "ED25519 Public Key: ${ed25519PublicKey.joinToString(", ") { it.toString() }}")  // Debug log to check the ED25519 Public Key
+                        Log.d("shagaPairingActivity", "ED25519 Public Key: ${ed25519PublicKey.joinToString(", ") { it.toString() }}")  // Debug log to check the ED25519 Public Key
 
                         val x25519PublicKey = EncryptionHelper.mapPublicEd25519ToX25519(ed25519PublicKey)
-                        Log.d("ShagaPair", "X25519 Public Key: ${x25519PublicKey.joinToString(", ") { it.toString() }}")  // Debug log to check the X25519 Public Key
+                        Log.d("shagaPairingActivity", "X25519 Public Key: ${x25519PublicKey.joinToString(", ") { it.toString() }}")  // Debug log to check the X25519 Public Key
 
                         // Get Server Info
                         val serverInfo = httpConn.getServerInfo(true)
-                        Log.d("ShagaPair", "Server Info: $serverInfo")  // Debug log to check the Server Info
+                        Log.d("shagaPairingActivity", "Server Info: $serverInfo")  // Debug log to check the Server Info
 
                         // Execute the pairing process
                         val pairState = pm.publicPairShaga(serverInfo, pinStr, x25519PublicKey)
-                        Log.d("ShagaPair", "Pairing State: $pairState")  // Debug log to check the Pairing State
+                        Log.d("shagaPairingActivity", "Pairing State: $pairState")  // Debug log to check the Pairing State
 
 
                         // Determine the result of the pairing process
@@ -321,82 +340,128 @@ class PairingActivity : AppCompatActivity() {
                             else -> null
                         }
                         success = (pairState == PairingManager.PairState.PAIRED)
-                        Log.d("ShagaPair", "Pairing state: $pairState, Message: $message")
+                        Log.d("shagaPairingActivity", "Pairing state: $pairState, Message: $message")
                     }
                 }
             } catch (e: UnknownHostException) {
-                Log.e("ShagaPair", "UnknownHostException: ${e.message}")
+                Log.e("shagaPairingActivity", "UnknownHostException: ${e.message}")
                 message = "Unknown Host"
             } catch (e: FileNotFoundException) {
-                Log.e("ShagaPair", "FileNotFoundException: ${e.message}")
+                Log.e("shagaPairingActivity", "FileNotFoundException: ${e.message}")
                 message = "File Not Found"
             } catch (e: XmlPullParserException) {
-                Log.e("ShagaPair", "XmlPullParserException: ${e.message}")
+                Log.e("shagaPairingActivity", "XmlPullParserException: ${e.message}")
                 message = e.message
             } catch (e: IOException) {
-                Log.e("ShagaPair", "IOException: ${e.message}")
+                Log.e("shagaPairingActivity", "IOException: ${e.message}")
                 message = e.message
             } finally {
+                isPairingDone = true
                 runOnUiThread {
                     if (success) {
+                        // Pairing was successful, now call the function to display the App list
+                        doShagaAppList(computer, true, false)  // Assuming doAppList is accessible here
                         pairingMessageTextView.text = "Pairing successful"
                         retryButton.visibility = View.GONE
                     } else {
                         pairingMessageTextView.text = message ?: "Unknown error"
                         retryButton.visibility = View.VISIBLE
+                        if (!isFinishing) {
+                            finish()
+                        }
                     }
                 }
-                Log.d("ShagaPair", "Exiting Thread with Success=$success, Message=$message")
+                Log.d("shagaPairingActivity", "Exiting Thread with Success=$success, Message=$message")
             }
         }.start()
     }
 
+
+    private fun doShagaAppList(computer: ComputerDetails?, newlyPaired: Boolean, showHiddenGames: Boolean) {
+        // Add logs for debugging
+        Log.d("ShagaAppList", "Entered doShagaAppList")
+        Log.d("ShagaAppList", "Computer details: ${computer?.toString()}")
+        Log.d("ShagaAppList", "managerBinder: $managerBinder")
+        // Check if computer object is null
+        if (computer == null) {
+            Log.d("ShagaAppList", "Computer object is null")
+            return
+        }
+        // Check if the computer is offline
+        if (computer.state == ComputerDetails.State.OFFLINE) {
+            Toast.makeText(this, getString(R.string.error_pc_offline), Toast.LENGTH_SHORT).show()
+            return
+        }
+        // Check if managerBinder is null
+        if (managerBinder == null) {
+            Toast.makeText(this, getString(R.string.error_manager_not_running), Toast.LENGTH_LONG)
+                .show()
+            return
+        }
+        // Create an intent to start AppView activity
+        if (computer.name != null && computer.uuid != null) {
+            val intent = Intent(this, AppView::class.java).apply {
+                putExtra(AppView.NAME_EXTRA, computer.name)
+                putExtra(AppView.UUID_EXTRA, computer.uuid)
+                putExtra(AppView.NEW_PAIR_EXTRA, newlyPaired)
+                putExtra(AppView.SHOW_HIDDEN_APPS_EXTRA, showHiddenGames)
+            }
+            // Add logs for debugging
+            Log.d("ShagaAppList", "Starting AppView activity")
+            // Start the AppView activity
+            startActivity(intent)
+        } else {
+            Log.d("ShagaAppList", "Computer name or UUID is null")
+        }
+    }
+
+
     private fun startAddThread() {
-        Log.d("ShagaPair", "Starting add thread")
+        Log.d("shagaPairingActivity", "Starting add thread")
         addThread = Thread {
             while (!Thread.currentThread().isInterrupted) {
                 try {
-                    Log.d("ShagaPair", "Calling doAddPc from startAddThread")
+                    Log.d("shagaPairingActivity", "Calling doAddPc from startAddThread")
                     doAddPc()
-                    Log.d("ShagaPair", "Successfully executed doAddPc, breaking loop")
+                    Log.d("shagaPairingActivity", "Successfully executed doAddPc, breaking loop")
                     break
                 } catch (e: InterruptedException) {
-                    Log.e("ShagaPair", "Thread interrupted: ${e.message}")
+                    Log.e("shagaPairingActivity", "Thread interrupted: ${e.message}")
                     return@Thread
                 }
             }
         }.apply {
             name = "UI - PairingActivity"
-            Log.d("ShagaPair", "Starting thread with name: $name")
+            Log.d("shagaPairingActivity", "Starting thread with name: $name")
             start()
         }
     }
 
     private fun joinAddThread() {
-        Log.d("ShagaPair", "Entering joinAddThread()")
+        Log.d("shagaPairingActivity", "Entering joinAddThread()")
         if (addThread != null) {
-            Log.d("ShagaPair", "Interrupting addThread")
+            Log.d("shagaPairingActivity", "Interrupting addThread")
             addThread?.interrupt()
 
             try {
-                Log.d("ShagaPair", "Joining addThread")
+                Log.d("shagaPairingActivity", "Joining addThread")
                 addThread?.join()
             } catch (e: InterruptedException) {
-                Log.e("ShagaPair", "InterruptedException while joining addThread", e)
+                Log.e("shagaPairingActivity", "InterruptedException while joining addThread", e)
                 e.printStackTrace()
                 // Since we can't handle the InterruptedException here,
                 // we will re-interrupt the thread to set the interrupt status back to true.
                 Thread.currentThread().interrupt()
             }
 
-            Log.d("ShagaPair", "Setting addThread to null")
+            Log.d("shagaPairingActivity", "Setting addThread to null")
             addThread = null
         }
     }
 
     override fun onStop() {
         super.onStop()
-        Log.d("ShagaPair", "onStop() called")
+        Log.d("shagaPairingActivity", "onStop() called")
         // Close dialogs when the activity stops
         Dialog.closeDialogs()
         SpinnerDialog.closeDialogs(this)
@@ -404,10 +469,10 @@ class PairingActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d("ShagaPair", "onDestroy() called")
+        Log.d("shagaPairingActivity", "onDestroy() called")
         // Unbind from the service and join the thread
         if (managerBinder != null) {
-            Log.d("ShagaPair", "Unbinding service and joining thread")
+            Log.d("shagaPairingActivity", "Unbinding service and joining thread")
             joinAddThread()
             unbindService(serviceConnection)
         }
@@ -431,7 +496,7 @@ class PairingActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("ShagaPair", "onCreate() called")
+        Log.d("shagaPairingActivity", "onCreate() called")
         setContentView(R.layout.activity_pairing)
 
         // Initialize UI Components
@@ -445,11 +510,12 @@ class PairingActivity : AppCompatActivity() {
         val authority = intent.getStringExtra("authority")
 
         if (authority != null) {
+            isPairingDone = false
             // Log the retrieved values for debugging
-            Log.d("ShagaPair", "Received clientAccount: $clientAccount, authority: $authority, and ipAddress: $ipAddress")
+            Log.d("shagaPairingActivity", "Received clientAccount: $clientAccount, authority: $authority, and ipAddress: $ipAddress")
 
             // Bind to the ComputerManagerService
-            Log.d("ShagaPair", "Binding to ComputerManagerService")
+            Log.d("shagaPairingActivity", "Binding to ComputerManagerService")
             bindService(Intent(this, ComputerManagerService::class.java), serviceConnection, Context.BIND_AUTO_CREATE)
 
             // Retry button click listener
@@ -458,7 +524,7 @@ class PairingActivity : AppCompatActivity() {
             }
         } else {
             // Handle the null case for authority
-            Log.e("ShagaPair", "Authority is null. Cannot proceed.")
+            Log.e("shagaPairingActivity", "Authority is null. Cannot proceed.")
             // You could also update the UI here to inform the user
             updateUI(false, "Authority is missing. Cannot proceed.")
         }

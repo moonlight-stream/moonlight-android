@@ -52,22 +52,22 @@ class ShagaTransactions {
         @JvmStatic
         fun checkRentalStatus(): Boolean {
             var isRentalActive = false
-            Log.d("shagaPair", "Entering checkRentalStatus function.")
+            Log.d("shagaTransactions", "Entering checkRentalStatus function.")
             runBlocking {
                 // Step 1: Load the authority and hot account from SharedPreferences
                 val storedAuthority = SolanaPreferenceManager.getStoredAuthority()
                 val storedHotAccount = SolanaPreferenceManager.getStoredHotAccount()
-                Log.d("shagaPair", "Stored Authority: $storedAuthority")
-                Log.d("shagaPair", "Stored Hot Account: $storedHotAccount")
+                Log.d("shagaTransactions", "Stored Authority: $storedAuthority")
+                Log.d("shagaTransactions", "Stored Hot Account: $storedHotAccount")
 
                 if (storedAuthority != null && storedHotAccount != null) {
                     val authorityPublicKey = PublicKey(storedAuthority)
                     val clientPublicKey = storedHotAccount.publicKey
-                    Log.d("shagaPair", "Authority PublicKey: $authorityPublicKey")
-                    Log.d("shagaPair", "Client PublicKey: $clientPublicKey")
+                    Log.d("shagaTransactions", "Authority PublicKey: $authorityPublicKey")
+                    Log.d("shagaTransactions", "Client PublicKey: $clientPublicKey")
 
                     val (affair, _) = findAffair(authorityPublicKey, PROGRAM_ID)
-                    Log.d("shagaPair", "Affair: $affair")
+                    Log.d("shagaTransactions", "Affair: $affair")
 
                     try {
                         val result = solana.api.getAccountInfo(
@@ -80,15 +80,15 @@ class ShagaTransactions {
                             ),
                             account = affair
                         ).getOrThrow()
-                        Log.d("shagaPair", "Result: $result")
+                        Log.d("shagaTransactions", "Result: $result")
 
                         if (result != null && result.data != null) {
                             // Explicitly cast it, and check for null
                             val affairData = result.data as? SolanaApi.AffairsData
-                            Log.d("shagaPair", "AffairData: $affairData")
+                            Log.d("shagaTransactions", "AffairData: $affairData")
                             if (affairData != null) {
                                 isRentalActive = affairData.affairState == SolanaApi.AffairState.Unavailable
-                                Log.d("shagaPair", "Is Rental Active: $isRentalActive")
+                                Log.d("shagaTransactions", "Is Rental Active: $isRentalActive")
                             }
                         }
                     } catch (e: Exception) {
@@ -96,7 +96,7 @@ class ShagaTransactions {
                     }
                 }
             }
-            Log.d("shagaPair", "Exiting checkRentalStatus function with isRentalActive: $isRentalActive")
+            Log.d("shagaTransactions", "Exiting checkRentalStatus function with isRentalActive: $isRentalActive")
             return isRentalActive
         }
     }
@@ -131,7 +131,7 @@ class ShagaTransactions {
         keys.add(AccountMeta(CLOCKWORK_ID, false, false))
         // Encode the arguments (assuming you have a Borsh encoding function)
         keys.forEach { accountMeta ->
-            Log.d("ShagaPair", "Account: ${accountMeta}, isSigner: ${accountMeta.isSigner}, isWritable: ${accountMeta.isWritable}")
+            Log.d("shagaTransactions", "Account: ${accountMeta}, isSigner: ${accountMeta.isSigner}, isWritable: ${accountMeta.isWritable}")
         }
         val data = Borsh.encodeToByteArray(
             AnchorInstructionSerializer("start_rental"),
@@ -176,7 +176,7 @@ class ShagaTransactions {
         keys.add(AccountMeta(CLOCKWORK_ID, false, false))
         // Encode the data (assuming you have a Borsh encoding function)
         keys.forEach { accountMeta ->
-            Log.d("ShagaPair", "Account: ${accountMeta}, isSigner: ${accountMeta.isSigner}, isWritable: ${accountMeta.isWritable}")
+            Log.d("shagaTransactions", "Account: ${accountMeta}, isSigner: ${accountMeta.isSigner}, isWritable: ${accountMeta.isWritable}")
         }
         val data = Borsh.encodeToByteArray(
             AnchorInstructionSerializer("end_rental"),

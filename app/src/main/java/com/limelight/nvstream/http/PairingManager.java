@@ -188,7 +188,7 @@ public class PairingManager {
     }
 
 
-    private PairState pairShaga(String serverInfo, String pin, byte[] x25519PublicKey) throws IOException, XmlPullParserException {
+    private PairState pairShaga(String serverInfo, String pin, byte[] x25519ServerPublicKey) throws IOException, XmlPullParserException {
 
         PairingHashAlgorithm hashAlgo;
 
@@ -210,32 +210,47 @@ public class PairingManager {
             Log.e("ShagaPair", "No stored ShagaHotAccount found.");
             return PairState.FAILED;
         }
-        // Retrieve the private key from ShagaHotAccount
-        byte[] ed25519PrivateKey = shagaHotAccount.obtainSecretKey();
-        Log.d("ShagaPair", "Successfully loaded Ed25519 private key from ShagaHotAccount");
-
-
-        byte[] x25519PrivateKey = EncryptionHelper.mapSecretEd25519ToX25519(ed25519PrivateKey);
-        byte[] encryptedPin = EncryptionHelper.encryptPinWithX25519PublicKey(pin, x25519PublicKey, x25519PrivateKey);
-        String hexEncryptedPin = bytesToHex(encryptedPin);
-        Log.d("ShagaPair", "Encrypted PIN and converted to hex: " + hexEncryptedPin);
 
         PublicKey publicKey = shagaHotAccount.getPublicKey();
-        String publicKeyBase58 = publicKey.toBase58();
-        Log.d("ShagaPair", "Fetched stored public key: " + publicKeyBase58);
+        byte[] ed25519PrivateKey =  shagaHotAccount.obtainSecretKey();
+        Log.d("EncryptionDebug", "Original Ed25519 Public Key: " + bytesToHex(publicKey.toByteArray()));
+        Log.d("EncryptionDebug", "Original Ed25519 Private Key: " + bytesToHex(ed25519PrivateKey));
+
+        byte[] x25519ClientPrivateKey = EncryptionHelper.mapSecretEd25519ToX25519(ed25519PrivateKey);
+        byte[] x25519ClientPublicKey = EncryptionHelper.mapPublicEd25519ToX25519(publicKey.toByteArray());
+        Log.d("EncryptionDebug", "Converted X25519 Private Key: " + bytesToHex(x25519ClientPrivateKey));
+        Log.d("EncryptionDebug", "Converted X25519 Public Key: " + bytesToHex(x25519ClientPublicKey));
+
+        byte[] encryptedPin = EncryptionHelper.encryptPinWithX25519PublicKey(pin, x25519ServerPublicKey, x25519ClientPrivateKey);
+        Log.d("EncryptionDebug", "Encrypted PIN in Bytes: " + bytesToHex(encryptedPin));
+
+
+        String hexEncryptedPin = bytesToHex(encryptedPin);
+        String x25519ClientPublicKeyBase58 = Base58.encode(x25519ClientPublicKey);
+        String publicKeyBase58 = Base58.encode(publicKey.toByteArray());
+        Log.d("EncryptionDebug", "x25519ClientPublicKey in Base58: " + x25519ClientPublicKeyBase58);
+        Log.d("EncryptionDebug", "publicKey in Base58: " + publicKeyBase58);
+        Log.d("EncryptionDebug", "Encrypted PIN in Hex: " + hexEncryptedPin);
+
+        String encodedEdPublicKey = URLEncoder.encode(publicKeyBase58, "UTF-8");
+        String encodedHexEncryptedPin = URLEncoder.encode(hexEncryptedPin, "UTF-8");
+        String encodedXPublicKey = URLEncoder.encode(x25519ClientPublicKeyBase58, "UTF-8");
+        Log.d("ShagaPair", "Encoded Ed25519 Public Key: " + encodedEdPublicKey);
+        Log.d("ShagaPair", "Encoded Hex Encrypted Pin: " + encodedHexEncryptedPin);
+        Log.d("ShagaPair", "Encoded X25519 Public Key: " + encodedXPublicKey);
 
         byte[] salt = generateRandomBytes(16);
         byte[] aesKey = generateAesKey(hashAlgo, saltPin(salt, pin));
 
-
-        String encodedPublicKey = URLEncoder.encode(publicKeyBase58, "UTF-8");
-        String encodedHexEncryptedPin = URLEncoder.encode(hexEncryptedPin, "UTF-8");
-
-
-        String getCert = http.executeShagaPairingCommand("phrase=getservercert&salt=" +
-                        bytesToHex(salt) + "&clientcert=" + bytesToHex(pemCertBytes) +
-                        "&encryptedPin=" + encodedHexEncryptedPin + "&publicKey=" + encodedPublicKey,
-                false);
+        String getCert = http.executeShagaPairingCommand(
+                "phrase=getservercert&salt=" +
+                        bytesToHex(salt) +
+                        "&clientcert=" + bytesToHex(pemCertBytes) +
+                        "&encryptedPin=" + encodedHexEncryptedPin +
+                        "&Ed25519PublicKey=" + encodedEdPublicKey +
+                        "&X25519PublicKey=" + encodedXPublicKey,
+                false
+        );
         Log.d("ShagaPair", "Executed pairing command, received certificate: " + getCert);
 
         if (!NvHTTP.getXmlString(getCert, "paired", true).equals("1")) {

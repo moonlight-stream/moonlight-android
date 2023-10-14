@@ -66,9 +66,9 @@ public class NvHTTP {
 
     private static final int DEFAULT_HTTPS_PORT = 47984;
     public static final int DEFAULT_HTTP_PORT = 47989;
-    public static final int SHORT_CONNECTION_TIMEOUT = 3000;
-    public static final int LONG_CONNECTION_TIMEOUT = 5000;
-    public static final int READ_TIMEOUT = 7000;
+    public static final int SHORT_CONNECTION_TIMEOUT = 10000; // was 3000, for Shaga now it's 10000
+    public static final int LONG_CONNECTION_TIMEOUT = 15000; // was 5000, for Shaga now it's 15000
+    public static final int READ_TIMEOUT = 21000; // was 7000, for Shaga now it's 21000
 
     // Print URL and content to logcat on debug builds
     private static boolean verbose = BuildConfig.DEBUG;

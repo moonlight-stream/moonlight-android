@@ -93,14 +93,14 @@ class MapPopulation {
                     }
 
                     val responseBody = response.body?.string() ?: throw Exception("Empty response body")
-                    Log.d("ShagaPair", "Response Body: $responseBody")  // Log the raw response body
+                    Log.d("shagaMapActivityPopulation", "Response Body: $responseBody")  // Log the raw response body
 
                     // Parsing JSON to extract latitude and longitude
                     try {
                         val json = JSONObject(responseBody)
                         val latitude = json.getDouble("latitude")
                         val longitude = json.getDouble("longitude")
-                        Log.d("ShagaPair", "Parsed Latitude: $latitude, Longitude: $longitude")  // Log parsed values
+                        Log.d("shagaMapActivityPopulation", "Parsed Latitude: $latitude, Longitude: $longitude")  // Log parsed values
 
                         return@withContext Result.success(Coordinates(latitude, longitude))
                     } catch (jsonException: JSONException) {
@@ -160,17 +160,17 @@ class MapPopulation {
 
                 // Step 4: Check if latency was extracted
                 latency?.let {
-                    Log.d("ShagaPair", "Parsed Latency: $it")
+                    Log.d("shagaMapActivityPopulation", "Parsed Latency: $it")
                     return Result.success(it)
                 } ?: throw Exception("Failed to extract latency from ping output")
 
             } catch (e: TimeoutException) {
                 // Log timeout and return failure
-                Log.e("ShagaPair", "Ping timed out for IP: $ipAddress")
+                Log.e("shagaMapActivityPopulation", "Ping timed out for IP: $ipAddress")
                 return Result.failure(e)
             } catch (e: Exception) {
                 // Log other errors and return failure
-                Log.e("ShagaPair", "Ping failed for IP: $ipAddress", e)
+                Log.e("shagaMapActivityPopulation", "Ping failed for IP: $ipAddress", e)
                 return Result.failure(e)
             }
         }

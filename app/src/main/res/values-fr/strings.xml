@@ -126,8 +126,8 @@
     <string name="summary_resolution_list">Le réglage de valeurs trop élevées pour votre appareil peut provoquer un retard ou un plantage.</string>
     <string name="title_fps_list">Fréquence d\'images vidéo</string>
     <string name="summary_fps_list">Augmenter pour un flux vidéo plus lisse. Diminution pour de meilleures performances sur les périphériques bas de gamme.</string>
-    <string name="title_seekbar_bitrate">Sélectionnez le bitrate vidéo à obtenir</string>
-    <string name="summary_seekbar_bitrate">Bitrate inférieur pour réduire la saccade. Augmentez le bitrate pour augmenter la qualité de l\'image.</string>
+    <string name="title_seekbar_bitrate">Bitrate vidéo</string>
+    <string name="summary_seekbar_bitrate">Augmentez-le pour une meilleure qualité d’image. Diminuez-le pour améliorer les performances sur les connexions plus lentes.</string>
     <string name="title_checkbox_stretch_video">Étirez la vidéo en plein écran</string>
     <string name="title_checkbox_disable_warnings">Désactiver les messages d\'avertissement</string>
     <string name="title_checkbox_enable_pip">Activer le mode observateur dans l\'image</string>

@@ -2984,7 +2984,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 return;
             }
 
-            byte type = MoonBridge.LI_CTYPE_UNKNOWN;
+            byte type;
             switch (inputDevice.getVendorId()) {
                 case 0x045e: // Microsoft
                     type = MoonBridge.LI_CTYPE_XBOX;
@@ -3067,10 +3067,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 capabilities |= MoonBridge.LI_CCAP_GYRO;
             }
 
-            // Override the detected controller type if we're emulating motion sensors on an Xbox controller
+            byte reportedType;
             if (type != MoonBridge.LI_CTYPE_PS && sensorManager != null) {
+                // Override the detected controller type if we're emulating motion sensors on an Xbox controller
                 Toast.makeText(activityContext, activityContext.getResources().getText(R.string.toast_controller_type_changed), Toast.LENGTH_LONG).show();
-                type = MoonBridge.LI_CTYPE_UNKNOWN;
+                reportedType = MoonBridge.LI_CTYPE_UNKNOWN;
+            }
+            else {
+                // Report the true type to the host PC if we're not emulating motion sensors
+                reportedType = type;
             }
 
             // We can perform basic rumble with any vibrator
@@ -3093,7 +3098,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
 
             conn.sendControllerArrivalEvent((byte)controllerNumber, getActiveControllerMask(),
-                    type, supportedButtonFlags, capabilities);
+                    reportedType, supportedButtonFlags, capabilities);
 
             // After reporting arrival to the host, send initial battery state and begin monitoring
             backgroundThreadHandler.post(batteryStateUpdateRunnable);

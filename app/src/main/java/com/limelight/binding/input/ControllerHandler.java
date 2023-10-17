@@ -63,6 +63,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     private static final int EMULATING_SPECIAL = 0x1;
     private static final int EMULATING_SELECT = 0x2;
+    private static final int EMULATING_TOUCHPAD = 0x4;
 
     private static final short MAX_GAMEPADS = 16; // Limited by bits in activeGamepadMask
 
@@ -2494,6 +2495,19 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
+        // Check if we're emulating the touchpad button
+        if ((context.emulatingButtonFlags & ControllerHandler.EMULATING_TOUCHPAD) != 0)
+        {
+            // If either select or LB is up, touchpad comes up too
+            if ((context.inputMap & ControllerPacket.BACK_FLAG) == 0 ||
+                    (context.inputMap & ControllerPacket.LB_FLAG) == 0)
+            {
+                context.inputMap &= ~ControllerPacket.TOUCHPAD_FLAG;
+
+                context.emulatingButtonFlags &= ~ControllerHandler.EMULATING_TOUCHPAD;
+            }
+        }
+
         sendControllerInputPacket(context);
 
         if (context.pendingExit && context.inputMap == 0) {
@@ -2683,6 +2697,18 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.inputMap |= ControllerPacket.BACK_FLAG;
 
                 context.emulatingButtonFlags |= ControllerHandler.EMULATING_SELECT;
+            }
+        }
+        else if (context.needsClickpadEmulation) {
+            // Select+LB acts like the clickpad when we're faking a PS4 controller for motion support
+            if (context.inputMap == (ControllerPacket.BACK_FLAG | ControllerPacket.LB_FLAG) ||
+                    (context.inputMap == ControllerPacket.BACK_FLAG &&
+                            event.getEventTime() - context.lastLbUpTime <= MAXIMUM_BUMPER_UP_DELAY_MS))
+            {
+                context.inputMap &= ~(ControllerPacket.BACK_FLAG | ControllerPacket.LB_FLAG);
+                context.inputMap |= ControllerPacket.TOUCHPAD_FLAG;
+
+                context.emulatingButtonFlags |= ControllerHandler.EMULATING_TOUCHPAD;
             }
         }
 
@@ -2914,6 +2940,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean hasMode;
         public boolean hasPaddles;
         public boolean hasShare;
+        public boolean needsClickpadEmulation;
 
         // Used for OUYA bumper state tracking since they force all buttons
         // up when the OUYA button goes down. We watch the last time we get
@@ -3072,6 +3099,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 // Override the detected controller type if we're emulating motion sensors on an Xbox controller
                 Toast.makeText(activityContext, activityContext.getResources().getText(R.string.toast_controller_type_changed), Toast.LENGTH_LONG).show();
                 reportedType = MoonBridge.LI_CTYPE_UNKNOWN;
+
+                // Remember that we should enable the clickpad emulation combo (Select+LB) for this device
+                needsClickpadEmulation = true;
             }
             else {
                 // Report the true type to the host PC if we're not emulating motion sensors
@@ -3127,6 +3157,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             if (oldContext.sensorManager == deviceSensorManager) {
                 this.sensorManager = deviceSensorManager;
             }
+
+            // Copy state initialized in reportControllerArrival()
+            this.needsClickpadEmulation = oldContext.needsClickpadEmulation;
 
             // Re-enable sensors on the new context
             enableSensors();

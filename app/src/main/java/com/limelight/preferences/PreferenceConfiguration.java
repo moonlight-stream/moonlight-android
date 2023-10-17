@@ -503,6 +503,15 @@ public class PreferenceConfiguration {
             prefs.edit().putBoolean(SMALL_ICONS_PREF_STRING, getDefaultSmallMode(context)).apply();
         }
 
+        if (!prefs.contains(GAMEPAD_MOTION_SENSORS_PREF_STRING) && Build.VERSION.SDK_INT == Build.VERSION_CODES.S) {
+            // Android 12 has a nasty bug that causes crashes when the app touches the InputDevice's
+            // associated InputDeviceSensorManager (just calling getSensorManager() is enough).
+            // As a workaround, we will override the default value for the gamepad motion sensor
+            // option to disabled on Android 12 to reduce the impact of this bug.
+            // https://cs.android.com/android/_/android/platform/frameworks/base/+/8970010a5e9f3dc5c069f56b4147552accfcbbeb
+            prefs.edit().putBoolean(GAMEPAD_MOTION_SENSORS_PREF_STRING, false).apply();
+        }
+
         // This must happen after the preferences migration to ensure the preferences are populated
         config.bitrate = prefs.getInt(BITRATE_PREF_STRING, prefs.getInt(BITRATE_PREF_OLD_STRING, 0) * 1000);
         if (config.bitrate == 0) {

@@ -286,13 +286,6 @@ public class VirtualControllerConfigurationLoader {
                     screenScale(TRIGGER_HEIGHT, height)
             );
 
-            controller.addElement(createDigitalButton(VirtualControllerElement.EID_GDB,
-                    ControllerPacket.SPECIAL_BUTTON_FLAG, 0, 1, "GUIDE", -1, controller, context),
-                    screenScale(GUIDE_X, height)+ rightDisplacement,
-                    screenScale(GUIDE_Y, height),
-                    screenScale(START_BACK_WIDTH, height),
-                    screenScale(START_BACK_HEIGHT, height)
-            );
 
             controller.addElement(createLeftStick(controller, context),
                     screenScale(ANALOG_L_BASE_X, height),
@@ -343,6 +336,16 @@ public class VirtualControllerConfigurationLoader {
                     screenScale(L3_R3_BASE_Y, height),
                     screenScale(TRIGGER_WIDTH, height),
                     screenScale(TRIGGER_HEIGHT, height)
+            );
+        }
+
+        if(config.showGuideButton){
+            controller.addElement(createDigitalButton(VirtualControllerElement.EID_GDB,
+                            ControllerPacket.SPECIAL_BUTTON_FLAG, 0, 1, "GUIDE", -1, controller, context),
+                    screenScale(GUIDE_X, height)+ rightDisplacement,
+                    screenScale(GUIDE_Y, height),
+                    screenScale(START_BACK_WIDTH, height),
+                    screenScale(START_BACK_HEIGHT, height)
             );
         }
 

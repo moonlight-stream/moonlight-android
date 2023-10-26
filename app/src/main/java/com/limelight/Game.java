@@ -1869,7 +1869,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                     if (deltaX != 0 || deltaY != 0) {
                         if (prefConfig.absoluteMouseMode) {
-                            conn.sendMouseMoveAsMousePosition(deltaX, deltaY, (short)view.getWidth(), (short)view.getHeight());
+                            // NB: view may be null, but we can unconditionally use streamView because we don't need to adjust
+                            // relative axis deltas for the position of the streamView within the parent's coordinate system.
+                            conn.sendMouseMoveAsMousePosition(deltaX, deltaY, (short)streamView.getWidth(), (short)streamView.getHeight());
                         }
                         else {
                             conn.sendMouseMove(deltaX, deltaY);

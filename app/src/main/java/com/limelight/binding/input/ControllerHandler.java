@@ -293,6 +293,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public void enableSensors() {
+        if (stopped) {
+            return;
+        }
+
         for (int i = 0; i < inputDeviceContexts.size(); i++) {
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
             deviceContext.enableSensors();
@@ -2030,6 +2034,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         boolean foundMatchingDevice = false;
         boolean vibrated = false;
 
+        if (stopped) {
+            return;
+        }
+
         for (int i = 0; i < inputDeviceContexts.size(); i++) {
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
 
@@ -2090,6 +2098,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public void handleRumbleTriggers(short controllerNumber, short leftTrigger, short rightTrigger) {
+        if (stopped) {
+            return;
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             for (int i = 0; i < inputDeviceContexts.size(); i++) {
                 InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
@@ -2201,6 +2213,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public void handleSetMotionEventState(final short controllerNumber, final byte motionType, short reportRateHz) {
+        if (stopped) {
+            return;
+        }
+
         // Report rate is restricted to <= 200 Hz without the HIGH_SAMPLING_RATE_SENSORS permission
         reportRateHz = (short) Math.min(200, reportRateHz);
 
@@ -2262,6 +2278,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public void handleSetControllerLED(short controllerNumber, byte r, byte g, byte b) {
+        if (stopped) {
+            return;
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             for (int i = 0; i < inputDeviceContexts.size(); i++) {
                 InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);

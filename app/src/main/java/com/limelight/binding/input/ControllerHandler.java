@@ -3065,7 +3065,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     capabilities |= MoonBridge.LI_CCAP_RUMBLE;
                 }
 
-                if (inputDevice.getBatteryState().isPresent()) {
+                // Calling InputDevice.getBatteryState() to see if a battery is present
+                // performs a Binder transaction that can cause ANRs on some devices.
+                // To avoid this, we will just claim we can report battery state for all
+                // external gamepad devices on Android S. If it turns out that no battery
+                // is actually present, we'll just report unknown battery state to the host.
+                if (external) {
                     capabilities |= MoonBridge.LI_CCAP_BATTERY_STATE;
                 }
 

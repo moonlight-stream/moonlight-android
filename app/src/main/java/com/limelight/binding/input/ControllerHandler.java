@@ -762,6 +762,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
+        // Check if this device has a usable RGB LED and cache that result
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            for (Light light : dev.getLightsManager().getLights()) {
+                if (light.hasRgbControl()) {
+                    context.hasRgbLed = true;
+                    break;
+                }
+            }
+        }
+
         // Detect if the gamepad has Mode and Select buttons according to the Android key layouts.
         // We do this first because other codepaths below may override these defaults.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -2256,7 +2266,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             for (int i = 0; i < inputDeviceContexts.size(); i++) {
                 InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
 
-                if (deviceContext.controllerNumber == controllerNumber) {
+                // Ignore input devices without an RGB LED
+                if (deviceContext.controllerNumber == controllerNumber && deviceContext.hasRgbLed) {
                     // Create a new light session if one doesn't already exist
                     if (deviceContext.lightsSession == null) {
                         deviceContext.lightsSession = deviceContext.inputDevice.getLightsManager().openSession();
@@ -2898,6 +2909,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         public InputDevice inputDevice;
 
+        public boolean hasRgbLed;
         public LightsManager.LightsSession lightsSession;
 
         // These are BatteryState values, not Moonlight values
@@ -3074,15 +3086,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     capabilities |= MoonBridge.LI_CCAP_BATTERY_STATE;
                 }
 
-                for (Light light : inputDevice.getLightsManager().getLights()) {
-                    if (light.hasRgbControl()) {
-                        // Light.hasRgbControl() was totally broken prior to Android 14.
-                        // It always returned true because LIGHT_CAPABILITY_RGB was defined as 0,
-                        // so we will just guess RGB is supported if it's a PlayStation controller.
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE || type == MoonBridge.LI_CTYPE_PS) {
-                            capabilities |= MoonBridge.LI_CCAP_RGB_LED;
-                        }
-                    }
+                // Light.hasRgbControl() was totally broken prior to Android 14.
+                // It always returned true because LIGHT_CAPABILITY_RGB was defined as 0,
+                // so we will just guess RGB is supported if it's a PlayStation controller.
+                if (hasRgbLed && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE || type == MoonBridge.LI_CTYPE_PS)) {
+                    capabilities |= MoonBridge.LI_CCAP_RGB_LED;
                 }
             }
 

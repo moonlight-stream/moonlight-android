@@ -495,7 +495,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         keyboardTranslator = new KeyboardTranslator();
 
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
-        inputManager.registerInputDeviceListener(controllerHandler, null);
         inputManager.registerInputDeviceListener(keyboardTranslator, null);
 
         // Initialize touch contexts
@@ -1079,12 +1078,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     protected void onDestroy() {
         super.onDestroy();
 
-        InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         if (controllerHandler != null) {
-            inputManager.unregisterInputDeviceListener(controllerHandler);
             controllerHandler.destroy();
         }
         if (keyboardTranslator != null) {
+            InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
             inputManager.unregisterInputDeviceListener(keyboardTranslator);
         }
 
@@ -1102,6 +1100,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Destroy the capture provider
         inputCaptureProvider.destroy();
+    }
+
+    @Override
+    protected void onPause() {
+        if (isFinishing()) {
+            // Stop any further input device notifications before we lose focus (and pointer capture)
+            if (controllerHandler != null) {
+                controllerHandler.stop();
+            }
+
+            // Ungrab input to prevent further input device notifications
+            setInputGrabState(false);
+        }
+
+        super.onPause();
     }
 
     @Override
@@ -2309,6 +2322,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             public void run() {
                 // Let the display go to sleep now
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+                // Stop processing controller input
+                controllerHandler.stop();
 
                 // Ungrab input
                 setInputGrabState(false);

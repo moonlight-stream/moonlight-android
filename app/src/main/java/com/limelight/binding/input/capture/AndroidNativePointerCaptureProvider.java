@@ -65,6 +65,9 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
     public void showCursor() {
         super.showCursor();
 
+        // It is important to unregister the listener *before* releasing pointer capture,
+        // because releasing pointer capture can cause an onInputDeviceChanged() callback
+        // for devices with a touchpad (like a DS4 controller).
         inputManager.unregisterInputDeviceListener(this);
         targetView.releasePointerCapture();
     }

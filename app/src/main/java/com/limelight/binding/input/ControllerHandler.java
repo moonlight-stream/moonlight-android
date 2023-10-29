@@ -114,6 +114,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private final double stickDeadzone;
     private final InputDeviceContext defaultContext = new InputDeviceContext();
     private final GameGestures gestures;
+    private final InputManager inputManager;
     private final Vibrator deviceVibrator;
     private final VibratorManager deviceVibratorManager;
     private final SensorManager deviceSensorManager;
@@ -134,6 +135,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         this.prefConfig = prefConfig;
         this.deviceVibrator = (Vibrator) activityContext.getSystemService(Context.VIBRATOR_SERVICE);
         this.deviceSensorManager = (SensorManager) activityContext.getSystemService(Context.SENSOR_SERVICE);
+        this.inputManager = (InputManager) activityContext.getSystemService(Context.INPUT_SERVICE);
         this.mainThreadHandler = new Handler(Looper.getMainLooper());
 
         // Create a HandlerThread to process battery state updates. These can be slow enough
@@ -205,6 +207,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // currentControllers set which will allow them to properly unplug
         // if they are removed.
         initialControllers = getAttachedControllerMask(activityContext);
+
+        // Register ourselves for input device notifications
+        inputManager.registerInputDeviceListener(this, null);
     }
 
     private static InputDevice.MotionRange getMotionRangeForJoystickAxis(InputDevice dev, int axis) {
@@ -260,8 +265,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public void stop() {
+        if (stopped) {
+            return;
+        }
+
         // Stop new device contexts from being created or used
         stopped = true;
+
+        // Unregister our input device callbacks
+        inputManager.unregisterInputDeviceListener(this);
 
         for (int i = 0; i < inputDeviceContexts.size(); i++) {
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);

@@ -33,7 +33,7 @@
     <string name="unpairing">Disaccoppiamento…</string>
     <string name="unpair_success">Disaccoppiato con successo</string>
     <string name="unpair_fail">Disaccoppiamento fallito</string>
-    <string name="unpair_error">PC non accoppiato</string>
+    <string name="unpair_error">Il dispositivo non è stato accoppiato</string>
     <!-- Errors -->
     <string name="error_pc_offline">PC offline</string>
     <string name="error_manager_not_running">Il servizio ComputerManager non è avviato. Attendi qualche secondo o riavvia l\'applicazione.</string>
@@ -91,7 +91,7 @@
     <string name="addpc_wrong_sitelocal">Quell\'indirizzo non sembra corretto. È necessario utilizzare l\'indirizzo IP pubblico del router per lo streaming su Internet.</string>
     <!-- Preferences -->
     <string name="category_basic_settings">Impostazioni generali</string>
-    <string name="title_resolution_list">Risoluzione e FPS</string>
+    <string name="title_resolution_list">Risoluzione video</string>
     <string name="summary_resolution_list">Aumentare per migliorare la nitidezza dell\'immagine. Diminuire per aumentare le prestazioni su dispositivi di fascia più bassa e reti più lente.</string>
     <string name="title_seekbar_bitrate">Velocità di trasmissione video</string>
     <string name="summary_seekbar_bitrate">Aumentare per migliorare la qualità dell\'immagine. Diminuire per aumentare le prestazioni su reti più lente.</string>

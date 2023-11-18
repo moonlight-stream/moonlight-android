@@ -2104,7 +2104,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             else if (foundMatchingDevice && !vibrated && prefConfig.vibrateFallbackToDevice) {
                 // We found a device to vibrate but it didn't have rumble support. The user
                 // has requested us to vibrate the device in this case.
-                rumbleSingleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
+                short lowFreqMotorAdjusted = (short)(lowFreqMotor*prefConfig.vibrateFallbackToDeviceStrength/100);
+                short highFreqMotorAdjusted = (short)(highFreqMotor*prefConfig.vibrateFallbackToDeviceStrength/100);
+                rumbleSingleVibrator(deviceVibrator, lowFreqMotorAdjusted, highFreqMotorAdjusted);
             }
         }
     }

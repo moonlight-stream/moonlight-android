@@ -340,7 +340,7 @@ public class StreamSettings extends Activity {
                 category_gamepad_settings.removePreference(findPreference("checkbox_vibrate_fallback"));
                 category_gamepad_settings.removePreference(findPreference("seekbar_vibrate_fallback_strength"));
                 // The entire OSC category may have already been removed by the touchscreen check above
-                category = (PreferenceCategory) findPreference("category_onscreen_controls");
+                PreferenceCategory category = (PreferenceCategory) findPreference("category_onscreen_controls");
                 if (category != null) {
                     category.removePreference(findPreference("checkbox_vibrate_osc"));
                 }

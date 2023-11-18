@@ -92,6 +92,7 @@
             android:defaultValue="false" />
         <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_vibrate_fallback_strength"
+            android:dependency="checkbox_vibrate_fallback"
             android:defaultValue="100"
             android:max="200"
             android:summary="@string/summary_seekbar_vibrate_fallback_strength"

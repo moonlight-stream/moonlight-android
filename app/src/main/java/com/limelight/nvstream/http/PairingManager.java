@@ -116,9 +116,7 @@ public class PairingManager {
             Signature sig = Signature.getInstance("SHA256withRSA");
             sig.initSign(key);
             sig.update(data);
-            byte[] signature = new byte[256];
-            sig.sign(signature, 0, signature.length);
-            return signature;
+            return sig.sign();
         } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -245,7 +243,7 @@ public class PairingManager {
         // Get the server's signed secret
         byte[] serverSecretResp = hexToBytes(NvHTTP.getXmlString(secretResp, "pairingsecret", true));
         byte[] serverSecret = Arrays.copyOfRange(serverSecretResp, 0, 16);
-        byte[] serverSignature = Arrays.copyOfRange(serverSecretResp, 16, 272);
+        byte[] serverSignature = Arrays.copyOfRange(serverSecretResp, 16, serverSecretResp.length);
 
         // Ensure the authenticity of the data
         if (!verifySignature(serverSecret, serverSignature, serverCert)) {

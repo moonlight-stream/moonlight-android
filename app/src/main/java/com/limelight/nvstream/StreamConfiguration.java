@@ -23,8 +23,6 @@ public class StreamConfiguration {
     private int remote;
     private MoonBridge.AudioConfiguration audioConfiguration;
     private int supportedVideoFormats;
-    private int hevcBitratePercentageMultiplier;
-    private int av1BitratePercentageMultiplier;
     private int attachedGamepadMask;
     private int encryptionFlags;
     private int colorRange;
@@ -82,16 +80,6 @@ public class StreamConfiguration {
         
         public StreamConfiguration.Builder setMaxPacketSize(int maxPacketSize) {
             config.maxPacketSize = maxPacketSize;
-            return this;
-        }
-
-        public StreamConfiguration.Builder setHevcBitratePercentageMultiplier(int multiplier) {
-            config.hevcBitratePercentageMultiplier = multiplier;
-            return this;
-        }
-
-        public StreamConfiguration.Builder setAv1BitratePercentageMultiplier(int multiplier) {
-            config.av1BitratePercentageMultiplier = multiplier;
             return this;
         }
 
@@ -222,14 +210,6 @@ public class StreamConfiguration {
     
     public int getSupportedVideoFormats() {
         return supportedVideoFormats;
-    }
-
-    public int getHevcBitratePercentageMultiplier() {
-        return hevcBitratePercentageMultiplier;
-    }
-
-    public int getAv1BitratePercentageMultiplier() {
-        return av1BitratePercentageMultiplier;
     }
 
     public int getAttachedGamepadMask() {

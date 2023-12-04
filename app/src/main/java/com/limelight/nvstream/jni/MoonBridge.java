@@ -347,8 +347,6 @@ public class MoonBridge {
                                               int width, int height, int fps,
                                               int bitrate, int packetSize, int streamingRemotely,
                                               int audioConfiguration, int supportedVideoFormats,
-                                              int hevcBitratePercentageMultiplier,
-                                              int av1BitratePercentageMultiplier,
                                               int clientRefreshRateX100,
                                               int encryptionFlags,
                                               byte[] riAesKey, byte[] riAesIv,

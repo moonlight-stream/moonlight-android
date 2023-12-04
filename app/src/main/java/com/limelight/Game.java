@@ -474,8 +474,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
                 .setMaxPacketSize(1392)
                 .setRemoteConfiguration(StreamConfiguration.STREAM_CFG_AUTO) // NvConnection will perform LAN and VPN detection
-                .setHevcBitratePercentageMultiplier(75)
-                .setAv1BitratePercentageMultiplier(75)
                 .setSupportedVideoFormats(supportedVideoFormats)
                 .setAttachedGamepadMask(gamepadMask)
                 .setClientRefreshRateX100((int)(displayRefreshRate * 100))

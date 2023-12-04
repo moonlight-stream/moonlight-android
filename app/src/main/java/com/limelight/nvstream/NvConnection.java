@@ -433,8 +433,6 @@ public class NvConnection {
                             context.negotiatedPacketSize, context.negotiatedRemoteStreaming,
                             context.streamConfig.getAudioConfiguration().toInt(),
                             context.streamConfig.getSupportedVideoFormats(),
-                            context.streamConfig.getHevcBitratePercentageMultiplier(),
-                            context.streamConfig.getAv1BitratePercentageMultiplier(),
                             context.streamConfig.getClientRefreshRateX100(),
                             context.streamConfig.getEncryptionFlags(),
                             context.riKey.getEncoded(), ib.array(),

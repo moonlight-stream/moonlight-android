@@ -78,9 +78,8 @@
     <string name="error_usb_prohibited">USB достъпът е забранен от администратора на вашето устройство. Проверете настройките на Knox или MDM.</string>
     <string name="audioconf_71surround">7.1 съраунд звук</string>
     <string name="audioconf_51surround">5.1 съраунд звук</string>
-    <string name="videoformat_hevcauto">Автоматично</string>
+    <string name="videoformat_auto">Автоматично</string>
     <string name="videoformat_hevcalways">Винаги използване на HEVC (може да крашне)</string>
-    <string name="videoformat_hevcnever">Никога да не се използва HEVC</string>
     <string name="summary_frame_pacing">Посочете как да се балансира забавянето и плавността на видеото</string>
     <string name="title_frame_pacing">Стъпка на видео кадрите</string>
     <string name="pacing_balanced">Балансирано</string>

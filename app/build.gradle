@@ -11,8 +11,8 @@ android {
         minSdk 16
         targetSdk 34
 
-        versionName "11.0"
-        versionCode = 306
+        versionName "12.0.2"
+        versionCode = 313
 
         // Generate native debug symbols to allow Google Play to symbolicate our native crashes
         ndk.debugSymbolLevel = 'FULL'
@@ -143,5 +143,5 @@ dependencies {
     implementation 'com.squareup.okio:okio:1.17.5'
     // 3.5.8 requires minSdk 19, uses StandardCharsets.UTF_8 internally
     implementation 'org.jmdns:jmdns:3.5.7'
-    implementation 'com.github.cgutman:ShieldControllerExtensions:1.0'
+    implementation 'com.github.cgutman:ShieldControllerExtensions:1.0.1'
 }

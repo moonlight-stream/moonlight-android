@@ -45,16 +45,21 @@ Java_com_limelight_nvstream_jni_MoonBridge_sendMultiControllerInput(JNIEnv *env,
 JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendTouchEvent(JNIEnv *env, jclass clazz,
                                                           jbyte eventType, jint pointerId,
-                                                          jfloat x, jfloat y, jfloat pressure) {
-    return LiSendTouchEvent(eventType, pointerId, x, y, pressure);
+                                                          jfloat x, jfloat y, jfloat pressureOrDistance,
+                                                          jfloat contactAreaMajor, jfloat contactAreaMinor,
+                                                          jshort rotation) {
+    return LiSendTouchEvent(eventType, pointerId, x, y, pressureOrDistance,
+                            contactAreaMajor, contactAreaMinor, rotation);
 }
 
 JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendPenEvent(JNIEnv *env, jclass clazz, jbyte eventType,
                                                         jbyte toolType, jbyte penButtons,
-                                                        jfloat x, jfloat y, jfloat pressure,
+                                                        jfloat x, jfloat y, jfloat pressureOrDistance,
+                                                        jfloat contactAreaMajor, jfloat contactAreaMinor,
                                                         jshort rotation, jbyte tilt) {
-    return LiSendPenEvent(eventType, toolType, penButtons, x, y, pressure, rotation, tilt);
+    return LiSendPenEvent(eventType, toolType, penButtons, x, y, pressureOrDistance,
+                          contactAreaMajor, contactAreaMinor, rotation, tilt);
 }
 
 JNIEXPORT jint JNICALL

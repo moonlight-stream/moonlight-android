@@ -89,6 +89,7 @@ public class MoonBridge {
     public static final byte LI_TOUCH_EVENT_CANCEL      = 0x04;
     public static final byte LI_TOUCH_EVENT_BUTTON_ONLY = 0x05;
     public static final byte LI_TOUCH_EVENT_HOVER_LEAVE = 0x06;
+    public static final byte LI_TOUCH_EVENT_CANCEL_ALL  = 0x07;
 
     public static final byte LI_TOOL_TYPE_UNKNOWN = 0x00;
     public static final byte LI_TOOL_TYPE_PEN = 0x01;
@@ -346,8 +347,6 @@ public class MoonBridge {
                                               int width, int height, int fps,
                                               int bitrate, int packetSize, int streamingRemotely,
                                               int audioConfiguration, int supportedVideoFormats,
-                                              int hevcBitratePercentageMultiplier,
-                                              int av1BitratePercentageMultiplier,
                                               int clientRefreshRateX100,
                                               int encryptionFlags,
                                               byte[] riAesKey, byte[] riAesIv,
@@ -372,10 +371,12 @@ public class MoonBridge {
                                     short leftStickX, short leftStickY,
                                     short rightStickX, short rightStickY);
 
-    public static native int sendTouchEvent(byte eventType, int pointerId, float x, float y, float pressure);
+    public static native int sendTouchEvent(byte eventType, int pointerId, float x, float y, float pressure,
+                                            float contactAreaMajor, float contactAreaMinor, short rotation);
 
     public static native int sendPenEvent(byte eventType, byte toolType, byte penButtons, float x, float y,
-                                          float pressure, short rotation, byte tilt);
+                                          float pressure, float contactAreaMajor, float contactAreaMinor,
+                                          short rotation, byte tilt);
 
     public static native int sendControllerArrivalEvent(byte controllerNumber, short activeGamepadMask, byte type, int supportedButtonFlags, short capabilities);
 

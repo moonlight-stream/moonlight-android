@@ -99,7 +99,7 @@
     <string name="resolution_720p">720p</string>
     <string name="resolution_1080p">1080p</string>
     <string name="resolution_1440p">1440p</string>
-    <string name="videoformat_hevcauto">Automaticky</string>
+    <string name="videoformat_auto">Automaticky</string>
     <string name="audioconf_71surround">7.1 prostorový zvuk</string>
     <string name="pacing_balanced">Vyvážené</string>
     <string name="pacing_smoothness">Preferovat plynulejší video (může výrazně zvýšit zpoždění)</string>
@@ -244,7 +244,6 @@
     <string name="title_enable_hdr">Povolit HDR (experimentální)</string>
     <string name="summary_enable_hdr">Streamovat v HDR, pokud jej hra a GPU počítače podporují. HDR vyžaduje GPU GTX 1000 nebo novější.</string>
     <string name="videoformat_hevcalways">Vždy použít HEVC (může padat)</string>
-    <string name="videoformat_hevcnever">Nikdy nepoužívat HEVC</string>
     <string name="title_frame_pacing">Frame pacing videa</string>
     <string name="summary_frame_pacing">Zvolte, jak vyvážit zpoždění videa a jeho plynulost</string>
     <string name="pacing_latency">Preferovat nejnižší zpoždění</string>

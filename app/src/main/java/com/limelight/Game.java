@@ -128,12 +128,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private int suppressPipRefCount = 0;
     private String pcName;
     private String appName;
+    private NvApp app;
     private float desiredRefreshRate;
 
     private InputCaptureProvider inputCaptureProvider;
     private int modifierFlags = 0;
     private boolean grabbedInput = true;
-    private boolean grabComboDown = false;
+    private boolean cursorVisible = false;
+    private boolean waitingForAllModifiersUp = false;
+    private int specialKeyCode = KeyEvent.KEYCODE_UNKNOWN;
     private StreamView streamView;
     private long lastAbsTouchUpTime = 0;
     private long lastAbsTouchDownTime = 0;
@@ -144,8 +147,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private TextView notificationOverlayView;
     private int requestedNotificationOverlayVisibility = View.GONE;
     private TextView performanceOverlayView;
-
-    private ShortcutHelper shortcutHelper;
 
     private MediaCodecDecoderRenderer decoderRenderer;
     private boolean reportedCrash;
@@ -320,9 +321,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         int httpsPort = Game.this.getIntent().getIntExtra(EXTRA_HTTPS_PORT, 0); // 0 is treated as unknown
         int appId = Game.this.getIntent().getIntExtra(EXTRA_APP_ID, StreamConfiguration.INVALID_APP_ID);
         String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
-        String uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
         boolean appSupportsHdr = Game.this.getIntent().getBooleanExtra(EXTRA_APP_HDR, false);
         byte[] derCertData = Game.this.getIntent().getByteArrayExtra(EXTRA_SERVER_CERT);
+
+        app = new NvApp(appName != null ? appName : "app", appId, appSupportsHdr);
 
         X509Certificate serverCert = null;
         try {
@@ -337,17 +339,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (appId == StreamConfiguration.INVALID_APP_ID) {
             finish();
             return;
-        }
-
-        // Report this shortcut being used
-        ComputerDetails computer = new ComputerDetails();
-        computer.name = pcName;
-        computer.uuid = uuid;
-        shortcutHelper = new ShortcutHelper(this);
-        shortcutHelper.reportComputerShortcutUsed(computer);
-        if (appName != null) {
-            // This may be null if launched from the "Resume Session" PC context menu item
-            shortcutHelper.reportGameLaunched(computer, new NvApp(appName, appId, appSupportsHdr));
         }
 
         // Initialize the MediaCodec helper before creating the decoder
@@ -415,12 +406,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Display a message to the user if HEVC was forced on but we still didn't find a decoder
-        if (prefConfig.hevcFormat == PreferenceConfiguration.FormatOption.FORCE_ON && !decoderRenderer.isHevcSupported()) {
+        if (prefConfig.videoFormat == PreferenceConfiguration.FormatOption.FORCE_HEVC && !decoderRenderer.isHevcSupported()) {
             Toast.makeText(this, "No HEVC decoder found", Toast.LENGTH_LONG).show();
         }
 
         // Display a message to the user if AV1 was forced on but we still didn't find a decoder
-        if (prefConfig.av1Format == PreferenceConfiguration.FormatOption.FORCE_ON && !decoderRenderer.isAv1Supported()) {
+        if (prefConfig.videoFormat == PreferenceConfiguration.FormatOption.FORCE_AV1 && !decoderRenderer.isAv1Supported()) {
             Toast.makeText(this, "No AV1 decoder found", Toast.LENGTH_LONG).show();
         }
 
@@ -481,14 +472,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setResolution(prefConfig.width, prefConfig.height)
                 .setLaunchRefreshRate(prefConfig.fps)
                 .setRefreshRate(chosenFrameRate)
-                .setApp(new NvApp(appName != null ? appName : "app", appId, appSupportsHdr))
+                .setApp(app)
                 .setBitrate(prefConfig.bitrate)
                 .setEnableSops(prefConfig.enableSops)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
                 .setMaxPacketSize(1392)
                 .setRemoteConfiguration(StreamConfiguration.STREAM_CFG_AUTO) // NvConnection will perform LAN and VPN detection
-                .setHevcBitratePercentageMultiplier(75)
-                .setAv1BitratePercentageMultiplier(60)
                 .setSupportedVideoFormats(supportedVideoFormats)
                 .setAttachedGamepadMask(gamepadMask)
                 .setClientRefreshRateX100((int)(displayRefreshRate * 100))
@@ -508,7 +497,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         keyboardTranslator = new KeyboardTranslator();
 
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
-        inputManager.registerInputDeviceListener(controllerHandler, null);
         inputManager.registerInputDeviceListener(keyboardTranslator, null);
 
         // Initialize touch contexts
@@ -643,6 +631,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 performanceOverlayView.setVisibility(View.GONE);
                 notificationOverlayView.setVisibility(View.GONE);
 
+                // Disable sensors while in PiP mode
+                controllerHandler.disableSensors();
+
                 // Update GameManager state to indicate we're in PiP (still gaming, but interruptible)
                 UiHelper.notifyStreamEnteringPiP(this);
             }
@@ -660,6 +651,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 }
 
                 notificationOverlayView.setVisibility(requestedNotificationOverlayVisibility);
+
+                // Enable sensors again after exiting PiP
+                controllerHandler.enableSensors();
 
                 // Update GameManager state to indicate we're out of PiP (gaming, non-interruptible)
                 UiHelper.notifyStreamExitingPiP(this);
@@ -1086,11 +1080,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     protected void onDestroy() {
         super.onDestroy();
 
-        InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         if (controllerHandler != null) {
-            inputManager.unregisterInputDeviceListener(controllerHandler);
+            controllerHandler.destroy();
         }
         if (keyboardTranslator != null) {
+            InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
             inputManager.unregisterInputDeviceListener(keyboardTranslator);
         }
 
@@ -1108,6 +1102,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Destroy the capture provider
         inputCaptureProvider.destroy();
+    }
+
+    @Override
+    protected void onPause() {
+        if (isFinishing()) {
+            // Stop any further input device notifications before we lose focus (and pointer capture)
+            if (controllerHandler != null) {
+                controllerHandler.stop();
+            }
+
+            // Ungrab input to prevent further input device notifications
+            setInputGrabState(false);
+        }
+
+        super.onPause();
     }
 
     @Override
@@ -1143,15 +1152,26 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 // Add the video codec to the post-stream toast
                 if (message != null) {
-                    if (videoFormat == MoonBridge.VIDEO_FORMAT_H265_MAIN10) {
-                        message += " [HEVC HDR]";
+                    message += " [";
+
+                    if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
+                        message += "H.264";
                     }
-                    else if (videoFormat == MoonBridge.VIDEO_FORMAT_H265) {
-                        message += " [HEVC]";
+                    else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
+                        message += "HEVC";
                     }
-                    else if (videoFormat == MoonBridge.VIDEO_FORMAT_H264) {
-                        message += " [H.264]";
+                    else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_AV1) != 0) {
+                        message += "AV1";
                     }
+                    else {
+                        message += "UNKNOWN";
+                    }
+
+                    if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_10BIT) != 0) {
+                        message += " HDR";
+                    }
+
+                    message += "]";
                 }
 
                 if (message != null) {
@@ -1175,6 +1195,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Grab/ungrab the mouse cursor
         if (grab) {
             inputCaptureProvider.enableCapture();
+
+            // Enabling capture may hide the cursor again, so
+            // we will need to show it again.
+            if (cursorVisible) {
+                inputCaptureProvider.showCursor();
+            }
         }
         else {
             inputCaptureProvider.disableCapture();
@@ -1196,6 +1222,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     // Returns true if the key stroke was consumed
     private boolean handleSpecialKeys(int androidKeyCode, boolean down) {
         int modifierMask = 0;
+        int nonModifierKeyCode = KeyEvent.KEYCODE_UNKNOWN;
 
         if (androidKeyCode == KeyEvent.KEYCODE_CTRL_LEFT ||
             androidKeyCode == KeyEvent.KEYCODE_CTRL_RIGHT) {
@@ -1213,6 +1240,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 androidKeyCode == KeyEvent.KEYCODE_META_RIGHT) {
             modifierMask = KeyboardPacket.MODIFIER_META;
         }
+        else {
+            nonModifierKeyCode = androidKeyCode;
+        }
 
         if (down) {
             this.modifierFlags |= modifierMask;
@@ -1221,36 +1251,62 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             this.modifierFlags &= ~modifierMask;
         }
 
-        // Check if Ctrl+Alt+Shift+Z is pressed
-        if (androidKeyCode == KeyEvent.KEYCODE_Z &&
-            (modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT)) ==
-                (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT))
-        {
-            if (down) {
-                // Now that we've pressed the magic combo
-                // we'll wait for one of the keys to come up
-                grabComboDown = true;
+        // Handle the special combos on the key up
+        if (waitingForAllModifiersUp || specialKeyCode != KeyEvent.KEYCODE_UNKNOWN) {
+            if (specialKeyCode == androidKeyCode) {
+                // If this is a key up for the special key itself, eat that because the host never saw the original key down
+                return true;
+            }
+            else if (modifierFlags != 0) {
+                // While we're waiting for modifiers to come up, eat all key downs and allow all key ups to pass
+                return down;
             }
             else {
-                // Toggle the grab if Z comes up
-                Handler h = getWindow().getDecorView().getHandler();
-                if (h != null) {
-                    h.postDelayed(toggleGrab, 250);
+                // When all modifiers are up, perform the special action
+                switch (specialKeyCode) {
+                    // Toggle input grab
+                    case KeyEvent.KEYCODE_Z:
+                        Handler h = getWindow().getDecorView().getHandler();
+                        if (h != null) {
+                            h.postDelayed(toggleGrab, 250);
+                        }
+                        break;
+
+                    // Quit
+                    case KeyEvent.KEYCODE_Q:
+                        finish();
+                        break;
+
+                    // Toggle cursor visibility
+                    case KeyEvent.KEYCODE_C:
+                        if (!grabbedInput) {
+                            inputCaptureProvider.enableCapture();
+                            grabbedInput = true;
+                        }
+                        cursorVisible = !cursorVisible;
+                        if (cursorVisible) {
+                            inputCaptureProvider.showCursor();
+                        } else {
+                            inputCaptureProvider.hideCursor();
+                        }
+                        break;
+
+                    default:
+                        break;
                 }
 
-                grabComboDown = false;
+                // Reset special key state
+                specialKeyCode = KeyEvent.KEYCODE_UNKNOWN;
+                waitingForAllModifiersUp = false;
             }
-
-            return true;
         }
-        // Toggle the grab if control or shift comes up
-        else if (grabComboDown) {
-            Handler h = getWindow().getDecorView().getHandler();
-            if (h != null) {
-                h.postDelayed(toggleGrab, 250);
-            }
-
-            grabComboDown = false;
+        // Check if Ctrl+Alt+Shift is down when a non-modifier key is pressed
+        else if ((modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT)) ==
+                (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT) &&
+                (down && nonModifierKeyCode != KeyEvent.KEYCODE_UNKNOWN)) {
+            // Remember that a special key combo was activated, so we can consume all key events until the modifiers come up
+            specialKeyCode = androidKeyCode;
+            waitingForAllModifiersUp = true;
             return true;
         }
 
@@ -1493,7 +1549,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return MoonBridge.LI_TOUCH_EVENT_MOVE;
 
             case MotionEvent.ACTION_CANCEL:
-                return MoonBridge.LI_TOUCH_EVENT_CANCEL;
+                // ACTION_CANCEL applies to *all* pointers in the gesture, so it maps to CANCEL_ALL
+                // rather than CANCEL. For a single pointer cancellation, that's indicated via
+                // FLAG_CANCELED on a ACTION_POINTER_UP.
+                // https://developer.android.com/develop/ui/views/touch-and-input/gestures/multi
+                return MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL;
 
             case MotionEvent.ACTION_HOVER_ENTER:
             case MotionEvent.ACTION_HOVER_MOVE:
@@ -1511,9 +1571,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
-    private float[] getStreamViewRelativeNormalizedXY(View view, MotionEvent event) {
-        float normalizedX = event.getX(event.getActionIndex());
-        float normalizedY = event.getY(event.getActionIndex());
+    private float[] getStreamViewRelativeNormalizedXY(View view, MotionEvent event, int pointerIndex) {
+        float normalizedX = event.getX(pointerIndex);
+        float normalizedY = event.getY(pointerIndex);
 
         // For the containing background view, we must subtract the origin
         // of the StreamView to get video-relative coordinates.
@@ -1534,24 +1594,101 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return new float[] { normalizedX, normalizedY };
     }
 
-    private boolean trySendPenEvent(View view, MotionEvent event) {
-        byte eventType = getLiTouchTypeFromEvent(event);
-        if (eventType < 0) {
-            return false;
-        }
+    private static float normalizeValueInRange(float value, InputDevice.MotionRange range) {
+        return (value - range.getMin()) / range.getRange();
+    }
 
-        byte toolType;
-        switch (event.getToolType(event.getActionIndex())) {
-            case MotionEvent.TOOL_TYPE_ERASER:
-                toolType = MoonBridge.LI_TOOL_TYPE_ERASER;
-                break;
-            case MotionEvent.TOOL_TYPE_STYLUS:
-                toolType = MoonBridge.LI_TOOL_TYPE_PEN;
-                break;
+    private static float getPressureOrDistance(MotionEvent event, int pointerIndex) {
+        InputDevice dev = event.getDevice();
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_HOVER_ENTER:
+            case MotionEvent.ACTION_HOVER_MOVE:
+            case MotionEvent.ACTION_HOVER_EXIT:
+                // Hover events report distance
+                if (dev != null) {
+                    InputDevice.MotionRange distanceRange = dev.getMotionRange(MotionEvent.AXIS_DISTANCE, event.getSource());
+                    if (distanceRange != null) {
+                        return normalizeValueInRange(event.getAxisValue(MotionEvent.AXIS_DISTANCE, pointerIndex), distanceRange);
+                    }
+                }
+                return 0.0f;
+
             default:
-                return false;
+                // Other events report pressure
+                return event.getPressure(pointerIndex);
+        }
+    }
+
+    private static short getRotationDegrees(MotionEvent event, int pointerIndex) {
+        InputDevice dev = event.getDevice();
+        if (dev != null) {
+            if (dev.getMotionRange(MotionEvent.AXIS_ORIENTATION, event.getSource()) != null) {
+                short rotationDegrees = (short) Math.toDegrees(event.getOrientation(pointerIndex));
+                if (rotationDegrees < 0) {
+                    rotationDegrees += 360;
+                }
+                return rotationDegrees;
+            }
+        }
+        return MoonBridge.LI_ROT_UNKNOWN;
+    }
+
+    private static float[] polarToCartesian(float r, float theta) {
+        return new float[] { (float)(r * Math.cos(theta)), (float)(r * Math.sin(theta)) };
+    }
+
+    private static float cartesianToR(float[] point) {
+        return (float)Math.sqrt(Math.pow(point[0], 2) + Math.pow(point[1], 2));
+    }
+
+    private float[] getStreamViewNormalizedContactArea(MotionEvent event, int pointerIndex) {
+        float orientation;
+
+        // If the orientation is unknown, we'll just assume it's at a 45 degree angle and scale it by
+        // X and Y scaling factors evenly.
+        if (event.getDevice() == null || event.getDevice().getMotionRange(MotionEvent.AXIS_ORIENTATION, event.getSource()) == null) {
+            orientation = (float)(Math.PI / 4);
+        }
+        else {
+            orientation = event.getOrientation(pointerIndex);
         }
 
+        float contactAreaMajor, contactAreaMinor;
+        switch (event.getActionMasked()) {
+            // Hover events report the tool size
+            case MotionEvent.ACTION_HOVER_ENTER:
+            case MotionEvent.ACTION_HOVER_MOVE:
+            case MotionEvent.ACTION_HOVER_EXIT:
+                contactAreaMajor = event.getToolMajor(pointerIndex);
+                contactAreaMinor = event.getToolMinor(pointerIndex);
+                break;
+
+            // Other events report contact area
+            default:
+                contactAreaMajor = event.getTouchMajor(pointerIndex);
+                contactAreaMinor = event.getTouchMinor(pointerIndex);
+                break;
+        }
+
+        // The contact area major axis is parallel to the orientation, so we simply convert
+        // polar to cartesian coordinates using the orientation as theta.
+        float[] contactAreaMajorCartesian = polarToCartesian(contactAreaMajor, orientation);
+
+        // The contact area minor axis is perpendicular to the contact area major axis (and thus
+        // the orientation), so rotate the orientation angle by 90 degrees.
+        float[] contactAreaMinorCartesian = polarToCartesian(contactAreaMinor, (float)(orientation + (Math.PI / 2)));
+
+        // Normalize the contact area to the stream view size
+        contactAreaMajorCartesian[0] = Math.min(Math.abs(contactAreaMajorCartesian[0]), streamView.getWidth()) / streamView.getWidth();
+        contactAreaMinorCartesian[0] = Math.min(Math.abs(contactAreaMinorCartesian[0]), streamView.getWidth()) / streamView.getWidth();
+        contactAreaMajorCartesian[1] = Math.min(Math.abs(contactAreaMajorCartesian[1]), streamView.getHeight()) / streamView.getHeight();
+        contactAreaMinorCartesian[1] = Math.min(Math.abs(contactAreaMinorCartesian[1]), streamView.getHeight()) / streamView.getHeight();
+
+        // Convert the normalized values back into polar coordinates
+        return new float[] { cartesianToR(contactAreaMajorCartesian), cartesianToR(contactAreaMinorCartesian) };
+    }
+
+    private boolean sendPenEventForPointer(View view, MotionEvent event, byte eventType, byte toolType, int pointerIndex) {
         byte penButtons = 0;
         if ((event.getButtonState() & MotionEvent.BUTTON_STYLUS_PRIMARY) != 0) {
             penButtons |= MoonBridge.LI_PEN_BUTTON_PRIMARY;
@@ -1560,26 +1697,86 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             penButtons |= MoonBridge.LI_PEN_BUTTON_SECONDARY;
         }
 
-        short rotationDegrees = MoonBridge.LI_ROT_UNKNOWN;
         byte tiltDegrees = MoonBridge.LI_TILT_UNKNOWN;
         InputDevice dev = event.getDevice();
         if (dev != null) {
-            if (dev.getMotionRange(MotionEvent.AXIS_ORIENTATION, event.getSource()) != null) {
-                rotationDegrees = (short)Math.toDegrees(event.getOrientation(event.getActionIndex()));
-                if (rotationDegrees < 0) {
-                    rotationDegrees += 360;
-                }
-            }
             if (dev.getMotionRange(MotionEvent.AXIS_TILT, event.getSource()) != null) {
-                tiltDegrees = (byte)Math.toDegrees(event.getAxisValue(MotionEvent.AXIS_TILT, event.getActionIndex()));
+                tiltDegrees = (byte)Math.toDegrees(event.getAxisValue(MotionEvent.AXIS_TILT, pointerIndex));
             }
         }
 
-        float[] normalizedCoords = getStreamViewRelativeNormalizedXY(view, event);
+        float[] normalizedCoords = getStreamViewRelativeNormalizedXY(view, event, pointerIndex);
+        float[] normalizedContactArea = getStreamViewNormalizedContactArea(event, pointerIndex);
         return conn.sendPenEvent(eventType, toolType, penButtons,
                 normalizedCoords[0], normalizedCoords[1],
-                event.getPressure(event.getActionIndex()),
-                rotationDegrees, tiltDegrees) != MoonBridge.LI_ERR_UNSUPPORTED;
+                getPressureOrDistance(event, pointerIndex),
+                normalizedContactArea[0], normalizedContactArea[1],
+                getRotationDegrees(event, pointerIndex), tiltDegrees) != MoonBridge.LI_ERR_UNSUPPORTED;
+    }
+
+    private static byte convertToolTypeToStylusToolType(MotionEvent event, int pointerIndex) {
+        switch (event.getToolType(pointerIndex)) {
+            case MotionEvent.TOOL_TYPE_ERASER:
+                return MoonBridge.LI_TOOL_TYPE_ERASER;
+            case MotionEvent.TOOL_TYPE_STYLUS:
+                return MoonBridge.LI_TOOL_TYPE_PEN;
+            default:
+                return MoonBridge.LI_TOOL_TYPE_UNKNOWN;
+        }
+    }
+
+    private boolean trySendPenEvent(View view, MotionEvent event) {
+        byte eventType = getLiTouchTypeFromEvent(event);
+        if (eventType < 0) {
+            return false;
+        }
+
+        if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
+            // Move events may impact all active pointers
+            boolean handledStylusEvent = false;
+            for (int i = 0; i < event.getPointerCount(); i++) {
+                byte toolType = convertToolTypeToStylusToolType(event, i);
+                if (toolType == MoonBridge.LI_TOOL_TYPE_UNKNOWN) {
+                    // Not a stylus pointer, so skip it
+                    continue;
+                }
+                else {
+                    // This pointer is a stylus, so we'll report that we handled this event
+                    handledStylusEvent = true;
+                }
+
+                if (!sendPenEventForPointer(view, event, eventType, toolType, i)) {
+                    // Pen events aren't supported by the host
+                    return false;
+                }
+            }
+            return handledStylusEvent;
+        }
+        else if (event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+            // Cancel impacts all active pointers
+            return conn.sendPenEvent(MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL, MoonBridge.LI_TOOL_TYPE_UNKNOWN, (byte)0,
+                    0, 0, 0, 0, 0,
+                    MoonBridge.LI_ROT_UNKNOWN, MoonBridge.LI_TILT_UNKNOWN) != MoonBridge.LI_ERR_UNSUPPORTED;
+        }
+        else {
+            // Up, Down, and Hover events are specific to the action index
+            byte toolType = convertToolTypeToStylusToolType(event, event.getActionIndex());
+            if (toolType == MoonBridge.LI_TOOL_TYPE_UNKNOWN) {
+                // Not a stylus event
+                return false;
+            }
+            return sendPenEventForPointer(view, event, eventType, toolType, event.getActionIndex());
+        }
+    }
+
+    private boolean sendTouchEventForPointer(View view, MotionEvent event, byte eventType, int pointerIndex) {
+        float[] normalizedCoords = getStreamViewRelativeNormalizedXY(view, event, pointerIndex);
+        float[] normalizedContactArea = getStreamViewNormalizedContactArea(event, pointerIndex);
+        return conn.sendTouchEvent(eventType, event.getPointerId(pointerIndex),
+                normalizedCoords[0], normalizedCoords[1],
+                getPressureOrDistance(event, pointerIndex),
+                normalizedContactArea[0], normalizedContactArea[1],
+                getRotationDegrees(event, pointerIndex)) != MoonBridge.LI_ERR_UNSUPPORTED;
     }
 
     private boolean trySendTouchEvent(View view, MotionEvent event) {
@@ -1588,16 +1785,31 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return false;
         }
 
-        float[] normalizedCoords = getStreamViewRelativeNormalizedXY(view, event);
-        return conn.sendTouchEvent(eventType, event.getPointerId(event.getActionIndex()),
-                normalizedCoords[0], normalizedCoords[1],
-                event.getPressure(event.getActionIndex())) != MoonBridge.LI_ERR_UNSUPPORTED;
+        if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
+            // Move events may impact all active pointers
+            for (int i = 0; i < event.getPointerCount(); i++) {
+                if (!sendTouchEventForPointer(view, event, eventType, i)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else if (event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+            // Cancel impacts all active pointers
+            return conn.sendTouchEvent(MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL, 0,
+                    0, 0, 0, 0, 0,
+                    MoonBridge.LI_ROT_UNKNOWN) != MoonBridge.LI_ERR_UNSUPPORTED;
+        }
+        else {
+            // Up, Down, and Hover events are specific to the action index
+            return sendTouchEventForPointer(view, event, eventType, event.getActionIndex());
+        }
     }
 
     // Returns true if the event was consumed
     // NB: View is only present if called from a view callback
     private boolean handleMotionEvent(View view, MotionEvent event) {
-        // Pass through keyboard input if we're not grabbing
+        // Pass through mouse/touch/joystick input if we're not grabbing
         if (!grabbedInput) {
             return false;
         }
@@ -1665,7 +1877,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                     if (deltaX != 0 || deltaY != 0) {
                         if (prefConfig.absoluteMouseMode) {
-                            conn.sendMouseMoveAsMousePosition(deltaX, deltaY, (short)view.getWidth(), (short)view.getHeight());
+                            // NB: view may be null, but we can unconditionally use streamView because we don't need to adjust
+                            // relative axis deltas for the position of the streamView within the parent's coordinate system.
+                            conn.sendMouseMoveAsMousePosition(deltaX, deltaY, (short)streamView.getWidth(), (short)streamView.getHeight());
                         }
                         else {
                             conn.sendMouseMove(deltaX, deltaY);
@@ -1844,11 +2058,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     return true;
                 }
 
-                if (!prefConfig.touchscreenTrackpad && trySendTouchEvent(view, event)) {
+                // TODO: Re-enable native touch when have a better solution for handling
+                // cancelled touches from Android gestures and 3 finger taps to activate
+                // the software keyboard.
+                /*if (!prefConfig.touchscreenTrackpad && trySendTouchEvent(view, event)) {
                     // If this host supports touch events and absolute touch is enabled,
                     // send it directly as a touch event.
                     return true;
-                }
+                }*/
 
                 TouchContext context = getTouchContext(actionIndex);
                 if (context == null) {
@@ -2112,6 +2329,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // Let the display go to sleep now
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+                // Stop processing controller input
+                controllerHandler.stop();
+
                 // Ungrab input
                 setInputGrabState(false);
 
@@ -2236,6 +2456,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 hideSystemUi(1000);
             }
         });
+
+        // Report this shortcut being used (off the main thread to prevent ANRs)
+        ComputerDetails computer = new ComputerDetails();
+        computer.name = pcName;
+        computer.uuid = Game.this.getIntent().getStringExtra(EXTRA_PC_UUID);
+        ShortcutHelper shortcutHelper = new ShortcutHelper(this);
+        shortcutHelper.reportComputerShortcutUsed(computer);
+        if (appName != null) {
+            // This may be null if launched from the "Resume Session" PC context menu item
+            shortcutHelper.reportGameLaunched(computer, app);
+        }
     }
 
     @Override

@@ -83,7 +83,7 @@
     <string name="title_checkbox_stretch_video">Ajustar vídeo a pantalla completa</string>
     <string name="title_checkbox_disable_warnings">Desactivar mensajes de advertencia</string>
     <string name="summary_checkbox_disable_warnings">Desactivar mensajes de advertencia en pantalla durante la transmisión</string>
-    <string name="category_audio_settings">Configuración de audio</string>
+    <string name="category_audio_settings">Ajustes del audio</string>
     <string name="title_checkbox_multi_controller">Soporte para múltiples mandos</string>
     <string name="summary_checkbox_multi_controller">Si no está marcado, todos los mandos aparecen como uno solo</string>
     <string name="title_seekbar_deadzone">Ajustar zona muerta del stick analógico</string>
@@ -106,12 +106,11 @@
     <string name="title_checkbox_host_audio">Reproducir audio en PC</string>
     <string name="summary_checkbox_host_audio">Reproducir audio en el ordenador y en este dispositivo</string>
     <string name="category_advanced_settings">Configuración avanzada</string>
-    <string name="title_video_format">Cambiar configuración HEVC</string>
-    <string name="summary_video_format">HEVC reduce el ancho de banda de vídeo, pero requiere un dispositivo reciente</string>
+    <string name="title_video_format">Cambiar la configuración del códec</string>
+    <string name="summary_video_format">Los códecs más recientes pueden reducir los requisitos del ancho de banda del vídeo si tu dispositivo los admite. Las selecciones de los códecs pueden ignorarse si no son compatibles con el software del host o la GPU.</string>
     <!-- Array strings -->
-    <string name="videoformat_hevcauto">Automático (Recomendado)</string>
+    <string name="videoformat_auto">Automático (Recomendado)</string>
     <string name="videoformat_hevcalways">Preferir HEVC</string>
-    <string name="videoformat_hevcnever">Nunca usar HEVC</string>
     <string name="nettest_title_done">Prueba de Red Completada</string>
     <string name="scut_not_paired">PC no emparejado</string>
     <string name="scut_invalid_uuid">El PC proporcionado no es válido</string>
@@ -193,13 +192,13 @@
     <string name="applist_menu_hide_app">Esconder Aplicación</string>
     <string name="applist_connect_msg">Conectando al Equipo…</string>
     <string name="summary_checkbox_mouse_nav_buttons">Activar esta opción puede desconfigurar la función de clic derecho en algunos dispositivos inestables</string>
-    <string name="text_native_res_dialog">Modos de resolución nativa no son oficialmente soportados por GeForce Experience, así que no se no se aplicarán por su cuenta en la pantalla del equipo anfitrión. Vas a necesitar ajustarlos manualmente en el juego.
+    <string name="text_native_res_dialog">Es posible que la resolución nativa y/o los FPS no sean compatibles con el servidor de streaming. Es probable que tengas que configurar manualmente un modo de visualización personalizado para el PC host.
 \n
-\nSi eliges crear una resolución personalizada en el Panel de Control de Nvidia para ajustarse a la resolución de tu dispositivo, por favor considera haber leído y entendido la advertencia de NVIDIA respectivo a cualquier daño posible a tu monitor, inestabilidad del equipo, y otros problemas potencialmente posibles.
+\nSi decides crear una resolución personalizada en el Panel de control de NVIDIA para que coincida con la configuración de tu pantalla, asegúrate de haber leído y comprendido la advertencia de NVIDIA sobre posibles daños en el monitor, inestabilidad del PC y otros problemas potenciales.
 \n
-\nNo somos responsables de cualquier problema por haber creador una resolución personalizada en tu PC.
+\nNo nos hacemos responsables de ningún problema derivado de la creación de una resolución personalizada en tu PC.
 \n
-\nFinalmente, tu dispositivo o tu Pc anfitrión, podrían no soportar la transmisión a resolución nativa. Si no funciona en tu equipo, puede que solo no tengas suerte de momento.</string>
+\nEs posible que tu monitor no admita la configuración de pantalla necesaria. Si es así, puede intentar configurar un monitor virtual. Por último, si tu dispositivo o PC anfitrión no soporta streaming a una resolución o frecuencia de refresco específica, lamentablemente no tienes suerte.</string>
     <string name="resolution_prefix_native">Nativo</string>
     <string name="summary_audio_config_list">Activar sonido envolvente de 5.1 o 7.1 canales para sistemas de teatro en casa</string>
     <string name="title_checkbox_vibrate_fallback">Emular la vibración del mando con vibración del equipo</string>
@@ -265,4 +264,18 @@
     <string name="summary_full_range">Esto provocará la pérdida de detalles en las áreas claras y oscuras si su dispositivo no muestra correctamente el contenido de video de rango completo.</string>
     <string name="pair_pairing_help">Si el hostal del ordenador ejecuta Sunshine, navegue a la interfaz de usuario web de Sunshine para ingresar el PIN.</string>
     <string name="pcview_menu_eol">Fin de servicio de NVIDIA GameStream</string>
+    <string name="fps_suffix_fps">FPS</string>
+    <string name="title_native_fps_dialog">Advertencia sobre FPS nativos</string>
+    <string name="category_gamepad_settings">Ajustes del Gamepad</string>
+    <string name="title_checkbox_gamepad_motion_sensors">Permitir el uso de los sensores de movimiento del gamepad</string>
+    <string name="videoformat_av1always">Preferir AV1 (Experimental)</string>
+    <string name="videoformat_h264always">Prefiero H.264</string>
+    <string name="perf_overlay_hostprocessinglatency">Latencia de procesamiento del host mín/máx/promedio: %1$.1f/%2$.1f/%3$.1f ms</string>
+    <string name="summary_checkbox_gamepad_touchpad_as_mouse">Fuerza la entrada del touchpad del gamepad para controlar el ratón del host, incluso cuando se emula un gamepad con touchpad.</string>
+    <string name="title_checkbox_gamepad_touchpad_as_mouse">Controla siempre el ratón con el touchpad</string>
+    <string name="summary_checkbox_gamepad_motion_sensors">Permite a los hosts compatibles solicitar datos de los sensores de movimiento al emular un gamepad con los sensores de movimiento. La desactivación puede reducir ligeramente el consumo de energía y el uso de la red si los sensores de movimiento no se utilizan en el juego.</string>
+    <string name="toast_controller_type_changed">El tipo del Gamepad puede cambiar debido a la emulación del sensor de movimiento</string>
+    <string name="summary_checkbox_gamepad_motion_fallback">Utiliza los sensores de movimiento integrados de tu dispositivo si el gamepad conectado o tu versión de Android no admiten los sensores del gamepad.
+\nNota: Activar esta opción puede hacer que tu gamepad aparezca como un mando de PlayStation en el host.</string>
+    <string name="title_checkbox_gamepad_motion_fallback">Emular el sensor de movimiento del gamepad</string>
 </resources>

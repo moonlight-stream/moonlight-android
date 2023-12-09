@@ -217,9 +217,8 @@
     <string name="audioconf_stereo">Стерео</string>
     <string name="audioconf_51surround">5.1 Объёмный звук</string>
     <string name="audioconf_71surround">7.1 Объёмный звук</string>
-    <string name="videoformat_hevcauto">Автоматически</string>
+    <string name="videoformat_auto">Автоматически</string>
     <string name="videoformat_hevcalways">Всегда использовать HEVC если доступно</string>
-    <string name="videoformat_hevcnever">Никогда не использовать HEVC</string>
     <string name="pacing_latency">Минимальная задержка</string>
     <string name="pacing_balanced">Баланс</string>
     <string name="pacing_smoothness">Максимальная плавность (может значительно увеличить задержку)</string>

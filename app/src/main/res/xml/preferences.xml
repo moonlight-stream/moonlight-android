@@ -55,8 +55,8 @@
             android:summary="@string/summary_checkbox_enable_audiofx"
             android:defaultValue="false" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/category_input_settings"
-        android:key="category_input_settings">
+    <PreferenceCategory android:title="@string/category_gamepad_settings"
+        android:key="category_gamepad_settings">
         <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_deadzone"
             android:defaultValue="7"
@@ -65,20 +65,10 @@
             android:text="@string/suffix_seekbar_deadzone"
             android:title="@string/title_seekbar_deadzone"/>
         <CheckBoxPreference
-            android:key="checkbox_touchscreen_trackpad"
-            android:title="@string/title_checkbox_touchscreen_trackpad"
-            android:summary="@string/summary_checkbox_touchscreen_trackpad"
-            android:defaultValue="true" />
-        <CheckBoxPreference
             android:key="checkbox_multi_controller"
             android:title="@string/title_checkbox_multi_controller"
             android:summary="@string/summary_checkbox_multi_controller"
             android:defaultValue="true" />
-        <CheckBoxPreference
-            android:key="checkbox_mouse_nav_buttons"
-            android:title="@string/title_checkbox_mouse_nav_buttons"
-            android:summary="@string/summary_checkbox_mouse_nav_buttons"
-            android:defaultValue="false" />
         <CheckBoxPreference
             android:key="checkbox_usb_driver"
             android:title="@string/title_checkbox_xb1_driver"
@@ -104,6 +94,34 @@
             android:key="checkbox_flip_face_buttons"
             android:title="@string/title_checkbox_flip_face_buttons"
             android:summary="@string/summary_checkbox_flip_face_buttons"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_gamepad_touchpad_as_mouse"
+            android:title="@string/title_checkbox_gamepad_touchpad_as_mouse"
+            android:summary="@string/summary_checkbox_gamepad_touchpad_as_mouse"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_gamepad_motion_sensors"
+            android:title="@string/title_checkbox_gamepad_motion_sensors"
+            android:summary="@string/summary_checkbox_gamepad_motion_sensors"
+            android:defaultValue="true" />
+        <CheckBoxPreference
+            android:key="checkbox_gamepad_motion_fallback"
+            android:title="@string/title_checkbox_gamepad_motion_fallback"
+            android:summary="@string/summary_checkbox_gamepad_motion_fallback"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/category_input_settings"
+        android:key="category_input_settings">
+        <CheckBoxPreference
+            android:key="checkbox_touchscreen_trackpad"
+            android:title="@string/title_checkbox_touchscreen_trackpad"
+            android:summary="@string/summary_checkbox_touchscreen_trackpad"
+            android:defaultValue="true" />
+        <CheckBoxPreference
+            android:key="checkbox_mouse_nav_buttons"
+            android:title="@string/title_checkbox_mouse_nav_buttons"
+            android:summary="@string/summary_checkbox_mouse_nav_buttons"
             android:defaultValue="false" />
         <CheckBoxPreference
             android:key="checkbox_absolute_mouse_mode"
@@ -205,13 +223,6 @@
             android:entries="@array/video_format_names"
             android:entryValues="@array/video_format_values"
             android:summary="@string/summary_video_format"
-            android:defaultValue="auto" />
-        <ListPreference
-            android:key="av1_format"
-            android:title="@string/title_av1_format"
-            android:entries="@array/av1_format_names"
-            android:entryValues="@array/av1_format_values"
-            android:summary="@string/summary_av1_format"
             android:defaultValue="auto" />
         <CheckBoxPreference
             android:key="checkbox_enable_hdr"

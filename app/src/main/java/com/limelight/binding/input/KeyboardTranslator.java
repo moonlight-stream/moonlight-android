@@ -240,6 +240,10 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
                 translated = 0x5c;
                 break;
 
+            case KeyEvent.KEYCODE_MENU:
+                translated = 0x5d;
+                break;
+
             case KeyEvent.KEYCODE_MINUS:
                 translated = 0xbd;
                 break;

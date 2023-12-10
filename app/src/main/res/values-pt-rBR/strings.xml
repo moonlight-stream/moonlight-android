@@ -54,13 +54,12 @@
     <string name="fps_30">30 FPS</string>
     <string name="fps_60">60 FPS</string>
     <string name="videoformat_hevcalways">Prefira HEVC</string>
-    <string name="videoformat_hevcauto">Automático (recomendado)</string>
+    <string name="videoformat_auto">Automático (recomendado)</string>
     <string name="fps_120">120 FPS</string>
     <string name="audioconf_stereo">Stereo</string>
     <string name="audioconf_51surround">5.1 Surround</string>
     <string name="audioconf_71surround">7.1 Surround</string>
     <string name="fps_90">90 FPS</string>
-    <string name="videoformat_hevcnever">Nunca usar HEVC</string>
     <string name="scut_deleted_pc">PC deletado</string>
     <string name="scut_not_paired">PC não pareado</string>
     <string name="help_loading_title">Ver Ajuda</string>

@@ -6,6 +6,10 @@
 #include <arpa/inet.h>
 #include <string.h>
 
+#include "minisdl.h"
+#include "controller_type.h"
+#include "controller_list.h"
+
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendMouseMove(JNIEnv *env, jclass clazz, jshort deltaX, jshort deltaY) {
     LiSendMouseMoveEvent(deltaX, deltaY);
@@ -30,7 +34,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_sendMouseButton(JNIEnv *env, jclass c
 
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_sendMultiControllerInput(JNIEnv *env, jclass clazz, jshort controllerNumber,
-                                                           jshort activeGamepadMask, jshort buttonFlags,
+                                                           jshort activeGamepadMask, jint buttonFlags,
                                                            jbyte leftTrigger, jbyte rightTrigger,
                                                            jshort leftStickX, jshort leftStickY,
                                                            jshort rightStickX, jshort rightStickY) {
@@ -38,12 +42,59 @@ Java_com_limelight_nvstream_jni_MoonBridge_sendMultiControllerInput(JNIEnv *env,
         leftTrigger, rightTrigger, leftStickX, leftStickY, rightStickX, rightStickY);
 }
 
-JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_sendControllerInput(JNIEnv *env, jclass clazz, jshort buttonFlags,
-                                                      jbyte leftTrigger, jbyte rightTrigger,
-                                                      jshort leftStickX, jshort leftStickY,
-                                                      jshort rightStickX, jshort rightStickY) {
-    LiSendControllerEvent(buttonFlags, leftTrigger, rightTrigger, leftStickX, leftStickY, rightStickX, rightStickY);
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendTouchEvent(JNIEnv *env, jclass clazz,
+                                                          jbyte eventType, jint pointerId,
+                                                          jfloat x, jfloat y, jfloat pressureOrDistance,
+                                                          jfloat contactAreaMajor, jfloat contactAreaMinor,
+                                                          jshort rotation) {
+    return LiSendTouchEvent(eventType, pointerId, x, y, pressureOrDistance,
+                            contactAreaMajor, contactAreaMinor, rotation);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendPenEvent(JNIEnv *env, jclass clazz, jbyte eventType,
+                                                        jbyte toolType, jbyte penButtons,
+                                                        jfloat x, jfloat y, jfloat pressureOrDistance,
+                                                        jfloat contactAreaMajor, jfloat contactAreaMinor,
+                                                        jshort rotation, jbyte tilt) {
+    return LiSendPenEvent(eventType, toolType, penButtons, x, y, pressureOrDistance,
+                          contactAreaMajor, contactAreaMinor, rotation, tilt);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendControllerArrivalEvent(JNIEnv *env, jclass clazz,
+                                                                      jbyte controllerNumber,
+                                                                      jshort activeGamepadMask,
+                                                                      jbyte type,
+                                                                      jint supportedButtonFlags,
+                                                                      jshort capabilities) {
+    return LiSendControllerArrivalEvent(controllerNumber, activeGamepadMask, type, supportedButtonFlags, capabilities);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendControllerTouchEvent(JNIEnv *env, jclass clazz,
+                                                                    jbyte controllerNumber,
+                                                                    jbyte eventType,
+                                                                    jint pointerId, jfloat x,
+                                                                    jfloat y, jfloat pressure) {
+    return LiSendControllerTouchEvent(controllerNumber, eventType, pointerId, x, y, pressure);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendControllerMotionEvent(JNIEnv *env, jclass clazz,
+                                                                     jbyte controllerNumber,
+                                                                     jbyte motionType, jfloat x,
+                                                                     jfloat y, jfloat z) {
+    return LiSendControllerMotionEvent(controllerNumber, motionType, x, y, z);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_sendControllerBatteryEvent(JNIEnv *env, jclass clazz,
+                                                                      jbyte controllerNumber,
+                                                                      jbyte batteryState,
+                                                                      jbyte batteryPercentage) {
+    return LiSendControllerBatteryEvent(controllerNumber, batteryState, batteryPercentage);
 }
 
 JNIEXPORT void JNICALL
@@ -159,4 +210,47 @@ Java_com_limelight_nvstream_jni_MoonBridge_getEstimatedRttInfo(JNIEnv *env, jcla
     }
 
     return ((uint64_t)rtt << 32U) | variance;
+}
+
+JNIEXPORT jbyte JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_guessControllerType(JNIEnv *env, jclass clazz, jint vendorId, jint productId) {
+    unsigned int unDeviceID = MAKE_CONTROLLER_ID(vendorId, productId);
+    for (int i = 0; i < sizeof(arrControllers) / sizeof(arrControllers[0]); i++) {
+        if (unDeviceID == arrControllers[i].m_unDeviceID) {
+            switch (arrControllers[i].m_eControllerType) {
+                case k_eControllerType_XBox360Controller:
+                case k_eControllerType_XBoxOneController:
+                    return LI_CTYPE_XBOX;
+
+                case k_eControllerType_PS3Controller:
+                case k_eControllerType_PS4Controller:
+                case k_eControllerType_PS5Controller:
+                    return LI_CTYPE_PS;
+
+                case k_eControllerType_WiiController:
+                case k_eControllerType_SwitchProController:
+                case k_eControllerType_SwitchJoyConLeft:
+                case k_eControllerType_SwitchJoyConRight:
+                case k_eControllerType_SwitchJoyConPair:
+                case k_eControllerType_SwitchInputOnlyController:
+                    return LI_CTYPE_NINTENDO;
+
+                default:
+                    return LI_CTYPE_UNKNOWN;
+            }
+        }
+    }
+    return LI_CTYPE_UNKNOWN;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_guessControllerHasPaddles(JNIEnv *env, jclass clazz, jint vendorId, jint productId) {
+    // Xbox Elite and DualSense Edge controllers have paddles
+    return SDL_IsJoystickXboxOneElite(vendorId, productId) || SDL_IsJoystickDualSenseEdge(vendorId, productId);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_guessControllerHasShareButton(JNIEnv *env, jclass clazz, jint vendorId, jint productId) {
+    // Xbox Elite and DualSense Edge controllers have paddles
+    return SDL_IsJoystickXboxSeriesX(vendorId, productId);
 }

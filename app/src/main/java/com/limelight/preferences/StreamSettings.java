@@ -123,11 +123,24 @@ public class StreamSettings extends Activity {
 
     public static class SettingsFragment extends PreferenceFragment {
         private int nativeResolutionStartIndex = Integer.MAX_VALUE;
+        private boolean nativeFramerateShown = false;
 
         private void setValue(String preferenceKey, String value) {
             ListPreference pref = (ListPreference) findPreference(preferenceKey);
 
             pref.setValue(value);
+        }
+
+        private void appendPreferenceEntry(ListPreference pref, String newEntryName, String newEntryValue) {
+            CharSequence[] newEntries = Arrays.copyOf(pref.getEntries(), pref.getEntries().length + 1);
+            CharSequence[] newValues = Arrays.copyOf(pref.getEntryValues(), pref.getEntryValues().length + 1);
+
+            // Add the new option
+            newEntries[newEntries.length - 1] = newEntryName;
+            newValues[newValues.length - 1] = newEntryValue;
+
+            pref.setEntries(newEntries);
+            pref.setEntryValues(newValues);
         }
 
         private void addNativeResolutionEntry(int nativeWidth, int nativeHeight, boolean insetsRemoved, boolean portrait) {
@@ -155,29 +168,18 @@ public class StreamSettings extends Activity {
 
             String newValue = nativeWidth+"x"+nativeHeight;
 
-            CharSequence[] values = pref.getEntryValues();
-
             // Check if the native resolution is already present
-            for (CharSequence value : values) {
+            for (CharSequence value : pref.getEntryValues()) {
                 if (newValue.equals(value.toString())) {
                     // It is present in the default list, so don't add it again
                     return;
                 }
             }
 
-            CharSequence[] newEntries = Arrays.copyOf(pref.getEntries(), pref.getEntries().length + 1);
-            CharSequence[] newValues = Arrays.copyOf(values, values.length + 1);
-
-            // Add the new native option
-            newEntries[newEntries.length - 1] = newName;
-            newValues[newValues.length - 1] = newValue;
-
-            pref.setEntries(newEntries);
-            pref.setEntryValues(newValues);
-
-            if (newValues.length - 1 < nativeResolutionStartIndex) {
-                nativeResolutionStartIndex = newValues.length - 1;
+            if (pref.getEntryValues().length < nativeResolutionStartIndex) {
+                nativeResolutionStartIndex = pref.getEntryValues().length;
             }
+            appendPreferenceEntry(pref, newName, newValue);
         }
 
         private void addNativeResolutionEntries(int nativeWidth, int nativeHeight, boolean insetsRemoved) {
@@ -185,6 +187,30 @@ public class StreamSettings extends Activity {
                 addNativeResolutionEntry(nativeHeight, nativeWidth, insetsRemoved, true);
             }
             addNativeResolutionEntry(nativeWidth, nativeHeight, insetsRemoved, false);
+        }
+
+        private void addNativeFrameRateEntry(float framerate) {
+            int frameRateRounded = Math.round(framerate);
+            if (frameRateRounded == 0) {
+                return;
+            }
+
+            ListPreference pref = (ListPreference) findPreference(PreferenceConfiguration.FPS_PREF_STRING);
+            String fpsValue = Integer.toString(frameRateRounded);
+            String fpsName = getResources().getString(R.string.resolution_prefix_native) +
+                    " (" + fpsValue + " " + getResources().getString(R.string.fps_suffix_fps) + ")";
+
+            // Check if the native frame rate is already present
+            for (CharSequence value : pref.getEntryValues()) {
+                if (fpsValue.equals(value.toString())) {
+                    // It is present in the default list, so don't add it again
+                    nativeFramerateShown = false;
+                    return;
+                }
+            }
+
+            appendPreferenceEntry(pref, fpsName, fpsValue);
+            nativeFramerateShown = true;
         }
 
         private void removeValue(String preferenceKey, String value, Runnable onMatched) {
@@ -267,6 +293,30 @@ public class StreamSettings extends Activity {
                 category.removePreference(findPreference("checkbox_absolute_mouse_mode"));
             }
 
+            // Hide gamepad motion sensor option when running on OSes before Android 12.
+            // Support for motion, LED, battery, and other extensions were introduced in S.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_gamepad_settings");
+                category.removePreference(findPreference("checkbox_gamepad_motion_sensors"));
+            }
+
+            // Hide gamepad motion sensor fallback option if the device has no gyro or accelerometer
+            if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) &&
+                    !getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE)) {
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_gamepad_settings");
+                category.removePreference(findPreference("checkbox_gamepad_motion_fallback"));
+            }
+
+            // Hide USB driver options on devices without USB host support
+            if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_USB_HOST)) {
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_gamepad_settings");
+                category.removePreference(findPreference("checkbox_usb_bind_all"));
+                category.removePreference(findPreference("checkbox_usb_driver"));
+            }
+
             // Remove PiP mode on devices pre-Oreo, where the feature is not available (some low RAM devices),
             // and on Fire OS where it violates the Amazon App Store guidelines for some reason.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
@@ -287,7 +337,7 @@ public class StreamSettings extends Activity {
             // Remove the vibration options if the device can't vibrate
             if (!((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasVibrator()) {
                 PreferenceCategory category =
-                        (PreferenceCategory) findPreference("category_input_settings");
+                        (PreferenceCategory) findPreference("category_gamepad_settings");
                 category.removePreference(findPreference("checkbox_vibrate_fallback"));
 
                 // The entire OSC category may have already been removed by the touchscreen check above
@@ -297,12 +347,11 @@ public class StreamSettings extends Activity {
                 }
             }
 
-            int maxSupportedFps = 0;
+            Display display = getActivity().getWindowManager().getDefaultDisplay();
+            float maxSupportedFps = display.getRefreshRate();
 
             // Hide non-supported resolution/FPS combinations
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                Display display = getActivity().getWindowManager().getDefaultDisplay();
-
                 int maxSupportedResW = 0;
 
                 // Add a native resolution with any insets included for users that don't want content
@@ -370,7 +419,7 @@ public class StreamSettings extends Activity {
                     }
 
                     if (candidate.getRefreshRate() > maxSupportedFps) {
-                        maxSupportedFps = (int)candidate.getRefreshRate();
+                        maxSupportedFps = candidate.getRefreshRate();
                     }
                 }
 
@@ -463,7 +512,7 @@ public class StreamSettings extends Activity {
                 // getRealMetrics() function (unlike the lies that getWidth() and getHeight()
                 // tell to us).
                 DisplayMetrics metrics = new DisplayMetrics();
-                getActivity().getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+                display.getRealMetrics(metrics);
                 int width = Math.max(metrics.widthPixels, metrics.heightPixels);
                 int height = Math.min(metrics.widthPixels, metrics.heightPixels);
                 addNativeResolutionEntries(width, height, false);
@@ -471,7 +520,6 @@ public class StreamSettings extends Activity {
             else {
                 // On Android 4.1, we have to resort to reflection to invoke hidden APIs
                 // to get the real screen dimensions.
-                Display display = getActivity().getWindowManager().getDefaultDisplay();
                 try {
                     Method getRawHeightFunc = Display.class.getMethod("getRawHeight");
                     Method getRawWidthFunc = Display.class.getMethod("getRawWidth");
@@ -508,6 +556,7 @@ public class StreamSettings extends Activity {
                 }
                 // Never remove 30 FPS or 60 FPS
             }
+            addNativeFrameRateEntry(maxSupportedFps);
 
             // Android L introduces proper 7.1 surround sound support. Remove the 7.1 option
             // for earlier versions of Android to prevent AudioTrack initialization issues.
@@ -561,7 +610,6 @@ public class StreamSettings extends Activity {
                 category.removePreference(findPreference("checkbox_enable_hdr"));
             }
             else {
-                Display display = getActivity().getWindowManager().getDefaultDisplay();
                 Display.HdrCapabilities hdrCaps = display.getHdrCapabilities();
 
                 // We must now ensure our display is compatible with HDR10
@@ -631,6 +679,15 @@ public class StreamSettings extends Activity {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
                     String valueStr = (String) newValue;
+
+                    // If this is native frame rate, show the warning dialog
+                    CharSequence[] values = ((ListPreference)preference).getEntryValues();
+                    if (nativeFramerateShown && values[values.length - 1].toString().equals(newValue.toString())) {
+                        Dialog.displayDialog(getActivity(),
+                                getResources().getString(R.string.title_native_fps_dialog),
+                                getResources().getString(R.string.text_native_res_dialog),
+                                false);
+                    }
 
                     // Write the new bitrate value
                     resetBitrateToDefault(prefs, null, valueStr);

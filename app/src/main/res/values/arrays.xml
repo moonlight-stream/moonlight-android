@@ -65,6 +65,9 @@
         <item>Ελληνικά</item>
         <item>Português do Brasil</item>
         <item>Čeština</item>
+        <item>עִבְרִית</item>
+        <item>Svenska</item>
+        <item>Indonesia</item>
     </string-array>
     <string-array name="language_values" translatable="false">
         <item>default</item>
@@ -87,15 +90,20 @@
         <item>el</item>
         <item>pt-BR</item>
         <item>cs</item>
+        <item>iw</item>
+        <item>sv</item>
+        <item>in</item>
     </string-array>
 
     <string-array name="video_format_names">
-        <item>@string/videoformat_hevcauto</item>
+        <item>@string/videoformat_auto</item>
+        <item>@string/videoformat_av1always</item>
         <item>@string/videoformat_hevcalways</item>
-        <item>@string/videoformat_hevcnever</item>
+        <item>@string/videoformat_h264always</item>
     </string-array>
     <string-array name="video_format_values" translatable="false">
         <item>auto</item>
+        <item>forceav1</item>
         <item>forceh265</item>
         <item>neverh265</item>
     </string-array>

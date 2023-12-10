@@ -242,9 +242,11 @@ public class NvConnection {
             return false;
         }
 
-        context.negotiatedHdr = context.streamConfig.getEnableHdr();
-        if ((h.getServerCodecModeSupport(serverInfo) & 0x200) == 0 && context.negotiatedHdr) {
-            context.connListener.displayTransientMessage("Your GPU does not support streaming HDR. The stream will be SDR.");
+        context.serverCodecModeSupport = (int)h.getServerCodecModeSupport(serverInfo);
+
+        context.negotiatedHdr = (context.streamConfig.getSupportedVideoFormats() & MoonBridge.VIDEO_FORMAT_MASK_10BIT) != 0;
+        if ((context.serverCodecModeSupport & 0x20200) == 0 && context.negotiatedHdr) {
+            context.connListener.displayTransientMessage("Your PC GPU does not support streaming HDR. The stream will be SDR.");
             context.negotiatedHdr = false;
         }
         
@@ -254,13 +256,13 @@ public class NvConnection {
         
         // Check for a supported stream resolution
         if ((context.streamConfig.getWidth() > 4096 || context.streamConfig.getHeight() > 4096) &&
-                (h.getServerCodecModeSupport(serverInfo) & 0x200) == 0) {
+                (h.getServerCodecModeSupport(serverInfo) & 0x200) == 0 && context.isNvidiaServerSoftware) {
             context.connListener.displayMessage("Your host PC does not support streaming at resolutions above 4K.");
             return false;
         }
         else if ((context.streamConfig.getWidth() > 4096 || context.streamConfig.getHeight() > 4096) &&
-                !context.streamConfig.getHevcSupported()) {
-            context.connListener.displayMessage("Your streaming device must support HEVC to stream at resolutions above 4K.");
+                (context.streamConfig.getSupportedVideoFormats() & ~MoonBridge.VIDEO_FORMAT_MASK_H264) == 0) {
+            context.connListener.displayMessage("Your streaming device must support HEVC or AV1 to stream at resolutions above 4K.");
             return false;
         }
         else if (context.streamConfig.getHeight() >= 2160 && !h.supports4K(serverInfo)) {
@@ -425,13 +427,12 @@ public class NvConnection {
                     MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
                     int ret = MoonBridge.startConnection(context.serverAddress.address,
                             context.serverAppVersion, context.serverGfeVersion, context.rtspSessionUrl,
+                            context.serverCodecModeSupport,
                             context.negotiatedWidth, context.negotiatedHeight,
                             context.streamConfig.getRefreshRate(), context.streamConfig.getBitrate(),
                             context.negotiatedPacketSize, context.negotiatedRemoteStreaming,
                             context.streamConfig.getAudioConfiguration().toInt(),
-                            context.streamConfig.getHevcSupported(),
-                            context.negotiatedHdr,
-                            context.streamConfig.getHevcBitratePercentageMultiplier(),
+                            context.streamConfig.getSupportedVideoFormats(),
                             context.streamConfig.getClientRefreshRateX100(),
                             context.streamConfig.getEncryptionFlags(),
                             context.riKey.getEncoded(), ib.array(),
@@ -486,7 +487,7 @@ public class NvConnection {
     }
     
     public void sendControllerInput(final short controllerNumber,
-            final short activeGamepadMask, final short buttonFlags,
+            final short activeGamepadMask, final int buttonFlags,
             final byte leftTrigger, final byte rightTrigger,
             final short leftStickX, final short leftStickY,
             final short rightStickX, final short rightStickY)
@@ -496,18 +497,7 @@ public class NvConnection {
                     leftTrigger, rightTrigger, leftStickX, leftStickY, rightStickX, rightStickY);
         }
     }
-    
-    public void sendControllerInput(final short buttonFlags,
-            final byte leftTrigger, final byte rightTrigger,
-            final short leftStickX, final short leftStickY,
-            final short rightStickX, final short rightStickY)
-    {
-        if (!isMonkey) {
-            MoonBridge.sendControllerInput(buttonFlags, leftTrigger, rightTrigger, leftStickX,
-                    leftStickY, rightStickX, rightStickY);
-        }
-    }
-    
+
     public void sendKeyboardInput(final short keyMap, final byte keyDirection, final byte modifier, final byte flags) {
         if (!isMonkey) {
             MoonBridge.sendKeyboardInput(keyMap, keyDirection, modifier, flags);
@@ -536,6 +526,58 @@ public class NvConnection {
         if (!isMonkey) {
             MoonBridge.sendMouseHighResHScroll(scrollAmount);
         }
+    }
+
+    public int sendTouchEvent(byte eventType, int pointerId, float x, float y, float pressureOrDistance,
+                              float contactAreaMajor, float contactAreaMinor, short rotation) {
+        if (!isMonkey) {
+            return MoonBridge.sendTouchEvent(eventType, pointerId, x, y, pressureOrDistance,
+                    contactAreaMajor, contactAreaMinor, rotation);
+        }
+        else {
+            return MoonBridge.LI_ERR_UNSUPPORTED;
+        }
+    }
+
+    public int sendPenEvent(byte eventType, byte toolType, byte penButtons, float x, float y,
+                            float pressureOrDistance, float contactAreaMajor, float contactAreaMinor,
+                            short rotation, byte tilt) {
+        if (!isMonkey) {
+            return MoonBridge.sendPenEvent(eventType, toolType, penButtons, x, y, pressureOrDistance,
+                    contactAreaMajor, contactAreaMinor, rotation, tilt);
+        }
+        else {
+            return MoonBridge.LI_ERR_UNSUPPORTED;
+        }
+    }
+
+    public int sendControllerArrivalEvent(byte controllerNumber, short activeGamepadMask, byte type,
+                                          int supportedButtonFlags, short capabilities) {
+        return MoonBridge.sendControllerArrivalEvent(controllerNumber, activeGamepadMask, type, supportedButtonFlags, capabilities);
+    }
+
+    public int sendControllerTouchEvent(byte controllerNumber, byte eventType, int pointerId,
+                                        float x, float y, float pressure) {
+        if (!isMonkey) {
+            return MoonBridge.sendControllerTouchEvent(controllerNumber, eventType, pointerId, x, y, pressure);
+        }
+        else {
+            return MoonBridge.LI_ERR_UNSUPPORTED;
+        }
+    }
+
+    public int sendControllerMotionEvent(byte controllerNumber, byte motionType,
+                                         float x, float y, float z) {
+        if (!isMonkey) {
+            return MoonBridge.sendControllerMotionEvent(controllerNumber, motionType, x, y, z);
+        }
+        else {
+            return MoonBridge.LI_ERR_UNSUPPORTED;
+        }
+    }
+
+    public void sendControllerBatteryEvent(byte controllerNumber, byte batteryState, byte batteryPercentage) {
+        MoonBridge.sendControllerBatteryEvent(controllerNumber, batteryState, batteryPercentage);
     }
 
     public void sendUtf8Text(final String text) {

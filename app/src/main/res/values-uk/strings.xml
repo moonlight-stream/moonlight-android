@@ -218,9 +218,8 @@
     <string name="pcview_menu_header_offline">Поза мережею</string>
     <string name="pcview_menu_header_online">В мережі</string>
     <!-- Array strings -->
-    <string name="videoformat_hevcauto">Автоматичний (рекомендовано)</string>
+    <string name="videoformat_auto">Автоматичний (рекомендовано)</string>
     <string name="videoformat_hevcalways">Використовувати HEVC</string>
-    <string name="videoformat_hevcnever">Ніколи не використовувати HEVC</string>
     <string name="title_frame_pacing">Швидкість кадрів відео</string>
     <string name="summary_frame_pacing">Укажіть баланс відео затримки та плавності</string>
     <string name="pacing_latency">Перевага найменшій затримці</string>

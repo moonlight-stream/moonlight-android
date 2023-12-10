@@ -14,7 +14,7 @@
     <string name="pcview_menu_send_wol">Kirim permintaan Wake-On-LAN</string>
     <string name="pcview_menu_delete_pc">Hapus komputer</string>
     <string name="nettest_title_waiting">Menguji koneksi jaringan</string>
-    <string name="nettest_text_waiting">Moonlight sedang menguji koneksi jaringan untuk mencari tahu apakah NVIDIA GameStream diblokir.
+    <string name="nettest_text_waiting">Moonlight sedang menguji koneksi jaringan untuk mencari tahu apakah jalur diblokir.
 \n
 \nIni mungkin membutuhkan beberapa saat…</string>
     <string name="nettest_text_inconclusive">Uji koneksi jaringan tidak dapat dilakukan karena tidak ada server pengujian Moonlight yang bisa dijangkau. Cek koneksi Internet Anda atau coba lagi nanti.</string>
@@ -93,4 +93,122 @@
 \n
 \nJika masalah berkelanjutan, coba install ulang GeForce Experience dan driver video grafis Anda.</string>
     <string name="help">Bantuan</string>
+    <string name="pcview_menu_eol">NVIDIA GameStream End-of-Service</string>
+    <string name="applist_menu_resume">Lanjutkan Sesi</string>
+    <string name="applist_menu_quit_and_start">Keluar dari Game Saat Ini dan Mulai</string>
+    <string name="applist_menu_quit">Keluar dari Sesi</string>
+    <string name="applist_quit_confirmation">Anda yakin ingin keluar dari aplikasi yang sedang berjalan\? Semua data yang belum disimpan akan hilang.</string>
+    <string name="applist_details_id">ID Aplikasi:</string>
+    <string name="addpc_wrong_sitelocal">Alamat itu sepertinya salah. Anda harus menggunakan alamat IP publik perute untuk streaming melalui Internet.</string>
+    <string name="category_basic_settings">Pengaturan dasar</string>
+    <string name="title_fps_list">Kecepatan bingkai video</string>
+    <string name="summary_fps_list">Tingkatkan untuk streaming video yang lebih lancar. Turunkan untuk kinerja yang lebih baik pada perangkat kelas bawah.</string>
+    <string name="title_seekbar_bitrate">Kecepatan bit video</string>
+    <string name="summary_seekbar_bitrate">Tingkatkan untuk kualitas gambar yang lebih baik. Kurangi untuk meningkatkan kinerja pada koneksi yang lebih lambat.</string>
+    <string name="title_checkbox_flip_face_buttons">Balikkan tombol wajah</string>
+    <string name="summary_checkbox_flip_face_buttons">Mengalihkan tombol wajah A/B dan X/Y untuk gamepad dan kontrol di layar</string>
+    <string name="title_only_l3r3">Hanya tampilkan L3 dan R3</string>
+    <string name="dialog_title_reset_osc">Atur Ulang Tata Letak</string>
+    <string name="dialog_text_reset_osc">Yakin ingin menghapus tata letak kontrol di layar yang tersimpan\?</string>
+    <string name="toast_reset_osc_success">Kontrol di layar diatur ulang ke default</string>
+    <string name="resolution_prefix_native_landscape">(Lanskap)</string>
+    <string name="resolution_prefix_native_portrait">(Potret)</string>
+    <string name="summary_checkbox_enable_audiofx">Mengizinkan efek audio berfungsi saat streaming, tetapi dapat meningkatkan latensi audio</string>
+    <string name="category_input_settings">Pengaturan Masukan</string>
+    <string name="title_checkbox_touchscreen_trackpad">Gunakan layar sentuh sebagai trackpad</string>
+    <string name="title_checkbox_vibrate_fallback">Meniru dukungan gemuruh dengan getaran</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="summary_checkbox_absolute_mouse_mode">Ini dapat membuat akselerasi mouse berperilaku lebih alami untuk penggunaan desktop jarak jauh, tetapi tidak kompatibel dengan banyak game.</string>
+    <string name="category_on_screen_controls_settings">Pengaturan Kontrol di Layar</string>
+    <string name="title_checkbox_show_onscreen_controls">Tampilkan kontrol di layar</string>
+    <string name="summary_checkbox_small_icon_mode">Seni kotak yang lebih kecil di kisi aplikasi memungkinkan lebih banyak aplikasi terlihat di layar</string>
+    <string name="title_checkbox_host_audio">Putar audio di PC</string>
+    <string name="title_checkbox_enable_sops">Optimalkan pengaturan game</string>
+    <string name="title_checkbox_disable_warnings">Nonaktifkan pesan peringatan</string>
+    <string name="summary_checkbox_disable_warnings">Nonaktifkan pesan peringatan koneksi di layar saat streaming</string>
+    <string name="error_unknown_host">Gagal menyelesaikan host</string>
+    <string name="perf_overlay_dectime">Waktu decoding rata-rata: %1$.2f ms</string>
+    <string name="category_host_settings">Pengaturan tuan rumah</string>
+    <string name="frame_conversion_error">PC host melaporkan kesalahan penyandian video yang fatal.
+\n
+\nCoba nonaktifkan mode HDR, ubah resolusi streaming, atau ubah resolusi tampilan PC host Anda.</string>
+    <string name="applist_menu_cancel">Membatalkan</string>
+    <string name="applist_menu_details">Melihat rincian</string>
+    <string name="applist_menu_scut">Buat Pintasan</string>
+    <string name="applist_menu_hide_app">Sembunyikan Aplikasi</string>
+    <string name="applist_refresh_title">Daftar Aplikasi</string>
+    <string name="applist_refresh_msg">Menyegarkan aplikasi…</string>
+    <string name="applist_quit_fail">Gagal untuk keluar</string>
+    <string name="title_add_pc">Tambahkan PC Secara Manual</string>
+    <string name="msg_add_pc">Menghubungkan ke PC…</string>
+    <string name="addpc_fail">Tidak dapat terhubung ke komputer yang ditentukan. Pastikan port yang diperlukan diizinkan melalui firewall.</string>
+    <string name="addpc_success">Berhasil menambahkan komputer</string>
+    <string name="addpc_enter_ip">Anda harus memasukkan alamat IP</string>
+    <string name="title_resolution_list">Resolusi video</string>
+    <string name="summary_resolution_list">Tingkatkan untuk meningkatkan kejernihan gambar. Turunkan untuk kinerja yang lebih baik pada perangkat kelas bawah dan jaringan yang lebih lambat.</string>
+    <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
+    <string name="title_checkbox_stretch_video">Regangkan video ke layar penuh</string>
+    <string name="resolution_prefix_native">Asli</string>
+    <string name="resolution_prefix_native_fullscreen">Layar Penuh Asli</string>
+    <string name="category_audio_settings">Pengaturan Audio</string>
+    <string name="title_audio_config_list">Konfigurasi suara surround</string>
+    <string name="title_checkbox_enable_audiofx">Aktifkan dukungan equalizer sistem</string>
+    <string name="summary_checkbox_touchscreen_trackpad">Jika diaktifkan, layar sentuh berfungsi seperti trackpad. Jika dinonaktifkan, layar sentuh langsung mengontrol kursor mouse.</string>
+    <string name="title_checkbox_multi_controller">Deteksi kehadiran gamepad otomatis</string>
+    <string name="summary_checkbox_multi_controller">Menghapus centang opsi ini memaksa gamepad untuk selalu ada</string>
+    <string name="summary_checkbox_vibrate_fallback">Getarkan perangkat Anda untuk meniru gemuruh jika gamepad Anda tidak mendukungnya</string>
+    <string name="title_seekbar_deadzone">Sesuaikan zona mati stik analog</string>
+    <string name="title_checkbox_xb1_driver">Xbox 360/Satu driver gamepad USB</string>
+    <string name="summary_checkbox_xb1_driver">Mengaktifkan driver USB bawaan untuk perangkat tanpa dukungan pengontrol Xbox asli</string>
+    <string name="title_checkbox_usb_bind_all">Ganti dukungan gamepad Xbox asli</string>
+    <string name="summary_checkbox_usb_bind_all">Gunakan driver USB Moonlight untuk semua gamepad yang didukung, meskipun ada dukungan pengontrol Xbox asli</string>
+    <string name="title_checkbox_mouse_nav_buttons">Aktifkan tombol mouse mundur dan maju</string>
+    <string name="title_checkbox_absolute_mouse_mode">Mode mouse desktop jarak jauh</string>
+    <string name="summary_checkbox_show_onscreen_controls">Tampilkan hamparan pengontrol virtual di layar sentuh</string>
+    <string name="title_checkbox_vibrate_osc">Aktifkan getaran</string>
+    <string name="summary_checkbox_vibrate_osc">Getarkan perangkat Anda untuk meniru gemuruh untuk kontrol di layar</string>
+    <string name="summary_only_l3r3">Sembunyikan semua tombol virtual kecuali L3 dan R3</string>
+    <string name="summary_reset_osc">Menyetel ulang semua kontrol di layar ke ukuran dan posisi default</string>
+    <string name="title_osc_opacity">Ubah opasitas kontrol di layar</string>
+    <string name="summary_osc_opacity">Jadikan kontrol di layar lebih/kurang transparan</string>
+    <string name="dialog_title_osc_opacity">Ubah opasitas</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="category_ui_settings">Pengaturan UI</string>
+    <string name="summary_checkbox_enable_pip">Mengizinkan streaming untuk dilihat (tetapi tidak dikontrol) saat melakukan banyak tugas</string>
+    <string name="title_language_list">Bahasa</string>
+    <string name="title_checkbox_small_icon_mode">Gunakan seni kotak kecil</string>
+    <string name="summary_checkbox_host_audio">Putar audio dari komputer dan perangkat ini</string>
+    <string name="category_advanced_settings">Pengaturan lanjutan</string>
+    <string name="title_unlock_fps">Buka kunci semua frekuensi gambar yang memungkinkan</string>
+    <string name="summary_unlock_fps">Streaming pada 90 atau 120 FPS dapat mengurangi latensi pada perangkat kelas atas, tetapi dapat menyebabkan kelambatan atau ketidakstabilan pada perangkat yang tidak dapat mendukungnya</string>
+    <string name="title_checkbox_reduce_refresh_rate">Izinkan pengurangan kecepatan penyegaran</string>
+    <string name="summary_checkbox_reduce_refresh_rate">Kecepatan refresh tampilan yang lebih rendah dapat menghemat daya dengan mengorbankan beberapa latensi video tambahan</string>
+    <string name="applist_refresh_error_title">Kesalahan</string>
+    <string name="pair_pairing_help">Jika PC host Anda menjalankan Sunshine, buka UI web Sunshine untuk memasukkan PIN.</string>
+    <string name="applist_quit_app">Berhenti</string>
+    <string name="perf_overlay_renderingfps">Frekuensi gambar rendering: %1$.2f FPS</string>
+    <string name="perf_overlay_netlatency">Rata-rata latensi jaringan: %1$d ms (variasi: %2$d ms)</string>
+    <string name="perf_overlay_netdrops">Bingkai hilang oleh koneksi jaringan Anda: %1$.2f%%</string>
+    <string name="applist_connect_msg">Menghubungkan ke PC…</string>
+    <string name="applist_menu_tv_channel">Tambahkan ke Saluran</string>
+    <string name="applist_refresh_error_msg">Gagal mendapatkan daftar aplikasi</string>
+    <string name="applist_quit_success">Berhasil keluar</string>
+    <string name="addpc_unknown_host">Tidak dapat menyelesaikan alamat PC. Pastikan Anda tidak salah ketik di alamat.</string>
+    <string name="title_native_res_dialog">Peringatan Resolusi Asli</string>
+    <string name="text_native_res_dialog">Mode resolusi asli tidak didukung secara resmi oleh GeForce Experience, sehingga tidak akan mengatur sendiri resolusi tampilan host. Anda harus mengaturnya secara manual saat bermain.
+\n
+\nJika Anda memilih untuk membuat resolusi khusus di Panel Kontrol NVIDIA agar sesuai dengan resolusi perangkat Anda, pastikan Anda telah membaca dan memahami peringatan NVIDIA terkait kemungkinan kerusakan monitor, ketidakstabilan PC, dan potensi masalah lainnya.
+\n
+\nKami tidak bertanggung jawab atas masalah apa pun yang diakibatkan oleh pembuatan resolusi khusus pada PC Anda.
+\n
+\nTerakhir, perangkat atau PC host Anda mungkin tidak mendukung streaming pada resolusi asli. Jika tidak berfungsi pada perangkat Anda, sayangnya Anda kurang beruntung.</string>
+    <string name="summary_audio_config_list">Aktifkan suara surround 5.1 atau 7.1 untuk sistem home theater</string>
+    <string name="summary_seekbar_deadzone">Catatan: Beberapa game dapat menerapkan zona mati yang lebih besar daripada yang dikonfigurasi untuk digunakan oleh Moonlight.</string>
+    <string name="title_checkbox_mouse_emulation">Emulasi mouse melalui gamepad</string>
+    <string name="summary_checkbox_mouse_emulation">Menekan lama tombol Mulai akan mengalihkan gamepad ke mode mouse</string>
+    <string name="title_reset_osc">Hapus tata letak kontrol di layar yang disimpan</string>
+    <string name="summary_checkbox_mouse_nav_buttons">Mengaktifkan opsi ini dapat merusak klik kanan pada beberapa perangkat bermasalah</string>
+    <string name="title_checkbox_enable_pip">Aktifkan mode pengamat Gambar-dalam-Gambar</string>
+    <string name="summary_language_list">Bahasa yang digunakan untuk Moonlight</string>
+    <string name="summary_checkbox_enable_sops">Izinkan GFE mengubah setelan game untuk streaming yang optimal</string>
 </resources>

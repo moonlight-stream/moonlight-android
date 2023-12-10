@@ -225,9 +225,7 @@
     <string name="audioconf_stereo">Stereo</string>
     <string name="audioconf_51surround">Âm thanh vòm 5.1</string>
     <string name="audioconf_71surround">Âm thanh vòm 7.1</string>
-    <string name="videoformat_hevcauto">Chỉ sử dụng HEVC nếu ổn định</string>
     <string name="videoformat_hevcalways">Luôn sử dụng HEVC (có thể gây crash)</string>
-    <string name="videoformat_hevcnever">Không bao giờ sử dụng HEVC</string>
     <string name="resolution_prefix_native_landscape">(Ngang)</string>
     <string name="frame_conversion_error">PC chủ đã gặp lỗi mã hoá video nghiêm trọng.
 \n

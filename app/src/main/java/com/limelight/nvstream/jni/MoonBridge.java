@@ -14,9 +14,13 @@ public class MoonBridge {
     public static final int VIDEO_FORMAT_H264 = 0x0001;
     public static final int VIDEO_FORMAT_H265 = 0x0100;
     public static final int VIDEO_FORMAT_H265_MAIN10 = 0x0200;
+    public static final int VIDEO_FORMAT_AV1_MAIN8 = 0x1000;
+    public static final int VIDEO_FORMAT_AV1_MAIN10 = 0x2000;
 
-    public static final int VIDEO_FORMAT_MASK_H264 = 0x00FF;
-    public static final int VIDEO_FORMAT_MASK_H265 = 0xFF00;
+    public static final int VIDEO_FORMAT_MASK_H264 = 0x000F;
+    public static final int VIDEO_FORMAT_MASK_H265 = 0x0F00;
+    public static final int VIDEO_FORMAT_MASK_AV1 = 0xF000;
+    public static final int VIDEO_FORMAT_MASK_10BIT = 0x2200;
 
     public static final int ENCFLG_NONE = 0;
     public static final int ENCFLG_AUDIO = 1;
@@ -40,6 +44,7 @@ public class MoonBridge {
     public static final int CAPABILITY_DIRECT_SUBMIT = 1;
     public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_AVC = 2;
     public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_HEVC = 4;
+    public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_AV1 = 0x40;
 
     public static final int DR_OK = 0;
     public static final int DR_NEED_IDR = -1;
@@ -74,6 +79,54 @@ public class MoonBridge {
     public static final int ML_TEST_RESULT_INCONCLUSIVE = 0xFFFFFFFF;
 
     public static final byte SS_KBE_FLAG_NON_NORMALIZED = 0x01;
+
+    public static final int LI_ERR_UNSUPPORTED = -5501;
+
+    public static final byte LI_TOUCH_EVENT_HOVER       = 0x00;
+    public static final byte LI_TOUCH_EVENT_DOWN        = 0x01;
+    public static final byte LI_TOUCH_EVENT_UP          = 0x02;
+    public static final byte LI_TOUCH_EVENT_MOVE        = 0x03;
+    public static final byte LI_TOUCH_EVENT_CANCEL      = 0x04;
+    public static final byte LI_TOUCH_EVENT_BUTTON_ONLY = 0x05;
+    public static final byte LI_TOUCH_EVENT_HOVER_LEAVE = 0x06;
+    public static final byte LI_TOUCH_EVENT_CANCEL_ALL  = 0x07;
+
+    public static final byte LI_TOOL_TYPE_UNKNOWN = 0x00;
+    public static final byte LI_TOOL_TYPE_PEN = 0x01;
+    public static final byte LI_TOOL_TYPE_ERASER = 0x02;
+
+    public static final byte LI_PEN_BUTTON_PRIMARY = 0x01;
+    public static final byte LI_PEN_BUTTON_SECONDARY = 0x02;
+    public static final byte LI_PEN_BUTTON_TERTIARY = 0x04;
+
+    public static final byte LI_TILT_UNKNOWN = (byte)0xFF;
+    public static final short LI_ROT_UNKNOWN = (short)0xFFFF;
+
+    public static final byte LI_CTYPE_UNKNOWN  = 0x00;
+    public static final byte LI_CTYPE_XBOX     = 0x01;
+    public static final byte LI_CTYPE_PS       = 0x02;
+    public static final byte LI_CTYPE_NINTENDO = 0x03;
+
+    public static final short LI_CCAP_ANALOG_TRIGGERS = 0x01;
+    public static final short LI_CCAP_RUMBLE          = 0x02;
+    public static final short LI_CCAP_TRIGGER_RUMBLE  = 0x04;
+    public static final short LI_CCAP_TOUCHPAD        = 0x08;
+    public static final short LI_CCAP_ACCEL           = 0x10;
+    public static final short LI_CCAP_GYRO            = 0x20;
+    public static final short LI_CCAP_BATTERY_STATE   = 0x40;
+    public static final short LI_CCAP_RGB_LED         = 0x80;
+
+    public static final byte LI_MOTION_TYPE_ACCEL = 0x01;
+    public static final byte LI_MOTION_TYPE_GYRO  = 0x02;
+
+    public static final byte LI_BATTERY_STATE_UNKNOWN      = 0x00;
+    public static final byte LI_BATTERY_STATE_NOT_PRESENT  = 0x01;
+    public static final byte LI_BATTERY_STATE_DISCHARGING  = 0x02;
+    public static final byte LI_BATTERY_STATE_CHARGING     = 0x03;
+    public static final byte LI_BATTERY_STATE_NOT_CHARGING = 0x04; // Connected to power but not charging
+    public static final byte LI_BATTERY_STATE_FULL         = 0x05;
+
+    public static final byte LI_BATTERY_PERCENTAGE_UNKNOWN = (byte)0xFF;
 
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
@@ -167,11 +220,11 @@ public class MoonBridge {
     }
 
     public static int bridgeDrSubmitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
-                                               int frameNumber, int frameType,
+                                               int frameNumber, int frameType, char frameHostProcessingLatency,
                                                long receiveTimeMs, long enqueueTimeMs) {
         if (videoRenderer != null) {
             return videoRenderer.submitDecodeUnit(decodeUnitData, decodeUnitLength,
-                    decodeUnitType, frameNumber, frameType, receiveTimeMs, enqueueTimeMs);
+                    decodeUnitType, frameNumber, frameType, frameHostProcessingLatency, receiveTimeMs, enqueueTimeMs);
         }
         else {
             return DR_OK;
@@ -259,6 +312,24 @@ public class MoonBridge {
         }
     }
 
+    public static void bridgeClRumbleTriggers(short controllerNumber, short leftTrigger, short rightTrigger) {
+        if (connectionListener != null) {
+            connectionListener.rumbleTriggers(controllerNumber, leftTrigger, rightTrigger);
+        }
+    }
+
+    public static void bridgeClSetMotionEventState(short controllerNumber, byte eventType, short sampleRateHz) {
+        if (connectionListener != null) {
+            connectionListener.setMotionEventState(controllerNumber, eventType, sampleRateHz);
+        }
+    }
+
+    public static void bridgeClSetControllerLED(short controllerNumber, byte r, byte g, byte b) {
+        if (connectionListener != null) {
+            connectionListener.setControllerLED(controllerNumber, r, g, b);
+        }
+    }
+
     public static void setupBridge(VideoDecoderRenderer videoRenderer, AudioRenderer audioRenderer, NvConnectionListener connectionListener) {
         MoonBridge.videoRenderer = videoRenderer;
         MoonBridge.audioRenderer = audioRenderer;
@@ -272,12 +343,10 @@ public class MoonBridge {
     }
 
     public static native int startConnection(String address, String appVersion, String gfeVersion,
-                                              String rtspSessionUrl,
+                                              String rtspSessionUrl, int serverCodecModeSupport,
                                               int width, int height, int fps,
                                               int bitrate, int packetSize, int streamingRemotely,
-                                              int audioConfiguration, boolean supportsHevc,
-                                              boolean enableHdr,
-                                              int hevcBitratePercentageMultiplier,
+                                              int audioConfiguration, int supportedVideoFormats,
                                               int clientRefreshRateX100,
                                               int encryptionFlags,
                                               byte[] riAesKey, byte[] riAesIv,
@@ -297,15 +366,25 @@ public class MoonBridge {
     public static native void sendMouseButton(byte buttonEvent, byte mouseButton);
 
     public static native void sendMultiControllerInput(short controllerNumber,
-                                    short activeGamepadMask, short buttonFlags,
+                                    short activeGamepadMask, int buttonFlags,
                                     byte leftTrigger, byte rightTrigger,
                                     short leftStickX, short leftStickY,
                                     short rightStickX, short rightStickY);
 
-    public static native void sendControllerInput(short buttonFlags,
-                                    byte leftTrigger, byte rightTrigger,
-                                    short leftStickX, short leftStickY,
-                                    short rightStickX, short rightStickY);
+    public static native int sendTouchEvent(byte eventType, int pointerId, float x, float y, float pressure,
+                                            float contactAreaMajor, float contactAreaMinor, short rotation);
+
+    public static native int sendPenEvent(byte eventType, byte toolType, byte penButtons, float x, float y,
+                                          float pressure, float contactAreaMajor, float contactAreaMinor,
+                                          short rotation, byte tilt);
+
+    public static native int sendControllerArrivalEvent(byte controllerNumber, short activeGamepadMask, byte type, int supportedButtonFlags, short capabilities);
+
+    public static native int sendControllerTouchEvent(byte controllerNumber, byte eventType, int pointerId, float x, float y, float pressure);
+
+    public static native int sendControllerMotionEvent(byte controllerNumber, byte motionType, float x, float y, float z);
+
+    public static native int sendControllerBatteryEvent(byte controllerNumber, byte batteryState, byte batteryPercentage);
 
     public static native void sendKeyboardInput(short keyMap, byte keyDirection, byte modifier, byte flags);
 
@@ -333,6 +412,12 @@ public class MoonBridge {
 
     // The RTT is in the top 32 bits, and the RTT variance is in the bottom 32 bits
     public static native long getEstimatedRttInfo();
+
+    public static native byte guessControllerType(int vendorId, int productId);
+
+    public static native boolean guessControllerHasPaddles(int vendorId, int productId);
+
+    public static native boolean guessControllerHasShareButton(int vendorId, int productId);
 
     public static native void init();
 }

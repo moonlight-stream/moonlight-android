@@ -1,5 +1,6 @@
 package com.limelight.binding.input.driver;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -286,6 +287,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
                 ((!kernelSupportsXbox360W() || claimAllAvailable) && Xbox360WirelessDongle.canClaimDevice(device));
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private void start() {
         if (started || usbManager == null) {
             return;

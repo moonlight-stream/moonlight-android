@@ -1,0 +1,147 @@
+apply plugin: 'com.android.application'
+
+android {
+    ndkVersion "23.2.8568313"
+
+    compileSdk 34
+
+    namespace 'com.limelight'
+
+    defaultConfig {
+        minSdk 16
+        targetSdk 34
+
+        versionName "12.0.2"
+        versionCode = 313
+
+        // Generate native debug symbols to allow Google Play to symbolicate our native crashes
+        ndk.debugSymbolLevel = 'FULL'
+    }
+
+    flavorDimensions.add("root")
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    productFlavors {
+        root {
+            // Android O has native mouse capture, so don't show the rooted
+            // version to devices running O on the Play Store.
+            maxSdk 25
+
+            externalNativeBuild {
+                ndkBuild {
+                    arguments "PRODUCT_FLAVOR=root"
+                }
+            }
+
+            applicationId "com.limelight.root"
+            dimension "root"
+            buildConfigField "boolean", "ROOT_BUILD", "true"
+        }
+
+        nonRoot {
+            externalNativeBuild {
+                ndkBuild {
+                    arguments "PRODUCT_FLAVOR=nonRoot"
+                }
+            }
+
+            applicationId "com.limelight"
+            dimension "root"
+            buildConfigField "boolean", "ROOT_BUILD", "false"
+        }
+    }
+
+    compileOptions {
+        encoding "UTF-8"
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    lint {
+        disable 'MissingTranslation'
+        lintConfig file('lint.xml')
+    }
+
+    bundle {
+        language {
+            // Avoid splitting by language, since we allow users
+            // to manually switch language in settings.
+            enableSplit = false
+        }
+        density {
+            // FIXME: This should not be necessary but we get
+            // weird crashes due to missing drawable resources
+            // when this split is enabled.
+            enableSplit = false
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            resValue "string", "app_label", "Moonlight (Debug)"
+            resValue "string", "app_label_root", "Moonlight (Root Debug)"
+
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            // To whomever is releasing/using an APK in release mode with
+            // Moonlight's official application ID, please stop. I see every
+            // single one of your crashes in my Play Console and it makes
+            // Moonlight's reliability look worse and makes it more difficult
+            // to distinguish real crashes from your crashy VR app. Seriously,
+            // 44 of the *same* native crash in 72 hours and a few each of
+            // several other crashes.
+            //
+            // This is technically not your fault. I would have hoped Google
+            // would validate the signature of the APK before attributing
+            // the crash to it. I asked their Play Store support about this
+            // and they said they don't and don't have plans to, so that sucks.
+            //
+            // In any case, it's bad form to release an APK using someone
+            // else's application ID. There is no legitimate reason, that
+            // anyone would need to comment out the following line, except me
+            // when I release an official signed Moonlight build. If you feel
+            // like doing so would solve something, I can tell you it will not.
+            // You can't upgrade an app while retaining data without having the
+            // same signature as the official version. Nor can you post it on
+            // the Play Store, since that application ID is already taken.
+            // Reputable APK hosting websites similarly validate the signature
+            // is consistent with the Play Store and won't allow an APK that
+            // isn't signed the same as the original.
+            //
+            // I wish any and all people using Moonlight as the basis of other
+            // cool projects the best of luck with their efforts. All I ask
+            // is to please change the applicationId before you publish.
+            //
+            // TL;DR: Leave the following line alone!
+            applicationIdSuffix ".unofficial"
+            resValue "string", "app_label", "Moonlight"
+            resValue "string", "app_label_root", "Moonlight (Root)"
+
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        ndkBuild {
+            path "src/main/jni/Android.mk"
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
+    implementation 'org.bouncycastle:bcpkix-jdk15on:1.70'
+    implementation 'org.jcodec:jcodec:0.2.3'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.13'
+    implementation 'com.squareup.okio:okio:1.17.5'
+    // 3.5.8 requires minSdk 19, uses StandardCharsets.UTF_8 internally
+    implementation 'org.jmdns:jmdns:3.5.7'
+    implementation 'com.github.cgutman:ShieldControllerExtensions:1.0.1'
+}

@@ -1018,7 +1018,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         else if (dev.getVendorId() == 0x044f && dev.getProductId() == 0xb328) {
             context.hasMode = false;
         }
-            
+
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);
         LimeLog.info("Trigger deadzone: "+context.triggerDeadzone);
 

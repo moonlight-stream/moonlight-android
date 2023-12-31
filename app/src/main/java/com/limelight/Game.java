@@ -1300,10 +1300,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         else if ((modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT)) ==
                 (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT) &&
                 (down && nonModifierKeyCode != KeyEvent.KEYCODE_UNKNOWN)) {
-            // Remember that a special key combo was activated, so we can consume all key events until the modifiers come up
-            specialKeyCode = androidKeyCode;
-            waitingForAllModifiersUp = true;
-            return true;
+            switch (androidKeyCode) {
+                case KeyEvent.KEYCODE_Z:
+                case KeyEvent.KEYCODE_Q:
+                case KeyEvent.KEYCODE_C:
+                    // Remember that a special key combo was activated, so we can consume all key
+                    // events until the modifiers come up
+                    specialKeyCode = androidKeyCode;
+                    waitingForAllModifiersUp = true;
+                    return true;
+
+                default:
+                    // This isn't a special combo that we consume on the client side
+                    return false;
+            }
         }
 
         // Not a special combo

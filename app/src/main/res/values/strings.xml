@@ -90,7 +90,8 @@
     <string name="conn_error_title">Connection Error</string>
     <string name="conn_error_msg">Failed to start</string>
     <string name="conn_terminated_title">Connection Terminated</string>
-    <string name="conn_terminated_msg">The connection was terminated</string>
+    <string name="conn_terminated_msg">The connection was terminated.</string>
+    <string name="error_code_prefix">Error code:</string>
 
     <!-- General strings -->
     <string name="ip_hint">IP address of host PC</string>

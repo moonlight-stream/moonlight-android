@@ -1013,10 +1013,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 }
             }
         }
+
         // Thrustmaster Score A gamepad home button reports directly to android as
         // KEY_HOMEPAGE event on another event channel
-        else if (dev.getVendorId() == 0x044f && dev.getProductId() == 0xb328) {
-            context.hasMode = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (dev.getVendorId() == 0x044f && dev.getProductId() == 0xb328) {
+                context.hasMode = false;
+            }
         }
 
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);

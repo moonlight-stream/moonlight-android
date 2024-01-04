@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Game" >
+    tools:context=".Game">
 
     <View
         android:id="@+id/backgroundTouchView"
@@ -19,6 +19,7 @@
         android:focusableInTouchMode="true"
         android:focusedByDefault="true"
         android:defaultFocusHighlightEnabled="false">
+
         <requestFocus />
     </com.limelight.ui.StreamView>
 
@@ -49,5 +50,77 @@
         android:background="#80000000"
         android:preferKeepClear="true"
         android:visibility="gone" />
+
+    <LinearLayout
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:id="@+id/backView"
+        android:background="@android:color/white"
+        android:padding="10dp"
+        android:layout_width="wrap_content"
+        android:visibility="gone"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:background="@android:color/white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/closeButton"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="关闭页面"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/inputButton"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="弹出键盘"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/cancelButton"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="取消"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:background="@android:color/white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/vControlButton"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="虚拟手柄"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/touchButton"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="触摸屏"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/trackpadButton"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="触摸板"
+                android:layout_weight="1" />
+        </LinearLayout>
+    </LinearLayout>
 
 </merge>

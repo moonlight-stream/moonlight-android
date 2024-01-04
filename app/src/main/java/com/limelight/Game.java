@@ -96,6 +96,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private static final int STYLUS_UP_DEAD_ZONE_DELAY = 150;
     private static final int STYLUS_UP_DEAD_ZONE_RADIUS = 50;
     private static final int THREE_FINGER_TAP_THRESHOLD = 300;
+    private static final KeyEvent KEY_EVENT_WIN = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_META_LEFT);
+    private static final KeyEvent KEY_EVENT_TAB = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_TAB);
     @SuppressLint("InlinedApi")
     private final Runnable hideSystemUi = new Runnable() {
         @Override
@@ -175,9 +177,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private WifiManager.WifiLock highPerfWifiLock;
     private WifiManager.WifiLock lowLatencyWifiLock;
     private boolean connectedToUsbDriverService = false;
-
-    private View backView;
-
     private final ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -193,12 +192,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             connectedToUsbDriverService = false;
         }
     };
+    private View backView;
     private Button closeButton;
     private Button inputButton;
     private Button cancelButton;
     private Button vControlButton;
     private Button touchButton;
     private Button trackpadButton;
+    private boolean isBackViewVisible = false;
 
     private static float normalizeValueInRange(float value, InputDevice.MotionRange range) {
         return (value - range.getMin()) / range.getRange();
@@ -260,7 +261,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void onBackPressed() {
-        backView.setVisibility(View.VISIBLE);
+        if (isBackViewVisible) {
+            backView.setVisibility(View.GONE);
+        } else {
+            backView.setVisibility(View.VISIBLE);
+        }
+        isBackViewVisible = !isBackViewVisible;
     }
 
     @Override
@@ -636,8 +642,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             super.onBackPressed();
         } else if (id == R.id.inputButton) {
             toggleKeyboard();
-        } else if (id == R.id.cancelButton) {
-            backView.setVisibility(View.GONE);
+        } else if (id == R.id.winTabButton) {
+            handleKeyDown(KEY_EVENT_WIN);
+            handleKeyDown(KEY_EVENT_TAB);
+
+            handleKeyUp(KEY_EVENT_TAB);
+            handleKeyUp(KEY_EVENT_WIN);
         } else {
             if (id == R.id.vControlButton) {
                 isVirtualControl = !isVirtualControl;
@@ -665,7 +675,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         closeButton = findViewById(R.id.closeButton);
         inputButton = findViewById(R.id.inputButton);
-        cancelButton = findViewById(R.id.cancelButton);
+        cancelButton = findViewById(R.id.winTabButton);
 
         vControlButton = findViewById(R.id.vControlButton);
         touchButton = findViewById(R.id.touchButton);

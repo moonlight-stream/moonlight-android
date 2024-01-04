@@ -74,21 +74,22 @@
                 android:id="@+id/closeButton"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                android:text="关闭页面"
+                android:text="退出"
                 android:layout_weight="1" />
 
             <Button
                 android:id="@+id/inputButton"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                android:text="弹出键盘"
+                android:text="键盘"
                 android:layout_weight="1" />
 
             <Button
-                android:id="@+id/cancelButton"
+                android:id="@+id/winTabButton"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                android:text="取消"
+                android:text="Win + Tab"
+                android:textAllCaps="false"
                 android:layout_weight="1" />
         </LinearLayout>
 

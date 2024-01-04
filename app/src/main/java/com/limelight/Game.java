@@ -213,6 +213,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Inflate the content
         setContentView(R.layout.activity_game);
 
+        // Hack: allows use keyboard by dpad or controller
+        getWindow().getDecorView().findViewById(android.R.id.content).setFocusable(true);
+
         // Start the spinner
         spinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.conn_establishing_title),
                 getResources().getString(R.string.conn_establishing_msg), true);
@@ -1528,6 +1531,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     public void toggleKeyboard() {
         LimeLog.info("Toggling keyboard overlay");
+
+        Toast.makeText(this, "Toggle keyboard", Toast.LENGTH_SHORT).show();
+
+        // Hack: allows use keyboard by dpad or controller
+        streamView.clearFocus();
+
         InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         inputManager.toggleSoftInput(0, 0);
     }

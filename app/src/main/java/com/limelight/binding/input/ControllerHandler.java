@@ -59,6 +59,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     private static final int START_DOWN_TIME_MOUSE_MODE_MS = 750;
 
+    private static final int SELECT_DOWN_TIME_SHOW_KEYBOARD_MS = 750;
+
     private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 25;
 
     private static final int EMULATING_SPECIAL = 0x1;
@@ -1339,6 +1341,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 return REMAP_IGNORE;
             }
         }
+        if(event.getScanCode() == 314 && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            // Fixes a bug where the Select Button (scan code 314) is associated with the Back Key
+            return KeyEvent.KEYCODE_BUTTON_SELECT;
+        }
 
         // If we know this gamepad has a share button and receive an unmapped
         // KEY_RECORD event, report that as a share button press.
@@ -2333,6 +2339,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     public boolean handleButtonUp(KeyEvent event) {
+        //select = keycode 4, scancode 314
         InputDeviceContext context = getContextForEvent(event);
         if (context == null) {
             return true;
@@ -2385,8 +2392,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             break;
         case KeyEvent.KEYCODE_BACK:
         case KeyEvent.KEYCODE_BUTTON_SELECT:
+            //Works, but keyboard doesent show. Maybe it's instantly closed, because the the back action is still triggered, even though the keymapping is overriden.
+            if ((context.inputMap & ControllerPacket.BACK_FLAG) != 0 &&
+                    event.getEventTime() - context.selectDownTime > ControllerHandler.SELECT_DOWN_TIME_SHOW_KEYBOARD_MS) {
+                gestures.toggleKeyboard();
+            }
             context.inputMap &= ~ControllerPacket.BACK_FLAG;
-            break;
+            return true;
         case KeyEvent.KEYCODE_DPAD_LEFT:
             if (context.hatXAxisUsed) {
                 // Suppress this duplicate event if we have a hat
@@ -2563,7 +2575,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         if (context.pendingExit && context.inputMap == 0) {
             // All buttons from the quit combo are lifted. Finish the activity now.
-            activityContext.finish();
+            gestures.toggleKeyboard();
+            //activityContext.finish();
         }
 
         return true;
@@ -2599,6 +2612,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         case KeyEvent.KEYCODE_BACK:
         case KeyEvent.KEYCODE_BUTTON_SELECT:
             context.hasSelect = true;
+            if (event.getRepeatCount() == 0) {
+                context.selectDownTime = event.getEventTime();
+            }
             context.inputMap |= ControllerPacket.BACK_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_LEFT:
@@ -3003,6 +3019,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public long lastRbUpTime = 0;
 
         public long startDownTime = 0;
+
+        public long selectDownTime = 0;
 
         public final Runnable batteryStateUpdateRunnable = new Runnable() {
             @Override

@@ -178,7 +178,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     private View backView;
 
-    private ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
+    private final ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             UsbDriverService.UsbDriverBinder binder = (UsbDriverService.UsbDriverBinder) iBinder;
@@ -649,9 +649,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             virtualControllerBak.refreshLayout();
             if (isVirtualControl) {
+                prefConfig.onscreenController = true;
                 virtualController = virtualControllerBak;
                 virtualControllerBak.show();
             } else {
+                prefConfig.onscreenController = false;
                 virtualControllerBak.hide();
                 virtualController = null;
             }
@@ -1806,9 +1808,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         int eventSource = event.getSource();
         int deviceSources = event.getDevice() != null ? event.getDevice().getSources() : 0;
         if ((eventSource & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
-            if (controllerHandler.handleMotionEvent(event)) {
-                return true;
-            }
+            return controllerHandler.handleMotionEvent(event);
         } else if ((deviceSources & InputDevice.SOURCE_CLASS_JOYSTICK) != 0 && controllerHandler.tryHandleTouchpadEvent(event)) {
             return true;
         } else if ((eventSource & InputDevice.SOURCE_CLASS_POINTER) != 0 ||

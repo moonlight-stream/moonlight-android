@@ -7,6 +7,9 @@
         <item>@string/resolution_1080p</item>
         <item>@string/resolution_1440p</item>
         <item>@string/resolution_4k</item>
+        <item>@string/resolution_fold75</item>
+        <item>@string/resolution_fold50</item>
+        <item>@string/resolution_note720</item>
     </string-array>
 
     <!-- Keep this in sync with PreferenceConfiguration.isNativeResolution()! -->
@@ -17,6 +20,9 @@
         <item>1920x1080</item>
         <item>2560x1440</item>
         <item>3840x2160</item>
+        <item>1632x1359</item>
+        <item>1088x906</item>
+        <item>1600x720</item>
     </string-array>
 
     <string-array name="fps_names">

@@ -268,6 +268,10 @@
     <string name="resolution_1080p">1080p</string>
     <string name="resolution_1440p">1440p</string>
     <string name="resolution_4k">4K</string>
+    <string name="resolution_fold75">1632x1359</string>
+    <string name="resolution_fold50">1088x906</string>
+    <string name="resolution_note720">1600x720</string>
+
 
     <string name="fps_30">30 FPS</string>
     <string name="fps_60">60 FPS</string>

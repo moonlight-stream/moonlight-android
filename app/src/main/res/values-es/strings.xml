@@ -278,4 +278,9 @@
     <string name="summary_checkbox_gamepad_motion_fallback">Utiliza los sensores de movimiento integrados de tu dispositivo si el gamepad conectado o tu versión de Android no admiten los sensores del gamepad.
 \nNota: Activar esta opción puede hacer que tu gamepad aparezca como un mando de PlayStation en el host.</string>
     <string name="title_checkbox_gamepad_motion_fallback">Emular el sensor de movimiento del gamepad</string>
+    <string name="analogscroll_none">Ninguno (ambos joysticks mueven el mouse)</string>
+    <string name="analogscroll_right">Joystick analógico derecho</string>
+    <string name="analogscroll_left">Joystick analógico izquierdo</string>
+    <string name="title_analog_scrolling">Usa un joystick analógico para hacer scroll</string>
+    <string name="summary_analog_scrolling">Selecciona un joystick analógico para scroll cuando la emulación del mouse está habilitada</string>
 </resources>

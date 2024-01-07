@@ -289,4 +289,10 @@
     <string name="pacing_balanced">Balanced</string>
     <string name="pacing_balanced_alt">Balanced with FPS limit</string>
     <string name="pacing_smoothness">Prefer smoothest video (may significantly increase latency)</string>
+
+    <string name="title_analog_scrolling">Use an analog stick to scroll</string>
+    <string name="summary_analog_scrolling">Select an analog stick to scroll when in mouse emulation mode</string>
+    <string name="analogscroll_none">None (both sticks move the mouse)</string>
+    <string name="analogscroll_right">Right analog stick</string>
+    <string name="analogscroll_left">Left analog stick</string>
 </resources>

@@ -85,6 +85,14 @@
             android:title="@string/title_checkbox_mouse_emulation"
             android:summary="@string/summary_checkbox_mouse_emulation"
             android:defaultValue="true" />
+        <ListPreference
+            android:key="analog_scrolling"
+            android:dependency="checkbox_mouse_emulation"
+            android:title="@string/title_analog_scrolling"
+            android:summary="@string/summary_analog_scrolling"
+            android:entries="@array/analog_scrolling_names"
+            android:entryValues="@array/analog_scrolling_values"
+            android:defaultValue="right" />
         <CheckBoxPreference
             android:key="checkbox_vibrate_fallback"
             android:title="@string/title_checkbox_vibrate_fallback"

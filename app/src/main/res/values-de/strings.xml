@@ -270,4 +270,9 @@
     <string name="pair_pairing_help">Wenn dein Host PC Sunshine verwendet, navigiere zur Sunshine Web UI und gebe dort die PIN ein.</string>
     <string name="title_checkbox_gamepad_touchpad_as_mouse">Die Maus immer mit dem Touchpad steuern</string>
     <string name="perf_overlay_hostprocessinglatency">Host Verarbeitungslatenz min/max/avg: %1$.1f/%2$.1f/%3$.1f ms</string>
+    <string name="title_analog_scrolling">Verwenden Sie zum Scrollen einen Analogstick</string>
+    <string name="summary_analog_scrolling">Wählen Sie einen Analogstick aus, der zum scrollen im Mausemulationsmodus verwendet werden soll</string>
+    <string name="analogscroll_none">Keine (beide Sticks bewegen die Maus)</string>
+    <string name="analogscroll_right">Rechter Analogstick</string>
+    <string name="analogscroll_left">Linker Analogstick</string>
 </resources>

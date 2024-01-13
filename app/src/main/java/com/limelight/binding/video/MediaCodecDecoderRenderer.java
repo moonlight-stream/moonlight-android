@@ -1804,18 +1804,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         return capabilities;
     }
 
-    public int getAverageEndToEndLatency() {
-        if (globalVideoStats.totalFramesReceived == 0) {
-            return 0;
-        }
-        return (int)(globalVideoStats.totalTimeMs / globalVideoStats.totalFramesReceived);
+    public float getAverageEndToEndLatency() {
+        return globalVideoStats.totalTimeMs / (float)globalVideoStats.totalFramesReceived;
     }
 
-    public int getAverageDecoderLatency() {
-        if (globalVideoStats.totalFramesReceived == 0) {
-            return 0;
-        }
-        return (int)(globalVideoStats.decoderTimeMs / globalVideoStats.totalFramesReceived);
+    public float getAverageDecoderLatency() {
+        return globalVideoStats.decoderTimeMs / (float)globalVideoStats.totalFramesReceived;
     }
 
     static class DecoderHungException extends RuntimeException {

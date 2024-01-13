@@ -85,6 +85,7 @@ import java.lang.reflect.Method;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.text.DecimalFormat;
 import java.util.Locale;
 
 
@@ -1133,46 +1134,44 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             stopConnection();
 
             if (prefConfig.enableLatencyToast) {
-                int averageEndToEndLat = decoderRenderer.getAverageEndToEndLatency();
-                int averageDecoderLat = decoderRenderer.getAverageDecoderLatency();
-                String message = null;
-                if (averageEndToEndLat > 0) {
-                    message = getResources().getString(R.string.conn_client_latency)+" "+averageEndToEndLat+" ms";
-                    if (averageDecoderLat > 0) {
-                        message += " ("+getResources().getString(R.string.conn_client_latency_hw)+" "+averageDecoderLat+" ms)";
-                    }
-                }
-                else if (averageDecoderLat > 0) {
-                    message = getResources().getString(R.string.conn_hardware_latency)+" "+averageDecoderLat+" ms";
-                }
+                // Will format to match `\d+\.\d` (formats 1f as "1.0", 0.12f as "0.1", and 12.34f as "12.3")
+                DecimalFormat decimalFormat = new DecimalFormat("0.0");
+                final String millisecondSuffix = " ms";
+
+                String message = getResources().getString(R.string.conn_client_latency)
+                               + ' '
+                               + decimalFormat.format(decoderRenderer.getAverageEndToEndLatency())
+                               + millisecondSuffix
+                               + " ("
+                               + getResources().getString(R.string.conn_client_latency_hw)
+                               + ' '
+                               + decimalFormat.format(decoderRenderer.getAverageDecoderLatency())
+                               + millisecondSuffix
+                               + ")";
 
                 // Add the video codec to the post-stream toast
-                if (message != null) {
-                    message += " [";
+                message += " [";
 
-                    if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
-                        message += "H.264";
-                    }
-                    else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
-                        message += "HEVC";
-                    }
-                    else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_AV1) != 0) {
-                        message += "AV1";
-                    }
-                    else {
-                        message += "UNKNOWN";
-                    }
-
-                    if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_10BIT) != 0) {
-                        message += " HDR";
-                    }
-
-                    message += "]";
+                if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
+                    message += "H.264";
+                }
+                else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
+                    message += "HEVC";
+                }
+                else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_AV1) != 0) {
+                    message += "AV1";
+                }
+                else {
+                    message += "UNKNOWN";
                 }
 
-                if (message != null) {
-                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_10BIT) != 0) {
+                    message += " HDR";
                 }
+
+                message += "]";
+
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             }
 
             // Clear the tombstone count if we terminated normally

@@ -28,16 +28,22 @@ and help translate Moonlight into your language on
 ## Build
 
 1. Install [Android Studio](https://developer.android.com/studio)
-1. Download the [Android NDK](https://developer.android.com/ndk/downloads)
-   1. Match the [version found in `app/build.gradle`](https://github.com/moonlight-stream/moonlight-android/blob/4330a223c68395359dd40baee9ff9fdfb59fb518/app/build.gradle#L4)
-   1. Unzip it to [a path without spaces](https://stackoverflow.com/questions/37052934/android-sdk-location-should-not-contain-whitespace-as-this-cause-problems-with)
-1. Run `git submodule update --init --recursive` from within [`moonlight-android/`](/)
+1. Install the Android NDK ![image](ndk.png)
+   1. In Android Studio, open _Tools»SDK Manager_
+   1. Note the _Android SDK Location_ for later
+   1. Click the _SDK Tools_ tab
+   1. Enable the _Show Package Details_ checkbox in the bottom-right
+   1. Expand the _NDK (Side by side)_ category
+   1. Check the version that corresponds to the [version found in `app/build.gradle`](app/build.gradle#L4)
+   1. Click OK
 1. In `moonlight-android/`, create a file called `local.properties`
-   1. Add the following contents, edited to reference your actual NDK path.
+   1. Add the following contents, edited to reference your actual paths on disk.
       Note the extra backslashes!
       ```
-      ndk.dir=C\:\\path\\to\\android-ndk-rXXx
+      sdk.dir=C\:\\Users\\USERNAME\\AppData\\Local\\Android\\Sdk
+      ndk.dir=C\:\\Users\\USERNAME\\AppData\\Local\\Android\\Sdk\\ndk\\VERSION
       ```
+1. Run `git submodule update --init --recursive` from within [`moonlight-android/`](/)
 1. Build the APK using Android Studio or Gradle
 
 ## Authors

@@ -22,10 +22,6 @@ public class MoonBridge {
     public static final int VIDEO_FORMAT_MASK_AV1 = 0xF000;
     public static final int VIDEO_FORMAT_MASK_10BIT = 0x2200;
 
-    public static final int ENCFLG_NONE = 0;
-    public static final int ENCFLG_AUDIO = 1;
-    public static final int ENCFLG_ALL = 0xFFFFFFFF;
-
     public static final int BUFFER_TYPE_PICDATA = 0;
     public static final int BUFFER_TYPE_SPS = 1;
     public static final int BUFFER_TYPE_PPS = 2;
@@ -348,7 +344,6 @@ public class MoonBridge {
                                               int bitrate, int packetSize, int streamingRemotely,
                                               int audioConfiguration, int supportedVideoFormats,
                                               int clientRefreshRateX100,
-                                              int encryptionFlags,
                                               byte[] riAesKey, byte[] riAesIv,
                                               int videoCapabilities,
                                               int colorSpace, int colorRange);

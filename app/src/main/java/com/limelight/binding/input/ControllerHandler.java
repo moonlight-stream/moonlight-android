@@ -2108,10 +2108,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 // We cast the unsigned short value to a signed int before multiplying by
                 // the preferred strength. The resulting value is capped at 65534 before
                 // we cast it back to a short so it doesn't go above 100%.
-                short lowFreqMotorAdjusted = (short)(Math.min(((lowFreqMotor & 0xffff)
-                        /100*prefConfig.vibrateFallbackToDeviceStrength), Short.MAX_VALUE*2));
-                short highFreqMotorAdjusted = (short)(Math.min(((highFreqMotor & 0xffff)
-                        /100*prefConfig.vibrateFallbackToDeviceStrength), Short.MAX_VALUE*2));
+                short lowFreqMotorAdjusted = (short)(Math.min((((lowFreqMotor & 0xffff)
+                        * prefConfig.vibrateFallbackToDeviceStrength) / 100), Short.MAX_VALUE*2));
+                short highFreqMotorAdjusted = (short)(Math.min((((highFreqMotor & 0xffff)
+                        * prefConfig.vibrateFallbackToDeviceStrength) / 100), Short.MAX_VALUE*2));
 
                 rumbleSingleVibrator(deviceVibrator, lowFreqMotorAdjusted, highFreqMotorAdjusted);
             }

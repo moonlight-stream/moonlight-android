@@ -35,7 +35,6 @@
     <string name="conn_establishing_msg">接続を開始</string>
     <string name="conn_metered">警告: 現在使用中のネットワークは従量制課金接続です</string>
     <string name="conn_client_latency"> デコードの平均待ち時間:</string>
-    <string name="conn_client_latency_hw">ハードウェアデコーダーの待ち時間</string>
     <string name="conn_hardware_latency">ハードウェアデコーダーの平均待ち時間:</string>
     <string name="conn_starting">開始</string>
     <string name="conn_error_title">接続エラー</string>

@@ -35,7 +35,6 @@
     <string name="conn_establishing_msg">Підключення</string>
     <string name="conn_metered">Увага: Ваше мережеве з\'єднання вимірюється оператором!</string>
     <string name="conn_client_latency">Середня затримка розцифрування кадру:</string>
-    <string name="conn_client_latency_hw">затримка апаратного розцифрування:</string>
     <string name="conn_hardware_latency">Середня затримка апаратного розцифрування:</string>
     <string name="conn_starting">Запуск</string>
     <string name="conn_error_title">Помилка з\'єднання</string>

@@ -52,7 +52,6 @@
     <string name="conn_establishing_msg"> 启动连接中 </string>
     <string name="conn_metered"> 警告：你正在使用移动网络连接！ </string>
     <string name="conn_client_latency"> 平均每帧解码延迟：</string>
-    <string name="conn_client_latency_hw"> 硬件解码器延迟：</string>
     <string name="conn_hardware_latency"> 硬件解码器平均延迟：</string>
     <string name="conn_starting">启动中</string>
     <string name="conn_error_title"> 连接错误 </string>

@@ -39,7 +39,6 @@
     <string name="conn_establishing_msg">Verbinding starten</string>
     <string name="conn_metered">Waarschuwing: Actieve internet verbinding bevat een datalimiet!</string>
     <string name="conn_client_latency">Gemiddelde frame decoding reactietijd:</string>
-    <string name="conn_client_latency_hw">hardware decoder reactietijd:</string>
     <string name="conn_hardware_latency">Gemiddelde hardware decoding reactietijd:</string>
     <string name="conn_starting">Starten</string>
     <string name="conn_error_title">Verbindingsprobleem</string>

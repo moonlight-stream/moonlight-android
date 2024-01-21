@@ -69,7 +69,6 @@
     <string name="conn_establishing_msg">Démarrage de la connection</string>
     <string name="conn_metered">Attention : Votre connexion réseau active est mesurée !</string>
     <string name="conn_client_latency">Latence moyenne de décodage de trame :</string>
-    <string name="conn_client_latency_hw">Latence du décodeur matériel :</string>
     <string name="conn_hardware_latency">Latence moyenne du décodage matériel :</string>
     <string name="conn_starting">Démarrage</string>
     <string name="conn_error_title">Erreur de connexion</string>

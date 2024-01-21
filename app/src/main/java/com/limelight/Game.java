@@ -1142,12 +1142,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                                + ' '
                                + decimalFormat.format(decoderRenderer.getAverageEndToEndLatency())
                                + millisecondSuffix
-                               + " ("
-                               + getResources().getString(R.string.conn_client_latency_hw)
+                               + '\n'
+                               + getResources().getString(R.string.conn_hardware_latency)
                                + ' '
                                + decimalFormat.format(decoderRenderer.getAverageDecoderLatency())
-                               + millisecondSuffix
-                               + ")";
+                               + millisecondSuffix;
 
                 // Add the video codec to the post-stream toast
                 message += " [";

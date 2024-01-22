@@ -58,7 +58,7 @@
     <string name="conn_error_title"> 连接错误 </string>
     <string name="conn_error_msg"> 启动失败 </string>
     <string name="conn_terminated_title"> 连接终结 </string>
-    <string name="conn_terminated_msg">连接已被终结</string>
+    <string name="conn_terminated_msg">连接已被终结.</string>
     <!-- General strings -->
     <string name="ip_hint">串流电脑的IP地址</string>
     <string name="searching_pc">在你的本地网络中搜索串流主机PC...
@@ -275,4 +275,13 @@
     <string name="summary_checkbox_gamepad_motion_fallback">如果你连接的游戏手柄或 Android 版本不支持游戏手柄传感器，请使用设备的内置运动传感器。
 \n注意：启用此选项可能会导致您的游戏手柄在主机上被识别为 PlayStation 4控制器。</string>
     <string name="title_checkbox_gamepad_motion_fallback">模拟游戏手柄运动传感器支持</string>
+    <string name="error_code_prefix">错误代码:</string>
+    <string name="title_seekbar_vibrate_fallback_strength">调整模拟震动强度</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">％</string>
+    <string name="title_analog_scrolling">使用摇杆控制鼠标移动</string>
+    <string name="analogscroll_left">左摇杆</string>
+    <string name="analogscroll_right">右摇杆</string>
+    <string name="summary_analog_scrolling">在鼠标模式下选择用哪个摇杆控制鼠标移动</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">增强或减弱设备的震动强度</string>
+    <string name="analogscroll_none">默认 (两个摇杆都控制鼠标)</string>
 </resources>

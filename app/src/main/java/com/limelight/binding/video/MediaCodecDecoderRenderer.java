@@ -486,7 +486,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
             // If the stream is HDR-capable, the decoder will detect transitions in color standards
             // rather than us hardcoding them into the MediaFormat.
-            if (getActiveVideoFormat() != MoonBridge.VIDEO_FORMAT_H265_MAIN10) {
+            if ((getActiveVideoFormat() & MoonBridge.VIDEO_FORMAT_MASK_10BIT) == 0) {
                 // Set color format keys when not in HDR mode, since we know they won't change
                 videoFormat.setInteger(MediaFormat.KEY_COLOR_TRANSFER, MediaFormat.COLOR_TRANSFER_SDR_VIDEO);
                 switch (getPreferredColorSpace()) {

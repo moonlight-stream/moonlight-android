@@ -90,7 +90,8 @@
     <string name="conn_error_title">Connection Error</string>
     <string name="conn_error_msg">Failed to start</string>
     <string name="conn_terminated_title">Connection Terminated</string>
-    <string name="conn_terminated_msg">The connection was terminated</string>
+    <string name="conn_terminated_msg">The connection was terminated.</string>
+    <string name="error_code_prefix">Error code:</string>
 
     <!-- General strings -->
     <string name="ip_hint">IP address of host PC</string>
@@ -187,6 +188,9 @@
     <string name="summary_checkbox_multi_controller">Unchecking this option forces a gamepad to always be present</string>
     <string name="title_checkbox_vibrate_fallback">Emulate rumble support with vibration</string>
     <string name="summary_checkbox_vibrate_fallback">Vibrates your device to emulate rumble if your gamepad does not support it</string>
+    <string name="title_seekbar_vibrate_fallback_strength">Adjust emulated rumble intensity</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">Amplify or reduce the vibration intensity on your device</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
     <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>
     <string name="summary_seekbar_deadzone">Note: Some games can enforce a larger deadzone than what Moonlight is configured to use.</string>
     <string name="suffix_seekbar_deadzone">%</string>
@@ -303,4 +307,10 @@
     <string name="pacing_balanced">Balanced</string>
     <string name="pacing_balanced_alt">Balanced with FPS limit</string>
     <string name="pacing_smoothness">Prefer smoothest video (may significantly increase latency)</string>
+
+    <string name="title_analog_scrolling">Use an analog stick to scroll</string>
+    <string name="summary_analog_scrolling">Select an analog stick to scroll when in mouse emulation mode</string>
+    <string name="analogscroll_none">None (both sticks move the mouse)</string>
+    <string name="analogscroll_right">Right analog stick</string>
+    <string name="analogscroll_left">Left analog stick</string>
 </resources>

@@ -259,4 +259,8 @@
     <string name="title_checkbox_gamepad_touchpad_as_mouse">Styr alltid musen med pekplatta</string>
     <string name="summary_checkbox_gamepad_touchpad_as_mouse">Tvingar indata från spelkontroll pekplattan att styra värdmusen, även när man emulerar en spelkontroll med en pekplatta.</string>
     <string name="summary_checkbox_gamepad_motion_sensors">Aktiverar stöd för värden att begära rörelsesensor data när du emulerar en spelkontroll med rörelsesensorer. Inaktivering kan minska ström och nätverksanvändningen något om rörelsesensorer inte används i spelet.</string>
+    <string name="toast_controller_type_changed">Spelkontroll-typ kan ändras på grund av rörelsesensoremulering</string>
+    <string name="summary_checkbox_gamepad_motion_fallback">Använder enhetens inbyggda rörelsesensorer om spelkontrollsensorer inte stöds av din anslutna spelkontroll eller din Android-version.
+\nObs: Om du aktiverar det här alternativet kan din spelkontroll visas som en PlayStation-kontroller på värden.</string>
+    <string name="title_checkbox_gamepad_motion_fallback">Emulera spelkontroll rörelsesensor stöd</string>
 </resources>

@@ -55,7 +55,9 @@ endif
 
 LOCAL_LDLIBS := -llog
 
-LOCAL_STATIC_LIBRARIES := libopus libssl libcrypto
+LOCAL_STATIC_LIBRARIES := libopus libssl libcrypto cpufeatures
 LOCAL_LDFLAGS += -Wl,--exclude-libs,ALL
 
 include $(BUILD_SHARED_LIBRARY)
+
+$(call import-module,android/cpufeatures)

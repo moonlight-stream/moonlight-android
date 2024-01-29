@@ -482,7 +482,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setAttachedGamepadMask(gamepadMask)
                 .setClientRefreshRateX100((int)(displayRefreshRate * 100))
                 .setAudioConfiguration(prefConfig.audioConfiguration)
-                .setAudioEncryption(true)
                 .setColorSpace(decoderRenderer.getPreferredColorSpace())
                 .setColorRange(decoderRenderer.getPreferredColorRange())
                 .setPersistGamepadsAfterDisconnect(!prefConfig.multiController)
@@ -1304,10 +1303,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         else if ((modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT)) ==
                 (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT) &&
                 (down && nonModifierKeyCode != KeyEvent.KEYCODE_UNKNOWN)) {
-            // Remember that a special key combo was activated, so we can consume all key events until the modifiers come up
-            specialKeyCode = androidKeyCode;
-            waitingForAllModifiersUp = true;
-            return true;
+            switch (androidKeyCode) {
+                case KeyEvent.KEYCODE_Z:
+                case KeyEvent.KEYCODE_Q:
+                case KeyEvent.KEYCODE_C:
+                    // Remember that a special key combo was activated, so we can consume all key
+                    // events until the modifiers come up
+                    specialKeyCode = androidKeyCode;
+                    waitingForAllModifiersUp = true;
+                    return true;
+
+                default:
+                    // This isn't a special combo that we consume on the client side
+                    return false;
+            }
         }
 
         // Not a special combo
@@ -2369,7 +2378,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                                     break;
 
                                 default:
-                                    message = getResources().getString(R.string.conn_terminated_msg);
+                                    String errorCodeString;
+                                    // We'll assume large errors are hex values
+                                    if (Math.abs(errorCode) > 1000) {
+                                        errorCodeString = Integer.toHexString(errorCode);
+                                    }
+                                    else {
+                                        errorCodeString = Integer.toString(errorCode);
+                                    }
+                                    message = getResources().getString(R.string.conn_terminated_msg) + "\n\n" +
+                                            getResources().getString(R.string.error_code_prefix) + " " + errorCodeString;
                                     break;
                             }
                         }

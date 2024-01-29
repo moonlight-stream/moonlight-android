@@ -1017,6 +1017,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
+        // Thrustmaster Score A gamepad home button reports directly to android as
+        // KEY_HOMEPAGE event on another event channel
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (dev.getVendorId() == 0x044f && dev.getProductId() == 0xb328) {
+                context.hasMode = false;
+            }
+        }
+
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);
         LimeLog.info("Trigger deadzone: "+context.triggerDeadzone);
 
@@ -1852,21 +1860,30 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         return true;
     }
 
-    private short scaleRawStickAxis(float stickValue) {
-        return (short)Math.pow(stickValue, 3);
-    }
-
-    private void sendEmulatedMouseEvent(short x, short y) {
+    private Vector2d convertRawStickAxisToPixelMovement(short stickX, short stickY) {
         Vector2d vector = new Vector2d();
-        vector.initialize(x, y);
+        vector.initialize(stickX, stickY);
         vector.scalarMultiply(1 / 32766.0f);
         vector.scalarMultiply(4);
         if (vector.getMagnitude() > 0) {
             // Move faster as the stick is pressed further from center
             vector.scalarMultiply(Math.pow(vector.getMagnitude(), 2));
-            if (vector.getMagnitude() >= 1) {
-                conn.sendMouseMove((short)vector.getX(), (short)-vector.getY());
-            }
+        }
+        return vector;
+    }
+
+    private void sendEmulatedMouseMove(short x, short y) {
+        Vector2d vector = convertRawStickAxisToPixelMovement(x, y);
+        if (vector.getMagnitude() >= 1) {
+            conn.sendMouseMove((short)vector.getX(), (short)-vector.getY());
+        }
+    }
+
+    private void sendEmulatedMouseScroll(short x, short y) {
+        Vector2d vector = convertRawStickAxisToPixelMovement(x, y);
+        if (vector.getMagnitude() >= 1) {
+            conn.sendMouseHighResScroll((short)vector.getY());
+            conn.sendMouseHighResHScroll((short)vector.getX());
         }
     }
 
@@ -2107,7 +2124,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             else if (foundMatchingDevice && !vibrated && prefConfig.vibrateFallbackToDevice) {
                 // We found a device to vibrate but it didn't have rumble support. The user
                 // has requested us to vibrate the device in this case.
-                rumbleSingleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
+
+                // We cast the unsigned short value to a signed int before multiplying by
+                // the preferred strength. The resulting value is capped at 65534 before
+                // we cast it back to a short so it doesn't go above 100%.
+                short lowFreqMotorAdjusted = (short)(Math.min((((lowFreqMotor & 0xffff)
+                        * prefConfig.vibrateFallbackToDeviceStrength) / 100), Short.MAX_VALUE*2));
+                short highFreqMotorAdjusted = (short)(Math.min((((highFreqMotor & 0xffff)
+                        * prefConfig.vibrateFallbackToDeviceStrength) / 100), Short.MAX_VALUE*2));
+
+                rumbleSingleVibrator(deviceVibrator, lowFreqMotorAdjusted, highFreqMotorAdjusted);
             }
         }
     }
@@ -2901,9 +2927,19 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     return;
                 }
 
-                // Send mouse movement events from analog sticks
-                sendEmulatedMouseEvent(leftStickX, leftStickY);
-                sendEmulatedMouseEvent(rightStickX, rightStickY);
+                // Send mouse events from analog sticks
+                if (prefConfig.analogStickForScrolling == PreferenceConfiguration.AnalogStickForScrolling.RIGHT) {
+                    sendEmulatedMouseMove(leftStickX, leftStickY);
+                    sendEmulatedMouseScroll(rightStickX, rightStickY);
+                }
+                else if (prefConfig.analogStickForScrolling == PreferenceConfiguration.AnalogStickForScrolling.LEFT) {
+                    sendEmulatedMouseMove(rightStickX, rightStickY);
+                    sendEmulatedMouseScroll(leftStickX, leftStickY);
+                }
+                else {
+                    sendEmulatedMouseMove(leftStickX, leftStickY);
+                    sendEmulatedMouseMove(rightStickX, rightStickY);
+                }
 
                 // Requeue the callback
                 mainThreadHandler.postDelayed(this, mouseEmulationReportPeriod);

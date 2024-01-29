@@ -333,18 +333,22 @@ public class StreamSettings extends Activity {
                         (PreferenceCategory) findPreference("category_help");
                 screen.removePreference(category);
             }*/
-
+            PreferenceCategory category_gamepad_settings =
+                    (PreferenceCategory) findPreference("category_gamepad_settings");
             // Remove the vibration options if the device can't vibrate
             if (!((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasVibrator()) {
-                PreferenceCategory category =
-                        (PreferenceCategory) findPreference("category_gamepad_settings");
-                category.removePreference(findPreference("checkbox_vibrate_fallback"));
-
+                category_gamepad_settings.removePreference(findPreference("checkbox_vibrate_fallback"));
+                category_gamepad_settings.removePreference(findPreference("seekbar_vibrate_fallback_strength"));
                 // The entire OSC category may have already been removed by the touchscreen check above
-                category = (PreferenceCategory) findPreference("category_onscreen_controls");
+                PreferenceCategory category = (PreferenceCategory) findPreference("category_onscreen_controls");
                 if (category != null) {
                     category.removePreference(findPreference("checkbox_vibrate_osc"));
                 }
+            }
+            else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+                    !((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasAmplitudeControl() ) {
+                // Remove the vibration strength selector of the device doesn't have amplitude control
+                category_gamepad_settings.removePreference(findPreference("seekbar_vibrate_fallback_strength"));
             }
 
             Display display = getActivity().getWindowManager().getDefaultDisplay();

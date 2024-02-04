@@ -75,7 +75,7 @@
     <string name="conn_error_title">Erreur de connexion</string>
     <string name="conn_error_msg">Impossible de démarrer</string>
     <string name="conn_terminated_title">Connexion terminée</string>
-    <string name="conn_terminated_msg">La connexion a été interrompue</string>
+    <string name="conn_terminated_msg">La connexion a été interrompue.</string>
     <!-- General strings -->
     <string name="ip_hint">Adresse IP du PC hôte</string>
     <string name="searching_pc">Recherche de PC hôtes sur votre réseau local…
@@ -158,10 +158,10 @@
     <string name="title_checkbox_show_onscreen_controls">Afficher les commandes à l\'écran</string>
     <string name="summary_checkbox_show_onscreen_controls">Afficher la superposition du contrôleur virtuel sur l\'écran tactile</string>
     <string name="title_checkbox_vibrate_osc">Activer les vibrations</string>
-    <string name="summary_checkbox_vibrate_osc">Emuler des tremblements des commandes à l\'écran</string>
+    <string name="summary_checkbox_vibrate_osc">Fait vibrer votre appareil pour émuler les vibrations des commandes à l\'écran</string>
     <string name="title_only_l3r3">Montrer seulement L3 et R3</string>
     <string name="summary_only_l3r3">Cacher tous les boutons sauf L3 et R3</string>
-    <string name="title_reset_osc">Effacer la disposition des commandes à l\'écran sauvegardée</string>
+    <string name="title_reset_osc">Réinitialiser la disposition des commandes à l\'écran</string>
     <string name="summary_reset_osc">Rétablit la taille et la position par défaut de tous les contrôles à l\'écran</string>
     <string name="dialog_title_reset_osc">Réinitialiser la mise en page</string>
     <string name="dialog_text_reset_osc">Êtes-vous sûr de vouloir supprimer la disposition des commandes à l\'écran que vous avez sauvegardée \?</string>
@@ -174,7 +174,7 @@
     <string name="title_language_list">Langue</string>
     <string name="summary_language_list">Langue à utiliser pour Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Utiliser des petites icônes</string>
-    <string name="summary_checkbox_small_icon_mode">Les icônes plus petites prennent moins de place et peuvent être plus nombreuses sur la grille d\'applications</string>
+    <string name="summary_checkbox_small_icon_mode">Des icônes plus petites permettent d\'afficher plus d\'applications en même temps</string>
     <string name="category_host_settings">Paramètres de l\'hôte</string>
     <string name="title_checkbox_enable_sops">Optimiser les paramètres de jeu</string>
     <string name="summary_checkbox_enable_sops">Autoriser GFE à modifier les paramètres de jeu pour une diffusion optimale</string>
@@ -183,7 +183,7 @@
     <string name="category_advanced_settings">Réglages avancés</string>
     <string name="title_unlock_fps">Débloquer toutes les fréquences d\'images possibles</string>
     <string name="summary_unlock_fps">Le streaming à 90 ou 120 FPS peut réduire la latence sur les appareils haut de gamme, mais peut entraîner un décalage ou une instabilité sur les appareils qui ne peuvent pas le prendre en charge</string>
-    <string name="summary_checkbox_disable_warnings">Désactiver les messages d\'avertissement de connexion à l\'écran pendant la diffusion</string>
+    <string name="summary_checkbox_disable_warnings">Désactive les messages d\'avertissement sur la connexion pendant le stream</string>
     <string name="title_disable_frame_drop">Ne jamais laisser tomber les frames</string>
     <string name="summary_disable_frame_drop">Peut réduire les micro-saccades sur certains appareils, mais peut augmenter la latence</string>
     <string name="title_video_format">Modifier les paramètres de codec</string>
@@ -191,9 +191,9 @@
     <string name="title_enable_hdr">Activer le HDR (expérimental)</string>
     <string name="summary_enable_hdr">Streamer en HDR lorsque le jeu et le GPU du PC le prennent en charge. Le HDR nécessite un GPU pouvant encoder en HEVC Main 10.</string>
     <string name="title_enable_perf_overlay">Afficher les statistiques de peformance lors du stream</string>
-    <string name="summary_enable_perf_overlay">Affiche une superposition à l\'écran avec des informations de performance en temps réel pendant le stream</string>
+    <string name="summary_enable_perf_overlay">Afficher des informations sur les performances du stream en temps réel pendant la diffusion</string>
     <string name="title_enable_post_stream_toast">Afficher le message de latence après la diffusion en continu</string>
-    <string name="summary_enable_post_stream_toast">Afficher un message d’informations de latence après la fin du flux</string>
+    <string name="summary_enable_post_stream_toast">Affiche un message d’information sur la latence après la fin du stream</string>
     <string name="no_video_received_error">Aucune vidéo reçue depuis l\'hôte.</string>
     <string name="video_decoder_init_failed">Le décodeur vidéo n\'a pas pu démarrer. Vérifiez que votre appareil supporte la résolution ou la fréquence d\'images choisie.</string>
     <string name="pcview_menu_test_network">Tester la connection réseau</string>
@@ -261,7 +261,7 @@
 \n
 \nEssayez de désactiver le mode HDR, de changer la résolution du flux ou la résolution de votre PC hôte.</string>
     <string name="title_full_range">Forcer la vidéo sur toute la gamme de couleurs (expérimental)</string>
-    <string name="summary_full_range">Ceci entraînera une perte de détails dans les zones claires et sombres si votre appareil n\'affiche pas correctement le contenu vidéo de la gamme complète de couleurs.</string>
+    <string name="summary_full_range">Cela causera une perte de détails dans les zones claires et sombres si votre appareil n\'affiche pas correctement la vidéo avec une gamme de couleurs complète.</string>
     <string name="pcview_menu_eol">NVIDIA GameStream : fin de service</string>
     <string name="pair_pairing_help">Si votre PC hôte utilise Sunshine, accédez à l\'interface web de Sunshine pour saisir le code PIN.</string>
     <string name="category_gamepad_settings">Paramètres manette</string>
@@ -283,4 +283,8 @@
     <string name="analogscroll_none">Aucun (les deux sticks déplacent la souris)</string>
     <string name="analogscroll_right">Stick analogique droit</string>
     <string name="analogscroll_left">Stick analogique gauche</string>
+    <string name="error_code_prefix">Code d\'erreur :</string>
+    <string name="title_seekbar_vibrate_fallback_strength">Ajuster l\'intensité de la vibration émulée</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">Amplifie ou réduit l\'intensité de la vibration sur votre appareil</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
 </resources>

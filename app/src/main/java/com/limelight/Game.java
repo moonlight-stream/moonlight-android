@@ -506,12 +506,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
         }
 
-        // Use sustained performance mode on N+ to ensure consistent
-        // CPU availability
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            getWindow().setSustainedPerformanceMode(true);
-        }
-
         if (prefConfig.onscreenController) {
             // create virtual onscreen controller
             virtualController = new VirtualController(controllerHandler,
@@ -1054,16 +1048,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // that case here too.
         if (isInMultiWindowMode) {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-            // Disable performance optimizations for foreground
-            getWindow().setSustainedPerformanceMode(false);
             decoderRenderer.notifyVideoBackground();
         }
         else {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-            // Enable performance optimizations for foreground
-            getWindow().setSustainedPerformanceMode(true);
             decoderRenderer.notifyVideoForeground();
         }
 

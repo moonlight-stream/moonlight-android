@@ -45,7 +45,7 @@
     <string name="conn_error_title">Error de conexión</string>
     <string name="conn_error_msg">Fallo al iniciar</string>
     <string name="conn_terminated_title">Conexión finalizada</string>
-    <string name="conn_terminated_msg">La conexión ha finalizando</string>
+    <string name="conn_terminated_msg">La conexión ha finalizado.</string>
     <!-- General strings -->
     <string name="ip_hint">Dirección IP del host del ordenador</string>
     <string name="searching_pc">Buscando el hostal del PC en tu red local...
@@ -283,4 +283,8 @@
     <string name="analogscroll_left">Joystick analógico izquierdo</string>
     <string name="title_analog_scrolling">Usa un joystick analógico para hacer scroll</string>
     <string name="summary_analog_scrolling">Selecciona un joystick analógico para scroll cuando la emulación del mouse está habilitada</string>
+    <string name="error_code_prefix">Código del error:</string>
+    <string name="title_seekbar_vibrate_fallback_strength">Ajustar la intensidad del ruido emulado</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">Amplifica o reduce la intensidad de la vibración de tu dispositivo</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
 </resources>

@@ -59,7 +59,7 @@
     <string name="conn_error_title">Fogningsfel</string>
     <string name="conn_error_msg">Misslyckades att börja</string>
     <string name="conn_terminated_title">Fogning förstörd</string>
-    <string name="conn_terminated_msg">Fogningen har förstörts</string>
+    <string name="conn_terminated_msg">Förbindelsen avbröts.</string>
     <string name="yes">Ja</string>
     <string name="no">Nej</string>
     <string name="lost_connection">Tappade fogning till dator</string>
@@ -263,4 +263,13 @@
     <string name="summary_checkbox_gamepad_motion_fallback">Använder enhetens inbyggda rörelsesensorer om spelkontrollsensorer inte stöds av din anslutna spelkontroll eller din Android-version.
 \nObs: Om du aktiverar det här alternativet kan din spelkontroll visas som en PlayStation-kontroller på värden.</string>
     <string name="title_checkbox_gamepad_motion_fallback">Emulera spelkontroll rörelsesensor stöd</string>
+    <string name="error_code_prefix">Felkod:</string>
+    <string name="summary_analog_scrolling">Välj en analog spak för att scrolla när du är i musemuleringsläge</string>
+    <string name="analogscroll_none">Ingen (båda spakarna flyttar musen)</string>
+    <string name="analogscroll_left">Vänster analogspak</string>
+    <string name="title_seekbar_vibrate_fallback_strength">Justera intensiteten på emulerat skakande</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">Förstärk eller reducera vibrationsintensiteten på din enhet</string>
+    <string name="analogscroll_right">Höger analogspak</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="title_analog_scrolling">Använd en analog spak för att bläddra</string>
 </resources>

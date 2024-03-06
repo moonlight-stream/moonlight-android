@@ -7,6 +7,7 @@
         <item>@string/resolution_1080p</item>
         <item>@string/resolution_1440p</item>
         <item>@string/resolution_4k</item>
+        <item>@string/resolution_uws</item>
     </string-array>
 
     <!-- Keep this in sync with PreferenceConfiguration.isNativeResolution()! -->
@@ -17,6 +18,7 @@
         <item>1920x1080</item>
         <item>2560x1440</item>
         <item>3840x2160</item>
+        <item>3840x1080</item>
     </string-array>
 
     <string-array name="fps_names">

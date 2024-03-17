@@ -195,14 +195,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // If we're going to use immersive mode, we want to have
         // the entire screen
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
-        }
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
 
         // Listen for UI visibility events
         getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(this);
@@ -560,39 +558,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
 
             if (desiredOrientation == Configuration.ORIENTATION_LANDSCAPE) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
-                }
-                else {
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-                }
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
             }
             else if (desiredOrientation == Configuration.ORIENTATION_PORTRAIT) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
-                }
-                else {
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
-                }
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
             }
             else {
                 // If we don't have a reason to lock to portrait or landscape, allow any orientation
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
-                }
-                else {
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-                }
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
             }
         }
         else {
             // For regular displays, we always request landscape
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
-            }
-            else {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-            }
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         }
     }
 
@@ -920,7 +898,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             displayRefreshRate = bestMode.getRefreshRate();
         }
         // On L, we can at least tell the OS that we want a refresh rate
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        else {
             float bestRefreshRate = display.getRefreshRate();
             for (float candidate : display.getSupportedRefreshRates()) {
                 LimeLog.info("Examining refresh rate: "+candidate);
@@ -944,19 +922,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Apply the refresh rate change
             getWindow().setAttributes(windowLayoutParams);
         }
-        else {
-            // Otherwise, the active display refresh rate is just
-            // whatever is currently in use.
-            displayRefreshRate = display.getRefreshRate();
-        }
 
-        // From 4.4 to 5.1 we can't ask for a 4K display mode, so we'll
+        // Until Marshmallow, we can't ask for a 4K display mode, so we'll
         // need to hint the OS to provide one.
         boolean aspectRatioMatch = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT &&
-                Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            // On KitKat and later (where we can use the whole screen via immersive mode), we'll
-            // calculate whether we need to scale by aspect ratio or not. If not, we'll use
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            // We'll calculate whether we need to scale by aspect ratio. If not, we'll use
             // setFixedSize so we can handle 4K properly. The only known devices that have
             // >= 4K screens have exactly 4K screens, so we'll be able to hit this good path
             // on these devices. On Marshmallow, we can start changing to 4K manually but no
@@ -1011,8 +982,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     Game.this.getWindow().getDecorView().setSystemUiVisibility(
                             View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
                 }
-                // Use immersive mode on 4.4+ or standard low profile on previous builds
-                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                else {
+                    // Use immersive mode
                     Game.this.getWindow().getDecorView().setSystemUiVisibility(
                             View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
@@ -1020,11 +991,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
                             View.SYSTEM_UI_FLAG_FULLSCREEN |
                             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-                }
-                else {
-                    Game.this.getWindow().getDecorView().setSystemUiVisibility(
-                            View.SYSTEM_UI_FLAG_FULLSCREEN |
-                            View.SYSTEM_UI_FLAG_LOW_PROFILE);
                 }
             }
     };
@@ -2214,13 +2180,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View view, MotionEvent event) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                // Tell the OS not to buffer input events for us
-                //
-                // NB: This is still needed even when we call the newer requestUnbufferedDispatch()!
-                view.requestUnbufferedDispatch(event);
-            }
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            // Tell the OS not to buffer input events for us
+            //
+            // NB: This is still needed even when we call the newer requestUnbufferedDispatch()!
+            view.requestUnbufferedDispatch(event);
         }
 
         return handleMotionEvent(view, event);
@@ -2667,14 +2631,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
             hideSystemUi(2000);
         }
-        // This flag is only set on 4.4+
-        else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT &&
-                 (visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0) {
-            hideSystemUi(2000);
-        }
-        // This flag is only set before 4.4+
-        else if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.KITKAT &&
-                 (visibility & View.SYSTEM_UI_FLAG_LOW_PROFILE) == 0) {
+        else if ((visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0) {
             hideSystemUi(2000);
         }
     }

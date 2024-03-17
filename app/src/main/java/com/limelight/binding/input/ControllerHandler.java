@@ -666,7 +666,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // back button to function for navigation.
         //
         // First, check if this is an internal device we're being called on.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && !isExternal(dev)) {
+        if (!isExternal(dev)) {
             InputManager im = (InputManager) activityContext.getSystemService(Context.INPUT_SERVICE);
 
             boolean foundInternalGamepad = false;
@@ -712,10 +712,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         String devName = dev.getName();
 
         LimeLog.info("Creating controller context for device: "+devName);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            LimeLog.info("Vendor ID: "+dev.getVendorId());
-            LimeLog.info("Product ID: "+dev.getProductId());
-        }
+        LimeLog.info("Vendor ID: " + dev.getVendorId());
+        LimeLog.info("Product ID: "+dev.getProductId());
         LimeLog.info(dev.toString());
 
         context.inputDevice = dev;
@@ -723,15 +721,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         context.id = dev.getId();
         context.external = isExternal(dev);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            context.vendorId = dev.getVendorId();
-            context.productId = dev.getProductId();
+        context.vendorId = dev.getVendorId();
+        context.productId = dev.getProductId();
 
-            // These aren't always present in the Android key layout files, so they won't show up
-            // in our normal InputDevice.hasKeys() probing.
-            context.hasPaddles = MoonBridge.guessControllerHasPaddles(context.vendorId, context.productId);
-            context.hasShare = MoonBridge.guessControllerHasShareButton(context.vendorId, context.productId);
-        }
+        // These aren't always present in the Android key layout files, so they won't show up
+        // in our normal InputDevice.hasKeys() probing.
+        context.hasPaddles = MoonBridge.guessControllerHasPaddles(context.vendorId, context.productId);
+        context.hasShare = MoonBridge.guessControllerHasShareButton(context.vendorId, context.productId);
 
         // Try to use the InputDevice's associated vibrators first
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && hasQuadAmplitudeControlledRumbleVibrators(dev.getVibratorManager())) {
@@ -790,11 +786,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         // Detect if the gamepad has Mode and Select buttons according to the Android key layouts.
         // We do this first because other codepaths below may override these defaults.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            boolean[] buttons = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_MODE, KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BACK, 0);
-            context.hasMode = buttons[0];
-            context.hasSelect = buttons[1] || buttons[2];
-        }
+        boolean[] buttons = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_MODE, KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BACK, 0);
+        context.hasMode = buttons[0];
+        context.hasSelect = buttons[1] || buttons[2];
 
         context.touchpadXRange = dev.getMotionRange(MotionEvent.AXIS_X, InputDevice.SOURCE_TOUCHPAD);
         context.touchpadYRange = dev.getMotionRange(MotionEvent.AXIS_Y, InputDevice.SOURCE_TOUCHPAD);
@@ -844,21 +838,14 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             InputDevice.MotionRange rxRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RX);
             InputDevice.MotionRange ryRange = getMotionRangeForJoystickAxis(dev, MotionEvent.AXIS_RY);
             if (rxRange != null && ryRange != null && devName != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    if (dev.getVendorId() == 0x054c) { // Sony
-                        if (dev.hasKeys(KeyEvent.KEYCODE_BUTTON_C)[0]) {
-                            LimeLog.info("Detected non-standard DualShock 4 mapping");
-                            context.isNonStandardDualShock4 = true;
-                        }
-                        else {
-                            LimeLog.info("Detected DualShock 4 (Linux standard mapping)");
-                            context.usesLinuxGamepadStandardFaceButtons = true;
-                        }
+                if (dev.getVendorId() == 0x054c) { // Sony
+                    if (dev.hasKeys(KeyEvent.KEYCODE_BUTTON_C)[0]) {
+                        LimeLog.info("Detected non-standard DualShock 4 mapping");
+                        context.isNonStandardDualShock4 = true;
+                    } else {
+                        LimeLog.info("Detected DualShock 4 (Linux standard mapping)");
+                        context.usesLinuxGamepadStandardFaceButtons = true;
                     }
-                }
-                else if (!devName.contains("Xbox") && !devName.contains("XBox") && !devName.contains("X-Box")) {
-                    LimeLog.info("Assuming non-standard DualShock 4 mapping on < 4.4");
-                    context.isNonStandardDualShock4 = true;
                 }
 
                 if (context.isNonStandardDualShock4) {
@@ -943,16 +930,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         // The ADT-1 controller needs a similar fixup to the ASUS Gamepad
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            // The device name provided is just "Gamepad" which is pretty useless, so we
-            // use VID/PID instead
-            if (dev.getVendorId() == 0x18d1 && dev.getProductId() == 0x2c40) {
-                context.backIsStart = true;
-                context.modeIsSelect = true;
-                context.triggerDeadzone = 0.30f;
-                context.hasSelect = true;
-                context.hasMode = false;
-            }
+        if (dev.getVendorId() == 0x18d1 && dev.getProductId() == 0x2c40) {
+            context.backIsStart = true;
+            context.modeIsSelect = true;
+            context.triggerDeadzone = 0.30f;
+            context.hasSelect = true;
+            context.hasMode = false;
         }
 
         context.ignoreBack = shouldIgnoreBack(dev);
@@ -962,16 +945,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // use the back button as start since it doesn't have a start/menu button
             // on the controller
             if (devName.contains("ASUS Gamepad")) {
-                // We can only do this check on KitKat or higher, but it doesn't matter since ATV
-                // is Android 5.0 anyway
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
-                    if (!hasStartKey[0] && !hasStartKey[1]) {
-                        context.backIsStart = true;
-                        context.modeIsSelect = true;
-                        context.hasSelect = true;
-                        context.hasMode = false;
-                    }
+                boolean[] hasStartKey = dev.hasKeys(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU, 0);
+                if (!hasStartKey[0] && !hasStartKey[1]) {
+                    context.backIsStart = true;
+                    context.modeIsSelect = true;
+                    context.hasSelect = true;
+                    context.hasMode = false;
                 }
 
                 // The ASUS Gamepad has triggers that sit far forward and are prone to false presses
@@ -1016,10 +995,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         // Thrustmaster Score A gamepad home button reports directly to android as
         // KEY_HOMEPAGE event on another event channel
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            if (dev.getVendorId() == 0x044f && dev.getProductId() == 0xb328) {
-                context.hasMode = false;
-            }
+        if (dev.getVendorId() == 0x044f && dev.getProductId() == 0xb328) {
+            context.hasMode = false;
         }
 
         LimeLog.info("Analog stick deadzone: "+context.leftStickDeadzoneRadius+" "+context.rightStickDeadzoneRadius);
@@ -2048,14 +2025,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     .build();
             vibrator.vibrate(VibrationEffect.createWaveform(new long[]{0, onTime, offTime}, 0), vibrationAttributes);
         }
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        else {
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_GAME)
                     .build();
             vibrator.vibrate(new long[]{0, onTime, offTime}, 0, audioAttributes);
-        }
-        else {
-            vibrator.vibrate(new long[]{0, onTime, offTime}, 0);
         }
     }
 
@@ -3086,11 +3060,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         @Override
         public void sendControllerArrival() {
-            // Below KitKat we can't get enough information to report controller details accurately
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                return;
-            }
-
             byte type;
             switch (inputDevice.getVendorId()) {
                 case 0x045e: // Microsoft

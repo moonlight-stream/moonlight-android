@@ -2050,11 +2050,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // TODO: Re-enable native touch when have a better solution for handling
                 // cancelled touches from Android gestures and 3 finger taps to activate
                 // the software keyboard.
-                /*if (!prefConfig.touchscreenTrackpad && trySendTouchEvent(view, event)) {
+                if (!prefConfig.touchscreenTrackpad && trySendTouchEvent(view, event)) {
                     // If this host supports touch events and absolute touch is enabled,
                     // send it directly as a touch event.
                     return true;
-                }*/
+                }
 
                 TouchContext context = getTouchContext(actionIndex);
                 if (context == null) {

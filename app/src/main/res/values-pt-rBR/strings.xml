@@ -119,7 +119,6 @@
     <string name="title_decoding_reset">Resetar Configurações de Vídeo</string>
     <string name="conn_metered">Aviso: Sua conexão de rede atual é limitada!</string>
     <string name="conn_client_latency">Latência média de decodificação de quadros:</string>
-    <string name="conn_client_latency_hw">latência do decodificador de hardware:</string>
     <string name="conn_hardware_latency">Latência média de decodificação de hardware:</string>
     <string name="conn_starting">Iniciando</string>
     <string name="conn_error_title">Erro de Conexão</string>

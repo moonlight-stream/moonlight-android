@@ -104,7 +104,6 @@
     <string name="conn_terminated_title">החיבור הופסק</string>
     <string name="lost_connection">נאבד החיבור למחשב</string>
     <string name="delete_pc_msg">אתה בטוח שאתה רוצה להסיר מחשב זה\?</string>
-    <string name="conn_client_latency_hw">מהירות פענוח חומרתי:</string>
     <string name="conn_error_msg">נכשל להפעיל</string>
     <string name="searching_pc">מחפש מחשבים ברשת המקומית שלך...
 \n

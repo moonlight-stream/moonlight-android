@@ -51,7 +51,6 @@
     <string name="conn_establishing_msg">Avvio connessione</string>
     <string name="conn_metered">Attenzione: la rete attiva prevede costi aggiuntivi in base all\'utilizzo!</string>
     <string name="conn_client_latency">Latenza decodifica fotogrammi media:</string>
-    <string name="conn_client_latency_hw">latenza decodificatore hardware:</string>
     <string name="conn_hardware_latency">Latenza decodificatore hardware media:</string>
     <string name="conn_starting">Avvio in corso</string>
     <string name="conn_error_title">Errore connessione</string>

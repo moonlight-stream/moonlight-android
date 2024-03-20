@@ -39,7 +39,6 @@
     <string name="conn_establishing_msg">Iniciando conexión</string>
     <string name="conn_metered">Aviso: ¡Tu conexión de red está siendo medida!</string>
     <string name="conn_client_latency">Latencia media decodificando frames:</string>
-    <string name="conn_client_latency_hw">latencia decodificación por hardware:</string>
     <string name="conn_hardware_latency">Latencia media decodificando por hardware:</string>
     <string name="conn_starting">Iniciando</string>
     <string name="conn_error_title">Error de conexión</string>

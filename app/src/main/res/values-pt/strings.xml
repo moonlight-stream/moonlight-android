@@ -51,7 +51,6 @@
 \nSe o problema persistir, tente reinstalar os drivers da GPU e o GeForce Experience.</string>
     <string name="conn_metered">Aviso: A sua conexão de rede atual é limitada!</string>
     <string name="conn_client_latency">Latência média de decodificação de quadros:</string>
-    <string name="conn_client_latency_hw">latência do decodificador de hardware:</string>
     <string name="conn_error_msg">Falha ao iniciar</string>
     <string name="conn_terminated_title">Conexão Encerrada</string>
     <string name="conn_terminated_msg">A conexão foi encerrada</string>

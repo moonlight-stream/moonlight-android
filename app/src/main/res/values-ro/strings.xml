@@ -55,7 +55,6 @@
     <string name="conn_establishing_msg">Se pornește conexiunea</string>
     <string name="conn_metered">Atenție: Conexiunea ta curentă este contorizată!</string>
     <string name="conn_client_latency">Latența medie a decodării cadrelor:</string>
-    <string name="conn_client_latency_hw">latența decodorului hardware:</string>
     <string name="conn_hardware_latency">Latența medie a decodării cadrelor (hardware):</string>
     <string name="conn_starting">Se pornește</string>
     <string name="conn_error_title">Eroare la conectare</string>

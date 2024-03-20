@@ -52,7 +52,6 @@
     <string name="conn_establishing_msg">正在啟動連線</string>
     <string name="conn_metered">警告：你正在使用行動網路連線！</string>
     <string name="conn_client_latency">平均每個影格解碼延時：</string>
-    <string name="conn_client_latency_hw">硬體解碼器延時：</string>
     <string name="conn_hardware_latency">硬體解碼器平均延時：</string>
     <string name="conn_starting">正在啟動</string>
     <string name="conn_error_title">連線錯誤</string>

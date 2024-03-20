@@ -18,7 +18,6 @@
 \nForsikre deg om at GameStream er påslått i GeForce Experience SHEILD-innstillingene.</string>
     <string name="conn_starting">Starter</string>
     <string name="conn_hardware_latency">Gjennomsnittlig latens for maskinvarerammedekoding:</string>
-    <string name="conn_client_latency_hw">maskinvaredekoderlatens:</string>
     <string name="conn_client_latency">Gjennomsnittlig latens for bilderammedekoding:</string>
     <string name="check_ports_msg">Sjekk om din brannmur og portvideresendingsreglene for port(ene):</string>
     <string name="early_termination_error">Noe gikk galt på din verts-PC under oppstart av strømmen.

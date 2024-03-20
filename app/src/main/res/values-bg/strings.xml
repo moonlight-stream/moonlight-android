@@ -6,7 +6,6 @@
     <string name="pacing_balanced_alt">Балансирано с FPS лимит</string>
     <string name="pacing_smoothness">Предпочитане на най-плавно видео (може значително да увеличи латентността)</string>
     <string name="conn_metered">Предупреждение: Вашата активна мрежова връзка се измерва!</string>
-    <string name="conn_client_latency_hw">латентност на хардуерния декодер:</string>
     <string name="conn_hardware_latency">Средна латентност на хардуерно декодиране:</string>
     <string name="ip_hint">IP адрес на GeForce PC</string>
     <string name="pcview_menu_send_wol">Изпращане на Wake-On-LAN заявка</string>

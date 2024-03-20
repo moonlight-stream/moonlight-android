@@ -125,7 +125,6 @@
     <string name="conn_error_title">Lỗi kết nối</string>
     <string name="conn_starting">Đang bắt đầu</string>
     <string name="conn_hardware_latency">Độ trễ giải mã phần cứng trung bình:</string>
-    <string name="conn_client_latency_hw">độ trễ trình giải mã phần cứng:</string>
     <string name="conn_client_latency">Độ trễ giải mã khung hình trung bình:</string>
     <string name="conn_metered">Cảnh báo: Kết nối mạng đang hoạt động là có trả phí!</string>
     <string name="conn_establishing_title">Đang lập kết nối</string>

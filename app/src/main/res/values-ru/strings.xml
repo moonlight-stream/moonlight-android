@@ -46,7 +46,6 @@
     <string name="conn_establishing_msg">Подключение</string>
     <string name="conn_metered">Внимание: Происходит измерение Вашего сетевого соединения!</string>
     <string name="conn_client_latency">Средняя задержка декодирования кадра: </string>
-    <string name="conn_client_latency_hw">задержка аппаратного декодирования:</string>
     <string name="conn_hardware_latency">Средняя задержка апаратного декодирования:</string>
     <string name="conn_starting">Запуск</string>
     <string name="conn_error_title">Ошибка соединения</string>

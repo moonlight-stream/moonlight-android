@@ -53,7 +53,6 @@
     <string name="conn_establishing_msg">Startar fogning</string>
     <string name="conn_metered">Varning: Din aktiva nätverksfogning är mätbar!</string>
     <string name="conn_client_latency">Genomsnittlig latenstid för ramavkodning:</string>
-    <string name="conn_client_latency_hw">Latency för hårdvaruavkodare:</string>
     <string name="conn_hardware_latency">Genomsnittlig latenstid för maskinvaruavkodning:</string>
     <string name="conn_starting">Börjar</string>
     <string name="conn_error_title">Fogningsfel</string>

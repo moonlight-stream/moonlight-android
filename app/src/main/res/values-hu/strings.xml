@@ -131,7 +131,6 @@
     <string name="conn_terminated_msg">A kapcsolat megszakadt</string>
     <string name="conn_terminated_title">A kapcsolat megszűnt</string>
     <string name="conn_error_msg">Nem sikerült elindítani</string>
-    <string name="conn_client_latency_hw">hardveres dekóder késleltetése:</string>
     <string name="conn_client_latency">Átlagos keret dekódolási késés:</string>
     <string name="conn_metered">Figyelem: Az aktív hálózati kapcsolatod mérésre került!</string>
     <string name="conn_establishing_msg">Kapcsolódás</string>

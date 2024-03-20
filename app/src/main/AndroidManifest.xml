@@ -15,6 +15,9 @@
         android:maxSdkVersion="33" />
 
     <uses-feature
+        android:name="android.hardware.sensor.gyroscope"
+        android:required="true" />
+    <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
     <uses-feature

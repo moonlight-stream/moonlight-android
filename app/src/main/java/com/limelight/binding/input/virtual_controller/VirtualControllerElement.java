@@ -46,6 +46,7 @@ public abstract class VirtualControllerElement extends View {
     private int configMoveColor = 0xF0FF0000;
     private int configResizeColor = 0xF0FF00FF;
     private int configSelectedColor = 0xF000FF00;
+    private int configDisabledColor = 0xF0AAAAAA;
 
     protected int startSize_x;
     protected int startSize_y;
@@ -60,6 +61,8 @@ public abstract class VirtualControllerElement extends View {
     }
 
     private Mode currentMode = Mode.Normal;
+
+    public boolean enabled = true;
 
     protected VirtualControllerElement(VirtualController controller, Context context, int elementId) {
         super(context);
@@ -151,6 +154,10 @@ public abstract class VirtualControllerElement extends View {
         currentMode = Mode.Resize;
     }
 
+    protected  void actionDisableEnableButton(){
+        enabled = !enabled;
+    }
+
     protected void actionCancel() {
         currentMode = Mode.Normal;
         invalidate();
@@ -161,6 +168,8 @@ public abstract class VirtualControllerElement extends View {
             return configMoveColor;
         else if (virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)
             return configResizeColor;
+        else if (virtualController.getControllerMode() == VirtualController.ControllerMode.DisableEnableButtons)
+            return enabled ? configSelectedColor: configDisabledColor;
         else
             return normalColor;
     }
@@ -247,6 +256,8 @@ public abstract class VirtualControllerElement extends View {
                     actionEnableMove();
                 else if (virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)
                     actionEnableResize();
+                else if (virtualController.getControllerMode() == VirtualController.ControllerMode.DisableEnableButtons)
+                    actionDisableEnableButton();
 
                 return true;
             }
@@ -330,6 +341,8 @@ public abstract class VirtualControllerElement extends View {
         configuration.put("WIDTH", layoutParams.width);
         configuration.put("HEIGHT", layoutParams.height);
 
+        configuration.put("ENABLED", enabled);
+
         return configuration;
     }
 
@@ -340,6 +353,9 @@ public abstract class VirtualControllerElement extends View {
         layoutParams.topMargin = configuration.getInt("TOP");
         layoutParams.width = configuration.getInt("WIDTH");
         layoutParams.height = configuration.getInt("HEIGHT");
+
+        enabled = configuration.getBoolean("ENABLED");
+        setVisibility(enabled ? VISIBLE: INVISIBLE);
 
         requestLayout();
     }

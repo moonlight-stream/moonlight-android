@@ -19,6 +19,7 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.Range;
 import android.view.Display;
 import android.view.DisplayCutout;
@@ -31,11 +32,12 @@ import com.limelight.LimeLog;
 import com.limelight.PcView;
 import com.limelight.R;
 import com.limelight.binding.video.MediaCodecHelper;
+import com.limelight.utils.AspectRatioConverter;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.*;
 
 public class StreamSettings extends Activity {
     private PreferenceConfiguration previousPrefs;
@@ -187,6 +189,58 @@ public class StreamSettings extends Activity {
                 addNativeResolutionEntry(nativeHeight, nativeWidth, insetsRemoved, true);
             }
             addNativeResolutionEntry(nativeWidth, nativeHeight, insetsRemoved, false);
+        }
+        private void addCustomResolutionsEntries() {
+            SharedPreferences storage = this.getActivity().getSharedPreferences(CustomResolutionsConsts.CUSTOM_RESOLUTIONS_FILE, Context.MODE_PRIVATE);
+            Set<String> stored = storage.getStringSet(CustomResolutionsConsts.CUSTOM_RESOLUTIONS_KEY, null);
+            ListPreference pref = (ListPreference) findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING);
+
+            List<CharSequence> preferencesList = Arrays.asList(pref.getEntryValues());
+
+            if(stored == null) {
+                return;
+            };
+
+            Comparator<String> lengthComparator = new Comparator<String>() {
+                @Override
+                public int compare(String s1, String s2) {
+                    CharSequence[] s1Size = s1.split("x");
+                    CharSequence[] s2Size = s2.split("x");
+
+                    int w1 = Integer.parseInt(s1Size[0]);
+                    int w2 = Integer.parseInt(s2Size[0]);
+
+                    int h1 = Integer.parseInt(s1Size[1]);
+                    int h2 = Integer.parseInt(s2Size[1]);
+
+                    if(w1 == w2) {
+                        return Integer.compare(h1, h2);
+                    }
+                    return Integer.compare(w1, w2);
+                }
+            };
+
+            ArrayList<String> list = new ArrayList<>(stored);
+            Collections.sort(list, lengthComparator);
+
+            for (String storedResolution : list) {
+                if(preferencesList.contains(storedResolution)){
+                    continue;
+                }
+                String[] resolution = storedResolution.split("x");
+                int width = Integer.parseInt(resolution[0]);
+                int height = Integer.parseInt(resolution[1]);
+                String aspectRatio = AspectRatioConverter.getAspectRatio(width,height);
+                String displayText = "Custom ";
+
+                if(aspectRatio != null){
+                    displayText+=aspectRatio+" ";
+                }
+
+                displayText+="("+storedResolution+")";
+
+                appendPreferenceEntry(pref, displayText, storedResolution);
+            }
         }
 
         private void addNativeFrameRateEntry(float framerate) {
@@ -667,6 +721,8 @@ public class StreamSettings extends Activity {
                     return true;
                 }
             });
+
+            addCustomResolutionsEntries();
         }
     }
 }

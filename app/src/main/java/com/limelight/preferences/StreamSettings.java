@@ -204,8 +204,8 @@ public class StreamSettings extends Activity {
             Comparator<String> lengthComparator = new Comparator<String>() {
                 @Override
                 public int compare(String s1, String s2) {
-                    CharSequence[] s1Size = s1.split("x");
-                    CharSequence[] s2Size = s2.split("x");
+                    String[] s1Size = s1.split("x");
+                    String[] s2Size = s2.split("x");
 
                     int w1 = Integer.parseInt(s1Size[0]);
                     int w2 = Integer.parseInt(s2Size[0]);

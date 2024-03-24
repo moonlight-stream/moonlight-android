@@ -8,8 +8,10 @@ import android.text.InputType;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import com.limelight.R;
 
@@ -71,8 +73,18 @@ public class CustomResolutionsPreference extends DialogPreference {
         Comparator<String> lengthComparator = new Comparator<String>() {
             @Override
             public int compare(String s1, String s2) {
-                int w1 = Integer.parseInt(s1.split("x")[0]);
-                int w2 = Integer.parseInt(s2.split("x")[0]);
+                String[] s1Size = s1.split("x");
+                String[] s2Size = s2.split("x");
+
+                int w1 = Integer.parseInt(s1Size[0]);
+                int w2 = Integer.parseInt(s2Size[0]);
+
+                int h1 = Integer.parseInt(s1Size[1]);
+                int h2 = Integer.parseInt(s2Size[1]);
+
+                if(w1 == w2) {
+                    return Integer.compare(h1, h2);
+                }
                 return Integer.compare(w1, w2);
             }
         };
@@ -84,46 +96,30 @@ public class CustomResolutionsPreference extends DialogPreference {
 
     @Override
     protected View onCreateDialogView() {
-        AbsListView.LayoutParams listLayoutParams = new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.WRAP_CONTENT);
-        LinearLayout.LayoutParams defaultLinearLayoutParams = getDefaultLinearLayoutParams();
+       LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.WRAP_CONTENT);
 
+        LinearLayout body = new LinearLayout(context);
+        LayoutInflater inflater = LayoutInflater.from(context);
         ListView list = new ListView(context);
-        LinearLayout inputRow = new LinearLayout(context);
-        EditText textEditingField = new EditText(context);
-        ImageButton doneEditingButton = new ImageButton(context);
 
-        list.setLayoutParams(listLayoutParams);
+        body.setLayoutParams(layoutParams);
+        list.setLayoutParams(layoutParams);
 
-        inputRow.setLayoutParams(listLayoutParams);
+        View inputRow = inflater.inflate(R.layout.custom_resolutions_form, null);
+        EditText textEditingField = inputRow.findViewById(R.id.custom_resolution_field);
+        ImageButton doneEditingButton = inputRow.findViewById(R.id.done_editing);
 
-        inputRow.setOrientation(LinearLayout.HORIZONTAL);
-        inputRow.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
-        inputRow.addView(textEditingField);
-        inputRow.addView(doneEditingButton);
+        body.addView(list);
+        body.addView(inputRow);
+        body.setOrientation(LinearLayout.VERTICAL);
 
+        inputRow.setLayoutParams(layoutParams);
 
-        defaultLinearLayoutParams.width = 0;
-        defaultLinearLayoutParams.weight = 1;
-        defaultLinearLayoutParams.gravity = Gravity.CENTER;
-        textEditingField.setLayoutParams(defaultLinearLayoutParams);
-        textEditingField.setInputType(InputType.TYPE_CLASS_TEXT);
         textEditingField.setHint("2400x1080");
-        defaultLinearLayoutParams = getDefaultLinearLayoutParams();
-
-
-        defaultLinearLayoutParams.width = dpToPx(64);
-        defaultLinearLayoutParams.height = dpToPx(64);
-        defaultLinearLayoutParams.gravity = Gravity.CENTER;
-
-        doneEditingButton.setImageResource(R.drawable.ic_done);
-        doneEditingButton.setLayoutParams(defaultLinearLayoutParams);
-
-        list.addFooterView(inputRow);
-
         list.setAdapter(adapter);
         doneEditingButton.setOnClickListener(view -> onSubmitResolution(textEditingField));
 
-        return list;
+        return body;
     }
 
     @Override
@@ -140,15 +136,6 @@ public class CustomResolutionsPreference extends DialogPreference {
             Set<String> set = new HashSet<>(adapter.getAll());
             editor.putStringSet(CustomResolutionsConsts.CUSTOM_RESOLUTIONS_KEY, set).apply();
         }
-    }
-
-    private LinearLayout.LayoutParams getDefaultLinearLayoutParams() {
-        return new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-    }
-
-    private int dpToPx(int value) {
-        float density = this.context.getResources().getDisplayMetrics().density;
-        return (int) (value * density + 0.5f);
     }
 }
 

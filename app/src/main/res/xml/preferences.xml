@@ -36,6 +36,10 @@
             android:entryValues="@array/video_frame_pacing_values"
             android:summary="@string/summary_frame_pacing"
             android:defaultValue="latency" />
+        <com.limelight.preferences.CustomResolutionsPreference
+                android:key="custom_resolutions"
+                android:summary="@string/summary_custom_resolutions"
+                android:title="@string/title_custom_resolutions" />
         <CheckBoxPreference
             android:key="checkbox_stretch_video"
             android:title="@string/title_checkbox_stretch_video"

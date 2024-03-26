@@ -162,7 +162,7 @@
     <string name="fps_suffix_fps">FPS</string>
     <string name="title_native_fps_dialog">Native FPS Warning</string>
     <string name="title_custom_resolutions">Custom resolutions</string>
-    <string name="summary_custom_resolutions">Custom resolutions</string>
+    <string name="summary_custom_resolutions">Create your own custom resolutions</string>
 
     <string name="category_audio_settings">Audio Settings</string>
     <string name="title_audio_config_list">Surround sound configuration</string>

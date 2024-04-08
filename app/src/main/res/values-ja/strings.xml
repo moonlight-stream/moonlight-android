@@ -137,4 +137,14 @@
     <string name="nettest_title_done">ネットワークテスト終了</string>
     <string name="pcview_menu_details">詳細を表示</string>
     <string name="nettest_title_waiting">ネットワーク接続テスト中</string>
+    <string name="nettest_text_blocked">デバイスの設定が Moonlight をブロックしているようです。このネットワークに接続している間ストリーミングが使えないかもしれません。</string>
+    <string name="message_decoding_error">このデバイスのビデオデコーダーが Moonlight と非対応なため Moonlight がクラッシュしました。クラッシュが継続するようでしたらストリームの設定を変更してください。</string>
+    <string name="nettest_text_failure">デバイスの設定が Moonlight をブロックしているようです。このネットワークに接続している間ストリーミングが使えないかもしれません。
+\n
+\n次のネットワークポートがブロックされています:
+\n</string>
+    <string name="title_decoding_error">ビデオデコーダーがクラッシュしました</string>
+    <string name="title_decoding_reset">ビデオ設定リセット</string>
+    <string name="pair_pairing_help">ホーストのコンピューターが Sunshine を使用している場合、Sunshineにピンを入れてください。</string>
+    <string name="pair_already_in_progress">ペアリング中です</string>
 </resources>

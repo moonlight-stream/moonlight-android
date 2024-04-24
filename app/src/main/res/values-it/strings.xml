@@ -57,7 +57,7 @@
     <string name="conn_error_title">Errore connessione</string>
     <string name="conn_error_msg">Avvio fallito</string>
     <string name="conn_terminated_title">Connessione interrotta</string>
-    <string name="conn_terminated_msg">La connessione è stata interrotta</string>
+    <string name="conn_terminated_msg">La connessione è stata interrotta.</string>
     <!-- General strings -->
     <string name="ip_hint">Indirizzo IP del PC</string>
     <string name="searching_pc">Ricerca di PC nella rete locale…

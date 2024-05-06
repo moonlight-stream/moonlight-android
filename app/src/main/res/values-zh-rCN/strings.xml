@@ -130,6 +130,11 @@
     <string name="suffix_seekbar_flat_region_pixels">像素</string>
     <string name="title_checkbox_sync_touch_event_with_display">触控事件与显示刷新同步</string>
     <string name="summary_checkbox_sync_touch_event_with_display">打开后触控事件上报率与显示刷新率同步，比如显示为60Hz，那么触控与之同步。不一定有用，习惯哪个用哪个。Moonlight原版相当于禁用该项。</string>
+    <string name="title_checkbox_enable_keyboard_toggle_in_native_touch">多点触控模式下打开本地键盘切换</string>
+    <string name="summary_checkbox_enable_keyboard_toggle_in_native_touch">多点触控模式下打开本地键盘切换</string>
+    <string name="title_seekbar_keyboard_toggle_fingers_native_touch">轻敲切换本地键盘的手指数量</string>
+    <string name="summary_seekbar_keyboard_toggle_fingers_native_touch">轻敲手指数量</string>
+    <string name="suffix_seekbar_keyboard_toggle_fingers_native_touch"> </string>
 
     <string name="title_checkbox_multi_controller"> 自动检测手柄 </string>
     <string name="summary_checkbox_multi_controller"> 禁用此项所有手柄将视为一个手柄 </string>

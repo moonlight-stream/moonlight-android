@@ -1817,6 +1817,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 case MotionEvent.ACTION_DOWN:
                 case MotionEvent.ACTION_POINTER_DOWN:
                     nativeTouchPointers.add(new NativeTouchHandler.Pointer(event)); //create a Pointer Instance for new touch pointer and add it to the list.
+                    multiFingerTapToggleKeyboardNativeTouch(event);
                     break;
                 case MotionEvent.ACTION_POINTER_UP:
                 case MotionEvent.ACTION_UP:
@@ -1825,6 +1826,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
             // Up, Down, and Hover events are specific to the action index
             return sendTouchEventForPointer(view, event, eventType, event.getActionIndex());
+        }
+    }
+
+    private void multiFingerTapToggleKeyboardNativeTouch (MotionEvent event) {
+        if (event.getPointerCount() == prefConfig.nativeTouchFingersToToggleKeyboard) {
+            // number of fingers to tap is defined by prefConfig.nativeTouchFingersToToggleKeyboard
+
+            // Cancel the first and second touches to avoid
+            // erroneous events
+            for (TouchContext aTouchContext : touchContextMap) {
+                aTouchContext.cancelTouch();
+            }
+            toggleKeyboard();
+
         }
     }
 

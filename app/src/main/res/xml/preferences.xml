@@ -152,6 +152,24 @@
         android:summary="@string/summary_checkbox_sync_touch_event_with_display"
         android:defaultValue="false" />
         <CheckBoxPreference
+            android:key="checkbox_enable_keyboard_toggle_in_native_touch"
+            android:title="@string/title_checkbox_enable_keyboard_toggle_in_native_touch"
+            android:summary="@string/summary_checkbox_enable_keyboard_toggle_in_native_touch"
+            android:defaultValue="true" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_keyboard_toggle_fingers_native_touch"
+            android:dependency="checkbox_enable_keyboard_toggle_in_native_touch"
+            android:dialogMessage="@string/summary_seekbar_keyboard_toggle_fingers_native_touch"
+            seekbar:min="3"
+            android:max="10"
+            seekbar:step="1"
+            seekbar:keyStep="1"
+            seekbar:divisor="1"
+            android:defaultValue = "3"
+            android:summary="@string/summary_seekbar_keyboard_toggle_fingers_native_touch"
+            android:text="@string/suffix_seekbar_keyboard_toggle_fingers_native_touch"
+            android:title="@string/title_seekbar_keyboard_toggle_fingers_native_touch" />
+        <CheckBoxPreference
             android:key="checkbox_mouse_nav_buttons"
             android:title="@string/title_checkbox_mouse_nav_buttons"
             android:summary="@string/summary_checkbox_mouse_nav_buttons"

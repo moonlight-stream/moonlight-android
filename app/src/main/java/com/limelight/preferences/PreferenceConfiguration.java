@@ -32,6 +32,9 @@ public class PreferenceConfiguration {
     private static final String BITRATE_PREF_OLD_STRING = "seekbar_bitrate";
     static final String LONG_PRESS_FLAT_REGION_PIXELS_PREF_STRING = "seekbar_flat_region_pixels";
     static final String SYNC_TOUCH_EVENT_WITH_DISPLAY_PREF_STRING = "checkbox_sync_touch_event_with_display";
+    static final String ENABLE_KEYBOARD_TOGGLE_IN_NATIVE_TOUCH  = "checkbox_enable_keyboard_toggle_in_native_touch";
+    static final String NATIVE_TOUCH_FINGERS_TO_TOGGLE_KEYBOARD_PREF_STRING = "seekbar_keyboard_toggle_fingers_native_touch";
+
 
     private static final String STRETCH_PREF_STRING = "checkbox_stretch_video";
     private static final String SOPS_PREF_STRING = "checkbox_enable_sops";
@@ -140,7 +143,7 @@ public class PreferenceConfiguration {
     public int enhanceTouchZoneDivider; //Assigned to NativeTouchHandler.ENHANCED_TOUCH_ZONE_DIVIDER
     public float pointerVelocityFactor; //Assigned to NativeTouchHandler.POINTER_VELOCITY_FACTOR
     public float pointerFixedXVelocity; //Assigned to NativeTouchHandler.POINTER_FIXED_X_VELOCITY
-
+    public int nativeTouchFingersToToggleKeyboard; // Number of fingers to tap to toggle local on-screen keyboard in native touch mode.
 
 
 
@@ -569,13 +572,19 @@ public class PreferenceConfiguration {
 
         config.longPressflatRegionPixels = prefs.getInt(LONG_PRESS_FLAT_REGION_PIXELS_PREF_STRING, 0);
         config.syncTouchEventWithDisplay = prefs.getBoolean(SYNC_TOUCH_EVENT_WITH_DISPLAY_PREF_STRING, false);
+        if(prefs.getBoolean(ENABLE_KEYBOARD_TOGGLE_IN_NATIVE_TOUCH, true)) {
+            config.nativeTouchFingersToToggleKeyboard = prefs.getInt(NATIVE_TOUCH_FINGERS_TO_TOGGLE_KEYBOARD_PREF_STRING, 3);
+        }
+        else{
+            config.nativeTouchFingersToToggleKeyboard = -1;
+        }
+
         // Enhance touch settings
         config.enableEhancedTouch = prefs.getBoolean(ENABLE_ENHANCED_TOUCH_PREF_STRING, false);
         config.enhancedTouchOnWhichSide = prefs.getBoolean(ENHANCED_TOUCH_ON_RIGHT_PREF_STRING, true);
         config.enhanceTouchZoneDivider = prefs.getInt(ENHANCED_TOUCH_ZONE_DIVIDER_PREF_STRING,50);
         config.pointerVelocityFactor = prefs.getInt(POINTER_VELOCITY_FACTOR_PREF_STRING,100);
         config.pointerFixedXVelocity = prefs.getInt(POINTER_FIXED_X_VELOCITY_PREF_STRING,0);
-
 
         String audioConfig = prefs.getString(AUDIO_CONFIG_PREF_STRING, DEFAULT_AUDIO_CONFIG);
         if (audioConfig.equals("71")) {

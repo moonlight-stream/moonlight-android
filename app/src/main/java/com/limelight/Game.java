@@ -9,6 +9,7 @@ import com.limelight.binding.input.capture.InputCaptureManager;
 import com.limelight.binding.input.capture.InputCaptureProvider;
 import com.limelight.binding.input.touch.AbsoluteTouchContext;
 import com.limelight.binding.input.touch.RelativeTouchContext;
+import com.limelight.binding.input.touch.NativeTouchHandler;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
@@ -85,6 +86,8 @@ import java.lang.reflect.Method;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Locale;
 
 
@@ -153,6 +156,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private WifiManager.WifiLock highPerfWifiLock;
     private WifiManager.WifiLock lowLatencyWifiLock;
 
+    private ArrayList<NativeTouchHandler.Pointer> nativeTouchPointers = new ArrayList<>();
+
     private boolean connectedToUsbDriverService = false;
     private ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
         @Override
@@ -180,6 +185,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public static final String EXTRA_PC_NAME = "PcName";
     public static final String EXTRA_APP_HDR = "HDR";
     public static final String EXTRA_SERVER_CERT = "ServerCert";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -220,6 +226,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Read the stream preferences
         prefConfig = PreferenceConfiguration.readPreferences(this);
         tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
+        // Set flat region size for long press jitter elimination.
+        NativeTouchHandler.INTIAL_ZONE_PIXELS = prefConfig.longPressflatRegionPixels;
+        NativeTouchHandler.ENABLE_ENHANCED_TOUCH = prefConfig.enableEhancedTouch;
+        if(prefConfig.enhancedTouchOnWhichSide){
+            NativeTouchHandler.ENHANCED_TOUCH_ON_RIGHT = -1;
+        }else{
+            NativeTouchHandler.ENHANCED_TOUCH_ON_RIGHT = 1;
+        }
+        NativeTouchHandler.ENHANCED_TOUCH_ZONE_DIVIDER = prefConfig.enhanceTouchZoneDivider * 0.01f;
+        NativeTouchHandler.POINTER_VELOCITY_FACTOR = prefConfig.pointerVelocityFactor * 0.01f;
+        NativeTouchHandler.POINTER_FIXED_X_VELOCITY = prefConfig.pointerFixedXVelocity;
 
         // Enter landscape unless we're on a square screen
         setPreferredOrientationForCurrentDisplay();
@@ -445,7 +462,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // If the user requested frame pacing using a capped FPS, we will need to change our
         // desired FPS setting here in accordance with the active display refresh rate.
         int roundedRefreshRate = Math.round(displayRefreshRate);
-        int chosenFrameRate = prefConfig.fps;
+        int chosenFrameRate = prefConfig.fps; //将此处chosenFrameRate赋值为5时， 视频刷新率降低到5，但直接观察远端桌面可知，触控刷新率并未下降，窗口仍可流畅拖动。
         if (prefConfig.framePacing == PreferenceConfiguration.FRAME_PACING_CAP_FPS) {
             if (prefConfig.fps >= roundedRefreshRate) {
                 if (prefConfig.fps > roundedRefreshRate + 3) {
@@ -467,7 +484,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         StreamConfiguration config = new StreamConfiguration.Builder()
                 .setResolution(prefConfig.width, prefConfig.height)
                 .setLaunchRefreshRate(prefConfig.fps)
-                .setRefreshRate(chosenFrameRate)
+                .setRefreshRate(chosenFrameRate)  //将此处chosenFrameRate替换为5时， 视频刷新率降低到5，但直接观察远端桌面可知，触控刷新率并未下降，窗口仍可流畅拖动。
                 .setApp(app)
                 .setBitrate(prefConfig.bitrate)
                 .setEnableSops(prefConfig.enableSops)
@@ -1560,9 +1577,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
+
     private float[] getStreamViewRelativeNormalizedXY(View view, MotionEvent event, int pointerIndex) {
-        float normalizedX = event.getX(pointerIndex);
-        float normalizedY = event.getY(pointerIndex);
+
+        // Coords are replaced by NativeTouchHandler here.
+        float targetCoords[] = NativeTouchHandler.selectCoordsForPointer(event, pointerIndex, nativeTouchPointers);
+        float normalizedX = targetCoords[0];
+        float normalizedY = targetCoords[1];
+
 
         // For the containing background view, we must subtract the origin
         // of the StreamView to get video-relative coordinates.
@@ -1759,7 +1781,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     private boolean sendTouchEventForPointer(View view, MotionEvent event, byte eventType, int pointerIndex) {
-        float[] normalizedCoords = getStreamViewRelativeNormalizedXY(view, event, pointerIndex);
+        float[] normalizedCoords = getStreamViewRelativeNormalizedXY(view, event, pointerIndex); //normalized Coords就是坐标占长或宽的比例，最小0，最大1
         float[] normalizedContactArea = getStreamViewNormalizedContactArea(event, pointerIndex);
         return conn.sendTouchEvent(eventType, event.getPointerId(pointerIndex),
                 normalizedCoords[0], normalizedCoords[1],
@@ -1773,10 +1795,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (eventType < 0) {
             return false;
         }
-
+        // Log.d("nativeTouchCoordHandlers", "Length: " + nativeTouchCoordHandlers.size());
         if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
             // Move events may impact all active pointers
             for (int i = 0; i < event.getPointerCount(); i++) {
+                NativeTouchHandler.updatePointerInList(event, i, nativeTouchPointers);
                 if (!sendTouchEventForPointer(view, event, eventType, i)) {
                     return false;
                 }
@@ -1790,6 +1813,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     MoonBridge.LI_ROT_UNKNOWN) != MoonBridge.LI_ERR_UNSUPPORTED;
         }
         else {
+            switch(event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_POINTER_DOWN:
+                    nativeTouchPointers.add(new NativeTouchHandler.Pointer(event)); //create a Pointer Instance for new touch pointer and add it to the list.
+                    break;
+                case MotionEvent.ACTION_POINTER_UP:
+                case MotionEvent.ACTION_UP:
+                    NativeTouchHandler.safelyRemovePointerFromList(event, nativeTouchPointers); //remove pointer from the list.
+                    break;
+            }
             // Up, Down, and Hover events are specific to the action index
             return sendTouchEventForPointer(view, event, eventType, event.getActionIndex());
         }
@@ -1797,15 +1830,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     // Returns true if the event was consumed
     // NB: View is only present if called from a view callback
-    private boolean handleMotionEvent(View view, MotionEvent event) {
+    private boolean handleMotionEvent(View view, MotionEvent event) {  //handleMotionEvent, mark mark
         // Pass through mouse/touch/joystick input if we're not grabbing
+
         if (!grabbedInput) {
             return false;
         }
 
         int eventSource = event.getSource();
         int deviceSources = event.getDevice() != null ? event.getDevice().getSources() : 0;
-        if ((eventSource & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) {
+        if ((eventSource & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) { //手柄所属条件
             if (controllerHandler.handleMotionEvent(event)) {
                 return true;
             }
@@ -1817,9 +1851,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                  (eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 ||
                  eventSource == InputDevice.SOURCE_MOUSE_RELATIVE)
         {
-            // This case is for mice and non-finger touch devices
+            // This case is for mice and non-finger touch devices, 非手指触控功能所属判断条件
             if (eventSource == InputDevice.SOURCE_MOUSE ||
-                    (eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 || // SOURCE_TOUCHPAD
+                    (eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 || // SOURCE_TOUCHPAD虚拟手柄
                     eventSource == InputDevice.SOURCE_MOUSE_RELATIVE ||
                     (event.getPointerCount() >= 1 &&
                             (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE ||
@@ -2006,8 +2040,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 lastButtonState = buttonState;
             }
             // This case is for fingers
-            else
+            else  //abs touch 和 屏幕虚拟手柄所属的判断条件
             {
+                // TODO: Re-enable native touch when have a better solution for handling
+                // cancelled touches from Android gestures and 3 finger taps to activate
+                // the software keyboard.
+                // 调整一下native touch passthrough的代码顺序
+                if (!prefConfig.touchscreenTrackpad && trySendTouchEvent(view, event)) {
+                    // If this host supports touch events and absolute touch is enabled,
+                    // send it directly as a touch event.
+                    return true;
+                }
+
                 if (virtualController != null &&
                         (virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons ||
                          virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)) {
@@ -2047,14 +2091,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     return true;
                 }
 
+
                 // TODO: Re-enable native touch when have a better solution for handling
                 // cancelled touches from Android gestures and 3 finger taps to activate
                 // the software keyboard.
+                /*
                 if (!prefConfig.touchscreenTrackpad && trySendTouchEvent(view, event)) {
                     // If this host supports touch events and absolute touch is enabled,
                     // send it directly as a touch event.
                     return true;
-                }
+                }*/
 
                 TouchContext context = getTouchContext(actionIndex);
                 if (context == null) {
@@ -2213,17 +2259,24 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public boolean onTouch(View view, MotionEvent event) {
+    public boolean onTouch(View view, MotionEvent event) {  //onTouch mark mark
+        // Log.d("onTouchDebug","===== onTouch(View view, MotionEvent event ==========)");
+
+
+        // 注释此段if将导致系统按显示刷新率调用onTouch()函数， 显示60Hz时，调用频率也降到60Hz。 实测发现该条件下效果反而更好， 高触控事件发送频率在60fps下对降低延迟并无帮助
+        // Native Touch Passthrough的onTouch调用方式似乎仅与此处代码有关。 另一处的调用requestUnbufferedDispatch也有提到与touch相关的语句， 不能确定其实际效果
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 // Tell the OS not to buffer input events for us
                 //
                 // NB: This is still needed even when we call the newer requestUnbufferedDispatch()!
-                view.requestUnbufferedDispatch(event);
+                if(!prefConfig.syncTouchEventWithDisplay) {
+                    view.requestUnbufferedDispatch(event);
+                }
             }
         }
 
-        return handleMotionEvent(view, event);
+        return handleMotionEvent(view, event); //Y700平板上, onTouch的调用频率为120Hz
     }
 
     @Override

@@ -1,3 +1,13 @@
+This is a fork with some manipulation on native multi-touch pointer coordinaties, allows pointer to move faster or slower on specified enhanced touch zone.
+Maybe useful for tweaking view rotation sensitivity in some games.
+
+![image](https://github.com/TrueZhuangJia/moonlight-android-TZJ/assets/78474576/90a4a100-2786-4629-a5dc-89363d059be8)
+
+And some additional features like flat region to eliminate long press jitter:
+
+![image](https://github.com/TrueZhuangJia/moonlight-android-TZJ/assets/78474576/c91fb01e-d843-41ef-9ebf-99aafda60ea2)
+
+
 # Moonlight Android
 
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/232a8tadrrn8jv0k/branch/master?svg=true)](https://ci.appveyor.com/project/cgutman/moonlight-android/branch/master)

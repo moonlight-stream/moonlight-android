@@ -99,7 +99,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     // Only 2 touches are supported
     private final TouchContext[] touchContextMap = new TouchContext[2];
-    private long threeFingerDownTime = 0;
+    private long multiFingerDownTime = 0;
 
     private static final int REFERENCE_HORIZ_RES = 1280;
     private static final int REFERENCE_VERT_RES = 720;
@@ -110,7 +110,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private static final int STYLUS_UP_DEAD_ZONE_DELAY = 150;
     private static final int STYLUS_UP_DEAD_ZONE_RADIUS = 50;
 
-    private static final int THREE_FINGER_TAP_THRESHOLD = 300;
+    private static final int MULTI_FINGER_TAP_THRESHOLD = 300;
 
     private ControllerHandler controllerHandler;
     private KeyboardTranslator keyboardTranslator;
@@ -1817,10 +1817,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 case MotionEvent.ACTION_DOWN:
                 case MotionEvent.ACTION_POINTER_DOWN:
                     nativeTouchPointers.add(new NativeTouchHandler.Pointer(event)); //create a Pointer Instance for new touch pointer and add it to the list.
-                    multiFingerTapToggleKeyboardNativeTouch(event);
+                    multiFingerTapChecker(event);
                     break;
+                case MotionEvent.ACTION_UP: // all fingers up
+                    // toggle keyboard when all fingers lift up, just like how it works in trackpad mode.
+                    if(event.getEventTime() - multiFingerDownTime < MULTI_FINGER_TAP_THRESHOLD) {
+                        toggleKeyboard();
+                    }
                 case MotionEvent.ACTION_POINTER_UP:
-                case MotionEvent.ACTION_UP:
                     NativeTouchHandler.safelyRemovePointerFromList(event, nativeTouchPointers); //remove pointer from the list.
                     break;
             }
@@ -1829,17 +1833,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
-    private void multiFingerTapToggleKeyboardNativeTouch (MotionEvent event) {
+    private void multiFingerTapChecker (MotionEvent event) {
         if (event.getPointerCount() == prefConfig.nativeTouchFingersToToggleKeyboard) {
-            // number of fingers to tap is defined by prefConfig.nativeTouchFingersToToggleKeyboard
+            // number of fingers to tap is defined by prefConfig.nativeTouchFingersToToggleKeyboard, configurable from 3 to 10, and -1(disabled) in menu.
 
             // Cancel the first and second touches to avoid
             // erroneous events
-            for (TouchContext aTouchContext : touchContextMap) {
-                aTouchContext.cancelTouch();
-            }
-            toggleKeyboard();
-
+            // for (TouchContext aTouchContext : touchContextMap) {
+            //    aTouchContext.cancelTouch();
+            // }
+            multiFingerDownTime = event.getEventTime();
         }
     }
 
@@ -2095,7 +2098,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN &&
                         event.getPointerCount() == 3) {
                     // Three fingers down
-                    threeFingerDownTime = event.getEventTime();
+                    multiFingerDownTime = event.getEventTime();
 
                     // Cancel the first and second touches to avoid
                     // erroneous events
@@ -2136,8 +2139,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     if (event.getPointerCount() == 1 &&
                             (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || (event.getFlags() & MotionEvent.FLAG_CANCELED) == 0)) {
                         // All fingers up
-                        if (event.getEventTime() - threeFingerDownTime < THREE_FINGER_TAP_THRESHOLD) {
+                        if (event.getEventTime() - multiFingerDownTime < MULTI_FINGER_TAP_THRESHOLD) {
                             // This is a 3 finger tap to bring up the keyboard
+                            // multiFingerDownTime, previously threeFingerDowntime, is also used in native-touch for keyboard toggle.
                             toggleKeyboard();
                             return true;
                         }

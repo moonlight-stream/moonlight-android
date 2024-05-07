@@ -134,6 +134,11 @@
             android:title="@string/title_checkbox_touchscreen_trackpad"
             android:summary="@string/summary_checkbox_touchscreen_trackpad"
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_sync_touch_event_with_display"
+            android:title="@string/title_checkbox_sync_touch_event_with_display"
+            android:summary="@string/summary_checkbox_sync_touch_event_with_display"
+            android:defaultValue="false" />
         <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_flat_region_pixels"
             android:dialogMessage="@string/summary_seekbar_long_press_flat_region"
@@ -146,11 +151,6 @@
             android:summary="@string/summary_seekbar_long_press_flat_region"
             android:text="@string/suffix_seekbar_flat_region_pixels"
             android:title="@string/title_seekbar_long_press_flat_region" />
-        <CheckBoxPreference
-        android:key="checkbox_sync_touch_event_with_display"
-        android:title="@string/title_checkbox_sync_touch_event_with_display"
-        android:summary="@string/summary_checkbox_sync_touch_event_with_display"
-        android:defaultValue="false" />
         <CheckBoxPreference
             android:key="checkbox_enable_keyboard_toggle_in_native_touch"
             android:title="@string/title_checkbox_enable_keyboard_toggle_in_native_touch"

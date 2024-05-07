@@ -570,20 +570,20 @@ public class PreferenceConfiguration {
             config.bitrate = getDefaultBitrate(context);
         }
 
-        config.longPressflatRegionPixels = prefs.getInt(LONG_PRESS_FLAT_REGION_PIXELS_PREF_STRING, 0);
-        config.syncTouchEventWithDisplay = prefs.getBoolean(SYNC_TOUCH_EVENT_WITH_DISPLAY_PREF_STRING, false);
+        config.longPressflatRegionPixels = prefs.getInt(LONG_PRESS_FLAT_REGION_PIXELS_PREF_STRING, 0);  // define a flat region to suppress coordinates jitter. This is a simulation of iOS behavior since it only send 1 touch event during long press, which feels better in some cases.
+        config.syncTouchEventWithDisplay = prefs.getBoolean(SYNC_TOUCH_EVENT_WITH_DISPLAY_PREF_STRING, false); // set true to disable "requestUnbufferedDispatch", feels better in some cases.
         if(prefs.getBoolean(ENABLE_KEYBOARD_TOGGLE_IN_NATIVE_TOUCH, true)) {
-            config.nativeTouchFingersToToggleKeyboard = prefs.getInt(NATIVE_TOUCH_FINGERS_TO_TOGGLE_KEYBOARD_PREF_STRING, 3);
+            config.nativeTouchFingersToToggleKeyboard = prefs.getInt(NATIVE_TOUCH_FINGERS_TO_TOGGLE_KEYBOARD_PREF_STRING, 3); // least fingers of tap to toggle local keyboard, configurable from 3 to 10 in menu.
         }
         else{
-            config.nativeTouchFingersToToggleKeyboard = -1;
+            config.nativeTouchFingersToToggleKeyboard = -1; // completely disable keyboard toggle in multi-point touch
         }
 
         // Enhance touch settings
         config.enableEhancedTouch = prefs.getBoolean(ENABLE_ENHANCED_TOUCH_PREF_STRING, false);
-        config.enhancedTouchOnWhichSide = prefs.getBoolean(ENHANCED_TOUCH_ON_RIGHT_PREF_STRING, true);
-        config.enhanceTouchZoneDivider = prefs.getInt(ENHANCED_TOUCH_ZONE_DIVIDER_PREF_STRING,50);
-        config.pointerVelocityFactor = prefs.getInt(POINTER_VELOCITY_FACTOR_PREF_STRING,100);
+        config.enhancedTouchOnWhichSide = prefs.getBoolean(ENHANCED_TOUCH_ON_RIGHT_PREF_STRING, true);  // by default, enhanced touch zone is on the right side.
+        config.enhanceTouchZoneDivider = prefs.getInt(ENHANCED_TOUCH_ZONE_DIVIDER_PREF_STRING,50);  // decides where to divide native touch zone & enhance touch zone by a vertical line.
+        config.pointerVelocityFactor = prefs.getInt(POINTER_VELOCITY_FACTOR_PREF_STRING,100);  // set pointer velocity faster or slower within enhance touch zone, useful in some games for tweaking view rotation sensitivity.
         config.pointerFixedXVelocity = prefs.getInt(POINTER_FIXED_X_VELOCITY_PREF_STRING,0);
 
         String audioConfig = prefs.getString(AUDIO_CONFIG_PREF_STRING, DEFAULT_AUDIO_CONFIG);

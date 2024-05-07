@@ -196,16 +196,19 @@
 
     <string name="category_input_settings">Input Settings</string>
     <string name="title_checkbox_touchscreen_trackpad">Use the touchscreen as a trackpad</string>
-    <string name="summary_checkbox_touchscreen_trackpad">If enabled, the touchscreen acts like a trackpad. If disabled, native multi-point touch will be enabled.</string>
-    <string name="title_seekbar_long_press_flat_region">Flat region for long press jitter elimination</string>
-    <string name="summary_seekbar_long_press_flat_region">Increase for larger long-press flat region, within which the app sticks with initial contact coordinates.</string>
-    <string name="suffix_seekbar_flat_region_pixels">pixels</string>
+    <string name="summary_checkbox_touchscreen_trackpad">If enabled, the touchscreen acts like a trackpad. If disabled, multi-point touch will be enabled.</string>
+
     <string name="title_checkbox_sync_touch_event_with_display">Synchronize touch event with display refresh </string>
     <string name="summary_checkbox_sync_touch_event_with_display">If enabled, touch event will be synchronized with display refresh rate, like 60Hz.</string>
-    <string name="title_checkbox_enable_keyboard_toggle_in_native_touch">Enable keyboard toggle in multi-touch mode </string>
-    <string name="summary_checkbox_enable_keyboard_toggle_in_native_touch">Enable keyboard toggle in multi-touch mode </string>
-    <string name="title_seekbar_keyboard_toggle_fingers_native_touch">Number of fingers to tap to toggle local on-screen keyboard in multi-touch mode</string>
-    <string name="summary_seekbar_keyboard_toggle_fingers_native_touch">Fingers to tap</string>
+
+    <string name="title_seekbar_long_press_flat_region">Flat region for long press jitter elimination in multi-point touch mode</string>
+    <string name="summary_seekbar_long_press_flat_region">Increase for larger long-press flat region, within which the app sends initial contact coordinates to server.</string>
+    <string name="suffix_seekbar_flat_region_pixels">pixels</string>
+
+    <string name="title_checkbox_enable_keyboard_toggle_in_native_touch">Enable keyboard toggle in multi-point touch mode </string>
+    <string name="summary_checkbox_enable_keyboard_toggle_in_native_touch">\t</string>
+    <string name="title_seekbar_keyboard_toggle_fingers_native_touch">Fingers to tap</string>
+    <string name="summary_seekbar_keyboard_toggle_fingers_native_touch">Least number of fingers to tap to toggle local on-screen keyboard in multi-point touch mode. \nIn trackpad mode, you always only need to tap 3 or more fingers to toggle local keyboard.</string>
     <string name="suffix_seekbar_keyboard_toggle_fingers_native_touch"> </string>
 
     <string name="title_checkbox_absolute_mouse_mode">Remote desktop mouse mode</string>
@@ -213,9 +216,9 @@
     <string name="title_checkbox_mouse_nav_buttons">Enable back and forward mouse buttons</string>
     <string name="summary_checkbox_mouse_nav_buttons">Enabling this option may break right clicking on some buggy devices</string>
 
-    <string name="category_enhanced_touch_settings">Enhanced Touch Settings</string>
+    <string name="category_enhanced_touch_settings">Enhanced Multi-Point Touch</string>
     <string name="title_checkbox_enable_enhanced_touch">Enable enhanced touch</string>
-    <string name="summary_checkbox_enable_enhanced_touch">Enable enhanced touch</string>
+    <string name="summary_checkbox_enable_enhanced_touch">\t</string>
     <string name="title_checkbox_enhanced_touch_on_which_side">Reverse enhanced touch zone</string>
     <string name="summary_checkbox_enhanced_touch_on_which_side">Reverse enhanced touch zone to the left (default: on the right side of screen)</string>
     <string name="title_enhanced_touch_zone_divider">Enhanced touch zone divider</string>

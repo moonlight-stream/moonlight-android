@@ -1814,7 +1814,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
         else {
             switch(event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_DOWN: // first finger down.
+                    nativeTouchPointers.add(new NativeTouchHandler.Pointer(event)); //create a Pointer Instance for new touch pointer and add it to the list.
+                    break;
                 case MotionEvent.ACTION_POINTER_DOWN:
                     nativeTouchPointers.add(new NativeTouchHandler.Pointer(event)); //create a Pointer Instance for new touch pointer and add it to the list.
                     multiFingerTapChecker(event);

@@ -198,7 +198,7 @@ public class NvConnection {
                 }
             }
         }
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        else {
             NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
             if (activeNetworkInfo != null) {
                 switch (activeNetworkInfo.getType()) {

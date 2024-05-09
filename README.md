@@ -7,6 +7,10 @@ And some additional features like flat region to eliminate long press jitter:
 
 ![image](https://github.com/TrueZhuangJia/moonlight-android-TZJ/assets/78474576/c91fb01e-d843-41ef-9ebf-99aafda60ea2)
 
+Configurable local keyboard toggle:
+
+![image](https://github.com/TrueZhuangJia/moonlight-android-Enhanced-MultiTouch/assets/78474576/a0edaf21-a174-448e-832c-da2d171cefea)
+
 
 # Moonlight Android
 

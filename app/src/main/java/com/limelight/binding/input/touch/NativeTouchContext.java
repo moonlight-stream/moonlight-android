@@ -26,10 +26,10 @@ class ScreenUtils {
  *
  *
  *  to store additional pointer info updated from Android MotionEvent object
- *  (stored in NativeTouchHandler.Pointer instance).
+ *  (stored in NativeTouchContext.Pointer instance).
  *  Provides some methods to manipulate pointer coordinates (enhanced touch) before sending to Sunshine server,
  */
-public class NativeTouchHandler {
+public class NativeTouchContext {
     /**
      * Defines a (2*INTIAL_ZONE_PIXELS)^2 square flat region for long press jitter elimination.
      * Config read from prefConfig in Game class
@@ -69,7 +69,7 @@ public class NativeTouchHandler {
 
     /**
      * Object to store, update info & manipulate coordinates for each pointer.
-     * An ArrayList of NativeTouchHandler.Pointer instances is created in Game Class for all active pointers.
+     * An ArrayList of NativeTouchContext.Pointer instances is created in Game Class for all active pointers.
      */
     public static class Pointer{
         /**
@@ -98,7 +98,7 @@ public class NativeTouchHandler {
         private boolean pointerLeftInitialZone = false;
 
         /**
-         * Constructor for NativeTouchHandler.Pointer.
+         * Constructor for NativeTouchContext.Pointer.
          * Pointer class instantiated in ACTION_DOWN, ACTION_POINTER_DOWN Condition.
          */
         public Pointer(MotionEvent event) {
@@ -284,10 +284,10 @@ public class NativeTouchHandler {
      * this method is called to access additional pointer info from the list by finding a pointerId match,
      * and decides whether the pointer's coords should be manipulated.
      */
-    public static float[] selectCoordsForPointer(MotionEvent event, int pointerIndex, ArrayList<NativeTouchHandler.Pointer> nativeTouchPointers){
+    public static float[] selectCoordsForPointer(MotionEvent event, int pointerIndex, ArrayList<NativeTouchContext.Pointer> nativeTouchPointers){
         float selectedX = 0f;
         float selectedY = 0f;
-        for (NativeTouchHandler.Pointer pointer : nativeTouchPointers) {
+        for (NativeTouchContext.Pointer pointer : nativeTouchPointers) {
             if (event.getPointerId(pointerIndex) == pointer.getPointerId()) {
                 if(ENABLE_ENHANCED_TOUCH) {
                     //to judge whether pointer located on enhanced touch zone by its initial coords.
@@ -313,10 +313,10 @@ public class NativeTouchHandler {
     /**
      * Safely remove Pointer instance from a List in ACTION_POINTER_UP or ACTION_UP condition
      */
-    public static void safelyRemovePointerFromList(MotionEvent event, ArrayList<NativeTouchHandler.Pointer> nativeTouchPointers){
+    public static void safelyRemovePointerFromList(MotionEvent event, ArrayList<NativeTouchContext.Pointer> nativeTouchPointers){
         Iterator<Pointer> iterator = nativeTouchPointers.iterator(); //safely remove pointer handler by iterator.
         while (iterator.hasNext()){
-            NativeTouchHandler.Pointer pointer = iterator.next();
+            NativeTouchContext.Pointer pointer = iterator.next();
             if (event.getPointerId(event.getActionIndex()) == pointer.getPointerId()) {
                 iterator.remove(); // immediately break when we get a pointerId match
                 break;
@@ -327,8 +327,8 @@ public class NativeTouchHandler {
     /**
      * Update 1 specific Pointer instance in a List in ACTION_MOVE.
      */
-    public static void updatePointerInList(MotionEvent event,int pointerIndex, ArrayList<NativeTouchHandler.Pointer> nativeTouchPointers) {
-        for (NativeTouchHandler.Pointer pointer : nativeTouchPointers) {
+    public static void updatePointerInList(MotionEvent event,int pointerIndex, ArrayList<NativeTouchContext.Pointer> nativeTouchPointers) {
+        for (NativeTouchContext.Pointer pointer : nativeTouchPointers) {
             if (pointer.getPointerId() == event.getPointerId(pointerIndex)) {
                 pointer.updatePointerCoords(event, pointerIndex);
                 // handler.doesPointerLeaveInitialZone();

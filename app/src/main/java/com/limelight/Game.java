@@ -8,8 +8,8 @@ import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.input.capture.InputCaptureManager;
 import com.limelight.binding.input.capture.InputCaptureProvider;
 import com.limelight.binding.input.touch.AbsoluteTouchContext;
+import com.limelight.binding.input.touch.NativeTouchContext;
 import com.limelight.binding.input.touch.RelativeTouchContext;
-import com.limelight.binding.input.touch.NativeTouchHandler;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
@@ -24,7 +24,6 @@ import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
-import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.nvstream.jni.MoonBridge;
@@ -87,7 +86,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Locale;
 
 
@@ -156,7 +154,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private WifiManager.WifiLock highPerfWifiLock;
     private WifiManager.WifiLock lowLatencyWifiLock;
 
-    private ArrayList<NativeTouchHandler.Pointer> nativeTouchPointers = new ArrayList<>();
+    private ArrayList<NativeTouchContext.Pointer> nativeTouchPointers = new ArrayList<>();
 
     private boolean connectedToUsbDriverService = false;
     private ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
@@ -225,16 +223,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         prefConfig = PreferenceConfiguration.readPreferences(this);
         tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
         // Set flat region size for long press jitter elimination.
-        NativeTouchHandler.INTIAL_ZONE_PIXELS = prefConfig.longPressflatRegionPixels;
-        NativeTouchHandler.ENABLE_ENHANCED_TOUCH = prefConfig.enableEhancedTouch;
+        NativeTouchContext.INTIAL_ZONE_PIXELS = prefConfig.longPressflatRegionPixels;
+        NativeTouchContext.ENABLE_ENHANCED_TOUCH = prefConfig.enableEhancedTouch;
         if(prefConfig.enhancedTouchOnWhichSide){
-            NativeTouchHandler.ENHANCED_TOUCH_ON_RIGHT = -1;
+            NativeTouchContext.ENHANCED_TOUCH_ON_RIGHT = -1;
         }else{
-            NativeTouchHandler.ENHANCED_TOUCH_ON_RIGHT = 1;
+            NativeTouchContext.ENHANCED_TOUCH_ON_RIGHT = 1;
         }
-        NativeTouchHandler.ENHANCED_TOUCH_ZONE_DIVIDER = prefConfig.enhanceTouchZoneDivider * 0.01f;
-        NativeTouchHandler.POINTER_VELOCITY_FACTOR = prefConfig.pointerVelocityFactor * 0.01f;
-        NativeTouchHandler.POINTER_FIXED_X_VELOCITY = prefConfig.pointerFixedXVelocity;
+        NativeTouchContext.ENHANCED_TOUCH_ZONE_DIVIDER = prefConfig.enhanceTouchZoneDivider * 0.01f;
+        NativeTouchContext.POINTER_VELOCITY_FACTOR = prefConfig.pointerVelocityFactor * 0.01f;
+        NativeTouchContext.POINTER_FIXED_X_VELOCITY = prefConfig.pointerFixedXVelocity;
 
         // Enter landscape unless we're on a square screen
         setPreferredOrientationForCurrentDisplay();
@@ -1546,8 +1544,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     private float[] getStreamViewRelativeNormalizedXY(View view, MotionEvent event, int pointerIndex) {
 
-        // Coords are replaced by NativeTouchHandler here.
-        float targetCoords[] = NativeTouchHandler.selectCoordsForPointer(event, pointerIndex, nativeTouchPointers);
+        // Coords are replaced by NativeTouchContext here.
+        float targetCoords[] = NativeTouchContext.selectCoordsForPointer(event, pointerIndex, nativeTouchPointers);
         float normalizedX = targetCoords[0];
         float normalizedY = targetCoords[1];
 
@@ -1765,7 +1763,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
             // Move events may impact all active pointers
             for (int i = 0; i < event.getPointerCount(); i++) {
-                NativeTouchHandler.updatePointerInList(event, i, nativeTouchPointers);
+                NativeTouchContext.updatePointerInList(event, i, nativeTouchPointers);
                 if (!sendTouchEventForPointer(view, event, eventType, i)) {
                     return false;
                 }
@@ -1781,10 +1779,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         else {
             switch(event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN: // first finger down.
-                    nativeTouchPointers.add(new NativeTouchHandler.Pointer(event)); //create a Pointer Instance for new touch pointer and add it to the list.
+                    nativeTouchPointers.add(new NativeTouchContext.Pointer(event)); //create a Pointer Instance for new touch pointer and add it to the list.
                     break;
                 case MotionEvent.ACTION_POINTER_DOWN:
-                    nativeTouchPointers.add(new NativeTouchHandler.Pointer(event)); //create a Pointer Instance for new touch pointer and add it to the list.
+                    nativeTouchPointers.add(new NativeTouchContext.Pointer(event)); //create a Pointer Instance for new touch pointer and add it to the list.
                     multiFingerTapChecker(event);
                     break;
                 case MotionEvent.ACTION_UP: // all fingers up
@@ -1793,7 +1791,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         toggleKeyboard();
                     }
                 case MotionEvent.ACTION_POINTER_UP:
-                    NativeTouchHandler.safelyRemovePointerFromList(event, nativeTouchPointers); //remove pointer from the list.
+                    NativeTouchContext.safelyRemovePointerFromList(event, nativeTouchPointers); //remove pointer from the list.
                     break;
             }
             // Up, Down, and Hover events are specific to the action index

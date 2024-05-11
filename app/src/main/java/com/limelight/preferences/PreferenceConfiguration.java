@@ -136,13 +136,13 @@ public class PreferenceConfiguration {
 
     public int width, height, fps;
     public int bitrate;
-    public int longPressflatRegionPixels; //Assigned to NativeTouchHandler.INTIAL_ZONE_PIXELS
+    public int longPressflatRegionPixels; //Assigned to NativeTouchContext.INTIAL_ZONE_PIXELS
     public boolean syncTouchEventWithDisplay; // if true, view.requestUnbufferedDispatch(event) will be disabled
-    public boolean enableEhancedTouch; //Assigned to NativeTouchHandler.ENABLE_ENHANCED_TOUCH
-    public boolean enhancedTouchOnWhichSide; //Assigned to NativeTouchHandler.ENHANCED_TOUCH_ON_RIGHT
-    public int enhanceTouchZoneDivider; //Assigned to NativeTouchHandler.ENHANCED_TOUCH_ZONE_DIVIDER
-    public float pointerVelocityFactor; //Assigned to NativeTouchHandler.POINTER_VELOCITY_FACTOR
-    public float pointerFixedXVelocity; //Assigned to NativeTouchHandler.POINTER_FIXED_X_VELOCITY
+    public boolean enableEhancedTouch; //Assigned to NativeTouchContext.ENABLE_ENHANCED_TOUCH
+    public boolean enhancedTouchOnWhichSide; //Assigned to NativeTouchContext.ENHANCED_TOUCH_ON_RIGHT
+    public int enhanceTouchZoneDivider; //Assigned to NativeTouchContext.ENHANCED_TOUCH_ZONE_DIVIDER
+    public float pointerVelocityFactor; //Assigned to NativeTouchContext.POINTER_VELOCITY_FACTOR
+    public float pointerFixedXVelocity; //Assigned to NativeTouchContext.POINTER_FIXED_X_VELOCITY
     public int nativeTouchFingersToToggleKeyboard; // Number of fingers to tap to toggle local on-screen keyboard in native touch mode.
 
 

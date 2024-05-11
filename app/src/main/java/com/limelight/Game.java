@@ -61,6 +61,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Rational;
+import android.util.Log;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyCharacterMap;
@@ -85,8 +86,11 @@ import java.lang.reflect.Method;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
+// import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Locale;
+import java.util.Objects;
 
 
 public class Game extends Activity implements SurfaceHolder.Callback,
@@ -153,8 +157,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     private WifiManager.WifiLock highPerfWifiLock;
     private WifiManager.WifiLock lowLatencyWifiLock;
-
-    private ArrayList<NativeTouchContext.Pointer> nativeTouchPointers = new ArrayList<>();
+    private Map<Integer, NativeTouchContext.Pointer> nativeTouchPointerMap = new HashMap<>();
 
     private boolean connectedToUsbDriverService = false;
     private ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
@@ -1543,12 +1546,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
 
     private float[] getStreamViewRelativeNormalizedXY(View view, MotionEvent event, int pointerIndex) {
-
+        float targetCoords[] = new float[] {0f,0f};
         // Coords are replaced by NativeTouchContext here.
-        float targetCoords[] = NativeTouchContext.selectCoordsForPointer(event, pointerIndex, nativeTouchPointers);
+        NativeTouchContext.Pointer pointer = nativeTouchPointerMap.get(event.getPointerId(pointerIndex));
+        if(pointer != null){
+            targetCoords = pointer.XYCoordSelector();
+        }
         float normalizedX = targetCoords[0];
         float normalizedY = targetCoords[1];
-
 
         // For the containing background view, we must subtract the origin
         // of the StreamView to get video-relative coordinates.
@@ -1759,11 +1764,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (eventType < 0) {
             return false;
         }
-        // Log.d("nativeTouchCoordHandlers", "Length: " + nativeTouchCoordHandlers.size());
         if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
             // Move events may impact all active pointers
             for (int i = 0; i < event.getPointerCount(); i++) {
-                NativeTouchContext.updatePointerInList(event, i, nativeTouchPointers);
+                Objects.requireNonNull(nativeTouchPointerMap.get(event.getPointerId(i))).updatePointerCoords(event, i); // update pointer coords in the map.
                 if (!sendTouchEventForPointer(view, event, eventType, i)) {
                     return false;
                 }
@@ -1778,12 +1782,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
         else {
             switch(event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN: // first finger down.
-                    nativeTouchPointers.add(new NativeTouchContext.Pointer(event)); //create a Pointer Instance for new touch pointer and add it to the list.
-                    break;
                 case MotionEvent.ACTION_POINTER_DOWN:
-                    nativeTouchPointers.add(new NativeTouchContext.Pointer(event)); //create a Pointer Instance for new touch pointer and add it to the list.
                     multiFingerTapChecker(event);
+                case MotionEvent.ACTION_DOWN: // first & following finger down.
+                    NativeTouchContext.Pointer pointer = new NativeTouchContext.Pointer(event); //create a Pointer Instance for new touch pointer, put it into the map.
+                    nativeTouchPointerMap.put(pointer.getPointerId(), pointer);
                     break;
                 case MotionEvent.ACTION_UP: // all fingers up
                     // toggle keyboard when all fingers lift up, just like how it works in trackpad mode.
@@ -1791,7 +1794,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         toggleKeyboard();
                     }
                 case MotionEvent.ACTION_POINTER_UP:
-                    NativeTouchContext.safelyRemovePointerFromList(event, nativeTouchPointers); //remove pointer from the list.
+                    nativeTouchPointerMap.remove(event.getPointerId(event.getActionIndex()));
                     break;
             }
             // Up, Down, and Hover events are specific to the action index

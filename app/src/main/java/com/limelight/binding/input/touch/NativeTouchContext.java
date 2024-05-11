@@ -124,7 +124,7 @@ public class NativeTouchContext {
         /**
          * Update native coordinates, relative coordinates & velocity for Pointer instance
          */
-        private void updatePointerCoords(MotionEvent event, int pointerIndex){
+        public void updatePointerCoords(MotionEvent event, int pointerIndex){
             this.previousCoords.x = this.latestCoords.x; // assign x, y coords to this.previousCoords only. Other attributes can be ignored.
             this.previousCoords.y = this.latestCoords.y;
             event.getPointerCoords(pointerIndex, this.latestCoords); // update latestCoords from MotionEvent.
@@ -173,7 +173,7 @@ public class NativeTouchContext {
         /**
          * Judge whether this pointer leaves (2*INTIAL_ZONE_PIXELS)^2 square flat region
          */
-        public boolean doesPointerLeaveInitialZone() {
+        private boolean doesPointerLeaveInitialZone() {
             if (!this.pointerLeftInitialZone) {
                 // Log.d("DeltaXY to Initial Coords", "DeltaX "+deltaX+" DeltaY "+deltaY);
                 float deltaX = this.latestCoords.x - this.initialCoords.x;
@@ -209,6 +209,32 @@ public class NativeTouchContext {
                 this.latestRelativeCoords.x = this.initialCoords.x;
                 this.latestRelativeCoords.y = this.initialCoords.y;
                 // Log.d("pointerLeftInitialZone", ""+pointerLeftInitialZone);
+            }
+        }
+
+        /**
+         * Judge whether pointer's coords should be manipulated based on its initial coords (first contact location)
+         * Only Supports horizontal split (left and right) for now.
+         */
+        private boolean withinEnhancedTouchZone ()
+        {
+            // float[] normalizedCoords = new float[] {pointerIntialCoords[0]/ScreenUtils.getScreenWidth(), pointerIntialCoords[1]/ScreenUtils.getScreenHeight()};
+            float normalizedX = this.initialCoords.x/ScreenUtils.getScreenWidth();
+            return normalizedX * ENHANCED_TOUCH_ON_RIGHT > ENHANCED_TOUCH_ZONE_DIVIDER * ENHANCED_TOUCH_ON_RIGHT;
+        }
+
+        public float[] XYCoordSelector(){
+            if(ENABLE_ENHANCED_TOUCH) {
+                //to judge whether pointer located on enhanced touch zone by its initial coords.
+                if (this.withinEnhancedTouchZone()) {
+                    return new float[] {this.latestRelativeCoords.x,this.latestRelativeCoords.y};
+                }
+                else{
+                    return new float[] {this.latestCoords.x,this.latestCoords.y};
+                }
+            }
+            else{
+                return new float[] {this.latestCoords.x,this.latestCoords.y};
             }
         }
 
@@ -266,16 +292,7 @@ public class NativeTouchContext {
 
     }
 
-    /**
-     * Judge whether pointer's coords should be manipulated based on its initial coords (first contact location)
-     * Only Supports horizontal split (left and right) for now.
-     */
-    private static boolean isEnhancedTouchZone (float[] pointerIntialCoords)
-    {
-        // float[] normalizedCoords = new float[] {pointerIntialCoords[0]/ScreenUtils.getScreenWidth(), pointerIntialCoords[1]/ScreenUtils.getScreenHeight()};
-        float normalizedX = pointerIntialCoords[0]/ScreenUtils.getScreenWidth();
-        return normalizedX * ENHANCED_TOUCH_ON_RIGHT > ENHANCED_TOUCH_ZONE_DIVIDER * ENHANCED_TOUCH_ON_RIGHT;
-    }
+
 
 
     /**
@@ -284,7 +301,7 @@ public class NativeTouchContext {
      * this method is called to access additional pointer info from the list by finding a pointerId match,
      * and decides whether the pointer's coords should be manipulated.
      */
-    public static float[] selectCoordsForPointer(MotionEvent event, int pointerIndex, ArrayList<NativeTouchContext.Pointer> nativeTouchPointers){
+    /* public static float[] selectCoordsForPointer(MotionEvent event, int pointerIndex, ArrayList<NativeTouchContext.Pointer> nativeTouchPointers){
         float selectedX = 0f;
         float selectedY = 0f;
         for (NativeTouchContext.Pointer pointer : nativeTouchPointers) {
@@ -308,12 +325,13 @@ public class NativeTouchContext {
             }
         }
         return new float[] {selectedX, selectedY};
-    }
+    } */
+
 
     /**
      * Safely remove Pointer instance from a List in ACTION_POINTER_UP or ACTION_UP condition
      */
-    public static void safelyRemovePointerFromList(MotionEvent event, ArrayList<NativeTouchContext.Pointer> nativeTouchPointers){
+    /* public static void safelyRemovePointerFromList(MotionEvent event, ArrayList<NativeTouchContext.Pointer> nativeTouchPointers){
         Iterator<Pointer> iterator = nativeTouchPointers.iterator(); //safely remove pointer handler by iterator.
         while (iterator.hasNext()){
             NativeTouchContext.Pointer pointer = iterator.next();
@@ -322,12 +340,12 @@ public class NativeTouchContext {
                 break;
             }
         }
-    }
+    } */
 
     /**
      * Update 1 specific Pointer instance in a List in ACTION_MOVE.
      */
-    public static void updatePointerInList(MotionEvent event,int pointerIndex, ArrayList<NativeTouchContext.Pointer> nativeTouchPointers) {
+     /* public static void updatePointerInList(MotionEvent event,int pointerIndex, ArrayList<NativeTouchContext.Pointer> nativeTouchPointers) {
         for (NativeTouchContext.Pointer pointer : nativeTouchPointers) {
             if (pointer.getPointerId() == event.getPointerId(pointerIndex)) {
                 pointer.updatePointerCoords(event, pointerIndex);
@@ -337,5 +355,5 @@ public class NativeTouchContext {
                 break; // immediately break when we get a pointerId match (this method update 1 pointer in the list)
             }
         }
-    }
+    } */
 }

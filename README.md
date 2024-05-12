@@ -1,16 +1,24 @@
+首个实现分区触点移速调节的fork. 允许调整触点在右分屏或分屏的移速， 对调节米家游戏视角转动的灵敏度尤其有用。
 This is a fork with some manipulation on native multi-touch pointer coordinaties, allows pointer to move faster or slower on specified enhanced touch zone.
 Maybe useful for tweaking view rotation sensitivity in some games.
+<br>
+![image](https://github.com/TrueZhuangJia/moonlight-android-Enhanced-MultiTouch/assets/78474576/3bd8efeb-89ab-477d-b501-22f25cdb8fc6)
+![image](https://github.com/TrueZhuangJia/moonlight-android-Enhanced-MultiTouch/assets/78474576/0d58b391-71ef-48be-82f8-6fef1649e2eb)
 
-![image](https://github.com/TrueZhuangJia/moonlight-android-TZJ/assets/78474576/90a4a100-2786-4629-a5dc-89363d059be8)
 
-Configurable local keyboard toggle:
-
+恢复原版moonlight多指敲击屏幕唤醒本地键盘的方式， 同时允许设置敲击手指数量 <br>
+Configurable local keyboard toggle: <br>
+![image](https://github.com/TrueZhuangJia/moonlight-android-Enhanced-MultiTouch/assets/78474576/416a2960-f0a7-4245-ac62-d8fb53ec4ca7)
 ![image](https://github.com/TrueZhuangJia/moonlight-android-Enhanced-MultiTouch/assets/78474576/a0edaf21-a174-448e-832c-da2d171cefea)
 
-And some additional features like flat region to eliminate long press jitter:
 
-![image](https://github.com/TrueZhuangJia/moonlight-android-TZJ/assets/78474576/c91fb01e-d843-41ef-9ebf-99aafda60ea2)
+还有两个的功能， 使用中你可能未必能感觉到有区别：<br>
+And some additional features like flat region to eliminate long press jitter:<br>
+![image](https://github.com/TrueZhuangJia/moonlight-android-Enhanced-MultiTouch/assets/78474576/0594b3ef-e381-4efc-bc2b-db8f209db272)
+![image](https://github.com/TrueZhuangJia/moonlight-android-Enhanced-MultiTouch/assets/78474576/98534adc-48ad-4433-8d7c-e60b88c13466)
 
+
+触控与显示同步的话，可能有助理于视角旋转时画面的流畅性。
 
 
 # Moonlight Android

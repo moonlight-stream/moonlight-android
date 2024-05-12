@@ -202,7 +202,7 @@
     <string name="summary_checkbox_sync_touch_event_with_display">If enabled, touch event will be synchronized with display refresh rate, like 60Hz.</string>
 
     <string name="title_seekbar_long_press_flat_region">Flat region for long press jitter elimination in multi-point touch mode</string>
-    <string name="summary_seekbar_long_press_flat_region">Increase for larger long-press flat region, within which the app sends initial contact coordinates to server.</string>
+    <string name="summary_seekbar_long_press_flat_region">Works for the whole screen. Increase for larger long-press flat region, within which the app sends initial contact coordinates to server.</string>
     <string name="suffix_seekbar_flat_region_pixels">pixels</string>
 
     <string name="title_checkbox_enable_keyboard_toggle_in_native_touch">Enable keyboard toggle in multi-point touch mode </string>

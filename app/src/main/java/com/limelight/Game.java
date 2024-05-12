@@ -235,7 +235,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
         NativeTouchContext.ENHANCED_TOUCH_ZONE_DIVIDER = prefConfig.enhanceTouchZoneDivider * 0.01f;
         NativeTouchContext.POINTER_VELOCITY_FACTOR = prefConfig.pointerVelocityFactor * 0.01f;
-        NativeTouchContext.POINTER_FIXED_X_VELOCITY = prefConfig.pointerFixedXVelocity;
+        // NativeTouchContext.POINTER_FIXED_X_VELOCITY = prefConfig.pointerFixedXVelocity;
 
         // Enter landscape unless we're on a square screen
         setPreferredOrientationForCurrentDisplay();
@@ -1546,17 +1546,24 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
 
     private float[] getStreamViewRelativeNormalizedXY(View view, MotionEvent event, int pointerIndex) {
-        float normalizedX = event.getX(pointerIndex);
-        float normalizedY = event.getY(pointerIndex);
+        float normalizedX;
+        float normalizedY;
         if(prefConfig.enableEnhancedTouch){
-            float targetCoords[] = new float[] {0f,0f};
             // Coords are replaced by NativeTouchContext here.
             NativeTouchContext.Pointer pointer = nativeTouchPointerMap.get(event.getPointerId(pointerIndex));
-            if(pointer != null){
-                targetCoords = pointer.XYCoordSelector();
+            if(pointer != null) {
+                float targetCoords[] = pointer.XYCoordSelector(); // decides to passthrough or manipulate coords.
+                normalizedX = targetCoords[0];
+                normalizedY = targetCoords[1];
             }
-            normalizedX = targetCoords[0];
-            normalizedY = targetCoords[1];
+            else{
+                normalizedX = 0f; //in this case (pointer == null), pointers are already all up.
+                normalizedY = 0f;
+            }
+        }
+        else{
+            normalizedX = event.getX(pointerIndex);
+            normalizedY = event.getY(pointerIndex);
         }
 
 
@@ -1797,7 +1804,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         else {
             switch(event.getActionMasked()) {
                 case MotionEvent.ACTION_POINTER_DOWN:
-                    multiFingerTapChecker(event);
+                multiFingerTapChecker(event);
                 case MotionEvent.ACTION_DOWN: // first & following finger down.
                     if(prefConfig.enableEnhancedTouch) {
                         NativeTouchContext.Pointer pointer = new NativeTouchContext.Pointer(event); //create a Pointer Instance for new touch pointer, put it into the map.

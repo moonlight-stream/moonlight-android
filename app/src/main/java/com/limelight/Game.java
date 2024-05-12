@@ -227,7 +227,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
         // Set flat region size for long press jitter elimination.
         NativeTouchContext.INTIAL_ZONE_PIXELS = prefConfig.longPressflatRegionPixels;
-        NativeTouchContext.ENABLE_ENHANCED_TOUCH = prefConfig.enableEhancedTouch;
+        NativeTouchContext.ENABLE_ENHANCED_TOUCH = prefConfig.enableEnhancedTouch;
         if(prefConfig.enhancedTouchOnWhichSide){
             NativeTouchContext.ENHANCED_TOUCH_ON_RIGHT = -1;
         }else{
@@ -235,7 +235,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
         NativeTouchContext.ENHANCED_TOUCH_ZONE_DIVIDER = prefConfig.enhanceTouchZoneDivider * 0.01f;
         NativeTouchContext.POINTER_VELOCITY_FACTOR = prefConfig.pointerVelocityFactor * 0.01f;
-        NativeTouchContext.POINTER_FIXED_X_VELOCITY = prefConfig.pointerFixedXVelocity;
+        // NativeTouchContext.POINTER_FIXED_X_VELOCITY = prefConfig.pointerFixedXVelocity;
 
         // Enter landscape unless we're on a square screen
         setPreferredOrientationForCurrentDisplay();
@@ -1546,14 +1546,26 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
 
     private float[] getStreamViewRelativeNormalizedXY(View view, MotionEvent event, int pointerIndex) {
-        float targetCoords[] = new float[] {0f,0f};
-        // Coords are replaced by NativeTouchContext here.
-        NativeTouchContext.Pointer pointer = nativeTouchPointerMap.get(event.getPointerId(pointerIndex));
-        if(pointer != null){
-            targetCoords = pointer.XYCoordSelector();
+        float normalizedX;
+        float normalizedY;
+        if(prefConfig.enableEnhancedTouch){
+            // Coords are replaced by NativeTouchContext here.
+            NativeTouchContext.Pointer pointer = nativeTouchPointerMap.get(event.getPointerId(pointerIndex));
+            if(pointer != null) {
+                float targetCoords[] = pointer.XYCoordSelector(); // decides to passthrough or manipulate coords.
+                normalizedX = targetCoords[0];
+                normalizedY = targetCoords[1];
+            }
+            else{
+                normalizedX = 0f; //in this case (pointer == null), pointers are already all up.
+                normalizedY = 0f;
+            }
         }
-        float normalizedX = targetCoords[0];
-        float normalizedY = targetCoords[1];
+        else{
+            normalizedX = event.getX(pointerIndex);
+            normalizedY = event.getY(pointerIndex);
+        }
+
 
         // For the containing background view, we must subtract the origin
         // of the StreamView to get video-relative coordinates.
@@ -1766,10 +1778,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
         if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
             // Move events may impact all active pointers
-            for (int i = 0; i < event.getPointerCount(); i++) {
-                Objects.requireNonNull(nativeTouchPointerMap.get(event.getPointerId(i))).updatePointerCoords(event, i); // update pointer coords in the map.
-                if (!sendTouchEventForPointer(view, event, eventType, i)) {
-                    return false;
+            if(prefConfig.enableEnhancedTouch) {
+                for (int i = 0; i < event.getPointerCount(); i++) {
+                    Objects.requireNonNull(nativeTouchPointerMap.get(event.getPointerId(i))).updatePointerCoords(event, i); // update pointer coords in the map.
+                    if (!sendTouchEventForPointer(view, event, eventType, i)) {
+                        return false;
+                    }
+                }
+            }
+            else{
+                for (int i = 0; i < event.getPointerCount(); i++) {
+                    if (!sendTouchEventForPointer(view, event, eventType, i)) {
+                        return false;
+                    }
                 }
             }
             return true;
@@ -1783,10 +1804,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         else {
             switch(event.getActionMasked()) {
                 case MotionEvent.ACTION_POINTER_DOWN:
-                    multiFingerTapChecker(event);
+                multiFingerTapChecker(event);
                 case MotionEvent.ACTION_DOWN: // first & following finger down.
-                    NativeTouchContext.Pointer pointer = new NativeTouchContext.Pointer(event); //create a Pointer Instance for new touch pointer, put it into the map.
-                    nativeTouchPointerMap.put(pointer.getPointerId(), pointer);
+                    if(prefConfig.enableEnhancedTouch) {
+                        NativeTouchContext.Pointer pointer = new NativeTouchContext.Pointer(event); //create a Pointer Instance for new touch pointer, put it into the map.
+                        nativeTouchPointerMap.put(pointer.getPointerId(), pointer);
+                    }
                     break;
                 case MotionEvent.ACTION_UP: // all fingers up
                     // toggle keyboard when all fingers lift up, just like how it works in trackpad mode.
@@ -1794,7 +1817,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         toggleKeyboard();
                     }
                 case MotionEvent.ACTION_POINTER_UP:
-                    nativeTouchPointerMap.remove(event.getPointerId(event.getActionIndex()));
+                    if(prefConfig.enableEnhancedTouch) {
+                        nativeTouchPointerMap.remove(event.getPointerId(event.getActionIndex()));
+                    }
                     break;
             }
             // Up, Down, and Hover events are specific to the action index

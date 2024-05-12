@@ -65,7 +65,7 @@ public class NativeTouchContext {
      * Fixed horizontal velocity (in pixels) within enhanced touch zone
      * Config read from prefConfig in Game class
      */
-    public static float POINTER_FIXED_X_VELOCITY = 8f;
+    // public static float POINTER_FIXED_X_VELOCITY = 8f;
 
     /**
      * Object to store, update info & manipulate coordinates for each pointer.
@@ -90,7 +90,9 @@ public class NativeTouchContext {
         /**
          * DeltaX & DeltaY between to 2 onTouch() callbacks.
          */
-        private float pointerVelocity[];
+        private float velocityX;
+        private float velocityY;
+
 
         /**
          * Flipped to true when pointer moves out of (2*INTIAL_ZONE_PIXELS)^2 square flat region.
@@ -102,20 +104,13 @@ public class NativeTouchContext {
          * Pointer class instantiated in ACTION_DOWN, ACTION_POINTER_DOWN Condition.
          */
         public Pointer(MotionEvent event) {
-            int pointerIndex = event.getActionIndex();
-            switch(event.getActionMasked()){
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_POINTER_DOWN:
-                    this.pointerId = event.getPointerId(pointerIndex); // get pointerId
-                    event.getPointerCoords(pointerIndex, this.initialCoords);// Fill in initial coords.
-                    event.getPointerCoords(pointerIndex, this.latestCoords);// Fill in latest coords.
-                    //if(POINTER_VELOCITY_FACTOR != 1.0f){
-                    this.latestRelativeCoords.x = this.latestCoords.x;
-                    this.latestRelativeCoords.y = this.latestCoords.y;
-                    //}
-                    break;
-                default: Log.d("error", "NativeTouchCoordHandler.Pointer must be instantiated in ACTION_DOWN & ACTION_POINTER_DOWN condition");
-            }
+            int pointerIndex = event.getActionIndex(); //get the pointerIndex triggers DOWN event.
+            this.pointerId = event.getPointerId(pointerIndex); // get pointerId
+            event.getPointerCoords(pointerIndex, this.initialCoords);// Fill in initial coords.
+            event.getPointerCoords(pointerIndex, this.latestCoords);// Fill in latest coords.
+            //if(POINTER_VELOCITY_FACTOR != 1.0f){
+            this.latestRelativeCoords.x = this.latestCoords.x;
+            this.latestRelativeCoords.y = this.latestCoords.y;
         }
         public int getPointerId(){
             return this.pointerId;
@@ -128,80 +123,60 @@ public class NativeTouchContext {
             this.previousCoords.x = this.latestCoords.x; // assign x, y coords to this.previousCoords only. Other attributes can be ignored.
             this.previousCoords.y = this.latestCoords.y;
             event.getPointerCoords(pointerIndex, this.latestCoords); // update latestCoords from MotionEvent.
-            // float deltaX = this.latestCoords.x - this.previousCoords.x;
-            // float deltaY = this.latestCoords.y - this.previousCoords.y;
 
-            if(ENABLE_ENHANCED_TOUCH) {
-                this.pointerVelocity = new float[]{this.latestCoords.x - this.previousCoords.x, this.latestCoords.y - this.previousCoords.y};
-                // Log.d("Velocity","" + this.pointerVelocity[0] + "   " + this.pointerVelocity[1] );
-                // XY速率同比例缩放，Pointer向量方向不变
-                if (POINTER_FIXED_X_VELOCITY == 0f) {
-                    this.updateRelativeCoordsAverageXYScale();
-                }
-                // 固定X速率模式，该模式下仍可用POINTER_VELOCITY_FACTOR调整Y的速率
-                else {
-                    this.updateRelativeCoordsFixedXVelocity();
-                }
+            if(POINTER_VELOCITY_FACTOR == 1.0f) {
+                this.latestRelativeCoords.x = this.latestCoords.x;
+                this.latestRelativeCoords.y = this.latestCoords.y;
             }
+            else this.updateRelativeCoords();
 
-            if(INTIAL_ZONE_PIXELS > 0f){
-                this.flattenLongPressJitter();
-            }
+            // 固定X速率模式，该模式下仍可用POINTER_VELOCITY_FACTOR调整Y的速率
+            // if(POINTER_FIXED_X_VELOCITY != 0f)  this.updateRelativeCoordsFixedXVelocity();
+
+            if(INTIAL_ZONE_PIXELS > 0f) this.flattenLongPressJitter();
             // Log.d("INTIAL_ZONE_PIXELS", ""+INTIAL_ZONE_PIXELS);
         }
 
         /**
          * Update relative coordinates with velocity scaled by POINTER_VELOCITY_FACTOR
          */
-        private void updateRelativeCoordsAverageXYScale(){
+        private void updateRelativeCoords(){
+            this.velocityX = this.latestCoords.x - this.previousCoords.x;
+            this.velocityY = this.latestCoords.y - this.previousCoords.y;
             this.previousRelativeCoords.x = this.latestRelativeCoords.x;
             this.previousRelativeCoords.y = this.latestRelativeCoords.y;
-            this.latestRelativeCoords.x = this.previousRelativeCoords.x + this.pointerVelocity[0] * POINTER_VELOCITY_FACTOR;
-            this.latestRelativeCoords.y = this.previousRelativeCoords.y + this.pointerVelocity[1] * POINTER_VELOCITY_FACTOR;
+            this.latestRelativeCoords.x = this.previousRelativeCoords.x + this.velocityX * POINTER_VELOCITY_FACTOR;
+            this.latestRelativeCoords.y = this.previousRelativeCoords.y + this.velocityY * POINTER_VELOCITY_FACTOR;
         }
 
         /**
          * Update relative coordinates with fixed X velocity
          */
-        private void updateRelativeCoordsFixedXVelocity(){
+        /* private void updateRelativeCoordsFixedXVelocity(){
+            this.velocityX = this.latestCoords.x - this.previousCoords.x;
+            this.velocityY = this.latestCoords.y - this.previousCoords.y;
             this.previousRelativeCoords.x = this.latestRelativeCoords.x;
             this.previousRelativeCoords.y = this.latestRelativeCoords.y;
-            this.latestRelativeCoords.x = this.previousRelativeCoords.x + Math.signum(pointerVelocity[0]) * POINTER_FIXED_X_VELOCITY;
-            this.latestRelativeCoords.y = this.previousRelativeCoords.y + this.pointerVelocity[1] * POINTER_VELOCITY_FACTOR;
-        }
+            this.latestRelativeCoords.x = this.previousRelativeCoords.x + Math.signum(this.velocityX) * POINTER_FIXED_X_VELOCITY;
+            this.latestRelativeCoords.y = this.previousRelativeCoords.y + this.velocityY * POINTER_VELOCITY_FACTOR;
+        } */
 
         /**
          * Judge whether this pointer leaves (2*INTIAL_ZONE_PIXELS)^2 square flat region
          */
-        private boolean doesPointerLeaveInitialZone() {
+        private void checkIfPointerLeaveInitialZone() {
             if (!this.pointerLeftInitialZone) {
-                // Log.d("DeltaXY to Initial Coords", "DeltaX "+deltaX+" DeltaY "+deltaY);
-                float deltaX = this.latestCoords.x - this.initialCoords.x;
-                float deltaY = this.latestCoords.y - this.initialCoords.y;
-                /*
-                if(ENABLE_ENHANCED_TOUCH){
-                    deltaX = (this.latestRelativeCoords.x - this.initialCoords.x);
-                    deltaY = (this.latestRelativeCoords.y - this.initialCoords.y);
-                }else{
-                    deltaX = (this.latestCoords.x - this.initialCoords.x);
-                    deltaY = (this.latestCoords.y - this.initialCoords.y);
-                }*/
-
-                // Note: Flat Region is scaled by POINTER_VELOCITY_FACTOR
-                // if (Math.abs(deltaX) > INTIAL_ZONE_PIXELS * POINTER_VELOCITY_FACTOR || Math.abs(deltaY) > INTIAL_ZONE_PIXELS * POINTER_VELOCITY_FACTOR) {
-                if (Math.abs(deltaX) > INTIAL_ZONE_PIXELS || Math.abs(deltaY) > INTIAL_ZONE_PIXELS) {
+                if (Math.abs(this.latestCoords.x - this.initialCoords.x) > INTIAL_ZONE_PIXELS || Math.abs(this.latestCoords.y - this.initialCoords.y) > INTIAL_ZONE_PIXELS) {
                         this.pointerLeftInitialZone = true; //Flips pointerLeftInitialZone to true when pointer moves out of flat region.
-                        return this.pointerLeftInitialZone;
                 }
             }
-            return this.pointerLeftInitialZone;
         }
 
         /**
          * Resets latest coords (both native & relative) to initial coords if pointer doesn't leave flat region.
          */
         private void flattenLongPressJitter(){
-            this.doesPointerLeaveInitialZone();
+            this.checkIfPointerLeaveInitialZone();
             // Log.d("INTIAL_ZONE_PIXELS", ""+INTIAL_ZONE_PIXELS);
             if(!this.pointerLeftInitialZone){
                 this.latestCoords.x = this.initialCoords.x;
@@ -224,18 +199,9 @@ public class NativeTouchContext {
         }
 
         public float[] XYCoordSelector(){
-            if(ENABLE_ENHANCED_TOUCH) {
                 //to judge whether pointer located on enhanced touch zone by its initial coords.
-                if (this.withinEnhancedTouchZone()) {
-                    return new float[] {this.latestRelativeCoords.x,this.latestRelativeCoords.y};
-                }
-                else{
-                    return new float[] {this.latestCoords.x,this.latestCoords.y};
-                }
-            }
-            else{
-                return new float[] {this.latestCoords.x,this.latestCoords.y};
-            }
+            if (this.withinEnhancedTouchZone()) return new float[] {this.latestRelativeCoords.x,this.latestRelativeCoords.y};
+            else return new float[] {this.latestCoords.x,this.latestCoords.y};
         }
 
         public float getInitialX(){

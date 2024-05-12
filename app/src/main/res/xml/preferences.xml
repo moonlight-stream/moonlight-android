@@ -139,18 +139,6 @@
             android:title="@string/title_checkbox_sync_touch_event_with_display"
             android:summary="@string/summary_checkbox_sync_touch_event_with_display"
             android:defaultValue="false" />
-        <com.limelight.preferences.SeekBarPreference
-            android:key="seekbar_flat_region_pixels"
-            android:dialogMessage="@string/summary_seekbar_long_press_flat_region"
-            seekbar:min="0"
-            android:max="250"
-            seekbar:step="1"
-            seekbar:keyStep="1"
-            seekbar:divisor="1"
-            android:defaultValue = "0"
-            android:summary="@string/summary_seekbar_long_press_flat_region"
-            android:text="@string/suffix_seekbar_flat_region_pixels"
-            android:title="@string/title_seekbar_long_press_flat_region" />
         <CheckBoxPreference
             android:key="checkbox_enable_keyboard_toggle_in_native_touch"
             android:title="@string/title_checkbox_enable_keyboard_toggle_in_native_touch"
@@ -187,6 +175,19 @@
             android:key="checkbox_enable_enhanced_touch"
             android:summary="@string/summary_checkbox_enable_enhanced_touch"
             android:title="@string/title_checkbox_enable_enhanced_touch" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_flat_region_pixels"
+            android:dependency="checkbox_enable_enhanced_touch"
+            android:dialogMessage="@string/summary_seekbar_long_press_flat_region"
+            seekbar:min="0"
+            android:max="250"
+            seekbar:step="1"
+            seekbar:keyStep="1"
+            seekbar:divisor="1"
+            android:defaultValue = "0"
+            android:summary="@string/summary_seekbar_long_press_flat_region"
+            android:text="@string/suffix_seekbar_flat_region_pixels"
+            android:title="@string/title_seekbar_long_press_flat_region" />
         <CheckBoxPreference
             android:key="checkbox_enhanced_touch_on_which_side"
             android:dependency="checkbox_enable_enhanced_touch"
@@ -215,17 +216,6 @@
             android:summary="@string/summary_pointer_velocity_factor"
             android:text="@string/suffix_pointer_velocity_factor"
             android:title="@string/title_pointer_velocity_factor" />
-        <com.limelight.preferences.SeekBarPreference
-            android:key="fixed_x_velocity"
-            android:dependency="checkbox_enable_enhanced_touch"
-            android:dialogMessage="@string/dialog_title_fixed_x_velocity"
-            seekbar:min="0"
-            seekbar:step="1"
-            android:max="50"
-            android:defaultValue="0"
-            android:summary="@string/summary_fixed_x_velocity"
-            android:text="@string/suffix_fixed_x_velocity"
-            android:title="@string/title_fixed_x_velocity" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_on_screen_controls_settings"
         android:key="category_onscreen_controls">

@@ -211,7 +211,7 @@
             android:dialogMessage="@string/dialog_title_pointer_velocity_factor"
             seekbar:min="0"
             seekbar:step="1"
-            android:max="200"
+            android:max="500"
             android:defaultValue="100"
             android:summary="@string/summary_pointer_velocity_factor"
             android:text="@string/suffix_pointer_velocity_factor"

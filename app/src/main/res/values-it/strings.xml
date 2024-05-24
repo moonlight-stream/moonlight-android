@@ -279,4 +279,13 @@
     <string name="pair_pairing_help">Se il tuo PC host sta eseguendo Sunshine, vai nella pagina web locale di Sunshine ed inserisci il PIN.</string>
     <string name="title_checkbox_gamepad_touchpad_as_mouse">Controlla sempre il mouse col touchpad</string>
     <string name="perf_overlay_hostprocessinglatency">Latenza di codifica da parte dell\'host min/max/average: %1$.1f/%2$.1f/%3$.1f ms</string>
+    <string name="error_code_prefix">Codice di errore:</string>
+    <string name="title_seekbar_vibrate_fallback_strength">Aggiusta l\'intensità della vibrazione emulata</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">Amplifica o riduci l\'intensità della vibrazione sul tuo dispositivo</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="title_analog_scrolling">Utilizza lo stick analogico per scorrere</string>
+    <string name="summary_analog_scrolling">Seleziona uno stick analogico per scorrere durante la modalità di emulazione del mouse</string>
+    <string name="analogscroll_none">Nessuna (entrambi gli stick muovono il mouse)</string>
+    <string name="analogscroll_right">Stick analogico destro</string>
+    <string name="analogscroll_left">Stick analogico sinistro</string>
 </resources>

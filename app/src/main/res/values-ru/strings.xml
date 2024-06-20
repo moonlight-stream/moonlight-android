@@ -8,7 +8,9 @@
     <string name="pcview_menu_delete_pc">Удалить PC</string>
     <!-- Network test strings -->
     <string name="nettest_title_waiting">Тестирование Сетевого Подключения</string>
-    <string name="nettest_text_waiting">Moonlight тестирует ваше сетевое подключение, чтобы определить, заблокирован ли NVIDIA GameStream.\n\nЭто может занять некоторое время…</string>
+    <string name="nettest_text_waiting">Moonlight тестирует ваше сетевое подключение, чтобы определить, заблокированы ли нужные порты.
+\n
+\nЭто может занять некоторое время…</string>
     <string name="nettest_title_done">Тестирование Подключения Завершено</string>
     <string name="nettest_text_success">Ваша сеть не блокирует Moonlight. Если у вас всё ещё есть проблемы с соединением, проверьте настройки брандмауэра на компьютере.\n\nЕсли вы пытаетесь транслировать через интернет, установите Moonlight Internet Hosting Tool на ваш компьютер и запустите установленный Internet Streaming Tester, чтобы проверить Интернет-соединение на вашем компьютере.</string>
     <string name="nettest_text_inconclusive">Тестирование подключения не может быть выполнено, потому что сервера тестирования подключения Moonlight не доступны. Проверьте ваше Интернет-соединение или повторите попытку позже.</string>
@@ -23,7 +25,7 @@
     <string name="pair_fail">Создание пары не удалось</string>
     <!-- WOL messages -->
     <string name="wol_pc_online">Компьютер в сети</string>
-    <string name="wol_no_mac">Невозможно разбудить PC потому что GFE не отправило MAC адрес</string>
+    <string name="wol_no_mac">Невозможно разбудить компьютер, поскольку нет сохраненного MAC-адреса</string>
     <string name="wol_waking_pc">Пробуждение PC…</string>
     <string name="wol_waking_msg">Пробуждение PC может занять несколько секунд.
 	    Если этого не происходит, удостоверьтесь что Wake-On-LAN настроен правильно.
@@ -52,11 +54,12 @@
     <string name="conn_error_title">Ошибка соединения</string>
     <string name="conn_error_msg">Запуск не удался</string>
     <string name="conn_terminated_title">Соединение прекращено</string>
-    <string name="conn_terminated_msg">Подключение было прервано</string>
+    <string name="conn_terminated_msg">Подключение было прервано.</string>
     <!-- General strings -->
-    <string name="ip_hint">IP-адрес компьютера с GeForce</string>
-    <string name="searching_pc">Поиск компьютеров с запущенным GameStream…\n\n
-        Убедитесь что GameStream включен в настройках GeForce Experience в разделе SHIELD.</string>
+    <string name="ip_hint">IP-адрес хост-ПК</string>
+    <string name="searching_pc">Поиск хост-ПК в вашей локальной сети…
+\n
+\n Убедитесь, что Sunshine работает на вашем хост-компьютере или GameStream включен в настройках GeForce Experience SHIELD.</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="lost_connection">Потеряно соединение с PC</string>
@@ -112,8 +115,8 @@
     <string name="title_checkbox_host_audio">Проигрывать звук на PC</string>
     <string name="summary_checkbox_host_audio">Проигрывать звук на компьютере и текущем устройстве</string>
     <string name="category_advanced_settings">Расширенные Настройки</string>
-    <string name="title_video_format">Изменить настройки HEVC</string>
-    <string name="summary_video_format">HEVC снижает требования к пропускной способности, но требует очень нового устройства</string>
+    <string name="title_video_format">Изменить настройки кодека</string>
+    <string name="summary_video_format">Новые кодеки могут снизить требования к пропускной способности видео, если ваше устройство их поддерживает. Выбор кодека можно игнорировать, если он не поддерживается ПО хоста или графическим процессором.</string>
     <string name="category_on_screen_controls_settings">Настройки Экранных Кнопок</string>
     <string name="title_checkbox_show_onscreen_controls">Показывать экранные кнопки</string>
     <string name="summary_checkbox_show_onscreen_controls">Отображать оверлей виртуального контроллера на сенсорном экране</string>
@@ -129,7 +132,7 @@
     <string name="help">Помощь</string>
     <string name="applist_connect_msg">Подключение к PC…</string>
     <string name="title_decoding_error">Сбой Видео Декодера</string>
-    <string name="message_decoding_error">Произошел сбой Moonlight из-за проблем с видео декодером данного устройства. Попробуйте изменить настройки трансляции если сбои будут продолжаться.</string>
+    <string name="message_decoding_error">Moonlight произошел сбой из-за несовместимости с видеодекодером этого устройства. Попробуйте изменить настройки потоковой передачи, если сбои продолжаются.</string>
     <string name="title_decoding_reset">Видео Настройки Сброшены</string>
     <string name="message_decoding_reset">Видео декодер Вашего устройства давал сбои с выбранными настройками. Настройки трансляции были сброшены до значений по умолчанию.</string>
     <string name="error_usb_prohibited">USB доступ запрещен администратором устройства. Проверьте настройки Knox или MDM.</string>
@@ -148,7 +151,7 @@
     <string name="title_disable_frame_drop">Никогда не пропускать кадры</string>
     <string name="summary_disable_frame_drop">Может уменьшить микрозависания на некоторых устройствах, но также увеличить задержку</string>
     <string name="title_enable_hdr">Включить HDR (Экспериментально)</string>
-    <string name="summary_enable_hdr">Транслировать в HDR если игра и GPU компьютера поддерживают это. HDR требует видеокарты GTX 1000 серии или более новой.</string>
+    <string name="summary_enable_hdr">Потоковая передача с HDR, когда игра и графический процессор ПК поддерживают эту функцию. Для HDR требуется графический процессор с поддержкой кодирования HEVC Main 10.</string>
     <string name="title_enable_post_stream_toast">Показывать отчёт о задержке после трансляции</string>
     <string name="summary_enable_post_stream_toast">Отобразить сообщение с информацией о задержке после окончания трансляции.</string>
     <string name="title_checkbox_vibrate_osc">Включить вибрацию</string>
@@ -188,26 +191,24 @@
     <string name="applist_menu_hide_app">Скрыть приложение</string>
     <string name="pcview_menu_test_network">Тестовое подключение к сети</string>
     <string name="pcview_menu_header_unknown">Обновление</string>
-    <string name="pcview_menu_header_offline">Оффлайн</string>
-    <string name="pcview_menu_header_online">Онлайн</string>
+    <string name="pcview_menu_header_offline">Не в сети</string>
+    <string name="pcview_menu_header_online">В сети</string>
     <string name="title_osc_opacity">Изменить прозрачность экранных элементов управления</string>
     <string name="check_ports_msg">Проверьте свой брандмауэр и правила переадресации портов для порта(ов):</string>
-    <string name="early_termination_error">Что-то пошло не так на вашем хост-компьютере при запуске трансляции.
+    <string name="early_termination_error">При запуске потока на вашем хост-компьютере что-то пошло не так.
 \n
-\nУбедитесь, что на вашем компьютере нет содержимого, защищенного DRM. Вы также можете попробовать перезагрузить компьютер.
-\n
-\nЕсли проблема сохраняется, попробуйте переустановить драйверы для GPU и GeForce Experience.</string>
+\nУбедитесь, что на вашем хост-ПК не открыт контент, защищенный DRM. Вы также можете попробовать перезагрузить хост-компьютер.</string>
     <string name="no_frame_received_error">Ваше сетевое подключение не справляется с заданными настройками. Попробуйте изменить битрейт или использовать более быстрое подключение.</string>
     <string name="no_video_received_error">Видео от хоста не получено.</string>
     <string name="nettest_text_blocked">Текущее сетевое соединение вашего устройства блокирует Moonlight. Потоковая передача через Интернет может не работать при подключении к этой сети.</string>
     <string name="resolution_prefix_native">Родное</string>
-    <string name="text_native_res_dialog">Режимы родного разрешения официально не поддерживаются GeForce Experience, поэтому он не будет устанавливать разрешение экрана вашего хоста самостоятельно. Вам нужно будет установить его вручную во время игры.
+    <string name="text_native_res_dialog">Режимы родного разрешения официально не поддерживаются GeForce Experience, поэтому он не будет устанавливать разрешение экрана вашего хоста самостоятельно. Вам нужно будет установить его вручную.
 \n
 \nЕсли вы решите создать пользовательское разрешение в Панели управления NVIDIA в соответствии с разрешением вашего устройства, убедитесь, что вы прочитали и поняли предупреждение NVIDIA относительно возможного повреждения монитора, нестабильности ПК и других потенциальных проблем.
 \n
 \nМы не несем ответственности за какие-либо проблемы, возникающие в результате создания пользовательского разрешения на вашем ПК.
 \n
-\nНаконец, ваше устройство или хост-компьютер может не поддерживать потоковую передачу в родном разрешении. Если это не работает на вашем устройстве, к сожалению, вам просто не повезло.</string>
+\nНаконец, ваше устройство или хост-ПК может не поддерживать потоковую передачу в родном разрешении. Если это не работает на вашем устройстве, к сожалению, вам просто не повезло.</string>
     <string name="title_native_res_dialog">Предупреждение о родном разрешении</string>
     <string name="video_decoder_init_failed">Видеодекодер не инициализирован. Ваше устройство может не поддерживать выбранное разрешение или частоту кадров.</string>
     <string name="perf_overlay_streamdetails">Видеострим: %1$s %2$.2f FPS</string>
@@ -218,7 +219,7 @@
     <string name="audioconf_51surround">5.1 Объёмный звук</string>
     <string name="audioconf_71surround">7.1 Объёмный звук</string>
     <string name="videoformat_auto">Автоматически</string>
-    <string name="videoformat_hevcalways">Всегда использовать HEVC если доступно</string>
+    <string name="videoformat_hevcalways">Предпочитать HEVC</string>
     <string name="pacing_latency">Минимальная задержка</string>
     <string name="pacing_balanced">Баланс</string>
     <string name="pacing_smoothness">Максимальная плавность (может значительно увеличить задержку)</string>
@@ -254,4 +255,31 @@
     <string name="title_frame_pacing">Скорость вывода/отрисовки кадра</string>
     <string name="pacing_balanced_alt">Сбалансированно с лимитом FPS</string>
     <string name="resolution_480p">480p</string>
+    <string name="fps_suffix_fps">FPS</string>
+    <string name="title_native_fps_dialog">Встроенное предупреждение о FPS</string>
+    <string name="category_gamepad_settings">Настройки геймпада</string>
+    <string name="title_seekbar_vibrate_fallback_strength">Отрегулируйте интенсивность эмулируемой вибрации</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="title_full_range">Принудительное полнодиапазонное видео (экспериментальное)</string>
+    <string name="summary_full_range">Это приведет к потере детализации в светлых и темных областях, если ваше устройство не отображает видеоконтент в полном диапазоне должным образом.</string>
+    <string name="toast_controller_type_changed">Тип геймпада может быть изменен из-за эмуляции датчика движения</string>
+    <string name="videoformat_av1always">Предпочитать AV1 (экспериментальный)</string>
+    <string name="title_analog_scrolling">Использовать аналоговый джойстик для прокрутки</string>
+    <string name="analogscroll_right">Правый аналоговый джойстик</string>
+    <string name="pair_pairing_help">Если на вашем хост-ПК установлен Sunshine, перейдите в веб-интерфейс Sunshine и введите PIN-код.</string>
+    <string name="error_code_prefix">Код ошибки:</string>
+    <string name="perf_overlay_hostprocessinglatency">Задержка обработки хоста мин/макс/среднее: %1$.1f/%2$.1f/%3$.1f мс</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">Увеличьте или уменьшите интенсивность вибрации на вашем устройстве</string>
+    <string name="summary_checkbox_gamepad_touchpad_as_mouse">Заставляет ввод с сенсорной панели геймпада управлять мышью хоста, даже при эмуляции геймпада с помощью тачпада.</string>
+    <string name="title_checkbox_gamepad_motion_sensors">Разрешить использование датчиков движения геймпада</string>
+    <string name="title_checkbox_gamepad_touchpad_as_mouse">Всегда управлять мышью с помощью тачпада</string>
+    <string name="title_checkbox_gamepad_motion_fallback">Эмулировать поддержку датчика движения геймпада</string>
+    <string name="summary_checkbox_gamepad_motion_sensors">Позволяет поддерживаемым хостам запрашивать данные датчиков движения при эмуляции геймпада с датчиками движения. Отключение может немного снизить энергопотребление и использование сети, если датчики движения не используются в игре.</string>
+    <string name="summary_checkbox_gamepad_motion_fallback">Использует встроенные датчики движения вашего устройства, если датчики геймпада не поддерживаются подключенным геймпадом или версией Android.
+\nПримечание. Включение этой опции может привести к тому, что ваш геймпад будет отображаться на хосте как контроллер PlayStation.</string>
+    <string name="videoformat_h264always">Предпочитать H.264</string>
+    <string name="summary_analog_scrolling">Выбрать аналоговый джойстик для прокрутки в режиме эмуляции мыши</string>
+    <string name="analogscroll_none">Нет (оба джойстика перемещают мышь)</string>
+    <string name="analogscroll_left">Левый аналоговый джойстик</string>
+    <string name="pcview_menu_eol">NVIDIA GameStream Обслуживание окончено</string>
 </resources>

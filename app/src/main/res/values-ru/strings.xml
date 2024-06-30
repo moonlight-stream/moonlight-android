@@ -2,16 +2,16 @@
 <resources>
     <!-- PC view menu entries -->
     <string name="pcview_menu_app_list">Посмотреть список игр</string>
-    <string name="pcview_menu_pair_pc">Создать пару с PC</string>
+    <string name="pcview_menu_pair_pc">Создать пару с ПК</string>
     <string name="pcview_menu_unpair_pc">Разорвать пару</string>
     <string name="pcview_menu_send_wol">Отправить Wake-On-LAN запрос</string>
-    <string name="pcview_menu_delete_pc">Удалить PC</string>
+    <string name="pcview_menu_delete_pc">Удалить ПК</string>
     <!-- Network test strings -->
-    <string name="nettest_title_waiting">Тестирование Сетевого Подключения</string>
+    <string name="nettest_title_waiting">Тестирование сетевого подключения</string>
     <string name="nettest_text_waiting">Moonlight тестирует ваше сетевое подключение, чтобы определить, заблокированы ли нужные порты.
 \n
 \nЭто может занять некоторое время…</string>
-    <string name="nettest_title_done">Тестирование Подключения Завершено</string>
+    <string name="nettest_title_done">Тестирование подключения завершено</string>
     <string name="nettest_text_success">Ваша сеть не блокирует Moonlight. Если у вас всё ещё есть проблемы с соединением, проверьте настройки брандмауэра на компьютере.\n\nЕсли вы пытаетесь транслировать через интернет, установите Moonlight Internet Hosting Tool на ваш компьютер и запустите установленный Internet Streaming Tester, чтобы проверить Интернет-соединение на вашем компьютере.</string>
     <string name="nettest_text_inconclusive">Тестирование подключения не может быть выполнено, потому что сервера тестирования подключения Moonlight не доступны. Проверьте ваше Интернет-соединение или повторите попытку позже.</string>
     <string name="nettest_text_failure">Похоже, что текущее сетевое подключение вашего устройства блокирует Moonlight. Трансляция через Интернет может не работать при подключении к этой сети.\n\nСледующие сетевые порты были заблокированы:\n</string>
@@ -20,16 +20,14 @@
     <string name="pair_pc_offline">Компьютер выключен или находится не в сети</string>
     <string name="pair_pc_ingame">Компьютер в данный момент находится в игре. Вы должны закрыть игру перед создание пары.</string>
     <string name="pair_pairing_title">Создание пары</string>
-    <string name="pair_pairing_msg">Пожалуйста введите этот PIN на PC:</string>
+    <string name="pair_pairing_msg">Пожалуйста введите этот PIN на целевом ПК:</string>
     <string name="pair_incorrect_pin">Неправильный PIN</string>
     <string name="pair_fail">Создание пары не удалось</string>
     <!-- WOL messages -->
     <string name="wol_pc_online">Компьютер в сети</string>
     <string name="wol_no_mac">Невозможно разбудить компьютер, поскольку нет сохраненного MAC-адреса</string>
-    <string name="wol_waking_pc">Пробуждение PC…</string>
-    <string name="wol_waking_msg">Пробуждение PC может занять несколько секунд.
-	    Если этого не происходит, удостоверьтесь что Wake-On-LAN настроен правильно.
-    </string>
+    <string name="wol_waking_pc">Пробуждение ПК…</string>
+    <string name="wol_waking_msg">Пробуждение ПК может занять несколько секунд. Если этого не происходит, удостоверьтесь что Wake-On-LAN настроен правильно.</string>
     <string name="wol_fail">Ошибка при отправке Wake-On-LAN пакетов</string>
     <!-- Unpair messages -->
     <string name="unpairing">Разрыв пары…</string>
@@ -40,16 +38,14 @@
     <string name="error_pc_offline">Компьютер выключен или находится не в сети</string>
     <string name="error_manager_not_running">Сервис ComputerManager не запущен. Пожалуйста, подождите несколько секунд или перезапустите приложение.</string>
     <string name="error_unknown_host">Не удалось найти хост</string>
-    <string name="error_404">GFE вернул ошибку HTTP 404. Убедитесь что Ваш PC использует поддерживаемый GPU.
-	    Использование программ для удалённого доступа также может вызывать эту ошибку. Попробуйте перезагрузить компьютер или переустановить GFE.
-    </string>
+    <string name="error_404">GFE вернул ошибку HTTP 404. Убедитесь что Ваш ПК использует поддерживаемый GPU. Использование программ для удалённого доступа также может вызывать эту ошибку. Попробуйте перезагрузить компьютер или переустановить GFE.</string>
     <!-- Start application messages -->
     <string name="conn_establishing_title">Создание соединения</string>
     <string name="conn_establishing_msg">Подключение</string>
     <string name="conn_metered">Внимание: Происходит измерение Вашего сетевого соединения!</string>
     <string name="conn_client_latency">Средняя задержка декодирования кадра: </string>
-    <string name="conn_client_latency_hw">задержка аппаратного декодирования:</string>
-    <string name="conn_hardware_latency">Средняя задержка апаратного декодирования:</string>
+    <string name="conn_client_latency_hw">Задержка аппаратного декодирования:</string>
+    <string name="conn_hardware_latency">Средняя задержка аппаратного декодирования:</string>
     <string name="conn_starting">Запуск</string>
     <string name="conn_error_title">Ошибка соединения</string>
     <string name="conn_error_msg">Запуск не удался</string>
@@ -62,7 +58,7 @@
 \n Убедитесь, что Sunshine работает на вашем хост-компьютере или GameStream включен в настройках GeForce Experience SHIELD.</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
-    <string name="lost_connection">Потеряно соединение с PC</string>
+    <string name="lost_connection">Потеряно соединение с ПК</string>
     <!-- AppList activity -->
     <string name="applist_menu_resume">Возобновить сессию</string>
     <string name="applist_menu_quit">Выйти из сессии</string>
@@ -78,22 +74,22 @@
     <string name="applist_quit_fail">Ошибка при выходе</string>
     <string name="applist_quit_confirmation">Вы уверены, что хотите выйти из запущенного приложения? Все несохраненные данные будут потеряны.</string>
     <!-- Add computer manually activity -->
-    <string name="title_add_pc">Добавление PC вручную</string>
-    <string name="msg_add_pc">Соединение с PC…</string>
+    <string name="title_add_pc">Добавление ПК вручную</string>
+    <string name="msg_add_pc">Соединение с ПК…</string>
     <string name="addpc_fail">Не удалось подключиться к выбранному компьютеру. Удостоверьтесь, что необходимые порты разрешены в настройках брандмауэра.</string>
     <string name="addpc_success">Компьютер добавлен успешно</string>
-    <string name="addpc_unknown_host">Не удалось найти PC по указанному адресу. Убедитесь, что Вы не совершили ошибок во время его написания.</string>
+    <string name="addpc_unknown_host">Не удалось найти ПК по указанному адресу. Убедитесь, что Вы не совершили ошибок во время его написания.</string>
     <string name="addpc_enter_ip">Вы должны ввести IP адрес</string>
     <!-- Preferences -->
-    <string name="category_basic_settings">Общие Настройки</string>
+    <string name="category_basic_settings">Основные настройки</string>
     <string name="title_resolution_list">Выберите разрешение и частоту кадров</string>
     <string name="summary_resolution_list">Увеличьте для повышения чёткости изображения. Уменьшите для лучшей производительности на медленных устройствах или сетях.</string>
     <string name="title_seekbar_bitrate">Выберите битрейт видео</string>
-    <string name="summary_seekbar_bitrate">Низкий битрейт уменьшит зависания. Увеличение битрейта улучшит качество изображения.</string>
+    <string name="summary_seekbar_bitrate">Увеличьте для лучшего качества изображения. Уменьшите, чтобы улучшить производительность при более медленных соединениях.</string>
     <string name="title_checkbox_stretch_video">Растягивать видео на весь экран</string>
     <string name="title_checkbox_disable_warnings">Отключить сообщения с предупреждениями</string>
     <string name="summary_checkbox_disable_warnings">Выключить экранные предупреждения о соединении во время трансляции</string>
-    <string name="category_audio_settings">Аудио Настройки</string>
+    <string name="category_audio_settings">Аудио настройки</string>
     <string name="title_audio_config_list">Настройка объёмного звука</string>
     <string name="summary_audio_config_list">Включить объёмный звук 5.1 или 7.1 для систем домашнего кинотеатра</string>
     <string name="title_checkbox_multi_controller">Поддержка нескольких контроллеров</string>
@@ -104,38 +100,38 @@
     <string name="summary_checkbox_xb1_driver">Включить встроенный USB драйвер для устройств без собственной поддержки контроллеров Xbox</string>
     <string name="title_checkbox_flip_face_buttons">Перевернуть кнопки A/B и X/Y</string>
     <string name="summary_checkbox_flip_face_buttons">Меняет местами кнопки A/B и X/Y на геймпадах и экранных кнопках</string>
-    <string name="category_ui_settings">Настройки Интерфейса</string>
+    <string name="category_ui_settings">Настройки интерфейса</string>
     <string name="title_language_list">Язык</string>
     <string name="summary_language_list">Язык, который будет использоваться в Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Использовать маленькие иконки</string>
     <string name="summary_checkbox_small_icon_mode">Использовать маленькие иконки в сетке для отображения большего числа элементов на экране</string>
-    <string name="category_host_settings">Настройки Хоста</string>
+    <string name="category_host_settings">Настройки хоста</string>
     <string name="title_checkbox_enable_sops">Оптимизировать игровые настройки</string>
     <string name="summary_checkbox_enable_sops">Разрешить GFE изменять настройки игр для оптимальной трансляции</string>
-    <string name="title_checkbox_host_audio">Проигрывать звук на PC</string>
+    <string name="title_checkbox_host_audio">Проигрывать звук на ПК</string>
     <string name="summary_checkbox_host_audio">Проигрывать звук на компьютере и текущем устройстве</string>
     <string name="category_advanced_settings">Расширенные Настройки</string>
     <string name="title_video_format">Изменить настройки кодека</string>
     <string name="summary_video_format">Новые кодеки могут снизить требования к пропускной способности видео, если ваше устройство их поддерживает. Выбор кодека можно игнорировать, если он не поддерживается ПО хоста или графическим процессором.</string>
-    <string name="category_on_screen_controls_settings">Настройки Экранных Кнопок</string>
+    <string name="category_on_screen_controls_settings">Настройки экранных кнопок</string>
     <string name="title_checkbox_show_onscreen_controls">Показывать экранные кнопки</string>
     <string name="summary_checkbox_show_onscreen_controls">Отображать оверлей виртуального контроллера на сенсорном экране</string>
     <string name="title_only_l3r3">Показывать только L3 и R3</string>
     <string name="summary_only_l3r3">Скрывать все экранные кнопки кроме L3 и R3</string>
     <string name="summary_osc_opacity">Сделать экранные кнопки более/менее прозрачными</string>
     <string name="dialog_title_osc_opacity">Изменить прозрачность</string>
-    <string name="scut_deleted_pc">PC удален</string>
-    <string name="scut_not_paired">PC не сопряжен</string>
-    <string name="help_loading_title">Просмотр Помощи</string>
+    <string name="scut_deleted_pc">ПК удален</string>
+    <string name="scut_not_paired">ПК не сопряжен</string>
+    <string name="help_loading_title">Просмотр помощи</string>
     <string name="help_loading_msg">Загрузка страницы помощи…</string>
     <string name="pair_already_in_progress">Сопряжение уже в процессе</string>
     <string name="help">Помощь</string>
-    <string name="applist_connect_msg">Подключение к PC…</string>
-    <string name="title_decoding_error">Сбой Видео Декодера</string>
+    <string name="applist_connect_msg">Подключение к ПК…</string>
+    <string name="title_decoding_error">Сбой декодирования видео</string>
     <string name="message_decoding_error">Moonlight произошел сбой из-за несовместимости с видеодекодером этого устройства. Попробуйте изменить настройки потоковой передачи, если сбои продолжаются.</string>
-    <string name="title_decoding_reset">Видео Настройки Сброшены</string>
+    <string name="title_decoding_reset">Настройки видео были сброшены</string>
     <string name="message_decoding_reset">Видео декодер Вашего устройства давал сбои с выбранными настройками. Настройки трансляции были сброшены до значений по умолчанию.</string>
-    <string name="error_usb_prohibited">USB доступ запрещен администратором устройства. Проверьте настройки Knox или MDM.</string>
+    <string name="error_usb_prohibited">USB доступ запрещён администратором устройства. Проверьте настройки Knox или MDM.</string>
     <string name="addpc_wrong_sitelocal">Адрес указан неверно. Вы должны ввести публичный IP-адрес Вашего роутера для передачи через интернет.</string>
     <string name="title_checkbox_enable_pip">Включить просмотр в режиме \"Картинка в картинке\"</string>
     <string name="summary_checkbox_enable_pip">Позволяет просматривать трансляцию (но не управлять ей) во время работы в других приложениях</string>
@@ -145,7 +141,7 @@
     <string name="summary_checkbox_mouse_emulation">Долгое нажатие кнопки Start переключит геймпад в режим мыши</string>
     <string name="title_reset_osc">Сбросить схему расположения экранных кнопок</string>
     <string name="summary_reset_osc">Возвращает все экранные элементы управления к их расположениям по умолчанию</string>
-    <string name="dialog_title_reset_osc">Сбросить Схему</string>
+    <string name="dialog_title_reset_osc">Сбросить схему</string>
     <string name="dialog_text_reset_osc">Вы уверены что хотите удалить сохранненную схему расположения кнопок?</string>
     <string name="toast_reset_osc_success">Экранные элементы управления возвращены к положениям по умолчанию</string>
     <string name="title_disable_frame_drop">Никогда не пропускать кадры</string>
@@ -153,17 +149,17 @@
     <string name="title_enable_hdr">Включить HDR (Экспериментально)</string>
     <string name="summary_enable_hdr">Потоковая передача с HDR, когда игра и графический процессор ПК поддерживают эту функцию. Для HDR требуется графический процессор с поддержкой кодирования HEVC Main 10.</string>
     <string name="title_enable_post_stream_toast">Показывать отчёт о задержке после трансляции</string>
-    <string name="summary_enable_post_stream_toast">Отобразить сообщение с информацией о задержке после окончания трансляции.</string>
+    <string name="summary_enable_post_stream_toast">Отобразить сообщение с информацией о задержке после окончания трансляции</string>
     <string name="title_checkbox_vibrate_osc">Включить вибрацию</string>
     <string name="title_fps_list">Частота кадров</string>
-    <string name="applist_menu_details">Детали</string>
+    <string name="applist_menu_details">Посмотреть детали</string>
     <string name="applist_menu_scut">Создать ярлык</string>
     <string name="category_input_settings">Настройки ввода</string>
     <string name="title_checkbox_touchscreen_trackpad">Использовать сенсор как тачпад</string>
     <string name="summary_checkbox_touchscreen_trackpad">Если включено, сенсор выступает в роли тачпада. Если отключено, сенсор напрямую контролирует курсор мыши.</string>
-    <string name="delete_pc_msg">Вы уверены что хотите удалить этот PC?</string>
-    <string name="pcview_menu_details">Детали</string>
-    <string name="poor_connection_msg">Слабое соединение с PC</string>
+    <string name="delete_pc_msg">Вы уверены что хотите удалить этот ПК?</string>
+    <string name="pcview_menu_details">Посмотреть детали</string>
+    <string name="poor_connection_msg">Слабое соединение с ПК</string>
     <string name="title_details">Детали</string>
     <string name="title_enable_perf_overlay">Включить отображение статистики</string>
     <string name="title_unlock_fps">Разблокировать все возможные частоты обновления</string>
@@ -172,10 +168,11 @@
     <string name="summary_checkbox_vibrate_osc">Вибрировать устройство для эмуляции виброотдачи при экранном управлении</string>
     <string name="summary_checkbox_vibrate_fallback">Вибрировать устройство для эмуляции виброотдачи для геймпадов без поддержки вибрации</string>
     <string name="summary_checkbox_mouse_nav_buttons">Включение этой опции может привести к неправильной работе правой кнопки мыши на некоторых устройствах</string>
-    <string name="scut_pc_not_found">PC не найден</string>
-    <string name="unable_to_pin_shortcut">Текущий лаунчер не позволяет создавать pinned ярлыки</string>
+    <string name="scut_pc_not_found">ПК не найден</string>
+    <string name="unable_to_pin_shortcut">Текущий лаунчер не позволяет создавать закреплённые ярлыки.</string>
     <string name="title_checkbox_mouse_nav_buttons">Включить кнопки вперед и назад для мыши</string>
-    <string name="slow_connection_msg">Медленное подключение к PC\nУменьшите битрейт</string>
+    <string name="slow_connection_msg">Медленное подключение к ПК
+\nСнизьте битрейт</string>
     <string name="summary_unlock_fps">Трансляция со скоростью 90 или 120 кадров в секунду может уменьшить задержку на устройствах высокого класса, но может вызвать задержки или сбой на устройствах без поддержки этого функционала</string>
     <string name="summary_enable_perf_overlay">Отображение оверлея на экране с информацией о производительности во время трансляции в режиме реального времени</string>
     <string name="perf_overlay_decoder">Декодер: %1$s</string>
@@ -184,7 +181,7 @@
     <string name="perf_overlay_netdrops">Отброшеных кадров вашей сетью: %1$.2f%%</string>
     <string name="perf_overlay_dectime">Среднее время декодирования: %1$.2f ms</string>
     <string name="summary_fps_list">Увеличение для более плавного видео потока. Уменьшите для лучшей производительности на более слабых устройствах.</string>
-    <string name="scut_invalid_uuid">Указанный PC недействителен</string>
+    <string name="scut_invalid_uuid">Указанный ПК недействителен</string>
     <string name="scut_invalid_app_id">Указанное приложение недействительно</string>
     <string name="suffix_osc_opacity">%</string>
     <string name="suffix_seekbar_bitrate_mbps">Мбит/с</string>
@@ -218,11 +215,11 @@
     <string name="audioconf_stereo">Стерео</string>
     <string name="audioconf_51surround">5.1 Объёмный звук</string>
     <string name="audioconf_71surround">7.1 Объёмный звук</string>
-    <string name="videoformat_auto">Автоматически</string>
+    <string name="videoformat_auto">Автоматически (Рекомендовано)</string>
     <string name="videoformat_hevcalways">Предпочитать HEVC</string>
-    <string name="pacing_latency">Минимальная задержка</string>
-    <string name="pacing_balanced">Баланс</string>
-    <string name="pacing_smoothness">Максимальная плавность (может значительно увеличить задержку)</string>
+    <string name="pacing_latency">Предпочтительна наименьшая задержка</string>
+    <string name="pacing_balanced">Сбалансированно</string>
+    <string name="pacing_smoothness">Предпочтительно наиболее плавное видео (может значительно увеличить задержку)</string>
     <string name="title_checkbox_enable_audiofx">Включить поддержку системного эквалайзера</string>
     <string name="summary_checkbox_absolute_mouse_mode">Может сделать движения мыши естественней для удаленного рабочего стола, но несовместимо с большинством игр.</string>
     <string name="summary_checkbox_reduce_refresh_rate">Сниженная частота обновления может экономить батарею за счет дополнительной задержки видео</string>
@@ -235,9 +232,9 @@
 \nПопробуйте выключить HDR, изменить разрешение стрима или разрешение экрана на хост-ПК.</string>
     <string name="summary_checkbox_enable_audiofx">Позволяет работать аудио эффектам во время стрима, но может увеличить задержку звука</string>
     <string name="title_setup_guide">Инструкция по настройке</string>
-    <string name="summary_setup_guide">Посмотреть инструкцию о том как настроить ваш пк для стриминга</string>
+    <string name="summary_setup_guide">Посмотреть инструкцию о том как настроить ваш ПК для стриминга</string>
     <string name="title_troubleshooting">Руководство по устранению неполадок</string>
-    <string name="summary_frame_pacing">Укажите как сбалансировать задержку и плавностью видео</string>
+    <string name="summary_frame_pacing">Укажите, как сбалансировать задержку и плавность видеосигнала</string>
     <string name="summary_privacy_policy">Посмотреть политику конфиденциальности Moonlight</string>
     <string name="title_privacy_policy">Политика конфиденциальности</string>
     <string name="resolution_360p">360p</string>
@@ -263,7 +260,7 @@
     <string name="title_full_range">Принудительное полнодиапазонное видео (экспериментальное)</string>
     <string name="summary_full_range">Это приведет к потере детализации в светлых и темных областях, если ваше устройство не отображает видеоконтент в полном диапазоне должным образом.</string>
     <string name="toast_controller_type_changed">Тип геймпада может быть изменен из-за эмуляции датчика движения</string>
-    <string name="videoformat_av1always">Предпочитать AV1 (экспериментальный)</string>
+    <string name="videoformat_av1always">Предпочитать AV1 (Экспериментальный)</string>
     <string name="title_analog_scrolling">Использовать аналоговый джойстик для прокрутки</string>
     <string name="analogscroll_right">Правый аналоговый джойстик</string>
     <string name="pair_pairing_help">Если на вашем хост-ПК установлен Sunshine, перейдите в веб-интерфейс Sunshine и введите PIN-код.</string>
@@ -281,5 +278,5 @@
     <string name="summary_analog_scrolling">Выбрать аналоговый джойстик для прокрутки в режиме эмуляции мыши</string>
     <string name="analogscroll_none">Нет (оба джойстика перемещают мышь)</string>
     <string name="analogscroll_left">Левый аналоговый джойстик</string>
-    <string name="pcview_menu_eol">NVIDIA GameStream Обслуживание окончено</string>
+    <string name="pcview_menu_eol">NVIDIA GameStream обслуживание окончено</string>
 </resources>

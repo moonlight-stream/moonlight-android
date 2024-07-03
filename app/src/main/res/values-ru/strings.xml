@@ -18,7 +18,7 @@
     <!-- Pair messages -->
     <string name="pairing">Создание пары…</string>
     <string name="pair_pc_offline">Компьютер выключен или находится не в сети</string>
-    <string name="pair_pc_ingame">Компьютер в данный момент находится в игре. Вы должны закрыть игру перед создание пары.</string>
+    <string name="pair_pc_ingame">Компьютер в данный момент находится в игре. Вы должны закрыть игру перед созданием пары.</string>
     <string name="pair_pairing_title">Создание пары</string>
     <string name="pair_pairing_msg">Пожалуйста введите этот PIN на целевом ПК:</string>
     <string name="pair_incorrect_pin">Неправильный PIN</string>
@@ -49,7 +49,7 @@
     <string name="conn_starting">Запуск</string>
     <string name="conn_error_title">Ошибка соединения</string>
     <string name="conn_error_msg">Запуск не удался</string>
-    <string name="conn_terminated_title">Соединение прекращено</string>
+    <string name="conn_terminated_title">Соединение разорвано</string>
     <string name="conn_terminated_msg">Подключение было прервано.</string>
     <!-- General strings -->
     <string name="ip_hint">IP-адрес хост-ПК</string>
@@ -64,7 +64,7 @@
     <string name="applist_menu_quit">Выйти из сессии</string>
     <string name="applist_menu_quit_and_start">Выйти из текущей игры и запустить</string>
     <string name="applist_menu_cancel">Отмена</string>
-    <string name="applist_menu_tv_channel">Добавать на канал</string>
+    <string name="applist_menu_tv_channel">Добавить в канал</string>
     <string name="applist_refresh_title">Список приложений</string>
     <string name="applist_refresh_msg">Обновление приложений…</string>
     <string name="applist_refresh_error_title">Ошибка</string>
@@ -72,7 +72,7 @@
     <string name="applist_quit_app">Выход из</string>
     <string name="applist_quit_success">Выход произошёл успешно из</string>
     <string name="applist_quit_fail">Ошибка при выходе</string>
-    <string name="applist_quit_confirmation">Вы уверены, что хотите выйти из запущенного приложения? Все несохраненные данные будут потеряны.</string>
+    <string name="applist_quit_confirmation">Вы уверены, что хотите выйти из запущенного приложения? Все несохранённые данные будут потеряны.</string>
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Добавление ПК вручную</string>
     <string name="msg_add_pc">Соединение с ПК…</string>
@@ -94,7 +94,7 @@
     <string name="summary_audio_config_list">Включить объёмный звук 5.1 или 7.1 для систем домашнего кинотеатра</string>
     <string name="title_checkbox_multi_controller">Поддержка нескольких контроллеров</string>
     <string name="summary_checkbox_multi_controller">Когда отключена, все контроллеры определяются как один</string>
-    <string name="title_seekbar_deadzone">Регулировать мертвую зону аналогового стика</string>
+    <string name="title_seekbar_deadzone">Регулировать мёртвую зону аналогового стика</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Драйвер контроллеров Xbox 360/One</string>
     <string name="summary_checkbox_xb1_driver">Включить встроенный USB драйвер для устройств без собственной поддержки контроллеров Xbox</string>
@@ -110,7 +110,7 @@
     <string name="summary_checkbox_enable_sops">Разрешить GFE изменять настройки игр для оптимальной трансляции</string>
     <string name="title_checkbox_host_audio">Проигрывать звук на ПК</string>
     <string name="summary_checkbox_host_audio">Проигрывать звук на компьютере и текущем устройстве</string>
-    <string name="category_advanced_settings">Расширенные Настройки</string>
+    <string name="category_advanced_settings">Расширенные настройки</string>
     <string name="title_video_format">Изменить настройки кодека</string>
     <string name="summary_video_format">Новые кодеки могут снизить требования к пропускной способности видео, если ваше устройство их поддерживает. Выбор кодека можно игнорировать, если он не поддерживается ПО хоста или графическим процессором.</string>
     <string name="category_on_screen_controls_settings">Настройки экранных кнопок</string>
@@ -120,8 +120,8 @@
     <string name="summary_only_l3r3">Скрывать все экранные кнопки кроме L3 и R3</string>
     <string name="summary_osc_opacity">Сделать экранные кнопки более/менее прозрачными</string>
     <string name="dialog_title_osc_opacity">Изменить прозрачность</string>
-    <string name="scut_deleted_pc">ПК удален</string>
-    <string name="scut_not_paired">ПК не сопряжен</string>
+    <string name="scut_deleted_pc">ПК удалён</string>
+    <string name="scut_not_paired">ПК не сопряжён</string>
     <string name="help_loading_title">Просмотр помощи</string>
     <string name="help_loading_msg">Загрузка страницы помощи…</string>
     <string name="pair_already_in_progress">Сопряжение уже в процессе</string>
@@ -142,7 +142,7 @@
     <string name="title_reset_osc">Сбросить схему расположения экранных кнопок</string>
     <string name="summary_reset_osc">Возвращает все экранные элементы управления к их расположениям по умолчанию</string>
     <string name="dialog_title_reset_osc">Сбросить схему</string>
-    <string name="dialog_text_reset_osc">Вы уверены что хотите удалить сохранненную схему расположения кнопок?</string>
+    <string name="dialog_text_reset_osc">Вы уверены что хотите удалить сохраненную схему расположения кнопок?</string>
     <string name="toast_reset_osc_success">Экранные элементы управления возвращены к положениям по умолчанию</string>
     <string name="title_disable_frame_drop">Никогда не пропускать кадры</string>
     <string name="summary_disable_frame_drop">Может уменьшить микрозависания на некоторых устройствах, но также увеличить задержку</string>
@@ -162,7 +162,7 @@
     <string name="poor_connection_msg">Слабое соединение с ПК</string>
     <string name="title_details">Детали</string>
     <string name="title_enable_perf_overlay">Включить отображение статистики</string>
-    <string name="title_unlock_fps">Разблокировать все возможные частоты обновления</string>
+    <string name="title_unlock_fps">Показать неподдерживаемые настройки частоты кадров</string>
     <string name="applist_details_id">ID приложения:</string>
     <string name="title_checkbox_vibrate_fallback">Эмуляция виброотдачи</string>
     <string name="summary_checkbox_vibrate_osc">Вибрировать устройство для эмуляции виброотдачи при экранном управлении</string>
@@ -178,7 +178,7 @@
     <string name="perf_overlay_decoder">Декодер: %1$s</string>
     <string name="perf_overlay_incomingfps">Входящая частота кадров из сети: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Частота кадров при рендеринге: %1$.2f FPS</string>
-    <string name="perf_overlay_netdrops">Отброшеных кадров вашей сетью: %1$.2f%%</string>
+    <string name="perf_overlay_netdrops">Кадры, пропущенные вашим сетевым подключением: %1$.2f%%</string>
     <string name="perf_overlay_dectime">Среднее время декодирования: %1$.2f ms</string>
     <string name="summary_fps_list">Увеличение для более плавного видео потока. Уменьшите для лучшей производительности на более слабых устройствах.</string>
     <string name="scut_invalid_uuid">Указанный ПК недействителен</string>
@@ -257,7 +257,7 @@
     <string name="category_gamepad_settings">Настройки геймпада</string>
     <string name="title_seekbar_vibrate_fallback_strength">Отрегулируйте интенсивность эмулируемой вибрации</string>
     <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
-    <string name="title_full_range">Принудительное полнодиапазонное видео (экспериментальное)</string>
+    <string name="title_full_range">Принудительное полнодиапазонное видео (Экспериментальное)</string>
     <string name="summary_full_range">Это приведет к потере детализации в светлых и темных областях, если ваше устройство не отображает видеоконтент в полном диапазоне должным образом.</string>
     <string name="toast_controller_type_changed">Тип геймпада может быть изменен из-за эмуляции датчика движения</string>
     <string name="videoformat_av1always">Предпочитать AV1 (Экспериментальный)</string>

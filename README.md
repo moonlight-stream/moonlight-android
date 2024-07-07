@@ -1,4 +1,8 @@
-首个实现分区触点移速调节的fork. 允许调整触点在右分屏或分屏的移速， 对调节米家游戏视角转动的灵敏度尤其有用。
+# 首个实现多点触控 灵敏度调节 (触点移速调节) 的 Moonlight分支. <br>
+# The first Moonlight fork to implement multi-touch sensitivity tweak (touch point velocity tweak)
+
+
+允许调整触点在右分屏或分屏的移速， 对调节米家游戏视角转动的灵敏度尤其有用。
 This is a fork with some manipulation on native multi-touch pointer coordinaties, allows pointer to move faster or slower on specified enhanced touch zone.
 Maybe useful for tweaking view rotation sensitivity in some games.
 <br>

@@ -2,11 +2,9 @@ package com.limelight.binding.input.touch;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.view.View;
 
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.input.MouseButtonPacket;
-import com.limelight.preferences.PreferenceConfiguration;
 
 public class TrackpadContext implements TouchContext {
     private int lastTouchX = 0;
@@ -21,29 +19,19 @@ public class TrackpadContext implements TouchContext {
     private double distanceMoved;
     private int pointerCount;
     private int maxPointerCountInGesture;
+    private boolean isClickPending;
+    private boolean isDblClickPending;
 
     private final NvConnection conn;
     private final int actionIndex;
     private final Handler handler;
 
-    private final Runnable dragTimerRunnable = new Runnable() {
-        @Override
-        public void run() {
-            // Check if someone already set move
-            if (confirmedMove) {
-                return;
-            }
-
-            // The drag should only be processed for the primary finger
-            if (actionIndex != maxPointerCountInGesture - 1) {
-                return;
-            }
-
-            // We haven't been cancelled before the timer expired so begin dragging
-            confirmedDrag = true;
-            conn.sendMouseButtonDown(getMouseButtonIndex());
-        }
-    };
+    private static final int TAP_MOVEMENT_THRESHOLD = 20;
+    private static final int TAP_DISTANCE_THRESHOLD = 25;
+    private static final int TAP_TIME_THRESHOLD = 230;
+    private static final int CLICK_RELEASE_DELAY = TAP_TIME_THRESHOLD;
+    private static final int SCROLL_SPEED_FACTOR_X = 3;
+    private static final int SCROLL_SPEED_FACTOR_Y = 5;
 
     // Indexed by MouseButtonPacket.BUTTON_XXX - 1
     private final Runnable[] buttonUpRunnables = new Runnable[] {
@@ -79,43 +67,28 @@ public class TrackpadContext implements TouchContext {
             }
     };
 
-    private static final int TAP_MOVEMENT_THRESHOLD = 20;
-    private static final int TAP_DISTANCE_THRESHOLD = 25;
-    private static final int TAP_TIME_THRESHOLD = 250;
-    private static final int DRAG_TIME_THRESHOLD = 650;
-
-    private static final int SCROLL_SPEED_FACTOR = 5;
-
-    public TrackpadContext(NvConnection conn, int actionIndex)
-    {
+    public TrackpadContext(NvConnection conn, int actionIndex) {
         this.conn = conn;
         this.actionIndex = actionIndex;
         this.handler = new Handler(Looper.getMainLooper());
     }
 
     @Override
-    public int getActionIndex()
-    {
+    public int getActionIndex() {
         return actionIndex;
     }
 
-    private boolean isWithinTapBounds(int touchX, int touchY)
-    {
+    private boolean isWithinTapBounds(int touchX, int touchY) {
         int xDelta = Math.abs(touchX - originalTouchX);
         int yDelta = Math.abs(touchY - originalTouchY);
-        return xDelta <= TAP_MOVEMENT_THRESHOLD &&
-                yDelta <= TAP_MOVEMENT_THRESHOLD;
+        return xDelta <= TAP_MOVEMENT_THRESHOLD && yDelta <= TAP_MOVEMENT_THRESHOLD;
     }
 
-    private boolean isTap(long eventTime)
-    {
+    private boolean isTap(long eventTime) {
         if (confirmedDrag || confirmedMove || confirmedScroll) {
             return false;
         }
 
-        // If this input wasn't the last finger down, do not report
-        // a tap. This ensures we don't report duplicate taps for each
-        // finger on a multi-finger tap gesture
         if (actionIndex + 1 != maxPointerCountInGesture) {
             return false;
         }
@@ -124,132 +97,114 @@ public class TrackpadContext implements TouchContext {
         return isWithinTapBounds(lastTouchX, lastTouchY) && timeDelta <= TAP_TIME_THRESHOLD;
     }
 
-    private byte getMouseButtonIndex()
-    {
-        if (actionIndex == 1) {
+    private byte getMouseButtonIndex() {
+        if (pointerCount == 2) {
             return MouseButtonPacket.BUTTON_RIGHT;
-        }
-        else {
+        } else {
             return MouseButtonPacket.BUTTON_LEFT;
         }
     }
 
     @Override
-    public boolean touchDownEvent(int eventX, int eventY, long eventTime, boolean isNewFinger)
-    {
+    public boolean touchDownEvent(int eventX, int eventY, long eventTime, boolean isNewFinger) {
         originalTouchX = lastTouchX = eventX;
         originalTouchY = lastTouchY = eventY;
 
         if (isNewFinger) {
             maxPointerCountInGesture = pointerCount;
             originalTouchTime = eventTime;
-            cancelled = confirmedDrag = confirmedMove = confirmedScroll = false;
+            cancelled = confirmedMove = confirmedScroll = false;
             distanceMoved = 0;
+        }
 
-            if (actionIndex == 0) {
-                // Start the timer for engaging a drag
-                startDragTimer();
-            }
+        if (isClickPending) {
+            isClickPending = false;
+            isDblClickPending = true;
+            confirmedDrag = true;
         }
 
         return true;
     }
 
     @Override
-    public void touchUpEvent(int eventX, int eventY, long eventTime)
-    {
+    public void touchUpEvent(int eventX, int eventY, long eventTime) {
         if (cancelled) {
             return;
         }
 
-        // Cancel the drag timer
-        cancelDragTimer();
-
         byte buttonIndex = getMouseButtonIndex();
 
-        if (confirmedDrag) {
-            // Raise the button after a drag
+        if (isDblClickPending) {
             conn.sendMouseButtonUp(buttonIndex);
-        }
-        else if (isTap(eventTime))
-        {
-            // Lower the mouse button
             conn.sendMouseButtonDown(buttonIndex);
+            conn.sendMouseButtonUp(buttonIndex);
+            isClickPending = false;
+            confirmedDrag = false;
+        }
+        else if (confirmedDrag) {
+            conn.sendMouseButtonUp(buttonIndex);
+            confirmedDrag = false;
+        }
+        else if (isTap(eventTime)) {
+            conn.sendMouseButtonDown(buttonIndex);
+            isClickPending = true;
 
-            // Release the mouse button in 100ms to allow for apps that use polling
-            // to detect mouse button presses.
             Runnable buttonUpRunnable = buttonUpRunnables[buttonIndex - 1];
             handler.removeCallbacks(buttonUpRunnable);
-            handler.postDelayed(buttonUpRunnable, 100);
+            handler.postDelayed(() -> {
+                if (isClickPending) {
+                    conn.sendMouseButtonUp(buttonIndex);
+                    isClickPending = false;
+                }
+                isDblClickPending = false;
+            }, CLICK_RELEASE_DELAY);
         }
-    }
-
-    private void startDragTimer() {
-        cancelDragTimer();
-        handler.postDelayed(dragTimerRunnable, DRAG_TIME_THRESHOLD);
-    }
-
-    private void cancelDragTimer() {
-        handler.removeCallbacks(dragTimerRunnable);
-    }
-
-    private void checkForConfirmedMove(int eventX, int eventY) {
-        // If we've already confirmed something, get out now
-        if (confirmedMove || confirmedDrag) {
-            return;
-        }
-
-        // If it leaves the tap bounds before the drag time expires, it's a move.
-        if (!isWithinTapBounds(eventX, eventY)) {
-            confirmedMove = true;
-            cancelDragTimer();
-            return;
-        }
-
-        // Check if we've exceeded the maximum distance moved
-        distanceMoved += Math.sqrt(Math.pow(eventX - lastTouchX, 2) + Math.pow(eventY - lastTouchY, 2));
-        if (distanceMoved >= TAP_DISTANCE_THRESHOLD) {
-            confirmedMove = true;
-            cancelDragTimer();
-            return;
-        }
-    }
-
-    private void checkForConfirmedScroll() {
-        // Enter scrolling mode if we've already left the tap zone
-        // and we have 2 fingers on screen. Leave scroll mode if
-        // we no longer have 2 fingers on screen
-        confirmedScroll = (actionIndex == 0 && pointerCount == 2 && confirmedMove);
     }
 
     @Override
-    public boolean touchMoveEvent(int eventX, int eventY, long eventTime)
-    {
+    public boolean touchMoveEvent(int eventX, int eventY, long eventTime) {
         if (cancelled) {
             return true;
         }
 
-        if (eventX != lastTouchX || eventY != lastTouchY)
-        {
+        if (eventX != lastTouchX || eventY != lastTouchY) {
             checkForConfirmedMove(eventX, eventY);
             checkForConfirmedScroll();
 
+            if (isDblClickPending) {
+                isDblClickPending = false;
+                confirmedDrag = true;
+            }
+
             // We only send moves and drags for the primary touch point
             if (actionIndex == 0) {
-                int deltaX = Math.abs(eventX - lastTouchX);
-                int deltaY = Math.abs(eventY - lastTouchY);
+                int absDeltaX = Math.abs(eventX - lastTouchX);
+                int absDeltaY = Math.abs(eventY - lastTouchY);
+
+                int deltaX = absDeltaX;
+                int deltaY = absDeltaY;
 
                 // Fix up the signs
                 if (eventX < lastTouchX) {
-                    deltaX = -deltaX;
+                    deltaX = -absDeltaX;
                 }
                 if (eventY < lastTouchY) {
-                    deltaY = -deltaY;
+                    deltaY = -absDeltaY;
                 }
 
                 if (pointerCount == 2) {
                     if (confirmedScroll) {
-                        conn.sendMouseHighResScroll((short)(deltaY * SCROLL_SPEED_FACTOR));
+                        if (absDeltaX > absDeltaY) {
+                            conn.sendMouseHighResHScroll((short)(-deltaX * SCROLL_SPEED_FACTOR_X));
+                            if (absDeltaY * 1.05 > absDeltaX) {
+                                conn.sendMouseHighResScroll((short)(deltaY * SCROLL_SPEED_FACTOR_Y));
+                            }
+                        } else {
+                            conn.sendMouseHighResScroll((short)(deltaY * SCROLL_SPEED_FACTOR_Y));
+                            if (absDeltaX * 1.05 >= absDeltaY) {
+                                conn.sendMouseHighResHScroll((short)(-deltaX * SCROLL_SPEED_FACTOR_X));
+                            }
+                        }
                     }
                 } else {
                     conn.sendMouseMove((short) deltaX, (short) deltaY);
@@ -278,10 +233,6 @@ public class TrackpadContext implements TouchContext {
     public void cancelTouch() {
         cancelled = true;
 
-        // Cancel the drag timer
-        cancelDragTimer();
-
-        // If it was a confirmed drag, we'll need to raise the button now
         if (confirmedDrag) {
             conn.sendMouseButtonUp(getMouseButtonIndex());
         }
@@ -299,5 +250,28 @@ public class TrackpadContext implements TouchContext {
         if (pointerCount > maxPointerCountInGesture) {
             maxPointerCountInGesture = pointerCount;
         }
+    }
+
+    private void checkForConfirmedMove(int eventX, int eventY) {
+        // If we've already confirmed something, get out now
+        if (confirmedMove || confirmedDrag) {
+            return;
+        }
+
+        // If it leaves the tap bounds before the drag time expires, it's a move.
+        if (!isWithinTapBounds(eventX, eventY)) {
+            confirmedMove = true;
+            return;
+        }
+
+        // Check if we've exceeded the maximum distance moved
+        distanceMoved += Math.sqrt(Math.pow(eventX - lastTouchX, 2) + Math.pow(eventY - lastTouchY, 2));
+        if (distanceMoved >= TAP_DISTANCE_THRESHOLD) {
+            confirmedMove = true;
+        }
+    }
+
+    private void checkForConfirmedScroll() {
+        confirmedScroll = (actionIndex == 0 && pointerCount == 2 && confirmedMove);
     }
 }

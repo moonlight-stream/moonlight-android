@@ -12,6 +12,7 @@ import com.limelight.binding.input.touch.RelativeTouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
+import com.limelight.binding.input.touch.TrackpadContext;
 import com.limelight.binding.input.virtual_controller.VirtualController;
 import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
@@ -23,7 +24,6 @@ import com.limelight.nvstream.StreamConfiguration;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
-import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.nvstream.jni.MoonBridge;
@@ -96,6 +96,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     // Only 2 touches are supported
     private final TouchContext[] touchContextMap = new TouchContext[2];
+    private final TouchContext[] trackpadContextMap = new TouchContext[5];
     private long threeFingerDownTime = 0;
 
     private static final int REFERENCE_HORIZ_RES = 1280;
@@ -491,6 +492,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         InputManager inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
         inputManager.registerInputDeviceListener(keyboardTranslator, null);
+
+        // Initialize trackpad contexts
+        for (int i = 0; i < trackpadContextMap.length; i++) {
+            trackpadContextMap[i] = new TrackpadContext(conn, i);
+        }
 
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
@@ -1468,10 +1474,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return true;
     }
 
-    private TouchContext getTouchContext(int actionIndex)
+    private TouchContext getTouchContext(int actionIndex, TouchContext[] inputContextMap)
     {
-        if (actionIndex < touchContextMap.length) {
-            return touchContextMap[actionIndex];
+        if (actionIndex < inputContextMap.length) {
+            return inputContextMap[actionIndex];
         }
         else {
             return null;
@@ -1784,15 +1790,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                  eventSource == InputDevice.SOURCE_MOUSE_RELATIVE)
         {
             // This case is for mice and non-finger touch devices
-            if (eventSource == InputDevice.SOURCE_MOUSE ||
-                    (eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 || // SOURCE_TOUCHPAD
-                    eventSource == InputDevice.SOURCE_MOUSE_RELATIVE ||
-                    (event.getPointerCount() >= 1 &&
-                            (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE ||
-                                    event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS ||
-                                    event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER)) ||
-                    eventSource == 12290) // 12290 = Samsung DeX mode desktop mouse
-            {
+            if (
+                eventSource == InputDevice.SOURCE_MOUSE ||
+                ((eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 && event.getActionButton() != 0) || // SOURCE_TOUCHPAD
+                (eventSource == InputDevice.SOURCE_MOUSE_RELATIVE ||
+                (event.getPointerCount() >= 1 &&
+                    (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE ||
+                        event.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS ||
+                        event.getToolType(0) == MotionEvent.TOOL_TYPE_ERASER)) ||
+                eventSource == 12290) // 12290 = Samsung DeX mode desktop mouse
+            ) {
                 int buttonState = event.getButtonState();
                 int changedButtons = buttonState ^ lastButtonState;
 
@@ -1803,7 +1810,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
                         buttonState |= MotionEvent.BUTTON_PRIMARY;
                     }
-                    else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
                         buttonState &= ~MotionEvent.BUTTON_PRIMARY;
                     }
                     else {
@@ -1811,6 +1818,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         // so be sure to add that bit back into the button state.
                         buttonState |= (lastButtonState & MotionEvent.BUTTON_PRIMARY);
                     }
+
+                    changedButtons = buttonState ^ lastButtonState;
+                }
+                // Two finger click
+                else if ((eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 && event.getPointerCount() == 2 && event.getActionButton() == MotionEvent.BUTTON_PRIMARY) {
+                    if (event.getActionMasked() == MotionEvent.ACTION_BUTTON_PRESS) {
+                        buttonState |= MotionEvent.BUTTON_SECONDARY;
+                    }
+                    else if (event.getActionMasked() == MotionEvent.ACTION_BUTTON_RELEASE) {
+                        buttonState &= ~MotionEvent.BUTTON_SECONDARY;
+                    }
+                    // We may not pressing the primary button down from a previous event,
+                    // so be sure to clear that bit out the button state.
+                    buttonState &= ~MotionEvent.BUTTON_PRIMARY;
+                    buttonState |= (lastButtonState & MotionEvent.BUTTON_PRIMARY);
 
                     changedButtons = buttonState ^ lastButtonState;
                 }
@@ -1972,136 +1994,53 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 lastButtonState = buttonState;
             }
             // This case is for fingers
-            else
-            {
-                if (virtualController != null &&
-                        (virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons ||
-                         virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)) {
-                    // Ignore presses when the virtual controller is being configured
-                    return true;
-                }
-
-                // If this is the parent view, we'll offset our coordinates to appear as if they
-                // are relative to the StreamView like our StreamView touch events are.
-                float xOffset, yOffset;
-                if (view != streamView && !prefConfig.touchscreenTrackpad) {
-                    xOffset = -streamView.getX();
-                    yOffset = -streamView.getY();
-                }
-                else {
-                    xOffset = 0.f;
-                    yOffset = 0.f;
-                }
-
-                int actionIndex = event.getActionIndex();
-
-                int eventX = (int)(event.getX(actionIndex) + xOffset);
-                int eventY = (int)(event.getY(actionIndex) + yOffset);
-
-                // Special handling for 3 finger gesture
-                if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN &&
-                        event.getPointerCount() == 3) {
-                    // Three fingers down
-                    threeFingerDownTime = event.getEventTime();
-
-                    // Cancel the first and second touches to avoid
-                    // erroneous events
-                    for (TouchContext aTouchContext : touchContextMap) {
-                        aTouchContext.cancelTouch();
+            else {
+                if (eventSource == InputDevice.SOURCE_TOUCHPAD) {
+                    return handleTouchInput(event, 0.f, 0.f, trackpadContextMap);
+                } else {
+                    if (virtualController != null &&
+                            (virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons ||
+                                    virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)) {
+                        // Ignore presses when the virtual controller is being configured
+                        return true;
                     }
 
-                    return true;
-                }
-
-                // TODO: Re-enable native touch when have a better solution for handling
-                // cancelled touches from Android gestures and 3 finger taps to activate
-                // the software keyboard.
-                /*if (!prefConfig.touchscreenTrackpad && trySendTouchEvent(view, event)) {
-                    // If this host supports touch events and absolute touch is enabled,
-                    // send it directly as a touch event.
-                    return true;
-                }*/
-
-                TouchContext context = getTouchContext(actionIndex);
-                if (context == null) {
-                    return false;
-                }
-
-                switch (event.getActionMasked())
-                {
-                case MotionEvent.ACTION_POINTER_DOWN:
-                case MotionEvent.ACTION_DOWN:
-                    for (TouchContext touchContext : touchContextMap) {
-                        touchContext.setPointerCount(event.getPointerCount());
+                    // If this is the parent view, we'll offset our coordinates to appear as if they
+                    // are relative to the StreamView like our StreamView touch events are.
+                    float xOffset, yOffset;
+                    if (view != streamView && !prefConfig.touchscreenTrackpad) {
+                        xOffset = -streamView.getX();
+                        yOffset = -streamView.getY();
+                    } else {
+                        xOffset = 0.f;
+                        yOffset = 0.f;
                     }
-                    context.touchDownEvent(eventX, eventY, event.getEventTime(), true);
-                    break;
-                case MotionEvent.ACTION_POINTER_UP:
-                case MotionEvent.ACTION_UP:
-                    if (event.getPointerCount() == 1 &&
-                            (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || (event.getFlags() & MotionEvent.FLAG_CANCELED) == 0)) {
-                        // All fingers up
-                        if (event.getEventTime() - threeFingerDownTime < THREE_FINGER_TAP_THRESHOLD) {
-                            // This is a 3 finger tap to bring up the keyboard
-                            toggleKeyboard();
-                            return true;
+
+                    // Special handling for 3 finger gesture
+                    if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN &&
+                            event.getPointerCount() == 3) {
+                        // Three fingers down
+                        threeFingerDownTime = event.getEventTime();
+
+                        // Cancel the first and second touches to avoid
+                        // erroneous events
+                        for (TouchContext aTouchContext : touchContextMap) {
+                            aTouchContext.cancelTouch();
                         }
+
+                        return true;
                     }
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && (event.getFlags() & MotionEvent.FLAG_CANCELED) != 0) {
-                        context.cancelTouch();
-                    }
-                    else {
-                        context.touchUpEvent(eventX, eventY, event.getEventTime());
-                    }
+                    // TODO: Re-enable native touch when have a better solution for handling
+                    // cancelled touches from Android gestures and 3 finger taps to activate
+                    // the software keyboard.
+                    /*if (!prefConfig.touchscreenTrackpad && trySendTouchEvent(view, event)) {
+                        // If this host supports touch events and absolute touch is enabled,
+                        // send it directly as a touch event.
+                        return true;
+                    }*/
 
-                    for (TouchContext touchContext : touchContextMap) {
-                        touchContext.setPointerCount(event.getPointerCount() - 1);
-                    }
-                    if (actionIndex == 0 && event.getPointerCount() > 1 && !context.isCancelled()) {
-                        // The original secondary touch now becomes primary
-                        context.touchDownEvent(
-                                (int)(event.getX(1) + xOffset),
-                                (int)(event.getY(1) + yOffset),
-                                event.getEventTime(), false);
-                    }
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    // ACTION_MOVE is special because it always has actionIndex == 0
-                    // We'll call the move handlers for all indexes manually
-
-                    // First process the historical events
-                    for (int i = 0; i < event.getHistorySize(); i++) {
-                        for (TouchContext aTouchContextMap : touchContextMap) {
-                            if (aTouchContextMap.getActionIndex() < event.getPointerCount())
-                            {
-                                aTouchContextMap.touchMoveEvent(
-                                        (int)(event.getHistoricalX(aTouchContextMap.getActionIndex(), i) + xOffset),
-                                        (int)(event.getHistoricalY(aTouchContextMap.getActionIndex(), i) + yOffset),
-                                        event.getHistoricalEventTime(i));
-                            }
-                        }
-                    }
-
-                    // Now process the current values
-                    for (TouchContext aTouchContextMap : touchContextMap) {
-                        if (aTouchContextMap.getActionIndex() < event.getPointerCount())
-                        {
-                            aTouchContextMap.touchMoveEvent(
-                                    (int)(event.getX(aTouchContextMap.getActionIndex()) + xOffset),
-                                    (int)(event.getY(aTouchContextMap.getActionIndex()) + yOffset),
-                                    event.getEventTime());
-                        }
-                    }
-                    break;
-                case MotionEvent.ACTION_CANCEL:
-                    for (TouchContext aTouchContext : touchContextMap) {
-                        aTouchContext.cancelTouch();
-                        aTouchContext.setPointerCount(0);
-                    }
-                    break;
-                default:
-                    return false;
+                    return handleTouchInput(event, xOffset, yOffset, touchContextMap);
                 }
             }
 
@@ -2111,6 +2050,97 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Unknown class
         return false;
+    }
+
+    private boolean handleTouchInput(MotionEvent event, float xOffset, float yOffset, TouchContext[] inputContextMap) {
+        int actionIndex = event.getActionIndex();
+
+        int eventX = (int)(event.getX(actionIndex) + xOffset);
+        int eventY = (int)(event.getY(actionIndex) + yOffset);
+
+        TouchContext context = getTouchContext(actionIndex, inputContextMap);
+        if (context == null) {
+            return false;
+        }
+
+        switch (event.getActionMasked())
+        {
+            case MotionEvent.ACTION_POINTER_DOWN:
+            case MotionEvent.ACTION_DOWN:
+                for (TouchContext touchContext : inputContextMap) {
+                    touchContext.setPointerCount(event.getPointerCount());
+                }
+                context.touchDownEvent(eventX, eventY, event.getEventTime(), true);
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+            case MotionEvent.ACTION_UP:
+                if (event.getPointerCount() == 1 &&
+                        (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || (event.getFlags() & MotionEvent.FLAG_CANCELED) == 0)) {
+                    // All fingers up
+                    if (event.getEventTime() - threeFingerDownTime < THREE_FINGER_TAP_THRESHOLD) {
+                        // This is a 3 finger tap to bring up the keyboard
+                        toggleKeyboard();
+                        return true;
+                    }
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && (event.getFlags() & MotionEvent.FLAG_CANCELED) != 0) {
+                    context.cancelTouch();
+                }
+                else {
+                    context.touchUpEvent(eventX, eventY, event.getEventTime());
+                }
+
+                for (TouchContext touchContext : inputContextMap) {
+                    touchContext.setPointerCount(event.getPointerCount() - 1);
+                }
+                if (actionIndex == 0 && event.getPointerCount() > 1 && !context.isCancelled()) {
+                    // The original secondary touch now becomes primary
+                    context.touchDownEvent(
+                            (int)(event.getX(1) + xOffset),
+                            (int)(event.getY(1) + yOffset),
+                            event.getEventTime(), false);
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                // ACTION_MOVE is special because it always has actionIndex == 0
+                // We'll call the move handlers for all indexes manually
+
+                // First process the historical events
+                for (int i = 0; i < event.getHistorySize(); i++) {
+                    for (TouchContext aTouchContextMap : inputContextMap) {
+                        if (aTouchContextMap.getActionIndex() < event.getPointerCount())
+                        {
+                            aTouchContextMap.touchMoveEvent(
+                                    (int)(event.getHistoricalX(aTouchContextMap.getActionIndex(), i) + xOffset),
+                                    (int)(event.getHistoricalY(aTouchContextMap.getActionIndex(), i) + yOffset),
+                                    event.getHistoricalEventTime(i));
+                        }
+                    }
+                }
+
+                // Now process the current values
+                for (TouchContext aTouchContextMap : inputContextMap) {
+                    if (aTouchContextMap.getActionIndex() < event.getPointerCount())
+                    {
+                        aTouchContextMap.touchMoveEvent(
+                                (int)(event.getX(aTouchContextMap.getActionIndex()) + xOffset),
+                                (int)(event.getY(aTouchContextMap.getActionIndex()) + yOffset),
+                                event.getEventTime());
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                for (TouchContext aTouchContext : inputContextMap) {
+                    aTouchContext.cancelTouch();
+                    aTouchContext.setPointerCount(0);
+                }
+                break;
+            default:
+                return false;
+        }
+
+        return true;
     }
 
     @Override

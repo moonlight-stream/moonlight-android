@@ -37,10 +37,6 @@ public abstract class InputCaptureProvider {
         return false;
     }
 
-    public boolean eventIsMultiTouch(MotionEvent event) {
-        return  false;
-    }
-
     public float getRelativeAxisX(MotionEvent event, int pointerIndex) {
         return 0;
     }

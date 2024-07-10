@@ -120,12 +120,6 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
     }
 
     @Override
-    public  boolean eventIsMultiTouch(MotionEvent event) {
-        int eventSource = event.getSource();
-        return (eventSource == InputDevice.SOURCE_TOUCHPAD && targetView.hasPointerCapture());
-    }
-
-    @Override
     public float getRelativeAxisX(MotionEvent event, int pointerIndex) {
         int axis = (event.getSource() == InputDevice.SOURCE_MOUSE_RELATIVE) ?
                 MotionEvent.AXIS_X : MotionEvent.AXIS_RELATIVE_X;

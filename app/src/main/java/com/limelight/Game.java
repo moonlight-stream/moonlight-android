@@ -1789,10 +1789,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                  (eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 ||
                  eventSource == InputDevice.SOURCE_MOUSE_RELATIVE)
         {
+            boolean hasActionButton = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || event.getActionButton() != 0;
             // This case is for mice and non-finger touch devices
             if (
                 eventSource == InputDevice.SOURCE_MOUSE ||
-                ((eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 && event.getActionButton() != 0) || // SOURCE_TOUCHPAD
+                ((eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 && hasActionButton) || // SOURCE_TOUCHPAD
                 (eventSource == InputDevice.SOURCE_MOUSE_RELATIVE ||
                 (event.getPointerCount() >= 1 &&
                     (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE ||
@@ -1822,7 +1823,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     changedButtons = buttonState ^ lastButtonState;
                 }
                 // Two finger click
-                else if ((eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 && event.getPointerCount() == 2 && event.getActionButton() == MotionEvent.BUTTON_PRIMARY) {
+                else if ((eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 &&
+                        event.getPointerCount() == 2 &&
+                        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && event.getActionButton() == MotionEvent.BUTTON_PRIMARY)
+                ) {
                     if (event.getActionMasked() == MotionEvent.ACTION_BUTTON_PRESS) {
                         buttonState |= MotionEvent.BUTTON_SECONDARY;
                     }

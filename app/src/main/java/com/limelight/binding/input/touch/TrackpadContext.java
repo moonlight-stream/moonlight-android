@@ -30,8 +30,8 @@ public class TrackpadContext implements TouchContext {
     private static final int TAP_DISTANCE_THRESHOLD = 25;
     private static final int TAP_TIME_THRESHOLD = 230;
     private static final int CLICK_RELEASE_DELAY = TAP_TIME_THRESHOLD;
-    private static final int SCROLL_SPEED_FACTOR_X = 3;
-    private static final int SCROLL_SPEED_FACTOR_Y = 5;
+    private static final int SCROLL_SPEED_FACTOR_X = 1;
+    private static final int SCROLL_SPEED_FACTOR_Y = 2;
 
     // Indexed by MouseButtonPacket.BUTTON_XXX - 1
     private final Runnable[] buttonUpRunnables = new Runnable[] {

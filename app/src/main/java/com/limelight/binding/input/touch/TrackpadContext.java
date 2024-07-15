@@ -33,40 +33,6 @@ public class TrackpadContext implements TouchContext {
     private static final int SCROLL_SPEED_FACTOR_X = 1;
     private static final int SCROLL_SPEED_FACTOR_Y = 2;
 
-    // Indexed by MouseButtonPacket.BUTTON_XXX - 1
-    private final Runnable[] buttonUpRunnables = new Runnable[] {
-            new Runnable() {
-                @Override
-                public void run() {
-                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_LEFT);
-                }
-            },
-            new Runnable() {
-                @Override
-                public void run() {
-                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_MIDDLE);
-                }
-            },
-            new Runnable() {
-                @Override
-                public void run() {
-                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
-                }
-            },
-            new Runnable() {
-                @Override
-                public void run() {
-                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_X1);
-                }
-            },
-            new Runnable() {
-                @Override
-                public void run() {
-                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_X2);
-                }
-            }
-    };
-
     public TrackpadContext(NvConnection conn, int actionIndex) {
         this.conn = conn;
         this.actionIndex = actionIndex;
@@ -115,12 +81,20 @@ public class TrackpadContext implements TouchContext {
             originalTouchTime = eventTime;
             cancelled = confirmedMove = confirmedScroll = false;
             distanceMoved = 0;
-        }
-
-        if (isClickPending) {
-            isClickPending = false;
-            isDblClickPending = true;
-            confirmedDrag = true;
+            if (isClickPending) {
+                isClickPending = false;
+                isDblClickPending = true;
+                confirmedDrag = true;
+            }
+        } else {
+            // Second finger released, should trigger right click immediately
+            if (pointerCount == 1 && !confirmedMove) {
+                conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
+                conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
+                isClickPending = false;
+                isDblClickPending = false;
+                confirmedDrag = false;
+            }
         }
 
         return true;
@@ -135,6 +109,7 @@ public class TrackpadContext implements TouchContext {
         byte buttonIndex = getMouseButtonIndex();
 
         if (isDblClickPending) {
+            handler.removeCallbacksAndMessages(null);
             conn.sendMouseButtonUp(buttonIndex);
             conn.sendMouseButtonDown(buttonIndex);
             conn.sendMouseButtonUp(buttonIndex);
@@ -142,6 +117,7 @@ public class TrackpadContext implements TouchContext {
             confirmedDrag = false;
         }
         else if (confirmedDrag) {
+            handler.removeCallbacksAndMessages(null);
             conn.sendMouseButtonUp(buttonIndex);
             confirmedDrag = false;
         }
@@ -149,8 +125,7 @@ public class TrackpadContext implements TouchContext {
             conn.sendMouseButtonDown(buttonIndex);
             isClickPending = true;
 
-            Runnable buttonUpRunnable = buttonUpRunnables[buttonIndex - 1];
-            handler.removeCallbacks(buttonUpRunnable);
+            handler.removeCallbacksAndMessages(null);
             handler.postDelayed(() -> {
                 if (isClickPending) {
                     conn.sendMouseButtonUp(buttonIndex);
@@ -169,60 +144,52 @@ public class TrackpadContext implements TouchContext {
 
         if (eventX != lastTouchX || eventY != lastTouchY) {
             checkForConfirmedMove(eventX, eventY);
-            checkForConfirmedScroll();
 
             if (isDblClickPending) {
                 isDblClickPending = false;
                 confirmedDrag = true;
             }
 
-            // We only send moves and drags for the primary touch point
-            if (actionIndex == 0) {
-                int absDeltaX = Math.abs(eventX - lastTouchX);
-                int absDeltaY = Math.abs(eventY - lastTouchY);
+            int absDeltaX = Math.abs(eventX - lastTouchX);
+            int absDeltaY = Math.abs(eventY - lastTouchY);
 
-                int deltaX = absDeltaX;
-                int deltaY = absDeltaY;
+            int deltaX = absDeltaX;
+            int deltaY = absDeltaY;
 
-                // Fix up the signs
-                if (eventX < lastTouchX) {
-                    deltaX = -absDeltaX;
-                }
-                if (eventY < lastTouchY) {
-                    deltaY = -absDeltaY;
-                }
+            // Fix up the signs
+            if (eventX < lastTouchX) {
+                deltaX = -absDeltaX;
+            }
+            if (eventY < lastTouchY) {
+                deltaY = -absDeltaY;
+            }
 
-                if (pointerCount == 2) {
-                    if (confirmedScroll) {
-                        if (absDeltaX > absDeltaY) {
-                            conn.sendMouseHighResHScroll((short)(-deltaX * SCROLL_SPEED_FACTOR_X));
-                            if (absDeltaY * 1.05 > absDeltaX) {
-                                conn.sendMouseHighResScroll((short)(deltaY * SCROLL_SPEED_FACTOR_Y));
-                            }
-                        } else {
-                            conn.sendMouseHighResScroll((short)(deltaY * SCROLL_SPEED_FACTOR_Y));
-                            if (absDeltaX * 1.05 >= absDeltaY) {
+            lastTouchX = eventX;
+            lastTouchY = eventY;
+
+            if (pointerCount == 1) {
+                conn.sendMouseMove((short) deltaX, (short) deltaY);
+            } else {
+                if (actionIndex == 1) {
+                    if (confirmedDrag) {
+                        conn.sendMouseMove((short) deltaX, (short) deltaY);
+                    } else if (pointerCount == 2) {
+                        checkForConfirmedScroll();
+                        if (confirmedScroll) {
+                            if (absDeltaX > absDeltaY) {
                                 conn.sendMouseHighResHScroll((short)(-deltaX * SCROLL_SPEED_FACTOR_X));
+                                if (absDeltaY * 1.05 > absDeltaX) {
+                                    conn.sendMouseHighResScroll((short)(deltaY * SCROLL_SPEED_FACTOR_Y));
+                                }
+                            } else {
+                                conn.sendMouseHighResScroll((short)(deltaY * SCROLL_SPEED_FACTOR_Y));
+                                if (absDeltaX * 1.05 >= absDeltaY) {
+                                    conn.sendMouseHighResHScroll((short)(-deltaX * SCROLL_SPEED_FACTOR_X));
+                                }
                             }
                         }
                     }
-                } else {
-                    conn.sendMouseMove((short) deltaX, (short) deltaY);
                 }
-
-                // If the scaling factor ended up rounding deltas to zero, wait until they are
-                // non-zero to update lastTouch that way devices that report small touch events often
-                // will work correctly
-                if (deltaX != 0) {
-                    lastTouchX = eventX;
-                }
-                if (deltaY != 0) {
-                    lastTouchY = eventY;
-                }
-            }
-            else {
-                lastTouchX = eventX;
-                lastTouchY = eventY;
             }
         }
 
@@ -272,6 +239,6 @@ public class TrackpadContext implements TouchContext {
     }
 
     private void checkForConfirmedScroll() {
-        confirmedScroll = (actionIndex == 0 && pointerCount == 2 && confirmedMove);
+        confirmedScroll = (actionIndex == 1 && pointerCount == 2 && confirmedMove);
     }
 }

@@ -212,6 +212,15 @@ public class TrackpadContext implements TouchContext {
 
     @Override
     public void setPointerCount(int pointerCount) {
+        if (pointerCount < this.pointerCount && confirmedDrag) {
+            conn.sendMouseButtonUp(getMouseButtonIndex());
+            confirmedDrag = false;
+            confirmedMove = false;
+            confirmedScroll = false;
+            isClickPending = false;
+            isDblClickPending = false;
+        }
+
         this.pointerCount = pointerCount;
 
         if (pointerCount > maxPointerCountInGesture) {

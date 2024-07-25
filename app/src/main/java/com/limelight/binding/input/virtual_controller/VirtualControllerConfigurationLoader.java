@@ -285,7 +285,6 @@ public class VirtualControllerConfigurationLoader {
                     screenScale(TRIGGER_HEIGHT, height)
             );
 
-
             controller.addElement(createLeftStick(controller, context),
                     screenScale(ANALOG_L_BASE_X, height),
                     screenScale(ANALOG_L_BASE_Y, height),

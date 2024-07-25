@@ -189,7 +189,6 @@ public class VirtualControllerConfigurationLoader {
     private static final int GUIDE_X = START_X-BACK_X;
     private static final int GUIDE_Y = START_BACK_Y;
 
-
     public static void createDefaultLayout(final VirtualController controller, final Context context) {
 
         DisplayMetrics screen = context.getResources().getDisplayMetrics();

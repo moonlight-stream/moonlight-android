@@ -58,6 +58,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     private static final int MAXIMUM_BUMPER_UP_DELAY_MS = 100;
 
     private static final int START_DOWN_TIME_MOUSE_MODE_MS = 750;
+    private static final int SELECT_DOWN_TIME_SHOW_KEYBOARD_MS = 750;
 
     private static final int MINIMUM_BUTTON_DOWN_TIME_MS = 25;
 
@@ -2377,6 +2378,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             break;
         case KeyEvent.KEYCODE_BACK:
         case KeyEvent.KEYCODE_BUTTON_SELECT:
+            if ((context.inputMap & ControllerPacket.PLAY_FLAG) != 0 &&
+                    event.getEventTime() - context.selectDownTime > ControllerHandler.SELECT_DOWN_TIME_SHOW_KEYBOARD_MS) {
+                gestures.toggleKeyboard();
+            }
             context.inputMap &= ~ControllerPacket.BACK_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_LEFT:
@@ -2591,6 +2596,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         case KeyEvent.KEYCODE_BACK:
         case KeyEvent.KEYCODE_BUTTON_SELECT:
             context.hasSelect = true;
+            if (event.getRepeatCount() == 0) {
+                context.selectDownTime = event.getEventTime();
+            }
             context.inputMap |= ControllerPacket.BACK_FLAG;
             break;
         case KeyEvent.KEYCODE_DPAD_LEFT:
@@ -3005,6 +3013,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public long lastRbUpTime = 0;
 
         public long startDownTime = 0;
+        public long selectDownTime = 0;
 
         public final Runnable batteryStateUpdateRunnable = new Runnable() {
             @Override

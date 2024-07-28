@@ -49,7 +49,6 @@
     <string name="conn_establishing_msg">Memulai koneksi</string>
     <string name="conn_metered">Peringatan: Koneksi aktif Anda terbatas!</string>
     <string name="conn_client_latency">Rata-rata latensi dekoding bingkai:</string>
-    <string name="conn_client_latency_hw">Latensi dekoder perangkat keras:</string>
     <string name="conn_hardware_latency">Rata-rata latensi dekoder perangkat keras:</string>
     <string name="conn_starting">Memulai</string>
     <string name="conn_error_title">Koneksi eror</string>

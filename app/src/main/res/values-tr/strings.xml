@@ -130,7 +130,6 @@
     <string name="conn_establishing_msg">Bağlantı başlatılıyor</string>
     <string name="conn_metered">Uyarı: Aktif ağ bağlantınız ölçülüdür!</string>
     <string name="conn_client_latency">Ortalama kare kod çözme gecikmesi:</string>
-    <string name="conn_client_latency_hw">donanım kod çözücü gecikmesi:</string>
     <string name="pcview_menu_send_wol">Yerel Ağda Uyandırma isteği gönder</string>
     <string name="applist_refresh_msg">Uygulamalar yenileniyor…</string>
     <string name="applist_refresh_error_title">Hata</string>

@@ -59,7 +59,6 @@
     <string name="conn_establishing_msg">Έναρξη σύνδεσης</string>
     <string name="conn_metered">Προειδοποίηση: Η ενεργή σύνδεσή σας στο δίκτυο έχει όριο δεδομένων!</string>
     <string name="conn_client_latency">Μέσος χρόνος αποκωδικοποίησης πλαισίων:</string>
-    <string name="conn_client_latency_hw">Λανθάνων χρόνος αποκωδικοποιητή υλικού:</string>
     <string name="conn_hardware_latency">Μέση καθυστέρηση αποκωδικοποίησης υλικού:</string>
     <string name="conn_starting">Εκκίνηση</string>
     <string name="conn_terminated_msg">Η σύνδεση τερματίστηκε</string>

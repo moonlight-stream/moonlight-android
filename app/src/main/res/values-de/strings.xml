@@ -71,7 +71,6 @@
     <string name="conn_establishing_msg">Verbindung starten</string>
     <string name="conn_metered">Warnung: Das Datentransfervolumen deiner Netzwerkverbindung ist limitiert!</string>
     <string name="conn_client_latency">Durchschnittliche Frame-Dekodierungslatenz:</string>
-    <string name="conn_client_latency_hw">Hardware-Dekodierungslatenz:</string>
     <string name="conn_hardware_latency">Durchschnittliche Hardware-Dekodierungslatenz:</string>
     <string name="conn_starting">Starten</string>
     <string name="conn_error_title">Verbindungsfehler</string>

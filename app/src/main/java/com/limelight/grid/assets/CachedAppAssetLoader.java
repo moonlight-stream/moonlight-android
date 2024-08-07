@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -340,6 +342,13 @@ public class CachedAppAssetLoader {
         if (!cancelPendingLoad(tuple, imgView)) {
             return true;
         }
+
+
+        // Auto-scale text on supported Android versions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            textView.setAutoSizeTextTypeUniformWithConfiguration(5, 25, 1, TypedValue.COMPLEX_UNIT_SP);
+        }
+        textView.setMaxLines(1);
 
         // Always set the name text so we have it if needed later
         textView.setText(app.getAppName());

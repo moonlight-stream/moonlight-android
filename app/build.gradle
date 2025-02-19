@@ -8,7 +8,7 @@ android {
     namespace 'com.limelight'
 
     defaultConfig {
-        minSdk 21
+        minSdk 31
         targetSdk 34
 
         versionName "12.1"

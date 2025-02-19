@@ -18,6 +18,7 @@ public class XboxOneController extends AbstractXboxController {
 
     private static final int[] SUPPORTED_VENDORS = {
             0x045e, // Microsoft
+            0x054C, // Sony
             0x0738, // Mad Catz
             0x0e6f, // Unknown
             0x0f0d, // Hori
@@ -29,6 +30,11 @@ public class XboxOneController extends AbstractXboxController {
 
     private static final byte[] FW2015_INIT = {0x05, 0x20, 0x00, 0x01, 0x00};
     private static final byte[] ONE_S_INIT = {0x05, 0x20, 0x00, 0x0f, 0x06};
+    private static final byte[] DUALSHOCK3_INIT = {0x05, 0x20, 0x00, 0x0f, 0x06};
+    private static final byte[] DUALSHOCK4_INIT = {0x05, 0x20, 0x00, 0x0f, 0x06};
+    private static final byte[] DUALSHOCK4_GEN2_INIT = {0x05, 0x20, 0x00, 0x0f, 0x06};
+    private static final byte[] DUALSENSE_INIT = {0x05, 0x20, 0x00, 0x0f, 0x06};
+    private static final byte[] DUALSENSE_EDGE_INIT = {0x05, 0x20, 0x00, 0x0f, 0x06};
     private static final byte[] HORI_INIT = {0x01, 0x20, 0x00, 0x09, 0x00, 0x04, 0x20, 0x3a,
             0x00, 0x00, 0x00, (byte)0x80, 0x00};
     private static final byte[] PDP_INIT1 = {0x0a, 0x20, 0x00, 0x03, 0x00, 0x01, 0x14};
@@ -44,6 +50,11 @@ public class XboxOneController extends AbstractXboxController {
             new InitPacket(0x0000, 0x0000, FW2015_INIT),
             new InitPacket(0x045e, 0x02ea, ONE_S_INIT),
             new InitPacket(0x045e, 0x0b00, ONE_S_INIT),
+            new InitPacket(0x054c, 0x0268, DUALSHOCK3_INIT),
+            new InitPacket(0x054c, 0x05c4, DUALSHOCK4_INIT),
+            new InitPacket(0x054c, 0x09cc, DUALSHOCK4_GEN2_INIT),
+            new InitPacket(0x054c, 0x0CE6, DUALSENSE_INIT),
+            new InitPacket(0x054c, 0x0DF2, DUALSENSE_EDGE_INIT),
             new InitPacket(0x0e6f, 0x0000, PDP_INIT1),
             new InitPacket(0x0e6f, 0x0000, PDP_INIT2),
             new InitPacket(0x24c6, 0x541a, RUMBLE_INIT1),

@@ -161,6 +161,16 @@ public abstract class AbstractXboxController extends AbstractController {
             inputThread = null;
         }
 
+
+        // Release all interfaces
+        for (int i = 0; i < device.getInterfaceCount(); i++) {
+            UsbInterface iface = device.getInterface(i);
+
+            if (!connection.releaseInterface(iface)) {
+                LimeLog.warning("Failed to release interfaces");
+            }
+        }
+
         // Close the USB connection
         connection.close();
 

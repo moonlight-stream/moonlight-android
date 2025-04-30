@@ -133,7 +133,6 @@
     <string name="summary_seekbar_bitrate">Увеличете за по-добро качество на изображението. Намалете, за да подобрите производителността при по-бавни връзки.</string>
     <string name="resolution_prefix_native_portrait">(Портрет)</string>
     <string name="title_checkbox_enable_audiofx">Активиране на поддръжката на системния еквалайзер</string>
-    <string name="title_checkbox_stretch_video">Разтегляне на видеото на цял екран</string>
     <string name="resolution_prefix_native_landscape">(Пейзаж)</string>
     <string name="category_audio_settings">Аудио настройки</string>
     <string name="category_input_settings">Настройки за въвеждане</string>

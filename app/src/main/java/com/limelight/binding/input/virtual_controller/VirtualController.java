@@ -5,9 +5,13 @@
 package com.limelight.binding.input.virtual_controller;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.util.DisplayMetrics;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -16,13 +20,15 @@ import android.widget.Toast;
 import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.binding.input.ControllerHandler;
+import com.limelight.preferences.PreferenceConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class VirtualController {
     public static class ControllerInputContext {
-        public short inputMap = 0x0000;
+//        public short inputMap = 0x0000;
+        public int inputMap = 0;
         public byte leftTrigger = 0x00;
         public byte rightTrigger = 0x00;
         public short rightStickX = 0x0000;
@@ -34,7 +40,8 @@ public class VirtualController {
     public enum ControllerMode {
         Active,
         MoveButtons,
-        ResizeButtons
+        ResizeButtons,
+        DisableEnableButtons
     }
 
     private static final boolean _PRINT_DEBUG_INFORMATION = false;
@@ -59,11 +66,22 @@ public class VirtualController {
 
     private List<VirtualControllerElement> elements = new ArrayList<>();
 
+    private Vibrator vibrator;
+
+    private final VibrationEffect defaultVibrationEffect;
+
     public VirtualController(final ControllerHandler controllerHandler, FrameLayout layout, final Context context) {
         this.controllerHandler = controllerHandler;
         this.frame_layout = layout;
         this.context = context;
         this.handler = new Handler(Looper.getMainLooper());
+
+        this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            defaultVibrationEffect = VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE);
+        } else {
+            defaultVibrationEffect = null;
+        }
 
         buttonConfigure = new Button(context);
         buttonConfigure.setAlpha(0.25f);
@@ -74,16 +92,21 @@ public class VirtualController {
             public void onClick(View v) {
                 String message;
 
-                if (currentMode == ControllerMode.Active){
+                if (currentMode == ControllerMode.Active) {
+                    currentMode = ControllerMode.DisableEnableButtons;
+                    showElements();
+                    message = context.getString(R.string.configuration_mode_disable_enable_buttons);
+                } else if (currentMode == ControllerMode.DisableEnableButtons){
                     currentMode = ControllerMode.MoveButtons;
-                    message = "Entering configuration mode (Move buttons)";
+                    showEnabledElements();
+                    message = context.getString(R.string.configuration_mode_move_buttons);
                 } else if (currentMode == ControllerMode.MoveButtons) {
                     currentMode = ControllerMode.ResizeButtons;
-                    message = "Entering configuration mode (Resize buttons)";
+                    message = context.getString(R.string.configuration_mode_resize_buttons);
                 } else {
                     currentMode = ControllerMode.Active;
                     VirtualControllerConfigurationLoader.saveProfile(VirtualController.this, context);
-                    message = "Exiting configuration mode";
+                    message = context.getString(R.string.configuration_mode_exiting);
                 }
 
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
@@ -104,18 +127,38 @@ public class VirtualController {
 
     public void hide() {
         for (VirtualControllerElement element : elements) {
-            element.setVisibility(View.INVISIBLE);
+            element.setVisibility(View.GONE);
         }
 
-        buttonConfigure.setVisibility(View.INVISIBLE);
+        buttonConfigure.setVisibility(View.GONE);
     }
 
     public void show() {
-        for (VirtualControllerElement element : elements) {
-            element.setVisibility(View.VISIBLE);
-        }
+        showEnabledElements();
 
         buttonConfigure.setVisibility(View.VISIBLE);
+    }
+
+    public int switchShowHide() {
+        if (buttonConfigure.getVisibility() == View.VISIBLE) {
+            hide();
+            return 0;
+        } else {
+            show();
+            return 1;
+        }
+    }
+
+    public void showElements(){
+        for(VirtualControllerElement element : elements){
+            element.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void showEnabledElements(){
+        for(VirtualControllerElement element: elements){
+            element.setVisibility( element.enabled ? View.VISIBLE : View.GONE );
+        }
     }
 
     public void removeElements() {
@@ -198,12 +241,27 @@ public class VirtualController {
         }
     }
 
-    void sendControllerInputContext() {
+    public void sendControllerInputContext(long vibrationDuration, int vibrationAmplitude) {
         // Cancel retransmissions of prior gamepad inputs
         handler.removeCallbacks(delayedRetransmitRunnable);
 
         sendControllerInputContextInternal();
-
+        if (frame_layout != null && PreferenceConfiguration.readPreferences(context).enableKeyboardVibrate) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                VibrationEffect effect;
+                if (vibrationDuration == 0) {
+                    effect = defaultVibrationEffect;
+                } else {
+                    effect = VibrationEffect.createOneShot(vibrationDuration, vibrationAmplitude);
+                }
+                vibrator.vibrate(effect);
+            } else {
+                if (vibrationDuration == 0) {
+                    vibrationDuration = 10;
+                }
+                vibrator.vibrate(vibrationDuration);
+            }
+        }
         // HACK: GFE sometimes discards gamepad packets when they are received
         // very shortly after another. This can be critical if an axis zeroing packet
         // is lost and causes an analog stick to get stuck. To avoid this, we retransmit
@@ -211,5 +269,9 @@ public class VirtualController {
         handler.postDelayed(delayedRetransmitRunnable, 25);
         handler.postDelayed(delayedRetransmitRunnable, 50);
         handler.postDelayed(delayedRetransmitRunnable, 75);
+    }
+
+    public void sendControllerInputContext() {
+        sendControllerInputContext(0, 0);
     }
 }

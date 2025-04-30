@@ -37,12 +37,20 @@ public abstract class InputCaptureProvider {
         return false;
     }
 
+    public float getRelativeAxisX(MotionEvent event, int pointerIndex) {
+        return 0;
+    }
+
     public float getRelativeAxisX(MotionEvent event) {
+        return getRelativeAxisX(event, 0);
+    }
+
+    public float getRelativeAxisY(MotionEvent event, int pointerIndex) {
         return 0;
     }
 
     public float getRelativeAxisY(MotionEvent event) {
-        return 0;
+        return getRelativeAxisY(event, 0);
     }
 
     public void onWindowFocusChanged(boolean focusActive) {}

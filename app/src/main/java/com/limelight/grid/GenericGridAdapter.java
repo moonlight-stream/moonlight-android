@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.limelight.R;
@@ -54,7 +55,7 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
         return i;
     }
 
-    public abstract void populateView(View parentView, ImageView imgView, ProgressBar prgView, TextView txtView, ImageView overlayView, T obj);
+    public abstract void populateView(View parentView, ImageView imgView, RelativeLayout gridMask, ProgressBar prgView, TextView txtView, ImageView overlayView, T obj);
 
     @Override
     public View getView(int i, View convertView, ViewGroup viewGroup) {
@@ -63,11 +64,12 @@ public abstract class GenericGridAdapter<T> extends BaseAdapter {
         }
 
         ImageView imgView = convertView.findViewById(R.id.grid_image);
+        RelativeLayout gridMask = convertView.findViewById(R.id.grid_mask);
         ImageView overlayView = convertView.findViewById(R.id.grid_overlay);
         TextView txtView = convertView.findViewById(R.id.grid_text);
         ProgressBar prgView = convertView.findViewById(R.id.grid_spinner);
 
-        populateView(convertView, imgView, prgView, txtView, overlayView, itemList.get(i));
+        populateView(convertView, imgView, gridMask, prgView, txtView, overlayView, itemList.get(i));
 
         return convertView;
     }

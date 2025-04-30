@@ -184,7 +184,6 @@
     <string name="title_fps_list">Taxa de quadros por segundo</string>
     <string name="title_seekbar_bitrate">Taxa de bits</string>
     <string name="summary_seekbar_bitrate">Aumente para uma melhor qualidade de imagem. Diminua para melhorar o desempenho em conexões mais lentas.</string>
-    <string name="title_checkbox_stretch_video">Esticar vídeo ao ecrã cheio</string>
     <string name="resolution_prefix_native">Nativa</string>
     <string name="resolution_prefix_native_fullscreen">Ecrã Cheio Nativo</string>
     <string name="category_audio_settings">Configurações de Áudio</string>

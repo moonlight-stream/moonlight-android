@@ -144,7 +144,6 @@
     <string name="summary_fps_list">הגבר להזרמת וידיאו חלקה יותר. הנמך לביצועים ויציבות במכשירים חלשים.</string>
     <string name="title_seekbar_bitrate">וידיאו ביטרייט</string>
     <string name="suffix_seekbar_bitrate_mbps">מגהביט</string>
-    <string name="title_checkbox_stretch_video">מתחית וידיאו למסך מלא</string>
     <string name="resolution_prefix_native">טבעי</string>
     <string name="resolution_prefix_native_fullscreen">טבעי במסך מלא</string>
     <string name="category_audio_settings">הגדרות אודיו</string>

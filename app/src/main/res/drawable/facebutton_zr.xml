@@ -1,0 +1,25 @@
+<vector android:alpha="0.6" android:height="98.58dp"
+    android:viewportHeight="98.58" android:viewportWidth="244.91"
+    android:width="244.91dp"
+    xmlns:aapt="http://schemas.android.com/aapt" xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:fillAlpha="0.6"
+        android:pathData="M230.91,98.58l-199.4,-0a31.54,31.54 135,0 1,-31.54 -31.54L-0.03,15.31a15.32,15.32 0,0 1,15.32 -15.32l145,-0A84.62,84.62 0,0 1,244.91 84.58l-0,-0A14,14 0,0 1,230.91 98.58Z" android:strokeAlpha="0.6">
+        <aapt:attr name="android:fillColor">
+            <gradient android:endX="0" android:endY="49.29"
+                android:startX="244.91" android:startY="49.29" android:type="linear">
+                <item android:color="#FFC3C4C5" android:offset="0"/>
+                <item android:color="#FFC4C5C5" android:offset="0.05"/>
+                <item android:color="#FFC7C7C7" android:offset="0.47"/>
+                <item android:color="#F7C4C4C4" android:offset="0.54"/>
+                <item android:color="#E5BABABA" android:offset="0.65"/>
+                <item android:color="#C6ABABAB" android:offset="0.77"/>
+                <item android:color="#9E969696" android:offset="0.91"/>
+                <item android:color="#7F878787" android:offset="1"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path android:fillAlpha="0.75" android:fillColor="#FF000000"
+        android:pathData="M77.34,74.37l32.51,-47.55v-0.26H80.12V20.21h39.55v4.61L87.34,72.2v0.26h32.77V78.8H77.34Z" android:strokeAlpha="0.75"/>
+    <path android:fillAlpha="0.75" android:fillColor="#FF000000"
+        android:pathData="M129.41,21a78,78 0,0 1,14.51 -1.22c8.09,0 13.3,1.48 17,4.78a14.62,14.62 0,0 1,4.6 11.13c0,7.73 -4.87,12.86 -11,15v0.26c4.52,1.56 7.22,5.74 8.61,11.82 1.91,8.17 3.3,13.82 4.52,16.08h-7.82c-1,-1.65 -2.26,-6.69 -3.92,-14C154.1,56.72 151,53.68 144.1,53.42H137V78.8h-7.56ZM137,47.68h7.74c8.08,0 13.21,-4.43 13.21,-11.12 0,-7.57 -5.48,-10.87 -13.47,-11a30.92,30.92 0,0 0,-7.48 0.7Z" android:strokeAlpha="0.75"/>
+</vector>

@@ -114,7 +114,6 @@
     <string name="summary_seekbar_bitrate">提高位元速率以提升圖像品質，降低可在較慢的網路中取得更好的串流體驗。</string>
     <string name="title_unlock_fps">解鎖所有可用影格速率</string>
     <string name="summary_unlock_fps">以 90 或 120 畫面更新率串流可能會減少在高效能裝置上的網路延時，但在不支援的裝置上會卡頓或不穩定的狀況</string>
-    <string name="title_checkbox_stretch_video">將畫面延展至全螢幕</string>
     <string name="title_checkbox_disable_warnings">停用錯誤訊息</string>
     <string name="summary_checkbox_disable_warnings">停用串流中連線錯誤訊息</string>
     <string name="title_checkbox_enable_pip">啟用子母畫面觀察模式</string>

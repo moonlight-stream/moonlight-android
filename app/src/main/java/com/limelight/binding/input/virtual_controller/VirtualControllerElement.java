@@ -14,6 +14,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.limelight.Game;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -36,23 +38,27 @@ public abstract class VirtualControllerElement extends View {
     public static final int EID_LSB = 14;
     public static final int EID_RSB = 15;
     public static final int EID_GDB = 16;
+    public static final int EID_TOUCHPAD = 65;
 
     protected VirtualController virtualController;
     protected final int elementId;
 
     private final Paint paint = new Paint();
 
-    private int normalColor = 0xF0888888;
-    protected int pressedColor = 0xF00000FF;
+    protected int normalColor = 0xF0888888;
+    protected int pressedColor = 0xF07272ED;
     private int configMoveColor = 0xF0FF0000;
     private int configResizeColor = 0xF0FF00FF;
     private int configSelectedColor = 0xF000FF00;
 
+    private int configDisabledColor = 0xF0AAAAAA;
     protected int startSize_x;
     protected int startSize_y;
 
     float position_pressed_x = 0;
     float position_pressed_y = 0;
+
+    public boolean enabled = true;
 
     private enum Mode {
         Normal,
@@ -93,6 +99,10 @@ public abstract class VirtualControllerElement extends View {
         layoutParams.width = newWidth > 20 ? newWidth : 20;
 
         requestLayout();
+    }
+
+    protected  void actionDisableEnableButton(){
+        enabled = !enabled;
     }
 
     @Override
@@ -162,8 +172,9 @@ public abstract class VirtualControllerElement extends View {
             return configMoveColor;
         else if (virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)
             return configResizeColor;
-        else
-            return normalColor;
+        else if (virtualController.getControllerMode() == VirtualController.ControllerMode.DisableEnableButtons)
+            return enabled ? configSelectedColor: configDisabledColor;
+        else return normalColor;
     }
 
     protected int getDefaultStrokeWidth() {
@@ -248,7 +259,8 @@ public abstract class VirtualControllerElement extends View {
                     actionEnableMove();
                 else if (virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)
                     actionEnableResize();
-
+                else if (virtualController.getControllerMode() == VirtualController.ControllerMode.DisableEnableButtons)
+                    actionDisableEnableButton();
                 return true;
             }
             case MotionEvent.ACTION_MOVE: {
@@ -292,7 +304,7 @@ public abstract class VirtualControllerElement extends View {
 
     protected static final void _DBG(String text) {
         if (_PRINT_DEBUG_INFORMATION) {
-            System.out.println(text);
+//            System.out.println(text);
         }
     }
 
@@ -330,7 +342,7 @@ public abstract class VirtualControllerElement extends View {
         configuration.put("TOP", layoutParams.topMargin);
         configuration.put("WIDTH", layoutParams.width);
         configuration.put("HEIGHT", layoutParams.height);
-
+        configuration.put("ENABLED", enabled);
         return configuration;
     }
 
@@ -341,7 +353,8 @@ public abstract class VirtualControllerElement extends View {
         layoutParams.topMargin = configuration.getInt("TOP");
         layoutParams.width = configuration.getInt("WIDTH");
         layoutParams.height = configuration.getInt("HEIGHT");
-
+        enabled = configuration.getBoolean("ENABLED");
+        setVisibility(enabled ? VISIBLE: GONE);
         requestLayout();
     }
 }

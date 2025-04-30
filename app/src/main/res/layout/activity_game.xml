@@ -1,5 +1,6 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Game" >
@@ -15,26 +16,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
+        android:defaultFocusHighlightEnabled="false"
         android:focusable="true"
         android:focusableInTouchMode="true"
-        android:focusedByDefault="true"
-        android:defaultFocusHighlightEnabled="false">
+        android:focusedByDefault="true">
+
         <requestFocus />
     </com.limelight.ui.StreamView>
 
-    <TextView
-        android:id="@+id/performanceOverlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:layout_gravity="left"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:gravity="left"
-        android:background="#80000000"
-        android:preferKeepClear="true"
-        android:visibility="gone" />
+<!--    <com.limelight.ui.ApertureViewGroup-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        app:aperture_color1="#5CF950"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:padding="5dp"-->
+<!--        app:aperture_color2="#FC9595"-->
+<!--        app:aperture_border_width="10dp"-->
+<!--        app:aperture_border_angle="24dp"-->
+<!--        app:aperture_duration="6000"-->
+<!--        app:aperture_middle_color="#6CD2F8">-->
+<!--    </com.limelight.ui.ApertureViewGroup>-->
 
     <TextView
         android:id="@+id/notificationOverlay"
@@ -49,5 +50,43 @@
         android:background="#80000000"
         android:preferKeepClear="true"
         android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/performanceOverlay"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/performanceOverlayBig"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_gravity="left"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:gravity="left"
+            android:background="#80000000"
+            android:preferKeepClear="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/performanceOverlayLite"
+            tools:text="延迟/解码：109ms/7ms 丢包率：69% FPS：60"
+            android:textSize="10sp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/ic_hud_bg"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:visibility="gone"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
 
 </merge>

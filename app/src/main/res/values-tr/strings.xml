@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="summary_reset_osc">Bütün ekran kontrollerini varsayılan boyutu ve pozisyonuna sıfırlar</string>
+    <string name="summary_reset_osc">Tüm ekran kontrollerini varsayılan boyutu ve pozisyonuna sıfırlar</string>
     <string name="title_checkbox_touchscreen_trackpad">Dokunmatik ekranı trackpad olarak kullan</string>
     <string name="category_input_settings">Girdi Ayarları</string>
     <string name="summary_language_list">Moonlight için kullanılacak olan dil</string>
-    <string name="ip_hint">GeForce PC\'nin IP adresi</string>
+    <string name="ip_hint">Ana bilgisayarın IP adresi</string>
     <string name="title_details">Detaylar</string>
-    <string name="dialog_title_osc_opacity">Opaklığı değiştir</string>
+    <string name="dialog_title_osc_opacity">Saydamlığı değiştir</string>
     <string name="conn_error_title">Bağlantı Hatası</string>
     <string name="conn_starting">Başlatılıyor</string>
     <string name="conn_error_msg">Başlatma başarısız</string>
     <string name="summary_audio_config_list">Ev-sinema sistemleri için 5.1 yada 7.1 surround sesi etkinleştir</string>
-    <string name="title_checkbox_host_audio">Sesleri bilgisayarda çal</string>
+    <string name="title_checkbox_host_audio">Sesleri bilgisayarda oynat</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
     <string name="error_pc_offline">Bilgisayar çevrimdışı</string>
     <string name="unpair_success">Eşleştirme başarıyla kaldırıldı</string>
@@ -22,10 +22,10 @@
     <string name="pair_pc_offline">Bilgisayar çevrimdışı</string>
     <string name="pairing">Eşleştiriliyor…</string>
     <string name="nettest_title_waiting">Ağ Bağlantısı Test Ediliyor</string>
-    <string name="pcview_menu_details">Detayları Görüntüle</string>
+    <string name="pcview_menu_details">Ayrıntıları Görüntüle</string>
     <string name="pcview_menu_test_network">Ağ Bağlantısını Test Et</string>
     <string name="pcview_menu_delete_pc">PC\'yi sil</string>
-    <string name="pcview_menu_unpair_pc">Eşleştirmeyi kaldır</string>
+    <string name="pcview_menu_unpair_pc">Eşleşmeyi kaldır</string>
     <string name="pcview_menu_pair_pc">PC ile eşle</string>
     <string name="pcview_menu_app_list">Bütün Uygulamaları Göster</string>
     <string name="pcview_menu_header_unknown">Yenileniyor</string>
@@ -38,9 +38,9 @@
     <string name="help_loading_title">Yardım</string>
     <string name="scut_invalid_app_id">Tanımlanmış uygulama geçerli değil</string>
     <string name="scut_invalid_uuid">Tanımlanmış bilgisayar geçerli değil</string>
-    <string name="nettest_text_waiting">Moonlight, NVIDIA GameStream\'in engellenip engellenmediğini belirlemek için ağ bağlantınızı test ediyor.
+    <string name="nettest_text_waiting">Moonlight, gerekli bağlantı noktalarının engellenmediğini belirlemek için ağ bağlantınızı test ediyor.
 \n
-\nBu birkaç saniye sürebilir…</string>
+\nBu bir kaç saniye sürebilir…</string>
     <string name="nettest_title_done">Ağ Testi Tamamlandı</string>
     <string name="nettest_text_inconclusive">Moonlight\'ın bağlantı testi sunucularından hiçbirine erişilemediği için ağ testi gerçekleştirilemedi. İnternet bağlantınızı kontrol edin veya daha sonra tekrar deneyin.</string>
     <string name="nettest_text_failure">Cihazınızın mevcut ağ bağlantısı Moonlight\'ı engelliyor gibi görünüyor. Bu ağa bağlıyken İnternet üzerinden yayın akışı çalışmayabilir.
@@ -52,7 +52,7 @@
     <string name="pair_pairing_msg">Lütfen hedef bilgisayarda aşağıdaki PIN kodunu girin:</string>
     <string name="pair_already_in_progress">Eşleştirme zaten devam ediyor</string>
     <string name="wol_pc_online">Bilgisayar çevrimiçi</string>
-    <string name="wol_no_mac">GFE bir MAC adresi göndermediği için bilgisayar uyandırılamıyor</string>
+    <string name="wol_no_mac">Kayıtlı bir MAC adresi olmadığından bilgisayar uyandırılamıyor</string>
     <string name="wol_waking_pc">Bilgisayar uyandırılıyor…</string>
     <string name="wol_fail">Yerel Ağda Uyandırma paketleri gönderilemedi</string>
     <string name="wol_waking_msg">Bilgisayarınızın uyanması birkaç saniye sürebilir. Eğer uyanmazsa, Yerel Ağda Uyandırma için doğru şekilde yapılandırıldığından emin olun.</string>
@@ -61,13 +61,13 @@
     <string name="nettest_text_success">Ağınız Moonlight\'ı engelliyor gibi görünmüyor. Bağlanmakta hala sorun yaşıyorsanız, bilgisayarınızın güvenlik duvarı ayarlarını kontrol edin.
 \n
 \nİnternet üzerinden yayın yapmaya çalışıyorsanız, Moonlight İnternet Barındırma Aracını bilgisayarınıza yükleyin ve bilgisayarınızın internet bağlantısını kontrol etmek için birlikte verilen İnternet Akış Test Cihazını çalıştırın.</string>
-    <string name="title_checkbox_multi_controller">Otomatik oyun kumandası varlığı algılama</string>
-    <string name="summary_checkbox_multi_controller">Bu seçeneğin işaretinin kaldırılması bir oyun kumandasının her zaman mevcut olmasını zorlar</string>
+    <string name="title_checkbox_multi_controller">Oyun kumandası varlığını otomatik algıla</string>
+    <string name="summary_checkbox_multi_controller">Bu seçeneğin işaretini kaldırmak, oyun kumandasının her zaman mevcut olmasını sağlar</string>
     <string name="summary_checkbox_vibrate_fallback">Oyun kumandanız desteklemiyorsa, gürültüyü taklit etmek için cihazınızı titreştirir</string>
-    <string name="title_seekbar_deadzone">Analog çubuk ölü bölgesini ayarlama</string>
+    <string name="title_seekbar_deadzone">Analog çubuk ölü bölgesini ayarla</string>
     <string name="summary_checkbox_xb1_driver">Yerel Xbox oyun kumandası desteği olmayan cihazlar için yerleşik USB sürücüsünü etkinleştirir</string>
-    <string name="title_checkbox_mouse_emulation">Oyun kumandası üzerinden fare emülasyonu</string>
-    <string name="title_checkbox_mouse_nav_buttons">Geri ve ileri fare düğmelerini etkinleştirme</string>
+    <string name="title_checkbox_mouse_emulation">Oyun kumandası üstünden fare taklidi</string>
+    <string name="title_checkbox_mouse_nav_buttons">Geri ve ileri fare düğmelerini etkinleştir</string>
     <string name="category_on_screen_controls_settings">Ekran Kontrolleri Ayarları</string>
     <string name="title_checkbox_show_onscreen_controls">Ekran kontrollerini göster</string>
     <string name="error_manager_not_running">ComputerManager hizmeti çalışmıyor. Lütfen birkaç saniye bekleyin veya uygulamayı yeniden başlatın.</string>
@@ -76,18 +76,16 @@
     <string name="message_decoding_reset">Cihazınızın video kod çözücüsü, seçtiğiniz akış ayarlarında çökmeye devam ediyor. Akış ayarlarınız varsayılana sıfırlandı.</string>
     <string name="error_usb_prohibited">USB erişimi cihaz yöneticiniz tarafından yasaklanmıştır. Knox veya MDM ayarlarınızı kontrol edin.</string>
     <string name="unable_to_pin_shortcut">Mevcut başlatıcınız sabitlenmiş kısayollar oluşturmaya izin vermiyor.</string>
-    <string name="video_decoder_init_failed">Video kod çözücü başlatılamadı. Cihazınız seçilen çözünürlüğü veya kare hızını desteklemiyor olabilir.</string>
+    <string name="video_decoder_init_failed">Video kod çözücüsü başlatılamadı. Cihazınız seçilen çözünürlüğü veya kare hızını desteklemiyor olabilir.</string>
     <string name="no_video_received_error">Ana bilgisayardan video alınmadı.</string>
     <string name="no_frame_received_error">Ağ bağlantınız iyi performans göstermiyor. Video bit hızı ayarınızı düşürün veya daha hızlı bir bağlantı deneyin.</string>
-    <string name="early_termination_error">Yayını başlatırken ana bilgisayarda bir şeyler ters gitti.
+    <string name="early_termination_error">Akışı başlatırken ana bilgisayarınızda bir şeyler ters gitti.
 \n
-\nAna bilgisayarınızda DRM korumalı herhangi bir içeriğin açık olmadığından emin olun. Ana bilgisayarınızı yeniden başlatmayı da deneyebilirsiniz.
-\n
-\nSorun devam ederse GPU sürücülerinizi ve GeForce Experience\'ı yeniden yüklemeyi deneyin.</string>
+\nBilgisayarınızda DRM korumalı bir içeriğin açık olmadığından emin olun. Ayrıca ana bilgisayarınızı yeniden başlatmayı da deneyebilirsiniz.</string>
     <string name="check_ports_msg">Bağlantı noktaları için güvenlik duvarınızı ve bağlantı noktası yönlendirme kurallarınızı kontrol edin:</string>
-    <string name="conn_establishing_title">Bağlantı kuruluyor</string>
+    <string name="conn_establishing_title">Bağlantı Kuruluyor</string>
     <string name="conn_terminated_title">Bağlantı sonlandırıldı</string>
-    <string name="conn_terminated_msg">Bağlantı sonlandırıldı</string>
+    <string name="conn_terminated_msg">Bağlantı sonlandırıldı.</string>
     <string name="yes">Evet</string>
     <string name="lost_connection">Bilgisayar ile bağlantı kesildi</string>
     <string name="help">Yardım</string>
@@ -101,15 +99,15 @@
     <string name="perf_overlay_renderingfps">İşleme kare hızı: %1$.2f FPS</string>
     <string name="perf_overlay_netdrops">Ağ bağlantınız tarafından düşen kare sayısı: %1$.2f%%</string>
     <string name="perf_overlay_dectime">Ortalama kod çözme süresi: %1$.2f ms</string>
-    <string name="applist_menu_resume">Oturumu sürdür</string>
-    <string name="applist_menu_quit">Oturumu sonlandır</string>
-    <string name="applist_menu_quit_and_start">Mevcut oyundan çık ve başla</string>
+    <string name="applist_menu_resume">Oturumu Sürdür</string>
+    <string name="applist_menu_quit">Oturumu Sonlandır</string>
+    <string name="applist_menu_quit_and_start">Mevcut Oyundan Çık ve Başlat</string>
     <string name="applist_menu_cancel">İptal</string>
-    <string name="applist_menu_details">Detayları göster</string>
-    <string name="applist_menu_scut">Kısayol oluştur</string>
-    <string name="applist_menu_tv_channel">Kanala ekle</string>
-    <string name="applist_menu_hide_app">Uygulamayı gizle</string>
-    <string name="applist_refresh_title">Uygulama listesi</string>
+    <string name="applist_menu_details">Ayrıntıları Göster</string>
+    <string name="applist_menu_scut">Kısayol Oluştur</string>
+    <string name="applist_menu_tv_channel">Kanala Ekle</string>
+    <string name="applist_menu_hide_app">Uygulamayı Gizle</string>
+    <string name="applist_refresh_title">Uygulama Listesi</string>
     <string name="applist_quit_success">Başarıyla çıkıldı</string>
     <string name="applist_refresh_error_msg">Uygulama listesi alınamadı</string>
     <string name="applist_quit_app">Çıkılıyor</string>
@@ -122,7 +120,7 @@
     <string name="addpc_unknown_host">Bilgisayar adresi çözümlenemiyor. Adreste yazım hatası yapmadığınızdan emin olun.</string>
     <string name="addpc_enter_ip">Bir IP adresi girmelisiniz</string>
     <string name="category_basic_settings">Temel Ayarlar</string>
-    <string name="summary_resolution_list">Görüntü netliğini artırmak için artırın. Düşük uçlu cihazlarda ve daha yavaş ağlarda daha iyi performans için azaltın.</string>
+    <string name="summary_resolution_list">Görüntü netliğini artırmak için yükseltin. Düşük güçteki cihazlarda ve daha yavaş ağlarda daha iyi performans için azaltın.</string>
     <string name="title_native_res_dialog">Yerel çözünürlük uyarısı</string>
     <string name="title_fps_list">Video kare hızı</string>
     <string name="title_seekbar_bitrate">Video bit hızı</string>
@@ -131,7 +129,7 @@
     <string name="conn_metered">Uyarı: Aktif ağ bağlantınız ölçülüdür!</string>
     <string name="conn_client_latency">Ortalama kare kod çözme gecikmesi:</string>
     <string name="conn_client_latency_hw">donanım kod çözücü gecikmesi:</string>
-    <string name="pcview_menu_send_wol">Yerel Ağda Uyandırma isteği gönder</string>
+    <string name="pcview_menu_send_wol">Yerel ağdan uyandırma isteği gönder</string>
     <string name="applist_refresh_msg">Uygulamalar yenileniyor…</string>
     <string name="applist_refresh_error_title">Hata</string>
     <string name="title_add_pc">Bilgisayarı manuel olarak Ekle</string>
@@ -144,33 +142,134 @@
     <string name="summary_seekbar_deadzone">Not: Bazı oyunlar Moonlight\'ın kullanmak üzere yapılandırıldığından daha büyük bir ölü bölge uygulayabilir.</string>
     <string name="suffix_seekbar_deadzone">%</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One USB oyun kumandası sürücüsü</string>
-    <string name="title_checkbox_usb_bind_all">Yerel Xbox oyun kumandası desteğini geçersiz kılma</string>
+    <string name="title_checkbox_usb_bind_all">Xbox doğal oyun kumanda desteğini geçersiz kıl</string>
     <string name="summary_checkbox_mouse_emulation">Başlat düğmesine uzun süre basmak oyun kumandasını fare moduna geçirir</string>
     <string name="summary_checkbox_mouse_nav_buttons">Bu seçeneği etkinleştirmek bazı hatalı cihazlarda sağ tıklamayı bozabilir</string>
-    <string name="title_checkbox_flip_face_buttons">Yüz düğmelerini çevirme</string>
+    <string name="title_checkbox_flip_face_buttons">Yüzey düğmelerini çevir</string>
     <string name="title_checkbox_absolute_mouse_mode">Uzak masaüstü fare modu</string>
     <string name="error_404">GFE bir HTTP 404 hatası bildirdi. Bilgisayarınızın desteklenen bir GPU çalıştırdığından emin olun. Uzak masaüstü yazılımı kullanmak da bu hataya neden olabilir. Cihazınızı yeniden başlatmayı veya GFE\'yi yeniden yüklemeyi deneyin.</string>
-    <string name="message_decoding_error">Moonlight, bu cihazın video kod çözücüsü ile uyumsuzluk nedeniyle çöktü. GeForce Experience\'ın bilgisayarınızdaki en son sürüme güncellendiğinden emin olun. Çökmeler devam ederse akış ayarlarını değiştirmeyi deneyin.</string>
+    <string name="message_decoding_error">Moonlight, bu cihazın video kod çözücüsüyle uyumsuzluk nedeniyle çöktü. Kilitlenmeler devam ederse akış ayarlarını değiştirmeyi deneyin.</string>
     <string name="conn_hardware_latency">Ortalama donanım kod çözme gecikmesi:</string>
     <string name="title_decoding_reset">Video Ayarlarını Sıfırla</string>
-    <string name="searching_pc">GameStream\'in çalıştığı bilgisayarlar aranıyor...
+    <string name="searching_pc">Yerel ağınızdaki ana bilgisayarlar aranıyor…
 \n
-\n GeForce Experience SHIELD ayarlarında GameStream\'in etkinleştirildiğinden emin olun.</string>
+\n Sunshine ana bilgisayarınızda çalıştığından veya GeForce Experience SHIELD ayarlarında GameStream etkinleştirildiğinden emin olun.</string>
     <string name="applist_connect_msg">Bilgisayara bağlanıyor…</string>
     <string name="no">Hayır</string>
     <string name="perf_overlay_netlatency">Ortalama ağ gecikmesi: %1$d ms (varyans: %2$d ms)</string>
     <string name="addpc_wrong_sitelocal">Bu adres doğru görünmüyor. İnternet üzerinden akış için yönlendiricinizin genel IP adresini kullanmanız gerekir.</string>
-    <string name="text_native_res_dialog">Yerel çözünürlük modları GeForce Experience tarafından resmi olarak desteklenmez, bu nedenle ana ekran çözünürlüğünüzü kendisi ayarlamaz. Oyun içindeyken manuel olarak ayarlamanız gerekecektir.
+    <string name="text_native_res_dialog">Yerel çözünürlük ve/veya FPS, akış sunucusu tarafından desteklenmeyebilir. Muhtemelen ana bilgisayar için uygun bir özel ekran kipini el ile yapılandırmanız gerekecek.
 \n
-\nCihazınızın çözünürlüğüne uyması için NVIDIA Denetim Masası\'nda özel bir çözünürlük oluşturmayı seçerseniz, lütfen NVIDIA\'nın olası monitör hasarı, bilgisayar kararsızlığı ve diğer olası sorunlarla ilgili uyarısını okuyup anladığınızdan emin olun.
+\nNVIDIA Kontrol Panelinde ekran ayarlarınızla eşleşmesi için özel bir çözünürlük oluşturmayı seçerseniz lütfen NVIDIA tarafından olası monitör hasarı, bilgisayar kararsızlığı ve diğer olası sorunlarla ilgili uyarısını okuyup anladığınızdan emin olun.
 \n
-\nBilgisayarınızda özel bir çözünürlük oluşturulmasından kaynaklanan herhangi bir sorundan sorumlu değiliz.
+\nBilgisayarınızda özel bir çözünürlük oluşturulmasından kaynaklanan sorunlardan sorumlu değiliz.
 \n
-\nSon olarak, cihazınız veya bilgisayarınız doğal çözünürlükte akışı desteklemiyor olabilir. Eğer cihazınızda çalışmıyorsa, ne yazık ki şansınız yok demektir.</string>
+\nMonitörünüz gerekli ekran yapılandırmasını desteklemiyor olabilir. Eğer öyleyse, sanal bir monitör kurmayı deneyebilirsiniz. Son olarak, cihazınız veya ana bilgisayarınız belirli bir çözünürlükte veya yenileme hızında akışı desteklemiyorsa ne yazık ki şansınız kalmaz.</string>
     <string name="summary_seekbar_bitrate">Daha iyi görüntü kalitesi için artırın. Daha yavaş bağlantılarda performansı artırmak için azaltın.</string>
     <string name="title_checkbox_stretch_video">Videoyu tam ekrana genişlet</string>
-    <string name="title_checkbox_vibrate_fallback">Titreşim ile gürültü desteğini taklit etme</string>
+    <string name="title_checkbox_vibrate_fallback">Titreşim ile gürültü desteğini taklit et</string>
     <string name="summary_checkbox_usb_bind_all">Yerel Xbox oyun kumandası desteği mevcut olsa bile desteklenen tüm oyun kumandaları için Moonlight\'ın USB sürücüsünü kullan</string>
-    <string name="summary_checkbox_flip_face_buttons">Oyun kumandaları ve ekran kontrolleri için A/B ve X/Y yüz düğmelerini değiştirir</string>
+    <string name="summary_checkbox_flip_face_buttons">Oyun kumandaları ve ekran kontrolleri için A/B ve X/Y yüzey düğmelerini değiştirir</string>
     <string name="summary_checkbox_absolute_mouse_mode">Bu fare hızlandırmanın uzak masaüstü kullanımı için daha doğal davranmasını sağlayabilir, ancak birçok oyunla uyumsuzdur.</string>
+    <string name="summary_checkbox_show_onscreen_controls">Dokunmatik ekranda sanal denetleyici katmanını göster</string>
+    <string name="dialog_title_reset_osc">Düzeni Sıfırla</string>
+    <string name="title_language_list">Dil</string>
+    <string name="category_host_settings">Ana Bilgisayar Ayarları</string>
+    <string name="pair_pairing_help">Ana bilgisayarınız Sunshine çalıştırıyorsa PIN girmek için Sunshine web kullanıcı arayüzüne gidin.</string>
+    <string name="frame_conversion_error">Ana bilgisayar önemli bir video kodlama hatası bildirdi.
+\n
+\nHDR kipi devre dışı bırakmayı, akış çözünürlüğünü değiştirmeyi veya ana bilgisayarın ekran çözünürlüğünü değiştirmeyi deneyin.</string>
+    <string name="summary_enable_hdr">Oyun ve PC GPU desteklediğinde HDR akışı gerçekleştirin. HDR, HEVC Main 10 kodlama desteğine sahip bir GPU gerektirir.</string>
+    <string name="error_code_prefix">Hata kodu:</string>
+    <string name="perf_overlay_hostprocessinglatency">Ana makine işleme gecikmesi asg/azm/ortalama: %1$.1f/%2$.1f/%3$.1f ms</string>
+    <string name="fps_suffix_fps">FPS</string>
+    <string name="title_native_fps_dialog">Yerel FPS Uyarısı</string>
+    <string name="title_checkbox_enable_audiofx">Sistem ekolayzır desteğini etkinleştir</string>
+    <string name="category_gamepad_settings">Oyun Kumandası Ayarları</string>
+    <string name="title_seekbar_vibrate_fallback_strength">Taklit edilmiş gürültü yoğunluğunu ayarla</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">Cihazınızdaki titreşim yoğunluğunu artırın veya azaltın</string>
+    <string name="title_checkbox_gamepad_touchpad_as_mouse">Fareyi her zaman dokunmatik yüzeyle kontrol et</string>
+    <string name="summary_checkbox_gamepad_touchpad_as_mouse">Dokunmatik yüzeyli bir oyun kumandasını taklit ederken bile, oyun kumandası dokunmatik yüzey girişini ana fareyi kontrol etmeye zorlar.</string>
+    <string name="title_checkbox_gamepad_motion_sensors">Oyun kumandası hareket sensörü kullanımına izin ver</string>
+    <string name="title_checkbox_gamepad_motion_fallback">Oyun kumandası hareket sensörü desteğini taklit et</string>
+    <string name="title_checkbox_vibrate_osc">Titreşimi etkinleştir</string>
+    <string name="summary_checkbox_vibrate_osc">Ekrandaki kontrollerde gürültüyü taklit etmek için cihazınızı titretir</string>
+    <string name="title_only_l3r3">Yalnızca L3 ve R3 göster</string>
+    <string name="summary_only_l3r3">L3 ve R3 dışındaki tüm sanal düğmeleri gizle</string>
+    <string name="title_reset_osc">Kaydedilen ekran kontrolleri düzenini temizle</string>
+    <string name="dialog_text_reset_osc">Kaydedilmiş ekran kontrolleri düzeninizi silmek istediğinizden emin misiniz?</string>
+    <string name="toast_reset_osc_success">Ekrandaki kontroller varsayılana sıfırlandı</string>
+    <string name="title_osc_opacity">Ekrandaki kontrollerin saydamlığını değiştir</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="category_ui_settings">Arayüz Ayarları</string>
+    <string name="title_checkbox_enable_pip">Resim İçinde Resim gözlemci modunu etkinleştir</string>
+    <string name="summary_checkbox_enable_pip">Çoklu görev sırasında akışın görüntülenmesine (ancak kontrol edilmemesine) olanak tanır</string>
+    <string name="summary_osc_opacity">Ekrandaki kontrolleri daha fazla/daha az saydam hale getirin</string>
+    <string name="summary_checkbox_enable_sops">En iyi akış için GFE oyun ayarlarını değiştirmesine izin ver</string>
+    <string name="category_advanced_settings">Gelişmiş Ayarlar</string>
+    <string name="title_unlock_fps">Mümkün olan tüm kare hızlarının kilidini aç</string>
+    <string name="title_checkbox_small_icon_mode">Küçük kutu resmi kullan</string>
+    <string name="summary_checkbox_small_icon_mode">Uygulama kılavuzunda küçük kutu resimleri, ekranda daha fazla uygulamanın görünmesini sağlar</string>
+    <string name="summary_unlock_fps">90 veya 120 FPS yayın yapmak ileri teknoloji cihazlarda gecikmeyi azaltabilir ancak bunu desteklemeyen cihazlarda gecikmeye veya kararsızlığa neden olabilir</string>
+    <string name="title_checkbox_reduce_refresh_rate">Yenileme hızının azaltılmasına izin ver</string>
+    <string name="summary_checkbox_reduce_refresh_rate">Daha düşük ekran yenileme hızları, bazı ek video gecikmeleri pahasına güç tasarrufu sağlayabilir</string>
+    <string name="summary_checkbox_disable_warnings">Akış sırasında ekrandaki bağlantı uyarı mesajlarını devre dışı bırakın</string>
+    <string name="title_disable_frame_drop">Asla kare hızlarını düşürme</string>
+    <string name="title_video_format">Çözücü ayarlarını değiştir</string>
+    <string name="summary_video_format">Daha yeni çözücü bileşenleri, cihazınız destekliyorsa video bant genişliği gereksinimlerini azaltabilir. Ana yazılım veya GPU tarafından desteklenmiyorsa çözücü seçimleri göz ardı edilebilir.</string>
+    <string name="title_enable_hdr">HDR etkinleştir (Deneysel)</string>
+    <string name="title_full_range">Tam aralıklı videoyu zorla (Deneysel)</string>
+    <string name="summary_full_range">Cihazınız tam kapsamlı video içeriğini düzgün şekilde görüntülemiyorsa, bu durum aydınlık ve karanlık alanlarda ayrıntı kaybına neden olacaktır.</string>
+    <string name="title_setup_guide">Kurulum rehberi</string>
+    <string name="title_enable_post_stream_toast">Akıştan sonra gecikme mesajını göster</string>
+    <string name="category_help">Yardım</string>
+    <string name="summary_enable_post_stream_toast">Akış sona erdikten sonra bir gecikme bilgi mesajı görüntüle</string>
+    <string name="summary_setup_guide">Oyun bilgisayarınızı akış için nasıl ayarlayacağınıza ilişkin talimatları görüntüleyin</string>
+    <string name="title_troubleshooting">Sorun giderme kılavuzu</string>
+    <string name="title_privacy_policy">Gizlilik politikası</string>
+    <string name="resolution_480p">480p</string>
+    <string name="resolution_1080p">1080p</string>
+    <string name="summary_troubleshooting">Yaygın akış sorunlarını teşhis etmeye ve düzeltmeye yönelik ipuçlarını görüntüle</string>
+    <string name="summary_privacy_policy">Moonlight gizlilik politikasını görüntüleyin</string>
+    <string name="toast_controller_type_changed">Hareket sensörü taklidi nedeniyle oyun kumandası türü değiştirilebilir</string>
+    <string name="audioconf_51surround">5.1 Surround Ses</string>
+    <string name="audioconf_71surround">7.1 Surround Ses</string>
+    <string name="videoformat_auto">Otomatik (Önerilen)</string>
+    <string name="resolution_1440p">1440p</string>
+    <string name="resolution_4k">4K</string>
+    <string name="fps_60">60 FPS</string>
+    <string name="fps_90">90 FPS</string>
+    <string name="fps_120">120 FPS</string>
+    <string name="audioconf_stereo">Stereo</string>
+    <string name="title_frame_pacing">Video kare ilerleme hızı</string>
+    <string name="summary_frame_pacing">Video gecikmesinin ve akıcılığının nasıl dengeleneceğini belirtin</string>
+    <string name="pacing_latency">Düşük gecikmeyi tercih et</string>
+    <string name="pacing_balanced">Dengeli</string>
+    <string name="videoformat_av1always">AV1 tercih et (Deneysel)</string>
+    <string name="videoformat_hevcalways">HEVC tercih et</string>
+    <string name="videoformat_h264always">H.264 tercih et</string>
+    <string name="pacing_balanced_alt">FPS limiti ile dengeli</string>
+    <string name="pacing_smoothness">En akıcı videoyu tercih et (gecikmeyi önemli ölçüde artırabilir)</string>
+    <string name="title_analog_scrolling">Kaydırmak için analog çubuk kullan</string>
+    <string name="summary_analog_scrolling">Fare taklit etme kipindeyken kaydırmak için bir analog çubuk seçin</string>
+    <string name="analogscroll_none">Yok (her iki çubuk da fareyi hareket ettirir)</string>
+    <string name="analogscroll_left">Sol analog çubuk</string>
+    <string name="analogscroll_right">Sağ analog çubuk</string>
+    <string name="summary_checkbox_host_audio">Sesleri bilgisayardan ve bu cihazdan oynat</string>
+    <string name="title_checkbox_enable_sops">Oyun ayarlarını iyileştir</string>
+    <string name="title_checkbox_disable_warnings">Uyarı mesajlarını devre dışı bırak</string>
+    <string name="resolution_prefix_native_landscape">(Manzara)</string>
+    <string name="resolution_prefix_native_portrait">(Portre)</string>
+    <string name="summary_disable_frame_drop">Bazı cihazlarda mikro kekemeliği azaltabilir ancak gecikmeyi artırabilir</string>
+    <string name="resolution_360p">360p</string>
+    <string name="pcview_menu_eol">NVIDIA GameStream Hizmet Şartları</string>
+    <string name="resolution_720p">720p</string>
+    <string name="fps_30">30 FPS</string>
+    <string name="summary_checkbox_enable_audiofx">Ses efektlerinin akış sırasında çalışmasına izin verir ancak ses gecikmesini artırabilir</string>
+    <string name="summary_checkbox_gamepad_motion_sensors">Desteklenen ana bilgisayarların, hareket sensörlü bir oyun kumandasını taklit ederken hareket sensörü verilerini istemesine olanak tanır. Oyunda hareket sensörleri kullanılmıyorsa devre dışı bırakmak, güç ve ağ kullanımını bir miktar azaltabilir.</string>
+    <string name="summary_checkbox_gamepad_motion_fallback">Oyun kumandası sensörleri Android sürümünüz tarafından desteklenmiyorsa cihazınızın yerleşik hareket sensörlerini kullanır.
+\nNot: Bu seçeneğin etkinleştirilmesi, oyun kumandanızın ana bilgisayarda PlayStation denetleyicisi olarak görünmesine neden olabilir.</string>
+    <string name="title_enable_perf_overlay">Akış sırasında performans istatistiklerini göster</string>
+    <string name="summary_enable_perf_overlay">Akış sırasında gerçek zamanlı akış performansı bilgilerini görüntüleyin</string>
 </resources>

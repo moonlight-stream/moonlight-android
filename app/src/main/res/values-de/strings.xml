@@ -19,7 +19,7 @@
     <string name="pcview_menu_details">Details anzeigen</string>
     <!-- Network test strings -->
     <string name="nettest_title_waiting">Netzwerkverbindung wird getestet</string>
-    <string name="nettest_text_waiting">Moonlight testet Ihre Netzwerkverbindung, um festzustellen, ob NVIDIA GameStream blockiert ist.
+    <string name="nettest_text_waiting">Moonlight testet Ihre Netzwerkverbindung, um festzustellen, ob benötigte Ports blockiert sind.
 \n
 \nDies kann einige Sekunden dauern…</string>
     <string name="nettest_title_done">Netzwerktest abgeschlossen</string>
@@ -43,7 +43,7 @@
     <string name="pair_already_in_progress">Koppeln bereits im Gange</string>
     <!-- WOL messages -->
     <string name="wol_pc_online">Host ist online</string>
-    <string name="wol_no_mac">Host konnte nicht aufgeweckt werden, da GFE keine MAC-Adresse gesendet hat</string>
+    <string name="wol_no_mac">Host konnte nicht aufgeweckt werden, da keine MAC-Adresse gespeichert ist</string>
     <string name="wol_waking_pc">Host wird aufgeweckt…</string>
     <string name="wol_waking_msg">Es kann einige Momente dauern deinen Host aufzuwecken. Sollte dies fehlschlagen, stelle bitte sicher, dass Wake-On-LAN korrekt konfiguriert ist.</string>
     <string name="wol_fail">Senden der Wake-On-LAN Pakete ist fehlgeschlagen</string>
@@ -58,7 +58,7 @@
     <string name="error_unknown_host">Hostname konnte nicht aufgelöst werden</string>
     <string name="error_404">GFE ist auf einen HTTP 404 Fehler gestoßen. Stelle sicher, dass die GPU deines Hosts unterstützt wird. Die Verwendung von Remote-Desktop Software kann ebenso diesen Fehler verursachen. Starte deinen Host neu oder installiere GFE neu.</string>
     <string name="title_decoding_error">Video Dekodierer ist abgestürzt</string>
-    <string name="message_decoding_error">Moonlight ist wegen einer Inkompatibilität zu dem Video Dekodierer deines Gerätes abgestürzt. Stelle sicher, dass die GeForce Experience Version auf deinem Host auf dem neuesten Stand ist. Sollten weiterin Abstürze auftreten, versuche deine Streaming Einstellungen zu ändern.</string>
+    <string name="message_decoding_error">Moonlight ist wegen einer Inkompatibilität zu dem Video Dekodierer deines Gerätes abgestürzt. Sollten weiterhin Abstürze auftreten, ändere deine Streaming Einstellungen.</string>
     <string name="title_decoding_reset">Video Einstellungen zurücksetzen</string>
     <string name="message_decoding_reset">Der Video Dekodierer deines Geräts ist wiederholt mit den ausgewählten Einstellungen abgestürzt. Deine Streamingeinstellungen wurden zurückgesetzt.</string>
     <string name="error_usb_prohibited">USB Zugriff ist administrativ unterbunden. Bitte überprüfen sie ihre Knox oder MDM Einstellungen.</string>
@@ -77,12 +77,12 @@
     <string name="conn_error_title">Verbindungsfehler</string>
     <string name="conn_error_msg">Start fehlgeschlagen</string>
     <string name="conn_terminated_title">Verbindung beendet</string>
-    <string name="conn_terminated_msg">Die Verbindung wurde beendet</string>
+    <string name="conn_terminated_msg">Die Verbindung wurde beendet.</string>
     <!-- General strings -->
     <string name="ip_hint">IP-Adresse des GeForce Hosts</string>
-    <string name="searching_pc">Suche nach Hosts auf denen GeForce Experience aktiv ist…
+    <string name="searching_pc">Suche nach Host PCs in deinem lokalen Netzwerk…
 \n
-\nStelle sicher, dass GameStream in den GeForce Experience SHIELD-Einstellungen aktiviert ist.</string>
+\nStelle sicher, dass Sunshine läuft oder GameStream in den GeForce Experience SHIELD-Einstellungen aktiviert ist.</string>
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
     <string name="lost_connection">Verbindung zum Host verloren</string>
@@ -191,35 +191,33 @@
     <string name="title_checkbox_disable_warnings">Warnhinweise deaktivieren</string>
     <string name="summary_checkbox_disable_warnings">On-Screen Warnmeldungen während des Streaming deaktivieren</string>
     <string name="summary_disable_frame_drop">Kann das Mikro-Ruckeln auf einigen Geräten reduzieren, allerdings erhöht dies gleichzeitig die Latenz</string>
-    <string name="title_video_format">HEVC Einstellungen ändern</string>
-    <string name="summary_video_format">HEVC verringert die Video-Bandbreitenanforderung, funktioniert allerdings nur auf sehr neuen Geräten</string>
+    <string name="title_video_format">Codec-Einstellungen ändern</string>
+    <string name="summary_video_format">Neuere Codecs können die Anforderungen an die Videobandbreite senken, wenn diese vom Gerät unterstützt werden. Codec-Auswahl kann ignoriert werden, sollte diese von der Host-Software oder GPU nicht unterstützt werden.</string>
     <string name="title_enable_hdr">HDR aktivieren (experimentell)</string>
-    <string name="summary_enable_hdr">HDR-Streaming sofern dies von der Host-GPU unterstützt wird. HDR erfordert eine GPU der GTX 1000 Serie oder neuer.</string>
+    <string name="summary_enable_hdr">Streame HDR, wenn das Spiel und die PC-GPU dies unterstützen. HDR erfordert eine GPU mit HEVC Main 10-Codierungsunterstützung.</string>
     <string name="title_enable_perf_overlay">Performance Overlay aktivieren</string>
     <string name="summary_enable_perf_overlay">Leistungsmerkmale während des Streamens in Echtzeit einblenden</string>
     <string name="title_enable_post_stream_toast">Zeige Latenz-Informationen nach dem Streaming</string>
     <string name="summary_enable_post_stream_toast">Anzeige einer Informationsmeldung über die Latenz nach dem Ende des Streams</string>
     <string name="resolution_prefix_native">Nativ</string>
-    <string name="text_native_res_dialog">Native Auflösungsmodi werden von GeForce Experience nicht offiziell unterstützt, daher wird es die Auflösung deines Host-Displays nicht selbst einstellen. Du musst sie manuell im Spiel setzen.
+    <string name="text_native_res_dialog">Native Auflösungsmodi werden unter Umständen nicht vom Streaming Server unterstützt. Wahrscheinlich musst du diese manuell für den Host einstellen.
 \n
 \nWenn du eine benutzerdefinierte Auflösung in der NVIDIA Systemsteuerung erstellst, um die Auflösung deines Geräts anzupassen, stelle bitte sicher, dass du die Warnung von NVIDIA bezüglich möglicher Monitorschäden, PC-Instabilität und anderer potenzieller Probleme gelesen und verstanden hast.
 \n
-\nWir sind nicht verantwortlich für Probleme, die aus der Erstellung einer angepassten Auflösung auf deinem PC resultieren.
+\nWir übernehmen keine Verantwortung für Probleme, die aus der Erstellung einer angepassten Auflösung auf deinem PC resultieren.
 \n
-\nSchließlich kann es sein, dass dein Gerät oder dein Host das Streaming in nativer Auflösung nicht unterstützt. Wenn es auf deinem Gerät nicht funktioniert, hast du leider Pech gehabt.</string>
+\nEs kann sein, dass dein Monitor eine notwendige Konfiguration nicht unterstützt. In diesem Fall, kann ein Virtuelles Display Abhilfe schaffen. Allerdings kann es sein, dass dein Gerät oder dein Host das Streaming in einer bestimmten Auflösung oder Bildwiederholrate nicht unterstützt.</string>
     <string name="title_native_res_dialog">Native Auflösungswarnung</string>
     <string name="check_ports_msg">Überprüfe deine Firewall und Portweiterleitungsregeln für folgende(n) Port(s):</string>
     <string name="early_termination_error">Beim Starten des Streams auf deinem Host ist etwas schief gelaufen.
 \n
-\nStelle sicher, dass du keine DRM-geschützten Inhalte auf deinem Host geöffnet hast. Du kannst auch versuchen, deinen Host neu zu starten.
-\n
-\nWenn das Problem weiterhin besteht, versuche deinen GPU-Treiber und GeForce Experience neu zu installieren.</string>
+\nStelle sicher, dass du keine DRM-geschützten Inhalte auf deinem Host geöffnet hast. Du kannst auch versuchen, deinen Host neu zu starten.</string>
     <string name="pcview_menu_header_unknown">Aktualisiere</string>
     <string name="pcview_menu_header_offline">Offline</string>
     <string name="pcview_menu_header_online">Online</string>
     <!-- Array strings -->
     <string name="videoformat_auto">Automatisch</string>
-    <string name="videoformat_hevcalways">Immer HEVC verwenden (könnte Crashes verursachen)</string>
+    <string name="videoformat_hevcalways">HEVC bevorzugen</string>
     <string name="title_frame_pacing">Video Frame-Pacing</string>
     <string name="summary_frame_pacing">Lege fest, wie die Videolatenz und die flüssige Wiedergabe ausgeglichen werden sollen</string>
     <string name="resolution_prefix_native_fullscreen">Natives Vollbild</string>
@@ -275,4 +273,17 @@
     <string name="analogscroll_none">Keine (beide Sticks bewegen die Maus)</string>
     <string name="analogscroll_right">Rechter Analogstick</string>
     <string name="analogscroll_left">Linker Analogstick</string>
+    <string name="error_code_prefix">Fehlercode:</string>
+    <string name="title_seekbar_vibrate_fallback_strength">Emulierte Vibrationsintensität einstellen</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">Verstärke oder verringere die Vibrationsintensität deines Geräts</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="summary_checkbox_gamepad_touchpad_as_mouse">Erzwingt die Steuerung der Host Maus durch das Gamepad-Touchpad, selbst wenn ein Gamepad mit Touchpad emuliert wird.</string>
+    <string name="summary_checkbox_gamepad_motion_sensors">Ermöglicht unterstützten Hosts, Bewegungssensordaten anzufordern, wenn ein Gamepad mit Bewegungssensoren emuliert wird. Das Deaktivieren kann die Strom- und Netzwerknutzung leicht reduzieren, wenn im Spiel keine Bewegungssensoren verwendet werden.</string>
+    <string name="title_checkbox_gamepad_motion_fallback">Emuliere die Unterstützung von Gamepad-Bewegungssensoren</string>
+    <string name="title_full_range">Full Range Video erzwingen (Experimentell)</string>
+    <string name="toast_controller_type_changed">Der Gamepad-Typ kann sich aufgrund der Bewegungssensor-Emulation ändern</string>
+    <string name="summary_full_range">Dies führt zu Detailverlusten in hellen und dunklen Bereichen, wenn Ihr Gerät Full Range Video Inhalte nicht richtig anzeigt.</string>
+    <string name="summary_checkbox_gamepad_motion_fallback">Verwendet die integrierten Bewegungssensoren Ihres Geräts, wenn Gamepad-Sensoren von Ihrem angeschlossenen Gamepad oder Ihrer Android-Version nicht unterstützt werden.
+\nHinweis: Die Aktivierung dieser Option kann dazu führen, dass Ihr Gamepad auf dem Host als PlayStation-Controller angezeigt wird.</string>
+    <string name="pcview_menu_eol">NVIDIA GameStream End-of-Service</string>
 </resources>

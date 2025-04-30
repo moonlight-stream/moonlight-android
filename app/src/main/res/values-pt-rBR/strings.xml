@@ -28,21 +28,17 @@
 \n
 \nSe você estiver tentando transmitir pela Internet, instale o Moonlight Internet Hosting Tool em seu PC e execute o Internet Streaming Tester para verificar a conexão com a Internet do seu PC.</string>
     <string name="check_ports_msg">Verifique o firewall e permita a(s) seguinte(s) para porta(s):</string>
-    <string name="wol_no_mac">Não foi possível acordar o PC porque o GFE não enviou um endereço MAC</string>
+    <string name="wol_no_mac">Não foi possível acordar o PC porque não tem um endereço MAC armazenado</string>
     <string name="wol_waking_msg">Pode levar alguns segundos para o seu PC acordar. Se isso não acontecer, verifique se ele está configurado corretamente para Wake-On-LAN.</string>
     <string name="error_404">GFE retornou um erro HTTP 404. Verifique se o seu PC está executando uma GPU compatível. O uso do software de área de trabalho remota também pode causar esse erro. Tente reiniciar sua máquina ou reinstalar o GFE.</string>
-    <string name="message_decoding_error">Moonlight crashou devido a uma incompatibilidade com o decodificador de vídeo deste dispositivo. Certifique-se de que o GeForce Experience esteja atualizado para a versão mais recente em seu PC. Tente ajustar as configurações de transmissão se as falhas continuarem.</string>
+    <string name="message_decoding_error">Moonlight crashou devido a uma incompatibilidade com o decodificador de vídeo deste dispositivo. Tente ajustar as configurações de transmissão se as falhas continuarem.</string>
     <string name="message_decoding_reset">O decodificador de vídeo do seu dispositivo continua crashando nas configurações de transmissão selecionadas. Suas configurações de transmissão foram redefinidas para o padrão.</string>
     <string name="error_usb_prohibited">O acesso USB é proibido pelo administrador do seu dispositivo. Verifique suas configurações de Knox ou MDM.</string>
     <string name="unable_to_pin_shortcut">Seu launcher atual não permite a criação de atalhos fixados.</string>
     <string name="video_decoder_init_failed">Falha ao iniciar o decodificador de vídeo. Seu dispositivo pode não suportar a resolução ou taxa de quadros selecionada.</string>
     <string name="no_video_received_error">Nenhum vídeo recebido do host.</string>
     <string name="no_frame_received_error">Sua conexão de rede não está funcionando bem. Reduza a configuração da taxa de bits do vídeo ou tente uma conexão mais rápida.</string>
-    <string name="early_termination_error">Algo deu errado no seu PC ao iniciar a transmissão.
-\n
-\nCertifique-se de não ter nenhum conteúdo protegido por DRM aberto em seu PC. Você também pode tentar reiniciar ele.
-\n
-\nSe o problema persistir, tente reinstalar os drivers da GPU e o GeForce Experience.</string>
+    <string name="early_termination_error">Algo deu errado no seu PC ao iniciar a transmissão.\n\nCertifique-se de não ter nenhum conteúdo protegido por DRM aberto em seu PC. Você também pode tentar reiniciar ele.</string>
     <string name="conn_establishing_msg">Iniciando a conexão</string>
     <string name="conn_establishing_title">Estabelecendo Conexão</string>
     <string name="resolution_360p">360p</string>
@@ -77,9 +73,7 @@
     <string name="nettest_title_done">Teste de Internet Completo</string>
     <string name="pcview_menu_pair_pc">Parear com o PC</string>
     <string name="pcview_menu_send_wol">Enviar Wake-On-LAN</string>
-    <string name="nettest_text_waiting">O Moonlight está testando a sua internet para determinar se o NVIDIA GameStream está bloqueado.
-\n
-\nIsso pode levar alguns segundos…</string>
+    <string name="nettest_text_waiting">O Moonlight está testando a sua conexão de internet para determinar se alguma das portas requeridas estão bloqueadas.\n\nIsso pode levar alguns segundos…</string>
     <string name="nettest_text_inconclusive">O teste de rede não pôde ser executado porque nenhum dos servidores de teste de conexão do Moonlight estava acessível. Verifique sua conexão com a Internet ou tente novamente mais tarde.</string>
     <string name="nettest_text_failure">A conexão de rede atual do seu dispositivo parece estar bloqueando o Moonlight. A transmissão pela Internet pode não funcionar enquanto estiver conectado a esta rede.
 \n
@@ -104,7 +98,7 @@
     <string name="error_pc_offline">Esse computador está indisponível</string>
     <string name="error_manager_not_running">O serviço ComputerManager não está em execução. Aguarde alguns segundos ou reinicie o aplicativo.</string>
     <string name="error_unknown_host">Falha ao encontrar o host</string>
-    <string name="conn_terminated_msg">A conexão foi encerrada</string>
+    <string name="conn_terminated_msg">A conexão foi encerrada.</string>
     <string name="yes">Sim</string>
     <string name="no">Não</string>
     <string name="lost_connection">Conexão perdida com o PC</string>
@@ -254,4 +248,6 @@
     <string name="analogscroll_left">Stick analógico esquerdo</string>
     <string name="title_analog_scrolling">Usar um stick analógico para fazer scroll</string>
     <string name="summary_analog_scrolling">Selecciona um stick analógico para fazer scroll quando a emulação de rato está ativada</string>
+    <string name="error_code_prefix">Código de erro:</string>
+    <string name="fps_suffix_fps">FPS</string>
 </resources>

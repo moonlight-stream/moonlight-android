@@ -134,7 +134,7 @@
     <string name="title_checkbox_vibrate_fallback">Vibrasjonsemulering</string>
     <string name="summary_checkbox_touchscreen_trackpad">Får pekeskjermen til å oppføre seg som en pekeflate. Ellers kontrolleres pekeskjermen musen direkte.</string>
     <string name="title_decoding_reset">Tilbakestilling av videoinnstillinger</string>
-    <string name="message_decoding_error">Moonlight har krasjet som følge av inkompabilitet med denne enhetens videodekoder. Forsikre deg om at GeForce Experience er oppdatert til seneste versjon på din PC. Prøv å justere strømmingsinnstillingene hvis problemet vedvarer.</string>
+    <string name="message_decoding_error">Moonlight har krasjet som følge av inkompatibilitet med denne enhetens videodekoder. Prøv å justere strømmingsinnstillingene hvis problemet vedvarer.</string>
     <string name="error_404">GFE returnerte en HTTP-404-feil. Forsikre deg om at PC-en kjører et støttet skjermkort. Bruk av fjernskrivebordsprogramvare kan også forårsake denne feilen. Prøv å starte maskinen på ny, eller å reinstallere GFE.</string>
     <string name="error_manager_not_running">ComputerManager-tjenesten kjører ikke. Vent noen sekunder eller start programmet på ny.</string>
     <string name="nettest_text_blocked">Nettverkstilkoblingen på din enhet ser ut til å blokkere Moonlight. Strømming over Internett vil muligens ikke fungere tilkoblet gjennom dette nettverket.</string>

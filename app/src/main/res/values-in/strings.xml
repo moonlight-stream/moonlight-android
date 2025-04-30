@@ -30,7 +30,7 @@
     <string name="pair_fail">Pemasangan gagal</string>
     <string name="pair_already_in_progress">Pemasangan sedang berlangsung</string>
     <string name="wol_pc_online">Komputer tersedia</string>
-    <string name="wol_no_mac">Tidak bisa membangunkan komputer karena GFE tidak mengirimkan alamat MAC</string>
+    <string name="wol_no_mac">Tidak bisa membangunkan komputer karena tidak ada alamat MAC yang tersimpan</string>
     <string name="wol_waking_pc">Membangunkan komputer…</string>
     <string name="wol_waking_msg">Membangunkan komputer mungkin akan membutuhkan beberapa saat. Jika tidak bisa, pastikan konfigurasi Wake-On-LAN sudah benar.</string>
     <string name="unpairing">Memutuskan pemasangan…</string>
@@ -38,7 +38,7 @@
     <string name="unpair_fail">Gagal memutuskan pemasangan</string>
     <string name="error_pc_offline">Komputer tidak tersedia</string>
     <string name="title_decoding_error">Dekoder video berhenti bekerja</string>
-    <string name="message_decoding_error">Moonlight telah berhenti bekerja dikarenakan inkompatibilitas dengan dekoder video perangkat ini. Pastikan GeForce Experience sudah diperbarui ke versi terkini pada komputer Anda. Coba ganti pengaturan stream jika masih berlanjut.</string>
+    <string name="message_decoding_error">Moonlight telah berhenti bekerja dikarenakan inkompatibilitas dengan dekoder video perangkat ini. Coba ganti pengaturan stream jika masih berlanjut.</string>
     <string name="title_decoding_reset">Pengaturan video dipulihkan</string>
     <string name="message_decoding_reset">Dekoder video perangkat Anda terus-menerus berhenti pada pengaturan stream yang dipilih. Pengaturan stream Anda telah dipulihkan ke bawaan.</string>
     <string name="error_usb_prohibited">Akses USB dilarang oleh Administrator perangkat Anda. Cek pengaturan Knox atau MDM Anda.</string>
@@ -55,8 +55,8 @@
     <string name="conn_error_title">Koneksi eror</string>
     <string name="conn_error_msg">Gagal untuk memulai</string>
     <string name="conn_terminated_title">Koneksi dihentikan</string>
-    <string name="conn_terminated_msg">Koneksi telah terhenti</string>
-    <string name="ip_hint">Alamat IP komputer GeForce</string>
+    <string name="conn_terminated_msg">Koneksi telah terputus.</string>
+    <string name="ip_hint">Alamat IP komputer host</string>
     <string name="searching_pc">Mencari komputer yang menjalankan GameStream...
 \n
 \nPastikan GameStream diaktifkan pada pengaturan SHIELD GeForce Experience.</string>
@@ -83,15 +83,13 @@
     <string name="pair_pc_ingame">Komputer sedang ada di game. Anda harus menutupnya terlebih dahulu.</string>
     <string name="wol_fail">Gagal mengirim paket Wake-On-LAN</string>
     <string name="unpair_error">Perangkat tidak terpasang</string>
-    <string name="error_manager_not_running">ComputerManager tidak berjalan. Mohon tunggu beberapa saat atau mulai ulang aplikasi.</string>
+    <string name="error_manager_not_running">Servis ComputerManager tidak berjalan. Mohon tunggu beberapa detik atau mulai ulang aplikasi.</string>
     <string name="error_404">GFE memberikan eror HTTP 404. Pastikan komputer anda menggunakan kartu grafis yang didukung. Penggunaan aplikasi remote desktop juga dapat menyebabakan eror ini. Coba mulai ulang perangkat Anda atau install ulang GFE.</string>
     <string name="unable_to_pin_shortcut">Peluncur Anda tidak memperbolehkan pembuatan shortcut yang disematkan.</string>
     <string name="video_decoder_init_failed">Gagal memulai dekoder video. Perangkat Anda mungkin tidak mendukung resolusi atau kecepatan bingkai yang dipilih.</string>
-    <string name="early_termination_error">Ada yang salah dengan komputer host anda ketika memulai stream.
+    <string name="early_termination_error">Ada yang salah dengan komputer host Anda ketika memulai stream.
 \n
-\nPastikan tidak ada konten yang dilindungi DRM yang terbuka di komputer host Anda. Coba mulai ulang komputer host.
-\n
-\nJika masalah berkelanjutan, coba install ulang GeForce Experience dan driver video grafis Anda.</string>
+\nPastikan tidak ada konten yang dilindungi DRM yang terbuka di komputer host Anda. Coba mulai ulang komputer host.</string>
     <string name="help">Bantuan</string>
     <string name="pcview_menu_eol">NVIDIA GameStream End-of-Service</string>
     <string name="applist_menu_resume">Lanjutkan Sesi</string>
@@ -211,4 +209,5 @@
     <string name="title_checkbox_enable_pip">Aktifkan mode pengamat Gambar-dalam-Gambar</string>
     <string name="summary_language_list">Bahasa yang digunakan untuk Moonlight</string>
     <string name="summary_checkbox_enable_sops">Izinkan GFE mengubah setelan game untuk streaming yang optimal</string>
+    <string name="error_code_prefix">Kode galat:</string>
 </resources>

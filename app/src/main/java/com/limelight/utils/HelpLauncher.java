@@ -9,6 +9,14 @@ import com.limelight.HelpActivity;
 
 public class HelpLauncher {
     public static void launchUrl(Context context, String url) {
+        if (url.startsWith("@")) {
+            try {
+                int resId = Integer.parseInt(url.substring(1));
+                url = context.getString(resId);
+            } catch (Exception ignored) {
+
+            }
+        }
         // Try to launch the default browser
         try {
             Intent i = new Intent(Intent.ACTION_VIEW);

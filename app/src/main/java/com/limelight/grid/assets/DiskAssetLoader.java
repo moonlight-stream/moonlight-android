@@ -117,7 +117,17 @@ public class DiskAssetLoader {
                         scaledBitmap.originalWidth = imageInfo.getSize().getWidth();
                         scaledBitmap.originalHeight = imageInfo.getSize().getHeight();
 
-                        imageDecoder.setTargetSize(STANDARD_ASSET_WIDTH, STANDARD_ASSET_HEIGHT);
+                        float aspectRatio = (float) scaledBitmap.originalWidth / scaledBitmap.originalHeight;
+                        float standardAspectRatio = (float) STANDARD_ASSET_WIDTH / STANDARD_ASSET_HEIGHT;
+                        int targetWidth = STANDARD_ASSET_WIDTH;
+                        int targetHeight = STANDARD_ASSET_HEIGHT;
+
+                        if (aspectRatio < standardAspectRatio) {
+                            targetHeight = (int) (standardAspectRatio / aspectRatio * targetHeight);
+                        } else {
+                            targetWidth = (int) (aspectRatio / standardAspectRatio * targetWidth);
+                        }
+                        imageDecoder.setTargetSize(targetWidth, targetHeight);
                         if (isLowRamDevice) {
                             imageDecoder.setMemorySizePolicy(ImageDecoder.MEMORY_POLICY_LOW_RAM);
                         }

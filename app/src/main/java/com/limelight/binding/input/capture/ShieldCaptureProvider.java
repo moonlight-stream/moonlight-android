@@ -82,7 +82,7 @@ public class ShieldCaptureProvider extends InputCaptureProvider {
     }
 
     @Override
-    public float getRelativeAxisX(MotionEvent event) {
+    public float getRelativeAxisX(MotionEvent event, int pointerIndex) {
         return event.getAxisValue(AXIS_RELATIVE_X);
     }
 

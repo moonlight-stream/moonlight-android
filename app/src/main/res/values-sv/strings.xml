@@ -225,7 +225,6 @@
 \n
 \nDet kan vara så att din bildskärm inte stöder en nödvändig bildskärmskonfiguration. Om så är fallet kan du försöka ställa in en virtuell skärm. Slutligen, om din enhet eller värddator inte stöder streaming med en specifik upplösning eller uppdateringsfrekvens, har du tyvärr ingen tur.</string>
     <string name="summary_seekbar_bitrate">Öka för bättre bildkvalitet. Minska för att förbättra prestandan på långsammare anslutningar.</string>
-    <string name="title_checkbox_stretch_video">Sträck ut videon till helskärm</string>
     <string name="summary_audio_config_list">Aktivera 5.1 eller 7.1 surroundljud för hemmabiosystem</string>
     <string name="summary_checkbox_enable_audiofx">Ljudeffekter kan fungera under streaming, men kan öka ljudfördröjningen</string>
     <string name="summary_checkbox_multi_controller">Om du avmarkerar det här alternativet tvingas en spelplatta att alltid finnas med</string>

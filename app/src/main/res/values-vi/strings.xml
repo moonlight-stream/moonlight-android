@@ -63,7 +63,6 @@
     <string name="title_audio_config_list">Thiết lập âm thanh bao quanh</string>
     <string name="category_audio_settings">Cài đặt âm thanh</string>
     <string name="resolution_prefix_native">Gốc</string>
-    <string name="title_checkbox_stretch_video">Kéo giãn video ra toàn màn hình</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
     <string name="summary_seekbar_bitrate">Tăng để có chất lượng hình ảnh tốt hơn. Giảm để cải thiện hiệu năng trên các kết nối chậm hơn.</string>
     <string name="title_seekbar_bitrate">Tốc độ bit video</string>

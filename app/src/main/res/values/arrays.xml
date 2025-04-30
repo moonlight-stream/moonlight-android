@@ -32,6 +32,17 @@
         <item>120</item>
     </string-array>
 
+    <string-array name="video_scale_mode_names">
+        <item>@string/video_scale_mode_fit</item>
+        <item>@string/video_scale_mode_fill</item>
+        <item>@string/video_scale_mode_stretch</item>
+    </string-array>
+    <string-array name="video_scale_mode_values" translatable="false">
+        <item>fit</item>
+        <item>fill</item>
+        <item>stretch</item>
+    </string-array>
+
     <string-array name="audio_config_names">
         <item>@string/audioconf_stereo</item>
         <item>@string/audioconf_51surround</item>
@@ -109,12 +120,16 @@
     </string-array>
 
     <string-array name="video_frame_pacing_names">
+        <item>@string/pacing_warp2</item>
+        <item>@string/pacing_warp</item>
         <item>@string/pacing_latency</item>
         <item>@string/pacing_balanced</item>
         <item>@string/pacing_balanced_alt</item>
         <item>@string/pacing_smoothness</item>
     </string-array>
     <string-array name="video_frame_pacing_values" translatable="false">
+        <item>warp2</item>
+        <item>warp</item>
         <item>latency</item>
         <item>balanced</item>
         <item>cap-fps</item>
@@ -131,4 +146,48 @@
         <item>right</item>
         <item>left</item>
     </string-array>
+
+
+    <string-array name="keyboard_axi_names">
+        <item>@string/keyboard_layout_set_1</item>
+        <item>@string/keyboard_layout_set_1</item>
+        <item>@string/keyboard_layout_set_1</item>
+        <item>@string/keyboard_layout_set_1</item>
+        <item>@string/keyboard_layout_set_1</item>
+    </string-array>
+    <string-array name="keyboard_axi_values" translatable="false">
+        <item>OSC_Keyboard</item>
+        <item>OSC_Keyboard_2</item>
+        <item>OSC_Keyboard_3</item>
+        <item>OSC_Keyboard_4</item>
+        <item>OSC_Keyboard_5</item>
+    </string-array>
+
+    <string-array name="mouse_mode_names">
+        <item>@string/mouse_mode_multi_touch</item>
+        <item>@string/mouse_mode_absolute_touch</item>
+        <item>@string/mouse_mode_track_pad_natural</item>
+        <item>@string/mouse_mode_track_pad_gaming</item>
+        <item>@string/mouse_mode_disabled</item>
+        <item>@string/mouse_mode_absolute_touch_swapped</item>
+    </string-array>
+    <string-array name="mouse_mode_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <string-array name="onscreen_keyboard_align_modes">
+        <item>@string/align_left</item>
+        <item>@string/align_center</item>
+        <item>@string/align_right</item>
+    </string-array>
+    <string-array name="onscreen_keyboard_align_values" translatable="false">
+        <item>left</item>
+        <item>center</item>
+        <item>right</item>
+    </string-array>
+
 </resources>

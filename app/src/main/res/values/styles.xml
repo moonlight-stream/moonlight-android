@@ -34,4 +34,18 @@
         <item name="android:windowNoTitle">true</item>
     </style>
 
+    <style name="SettingsTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+
+    <declare-styleable name="ApertureViewGroup">
+        <attr name="aperture_color1" format="color" />
+        <attr name="aperture_color2" format="color" />
+        <attr name="aperture_border_width" format="dimension" />
+        <attr name="aperture_border_angle" format="dimension" />
+        <attr name="aperture_duration" format="integer" />
+        <attr name="aperture_middle_color" format="color" />
+    </declare-styleable>
+
 </resources>

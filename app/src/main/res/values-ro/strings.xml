@@ -115,7 +115,6 @@
     <string name="summary_seekbar_bitrate">Crește-o pentru a îmbunătăți calitatea imaginilor. Descrește-o pentru dispozitive neperformante sau conexiune slabă.</string>
     <string name="title_unlock_fps">Deblochează toate ratele de cadre posibile</string>
     <string name="summary_unlock_fps">Fluxul video de rate mai mari poate reduce latența folosind dispozitive performante, dar poate introduce erori daca nu sunt suportate.</string>
-    <string name="title_checkbox_stretch_video">Întindeți video pe ecranul complet</string>
     <string name="title_checkbox_disable_warnings">Dezactivează mesajele de avertizare</string>
     <string name="summary_checkbox_disable_warnings">Dezactivează mesajele de avertizare privind rețeaua în timpul conexiunii</string>
     <string name="title_checkbox_enable_pip">Activează modul Picture-In-Picture</string>

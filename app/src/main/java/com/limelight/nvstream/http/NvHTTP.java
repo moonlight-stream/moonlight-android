@@ -1,7 +1,5 @@
 package com.limelight.nvstream.http;
 
-import android.os.Build;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +20,9 @@ import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Stack;
 import java.util.UUID;
@@ -35,8 +35,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
@@ -51,17 +49,21 @@ import com.limelight.LimeLog;
 import com.limelight.nvstream.ConnectionContext;
 import com.limelight.nvstream.http.PairingManager.PairState;
 import com.limelight.nvstream.jni.MoonBridge;
+import com.limelight.utils.DeviceUtils;
 
 import okhttp3.ConnectionPool;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 
 public class NvHTTP {
     private String uniqueId;
+    private String deviceName;
     private PairingManager pm;
 
     private static final int DEFAULT_HTTPS_PORT = 47984;
@@ -200,9 +202,9 @@ public class NvHTTP {
     }
     
     public NvHTTP(ComputerDetails.AddressTuple address, int httpsPort, String uniqueId, X509Certificate serverCert, LimelightCryptoProvider cryptoProvider) throws IOException {
-        // Use the same UID for all Moonlight clients so we can quit games
-        // started by other Moonlight clients.
-        this.uniqueId = "0123456789ABCDEF";
+        this.uniqueId = uniqueId;
+
+        this.deviceName = DeviceUtils.getModel();
 
         this.serverCert = serverCert;
 
@@ -278,6 +280,45 @@ public class NvHTTP {
 
     static String getXmlString(String str, String tagname, boolean throwIfMissing) throws XmlPullParserException, IOException {
         return getXmlString(new StringReader(str), tagname, throwIfMissing);
+    }
+
+    static List<String> getXmlArray(Reader r, String tagname, boolean throwIfMissing) throws XmlPullParserException, IOException {
+        XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+        factory.setNamespaceAware(true);
+        XmlPullParser xpp = factory.newPullParser();
+
+        xpp.setInput(r);
+        int eventType = xpp.getEventType();
+        Stack<String> currentTag = new Stack<>();
+
+        List<String> array = new ArrayList<>();
+
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            switch (eventType) {
+            case (XmlPullParser.START_TAG):
+                currentTag.push(xpp.getName());
+                break;
+            case (XmlPullParser.END_TAG):
+                currentTag.pop();
+                break;
+            case (XmlPullParser.TEXT):
+                if (currentTag.peek().equals(tagname)) {
+                    array.add(xpp.getText());
+                }
+                break;
+            }
+            eventType = xpp.next();
+        }
+
+        if (throwIfMissing && array.isEmpty()) {
+            throw new XmlPullParserException("Missing mandatory field in host response: "+tagname);
+        }
+
+        return array;
+    }
+
+    static List<String> getXmlArray(String str, String tagname, boolean throwIfMissing) throws XmlPullParserException, IOException {
+        return getXmlArray(new StringReader(str), tagname, throwIfMissing);
     }
     
     private static void verifyResponseStatus(XmlPullParser xpp) throws HostHttpResponseException {
@@ -368,6 +409,15 @@ public class NvHTTP {
         // UUID is mandatory to determine which machine is responding
         details.uuid = getXmlString(serverInfo, "uniqueid", true);
 
+        String permStr = getXmlString(serverInfo, "Permission", false);
+        if (permStr != null) {
+            try {
+                details.permission = Integer.parseInt(permStr);
+            } catch (Exception ignored) {
+                details.permission = -1;
+            }
+        }
+
         details.httpsPort = getHttpsPort(serverInfo);
 
         details.macAddress = getXmlString(serverInfo, "mac", false);
@@ -378,6 +428,13 @@ public class NvHTTP {
         // This is missing on on recent GFE versions, but it's present on Sunshine
         details.externalPort = getExternalPort(serverInfo);
         details.remoteAddress = makeTuple(getXmlString(serverInfo, "ExternalIP", false), details.externalPort);
+
+        details.vDisplaySupported = getServerSupportsVDisplay(serverInfo);
+        if (details.vDisplaySupported) {
+            details.vDisplayDriverReady = getServerVDisplayDriverReady(serverInfo);
+        }
+
+        details.serverCommands = getServerCmds(serverInfo);
 
         details.pairState = getPairState(serverInfo);
         details.runningGameId = getCurrentGame(serverInfo);
@@ -411,24 +468,25 @@ public class NvHTTP {
 
     private HttpUrl getCompleteUrl(HttpUrl baseUrl, String path, String query) {
         return baseUrl.newBuilder()
-                .addPathSegment(path)
+                .addPathSegments(path)
                 .query(query)
+                .addQueryParameter("devicename", deviceName)
                 .addQueryParameter("uniqueid", uniqueId)
                 .addQueryParameter("uuid", UUID.randomUUID().toString())
                 .build();
-    }
-
-    private ResponseBody openHttpConnection(OkHttpClient client, HttpUrl baseUrl, String path) throws IOException {
-        return openHttpConnection(client, baseUrl, path, null);
     }
 
     // Read timeout should be enabled for any HTTP query that requires no outside action
     // on the GFE server. Examples of queries that DO require outside action are launch, resume, and quit.
     // The initial pair query does require outside action (user entering a PIN) but subsequent pairing
     // queries do not.
-    private ResponseBody openHttpConnection(OkHttpClient client, HttpUrl baseUrl, String path, String query) throws IOException {
+    private ResponseBody openHttpConnection(OkHttpClient client, HttpUrl baseUrl, String path, String query, RequestBody requestBody) throws IOException {
         HttpUrl completeUrl = getCompleteUrl(baseUrl, path, query);
-        Request request = new Request.Builder().url(completeUrl).get().build();
+        Request.Builder _builder = new Request.Builder().url(completeUrl);
+        Request request;
+        if (requestBody == null) request = _builder.get().build();
+        else request = _builder.post(requestBody).build();
+
         Response response = performAndroidTlsHack(client).newCall(request).execute();
 
         ResponseBody body = response.body();
@@ -451,12 +509,16 @@ public class NvHTTP {
     }
 
     private String openHttpConnectionToString(OkHttpClient client, HttpUrl baseUrl, String path) throws IOException {
-        return openHttpConnectionToString(client, baseUrl, path, null);
+        return openHttpConnectionToString(client, baseUrl, path, null, null);
     }
 
     private String openHttpConnectionToString(OkHttpClient client, HttpUrl baseUrl, String path, String query) throws IOException {
+        return openHttpConnectionToString(client, baseUrl, path, query, null);
+    }
+
+    private String openHttpConnectionToString(OkHttpClient client, HttpUrl baseUrl, String path, String query, RequestBody requestBody) throws IOException {
         try {
-            ResponseBody resp = openHttpConnection(client, baseUrl, path, query);
+            ResponseBody resp = openHttpConnection(client, baseUrl, path, query, requestBody);
             String respString = resp.string();
             resp.close();
 
@@ -478,6 +540,28 @@ public class NvHTTP {
     public String getServerVersion(String serverInfo) throws XmlPullParserException, IOException {
         // appversion is present in all supported GFE versions
         return getXmlString(serverInfo, "appversion", true);
+    }
+
+    public boolean getServerSupportsVDisplay(String serverInfo) throws XmlPullParserException, IOException {
+        String supportVdisplay = getXmlString(serverInfo, "VirtualDisplayCapable", false);
+        if (supportVdisplay == null) {
+            return false;
+        }
+
+        return supportVdisplay.equals("true");
+    }
+
+    public boolean getServerVDisplayDriverReady(String serverInfo) throws XmlPullParserException, IOException {
+        String driverReady = getXmlString(serverInfo, "VirtualDisplayDriverReady", false);
+        if (driverReady == null) {
+            return false;
+        }
+
+        return driverReady.equals("true");
+    }
+
+    public List<String> getServerCmds(String serverInfo) throws XmlPullParserException, IOException {
+        return getXmlArray(serverInfo, "ServerCommand", false);
     }
 
     public PairingManager.PairState getPairState() throws IOException, XmlPullParserException {
@@ -697,7 +781,7 @@ public class NvHTTP {
             return getAppListByReader(new StringReader(getAppListRaw()));
         }
         else {
-            try (final ResponseBody resp = openHttpConnection(httpClientLongConnectTimeout, getHttpsUrl(true), "applist")) {
+            try (final ResponseBody resp = openHttpConnection(httpClientLongConnectTimeout, getHttpsUrl(true), "applist", null, null)) {
                 return getAppListByReader(new InputStreamReader(resp.byteStream()));
             }
         }
@@ -705,12 +789,12 @@ public class NvHTTP {
 
     String executePairingCommand(String additionalArguments, boolean enableReadTimeout) throws HostHttpResponseException, IOException {
         return openHttpConnectionToString(enableReadTimeout ? httpClientLongConnectTimeout : httpClientLongConnectNoReadTimeout,
-                baseUrlHttp, "pair", "devicename=roth&updateState=1&" + additionalArguments);
+                baseUrlHttp, "pair", "updateState=1&" + additionalArguments);
     }
 
     String executePairingChallenge() throws HostHttpResponseException, IOException {
         return openHttpConnectionToString(httpClientLongConnectTimeout, getHttpsUrl(true),
-                "pair", "devicename=roth&updateState=1&phrase=pairchallenge");
+                "pair", "updateState=1&phrase=pairchallenge");
     }
 
     public void unpair() throws IOException {
@@ -718,7 +802,7 @@ public class NvHTTP {
     }
     
     public InputStream getBoxArt(NvApp app) throws IOException {
-        ResponseBody resp = openHttpConnection(httpClientLongConnectTimeout, getHttpsUrl(true), "appasset", "appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0");
+        ResponseBody resp = openHttpConnection(httpClientLongConnectTimeout, getHttpsUrl(true), "appasset", "appid=" + app.getAppId() + "&AssetType=2&AssetIdx=0", null);
         return resp.byteStream();
     }
     
@@ -758,8 +842,14 @@ public class NvHTTP {
         // so force it to 0 to ensure the correct resolution is set. We
         // used to use 60 here but that locked the frame rate to 60 FPS
         // on GFE 3.20.3.
-        int fps = context.isNvidiaServerSoftware && context.streamConfig.getLaunchRefreshRate() > 60 ?
+        float fps = context.isNvidiaServerSoftware && context.streamConfig.getLaunchRefreshRate() > 60 ?
                 0 : context.streamConfig.getLaunchRefreshRate();
+
+        int fpsInt = (int)fps;
+
+        if (fpsInt != fps) {
+            fpsInt = (int)(fps * 1000);
+        }
 
         boolean enableSops = context.streamConfig.getSops();
         if (context.isNvidiaServerSoftware) {
@@ -778,11 +868,13 @@ public class NvHTTP {
 
         String xmlStr = openHttpConnectionToString(httpClientLongConnectNoReadTimeout, getHttpsUrl(true), verb,
             "appid=" + appId +
-            "&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + fps +
+            "&mode=" + context.negotiatedWidth + "x" + context.negotiatedHeight + "x" + fpsInt +
+            "&scaleFactor=" + context.streamConfig.getResolutionScaleFactor() +
             "&additionalStates=1&sops=" + (enableSops ? 1 : 0) +
             "&rikey="+bytesToHex(context.riKey.getEncoded()) +
             "&rikeyid="+context.riKeyId +
             (!enableHdr ? "" : "&hdrMode=1&clientHdrCapVersion=0&clientHdrCapSupportedFlagsInUint32=0&clientHdrCapMetaDataId=NV_STATIC_METADATA_TYPE_1&clientHdrCapDisplayData=0x0x0x0x0x0x0x0x0x0x0") +
+            "&virtualDisplay=" + (context.streamConfig.getVirtualDisplay() ? 1 : 0) +
             "&localAudioPlayMode=" + (context.streamConfig.getPlayLocalAudio() ? 1 : 0) +
             "&surroundAudioInfo=" + context.streamConfig.getAudioConfiguration().getSurroundAudioInfo() +
             "&remoteControllersBitmap=" + context.streamConfig.getAttachedGamepadMask() +
@@ -815,5 +907,22 @@ public class NvHTTP {
         }
 
         return true;
+    }
+
+    public String getClipboard() throws IOException {
+        // Add type for future-proof
+        // Might return arbitrary type from host if not set
+        return openHttpConnectionToString(httpClientLongConnectTimeout, getHttpsUrl(true), "actions/clipboard", "type=text");
+    }
+
+    // We currently only support plain text
+    public Boolean sendClipboard(String content) throws IOException {
+        String resp = openHttpConnectionToString(httpClientLongConnectTimeout, getHttpsUrl(true), "actions/clipboard", "type=text", RequestBody.create(content, MediaType.parse("text/plain")));
+        // For handling the 200ed 404 from Sunshine
+        if (resp.isEmpty()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

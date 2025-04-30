@@ -12,6 +12,8 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.view.MotionEvent;
 
+import com.limelight.preferences.PreferenceConfiguration;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +46,8 @@ public class DigitalButton extends VirtualControllerElement {
     private List<DigitalButtonListener> listeners = new ArrayList<>();
     private String text = "";
     private int icon = -1;
+
+    private int iconPress=-1;
     private long timerLongClickTimeout = 3000;
     private final Runnable longClickRunnable = new Runnable() {
         @Override
@@ -133,33 +137,63 @@ public class DigitalButton extends VirtualControllerElement {
         invalidate();
     }
 
+    public void setIconPress(int iconPress) {
+        this.iconPress = iconPress;
+    }
+
     @Override
     protected void onElementDraw(Canvas canvas) {
         // set transparent background
         canvas.drawColor(Color.TRANSPARENT);
 
         paint.setTextSize(getPercent(getWidth(), 25));
+
         paint.setTextAlign(Paint.Align.CENTER);
+
         paint.setStrokeWidth(getDefaultStrokeWidth());
 
-        paint.setColor(isPressed() ? pressedColor : getDefaultColor());
-        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(isPressed() ? pressedColor:getDefaultColor());
 
         rect.left = rect.top = paint.getStrokeWidth();
         rect.right = getWidth() - rect.left;
         rect.bottom = getHeight() - rect.top;
 
-        canvas.drawOval(rect, paint);
-
-        if (icon != -1) {
-            Drawable d = getResources().getDrawable(icon);
-            d.setBounds(5, 5, getWidth() - 5, getHeight() - 5);
-            d.draw(canvas);
-        } else {
+        //皮肤选择 官方皮肤
+        if(PreferenceConfiguration.readPreferences(getContext()).enableOnScreenStyleOfficial){
+            paint.setStyle(Paint.Style.STROKE);
+            //方形
+            if(PreferenceConfiguration.readPreferences(getContext()).enableKeyboardSquare){
+                canvas.drawRect(rect,paint);
+            }else{
+                canvas.drawOval(rect, paint);
+            }
             paint.setStyle(Paint.Style.FILL_AND_STROKE);
             paint.setStrokeWidth(getDefaultStrokeWidth()/2);
             canvas.drawText(text, getPercent(getWidth(), 50), getPercent(getHeight(), 63), paint);
+            return;
         }
+        int oscOpacity=PreferenceConfiguration.readPreferences(getContext()).oscOpacity;
+        //虚拟手柄皮肤
+        if (icon != -1) {
+            Drawable d = getResources().getDrawable(isPressed()?iconPress:icon);
+            d.setBounds(5, 5, getWidth() - 5, getHeight() - 5);
+            d.setAlpha((int) (oscOpacity*2.55));
+            d.draw(canvas);
+        }else{
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(getDefaultStrokeWidth()/2);
+            canvas.drawText(text, getPercent(getWidth(), 50), getPercent(getHeight(), 63), paint);
+        }
+
+        boolean bIsMoving = virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons;
+        boolean bIsResizing = virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons;
+        boolean bIsEnable = virtualController.getControllerMode() == VirtualController.ControllerMode.DisableEnableButtons;
+
+        if (bIsMoving || bIsResizing || bIsEnable ||icon==-1) {
+            paint.setStyle(Paint.Style.STROKE);
+            canvas.drawRect(rect,paint);
+        }
+
     }
 
     private void onClickCallback() {

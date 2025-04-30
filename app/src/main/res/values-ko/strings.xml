@@ -50,7 +50,7 @@
     <string name="conn_error_title">연결 오류</string>
     <string name="conn_error_msg">시작 실패</string>
     <string name="conn_terminated_title">연결 종료 됨</string>
-    <string name="conn_terminated_msg">연결이 종료되었습니다</string>
+    <string name="conn_terminated_msg">연결이 종료되었습니다.</string>
     <!-- General strings -->
     <string name="ip_hint">호스트 PC의 IP 주소</string>
     <string name="searching_pc">로컬 네트워크의 호스트 PC를 검색중…
@@ -244,7 +244,7 @@
     <string name="pacing_balanced">균형</string>
     <string name="pacing_balanced_alt">FPS 제한과 균형</string>
     <string name="title_checkbox_enable_audiofx">시스템 이퀄라이저 지원 활성화</string>
-    <string name="summary_checkbox_enable_audiofx">스트리밍중 오디오 효과가 작동하도록 하지만 오디오 지연시간이 증가할 수 있습니다.</string>
+    <string name="summary_checkbox_enable_audiofx">스트리밍 중 오디오 효과가 작동하도록 하지만 오디오 지연시간이 증가할 수 있습니다.</string>
     <string name="title_checkbox_absolute_mouse_mode">원격 데스크톱 마우스 모드</string>
     <string name="summary_checkbox_absolute_mouse_mode">이 옵션을 활성화하면 마우스가 보다 자연스럽게 동작할 수 있지만 많은 게임과 호환되지 않습니다(특히 FPS에서).</string>
     <string name="fps_60">60 FPS</string>
@@ -278,4 +278,13 @@
     <string name="summary_checkbox_gamepad_motion_fallback">연결된 컨트롤러 또는 기기의 Android 버전에서 컨트롤러 센서가 지원되지 않는 경우 장치에 내장된 모션 센서를 사용합니다.
 \n참고: 이 옵션을 활성화하면 사용 중인 컨트롤러가 호스트에서 PlayStation 컨트롤러로 나타날 수 있습니다.</string>
     <string name="title_checkbox_gamepad_motion_fallback">컨트롤러의 모션 센서 에뮬레이션 지원</string>
+    <string name="error_code_prefix">에러 코드:</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">장치의 진동 강도를 증폭하거나 감소시킵니다</string>
+    <string name="title_analog_scrolling">아날로그 스틱을 사용하여 스크롤</string>
+    <string name="analogscroll_none">없음 (두 스틱 모두 마우스를 움직입니다)</string>
+    <string name="analogscroll_right">우측 아날로그 스틱</string>
+    <string name="analogscroll_left">좌측 아날로그 스틱</string>
+    <string name="title_seekbar_vibrate_fallback_strength">에뮬레이트된 진동 강도 조정</string>
+    <string name="summary_analog_scrolling">마우스 에뮬레이션 모드에서 스크롤할 아날로그 스틱을 선택하세요</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
 </resources>

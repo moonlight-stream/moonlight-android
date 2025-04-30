@@ -6,18 +6,33 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.media.MediaCodecInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Vibrator;
-import android.preference.CheckBoxPreference;
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.PreferenceCategory;
-import android.preference.PreferenceFragment;
-import android.preference.PreferenceManager;
-import android.preference.PreferenceScreen;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.fragment.app.DialogFragment;
+import androidx.preference.CheckBoxPreference;
+import androidx.preference.EditTextPreference;
+import androidx.preference.ListPreference;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceCategory;
+import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
+import androidx.preference.PreferenceScreen;
+
+import com.bytehamster.lib.preferencesearch.SearchConfiguration;
+import com.bytehamster.lib.preferencesearch.SearchPreferenceResult;
+import com.bytehamster.lib.preferencesearch.SearchPreference;
+import com.bytehamster.lib.preferencesearch.SearchPreferenceResultListener;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Range;
 import android.view.Display;
@@ -26,20 +41,32 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
+import android.widget.EditText;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.limelight.DebugInfoActivity;
+import com.limelight.BuildConfig;
+import com.limelight.GameMenu;
 import com.limelight.LimeLog;
 import com.limelight.PcView;
 import com.limelight.R;
+import com.limelight.binding.input.virtual_controller.keyboard.KeyBoardControllerConfigurationLoader;
 import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.utils.Dialog;
+import com.limelight.utils.FileUriUtils;
 import com.limelight.utils.UiHelper;
-
-import java.lang.reflect.Method;
+import org.json.JSONObject;
+import java.io.File;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
 
-public class StreamSettings extends Activity {
+public class StreamSettings extends AppCompatActivity implements SearchPreferenceResultListener {
     private PreferenceConfiguration previousPrefs;
     private int previousDisplayPixelCount;
+
+    private SettingsFragment prefsFragment;
 
     // HACK for Android 9
     static DisplayCutout displayCutoutP;
@@ -49,9 +76,16 @@ public class StreamSettings extends Activity {
             Display.Mode mode = getWindowManager().getDefaultDisplay().getMode();
             previousDisplayPixelCount = mode.getPhysicalWidth() * mode.getPhysicalHeight();
         }
-        getFragmentManager().beginTransaction().replace(
-                R.id.stream_settings, new SettingsFragment()
+        prefsFragment = new SettingsFragment(PreferenceConfiguration.readPreferences(this));
+        getSupportFragmentManager().beginTransaction().replace(
+                R.id.stream_settings, prefsFragment
         ).commitAllowingStateLoss();
+    }
+
+    @Override
+    public void onSearchResultClicked(SearchPreferenceResult result) {
+        result.closeSearchPage(this);
+        result.highlight(prefsFragment);
     }
 
     @Override
@@ -110,20 +144,31 @@ public class StreamSettings extends Activity {
 
         // Language changes are handled via configuration changes in Android 13+,
         // so manual activity relaunching is no longer required.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            PreferenceConfiguration newPrefs = PreferenceConfiguration.readPreferences(this);
-            if (!newPrefs.language.equals(previousPrefs.language)) {
+        PreferenceConfiguration newPrefs = PreferenceConfiguration.readPreferences(this);
+        if (!newPrefs.language.equals(previousPrefs.language)) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
                 // Restart the PC view to apply UI changes
                 Intent intent = new Intent(this, PcView.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent, null);
+            } else {
+                if (newPrefs.language == PreferenceConfiguration.DEFAULT_LANGUAGE) {
+                    Toast.makeText(this, "Language has been reset to default, please restart the app!", Toast.LENGTH_LONG).show();
+                    System.exit(0);
+                }
             }
         }
     }
 
-    public static class SettingsFragment extends PreferenceFragment {
+    public static class SettingsFragment extends PreferenceFragmentCompat {
         private int nativeResolutionStartIndex = Integer.MAX_VALUE;
         private boolean nativeFramerateShown = false;
+
+        private PreferenceConfiguration prevPrefConfig;
+
+        public SettingsFragment(PreferenceConfiguration prefCfg) {
+            prevPrefConfig = prefCfg;
+        }
 
         private void setValue(String preferenceKey, String value) {
             ListPreference pref = (ListPreference) findPreference(preferenceKey);
@@ -143,7 +188,7 @@ public class StreamSettings extends Activity {
             pref.setEntryValues(newValues);
         }
 
-        private void addNativeResolutionEntry(int nativeWidth, int nativeHeight, boolean insetsRemoved, boolean portrait) {
+        private void addNativeResolutionEntry(int nativeWidth, int nativeHeight, boolean insetsRemoved, boolean portrait, boolean is_custom) {
             ListPreference pref = (ListPreference) findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING);
 
             String newName;
@@ -152,7 +197,7 @@ public class StreamSettings extends Activity {
                 newName = getResources().getString(R.string.resolution_prefix_native_fullscreen);
             }
             else {
-                newName = getResources().getString(R.string.resolution_prefix_native);
+                newName = is_custom ? getResources().getString(R.string.resolution_prefix_custom) : getResources().getString(R.string.resolution_prefix_native);
             }
 
             if (PreferenceConfiguration.isSquarishScreen(nativeWidth, nativeHeight)) {
@@ -182,22 +227,24 @@ public class StreamSettings extends Activity {
             appendPreferenceEntry(pref, newName, newValue);
         }
 
-        private void addNativeResolutionEntries(int nativeWidth, int nativeHeight, boolean insetsRemoved) {
+        private void addNativeResolutionEntries(int nativeWidth, int nativeHeight, boolean insetsRemoved, boolean is_custom) {
             if (PreferenceConfiguration.isSquarishScreen(nativeWidth, nativeHeight)) {
-                addNativeResolutionEntry(nativeHeight, nativeWidth, insetsRemoved, true);
+                addNativeResolutionEntry(nativeHeight, nativeWidth, insetsRemoved, true, is_custom);
             }
-            addNativeResolutionEntry(nativeWidth, nativeHeight, insetsRemoved, false);
+            addNativeResolutionEntry(nativeWidth, nativeHeight, insetsRemoved, false, is_custom);
         }
 
-        private void addNativeFrameRateEntry(float framerate) {
-            int frameRateRounded = Math.round(framerate);
-            if (frameRateRounded == 0) {
-                return;
+        private void addNativeFrameRateEntry(float framerate, boolean is_custom) {
+            if (!is_custom) {
+                framerate = Math.round(framerate);
+                if (framerate == 0) {
+                    return;
+                }
             }
 
             ListPreference pref = (ListPreference) findPreference(PreferenceConfiguration.FPS_PREF_STRING);
-            String fpsValue = Integer.toString(frameRateRounded);
-            String fpsName = getResources().getString(R.string.resolution_prefix_native) +
+            String fpsValue = is_custom ? Float.toString(framerate) : Integer.toString(Math.round(framerate));
+            String fpsName = (is_custom ? getResources().getString(R.string.resolution_prefix_custom) : getResources().getString(R.string.resolution_prefix_native)) +
                     " (" + fpsValue + " " + getResources().getString(R.string.fps_suffix_fps) + ")";
 
             // Check if the native frame rate is already present
@@ -271,17 +318,38 @@ public class StreamSettings extends Activity {
         }
 
         @Override
+        public void onCreatePreferences(Bundle bundle, String s) {}
+
+        @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
+            initializePreferences();
+
+            SearchPreference searchPreference = findPreference("searchPreference");
+            assert searchPreference != null;
+            SearchConfiguration config = searchPreference.getSearchConfiguration();
+            config.setActivity((AppCompatActivity) requireActivity());
+            config.index(R.xml.preferences);
+        }
+
+        public void initializePreferences() {
             addPreferencesFromResource(R.xml.preferences);
             PreferenceScreen screen = getPreferenceScreen();
 
+            AppCompatActivity activity = (AppCompatActivity) requireActivity();
+            PackageManager pm = activity.getPackageManager();
+
             // hide on-screen controls category on non touch screen devices
-            if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
-                PreferenceCategory category =
-                        (PreferenceCategory) findPreference("category_onscreen_controls");
-                screen.removePreference(category);
+            if (!pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
+                PreferenceCategory category = findPreference("category_onscreen_controls");
+                if (category != null) {
+                    screen.removePreference(category);
+                }
+                category = findPreference("category_special_key_layout");
+                if (category != null) {
+                    screen.removePreference(category);
+                }
             }
 
             // Hide remote desktop mouse mode on pre-Oreo (which doesn't have pointer capture)
@@ -302,15 +370,16 @@ public class StreamSettings extends Activity {
             }
 
             // Hide gamepad motion sensor fallback option if the device has no gyro or accelerometer
-            if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) &&
-                    !getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE)) {
+            if (!pm.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) &&
+                    !activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE)) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_gamepad_settings");
+                category.removePreference(findPreference("checkbox_force_device_motion"));
                 category.removePreference(findPreference("checkbox_gamepad_motion_fallback"));
             }
 
             // Hide USB driver options on devices without USB host support
-            if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_USB_HOST)) {
+            if (!pm.hasSystemFeature(PackageManager.FEATURE_USB_HOST)) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_gamepad_settings");
                 category.removePreference(findPreference("checkbox_usb_bind_all"));
@@ -320,8 +389,8 @@ public class StreamSettings extends Activity {
             // Remove PiP mode on devices pre-Oreo, where the feature is not available (some low RAM devices),
             // and on Fire OS where it violates the Amazon App Store guidelines for some reason.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
-                    !getActivity().getPackageManager().hasSystemFeature("android.software.picture_in_picture") ||
-                    getActivity().getPackageManager().hasSystemFeature("com.amazon.software.fireos")) {
+                    !pm.hasSystemFeature("android.software.picture_in_picture") ||
+                    pm.hasSystemFeature("com.amazon.software.fireos")) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_ui_settings");
                 category.removePreference(findPreference("checkbox_enable_pip"));
@@ -340,18 +409,52 @@ public class StreamSettings extends Activity {
                 category_gamepad_settings.removePreference(findPreference("checkbox_vibrate_fallback"));
                 category_gamepad_settings.removePreference(findPreference("seekbar_vibrate_fallback_strength"));
                 // The entire OSC category may have already been removed by the touchscreen check above
-                PreferenceCategory category = (PreferenceCategory) findPreference("category_onscreen_controls");
+                PreferenceCategory category = findPreference("category_onscreen_controls");
                 if (category != null) {
                     category.removePreference(findPreference("checkbox_vibrate_osc"));
                 }
+                category = findPreference("category_special_key_layout");
+                if (category != null) {
+                    category.removePreference(findPreference("checkbox_vibrate_keyboard"));
+                }
+                category = findPreference("category_gamepad_settings");
+                if (category != null) {
+                    category.removePreference(findPreference("checkbox_enable_device_rumble"));
+                }
             }
             else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
-                    !((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasAmplitudeControl() ) {
+                    !((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasAmplitudeControl()) {
                 // Remove the vibration strength selector of the device doesn't have amplitude control
                 category_gamepad_settings.removePreference(findPreference("seekbar_vibrate_fallback_strength"));
             }
 
-            Display display = getActivity().getWindowManager().getDefaultDisplay();
+            // Check custom resolution
+            String customResStr = prevPrefConfig.customResolution;
+            if(customResStr != null && !customResStr.isEmpty()){
+                String[] resolutionSegments = customResStr.split("x");
+                if(resolutionSegments.length == 2){
+                    try {
+                        addNativeResolutionEntries(Integer.parseInt(resolutionSegments[0]), Integer.parseInt(resolutionSegments[1]), false, true);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            
+            // Check custom refresh rate
+            String customRefreshRateStr = prevPrefConfig.customRefreshRate;
+            if (customRefreshRateStr != null && !customRefreshRateStr.isEmpty()) {
+                try {
+                    float customRefreshRateValue = Float.parseFloat(customRefreshRateStr);
+                    if (customRefreshRateValue > 0) {
+                        addNativeFrameRateEntry(customRefreshRateValue, true);
+                    }
+                } catch (NumberFormatException e) {
+                    PreferenceManager.getDefaultSharedPreferences(this.getActivity()).edit().remove(PreferenceConfiguration.CUSTOM_REFRESH_RATE_PREF_STRING).apply();
+                }
+            }
+
+            Display display = activity.getWindowManager().getDefaultDisplay();
             float maxSupportedFps = display.getRefreshRate();
 
             // Hide non-supported resolution/FPS combinations
@@ -384,7 +487,7 @@ public class StreamSettings extends Activity {
                             int width = Math.max(metrics.widthPixels - widthInsets, metrics.heightPixels - heightInsets);
                             int height = Math.min(metrics.widthPixels - widthInsets, metrics.heightPixels - heightInsets);
 
-                            addNativeResolutionEntries(width, height, false);
+                            addNativeResolutionEntries(width, height, false, false);
                             hasInsets = true;
                         }
                     }
@@ -407,9 +510,9 @@ public class StreamSettings extends Activity {
 
                     // Some TVs report strange values here, so let's avoid native resolutions on a TV
                     // unless they report greater than 4K resolutions.
-                    if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) ||
+                    if (!activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) ||
                             (width > 3840 || height > 2160)) {
-                        addNativeResolutionEntries(width, height, hasInsets);
+                        addNativeResolutionEntries(width, height, hasInsets, false);
                     }
 
                     if ((width >= 3840 || height >= 2160) && maxSupportedResW < 3840) {
@@ -429,7 +532,7 @@ public class StreamSettings extends Activity {
 
                 // This must be called to do runtime initialization before calling functions that evaluate
                 // decoder lists.
-                MediaCodecHelper.initialize(getContext(), GlPreferences.readPreferences(getContext()).glRenderer);
+                MediaCodecHelper.initialize(getContext(), GlPreferences.readPreferences(requireContext()).glRenderer);
 
                 MediaCodecInfo avcDecoder = MediaCodecHelper.findProbableSafeDecoder("video/avc", -1);
                 MediaCodecInfo hevcDecoder = MediaCodecHelper.findProbableSafeDecoder("video/hevc", -1);
@@ -518,7 +621,7 @@ public class StreamSettings extends Activity {
                 display.getRealMetrics(metrics);
                 int width = Math.max(metrics.widthPixels, metrics.heightPixels);
                 int height = Math.min(metrics.widthPixels, metrics.heightPixels);
-                addNativeResolutionEntries(width, height, false);
+                addNativeResolutionEntries(width, height, false, false);
             }
 
             if (!PreferenceConfiguration.readPreferences(this.getActivity()).unlockFps) {
@@ -546,7 +649,7 @@ public class StreamSettings extends Activity {
                 }
                 // Never remove 30 FPS or 60 FPS
             }
-            addNativeFrameRateEntry(maxSupportedFps);
+            addNativeFrameRateEntry(maxSupportedFps, false);
 
             // Android L introduces the drop duplicate behavior of releaseOutputBuffer()
             // that the unlock FPS option relies on to not massively increase latency.
@@ -576,7 +679,7 @@ public class StreamSettings extends Activity {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
                 LimeLog.info("Excluding HDR toggle based on OS");
                 PreferenceCategory category =
-                        (PreferenceCategory) findPreference("category_advanced_settings");
+                        (PreferenceCategory) findPreference("category_video_settings");
                 category.removePreference(findPreference("checkbox_enable_hdr"));
             }
             else {
@@ -597,13 +700,13 @@ public class StreamSettings extends Activity {
                 if (!foundHdr10) {
                     LimeLog.info("Excluding HDR toggle based on display capabilities");
                     PreferenceCategory category =
-                            (PreferenceCategory) findPreference("category_advanced_settings");
+                            (PreferenceCategory) findPreference("category_video_settings");
                     category.removePreference(findPreference("checkbox_enable_hdr"));
                 }
                 else if (PreferenceConfiguration.isShieldAtvFirmwareWithBrokenHdr()) {
                     LimeLog.info("Disabling HDR toggle on old broken SHIELD TV firmware");
                     PreferenceCategory category =
-                            (PreferenceCategory) findPreference("category_advanced_settings");
+                            (PreferenceCategory) findPreference("category_video_settings");
                     CheckBoxPreference hdrPref = (CheckBoxPreference) category.findPreference("checkbox_enable_hdr");
                     hdrPref.setEnabled(false);
                     hdrPref.setChecked(false);
@@ -667,6 +770,297 @@ public class StreamSettings extends Activity {
                     return true;
                 }
             });
+
+            Preference _pref;
+            _pref = findPreference("import_keyboard_file");
+            if (_pref != null) {
+                _pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference preference) {
+                        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                        intent.addCategory(Intent.CATEGORY_OPENABLE);
+                        intent.setType("application/json");
+                        startActivityForResult(intent, READ_REQUEST_CODE);
+                        return false;
+                    }
+                });
+            }
+
+            _pref = findPreference("import_special_button_file");
+            if (_pref != null) {
+                _pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference preference) {
+                        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                        intent.addCategory(Intent.CATEGORY_OPENABLE);
+                        intent.setType("application/json");
+                        startActivityForResult(intent, READ_REQUEST_SPECIAL_CODE);
+                        return false;
+                    }
+                });
+            }
+
+            _pref = findPreference("export_keyboard_file");
+            if (_pref != null) {
+                _pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference preference) {
+                        File file = new File(requireActivity().getExternalCacheDir(),"export_settings");
+                        if(!file.exists()){
+                            file.mkdir();
+                        }
+                        File file1= getJsonContent(requireActivity(),file);
+                        if(file1==null){
+                            Toast.makeText(requireActivity(),getString(R.string.pref_error_occurred),Toast.LENGTH_SHORT).show();
+                            return false;
+                        }
+                        Uri uri;
+                        Intent intent = new Intent(Intent.ACTION_SEND);
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        String authority= BuildConfig.APPLICATION_ID+".fileprovider";
+                        uri = FileProvider.getUriForFile(requireActivity(),authority,file1);
+                        intent.putExtra(Intent.EXTRA_STREAM, uri);
+                        intent.setType("application/json");
+                        startActivity(Intent.createChooser(intent,getString(R.string.pref_save_keyboard_profile)));
+                        return false;
+                    }
+                });
+            }
+
+            _pref = findPreference("pref_debug_info");
+            if (_pref != null) {
+                _pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(@NonNull Preference preference) {
+                        Intent intent=new Intent(requireActivity(), DebugInfoActivity.class);
+                        requireActivity().startActivity(intent);
+                        return false;
+                    }
+                });
+            }
+
+            EditTextPreference bitrateEditPre = findPreference(PreferenceConfiguration.CUSTOM_BITRATE_PREF_STRING);
+            if (bitrateEditPre != null) {
+                bitrateEditPre.setOnBindEditTextListener((EditText editText) -> {
+                    editText.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(5)/*这里限制输入的长度为5个字母*/});
+                });
+
+                bitrateEditPre.setOnPreferenceChangeListener((preference, newValue) -> {
+                    String value = (String) newValue;
+                    if (TextUtils.isEmpty(value)) {
+                        Toast.makeText(getActivity(), getString(R.string.pref_enter_value_0_9999), Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                    float bitrateValue = Float.parseFloat(value) * 1000;
+                    LimeLog.info("axi-bitrateValue:" + bitrateValue);
+                    int bitrate = (int) bitrateValue;
+                    LimeLog.info("axi-bitrate:" + bitrate);
+                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                    prefs.edit().putInt(PreferenceConfiguration.BITRATE_PREF_STRING, bitrate).apply();
+                    Toast.makeText(getActivity(), getString(R.string.pref_set_success), Toast.LENGTH_SHORT).show();
+                    return true;
+                });
+            }
+
+            EditTextPreference resolutionEditPref = findPreference(PreferenceConfiguration.CUSTOM_RESOLUTION_PREF_STRING);
+            if (resolutionEditPref != null) {
+                resolutionEditPref.setOnBindEditTextListener((EditText editText) -> {
+                    editText.setInputType(InputType.TYPE_CLASS_TEXT);
+                    editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(11)});
+                });
+
+                resolutionEditPref.setOnPreferenceChangeListener((preference, newValue) -> {
+                    String value = (String) newValue;
+                    if (TextUtils.isEmpty(value)) {
+                        Toast.makeText(getActivity(), getString(R.string.pref_enter_value_0_9999), Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+
+                    // Verify format: [width]x[height]
+                    String[] resolutionSegments = value.split("x");
+                    if (resolutionSegments.length != 2) {
+                        Toast.makeText(getActivity(), getString(R.string.pref_error_occurred), Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+
+                    try {
+                        int width = Integer.parseInt(resolutionSegments[0]);
+                        int height = Integer.parseInt(resolutionSegments[1]);
+                        
+                        if (width <= 0 || height <= 0) {
+                            Toast.makeText(getActivity(), getString(R.string.pref_error_occurred), Toast.LENGTH_SHORT).show();
+                            return false;
+                        }
+
+                        // Save the value and reload settings
+                        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                        prefs.edit().putString(PreferenceConfiguration.CUSTOM_RESOLUTION_PREF_STRING, value).apply();
+                        
+                        // HACK: We need to let the preference change succeed before reinitializing to ensure
+                        // it's reflected in the new layout.
+                        final Handler h = new Handler();
+                        h.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Ensure the activity is still open when this timeout expires
+                                StreamSettings settingsActivity = (StreamSettings) SettingsFragment.this.getActivity();
+                                if (settingsActivity != null) {
+                                    settingsActivity.reloadSettings();
+                                }
+                            }
+                        }, 500);
+                        
+                        return true;
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(getActivity(), getString(R.string.pref_error_occurred), Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                });
+            }
+
+            EditTextPreference customRefreshRatePref = findPreference(PreferenceConfiguration.CUSTOM_REFRESH_RATE_PREF_STRING);
+            if (customRefreshRatePref != null) {
+                customRefreshRatePref.setOnBindEditTextListener((EditText editText) -> {
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(7)});
+                });
+
+                customRefreshRatePref.setOnPreferenceChangeListener((preference, newValue) -> {
+                    String value = (String) newValue;
+                    if (TextUtils.isEmpty(value)) {
+                        Toast.makeText(getActivity(), getString(R.string.pref_enter_value_0_9999), Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                    
+                    try {
+                        float refreshRate = Float.parseFloat(value);
+                        if (refreshRate <= 0) {
+                            Toast.makeText(getActivity(), getString(R.string.pref_enter_value_0_9999), Toast.LENGTH_SHORT).show();
+                            return false;
+                        }
+                        
+                        // Format to max 3 decimal places
+                        String formattedValue = String.format("%.3f", refreshRate);
+                        // Remove trailing zeros
+                        formattedValue = formattedValue.replaceAll("0+$", "").replaceAll("\\.$", "");
+
+                        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
+                        prefs.edit().putString(PreferenceConfiguration.CUSTOM_REFRESH_RATE_PREF_STRING, formattedValue).apply();
+                        
+                        // HACK: We need to let the preference change succeed before reinitializing to ensure
+                        // it's reflected in the new layout.
+                        final Handler h = new Handler();
+                        h.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Ensure the activity is still open when this timeout expires
+                                StreamSettings settingsActivity = (StreamSettings) SettingsFragment.this.getActivity();
+                                if (settingsActivity != null) {
+                                    settingsActivity.reloadSettings();
+                                }
+                            }
+                        }, 500);
+                        
+                        return true;
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(getActivity(), getString(R.string.pref_error_occurred), Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                });
+            }
+        }
+
+        int READ_REQUEST_CODE = 1001;
+        int READ_REQUEST_SPECIAL_CODE = 1002;
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK && data.getData() != null) {
+                try {
+                    Uri uri = data.getData();
+                    String json = FileUriUtils.openUriForRead(getActivity(), uri);
+                    if (TextUtils.isEmpty(json)) {
+                        Toast.makeText(getActivity(), getString(R.string.pref_empty_file), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    String name = PreferenceManager.getDefaultSharedPreferences(requireActivity()).getString(KeyBoardControllerConfigurationLoader.OSC_PREFERENCE, KeyBoardControllerConfigurationLoader.OSC_PREFERENCE_VALUE);
+                    SharedPreferences.Editor prefEditor = requireActivity().getSharedPreferences(name, Activity.MODE_PRIVATE).edit();
+                    JSONObject object = new JSONObject(json);
+                    Iterator it = object.keys();
+                    prefEditor.clear();
+                    while (it.hasNext()) {
+                        String key = (String) it.next();// 获得key
+                        String value = object.getString(key);// 获得value
+                        prefEditor.putString(key, value);
+                    }
+                    prefEditor.apply();
+                    Toast.makeText(getActivity(), getString(R.string.pref_import_success), Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(getActivity(), getString(R.string.pref_error_occurred) + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+
+            if (requestCode == READ_REQUEST_SPECIAL_CODE && resultCode == Activity.RESULT_OK && data.getData() != null) {
+                try {
+                    Uri uri = data.getData();
+                    String json = FileUriUtils.openUriForRead(getActivity(), uri);
+                    if (TextUtils.isEmpty(json)) {
+                        Toast.makeText(getActivity(), getString(R.string.pref_empty_file), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    SharedPreferences.Editor prefEditor = getActivity().getSharedPreferences(GameMenu.PREF_NAME, Activity.MODE_PRIVATE).edit();
+                    prefEditor.putString(GameMenu.KEY_NAME, json);
+                    prefEditor.apply();
+                    Toast.makeText(getActivity(), getString(R.string.pref_import_success), Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(getActivity(), getString(R.string.pref_error_occurred) + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+
+        @Override
+        public void onDisplayPreferenceDialog(@NonNull Preference preference) {
+            if (preference instanceof ConfirmDeleteOscPreference) {
+                DialogFragment dialogFragment = ConfirmDeleteOscPreference.DialogFragmentCompat.newInstance(preference.getKey());
+                dialogFragment.setTargetFragment(this, 0);
+                dialogFragment.show(getFragmentManager(), null);
+            } else if (preference instanceof ConfirmDeleteKeyboardPreference) {
+                DialogFragment dialogFragment = ConfirmDeleteKeyboardPreference.DialogFragmentCompat.newInstance(preference.getKey());
+                dialogFragment.setTargetFragment(this, 0);
+                dialogFragment.show(getFragmentManager(), null);
+            } else super.onDisplayPreferenceDialog(preference);
+        }
+
+        private File getJsonContent(Context context,File file){
+            String name = PreferenceManager.getDefaultSharedPreferences(context).getString(KeyBoardControllerConfigurationLoader.OSC_PREFERENCE, KeyBoardControllerConfigurationLoader.OSC_PREFERENCE_VALUE);
+            SharedPreferences pref = context.getSharedPreferences(name, Activity.MODE_PRIVATE);
+            Map<String,?> map = pref.getAll();
+            File file1= new File(file,name+".json");
+            String jsonStr=new Gson().toJson(map);
+            if(!FileUriUtils.writerFileString(file1,jsonStr)){
+                return null;
+            }
+            return file1;
+        }
+
+        //获取所有设置项配置文件
+        private File getAllJsonData(Context context,File file){
+            SharedPreferences pref=PreferenceManager.getDefaultSharedPreferences(context);
+            Map<String,?> map = pref.getAll();
+            //获取适配电脑的数据库信息
+//            List<ComputerDetails> map= new ComputerDatabaseManager(context).getAllComputers();
+            File file1= new File(file,"allJSON.json");
+            String jsonStr=new Gson().toJson(map);
+            if(!FileUriUtils.writerFileString(file1,jsonStr)){
+                return null;
+            }
+            return file1;
         }
     }
 }
+

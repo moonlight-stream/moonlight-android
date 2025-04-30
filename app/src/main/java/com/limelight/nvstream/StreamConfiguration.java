@@ -12,8 +12,10 @@ public class StreamConfiguration {
     
     private NvApp app;
     private int width, height;
-    private int refreshRate;
-    private int launchRefreshRate;
+    private float refreshRate;
+    private float launchRefreshRate;
+    private boolean virtualDisplay;
+    private int resolutionScaleFactor;
     private int clientRefreshRateX100;
     private int bitrate;
     private boolean sops;
@@ -28,6 +30,7 @@ public class StreamConfiguration {
     private int colorRange;
     private int colorSpace;
     private boolean persistGamepadsAfterDisconnect;
+    private boolean enableUltraLowLatency;
 
     public static class Builder {
         private StreamConfiguration config = new StreamConfiguration();
@@ -48,13 +51,23 @@ public class StreamConfiguration {
             return this;
         }
         
-        public StreamConfiguration.Builder setRefreshRate(int refreshRate) {
+        public StreamConfiguration.Builder setRefreshRate(float refreshRate) {
             config.refreshRate = refreshRate;
             return this;
         }
 
-        public StreamConfiguration.Builder setLaunchRefreshRate(int refreshRate) {
+        public StreamConfiguration.Builder setLaunchRefreshRate(float refreshRate) {
             config.launchRefreshRate = refreshRate;
+            return this;
+        }
+
+        public StreamConfiguration.Builder setVirtualDisplay(boolean enable) {
+            config.virtualDisplay = enable;
+            return this;
+        }
+
+        public StreamConfiguration.Builder setResolutionScaleFactor(int scaleFactor) {
+            config.resolutionScaleFactor = scaleFactor;
             return this;
         }
         
@@ -128,6 +141,11 @@ public class StreamConfiguration {
             return this;
         }
 
+        public StreamConfiguration.Builder setEnableUltraLowLatency(boolean enable) {
+            config.enableUltraLowLatency = enable;
+            return this;
+        }
+
         public StreamConfiguration build() {
             return config;
         }
@@ -140,6 +158,8 @@ public class StreamConfiguration {
         this.height = 720;
         this.refreshRate = 60;
         this.launchRefreshRate = 60;
+        this.virtualDisplay = false;
+        this.resolutionScaleFactor = 100;
         this.bitrate = 10000;
         this.maxPacketSize = 1024;
         this.remote = STREAM_CFG_AUTO;
@@ -148,6 +168,7 @@ public class StreamConfiguration {
         this.audioConfiguration = MoonBridge.AUDIO_CONFIGURATION_STEREO;
         this.supportedVideoFormats = MoonBridge.VIDEO_FORMAT_H264;
         this.attachedGamepadMask = 0;
+        this.enableUltraLowLatency = false;
     }
     
     public int getWidth() {
@@ -159,12 +180,24 @@ public class StreamConfiguration {
     }
     
     public int getRefreshRate() {
-        return refreshRate;
+        if (refreshRate == (int)refreshRate) {
+            return (int)refreshRate;
+        } else {
+            return (int)(refreshRate * 1000);
+        }
     }
 
     public int getLaunchRefreshRate() {
-        return launchRefreshRate;
+        if (launchRefreshRate == (int)launchRefreshRate) {
+            return (int) launchRefreshRate;
+        } else {
+            return (int)(launchRefreshRate * 1000);
+        }
     }
+
+    public boolean getVirtualDisplay() { return virtualDisplay; }
+
+    public int getResolutionScaleFactor() { return resolutionScaleFactor; }
     
     public int getBitrate() {
         return bitrate;
@@ -220,5 +253,9 @@ public class StreamConfiguration {
 
     public int getColorSpace() {
         return colorSpace;
+    }
+
+    public boolean getEnableUltraLowLatency() {
+        return enableUltraLowLatency;
     }
 }

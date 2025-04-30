@@ -11,38 +11,53 @@
     <string name="help_loading_title">Help Viewer</string>
     <string name="help_loading_msg">Loading help page…</string>
 
+    <!-- Alignments -->
+    <string name="align_left">Align Left</string>
+    <string name="align_center">Align Center</string>
+    <string name="align_right">Align Right</string>
+
     <!-- PC view menu entries -->
     <string name="pcview_menu_header_online">Online</string>
     <string name="pcview_menu_header_offline">Offline</string>
     <string name="pcview_menu_header_unknown">Refreshing</string>
     <string name="pcview_menu_app_list">View All Apps</string>
-    <string name="pcview_menu_pair_pc">Pair with PC</string>
+    <string name="pcview_menu_pair_pc">Legacy Pair</string>
+    <string name="pcview_menu_pair_pc_otp">OTP Pair</string>
     <string name="pcview_menu_unpair_pc">Unpair</string>
     <string name="pcview_menu_send_wol">Send Wake-On-LAN request</string>
     <string name="pcview_menu_delete_pc">Delete PC</string>
     <string name="pcview_menu_test_network">Test Network Connection</string>
     <string name="pcview_menu_details">View Details</string>
     <string name="pcview_menu_eol">NVIDIA GameStream End-of-Service</string>
+    <string name="pcview_menu_open_management_page">Go to Server Config</string>
+    <string name="pcview_error_no_management_url">Cannot open server config page, cannot find server address.</string>
 
     <!-- Network test strings -->
     <string name="nettest_title_waiting">Testing Network Connection</string>
-    <string name="nettest_text_waiting">Moonlight is testing your network connection to determine if any required ports are blocked.\n\nThis may take a few seconds…</string>
+    <string name="nettest_text_waiting">Artemis is testing your network connection to determine if any required ports are blocked.\n\nThis may take a few seconds…</string>
     <string name="nettest_title_done">Network Test Complete</string>
-    <string name="nettest_text_success">Your network does not appear to be blocking Moonlight. If you still have trouble connecting, check your PC\'s firewall settings.\n\nIf you are trying to stream over the Internet, install the Moonlight Internet Hosting Tool on your PC and run the included Internet Streaming Tester to check your PC\'s Internet connection.</string>
-    <string name="nettest_text_inconclusive">The network test could not be performed because none of Moonlight\'s connection testing servers were reachable. Check your Internet connection or try again later.</string>
-    <string name="nettest_text_failure">Your device\'s current network connection seems to be blocking Moonlight. Streaming over the Internet may not work while connected to this network.\n\nThe following network ports were blocked:\n</string>
-    <string name="nettest_text_blocked">Your device\'s current network connection is blocking Moonlight. Streaming over the Internet may not work while connected to this network.</string>
+    <string name="nettest_text_success">Your network does not appear to be blocking Artemis. If you still have trouble connecting, check your PC\'s firewall settings.\n\nIf you are trying to stream over the Internet, install the Artemis Internet Hosting Tool on your PC and run the included Internet Streaming Tester to check your PC\'s Internet connection.</string>
+    <string name="nettest_text_inconclusive">The network test could not be performed because none of Artemis\'s connection testing servers were reachable. Check your Internet connection or try again later.</string>
+    <string name="nettest_text_failure">Your device\'s current network connection seems to be blocking Artemis. Streaming over the Internet may not work while connected to this network.\n\nThe following network ports were blocked:\n</string>
+    <string name="nettest_text_blocked">Your device\'s current network connection is blocking Artemis. Streaming over the Internet may not work while connected to this network.</string>
 
     <!-- Pair messages -->
     <string name="pairing">Pairing…</string>
+    <string name="pair_pc_confirm_title">Pair PC</string>
+    <string name="pair_pc_confirm_message">Do you really want to pair with %s? Please do not pair with any unfamiliar computers.</string>
     <string name="pair_pc_offline">Computer is offline</string>
     <string name="pair_pc_ingame">Computer is currently in a game. You must close the game before pairing.</string>
     <string name="pair_pairing_title">Pairing</string>
     <string name="pair_pairing_msg">Please enter the following PIN on the target PC:</string>
     <string name="pair_pairing_help">If your host PC is running Sunshine, navigate to the Sunshine web UI to enter the PIN.</string>
-    <string name="pair_incorrect_pin">Incorrect PIN</string>
+    <string name="pair_otp_pairing_msg">Pairing, please wait…</string>
+    <string name="pair_otp_pairing_help">OTP pairing is only available with Apollo, enter the PIN you just provided on the web UI manually if you\'re using other host software.</string>
+    <string name="pair_incorrect_pin">Incorrect PIN or Passphrase</string>
     <string name="pair_fail">Pairing failed</string>
     <string name="pair_already_in_progress">Pairing already in progress</string>
+    <string name="pair_passphrase_hint">Passphrase</string>
+    <string name="pair_pin_length_msg">Pin must be 4 digits long</string>
+    <string name="pair_passphrase_length_msg">Passphrase must be at least 4 characters long</string>
 
     <!-- WOL messages -->
     <string name="wol_pc_online">Computer is online</string>
@@ -67,7 +82,7 @@
 	    Using remote desktop software can also cause this error. Try rebooting your machine or reinstalling GFE.
     </string>
     <string name="title_decoding_error">Video Decoder Crashed</string>
-    <string name="message_decoding_error">Moonlight has crashed due to an incompatibility with this device\'s video decoder. Try adjusting the streaming settings if the crashes continue.</string>
+    <string name="message_decoding_error">Artemis has crashed due to an incompatibility with this device\'s video decoder. Try adjusting the streaming settings if the crashes continue.</string>
     <string name="title_decoding_reset">Video Settings Reset</string>
     <string name="message_decoding_reset">Your device\'s video decoder continues to crash at your selected streaming settings. Your streaming settings have been reset to default.</string>
     <string name="error_usb_prohibited">USB access is prohibited by your device administrator. Check your Knox or MDM settings.</string>
@@ -117,8 +132,12 @@
     <!-- AppList activity -->
     <string name="applist_connect_msg">Connecting to PC…</string>
     <string name="applist_menu_resume">Resume Session</string>
+    <string name="applist_menu_start_vdisplay">Start in Virtual Display</string>
+    <string name="applist_menu_start_primarydisplay">Start in Primary Display</string>
     <string name="applist_menu_quit">Quit Session</string>
     <string name="applist_menu_quit_and_start">Quit Current Game and Start</string>
+    <string name="applist_menu_quit_and_start_vdisplay">Quit Current Game and Start in Virtual Display</string>
+    <string name="applist_menu_quit_and_start_primarydisplay">Quit Current Game and Start in Primary Display</string>
     <string name="applist_menu_cancel">Cancel</string>
     <string name="applist_menu_details">View Details</string>
     <string name="applist_menu_scut">Create Shortcut</string>
@@ -144,7 +163,8 @@
     <string name="addpc_wrong_sitelocal">That address doesn\'t look right. You must use your router\'s public IP address for streaming over the Internet.</string>
 
     <!-- Preferences -->
-    <string name="category_basic_settings">Basic Settings</string>
+    <string name="category_general_settings">General Settings</string>
+    <string name="category_video_settings">Video Settings</string>
     <string name="title_resolution_list">Video resolution</string>
     <string name="summary_resolution_list">Increase to improve image clarity. Decrease for better performance on lower end devices and slower networks.</string>
     <string name="title_native_res_dialog">Native Resolution Warning</string>
@@ -153,14 +173,25 @@
     <string name="summary_fps_list">Increase for a smoother video stream. Decrease for better performance on lower end devices.</string>
     <string name="title_seekbar_bitrate">Video bitrate</string>
     <string name="summary_seekbar_bitrate">Increase for better image quality. Decrease to improve performance on slower connections.</string>
+    <string name="title_seekbar_metered_bitrate">Video bitrate on metered networks</string>
+    <string name="summary_seekbar_metered_bitrate">High bitrates consume more data, lower bitrates improve smoothness in metered networks.\nSet 0 for ¼ of the above bitrate settings.</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
-    <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
+    <string name="title_resolution_scale_factor">Resolution Scale Factor</string>
+    <string name="summary_resolution_scale_factor">Server side requested virtual screen resolution will be multiplied by this factor. Streaming resolution are not affected.\ne.g. 120% will make 2000x1000 become 2400x1200.\nSetting a higher scale factor will improve image quality for some games.\nRequires Apollo to take effect.</string>
     <string name="resolution_prefix_native">Native</string>
     <string name="resolution_prefix_native_fullscreen">Native Full-Screen</string>
     <string name="resolution_prefix_native_landscape">(Landscape)</string>
     <string name="resolution_prefix_native_portrait">(Portrait)</string>
+    <string name="resolution_prefix_custom">Custom</string>
     <string name="fps_suffix_fps">FPS</string>
     <string name="title_native_fps_dialog">Native FPS Warning</string>
+    <string name="title_checkbox_auto_invert_video_resolution">Auto Invert Resolution</string>
+    <string name="summary_checkbox_auto_invert_video_resolution">Automatically invert the width and height of the video stream when in portrait mode.\nFor example: 1920x1080 will become 1080x1920.</string>
+    <string name="title_video_scale_mode">Video Scale Mode</string>
+    <string name="summary_video_scale_mode">Select between Fit, Fill and Stretch</string>
+    <string name="video_scale_mode_fit">Fit</string>
+    <string name="video_scale_mode_fill">Fill</string>
+    <string name="video_scale_mode_stretch">Stretch</string>
 
     <string name="category_audio_settings">Audio Settings</string>
     <string name="title_audio_config_list">Surround sound configuration</string>
@@ -177,12 +208,12 @@
     <string name="summary_seekbar_vibrate_fallback_strength">Amplify or reduce the vibration intensity on your device</string>
     <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
     <string name="title_seekbar_deadzone">Adjust analog stick deadzone</string>
-    <string name="summary_seekbar_deadzone">Note: Some games can enforce a larger deadzone than what Moonlight is configured to use.</string>
+    <string name="summary_seekbar_deadzone">Positive values set a normal dead zone, negative values apply dead zone compensation. Ensure your controller can adjust dead zones when using dead zone compensation, or centering may be difficult.</string>
     <string name="suffix_seekbar_deadzone">%</string>
-    <string name="title_checkbox_xb1_driver">Xbox 360/One USB gamepad driver</string>
-    <string name="summary_checkbox_xb1_driver">Enables a built-in USB driver for devices without native Xbox controller support</string>
+    <string name="title_checkbox_xb1_driver">Xbox 360/One/NintendoPro USB gamepad driver</string>
+    <string name="summary_checkbox_xb1_driver">Enables a built-in USB driver for devices without native Xbox/Nintendo Pro controller support</string>
     <string name="title_checkbox_usb_bind_all">Override native Xbox gamepad support</string>
-    <string name="summary_checkbox_usb_bind_all">Use Moonlight\'s USB driver for all supported gamepads, even if native Xbox controller support is present</string>
+    <string name="summary_checkbox_usb_bind_all">Use Artemis\'s USB driver for all supported gamepads, even if native Xbox/Nintendo Pro controller support is present</string>
     <string name="title_checkbox_mouse_emulation">Mouse emulation via gamepad</string>
     <string name="summary_checkbox_mouse_emulation">Long pressing the Start button will switch the gamepad into mouse mode</string>
     <string name="title_checkbox_flip_face_buttons">Flip face buttons</string>
@@ -193,6 +224,8 @@
     <string name="summary_checkbox_gamepad_motion_sensors">Enables supported hosts to request motion sensor data when emulating a gamepad with motion sensors. Disabling may slightly reduce power and network usage if motion sensors are not being used in game.</string>
     <string name="title_checkbox_gamepad_motion_fallback">Emulate gamepad motion sensor support</string>
     <string name="summary_checkbox_gamepad_motion_fallback">Uses your device\'s built-in motion sensors if gamepad sensors are not supported by your connected gamepad or your Android version.\nNote: Enabling this option may cause your gamepad to appear as a PlayStation controller on the host.</string>
+    <string name="title_checkbox_force_device_motion">Always use device\'s motion sensors</string>
+    <string name="summary_checkbox_force_device_motion">Enforce using devices\'s built-in motion sensor even when the controller reported motion sensors are supported.</string>
 
     <string name="category_input_settings">Input Settings</string>
     <string name="title_checkbox_touchscreen_trackpad">Use the touchscreen as a trackpad</string>
@@ -205,6 +238,8 @@
     <string name="category_on_screen_controls_settings">On-screen Controls Settings</string>
     <string name="title_checkbox_show_onscreen_controls">Show on-screen controls</string>
     <string name="summary_checkbox_show_onscreen_controls">Show virtual controller overlay on touchscreen</string>
+    <string name="title_hide_osc_when_has_gamepad">Hide OSC when using Controller</string>
+    <string name="summary_hide_osc_when_has_gamepad">Hide OSC when a physical controller is connected</string>
     <string name="title_checkbox_vibrate_osc">Enable vibration</string>
     <string name="summary_checkbox_vibrate_osc">Vibrates your device to emulate rumble for the on-screen controls</string>
     <string name="title_only_l3r3">Only show L3 and R3</string>
@@ -225,7 +260,7 @@
     <string name="title_checkbox_enable_pip">Enable Picture-in-Picture observer mode</string>
     <string name="summary_checkbox_enable_pip">Allows the stream to be viewed (but not controlled) while multitasking</string>
     <string name="title_language_list">Language</string>
-    <string name="summary_language_list">Language to use for Moonlight</string>
+    <string name="summary_language_list">Language to use for Artemis</string>
     <string name="title_checkbox_small_icon_mode">Use small box art</string>
     <string name="summary_checkbox_small_icon_mode">Smaller box art in the app grid allows more apps to be visible on screen</string>
 
@@ -261,7 +296,9 @@
     <string name="title_troubleshooting">Troubleshooting guide</string>
     <string name="summary_troubleshooting">View tips for diagnosing and fixing common streaming issues</string>
     <string name="title_privacy_policy">Privacy policy</string>
-    <string name="summary_privacy_policy">View Moonlight\'s privacy policy</string>
+    <string name="summary_privacy_policy">View Artemis\'s privacy policy</string>
+    <string name="title_special_key_help">Custom Keys help</string>
+    <string name="summary_special_key_help">Instructions about how to setup custom special keys</string>
 
     <!-- Toasts -->
     <string name="toast_controller_type_changed">Gamepad type may be changed due to motion sensor emulation</string>
@@ -290,14 +327,279 @@
 
     <string name="title_frame_pacing">Video frame pacing</string>
     <string name="summary_frame_pacing">Specify how to balance video latency and smoothness</string>
+    <string name="pacing_warp">Warp Drive (Experimental)</string>
+    <string name="pacing_warp2">Warp 2 (Experimental)</string>
     <string name="pacing_latency">Prefer lowest latency</string>
     <string name="pacing_balanced">Balanced</string>
     <string name="pacing_balanced_alt">Balanced with FPS limit</string>
     <string name="pacing_smoothness">Prefer smoothest video (may significantly increase latency)</string>
+
+
+    <string name="keyboard_service_label">Artemis Physical keyboard</string>
+    <string name="accessibility_description_text">Only used when physical keyboard shortcut were intercepted by system. In some systems, several keyboard shortcut are defind and used by the Android system, causing them not being able to be passed through to the host PC. Artemis will not look through your input, nor collecting your password, credit card number or any other private information.</string>
+
+
+    <!-- In Game menu -->
+    <string name="game_menu_toggle_keyboard">Show soft keyboard</string>
+    <string name="game_menu_hud">Toggle Performance Overlay</string>
+    <string name="game_menu_select_mouse_mode">Select Mouse mode</string>
+    <string name="game_menu_enable_zoom_mode">Enable Pan/Zoom</string>
+    <string name="game_menu_disable_zoom_mode">Disable Pan/Zoom</string>
+    <string name="game_menu_rotate_screen">Rotate Screen</string>
+    <string name="game_menu_toggle_keyboard_model">Toggle Special keys</string>s
+    <string name="game_menu_toggle_virtual_model">Toggle On-screen controller</string>
+    <string name="game_menu_toggle_virtual_keyboard_model">Toggle On-screen full keyboard</string>
+    <string name="game_menu_switch_touch_sensitivity_model">Switch touch sensitivity</string>
+
+
+    <string name="game_menu_toggle_mouse_on">Enable Controller Mouse Emulation</string>
+    <string name="game_menu_toggle_mouse_off">Disable Controller Mouse Emulation</string>
+    <string name="game_menu_disconnect">Disconnect</string>
+    <string name="game_menu_cancel">Cancel</string>
+    <string name="game_menu_task_manager">Open Task Manager</string>
+    <string name="game_menu_send_keys">Send special keys</string>
+    <string name="game_menu_send_keys_esc">ESC</string>
+    <string name="game_menu_send_keys_f11">F11</string>
+    <string name="game_menu_send_keys_alt_f4">Alt + F4</string>
+    <string name="game_menu_send_keys_ctrl_v">Ctrl + V</string>
+    <string name="game_menu_send_keys_win">Win (Meta)</string>
+    <string name="game_menu_send_keys_win_d">Win + D</string>
+    <string name="game_menu_send_keys_alt_b">ALT + B</string>
+    <string name="game_menu_send_keys_win_x_u_s">Win + X ~ U + S (Sleep)</string>
+    <string name="game_menu_send_keys_win_x_u_r">Win + X ~ U + R (Reboot)</string>
+    <string name="game_menu_send_keys_win_x_u_u">Win + X ~ U + U (Power Off)</string>
+    <string name="game_menu_send_keys_win_x_u_i">Win + X ~ U + I (Log Out)</string>
+    <string name="game_menu_send_keys_win_g">Win + G (Xbox Game Bar)</string>
+    <string name="game_menu_send_keys_ctrl_alt_tab">Ctrl + Alt + Tab</string>
+    <string name="game_menu_send_keys_shift_tab">Shift + Tab (Steam Overlay)</string>
+    <string name="game_menu_send_keys_alt_enter">Alt + Enter</string>
+    <string name="game_menu_send_keys_win_shift_left">Win + shift + left (Move app between Desktops)</string>
+    <string name="game_menu_send_keys_ctrl_alt_shift_q">Ctrl+Alt+Shift+Q (PC Exit Streaming)</string>
+    <string name="game_menu_send_keys_ctrl_alt_shift_f1">Ctrl+Alt+Shift+F1 (Switch Monitor)</string>
+    <string name="game_menu_send_keys_ctrl_alt_shift_f12">Ctrl+Alt+Shift+F12 (Switch Monitor)</string>
 
     <string name="title_analog_scrolling">Use an analog stick to scroll</string>
     <string name="summary_analog_scrolling">Select an analog stick to scroll when in mouse emulation mode</string>
     <string name="analogscroll_none">None (both sticks move the mouse)</string>
     <string name="analogscroll_right">Right analog stick</string>
     <string name="analogscroll_left">Left analog stick</string>
+
+    <string name="perf_overlay_lite_net">%1$dms</string>
+    <string name="perf_overlay_lite_dectime">%1$.2fms</string>
+    <string name="perf_overlay_lite_netdrops">%1$.2f%%</string>
+    <string name="perf_overlay_lite_streamdetails">%1$s</string>
+    <string name="perf_overlay_lite_fps">%1$.2f</string>
+    <string name="perf_overlay_lite_decoder">Decoder: %1$s</string>
+    <string name="title_import_keyboard_layout">Import keyboard layout</string>
+    <string name="title_export_keyboard_layout">Export keyboard layout</string>
+    <string name="summary_import_keyboard_layout">This will overwrite the current layout.</string>
+    <string name="summary_export_keyboard_layout">Export the current keyboard layout</string>
+    <string name="title_manual_enter_bitrate">Custom bitrate</string>
+    <string name="summary_manual_enter_bitrate">Enter bitrate manually.\nCan exceed the maximum range of the seekbar.</string>
+    <string name="dialog_manual_enter_bitrate">Enter bitrate in Mbps. Round to 0.5.</string>
+    <string name="title_custom_refresh_rate">Custom refresh rate</string>
+    <string name="summary_custom_refresh_rate">Enter refresh rate manually. Only supports Apollo.</string>
+    <string name="dialog_custom_refresh_rate">Enter refresh rate in Hz. Can be fractional.</string>
+    <string name="title_touchscreen_mode">Touchscreen Mode</string>
+    <string name="summary_touchscreen_mode">Select between MultiTouch/SingleTouch/Trackpad/Disabled mode.\nPen/Stylus are still usable when Disabled is selected.\nForced to Track Pad(Natural) mode when useing external display.</string>
+
+    <!-- New Strings -->
+    <string name="title_checkbox_mouse_local_cursor">Use local mouse cursor</string>
+    <string name="summary_checkbox_mouse_local_cursor">Default external physical mouse cursor will be captured, this option can display Android system cursor</string>
+    <string name="title_checkbox_onscreen_style_official">Official Virtual Gamepad Skin</string>
+    <string name="summary_checkbox_onscreen_style_official">If you still like the old style of official virtual gamepad buttons, you can select this option.\nButton shapes can be square if you selected the bottom virtual button [Normal buttons are square buttons]</string>
+    <string name="title_checkbox_enable_perf_overlay_lite">Enable Lite mode</string>
+    <string name="summary_checkbox_enable_perf_overlay_lite">Display simplified performance information: Network Speed / Latency / Decode / Packet Loss Rate / FPS</string>
+    <string name="title_checkbox_enable_perf_overlay_lite_dialog">Lite mode click to pop up quick options</string>
+    <string name="summary_checkbox_enable_perf_overlay_lite_dialog">Replace the back button logic, pop up the game quick menu.</string>
+    <string name="title_virtual_trackpad_settings">Virtual Trackpad Settings</string>
+    <string name="title_quit_dialog">Back Menu</string>
+    <string name="summary_quit_dialog">When enabled, clicking the physical back button on the streaming interface will show related options!\nSoft keyboard, performance information, touch mode switching, send special keys</string>
+    <string name="dialog_custom_resolution">Set the resolution and exit the settings page to take effect!</string>
+    <string name="summary_custom_resolution">Add a custom resolution, separated by x, strange resolutions may not work.\nFor example: 1920x1080\nIf it is a non-native resolution, it may not fill the notch area by default. If the aspect ratio is the same, you can manually set to stretch the screen to fill the full screen</string>
+    <string name="title_custom_resolution">Custom Resolution</string>
+    <string name="title_auto_orientation">Auto Orientation</string>
+    <string name="summary_auto_orientation">The streaming screen will be displayed according to the device\'s orientation when the stream begins.</string>
+    <string name="title_import_special_button">Import Custom Keys</string>
+    <string name="summary_import_special_button">Available in Back Menu and special keys.\nNote: Importing will overwrite current configuration, please backup accordingly.</string>
+    <string name="title_software_update">Software Update</string>
+    <string name="summary_software_update">Artemis Nior Version by ClassicOldSong - Visit GitHub Release to get latest version</string>
+    <string name="title_follow_update">Follow Update</string>
+    <string name="summary_follow_update">Follow updates of Artemis with Obtainium</string>
+    <string name="title_special_key_layout">Special Key Layout</string>
+    <string name="title_show_virtual_key">Display virtual keys on screen</string>
+    <string name="summary_show_virtual_key">Display a layer of virtual special keys on the touchscreen.\nKey opacity is shared with the virtual gamepad above.</string>
+    <string name="title_default_layout_scheme">Default layout profile</string>
+    <string name="summary_default_layout_scheme">Each layout profile is initially the same (generated based on the keyboards.json file), you can delete and adjust it yourself</string>
+    <string name="summary_vibrate_keyboard">When you click the screen button, it will trigger the phone motor vibration. This option can also be used for virtual gamepad buttons.</string>
+    <string name="title_square_buttons">Normal buttons are square buttons</string>
+    <string name="summary_square_buttons">Virtual button shapes are square buttons, by default they are round.</string>
+    <string name="title_reset_keyboard_layout">Reset virtual keyboard layout</string>
+    <string name="summary_reset_keyboard_layout">Initialize the special key layout (reset the default selected layout scheme)</string>
+    <string name="title_joyconfix">Compatible with Switch JoyCon</string>
+    <string name="summary_joyconfix">If your JoyCon cannot be used or has key recognition issues, you can try to enable this feature. Adapted for Android 10 and above</string>
+    <string name="title_keyboard_opacity">Virtual Full Keyboard Opacity</string>
+    <string name="title_onscreen_keyboard_height">Virtual Full Keyboard Height</string>
+    <string name="title_onscreen_keyboard_width">Virtual Full Keyboard Width</string>
+    <string name="title_onscreen_keyboard_align_mode">Virtual Full Keyboard Align Mode</string>
+    <string name="summary_onscreen_keyboard_height">Adjust the height of the virtual full keyboard</string>
+    <string name="summary_onscreen_keyboard_width">Adjust the width of the virtual full keyboard</string>
+    <string name="summary_onscreen_keyboard_align_mode">How the virtual full keyboard aligns to the view port</string>
+    <string name="title_free_analog_stick">Free Analog Stick</string>
+    <string name="summary_free_analog_stick">Virtual gamepad left and right stick center point positions are not fixed, can be freely adjusted within a certain range of movement.</string>
+    <string name="summary_free_analog_stick_opacity">By default, only when the stick moves, the background is displayed. If you don\'t like it, you can adjust the opacity effect.</string>
+    <string name="title_free_analog_stick_opacity">Free Analog Stick Background Opacity</string>
+    <string name="title_exdisplay_mode">External Display Mode (Beta)</string>
+    <string name="summary_exdisplay_mode">Stream display on the monitor, virtual buttons and performance information and other controls on the phone screen.</string>
+    <string name="title_top_center_display">Display in Top Center</string>
+    <string name="summary_top_center_display">Streaming picture will be aligned to the top of the screen instead of centered when resolution is not native.</string>
+    <string name="title_touch_sensitivity">Touch Screen Sensitivity</string>
+    <string name="summary_touch_sensitivity">When enabled, you can manually adjust the touch sensitivity.</string>
+    <string name="title_global_touch_sensitivity">Touch Screen Sensitivity Global Effect</string>
+    <string name="summary_global_touch_sensitivity">By default not selected, only effective on the right half of the screen (suitable for playing Genshin Impact), selected to be effective within the full screen range.</string>
+    <string name="title_auto_touch_sensitivity">Automatically return to screen center when touch coordinates exceed boundary</string>
+    <string name="summary_auto_touch_sensitivity">Normally high sensitivity, small sliding distance will exceed the boundary, resulting in unable to move, you can select this option.</string>
+    <string name="title_touch_sensitivity_x">Screen Sensitivity Adjustment X Axis</string>
+    <string name="summary_touch_sensitivity_x">Multi-touch mode, when playing games, some games may not meet the sensitivity adjustment needs, you can use this option to modify the sensitivity of the field of view.</string>
+    <string name="title_touch_sensitivity_y">Screen Sensitivity Adjustment Y Axis</string>
+    <string name="summary_touch_sensitivity_y">Multi-touch mode, when playing games, some games may not meet the sensitivity adjustment needs, you can use this option to modify the sensitivity of the field of view.</string>
+    <string name="title_debug_info">Debug Info</string>
+    <string name="summary_debug_info">Test gamepad vibration and other stuff.</string>
+    <string name="title_touchpad_sensitivity_x">Touchpad Sensitivity X Axis</string>
+    <string name="summary_touchpad_sensitivity_x">For mouse touchpad mode and virtual special button touchpad control;\nBoth share a sensitivity value, but the sensitivity performance may be different.\nDoes anyone use both together?</string>
+    <string name="title_touchpad_sensitivity_y">Touchpad Sensitivity Y Axis</string>
+    <string name="summary_touchpad_sensitivity_y">For mouse touchpad mode and virtual special button touchpad control;\nBoth share a sensitivity value, but the sensitivity performance may be different.\nDoes anyone use both together?</string>
+    <string name="title_device_rumble">Force vibration on device</string>
+    <string name="summary_device_rumble">If you are not satisfied with the vibration of the connected gamepad, you can enable this option.\nInvalid for forced use of Artemis\'s built-in USB driver</string>
+    <string name="title_clear_default_special_button">Disable default Special Keys</string>
+    <string name="summary_clear_default_special_button">If you feel the built-in commands in the Back Menu are useless, you can disable them and use your imported ones.</string>
+    <string name="title_trackpad_sensitivity_x">Trackpad Sensitivity X</string>
+    <string name="summary_trackpad_sensitivity_x">X axis Sensitivity of the trackpad, negative to invert direction</string>
+    <string name="title_trackpad_sensitivity_y">Trackpad Sensitivity Y</string>
+    <string name="summary_trackpad_sensitivity_y">Y axis Sensitivity of the trackpad, negative to invert direction</string>
+    <string name="title_trackpad_drag_drop_vibration">Enable Vibration for Drag-and-Drop on Trackpad</string>
+    <string name="summary_trackpad_drag_drop_vibration">Enables vibration feedback for drag-and-drop actions on Samsung trackpad devices.</string>
+    <string name="title_trackpad_drag_drop_threshold">Hold Duration for Drag-and-Drop Activation on Trackpad</string>
+    <string name="summary_trackpad_drag_drop_threshold">Set the duration to hold on the trackpad before activating drag-and-drop on Samsung devices.</string>
+    <string name="title_trackpad_swap_axis">Swap X and Y axis of the trackpad input</string>
+    <string name="summary_trackpad_swap_axis">On some devices, trackpad input may be rotated in axis. Enabling this option may help.</string>
+    <string name="title_checkbox_force_qwerty">Force QWERTY layout</string>
+    <string name="summary_checkbox_force_qwerty">Force use QWERTY keyboard layout.\nRequired by GFE.\nTurn off if you want to use a different keyboard layout.</string>
+    <string name="title_checkbox_back_as_meta">Back button as Meta</string>
+    <string name="summary_back_as_meta">Send Meta(Win) key on physical back button press.</string>
+    <string name="title_back_as_guide">Back button as Guide</string>
+    <string name="summary_back_as_guide">Send Guide(PS/HOME) button press when Back button is pressed on controllers.</string>
+    <string name="title_checkbox_ignore_synth_events">Ignore synthetic events</string>
+    <string name="summary_ignore_synth_events">Ignore synthetic events sent by the Android system. This may resolve issues where mouse clicks trigger other unexpected keys on certain devices.\nEnabling this option will cause the system\'s soft keyboard to stop working.</string>
+    <string name="title_smart_clipboard_sync">Smart Clipboard Sync (Experimental)</string>
+    <string name="summary_smart_clipboard_sync">Automatically upload clipboard content to server when the stream starts/resumes, download clipboard from server when losing focus(requires Apollo)</string>
+    <string name="title_smart_clipboard_sync_toast">Clipboard Sync Toast</string>
+    <string name="summary_smart_clipboard_sync_toast">Show toast for clipboard sync result</string>
+    <string name="title_hide_clipboard_content">Hide clipboard content</string>
+    <string name="summary_hide_clipboard_content">Mark remote clipboard as sensitive information</string>
+    <string name="title_settings_misc">MISC</string>
+    <string name="perf_overlay_lite_bandwidth">Bandwidth</string>
+    <string name="perf_overlay_lite_network_decoding_delay">Network/Decoding delay</string>
+    <string name="perf_overlay_lite_packet_loss">Packet loss</string>
+    <string name="quick_menu_title">Quick Menu</string>
+    <string name="wrong_import_format">Wrong import format, please check!</string>
+    <string name="title_checkbox_gamepad_enable_battery_report">Enable battery status report for gamepad</string>
+    <string name="summary_checkbox_gamepad_enable_battery_report">Report gamepad battery status when possible.\nDisable this option might help if you experience stutter with touch screen/touch pad/stylus/mouse input occasionally.</string>
+    <string name="title_checkbox_enforce_display_mode">Enforce Display Mode</string>
+    <string name="summary_checkbox_enforce_display_mode">Force surface to use the optimal display mode.\nRequired by some systems (such as ColorOS) to set refresh rate/resolution properly.\nDo not enable on ChromeCast 4K as it might lead to bugs.</string>
+    <string name="title_checkbox_ultra_low_latency">Ultra Low Latency (experimental)</string>
+    <string name="summary_checkbox_ultra_low_latency">Only effective for SD8Gen2/8(s)Gen3/8Elite.</string>
+    <string name="title_checkbox_use_virtual_display">Use Virtual Display</string>
+    <string name="summary_checkbox_use_virtual_display">Use Virtual Display by default.\nVirtual Display can automatically match your client side resolution and frame rate settings, giving you a seamless streaming experience.\nRequires Apollo as host streaming software.</string>
+    <string name="title_checkbox_resume_without_confirm">Quick Resume</string>
+    <string name="summary_checkbox_resume_without_confirm">Do not show resume menu when clicking resume button, resume the app immediately.</string>
+    <string name="title_checkbox_enable_sticky_modifier_key_virtual_keyboard">Sticky modifier keys</string>
+    <string name="summary_checkbox_enable_sticky_modifier_key_virtual_keyboard">Use sticky modifier keys on virtual full keyboard and custom onscreen keyboard.</string>
+    <string name="virtual_keyboard_hide">Hide\nKBD</string>
+    <string name="mouse_mode_multi_touch">Multi touch</string>
+    <string name="mouse_mode_absolute_touch">Absolute touch</string>
+    <string name="mouse_mode_track_pad_natural">Track pad(Natural/Double tap to drag)</string>
+    <string name="mouse_mode_track_pad_gaming">Track pad(Gaming/Long press to drag)</string>
+    <string name="mouse_mode_disabled">Disabled</string>
+    <string name="mouse_mode_absolute_touch_swapped">Absolute touch (left/right click swapped)</string>
+    <string name="keyboard_layout_set_1">Profile 1</string>
+    <string name="keyboard_layout_set_2">Profile 2</string>
+    <string name="keyboard_layout_set_3">Profile 3</string>
+    <string name="keyboard_layout_set_4">Profile 4</string>
+    <string name="keyboard_layout_set_5">Profile 5</string>
+    <string name="toggle_local_mouse_cursor">Toggle local mouse cursor(physical mouse needed)</string>
+    <string name="debug_info_android_version">Android Version:</string>
+    <string name="debug_info_api_version">API Version:</string>
+    <string name="debug_info_kernel_version">Kernel Version:</string>
+    <string name="debug_info_brand_model">Brand and Model:</string>
+    <string name="debug_info_has_vibration_motor">Has Vibration Motor</string>
+    <string name="debug_info_no_vibration_motor">No Vibration Motor</string>
+    <string name="debug_info_test_device_vibration">Test Device Vibration (%s)</string>
+    <string name="debug_info_vibration_amplitude">Vibration Amplitude (%d)</string>
+    <string name="debug_info_simple_vibration">Simple Vibration for 1 Second</string>
+    <string name="debug_info_continuous_hd_vibration">Continuous HD Vibration</string>
+    <string name="debug_info_please_choose">Please Choose</string>
+    <string name="debug_info_no_gamepad_detected">No gamepad detected, please connect a gamepad, tap refresh, and try again!</string>
+    <string name="debug_info_no_vibrator">No vibrator detected on the gamepad!</string>
+    <string name="debug_info_set_amplitude">Set Amplitude 0-255 (Effective only for HD Vibration)</string>
+    <string name="debug_info_name">Name: </string>
+    <string name="debug_info_sensors">Sensors: </string>
+    <string name="debug_info_no_relevant_driver">None (no relevant driver or gamepad not supported)</string>
+    <string name="debug_info_no_api_below_android12">No corresponding API below Android 12</string>
+    <string name="debug_info_vid_pid">VID_PID: </string>
+    <string name="debug_info_vibration">Vibration: </string>
+    <string name="debug_info_supported">Supported</string>
+    <string name="debug_info_not_supported">Not Supported</string>
+    <string name="debug_info_details">Details: </string>
+    <string name="debug_info_number_of_gamepads">Number of Gamepads: </string>
+    <string name="debug_info_accelerometer">+Accelerometer</string>
+    <string name="debug_info_gyroscope">+Gyroscope</string>
+    <string name="debug_info_stop_vibration">Stop Vibration</string>
+    <string name="debug_info_refresh_gamepad_info">Tap to refresh gamepad info</string>
+    <string name="debug_info_refresh_gamepad_list">Refresh gamepad list</string>
+    <string name="debug_info_test_gamepad_rumble">Test gamepad rumble</string>
+    <string name="pref_enter_value_0_9999">Please enter a value between 0 and 9999.</string>
+    <string name="pref_set_success">Settings saved successfully!</string>
+    <string name="pref_empty_file">Empty file!</string>
+    <string name="pref_import_success">Import success!</string>
+    <string name="pref_error_occurred">An error occurred: </string>
+    <string name="pref_save_keyboard_profile">Save OSK profile</string>
+    <string name="game_menu_advanced">Advanced Menu</string>
+    <string name="game_dialog_title_quit_confirm">Really want to quit?</string>
+    <string name="game_dialog_message_quit_confirm">Please make sure you have no unsaved progress. Quitting the session will terminate your current running application.</string>
+    <string name="game_menu_quit_session">Quit Session</string>
+    <string name="game_menu_server_cmd">Server Commands</string>
+    <string name="game_menu_fetch_clipboard">Fetch Clipboard</string>
+    <string name="game_menu_upload_clipboard">Upload Clipboard</string>
+    <string name="game_dialog_title_server_cmd_empty">No Server Commands</string>
+    <string name="game_dialog_message_server_cmd_empty">Please make sure you\'re using Apollo as server software and has been granted this client with "Server Command" permission.</string>
+    <string name="vdisplay_not_ready">Virtual display driver isn\'t ready on the server. Please make sure the SudoVDA driver is installed and enabled.</string>
+    <string name="vdisplay_not_supported"><![CDATA[Virtual display isn\'t supported on this server. Please use <a href=\"https://github.com/ClassicOldSong/Apollo\">Apollo</a> as the host streaming software.]]></string>
+    <string name="clipboard_sync_unsupported">This server does not support clipboard sync. Please install or upgrade your server to the latest version of Apollo.</string>
+    <string name="send_clipboard_failed">Failed to send clipboard: </string>
+    <string name="get_clipboard_failed">Failed to get clipboard: </string>
+    <string name="send_clipboard_success">Clipboard sent successfully</string>
+    <string name="get_clipboard_success">Clipboard get successfully</string>
+    <string name="proceed">Proceed</string>
+    <string name="cancel">Cancel</string>
+    <string name="configuration_mode_disable_enable_buttons">Configuration Mode (Disable/Enable buttons)</string>
+    <string name="configuration_mode_move_buttons">Configuration Mode (Move buttons)</string>
+    <string name="configuration_mode_resize_buttons">Configuration Mode (Resize buttons)</string>
+    <string name="configuration_mode_exiting">Exiting Configuration Mode</string>
+    <string name="unlocking_or_starting">Server is starting or computer is unlocking, please wait…</string>
+    <string name="error_msg_permission_denied">Permission Denied</string>
+    <string name="error_msg_timeout">Connection Timeout</string>
+    <string name="permission_launch_app">Launch Apps</string>
+    <string name="permission_sync_clipboard">Sync Clipboard</string>
+
+    <string name="searchpreference_search">Search…</string>
+    <string name="searchpreference_clear">Clear</string>
+    <string name="searchpreference_history_entry">History entry</string>
+    <string name="searchpreference_more">More</string>
+    <string name="searchpreference_clear_history">Clear history</string>
+    <string name="searchpreference_no_results">No results</string>
+
+    <!-- Compliance -->
+    <string name="category_basic_settings" />
+    <string name="title_checkbox_stretch_video" />
 </resources>

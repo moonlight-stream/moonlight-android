@@ -129,7 +129,7 @@ public class ShortcutTrampoline extends Activity {
                                             // Launch game if provided app ID, otherwise launch app view
                                             if (app != null) {
                                                 if (details.runningGameId == 0 || details.runningGameId == app.getAppId()) {
-                                                    intentStack.add(ServerHelper.createStartIntent(ShortcutTrampoline.this, app, details, managerBinder));
+                                                    intentStack.add(ServerHelper.createStartIntent(ShortcutTrampoline.this, app, details, managerBinder, false));
 
                                                     // Close this activity
                                                     finish();
@@ -139,7 +139,7 @@ public class ShortcutTrampoline extends Activity {
                                                 } else {
                                                     // Create the start intent immediately, so we can safely unbind the managerBinder
                                                     // below before we return.
-                                                    final Intent startIntent = ServerHelper.createStartIntent(ShortcutTrampoline.this, app, details, managerBinder);
+                                                    final Intent startIntent = ServerHelper.createStartIntent(ShortcutTrampoline.this, app, details, managerBinder, false);
 
                                                     UiHelper.displayQuitConfirmationDialog(ShortcutTrampoline.this, new Runnable() {
                                                         @Override
@@ -179,7 +179,7 @@ public class ShortcutTrampoline extends Activity {
                                                 // If a game is running, we'll make the stream the top level activity
                                                 if (details.runningGameId != 0) {
                                                     intentStack.add(ServerHelper.createStartIntent(ShortcutTrampoline.this,
-                                                            new NvApp(null, details.runningGameId, false), details, managerBinder));
+                                                            new NvApp(null, details.runningGameId, false), details, managerBinder, false));
                                                 }
 
                                                 // Now start the activities

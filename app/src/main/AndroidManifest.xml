@@ -9,6 +9,7 @@
     <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA"/>
     <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA"/>
 
+
     <!-- We don't need a MulticastLock on API level 34+ because we use NsdManager for mDNS -->
     <uses-permission
         android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"
@@ -46,15 +47,14 @@
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/backup_rules_s"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:isGame="true"
         android:banner="@drawable/atv_banner"
-        android:appCategory="game"
         android:icon="@mipmap/ic_launcher"
         android:installLocation="auto"
         android:gwpAsanMode="always"
         android:localeConfig="@xml/locales_config"
         android:enableOnBackInvokedCallback="false"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        >
 
         <provider
             android:name=".PosterContentProvider"
@@ -128,12 +128,15 @@
             android:resizeableActivity="true"
             android:enableOnBackInvokedCallback="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
-            android:label="Streaming Settings">
+            android:label="Streaming Settings"
+            android:theme="@style/SettingsTheme"
+            >
             <meta-data android:name="WindowManagerPreference:FreeformWindowSize" android:value="system-default" />
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
         </activity>
         <activity
             android:name=".preferences.AddComputerManually"
+            android:exported="true"
             android:resizeableActivity="true"
             android:windowSoftInputMode="stateVisible"
             android:enableOnBackInvokedCallback="true"
@@ -141,6 +144,13 @@
             android:label="Add Computer Manually">
             <meta-data android:name="WindowManagerPreference:FreeformWindowSize" android:value="system-default" />
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="art" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".Game"
@@ -185,6 +195,38 @@
             <meta-data android:name="WindowManagerPreference:FreeformWindowSize" android:value="system-default" />
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
         </activity>
+
+
+        <activity android:name=".DebugInfoActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/StreamTheme"/>
+
+        <!-- 无障碍 实体键盘 屏蔽某些快捷键 -->
+        <service
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:name="com.limelight.KeyboardAccessibilityService"
+            android:label="@string/keyboard_service_label"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/keyboard_accessibility_service" />
+        </service>
+
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_file_paths" />
+        </provider>
+
     </application>
 
 </manifest>

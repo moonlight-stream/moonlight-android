@@ -223,7 +223,6 @@
     <string name="title_seekbar_bitrate">Datový tok videa</string>
     <string name="summary_seekbar_bitrate">Zvyšte pro lepší kvalitu obrazu. Snižte pro zlepšení výkonu u pomalých připojení.</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
-    <string name="title_checkbox_stretch_video">Natáhnout video na celou obrazovku</string>
     <string name="resolution_prefix_native">Nativní</string>
     <string name="category_on_screen_controls_settings">Nastavení ovládání na obrazovce</string>
     <string name="title_checkbox_show_onscreen_controls">Zobrazovat ovládání na obrazovce</string>

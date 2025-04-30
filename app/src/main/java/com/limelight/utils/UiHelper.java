@@ -13,11 +13,18 @@ import android.content.res.Configuration;
 import android.graphics.Insets;
 import android.os.Build;
 import android.os.LocaleList;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.limelight.AppView;
 import com.limelight.Game;
+import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.preferences.PreferenceConfiguration;
@@ -32,6 +39,11 @@ public class UiHelper {
     private static void setGameModeStatus(Context context, boolean streaming, boolean interruptible) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             GameManager gameManager = context.getSystemService(GameManager.class);
+
+            if (gameManager == null) {
+                LimeLog.warning("GameManager is null, maybe your system does not support it?");
+                return;
+            }
 
             if (streaming) {
                 gameManager.setGameState(new GameState(false, interruptible ? GameState.MODE_GAMEPLAY_INTERRUPTIBLE : GameState.MODE_GAMEPLAY_UNINTERRUPTIBLE));
@@ -65,31 +77,32 @@ public class UiHelper {
     public static void setLocale(Activity activity)
     {
         String locale = PreferenceConfiguration.readPreferences(activity).language;
-        if (!locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
+        Configuration config = new Configuration(activity.getResources().getConfiguration());
+        if (locale.equals(PreferenceConfiguration.DEFAULT_LANGUAGE)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 // On Android 13, migrate this non-default language setting into the OS native API
                 LocaleManager localeManager = activity.getSystemService(LocaleManager.class);
-                localeManager.setApplicationLocales(LocaleList.forLanguageTags(locale));
-                PreferenceConfiguration.completeLanguagePreferenceMigration(activity);
+                LocaleList systemLocales = localeManager.getSystemLocales();
+                if (!systemLocales.isEmpty()) {
+                    config.locale = systemLocales.get(0);
+                }
             }
-            else {
-                Configuration config = new Configuration(activity.getResources().getConfiguration());
-
-                // Some locales include both language and country which must be separated
-                // before calling the Locale constructor.
-                if (locale.contains("-"))
-                {
-                    config.locale = new Locale(locale.substring(0, locale.indexOf('-')),
-                            locale.substring(locale.indexOf('-') + 1));
-                }
-                else
-                {
-                    config.locale = new Locale(locale);
-                }
-
-                activity.getResources().updateConfiguration(config, activity.getResources().getDisplayMetrics());
+        } else {
+            // We're handling some nasty non-standard devices which cannot set locale using system config correctly
+            // Some locales include both language and country which must be separated
+            // before calling the Locale constructor.
+            if (locale.contains("-"))
+            {
+                config.locale = new Locale(locale.substring(0, locale.indexOf('-')),
+                        locale.substring(locale.indexOf('-') + 1));
+            }
+            else
+            {
+                config.locale = new Locale(locale);
             }
         }
+
+        activity.getResources().updateConfiguration(config, activity.getResources().getDisplayMetrics());
     }
 
     public static void applyStatusBarPadding(View view) {
@@ -204,58 +217,79 @@ public class UiHelper {
         }
     }
 
-    public static void displayQuitConfirmationDialog(Activity parent, final Runnable onYes, final Runnable onNo) {
-        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which){
-                    case DialogInterface.BUTTON_POSITIVE:
-                        if (onYes != null) {
-                            onYes.run();
-                        }
-                        break;
+    public static <T> void displayConfirmationDialog(Activity parent, String title, String message, String btnYesText, String btnNoText, final Runnable onYes, final Runnable onNo) {
+        DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+            switch (which){
+                case DialogInterface.BUTTON_POSITIVE:
+                    if (onYes != null) {
+                        onYes.run();
+                    }
+                    break;
 
-                    case DialogInterface.BUTTON_NEGATIVE:
-                        if (onNo != null) {
-                            onNo.run();
-                        }
-                        break;
-                }
+                case DialogInterface.BUTTON_NEGATIVE:
+                    if (onNo != null) {
+                        onNo.run();
+                    }
+                    break;
             }
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(parent);
-        builder.setMessage(parent.getResources().getString(R.string.applist_quit_confirmation))
-                .setPositiveButton(parent.getResources().getString(R.string.yes), dialogClickListener)
-                .setNegativeButton(parent.getResources().getString(R.string.no), dialogClickListener)
-                .show();
+        builder.setMessage(Html.fromHtml(message));
+        if (title != null) {
+            builder.setTitle(title);
+        }
+        if (btnYesText != null) {
+            builder.setPositiveButton(btnYesText, dialogClickListener);
+        }
+        if (btnNoText != null) {
+            builder.setNegativeButton(btnNoText, dialogClickListener);
+        }
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        ((TextView)dialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+    }
+
+    public static void displayVdisplayConfirmationDialog(Activity parent, ComputerDetails computer, final Runnable onYes, final Runnable onNo) {
+        String message = computer.vDisplaySupported ?
+                parent.getResources().getString(R.string.vdisplay_not_ready) :
+                parent.getResources().getString(R.string.vdisplay_not_supported);
+        UiHelper.displayConfirmationDialog(
+                parent,
+                null,
+                message,
+                parent.getResources().getString(R.string.proceed),
+                parent.getResources().getString(R.string.cancel),
+                onYes,
+                onNo
+        );
+    }
+
+    public static void displayQuitConfirmationDialog(Activity parent, final Runnable onYes, final Runnable onNo) {
+        displayConfirmationDialog(
+                parent,
+                null,
+                parent.getResources().getString(R.string.applist_quit_confirmation),
+                parent.getResources().getString(R.string.yes),
+                parent.getResources().getString(R.string.no),
+                onYes,
+                onNo
+        );
     }
 
     public static void displayDeletePcConfirmationDialog(Activity parent, ComputerDetails computer, final Runnable onYes, final Runnable onNo) {
-        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which){
-                    case DialogInterface.BUTTON_POSITIVE:
-                        if (onYes != null) {
-                            onYes.run();
-                        }
-                        break;
+        displayConfirmationDialog(
+                parent,
+                computer.name,
+                parent.getResources().getString(R.string.delete_pc_msg),
+                parent.getResources().getString(R.string.yes),
+                parent.getResources().getString(R.string.no),
+                onYes,
+                onNo
+        );
+    }
 
-                    case DialogInterface.BUTTON_NEGATIVE:
-                        if (onNo != null) {
-                            onNo.run();
-                        }
-                        break;
-                }
-            }
-        };
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(parent);
-        builder.setMessage(parent.getResources().getString(R.string.delete_pc_msg))
-                .setTitle(computer.name)
-                .setPositiveButton(parent.getResources().getString(R.string.yes), dialogClickListener)
-                .setNegativeButton(parent.getResources().getString(R.string.no), dialogClickListener)
-                .show();
+    public static float dpToPx(Context context, float dp) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
     }
 }

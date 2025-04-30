@@ -77,7 +77,6 @@
     <string name="summary_resolution_list">Вибір надто високого значення для свого пристрою може викликати сповільнення на нешвидких мережах, або вильоти на менш потужних пристроях.</string>
     <string name="title_seekbar_bitrate">Швидкість потоку відео</string>
     <string name="summary_seekbar_bitrate">Збільшіть для якіснішої картинки. Зменшіть задля кращої продуктивності на повільних мережах.</string>
-    <string name="title_checkbox_stretch_video">Розтягнути відео на весь екран</string>
     <string name="title_checkbox_disable_warnings">Вимкнути попередження</string>
     <string name="summary_checkbox_disable_warnings">Вимкнути мережні попередження під час трансляції</string>
     <string name="category_audio_settings">Налаштування авдіо</string>

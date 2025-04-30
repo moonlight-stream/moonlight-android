@@ -7,6 +7,10 @@ import android.util.SparseArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 
+import com.limelight.LimeLog;
+import com.limelight.preferences.PreferenceConfiguration;
+import com.limelight.utils.KeyMapper;
+
 import java.util.Arrays;
 
 /**
@@ -34,6 +38,8 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
     public static final int VK_EQUALS = 61;
     public static final int VK_ESCAPE = 27;
     public static final int VK_F1 = 112;
+    public static final int VK_F12 = 123;
+
     public static final int VK_END = 35;
     public static final int VK_HOME = 36;
     public static final int VK_NUM_LOCK = 144;
@@ -54,6 +60,37 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
     public static final int VK_BACK_QUOTE = 192;
     public static final int VK_QUOTE = 222;
     public static final int VK_PAUSE = 19;
+
+    public static final int VK_B = 66;
+
+    public static final int VK_C = 67;
+    public static final int VK_D = 68;
+    public static final int VK_G = 71;
+    public static final int VK_V = 86;
+    public static final int VK_Q = 81;
+
+    public static final int VK_S = 83;
+
+    public static final int VK_U = 85;
+
+    public static final int VK_X = 88;
+    public static final int VK_R = 82;
+
+    public static final int VK_I = 73;
+
+    public static final int VK_F11 = 122;
+    public static final int VK_LWIN = 91;
+    public static final int VK_LSHIFT = 160;
+    public static final int VK_LCONTROL = 162;
+
+    //Left ALT key
+    public static final int VK_LMENU = 164;
+    //ENTER key
+    public static final int VK_RETURN = 13;
+
+    public static final int VK_F4 = 115;
+
+    private final PreferenceConfiguration prefConfig;
 
     private static class KeyboardMapping {
         private final InputDevice device;
@@ -93,7 +130,8 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
 
     private final SparseArray<KeyboardMapping> keyboardMappings = new SparseArray<>();
 
-    public KeyboardTranslator() {
+    public KeyboardTranslator(PreferenceConfiguration prefConfig) {
+        this.prefConfig = prefConfig;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             for (int deviceId : InputDevice.getDeviceIds()) {
                 InputDevice device = InputDevice.getDevice(deviceId);
@@ -126,11 +164,12 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
      * @param deviceId InputDevice.getId() or -1 if unknown
      * @return a GFE keycode for the given keycode
      */
-    public short translate(int keycode, int deviceId) {
+    public short translate(int keycode, int scancode, int deviceId) {
         int translated;
 
         // If a device ID was provided, look up the keyboard mapping
-        if (deviceId >= 0) {
+        // Force qwerty will break user's keyboard layout settings
+        if (prefConfig.forceQwerty && deviceId >= 0) {
             KeyboardMapping mapping = keyboardMappings.get(deviceId);
             if (mapping != null) {
                 // Try to map this device-specific keycode onto a QWERTY layout.
@@ -350,10 +389,23 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
                 break;
 
             default:
+                translated = 0;
+            }
+        }
+
+        if (translated == 0) {
+            // Do not translate with scan code if we have a normalized mapping
+            if (hasNormalizedMapping(keycode, deviceId)) {
+                return 0;
+            }
+
+            // Fall back to scancode translation
+            translated = KeyMapper.getWindowsKeyCode(scancode);
+            if (translated < 0) {
                 return 0;
             }
         }
-        
+
         return (short) ((KEY_PREFIX << 8) | translated);
     }
 

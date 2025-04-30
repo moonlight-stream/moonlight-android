@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <!-- Non-root application name -->
-    <!-- FIXME: We should set extractNativeLibs=false but this breaks installation on the Fire TV 3 -->
-    <application android:label="@string/app_label" />
-</manifest>

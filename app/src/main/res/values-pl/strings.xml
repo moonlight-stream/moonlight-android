@@ -45,7 +45,6 @@
     <string name="summary_fps_list">Zwiększ, aby uzyskać płynniejszy strumień wideo. Zmniejsz, aby uzyskać lepszą wydajność na słabszych urządzeniach.</string>
     <string name="summary_seekbar_bitrate">Zwiększ, aby uzyskać lepszą jakość obrazu. Zmniejsz, aby poprawić wydajność na wolniejszych połączeniach.</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
-    <string name="title_checkbox_stretch_video">Rozciągnięcie wideo do pełnego ekranu</string>
     <string name="resolution_prefix_native">Natywna</string>
     <string name="title_native_fps_dialog">Ostrzeżenie o natywnym FPS</string>
     <string name="title_checkbox_enable_audiofx">Włącz obsługę korektora systemowego</string>

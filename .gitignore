@@ -5,6 +5,7 @@
 output.json
 output-metadata.json
 out/
+baselineProfiles/
 
 # files for the dex VM
 *.dex

@@ -1,0 +1,330 @@
+{
+  "desc": "rocker=摇杆|dpad=十字键|keystroke=普通按钮",
+  "data": {
+    "rocker": [
+      {
+        "name": "摇杆",
+        "elementId": "rocker_1",
+        "leftCode": 29,
+        "rightCode": 32,
+        "upCode": 51,
+        "downCode": 47,
+        "middleCode": 59,
+        "desc":"简单描述下，上下左右中按键code值为keycode查阅附赠的keycode-android.java文件获取，elementId值是唯一的,middleCode是中键的小圆点，双击可以触发"
+      }
+    ],
+    "dpad": [
+      {
+        "name": "十字键",
+        "elementId": "dpad_1",
+        "leftCode": 29,
+        "rightCode": 32,
+        "upCode": 51,
+        "downCode": 47,
+        "desc":"简单描述下，上下左右按键code值为keycode查阅附赠的keycode-android.java文件获取，elementId值是唯一的"
+      }
+    ],
+    "mouse": [
+      {
+        "name": "ML",
+        "code": 1,
+        "desc":"简单描述下，code值固定，name为按钮显示文字，ML左键、MM中键、MR右键"
+      },
+      {
+        "name": "MR",
+        "code": 3
+      },
+      {
+        "name": "MR+",
+        "code": 3,
+        "switchButton": 1
+      },
+      {
+        "name": "MM",
+        "code": 2
+      },
+      {
+        "name": "TP(R)",
+        "code": 9,
+        "desc": "特殊触控板按键适合魔兽转视野，name的数值可以清空，但是怕不好区分，可以修改成其他的"
+      },
+      {
+        "name": "TP",
+        "code": 10,
+        "desc": "普通触控板控件"
+      },
+      {
+        "name": "TP(L)",
+        "code": 11,
+        "desc": "一直按着左键不放~"
+      }
+
+    ],
+    "keystroke": [
+      {
+        "name": "Esc",
+        "code": 111
+      },
+      {
+        "name": "F1",
+        "code": 131
+      },
+      {
+        "name": "F2",
+        "code": 132
+      },
+      {
+        "name": "F3",
+        "code": 133
+      },
+      {
+        "name": "F4",
+        "code": 134
+      },
+      {
+        "name": "F5",
+        "code": 135
+      },
+      {
+        "name": "F6",
+        "code": 136
+      },
+      {
+        "name": "F7",
+        "code": 137
+      },
+      {
+        "name": "F8",
+        "code": 138
+      },
+      {
+        "name": "F9",
+        "code": 139
+      },
+      {
+        "name": "F10",
+        "code": 140
+      },
+      {
+        "name": "F11",
+        "code": 141
+      },
+      {
+        "name": "F12",
+        "code": 142
+      },
+      {
+        "name": "Del",
+        "code": 112
+      },
+      {
+        "name": "Home",
+        "code": 122
+      },
+      {
+        "name": "End",
+        "code": 123
+      },
+      {
+        "name": "PgUp",
+        "code": 92
+      },
+      {
+        "name": "PgDn",
+        "code": 93
+      },
+      {
+        "name": "1",
+        "code": 8
+      },
+      {
+        "name": "2",
+        "code": 9
+      },
+      {
+        "name": "3",
+        "code": 10
+      },
+      {
+        "name": "4",
+        "code": 11
+      },
+      {
+        "name": "5",
+        "code": 12
+      },
+      {
+        "name": "6",
+        "code": 13
+      },
+      {
+        "name": "7",
+        "code": 14
+      },
+      {
+        "name": "8",
+        "code": 15
+      },
+      {
+        "name": "9",
+        "code": 16
+      },
+      {
+        "name": "0",
+        "code": 7
+      },
+      {
+        "name": "Ctrl",
+        "code": 113
+      },
+      {
+        "name": "Win",
+        "code": 117
+      },
+      {
+        "name": "Alt",
+        "code": 57
+      },
+      {
+        "name": "Space",
+        "code": 62
+      },
+      {
+        "name": "Shift",
+        "code": 59
+      },
+      {
+        "name": "Tab",
+        "code": 61
+      },
+      {
+        "name": "Enter",
+        "code": 66
+      },
+      {
+        "name": "A",
+        "code": 29
+      },
+      {
+        "name": "B",
+        "code": 30
+      },
+      {
+        "name": "C",
+        "code": 31
+      },
+      {
+        "name": "D",
+        "code": 32
+      },
+      {
+        "name": "E",
+        "code": 33
+      },
+      {
+        "name": "F",
+        "code": 34
+      },
+      {
+        "name": "G",
+        "code": 35
+      },
+      {
+        "name": "H",
+        "code": 36
+      },
+      {
+        "name": "I",
+        "code": 37
+      },
+      {
+        "name": "J",
+        "code": 38
+      },
+      {
+        "name": "K",
+        "code": 39
+      },
+      {
+        "name": "L",
+        "code": 40
+      },
+      {
+        "name": "M",
+        "code": 41
+      },
+      {
+        "name": "N",
+        "code": 42
+      },
+      {
+        "name": "O",
+        "code": 43
+      },
+      {
+        "name": "P",
+        "code": 44
+      },
+      {
+        "name": "Q",
+        "code": 45
+      },
+      {
+        "name": "R",
+        "code": 46
+      },
+      {
+        "name": "S",
+        "code": 47
+      },
+      {
+        "name": "T",
+        "code": 48
+      },
+      {
+        "name": "U",
+        "code": 49
+      },
+      {
+        "name": "V",
+        "code": 50
+      },
+      {
+        "name": "W",
+        "code": 51
+      },
+      {
+        "name": "X",
+        "code": 52
+      },
+      {
+        "name": "Y",
+        "code": 53
+      },
+      {
+        "name": "Z",
+        "code": 54
+      },
+      {
+        "name": "Insert",
+        "code": 124
+      },
+      {
+        "name": "↑",
+        "code": 19
+      },
+      {
+        "name": "↓",
+        "code": 20
+      },
+      {
+        "name": "←",
+        "code": 21
+      },
+      {
+        "name": "→",
+        "code": 22
+      }
+    ]
+  }
+}

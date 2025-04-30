@@ -66,7 +66,6 @@
     <string name="title_audio_config_list">Térhatású hang konfigurációja</string>
     <string name="resolution_prefix_native">Natív</string>
     <string name="category_audio_settings">Hangbeállítások</string>
-    <string name="title_checkbox_stretch_video">Nyújtsa a videót teljes képernyősre</string>
     <string name="suffix_seekbar_bitrate_mbps">Mbps</string>
     <string name="summary_seekbar_bitrate">Növelje a jobb képminőség érdekében. Csökkenjen a lassabb kapcsolatok teljesítményének javítása érdekében.</string>
     <string name="title_seekbar_bitrate">Videó bitráta</string>

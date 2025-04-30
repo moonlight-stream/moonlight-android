@@ -20,7 +20,7 @@ public class RightAnalogStick extends AnalogStick {
                 inputContext.rightStickX = (short) (x * 0x7FFE);
                 inputContext.rightStickY = (short) (y * 0x7FFE);
 
-                controller.sendControllerInputContext();
+                controller.sendControllerInputContext(10, 0x11);
             }
 
             @Override

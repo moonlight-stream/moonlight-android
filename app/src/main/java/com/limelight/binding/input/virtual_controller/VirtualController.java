@@ -105,7 +105,7 @@ public class VirtualController {
             buttonShowHide = new Button(context);
             buttonShowHide.setAlpha(0.25f);
             buttonShowHide.setFocusable(false);
-            buttonShowHide.setBackgroundResource(R.drawable.ic_dash);
+            buttonShowHide.setBackgroundResource(R.drawable.ic_toggle);
             buttonShowHide.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

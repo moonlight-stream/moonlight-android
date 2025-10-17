@@ -8,6 +8,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.binding.input.ControllerHandler;
+import com.limelight.preferences.PreferenceConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +59,8 @@ public class VirtualController {
 
     private Button buttonConfigure = null;
 
+    private Button buttonShowHide = null;
+
     private List<VirtualControllerElement> elements = new ArrayList<>();
 
     public VirtualController(final ControllerHandler controllerHandler, FrameLayout layout, final Context context) {
@@ -64,6 +68,7 @@ public class VirtualController {
         this.frame_layout = layout;
         this.context = context;
         this.handler = new Handler(Looper.getMainLooper());
+        PreferenceConfiguration prefConfig = PreferenceConfiguration.readPreferences(context);
 
         buttonConfigure = new Button(context);
         buttonConfigure.setAlpha(0.25f);
@@ -96,10 +101,36 @@ public class VirtualController {
             }
         });
 
+        if(prefConfig.showToggleControllerButton) {
+            buttonShowHide = new Button(context);
+            buttonShowHide.setAlpha(0.25f);
+            buttonShowHide.setFocusable(false);
+            buttonShowHide.setBackgroundResource(R.drawable.ic_dash);
+            buttonShowHide.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (currentMode == ControllerMode.Active) {
+                        if (isControllerVisible()) {
+                            hide();
+                        } else {
+                            show();
+                        }
+                    }
+                    else {
+                        String message = "Exit configuration mode to toggle!";
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
     }
 
     Handler getHandler() {
         return handler;
+    }
+
+    private boolean isControllerVisible() {
+        return buttonConfigure.getVisibility() == View.VISIBLE;
     }
 
     public void hide() {
@@ -125,6 +156,9 @@ public class VirtualController {
         elements.clear();
 
         frame_layout.removeView(buttonConfigure);
+        if (buttonShowHide != null) {
+            frame_layout.removeView(buttonShowHide);
+        }
     }
 
     public void setOpacity(int opacity) {
@@ -162,6 +196,14 @@ public class VirtualController {
         params.leftMargin = 15;
         params.topMargin = 15;
         frame_layout.addView(buttonConfigure, params);
+
+        if (buttonShowHide != null) {
+            FrameLayout.LayoutParams buttonShowHideParams = new FrameLayout.LayoutParams(buttonSize, buttonSize);
+            buttonShowHideParams.gravity = Gravity.BOTTOM;
+            buttonShowHideParams.leftMargin = 15;
+            buttonShowHideParams.bottomMargin = 15;
+            frame_layout.addView(buttonShowHide, buttonShowHideParams);
+        }
 
         // Start with the default layout
         VirtualControllerConfigurationLoader.createDefaultLayout(this, context);

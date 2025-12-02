@@ -62,7 +62,7 @@ android {
 
     lint {
         disable 'MissingTranslation'
-        lintConfig file('lint.xml')
+        // lintConfig file('lint.xml')
     }
 
     bundle {

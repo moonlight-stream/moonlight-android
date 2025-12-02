@@ -35,6 +35,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
@@ -65,6 +66,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private ShortcutHelper shortcutHelper;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private boolean freezeUpdates, runningPolling, inForeground, completeOnCreateCalled;
+    private String pendingUriScheme;
+    private String pendingUriHost;
+    private Integer pendingUriPort;
+    private String pendingUriCode;
+    private String pendingUriApp;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder binder) {
             final ComputerManagerService.ComputerManagerBinder localBinder =
@@ -79,6 +85,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
                     // Now make the binder visible
                     managerBinder = localBinder;
+
+                    // Handle pending URI if present
+                    if (pendingUriHost != null) {
+                        handlePendingUri();
+                    }
 
                     // Start updates
                     startComputerUpdates();
@@ -140,40 +151,52 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         ImageButton settingsButton = findViewById(R.id.settingsButton);
         ImageButton addComputerButton = findViewById(R.id.manuallyAddPc);
         ImageButton helpButton = findViewById(R.id.helpButton);
+        View pcFragmentContainer = findViewById(R.id.pcFragmentContainer);
 
-        settingsButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(PcView.this, StreamSettings.class));
-            }
-        });
-        addComputerButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(PcView.this, AddComputerManually.class);
-                startActivity(i);
-            }
-        });
-        helpButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                HelpLauncher.launchSetupGuide(PcView.this);
-            }
-        });
-
-        // Amazon review didn't like the help button because the wiki was not entirely
-        // navigable via the Fire TV remote (though the relevant parts were). Let's hide
-        // it on Fire TV.
-        if (getPackageManager().hasSystemFeature("amazon.hardware.fire_tv")) {
+        // Hide UI if invoked by URI intent
+        if (pendingUriHost != null) {
+            settingsButton.setVisibility(View.GONE);
+            addComputerButton.setVisibility(View.GONE);
             helpButton.setVisibility(View.GONE);
+            pcFragmentContainer.setVisibility(View.GONE);
+        } else {
+            settingsButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivity(new Intent(PcView.this, StreamSettings.class));
+                }
+            });
+            addComputerButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = new Intent(PcView.this, AddComputerManually.class);
+                    startActivity(i);
+                }
+            });
+            helpButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    HelpLauncher.launchSetupGuide(PcView.this);
+                }
+            });
+
+            // Amazon review didn't like the help button because the wiki was not entirely
+            // navigable via the Fire TV remote (though the relevant parts were). Let's hide
+            // it on Fire TV.
+            if (getPackageManager().hasSystemFeature("amazon.hardware.fire_tv")) {
+                helpButton.setVisibility(View.GONE);
+            }
+
+            getFragmentManager().beginTransaction()
+                .replace(R.id.pcFragmentContainer, new AdapterFragment())
+                .commitAllowingStateLoss();
         }
 
-        getFragmentManager().beginTransaction()
-            .replace(R.id.pcFragmentContainer, new AdapterFragment())
-            .commitAllowingStateLoss();
-
         noPcFoundLayout = findViewById(R.id.no_pc_found_layout);
-        if (pcGridAdapter.getCount() == 0) {
+        if (pendingUriHost != null) {
+            // Hide the "no PC found" layout when invoked by URI
+            noPcFoundLayout.setVisibility(View.GONE);
+        } else if (pcGridAdapter.getCount() == 0) {
             noPcFoundLayout.setVisibility(View.VISIBLE);
         }
         else {
@@ -185,6 +208,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Handle URI intent if present
+        handleUriIntent(getIntent());
 
         // Assume we're in the foreground when created to avoid a race
         // between binding to CMS and onResume()
@@ -226,6 +252,108 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         else {
             LimeLog.info("Cached GL Renderer: " + glPrefs.glRenderer);
             completeOnCreate();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleUriIntent(intent);
+    }
+
+    private void handleUriIntent(Intent intent) {
+        Uri uri = intent.getData();
+        String scheme = uri != null ? uri.getScheme() : null;
+        if (uri != null && ("moonlight".equals(scheme) || "moonlights".equals(scheme))) {
+            pendingUriScheme = scheme;
+            // Parse URI format: moonlight://<host>:<port>:<code>/<app> or moonlights://<host>:<port>:<code>/<app>
+            // App is optional and separated by '/' not ':'
+            String uriString = uri.toString();
+            // Remove the scheme part (works for both "moonlight://" and "moonlights://")
+            String schemePrefix = scheme + "://";
+            String uriPath = uriString.substring(schemePrefix.length());
+            
+            // Check for app identifier (separated by '/')
+            int slashIndex = uriPath.indexOf('/');
+            String appPart = null;
+            if (slashIndex > 0) {
+                appPart = uriPath.substring(slashIndex + 1);
+                uriPath = uriPath.substring(0, slashIndex);
+            }
+            pendingUriApp = appPart;
+            
+            // Parse host:port:code format
+            // Handle IPv6 addresses in brackets: [::1]:47989:1234
+            // Handle IPv4 addresses: 192.168.1.100:47989:1234
+            
+            // First, check if we have an IPv6 address in brackets
+            int bracketEnd = uriPath.indexOf(']');
+            if (bracketEnd > 0) {
+                // IPv6
+                // IPv6 address in brackets: [::1]:47989:1234
+                // Extract host (including brackets)
+                pendingUriHost = uriPath.substring(0, bracketEnd + 1);
+                int lastColonIndex = uriPath.lastIndexOf(':');
+
+                if (lastColonIndex > bracketEnd) {
+                    // Extract port:code part (after the closing bracket and colon)
+                    String portCode = uriPath.substring(bracketEnd + 2); // Skip ']:'
+
+                    // Find the colon separating port and code
+                    int codeColonIndex = portCode.indexOf(':');
+                    if (codeColonIndex > 0) {
+                        // Has both port and code
+                        try {
+                            pendingUriPort = Integer.parseInt(portCode.substring(0, codeColonIndex));
+                        } catch (NumberFormatException e) {
+                            pendingUriPort = null;
+                        }
+                        pendingUriCode = portCode.substring(codeColonIndex + 1);
+                    } else {
+                        // Only port, no code
+                        try {
+                            pendingUriPort = Integer.parseInt(portCode);
+                        } catch (NumberFormatException e) {
+                            pendingUriPort = null;
+                        }
+                        pendingUriCode = null;
+                    }
+                } else {
+                    // no host port, no code
+                    pendingUriPort = null;
+                    pendingUriCode = null;
+                }
+                // Remove brackets from IPv6 host if present (for consistency)
+                pendingUriHost = pendingUriHost.substring(1, pendingUriHost.length() - 1);
+            } else {
+                // IPv4
+                int lastColonIndex = uriPath.lastIndexOf(':');
+                // IPv4 address or hostname: 192.168.1.100:47989:1234
+                // Find the last colon which should separate port and code
+                if (lastColonIndex > 0) {
+                    int portColonIndex = uriPath.indexOf(':');
+                    String hostPort = uriPath.substring(0, lastColonIndex);
+                    if (portColonIndex < lastColonIndex) {
+                        // host:port:code
+                        pendingUriCode = uriPath.substring(lastColonIndex + 1);
+                    } else {
+                        // host:port, no code
+                        pendingUriCode = null;
+                        hostPort = uriPath;
+                    }
+                    pendingUriHost = uriPath.substring(0, portColonIndex);
+                    try {
+                        pendingUriPort = Integer.parseInt(hostPort.substring(portColonIndex + 1));
+                    } catch (NumberFormatException e) {
+                        pendingUriPort = null;
+                    }
+                } else {
+                    pendingUriHost = uriPath;
+                    pendingUriPort = null;
+                    pendingUriCode = null;
+                }
+            }
         }
     }
 
@@ -390,6 +518,266 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         // startComputerUpdates() manages this and won't actual start polling until the activity
         // returns to the foreground.
         startComputerUpdates();
+    }
+
+    private void handlePendingUri() {
+        if (pendingUriHost == null || managerBinder == null) {
+            return;
+        }
+
+        final String scheme = pendingUriScheme;
+        final String host = pendingUriHost;
+        final int port = pendingUriPort != null ? pendingUriPort : NvHTTP.DEFAULT_HTTP_PORT;
+        final String code = pendingUriCode;
+        final String app = pendingUriApp;
+
+        // Clear pending values
+        pendingUriHost = null;
+        pendingUriPort = null;
+        pendingUriCode = null;
+        pendingUriApp = null;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ComputerDetails details = new ComputerDetails();
+                    details.manualAddress = new ComputerDetails.AddressTuple(host, port);
+                    if (scheme.equals("moonlights")) {
+                        details.serverCert = new AndroidCryptoProvider(PcView.this).getClientCertificate();
+                    }
+                    
+                    // Don't memorize computers added via URI intent
+                    boolean success = managerBinder.addComputerBlocking(details, true);
+                    if (!success) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(PcView.this, getResources().getString(R.string.addpc_fail), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        return;
+                    }
+
+                    // After addComputerBlocking, the details object should have its UUID set
+                    // Use that UUID to get the computer
+                    ComputerDetails addedComputer = null;
+                    if (details.uuid != null) {
+                        addedComputer = managerBinder.getComputer(details.uuid);
+                    }
+
+                    if (addedComputer == null) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(PcView.this, getResources().getString(R.string.addpc_fail), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        return;
+                    }
+
+                    // If a code was provided, attempt to pair with it
+                    if (code != null && !code.isEmpty()) {
+                        doPairWithCode(addedComputer, code, app);
+                    } else {
+                        // Just show success message
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(PcView.this, getResources().getString(R.string.addpc_success), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    private void doPairWithCode(final ComputerDetails computer, final String code, final String app) {
+        if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
+                }
+            });
+            return;
+        }
+        if (managerBinder == null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+                }
+            });
+            return;
+        }
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(PcView.this, getResources().getString(R.string.pairing), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NvHTTP httpConn;
+                String message;
+                boolean success = false;
+                try {
+                    // Stop updates and wait while pairing
+                    stopComputerUpdates(true);
+
+                    httpConn = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer),
+                            computer.httpsPort, managerBinder.getUniqueId(), computer.serverCert,
+                            PlatformBinding.getCryptoProvider(PcView.this));
+                    if (httpConn.getPairState() == PairState.PAIRED) {
+                        // Already paired, just open the app list
+                        message = null;
+                        success = true;
+                    }
+                    else {
+                        PairingManager pm = httpConn.getPairingManager();
+                        PairState pairState = pm.pair(httpConn.getServerInfo(true), code);
+                        if (pairState == PairState.PIN_WRONG) {
+                            message = getResources().getString(R.string.pair_incorrect_pin);
+                        }
+                        else if (pairState == PairState.FAILED) {
+                            if (computer.runningGameId != 0) {
+                                message = getResources().getString(R.string.pair_pc_ingame);
+                            }
+                            else {
+                                message = getResources().getString(R.string.pair_fail);
+                            }
+                        }
+                        else if (pairState == PairState.ALREADY_IN_PROGRESS) {
+                            message = getResources().getString(R.string.pair_already_in_progress);
+                        }
+                        else if (pairState == PairState.PAIRED) {
+                            // Pairing successful
+                            message = null;
+                            success = true;
+
+                            // Pin this certificate for later HTTPS use
+                            managerBinder.getComputer(computer.uuid).serverCert = pm.getPairedCert();
+
+                            // Invalidate reachability information after pairing to force
+                            // a refresh before reading pair state again
+                            managerBinder.invalidateStateForComputer(computer.uuid);
+                        }
+                        else {
+                            message = null;
+                        }
+                    }
+                } catch (UnknownHostException e) {
+                    message = getResources().getString(R.string.error_unknown_host);
+                } catch (FileNotFoundException e) {
+                    message = getResources().getString(R.string.error_404);
+                } catch (XmlPullParserException | IOException e) {
+                    e.printStackTrace();
+                    message = e.getMessage();
+                }
+
+                Dialog.closeDialogs();
+
+                final String toastMessage = message;
+                final boolean toastSuccess = success;
+                final ComputerDetails updatedComputer = success ? managerBinder.getComputer(computer.uuid) : computer;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (toastMessage != null) {
+                            Toast.makeText(PcView.this, toastMessage, Toast.LENGTH_LONG).show();
+                        }
+
+                        if (toastSuccess) {
+                            // If app identifier was provided, try to launch it
+                            if (app != null && !app.isEmpty() && updatedComputer != null) {
+                                launchAppAfterPairing(updatedComputer, app);
+                            } else {
+                                // Open the app list after a successful pairing attempt
+                                doAppList(updatedComputer != null ? updatedComputer : computer, true, false);
+                            }
+                        }
+                        else {
+                            // Start polling again if we're still in the foreground
+                            startComputerUpdates();
+                        }
+                    }
+                });
+            }
+        }).start();
+    }
+
+    private void launchAppAfterPairing(final ComputerDetails computer, final String appIdentifier) {
+        if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
+            Toast.makeText(PcView.this, getResources().getString(R.string.error_pc_offline), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (managerBinder == null) {
+            Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    NvHTTP httpConn = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer),
+                            computer.httpsPort, managerBinder.getUniqueId(), computer.serverCert,
+                            PlatformBinding.getCryptoProvider(PcView.this));
+
+                    NvApp app = null;
+                    // Try to parse as app ID first (numeric)
+                    try {
+                        int appId = Integer.parseInt(appIdentifier);
+                        app = httpConn.getAppById(appId);
+                    } catch (NumberFormatException e) {
+                        // Not a number, try as app name
+                        try {
+                            app = httpConn.getAppByName(appIdentifier);
+                        } catch (Exception ex) {
+                            LimeLog.warning("Error finding app by name: " + ex.getMessage());
+                        }
+                    } catch (Exception e) {
+                        LimeLog.warning("Error finding app by ID: " + e.getMessage());
+                    }
+
+                    final NvApp finalApp = app;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (finalApp != null) {
+                                // Launch the app directly with quitOnEsc flag set to true
+                                ServerHelper.doStart(PcView.this, finalApp, computer, managerBinder, true);
+                            } else {
+                                // App not found, show error and open app list
+                                Toast.makeText(PcView.this, 
+                                    getResources().getString(R.string.scut_invalid_app_id), 
+                                    Toast.LENGTH_LONG).show();
+                                doAppList(computer, true, false);
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    LimeLog.warning("Error launching app after pairing: " + e.getMessage());
+                    e.printStackTrace();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(PcView.this, 
+                                getResources().getString(R.string.error_unknown_host), 
+                                Toast.LENGTH_LONG).show();
+                            doAppList(computer, true, false);
+                        }
+                    });
+                }
+            }
+        }).start();
     }
 
     private void doPair(final ComputerDetails computer) {

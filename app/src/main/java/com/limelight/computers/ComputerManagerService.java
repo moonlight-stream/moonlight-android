@@ -88,6 +88,10 @@ public class ComputerManagerService extends Service {
 
     // Returns true if the details object was modified
     private boolean runPoll(ComputerDetails details, boolean newPc, int offlineCount) throws InterruptedException {
+        return runPoll(details, newPc, offlineCount, false);
+    }
+
+    private boolean runPoll(ComputerDetails details, boolean newPc, int offlineCount, boolean skipPersistence) throws InterruptedException {
         if (!getLocalDatabaseReference()) {
             return false;
         }
@@ -131,24 +135,26 @@ public class ComputerManagerService extends Service {
             // combine the existing data with this new data (which may be partially available
             // due to detecting the PC via mDNS) without the saved external address. If we
             // write to the DB without doing this first, we can overwrite our existing data.
-            if (existingComputer != null) {
-                existingComputer.update(details);
-                dbManager.updateComputer(existingComputer);
-            }
-            else {
-                try {
-                    // If the active address is a site-local address (RFC 1918),
-                    // then use STUN to populate the external address field if
-                    // it's not set already.
-                    if (details.remoteAddress == null) {
-                        InetAddress addr = InetAddress.getByName(details.activeAddress.address);
-                        if (addr.isSiteLocalAddress()) {
-                            populateExternalAddress(details);
+            if (!skipPersistence) {
+                if (existingComputer != null) {
+                    existingComputer.update(details);
+                    dbManager.updateComputer(existingComputer);
+                }
+                else {
+                    try {
+                        // If the active address is a site-local address (RFC 1918),
+                        // then use STUN to populate the external address field if
+                        // it's not set already.
+                        if (details.remoteAddress == null) {
+                            InetAddress addr = InetAddress.getByName(details.activeAddress.address);
+                            if (addr.isSiteLocalAddress()) {
+                                populateExternalAddress(details);
+                            }
                         }
-                    }
-                } catch (UnknownHostException ignored) {}
+                    } catch (UnknownHostException ignored) {}
 
-                dbManager.updateComputer(details);
+                    dbManager.updateComputer(details);
+                }
             }
         }
 
@@ -259,6 +265,10 @@ public class ComputerManagerService extends Service {
 
         public boolean addComputerBlocking(ComputerDetails fakeDetails) throws InterruptedException {
             return ComputerManagerService.this.addComputerBlocking(fakeDetails);
+        }
+
+        public boolean addComputerBlocking(ComputerDetails fakeDetails, boolean skipPersistence) throws InterruptedException {
+            return ComputerManagerService.this.addComputerBlocking(fakeDetails, skipPersistence);
         }
 
         public void removeComputer(ComputerDetails computer) {
@@ -467,6 +477,10 @@ public class ComputerManagerService extends Service {
     }
 
     public boolean addComputerBlocking(ComputerDetails fakeDetails) throws InterruptedException {
+        return addComputerBlocking(fakeDetails, false);
+    }
+
+    public boolean addComputerBlocking(ComputerDetails fakeDetails, boolean skipPersistence) throws InterruptedException {
         // Block while we try to fill the details
 
         // We cannot use runPoll() here because it will attempt to persist the state of the machine
@@ -483,8 +497,8 @@ public class ComputerManagerService extends Service {
             }
 
             // Poll again, possibly with the pinned cert, to get accurate pairing information.
-            // This will insert the host into the database too.
-            runPoll(fakeDetails, true, 0);
+            // This will insert the host into the database too (unless skipPersistence is true).
+            runPoll(fakeDetails, true, 0, skipPersistence);
         }
 
         // If the machine is reachable, it was successful
@@ -493,6 +507,16 @@ public class ComputerManagerService extends Service {
 
             // Start a polling thread for this machine
             addTuple(fakeDetails);
+            
+            // If skipPersistence is true, remove from database immediately after adding
+            // (it will still be kept in polling tuples for the current session)
+            if (skipPersistence) {
+                if (getLocalDatabaseReference()) {
+                    dbManager.deleteComputer(fakeDetails);
+                    releaseLocalDatabaseReference();
+                }
+            }
+            
             return true;
         }
         else {

@@ -146,6 +146,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private TextView notificationOverlayView;
     private int requestedNotificationOverlayVisibility = View.GONE;
     private TextView performanceOverlayView;
+    private boolean quitOnEsc = false;
+    private static boolean isQuitting = false;
+    private StreamSettingsDialog streamSettingsDialog = null;
 
     private MediaCodecDecoderRenderer decoderRenderer;
     private boolean reportedCrash;
@@ -180,10 +183,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public static final String EXTRA_PC_NAME = "PcName";
     public static final String EXTRA_APP_HDR = "HDR";
     public static final String EXTRA_SERVER_CERT = "ServerCert";
+    public static final String EXTRA_QUIT_ON_ESC = "QuitOnEsc";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // If we're quitting, don't proceed with onCreate
+        if (isQuitting) {
+            finish();
+            return;
+        }
 
         UiHelper.setLocale(this);
 
@@ -317,6 +327,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         String uniqueId = Game.this.getIntent().getStringExtra(EXTRA_UNIQUEID);
         boolean appSupportsHdr = Game.this.getIntent().getBooleanExtra(EXTRA_APP_HDR, false);
         byte[] derCertData = Game.this.getIntent().getByteArrayExtra(EXTRA_SERVER_CERT);
+        quitOnEsc = Game.this.getIntent().getBooleanExtra(EXTRA_QUIT_ON_ESC, false);
 
         app = new NvApp(appName != null ? appName : "app", appId, appSupportsHdr);
 
@@ -1072,11 +1083,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     protected void onStop() {
         super.onStop();
 
+        // Dismiss the settings dialog if it's showing
+        if (streamSettingsDialog != null && streamSettingsDialog.isShowing()) {
+            streamSettingsDialog.dismiss();
+        }
+
         SpinnerDialog.closeDialogs(this);
         Dialog.closeDialogs();
 
         if (virtualController != null) {
             virtualController.hide();
+        }
+
+        if (quitOnEsc && !isFinishing() && !isQuitting) {
+            quitApplication();
+            return;
         }
 
         if (conn != null) {
@@ -1138,6 +1159,93 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         finish();
+    }
+    
+    protected void showVirtualController() {
+        if (virtualController == null) {
+            virtualController = new VirtualController(controllerHandler,
+                    (FrameLayout)streamView.getParent(),
+                    this);
+        }
+        virtualController.refreshLayout();
+        virtualController.show();
+    }
+
+    protected void hideVirtualController() {
+        if (virtualController != null) {
+            virtualController.hide();
+        }
+    }
+
+    private StreamSettingsDialog getOrCreateSettingsDialog() {
+        if (streamSettingsDialog == null) {
+            streamSettingsDialog = new StreamSettingsDialog(
+                    this,
+                    prefConfig,
+                    performanceOverlayView,
+                    touchContextMap,
+                    conn,
+                    streamView,
+                    new StreamSettingsDialog.OnQuitRequestedListener() {
+                        @Override
+                        public void onQuitRequested() {
+                            quitApplication();
+                        }
+                    }
+            );
+        }
+        return streamSettingsDialog;
+    }
+
+    private void showSettingsDialog() {
+        // Don't show dialog if already showing or if we're quitting
+        if (isQuitting) {
+            return;
+        }
+        StreamSettingsDialog dialog = getOrCreateSettingsDialog();
+        if (dialog.isShowing()) {
+            return;
+        }
+        dialog.show();
+    }
+
+    private void quitApplication() {
+        // Set flag to prevent activity recreation
+        isQuitting = true;
+        
+        // Dismiss the settings dialog if it's showing
+        if (streamSettingsDialog != null && streamSettingsDialog.isShowing()) {
+            streamSettingsDialog.dismiss();
+        }
+        
+        // Stop the connection first to prevent any callbacks
+        if (conn != null) {
+            stopConnection2(true);
+        }
+        
+        // Stop controller handler to prevent any input callbacks
+        if (controllerHandler != null) {
+            controllerHandler.stop();
+        }
+        
+        // Finish this activity and all parent activities (including PcView)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            finishAffinity();
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            finishAndRemoveTask();
+        } else {
+            finish();
+        }
+        
+        // Use a handler to ensure System.exit executes after finish
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // Kill the process to ensure the app quits completely
+                android.os.Process.killProcess(android.os.Process.myPid());
+                System.exit(0);
+            }
+        }, 200);
     }
 
     private void setInputGrabState(boolean grab) {
@@ -1307,6 +1415,24 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyDown(KeyEvent event) {
+        // If settings dialog is visible, let it handle navigation/activation keys
+        if (streamSettingsDialog != null && streamSettingsDialog.isShowing()) {
+            int code = event.getKeyCode();
+            if (code == KeyEvent.KEYCODE_DPAD_UP ||
+                    code == KeyEvent.KEYCODE_DPAD_DOWN ||
+                    code == KeyEvent.KEYCODE_DPAD_LEFT ||
+                    code == KeyEvent.KEYCODE_DPAD_RIGHT ||
+                    code == KeyEvent.KEYCODE_DPAD_CENTER ||
+                    code == KeyEvent.KEYCODE_ENTER ||
+                    code == KeyEvent.KEYCODE_BUTTON_A ||
+                    code == KeyEvent.KEYCODE_BUTTON_B ||
+                    code == KeyEvent.KEYCODE_BUTTON_X ||
+                    code == KeyEvent.KEYCODE_BUTTON_Y) {
+                // Return false so the dialog/views receive the key event
+                return false;
+            }
+        }
+
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return false;
@@ -1389,6 +1515,24 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyUp(KeyEvent event) {
+        // If settings dialog is visible, let it handle navigation/activation keys
+        if (streamSettingsDialog != null && streamSettingsDialog.isShowing()) {
+            int code = event.getKeyCode();
+            if (code == KeyEvent.KEYCODE_DPAD_UP ||
+                    code == KeyEvent.KEYCODE_DPAD_DOWN ||
+                    code == KeyEvent.KEYCODE_DPAD_LEFT ||
+                    code == KeyEvent.KEYCODE_DPAD_RIGHT ||
+                    code == KeyEvent.KEYCODE_DPAD_CENTER ||
+                    code == KeyEvent.KEYCODE_ENTER ||
+                    code == KeyEvent.KEYCODE_BUTTON_A ||
+                    code == KeyEvent.KEYCODE_BUTTON_B ||
+                    code == KeyEvent.KEYCODE_BUTTON_X ||
+                    code == KeyEvent.KEYCODE_BUTTON_Y) {
+                // Return false so the dialog/views receive the key event
+                return false;
+            }
+        }
+
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return false;
@@ -1410,6 +1554,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             // Always return true, otherwise the back press will be propagated
             // up to the parent and finish the activity.
+            return true;
+        }
+
+        // Handle ESC/BACK/START key to toggle settings dialog if launched from URI
+        if ((event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE ||
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK ||
+                event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_START) && quitOnEsc) {
+
+            // If the settings dialog is already showing, close it
+            if (streamSettingsDialog != null && streamSettingsDialog.isShowing()) {
+                streamSettingsDialog.dismiss();
+            } else {
+                // Otherwise, show the settings dialog
+                showSettingsDialog();
+            }
             return true;
         }
 
@@ -1449,6 +1608,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     public boolean onKeyMultiple(int keyCode, int repeatCount, KeyEvent event) {
         return handleKeyMultiple(event) || super.onKeyMultiple(keyCode, repeatCount, event);
+    }
+
+    @Override
+    public void onBackPressed() {
+        // If launched with quitOnEsc, hijack system back/swipe-back to show settings dialog
+        if (quitOnEsc) {
+            if (streamSettingsDialog != null && streamSettingsDialog.isShowing()) {
+                streamSettingsDialog.dismiss();
+            } else {
+                showSettingsDialog();
+            }
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private boolean handleKeyMultiple(KeyEvent event) {
@@ -2207,6 +2380,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     private void stopConnection() {
+        stopConnection2(false);
+    }
+
+    private void stopConnection2(boolean blocking) {
         if (connecting || connected) {
             connecting = connected = false;
             updatePipAutoEnter();
@@ -2221,11 +2398,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // thread to keep things smooth for the UI. Inside moonlight-common,
             // we prevent another thread from starting a connection before and
             // during the process of stopping this one.
-            new Thread() {
-                public void run() {
-                    conn.stop();
-                }
-            }.start();
+            if (blocking) {
+                conn.stop();
+            } else {
+                new Thread() {
+                    public void run() {
+                        conn.stop();
+                    }
+                }.start();
+            }
         }
     }
 

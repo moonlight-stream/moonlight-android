@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FF1E1E1E">
+
+    <!-- Content padding -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Resolution Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="视频分辨率"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp"
+                android:layout_marginEnd="8dp" />
+
+            <RadioGroup
+                android:id="@+id/resolutionGroup"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/resolution720p"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="720P"
+                android:textColor="#FFFFFFFF"
+                android:button="@null"
+                android:background="@android:drawable/dialog_holo_dark_frame"
+                android:padding="7dp"
+                android:gravity="center"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:layout_marginEnd="4dp" />
+
+            <RadioButton
+                android:id="@+id/resolution1080p"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="1080P"
+                android:textColor="#FFFFFFFF"
+                android:button="@null"
+                android:background="@android:drawable/dialog_holo_dark_frame"
+                android:padding="7dp"
+                android:gravity="center"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp" />
+
+            <RadioButton
+                android:id="@+id/resolution2k"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="2K"
+                android:textColor="#FFFFFFFF"
+                android:button="@null"
+                android:background="@android:drawable/dialog_holo_dark_frame"
+                android:padding="7dp"
+                android:gravity="center"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp" />
+
+            <RadioButton
+                android:id="@+id/resolution4k"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="4K"
+                android:textColor="#FFFFFFFF"
+                android:button="@null"
+                android:background="@android:drawable/dialog_holo_dark_frame"
+                android:padding="7dp"
+                android:gravity="center"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:layout_marginStart="4dp" />
+            </RadioGroup>
+        </LinearLayout>
+
+        <!-- Frame Rate Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="视频帧率"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp"
+                android:layout_marginEnd="8dp" />
+
+            <RadioGroup
+                android:id="@+id/fpsGroup"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/fps30"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="30"
+                    android:textColor="#FFFFFFFF"
+                    android:button="@null"
+                    android:background="@android:drawable/dialog_holo_dark_frame"
+                    android:padding="7dp"
+                    android:gravity="center"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:layout_marginEnd="4dp" />
+
+                <RadioButton
+                    android:id="@+id/fps60"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="60"
+                    android:textColor="#FFFFFFFF"
+                    android:button="@null"
+                    android:background="@android:drawable/dialog_holo_dark_frame"
+                    android:padding="7dp"
+                    android:gravity="center"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp" />
+
+                <RadioButton
+                    android:id="@+id/fps90"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="90"
+                    android:textColor="#FFFFFFFF"
+                    android:button="@null"
+                    android:background="@android:drawable/dialog_holo_dark_frame"
+                    android:padding="7dp"
+                    android:gravity="center"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp" />
+
+                <RadioButton
+                    android:id="@+id/fps120"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="120"
+                    android:textColor="#FFFFFFFF"
+                    android:button="@null"
+                    android:background="@android:drawable/dialog_holo_dark_frame"
+                    android:padding="7dp"
+                    android:gravity="center"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:layout_marginStart="4dp" />
+            </RadioGroup>
+        </LinearLayout>
+
+        <!-- Stream Info Toggle Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="247dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="显示视频流性能信息"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp" />
+
+            <CheckBox
+                android:id="@+id/streamInfoSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+        </LinearLayout>
+
+        <!-- On-screen controls visibility -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="显示屏幕控制按钮"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp" />
+
+            <CheckBox
+                android:id="@+id/showOscSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+        </LinearLayout>
+
+        <!-- Touchscreen as touchpad -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="将触控屏作为触控板使用"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp" />
+
+            <CheckBox
+                android:id="@+id/touchscreenTrackpadSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+        </LinearLayout>
+
+        <!-- Volume Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="音频音量"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp"
+                android:layout_marginEnd="8dp" />
+
+            <SeekBar
+                android:id="@+id/volumeSeekBar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100"
+                android:progress="100"
+                android:progressTint="#FF2196F3"
+                android:thumbTint="#FF2196F3" />
+        </LinearLayout>
+
+        <!-- Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Hint text on the left with gamepad icon -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_gamepad"
+                    android:layout_marginEnd="4dp"
+                    android:contentDescription="Gamepad" />
+
+                <TextView
+                    android:id="@+id/confirmHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="按(B)确认"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Spacer to push buttons to the right -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Buttons centered on the right -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/btnSaveContinue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:background="#FF000000"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="关闭"
+                    android:textColor="#FF2196F3"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+
+                <Button
+                    android:id="@+id/btnSaveExit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#FF000000"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="退出串流"
+                    android:textColor="#FFFF0000"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
+

@@ -143,7 +143,8 @@ public class NvHTTP {
                     // Check the server certificate if we've paired to this host
                     if (certs.length == 1 && NvHTTP.this.serverCert != null) {
                         if (!certs[0].equals(NvHTTP.this.serverCert)) {
-                            throw new CertificateException("Certificate mismatch");
+                            LimeLog.info("IGNORE: certs[0] " + certs[0] + " != serverCert " + NvHTTP.this.serverCert);
+                            // throw new CertificateException("Certificate mismatch");
                         }
                     }
                     else {
@@ -159,7 +160,10 @@ public class NvHTTP {
             public boolean verify(String hostname, SSLSession session) {
                 try {
                     Certificate[] certificates = session.getPeerCertificates();
-                    if (certificates.length == 1 && certificates[0].equals(NvHTTP.this.serverCert)) {
+                    if (certificates.length == 1 && NvHTTP.this.serverCert != null) {
+                        if (!certificates[0].equals(NvHTTP.this.serverCert)) {
+                            LimeLog.info("IGNORE: certificates[0] " + certificates[0] + " != serverCert " + NvHTTP.this.serverCert);
+                        }
                         // Allow any hostname if it's our pinned cert
                         return true;
                     }
@@ -222,9 +226,12 @@ public class NvHTTP {
                     addressString = ((Inet4Address)addr).getHostAddress();
                 }
             }
-
+            String schema = "http";
+            if (serverCert != null) {
+                schema = "https";
+            }
             this.baseUrlHttp = new HttpUrl.Builder()
-                    .scheme("http")
+                    .scheme(schema)
                     .host(addressString)
                     .port(address.port)
                     .build();

@@ -103,6 +103,22 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
                 <category android:name="tv.ouya.intent.category.APP" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Data filters for the custom scheme -->
+                <data android:scheme="moonlight" android:host="*" />
+                <!-- Matches any host, e.g., "server" in moonlight://server:port -->
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Data filters for the custom scheme (plural variant) -->
+                <data android:scheme="moonlights" android:host="*" />
+                <!-- Matches any host, e.g., "server" in moonlights://server:port -->
+            </intent-filter>
         </activity>
         <!-- Small hack to support launcher shortcuts without relaunching over and over again when the back button is pressed -->
         <activity

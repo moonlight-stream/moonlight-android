@@ -27,6 +27,8 @@ import com.limelight.utils.HelpLauncher;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.UiHelper;
+import com.limelight.wincaster.WinCasterAdvertiser;
+import com.limelight.wincaster.WinCasterCommandService;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -65,6 +67,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private ShortcutHelper shortcutHelper;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private boolean freezeUpdates, runningPolling, inForeground, completeOnCreateCalled;
+    private WinCasterAdvertiser winCasterAdvertiser;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder binder) {
             final ComputerManagerService.ComputerManagerBinder localBinder =
@@ -243,6 +246,18 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         pcGridAdapter = new PcGridAdapter(this, PreferenceConfiguration.readPreferences(this));
 
         initializeViews();
+
+        // Start WinCaster remote control service
+        Intent winCasterServiceIntent = new Intent(this, WinCasterCommandService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(winCasterServiceIntent);
+        } else {
+            startService(winCasterServiceIntent);
+        }
+
+        // Start WinCaster mDNS advertiser
+        winCasterAdvertiser = new WinCasterAdvertiser(this);
+        winCasterAdvertiser.start();
     }
 
     private void startComputerUpdates() {
@@ -296,6 +311,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         if (managerBinder != null) {
             unbindService(serviceConnection);
+        }
+
+        // Stop WinCaster mDNS advertiser
+        if (winCasterAdvertiser != null) {
+            winCasterAdvertiser.stop();
         }
     }
 

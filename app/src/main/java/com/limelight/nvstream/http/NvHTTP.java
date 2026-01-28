@@ -18,7 +18,9 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -42,6 +44,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.conscrypt.Conscrypt;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -172,7 +175,25 @@ public class NvHTTP {
             }
         };
 
+        Provider conscrypt = Conscrypt.newProvider();
+        Security.insertProviderAt(conscrypt, 1);
+
+        TrustManager[] trustManagers = null;
+        SSLContext sslContext = null;
+        SSLSocketFactory sslSocketFactory = null;
+        try {
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init((KeyStore) null);
+            trustManagers = tmf.getTrustManagers();
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustManagers, new SecureRandom());
+            sslSocketFactory = sslContext.getSocketFactory();
+        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
+            throw new RuntimeException(e);
+        }
+
         httpClientLongConnectTimeout = new OkHttpClient.Builder()
+                .sslSocketFactory(sslSocketFactory, (X509TrustManager) trustManagers[0])
                 .connectionPool(new ConnectionPool(0, 1, TimeUnit.MILLISECONDS))
                 .hostnameVerifier(hv)
                 .readTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS)

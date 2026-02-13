@@ -25,6 +25,8 @@ public class XboxOneController extends AbstractXboxController {
             0x20d6, // PowerA
             0x24c6, // PowerA
             0x2e24, // Hyperkin
+            0x2f24, // GameSir
+            0x3537, // GameSir (G7 Pro / Cyclone 2 / Kaleid Flux)
     };
 
     private static final byte[] FW2015_INIT = {0x05, 0x20, 0x00, 0x01, 0x00};

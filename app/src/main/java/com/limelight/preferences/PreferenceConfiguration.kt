@@ -109,6 +109,7 @@ class PreferenceConfiguration {
     var enablePip = false
     var enablePerfOverlay = false
     var perfOverlayLocked = false
+    var perfOverlayBgOpacity = 0
     var perfOverlayOrientation: PerfOverlayOrientation = PerfOverlayOrientation.HORIZONTAL
     var perfOverlayPosition: PerfOverlayPosition = PerfOverlayPosition.TOP
     var enableSimplifyPerfOverlay = false
@@ -238,6 +239,7 @@ class PreferenceConfiguration {
                 .putBoolean(ENABLE_HDR_HIGH_BRIGHTNESS_PREF_STRING, enableHdrHighBrightness)
                 .putBoolean(ENABLE_PERF_OVERLAY_STRING, enablePerfOverlay)
                 .putBoolean(PERF_OVERLAY_LOCKED_STRING, perfOverlayLocked)
+                .putInt(PERF_OVERLAY_BG_OPACITY_STRING, perfOverlayBgOpacity)
                 .putBoolean(REVERSE_RESOLUTION_PREF_STRING, reverseResolution)
                 .putBoolean(ROTABLE_SCREEN_PREF_STRING, rotableScreen)
                 .putBoolean(SHOW_BITRATE_CARD_PREF_STRING, showBitrateCard)
@@ -286,6 +288,7 @@ class PreferenceConfiguration {
         copy.hdrMode = this.hdrMode
         copy.enablePerfOverlay = this.enablePerfOverlay
         copy.perfOverlayLocked = this.perfOverlayLocked
+        copy.perfOverlayBgOpacity = this.perfOverlayBgOpacity
         copy.perfOverlayOrientation = this.perfOverlayOrientation
         copy.perfOverlayPosition = this.perfOverlayPosition
         copy.reverseResolution = this.reverseResolution
@@ -354,6 +357,7 @@ class PreferenceConfiguration {
         private const val ENABLE_PIP_PREF_STRING = "checkbox_enable_pip"
         private const val ENABLE_PERF_OVERLAY_STRING = "checkbox_enable_perf_overlay"
         private const val PERF_OVERLAY_LOCKED_STRING = "perf_overlay_locked"
+        private const val PERF_OVERLAY_BG_OPACITY_STRING = "seekbar_perf_overlay_bg_opacity"
         private const val PERF_OVERLAY_ORIENTATION_STRING = "list_perf_overlay_orientation"
         private const val PERF_OVERLAY_POSITION_STRING = "list_perf_overlay_position"
         private const val BIND_ALL_USB_STRING = "checkbox_usb_bind_all"
@@ -486,6 +490,7 @@ class PreferenceConfiguration {
         private const val DEFAULT_ENABLE_PIP = false
         private const val DEFAULT_ENABLE_PERF_OVERLAY = false
         private const val DEFAULT_PERF_OVERLAY_LOCKED = false
+        private const val DEFAULT_PERF_OVERLAY_BG_OPACITY = 53
         private const val DEFAULT_PERF_OVERLAY_ORIENTATION = "horizontal"
         private const val DEFAULT_PERF_OVERLAY_POSITION = "top"
         private const val DEFAULT_BIND_ALL_USB = false
@@ -974,6 +979,7 @@ class PreferenceConfiguration {
             config.enablePip = prefs.getBoolean(ENABLE_PIP_PREF_STRING, DEFAULT_ENABLE_PIP)
             config.enablePerfOverlay = prefs.getBoolean(ENABLE_PERF_OVERLAY_STRING, DEFAULT_ENABLE_PERF_OVERLAY)
             config.perfOverlayLocked = prefs.getBoolean(PERF_OVERLAY_LOCKED_STRING, DEFAULT_PERF_OVERLAY_LOCKED)
+            config.perfOverlayBgOpacity = prefs.getInt(PERF_OVERLAY_BG_OPACITY_STRING, DEFAULT_PERF_OVERLAY_BG_OPACITY).coerceIn(0, 100)
 
             // 读取性能覆盖层方向和位置设置
             val perfOverlayOrientationStr = prefs.getString(PERF_OVERLAY_ORIENTATION_STRING, DEFAULT_PERF_OVERLAY_ORIENTATION)

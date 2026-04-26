@@ -743,6 +743,19 @@
             android:title="@string/title_perf_overlay_display_items"
             android:summary="@string/summary_perf_overlay_display_items"
             android:dependency="checkbox_enable_perf_overlay"/>
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_perf_overlay_bg_opacity"
+            android:title="@string/title_perf_overlay_bg_opacity"
+            android:summary="@string/summary_perf_overlay_bg_opacity"
+            android:dialogMessage="@string/summary_perf_overlay_bg_opacity"
+            android:defaultValue="53"
+            android:max="100"
+            seekbar:min="0"
+            seekbar:step="5"
+            seekbar:keyStep="10"
+            seekbar:divisor="1"
+            android:text="@string/suffix_osc_opacity"
+            android:dependency="checkbox_enable_perf_overlay" />
         <CheckBoxPreference
             android:key="checkbox_enable_post_stream_toast"
             android:title="@string/title_enable_post_stream_toast"

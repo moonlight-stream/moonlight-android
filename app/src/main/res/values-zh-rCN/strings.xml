@@ -323,6 +323,8 @@
     <string name="summary_reset_perf_overlay_position">重置性能图层到预设位置</string>
     <string name="title_perf_overlay_display_items">性能图层显示项目</string>
     <string name="summary_perf_overlay_display_items">选择在性能图层中显示的信息项目</string>
+    <string name="title_perf_overlay_bg_opacity">性能图层背景透明度</string>
+    <string name="summary_perf_overlay_bg_opacity">调整性能图层背景的不透明程度</string>
     <string name="title_enable_post_stream_toast">串流完毕显示延迟信息</string>
     <string name="summary_enable_post_stream_toast">串流结束后显示延迟信息</string>
     <string name="title_checkbox_lock_screen_after_disconnect">断开并退出串流时锁定屏幕</string>

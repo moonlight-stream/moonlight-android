@@ -452,6 +452,8 @@
     <string name="summary_reset_perf_overlay_position">Reset performance overlay to preset position</string>
     <string name="title_perf_overlay_display_items">Performance Overlay Display Items</string>
     <string name="summary_perf_overlay_display_items">Select information items to display in the performance overlay</string>
+    <string name="title_perf_overlay_bg_opacity">Performance Overlay Background Opacity</string>
+    <string name="summary_perf_overlay_bg_opacity">Adjust the background opacity of the performance overlay</string>
     <string name="title_enable_post_stream_toast">Show latency message after streaming</string>
     <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
     <string name="title_checkbox_lock_screen_after_disconnect">Lock screen when disconnecting and exiting the stream</string>

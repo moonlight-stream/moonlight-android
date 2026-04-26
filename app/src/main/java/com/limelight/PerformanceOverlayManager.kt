@@ -3,6 +3,7 @@ package com.limelight
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.res.Configuration
+import android.graphics.Color
 import android.graphics.Typeface
 import android.net.TrafficStats
 import android.text.SpannableString
@@ -573,11 +574,10 @@ class PerformanceOverlayManager(
         val isPortrait = activity.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
         if (isEffectiveVerticalLayout()) {
             overlay.orientation = LinearLayout.VERTICAL
-            overlay.setBackgroundColor(androidx.core.content.ContextCompat.getColor(activity, R.color.overlay_background_vertical))
         } else {
             overlay.orientation = LinearLayout.HORIZONTAL
-            overlay.setBackgroundColor(androidx.core.content.ContextCompat.getColor(activity, R.color.overlay_background_horizontal))
         }
+        overlay.setBackgroundColor(getOverlayBackgroundColor())
 
         configureDisplayItems()
 
@@ -625,6 +625,11 @@ class PerformanceOverlayManager(
                 itemInfo.view.visibility = if (isEnabled) View.VISIBLE else View.GONE
             }
         }
+    }
+
+    private fun getOverlayBackgroundColor(): Int {
+        val alpha = prefConfig.perfOverlayBgOpacity.coerceIn(0, 100) * 255 / 100
+        return Color.argb(alpha, OVERLAY_BACKGROUND_RGB, OVERLAY_BACKGROUND_RGB, OVERLAY_BACKGROUND_RGB)
     }
 
     private fun configureTextAlignment() {
@@ -1192,6 +1197,7 @@ class PerformanceOverlayManager(
         private const val CLICK_THRESHOLD = 10
         private const val DOUBLE_CLICK_TIMEOUT = 300
         private const val BATTERY_UPDATE_INTERVAL_MS = 15000L
+        private const val OVERLAY_BACKGROUND_RGB = 0x16
 
         private val DECODER_TYPE_MAP = mapOf(
             "avc" to DecoderTypeInfo("H.264/AVC", "AVC"),

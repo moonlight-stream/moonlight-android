@@ -170,6 +170,8 @@
     <string name="summary_video_format">較新的轉碼器可以降低視訊頻寬需求 (若您的裝置支援)。如果主機軟體或 GPU 不支援，轉碼器選取項目可能會被忽略。</string>
     <string name="title_enable_hdr">啟用 HDR (實驗性)</string>
     <string name="summary_enable_hdr">在遊戲和 GPU 支援時以 HDR 模式串流，HDR 模式需要支援 HEVC Main 10 編碼的 GPU。</string>
+    <string name="title_perf_overlay_bg_opacity">效能圖層背景透明度</string>
+    <string name="summary_perf_overlay_bg_opacity">調整效能圖層背景的不透明程度</string>
     <string name="title_enable_post_stream_toast">串流後顯示延時資訊</string>
     <string name="summary_enable_post_stream_toast">串流結束後顯示延時資訊</string>
     <string name="title_osc_opacity">變更螢幕控制按鈕透明度</string>

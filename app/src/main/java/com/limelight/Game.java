@@ -1827,8 +1827,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // significantly different than before.
                 if (inputCaptureProvider.eventHasRelativeMouseAxes(event)) {
                     // Send the deltas straight from the motion event
-                    short deltaX = (short)inputCaptureProvider.getRelativeAxisX(event);
-                    short deltaY = (short)inputCaptureProvider.getRelativeAxisY(event);
+                    float rawX = inputCaptureProvider.getRelativeAxisX(event);
+                    float rawY = inputCaptureProvider.getRelativeAxisY(event);
+
+                    // Some keyboard trackpads (e.g. Samsung Galaxy Tab S11 Ultra Pro Keyboard)
+                    // report AXIS_RELATIVE_X/Y rotated 90° clockwise: the driver sends physical-Y
+                    // as AXIS_RELATIVE_X and physical-X as AXIS_RELATIVE_Y. Correcting means
+                    // reading Y as X and negating the new Y.
+                    if (prefConfig.rotateTouchpadAxes && eventSource == InputDevice.SOURCE_TOUCHPAD) {
+                        float tmp = rawX;
+                        rawX = rawY;
+                        rawY = -tmp;
+                    }
+
+                    short deltaX = (short) rawX;
+                    short deltaY = (short) rawY;
 
                     if (deltaX != 0 || deltaY != 0) {
                         if (prefConfig.absoluteMouseMode) {

@@ -149,6 +149,11 @@
             android:title="@string/title_checkbox_rotate_touchpad_axes"
             android:summary="@string/summary_checkbox_rotate_touchpad_axes"
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_natural_scroll"
+            android:title="@string/title_checkbox_natural_scroll"
+            android:summary="@string/summary_checkbox_natural_scroll"
+            android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_on_screen_controls_settings"
         android:key="category_onscreen_controls">

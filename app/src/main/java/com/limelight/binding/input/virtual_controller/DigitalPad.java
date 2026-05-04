@@ -30,6 +30,10 @@ public class DigitalPad extends VirtualControllerElement {
         super(controller, context, EID_DPAD);
     }
 
+    public DigitalPad(VirtualController controller, Context context, int elementId) {
+        super(controller, context, elementId);
+    }
+
     public void addDigitalPadListener(DigitalPadListener listener) {
         listeners.add(listener);
     }

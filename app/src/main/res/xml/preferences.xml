@@ -159,6 +159,12 @@
             android:summary="@string/summary_checkbox_vibrate_osc"
             android:defaultValue="true" />
         <CheckBoxPreference
+            android:key="checkbox_osc_keyboard_mode"
+            android:dependency="checkbox_show_onscreen_controls"
+            android:title="@string/title_checkbox_osc_keyboard_mode"
+            android:summary="@string/summary_checkbox_osc_keyboard_mode"
+            android:defaultValue="false" />
+        <CheckBoxPreference
             android:defaultValue="false"
             android:dependency="checkbox_show_onscreen_controls"
             android:key="checkbox_only_show_L3R3"

@@ -7,7 +7,9 @@ package com.limelight.binding.input.virtual_controller;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
+import android.view.KeyEvent;
 
 import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.preferences.PreferenceConfiguration;
@@ -72,6 +74,35 @@ public class VirtualControllerConfigurationLoader {
         return digitalPad;
     }
 
+    private static DigitalPad createKeyboardDigitalPad(
+            final VirtualController controller,
+            final Context context) {
+
+        DigitalPad digitalPad = new DigitalPad(controller, context, VirtualControllerElement.EID_KBD_DPAD);
+        digitalPad.addDigitalPadListener(new DigitalPad.DigitalPadListener() {
+            private int currentDirection;
+
+            @Override
+            public void onDirectionChange(int direction) {
+                sendDirectionKey(DigitalPad.DIGITAL_PAD_DIRECTION_LEFT, KeyEvent.KEYCODE_DPAD_LEFT, direction);
+                sendDirectionKey(DigitalPad.DIGITAL_PAD_DIRECTION_RIGHT, KeyEvent.KEYCODE_DPAD_RIGHT, direction);
+                sendDirectionKey(DigitalPad.DIGITAL_PAD_DIRECTION_UP, KeyEvent.KEYCODE_DPAD_UP, direction);
+                sendDirectionKey(DigitalPad.DIGITAL_PAD_DIRECTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN, direction);
+                currentDirection = direction;
+            }
+
+            private void sendDirectionKey(int directionFlag, int keyCode, int newDirection) {
+                boolean wasDown = (currentDirection & directionFlag) != 0;
+                boolean isDown = (newDirection & directionFlag) != 0;
+                if (wasDown != isDown) {
+                    controller.sendKeyboardKey(keyCode, isDown);
+                }
+            }
+        });
+
+        return digitalPad;
+    }
+
     private static DigitalButton createDigitalButton(
             final int elementId,
             final int keyShort,
@@ -112,6 +143,35 @@ public class VirtualControllerConfigurationLoader {
                 inputContext.inputMap &= ~keyLong;
 
                 controller.sendControllerInputContext();
+            }
+        });
+
+        return button;
+    }
+
+    private static DigitalButton createKeyboardButton(
+            final int elementId,
+            final int keyCode,
+            final int layer,
+            final String text,
+            final VirtualController controller,
+            final Context context) {
+        DigitalButton button = new DigitalButton(controller, elementId, layer, context);
+        button.setText(text);
+
+        button.addDigitalButtonListener(new DigitalButton.DigitalButtonListener() {
+            @Override
+            public void onClick() {
+                controller.sendKeyboardKey(keyCode, true);
+            }
+
+            @Override
+            public void onLongClick() {
+            }
+
+            @Override
+            public void onRelease() {
+                controller.sendKeyboardKey(keyCode, false);
             }
         });
 
@@ -189,6 +249,82 @@ public class VirtualControllerConfigurationLoader {
     private static final int GUIDE_X = START_X-BACK_X;
     private static final int GUIDE_Y = START_BACK_Y;
 
+    private static final int RPG_DPAD_BASE_X = 4;
+    private static final int RPG_DPAD_BASE_Y = 36;
+    private static final int RPG_DPAD_SIZE = 34;
+
+    private static final int RPG_BUTTON_BASE_X = 97;
+    private static final int RPG_BUTTON_BASE_Y = 28;
+    private static final int RPG_BUTTON_SIZE = 11;
+    private static final int RPG_SMALL_BUTTON_WIDTH = 14;
+    private static final int RPG_SMALL_BUTTON_HEIGHT = 8;
+
+    private static void createKeyboardLayout(final VirtualController controller, final Context context,
+                                             int height, int rightDisplacement) {
+        controller.addElement(createKeyboardDigitalPad(controller, context),
+                screenScale(RPG_DPAD_BASE_X, height),
+                screenScale(RPG_DPAD_BASE_Y, height),
+                screenScale(RPG_DPAD_SIZE, height),
+                screenScale(RPG_DPAD_SIZE, height)
+        );
+
+        controller.addElement(createKeyboardButton(
+                VirtualControllerElement.EID_KBD_OK, KeyEvent.KEYCODE_Z, 1, "Z", controller, context),
+                screenScale(RPG_BUTTON_BASE_X, height) + rightDisplacement,
+                screenScale(RPG_BUTTON_BASE_Y + RPG_BUTTON_SIZE, height),
+                screenScale(RPG_BUTTON_SIZE, height),
+                screenScale(RPG_BUTTON_SIZE, height)
+        );
+
+        controller.addElement(createKeyboardButton(
+                VirtualControllerElement.EID_KBD_CANCEL, KeyEvent.KEYCODE_X, 1, "X", controller, context),
+                screenScale(RPG_BUTTON_BASE_X + RPG_BUTTON_SIZE, height) + rightDisplacement,
+                screenScale(RPG_BUTTON_BASE_Y, height),
+                screenScale(RPG_BUTTON_SIZE, height),
+                screenScale(RPG_BUTTON_SIZE, height)
+        );
+
+        controller.addElement(createKeyboardButton(
+                VirtualControllerElement.EID_KBD_ENTER, KeyEvent.KEYCODE_ENTER, 1, "ENT", controller, context),
+                screenScale(RPG_BUTTON_BASE_X - RPG_SMALL_BUTTON_WIDTH, height) + rightDisplacement,
+                screenScale(RPG_BUTTON_BASE_Y + 2 * RPG_BUTTON_SIZE, height),
+                screenScale(RPG_SMALL_BUTTON_WIDTH, height),
+                screenScale(RPG_SMALL_BUTTON_HEIGHT, height)
+        );
+
+        controller.addElement(createKeyboardButton(
+                VirtualControllerElement.EID_KBD_ESC, KeyEvent.KEYCODE_ESCAPE, 1, "ESC", controller, context),
+                screenScale(RPG_BUTTON_BASE_X + RPG_BUTTON_SIZE, height) + rightDisplacement,
+                screenScale(RPG_BUTTON_BASE_Y + 2 * RPG_BUTTON_SIZE, height),
+                screenScale(RPG_SMALL_BUTTON_WIDTH, height),
+                screenScale(RPG_SMALL_BUTTON_HEIGHT, height)
+        );
+
+        controller.addElement(createKeyboardButton(
+                VirtualControllerElement.EID_KBD_SHIFT, KeyEvent.KEYCODE_SHIFT_LEFT, 2, "SHIFT", controller, context),
+                screenScale(41, height),
+                screenScale(63, height),
+                screenScale(18, height),
+                screenScale(RPG_SMALL_BUTTON_HEIGHT, height)
+        );
+
+        controller.addElement(createKeyboardButton(
+                VirtualControllerElement.EID_KBD_CTRL, KeyEvent.KEYCODE_CTRL_LEFT, 2, "CTRL", controller, context),
+                screenScale(61, height),
+                screenScale(63, height),
+                screenScale(16, height),
+                screenScale(RPG_SMALL_BUTTON_HEIGHT, height)
+        );
+
+        controller.addElement(createKeyboardButton(
+                VirtualControllerElement.EID_KBD_F5, KeyEvent.KEYCODE_F5, 2, "F5", controller, context),
+                screenScale(79, height) + rightDisplacement,
+                screenScale(63, height),
+                screenScale(12, height),
+                screenScale(RPG_SMALL_BUTTON_HEIGHT, height)
+        );
+    }
+
     public static void createDefaultLayout(final VirtualController controller, final Context context) {
 
         DisplayMetrics screen = context.getResources().getDisplayMetrics();
@@ -202,7 +338,10 @@ public class VirtualControllerConfigurationLoader {
         // NOTE: Some of these getPercent() expressions seem like they can be combined
         // into a single call. Due to floating point rounding, this isn't actually possible.
 
-        if (!config.onlyL3R3)
+        if (isOscKeyboardModeEnabled(context)) {
+            createKeyboardLayout(controller, context, height, rightDisplacement);
+        }
+        else if (!config.onlyL3R3)
         {
             controller.addElement(createDigitalPad(controller, context),
                     screenScale(DPAD_BASE_X, height),
@@ -337,7 +476,7 @@ public class VirtualControllerConfigurationLoader {
             );
         }
 
-        if(config.showGuideButton){
+        if(!isOscKeyboardModeEnabled(context) && config.showGuideButton){
             controller.addElement(createDigitalButton(VirtualControllerElement.EID_GDB,
                             ControllerPacket.SPECIAL_BUTTON_FLAG, 0, 1, "GUIDE", -1, controller, context),
                     screenScale(GUIDE_X, height)+ rightDisplacement,
@@ -384,5 +523,10 @@ public class VirtualControllerConfigurationLoader {
                 }
             }
         }
+    }
+
+    private static boolean isOscKeyboardModeEnabled(final Context context) {
+        return PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean("checkbox_osc_keyboard_mode", false);
     }
 }

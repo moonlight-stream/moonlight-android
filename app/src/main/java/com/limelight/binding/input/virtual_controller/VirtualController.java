@@ -8,6 +8,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -16,9 +17,14 @@ import android.widget.Toast;
 import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.binding.input.ControllerHandler;
+import com.limelight.binding.input.KeyboardTranslator;
+import com.limelight.nvstream.NvConnection;
+import com.limelight.nvstream.input.KeyboardPacket;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class VirtualController {
     public static class ControllerInputContext {
@@ -40,6 +46,8 @@ public class VirtualController {
     private static final boolean _PRINT_DEBUG_INFORMATION = false;
 
     private final ControllerHandler controllerHandler;
+    private final NvConnection connection;
+    private final KeyboardTranslator keyboardTranslator;
     private final Context context;
     private final Handler handler;
 
@@ -58,9 +66,14 @@ public class VirtualController {
     private Button buttonConfigure = null;
 
     private List<VirtualControllerElement> elements = new ArrayList<>();
+    private final Set<Integer> pressedKeyboardKeys = new HashSet<>();
 
-    public VirtualController(final ControllerHandler controllerHandler, FrameLayout layout, final Context context) {
+    public VirtualController(final ControllerHandler controllerHandler, final NvConnection connection,
+                             final KeyboardTranslator keyboardTranslator, FrameLayout layout,
+                             final Context context) {
         this.controllerHandler = controllerHandler;
+        this.connection = connection;
+        this.keyboardTranslator = keyboardTranslator;
         this.frame_layout = layout;
         this.context = context;
         this.handler = new Handler(Looper.getMainLooper());
@@ -103,6 +116,8 @@ public class VirtualController {
     }
 
     public void hide() {
+        resetInputState();
+
         for (VirtualControllerElement element : elements) {
             element.setVisibility(View.INVISIBLE);
         }
@@ -119,6 +134,8 @@ public class VirtualController {
     }
 
     public void removeElements() {
+        resetInputState();
+
         for (VirtualControllerElement element : elements) {
             frame_layout.removeView(element);
         }
@@ -178,6 +195,50 @@ public class VirtualController {
         return inputContext;
     }
 
+    void sendKeyboardKey(int androidKeyCode, boolean down) {
+        if (connection == null || keyboardTranslator == null) {
+            return;
+        }
+
+        short translated = keyboardTranslator.translate(androidKeyCode, -1);
+        if (translated == 0) {
+            return;
+        }
+
+        connection.sendKeyboardInput(translated, down ? KeyboardPacket.KEY_DOWN : KeyboardPacket.KEY_UP,
+                getModifierForKey(androidKeyCode, down), (byte) 0);
+
+        if (down) {
+            pressedKeyboardKeys.add(androidKeyCode);
+        }
+        else {
+            pressedKeyboardKeys.remove(androidKeyCode);
+        }
+    }
+
+    private byte getModifierForKey(int androidKeyCode, boolean down) {
+        if (!down) {
+            return 0;
+        }
+
+        switch (androidKeyCode) {
+            case KeyEvent.KEYCODE_SHIFT_LEFT:
+            case KeyEvent.KEYCODE_SHIFT_RIGHT:
+                return KeyboardPacket.MODIFIER_SHIFT;
+            case KeyEvent.KEYCODE_CTRL_LEFT:
+            case KeyEvent.KEYCODE_CTRL_RIGHT:
+                return KeyboardPacket.MODIFIER_CTRL;
+            case KeyEvent.KEYCODE_ALT_LEFT:
+            case KeyEvent.KEYCODE_ALT_RIGHT:
+                return KeyboardPacket.MODIFIER_ALT;
+            case KeyEvent.KEYCODE_META_LEFT:
+            case KeyEvent.KEYCODE_META_RIGHT:
+                return KeyboardPacket.MODIFIER_META;
+            default:
+                return 0;
+        }
+    }
+
     private void sendControllerInputContextInternal() {
         _DBG("INPUT_MAP + " + inputContext.inputMap);
         _DBG("LEFT_TRIGGER " + inputContext.leftTrigger);
@@ -196,6 +257,18 @@ public class VirtualController {
                     inputContext.rightTrigger
             );
         }
+    }
+
+    private void resetInputState() {
+        handler.removeCallbacks(delayedRetransmitRunnable);
+
+        for (Integer keyCode : new ArrayList<>(pressedKeyboardKeys)) {
+            sendKeyboardKey(keyCode, false);
+        }
+        pressedKeyboardKeys.clear();
+
+        inputContext = new ControllerInputContext();
+        sendControllerInputContextInternal();
     }
 
     void sendControllerInputContext() {

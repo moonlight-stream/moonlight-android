@@ -60,6 +60,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Rational;
 import android.view.Display;
 import android.view.InputDevice;
@@ -431,7 +432,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // of gamepads removed and replugged at runtime.
             gamepadMask = 1;
         }
-        if (prefConfig.onscreenController) {
+        if (prefConfig.onscreenController && !isOscKeyboardModeEnabled()) {
             // If we're using OSC, always set at least gamepad 1.
             gamepadMask |= 1;
         }
@@ -506,7 +507,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (prefConfig.onscreenController) {
             // create virtual onscreen controller
-            virtualController = new VirtualController(controllerHandler,
+            virtualController = new VirtualController(controllerHandler, conn, keyboardTranslator,
                     (FrameLayout)streamView.getParent(),
                     this);
             virtualController.refreshLayout();
@@ -572,6 +573,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // For regular displays, we always request landscape
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         }
+    }
+
+    private boolean isOscKeyboardModeEnabled() {
+        return PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean("checkbox_osc_keyboard_mode", false);
     }
 
     @Override

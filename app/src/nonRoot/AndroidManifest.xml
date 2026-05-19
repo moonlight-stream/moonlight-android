@@ -3,5 +3,19 @@
 
     <!-- Non-root application name -->
     <!-- FIXME: We should set extractNativeLibs=false but this breaks installation on the Fire TV 3 -->
-    <application android:label="@string/app_label" />
+    <application android:label="@string/app_label">
+        <service
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:name="com.limelight.KeyboardAccessibilityService"
+            android:label="@string/keyboard_service_label"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/keyboard_accessibility_service" />
+        </service>
+    </application>
 </manifest>

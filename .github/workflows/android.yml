@@ -1,0 +1,57 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Install Android SDK and NDK
+      run: |
+        mkdir /home/runner/android && cd /home/runner/android
+        
+        sudo apt install -y unzip
+        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+        unzip commandlinetools-linux-11076708_latest.zip
+        export PATH=$PATH:/home/runner/android/cmdline-tools/bin/
+        
+        yes | sdkmanager --sdk_root=/home/runner/android "platforms;android-34" "build-tools;34.0.0" "ndk;27.0.12077973"
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Update submodules
+      run: git submodule update --init --recursive
+
+    - name: Create local.properties
+      run: echo "ndk.dir=/home/runner/android/ndk/27.0.12077973" > local.properties
+
+    - name: Build with Gradle
+      run: | 
+        ./gradlew assembleNonRootRelease
+
+    - name: Sign APK
+      run: |
+        keytool -genkey -v -keystore my-release-key.keystore -alias temp_key -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=GitHubActionsTemporaryKey"
+        /home/runner/android/build-tools/34.0.0/apksigner sign --ks my-release-key.keystore --ks-key-alias temp_key --ks-pass pass:password --key-pass pass:password --out app-nonRoot-release-signed.apk app/build/outputs/apk/nonRoot/release/app-nonRoot-release-unsigned.apk
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: Moonlight APK
+        path: app-nonRoot-release-signed.apk

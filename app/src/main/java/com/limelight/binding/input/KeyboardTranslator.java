@@ -209,6 +209,7 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
                 break;
                 
             case KeyEvent.KEYCODE_ESCAPE:
+            case KeyEvent.KEYCODE_BACK:
                 translated = VK_ESCAPE;
                 break;
                 

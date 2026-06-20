@@ -27,7 +27,8 @@ public class AndroidAudioRenderer implements AudioRenderer {
 
     private AudioTrack createAudioTrack(int channelConfig, int sampleRate, int bufferSize, boolean lowLatency) {
         AudioAttributes.Builder attributesBuilder = new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_GAME);
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE);
         AudioFormat format = new AudioFormat.Builder()
                 .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                 .setSampleRate(sampleRate)
@@ -35,7 +36,9 @@ public class AndroidAudioRenderer implements AudioRenderer {
                 .build();
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            // Use FLAG_LOW_LATENCY on L through N
+            // Use FLAG_LOW_LATENCY on L through N. On Oreo+, PERFORMANCE_MODE_LOW_LATENCY
+            // supersedes this flag and setting both can cause crackling on some devices
+            // (e.g. Samsung Galaxy S21) due to conflicting requests to AudioFlinger.
             if (lowLatency) {
                 attributesBuilder.setFlags(AudioAttributes.FLAG_LOW_LATENCY);
             }
@@ -147,9 +150,11 @@ public class AndroidAudioRenderer implements AudioRenderer {
                     throw new IllegalStateException();
             }
 
-            // Skip low latency options if hardware sample rate doesn't match the content
-            if (AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) != sampleRate && lowLatency) {
-                continue;
+            // Skip low latency options if hardware sample rate doesn't match the content (only required pre-Oreo)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                if (AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) != sampleRate && lowLatency) {
+                    continue;
+                }
             }
 
             // Skip low latency options when using audio effects, since low latency mode
@@ -187,15 +192,18 @@ public class AndroidAudioRenderer implements AudioRenderer {
 
     @Override
     public void playDecodedAudio(short[] audioData) {
-        // Only queue up to 40 ms of pending audio data in addition to what AudioTrack is buffering for us.
-        if (MoonBridge.getPendingAudioDuration() < 40) {
+        // Only queue up to 120 ms of pending audio data in addition to what AudioTrack is buffering for us.
+        // On many Android TV and mobile platforms, AudioTrack's recommended hardware buffer length is 60-100 ms.
+        // A low threshold like 40 ms mathematically guarantees constant packet drops during normal playback,
+        // manifesting as periodic stuttering. Using 120 ms absorbs the hardware buffer and brief network jitter safely.
+        if (MoonBridge.getPendingAudioDuration() < 120) {
             // This will block until the write is completed. That can cause a backlog
             // of pending audio data, so we do the above check to be able to bound
-            // latency at 40 ms in that situation.
+            // latency at 120 ms in that situation.
             track.write(audioData, 0, audioData.length);
         }
         else {
-            LimeLog.info("Too much pending audio data: " + MoonBridge.getPendingAudioDuration() +" ms");
+            LimeLog.info("Too much pending audio data (discarding): " + MoonBridge.getPendingAudioDuration() +" ms");
         }
     }
 

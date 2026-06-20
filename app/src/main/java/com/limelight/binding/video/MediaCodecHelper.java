@@ -124,8 +124,11 @@ public class MediaCodecHelper {
         // if adaptive playback was enabled so let's avoid it to be safe.
         blacklistedAdaptivePlaybackPrefixes.add("omx.intel");
         // The MediaTek decoder crashes at 1080p when adaptive playback is enabled
-        // on some Android TV devices with HEVC only.
+        // on some Android TV devices with HEVC only. This applies to both OMX and C2 paths.
+        // omx.mtk is used by MediaTek mobile/tablet SoCs; omx.ms is used by MediaTek Smart TV SoCs (e.g. MT5889).
         blacklistedAdaptivePlaybackPrefixes.add("omx.mtk");
+        blacklistedAdaptivePlaybackPrefixes.add("c2.mtk");
+        blacklistedAdaptivePlaybackPrefixes.add("omx.ms");
 
         constrainedHighProfilePrefixes = new LinkedList<>();
         constrainedHighProfilePrefixes.add("omx.intel");
@@ -189,6 +192,14 @@ public class MediaCodecHelper {
         // We'll enable those HEVC decoders by default and see if anything breaks.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             whitelistedHevcDecoders.add("omx.realtek");
+        }
+
+        // MediaTek Smart TV SoCs (MT58xx/MT98xx series, used in TCL, Hisense, Philips, and others)
+        // use the "omx.ms" codec prefix rather than "omx.mtk". These chips have reliable HEVC decoders
+        // on Android 11 (R)+. FEATURE_LowLatency is used to select them at runtime; this entry serves
+        // as a fallback whitelist for devices that do not report that feature.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            whitelistedHevcDecoders.add("omx.ms");
         }
 
         // These theoretically have good HEVC decoding capabilities (potentially better than
@@ -412,6 +423,14 @@ public class MediaCodecHelper {
             }
         }
 
+        // MediaTek Smart TV SoCs (omx.ms prefix, e.g. MT5889) support HEVC RFI on Android 11+.
+        // Confirmed on TCL C735 (MT5889/Mali-G57). Unlike omx.mtk (mobile), omx.ms does not
+        // require GPU-family gating — all known omx.ms devices on Android R+ have reliable decoders.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            LimeLog.info("Added omx.ms to HEVC RFI list for MediaTek Smart TV SoCs (Android 11+)");
+            refFrameInvalidationHevcPrefixes.add("omx.ms");
+        }
+
         initialized = true;
     }
 
@@ -500,8 +519,16 @@ public class MediaCodecHelper {
 
         if (tryNumber < 1) {
             // Official Android 11+ low latency option (KEY_LOW_LATENCY).
-            videoFormat.setInteger("low-latency", 1);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                videoFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1);
+            } else {
+                videoFormat.setInteger("low-latency", 1);
+            }
             setNewOption = true;
+
+            // Advise the decoder we are using a maximum of 0 B-frames and 1 pending/reference surface buffer
+            videoFormat.setInteger("max-bframes", 0);
+            videoFormat.setInteger("max-pending-frames", 1);
 
             // If this decoder officially supports FEATURE_LowLatency, we will just use that alone
             // for try 0. Otherwise, we'll include it as best effort with other options.

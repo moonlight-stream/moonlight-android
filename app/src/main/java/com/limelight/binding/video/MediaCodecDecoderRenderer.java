@@ -1064,7 +1064,21 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                             if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_BALANCED) {
                                 // Get the last output buffer in the queue
                                 while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
-                                    videoDecoder.releaseOutputBuffer(lastIndex, false);
+                                    if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_MAX_SMOOTHNESS ||
+                                            prefs.framePacing == PreferenceConfiguration.FRAME_PACING_CAP_FPS) {
+                                        // Render every frame in the queue to maintain complete smoothness without dropping frames
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                            videoDecoder.releaseOutputBuffer(lastIndex, 0);
+                                        }
+                                        else {
+                                            videoDecoder.releaseOutputBuffer(lastIndex, true);
+                                        }
+                                        activeWindowVideoStats.totalFramesRendered++;
+                                    }
+                                    else {
+                                        // In min latency mode, drop older queued frames to catch up to the latest one
+                                        videoDecoder.releaseOutputBuffer(lastIndex, false);
+                                    }
 
                                     numFramesOut++;
 
@@ -1085,9 +1099,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                                 }
                                 else {
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                        // Use a PTS that will cause this frame to be dropped if another comes in within
-                                        // the same V-sync period
-                                        videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
+                                        // On smart TVs, using a dynamic System.nanoTime() as the presentation time
+                                        // causes Android's SurfaceFlinger compositor to miss VSync boundaries,
+                                        // leading to constant 2-3 FPS drops and periodic stuttering. Releasing with 
+                                        // 0 (which defaults to immediate rendering) avoids compositor-side queue build-up.
+                                        videoDecoder.releaseOutputBuffer(lastIndex, 0);
                                     }
                                     else {
                                         videoDecoder.releaseOutputBuffer(lastIndex, true);

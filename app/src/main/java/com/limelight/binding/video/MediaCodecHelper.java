@@ -44,6 +44,7 @@ public class MediaCodecHelper {
     private static final List<String> exynosDecoderPrefixes;
     private static final List<String> amlogicDecoderPrefixes;
     private static final List<String> knownVendorLowLatencyOptions;
+    private static final List<String> mediaTeKTvDecoderPrefixes;
 
     public static final boolean SHOULD_BYPASS_SOFTWARE_BLOCK =
             Build.HARDWARE.equals("ranchu") || Build.HARDWARE.equals("cheets") || Build.BRAND.equals("Android-x86");
@@ -68,6 +69,10 @@ public class MediaCodecHelper {
 
         // All Codec2 decoders
         directSubmitPrefixes.add("c2.");
+
+        // MediaTek Smart TV SoCs (omx.ms, e.g. MT5889). These are fixed-function HW
+        // decoders with low input-buffer latency; tested on TCL C735 (MT5889/Mali-G57).
+        directSubmitPrefixes.add("omx.ms");
     }
 
     static {
@@ -123,9 +128,13 @@ public class MediaCodecHelper {
         // The Intel decoder on Lollipop on Nexus Player would increase latency badly
         // if adaptive playback was enabled so let's avoid it to be safe.
         blacklistedAdaptivePlaybackPrefixes.add("omx.intel");
-        // The MediaTek decoder crashes at 1080p when adaptive playback is enabled
-        // on some Android TV devices with HEVC only.
+        // MediaTek MOBILE decoders (omx.mtk / c2.mtk) crash at 1080p when adaptive playback
+        // is enabled for HEVC streams on some Android TV devices (e.g. Fire TV with Helio SoC).
+        // This does NOT apply to MediaTek Smart TV SoCs (omx.ms prefix, e.g. MT5889 in TCL C7xx):
+        // those decoders properly declare <Feature name="adaptive-playback" /> in their
+        // media_codecs.xml and are stable with adaptive playback enabled.
         blacklistedAdaptivePlaybackPrefixes.add("omx.mtk");
+        blacklistedAdaptivePlaybackPrefixes.add("c2.mtk");
 
         constrainedHighProfilePrefixes = new LinkedList<>();
         constrainedHighProfilePrefixes.add("omx.intel");
@@ -191,6 +200,14 @@ public class MediaCodecHelper {
             whitelistedHevcDecoders.add("omx.realtek");
         }
 
+        // MediaTek Smart TV SoCs (MT58xx/MT98xx series, used in TCL, Hisense, Philips, and others)
+        // use the "omx.ms" codec prefix rather than "omx.mtk". These chips have reliable HEVC decoders
+        // on Android 11 (R)+. FEATURE_LowLatency is used to select them at runtime; this entry serves
+        // as a fallback whitelist for devices that do not report that feature.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            whitelistedHevcDecoders.add("omx.ms");
+        }
+
         // These theoretically have good HEVC decoding capabilities (potentially better than
         // their AVC decoders), but haven't been tested enough
         //whitelistedHevcDecoders.add("omx.rk");
@@ -221,6 +238,14 @@ public class MediaCodecHelper {
         knownVendorLowLatencyOptions.add("vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-req");
         knownVendorLowLatencyOptions.add("vendor.rtc-ext-dec-low-latency.enable");
         knownVendorLowLatencyOptions.add("vendor.low-latency.enable");
+    }
+
+    static {
+        // MediaTek Smart TV SoCs use the "omx.ms" prefix (e.g. MT5889 in TCL C7xx).
+        // They are distinct from MediaTek mobile SoCs ("omx.mtk") and require both
+        // KEY_LOW_LATENCY and "vdec-lowlatency" to fully enable low-latency I-frame decoding.
+        mediaTeKTvDecoderPrefixes = new LinkedList<>();
+        mediaTeKTvDecoderPrefixes.add("omx.ms");
     }
 
     static {
@@ -412,6 +437,14 @@ public class MediaCodecHelper {
             }
         }
 
+        // MediaTek Smart TV SoCs (omx.ms prefix, e.g. MT5889) support HEVC RFI on Android 11+.
+        // Confirmed on TCL C735 (MT5889/Mali-G57). Unlike omx.mtk (mobile), omx.ms does not
+        // require GPU-family gating — all known omx.ms devices on Android R+ have reliable decoders.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            LimeLog.info("Added omx.ms to HEVC RFI list for MediaTek Smart TV SoCs (Android 11+)");
+            refFrameInvalidationHevcPrefixes.add("omx.ms");
+        }
+
         initialized = true;
     }
 
@@ -500,14 +533,31 @@ public class MediaCodecHelper {
 
         if (tryNumber < 1) {
             // Official Android 11+ low latency option (KEY_LOW_LATENCY).
-            videoFormat.setInteger("low-latency", 1);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                videoFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1);
+            } else {
+                videoFormat.setInteger("low-latency", 1);
+            }
             setNewOption = true;
 
             // If this decoder officially supports FEATURE_LowLatency, we will just use that alone
-            // for try 0. Otherwise, we'll include it as best effort with other options.
-            if (decoderSupportsAndroidRLowLatency(decoderInfo, videoFormat.getString(MediaFormat.KEY_MIME))) {
+            // for try 0 — UNLESS it's a MediaTek Smart TV SoC (omx.ms prefix). These chips
+            // have a proprietary ACodec layer that recognizes "vdec-lowlatency" to set
+            // OMX.MTK.index.param.video.LowLatencyDecode internally. Setting KEY_LOW_LATENCY
+            // alone via FEATURE_LowLatency may not fully engage low-latency I-frame decoding,
+            // so we fall through to also apply vdec-lowlatency in tryNumber < 2.
+            if (decoderSupportsAndroidRLowLatency(decoderInfo, videoFormat.getString(MediaFormat.KEY_MIME))
+                    && !isDecoderInList(mediaTeKTvDecoderPrefixes, decoderInfo.getName())) {
                 return true;
             }
+        }
+
+        // For MediaTek Smart TV SoCs (omx.ms), always keep KEY_LOW_LATENCY set even in later
+        // retry rounds (tryNumber >= 1), so that if try 0 (KEY_LOW_LATENCY + vdec-lowlatency)
+        // fails, retry 1 still carries KEY_LOW_LATENCY alongside vdec-lowlatency alone.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                isDecoderInList(mediaTeKTvDecoderPrefixes, decoderInfo.getName())) {
+            videoFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1);
         }
 
         if (tryNumber < 2 &&
@@ -595,7 +645,17 @@ public class MediaCodecHelper {
     }
 
     public static boolean decoderSupportsFusedIdrFrame(MediaCodecInfo decoderInfo, String mimeType) {
-        // If adaptive playback is supported, we can submit new CSD together with a keyframe
+        // Fused IDR frames require the codec to be configured in adaptive playback mode
+        // (KEY_MAX_WIDTH/KEY_MAX_HEIGHT set). Decoders blacklisted for adaptive playback
+        // are also not configured in that mode, so we must exclude them here to avoid
+        // submitting new CSD mid-stream without the corresponding adaptive playback setup.
+        if (isDecoderInList(blacklistedAdaptivePlaybackPrefixes, decoderInfo.getName())) {
+            LimeLog.info("Decoder blacklisted for adaptive playback; disabling fused IDR frames");
+            return false;
+        }
+
+        // If adaptive playback is supported (and not blacklisted above), we can submit
+        // new CSD together with a keyframe.
         try {
             if (decoderInfo.getCapabilitiesForType(mimeType).
                     isFeatureSupported(CodecCapabilities.FEATURE_AdaptivePlayback)) {

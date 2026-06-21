@@ -158,6 +158,14 @@ public class AndroidAudioRenderer implements AudioRenderer {
                 continue;
             }
 
+            // Skip sub-minimal buffers with standard latency when using audio effects.
+            // Standard-latency paths require robust buffer sizes when effects processing
+            // (like equalizers) is active, otherwise underruns easily occur under high
+            // CPU/GPU loads (such as heavy AV1 video decoding).
+            if (enableAudioFx && i == 2) {
+                continue;
+            }
+
             try {
                 track = createAudioTrack(channelConfig, sampleRate, bufferSize, lowLatency);
                 track.play();
@@ -187,15 +195,18 @@ public class AndroidAudioRenderer implements AudioRenderer {
 
     @Override
     public void playDecodedAudio(short[] audioData) {
-        // Only queue up to 40 ms of pending audio data in addition to what AudioTrack is buffering for us.
-        if (MoonBridge.getPendingAudioDuration() < 40) {
+        // Only queue up to 120 ms of pending audio data in addition to what AudioTrack is buffering for us.
+        // On many Android TV and mobile platforms, AudioTrack's recommended hardware buffer length is 60-100 ms.
+        // A low threshold like 40 ms mathematically guarantees constant packet drops during normal playback,
+        // manifesting as periodic stuttering. Using 120 ms absorbs the hardware buffer and brief network jitter safely.
+        if (MoonBridge.getPendingAudioDuration() < 120) {
             // This will block until the write is completed. That can cause a backlog
             // of pending audio data, so we do the above check to be able to bound
-            // latency at 40 ms in that situation.
+            // latency at 120 ms in that situation.
             track.write(audioData, 0, audioData.length);
         }
         else {
-            LimeLog.info("Too much pending audio data: " + MoonBridge.getPendingAudioDuration() +" ms");
+            LimeLog.info("Too much pending audio data (discarding): " + MoonBridge.getPendingAudioDuration() +" ms");
         }
     }
 

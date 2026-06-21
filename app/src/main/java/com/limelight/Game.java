@@ -785,6 +785,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         WindowManager.LayoutParams windowLayoutParams = getWindow().getAttributes();
         float displayRefreshRate;
 
+        // Force minimal post-processing (Game Mode / ALLM) programmatically on Android 11+ (API 30+).
+        // Some TV vendor overlays (like TCL/MediaTek) ignore the AndroidManifest attribute, but
+        // programmatically setting it on the Window LayoutParams forces the OS compositor to
+        // bypass MEMC (Motion Smoothing) and post-processing, eliminating periodic stutter.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            windowLayoutParams.preferMinimalPostProcessing = true;
+        }
+
         // On M, we can explicitly set the optimal display mode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Display.Mode bestMode = display.getMode();
@@ -889,10 +897,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 }
                 else {
                     LimeLog.info("Using setFrameRate() instead of preferredDisplayModeId due to matching resolution");
+                    getWindow().setAttributes(windowLayoutParams);
                 }
             }
             else {
                 LimeLog.info("Current display mode is already the best display mode");
+                getWindow().setAttributes(windowLayoutParams);
             }
 
             displayRefreshRate = bestMode.getRefreshRate();

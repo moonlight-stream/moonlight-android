@@ -108,10 +108,10 @@
     <string name="title_only_l3r3">Показувати тільки L3 та R3</string>
     <string name="summary_only_l3r3">Приховувати всі віртуальні ґудзики окрім L3 та R3</string>
     <string name="scut_deleted_pc">Пристрій видалено</string>
-    <string name="scut_not_paired">Пристрій не сполучений</string>
+    <string name="scut_not_paired">Пристрій не парований</string>
     <string name="help_loading_title">Перегляд допомоги</string>
     <string name="help_loading_msg">Завантаження сторінки допомоги…</string>
-    <string name="pair_already_in_progress">Сполучення вже в процесі</string>
+    <string name="pair_already_in_progress">Створення пари вже в процесі</string>
     <string name="help">Допомога</string>
     <string name="applist_connect_msg">Підключення до пристрою…</string>
     <string name="title_decoding_error">Збій відео розцифрувача</string>

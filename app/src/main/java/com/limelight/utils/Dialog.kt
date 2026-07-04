@@ -64,6 +64,8 @@ class Dialog private constructor(
             alert.show()
         }
 
+        AppDialogStyler.applyCustomContent(alert, activity)
+
         alert.window?.let { window ->
             val layoutParams = window.attributes
             layoutParams.alpha = 0.8f

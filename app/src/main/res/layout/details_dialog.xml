@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/game_menu_dialog_bg"
+    android:background="@drawable/app_dialog_bg_cute"
     android:padding="16dp">
 
     <LinearLayout
@@ -23,7 +23,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_info"
-                android:tint="@color/theme_pink_primary"
+                android:tint="@color/app_dialog_accent_color"
                 android:layout_marginEnd="8dp" />
 
             <TextView
@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/layout_details_dialog_text_4bcc9"
-                android:textColor="@color/theme_pink_primary"
+                android:textColor="@color/app_dialog_title_color"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -42,7 +42,8 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:src="@drawable/ic_copy"
-                android:background="@drawable/game_menu_button_bg"
+                android:tint="@color/app_dialog_accent_color"
+                android:background="@drawable/details_copy_button_bg"
                 android:padding="6dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="@string/copy_content" />
@@ -62,7 +63,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text=""
-                android:textColor="@color/game_menu_text_secondary"
+                android:textColor="@color/app_dialog_text_secondary"
                 android:textSize="14sp"
                 android:lineSpacingExtra="6dp"
                 android:fontFamily="monospace"
@@ -75,4 +76,4 @@
 
     </LinearLayout>
 
-</ScrollView> 
+</ScrollView>

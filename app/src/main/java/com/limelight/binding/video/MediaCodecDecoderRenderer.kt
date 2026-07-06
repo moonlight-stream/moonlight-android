@@ -15,6 +15,7 @@ import android.os.Process
 import android.os.SystemClock
 import android.view.Surface
 import android.view.SurfaceHolder
+import com.limelight.BuildConfig
 import com.limelight.LimeLog
 import com.limelight.nvstream.av.video.VideoDecoderRenderer
 import com.limelight.nvstream.jni.MoonBridge
@@ -169,11 +170,13 @@ class MediaCodecDecoderRenderer(
     // 消除"本地 vsync 网格 vs 主机节奏"错拍造成的微判抖；代价是自适应缓冲延迟(净 LAN≈1ms，抖动网络更大)。
     // TODO(on-device): 接入设置项/按网络自适应开启，并在真机上标定 Kp/Ki/cushion。
     private val useHostCadencePacing = false
-    private var hcInitialized = false
-    private var hcEstimatedOffsetNs = 0L   // 平滑后的 (本地单调钟 - host PTS) 偏移均值(纳秒)
-    private var hcSkewNs = 0L               // 每帧频差估计(纳秒/帧)，消除时钟 skew 斜坡滞后
-    private var hcJitterEstNs = 0.0         // 在线抖动估计(平均绝对偏差, 纳秒)，驱动自适应 cushion
-    private var hcLastHostPtsUs = 0L        // 上一帧 host PTS(微秒)，检测不连续(重连/跳变)
+    // host PTS 旁路映射是否需要维护：直渲染档(useHostCadencePacing) 或 PRECISE_SYNC 两步呈现激活时都需要。
+    private val needsHostPtsMapping: Boolean
+        get() = useHostCadencePacing || framePacingController.isHostCadencePreciseSyncActive()
+    // 直渲染档(MAX_SMOOTHNESS/CAP_FPS)无 vsync snap 兜底：一帧迟到即可见 hitch，故用较大 cushion
+    // (3×MAD, floor 1ms)覆盖抖动分布。PRECISE_SYNC 路径(有 snap)将另建低 cushion 实例。
+    private val hostCadenceClock =
+        HostCadenceClock(cushionMul = 3.0, cushionFloorNs = 1_000_000L, enableDebugStats = BuildConfig.DEBUG)
 
     // Frame pacing and performance management (extracted)
     private val framePacingController: FramePacingController
@@ -1322,7 +1325,7 @@ class MediaCodecDecoderRenderer(
             prefs.framePacing == PreferenceConfiguration.FRAME_PACING_PRECISE_SYNC
         ) {
             // Buffered modes - queue for frame pacing controller
-            framePacingController.offerOutputBuffer(bufferIndex)
+            framePacingController.offerOutputBuffer(bufferIndex, hostPtsUs)
         } else {
             // Direct render modes (MIN_LATENCY, MAX_SMOOTHNESS, CAP_FPS)
             try {
@@ -1332,7 +1335,9 @@ class MediaCodecDecoderRenderer(
                     if (useHostCadencePacing && hostPtsUs >= 0) {
                         // host-cadence 呈现：按主机出帧节奏复现，去抖时钟给出精确呈现时刻。
                         // 偏平滑档(MAX_SMOOTHNESS/CAP_FPS)权衡少量缓冲延迟换取无判抖，语义相符。
-                        videoDecoder!!.releaseOutputBuffer(bufferIndex, computeHostCadencePresentTimeNs(hostPtsUs))
+                        val fps = if (refreshRate > 0) refreshRate else 60
+                        val frameIntervalNs = 1_000_000_000L / fps
+                        videoDecoder!!.releaseOutputBuffer(bufferIndex, hostCadenceClock.presentTimeNs(hostPtsUs, frameIntervalNs))
                     } else {
                         videoDecoder!!.releaseOutputBuffer(bufferIndex, 0)
                     }
@@ -1385,7 +1390,7 @@ class MediaCodecDecoderRenderer(
                 }
 
                 // Deliver to frame pacing
-                val hostPtsUs = if (useHostCadencePacing)
+                val hostPtsUs = if (needsHostPtsMapping)
                     (timestampToHostPts.remove(info.presentationTimeUs) ?: -1L) else -1L
                 deliverDecodedFrame(index, hostPtsUs)
 
@@ -2048,7 +2053,7 @@ class MediaCodecDecoderRenderer(
 
         // 记录本地 codec PTS -> host 节奏 PTS 的映射，供输出侧 host-cadence pacing 还原(仅在开启时消费)。
         // 用本地 timestampUs 作 MediaCodec 的 PTS(保持既有延迟统计/去重逻辑不变)，host PTS 另存旁路。
-        if (useHostCadencePacing) {
+        if (needsHostPtsMapping) {
             timestampToHostPts[timestampUs] = hostPresentationTimeUs
         }
 
@@ -2185,44 +2190,5 @@ class MediaCodecDecoderRenderer(
         }
         // If we can't find the enqueue time, return 0
         return 0
-    }
-
-    // host-cadence 呈现时刻计算(alpha-beta / PI 时钟恢复)。
-    // 输入 host PTS(微秒，以首个被捕获帧为原点)，输出本地单调钟(nanoTime 基准)的目标呈现时刻(纳秒)。
-    // 与鸿蒙 native_render::CalculatePresentTime 同一模型、同一常数，已用离线仿真验证：
-    //   相较"snap 到本地 vsync 网格"，可复现主机出帧节奏，消除错拍微判抖；无硬重置。
-    // 返回值可能早于 now：调用方按"过去时间戳=立即呈现"处理，网格保持刚性连续(勿拽到到达时刻)。
-    private fun computeHostCadencePresentTimeNs(hostPtsUs: Long): Long {
-        val nowNs = System.nanoTime()
-        val hostNs = hostPtsUs * 1000L
-        val instOffset = nowNs - hostNs
-        val fps = if (refreshRate > 0) refreshRate else 60
-        val frameIntervalNs = 1_000_000_000L / fps
-
-        val discontinuity = hcInitialized &&
-            (hostPtsUs < hcLastHostPtsUs || (hostPtsUs - hcLastHostPtsUs) > 2_000_000L)
-
-        if (!hcInitialized || discontinuity) {
-            hcEstimatedOffsetNs = instOffset
-            hcSkewNs = 0
-            hcJitterEstNs = frameIntervalNs / 16.0
-            hcInitialized = true
-        } else {
-            val pred = hcEstimatedOffsetNs + hcSkewNs
-            val e = instOffset - pred
-            var ec = e
-            if (ec > 8_000_000L) ec = 8_000_000L else if (ec < -8_000_000L) ec = -8_000_000L
-            hcEstimatedOffsetNs = pred + (ec / 64)    // Kp=1/64: 跟踪偏移均值、网格近似刚性
-            hcSkewNs += (ec / 2048)                    // Ki=1/2048: 跟踪频差，消除斜坡滞后
-            val ae = if (e < 0) (-e).toDouble() else e.toDouble()
-            hcJitterEstNs += (ae - hcJitterEstNs) / 32.0
-        }
-        hcLastHostPtsUs = hostPtsUs
-
-        var cushionNs = (3.0 * hcJitterEstNs).toLong()
-        if (cushionNs < 1_000_000L) cushionNs = 1_000_000L
-        else if (cushionNs > frameIntervalNs) cushionNs = frameIntervalNs
-
-        return hostNs + hcEstimatedOffsetNs + cushionNs
     }
 }

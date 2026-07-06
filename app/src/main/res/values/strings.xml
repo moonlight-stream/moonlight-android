@@ -528,6 +528,10 @@
     <string name="summary_full_range">This will cause loss of detail in light and dark areas if your device doesn\'t properly display full range video content.</string>
     <string name="title_enable_perf_overlay">Show performance stats while streaming</string>
     <string name="summary_enable_perf_overlay">Display real-time stream performance information while streaming</string>
+    <string name="title_enable_jitter_monitor">Show jitter monitor chart</string>
+    <string name="summary_enable_jitter_monitor">Overlay a real-time present-interval jitter chart (judder%, jitter, histogram) while streaming. No performance impact when disabled.</string>
+    <string name="title_enable_host_cadence_precise_sync">Host-cadence two-step (Precise Sync)</string>
+    <string name="summary_enable_host_cadence_precise_sync">Only affects Precise Sync mode. Reproduces the host output cadence then snaps to local vsync, reducing beat-frequency judder on clean links. Adds ~1-3ms latency. Off by default.</string>
     <string name="title_perf_overlay_orientation">Performance Overlay Orientation</string>
     <string name="summary_perf_overlay_orientation">Choose the display orientation for performance statistics</string>
     <string name="title_perf_overlay_position">Performance Overlay Position</string>

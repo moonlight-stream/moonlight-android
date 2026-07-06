@@ -183,6 +183,7 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     lateinit var notificationOverlayManager: NotificationOverlayManager
     private var performanceOverlayManager: PerformanceOverlayManager? = null
+    private var jitterMonitorManager: JitterMonitorManager? = null
     lateinit var cursorServiceManager: CursorServiceManager
     lateinit var floatBallHandler: FloatBallHandler
     lateinit var connectionCallbackHandler: ConnectionCallbackHandler
@@ -345,6 +346,9 @@ class Game : Activity(), SurfaceHolder.Callback,
 
         performanceOverlayManager = PerformanceOverlayManager(this, prefConfig)
         performanceOverlayManager?.initialize()
+
+        jitterMonitorManager = JitterMonitorManager(this, prefConfig)
+        jitterMonitorManager?.initialize()
 
         inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this)
 
@@ -964,6 +968,7 @@ class Game : Activity(), SurfaceHolder.Callback,
             if (isInPictureInPictureMode) {
                 virtualController?.hide()
                 performanceOverlayManager?.hideOverlayImmediate()
+                jitterMonitorManager?.hideImmediate()
                 notificationOverlayManager.setHiding(true)
                 microphoneManager?.setEnableMic(false)
                 controllerHandler.disableSensors()
@@ -971,6 +976,7 @@ class Game : Activity(), SurfaceHolder.Callback,
             } else {
                 virtualController?.show()
                 performanceOverlayManager?.applyRequestedVisibility()
+                jitterMonitorManager?.applyVisibility()
                 notificationOverlayManager.setHiding(false)
                 notificationOverlayManager.applyVisibility()
                 microphoneManager?.setEnableMic(prefConfig.enableMic)
@@ -981,6 +987,10 @@ class Game : Activity(), SurfaceHolder.Callback,
         }
 
         performanceOverlayManager?.onConfigurationChanged()
+        // PiP 下不重显浮层：进入 PiP 分支已 hideImmediate()，此处仅在非 PiP 时按偏好显隐
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !isInPictureInPictureMode) {
+            jitterMonitorManager?.applyVisibility()
+        }
         refreshDisplayPosition()
     }
 
@@ -1190,6 +1200,8 @@ class Game : Activity(), SurfaceHolder.Callback,
 
         lowLatencyWifiLock?.release()
         highPerfWifiLock?.release()
+        jitterMonitorManager?.destroy()
+        jitterMonitorManager = null
         usbDriverServiceManager?.stopAndUnbind()
         if (::inputCaptureProvider.isInitialized) {
             inputCaptureProvider.destroy()

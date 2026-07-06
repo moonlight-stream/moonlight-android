@@ -379,6 +379,10 @@
     <string name="hdr_mode_hlg">HLG (混合对数伽马)</string>
     <string name="title_enable_perf_overlay">性能监控图层</string>
     <string name="summary_enable_perf_overlay">显示实时的串流监控数据，盯帧必备！</string>
+    <string name="title_enable_jitter_monitor">抖动监控图表</string>
+    <string name="summary_enable_jitter_monitor">串流时叠加实时呈现间隔抖动图表（judder%、抖动幅度、分布直方图），可长期挂机观测节奏；关闭时对串流零性能影响。</string>
+    <string name="title_enable_host_cadence_precise_sync">主机节奏两步呈现（精确同步）</string>
+    <string name="summary_enable_host_cadence_precise_sync">仅在「精确同步」帧率模式下生效。用主机出帧节奏去抖后再对齐本地 vsync，消除干净链路上的拍频判抖；约增加 1~3ms 延迟。默认关闭。</string>
     <string name="title_perf_overlay_orientation">性能图层方向</string>
     <string name="summary_perf_overlay_orientation">选择性能统计信息的显示方向。</string>
     <string name="title_perf_overlay_position">性能图层位置</string>

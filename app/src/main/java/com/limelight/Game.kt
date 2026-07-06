@@ -2210,6 +2210,8 @@ class Game : Activity(), SurfaceHolder.Callback,
             prefConfig.perfOverlayLocked = false
             performanceOverlayManager?.applyOverlayState()
         }
+
+        prefConfig.writePreferences(this)
     }
 
     fun toggleMicrophoneButton() {

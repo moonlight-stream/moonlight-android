@@ -12,7 +12,7 @@ abstract class VideoDecoderRenderer {
     abstract fun submitDecodeUnit(
         decodeUnitData: ByteArray, decodeUnitLength: Int, decodeUnitType: Int,
         frameNumber: Int, frameType: Int, frameHostProcessingLatency: Char,
-        receiveTimeUs: Long, enqueueTimeUs: Long
+        receiveTimeUs: Long, enqueueTimeUs: Long, hostPresentationTimeUs: Long
     ): Int
 
     abstract fun cleanup()

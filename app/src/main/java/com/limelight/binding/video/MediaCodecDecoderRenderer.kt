@@ -159,6 +159,22 @@ class MediaCodecDecoderRenderer(
     // Value: enqueue time in milliseconds (from SystemClock.uptimeMillis())
     private val timestampToEnqueueTime: MutableMap<Long, Long> = ConcurrentHashMap()
 
+    // Map: 本地单调 timestampUs(送入 MediaCodec 的 PTS) -> host 节奏 PTS(presentationTimeUs, 微秒)
+    // host PTS 源自主机捕获时刻(见 common-c RtpVideoQueue.c: packet->timestamp * 1000 / PTS_DIVISOR)，
+    // 是三端同源的呈现节奏基准。之前在 JNI 边界被丢弃，现打通供 host-cadence pacing 使用。
+    private val timestampToHostPts: MutableMap<Long, Long> = ConcurrentHashMap()
+
+    // ---- host-cadence 去抖呈现时钟(alpha-beta / PI 时钟恢复，移植自鸿蒙 native_render，已离线仿真验证) ----
+    // 默认关闭：置 true 前，全部走原有 pacing，行为零变化。开启后在偏平滑档用 host PTS 复现主机出帧节奏，
+    // 消除"本地 vsync 网格 vs 主机节奏"错拍造成的微判抖；代价是自适应缓冲延迟(净 LAN≈1ms，抖动网络更大)。
+    // TODO(on-device): 接入设置项/按网络自适应开启，并在真机上标定 Kp/Ki/cushion。
+    private val useHostCadencePacing = false
+    private var hcInitialized = false
+    private var hcEstimatedOffsetNs = 0L   // 平滑后的 (本地单调钟 - host PTS) 偏移均值(纳秒)
+    private var hcSkewNs = 0L               // 每帧频差估计(纳秒/帧)，消除时钟 skew 斜坡滞后
+    private var hcJitterEstNs = 0.0         // 在线抖动估计(平均绝对偏差, 纳秒)，驱动自适应 cushion
+    private var hcLastHostPtsUs = 0L        // 上一帧 host PTS(微秒)，检测不连续(重连/跳变)
+
     // Frame pacing and performance management (extracted)
     private val framePacingController: FramePacingController
     private val perfBoostManager: PerformanceBoostManager
@@ -833,6 +849,7 @@ class MediaCodecDecoderRenderer(
         spsBuffers.clear()
         ppsBuffers.clear()
         timestampToEnqueueTime.clear()
+        timestampToHostPts.clear()
 
         // This will contain the actual accepted input format attributes
         inputFormat = videoDecoder!!.inputFormat
@@ -1295,9 +1312,11 @@ class MediaCodecDecoderRenderer(
 
     /**
      * Delivers a decoded frame to the appropriate output path based on frame pacing mode.
-     * Used by both async callbacks and the sync renderer thread.
+     * Called only from the async output callback (onOutputBufferAvailable); the sync
+     * renderer thread in startRendererThread() releases output buffers directly and does
+     * not go through this method.
      */
-    private fun deliverDecodedFrame(bufferIndex: Int) {
+    private fun deliverDecodedFrame(bufferIndex: Int, hostPtsUs: Long = -1L) {
         if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_BALANCED ||
             prefs.framePacing == PreferenceConfiguration.FRAME_PACING_EXPERIMENTAL_LOW_LATENCY ||
             prefs.framePacing == PreferenceConfiguration.FRAME_PACING_PRECISE_SYNC
@@ -1310,7 +1329,13 @@ class MediaCodecDecoderRenderer(
                 if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_MAX_SMOOTHNESS ||
                     prefs.framePacing == PreferenceConfiguration.FRAME_PACING_CAP_FPS
                 ) {
-                    videoDecoder!!.releaseOutputBuffer(bufferIndex, 0)
+                    if (useHostCadencePacing && hostPtsUs >= 0) {
+                        // host-cadence 呈现：按主机出帧节奏复现，去抖时钟给出精确呈现时刻。
+                        // 偏平滑档(MAX_SMOOTHNESS/CAP_FPS)权衡少量缓冲延迟换取无判抖，语义相符。
+                        videoDecoder!!.releaseOutputBuffer(bufferIndex, computeHostCadencePresentTimeNs(hostPtsUs))
+                    } else {
+                        videoDecoder!!.releaseOutputBuffer(bufferIndex, 0)
+                    }
                 } else {
                     videoDecoder!!.releaseOutputBuffer(bufferIndex, System.nanoTime())
                 }
@@ -1360,7 +1385,9 @@ class MediaCodecDecoderRenderer(
                 }
 
                 // Deliver to frame pacing
-                deliverDecodedFrame(index)
+                val hostPtsUs = if (useHostCadencePacing)
+                    (timestampToHostPts.remove(info.presentationTimeUs) ?: -1L) else -1L
+                deliverDecodedFrame(index, hostPtsUs)
 
                 doCodecRecoveryIfRequired(CR_FLAG_RENDER_THREAD)
             }
@@ -1577,6 +1604,7 @@ class MediaCodecDecoderRenderer(
 
         // Clear timestamp tracking map
         timestampToEnqueueTime.clear()
+        timestampToHostPts.clear()
 
         // Halt the rendering thread
         rendererThread?.interrupt()
@@ -1622,6 +1650,7 @@ class MediaCodecDecoderRenderer(
             }
         }
         timestampToEnqueueTime.clear()
+        timestampToHostPts.clear()
 
         // Stop codec callback thread (async mode)
         if (codecCallbackThread != null) {
@@ -1774,7 +1803,8 @@ class MediaCodecDecoderRenderer(
         frameType: Int,
         frameHostProcessingLatency: Char,
         receiveTimeUs: Long,
-        enqueueTimeUs: Long
+        enqueueTimeUs: Long,
+        hostPresentationTimeUs: Long
     ): Int {
         if (stopping || isProcessingPaused) {
             // Don't bother if we're stopping or paused
@@ -2016,6 +2046,12 @@ class MediaCodecDecoderRenderer(
         }
         lastTimestampUs = timestampUs
 
+        // 记录本地 codec PTS -> host 节奏 PTS 的映射，供输出侧 host-cadence pacing 还原(仅在开启时消费)。
+        // 用本地 timestampUs 作 MediaCodec 的 PTS(保持既有延迟统计/去重逻辑不变)，host PTS 另存旁路。
+        if (useHostCadencePacing) {
+            timestampToHostPts[timestampUs] = hostPresentationTimeUs
+        }
+
         numFramesIn++
 
         if (decodeUnitLength > nextInputBuffer!!.limit() - nextInputBuffer!!.position()) {
@@ -2149,5 +2185,44 @@ class MediaCodecDecoderRenderer(
         }
         // If we can't find the enqueue time, return 0
         return 0
+    }
+
+    // host-cadence 呈现时刻计算(alpha-beta / PI 时钟恢复)。
+    // 输入 host PTS(微秒，以首个被捕获帧为原点)，输出本地单调钟(nanoTime 基准)的目标呈现时刻(纳秒)。
+    // 与鸿蒙 native_render::CalculatePresentTime 同一模型、同一常数，已用离线仿真验证：
+    //   相较"snap 到本地 vsync 网格"，可复现主机出帧节奏，消除错拍微判抖；无硬重置。
+    // 返回值可能早于 now：调用方按"过去时间戳=立即呈现"处理，网格保持刚性连续(勿拽到到达时刻)。
+    private fun computeHostCadencePresentTimeNs(hostPtsUs: Long): Long {
+        val nowNs = System.nanoTime()
+        val hostNs = hostPtsUs * 1000L
+        val instOffset = nowNs - hostNs
+        val fps = if (refreshRate > 0) refreshRate else 60
+        val frameIntervalNs = 1_000_000_000L / fps
+
+        val discontinuity = hcInitialized &&
+            (hostPtsUs < hcLastHostPtsUs || (hostPtsUs - hcLastHostPtsUs) > 2_000_000L)
+
+        if (!hcInitialized || discontinuity) {
+            hcEstimatedOffsetNs = instOffset
+            hcSkewNs = 0
+            hcJitterEstNs = frameIntervalNs / 16.0
+            hcInitialized = true
+        } else {
+            val pred = hcEstimatedOffsetNs + hcSkewNs
+            val e = instOffset - pred
+            var ec = e
+            if (ec > 8_000_000L) ec = 8_000_000L else if (ec < -8_000_000L) ec = -8_000_000L
+            hcEstimatedOffsetNs = pred + (ec / 64)    // Kp=1/64: 跟踪偏移均值、网格近似刚性
+            hcSkewNs += (ec / 2048)                    // Ki=1/2048: 跟踪频差，消除斜坡滞后
+            val ae = if (e < 0) (-e).toDouble() else e.toDouble()
+            hcJitterEstNs += (ae - hcJitterEstNs) / 32.0
+        }
+        hcLastHostPtsUs = hostPtsUs
+
+        var cushionNs = (3.0 * hcJitterEstNs).toLong()
+        if (cushionNs < 1_000_000L) cushionNs = 1_000_000L
+        else if (cushionNs > frameIntervalNs) cushionNs = frameIntervalNs
+
+        return hostNs + hcEstimatedOffsetNs + cushionNs
     }
 }

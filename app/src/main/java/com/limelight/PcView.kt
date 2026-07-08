@@ -42,7 +42,7 @@ import com.limelight.utils.AppCacheManager
 import com.limelight.utils.CacheHelper
 import com.limelight.utils.ConfigurationSyncScheduler
 import com.limelight.utils.Dialog
-import com.limelight.utils.EasyTierController
+import com.limelight.utils.easytier.EasyTierController
 import com.limelight.utils.HelpLauncher
 import com.limelight.utils.Iperf3Tester
 import com.limelight.utils.NetHelper

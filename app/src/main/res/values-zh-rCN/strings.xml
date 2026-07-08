@@ -162,6 +162,19 @@
     <string name="addpc_unknown_host">无法解析电脑的IP地址，请确保IP地址输入无误。</string>
     <string name="addpc_enter_ip">请输入一个IP地址</string>
     <string name="addpc_wrong_sitelocal"> 该地址似乎不正确。 您必须使用路由器的公共IP地址通过Internet进行串流。 </string>
+    <string name="addpc_back">返回</string>
+    <string name="addpc_page_title">new DianLao ()</string>
+    <string name="addpc_page_subtitle">把 host 和 port 填进括号里，召唤一台 Sunshine 主机。</string>
+    <string name="addpc_status_manual">手动配置</string>
+    <string name="addpc_address_label">连接公式</string>
+    <string name="addpc_host_hint">IP 或域名</string>
+    <string name="addpc_port_hint">47989</string>
+    <string name="addpc_host_annotation">主机地址</string>
+    <string name="addpc_port_annotation">端口</string>
+    <string name="addpc_address_note">端口可留空；未填写时默认使用 47989。</string>
+    <string name="addpc_invalid_port">端口需要在 1 到 65535 之间</string>
+    <string name="addpc_action_connect">连接</string>
+    <string name="addpc_action_connecting">连接中...</string>
     <!-- Preferences -->
     <string name="category_basic_settings">基本设置</string>
     <string name="category_advanced_features">性能与流畅度</string>

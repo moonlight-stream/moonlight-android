@@ -36,7 +36,7 @@ if (hasGoogleServicesJson && (project.hasProperty('enableAnalytics') || gradle.s
 android {
     ndkVersion "28.2.13676358"
 
-    compileSdkVersion 37
+    compileSdkVersion 36
 
     namespace 'com.limelight'
 
@@ -116,6 +116,7 @@ android {
     lint {
         disable 'MissingTranslation'
         lintConfig file('lint.xml')
+        baseline file('lint-baseline.xml')
     }
 
     bundle {

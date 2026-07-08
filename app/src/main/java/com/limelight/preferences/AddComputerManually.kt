@@ -25,16 +25,21 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.IBinder
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
+import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
+import androidx.core.view.WindowCompat
 
 class AddComputerManually : Activity() {
-    private lateinit var hostText: TextView
+    private lateinit var hostText: EditText
+    private lateinit var portText: EditText
+    private lateinit var addPcButton: Button
     private var managerBinder: ComputerManagerService.ComputerManagerBinder? = null
     private val computersToAdd = LinkedBlockingQueue<String>()
     private var addThread: Thread? = null
@@ -205,10 +210,13 @@ class AddComputerManually : Activity() {
         dialog.dismiss()
 
         if (invalidInput) {
+            setAddingState(false)
             Dialog.displayDialog(this, resources.getString(R.string.conn_error_title), resources.getString(R.string.addpc_unknown_host), false)
         } else if (wrongSiteLocal) {
+            setAddingState(false)
             Dialog.displayDialog(this, resources.getString(R.string.conn_error_title), resources.getString(R.string.addpc_wrong_sitelocal), false)
         } else if (!success) {
+            setAddingState(false)
             var dialogText = if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0) {
                 resources.getString(R.string.nettest_text_blocked)
             } else {
@@ -287,43 +295,118 @@ class AddComputerManually : Activity() {
         UiHelper.setLocale(this)
 
         setContentView(R.layout.activity_add_computer_manually)
+        applySystemBarAppearance()
 
         UiHelper.notifyNewRootView(this)
 
         hostText = findViewById(R.id.hostTextView)
-        hostText.imeOptions = EditorInfo.IME_ACTION_DONE
+        portText = findViewById(R.id.portTextView)
+        addPcButton = findViewById(R.id.addPcButton)
+        hostText.imeOptions = EditorInfo.IME_ACTION_NEXT
         hostText.setOnEditorActionListener { _, actionId, keyEvent ->
-            if (actionId == EditorInfo.IME_ACTION_DONE ||
-                    (keyEvent != null &&
-                            keyEvent.action == KeyEvent.ACTION_DOWN &&
-                            keyEvent.keyCode == KeyEvent.KEYCODE_ENTER)) {
+            if (actionId == EditorInfo.IME_ACTION_NEXT || isEnterKeyDown(keyEvent)) {
+                portText.requestFocus()
+                true
+            } else {
+                false
+            }
+        }
+        portText.imeOptions = EditorInfo.IME_ACTION_DONE
+        portText.setOnEditorActionListener { _, actionId, keyEvent ->
+            if (actionId == EditorInfo.IME_ACTION_DONE || isEnterKeyDown(keyEvent)) {
                 handleDoneEvent()
             } else if (actionId == EditorInfo.IME_ACTION_PREVIOUS) {
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.hideSoftInputFromWindow(hostText.windowToken, 0)
+                imm.hideSoftInputFromWindow(portText.windowToken, 0)
                 false
             } else {
                 false
             }
         }
 
-        findViewById<android.view.View>(R.id.addPcButton).setOnClickListener {
+        findViewById<android.view.View>(R.id.backButton).setOnClickListener {
+            finish()
+        }
+
+        addPcButton.setOnClickListener {
             handleDoneEvent()
+        }
+
+        hostText.post {
+            hostText.requestFocus()
         }
 
         bindService(Intent(this@AddComputerManually,
                 ComputerManagerService::class.java), serviceConnection, Service.BIND_AUTO_CREATE)
     }
 
+    private fun isNightMode(): Boolean {
+        return (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
+    }
+
+    private fun applySystemBarAppearance() {
+        val useDarkSystemIcons = !isNightMode()
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = useDarkSystemIcons
+            isAppearanceLightNavigationBars = useDarkSystemIcons
+        }
+    }
+
+    private fun isEnterKeyDown(keyEvent: KeyEvent?): Boolean {
+        return keyEvent != null &&
+                keyEvent.action == KeyEvent.ACTION_DOWN &&
+                keyEvent.keyCode == KeyEvent.KEYCODE_ENTER
+    }
+
+    private fun showLongToast(messageResId: Int) {
+        Toast.makeText(this@AddComputerManually, resources.getString(messageResId), Toast.LENGTH_LONG).show()
+    }
+
+    private fun buildConnectionTarget(hostAddress: String, portTextValue: String): String {
+        return if (portTextValue.isEmpty()) {
+            hostAddress
+        } else if (hostAddress.startsWith("[") || hostAddress.count { it == ':' } < 2) {
+            "$hostAddress:$portTextValue"
+        } else {
+            "[$hostAddress]:$portTextValue"
+        }
+    }
+
     private fun handleDoneEvent(): Boolean {
         val hostAddress = hostText.text.toString().trim()
+        val portTextValue = portText.text.toString().trim()
+
+        hostText.error = null
+        portText.error = null
 
         if (hostAddress.isEmpty()) {
-            Toast.makeText(this@AddComputerManually, resources.getString(R.string.addpc_enter_ip), Toast.LENGTH_LONG).show()
+            hostText.error = resources.getString(R.string.addpc_enter_ip)
+            showLongToast(R.string.addpc_enter_ip)
             return true
         }
 
-        computersToAdd.add(hostAddress)
+        if (portTextValue.isNotEmpty()) {
+            val port = portTextValue.toIntOrNull()
+            if (port == null || port !in 1..65535) {
+                portText.error = resources.getString(R.string.addpc_invalid_port)
+                showLongToast(R.string.addpc_invalid_port)
+                return true
+            }
+        }
+
+        setAddingState(true)
+        computersToAdd.add(buildConnectionTarget(hostAddress, portTextValue))
         return false
+    }
+
+    private fun setAddingState(adding: Boolean) {
+        runOnUiThread {
+            if (!::addPcButton.isInitialized) return@runOnUiThread
+            addPcButton.isEnabled = !adding
+            addPcButton.text = getString(
+                if (adding) R.string.addpc_action_connecting else R.string.addpc_action_connect
+            )
+        }
     }
 }

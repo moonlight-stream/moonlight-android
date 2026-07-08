@@ -1,6 +1,7 @@
 package com.limelight.ui
 
 import android.content.Context
+import android.database.DataSetObserver
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
@@ -27,6 +28,22 @@ class AdapterRecyclerBridge(
     private var aKeyDownTime = 0L
     private val longPressHandler = Handler(Looper.getMainLooper())
     private var longPressRunnable: Runnable? = null
+    private val dataSetObserver = object : DataSetObserver() {
+        override fun onChanged() {
+            notifyDataSetChanged()
+        }
+
+        override fun onInvalidated() {
+            notifyDataSetChanged()
+        }
+    }
+    private var observerRegistered = false
+
+    init {
+        setHasStableIds(true)
+        baseAdapter?.registerDataSetObserver(dataSetObserver)
+        observerRegistered = baseAdapter != null
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         if (baseAdapter == null) {
@@ -60,7 +77,6 @@ class AdapterRecyclerBridge(
             holder.container.isFocusable = true
             holder.container.isClickable = true
             holder.container.tag = "listeners_set"
-            holder.container.setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
             holder.container.setOnClickListener {
                 val adapterPosition = holder.bindingAdapterPosition
@@ -118,6 +134,10 @@ class AdapterRecyclerBridge(
 
     override fun getItemCount(): Int = baseAdapter?.count ?: 0
 
+    override fun getItemId(position: Int): Long {
+        return baseAdapter?.getItemId(position) ?: RecyclerView.NO_ID
+    }
+
     fun setOnItemClickListener(listener: OnItemClickListener?) {
         this.onItemClickListener = listener
     }
@@ -145,6 +165,10 @@ class AdapterRecyclerBridge(
     fun cleanup() {
         longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
         longPressRunnable = null
+        if (observerRegistered) {
+            baseAdapter?.unregisterDataSetObserver(dataSetObserver)
+            observerRegistered = false
+        }
     }
 
     class VH(itemView: View) : RecyclerView.ViewHolder(itemView) {

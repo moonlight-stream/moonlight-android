@@ -13,6 +13,7 @@ body:
         **Please check before submitting:**
         - [ ] I have searched existing issues to avoid duplicates
         - [ ] This issue is specific to **Moonlight V+**, not the original Moonlight or other versions
+        - [ ] For streaming quality issues, I tested a conservative profile first: 1080p / 60 FPS / H.264 / HDR off / 10-20 Mbps
         ---
 
   - type: dropdown
@@ -167,7 +168,40 @@ body:
     attributes:
       value: |
         ---
-        ## 🔧 Troubleshooting
+        ## 🎥 Stream Settings
+
+  - type: input
+    id: stream-resolution-fps
+    attributes:
+      label: "Resolution & Frame Rate"
+      description: "The resolution and FPS used when the issue happens"
+      placeholder: "e.g. 1080p 60 FPS / 1440p 120 FPS / 4K 60 FPS"
+    validations:
+      required: false
+
+  - type: input
+    id: stream-codec-hdr
+    attributes:
+      label: "Video Codec & HDR"
+      description: "Codec and HDR settings used when the issue happens"
+      placeholder: "e.g. Auto + HDR off / H.264 + HDR off / HEVC + HDR on / AV1 + HDR on"
+    validations:
+      required: false
+
+  - type: input
+    id: stream-bitrate
+    attributes:
+      label: "Bitrate"
+      description: "Configured video bitrate"
+      placeholder: "e.g. Auto / 20 Mbps / 80 Mbps"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## 🔧 Troubleshooting & Diagnostics
 
   - type: dropdown
     id: settings-default
@@ -194,6 +228,19 @@ body:
       required: false
 
   - type: dropdown
+    id: conservative-profile-tested
+    attributes:
+      label: "Conservative Profile Tested?"
+      description: "Did you test 1080p / 60 FPS / H.264 / HDR off / 10-20 Mbps?"
+      options:
+        - "Not tested"
+        - "Yes, the issue still happens"
+        - "Yes, the conservative profile works"
+        - "Not applicable"
+    validations:
+      required: false
+
+  - type: dropdown
     id: issue-with-original
     attributes:
       label: "🔍 Issue on Original Moonlight?"
@@ -202,6 +249,35 @@ body:
         - "Not tested"
         - "Yes, same issue exists"
         - "No, only on Moonlight V+"
+    validations:
+      required: false
+
+  - type: textarea
+    id: performance-stats
+    attributes:
+      label: "Performance Overlay / Network Stats"
+      description: "For stutter, lag, slow connection, black screen, or decoder issues, include a screenshot or copy the relevant stats."
+      placeholder: |
+        Please include any available values:
+        - FPS / frame drops:
+        - Network latency and variance:
+        - Packet loss:
+        - Decode latency:
+        - Render latency:
+        - Host processing latency:
+    validations:
+      required: false
+
+  - type: textarea
+    id: network-setup
+    attributes:
+      label: "Network Setup"
+      description: "Describe how the client and host are connected."
+      placeholder: |
+        - Client connection: Wi-Fi 5 / Wi-Fi 6 / Wi-Fi 6E / Ethernet / mobile data
+        - Host connection: Ethernet / Wi-Fi
+        - Streaming path: local LAN / Internet / VPN / EasyTier / Tailscale / ZeroTier
+        - Router / access point model if known:
     validations:
       required: false
 

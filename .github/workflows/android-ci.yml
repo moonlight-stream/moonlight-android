@@ -20,7 +20,7 @@ concurrency:
 
 permissions:
   contents: write
-  packages: write
+  packages: read
 
 jobs:
   build:
@@ -46,7 +46,7 @@ jobs:
       - name: Set up Android SDK/NDK
         uses: android-actions/setup-android@v3
         with:
-          packages: platform-tools platforms;android-34 build-tools;34.0.0 ndk;27.0.12077973
+          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.2.13676358
 
       - name: Accept Android licenses
         run: yes | sdkmanager --licenses > /dev/null
@@ -74,6 +74,9 @@ jobs:
 
       - name: Grant execute permission for Gradle
         run: chmod +x gradlew
+
+      - name: Run lint and unit tests
+        run: ./gradlew :app:lintNonRootDebug :app:testNonRootDebugUnitTest --no-daemon --stacktrace
 
       - name: Get version from tag
         if: startsWith(github.ref, 'refs/tags/')

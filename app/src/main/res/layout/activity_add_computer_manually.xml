@@ -1,51 +1,310 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/add_pc_background"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:overScrollMode="ifContentScrolls"
+    android:paddingStart="20dp"
     android:paddingTop="@dimen/activity_safearea_top"
-    tools:context=".preferences.AddComputerManually" >
+    android:paddingEnd="20dp"
+    android:paddingBottom="24dp"
+    tools:context=".preferences.AddComputerManually">
 
-    <TextView
-        android:id="@+id/manuallyAddPcText"
-        android:text="@string/title_add_pc"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:preferKeepClear="true"
-        android:layout_centerHorizontal="true"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_alignParentTop="true"/>
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/hostTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/manuallyAddPcText"
-        android:layout_toLeftOf="@+id/addPcButton"
-        android:layout_toStartOf="@+id/addPcButton"
-        android:layout_marginTop="25dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:ems="10"
-        android:singleLine="true"
-        android:preferKeepClear="true"
-        android:inputType="textNoSuggestions"
-        android:hint="@string/ip_hint" >
-        
-        <requestFocus />
-    </EditText>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/addPcButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="25dp"
-        android:layout_below="@+id/manuallyAddPcText"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:preferKeepClear="true"
-        android:text="@android:string/ok"/>
-	
-</RelativeLayout>
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/add_pc_icon_button_bg"
+                android:contentDescription="@string/addpc_back"
+                android:nextFocusDown="@id/hostTextView"
+                android:nextFocusForward="@id/hostTextView"
+                android:nextFocusRight="@id/hostTextView"
+                android:padding="10dp"
+                android:src="@drawable/ic_arrow_back_24"
+                android:tint="@color/add_pc_text_primary" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/addPcStatusPill"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="@drawable/add_pc_status_pill_bg"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="@string/addpc_status_manual"
+                android:textColor="@color/add_pc_text_secondary"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="96dp"
+                android:layout_height="88dp">
+
+                <FrameLayout
+                    android:layout_width="78dp"
+                    android:layout_height="78dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/add_pc_icon_halo_bg">
+
+                    <ImageView
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/phc_host"
+                        android:tint="@color/add_pc_accent" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="end|bottom"
+                    android:layout_marginEnd="7dp"
+                    android:layout_marginBottom="3dp"
+                    android:background="@drawable/add_pc_plus_badge_bg">
+
+                    <ImageView
+                        android:layout_width="17dp"
+                        android:layout_height="17dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/phc_action_plus"
+                        android:tint="@android:color/white" />
+                </FrameLayout>
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/manuallyAddPcText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:gravity="center"
+                android:text="@string/addpc_page_title"
+                android:textColor="@color/add_pc_text_primary"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:lineSpacingExtra="2dp"
+                android:maxWidth="520dp"
+                android:text="@string/addpc_page_subtitle"
+                android:textColor="@color/add_pc_text_secondary"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/add_pc_panel_bg"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/addpc_address_label"
+                android:textColor="@color/add_pc_text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/add_pc_formula_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="6dp">
+
+                <EditText
+                    android:id="@+id/hostTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="46dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/add_pc_input_bg"
+                    android:hint="@string/addpc_host_hint"
+                    android:imeOptions="actionNext"
+                    android:importantForAutofill="no"
+                    android:inputType="textUri|textNoSuggestions"
+                    android:maxLines="1"
+                    android:nextFocusDown="@id/addPcButton"
+                    android:nextFocusForward="@id/portTextView"
+                    android:nextFocusLeft="@id/backButton"
+                    android:nextFocusRight="@id/portTextView"
+                    android:nextFocusUp="@id/backButton"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:selectAllOnFocus="false"
+                    android:singleLine="true"
+                    android:textColor="@color/add_pc_text_primary"
+                    android:textColorHint="@color/add_pc_text_hint"
+                    android:textSize="15sp" />
+
+                <FrameLayout
+                    android:layout_width="34dp"
+                    android:layout_height="46dp"
+                    android:layout_gravity="center_vertical">
+
+                    <FrameLayout
+                        android:layout_width="22dp"
+                        android:layout_height="34dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/add_pc_colon_bg">
+
+                        <ImageView
+                            android:layout_width="8dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_formula_colon" />
+                    </FrameLayout>
+                </FrameLayout>
+
+                <EditText
+                    android:id="@+id/portTextView"
+                    android:layout_width="100dp"
+                    android:layout_height="46dp"
+                    android:background="@drawable/add_pc_input_bg"
+                    android:gravity="center"
+                    android:hint="@string/addpc_port_hint"
+                    android:imeOptions="actionDone"
+                    android:importantForAutofill="no"
+                    android:inputType="number"
+                    android:maxLength="5"
+                    android:maxLines="1"
+                    android:nextFocusDown="@id/addPcButton"
+                    android:nextFocusForward="@id/addPcButton"
+                    android:nextFocusLeft="@id/hostTextView"
+                    android:nextFocusRight="@id/addPcButton"
+                    android:nextFocusUp="@id/backButton"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:selectAllOnFocus="false"
+                    android:singleLine="true"
+                    android:textColor="@color/add_pc_text_primary"
+                    android:textColorHint="@color/add_pc_text_hint"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="18dp"
+                        android:fontFamily="serif"
+                        android:gravity="center"
+                        android:text="@string/addpc_formula_brace"
+                        android:textColor="@color/add_pc_accent"
+                        android:textSize="28sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/addpc_host_annotation"
+                        android:textColor="@color/add_pc_text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <Space
+                    android:layout_width="34dp"
+                    android:layout_height="1dp" />
+
+                <LinearLayout
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="18dp"
+                        android:fontFamily="serif"
+                        android:gravity="center"
+                        android:text="@string/addpc_formula_brace"
+                        android:textColor="@color/add_pc_accent"
+                        android:textSize="28sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/addpc_port_annotation"
+                        android:textColor="@color/add_pc_text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/addPcInputNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/addpc_address_note"
+                android:textColor="@color/add_pc_text_secondary"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/addPcButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/add_pc_primary_button_bg"
+            android:nextFocusDown="@id/hostTextView"
+            android:nextFocusForward="@id/hostTextView"
+            android:nextFocusLeft="@id/portTextView"
+            android:nextFocusRight="@id/hostTextView"
+            android:nextFocusUp="@id/portTextView"
+            android:stateListAnimator="@null"
+            android:text="@string/addpc_action_connect"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</ScrollView>

@@ -7,13 +7,11 @@ import android.graphics.drawable.BitmapDrawable
 import android.os.Handler
 import android.os.Looper
 import android.view.View
-import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 
 import com.limelight.AppView
-import com.limelight.LimeLog
 import com.limelight.R
 import com.limelight.nvstream.http.ComputerDetails
 import com.limelight.nvstream.http.NvApp
@@ -25,8 +23,6 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
-import kotlin.math.round
-import kotlin.math.sqrt
 
 class CachedAppAssetLoader(
     private val context: Context,
@@ -60,6 +56,7 @@ class CachedAppAssetLoader(
     )
 
     private val placeholderBitmap: Bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+    private val loadLocks = Array(LOAD_LOCK_STRIPES) { Any() }
 
     fun cancelBackgroundLoads() {
         var r: Runnable?
@@ -117,41 +114,6 @@ class CachedAppAssetLoader(
         fun onBitmapLoaded(bitmap: Bitmap)
     }
 
-    /**
-     * 压缩过大的Bitmap
-     */
-    private fun compressLargeBitmap(original: Bitmap?): Bitmap? {
-        if (original == null) return null
-
-        val byteCount = original.byteCount
-        val maxSize = 1024 * 1024 // 1MB限制
-
-        if (byteCount > maxSize) {
-            try {
-                val scale = sqrt(maxSize.toDouble() / byteCount).toFloat()
-                var newWidth = round(original.width * scale).toInt()
-                var newHeight = round(original.height * scale).toInt()
-
-                newWidth = max(newWidth, 300)
-                newHeight = max(newHeight, 400)
-
-                val compressed = Bitmap.createScaledBitmap(original, newWidth, newHeight, true)
-
-                LimeLog.info(
-                    "Compressed bitmap from ${original.width}x${original.height}" +
-                    " to ${newWidth}x${newHeight} (size: $byteCount -> ${compressed.byteCount} bytes)"
-                )
-
-                return compressed
-            } catch (e: Exception) {
-                LimeLog.warning("Failed to compress bitmap: ${e.message}")
-                return original
-            }
-        }
-
-        return original
-    }
-
     private fun doNetworkAssetLoad(tuple: LoaderTuple, task: LoaderTask?): ScaledBitmap? {
         // Try 3 times
         for (i in 0 until 3) {
@@ -200,7 +162,7 @@ class CachedAppAssetLoader(
         textView: TextView?,
         private val diskOnly: Boolean,
         private val isBackground: Boolean = false,
-        private val onLoadComplete: Runnable? = null
+        private val onLoadComplete: ImageLoadCallback? = null
     ) : Runnable {
 
         val imageViewRef: WeakReference<ImageView> = WeakReference(imageView)
@@ -243,28 +205,33 @@ class CachedAppAssetLoader(
             }
 
             val localTuple = tuple ?: return null
-            var bmp = diskLoader.loadBitmapFromCache(localTuple, scalingDivider.toInt())
-            if (bmp == null) {
-                if (!diskOnly) {
-                    bmp = doNetworkAssetLoad(localTuple, this)
-                } else {
-                    if (!cancelled) {
+            val lock = loadLocks[getLoadLockIndex(localTuple)]
+
+            return synchronized(lock) {
+                if (cancelled || imageViewRef.get() == null || textViewRef.get() == null) {
+                    return@synchronized null
+                }
+
+                val cachedBmp = memoryLoader.loadBitmapFromCache(localTuple)
+                if (cachedBmp != null) {
+                    return@synchronized cachedBmp
+                }
+
+                var bmp = diskLoader.loadBitmapFromCache(localTuple, scalingDivider.toInt())
+                if (bmp == null) {
+                    if (!diskOnly) {
+                        bmp = doNetworkAssetLoad(localTuple, this)
+                    } else if (!cancelled) {
                         mainHandler.post { onProgressUpdate() }
                     }
                 }
-            }
 
-            if (bmp != null) {
-                val compressedBitmap = compressLargeBitmap(bmp.bitmap)
-                if (compressedBitmap !== bmp.bitmap) {
-                    val compressedScaledBitmap = ScaledBitmap(bmp.originalWidth, bmp.originalHeight, compressedBitmap!!)
-                    memoryLoader.populateCache(localTuple, compressedScaledBitmap)
-                } else {
+                if (bmp != null) {
                     memoryLoader.populateCache(localTuple, bmp)
                 }
-            }
 
-            return bmp
+                bmp
+            }
         }
 
         private fun onProgressUpdate() {
@@ -276,8 +243,9 @@ class CachedAppAssetLoader(
                 val task = LoaderTask(imageView!!, textView, false, isBackground)
                 val asyncDrawable = AsyncDrawable(imageView.resources, noAppImageBitmap, task)
                 imageView.setImageDrawable(asyncDrawable)
-                val animationRes = if (isBackground) R.anim.background_fadein else R.anim.boxart_fadein
-                imageView.startAnimation(AnimationUtils.loadAnimation(imageView.context, animationRes))
+                if (isBackground) {
+                    imageView.startAnimation(AnimationUtils.loadAnimation(imageView.context, R.anim.background_fadein))
+                }
                 imageView.visibility = View.VISIBLE
                 textView?.visibility = View.VISIBLE
                 task.executeOnExecutor(networkExecutor, tuple ?: return)
@@ -293,30 +261,29 @@ class CachedAppAssetLoader(
                 if (bitmap != null) {
                     textView?.visibility = if (isBitmapPlaceholder(bitmap)) View.VISIBLE else View.GONE
 
-                    if (imageView?.visibility == View.VISIBLE) {
-                        val fadeOutAnimRes = if (isBackground) R.anim.background_fadeout else R.anim.boxart_fadeout
-                        val fadeOutAnimation = AnimationUtils.loadAnimation(imageView.context, fadeOutAnimRes)
-                        fadeOutAnimation.setAnimationListener(object : Animation.AnimationListener {
-                            override fun onAnimationStart(animation: Animation) {}
+                    val wasVisible = imageView?.visibility == View.VISIBLE
+                    imageView?.clearAnimation()
+                    imageView?.animate()?.cancel()
+                    imageView?.setImageBitmap(bitmap.bitmap)
 
-                            override fun onAnimationEnd(animation: Animation) {
-                                imageView.setImageBitmap(bitmap.bitmap)
-                                val fadeInAnimRes = if (isBackground) R.anim.background_fadein else R.anim.boxart_fadein
-                                imageView.startAnimation(AnimationUtils.loadAnimation(imageView.context, fadeInAnimRes))
-                            }
-
-                            override fun onAnimationRepeat(animation: Animation) {}
-                        })
-                        imageView.startAnimation(fadeOutAnimation)
+                    if (isBackground) {
+                        imageView?.startAnimation(AnimationUtils.loadAnimation(imageView.context, R.anim.background_fadein))
                     } else {
-                        imageView?.setImageBitmap(bitmap.bitmap)
-                        val fadeInAnimRes = if (isBackground) R.anim.background_fadein else R.anim.boxart_fadein
-                        imageView?.startAnimation(AnimationUtils.loadAnimation(imageView.context, fadeInAnimRes))
-                        imageView?.visibility = View.VISIBLE
+                        if (!wasVisible) {
+                            imageView?.alpha = 0f
+                            imageView?.animate()
+                                ?.alpha(1f)
+                                ?.setDuration(BOXART_FADE_IN_DURATION_MS)
+                                ?.start()
+                        } else {
+                            imageView?.alpha = 1f
+                        }
                     }
+
+                    imageView?.visibility = View.VISIBLE
                 }
 
-                onLoadComplete?.run()
+                onLoadComplete?.onImageLoaded(bitmap?.bitmap)
             }
         }
     }
@@ -358,7 +325,7 @@ class CachedAppAssetLoader(
         imgView: ImageView,
         textView: TextView?,
         isBackground: Boolean = false,
-        onLoadComplete: Runnable? = null
+        onLoadComplete: ImageLoadCallback? = null
     ): Boolean {
         val tuple = LoaderTuple(computer, obj.app)
 
@@ -373,7 +340,7 @@ class CachedAppAssetLoader(
             imgView.visibility = View.VISIBLE
             imgView.setImageBitmap(bmp.bitmap)
             textView?.visibility = if (isBitmapPlaceholder(bmp)) View.VISIBLE else View.GONE
-            onLoadComplete?.run()
+            onLoadComplete?.onImageLoaded(bmp.bitmap)
             return true
         }
 
@@ -407,7 +374,12 @@ class CachedAppAssetLoader(
         }
     }
 
+    fun interface ImageLoadCallback {
+        fun onImageLoaded(bitmap: Bitmap?)
+    }
+
     companion object {
+        private const val BOXART_FADE_IN_DURATION_MS = 120L
         private const val MAX_CONCURRENT_DISK_LOADS = 3
         private const val MAX_CONCURRENT_NETWORK_LOADS = 3
         private const val MAX_CONCURRENT_CACHE_LOADS = 1
@@ -415,6 +387,11 @@ class CachedAppAssetLoader(
         private const val MAX_PENDING_CACHE_LOADS = 100
         private const val MAX_PENDING_NETWORK_LOADS = 40
         private const val MAX_PENDING_DISK_LOADS = 40
+        private const val LOAD_LOCK_STRIPES = 64
+
+        private fun getLoadLockIndex(tuple: LoaderTuple): Int {
+            return (tuple.hashCode() and Int.MAX_VALUE) % LOAD_LOCK_STRIPES
+        }
 
         private fun getLoaderTask(imageView: ImageView?): LoaderTask? {
             if (imageView == null) return null

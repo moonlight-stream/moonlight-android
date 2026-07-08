@@ -66,6 +66,7 @@ import com.limelight.utils.AppSettingsManager
 import com.limelight.utils.BackgroundImageManager
 import com.limelight.utils.CacheHelper
 import com.limelight.utils.Dialog
+import com.limelight.utils.FrameMetricsLogger
 import com.limelight.utils.ServerHelper
 import com.limelight.utils.ShortcutHelper
 import com.limelight.utils.SoftBackgroundColorExtractor
@@ -165,6 +166,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
     private var pendingAdapterFragmentView: View? = null
     private var selectedPosition = -1
     private var isFirstFocus = true
+    private var frameMetricsLogger: FrameMetricsLogger? = null
 
     // ==================== UI 组件 - 上一次设置 ====================
     private var appSettingsManager: AppSettingsManager? = null
@@ -744,7 +746,6 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         updateTitle(app.app.appName)
         if (appGridAdapter != null) {
             appGridAdapter?.selectedPosition = position
-            appGridAdapter?.notifyDataSetChanged()
         }
 
         // 防抖切换背景
@@ -1361,6 +1362,9 @@ class AppView : Activity(), AdapterFragmentCallbacks {
             currentAdapterBridge?.cleanup()
             currentAdapterBridge = null
         }
+
+        frameMetricsLogger?.stop()
+        frameMetricsLogger = null
     }
 
     override fun onResume() {
@@ -1373,6 +1377,11 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         managerBinder?.setForegroundComputer(uuidString)
         refreshScreenCombinationModeFromPreferences()
         startComputerUpdates()
+
+        if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            frameMetricsLogger?.stop(reportIfNeeded = false)
+            frameMetricsLogger = FrameMetricsLogger(this, "AppView").also { it.start() }
+        }
     }
 
     override fun onPause() {
@@ -1383,6 +1392,8 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         displayCheckRunnable?.let { displayCheckHandler.removeCallbacks(it) }
         displayCheckRunnable = null
         stopComputerUpdates()
+        frameMetricsLogger?.stop()
+        frameMetricsLogger = null
     }
 
     // ==================== 上下文菜单 ====================
@@ -1607,10 +1618,6 @@ class AppView : Activity(), AdapterFragmentCallbacks {
 
             if (updated) {
                 appGridAdapter?.notifyDataSetChanged()
-                // Also refresh RecyclerView if it exists - use more efficient update
-                if (currentRecyclerView != null && currentRecyclerView?.adapter != null) {
-                    currentRecyclerView?.adapter?.notifyItemRangeChanged(0, appGridAdapter?.count ?: 0)
-                }
                 if (selectedPosition < 0) {
                     requestAppBackground(resolveCurrentBackgroundCandidate(), debounce = false)
                 }
@@ -1829,7 +1836,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         rv.layoutManager = glm
 
         // 设置预加载
-        glm.initialPrefetchItemCount = 4
+        glm.initialPrefetchItemCount = (spanCount * 4).coerceAtLeast(4)
 
         // 设置居中布局，并标记需要在布局完成后聚焦第一个应用
         setupCenterAlignment(rv, spanCount, true)
@@ -1889,21 +1896,16 @@ class AppView : Activity(), AdapterFragmentCallbacks {
     private fun optimizeRecyclerViewPerformance(rv: RecyclerView) {
         // 基础性能优化
         rv.setHasFixedSize(true)
-        rv.setItemViewCacheSize(15)
-        rv.isDrawingCacheEnabled = true
-        rv.drawingCacheQuality = View.DRAWING_CACHE_QUALITY_HIGH
+        rv.setItemViewCacheSize(24)
         rv.isNestedScrollingEnabled = false
 
         // 滑动性能优化
         rv.overScrollMode = View.OVER_SCROLL_NEVER
         rv.itemAnimator = null
 
-        // 硬件加速
-        rv.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-
         // 回收池优化
         val pool = rv.recycledViewPool
-        pool.setMaxRecycledViews(0, 20)
+        pool.setMaxRecycledViews(0, 32)
     }
 
     private fun setupRecyclerViewListeners(rv: RecyclerView) {

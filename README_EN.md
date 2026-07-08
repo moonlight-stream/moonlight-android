@@ -3,11 +3,11 @@
 
   # Moonlight V+
 
-  [![GitHub Release](https://img.shields.io/github/v/release/qiin2333/moonlight-android?label=latest&style=flat-square)](https://github.com/qiin2333/moonlight-android/releases/latest)
+  [![GitHub Release](https://img.shields.io/github/v/release/qiin2333/moonlight-vplus?label=latest&style=flat-square)](https://github.com/qiin2333/moonlight-vplus/releases/latest)
   [![Android](https://img.shields.io/badge/Android-5.0+-34A853?style=flat-square&logo=android&logoColor=white)](https://developer.android.com/about/versions)
   [![License](https://img.shields.io/badge/license-GPL%20v3-EF9421?style=flat-square)](LICENSE.txt)
-  [![GitHub Stars](https://img.shields.io/github/stars/qiin2333/moonlight-android?style=flat-square)](https://github.com/qiin2333/moonlight-android/stargazers)
-  [![Downloads](https://img.shields.io/github/downloads/qiin2333/moonlight-android/total?style=flat-square&color=blue)](https://github.com/qiin2333/moonlight-android/releases)
+  [![GitHub Stars](https://img.shields.io/github/stars/qiin2333/moonlight-vplus?style=flat-square)](https://github.com/qiin2333/moonlight-vplus/stargazers)
+  [![Downloads](https://img.shields.io/github/downloads/qiin2333/moonlight-vplus/total?style=flat-square&color=blue)](https://github.com/qiin2333/moonlight-vplus/releases)
 
   **An enhanced Android game streaming client based on [Moonlight](https://github.com/moonlight-stream/moonlight-android)**
 
@@ -63,17 +63,47 @@ Moonlight V+ extends [moonlight-android](https://github.com/moonlight-stream/moo
 
 - Android 5.0+ (API 22)
 - Device with HEVC / AV1 hardware decoding (recommended)
-- 5 GHz Wi-Fi or wired LAN connection
+- 5 GHz / 6 GHz Wi-Fi or wired LAN connection
+- A host PC running [Sunshine](https://github.com/LizardByte/Sunshine), [Foundation Sunshine](https://github.com/qiin2333/foundation-sunshine), or legacy NVIDIA GameStream
 
 ### Installation
 
-Download the latest APK from [Releases](https://github.com/qiin2333/moonlight-android/releases/latest), install it, and follow the in-app guide to pair with your host.
+Download the latest APK from [Releases](https://github.com/qiin2333/moonlight-vplus/releases/latest), install it, and pair it with your host.
+
+For the first stream, start with a conservative profile:
+
+- 1080p, 60 FPS
+- H.264 or Auto codec
+- HDR off
+- 10-20 Mbps bitrate
+- Host PC connected by Ethernet when possible
+
+After that is stable, raise resolution, frame rate, bitrate, HEVC / AV1, HDR, and V+ enhanced options one at a time.
+
+### Host Choice
+
+- **Sunshine**: recommended for most users and compatible with standard Moonlight streaming.
+- **Foundation Sunshine**: recommended if you want V+ enhanced features such as microphone redirection, host display control, live bitrate control, app desktop polish, and super commands.
+- **GeForce Experience / NVIDIA GameStream**: legacy path. It may still work on old setups, but Sunshine is the safer default for new users.
+
+### If Something Goes Wrong
+
+- Black screen or decoder crash: try H.264, turn HDR off, lower resolution / FPS, then reconnect.
+- Stutter or "slow connection": lower bitrate first, then check Wi-Fi quality, packet loss, and latency variance in the performance overlay.
+- Android TV / TV box issues: test 1080p60 H.264 before trying HEVC, AV1, HDR, or high refresh rates.
+- Internet streaming issues: verify local LAN streaming works before configuring port forwarding, UPnP, EasyTier, Tailscale, or other VPN paths.
+
+Useful references:
+
+- [Moonlight V+ Q&A](FAQ_EN.md)
+- [Moonlight setup guide](https://github.com/moonlight-stream/moonlight-docs/wiki/Setup-Guide)
+- [Moonlight troubleshooting guide](https://github.com/moonlight-stream/moonlight-docs/wiki/Troubleshooting)
 
 ### Building from Source
 
 ```bash
-git clone https://github.com/qiin2333/moonlight-android.git
-cd moonlight-android
+git clone https://github.com/qiin2333/moonlight-vplus.git
+cd moonlight-vplus
 ./gradlew assembleRelease
 ```
 

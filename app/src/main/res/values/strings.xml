@@ -220,6 +220,20 @@
     <string name="addpc_unknown_host">Unable to resolve PC address. Make sure you didn\'t make a typo in the address.</string>
     <string name="addpc_enter_ip">You must enter an IP address</string>
     <string name="addpc_wrong_sitelocal">That address doesn\'t look right. You must use your router\'s public IP address for streaming over the Internet.</string>
+    <string name="addpc_back">Back</string>
+    <string name="addpc_page_title">new DianLao ()</string>
+    <string name="addpc_page_subtitle">Fill host and port into the brackets, then summon a Sunshine host.</string>
+    <string name="addpc_status_manual">Manual setup</string>
+    <string name="addpc_address_label">Connection formula</string>
+    <string name="addpc_host_hint">IP or domain</string>
+    <string name="addpc_port_hint">47989</string>
+    <string name="addpc_formula_brace" translatable="false">⏟</string>
+    <string name="addpc_host_annotation">host address</string>
+    <string name="addpc_port_annotation">port</string>
+    <string name="addpc_address_note">Leave port empty to use the default 47989.</string>
+    <string name="addpc_invalid_port">Port must be between 1 and 65535</string>
+    <string name="addpc_action_connect">Connect</string>
+    <string name="addpc_action_connecting">Connecting...</string>
 
     <!-- Preferences -->
     <string name="category_basic_settings">Basic Settings</string>

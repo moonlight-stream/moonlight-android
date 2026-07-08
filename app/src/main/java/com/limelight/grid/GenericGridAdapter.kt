@@ -22,7 +22,6 @@ abstract class GenericGridAdapter<T>(
     var selectedPosition = -1
         set(value) {
             field = value
-            notifyDataSetChanged()
         }
 
     fun setLayoutId(layoutId: Int) {

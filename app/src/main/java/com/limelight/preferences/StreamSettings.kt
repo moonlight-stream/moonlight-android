@@ -1111,6 +1111,20 @@ class StreamSettings : AppCompatActivity() {
             }
         }
 
+        private fun updateHostCadencePreciseSyncVisibility(framePacingValue: String? = null) {
+            val hostCadencePref = findPreference<CheckBoxPreference>(
+                PreferenceConfiguration.ENABLE_HOST_CADENCE_PRECISE_SYNC_STRING
+            ) ?: return
+            val prefs = PreferenceManager.getDefaultSharedPreferences(requireActivity())
+            val selectedFramePacing = framePacingValue
+                ?: prefs.getString(
+                    PreferenceConfiguration.FRAME_PACING_PREF_STRING,
+                    PreferenceConfiguration.DEFAULT_FRAME_PACING
+                )
+
+            hostCadencePref.isVisible = selectedFramePacing == "precise-sync"
+        }
+
         override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
             val view = super.onCreateView(inflater, container, savedInstanceState)
             // 确保列表背景透明
@@ -2870,6 +2884,7 @@ class StreamSettings : AppCompatActivity() {
             // 让所有 ListPreference 在 summary 顶部显示当前选中值，
             // 避免用户必须点开才知道现值。原 summary 作为说明保留在第二行。
             applyListPreferenceCurrentValueSummary(screen)
+            updateHostCadencePreciseSyncVisibility()
 
             // 为 LocalImagePickerPreference 设置 Fragment 实例，确保 onActivityResult 回调正确
             val localImagePicker = findPreference<LocalImagePickerPreference>("local_image_picker")
@@ -3323,6 +3338,11 @@ class StreamSettings : AppCompatActivity() {
                         resetBitrateToDefault(prefs, null, valueStr)
 
                         // Allow the original preference change to take place
+                        true
+                    }
+            findPreference<Preference>(PreferenceConfiguration.FRAME_PACING_PREF_STRING)!!.onPreferenceChangeListener =
+                    Preference.OnPreferenceChangeListener { _, newValue ->
+                        updateHostCadencePreciseSyncVisibility(newValue as String)
                         true
                     }
             findPreference<Preference>(PreferenceConfiguration.CROWN_CONFIG_MANAGEMENT_STRING)!!.onPreferenceClickListener =

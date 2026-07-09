@@ -692,6 +692,11 @@ class MediaCodecDecoderRenderer(
             videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, refreshRate)
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            videoFormat.setInteger(MediaFormat.KEY_ALLOW_FRAME_DROP, 1)
+            LimeLog.info("Decoder MediaFormat: KEY_ALLOW_FRAME_DROP enabled")
+        }
+
         // Populate keys for adaptive playback
         if (adaptivePlayback) {
             videoFormat.setInteger(MediaFormat.KEY_MAX_WIDTH, initialWidth)

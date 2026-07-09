@@ -468,8 +468,8 @@ class PreferenceConfiguration {
         private const val LOCK_SCREEN_AFTER_DISCONNECT_PREF_STRING = "checkbox_lock_screen_after_disconnect"
         private const val SWAP_QUIT_AND_DISCONNECT_PERF_STRING = "checkbox_swap_quit_and_disconnect"
         private const val SCREEN_COMBINATION_MODE_PREF_STRING = "list_screen_combination_mode"
-        private const val FRAME_PACING_PREF_STRING = "frame_pacing"
-        private const val ENABLE_HOST_CADENCE_PRECISE_SYNC_STRING = "checkbox_enable_host_cadence_precise_sync"
+        const val FRAME_PACING_PREF_STRING = "frame_pacing"
+        const val ENABLE_HOST_CADENCE_PRECISE_SYNC_STRING = "checkbox_enable_host_cadence_precise_sync"
         private const val ABSOLUTE_MOUSE_MODE_PREF_STRING = "checkbox_absolute_mouse_mode"
         // Card visibility preferences
         private const val SHOW_BITRATE_CARD_PREF_STRING = "checkbox_show_bitrate_card"
@@ -665,7 +665,7 @@ class PreferenceConfiguration {
         private const val DEFAULT_LATENCY_TOAST = false
         private const val DEFAULT_ENABLE_STUN = false
         private const val DEFAULT_SCREEN_COMBINATION_MODE = "-1"
-        private const val DEFAULT_FRAME_PACING = "latency"
+        const val DEFAULT_FRAME_PACING = "latency"
         private const val DEFAULT_ABSOLUTE_MOUSE_MODE = false
         private const val DEFAULT_ENABLE_NATIVE_MOUSE_POINTER = false
         private const val DEFAULT_ENABLE_AUDIO_FX = false

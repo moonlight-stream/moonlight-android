@@ -406,8 +406,8 @@
     <string name="pcview_theme_light">浅色</string>
     <string name="pcview_theme_dark">深色</string>
     <string name="pcview_theme_applied">主题已切换为%1$s</string>
-    <string name="title_enable_host_cadence_precise_sync">主机节奏两步呈现（精确同步）</string>
-    <string name="summary_enable_host_cadence_precise_sync">仅在「精确同步」帧率模式下生效。用主机出帧节奏去抖后再对齐本地 vsync，消除干净链路上的拍频判抖；约增加 1~3ms 延迟。默认关闭。</string>
+    <string name="title_enable_host_cadence_precise_sync">精确同步更顺滑</string>
+    <string name="summary_enable_host_cadence_precise_sync">网络稳定时可减少规律性小卡顿，90/120 FPS 下更容易感觉到。可能增加约 1-3 ms 延迟。</string>
     <string name="title_perf_overlay_orientation">性能图层方向</string>
     <string name="summary_perf_overlay_orientation">选择性能统计信息的显示方向。</string>
     <string name="title_perf_overlay_position">性能图层位置</string>

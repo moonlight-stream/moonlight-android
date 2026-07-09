@@ -546,8 +546,8 @@
     <string name="summary_enable_jitter_monitor">Overlay a real-time present-interval jitter chart (judder%, jitter, histogram) while streaming. No performance impact when disabled.</string>
     <string name="jitter_monitor_empty_title">Waiting for frame data</string>
     <string name="jitter_monitor_empty_message">The chart will appear after playback samples arrive</string>
-    <string name="title_enable_host_cadence_precise_sync">Host-cadence two-step (Precise Sync)</string>
-    <string name="summary_enable_host_cadence_precise_sync">Only affects Precise Sync mode. Reproduces the host output cadence then snaps to local vsync, reducing beat-frequency judder on clean links. Adds ~1-3ms latency. Off by default.</string>
+    <string name="title_enable_host_cadence_precise_sync">Extra smoothness for Precise Sync</string>
+    <string name="summary_enable_host_cadence_precise_sync">Helps reduce tiny repeated stutters on stable networks, especially at 90/120 FPS. May add about 1-3 ms of latency.</string>
     <string name="title_perf_overlay_orientation">Performance Overlay Orientation</string>
     <string name="summary_perf_overlay_orientation">Choose the display orientation for performance statistics</string>
     <string name="title_perf_overlay_position">Performance Overlay Position</string>

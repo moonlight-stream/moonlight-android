@@ -544,6 +544,8 @@
     <string name="summary_enable_perf_overlay">Display real-time stream performance information while streaming</string>
     <string name="title_enable_jitter_monitor">Show jitter monitor chart</string>
     <string name="summary_enable_jitter_monitor">Overlay a real-time present-interval jitter chart (judder%, jitter, histogram) while streaming. No performance impact when disabled.</string>
+    <string name="jitter_monitor_empty_title">Waiting for frame data</string>
+    <string name="jitter_monitor_empty_message">The chart will appear after playback samples arrive</string>
     <string name="title_enable_host_cadence_precise_sync">Host-cadence two-step (Precise Sync)</string>
     <string name="summary_enable_host_cadence_precise_sync">Only affects Precise Sync mode. Reproduces the host output cadence then snaps to local vsync, reducing beat-frequency judder on clean links. Adds ~1-3ms latency. Off by default.</string>
     <string name="title_perf_overlay_orientation">Performance Overlay Orientation</string>
@@ -1047,6 +1049,16 @@
     <string name="scene_configured_content_description">Scene %1$d saved. Tap to apply, long press to overwrite.</string>
     <string name="scene_empty_content_description">Scene %1$d empty. Tap to save current settings.</string>
     <string name="config_apply_failed">Configuration apply failed</string>
+    <string name="pcview_toolbar_menu">PC view actions</string>
+    <string name="pcview_toolbar_restore_session">Restore Session</string>
+    <string name="pcview_toolbar_toggle_unpaired_show">Show Unpaired Hosts</string>
+    <string name="pcview_toolbar_toggle_unpaired_hide">Hide Unpaired Hosts</string>
+    <string name="pcview_toolbar_theme">Theme</string>
+    <string name="pcview_theme_dialog_title">Theme</string>
+    <string name="pcview_theme_follow_system">Follow System</string>
+    <string name="pcview_theme_light">Light</string>
+    <string name="pcview_theme_dark">Dark</string>
+    <string name="pcview_theme_applied">Theme set to %1$s</string>
     <string name="save_to_scene">Save to Scene %1$d</string>
     <string name="overwrite_current_config">Overwrite current configuration?</string>
     <string name="overwrite_scene_config">Save the current quality and display settings to Scene %1$d? This will overwrite the saved scene.</string>

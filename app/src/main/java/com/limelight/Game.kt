@@ -344,7 +344,9 @@ class Game : Activity(), SurfaceHolder.Callback,
 
         micButton = findViewById(R.id.micButton)
 
-        performanceOverlayManager = PerformanceOverlayManager(this, prefConfig)
+        performanceOverlayManager = PerformanceOverlayManager(this, prefConfig) { enabled ->
+            jitterMonitorManager?.setEnabled(enabled)
+        }
         performanceOverlayManager?.initialize()
 
         jitterMonitorManager = JitterMonitorManager(this, prefConfig)

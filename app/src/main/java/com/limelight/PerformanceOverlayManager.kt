@@ -2,6 +2,7 @@ package com.limelight
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.res.ColorStateList
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.graphics.Canvas
@@ -25,8 +26,10 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 
 import androidx.appcompat.app.AlertDialog
@@ -52,7 +55,8 @@ import kotlin.math.sqrt
 
 class PerformanceOverlayManager(
     private val activity: Activity,
-    private val prefConfig: PreferenceConfiguration
+    private val prefConfig: PreferenceConfiguration,
+    private val onJitterMonitorChanged: (Boolean) -> Unit = {}
 ) {
 
     private var performanceOverlayView: LinearLayout? = null
@@ -1112,7 +1116,108 @@ class PerformanceOverlayManager(
     }
 
     private fun showFpsInfo() {
-        showPerformanceInfo(R.string.perf_fps_title, R.string.perf_fps_info)
+        AlertDialog.Builder(activity, R.style.AppDialogStyle)
+            .setTitle(R.string.perf_fps_title)
+            .setView(createFpsInfoContent())
+            .setPositiveButton(activity.getString(R.string.yes), null)
+            .setCancelable(true)
+            .show()
+    }
+
+    private fun createFpsInfoContent(): View {
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20f), dp(8f), dp(20f), 0)
+
+            addView(createJitterMonitorCheckboxRow(), LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ))
+
+            addView(createFpsInfoScrollView(), LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ))
+        }
+    }
+
+    private fun createFpsInfoScrollView(): View {
+        return ScrollView(activity).apply {
+            addView(TextView(activity).apply {
+                text = activity.getString(R.string.perf_fps_info)
+                setTextColor(ContextCompat.getColor(activity, R.color.app_dialog_title_color))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                setLineSpacing(0f, 1.08f)
+                setPadding(0, dp(14f), 0, 0)
+            })
+        }
+    }
+
+    private fun createJitterMonitorCheckboxRow(): View {
+        val jitterCheckbox = CheckBox(activity).apply {
+            isChecked = prefConfig.enableJitterMonitor
+            text = ""
+            minWidth = dp(48f)
+            minHeight = dp(48f)
+            buttonTintList = createJitterCheckboxTint()
+            setOnCheckedChangeListener { _, isChecked ->
+                setJitterMonitorEnabled(isChecked)
+            }
+        }
+
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            isClickable = true
+            isFocusable = true
+            minimumHeight = dp(58f)
+            setPadding(0, dp(4f), 0, dp(6f))
+            setOnClickListener { jitterCheckbox.isChecked = !jitterCheckbox.isChecked }
+
+            addView(LinearLayout(activity).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(TextView(activity).apply {
+                    text = activity.getString(R.string.title_enable_jitter_monitor)
+                    setTextColor(ContextCompat.getColor(activity, R.color.app_dialog_title_color))
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                    typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                    includeFontPadding = false
+                })
+                addView(TextView(activity).apply {
+                    text = activity.getString(R.string.summary_enable_jitter_monitor)
+                    setTextColor(ContextCompat.getColor(activity, R.color.app_dialog_subtitle_color))
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                    setLineSpacing(0f, 1.05f)
+                    setPadding(0, dp(4f), dp(12f), 0)
+                })
+            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+
+            addView(jitterCheckbox, LinearLayout.LayoutParams(dp(56f), dp(48f)))
+        }
+    }
+
+    private fun createJitterCheckboxTint(): ColorStateList {
+        val checkedState = intArrayOf(android.R.attr.state_checked)
+        val defaultState = intArrayOf()
+        val states = arrayOf(checkedState, defaultState)
+        val accent = ContextCompat.getColor(activity, R.color.app_dialog_accent_color)
+        val secondary = ContextCompat.getColor(activity, R.color.app_dialog_subtitle_color)
+
+        return ColorStateList(
+            states,
+            intArrayOf(accent, colorWithAlpha(secondary, 180))
+        )
+    }
+
+    private fun colorWithAlpha(color: Int, alpha: Int): Int {
+        return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color))
+    }
+
+    private fun setJitterMonitorEnabled(enabled: Boolean) {
+        if (prefConfig.enableJitterMonitor == enabled) return
+        prefConfig.enableJitterMonitor = enabled
+        prefConfig.writePreferences(activity)
+        onJitterMonitorChanged(enabled)
     }
 
     private fun showPacketLossInfo() {
@@ -1276,6 +1381,12 @@ class PerformanceOverlayManager(
         val parent = view.parent as View
         return intArrayOf(parent.width, parent.height)
     }
+
+    private fun dp(value: Float): Int = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP,
+        value,
+        activity.resources.displayMetrics
+    ).toInt()
 
     companion object {
         private const val CLICK_THRESHOLD = 10

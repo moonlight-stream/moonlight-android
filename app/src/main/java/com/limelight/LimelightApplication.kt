@@ -7,6 +7,7 @@ import com.google.firebase.FirebaseApp
 import com.limelight.binding.crypto.AndroidCryptoProvider
 import com.limelight.crash.CrashReporter
 import com.limelight.utils.ConfigurationSyncScheduler
+import com.limelight.utils.UiHelper
 
 /**
  * Custom Application that wires up crash diagnostics as early as possible.
@@ -27,6 +28,7 @@ class LimelightApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        UiHelper.applyStoredAppTheme(this)
         initializeFirebaseSafely()
         CrashReporter.install(this)
         ConfigurationSyncScheduler.runNow(this)

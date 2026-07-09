@@ -104,7 +104,7 @@
         android:layout_height="@dimen/pc_toolbar_button_size"
         android:cropToPadding="false"
         android:scaleType="fitCenter"
-        android:nextFocusForward="@id/toggleUnpairedButton"
+        android:nextFocusForward="@id/pcToolbarMenuButton"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_below="@id/aboutButton"
@@ -112,28 +112,16 @@
         style="?android:attr/borderlessButtonStyle"/>
 
     <ImageButton
-        android:id="@+id/toggleUnpairedButton"
+        android:id="@+id/pcToolbarMenuButton"
         android:layout_width="@dimen/pc_toolbar_button_size"
         android:layout_height="@dimen/pc_toolbar_button_size"
         android:cropToPadding="false"
         android:scaleType="fitCenter"
-        android:nextFocusForward="@id/restoreSessionButton"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_below="@id/easyTierControlButton"
-        android:src="@drawable/ic_visibility"
-        style="?android:attr/borderlessButtonStyle"/>
-
-    <ImageButton
-        android:id="@+id/restoreSessionButton"
-        android:layout_width="@dimen/pc_toolbar_button_size"
-        android:layout_height="@dimen/pc_toolbar_button_size"
-        android:cropToPadding="false"
-        android:scaleType="fitCenter"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@id/toggleUnpairedButton"
-        android:src="@drawable/ic_restore"
+        android:contentDescription="@string/pcview_toolbar_menu"
+        android:src="@drawable/ic_more_vert"
         style="?android:attr/borderlessButtonStyle"/>
 
     <!-- 场景预设按钮组 -->

@@ -116,19 +116,7 @@
         style="?android:attr/borderlessButtonStyle"/>
     
     <ImageButton
-        android:id="@+id/toggleUnpairedButton"
-        android:layout_width="@dimen/pc_toolbar_button_size"
-        android:layout_height="@dimen/pc_toolbar_button_size"
-        android:cropToPadding="false"
-        android:scaleType="fitCenter"
-        android:layout_below="@+id/topSafeArea"
-        android:layout_toLeftOf="@+id/restoreSessionButton"
-        android:src="@drawable/ic_visibility"
-        android:preferKeepClear="true"
-        style="?android:attr/borderlessButtonStyle"/>
-    
-    <ImageButton
-        android:id="@+id/restoreSessionButton"
+        android:id="@+id/pcToolbarMenuButton"
         android:layout_width="@dimen/pc_toolbar_button_size"
         android:layout_height="@dimen/pc_toolbar_button_size"
         android:cropToPadding="false"
@@ -136,7 +124,8 @@
         android:layout_below="@+id/topSafeArea"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:src="@drawable/ic_restore"
+        android:contentDescription="@string/pcview_toolbar_menu"
+        android:src="@drawable/ic_more_vert"
         android:preferKeepClear="true"
         style="?android:attr/borderlessButtonStyle"/>
 

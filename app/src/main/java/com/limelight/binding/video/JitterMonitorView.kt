@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.TypedValue
 import android.view.View
+import com.limelight.R
 import kotlin.math.max
 
 /**
@@ -53,7 +54,20 @@ class JitterMonitorView(context: Context) : View(context) {
     private val countPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.argb(200, 225, 225, 228); textSize = sp(6.5f); textAlign = Paint.Align.CENTER
     }
+    private val emptyTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(225, 235, 235, 240)
+        textSize = sp(11f)
+        isFakeBoldText = true
+        textAlign = Paint.Align.CENTER
+    }
+    private val emptyLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(175, 210, 210, 214)
+        textSize = sp(8f)
+        textAlign = Paint.Align.CENTER
+    }
     private val bgRect = RectF()
+    private val emptyTitleText = context.getString(R.string.jitter_monitor_empty_title)
+    private val emptyMessageText = context.getString(R.string.jitter_monitor_empty_message)
 
     // 本地绘制缓冲（在 update 里从快照拷贝，onDraw 只读本地副本）
     private var count = 0
@@ -86,6 +100,17 @@ class JitterMonitorView(context: Context) : View(context) {
         invalidate()
     }
 
+    fun showEmptyState() {
+        val hadVisibleData = hasData || count != 0 || histTotal != 0L || histBuckets != 0
+        count = 0
+        histTotal = 0L
+        histBuckets = 0
+        hasData = false
+        if (hadVisibleData) {
+            invalidate()
+        }
+    }
+
     private fun colorForUnits(u: Int): Int {
         val d = kotlin.math.abs(u - modeUnits)
         return when (d) {
@@ -93,6 +118,23 @@ class JitterMonitorView(context: Context) : View(context) {
             1 -> Color.rgb(0xE6, 0xB0, 0x2E)   // ±1：黄（轻微错拍）
             else -> Color.rgb(0xD9, 0x43, 0x3B) // ≥±2：红（明显判抖/丢帧）
         }
+    }
+
+    private fun drawEmptyState(canvas: Canvas, width: Float, height: Float) {
+        val centerX = width * 0.5f
+        val centerY = height * 0.5f
+        canvas.drawText(
+            emptyTitleText,
+            centerX,
+            centerY - dp(5f),
+            emptyTitlePaint
+        )
+        canvas.drawText(
+            emptyMessageText,
+            centerX,
+            centerY + dp(15f),
+            emptyLabelPaint
+        )
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -103,7 +145,10 @@ class JitterMonitorView(context: Context) : View(context) {
         bgRect.set(inset, inset, w - inset, h - inset)
         canvas.drawRoundRect(bgRect, r, r, bgPaint)
         canvas.drawRoundRect(bgRect, r, r, borderPaint)
-        if (!hasData) return
+        if (!hasData) {
+            drawEmptyState(canvas, w, h)
+            return
+        }
 
         val padX = dp(10f)
         val right = w - padX

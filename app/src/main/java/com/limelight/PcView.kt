@@ -87,6 +87,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
 import android.hardware.SensorManager
 import android.net.Uri
 import android.net.VpnService
@@ -115,6 +116,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.view.animation.LayoutAnimationController
 import android.widget.AbsListView
@@ -124,6 +126,7 @@ import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.PopupWindow
 import android.widget.RelativeLayout
 import android.widget.Space
 import android.widget.TextView
@@ -506,20 +509,199 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
 
     private fun setupButtons() {
         val settingsButton = findViewById<ImageButton>(R.id.settingsButton)
-        val restoreSessionButton = findViewById<ImageButton>(R.id.restoreSessionButton)
         val aboutButton = findViewById<ImageButton>(R.id.aboutButton)
         val easyTierButton = findViewById<ImageButton>(R.id.easyTierControlButton)
-        val toggleUnpairedButton = findViewById<ImageButton>(R.id.toggleUnpairedButton)
+        val toolbarMenuButton = findViewById<ImageButton>(R.id.pcToolbarMenuButton)
 
         settingsButton.setOnClickListener { startActivity(Intent(this, StreamSettings::class.java)) }
-        restoreSessionButton.setOnClickListener { restoreLastSession() }
 
         aboutButton?.setOnClickListener { showAboutDialog() }
         easyTierButton?.setOnClickListener { showEasyTierControlDialog() }
-        toggleUnpairedButton?.let { btn ->
-            updateToggleUnpairedButtonIcon(btn)
-            btn.setOnClickListener { toggleUnpairedDevices(btn) }
+        toolbarMenuButton?.setOnClickListener { showPcToolbarMenu(it) }
+    }
+
+    private fun showPcToolbarMenu(anchor: View) {
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val popupWidth = dpToPx(if (isLandscape) 256 else 236)
+
+        val menu = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dpToPx(4), dpToPx(6), dpToPx(4), dpToPx(6))
+            background = ContextCompat.getDrawable(this@PcView, R.drawable.pc_toolbar_menu_panel_bg)
         }
+
+        val popup = PopupWindow(menu, popupWidth, ViewGroup.LayoutParams.WRAP_CONTENT, true).apply {
+            isOutsideTouchable = true
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                elevation = dpToPx(8).toFloat()
+            }
+        }
+
+        addToolbarMenuItem(
+            menu,
+            R.drawable.ic_restore,
+            getString(R.string.pcview_toolbar_restore_session)
+        ) {
+            popup.dismiss()
+            restoreLastSession()
+        }
+
+        val showUnpaired = pcGridAdapter.isShowUnpairedDevices()
+        addToolbarMenuItem(
+            menu,
+            if (showUnpaired) R.drawable.ic_visibility_off else R.drawable.ic_visibility,
+            getString(
+                if (showUnpaired) R.string.pcview_toolbar_toggle_unpaired_hide
+                else R.string.pcview_toolbar_toggle_unpaired_show
+            )
+        ) {
+            popup.dismiss()
+            toggleUnpairedDevices()
+        }
+
+        addToolbarMenuItem(
+            menu,
+            R.drawable.ic_theme_mode,
+            getString(R.string.pcview_toolbar_theme),
+            getThemeModeLabel(UiHelper.getAppThemeMode(this)),
+            accent = true
+        ) {
+            popup.dismiss()
+            showThemeModeDialog()
+        }
+
+        menu.measure(
+            View.MeasureSpec.makeMeasureSpec(popupWidth, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+
+        val anchorLocation = IntArray(2)
+        anchor.getLocationOnScreen(anchorLocation)
+        val screenWidth = resources.displayMetrics.widthPixels
+        val screenHeight = resources.displayMetrics.heightPixels
+        val menuHeight = menu.measuredHeight
+        val anchorLeft = anchorLocation[0]
+        val anchorTop = anchorLocation[1]
+        val anchorRight = anchorLeft + anchor.width
+        val anchorBottom = anchorTop + anchor.height
+
+        val popupX = if (isLandscape) {
+            anchorRight
+        } else {
+            anchorRight - popupWidth
+        }.coerceIn(0, (screenWidth - popupWidth).coerceAtLeast(0))
+        val desiredY = if (anchorBottom + menuHeight > screenHeight) {
+            anchorTop - menuHeight
+        } else {
+            anchorBottom
+        }
+        val popupY = desiredY.coerceIn(0, (screenHeight - menuHeight).coerceAtLeast(0))
+        popup.showAtLocation(anchor.rootView, Gravity.NO_GRAVITY, popupX, popupY)
+    }
+
+    private fun addToolbarMenuItem(
+        parent: LinearLayout,
+        iconRes: Int,
+        title: String,
+        subtitle: String? = null,
+        accent: Boolean = false,
+        onClick: () -> Unit
+    ) {
+        val iconColor = ColorStateList.valueOf(ContextCompat.getColor(
+            this,
+            if (accent) R.color.app_dialog_accent_color else R.color.ui_shell_text_secondary
+        ))
+        val titleColor = ContextCompat.getColor(this, R.color.ui_shell_text_primary)
+        val subtitleColor = ContextCompat.getColor(this, R.color.ui_shell_text_secondary)
+
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            isClickable = true
+            isFocusable = true
+            background = ContextCompat.getDrawable(this@PcView, R.drawable.pc_toolbar_menu_item_bg)
+            minimumHeight = dpToPx(if (subtitle == null) 46 else 50)
+            setPadding(dpToPx(10), dpToPx(6), dpToPx(10), dpToPx(6))
+            setOnClickListener { onClick() }
+        }
+
+        row.addView(ImageView(this).apply {
+            setImageResource(iconRes)
+            imageTintList = iconColor
+        }, LinearLayout.LayoutParams(dpToPx(22), dpToPx(22)).apply {
+            marginEnd = dpToPx(10)
+        })
+
+        row.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(TextView(this@PcView).apply {
+                text = title
+                textSize = 14f
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                setTextColor(titleColor)
+                includeFontPadding = false
+            }, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ))
+            if (subtitle != null) {
+                addView(TextView(this@PcView).apply {
+                    text = subtitle
+                    textSize = 11f
+                    setTextColor(subtitleColor)
+                    includeFontPadding = false
+                    setPadding(0, dpToPx(3), 0, 0)
+                }, LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ))
+            }
+        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+
+        parent.addView(row, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            topMargin = dpToPx(1)
+            bottomMargin = dpToPx(1)
+        })
+    }
+
+    private fun showThemeModeDialog() {
+        val modes = arrayOf(
+            UiHelper.THEME_MODE_SYSTEM,
+            UiHelper.THEME_MODE_LIGHT,
+            UiHelper.THEME_MODE_DARK
+        )
+        val labels = modes.map { getThemeModeLabel(it) }.toTypedArray()
+        val checked = modes.indexOf(UiHelper.getAppThemeMode(this)).coerceAtLeast(0)
+
+        val dialog = AlertDialog.Builder(this, R.style.AppDialogStyle)
+            .setTitle(R.string.pcview_theme_dialog_title)
+            .setSingleChoiceItems(labels, checked) { dialogInterface, which ->
+                val mode = modes[which]
+                UiHelper.setAppThemeMode(this, mode)
+                showToast(getString(R.string.pcview_theme_applied, labels[which]))
+                dialogInterface.dismiss()
+                recreate()
+            }
+            .setNegativeButton(R.string.dialog_button_close, null)
+            .create()
+        dialog.show()
+        AppDialogStyler.applySystemChoiceList(dialog, this)
+    }
+
+    private fun getThemeModeLabel(mode: String): String {
+        return when (mode) {
+            UiHelper.THEME_MODE_LIGHT -> getString(R.string.pcview_theme_light)
+            UiHelper.THEME_MODE_DARK -> getString(R.string.pcview_theme_dark)
+            else -> getString(R.string.pcview_theme_follow_system)
+        }
+    }
+
+    private fun dpToPx(value: Int): Int {
+        return (value * resources.displayMetrics.density + 0.5f).toInt()
     }
 
     private fun setupAdapterFragment() {
@@ -1214,7 +1396,6 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
 
         if (isUnpaired && !pcGridAdapter.isShowUnpairedDevices()) {
             pcGridAdapter.setShowUnpairedDevices(true)
-            updateToggleUnpairedButtonIcon(findViewById(R.id.toggleUnpairedButton))
             showToast(getString(R.string.new_unpaired_device_shown))
         }
 
@@ -1283,21 +1464,12 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         noPcFoundLayout?.visibility = View.INVISIBLE
     }
 
-    // Toggle Unpaired Button
+    // Toggle Unpaired Hosts
 
-    private fun toggleUnpairedDevices(button: ImageButton) {
+    private fun toggleUnpairedDevices() {
         val newState = !pcGridAdapter.isShowUnpairedDevices()
         pcGridAdapter.setShowUnpairedDevices(newState)
-        updateToggleUnpairedButtonIcon(button)
         showToast(if (newState) getString(R.string.unpaired_devices_shown) else getString(R.string.unpaired_devices_hidden))
-    }
-
-    private fun updateToggleUnpairedButtonIcon(button: ImageButton?) {
-        if (button == null) return
-        button.setImageResource(if (pcGridAdapter.isShowUnpairedDevices())
-            R.drawable.ic_visibility
-        else
-            R.drawable.ic_visibility_off)
     }
 
     // Scene Configuration Methods

@@ -416,11 +416,6 @@
             android:text="@string/suffix_osc_opacity"
             android:dependency="checkbox_enable_perf_overlay" />
         <CheckBoxPreference
-            android:key="checkbox_enable_jitter_monitor"
-            android:title="@string/title_enable_jitter_monitor"
-            android:summary="@string/summary_enable_jitter_monitor"
-            android:defaultValue="false" />
-        <CheckBoxPreference
             android:key="checkbox_enable_post_stream_toast"
             android:title="@string/title_enable_post_stream_toast"
             android:summary="@string/summary_enable_post_stream_toast"

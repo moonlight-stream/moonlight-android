@@ -17,6 +17,7 @@ import android.os.Build
 import android.os.LocaleList
 import android.view.View
 import android.view.WindowManager
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.annotation.RequiresApi
 import com.limelight.LimeLog
 import com.limelight.R
@@ -29,8 +30,58 @@ object UiHelper {
 
     private const val TV_VERTICAL_PADDING_DP = 15
     private const val TV_HORIZONTAL_PADDING_DP = 15
+    private const val APP_THEME_PREFS = "AppTheme"
+    private const val APP_THEME_MODE_KEY = "theme_mode"
+
+    const val THEME_MODE_SYSTEM = "system"
+    const val THEME_MODE_LIGHT = "light"
+    const val THEME_MODE_DARK = "dark"
 
     private var sGameManagerAvailable: Boolean? = null
+
+    fun applyStoredAppTheme(context: Context) {
+        applyAppThemeMode(context, getAppThemeMode(context))
+    }
+
+    fun getAppThemeMode(context: Context): String {
+        val storedMode = context.getSharedPreferences(APP_THEME_PREFS, Context.MODE_PRIVATE)
+            .getString(APP_THEME_MODE_KEY, THEME_MODE_SYSTEM)
+            ?: THEME_MODE_SYSTEM
+        return normalizeThemeMode(storedMode)
+    }
+
+    fun setAppThemeMode(context: Context, mode: String) {
+        val normalizedMode = normalizeThemeMode(mode)
+        context.getSharedPreferences(APP_THEME_PREFS, Context.MODE_PRIVATE)
+            .edit { putString(APP_THEME_MODE_KEY, normalizedMode) }
+        applyAppThemeMode(context, normalizedMode)
+    }
+
+    private fun normalizeThemeMode(mode: String): String {
+        return when (mode) {
+            THEME_MODE_LIGHT, THEME_MODE_DARK -> mode
+            else -> THEME_MODE_SYSTEM
+        }
+    }
+
+    private fun applyAppThemeMode(context: Context, mode: String) {
+        val appCompatMode = when (mode) {
+            THEME_MODE_LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
+            THEME_MODE_DARK -> AppCompatDelegate.MODE_NIGHT_YES
+            else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        }
+        AppCompatDelegate.setDefaultNightMode(appCompatMode)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val platformMode = when (mode) {
+                THEME_MODE_LIGHT -> UiModeManager.MODE_NIGHT_NO
+                THEME_MODE_DARK -> UiModeManager.MODE_NIGHT_YES
+                else -> UiModeManager.MODE_NIGHT_AUTO
+            }
+            context.getSystemService(UiModeManager::class.java)
+                ?.setApplicationNightMode(platformMode)
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.S)
     private fun isGameManagerAvailable(context: Context): Boolean {

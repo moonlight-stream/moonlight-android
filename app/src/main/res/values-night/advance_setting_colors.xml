@@ -17,6 +17,10 @@
     <color name="ui_shell_accent_soft">#33FF6B9D</color>
     <color name="ui_shell_accent_focus">#66FF6B9D</color>
     <color name="settings_background_overlay">#B3333333</color>
+    <color name="pc_toolbar_menu_surface_start">#D923242B</color>
+    <color name="pc_toolbar_menu_surface_center">#CC2B252E</color>
+    <color name="pc_toolbar_menu_surface_end">#B81A1B21</color>
+    <color name="pc_toolbar_menu_outline">#33FFFFFF</color>
 
     <color name="app_dialog_choice_control_normal">#7AC9D0D8</color>
     <color name="app_dialog_choice_control_active">#D9FF8FA3</color>

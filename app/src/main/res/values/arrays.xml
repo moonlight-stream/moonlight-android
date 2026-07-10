@@ -131,4 +131,15 @@
         <item>right</item>
         <item>left</item>
     </string-array>
+
+    <string-array name="keyboard_toggle_fingers_names">
+        <item>@string/keyboard_toggle_fingers_disabled</item>
+        <item>@string/keyboard_toggle_fingers_3</item>
+        <item>@string/keyboard_toggle_fingers_4</item>
+    </string-array>
+    <string-array name="keyboard_toggle_fingers_values" translatable="false">
+        <item>0</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
 </resources>

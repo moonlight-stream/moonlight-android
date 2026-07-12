@@ -1163,7 +1163,7 @@ class PreferenceConfiguration {
 
             config.videoFormat = getVideoFormatValue(context)
             config.framePacing = getFramePacingValue(context)
-            config.enableHostCadencePreciseSync = prefs.getBoolean(ENABLE_HOST_CADENCE_PRECISE_SYNC_STRING, false)
+            config.enableHostCadencePreciseSync = prefs.getBoolean(ENABLE_HOST_CADENCE_PRECISE_SYNC_STRING, true)
 
             config.analogStickForScrolling = getAnalogStickForScrollingValue(context)
 

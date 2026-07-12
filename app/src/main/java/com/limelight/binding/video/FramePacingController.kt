@@ -44,7 +44,7 @@ internal class FramePacingController(
     val outputBufferQueue = LinkedBlockingQueue<Int>()
 
     // ---- PRECISE_SYNC 两步 host-cadence 呈现（step1: host-PI 去抖 → step2: snap 到本地 vsync）----
-    // 由设置项 checkbox_enable_host_cadence_precise_sync 控制（默认关）。
+    // 由隐藏设置项 checkbox_enable_host_cadence_precise_sync 控制（默认开）。
     // 关闭时 PRECISE_SYNC 完全走原有本地网格逻辑，行为零变化；
     // 开启后仅在 PRECISE_SYNC 用 host PTS 复现主机出帧节奏(step1)，再 snap 到最近 vsync 上沿(step2)，
     // 消除"本地自由网格 vs 主机节奏"错拍的周期性判抖/重复丢帧；因有 snap 兜底，cushion 取低档(0.5×MAD, floor0)，

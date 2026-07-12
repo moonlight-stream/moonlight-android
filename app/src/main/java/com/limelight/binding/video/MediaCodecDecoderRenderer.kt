@@ -1573,6 +1573,14 @@ class MediaCodecDecoderRenderer(
             return false
         }
 
+        // prepareForStop() deliberately breaks the input-buffer wait above. If the codec was
+        // backpressured for several seconds (for example after heavy packet loss), deltaMs may
+        // exceed the decoder-hang threshold by the time the user exits the stream. Treating that
+        // expected shutdown wake-up as a hang records a false decoder crash on the next launch.
+        if (stopping) {
+            return false
+        }
+
         val deltaMs = (SystemClock.uptimeMillis() - startTime).toInt()
 
         if (deltaMs >= 20) {

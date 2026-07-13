@@ -38,6 +38,7 @@ import com.limelight.ui.AdapterFragment
 import com.limelight.ui.AdapterFragmentCallbacks
 import com.limelight.utils.AnalyticsManager
 import com.limelight.utils.AppDialogStyler
+import com.limelight.utils.AppActionSheet
 import com.limelight.utils.AppCacheManager
 import com.limelight.utils.CacheHelper
 import com.limelight.utils.ConfigurationSyncScheduler
@@ -107,13 +108,9 @@ import androidx.core.animation.doOnEnd
 import android.view.animation.DecelerateInterpolator
 import android.provider.Settings
 import android.util.LruCache
-import android.view.ContextMenu
-import android.view.ContextMenu.ContextMenuInfo
 import android.view.GestureDetector
 import android.view.Gravity
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -121,7 +118,6 @@ import android.view.animation.AnimationUtils
 import android.view.animation.LayoutAnimationController
 import android.widget.AbsListView
 import android.widget.AdapterView
-import android.widget.AdapterView.AdapterContextMenuInfo
 import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -179,6 +175,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         private const val SECONDARY_SCREEN_ID = 14
         private const val DISABLE_IPV6_ID = 15
         private const val OPEN_WEBUI_ID = 16
+        private const val MORE_ACTIONS_ID = 17
 
         private const val OFFICIAL_SITE_URL = "https://www.alkaidlab.com/"
     }
@@ -2130,7 +2127,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     private fun quickStartStream(computer: ComputerDetails, itemView: View?, isSecondaryScreen: Boolean) {
         if (computer.state != ComputerDetails.State.ONLINE || computer.pairState != PairState.PAIRED) {
             if (itemView != null) {
-                openContextMenu(itemView)
+                showHostActionSheet(computer)
             }
             return
         }
@@ -2179,7 +2176,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     private fun quickStartStreamWithScreenMode(computer: ComputerDetails, itemView: View?, isSecondaryScreen: Boolean, screenMode: Int) {
         if (computer.state != ComputerDetails.State.ONLINE || computer.pairState != PairState.PAIRED) {
             if (itemView != null) {
-                openContextMenu(itemView)
+                showHostActionSheet(computer)
             }
             return
         }
@@ -2332,105 +2329,114 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         dialog.show()
     }
 
-    // Context Menu
+    // Host Action Sheet
 
-    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {
+    private fun showHostActionSheet(details: ComputerDetails) {
         stopComputerUpdates(false)
-        super.onCreateContextMenu(menu, v, menuInfo)
 
-        val position = getContextMenuPosition(menuInfo, v)
-        if (position < 0) return
-
-        val computer = pcGridAdapter.getItem(position) as ComputerObject
-        if (PcGridAdapter.isAddComputerCard(computer)) return
-
-        setupContextMenuHeader(menu, computer)
-        addContextMenuItems(menu, computer)
-    }
-
-    private fun getContextMenuPosition(menuInfo: ContextMenuInfo?, v: View?): Int {
-        if (menuInfo is AdapterContextMenuInfo) {
-            return menuInfo.position
+        val status = when (details.state) {
+            ComputerDetails.State.ONLINE -> getString(R.string.pcview_menu_header_online)
+            ComputerDetails.State.OFFLINE -> getString(R.string.pcview_menu_header_offline)
+            else -> getString(R.string.pcview_menu_header_unknown)
         }
-        if (v != null && v.tag is Int) {
-            return v.tag as Int
-        }
-        return -1
-    }
-
-    private fun setupContextMenuHeader(menu: ContextMenu, computer: ComputerObject) {
-        menu.clearHeader()
-        val status: String
-        when (computer.details.state) {
-            ComputerDetails.State.ONLINE ->
-                status = getString(R.string.pcview_menu_header_online)
-            ComputerDetails.State.OFFLINE -> {
-                menu.setHeaderIcon(R.drawable.ic_pc_offline)
-                status = getString(R.string.pcview_menu_header_offline)
+        AppActionSheet.show(
+            context = this,
+            title = details.name.orEmpty(),
+            subtitle = status,
+            activeStatus = details.state == ComputerDetails.State.ONLINE,
+            actions = buildHostPrimaryActions(details),
+            onAction = { handleHostAction(it.id, details) },
+            onDismiss = { selectedAction ->
+                if (selectedAction?.id != MORE_ACTIONS_ID) {
+                    startComputerUpdates()
+                }
             }
-            else ->
-                status = getString(R.string.pcview_menu_header_unknown)
-        }
-        menu.setHeaderTitle(computer.details.name + " - " + status)
+        )
     }
 
-    private fun addContextMenuItems(menu: ContextMenu, computer: ComputerObject) {
-        val details = computer.details
+    private fun buildHostPrimaryActions(details: ComputerDetails): List<AppActionSheet.Action> = buildList {
+        fun add(
+            id: Int,
+            titleRes: Int,
+            destructive: Boolean = false,
+            sectionStart: Boolean = false,
+            opensSubmenu: Boolean = false
+        ) {
+            add(AppActionSheet.Action(
+                id = id,
+                title = getString(titleRes),
+                destructive = destructive,
+                sectionStart = sectionStart,
+                opensSubmenu = opensSubmenu
+            ))
+        }
 
+        val paired = details.pairState == PairState.PAIRED
         if (details.state == ComputerDetails.State.OFFLINE || details.state == ComputerDetails.State.UNKNOWN) {
-            menu.add(Menu.NONE, WOL_ID, 1, R.string.pcview_menu_send_wol)
-        } else if (details.pairState != PairState.PAIRED) {
-            menu.add(Menu.NONE, PAIR_ID, 1, R.string.pcview_menu_pair_pc)
-            if (details.nvidiaServer) {
-                menu.add(Menu.NONE, GAMESTREAM_EOL_ID, 2, R.string.pcview_menu_eol)
-            }
+            add(WOL_ID, R.string.pcview_menu_send_wol)
+        } else if (!paired) {
+            add(PAIR_ID, R.string.pcview_menu_pair_pc)
         } else {
             if (details.runningGameId != 0) {
-                menu.add(Menu.NONE, RESUME_ID, 1, R.string.applist_menu_resume)
-                menu.add(Menu.NONE, QUIT_ID, 2, R.string.applist_menu_quit)
+                add(RESUME_ID, R.string.applist_menu_resume)
             }
-            if (details.nvidiaServer) {
-                menu.add(Menu.NONE, GAMESTREAM_EOL_ID, 3, R.string.pcview_menu_eol)
-            }
-            menu.add(Menu.NONE, FULL_APP_LIST_ID, 4, R.string.pcview_menu_app_list)
-            menu.add(Menu.NONE, SECONDARY_SCREEN_ID, 5, R.string.pcview_menu_secondary_screen)
-            menu.add(Menu.NONE, SLEEP_ID, 8, R.string.send_sleep_command)
+            add(FULL_APP_LIST_ID, R.string.pcview_menu_app_list)
+            add(SECONDARY_SCREEN_ID, R.string.pcview_menu_secondary_screen)
         }
 
-        menu.add(Menu.NONE, TEST_NETWORK_ID, 5, R.string.pcview_menu_test_network)
-        menu.add(Menu.NONE, IPERF3_TEST_ID, 6, R.string.network_bandwidth_test)
-        // Sunshine 主机暴露 Web 管理界面（默认 https://<ip>:47990）；GFE 主机没有 WebUI
+        add(TEST_NETWORK_ID, R.string.pcview_menu_test_network, sectionStart = true)
+        add(
+            MORE_ACTIONS_ID,
+            R.string.pcview_menu_more_actions,
+            opensSubmenu = true
+        )
+        if (paired && details.runningGameId != 0) {
+            add(QUIT_ID, R.string.applist_menu_quit, destructive = true, sectionStart = true)
+        }
+    }
+
+    private fun showHostMoreActionSheet(details: ComputerDetails) {
+        stopComputerUpdates(false)
+        AppActionSheet.show(
+            context = this,
+            title = details.name.orEmpty(),
+            subtitle = getString(R.string.pcview_menu_more_actions),
+            actions = buildHostMoreActions(details),
+            onAction = { handleHostAction(it.id, details) },
+            onDismiss = { startComputerUpdates() }
+        )
+    }
+
+    private fun buildHostMoreActions(details: ComputerDetails): List<AppActionSheet.Action> = buildList {
+        fun add(id: Int, titleRes: Int, destructive: Boolean = false, sectionStart: Boolean = false) {
+            add(AppActionSheet.Action(
+                id = id,
+                title = getString(titleRes),
+                destructive = destructive,
+                sectionStart = sectionStart
+            ))
+        }
+
+        add(IPERF3_TEST_ID, R.string.network_bandwidth_test)
         if (!details.nvidiaServer && resolveSunshineWebUiUrl(details) != null) {
-            menu.add(Menu.NONE, OPEN_WEBUI_ID, 6, R.string.pcview_menu_open_webui)
+            add(OPEN_WEBUI_ID, R.string.pcview_menu_open_webui)
         }
-        menu.add(Menu.NONE, DELETE_ID, 6, R.string.pcview_menu_delete_pc)
-        menu.add(Menu.NONE, VIEW_DETAILS_ID, 7, R.string.pcview_menu_details)
-
-        // 添加IPv6开关选项，根据当前状态显示不同操作
-        if (details.ipv6Disabled) {
-            menu.add(Menu.NONE, DISABLE_IPV6_ID, 8, R.string.pcview_menu_enable_ipv6)
-        } else {
-            menu.add(Menu.NONE, DISABLE_IPV6_ID, 8, R.string.pcview_menu_disable_ipv6)
+        add(VIEW_DETAILS_ID, R.string.pcview_menu_details, sectionStart = true)
+        if (details.pairState == PairState.PAIRED && details.state == ComputerDetails.State.ONLINE) {
+            add(SLEEP_ID, R.string.send_sleep_command)
         }
+        add(
+            DISABLE_IPV6_ID,
+            if (details.ipv6Disabled) R.string.pcview_menu_enable_ipv6
+            else R.string.pcview_menu_disable_ipv6
+        )
+        if (details.nvidiaServer) {
+            add(GAMESTREAM_EOL_ID, R.string.pcview_menu_eol)
+        }
+        add(DELETE_ID, R.string.pcview_menu_delete_pc, destructive = true, sectionStart = true)
     }
 
-    override fun onContextMenuClosed(menu: Menu) {
-        startComputerUpdates()
-    }
-
-    override fun onContextItemSelected(item: MenuItem): Boolean {
-        val position = getContextMenuPosition(item.menuInfo, null)
-        if (position < 0) return super.onContextItemSelected(item)
-
-        val computer = pcGridAdapter.getItem(position) as ComputerObject
-        if (PcGridAdapter.isAddComputerCard(computer)) return super.onContextItemSelected(item)
-
-        return handleContextMenuAction(item.itemId, computer)
-    }
-
-    private fun handleContextMenuAction(itemId: Int, computer: ComputerObject): Boolean {
-        val details = computer.details
-
+    private fun handleHostAction(itemId: Int, details: ComputerDetails): Boolean {
         return when (itemId) {
             PAIR_ID -> {
                 doPair(details)
@@ -2490,6 +2496,10 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             }
             OPEN_WEBUI_ID -> {
                 handleOpenSunshineWebUi(details)
+                true
+            }
+            MORE_ACTIONS_ID -> {
+                showHostMoreActionSheet(details)
                 true
             }
             else -> false
@@ -2680,7 +2690,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         setupEmptyAreaLongPress(listView)
 
         UiHelper.applyStatusBarPadding(listView)
-        registerForContextMenu(listView)
+        setupHostActionSheet(listView)
     }
 
     private fun setupListAnimation(listView: AbsListView) {
@@ -2715,7 +2725,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
 
             if (computer.details.state == ComputerDetails.State.UNKNOWN
                     || computer.details.state == ComputerDetails.State.OFFLINE) {
-                openContextMenu(view)
+                showHostActionSheet(computer.details)
             } else if (computer.details.pairState != PairState.PAIRED) {
                 doPair(computer.details)
             } else if (computer.details.hasMultipleLanAddresses()) {
@@ -2734,6 +2744,18 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     private fun setupGridColumnWidth(view: View) {
         if (view is GridView) {
             calculateDynamicColumnWidth(view)
+        }
+    }
+
+    private fun setupHostActionSheet(listView: AbsListView) {
+        listView.setOnItemLongClickListener { _, _, position, _ ->
+            val computer = pcGridAdapter.getItem(position) as ComputerObject
+            if (PcGridAdapter.isAddComputerCard(computer)) {
+                false
+            } else {
+                showHostActionSheet(computer.details)
+                true
+            }
         }
     }
 

@@ -5,5 +5,5 @@
     <corners android:radius="6dp"/>
     <stroke
         android:width="2dp"
-        android:color="#4CAF50"/>
+        android:color="@color/app_dialog_accent_color"/>
 </shape>

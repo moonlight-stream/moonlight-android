@@ -155,10 +155,10 @@
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">false</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:colorAccent">@color/theme_pink_primary</item>
-        <item name="colorAccent">@color/theme_pink_primary</item>
-        <item name="android:colorControlActivated">@color/theme_pink_primary</item>
-        <item name="colorControlActivated">@color/theme_pink_primary</item>
+        <item name="android:colorAccent">@color/ui_shell_accent</item>
+        <item name="colorAccent">@color/ui_shell_accent</item>
+        <item name="android:colorControlActivated">@color/ui_shell_accent</item>
+        <item name="colorControlActivated">@color/ui_shell_accent</item>
         <item name="android:colorControlNormal">@color/ui_shell_text_secondary</item>
         <item name="colorControlNormal">@color/ui_shell_text_secondary</item>
         <item name="android:colorControlHighlight">@color/ui_shell_accent_soft</item>
@@ -208,7 +208,7 @@
         <!-- 某些系统的 Preference 列表项 summary 会走 list item 的 secondary textAppearance -->
         <item name="android:textAppearanceListItemSecondary">@style/PreferenceSummaryWithShadow</item>
         <item name="android:textAppearanceListItemSmall">@style/PreferenceSummaryWithShadow</item>
-        <item name="android:colorAccent">@color/theme_pink_secondary</item>
+        <item name="android:colorAccent">@color/ui_shell_accent</item>
         <item name="android:textColorPrimary">@color/settings_preference_title_text</item>
         <item name="android:textColorSecondary">@color/settings_preference_summary_text</item>
         <item name="android:listDivider">@color/ui_shell_outline</item>
@@ -237,7 +237,7 @@
     <style name="PreferenceCategoryWithShadow" parent="PreferenceTextWithShadow">
         <item name="android:textSize">20sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/theme_pink_secondary</item> 
+        <item name="android:textColor">@color/ui_shell_accent</item>
         <item name="android:shadowColor">@color/ui_shell_text_shadow_strong</item>
         <item name="android:shadowRadius">5</item>
     </style>
@@ -312,6 +312,20 @@
         <item name="android:windowTitleStyle">@style/AppDialogTitleStyle</item>
     </style>
 
+    <style name="AppActionSheetAnimation">
+        <item name="android:windowEnterAnimation">@anim/app_action_sheet_enter</item>
+        <item name="android:windowExitAnimation">@anim/app_action_sheet_exit</item>
+    </style>
+
+    <style name="AppActionSheetStyle" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.42</item>
+        <item name="android:windowAnimationStyle">@style/AppActionSheetAnimation</item>
+    </style>
+
     <!-- 通用弹窗动画 -->
     <style name="AppDialogAnimation">
         <item name="android:windowEnterAnimation">@anim/game_menu_dialog_enter</item>
@@ -353,41 +367,45 @@
         <item name="android:windowMinWidthMinor">80%</item>
         <item name="android:windowIsFloating">true</item>
         <item name="android:windowAnimationStyle">@style/AppDialogAnimation</item>
-        <item name="android:textColorPrimary">@color/theme_pink_primary</item>
-        <item name="android:colorAccent">@color/theme_pink_primary</item>
-        <item name="android:progressTint">@color/theme_pink_primary</item>
-        <item name="android:indeterminateTint">@color/theme_pink_primary</item>
+        <item name="android:textColorPrimary">@color/app_dialog_text_primary</item>
+        <item name="android:colorAccent">@color/app_dialog_accent_color</item>
+        <item name="android:progressTint">@color/app_dialog_accent_color</item>
+        <item name="android:indeterminateTint">@color/app_dialog_accent_color</item>
         <item name="android:indeterminateDrawable">@drawable/app_progress_indeterminate</item>
     </style>
 
     <!-- 专门用于 iPerf3 对话框的样式 -->
     <style name="Iperf3DialogTheme" parent="Theme.AppCompat.Dialog.Alert">
         <!-- 对话框窗口背景色 (这是整个窗口的背景，包括标题和按钮区域) -->
-        <item name="android:background">#1C1C1E</item>
+        <item name="android:background">@color/app_dialog_surface</item>
+        <item name="android:windowBackground">@drawable/app_dialog_bg_cute</item>
         <!-- 标题文字样式 -->
         <item name="android:windowTitleStyle">@style/Iperf3DialogTitleText</item>
         <!-- 内容区域文字颜色 (虽然我们自定义了布局，但设置一下没坏处) -->
-        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textColor">@color/app_dialog_text_primary</item>
         <!-- 标题文字颜色 (更通用的方式) -->
-        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:textColorPrimary">@color/app_dialog_text_primary</item>
         <!-- 次要文字颜色 -->
-        <item name="android:textColorSecondary">#CCCCCC</item>
+        <item name="android:textColorSecondary">@color/app_dialog_text_secondary</item>
         <!-- 按钮样式 -->
         <item name="buttonBarPositiveButtonStyle">@style/Iperf3DialogButton</item>
         <item name="buttonBarNegativeButtonStyle">@style/Iperf3DialogButton</item>
         <item name="buttonBarNeutralButtonStyle">@style/Iperf3DialogButton</item>
         <!-- 按钮颜色 (这是控制按钮文字颜色的关键属性) -->
-        <item name="colorAccent">#007AFF</item>
+        <item name="android:colorAccent">@color/app_dialog_accent_color</item>
+        <item name="colorAccent">@color/app_dialog_accent_color</item>
+        <item name="android:colorControlActivated">@color/app_dialog_accent_color</item>
+        <item name="colorControlActivated">@color/app_dialog_accent_color</item>
     </style>
     <!-- 自定义标题文字样式 -->
     <style name="Iperf3DialogTitleText" parent="@style/RtlOverlay.DialogWindowTitle.AppCompat">
-        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textColor">@color/app_dialog_text_primary</item>
         <item name="android:textStyle">bold</item>
     </style>
     <!-- 自定义按钮样式 (可以进一步定制，比如背景等) -->
     <style name="Iperf3DialogButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
         <!-- 按钮文字颜色会继承自上面定义的 colorAccent -->
-        <item name="android:textColor">#007AFF</item>
+        <item name="android:textColor">@color/app_dialog_accent_color</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:textStyle">bold</item>
     </style>

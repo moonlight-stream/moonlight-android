@@ -56,13 +56,13 @@ object AppDialogStyler {
     }
 
     fun tintButtons(dialog: Dialog, context: Context) {
-        val accentColor = ContextCompat.getColor(context, R.color.app_dialog_accent_color)
+        val buttonTextColors = ContextCompat.getColorStateList(context, R.color.app_dialog_button_text)
         listOf(
             DialogInterface.BUTTON_POSITIVE,
             DialogInterface.BUTTON_NEGATIVE,
             DialogInterface.BUTTON_NEUTRAL
         ).forEach { buttonId ->
-            findButton(dialog, buttonId)?.setTextColor(accentColor)
+            buttonTextColors?.let { findButton(dialog, buttonId)?.setTextColor(it) }
         }
     }
 

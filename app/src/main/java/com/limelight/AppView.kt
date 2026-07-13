@@ -23,14 +23,9 @@ import android.os.Looper
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.RelativeSizeSpan
-import android.view.ContextMenu
-import android.view.ContextMenu.ContextMenuInfo
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
-import android.widget.AdapterView.AdapterContextMenuInfo
 import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -63,6 +58,7 @@ import com.limelight.ui.AdapterRecyclerBridge
 import com.limelight.ui.ScreenCombinationModePickerView
 import com.limelight.ui.SelectionIndicatorAnimator
 import com.limelight.utils.AppSettingsManager
+import com.limelight.utils.AppActionSheet
 import com.limelight.utils.BackgroundImageManager
 import com.limelight.utils.CacheHelper
 import com.limelight.utils.Dialog
@@ -1396,60 +1392,52 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         frameMetricsLogger = null
     }
 
-    // ==================== 上下文菜单 ====================
+    // ==================== 应用操作 Action Sheet ====================
 
-    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {
-        super.onCreateContextMenu(menu, v, menuInfo)
-
-        var position = -1
-        var targetView: View? = null
-
-        if (menuInfo is AdapterContextMenuInfo) {
-            // AbsListView的情况
-            position = menuInfo.position
-            targetView = menuInfo.targetView
-        } else if (v is RecyclerView) {
-            // RecyclerView的情况，需要从当前选中的位置获取
-            if (appGridAdapter != null && selectedPosition >= 0 && selectedPosition < (appGridAdapter?.count ?: 0)) {
-                position = selectedPosition
-                val viewHolder = v.findViewHolderForAdapterPosition(selectedPosition)
-                if (viewHolder != null) {
-                    targetView = viewHolder.itemView
-                }
-            }
-        } else if (selectedPosition >= 0) {
-            position = selectedPosition
+    private fun buildAppActions(selectedApp: AppObject, targetView: View?): List<AppActionSheet.Action> = buildList {
+        fun add(
+            id: Int,
+            titleRes: Int,
+            destructive: Boolean = false,
+            checked: Boolean? = null,
+            sectionStart: Boolean = false
+        ) {
+            add(AppActionSheet.Action(
+                id = id,
+                title = getString(titleRes),
+                destructive = destructive,
+                checked = checked,
+                sectionStart = sectionStart
+            ))
         }
-
-        if (position < 0 || appGridAdapter == null || position >= (appGridAdapter?.count ?: 0)) return
-
-        val selectedApp = appGridAdapter?.getItem(position) as AppObject
-
-        menu.setHeaderTitle(selectedApp.app.appName)
 
         if (lastRunningAppId != 0) {
             if (lastRunningAppId == selectedApp.app.appId) {
-                menu.add(Menu.NONE, START_OR_RESUME_ID, 1, resources.getString(R.string.applist_menu_resume))
-                menu.add(Menu.NONE, QUIT_ID, 2, resources.getString(R.string.applist_menu_quit))
+                add(START_OR_RESUME_ID, R.string.applist_menu_resume)
             } else {
-                menu.add(Menu.NONE, START_WITH_QUIT, 1, resources.getString(R.string.applist_menu_quit_and_start))
+                add(START_WITH_QUIT, R.string.applist_menu_quit_and_start)
             }
         }
 
         // Only show the hide checkbox if this is not the currently running app or it's already hidden
         if (lastRunningAppId != selectedApp.app.appId || selectedApp.isHidden) {
+            var sectionStarted = false
             // Add "Start with Last Settings" option if last settings exist
             if (appSettingsManager != null && computer?.uuid != null &&
                 appSettingsManager?.hasLastSettings(computer?.uuid!!, selectedApp.app) == true) {
-                menu.add(Menu.NONE, START_WITH_LAST_SETTINGS_ID, 1, resources.getString(R.string.applist_menu_start_with_last_settings))
+                add(START_WITH_LAST_SETTINGS_ID, R.string.applist_menu_start_with_last_settings, sectionStart = true)
+                sectionStarted = true
             }
 
-            val hideAppItem = menu.add(Menu.NONE, HIDE_APP_ID, 2, resources.getString(R.string.applist_menu_hide_app))
-            hideAppItem.isCheckable = true
-            hideAppItem.isChecked = selectedApp.isHidden
+            add(
+                HIDE_APP_ID,
+                R.string.applist_menu_hide_app,
+                checked = selectedApp.isHidden,
+                sectionStart = !sectionStarted
+            )
         }
 
-        menu.add(Menu.NONE, VIEW_DETAILS_ID, 4, resources.getString(R.string.applist_menu_details))
+        add(VIEW_DETAILS_ID, R.string.applist_menu_details, sectionStart = true)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Only add an option to create shortcut if box art is loaded
@@ -1461,34 +1449,18 @@ class AppView : Activity(), AdapterFragmentCallbacks {
                     val drawable = appImageView.drawable as? BitmapDrawable
                     if (drawable != null && drawable.bitmap != null) {
                         // We have a bitmap loaded too
-                        menu.add(Menu.NONE, CREATE_SHORTCUT_ID, 5, resources.getString(R.string.applist_menu_scut))
+                        add(CREATE_SHORTCUT_ID, R.string.applist_menu_scut)
                     }
                 }
             }
         }
-    }
-
-    override fun onContextMenuClosed(menu: Menu) {
-    }
-
-    override fun onContextItemSelected(item: MenuItem): Boolean {
-        val position: Int
-        var targetView: View? = null
-
-        val menuInfo = item.menuInfo
-        if (menuInfo is AdapterContextMenuInfo) {
-            // AbsListView的情况
-            position = menuInfo.position
-            targetView = menuInfo.targetView
-        } else {
-            // RecyclerView的情况，使用当前选中的位置
-            position = selectedPosition
+        if (lastRunningAppId == selectedApp.app.appId) {
+            add(QUIT_ID, R.string.applist_menu_quit, destructive = true, sectionStart = true)
         }
+    }
 
-        if (position < 0 || appGridAdapter == null || position >= (appGridAdapter?.count ?: 0)) return false
-
-        val app = appGridAdapter?.getItem(position) as AppObject
-        when (item.itemId) {
+    private fun handleAppAction(itemId: Int, app: AppObject, targetView: View?): Boolean {
+        when (itemId) {
             START_WITH_QUIT -> {
                 // Display a confirmation dialog first
                 UiHelper.displayQuitConfirmationDialog(this,
@@ -1534,7 +1506,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
             }
 
             HIDE_APP_ID -> {
-                if (item.isChecked) {
+                if (app.isHidden) {
                     // Transitioning hidden to shown
                     hiddenAppIds.remove(app.app.appId)
                 } else {
@@ -1582,7 +1554,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
                 return true
             }
 
-            else -> return super.onContextItemSelected(item)
+            else -> return false
         }
     }
 
@@ -1779,7 +1751,6 @@ class AppView : Activity(), AdapterFragmentCallbacks {
 
         // 应用UI配置
         UiHelper.applyStatusBarPadding(rv)
-        registerForContextMenu(rv)
     }
 
     /**
@@ -1963,7 +1934,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         handleSelectionChange(position, app)
 
         if (lastRunningAppId != 0) {
-            showContextMenuForPosition(position)
+            showAppActionSheetForPosition(position)
         } else {
             startStreamWithLastSettingsIfEnabled(app)
         }
@@ -1978,7 +1949,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
                 keyCode == android.view.KeyEvent.KEYCODE_BUTTON_Y) {
             val app = item as AppObject
             handleSelectionChange(position, app)
-            showContextMenuForPosition(position)
+            showAppActionSheetForPosition(position)
             return true
         }
 
@@ -1988,18 +1959,30 @@ class AppView : Activity(), AdapterFragmentCallbacks {
     private fun handleItemLongClick(position: Int, item: Any): Boolean {
         val app = item as AppObject
         handleSelectionChange(position, app)
-        return showContextMenuForPosition(position)
+        return showAppActionSheetForPosition(position)
     }
 
-    private fun showContextMenuForPosition(position: Int): Boolean {
+    private fun showAppActionSheetForPosition(position: Int): Boolean {
         if (currentRecyclerView == null) return false
 
         val viewHolder = currentRecyclerView?.findViewHolderForAdapterPosition(position)
         if (viewHolder != null) {
-            openContextMenu(viewHolder.itemView)
-            return true
+            return showAppActionSheet(position, viewHolder.itemView)
         }
         return false
+    }
+
+    private fun showAppActionSheet(position: Int, targetView: View?): Boolean {
+        val adapter = appGridAdapter ?: return false
+        if (position !in 0 until adapter.count) return false
+        val app = adapter.getItem(position) as AppObject
+        AppActionSheet.show(
+            context = this,
+            title = app.app.appName,
+            actions = buildAppActions(app, targetView),
+            onAction = { handleAppAction(it.id, app, targetView) }
+        )
+        return true
     }
 
     private fun updateSelectionPosition() {
@@ -2021,19 +2004,23 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         }
 
         listView.setAdapter(adapter)
-        listView.setOnItemClickListener { _, _, pos, _ ->
+        listView.setOnItemClickListener { _, view, pos, _ ->
             val app = adapter.getItem(pos) as AppObject
             handleSelectionChange(pos, app)
 
             if (lastRunningAppId != 0) {
-                openContextMenu(listView)
+                showAppActionSheet(pos, view)
             } else {
                 startStreamWithLastSettingsIfEnabled(app)
             }
         }
 
         UiHelper.applyStatusBarPadding(listView)
-        registerForContextMenu(listView)
+        listView.setOnItemLongClickListener { _, view, pos, _ ->
+            val app = adapter.getItem(pos) as AppObject
+            handleSelectionChange(pos, app)
+            showAppActionSheet(pos, view)
+        }
     }
 
     // ==================== 顶部面板 - 事件处理 ====================

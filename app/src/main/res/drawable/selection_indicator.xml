@@ -49,7 +49,7 @@
                 <item>
                     <vector android:width="30dp" android:height="30dp" android:viewportWidth="30" android:viewportHeight="30">
                         <path
-                            android:fillColor="#3CA4E0"
+                            android:fillColor="@color/ui_shell_accent"
                             android:pathData="M15,3 L21,15 L9,15 Z"/>
                         
                         <path

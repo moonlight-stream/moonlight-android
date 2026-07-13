@@ -302,7 +302,7 @@
             android:stateListAnimator="@null"
             android:text="@string/addpc_action_connect"
             android:textAllCaps="false"
-            android:textColor="@android:color/white"
+            android:textColor="@color/add_pc_on_accent"
             android:textSize="16sp"
             android:textStyle="bold" />
 

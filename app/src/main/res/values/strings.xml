@@ -38,6 +38,7 @@
     <string name="pcview_menu_disable_ipv6">Disable IPv6</string>
     <string name="pcview_menu_enable_ipv6">Enable IPv6</string>
     <string name="pcview_menu_open_webui">Open Web Management (Sunshine)</string>
+    <string name="pcview_menu_more_actions">More actions</string>
     <string name="pcview_open_webui_unavailable">No reachable address available for Web management</string>
     <string name="pcview_open_webui_no_browser">No browser available to open Web management</string>
     <string name="sunshine_webui_ssl_warning_title">Untrusted Certificate</string>
@@ -1762,4 +1763,6 @@ Tap again to replace it.</string>
     <string name="sponsor_wechat_action">Scan with WeChat Pay</string>
     <string name="sponsor_qr_content_description">Sponsor QR code</string>
 
+    <string name="iperf_output_title">Test output</string>
+    <string name="iperf_output_empty_hint">Test results and detailed logs will appear here.</string>
 </resources>

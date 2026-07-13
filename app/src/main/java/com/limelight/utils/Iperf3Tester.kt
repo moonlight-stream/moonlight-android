@@ -16,7 +16,6 @@ import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
-
 import com.limelight.R
 
 import java.io.BufferedReader
@@ -68,6 +67,7 @@ class Iperf3Tester(
         val dialog = builder.create()
         dialog.setOnDismissListener { killProcess() }
         dialog.setOnShowListener {
+            AppDialogStyler.apply(dialog, context)
             val startButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
             val stopButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
             stopButton.isEnabled = false

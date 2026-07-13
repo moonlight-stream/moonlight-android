@@ -14,6 +14,7 @@
     <color name="ui_shell_text_disabled_secondary">#55C9D0D8</color>
     <color name="ui_shell_text_shadow">#88000000</color>
     <color name="ui_shell_text_shadow_strong">#AA000000</color>
+    <color name="ui_shell_accent">#FF8FA3</color>
     <color name="ui_shell_accent_soft">#33FF6B9D</color>
     <color name="ui_shell_accent_focus">#66FF6B9D</color>
     <color name="settings_background_overlay">#B3333333</color>
@@ -37,8 +38,14 @@
     <color name="app_dialog_outline_strong">#4DFFFFFF</color>
     <color name="app_dialog_text_primary">#F7F3F7</color>
     <color name="app_dialog_text_secondary">#C9D0D8</color>
+    <color name="app_dialog_text_disabled">#66C9D0D8</color>
     <color name="app_dialog_accent_soft">#33FF6B9D</color>
     <color name="app_dialog_accent_focus">#66FF6B9D</color>
+    <color name="app_action_sheet_danger">#FFFF9AAA</color>
+    <color name="app_action_sheet_divider">#1FFFFFFF</color>
+    <color name="iperf_output_surface">#FF121318</color>
+    <color name="iperf_output_text">#FFC9D0D8</color>
+    <color name="iperf_output_hint">#99C9D0D8</color>
 
     <!-- About dialog keeps its own layered card treatment. -->
     <color name="about_dialog_window_start">#F229242F</color>
@@ -58,10 +65,12 @@
     <color name="add_pc_text_primary">@color/ui_shell_text_primary</color>
     <color name="add_pc_text_secondary">@color/ui_shell_text_secondary</color>
     <color name="add_pc_text_hint">@color/ui_shell_text_disabled_secondary</color>
-    <color name="add_pc_accent">@color/theme_pink_secondary</color>
+    <color name="add_pc_on_accent">#FF1F2026</color>
+    <color name="add_pc_accent">@color/ui_shell_accent</color>
     <color name="add_pc_accent_soft">@color/ui_shell_accent_soft</color>
     <color name="add_pc_accent_focus">@color/ui_shell_accent_focus</color>
     <color name="add_pc_formula">#225A3E4A</color>
     <color name="add_pc_badge_ring">#FF15161B</color>
     <color name="add_pc_button_disabled">#665A3E4A</color>
+
 </resources>

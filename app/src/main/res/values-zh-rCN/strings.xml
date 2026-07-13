@@ -443,6 +443,7 @@
     <string name="nettest_title_waiting">测试网络连接中</string>
     <string name="pcview_menu_test_network">测试网络连接</string>
     <string name="pcview_menu_open_webui">打开 Web 管理（Sunshine）</string>
+    <string name="pcview_menu_more_actions">更多操作</string>
     <string name="pcview_open_webui_unavailable">未找到可用主机地址，无法打开 Web 管理</string>
     <string name="pcview_open_webui_no_browser">未找到可用浏览器</string>
     <string name="sunshine_webui_ssl_warning_title">证书不可信</string>
@@ -1700,4 +1701,6 @@
     <string name="sponsor_wechat_action">使用微信支付扫码</string>
     <string name="sponsor_qr_content_description">赞助二维码</string>
     <string name="toast_update_integrity_mismatch">更新下载内容不是有效安装包，请切换网络或使用浏览器下载。</string>
+    <string name="iperf_output_title">测试输出</string>
+    <string name="iperf_output_empty_hint">测试结果和详细日志将在这里显示。</string>
 </resources>

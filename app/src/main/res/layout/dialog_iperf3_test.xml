@@ -4,14 +4,14 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="#1C1C1E">
+    android:background="@color/app_dialog_surface">
 
     <!-- 服务器IP输入 -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/layout_dlg_iperf3_test_text_b6031"
-        android:textColor="#BBBBBB"
+        android:textColor="@color/app_dialog_text_secondary"
         android:textSize="12sp"
         android:layout_marginStart="4dp"/>
     <EditText
@@ -23,8 +23,8 @@
         android:background="@drawable/edit_text_background"
         android:inputType="textUri"
         android:padding="12dp"
-        android:textColor="@android:color/white"
-        android:textColorHint="#888888"
+        android:textColor="@color/app_dialog_text_primary"
+        android:textColorHint="@color/app_dialog_text_secondary"
         android:textCursorDrawable="@null"
         android:textSize="16sp" />
 
@@ -33,7 +33,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/layout_dlg_iperf3_test_text_2f727"
-        android:textColor="@android:color/white"
+        android:textColor="@color/app_dialog_text_primary"
         android:textSize="16sp"
         android:textStyle="bold"
         android:layout_marginTop="8dp"
@@ -50,7 +50,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/layout_dlg_iperf3_test_text_3226b"
-            android:textColor="#DDDDDD"
+            android:textColor="@color/app_dialog_text_secondary"
             android:textSize="14sp"
             android:layout_marginEnd="8dp"/>
         <RadioGroup
@@ -64,8 +64,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/layout_dlg_iperf3_test_text_d5a73"
-                android:textColor="@android:color/white"
-                android:buttonTint="#007AFF"
+                android:textColor="@color/app_dialog_text_primary"
+                android:buttonTint="@color/app_dialog_accent_color"
                 android:layout_marginEnd="16dp"
                 android:checked="true"/>
             <RadioButton
@@ -73,8 +73,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/layout_dlg_iperf3_test_text_f26ef"
-                android:textColor="@android:color/white"
-                android:buttonTint="#007AFF"/>
+                android:textColor="@color/app_dialog_text_primary"
+                android:buttonTint="@color/app_dialog_accent_color"/>
         </RadioGroup>
     </LinearLayout>
 
@@ -89,7 +89,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/layout_dlg_iperf3_test_text_c19e7"
-            android:textColor="#DDDDDD"
+            android:textColor="@color/app_dialog_text_secondary"
             android:textSize="14sp"
             android:layout_marginEnd="8dp"/>
         <SeekBar
@@ -100,15 +100,15 @@
             android:max="30"
             android:progress="5"
             android:min="1"
-            android:thumbTint="#007AFF"
-            android:progressTint="#007AFF"
+            android:thumbTint="@color/app_dialog_accent_color"
+            android:progressTint="@color/app_dialog_accent_color"
             android:layout_marginEnd="8dp"/>
         <TextView
             android:id="@+id/text_view_duration_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="5s"
-            android:textColor="@android:color/white"
+            android:textColor="@color/app_dialog_text_primary"
             android:textSize="14sp"
             android:minWidth="30dp"
             android:gravity="end"/>
@@ -125,7 +125,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/layout_dlg_iperf3_test_text_9da95"
-            android:textColor="#DDDDDD"
+            android:textColor="@color/app_dialog_text_secondary"
             android:textSize="14sp"
             android:layout_marginEnd="8dp"/>
         <EditText
@@ -137,7 +137,7 @@
             android:text="5201"
             android:background="@drawable/edit_text_background_small"
             android:padding="8dp"
-            android:textColor="@android:color/white"
+            android:textColor="@color/app_dialog_text_primary"
             android:textCursorDrawable="@null"
             android:maxLength="5"
             android:layout_marginEnd="8dp"/>
@@ -146,8 +146,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="UDP"
-            android:textColor="@android:color/white"
-            android:buttonTint="#007AFF"/>
+            android:textColor="@color/app_dialog_text_primary"
+            android:buttonTint="@color/app_dialog_accent_color"/>
     </LinearLayout>
 
     <!-- UDP 带宽设置  -->
@@ -164,7 +164,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/layout_dlg_iperf3_test_text_c7731"
-            android:textColor="#DDDDDD"
+            android:textColor="@color/app_dialog_text_secondary"
             android:textSize="14sp"
             android:layout_marginEnd="8dp"/>
 
@@ -177,10 +177,10 @@
             android:text="100M"
             android:background="@drawable/edit_text_background_small"
             android:padding="8dp"
-            android:textColor="@android:color/white"
+            android:textColor="@color/app_dialog_text_primary"
             android:textCursorDrawable="@null"
             android:hint="@string/layout_dlg_iperf3_test_hint_2c7ff"
-            android:textColorHint="#888888"/>
+            android:textColorHint="@color/app_dialog_text_secondary"/>
     </LinearLayout>
 
     <!-- 其他参数输入 -->
@@ -188,7 +188,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/layout_dlg_iperf3_test_text_f2f61"
-        android:textColor="#BBBBBB"
+        android:textColor="@color/app_dialog_text_secondary"
         android:textSize="12sp"
         android:layout_marginStart="4dp"
         android:layout_marginTop="8dp"/>
@@ -205,25 +205,38 @@
         android:minLines="1"
         android:padding="12dp"
         android:scrollbars="vertical"
-        android:textColor="@android:color/white"
-        android:textColorHint="#888888"
+        android:textColor="@color/app_dialog_text_primary"
+        android:textColorHint="@color/app_dialog_text_secondary"
         android:textCursorDrawable="@null"
         android:textSize="16sp" />
 
     <!-- 输出部分  -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="6dp"
+        android:text="@string/iperf_output_title"
+        android:textColor="@color/app_dialog_text_secondary"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
     <ScrollView
         android:id="@+id/output_scroll_view"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="#000000"
-        android:padding="8dp"
+        android:layout_height="160dp"
+        android:background="@drawable/iperf_output_background"
+        android:padding="12dp"
         android:fadeScrollbars="false">
         <TextView
             android:id="@+id/text_view_iperf3_output"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="monospace"
-            android:textColor="#00FF00"
+            android:hint="@string/iperf_output_empty_hint"
+            android:textColor="@color/iperf_output_text"
+            android:textColorHint="@color/iperf_output_hint"
             android:textSize="12sp"
             android:textIsSelectable="true"
             android:lineSpacingExtra="2dp"/>

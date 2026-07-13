@@ -511,7 +511,7 @@ class StreamSettings : AppCompatActivity() {
          */
         private fun updateItemAppearance(holder: ViewHolder, isSelected: Boolean, hasFocus: Boolean) {
             // 使用项目公共粉色主题
-            val pinkPrimary = androidx.core.content.ContextCompat.getColor(this@StreamSettings, R.color.theme_pink_primary)    // #FF6B9D
+            val accentColor = androidx.core.content.ContextCompat.getColor(this@StreamSettings, R.color.ui_shell_accent)
             val primaryText = ContextCompat.getColor(this@StreamSettings, R.color.ui_shell_text_primary)
             val secondaryText = ContextCompat.getColor(this@StreamSettings, R.color.ui_shell_text_secondary)
             val subtleText = ContextCompat.getColor(this@StreamSettings, R.color.ui_shell_outline_strong)
@@ -522,8 +522,8 @@ class StreamSettings : AppCompatActivity() {
             // 文字 + 图标颜色三态切换
             val textColor: Int; val textAlpha: Float; val iconColor: Int; val iconAlpha: Float
             when {
-                isSelected -> { textColor = primaryText; textAlpha = 1.0f; iconColor = pinkPrimary; iconAlpha = 1.0f }
-                hasFocus   -> { textColor = pinkPrimary; textAlpha = 1.0f; iconColor = pinkPrimary; iconAlpha = 0.95f }
+                isSelected -> { textColor = primaryText; textAlpha = 1.0f; iconColor = accentColor; iconAlpha = 1.0f }
+                hasFocus   -> { textColor = accentColor; textAlpha = 1.0f; iconColor = accentColor; iconAlpha = 0.95f }
                 else       -> { textColor = secondaryText; textAlpha = 0.9f; iconColor = secondaryText; iconAlpha = 0.7f }
             }
             holder.title.setTextColor(textColor)
@@ -536,10 +536,10 @@ class StreamSettings : AppCompatActivity() {
             if (arrow != null) {
                 if (isSelected) {
                     arrow.alpha = 1.0f
-                    arrow.setColorFilter(pinkPrimary)
+                    arrow.setColorFilter(accentColor)
                 } else if (hasFocus) {
                     arrow.alpha = 0.9f
-                    arrow.setColorFilter(pinkPrimary)
+                    arrow.setColorFilter(accentColor)
                 } else {
                     arrow.alpha = 0.4f
                     arrow.setColorFilter(subtleText)
@@ -1260,24 +1260,30 @@ class StreamSettings : AppCompatActivity() {
          * SummaryProvider 是按需调用的，所以即便后续动态 setEntries() 也能拿到最新值。
          */
         private fun applyListPreferenceCurrentValueSummary(group: PreferenceGroup) {
-            val accent = ContextCompat.getColor(group.context, R.color.theme_pink_secondary)
+            val accent = ContextCompat.getColor(group.context, R.color.ui_shell_accent)
+            val valueText = ContextCompat.getColor(group.context, R.color.ui_shell_text_primary)
             val disabledAccent = ContextCompat.getColor(group.context, R.color.ui_shell_text_disabled_primary)
-            applyHighlightedSummariesRecursively(group, accent, disabledAccent)
+            applyHighlightedSummariesRecursively(group, accent, valueText, disabledAccent)
         }
 
-        private fun applyHighlightedSummariesRecursively(group: PreferenceGroup, accent: Int, disabledAccent: Int) {
+        private fun applyHighlightedSummariesRecursively(
+                group: PreferenceGroup,
+                accent: Int,
+                valueText: Int,
+                disabledAccent: Int
+        ) {
             for (i in 0 until group.preferenceCount) {
                 val child = group.getPreference(i)
                 when {
-                    child is PreferenceGroup -> applyHighlightedSummariesRecursively(child, accent, disabledAccent)
+                    child is PreferenceGroup -> applyHighlightedSummariesRecursively(child, accent, valueText, disabledAccent)
                     // IconListPreference 自己重写 setSummary 维护 "(当前：xxx)"，
                     // 装 SummaryProvider 会与其 super.setSummary 调用互斥，跳过。
                     child is IconListPreference -> Unit
-                    child is ListPreference -> applyHighlightedSummary(child, accent, disabledAccent) {
+                    child is ListPreference -> applyHighlightedSummary(child, accent, valueText, disabledAccent) {
                         val entry = it.entry?.toString()
                         if (entry.isNullOrBlank()) "—" else entry
                     }
-                    child is SeekBarPreference -> applyHighlightedSummary(child, accent, disabledAccent) {
+                    child is SeekBarPreference -> applyHighlightedSummary(child, accent, valueText, disabledAccent) {
                         val display = it.formatDisplayValue(it.currentValue)
                         val suffix = it.suffix?.takeIf { s -> s.isNotBlank() }
                         if (suffix != null) "$display $suffix" else display
@@ -1294,6 +1300,7 @@ class StreamSettings : AppCompatActivity() {
         private inline fun <reified T : Preference> applyHighlightedSummary(
                 pref: T,
                 accent: Int,
+                valueText: Int,
                 disabledAccent: Int,
                 crossinline currentValueProvider: (T) -> String
         ) {
@@ -1301,13 +1308,20 @@ class StreamSettings : AppCompatActivity() {
             pref.summaryProvider = Preference.SummaryProvider<T> { p ->
                 val current = currentValueProvider(p)
                 val builder = SpannableStringBuilder()
-                builder.append(current)
+                val markerStart = builder.length
+                builder.append('●')
                 builder.setSpan(
                         ForegroundColorSpan(if (p.isEnabled) accent else disabledAccent),
-                        0, builder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        markerStart, builder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                builder.append(' ')
+                val valueStart = builder.length
+                builder.append(current)
+                builder.setSpan(
+                        ForegroundColorSpan(if (p.isEnabled) valueText else disabledAccent),
+                        valueStart, builder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 builder.setSpan(
                         StyleSpan(Typeface.BOLD),
-                        0, builder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        valueStart, builder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 if (originalSummary != null) {
                     builder.append('\n').append(originalSummary)
                 }

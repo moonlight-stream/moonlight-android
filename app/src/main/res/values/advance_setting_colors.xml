@@ -11,7 +11,7 @@
     <color name="window_background">#C0303030</color>
 
     <color name="control_highlight_color">#2196F3</color>
-    <color name="scene_btn_stroke">#2196F3</color>
+    <color name="scene_btn_stroke">@color/ui_shell_accent</color>
     <color name="btn_pressed_color">#4D2196F3</color>
 
     <!-- GameMenu 颜色 -->
@@ -66,6 +66,8 @@
     <color name="ui_shell_text_disabled_secondary">#4D242830</color>
     <color name="ui_shell_text_shadow">#00000000</color>
     <color name="ui_shell_text_shadow_strong">#00000000</color>
+    <!-- Brand accent stays bright; dense text uses neutral foreground plus an accent marker. -->
+    <color name="ui_shell_accent">#FF6B9D</color>
     <color name="ui_shell_accent_soft">#1AFF6B9D</color>
     <color name="ui_shell_accent_focus">#33FF6B9D</color>
     <color name="settings_background_overlay">#CCFFFFFF</color>
@@ -89,8 +91,14 @@
     <color name="app_dialog_outline_strong">#381D1B20</color>
     <color name="app_dialog_text_primary">#DE1F2026</color>
     <color name="app_dialog_text_secondary">#A6242830</color>
+    <color name="app_dialog_text_disabled">#66242830</color>
     <color name="app_dialog_accent_soft">#1AFF6B9D</color>
     <color name="app_dialog_accent_focus">#33FF6B9D</color>
+    <color name="app_action_sheet_danger">#FFB04A5A</color>
+    <color name="app_action_sheet_divider">#141D1B20</color>
+    <color name="iperf_output_surface">#FFF8F6FA</color>
+    <color name="iperf_output_text">#FF242830</color>
+    <color name="iperf_output_hint">#99242830</color>
 
     <!-- About dialog keeps its own layered card treatment. -->
     <color name="about_dialog_window_start">#F2F8F5FC</color>
@@ -118,7 +126,7 @@
     <!-- 通用对话框颜色 -->
     <color name="app_dialog_title_color">@color/app_dialog_text_primary</color>
     <color name="app_dialog_subtitle_color">@color/app_dialog_text_secondary</color>
-    <color name="app_dialog_accent_color">#FF6B9D</color>
+    <color name="app_dialog_accent_color">@color/ui_shell_accent</color>
 
     <!-- Manual add computer screen -->
     <color name="add_pc_background">#FFF8F6FA</color>
@@ -130,7 +138,8 @@
     <color name="add_pc_text_primary">@color/ui_shell_text_primary</color>
     <color name="add_pc_text_secondary">@color/ui_shell_text_secondary</color>
     <color name="add_pc_text_hint">@color/ui_shell_text_disabled_secondary</color>
-    <color name="add_pc_accent">@color/theme_pink_primary</color>
+    <color name="add_pc_on_accent">#FF1F2026</color>
+    <color name="add_pc_accent">@color/ui_shell_accent</color>
     <color name="add_pc_accent_soft">@color/ui_shell_accent_soft</color>
     <color name="add_pc_accent_focus">@color/ui_shell_accent_focus</color>
     <color name="add_pc_formula">#1AFF6B9D</color>

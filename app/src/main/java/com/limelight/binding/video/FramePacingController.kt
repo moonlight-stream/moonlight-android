@@ -107,7 +107,7 @@ internal class FramePacingController(
             Choreographer.getInstance().removeFrameCallback(this)
         }
 
-        // Unblock any threads waiting on take()
+        // Signal any pacing loop that happens to observe the queue during shutdown.
         outputBufferQueue.add(-1)
     }
 
@@ -130,13 +130,13 @@ internal class FramePacingController(
      *                  此处(帧到达点)即调用 step1 时钟算出目标呈现时刻，避免出队排队抖动污染 instOffset。
      */
     fun offerOutputBuffer(bufferIndex: Int, hostPtsUs: Long = -1L) {
-        if (outputBufferQueue.size >= prefs.outputBufferQueueLimit) {
+        while (outputBufferQueue.size >= prefs.outputBufferQueueLimit) {
+            val dropped = outputBufferQueue.poll() ?: break
             try {
-                val dropped = outputBufferQueue.take()
                 hostTargetByIndex.remove(dropped)
-                videoDecoder?.releaseOutputBuffer(dropped, false)
-            } catch (_: InterruptedException) {
-                return
+                if (dropped >= 0) {
+                    videoDecoder?.releaseOutputBuffer(dropped, false)
+                }
             } catch (_: IllegalStateException) {
                 // Buffer index may be stale after codec recovery
             }

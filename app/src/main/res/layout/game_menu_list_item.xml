@@ -27,8 +27,11 @@
         android:maxLines="1" />
 
     <ImageView
+        android:id="@+id/menu_item_chevron"
         android:layout_width="14dp"
         android:layout_height="14dp"
-        android:src="@drawable/ic_arrow_right" />
+        android:src="@drawable/ic_arrow_right"
+        android:visibility="gone"
+        android:contentDescription="@null" />
 
 </LinearLayout>

@@ -2,129 +2,73 @@ package com.limelight
 
 import android.app.AlertDialog
 import android.view.KeyEvent
-import android.view.View
-import android.widget.CompoundButton
-import android.widget.SeekBar
-import android.widget.TextView
 import android.widget.Toast
-import java.util.Locale
-
 import com.limelight.binding.input.ControllerHandler
 import com.limelight.utils.AppDialogStyler
-import kotlin.math.roundToInt
 
-/**
- * Encapsulates the gyro control card logic (right-stick mode and mouse mode).
- */
-class GyroCardController(private val game: Game) {
+internal data class GyroCardState(
+    val enabled: Boolean,
+    val mouseMode: Boolean,
+    val activationKeyLabel: String,
+    val sensitivity: Float,
+    val invertX: Boolean,
+    val invertY: Boolean
+)
 
-    fun setup(customView: View, dialog: AlertDialog) {
-        val container = customView.findViewById<View>(R.id.gyroAdjustmentContainer) ?: return
+/** Owns gyroscope preferences and controller-side effects without depending on Android Views. */
+internal class GyroCardController(private val game: Game) {
+    private var onStateChanged: ((GyroCardState) -> Unit)? = null
+    private var state = readState()
 
-        val statusText = customView.findViewById<TextView>(R.id.gyroStatusText)
-        val toggleSwitch = customView.findViewById<CompoundButton>(R.id.gyroToggleSwitch)
-        val mouseModeSwitch = customView.findViewById<CompoundButton>(R.id.gyroMouseModeSwitch)
-        val activationKeyContainer = customView.findViewById<View>(R.id.gyroActivationKeyContainer)
-        val activationKeyText = customView.findViewById<TextView>(R.id.gyroActivationKeyText)
-        val sensSeek = customView.findViewById<SeekBar>(R.id.gyroSensitivitySeekBar)
-        val sensVal = customView.findViewById<TextView>(R.id.gyroSensitivityValueText)
-        val invertXSwitch = customView.findViewById<CompoundButton>(R.id.gyroInvertXSwitch)
-        val invertYSwitch = customView.findViewById<CompoundButton>(R.id.gyroInvertYSwitch)
+    fun snapshot(): GyroCardState = state
 
-        val isAnyGyroOn = game.prefConfig.gyroToRightStick || game.prefConfig.gyroToMouse
-        statusText?.text = if (isAnyGyroOn) "ON" else "OFF"
-        mouseModeSwitch?.isChecked = game.prefConfig.gyroToMouse
-
-        toggleSwitch?.apply {
-            isChecked = isAnyGyroOn
-            setOnCheckedChangeListener { buttonView, isChecked ->
-                val ch = game.controllerHandler
-                val mouseMode = mouseModeSwitch?.isChecked ?: false
-                if (isChecked) {
-                    if (mouseMode) ch.setGyroToMouseEnabled(true)
-                    else ch.setGyroToRightStickEnabled(true)
-                } else {
-                    ch.setGyroToRightStickEnabled(false)
-                    ch.setGyroToMouseEnabled(false)
-                }
-                statusText?.text = if (isChecked) "ON" else "OFF"
-            }
-        }
-
-        mouseModeSwitch?.setOnCheckedChangeListener { buttonView, isChecked ->
-            val gyroOn = toggleSwitch?.isChecked ?: false
-            if (!gyroOn) return@setOnCheckedChangeListener
-
-            val ch = game.controllerHandler
-
-            if (isChecked) {
-                ch.setGyroToMouseEnabled(true)
-            } else {
-                // 关闭鼠标模式时，检查是否有物理手柄或虚拟手柄
-                // 只有在有手柄的情况下才启用手柄模式，否则完全关闭陀螺仪
-                val hasController = ch.hasAnyController()
-                if (hasController) {
-                    ch.setGyroToRightStickEnabled(true)
-                } else {
-                    // 没有手柄，完全关闭陀螺仪
-                    ch.setGyroToRightStickEnabled(false)
-                    ch.setGyroToMouseEnabled(false)
-                    toggleSwitch.isChecked = false
-                    statusText?.text = "OFF"
-                    Toast.makeText(game, game.getString(R.string.gyro_no_controller_detected), Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
-        // 更新显示
-        activationKeyText?.let { updateActivationKeyText(it) }
-        activationKeyContainer?.setOnClickListener { showActivationKeyDialog(activationKeyText) }
-
-        if (sensSeek != null && sensVal != null) {
-            // 灵敏度倍数，范围：0.5x .. 3.0x（步进 0.1）
-            val max = 25
-            sensSeek.max = max
-            val mult = (if (game.prefConfig.gyroSensitivityMultiplier > 0)
-                game.prefConfig.gyroSensitivityMultiplier else 1.0f).coerceIn(0.5f, 3.0f)
-            val progress = ((mult - 0.5f) / 0.1f).roundToInt()
-            sensSeek.progress = progress
-            sensVal.text = String.format(Locale.US, "%.1fx", mult)
-
-            sensSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar, p: Int, fromUser: Boolean) {
-                    val m = 0.5f + p * 0.1f
-                    game.prefConfig.gyroSensitivityMultiplier = m
-                    sensVal.text = String.format(Locale.US, "%.1fx", m)
-                }
-                override fun onStartTrackingTouch(seekBar: SeekBar) {}
-                override fun onStopTrackingTouch(seekBar: SeekBar) {
-                    game.prefConfig.writePreferences(game)
-                }
-            })
-        }
-
-        invertXSwitch?.apply {
-            isChecked = game.prefConfig.gyroInvertXAxis
-            setOnCheckedChangeListener { _, isChecked ->
-                game.prefConfig.gyroInvertXAxis = isChecked
-                game.prefConfig.writePreferences(game)
-            }
-        }
-
-        invertYSwitch?.apply {
-            isChecked = game.prefConfig.gyroInvertYAxis
-            setOnCheckedChangeListener { _, isChecked ->
-                game.prefConfig.gyroInvertYAxis = isChecked
-                game.prefConfig.writePreferences(game)
-            }
-        }
+    fun start(onStateChanged: (GyroCardState) -> Unit) {
+        this.onStateChanged = onStateChanged
+        state = readState()
+        emitState()
     }
 
-    private fun showActivationKeyDialog(activationKeyText: TextView?) {
+    fun setEnabled(enabled: Boolean) {
+        val handler = game.controllerHandler
+        if (enabled) {
+            if (state.mouseMode) handler.setGyroToMouseEnabled(true)
+            else handler.setGyroToRightStickEnabled(true)
+        } else {
+            handler.setGyroToRightStickEnabled(false)
+            handler.setGyroToMouseEnabled(false)
+        }
+        state = state.copy(enabled = enabled)
+        emitState()
+    }
+
+    fun setMouseMode(enabled: Boolean) {
+        if (!state.enabled) {
+            state = state.copy(mouseMode = enabled)
+            emitState()
+            return
+        }
+
+        val handler = game.controllerHandler
+        if (enabled) {
+            handler.setGyroToMouseEnabled(true)
+            state = state.copy(mouseMode = true)
+        } else if (handler.hasAnyController()) {
+            handler.setGyroToRightStickEnabled(true)
+            state = state.copy(mouseMode = false)
+        } else {
+            handler.setGyroToRightStickEnabled(false)
+            handler.setGyroToMouseEnabled(false)
+            state = state.copy(enabled = false, mouseMode = false)
+            Toast.makeText(game, game.getString(R.string.gyro_no_controller_detected), Toast.LENGTH_SHORT).show()
+        }
+        emitState()
+    }
+
+    fun showActivationKeyDialog() {
         val items = arrayOf<CharSequence>(
             game.getString(R.string.gyro_activation_always),
-            "LT (L2)",
-            "RT (R2)"
+            game.getString(R.string.gyro_activation_left_trigger),
+            game.getString(R.string.gyro_activation_right_trigger)
         )
         val checked = when (game.prefConfig.gyroActivationKeyCode) {
             ControllerHandler.GYRO_ACTIVATION_ALWAYS -> 0
@@ -133,15 +77,16 @@ class GyroCardController(private val game: Game) {
         }
         val dialog = AlertDialog.Builder(game, R.style.AppDialogStyle)
             .setTitle(R.string.gyro_activation_method)
-            .setSingleChoiceItems(items, checked) { d, which ->
+            .setSingleChoiceItems(items, checked) { choiceDialog, which ->
                 game.prefConfig.gyroActivationKeyCode = when (which) {
                     0 -> ControllerHandler.GYRO_ACTIVATION_ALWAYS
                     1 -> KeyEvent.KEYCODE_BUTTON_L2
                     else -> KeyEvent.KEYCODE_BUTTON_R2
                 }
                 game.prefConfig.writePreferences(game)
-                activationKeyText?.text = items[which]
-                d.dismiss()
+                state = state.copy(activationKeyLabel = items[which].toString())
+                emitState()
+                choiceDialog.dismiss()
             }
             .setNegativeButton(R.string.dialog_button_cancel, null)
             .create()
@@ -149,12 +94,56 @@ class GyroCardController(private val game: Game) {
         AppDialogStyler.applySystemChoiceList(dialog, game)
     }
 
-    private fun updateActivationKeyText(activationKeyText: TextView) {
-        val label = when (game.prefConfig.gyroActivationKeyCode) {
-            ControllerHandler.GYRO_ACTIVATION_ALWAYS -> game.getString(R.string.gyro_activation_always)
-            KeyEvent.KEYCODE_BUTTON_R2 -> "RT (R2)"
-            else -> "LT (L2)"
-        }
-        activationKeyText.text = label
+    fun previewSensitivity(sensitivity: Float) {
+        val bounded = sensitivity.coerceIn(0.5f, 10.0f)
+        game.prefConfig.gyroSensitivityMultiplier = bounded
+        state = state.copy(sensitivity = bounded)
+        emitState()
+    }
+
+    fun persistSensitivity() {
+        game.prefConfig.writePreferences(game)
+    }
+
+    fun setInvertX(enabled: Boolean) {
+        game.prefConfig.gyroInvertXAxis = enabled
+        game.prefConfig.writePreferences(game)
+        state = state.copy(invertX = enabled)
+        emitState()
+    }
+
+    fun setInvertY(enabled: Boolean) {
+        game.prefConfig.gyroInvertYAxis = enabled
+        game.prefConfig.writePreferences(game)
+        state = state.copy(invertY = enabled)
+        emitState()
+    }
+
+    fun dispose() {
+        onStateChanged = null
+    }
+
+    private fun readState(): GyroCardState {
+        val prefs = game.prefConfig
+        return GyroCardState(
+            enabled = prefs.gyroToRightStick || prefs.gyroToMouse,
+            mouseMode = prefs.gyroToMouse,
+            activationKeyLabel = when (prefs.gyroActivationKeyCode) {
+                ControllerHandler.GYRO_ACTIVATION_ALWAYS -> game.getString(R.string.gyro_activation_always)
+                KeyEvent.KEYCODE_BUTTON_R2 -> game.getString(R.string.gyro_activation_right_trigger)
+                else -> game.getString(R.string.gyro_activation_left_trigger)
+            },
+            sensitivity = (if (prefs.gyroSensitivityMultiplier > 0) {
+                prefs.gyroSensitivityMultiplier
+            } else {
+                1.0f
+            }).coerceIn(0.5f, 10.0f),
+            invertX = prefs.gyroInvertXAxis,
+            invertY = prefs.gyroInvertYAxis
+        )
+    }
+
+    private fun emitState() {
+        onStateChanged?.invoke(state)
     }
 }

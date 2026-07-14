@@ -18,7 +18,9 @@ data class StreamAction(
     val label: String,
     val iconRes: Int,
     val iconDisabledRes: Int = 0,
-    val labelRes: Int = 0
+    val labelRes: Int = 0,
+    val tintableIcon: Boolean = false,
+    val iconText: String? = null
 )
 
 data class CustomKeyData(val name: String, val keys: ShortArray)
@@ -94,16 +96,24 @@ object StreamActionRegistry {
     val BUILTIN = linkedMapOf(
         "open_keyboard" to StreamAction("open_keyboard", "KB", R.drawable.ic_keyboard_cute, 0, R.string.quick_btn_keyboard),
         "open_menu" to StreamAction("open_menu", "Menu", R.drawable.ic_menu_item_default),
-        "toggle_visibility" to StreamAction("toggle_visibility", "Hide", R.drawable.ic_btn_quit),
-        "send_win" to StreamAction("send_win", "WIN", R.drawable.ic_btn_win),
-        "send_esc" to StreamAction("send_esc", "ESC", R.drawable.ic_btn_esc),
-        "toggle_hdr" to StreamAction("toggle_hdr", "HDR", R.drawable.ic_btn_hdr),
+        "toggle_visibility" to StreamAction("toggle_visibility", "Hide", R.drawable.ic_btn_quit, tintableIcon = true),
+        "send_win" to StreamAction("send_win", "Win", R.drawable.ic_btn_win, labelRes = R.string.quick_btn_win, tintableIcon = true),
+        "send_esc" to StreamAction("send_esc", "Esc", R.drawable.ic_btn_esc, labelRes = R.string.quick_btn_esc, tintableIcon = true),
+        "toggle_hdr" to StreamAction("toggle_hdr", "HDR", R.drawable.ic_btn_hdr, labelRes = R.string.quick_btn_hdr, tintableIcon = true),
         "toggle_mic" to StreamAction("toggle_mic", "Mic", R.drawable.ic_mic_gm, R.drawable.ic_mic_gm_disabled, R.string.quick_btn_mic),
-        "send_sleep" to StreamAction("send_sleep", "Sleep", R.drawable.ic_btn_sleep, 0, R.string.quick_btn_sleep),
-        "quit" to StreamAction("quit", "Quit", R.drawable.ic_btn_quit, 0, R.string.quick_btn_quit),
-        "send_tab" to StreamAction("send_tab", "Tab", R.drawable.ic_btn_keyboard),
-        "send_alt_tab" to StreamAction("send_alt_tab", "Alt+Tab", R.drawable.ic_btn_keyboard),
-        "send_alt_f4" to StreamAction("send_alt_f4", "Alt+F4", R.drawable.ic_btn_esc),
+        "send_sleep" to StreamAction(
+            "send_sleep", "Sleep", R.drawable.ic_btn_sleep,
+            labelRes = R.string.quick_btn_sleep,
+            tintableIcon = true
+        ),
+        "quit" to StreamAction(
+            "quit", "Quit", R.drawable.ic_btn_quit,
+            labelRes = R.string.quick_btn_quit,
+            tintableIcon = true
+        ),
+        "send_tab" to StreamAction("send_tab", "Tab", 0, labelRes = R.string.quick_btn_tab, iconText = "HK"),
+        "send_alt_tab" to StreamAction("send_alt_tab", "Alt+Tab", 0, labelRes = R.string.quick_btn_alt_tab, iconText = "HK"),
+        "send_alt_f4" to StreamAction("send_alt_f4", "Alt+F4", 0, labelRes = R.string.quick_btn_alt_f4, iconText = "HK"),
         "toggle_keyboard" to StreamAction("toggle_keyboard", "KB", R.drawable.ic_keyboard_cute, 0, R.string.quick_btn_keyboard),
         "toggle_controller" to StreamAction("toggle_controller", "Pad", R.drawable.ic_controller_cute, 0, R.string.quick_btn_controller),
         "toggle_perf" to StreamAction("toggle_perf", "Perf", R.drawable.ic_performance_cute, 0, R.string.quick_btn_perf),

@@ -118,6 +118,8 @@
     <string name="applist_quit_confirmation">您确定要退出当前游戏？所有未保存的数据将丢失。</string>
     <string name="applist_details_id">App ID：</string>
     <!-- In Game menu -->
+    <string name="game_menu_title">🍥🍬 V+ 游戏菜单</string>
+    <string name="game_menu_server_version">%1$s  服务端 %2$s</string>
     <string name="game_menu_toggle_keyboard"> 屏幕键盘 </string>
     <string name="game_menu_toggle_performance_overlay"> 性能监控图层 </string>
     <string name="perf_overlay_hidden">关闭</string>
@@ -608,7 +610,6 @@
     <string name="game_menu_crown_function_title">♛ 王冠</string>
     <string name="game_menu_toggle_elements_visibility">显示/隐藏按键</string>
     <string name="game_menu_configure_crown_function">返回键打开王冠</string>
-    <string name="crown_control_enable_subtitle">启用王冠档案和控制入口</string>
     <string name="crown_control_visibility_subtitle">临时收起或显示屏幕按键</string>
     <string name="crown_control_touch_subtitle">暂停或恢复当前档案的触控输入</string>
     <string name="crown_control_profiles_subtitle">切换已保存的按键、触控和反馈档案</string>
@@ -706,7 +707,7 @@
     <string name="tip_cards_show">💡 串流小课堂：游戏菜单最下方可以编辑展示的功能卡片，不需要的卡片可以收起来哦～</string>
 
     <!-- 触控模式切换菜单 -->
-    <string name="game_menu_switch_touch_mode">切换触控模式</string>
+    <string name="game_menu_switch_touch_mode">触控模式</string>
     <string name="game_menu_touch_mode_enhanced">增强式多点触控</string>
     <string name="game_menu_touch_mode_classic">经典鼠标模式</string>
     <string name="game_menu_touch_mode_trackpad">触控板模式</string>
@@ -761,6 +762,8 @@
     <string name="gyro_sensitivity">灵敏度</string>
     <string name="gyro_sensitivity_format">灵敏度 %.1fx</string>
     <string name="gyro_activation_always">常开</string>
+    <string name="gyro_activation_left_trigger">LT (L2)</string>
+    <string name="gyro_activation_right_trigger">RT (R2)</string>
     <string name="gyro_mouse_mode_label">鼠标模式</string>
     <string name="gyro_controller_access_failed">无法访问控制器</string>
     <string name="gyro_no_controller_detected">未检测到手柄，陀螺仪已禁用</string>
@@ -895,6 +898,10 @@
     <string name="host_resolution_changed">主机分辨率已变更为 %1$dx%2$d</string>
 
     <string name="game_menu_change_resolution">更改分辨率</string>
+    <string name="game_menu_resolution_current">%1$s（当前）</string>
+    <string name="game_menu_resolution_custom">%1$s（自定义）</string>
+    <string name="game_menu_resolution_custom_current">%1$s（自定义、当前）</string>
+    <string name="game_menu_resolution_restarting">分辨率已设为 %1$s，正在重启串流…</string>
     <string name="notification_content_streaming">正在串流： %1$s (%2$s)</string>
 
     <!-- 音频振动设置 -->
@@ -1188,6 +1195,9 @@
     <string name="page_section_text_config">✏️ 文本设置</string>
     <string name="page_section_wheel_basic">🎡 基本设置</string>
     <string name="page_section_wheel_config">🎯 轮盘设置</string>
+    <string name="wheel_alignment_title">对齐方式</string>
+    <string name="wheel_alignment_center">分区中线朝上</string>
+    <string name="wheel_alignment_edge">分区边线朝上</string>
     <string name="page_section_key_values">🔑 按键值设置</string>
     <string name="page_label_combo_keys">组合按键</string>
     <string name="page_label_coord_x">X 坐标</string>
@@ -1255,10 +1265,9 @@
     <string name="game_menu_tab_bitrate">码率调整 Bitrate</string>
     <string name="game_menu_tab_gyro">体感助手 Gyro</string>
     <string name="game_menu_tab_shortcuts">特殊按键 Shortcuts</string>
-    <string name="game_menu_card_config_title">卡片配置 Visible cards</string>
+    <string name="game_menu_card_config_title">卡片配置</string>
     <string name="toast_enable_mic_redirect">请在设置中开启麦克风重定向</string>
-    <string name="game_menu_disable_pan_zoom">关闭平移/缩放</string>
-    <string name="game_menu_enable_pan_zoom">开启平移/缩放</string>
+    <string name="game_menu_enable_pan_zoom">平移与缩放</string>
     <string name="toast_pan_zoom_disabled">已关闭平移/缩放</string>
     <string name="toast_pan_zoom_enabled">已开启平移/缩放</string>
     <string name="toast_super_command_error">发送超级命令时发生错误: %s</string>
@@ -1302,15 +1311,21 @@
     <string name="quick_btn_mic">麦克风</string>
     <string name="quick_btn_sleep">睡眠</string>
     <string name="quick_btn_quit">退出</string>
+    <string name="quick_btn_win">Win</string>
+    <string name="quick_btn_esc">Esc</string>
+    <string name="quick_btn_hdr">HDR</string>
+    <string name="quick_btn_tab">Tab</string>
+    <string name="quick_btn_alt_tab">Alt+Tab</string>
+    <string name="quick_btn_alt_f4">Alt+F4</string>
     <string name="quick_btn_keyboard">键盘</string>
     <string name="quick_btn_controller">手柄</string>
     <string name="quick_btn_perf">性能</string>
-    <string name="game_menu_customize_quick_buttons">自定义快捷按钮</string>
-    <string name="quick_btn_max_reached">最多只能添加 6 个快捷按钮</string>
 
     <!-- Quick button editor -->
     <string name="quick_button_editor_title">快捷按钮配置</string>
     <string name="quick_button_reset_default">恢复默认</string>
+    <string name="quick_action_edit">编辑快捷按钮</string>
+    <string name="quick_action_done">完成</string>
 
     <!-- Layout accessibility & download -->
     <string name="download_preparing">准备下载…</string>

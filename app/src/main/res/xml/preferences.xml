@@ -402,7 +402,7 @@
             android:title="@string/title_perf_overlay_bg_opacity"
             android:summary="@string/summary_perf_overlay_bg_opacity"
             android:dialogMessage="@string/summary_perf_overlay_bg_opacity"
-            android:defaultValue="53"
+            android:defaultValue="40"
             android:max="100"
             seekbar:min="0"
             seekbar:step="5"

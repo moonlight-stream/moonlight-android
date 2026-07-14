@@ -28,6 +28,11 @@ internal class FramePacingController(
     private val activity: Activity,
 ) : Choreographer.FrameCallback {
 
+    companion object {
+        private const val HOST_CADENCE_MAX_FUTURE_FRAMES = 3L
+        private const val HOST_CADENCE_INVALID_LOG_INTERVAL_NS = 1_000_000_000L
+    }
+
     interface Callbacks {
         fun onFrameRendered()
         fun onDecoderException(e: IllegalStateException): Boolean
@@ -58,6 +63,7 @@ internal class FramePacingController(
     // 关键：step1 时钟在"帧到达时"(offerOutputBuffer, 解码回调线程)采样，避免把 pacing 排队抖动注入 instOffset；
     // loop 出队时只做 step2 的 vsync snap。时钟因此仅被到达线程单线程访问，无需线程安全。
     private val hostTargetByIndex = ConcurrentHashMap<Int, Long>()
+    private var lastHostCadenceInvalidLogNs = 0L
 
     // present-interval 对照埋点：两步开/关都记录同一指标(相邻呈现间隔，以 vsync 为单位)，
     // 捕捉"错拍 dup/drop"判抖，供开/关态用同一把尺对比。仅 DEBUG，release 关闭零开销。
@@ -361,11 +367,26 @@ internal class FramePacingController(
             if (timeUntilDeadline < 0) return 0
         }
         val timeUntilVsync = nextVsyncNs - currentTime
-        if (timeUntilVsync < 0 || timeUntilVsync > 1_000_000_000L) {
-            LimeLog.warning("host-cadence 时间戳无效 (距离: ${timeUntilVsync / 1_000_000}ms)，使用立即渲染")
+        val maxFutureNs = frameIntervalNs * HOST_CADENCE_MAX_FUTURE_FRAMES
+        if (timeUntilVsync < 0 || timeUntilVsync > maxFutureNs) {
+            resetInvalidHostCadence(
+                "host-cadence 时间戳无效 (距离: ${timeUntilVsync / 1_000_000}ms, " +
+                    "上限: ${maxFutureNs / 1_000_000}ms)，重置时钟并立即渲染"
+            )
             return 0
         }
         return nextVsyncNs
+    }
+
+    private fun resetInvalidHostCadence(message: String) {
+        preciseHostCadenceClock.reset()
+        hostTargetByIndex.clear()
+
+        val nowNs = System.nanoTime()
+        if (nowNs - lastHostCadenceInvalidLogNs >= HOST_CADENCE_INVALID_LOG_INTERVAL_NS) {
+            lastHostCadenceInvalidLogNs = nowNs
+            LimeLog.warning(message)
+        }
     }
 
     private fun snapUpToVsync(rawNs: Long, vsyncOffsetNs: Long): Long {

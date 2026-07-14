@@ -174,37 +174,39 @@
     <string name="applist_details_id">App ID:</string>
 
     <!-- In Game menu -->
-    <string name="game_menu_toggle_keyboard">Toggle On-screen Keyboard</string>
-    <string name="game_menu_toggle_performance_overlay">Toggle Performance Overlay</string>
-    <string name="perf_overlay_hidden">CLOSE</string>
-    <string name="perf_overlay_floating">SUSPENSION</string>
-    <string name="perf_overlay_locked">Fixed</string>
-    <string name="game_menu_toggle_virtual_controller">Toggle Virtual Controller</string>
-    <string name="game_menu_toggle_host_keyboard">Toggle Host Keyboard</string>
+    <string name="game_menu_title">🍥🍬 V+ Game Menu</string>
+    <string name="game_menu_server_version">%1$s  Server %2$s</string>
+    <string name="game_menu_toggle_keyboard">Toggle Local Keyboard</string>
+    <string name="game_menu_toggle_performance_overlay">Performance Overlay</string>
+    <string name="perf_overlay_hidden">Hidden</string>
+    <string name="perf_overlay_floating">Floating</string>
+    <string name="perf_overlay_locked">Pinned</string>
+    <string name="game_menu_toggle_virtual_controller">Virtual Controller</string>
+    <string name="game_menu_toggle_host_keyboard">Toggle Host On-Screen Keyboard</string>
     <string name="game_menu_toggle_all_keyboard">Toggle PC Keyboard</string>
     <string name="game_menu_toggle_mouse_on">Enable Controller Mouse Emulation</string>
     <string name="game_menu_toggle_mouse_off">Disable Controller Mouse Emulation</string>
     <string name="game_menu_disconnect">Disconnect</string>
-    <string name="game_menu_disconnect_and_quit">Disconnect and Quit</string>
+    <string name="game_menu_disconnect_and_quit">Quit Game and Disconnect</string>
     <string name="game_menu_cancel">Cancel</string>
-    <string name="game_menu_send_keys">Send special Key(s)</string>
-    <string name="game_menu_send_keys_esc">Send ESC (Menu)</string>
-    <string name="game_menu_send_keys_f11">Send F11 (Toggle Full Screen)</string>
-    <string name="game_menu_send_keys_ctrl_v">Send CTRL + V (Paste Clipboard)</string>
-    <string name="game_menu_send_keys_win">Send WIN (Toggle Windows Start Menu)</string>
-    <string name="game_menu_send_keys_win_d">Send WIN + D (Switch to Desktop)</string>
-    <string name="game_menu_send_keys_win_g">Send WIN + G (Open Xbox Game Bar)</string>
-    <string name="game_menu_send_keys_shift_tab">Send SHIFT + TAB (Open Steam Overlay)</string>
-    <string name="game_menu_send_keys_alt_home">Send ALT + HOME (Toggle RTSS)</string>
+    <string name="game_menu_send_keys">Special Keys</string>
+    <string name="game_menu_send_keys_esc">Esc (Menu)</string>
+    <string name="game_menu_send_keys_f11">F11 (Toggle Full Screen)</string>
+    <string name="game_menu_send_keys_ctrl_v">Ctrl+V (Paste)</string>
+    <string name="game_menu_send_keys_win">Win (Open Start Menu)</string>
+    <string name="game_menu_send_keys_win_d">Win+D (Show Desktop)</string>
+    <string name="game_menu_send_keys_win_g">Win+G (Open Xbox Game Bar)</string>
+    <string name="game_menu_send_keys_shift_tab">Shift+Tab (Open Steam Overlay)</string>
+    <string name="game_menu_send_keys_alt_home">Alt+Home (Toggle RTSS)</string>
     <string name="game_menu_adjust_bitrate">Adjust Bitrate</string>
     <string name="game_menu_bitrate_custom">Custom Bitrate</string>
     <string name="game_menu_bitrate_current">Current: %d Mbps</string>
-    <string name="game_menu_bitrate_adjustment_success">Bitrate adjusted successfully to %d Mbps</string>
-    <string name="game_menu_bitrate_adjustment_failed">Failed to adjust bitrate</string>
+    <string name="game_menu_bitrate_adjustment_success">Bitrate set to %d Mbps</string>
+    <string name="game_menu_bitrate_adjustment_failed">Couldn\'t adjust bitrate</string>
     <string name="game_menu_ok">OK</string>
     <string name="game_menu_bitrate_range">Bitrate Range:</string>
     <string name="game_menu_bitrate_range_value">0.5 - 200 Mbps</string>
-    <string name="game_menu_bitrate_tip">Drag the slider to adjust bitrate in real-time. Higher values mean better quality but require better network.</string>
+    <string name="game_menu_bitrate_tip">Drag the slider to adjust bitrate in real time. Higher values improve image quality but require a faster, more stable connection.</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>
@@ -792,9 +794,8 @@
     <string name="crown_switch_to_crown">Enable Crown</string>
     <string name="game_menu_crown_function">Crown</string>
     <string name="game_menu_crown_function_title">♛ Crown</string>
-    <string name="game_menu_toggle_elements_visibility">Show/Hide Buttons</string>
-    <string name="game_menu_configure_crown_function">Back Key Opens Crown</string>
-    <string name="crown_control_enable_subtitle">Turn on Crown profiles and controls</string>
+    <string name="game_menu_toggle_elements_visibility">Button Visibility</string>
+    <string name="game_menu_configure_crown_function">Open Crown with Back</string>
     <string name="crown_control_visibility_subtitle">Keep the on-screen buttons out of the way</string>
     <string name="crown_control_touch_subtitle">Pause or resume touch input</string>
     <string name="crown_control_profiles_subtitle">Switch saved button and touch profiles</string>
@@ -805,7 +806,7 @@
     <string name="toast_back_key_menu_switch_1">Exited Crown configuration</string>
     <string name="toast_back_key_menu_switch_2">Entered Crown configuration</string>
     <string name="game_menu_edit_mode">Button Layout</string>
-    <string name="game_menu_configure_settings">Configuration Profiles</string>
+    <string name="game_menu_configure_settings">Crown Profiles</string>
     
     <!-- External display -->
     <string name="title_use_external_display">Use External Display</string>
@@ -892,12 +893,12 @@
     <string name="tip_cards_show">💡 Tip: You can edit the displayed function cards in the game menu. Unnecessary cards can be hidden~</string>
 
     <!-- 触控模式切换菜单 -->
-    <string name="game_menu_switch_touch_mode">Switch touch mode</string>
-    <string name="game_menu_touch_mode_enhanced">Enhanced Multi Touch</string>
+    <string name="game_menu_switch_touch_mode">Touch Mode</string>
+    <string name="game_menu_touch_mode_enhanced">Enhanced Multi-Touch</string>
     <string name="game_menu_touch_mode_classic">Classic Mouse Mode</string>
-    <string name="game_menu_touch_mode_trackpad">Touchpad mode</string>
-    <string name="game_menu_local_cursor_rendering">Local cursor rendering</string>
-    <string name="game_menu_touch_mode_native_mouse">Native mouse pointer</string>
+    <string name="game_menu_touch_mode_trackpad">Touchpad Mode</string>
+    <string name="game_menu_local_cursor_rendering">Local Cursor</string>
+    <string name="game_menu_touch_mode_native_mouse">Native Mouse Pointer</string>
     <string name="toast_touch_mode_enhanced_on">Enhanced multi touch enabled</string>
     <string name="toast_touch_mode_classic_on">Classic mouse mode enabled</string>
     <string name="toast_touch_mode_trackpad_on">Trackpad mode enabled</string>
@@ -914,43 +915,45 @@
 
     <!-- 自定义特殊按键 -->
     <!-- 菜单项 -->
-    <string name="game_menu_add_custom_key">Add custom button</string>
-    <string name="game_menu_delete_custom_key">Delete custom button</string>
+    <string name="game_menu_add_custom_key">Add Custom Key</string>
+    <string name="game_menu_delete_custom_key">Delete Custom Keys</string>
 
     <!-- 添加自定义按键对话框 -->
-    <string name="dialog_title_add_custom_key">Add custom buttons</string>
+    <string name="dialog_title_add_custom_key">Add Custom Key</string>
     <string name="dialog_hint_key_name">Key name (e.g. Ctrl+Shift+Esc)</string>
     <string name="dialog_hint_key_codes">Key codes (e.g. 0x11, 0x10, 0x1B)</string>
     <string name="dialog_button_save">SAVE</string>
     <string name="dialog_button_cancel">CANCEL</string>
     <string name="dialog_button_clear">CLEAR</string>
-    <string name="dialog_virtual_keyboard_hint">Click on the keys to create a combination</string>
+    <string name="dialog_virtual_keyboard_hint">Select keys to create a combination</string>
 
     <!-- 删除自定义按键对话框 -->
-    <string name="dialog_title_select_keys_to_delete">Select the button to delete</string>
+    <string name="dialog_title_select_keys_to_delete">Select Custom Keys to Delete</string>
     <string name="dialog_button_delete">DELETE</string>
 
     <!-- Toast 提示信息 -->
-    <string name="toast_name_and_codes_cannot_be_empty">Name and key code cannot be empty</string>
-    <string name="toast_key_code_format_error">Format error, key code must start with "0x"</string>
-    <string name="toast_custom_key_saved">Custom button \'%s\' has been saved</string>
-    <string name="toast_save_failed">Save failed, please check the format</string>
-    <string name="toast_no_custom_keys_to_delete">There are no custom keys that can be deleted</string>
-    <string name="toast_selected_keys_deleted">The selected button has been deleted</string>
-    <string name="toast_delete_failed">Deletion failed</string>
-    <string name="toast_load_key_list_failed">Failed to load button list</string>
-    <string name="toast_load_custom_keys_corrupted">Failed to load custom button</string>
+    <string name="toast_name_and_codes_cannot_be_empty">Enter a name and at least one key code</string>
+    <string name="toast_key_code_format_error">Each key code must start with "0x"</string>
+    <string name="toast_custom_key_saved">Custom key \'%s\' saved</string>
+    <string name="toast_save_failed">Couldn\'t save. Check the key-code format and try again.</string>
+    <string name="toast_no_custom_keys_to_delete">No custom keys to delete</string>
+    <string name="toast_selected_keys_deleted">Selected custom keys deleted</string>
+    <string name="toast_delete_failed">Couldn\'t delete the selected keys</string>
+    <string name="toast_load_key_list_failed">Couldn\'t load custom keys</string>
+    <string name="toast_load_custom_keys_corrupted">Couldn\'t load custom keys because the saved data is invalid</string>
 
     <!-- gyro related strings -->
-    <string name="gyro_activation_method">Act Key</string>
-    <string name="gyro_invert_x_axis">X Rev</string>
-    <string name="gyro_invert_y_axis">Y Rev</string>
+    <string name="gyro_activation_method">Activation</string>
+    <string name="gyro_invert_x_axis">Invert X</string>
+    <string name="gyro_invert_y_axis">Invert Y</string>
     <string name="gyro_sensitivity">Sensitivity</string>
     <string name="gyro_sensitivity_format">Sensitivity %.1fx</string>
     <string name="gyro_activation_always">Always On</string>
+    <string name="gyro_activation_left_trigger">LT (L2)</string>
+    <string name="gyro_activation_right_trigger">RT (R2)</string>
     <string name="gyro_mouse_mode_label">Mouse Mode</string>
     <string name="gyro_controller_access_failed">Failed to access controller</string>
-    <string name="gyro_no_controller_detected">No controller detected, gyro disabled</string>
+    <string name="gyro_no_controller_detected">No controller detected. Gyro has been disabled.</string>
 
     <!-- Accessibility service -->
     <string name="accessibility_service_label">Moonlight Keyboard Service</string>
@@ -1159,7 +1162,11 @@ Tap again to replace it.</string>
     <string name="settings_search_close">Close search</string>
     <string name="settings_search_no_results">No matching settings</string>
     <string name="title_settings">Settings</string>
-    <string name="game_menu_change_resolution">Change resolution</string>
+    <string name="game_menu_change_resolution">Resolution</string>
+    <string name="game_menu_resolution_current">%1$s (Current)</string>
+    <string name="game_menu_resolution_custom">%1$s (Custom)</string>
+    <string name="game_menu_resolution_custom_current">%1$s (Custom, Current)</string>
+    <string name="game_menu_resolution_restarting">Resolution set to %1$s. Restarting the stream...</string>
     <string name="notification_content_streaming">Streaming in progress: %1$s (%2$s)</string>
 
     <!-- Audio Vibration Settings -->
@@ -1293,7 +1300,7 @@ Tap again to replace it.</string>
     <string name="layout_dlg_peer_info_item_text_9d9a3">Latency:</string>
     <string name="layout_dlg_peer_info_item_text_681b4">Traffic (Rx/Tx):</string>
     <string name="layout_game_menu_super_empty_text_a7970">No super commands yet</string>
-    <string name="layout_game_menu_super_empty_text_fac9d">Add super commands using Sunshine Foundation edition~</string>
+    <string name="layout_game_menu_super_empty_text_fac9d">Create super commands in Sunshine Foundation Edition.</string>
     <string name="layout_item_key_value_text_0952a">Section 1</string>
     <string name="layout_item_key_value_hint_dd44f">Section name, defaults to key name if empty</string>
     <string name="layout_item_page_super_menu_text_ce0e8">Edit Mode</string>
@@ -1434,6 +1441,9 @@ Tap again to replace it.</string>
     <string name="page_section_text_config">✏️ Text Config</string>
     <string name="page_section_wheel_basic">🎡 Basic Settings</string>
     <string name="page_section_wheel_config">🎯 Wheel Config</string>
+    <string name="wheel_alignment_title">Alignment</string>
+    <string name="wheel_alignment_center">Segment center faces up</string>
+    <string name="wheel_alignment_edge">Segment edge faces up</string>
     <string name="page_section_key_values">🔑 Key Values</string>
     <string name="page_label_combo_keys">Combo Keys</string>
     <string name="page_label_coord_x">X Coord</string>
@@ -1507,12 +1517,11 @@ Tap again to replace it.</string>
     <string name="game_menu_tab_gyro">Gyro</string>
     <string name="game_menu_tab_shortcuts">Shortcuts</string>
     <string name="game_menu_card_config_title">Visible Cards</string>
-    <string name="toast_enable_mic_redirect">Please enable microphone redirection in settings</string>
-    <string name="game_menu_disable_pan_zoom">Disable Pan/Zoom</string>
-    <string name="game_menu_enable_pan_zoom">Enable Pan/Zoom</string>
+    <string name="toast_enable_mic_redirect">Enable microphone redirection in Settings first</string>
+    <string name="game_menu_enable_pan_zoom">Pan and Zoom</string>
     <string name="toast_pan_zoom_disabled">Pan/Zoom disabled</string>
     <string name="toast_pan_zoom_enabled">Pan/Zoom enabled</string>
-    <string name="toast_super_command_error">Error sending super command: %s</string>
+    <string name="toast_super_command_error">Couldn\'t send super command: %s</string>
     <string name="toast_install_permission_denied">Install permission denied, download cancelled</string>
     <string name="toast_check_update_failed">Failed to check for updates, please try later</string>
     <string name="toast_already_latest_version">Already on latest version v%s</string>
@@ -1556,7 +1565,7 @@ Tap again to replace it.</string>
     <string name="toast_background_image_reset">Default background restored</string>
     <string name="toast_perf_overlay_position_reset">Performance stats position reset</string>
     <string name="bitrate_haptic_mode_all">Haptics: every step</string>
-    <string name="bitrate_haptic_mode_key_nodes">Haptics: key points</string>
+    <string name="bitrate_haptic_mode_key_nodes">Haptics: milestones</string>
     <string name="bitrate_haptic_mode_none">Haptics: off</string>
     <string name="toast_legacy_config_export_success">Configuration exported</string>
     <string name="toast_legacy_config_export_failed">Configuration export failed</string>
@@ -1734,19 +1743,25 @@ Tap again to replace it.</string>
     <string name="diag_hlg_transfer">HLG pass</string>
     <string name="diag_pq_transfer">PQ pass</string>
 
-    <!-- Quick button labels -->
+    <!-- Quick action labels -->
     <string name="quick_btn_mic">Mic</string>
     <string name="quick_btn_sleep">Sleep</string>
     <string name="quick_btn_quit">Quit</string>
-    <string name="quick_btn_keyboard">KB</string>
-    <string name="quick_btn_controller">Pad</string>
-    <string name="quick_btn_perf">Perf</string>
-    <string name="game_menu_customize_quick_buttons">Customize Quick Buttons</string>
-    <string name="quick_btn_max_reached">Maximum 6 quick buttons allowed</string>
+    <string name="quick_btn_win">Win</string>
+    <string name="quick_btn_esc">Esc</string>
+    <string name="quick_btn_hdr">HDR</string>
+    <string name="quick_btn_tab">Tab</string>
+    <string name="quick_btn_alt_tab">Alt+Tab</string>
+    <string name="quick_btn_alt_f4">Alt+F4</string>
+    <string name="quick_btn_keyboard">Keyboard</string>
+    <string name="quick_btn_controller">Gamepad</string>
+    <string name="quick_btn_perf">Stats</string>
 
-    <!-- Quick button editor -->
-    <string name="quick_button_editor_title">Quick Buttons</string>
+    <!-- Quick action editor -->
+    <string name="quick_button_editor_title">Quick Actions</string>
     <string name="quick_button_reset_default">Reset</string>
+    <string name="quick_action_edit">Edit Quick Actions</string>
+    <string name="quick_action_done">Done</string>
 
     <!-- Layout accessibility & download -->
     <string name="download_preparing">Preparing download…</string>

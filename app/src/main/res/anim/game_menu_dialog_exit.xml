@@ -5,13 +5,13 @@
     <translate
         android:duration="250"
         android:fromXDelta="0%"
-        android:toXDelta="100%"
+        android:toXDelta="0%"
         android:fromYDelta="0%"
-        android:toYDelta="0%" />
+        android:toYDelta="100%" />
     
     <alpha
         android:duration="250"
         android:fromAlpha="1.0"
         android:toAlpha="0.0" />
         
-</set> 
+</set>

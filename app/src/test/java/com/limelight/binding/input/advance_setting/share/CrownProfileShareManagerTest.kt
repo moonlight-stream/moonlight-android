@@ -71,6 +71,39 @@ class CrownProfileShareManagerTest {
     }
 
     @Test
+    fun bundleRoundTripPreservesWheelAlignmentExtraAttribute() {
+        val extraAttributes = JSONObject()
+            .put("segmentAlignment", "edge")
+            .toString()
+        val elements = JSONArray()
+            .put(
+                JSONObject()
+                    .put("element_id", 1)
+                    .put("element_type", 10)
+                    .put("extra_attributes", extraAttributes)
+            )
+            .toString()
+        val payload = validPayloadForElements(elements)
+        val bundle = CrownProfileShareManager.createBundle(
+            profileName = "Corner Wheel",
+            payload = payload,
+            metadata = CrownProfileShareManager.ExportMetadata(
+                packageName = "com.limelight.test",
+                appVersionCode = 392,
+                appVersionName = "12.10.4"
+            )
+        )
+
+        val imported = CrownProfileShareManager.parseImportText(bundle)
+        val importedElements = JSONArray(JSONObject(imported.payload).getString("elements"))
+        val importedExtraAttributes = JSONObject(
+            importedElements.getJSONObject(0).getString("extra_attributes")
+        )
+
+        assertEquals("edge", importedExtraAttributes.getString("segmentAlignment"))
+    }
+
+    @Test
     fun payloadForInstallAsNewUsesBundleNameAsConfigName() {
         val bundle = CrownProfileShareManager.createBundle(
             profileName = "Store Layout",
@@ -248,7 +281,6 @@ class CrownProfileShareManagerTest {
     }
 
     private fun validPayload(elementCount: Int = 1): String {
-        val settings = """{"config_name":"default","touch_enable":"true"}"""
         val elements = buildString {
             append("[")
             repeat(elementCount) { index ->
@@ -257,6 +289,11 @@ class CrownProfileShareManagerTest {
             }
             append("]")
         }
+        return validPayloadForElements(elements)
+    }
+
+    private fun validPayloadForElements(elements: String): String {
+        val settings = """{"config_name":"default","touch_enable":"true"}"""
         val version = 9
         val md5 = MathUtils.computeMD5("$version$settings$elements")
         return JSONObject()

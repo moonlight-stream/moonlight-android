@@ -90,6 +90,49 @@ object AppDialogStyler {
         }
     }
 
+    fun applyAboutDialog(dialog: Dialog, context: Context) {
+        dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_about_window_bg)
+        val accentColor = ContextCompat.getColor(context, R.color.app_dialog_accent_color)
+        listOf(
+            DialogInterface.BUTTON_POSITIVE,
+            DialogInterface.BUTTON_NEGATIVE,
+            DialogInterface.BUTTON_NEUTRAL
+        ).forEach { buttonId -> findButton(dialog, buttonId)?.setTextColor(accentColor) }
+        compactAboutDialogActions(dialog, context)
+    }
+
+    private fun compactAboutDialogActions(dialog: Dialog, context: Context) {
+        val buttonPanelId = context.resources.getIdentifier("buttonPanel", "id", "android")
+        val buttonPanel = dialog.findViewById<ViewGroup>(buttonPanelId) ?: return
+
+        buttonPanel.post {
+            val actionHeight = dpToPx(context, 48)
+            (buttonPanel.layoutParams as? ViewGroup.MarginLayoutParams)?.let { layoutParams ->
+                layoutParams.bottomMargin = 0
+                buttonPanel.layoutParams = layoutParams
+            }
+
+            val buttons = listOf(
+                DialogInterface.BUTTON_POSITIVE,
+                DialogInterface.BUTTON_NEGATIVE,
+                DialogInterface.BUTTON_NEUTRAL
+            ).mapNotNull { buttonId -> findButton(dialog, buttonId) }
+
+            (buttons.firstOrNull()?.parent as? ViewGroup)?.apply {
+                setPaddingRelative(paddingStart, 0, paddingEnd, 0)
+            }
+            buttons.forEach { button ->
+                button.apply {
+                    minHeight = actionHeight
+                    minimumHeight = actionHeight
+                    setPaddingRelative(paddingStart, 0, paddingEnd, 0)
+                }
+            }
+
+            buttonPanel.requestLayout()
+        }
+    }
+
     fun styleChoiceListContainer(listView: ListView?, context: Context) {
         listView ?: return
         listView.setBackgroundColor(Color.TRANSPARENT)

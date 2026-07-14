@@ -118,8 +118,9 @@
     </style>
 
     <!-- 虚拟键盘对话框样式 - 全屏透明 -->
-    <style name="VirtualKeyboardDialogStyle" parent="Theme.AppCompat.Light.Dialog">
+    <style name="VirtualKeyboardDialogStyleBase" parent="Theme.AppCompat.Light.Dialog">
         <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowNoTitle">true</item>
@@ -138,6 +139,8 @@
         <item name="android:windowCloseOnTouchOutside">true</item>
         <item name="android:fitsSystemWindows">false</item>
     </style>
+
+    <style name="VirtualKeyboardDialogStyle" parent="VirtualKeyboardDialogStyleBase" />
 
     <!-- 虚拟键盘对话框动画 -->
     <style name="VirtualKeyboardDialogAnimation">
@@ -244,9 +247,9 @@
 
     <!-- GameMenu 对话框样式 -->
     <style name="GameMenuDialogStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
-        <item name="android:windowBackground">@drawable/game_menu_dialog_bg</item>
-        <item name="android:windowMinWidthMajor">80%</item>
-        <item name="android:windowMinWidthMinor">95%</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowMinWidthMajor">100%</item>
+        <item name="android:windowMinWidthMinor">100%</item>
         <item name="android:windowIsFloating">true</item>
         <item name="android:windowAnimationStyle">@style/GameMenuDialogAnimation</item>
         <item name="android:windowSoftInputMode">adjustResize</item>

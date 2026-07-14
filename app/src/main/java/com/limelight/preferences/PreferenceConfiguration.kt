@@ -641,7 +641,7 @@ class PreferenceConfiguration {
         private const val DEFAULT_ENABLE_PERF_OVERLAY = false
         private const val DEFAULT_ENABLE_JITTER_MONITOR = false
         private const val DEFAULT_PERF_OVERLAY_LOCKED = false
-        private const val DEFAULT_PERF_OVERLAY_BG_OPACITY = 53
+        private const val DEFAULT_PERF_OVERLAY_BG_OPACITY = 40
         private const val DEFAULT_PERF_OVERLAY_ORIENTATION = "horizontal"
         private const val DEFAULT_PERF_OVERLAY_POSITION = "top"
         private const val DEFAULT_BIND_ALL_USB = false

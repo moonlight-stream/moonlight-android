@@ -25,7 +25,7 @@ firebase-bom = "32.8.1"
 coroutines = "1.8.1"
 lifecycle = "2.8.7"
 compose-bom = "2025.06.01"
-activity-compose = "1.8.2"
+activity-compose = "1.11.0"
 junit = "4.13.2"
 json = "20240303"
 

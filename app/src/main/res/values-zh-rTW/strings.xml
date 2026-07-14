@@ -394,4 +394,7 @@
     <string name="sponsor_wechat_action">使用微信支付掃碼</string>
     <string name="sponsor_qr_content_description">贊助 QR code</string>
     <string name="toast_update_integrity_mismatch">更新下載內容不是有效安裝包，請切換網路或使用瀏覽器下載。</string>
+    <string name="wheel_alignment_title">對齊方式</string>
+    <string name="wheel_alignment_center">分區中線朝上</string>
+    <string name="wheel_alignment_edge">分區邊線朝上</string>
 </resources>

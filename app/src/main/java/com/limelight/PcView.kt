@@ -2828,16 +2828,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
                 .setNegativeButton(R.string.about_dialog_qq) { _, _ -> joinQQGroup("LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM") }
                 .create()
         dialog.show()
-        dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_about_window_bg)
-        tintAboutDialogButtons(dialog)
-    }
-
-    private fun tintAboutDialogButtons(dialog: AlertDialog) {
-        val accentColor = androidx.core.content.ContextCompat.getColor(this, R.color.app_dialog_accent_color)
-        listOf(AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL)
-                .forEach { buttonId ->
-                    dialog.getButton(buttonId)?.setTextColor(accentColor)
-                }
+        AppDialogStyler.applyAboutDialog(dialog, this)
     }
 
     @SuppressLint("DefaultLocale")

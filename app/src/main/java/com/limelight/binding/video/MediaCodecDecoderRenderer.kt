@@ -61,6 +61,10 @@ class MediaCodecDecoderRenderer(
         private const val EXCEPTION_REPORT_DELAY_MS = 3000
         private const val FRAMEGEN_SURFACE_SWITCH_MAX_RETRIES = 20
         private const val FRAMEGEN_SURFACE_SWITCH_RETRY_DELAY_MS = 50L
+
+        private const val PTS_TRACKING_MAX_AGE_MS = 5000L
+        private const val PTS_TRACKING_MAX_AGE_US = PTS_TRACKING_MAX_AGE_MS * 1000L
+        private const val PTS_TRACKING_CLEANUP_INTERVAL_MS = 1000L
     }
 
     // Used on versions < 5.0
@@ -164,6 +168,7 @@ class MediaCodecDecoderRenderer(
     // host PTS 源自主机捕获时刻(见 common-c RtpVideoQueue.c: packet->timestamp * 1000 / PTS_DIVISOR)，
     // 是三端同源的呈现节奏基准。之前在 JNI 边界被丢弃，现打通供 host-cadence pacing 使用。
     private val timestampToHostPts: MutableMap<Long, Long> = ConcurrentHashMap()
+    private var lastPtsTrackingCleanupMs = 0L
 
     // ---- host-cadence 去抖呈现时钟(alpha-beta / PI 时钟恢复，移植自鸿蒙 native_render，已离线仿真验证) ----
     // 默认关闭：置 true 前，全部走原有 pacing，行为零变化。开启后在偏平滑档用 host PTS 复现主机出帧节奏，
@@ -856,8 +861,7 @@ class MediaCodecDecoderRenderer(
         vpsBuffers.clear()
         spsBuffers.clear()
         ppsBuffers.clear()
-        timestampToEnqueueTime.clear()
-        timestampToHostPts.clear()
+        clearTimestampTracking()
 
         // This will contain the actual accepted input format attributes
         inputFormat = videoDecoder!!.inputFormat
@@ -1385,6 +1389,11 @@ class MediaCodecDecoderRenderer(
 
                 numFramesOut++
 
+                // Deliver to frame pacing. Remove the host PTS before decoder-time tracking,
+                // because calculateDecoderTime() removes the paired enqueue entry.
+                val hostPtsUs = if (needsHostPtsMapping)
+                    (timestampToHostPts.remove(info.presentationTimeUs) ?: -1L) else -1L
+
                 // Calculate decoder time
                 val delta = calculateDecoderTime(info.presentationTimeUs)
                 if (delta >= 0 && delta < 1000) {
@@ -1394,9 +1403,6 @@ class MediaCodecDecoderRenderer(
                     }
                 }
 
-                // Deliver to frame pacing
-                val hostPtsUs = if (needsHostPtsMapping)
-                    (timestampToHostPts.remove(info.presentationTimeUs) ?: -1L) else -1L
                 deliverDecodedFrame(index, hostPtsUs)
 
                 doCodecRecoveryIfRequired(CR_FLAG_RENDER_THREAD)
@@ -1621,8 +1627,7 @@ class MediaCodecDecoderRenderer(
         stopping = true
 
         // Clear timestamp tracking map
-        timestampToEnqueueTime.clear()
-        timestampToHostPts.clear()
+        clearTimestampTracking()
 
         // Halt the rendering thread
         rendererThread?.interrupt()
@@ -1667,8 +1672,7 @@ class MediaCodecDecoderRenderer(
                 LimeLog.warning("Exception during decoder release: " + e.message)
             }
         }
-        timestampToEnqueueTime.clear()
-        timestampToHostPts.clear()
+        clearTimestampTracking()
 
         // Stop codec callback thread (async mode)
         if (codecCallbackThread != null) {
@@ -1737,7 +1741,7 @@ class MediaCodecDecoderRenderer(
 
         try {
             // Record the enqueue time for this timestamp
-            timestampToEnqueueTime[timestampUs] = SystemClock.uptimeMillis()
+            recordQueuedTimestamp(timestampUs)
 
             if (linearBlockEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 // Modern QueueRequest API with LinearBlock for potential copy-free path
@@ -1810,6 +1814,37 @@ class MediaCodecDecoderRenderer(
         // codec recovery happening in fetchNextInputBuffer(). If we don't, we'll
         // never get an IDR frame to complete the recovery process.
         return fetchNextInputBuffer()
+    }
+
+    private fun recordQueuedTimestamp(timestampUs: Long) {
+        val nowMs = SystemClock.uptimeMillis()
+        timestampToEnqueueTime[timestampUs] = nowMs
+
+        if (nowMs - lastPtsTrackingCleanupMs < PTS_TRACKING_CLEANUP_INTERVAL_MS) return
+        lastPtsTrackingCleanupMs = nowMs
+        val oldestValidTimestampUs = timestampUs - PTS_TRACKING_MAX_AGE_US
+
+        for ((timestampUs, enqueueTimeMs) in timestampToEnqueueTime) {
+            if (nowMs - enqueueTimeMs > PTS_TRACKING_MAX_AGE_MS ||
+                timestampUs < oldestValidTimestampUs
+            ) {
+                if (timestampToEnqueueTime.remove(timestampUs, enqueueTimeMs)) {
+                    timestampToHostPts.remove(timestampUs)
+                }
+            }
+        }
+
+        for (timestampUs in timestampToHostPts.keys) {
+            if (timestampUs < oldestValidTimestampUs) {
+                timestampToHostPts.remove(timestampUs)
+            }
+        }
+    }
+
+    private fun clearTimestampTracking() {
+        timestampToEnqueueTime.clear()
+        timestampToHostPts.clear()
+        lastPtsTrackingCleanupMs = 0L
     }
 
     @Suppress("deprecation")

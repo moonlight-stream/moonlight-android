@@ -271,7 +271,7 @@
     <!-- Game menu -->
     <string name="game_menu_toggle_keyboard">Alternar teclado na tela</string>
     <string name="game_menu_toggle_performance_overlay">Alternar overlay de desempenho</string>
-    <string name="game_menu_toggle_virtual_controller">Alternar controlador virtual</string>
+    <string name="game_menu_toggle_virtual_controller">Controlador virtual</string>
     <string name="game_menu_toggle_host_keyboard">Alternar teclado do host</string>
     <string name="game_menu_toggle_all_keyboard">Alternar teclado do PC</string>
     <string name="game_menu_toggle_mouse_on">Ativar emulação de rato pelo controlador</string>

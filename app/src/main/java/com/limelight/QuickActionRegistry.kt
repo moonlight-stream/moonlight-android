@@ -9,15 +9,38 @@ object QuickActionRegistry {
     private const val PREF_FILE = "quick_button_config"
     private const val PREF_KEY = "button_ids"
 
-    val DEFAULT_IDS = arrayOf(
-        "send_win", "send_esc", "toggle_hdr",
-        "toggle_mic", "send_sleep", "quit"
+    private val BASE_DEFAULT_IDS = listOf(
+        "send_esc",
+        "send_win",
+        "send_alt_tab",
+        "toggle_keyboard",
+        "toggle_perf"
     )
 
     fun getAllActions(customKeys: List<Array<String>>?): LinkedHashMap<String, StreamAction> =
         StreamActionRegistry.getQuickActions(customKeys)
 
     fun getBuiltin(id: String): StreamAction? = StreamActionRegistry.getBuiltin(id)
+
+    fun defaultIds(context: Context): MutableList<String> {
+        val config = (context as? Game)?.prefConfig
+        return defaultIdsFor(
+            enableHdr = config?.enableHdr == true,
+            enableMic = config?.enableMic == true,
+            enableVirtualController = config?.onscreenController == true
+        ).toMutableList()
+    }
+
+    internal fun defaultIdsFor(
+        enableHdr: Boolean,
+        enableMic: Boolean,
+        enableVirtualController: Boolean
+    ): List<String> = buildList {
+        addAll(BASE_DEFAULT_IDS)
+        if (enableHdr) add("toggle_hdr")
+        if (enableMic) add("toggle_mic")
+        if (enableVirtualController) add("toggle_controller")
+    }
 
     fun loadConfig(context: Context): MutableList<String> {
         loadProfileConfig(context)?.let { return it }
@@ -62,7 +85,7 @@ object QuickActionRegistry {
         if (json != null) {
             parseConfig(json)?.let { return it }
         }
-        return DEFAULT_IDS.toMutableList()
+        return defaultIds(context)
     }
 
     private fun saveLegacyConfig(context: Context, ids: List<String>) {

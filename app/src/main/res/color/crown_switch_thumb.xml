@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_checked="true" android:color="@color/crown_accent" />
-    <item android:color="@color/crown_text_secondary" />
+    <item android:state_checked="true" android:color="#FFFFFFFF" />
+    <item android:color="#FFE8EDF2" />
 </selector>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 虚拟键盘对话框样式 - 全屏透明 -->
-    <style name="VirtualKeyboardDialogStyle" parent="Theme.AppCompat.Light.Dialog">
+    <style name="VirtualKeyboardDialogStyle" parent="VirtualKeyboardDialogStyleBase">
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 </resources>

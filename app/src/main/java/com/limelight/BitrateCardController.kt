@@ -1,36 +1,26 @@
 package com.limelight
 
-import android.app.AlertDialog
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
-import android.view.HapticFeedbackConstants
-import android.view.KeyEvent
-import android.view.View
-import android.widget.ImageView
-import android.widget.SeekBar
-import android.widget.TextView
 import android.widget.Toast
-
-import com.limelight.nvstream.NvConnection
 import androidx.core.content.edit
+import com.limelight.nvstream.NvConnection
+import kotlin.math.roundToInt
 
-/**
- * Encapsulates the bitrate adjustment card logic shown in the Game Menu dialog.
- *
- * Segmented seekbar mapping (60 positions total):
- *   progress  0..9  → 0.5~5 Mbps,   step 0.5 Mbps (500~5000 kbps,      step 500)
- *   progress 10..24 → 6~20 Mbps,    step 1 Mbps   (6000~20000 kbps,    step 1000)
- *   progress 25..39 → 22~50 Mbps,   step 2 Mbps   (22000~50000 kbps,   step 2000)
- *   progress 40..49 → 55~100 Mbps,  step 5 Mbps   (55000~100000 kbps,  step 5000)
- *   progress 50..59 → 110~200 Mbps, step 10 Mbps  (110000~200000 kbps, step 10000)
- */
-class BitrateCardController(
+internal data class BitrateCardState(
+    val progress: Float,
+    val currentBitrateKbps: Int,
+    val abrStatus: String?,
+    val hapticMode: BitrateCardController.HapticMode
+) {
+    val selectedBitrateKbps: Int
+        get() = BitrateCardController.progressToBitrateKbps(progress.roundToInt())
+}
+
+/** Owns bitrate card state and stream-side effects without depending on Android Views. */
+internal class BitrateCardController(
     private val game: Game,
     private val conn: NvConnection
 ) {
-
-    /** Haptic feedback mode for the bitrate seekbar. */
     enum class HapticMode {
         ALL,
         KEY_NODES,
@@ -48,10 +38,8 @@ class BitrateCardController(
     }
 
     companion object {
-        private const val MAX_PROGRESS = 59
+        const val MAX_PROGRESS = 59
         private const val PREF_HAPTIC_MODE = "bitrate_seekbar_haptic_mode"
-
-        /** Key-node boundary positions: 0.5, 5, 50, 100, 200 Mbps. */
         private val SEGMENT_BOUNDARIES = setOf(0, 9, 24, 39, 49, MAX_PROGRESS)
 
         fun getHapticMode(context: Context): HapticMode {
@@ -65,29 +53,26 @@ class BitrateCardController(
                 .edit { putInt(PREF_HAPTIC_MODE, mode.ordinal) }
         }
 
-        /** Convert seekbar progress (0..59) to bitrate in kbps. */
         fun progressToBitrateKbps(progress: Int): Int {
             return when {
-                progress <= 9  -> 500 + progress * 500             // 500..5000
-                progress <= 24 -> 5000 + (progress - 9) * 1000     // 6000..20000
-                progress <= 39 -> 20000 + (progress - 24) * 2000   // 22000..50000
-                progress <= 49 -> 50000 + (progress - 39) * 5000   // 55000..100000
-                else           -> 100000 + (progress - 49) * 10000 // 110000..200000
+                progress <= 9 -> 500 + progress * 500
+                progress <= 24 -> 5000 + (progress - 9) * 1000
+                progress <= 39 -> 20000 + (progress - 24) * 2000
+                progress <= 49 -> 50000 + (progress - 39) * 5000
+                else -> 100000 + (progress - 49) * 10000
             }
         }
 
-        /** Convert bitrate in kbps to the nearest seekbar progress (0..59). */
         fun bitrateToProgress(kbps: Int): Int {
             return when {
-                kbps <= 5000   -> ((kbps - 500) / 500).coerceIn(0, 9)
-                kbps <= 20000  -> (9 + (kbps - 5000 + 500) / 1000).coerceIn(10, 24)
-                kbps <= 50000  -> (24 + (kbps - 20000 + 1000) / 2000).coerceIn(25, 39)
+                kbps <= 5000 -> ((kbps - 500) / 500).coerceIn(0, 9)
+                kbps <= 20000 -> (9 + (kbps - 5000 + 500) / 1000).coerceIn(10, 24)
+                kbps <= 50000 -> (24 + (kbps - 20000 + 1000) / 2000).coerceIn(25, 39)
                 kbps <= 100000 -> (39 + (kbps - 50000 + 2500) / 5000).coerceIn(40, 49)
-                else           -> (49 + (kbps - 100000 + 5000) / 10000).coerceIn(50, MAX_PROGRESS)
+                else -> (49 + (kbps - 100000 + 5000) / 10000).coerceIn(50, MAX_PROGRESS)
             }
         }
 
-        /** Format bitrate kbps to a human-readable Mbps string. */
         fun formatBitrateMbps(kbps: Int): String {
             return if (kbps % 1000 != 0) {
                 String.format("%.1f Mbps", kbps / 1000.0)
@@ -97,200 +82,134 @@ class BitrateCardController(
         }
     }
 
-    fun setup(customView: View, dialog: AlertDialog) {
-        val bitrateContainer = customView.findViewById<View>(R.id.bitrateAdjustmentContainer)
-        val bitrateSeekBar = customView.findViewById<SeekBar>(R.id.bitrateSeekBar)
-        val currentBitrateText = customView.findViewById<TextView>(R.id.currentBitrateText)
-        val bitrateValueText = customView.findViewById<TextView>(R.id.bitrateValueText)
-        val bitrateTipIcon = customView.findViewById<ImageView>(R.id.bitrateTipIcon)
-
-        if (bitrateContainer == null || bitrateSeekBar == null ||
-            currentBitrateText == null || bitrateValueText == null || bitrateTipIcon == null
-        ) {
-            return
-        }
-
-        val currentBitrate = conn.currentBitrate
-
-        // 应用 ABR 状态显示（如启用）
-        val abrService = game.adaptiveBitrateService
-        fun renderCurrentText(kbps: Int, abrTag: String? = null) {
-            val base = String.format(
-                game.resources.getString(R.string.game_menu_bitrate_current), kbps / 1000
-            )
-            currentBitrateText.text = if (abrTag.isNullOrEmpty()) base else "$base   $abrTag"
-        }
-        renderCurrentText(currentBitrate, abrService?.takeIf { it.enabled }?.getStatusText())
-
-        // Configure segmented seekbar: 45 positions mapping to 0.5~200 Mbps
-        bitrateSeekBar.max = MAX_PROGRESS
-        bitrateSeekBar.progress = bitrateToProgress(currentBitrate)
-
-        bitrateValueText.text = formatBitrateMbps(progressToBitrateKbps(bitrateSeekBar.progress))
-
-        bitrateTipIcon.setOnClickListener {
-            AlertDialog.Builder(game, R.style.AppDialogStyle)
-                .setMessage(game.resources.getString(R.string.game_menu_bitrate_tip))
-                .setPositiveButton(R.string.dialog_button_ok, null)
-                .show()
-        }
-
-        // Long-press tip icon → cycle haptic mode
-        var currentHapticMode = getHapticMode(game)
-        bitrateTipIcon.setOnLongClickListener {
-            currentHapticMode = currentHapticMode.next()
-            setHapticMode(game, currentHapticMode)
-            Toast.makeText(game, currentHapticMode.label(game), Toast.LENGTH_SHORT).show()
-            true
-        }
-
-        // Apply only on release (touch up or key debounce)
-        val bitrateHandler = Handler(Looper.getMainLooper())
-        val bitrateApplyRunnable = Runnable {
-            val newBitrate = progressToBitrateKbps(bitrateSeekBar.progress)
-            adjustBitrate(newBitrate, currentBitrateText)
-            userTracking = false
-        }
-
-        bitrateSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            private var lastProgress = bitrateSeekBar.progress
-
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    val newBitrate = progressToBitrateKbps(progress)
-                    bitrateValueText.text = formatBitrateMbps(newBitrate)
-
-                    // Haptic feedback based on mode
-                    if (progress != lastProgress) {
-                        val shouldVibrate = when (currentHapticMode) {
-                            HapticMode.ALL -> true
-                            HapticMode.KEY_NODES -> progress in SEGMENT_BOUNDARIES
-                            HapticMode.NONE -> false
-                        }
-                        if (shouldVibrate) {
-                            performHapticFeedback(seekBar)
-                        }
-                    }
-                    lastProgress = progress
-                }
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar) {
-                userTracking = true
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                userTracking = false
-                val newBitrate = progressToBitrateKbps(seekBar.progress)
-                adjustBitrate(newBitrate, currentBitrateText)
-            }
-        })
-
-        bitrateSeekBar.setOnKeyListener { _, keyCode, event ->
-            if (event.action == KeyEvent.ACTION_DOWN) {
-                if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
-                    keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
-                ) {
-                    userTracking = true
-                    bitrateHandler.removeCallbacks(bitrateApplyRunnable)
-                    bitrateHandler.postDelayed(bitrateApplyRunnable, 300)
-                    return@setOnKeyListener false
-                }
-            }
-            false
-        }
-
-        // 订阅 ABR 码率变更，同步更新滑块与文本
-        if (abrService != null) {
-            val listener: (Int, String) -> Unit = { kbps, _ ->
-                game.runOnUiThread {
-                    if (userTracking) return@runOnUiThread // 用户拖动中不抢占 UI
-                    bitrateSeekBar.progress = bitrateToProgress(kbps)
-                    bitrateValueText.text = formatBitrateMbps(kbps)
-                    renderCurrentText(kbps, abrService.getStatusText())
-                }
-            }
-            abrService.bitrateListener = listener
-            dialog.setOnDismissListener {
-                if (abrService.bitrateListener === listener) {
-                    abrService.bitrateListener = null
-                }
-            }
-        }
-    }
-
-    private fun performHapticFeedback(view: View) {
-        view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
-    }
-
-    /** Reusable toast reference to dismiss previous one before showing new text. */
+    private var abrListener: ((Int, String) -> Unit)? = null
+    private var onStateChanged: ((BitrateCardState) -> Unit)? = null
+    private var userTracking = false
     private var bitrateToast: Toast? = null
+    private var state = createState(conn.currentBitrate)
 
-    /** 用户当前是否在拖动滑块（含触摸 + DPad 按下连续操作的间隙）。*/
-    private var userTracking: Boolean = false
+    fun snapshot(): BitrateCardState = state
+
+    fun start(onStateChanged: (BitrateCardState) -> Unit) {
+        dispose()
+        this.onStateChanged = onStateChanged
+        state = createState(conn.currentBitrate)
+        emitState()
+
+        val abrService = game.adaptiveBitrateService ?: return
+        val listener: (Int, String) -> Unit = { kbps, _ ->
+            game.runOnUiThread {
+                if (!userTracking) {
+                    state = state.copy(
+                        progress = bitrateToProgress(kbps).toFloat(),
+                        currentBitrateKbps = kbps,
+                        abrStatus = abrService.getStatusText()
+                    )
+                    emitState()
+                }
+            }
+        }
+        abrListener = listener
+        abrService.bitrateListener = listener
+    }
+
+    /** Returns whether this progress change should produce a haptic tick. */
+    fun previewProgress(progress: Float): Boolean {
+        val bounded = progress.coerceIn(0f, MAX_PROGRESS.toFloat())
+        val previousStep = state.progress.roundToInt()
+        val currentStep = bounded.roundToInt()
+        val changed = currentStep != previousStep
+        userTracking = true
+        state = state.copy(progress = bounded)
+        emitState()
+        return changed && when (state.hapticMode) {
+            HapticMode.ALL -> true
+            HapticMode.KEY_NODES -> currentStep in SEGMENT_BOUNDARIES
+            HapticMode.NONE -> false
+        }
+    }
+
+    fun applySelectedBitrate() {
+        userTracking = false
+        adjustBitrate(state.selectedBitrateKbps)
+    }
+
+    fun cycleHapticMode() {
+        val mode = state.hapticMode.next()
+        setHapticMode(game, mode)
+        state = state.copy(hapticMode = mode)
+        emitState()
+        Toast.makeText(game, mode.label(game), Toast.LENGTH_SHORT).show()
+    }
+
+    fun dispose() {
+        val listener = abrListener
+        if (listener != null && game.adaptiveBitrateService?.bitrateListener === listener) {
+            game.adaptiveBitrateService?.bitrateListener = null
+        }
+        abrListener = null
+        onStateChanged = null
+        userTracking = false
+    }
+
+    private fun createState(kbps: Int): BitrateCardState {
+        val abrService = game.adaptiveBitrateService
+        return BitrateCardState(
+            progress = bitrateToProgress(kbps).toFloat(),
+            currentBitrateKbps = kbps,
+            abrStatus = abrService?.takeIf { it.enabled }?.getStatusText(),
+            hapticMode = getHapticMode(game)
+        )
+    }
+
+    private fun emitState() {
+        onStateChanged?.invoke(state)
+    }
 
     private fun showBitrateToast(message: String) {
         bitrateToast?.cancel()
         bitrateToast = Toast.makeText(game, message, Toast.LENGTH_SHORT).also { it.show() }
     }
 
-    private fun adjustBitrate(bitrateKbps: Int, currentBitrateText: TextView? = null) {
+    private fun adjustBitrate(bitrateKbps: Int) {
         try {
             showBitrateToast(game.getString(R.string.toast_adjusting_bitrate))
-
             conn.setBitrate(bitrateKbps, object : NvConnection.BitrateAdjustmentCallback {
                 override fun onSuccess(newBitrate: Int) {
                     game.runOnUiThread {
-                        try {
-                            // Update prefConfig with the new bitrate so it gets saved when streaming ends
-                            game.prefConfig.bitrate = newBitrate
-
-                            // 同步 ABR 基准（避免 ABR 仍按旧码率决策）
-                            game.adaptiveBitrateService?.notifyManualOverride(newBitrate)
-
-                            // Update the "current bitrate" label in the dialog
-                            currentBitrateText?.text = String.format(
-                                game.resources.getString(R.string.game_menu_bitrate_current),
-                                newBitrate / 1000
-                            )
-
-                            val successMessage = String.format(
-                                game.resources.getString(R.string.game_menu_bitrate_adjustment_success),
-                                newBitrate / 1000
-                            )
-                            showBitrateToast(successMessage)
-                        } catch (e: Exception) {
-                            LimeLog.warning("Failed to show success toast: ${e.message}")
-                        }
+                        game.prefConfig.bitrate = newBitrate
+                        game.adaptiveBitrateService?.notifyManualOverride(newBitrate)
+                        state = state.copy(
+                            progress = bitrateToProgress(newBitrate).toFloat(),
+                            currentBitrateKbps = newBitrate,
+                            abrStatus = game.adaptiveBitrateService?.takeIf { it.enabled }?.getStatusText()
+                        )
+                        emitState()
+                        showBitrateToast(
+                            game.getString(R.string.game_menu_bitrate_adjustment_success, newBitrate / 1000)
+                        )
                     }
                 }
 
                 override fun onFailure(errorMessage: String) {
                     game.runOnUiThread {
-                        try {
-                            val actualBitrate = conn.currentBitrate
-                            currentBitrateText?.text = String.format(
-                                game.resources.getString(R.string.game_menu_bitrate_current),
-                                actualBitrate / 1000
-                            )
-
-                            val errorMsg = game.resources.getString(R.string.game_menu_bitrate_adjustment_failed) + ": " + errorMessage
-                            showBitrateToast(errorMsg)
-                        } catch (e: Exception) {
-                            LimeLog.warning("Failed to show error toast: ${e.message}")
-                        }
+                        val actualBitrate = conn.currentBitrate
+                        state = state.copy(
+                            progress = bitrateToProgress(actualBitrate).toFloat(),
+                            currentBitrateKbps = actualBitrate
+                        )
+                        emitState()
+                        showBitrateToast(
+                            game.getString(R.string.game_menu_bitrate_adjustment_failed) + ": " + errorMessage
+                        )
                     }
                 }
             })
         } catch (e: Exception) {
             game.runOnUiThread {
-                try {
-                    showBitrateToast(
-                        game.resources.getString(R.string.game_menu_bitrate_adjustment_failed) + ": " + e.message
-                    )
-                } catch (toastException: Exception) {
-                    LimeLog.warning("Failed to show error toast: ${toastException.message}")
-                }
+                showBitrateToast(
+                    game.getString(R.string.game_menu_bitrate_adjustment_failed) + ": " + e.message
+                )
             }
         }
     }

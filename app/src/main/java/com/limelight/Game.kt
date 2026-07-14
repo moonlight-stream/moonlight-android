@@ -2210,21 +2210,32 @@ class Game : Activity(), SurfaceHolder.Callback,
     }
 
     fun togglePerformanceOverlay() {
-        if (performanceOverlayManager == null) return
+        val nextMode = when (performanceOverlayMode) {
+            PerformanceOverlayMode.HIDDEN -> PerformanceOverlayMode.FLOATING
+            PerformanceOverlayMode.FLOATING -> PerformanceOverlayMode.LOCKED
+            PerformanceOverlayMode.LOCKED -> PerformanceOverlayMode.HIDDEN
+        }
+        setPerformanceOverlayMode(nextMode)
+    }
 
-        if (!prefConfig.enablePerfOverlay) {
-            prefConfig.enablePerfOverlay = true
-            prefConfig.perfOverlayLocked = false
-            performanceOverlayManager?.applyOverlayState()
-        } else if (!prefConfig.perfOverlayLocked) {
-            prefConfig.perfOverlayLocked = true
-            performanceOverlayManager?.applyOverlayState()
-        } else {
-            prefConfig.enablePerfOverlay = false
-            prefConfig.perfOverlayLocked = false
-            performanceOverlayManager?.applyOverlayState()
+    enum class PerformanceOverlayMode {
+        HIDDEN,
+        FLOATING,
+        LOCKED
+    }
+
+    val performanceOverlayMode: PerformanceOverlayMode
+        get() = when {
+            !prefConfig.enablePerfOverlay -> PerformanceOverlayMode.HIDDEN
+            prefConfig.perfOverlayLocked -> PerformanceOverlayMode.LOCKED
+            else -> PerformanceOverlayMode.FLOATING
         }
 
+    fun setPerformanceOverlayMode(mode: PerformanceOverlayMode) {
+        if (performanceOverlayManager == null) return
+        prefConfig.enablePerfOverlay = mode != PerformanceOverlayMode.HIDDEN
+        prefConfig.perfOverlayLocked = mode == PerformanceOverlayMode.LOCKED
+        performanceOverlayManager?.applyOverlayState()
         prefConfig.writePreferences(this)
     }
 
@@ -2251,8 +2262,7 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     fun toggleVirtualController() {
         if (virtualController != null && virtualController?.elements?.isNotEmpty() == true) {
-            val isVisible = virtualController?.elements?.get(0)?.visibility == View.VISIBLE
-            if (isVisible) {
+            if (isVirtualControllerVisible()) {
                 virtualController?.hide()
                 Toast.makeText(this, getString(R.string.toast_virtual_controller_hidden), Toast.LENGTH_SHORT).show()
             } else {
@@ -2263,6 +2273,9 @@ class Game : Activity(), SurfaceHolder.Callback,
             Toast.makeText(this, getString(R.string.toast_virtual_controller_not_enabled), Toast.LENGTH_SHORT).show()
         }
     }
+
+    fun isVirtualControllerVisible(): Boolean =
+        virtualController?.elements?.firstOrNull()?.visibility == View.VISIBLE
 
     fun initializeControllerManager() {
         val manager = controllerManager ?: ControllerManager(streamView.parent as FrameLayout, this)

@@ -61,6 +61,10 @@ open class NvConnection(
     private val context: ConnectionContext = ConnectionContext()
     private val isMonkey: Boolean = ActivityManager.isUserAMonkey()
 
+    @Volatile
+    var serverVersion: String? = null
+        private set
+
     init {
         context.serverAddress = host
         context.httpsPort = httpsPort
@@ -226,6 +230,7 @@ open class NvConnection(
 
         val details = h.getComputerDetails(serverInfo)
         details.serverCert = context.serverCert
+        serverVersion = details.sunshineVersion ?: context.serverAppVersion
         context.isNvidiaServerSoftware = details.nvidiaServer
         context.supportsDesktopSpecialApp = details.supportsDesktopSpecialApp
 

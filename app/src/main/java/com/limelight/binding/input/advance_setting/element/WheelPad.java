@@ -16,10 +16,13 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,6 +45,10 @@ import java.util.List;
 import java.util.Map;
 
 public class WheelPad extends Element {
+
+    private static final String EXTRA_SEGMENT_ALIGNMENT = "segmentAlignment";
+    private static final String SEGMENT_ALIGNMENT_CENTER = "center";
+    private static final String SEGMENT_ALIGNMENT_EDGE = "edge";
 
     private final PageDeviceController pageDeviceController;
     private final WheelPad wheelPad;
@@ -85,6 +92,7 @@ public class WheelPad extends Element {
     private boolean isWheelActive = false;
     private boolean popupAtScreenCenter;
     private boolean previewGroupChildren;
+    private boolean alignSegmentEdge;
     // 用于追踪当前悬停的组按键，以实现子按键预览
     private GroupButton hoveredGroupButton = null;
 
@@ -203,6 +211,12 @@ public class WheelPad extends Element {
                     } else {
                         this.previewGroupChildren = true; // 默认为开启
                     }
+                    if (extraAttrs.has(EXTRA_SEGMENT_ALIGNMENT)) {
+                        this.alignSegmentEdge = SEGMENT_ALIGNMENT_EDGE.equals(
+                                extraAttrs.get(EXTRA_SEGMENT_ALIGNMENT).getAsString());
+                    } else {
+                        this.alignSegmentEdge = false;
+                    }
 
                 } catch (Exception e) {
                     // JSON 解析失败，使用默认值
@@ -241,6 +255,7 @@ public class WheelPad extends Element {
         this.centerTextSizePercent = 60;
         this.triggerTextSizePercent = 40;
         this.previewGroupChildren = true;
+        this.alignSegmentEdge = false;
     }
 
     public boolean isBeingEdited() {
@@ -424,11 +439,11 @@ public class WheelPad extends Element {
         float segmentTextSize = ringThickness * (this.textSizePercent / 100.0f);
         paintText.setTextSize(segmentTextSize);
 
-        float sweepAngle = 360.0f / segmentCount;
+        float sweepAngle = WheelPadGeometry.sweepAngleDegrees(segmentCount);
 
         rect.set(centerX - fillOuterRadius, centerY - fillOuterRadius, centerX + fillOuterRadius, centerY + fillOuterRadius);
         for (int i = 0; i < segmentCount; i++) {
-            float startAngle = (i * sweepAngle) - (sweepAngle / 2) - 90;
+            float startAngle = WheelPadGeometry.segmentStartAngleDegrees(i, segmentCount, alignSegmentEdge);
             Paint currentFillPaint = (i == activeIndex) ? paintSegmentFillPressed : paintSegmentFill;
             canvas.drawArc(rect, startAngle, sweepAngle, true, currentFillPaint);
             
@@ -445,7 +460,7 @@ public class WheelPad extends Element {
 
         float textRadius = fillInnerRadius + (fillOuterRadius - fillInnerRadius) / 2.0f;
         for (int i = 0; i < segmentCount; i++) {
-            float startAngle = (i * sweepAngle) - (sweepAngle / 2) - 90;
+            float startAngle = WheelPadGeometry.segmentStartAngleDegrees(i, segmentCount, alignSegmentEdge);
             float textAngle = startAngle + sweepAngle / 2.0f; // 分区中心角度（以上方为-90度起点）
 
             if (i < segmentValues.size()) {
@@ -484,7 +499,7 @@ public class WheelPad extends Element {
         canvas.drawOval(rect, paintBorder);
 
         for (int i = 0; i < segmentCount; i++) {
-            float angle = (i * sweepAngle) - (sweepAngle / 2) - 90;
+            float angle = WheelPadGeometry.segmentStartAngleDegrees(i, segmentCount, alignSegmentEdge);
             double angleRad = Math.toRadians(angle);
             float startX = centerX + (float) (fillInnerRadius * Math.cos(angleRad));
             float startY = centerY + (float) (fillInnerRadius * Math.sin(angleRad));
@@ -590,10 +605,7 @@ public class WheelPad extends Element {
             double distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance > innerRadius && distance < outerRadius) {
-                double angle = Math.toDegrees(Math.atan2(dy, dx)) + 90;
-                if (angle < 0) angle += 360;
-                float sweepAngle = 360.0f / segmentCount;
-                activeIndex = (int) ((angle + sweepAngle / 2) % 360 / sweepAngle);
+                activeIndex = WheelPadGeometry.segmentIndexForVector(dx, dy, segmentCount, alignSegmentEdge);
             } else {
                 activeIndex = -1;
             }
@@ -632,10 +644,7 @@ public class WheelPad extends Element {
                     hoveredGroupButton = null;
 
                     if (distance > innerRadius) {
-                        double angle = Math.toDegrees(Math.atan2(dy, dx)) + 90;
-                        if (angle < 0) angle += 360;
-                        float sweepAngle = 360.0f / segmentCount;
-                        activeIndex = (int) ((angle + sweepAngle / 2) % 360 / sweepAngle);
+                        activeIndex = WheelPadGeometry.segmentIndexForVector(dx, dy, segmentCount, alignSegmentEdge);
 
                         // 检查当前分区是否为组按键，如果是，则获取其实例用于预览
                         if (activeIndex != -1 && activeIndex < segmentValues.size()) {
@@ -741,6 +750,7 @@ public class WheelPad extends Element {
         Button copyButton = wheelPadPage.findViewById(R.id.page_wheel_pad_copy);
         Button deleteButton = wheelPadPage.findViewById(R.id.page_wheel_pad_delete);
         NumberSeekbar segmentCountNumberSeekbar = wheelPadPage.findViewById(R.id.page_wheel_pad_segment_count);
+        Spinner segmentAlignmentSpinner = wheelPadPage.findViewById(R.id.page_wheel_pad_segment_alignment);
         NumberSeekbar innerRadiusNumberSeekbar = wheelPadPage.findViewById(R.id.page_wheel_pad_inner_radius);
 
         NumberSeekbar textSizeNumberSeekbar = wheelPadPage.findViewById(R.id.page_wheel_pad_text_size);
@@ -801,6 +811,34 @@ public class WheelPad extends Element {
                 save();
             }
         });
+
+        ArrayAdapter<String> alignmentAdapter = new ArrayAdapter<>(
+                getContext(),
+                R.layout.crown_spinner_item,
+                Arrays.asList(
+                        getContext().getString(R.string.wheel_alignment_center),
+                        getContext().getString(R.string.wheel_alignment_edge)
+                )
+        );
+        alignmentAdapter.setDropDownViewResource(R.layout.crown_spinner_item);
+        segmentAlignmentSpinner.setAdapter(alignmentAdapter);
+        segmentAlignmentSpinner.setSelection(alignSegmentEdge ? 1 : 0, false);
+        segmentAlignmentSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                boolean newAlignSegmentEdge = position == 1;
+                if (alignSegmentEdge != newAlignSegmentEdge) {
+                    alignSegmentEdge = newAlignSegmentEdge;
+                    invalidate();
+                    save();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
         innerRadiusNumberSeekbar.setValueWithNoCallBack(innerRadiusPercent);
         innerRadiusNumberSeekbar.setOnNumberSeekbarChangeListener(new NumberSeekbar.OnNumberSeekbarChangeListener() {
             @Override
@@ -914,15 +952,7 @@ public class WheelPad extends Element {
         contentValues.put(COLUMN_INT_ELEMENT_SENSE, innerRadiusPercent);
         contentValues.put(COLUMN_INT_ELEMENT_FLAG1, popupAtScreenCenter ? 1 : 0);
 
-        JsonObject extraAttrs = new JsonObject();
-        extraAttrs.addProperty("normalTextColor", this.normalTextColor);
-        extraAttrs.addProperty("pressedTextColor", this.pressedTextColor);
-        extraAttrs.addProperty("centerTextColor", this.centerTextColor);
-        extraAttrs.addProperty("textSizePercent", this.textSizePercent);
-        extraAttrs.addProperty("centerTextSizePercent", this.centerTextSizePercent);
-        extraAttrs.addProperty("triggerTextSizePercent", this.triggerTextSizePercent);
-        extraAttrs.addProperty("previewGroupChildren", this.previewGroupChildren);
-        contentValues.put("extra_attributes", new Gson().toJson(extraAttrs));
+        contentValues.put("extra_attributes", new Gson().toJson(buildExtraAttributes()));
 
         List<String> combinedSegments = new ArrayList<>();
         for (int i = 0; i < segmentValues.size(); i++) {
@@ -965,6 +995,7 @@ public class WheelPad extends Element {
         extraAttrs.addProperty("centerTextSizePercent", 60); // 60%
         extraAttrs.addProperty("triggerTextSizePercent", 40);
         extraAttrs.addProperty("previewGroupChildren", true);
+        extraAttrs.addProperty(EXTRA_SEGMENT_ALIGNMENT, SEGMENT_ALIGNMENT_CENTER);
         // 将 JsonObject 转换为字符串，并存入通用的 "extra_attributes" 列
         contentValues.put("extra_attributes", new Gson().toJson(extraAttrs));
 
@@ -1090,19 +1121,7 @@ public class WheelPad extends Element {
             cv.put(COLUMN_INT_ELEMENT_SENSE, this.innerRadiusPercent);
             cv.put(COLUMN_INT_ELEMENT_FLAG1, this.popupAtScreenCenter ? 1 : 0);
 
-            // 创建一个 JsonObject 来存储所有没有独立数据库列的属性
-            JsonObject extraAttrs = new JsonObject();
-            // **放入所有新的字体属性**
-            extraAttrs.addProperty("normalTextColor", this.normalTextColor);
-            extraAttrs.addProperty("pressedTextColor", this.pressedTextColor);
-            extraAttrs.addProperty("centerTextColor", this.centerTextColor);
-            extraAttrs.addProperty("textSizePercent", this.textSizePercent);
-            extraAttrs.addProperty("centerTextSizePercent", this.centerTextSizePercent);
-            extraAttrs.addProperty("triggerTextSizePercent", this.triggerTextSizePercent);
-            extraAttrs.addProperty("previewGroupChildren", this.previewGroupChildren);
-
-            // 将 JsonObject 转换为字符串，并存入通用的 "extra_attributes" 列
-            cv.put("extra_attributes", new Gson().toJson(extraAttrs));
+            cv.put("extra_attributes", new Gson().toJson(buildExtraAttributes()));
 
             List<String> combinedSegments = new ArrayList<>();
             for (int i = 0; i < segmentValues.size(); i++) {
@@ -1128,6 +1147,20 @@ public class WheelPad extends Element {
         setElementWidth(newDiameter);
         setElementHeight(newDiameter);
         invalidate();
+    }
+
+    private JsonObject buildExtraAttributes() {
+        JsonObject extraAttrs = new JsonObject();
+        extraAttrs.addProperty("normalTextColor", this.normalTextColor);
+        extraAttrs.addProperty("pressedTextColor", this.pressedTextColor);
+        extraAttrs.addProperty("centerTextColor", this.centerTextColor);
+        extraAttrs.addProperty("textSizePercent", this.textSizePercent);
+        extraAttrs.addProperty("centerTextSizePercent", this.centerTextSizePercent);
+        extraAttrs.addProperty("triggerTextSizePercent", this.triggerTextSizePercent);
+        extraAttrs.addProperty("previewGroupChildren", this.previewGroupChildren);
+        extraAttrs.addProperty(EXTRA_SEGMENT_ALIGNMENT,
+                this.alignSegmentEdge ? SEGMENT_ALIGNMENT_EDGE : SEGMENT_ALIGNMENT_CENTER);
+        return extraAttrs;
     }
 
     protected void setSegmentCount(int count) {

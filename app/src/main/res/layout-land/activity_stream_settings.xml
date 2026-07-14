@@ -39,7 +39,7 @@
                 android:layout_width="@dimen/drawer_width"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:background="@drawable/drawer_background"
+                android:background="@color/settings_drawer_background_landscape"
                 android:paddingTop="@dimen/activity_safearea_top"
                 android:fitsSystemWindows="true"
                 android:elevation="4dp">

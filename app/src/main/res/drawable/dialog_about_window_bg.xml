@@ -10,10 +10,6 @@
 
     <corners android:radius="24dp" />
 
-    <stroke
-        android:width="2dp"
-        android:color="@color/about_dialog_window_outline" />
-
     <padding
         android:left="2dp"
         android:top="2dp"

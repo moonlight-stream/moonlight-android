@@ -140,6 +140,23 @@
                     app:max="16"
                     app:min="2"
                     app:progress="8" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="4dp"
+                    android:labelFor="@id/page_wheel_pad_segment_alignment"
+                    android:text="@string/wheel_alignment_title"
+                    android:textColor="@color/crown_text_secondary"
+                    android:textSize="12sp" />
+
+                <Spinner
+                    android:id="@+id/page_wheel_pad_segment_alignment"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/crown_config_input_bg" />
                 
                 <com.limelight.binding.input.advance_setting.superpage.NumberSeekbar
                     android:id="@+id/page_wheel_pad_size"

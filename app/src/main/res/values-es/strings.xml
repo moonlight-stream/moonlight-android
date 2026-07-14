@@ -363,7 +363,7 @@
     <string name="game_menu_toggle_mouse_off">Deshabilitar Emulación de Ratón del Controlador</string>
     <string name="game_menu_toggle_mouse_on">Habilitar Emulación de Ratón del Controlador</string>
     <string name="game_menu_toggle_performance_overlay">Alternar Superposición de Rendimiento</string>
-    <string name="game_menu_toggle_virtual_controller">Alternar Controlador Virtual</string>
+    <string name="game_menu_toggle_virtual_controller">Controlador Virtual</string>
     <string name="game_menu_touch_mode_classic">Modo de Ratón Clásico</string>
     <string name="game_menu_touch_mode_enhanced">Toque Multi-Punto Mejorado</string>
     <string name="game_menu_touch_mode_native_mouse">Puntero de ratón nativo</string>

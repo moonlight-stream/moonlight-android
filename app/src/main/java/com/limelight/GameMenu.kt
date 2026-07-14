@@ -1,6 +1,5 @@
 package com.limelight
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.ContentValues
@@ -8,24 +7,22 @@ import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.text.Html
-import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.view.animation.AnimationUtils
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.activity.ComponentDialog
 import com.google.gson.JsonArray
 import com.limelight.binding.input.GameInputDevice
 import com.limelight.binding.input.KeyboardTranslator
@@ -34,7 +31,7 @@ import com.limelight.binding.input.advance_setting.element.ElementController
 import com.limelight.nvstream.NvConnection
 import com.limelight.nvstream.http.NvApp
 import com.limelight.preferences.PreferenceConfiguration
-import com.limelight.utils.AppDialogStyler
+import com.limelight.utils.AppActionSheet
 import com.limelight.utils.KeyCodeMapper
 import org.json.JSONArray
 import org.json.JSONObject
@@ -58,18 +55,16 @@ class GameMenu(
     private val device: GameInputDevice?
 ) {
     // 当前激活的对话框（如果有）
-    private var activeDialog: AlertDialog? = null
-    // 当前激活对话框所用的自定义视图引用（便于内部替换）
-    private var activeCustomView: View? = null
+    private var activeDialog: ComponentDialog? = null
+    private var composeUiState: MutableState<GameMenuComposeUiState>? = null
     // 标志：上一次运行的选项是否打开了子菜单（由 showSubMenu 设置）
     private var lastActionOpenedSubmenu = false
     // 菜单历史栈，用于二级/多级菜单的回退
-    private val menuStack: ArrayDeque<MenuState> = ArrayDeque()
+    private val menuStack: ArrayDeque<MenuPage> = ArrayDeque()
     private val handler = Handler(Looper.getMainLooper())
     private val actionExecutor = StreamActionExecutor(game, { conn }, handler)
-    // 快捷按钮编辑模式
-    private var quickButtonEditMode = false
-
+    private val bitrateCardController = BitrateCardController(game, conn)
+    private val gyroCardController = GyroCardController(game)
     init {
         showMenu()
     }
@@ -89,7 +84,9 @@ class GameMenu(
         val isShowIcon: Boolean,
         val isKeepDialog: Boolean,
         val subtitle: String? = null,
-        val isCrownControl: Boolean = false
+        val isCrownControl: Boolean = false,
+        val showChevron: Boolean = false,
+        val inlineControl: InlineControl? = null
     ) {
         constructor(label: String, runnable: Runnable?) :
                 this(label, false, runnable, null, true, false)
@@ -104,10 +101,24 @@ class GameMenu(
                 this(label, withGameFocus, runnable, iconKey, showIcon, false)
     }
 
+    sealed interface InlineControl {
+        data class Toggle(
+            val checked: Boolean,
+            val toggleAction: Runnable? = null
+        ) : InlineControl
+        data class Segmented(val segments: List<SegmentOption>) : InlineControl
+    }
+
+    data class SegmentOption(
+        val label: String,
+        val selected: Boolean,
+        val runnable: Runnable
+    )
+
     /**
      * 菜单状态，用于回退
      */
-    private class MenuState(val title: String?, val normalOptions: Array<MenuOption>)
+    private data class MenuPage(val title: String, val options: List<MenuOption>)
 
     /**
      * 获取字符串资源
@@ -159,52 +170,10 @@ class GameMenu(
      * 显示触控模式菜单
      */
     private fun showTouchModeMenu() {
-        val isEnhancedTouch = game.prefConfig.enableEnhancedTouch
         val isTouchscreenTrackpad = game.prefConfig.touchscreenTrackpad
-        val isNativeMousePointer = game.prefConfig.enableNativeMousePointer
-
-        val touchModeOptionsList = mutableListOf<MenuOption>()
-
-        touchModeOptionsList.add(MenuOption(
-            getString(R.string.game_menu_touch_mode_enhanced),
-            isEnhancedTouch && !isTouchscreenTrackpad && !isNativeMousePointer,
-            {
-                game.prefConfig.enableEnhancedTouch = true
-                game.prefConfig.enableNativeMousePointer = false
-                game.enableNativeMousePointer(false)
-                game.setTouchMode(false)
-                updateEnhancedTouchSetting(true)
-                updateTouchModeSetting(false)
-                Toast.makeText(game, getString(R.string.toast_touch_mode_enhanced_on), Toast.LENGTH_SHORT).show()
-            },
-            null, false
-        ))
-        touchModeOptionsList.add(MenuOption(
-            getString(R.string.game_menu_touch_mode_classic),
-            !isEnhancedTouch && !isTouchscreenTrackpad && !isNativeMousePointer,
-            {
-                game.prefConfig.enableEnhancedTouch = false
-                game.prefConfig.enableNativeMousePointer = false
-                game.enableNativeMousePointer(false)
-                game.setTouchMode(false)
-                updateEnhancedTouchSetting(false)
-                updateTouchModeSetting(false)
-                Toast.makeText(game, getString(R.string.toast_touch_mode_classic_on), Toast.LENGTH_SHORT).show()
-            },
-            null, false
-        ))
-        touchModeOptionsList.add(MenuOption(
-            getString(R.string.game_menu_touch_mode_trackpad),
-            isTouchscreenTrackpad && !isNativeMousePointer,
-            {
-                game.prefConfig.enableNativeMousePointer = false
-                game.enableNativeMousePointer(false)
-                game.setTouchMode(true)
-                updateTouchModeSetting(true)
-                Toast.makeText(game, getString(R.string.toast_touch_mode_trackpad_on), Toast.LENGTH_SHORT).show()
-            },
-            null, false
-        ))
+        val touchModeOptionsList = buildTouchModeSegments().mapTo(mutableListOf()) { segment ->
+            MenuOption(segment.label, false, segment.runnable, null, false)
+        }
 
         //触控板双击功能
         if (isTouchscreenTrackpad) {
@@ -270,20 +239,6 @@ class GameMenu(
         }
 
         touchModeOptionsList.add(MenuOption(
-            getString(R.string.game_menu_touch_mode_native_mouse),
-            isNativeMousePointer,
-            {
-                game.prefConfig.enableNativeMousePointer = true
-                game.prefConfig.enableEnhancedTouch = false
-                game.setTouchMode(false)
-                game.enableNativeMousePointer(true)
-                updateTouchModeSetting(false)
-                Toast.makeText(game, getString(R.string.toast_touch_mode_native_mouse_on), Toast.LENGTH_SHORT).show()
-            },
-            null, false
-        ))
-
-        touchModeOptionsList.add(MenuOption(
             getString(R.string.game_menu_toggle_remote_mouse),
             false,
             {
@@ -299,6 +254,64 @@ class GameMenu(
         ))
 
         showSubMenu(getString(R.string.game_menu_switch_touch_mode), touchModeOptionsList.toTypedArray())
+    }
+
+    private fun buildTouchModeSegments(): List<SegmentOption> {
+        val isEnhancedTouch = game.prefConfig.enableEnhancedTouch
+        val isTrackpad = game.prefConfig.touchscreenTrackpad
+        val isNativePointer = game.prefConfig.enableNativeMousePointer
+
+        return listOf(
+            SegmentOption(
+                label = getString(R.string.game_menu_touch_mode_enhanced),
+                selected = isEnhancedTouch && !isTrackpad && !isNativePointer,
+                runnable = Runnable {
+                    game.prefConfig.enableEnhancedTouch = true
+                    game.prefConfig.enableNativeMousePointer = false
+                    game.enableNativeMousePointer(false)
+                    game.setTouchMode(false)
+                    updateEnhancedTouchSetting(true)
+                    updateTouchModeSetting(false)
+                    Toast.makeText(game, getString(R.string.toast_touch_mode_enhanced_on), Toast.LENGTH_SHORT).show()
+                }
+            ),
+            SegmentOption(
+                label = getString(R.string.game_menu_touch_mode_classic),
+                selected = !isEnhancedTouch && !isTrackpad && !isNativePointer,
+                runnable = Runnable {
+                    game.prefConfig.enableEnhancedTouch = false
+                    game.prefConfig.enableNativeMousePointer = false
+                    game.enableNativeMousePointer(false)
+                    game.setTouchMode(false)
+                    updateEnhancedTouchSetting(false)
+                    updateTouchModeSetting(false)
+                    Toast.makeText(game, getString(R.string.toast_touch_mode_classic_on), Toast.LENGTH_SHORT).show()
+                }
+            ),
+            SegmentOption(
+                label = getString(R.string.game_menu_touch_mode_trackpad),
+                selected = isTrackpad && !isNativePointer,
+                runnable = Runnable {
+                    game.prefConfig.enableNativeMousePointer = false
+                    game.enableNativeMousePointer(false)
+                    game.setTouchMode(true)
+                    updateTouchModeSetting(true)
+                    Toast.makeText(game, getString(R.string.toast_touch_mode_trackpad_on), Toast.LENGTH_SHORT).show()
+                }
+            ),
+            SegmentOption(
+                label = getString(R.string.game_menu_touch_mode_native_mouse),
+                selected = isNativePointer,
+                runnable = Runnable {
+                    game.prefConfig.enableNativeMousePointer = true
+                    game.prefConfig.enableEnhancedTouch = false
+                    game.setTouchMode(false)
+                    game.enableNativeMousePointer(true)
+                    updateTouchModeSetting(false)
+                    Toast.makeText(game, getString(R.string.toast_touch_mode_native_mouse_on), Toast.LENGTH_SHORT).show()
+                }
+            )
+        )
     }
 
     private fun updateTouchModeSetting(isTrackpadMode: Boolean) {
@@ -328,17 +341,11 @@ class GameMenu(
     }
 
     /**
-     * 切换麦克风开关
-     */
-    private fun toggleMicrophone() {
-        game.handleMicrophoneMenuAction()
-    }
-
-    /**
      * 切换王冠功能并即时刷新菜单内容
      */
     private fun toggleCrownFeature() {
-        setCrownFeatureEnabled(!game.isCrownFeatureEnabled, refreshMenu = true)
+        setCrownFeatureEnabled(!game.isCrownFeatureEnabled)
+        rebuildAndReplaceMenu()
     }
 
     private fun getCrownToggleText(): String {
@@ -348,100 +355,60 @@ class GameMenu(
             getString(R.string.crown_switch_to_crown)
     }
 
-    private fun updateCrownToggleButtonText(crownToggleButton: TextView) {
-        @Suppress("DEPRECATION")
-        crownToggleButton.text = Html.fromHtml("<u>${getCrownToggleText()}</u>")
-    }
-
-    private fun updateCrownToggleButton() {
-        activeCustomView?.let { view ->
-            val crownToggleButton = view.findViewById<TextView>(R.id.btnCrownToggle) ?: return
-            updateCrownToggleButtonText(crownToggleButton)
-        }
-    }
-
     private fun rebuildAndReplaceMenu() {
-        val dialog = activeDialog ?: return
-        val customView = activeCustomView ?: return
+        activeDialog ?: return
 
         menuStack.clear()
-        customView.findViewById<TextView>(R.id.customTitleTextView)?.text = GAME_MENU_TITLE
 
         val normalOptions = mutableListOf<MenuOption>()
         buildNormalMenuOptions(normalOptions)
-
-        val normalListView = customView.findViewById<ListView>(R.id.gameMenuList) ?: return
-        val adapter = GameMenuAdapter(game, normalOptions.toTypedArray())
-        normalListView.adapter = adapter
-        setupMenu(normalListView, adapter, dialog)
+        composeUiState?.let { state ->
+            state.value = state.value.copy(
+                title = getString(R.string.game_menu_title),
+                options = normalOptions,
+                crownToggleText = getCrownToggleText(),
+                isSubmenu = false
+            )
+        }
     }
 
     /**
      * 显示"王冠功能"的二级菜单
      */
     private fun showCrownFunctionMenu() {
-        val controllerManager = game.controllerManager
-
-        if (!game.isCrownFeatureEnabled) {
-            val disabledOptions = arrayOf(
-                createCrownOption(
-                    getString(R.string.crown_switch_to_crown),
-                    "crown_enable",
-                    getString(R.string.crown_control_enable_subtitle),
-                    keepDialog = true
-                ) {
-                    setCrownFeatureEnabled(true)
-                    replaceCrownFunctionMenu()
-                }
-            )
-            showSubMenu(getString(R.string.game_menu_crown_function_title), disabledOptions)
-            return
-        }
-
-        showSubMenu(getString(R.string.game_menu_crown_function_title), buildEnabledCrownFunctionOptions(controllerManager))
+        if (!game.isCrownFeatureEnabled) return
+        showSubMenu(
+            getString(R.string.game_menu_crown_function_title),
+            buildEnabledCrownFunctionOptions(game.controllerManager)
+        )
     }
 
     private fun createCrownOption(
         label: String,
         iconKey: String,
         subtitle: String,
-        keepDialog: Boolean = false,
         action: () -> Unit
     ): MenuOption {
         return MenuOption(
-            label,
-            false,
-            Runnable { action() },
-            iconKey,
+            label = label,
+            isWithGameFocus = false,
+            runnable = Runnable { action() },
+            iconKey = iconKey,
             isShowIcon = true,
-            isKeepDialog = keepDialog,
+            isKeepDialog = false,
             subtitle = subtitle,
             isCrownControl = true
         )
     }
 
-    private fun setCrownFeatureEnabled(enabled: Boolean, refreshMenu: Boolean = false) {
+    private fun setCrownFeatureEnabled(enabled: Boolean) {
         game.isCrownFeatureEnabled = enabled
-        Toast.makeText(game,
-            if (game.isCrownFeatureEnabled) getString(R.string.crown_switch_to_crown)
-            else getString(R.string.crown_switch_to_normal),
-            Toast.LENGTH_SHORT).show()
-        updateCrownToggleButton()
-        if (refreshMenu && activeDialog?.isShowing == true) {
-            rebuildAndReplaceMenu()
+        val message = if (game.isCrownFeatureEnabled) {
+            getString(R.string.crown_mode_crown)
+        } else {
+            getString(R.string.crown_mode_normal)
         }
-    }
-
-    private fun replaceCrownFunctionMenu() {
-        val dialog = activeDialog
-        if (dialog != null && dialog.isShowing) {
-            replaceNormalMenuInDialog(
-                dialog,
-                getString(R.string.game_menu_crown_function_title),
-                buildEnabledCrownFunctionOptions(game.controllerManager),
-                false
-            )
-        }
+        Toast.makeText(game, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun buildEnabledCrownFunctionOptions(controllerManager: com.limelight.binding.input.advance_setting.ControllerManager?): Array<MenuOption> {
@@ -537,7 +504,11 @@ class GameMenu(
 
         // 预设分辨率
         for (res in PreferenceConfiguration.RESOLUTIONS) {
-            val label = if (res == currentResStr) "$res (Current)" else res
+            val label = if (res == currentResStr) {
+                game.getString(R.string.game_menu_resolution_current, res)
+            } else {
+                res
+            }
             options.add(MenuOption(label, false, { changeResolution(res) }, null, false))
         }
 
@@ -562,14 +533,17 @@ class GameMenu(
             for (res in sortedCustom) {
                 if (PreferenceConfiguration.RESOLUTIONS.contains(res)) continue
 
-                var label = "$res (Custom)"
-                if (res == currentResStr) label += " (Current)"
+                val label = if (res == currentResStr) {
+                    game.getString(R.string.game_menu_resolution_custom_current, res)
+                } else {
+                    game.getString(R.string.game_menu_resolution_custom, res)
+                }
 
                 options.add(MenuOption(label, false, { changeResolution(res) }, null, false))
             }
         }
 
-        showSubMenu("Change Resolution", options.toTypedArray())
+        showSubMenu(getString(R.string.game_menu_change_resolution), options.toTypedArray())
     }
 
     private fun changeResolution(resString: String) {
@@ -579,98 +553,87 @@ class GameMenu(
                 putString(PreferenceConfiguration.RESOLUTION_PREF_STRING, resString)
             }
 
-        Toast.makeText(game, "Resolution changed to $resString. Restarting...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            game,
+            game.getString(R.string.game_menu_resolution_restarting, resString),
+            Toast.LENGTH_SHORT
+        ).show()
 
         game.changeResolution()
         activeDialog?.dismiss()
     }
 
     /**
-     * 调整码率
-     */
-    private fun adjustBitrate(bitrateKbps: Int) {
-        try {
-            Toast.makeText(game, getString(R.string.toast_adjusting_bitrate), Toast.LENGTH_SHORT).show()
-
-            conn.setBitrate(bitrateKbps, object : NvConnection.BitrateAdjustmentCallback {
-                override fun onSuccess(newBitrate: Int) {
-                    game.runOnUiThread {
-                        try {
-                            val successMessage = String.format(getString(R.string.game_menu_bitrate_adjustment_success), newBitrate / 1000)
-                            Toast.makeText(game, successMessage, Toast.LENGTH_SHORT).show()
-                        } catch (e: Exception) {
-                            LimeLog.warning("Failed to show success toast: ${e.message}")
-                        }
-                    }
-                }
-
-                override fun onFailure(errorMessage: String) {
-                    game.runOnUiThread {
-                        try {
-                            val errorMsg = getString(R.string.game_menu_bitrate_adjustment_failed) + ": " + errorMessage
-                            Toast.makeText(game, errorMsg, Toast.LENGTH_SHORT).show()
-                        } catch (e: Exception) {
-                            LimeLog.warning("Failed to show error toast: ${e.message}")
-                        }
-                    }
-                }
-            })
-        } catch (e: Exception) {
-            game.runOnUiThread {
-                try {
-                    Toast.makeText(game, getString(R.string.game_menu_bitrate_adjustment_failed) + ": " + e.message, Toast.LENGTH_SHORT).show()
-                } catch (toastException: Exception) {
-                    LimeLog.warning("Failed to show error toast: ${toastException.message}")
-                }
-            }
-        }
-    }
-
-    /**
      * 显示菜单对话框
      */
     private fun showMenuDialog(title: String, normalOptions: Array<MenuOption>, superOptions: Array<MenuOption>) {
-        val builder = AlertDialog.Builder(game, R.style.GameMenuDialogStyle)
+        lateinit var dialog: ComponentDialog
 
-        val customView = createCustomView(builder)
-        val dialog = builder.create()
+        val state = mutableStateOf(
+            GameMenuComposeUiState(
+                title = title,
+                options = normalOptions.toList(),
+                superOptions = superOptions.toList(),
+                appName = getAppNameDisplay(),
+                crownToggleText = getCrownToggleText(),
+                quickActions = buildComposeQuickActions(),
+                visibleCards = readVisibleCards(),
+                bitrate = bitrateCardController.snapshot(),
+                gyro = gyroCardController.snapshot(),
+                customKeys = getSavedCustomKeys()
+            )
+        )
+        composeUiState = state
+        bitrateCardController.start { bitrate ->
+            composeUiState?.let { it.value = it.value.copy(bitrate = bitrate) }
+        }
+        gyroCardController.start { gyro ->
+            composeUiState?.let { it.value = it.value.copy(gyro = gyro) }
+        }
+
+        val callbacks = GameMenuCallbacks(
+            iconForOption = ::getIconForMenuOption,
+            onBack = { navigateBack() },
+            onCrownToggle = ::toggleCrownFeature,
+            onOptionClick = { handleComposeOptionClick(it, dialog) },
+            onInlineToggle = ::handleInlineToggle,
+            onSegmentClick = ::handleInlineSegmentClick,
+            onQuickAction = ::runComposeQuickAction,
+            onToggleQuickEdit = ::toggleComposeQuickEdit,
+            onAddQuickAction = ::showQuickButtonEditor,
+            onRemoveQuickAction = ::removeComposeQuickAction,
+            onMoveQuickAction = ::moveComposeQuickAction,
+            onEditCards = ::showCardEditorDialog,
+            onBitrateProgress = bitrateCardController::previewProgress,
+            onBitrateApply = bitrateCardController::applySelectedBitrate,
+            onBitrateHapticMode = bitrateCardController::cycleHapticMode,
+            onGyroEnabled = gyroCardController::setEnabled,
+            onGyroMouseMode = gyroCardController::setMouseMode,
+            onGyroActivationKey = gyroCardController::showActivationKeyDialog,
+            onGyroSensitivity = gyroCardController::previewSensitivity,
+            onGyroSensitivityFinished = gyroCardController::persistSensitivity,
+            onGyroInvertX = gyroCardController::setInvertX,
+            onGyroInvertY = gyroCardController::setInvertY,
+            onCustomKey = { sendKeys(it.keys) }
+        )
+
+        val composeView = ComposeView(game).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                GameMenuScreen(state.value, callbacks)
+            }
+        }
+        dialog = ComponentDialog(game, R.style.GameMenuDialogStyle).apply {
+            setContentView(composeView)
+        }
         this.activeDialog = dialog
-        this.activeCustomView = customView
-
-        setupCustomTitleBar(customView, title)
-        setupAppNameDisplay(customView)
-        setupQuickButtons(customView, dialog)
-        setupNormalMenu(customView, normalOptions, dialog)
-        setupSuperMenu(customView, superOptions, dialog)
-
-        // 设置码率调整区域
-        if (game.prefConfig.showBitrateCard) {
-            BitrateCardController(game, conn).setup(customView, dialog)
-        } else {
-            customView.findViewById<View>(R.id.bitrateAdjustmentContainer)?.visibility = View.GONE
-        }
-
-        // 设置陀螺仪控制卡片
-        if (game.prefConfig.showGyroCard) {
-            GyroCardController(game).setup(customView, dialog)
-        } else {
-            customView.findViewById<View>(R.id.gyroAdjustmentContainer)?.visibility = View.GONE
-        }
-
-        // 快捷指令卡片
-        setupCustomKeysCard(customView)
-
-        // 卡片编辑入口
-        customView.findViewById<View>(R.id.cardEditorButton)?.setOnClickListener { showCardEditorDialog() }
 
         setupDialogProperties(dialog)
 
         // 返回键监听器
         dialog.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_DOWN) {
-                if (menuStack.isNotEmpty()) {
-                    val previousState = menuStack.pop()
-                    replaceNormalMenuInDialog(dialog, previousState.title, previousState.normalOptions, false)
+                if (navigateBack()) {
                     return@setOnKeyListener true
                 }
                 return@setOnKeyListener false
@@ -681,11 +644,70 @@ class GameMenu(
         // 关闭时清理状态
         dialog.setOnDismissListener {
             if (this.activeDialog == dialog) this.activeDialog = null
-            this.activeCustomView = null
+            this.composeUiState = null
+            bitrateCardController.dispose()
+            gyroCardController.dispose()
             menuStack.clear()
         }
 
         dialog.show()
+        applyDialogSize(dialog)
+    }
+
+    private fun handleComposeOptionClick(option: MenuOption, dialog: ComponentDialog) {
+        lastActionOpenedSubmenu = false
+
+        // Focus-dependent actions must wait until the dialog has released the game window.
+        // Dismissing first also preserves the interaction order of the legacy menu.
+        if (option.isWithGameFocus && !option.isKeepDialog) {
+            dialog.dismiss()
+            option.runnable?.let(::runWithGameFocus)
+            return
+        }
+
+        run(option)
+        val shouldKeep = option.isKeepDialog || lastActionOpenedSubmenu
+        if (!shouldKeep) dialog.dismiss()
+        if (option.inlineControl is InlineControl.Toggle &&
+            option.inlineControl.toggleAction == null &&
+            dialog.isShowing
+        ) {
+            rebuildAndReplaceMenu()
+        }
+        lastActionOpenedSubmenu = false
+    }
+
+    private fun handleInlineSegmentClick(segment: SegmentOption) {
+        if (segment.selected) return
+        segment.runnable.run()
+        rebuildAndReplaceMenu()
+    }
+
+    private fun handleInlineToggle(toggle: InlineControl.Toggle) {
+        val action = toggle.toggleAction ?: return
+        action.run()
+        rebuildAndReplaceMenu()
+    }
+
+    private fun getAppNameDisplay(): String {
+        return try {
+            val version = conn.serverVersion?.takeIf { it.isNotBlank() }
+            if (version != null) {
+                game.getString(R.string.game_menu_server_version, app.appName, version)
+            } else {
+                app.appName
+            }
+        } catch (_: Exception) {
+            "Moonlight V+"
+        }
+    }
+
+    private fun readVisibleCards(): GameMenuVisibleCards {
+        return GameMenuVisibleCards(
+            bitrate = game.prefConfig.showBitrateCard,
+            gyro = game.prefConfig.showGyroCard,
+            shortcuts = game.prefConfig.showQuickKeyCard
+        )
     }
 
     private fun showCardEditorDialog() {
@@ -695,50 +717,33 @@ class GameMenu(
             getString(R.string.game_menu_tab_shortcuts)
         )
 
-        val checked = booleanArrayOf(
-            game.prefConfig.showBitrateCard,
-            game.prefConfig.showGyroCard,
-            game.prefConfig.showQuickKeyCard
+        val selected = setOfNotNull(
+            0.takeIf { game.prefConfig.showBitrateCard },
+            1.takeIf { game.prefConfig.showGyroCard },
+            2.takeIf { game.prefConfig.showQuickKeyCard }
         )
-
-        val dialog = AlertDialog.Builder(game, R.style.AppDialogStyle)
-            .setTitle(getString(R.string.game_menu_card_config_title))
-            .setMultiChoiceItems(items, checked) { _, which, isChecked -> checked[which] = isChecked }
-            .setPositiveButton("OK") { _, _ ->
-                game.prefConfig.showBitrateCard = checked[0]
-                game.prefConfig.showGyroCard = checked[1]
-                game.prefConfig.showQuickKeyCard = checked[2]
-
+        AppActionSheet.showMultiSelect(
+            context = game,
+            title = getString(R.string.game_menu_card_config_title),
+            actions = items.mapIndexed { index, label ->
+                AppActionSheet.Action(index, label, checked = index in selected)
+            },
+            confirmLabel = getString(R.string.game_menu_ok).trim(),
+            cancelLabel = getString(R.string.game_menu_cancel).trim(),
+            minimumSelectionCount = 1,
+            onConfirm = { selectedIds ->
+                game.prefConfig.showBitrateCard = 0 in selectedIds
+                game.prefConfig.showGyroCard = 1 in selectedIds
+                game.prefConfig.showQuickKeyCard = 2 in selectedIds
                 game.prefConfig.writePreferences(game)
-
-                val root = activeCustomView
-
-                if (root != null) {
-                    root.findViewById<View>(R.id.bitrateAdjustmentContainer)?.visibility =
-                        if (game.prefConfig.showBitrateCard) View.VISIBLE else View.GONE
-
-                    root.findViewById<View>(R.id.gyroAdjustmentContainer)?.visibility =
-                        if (game.prefConfig.showGyroCard) View.VISIBLE else View.GONE
-
-                    root.findViewById<View>(R.id.customKeysCardContainer)?.let { keysCard ->
-                        if (game.prefConfig.showQuickKeyCard) {
-                            setupCustomKeysCard(root)
-                        } else {
-                            keysCard.visibility = View.GONE
-                        }
-                    }
+                composeUiState?.let { state ->
+                    state.value = state.value.copy(
+                        visibleCards = readVisibleCards(),
+                        customKeys = getSavedCustomKeys()
+                    )
                 }
             }
-            .setNegativeButton("Cancel", null)
-            .create()
-        dialog.show()
-        AppDialogStyler.applySystemChoiceList(dialog, game)
-    }
-
-    private fun createCustomView(builder: AlertDialog.Builder): View {
-        val customView = game.layoutInflater.inflate(R.layout.custom_dialog, null)
-        builder.setView(customView)
-        return customView
+        )
     }
 
     // --- 简单的按键数据模型 ---
@@ -749,317 +754,86 @@ class GameMenu(
         return CustomKeyRepository.load(game, showErrorToast = true)
     }
 
-    /**
-     * 设置自定义按键卡片
-     */
-    @SuppressLint("UseCompatLoadingForDrawables")
-    private fun setupCustomKeysCard(customView: View) {
-        val cardContainer = customView.findViewById<View>(R.id.customKeysCardContainer) ?: return
-        val listLayout = customView.findViewById<LinearLayout>(R.id.customKeysListLayout) ?: return
-
-        if (!game.prefConfig.showQuickKeyCard) {
-            cardContainer.visibility = View.GONE
-            return
-        }
-
-        val keys = getSavedCustomKeys()
-        if (keys.isEmpty()) {
-            cardContainer.visibility = View.GONE
-            return
-        }
-
-        cardContainer.visibility = View.VISIBLE
-        listLayout.removeAllViews()
-
-        for (i in keys.indices) {
-            val keyData = keys[i]
-
-            val itemView = TextView(game).apply {
-                text = keyData.name
-                setTextColor(0xFF333333.toInt())
-                textSize = 14f
-                gravity = android.view.Gravity.CENTER
-
-                val paddingVertical = dpToPx(7f)
-                val paddingHorizontal = dpToPx(10f)
-                setPadding(paddingHorizontal, paddingVertical, paddingHorizontal, paddingVertical)
-
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-
-                background = game.getDrawable(R.drawable.button_selector_background)
-
-                setOnClickListener { v ->
-                    sendKeys(keyData.keys)
-                    v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                }
-            }
-
-            listLayout.addView(itemView)
-
-            // 添加分割线（除了最后一个）
-            if (i < keys.size - 1) {
-                val divider = View(game).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, 1
-                    ).apply { setMargins(0, 0, 0, 0) }
-                    setBackgroundColor(0x33000000)
-                }
-                listLayout.addView(divider)
-            }
+    private fun refreshComposeCustomKeys() {
+        composeUiState?.let { state ->
+            state.value = state.value.copy(customKeys = getSavedCustomKeys())
         }
     }
-
-    private fun dpToPx(dp: Float): Int = (dp * game.resources.displayMetrics.density + 0.5f).toInt()
 
     private fun dpToPx(dp: Int): Int = (dp * game.resources.displayMetrics.density).toInt()
 
-    /**
-     * 设置自定义标题
-     */
-    private fun setupCustomTitleBar(customView: View, title: String) {
-        customView.findViewById<TextView>(R.id.customTitleTextView)?.text = title
-
-        val crownToggleButton = customView.findViewById<TextView>(R.id.btnCrownToggle)
-        if (crownToggleButton != null) {
-            updateCrownToggleButtonText(crownToggleButton)
-            crownToggleButton.setOnClickListener {
-                toggleCrownFeature()
-            }
-        }
-    }
-
-    /**
-     * 设置当前串流应用信息
-     */
-    @SuppressLint("SetTextI18n")
-    private fun setupAppNameDisplay(customView: View) {
-        try {
-            val appName = app.appName
-            val hdrSupported = app.isHdrSupported()
-            val appNameTextView = customView.findViewById<TextView>(R.id.appNameTextView)
-            appNameTextView.text = "$appName (${if (hdrSupported) "HDR: Supported" else "HDR: Unknown"})"
-        } catch (_: Exception) {
-            customView.findViewById<TextView>(R.id.appNameTextView)?.text = "Moonlight V+"
-        }
-    }
-
-    /**
-     * 设置快捷按钮（动态生成，根据用户配置）
-     */
-    @SuppressLint("ClickableViewAccessibility")
-    private fun setupQuickButtons(customView: View, dialog: AlertDialog) {
-        val container = customView.findViewById<LinearLayout>(R.id.quickButtonContainer) ?: return
-        container.removeAllViews()
-        container.clipChildren = false
-        container.clipToPadding = false
-        (container.parent as? android.view.ViewGroup)?.let {
-            it.clipChildren = false
-            it.clipToPadding = false
-        }
-
-        val scrollView = container.parent as? android.widget.HorizontalScrollView
-        val actionIds = QuickActionRegistry.loadConfig(game).toMutableList()
-
-        if (quickButtonEditMode) {
-            buildEditModeButtons(container, actionIds, customView, dialog)
-            container.addView(makeToolButton("✓") {
-                quickButtonEditMode = false
-                setupQuickButtons(customView, dialog)
-            })
-            container.addView(makeToolButton("＋") { showQuickButtonEditor() })
-        } else {
-            buildNormalModeButtons(container, actionIds, customView, dialog)
-            container.addView(makeToolButton("＋") {
-                quickButtonEditMode = true
-                setupQuickButtons(customView, dialog)
-            })
-        }
-    }
-
-    /** 解析 action id → Pair(label, iconRes)，无效返回 null */
-    private fun resolveAction(id: String): Pair<String, Int>? {
+    /** 解析 action id → Triple(label, iconRes, iconText)，无效返回 null。 */
+    private fun resolveAction(id: String): Triple<String, Int, String?>? {
         val action = QuickActionRegistry.getBuiltin(id)
         return when {
             action != null -> {
                 val label = if (action.labelRes != 0) getString(action.labelRes) else action.label
-                label to action.iconRes
+                Triple(label, action.iconRes, action.iconText)
             }
-            id.startsWith("custom_") -> id.substring("custom_".length) to 0
+            id.startsWith("custom_") -> Triple(id.substring("custom_".length), 0, null)
             else -> null
         }
     }
 
-    /** 创建小型工具按钮（✓ / ＋） */
-    private fun makeToolButton(label: String, onClick: () -> Unit) =
-        Button(game, null, 0, R.style.GameMenuButtonStyle).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { marginStart = dpToPx(4) }
-            text = label; textSize = 14f
-            minWidth = dpToPx(36); minimumWidth = dpToPx(36)
-            setPadding(dpToPx(4), 0, dpToPx(4), 0)
-            setOnClickListener { onClick() }
-        }
-
-    private fun createQuickButtonWrapper(): FrameLayout = FrameLayout(game).apply {
-        layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        ).apply { marginEnd = dpToPx(2) }
-        clipChildren = false
-        clipToPadding = false
-    }
-
-    private fun createQuickActionButton(label: String, iconRes: Int): Button =
-        Button(game, null, 0, R.style.GameMenuButtonStyle).apply {
-            layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
+    private fun buildComposeQuickActions(): List<GameMenuQuickAction> {
+        return QuickActionRegistry.loadConfig(game).mapNotNull { id ->
+            val (label, iconRes, iconText) = resolveAction(id) ?: return@mapNotNull null
+            GameMenuQuickAction(
+                id = id,
+                label = label,
+                iconRes = if (id == "toggle_mic" && !game.prefConfig.enableMic) {
+                    QuickActionRegistry.getBuiltin(id)?.iconDisabledRes ?: iconRes
+                } else {
+                    iconRes
+                },
+                iconText = iconText,
+                enabled = id != "toggle_mic" || game.prefConfig.enableMic
             )
-            text = label
-            gravity = android.view.Gravity.CENTER
-            includeFontPadding = false
-            setUniformIcon(iconRes)
         }
-
-    /** 正常模式：可点击按钮 + 末尾编辑入口 */
-    @SuppressLint("ClickableViewAccessibility")
-    private fun buildNormalModeButtons(
-        container: LinearLayout, actionIds: List<String>,
-        customView: View, dialog: AlertDialog
-    ) {
-        val scaleDown = AnimationUtils.loadAnimation(game, R.anim.button_scale_animation)
-        val scaleUp = AnimationUtils.loadAnimation(game, R.anim.button_scale_restore)
-        val buttonWrappers = mutableListOf<FrameLayout>()
-
-        for (id in actionIds) {
-            val (label, iconRes) = resolveAction(id) ?: continue
-
-            val wrapper = createQuickButtonWrapper()
-            val btn = createQuickActionButton(label, iconRes)
-
-            val action = QuickActionRegistry.getBuiltin(id)
-            if (id == "toggle_mic" && !game.prefConfig.enableMic) {
-                btn.isEnabled = false; btn.alpha = 0.5f
-                if (action != null && action.iconDisabledRes != 0)
-                    btn.setUniformIcon(action.iconDisabledRes)
-                btn.setOnClickListener {
-                    Toast.makeText(game, getString(R.string.toast_enable_mic_redirect), Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                val clickListener = createQuickActionListener(id)
-                if (clickListener != null) {
-                    setupButtonWithAnimation(btn, scaleDown, scaleUp, clickListener)
-                }
-            }
-
-            wrapper.addView(btn)
-            container.addView(wrapper)
-            buttonWrappers.add(wrapper)
-        }
-
-        // 布局完成后，按 scrollView 可见宽度均分功能按钮
-        distributeButtonsEvenly(container, buttonWrappers)
     }
 
-    /** 编辑模式：抖动 + ×删除 + 拖拽排序 */
-    @SuppressLint("ClickableViewAccessibility")
-    private fun buildEditModeButtons(
-        container: LinearLayout, actionIds: MutableList<String>,
-        customView: View, dialog: AlertDialog
-    ) {
-        val wiggle = android.view.animation.RotateAnimation(
-            -1.5f, 1.5f,
-            android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
-            android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f
-        ).apply {
-            duration = 80
-            repeatCount = android.view.animation.Animation.INFINITE
-            repeatMode = android.view.animation.Animation.REVERSE
+    private fun refreshComposeQuickActions(editMode: Boolean? = null) {
+        composeUiState?.let { state ->
+            state.value = state.value.copy(
+                quickActions = buildComposeQuickActions(),
+                quickEditMode = editMode ?: state.value.quickEditMode
+            )
         }
-
-        val wrappers = mutableListOf<FrameLayout>()
-
-        for ((index, id) in actionIds.withIndex()) {
-            val (label, iconRes) = resolveAction(id) ?: continue
-
-            val wrapper = createQuickButtonWrapper()
-
-            val btn = createQuickActionButton(label, iconRes).apply {
-                startAnimation(wiggle)
-                setOnClickListener { }
-            }
-
-            // 删除角标
-            val deleteBtn = TextView(game).apply {
-                text = "✕"; setTextColor(0xFFFFFFFF.toInt()); textSize = 9f
-                gravity = android.view.Gravity.CENTER
-                val sz = dpToPx(16)
-                layoutParams = FrameLayout.LayoutParams(sz, sz).apply {
-                    gravity = android.view.Gravity.END or android.view.Gravity.TOP
-                    topMargin = dpToPx(2); marginEnd = dpToPx(2)
-                }
-                background = android.graphics.drawable.GradientDrawable().apply {
-                    shape = android.graphics.drawable.GradientDrawable.OVAL
-                    setColor(0xCCE53935.toInt())
-                }
-                elevation = 4f
-                setOnClickListener {
-                    if (actionIds.size <= 1) return@setOnClickListener
-                    actionIds.removeAt(index)
-                    QuickActionRegistry.saveConfig(game, actionIds)
-                    setupQuickButtons(customView, dialog)
-                }
-            }
-
-            wrapper.addView(btn); wrapper.addView(deleteBtn)
-
-            // 拖拽
-            btn.setOnLongClickListener { v ->
-                @Suppress("DEPRECATION")
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-                    v.startDragAndDrop(null, View.DragShadowBuilder(wrapper), index, 0)
-                else v.startDrag(null, View.DragShadowBuilder(wrapper), index, 0)
-                wrapper.alpha = 0.3f; true
-            }
-            wrapper.setOnDragListener { v, event ->
-                when (event.action) {
-                    android.view.DragEvent.ACTION_DRAG_ENTERED -> { v.scaleX = 1.15f; v.scaleY = 1.15f; true }
-                    android.view.DragEvent.ACTION_DRAG_EXITED -> { v.scaleX = 1f; v.scaleY = 1f; true }
-                    android.view.DragEvent.ACTION_DROP -> {
-                        v.scaleX = 1f; v.scaleY = 1f
-                        val from = event.localState as Int
-                        if (from != index) {
-                            actionIds.add(index, actionIds.removeAt(from))
-                            QuickActionRegistry.saveConfig(game, actionIds)
-                            setupQuickButtons(customView, dialog)
-                        }; true
-                    }
-                    android.view.DragEvent.ACTION_DRAG_ENDED -> {
-                        for (i in 0 until container.childCount) container.getChildAt(i).alpha = 1f; true
-                    }
-                    else -> true
-                }
-            }
-            container.addView(wrapper)
-            wrappers.add(wrapper)
-        }
-
-        // 布局完成后，按 scrollView 可见宽度均分编辑态按钮
-        distributeButtonsEvenly(container, wrappers)
     }
 
-    /**
-     * 根据动作 ID 创建点击监听器
-     */
-    private fun createQuickActionListener(id: String): View.OnClickListener? {
-        val knownAction = QuickActionRegistry.getBuiltin(id) != null || id.startsWith("custom_")
-        if (!knownAction) return null
-        return View.OnClickListener { actionExecutor.execute(id) }
+    private fun runComposeQuickAction(id: String) {
+        if (id == "toggle_mic" && !game.prefConfig.enableMic) {
+            Toast.makeText(game, getString(R.string.toast_enable_mic_redirect), Toast.LENGTH_SHORT).show()
+            return
+        }
+        actionExecutor.execute(id)
+    }
+
+    private fun toggleComposeQuickEdit() {
+        val state = composeUiState ?: return
+        state.value = state.value.copy(quickEditMode = !state.value.quickEditMode)
+    }
+
+    private fun removeComposeQuickAction(id: String) {
+        val ids = QuickActionRegistry.loadConfig(game).toMutableList()
+        if (ids.size <= 1 || !ids.remove(id)) return
+        QuickActionRegistry.saveConfig(game, ids)
+        refreshComposeQuickActions()
+    }
+
+    private fun moveComposeQuickAction(id: String, targetId: String) {
+        val ids = QuickActionRegistry.loadConfig(game).toMutableList()
+        val from = ids.indexOf(id)
+        val target = ids.indexOf(targetId)
+        if (from < 0 || target < 0 || from == target) return
+        ids.add(target.coerceAtMost(ids.size), ids.removeAt(from))
+        composeUiState?.let { state ->
+            val actionsById = state.value.quickActions.associateBy(GameMenuQuickAction::id)
+            state.value = state.value.copy(
+                quickActions = ids.mapNotNull(actionsById::get)
+            )
+        }
+        QuickActionRegistry.saveConfig(game, ids)
     }
 
     /**
@@ -1077,181 +851,49 @@ class GameMenu(
             val a = allActions[id]!!
             if (a.labelRes != 0) getString(a.labelRes) else a.label
         }.toTypedArray()
-        val checked = BooleanArray(allIds.size) { currentIds.contains(allIds[it]) }
-
-        val dialog = AlertDialog.Builder(game, R.style.AppDialogStyle)
-            .setTitle(getString(R.string.quick_button_editor_title))
-            .setMultiChoiceItems(allLabels, checked) { dlg, which, isChecked ->
-                val selectedCount = checked.count { it }
-                if (isChecked && selectedCount > MAX_QUICK_BUTTONS) {
-                    checked[which] = false
-                    (dlg as AlertDialog).listView.setItemChecked(which, false)
-                    Toast.makeText(game, getString(R.string.quick_btn_max_reached), Toast.LENGTH_SHORT).show()
-                } else {
-                    checked[which] = isChecked
-                }
-            }
-            .setPositiveButton(getString(R.string.game_menu_ok)) { _, _ ->
-                val newIds = allIds.filterIndexed { i, _ -> checked[i] }.toMutableList()
+        AppActionSheet.showMultiSelect(
+            context = game,
+            title = getString(R.string.quick_button_editor_title),
+            actions = allLabels.mapIndexed { index, label ->
+                AppActionSheet.Action(index, label, checked = allIds[index] in currentIds)
+            },
+            confirmLabel = getString(R.string.game_menu_ok).trim(),
+            cancelLabel = getString(R.string.game_menu_cancel).trim(),
+            resetLabel = getString(R.string.quick_button_reset_default).trim(),
+            minimumSelectionCount = 1,
+            onConfirm = { selectedPositions ->
+                val selectedIds = selectedPositions.mapTo(linkedSetOf()) { allIds[it] }
+                val newIds = currentIds.filterTo(mutableListOf()) { it in selectedIds }
+                allIds.filterTo(newIds) { it in selectedIds && it !in newIds }
                 if (newIds.isEmpty()) newIds.add("quit")
                 QuickActionRegistry.saveConfig(game, newIds)
-                val cv = activeCustomView
-                val ad = activeDialog
-                if (cv != null && ad != null) setupQuickButtons(cv, ad)
+                refreshComposeQuickActions()
+            },
+            onReset = {
+                QuickActionRegistry.saveConfig(game, QuickActionRegistry.defaultIds(game))
+                refreshComposeQuickActions()
             }
-            .setNegativeButton(getString(R.string.game_menu_cancel), null)
-            .setNeutralButton(getString(R.string.quick_button_reset_default)) { _, _ ->
-                QuickActionRegistry.saveConfig(game, QuickActionRegistry.DEFAULT_IDS.toMutableList())
-                val cv = activeCustomView
-                val ad = activeDialog
-                if (cv != null && ad != null) setupQuickButtons(cv, ad)
-            }
-            .create()
-        dialog.show()
-        AppDialogStyler.applySystemChoiceList(dialog, game)
+        )
     }
 
-    /** 布局完成后将按钮均分到 ScrollView 可见宽度 */
-    private fun distributeButtonsEvenly(container: LinearLayout, items: List<View>) {
-        if (items.isEmpty()) return
-        val scrollView = container.parent as? android.widget.HorizontalScrollView
-        val apply = {
-            val svWidth = scrollView?.width ?: 0
-            if (svWidth > 0) {
-                val margin = dpToPx(2)
-                val totalMargins = margin * (items.size - 1)
-                val w = (svWidth - totalMargins) / items.size
-                for ((i, v) in items.withIndex()) {
-                    v.layoutParams = LinearLayout.LayoutParams(w, LinearLayout.LayoutParams.WRAP_CONTENT)
-                        .apply { if (i < items.size - 1) marginEnd = margin }
-                }
-                container.requestLayout()
-            }
-        }
-        if (scrollView != null && scrollView.width > 0) apply() else container.post { apply() }
+    private fun currentMenuPage(): MenuPage? {
+        return composeUiState?.value?.let { MenuPage(it.title, it.options) }
     }
 
-    /** 为按钮设置统一大小的左侧图标 */
-    private fun Button.setUniformIcon(@SuppressLint("SupportAnnotationUsage") iconRes: Int) {
-        if (iconRes == 0) return
-        val drawable = androidx.core.content.ContextCompat.getDrawable(game, iconRes) ?: return
-        val size = dpToPx(20)
-        drawable.setBounds(0, 0, size, size)
-        setCompoundDrawables(drawable, null, null, null)
+    private fun showMenuPage(page: MenuPage, pushCurrent: Boolean = false) {
+        val state = composeUiState ?: return
+        if (pushCurrent) currentMenuPage()?.let(menuStack::push)
+        state.value = state.value.copy(
+            title = page.title,
+            options = page.options,
+            isSubmenu = menuStack.isNotEmpty()
+        )
     }
 
-    /**
-     * 为按钮设置动画效果
-     */
-    @SuppressLint("ClickableViewAccessibility")
-    private fun setupButtonWithAnimation(
-        button: View,
-        scaleDown: android.view.animation.Animation,
-        scaleUp: android.view.animation.Animation,
-        listener: View.OnClickListener
-    ) {
-        if (button is Button) {
-            @Suppress("DEPRECATION")
-            button.setTextAppearance(game, R.style.GameMenuButtonStyle)
-        }
-
-        button.isFocusable = true
-        button.isClickable = true
-        button.isFocusableInTouchMode = true
-
-        button.setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    v.startAnimation(scaleDown)
-                    v.alpha = 0.8f
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    v.startAnimation(scaleUp)
-                    v.alpha = 1.0f
-                    if (event.action == MotionEvent.ACTION_UP) {
-                        v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                        listener.onClick(v)
-                    }
-                }
-            }
-            true
-        }
-
-        setupButtonKeyListener(button, scaleDown, scaleUp, listener)
-    }
-
-    private fun setupButtonKeyListener(
-        button: View,
-        scaleDown: android.view.animation.Animation,
-        scaleUp: android.view.animation.Animation,
-        listener: View.OnClickListener
-    ) {
-        button.setOnKeyListener { v, keyCode, event ->
-            if (event.action == KeyEvent.ACTION_DOWN) {
-                if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
-                    v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                    v.startAnimation(scaleDown)
-                    v.postDelayed({
-                        v.startAnimation(scaleUp)
-                        listener.onClick(v)
-                    }, 100)
-                    return@setOnKeyListener true
-                }
-            }
-            false
-        }
-    }
-
-    /**
-     * 通用菜单设置方法
-     */
-    private fun setupMenu(listView: ListView, adapter: ArrayAdapter<MenuOption>, dialog: AlertDialog) {
-        listView.itemsCanFocus = true
-
-        listView.setOnItemClickListener { _, _, pos, _ ->
-            val option = adapter.getItem(pos)
-            lastActionOpenedSubmenu = false
-            if (option != null) run(option)
-
-            val shouldKeep = (option != null && option.isKeepDialog) || lastActionOpenedSubmenu
-            if (!shouldKeep) dialog.dismiss()
-            lastActionOpenedSubmenu = false
-        }
-    }
-
-    private fun setupNormalMenu(customView: View, normalOptions: Array<MenuOption>, dialog: AlertDialog) {
-        val normalAdapter = GameMenuAdapter(game, normalOptions)
-        val normalListView = customView.findViewById<ListView>(R.id.gameMenuList)
-        normalListView.adapter = normalAdapter
-        setupMenu(normalListView, normalAdapter, dialog)
-    }
-
-    private fun replaceNormalMenuInDialog(
-        dialog: AlertDialog,
-        title: String?,
-        newNormalOptions: Array<MenuOption>,
-        pushToStack: Boolean
-    ) {
-        if (dialog.window == null) return
-        var customView = this.activeCustomView
-        if (customView == null) customView = dialog.findViewById(android.R.id.content)
-        if (customView == null) customView = dialog.window!!.decorView.findViewById(android.R.id.content)
-        if (customView == null) return
-
-        if (title != null) {
-            customView.findViewById<TextView>(R.id.customTitleTextView)?.text = title
-        }
-
-        val normalListView = customView.findViewById<ListView>(R.id.gameMenuList)
-        if (normalListView != null) {
-            val adapter = GameMenuAdapter(game, newNormalOptions)
-            normalListView.adapter = adapter
-            setupMenu(normalListView, adapter, dialog)
-        }
-
-        if (pushToStack) {
-            menuStack.push(MenuState(title, newNormalOptions))
-        }
+    private fun navigateBack(): Boolean {
+        if (menuStack.isEmpty()) return false
+        showMenuPage(menuStack.pop())
+        return true
     }
 
     /**
@@ -1261,66 +903,32 @@ class GameMenu(
         val dialog = activeDialog
         if (dialog != null && dialog.isShowing) {
             lastActionOpenedSubmenu = true
-            val cv = this.activeCustomView
-            if (cv != null) {
-                val titleTextView = cv.findViewById<TextView>(R.id.customTitleTextView)
-                val currentTitle = titleTextView?.text?.toString()
-
-                val normalListView = cv.findViewById<ListView>(R.id.gameMenuList)
-                if (normalListView?.adapter != null) {
-                    val count = normalListView.adapter.count
-                    val currentOptions = Array(count) {
-                        normalListView.adapter.getItem(it) as MenuOption
-                    }
-                    menuStack.push(MenuState(currentTitle, currentOptions))
-                }
-            }
-
-            replaceNormalMenuInDialog(dialog, title, subOptions, false)
+            showMenuPage(MenuPage(title, subOptions.toList()), pushCurrent = true)
         } else {
             showMenuDialog(title, subOptions, emptyArray())
         }
     }
 
-    private fun setupSuperMenu(customView: View, superOptions: Array<MenuOption>, dialog: AlertDialog) {
-        val superListView = customView.findViewById<ListView>(R.id.superMenuList)
-
-        if (superOptions.isNotEmpty()) {
-            val superAdapter = SuperMenuAdapter(game, superOptions)
-            superListView.adapter = superAdapter
-            setupMenu(superListView, superAdapter, dialog)
-        } else {
-            setupEmptySuperMenu(superListView)
-        }
-    }
-
-    private fun setupEmptySuperMenu(superListView: ListView) {
-        var visibleCardCount = 0
-        if (game.prefConfig.showBitrateCard) visibleCardCount++
-        if (game.prefConfig.showGyroCard) visibleCardCount++
-        if (game.prefConfig.showQuickKeyCard) visibleCardCount++
-
-        val layoutRes = if (visibleCardCount >= 2 || game.prefConfig.showQuickKeyCard)
-            R.layout.game_menu_super_empty_text_only
-        else
-            R.layout.game_menu_super_empty
-
-        val emptyView = LayoutInflater.from(game).inflate(layoutRes, superListView, false)
-        val parent = superListView.parent as ViewGroup
-        parent.addView(emptyView)
-        superListView.emptyView = emptyView
-        superListView.adapter = SuperMenuAdapter(game, emptyArray())
-    }
-
-    private fun setupDialogProperties(dialog: AlertDialog) {
+    private fun setupDialogProperties(dialog: ComponentDialog) {
         dialog.window?.let { window ->
             val layoutParams = window.attributes
             layoutParams.alpha = DIALOG_ALPHA
             layoutParams.dimAmount = DIALOG_DIM_AMOUNT
+            layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
             layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT
+            layoutParams.gravity = android.view.Gravity.BOTTOM
             window.attributes = layoutParams
-            window.setBackgroundDrawableResource(R.drawable.game_menu_dialog_bg)
+            window.setBackgroundDrawable(
+                android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+            )
         }
+    }
+
+    private fun applyDialogSize(dialog: ComponentDialog) {
+        dialog.window?.setLayout(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.WRAP_CONTENT
+        )
     }
 
     /**
@@ -1399,6 +1007,7 @@ class GameMenu(
             preferences.edit { putString(KEY_NAME, root.toString()) }
 
             Toast.makeText(game, game.getString(R.string.toast_custom_key_saved, name), Toast.LENGTH_SHORT).show()
+            refreshComposeCustomKeys()
         } catch (e: Exception) {
             LimeLog.warning("Exception while saving custom key${e.message}")
             Toast.makeText(game, R.string.toast_save_failed, Toast.LENGTH_SHORT).show()
@@ -1419,6 +1028,11 @@ class GameMenu(
         val saveButton = dialogView.findViewById<Button>(R.id.button_save_key)
 
         val dialog = builder.create()
+        dialog.window?.apply {
+            clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            setDimAmount(0f)
+            decorView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        }
 
         dialog.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_DOWN) {
@@ -1482,6 +1096,7 @@ class GameMenu(
         }
 
         dialog.show()
+        dialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
         dialogContent?.minimumHeight = game.resources.displayMetrics.heightPixels
     }
 
@@ -1530,30 +1145,28 @@ class GameMenu(
             for (i in 0 until dataArray.length()) {
                 keyNames.add(dataArray.getJSONObject(i).optString("name"))
             }
-            val checkedItems = BooleanArray(keyNames.size)
-
-            val dialog = AlertDialog.Builder(game, R.style.AppDialogStyle)
-                .setTitle(R.string.dialog_title_select_keys_to_delete)
-                .setMultiChoiceItems(keyNames.toTypedArray<CharSequence>(), checkedItems) { _, which, isChecked ->
-                    checkedItems[which] = isChecked
-                }
-                .setPositiveButton(R.string.dialog_button_delete) { _, _ ->
+            AppActionSheet.showMultiSelect(
+                context = game,
+                title = getString(R.string.dialog_title_select_keys_to_delete),
+                actions = keyNames.mapIndexed { index, name ->
+                    AppActionSheet.Action(id = index, title = name, checked = false)
+                },
+                confirmLabel = getString(R.string.dialog_button_delete),
+                cancelLabel = getString(R.string.dialog_button_cancel),
+                minimumSelectionCount = 1,
+                onConfirm = { selectedIds ->
                     try {
-                        for (i in checkedItems.indices.reversed()) {
-                            if (checkedItems[i]) dataArray.remove(i)
-                        }
+                        selectedIds.sortedDescending().forEach(dataArray::remove)
                         root.put("data", dataArray)
                         preferences.edit { putString(KEY_NAME, root.toString()) }
                         Toast.makeText(game, R.string.toast_selected_keys_deleted, Toast.LENGTH_SHORT).show()
+                        refreshComposeCustomKeys()
                     } catch (e: Exception) {
                         LimeLog.warning("Exception while deleting keys${e.message}")
                         Toast.makeText(game, R.string.toast_delete_failed, Toast.LENGTH_SHORT).show()
                     }
                 }
-                .setNegativeButton(R.string.dialog_button_cancel, null)
-                .create()
-            dialog.show()
-            AppDialogStyler.applySystemChoiceList(dialog, game)
+            )
         } catch (e: Exception) {
             LimeLog.warning("Exception while loading key list${e.message}")
             Toast.makeText(game, R.string.toast_load_key_list_failed, Toast.LENGTH_SHORT).show()
@@ -1570,7 +1183,7 @@ class GameMenu(
         buildNormalMenuOptions(normalOptions)
         buildSuperMenuOptions(superOptions)
 
-        showMenuDialog(GAME_MENU_TITLE, normalOptions.toTypedArray(), superOptions.toTypedArray())
+        showMenuDialog(getString(R.string.game_menu_title), normalOptions.toTypedArray(), superOptions.toTypedArray())
     }
 
     /**
@@ -1585,26 +1198,45 @@ class GameMenu(
             "game_menu_toggle_host_keyboard", true))
 
         normalOptions.add(MenuOption(
-            touchModeDescription, false,
-            { showTouchModeMenu() }, "mouse_mode", isShowIcon = true, isKeepDialog = true
+            label = getString(R.string.game_menu_switch_touch_mode).trim(),
+            isWithGameFocus = false,
+            runnable = Runnable { showTouchModeMenu() },
+            iconKey = "mouse_mode",
+            isShowIcon = true,
+            isKeepDialog = true,
+            showChevron = true,
+            inlineControl = InlineControl.Segmented(buildTouchModeSegments())
         ))
 
         normalOptions.add(MenuOption(
-            if (game.getisTouchOverrideEnabled()) getString(R.string.game_menu_disable_pan_zoom) else getString(R.string.game_menu_enable_pan_zoom),
-            false,
-            {
+            label = getString(R.string.game_menu_enable_pan_zoom).trim(),
+            isWithGameFocus = false,
+            runnable = Runnable {
                 Toast.makeText(game,
                     if (game.getisTouchOverrideEnabled()) getString(R.string.toast_pan_zoom_disabled) else getString(R.string.toast_pan_zoom_enabled),
                     Toast.LENGTH_SHORT).show()
                 game.setisTouchOverrideEnabled(!game.getisTouchOverrideEnabled())
             },
-            "game_menu_mouse_emulation", true
+            iconKey = "game_menu_mouse_emulation",
+            isShowIcon = true,
+            isKeepDialog = true,
+            inlineControl = InlineControl.Toggle(game.getisTouchOverrideEnabled())
         ))
 
         // 王冠功能
+        val crownEnabled = game.isCrownFeatureEnabled
         normalOptions.add(MenuOption(
-            getString(R.string.game_menu_crown_function), false,
-            { showCrownFunctionMenu() }, "crown_function_menu", isShowIcon = true, isKeepDialog = true
+            label = getString(R.string.game_menu_crown_function),
+            isWithGameFocus = false,
+            runnable = if (crownEnabled) Runnable { showCrownFunctionMenu() } else null,
+            iconKey = "crown_function_menu",
+            isShowIcon = true,
+            isKeepDialog = true,
+            showChevron = crownEnabled,
+            inlineControl = InlineControl.Toggle(
+                checked = crownEnabled,
+                toggleAction = Runnable { setCrownFeatureEnabled(!game.isCrownFeatureEnabled) }
+            )
         ))
 
         if (device != null) {
@@ -1613,26 +1245,36 @@ class GameMenu(
 
         // 性能显示
         normalOptions.add(MenuOption(
-            perfOverlayMenuLabel, false,
-            {
-                game.togglePerformanceOverlay()
-                rebuildAndReplaceMenu()
-            },
-            "game_menu_toggle_performance_overlay", isShowIcon = true, isKeepDialog = true
+            label = getString(R.string.game_menu_toggle_performance_overlay).trim(),
+            isWithGameFocus = false,
+            runnable = null,
+            iconKey = "game_menu_toggle_performance_overlay",
+            isShowIcon = true,
+            isKeepDialog = true,
+            inlineControl = InlineControl.Segmented(buildPerformanceOverlaySegments())
         ))
 
         normalOptions.add(MenuOption(
             getString(R.string.game_menu_change_resolution), false,
-            { showResolutionMenu() }, "game_menu_change_resolution", isShowIcon = true, isKeepDialog = true
+            { showResolutionMenu() }, "game_menu_change_resolution", isShowIcon = true, isKeepDialog = true,
+            showChevron = true
         ))
 
         if (game.prefConfig.onscreenController) {
-            normalOptions.add(MenuOption(getString(R.string.game_menu_toggle_virtual_controller),
-                false, { game.toggleVirtualController() }, "game_menu_toggle_virtual_controller", true))
+            normalOptions.add(MenuOption(
+                label = getString(R.string.game_menu_toggle_virtual_controller).trim(),
+                isWithGameFocus = false,
+                runnable = Runnable { game.toggleVirtualController() },
+                iconKey = "game_menu_toggle_virtual_controller",
+                isShowIcon = true,
+                isKeepDialog = true,
+                inlineControl = InlineControl.Toggle(game.isVirtualControllerVisible())
+            ))
         }
 
         normalOptions.add(MenuOption(getString(R.string.game_menu_send_keys),
-            false, { showSpecialKeysMenu() }, "game_menu_send_keys", isShowIcon = true, isKeepDialog = true
+            false, { showSpecialKeysMenu() }, "game_menu_send_keys", isShowIcon = true, isKeepDialog = true,
+            showChevron = true
         ))
 
         normalOptions.add(MenuOption(getString(R.string.game_menu_disconnect), true,
@@ -1645,26 +1287,36 @@ class GameMenu(
             }, "game_menu_disconnect_and_quit", true))
     }
 
-    private val touchModeDescription: String
-        get() {
-            val prefix = getString(R.string.game_menu_switch_touch_mode) + ": "
-            return prefix + when {
-                game.prefConfig.enableNativeMousePointer -> getString(R.string.game_menu_touch_mode_native_mouse)
-                game.prefConfig.touchscreenTrackpad -> getString(R.string.game_menu_touch_mode_trackpad)
-                game.prefConfig.enableEnhancedTouch -> getString(R.string.game_menu_touch_mode_enhanced)
-                else -> getString(R.string.game_menu_touch_mode_classic)
-            }
-        }
+    private fun buildPerformanceOverlaySegments(): List<SegmentOption> {
+        val currentMode = game.performanceOverlayMode
+        return listOf(
+            performanceOverlaySegment(
+                label = getString(R.string.perf_overlay_hidden),
+                mode = Game.PerformanceOverlayMode.HIDDEN,
+                currentMode = currentMode
+            ),
+            performanceOverlaySegment(
+                label = getString(R.string.perf_overlay_floating),
+                mode = Game.PerformanceOverlayMode.FLOATING,
+                currentMode = currentMode
+            ),
+            performanceOverlaySegment(
+                label = getString(R.string.perf_overlay_locked),
+                mode = Game.PerformanceOverlayMode.LOCKED,
+                currentMode = currentMode
+            )
+        )
+    }
 
-    private val perfOverlayMenuLabel: String
-        get() {
-            val status = when {
-                !game.prefConfig.enablePerfOverlay -> getString(R.string.perf_overlay_hidden)
-                game.prefConfig.perfOverlayLocked -> getString(R.string.perf_overlay_locked)
-                else -> getString(R.string.perf_overlay_floating)
-            }
-            return getString(R.string.game_menu_toggle_performance_overlay) + ": " + status
-        }
+    private fun performanceOverlaySegment(
+        label: String,
+        mode: Game.PerformanceOverlayMode,
+        currentMode: Game.PerformanceOverlayMode
+    ) = SegmentOption(
+        label = label,
+        selected = mode == currentMode,
+        runnable = Runnable { game.setPerformanceOverlayMode(mode) }
+    )
 
     fun lockAndDisconnectWithDelay() {
         sendKeys(shortArrayOf(KeyboardTranslator.VK_LWIN.s(), KeyboardTranslator.VK_L.s()))
@@ -1690,87 +1342,10 @@ class GameMenu(
         }
     }
 
-    /**
-     * 自定义适配器用于显示美化的菜单项
-     */
-    private class GameMenuAdapter(
-        context: Context,
-        options: Array<MenuOption>
-    ) : ArrayAdapter<MenuOption>(context, 0, options) {
-
-        override fun getViewTypeCount(): Int = 2
-
-        override fun getItemViewType(position: Int): Int {
-            return if (getItem(position)?.isCrownControl == true) 1 else 0
-        }
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val option = getItem(position)
-            val layoutRes = if (option?.isCrownControl == true) {
-                R.layout.game_menu_crown_control_item
-            } else {
-                R.layout.game_menu_list_item
-            }
-            val view = convertView ?: LayoutInflater.from(context).inflate(layoutRes, parent, false)
-
-            if (option != null) {
-                val textView = view.findViewById<TextView>(R.id.menu_item_text)
-                val iconView = view.findViewById<ImageView>(R.id.menu_item_icon)
-                val subtitleView = view.findViewById<TextView?>(R.id.menu_item_subtitle)
-
-                textView.text = option.label
-                subtitleView?.text = option.subtitle.orEmpty()
-                subtitleView?.visibility = if (option.subtitle.isNullOrBlank()) View.GONE else View.VISIBLE
-
-                if (option.isShowIcon) {
-                    iconView.setImageResource(getIconForMenuOption(option.iconKey))
-                    iconView.visibility = View.VISIBLE
-                } else {
-                    iconView.visibility = View.GONE
-                }
-            }
-
-            return view
-        }
-    }
-
-    /**
-     * 超级菜单适配器
-     */
-    private class SuperMenuAdapter(
-        context: Context,
-        options: Array<MenuOption>
-    ) : ArrayAdapter<MenuOption>(context, 0, options) {
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.game_menu_list_item, parent, false)
-
-            val option = getItem(position)
-            if (option != null) {
-                val textView = view.findViewById<TextView>(R.id.menu_item_text)
-                val iconView = view.findViewById<ImageView>(R.id.menu_item_icon)
-
-                textView.text = option.label
-
-                if (option.isShowIcon) {
-                    iconView.setImageResource(R.drawable.ic_cmd_cute)
-                    iconView.visibility = View.VISIBLE
-                } else {
-                    iconView.visibility = View.GONE
-                }
-            }
-
-            return view
-        }
-    }
-
     companion object {
         private const val TEST_GAME_FOCUS_DELAY = 10L
-        private const val MAX_QUICK_BUTTONS = 6
-        private const val DIALOG_ALPHA = 0.7f
-        private const val DIALOG_DIM_AMOUNT = 0.3f
-        private const val GAME_MENU_TITLE = "🍥🍬 V+ GAME MENU"
-
+        private const val DIALOG_ALPHA = 1.0f
+        private const val DIALOG_DIM_AMOUNT = 0.5f
         private const val PREF_NAME = "custom_special_keys"
         private const val KEY_NAME = "data"
 
@@ -1789,7 +1364,6 @@ class GameMenu(
             "mouse_mode" to R.drawable.ic_mouse_cute,
             "game_menu_mouse_emulation" to R.drawable.ic_mouse_emulation_cute,
             "crown_function_menu" to R.drawable.ic_super_crown,
-            "crown_enable" to R.drawable.ic_super_crown,
             "crown_visibility" to R.drawable.ic_ui_settings,
             "crown_touch" to R.drawable.ic_touch_settings,
             "crown_profiles" to R.drawable.ic_input_settings,

@@ -64,9 +64,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -107,7 +110,8 @@ import java.util.Locale
 
 private val GameMenuDialogShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
 private val GameMenuCardShape = RoundedCornerShape(10.dp)
-private val GameMenuControlShape = RoundedCornerShape(10.dp)
+private val GameMenuControlRadius = 10.dp
+private val GameMenuControlShape = RoundedCornerShape(GameMenuControlRadius)
 private const val GAME_MENU_MAX_HEIGHT_FRACTION = 0.90f
 private const val GAME_MENU_WIDE_LAYOUT_MIN_WIDTH_DP = 576
 private const val ORIENTATION_MISMATCH_THRESHOLD = 1.5f
@@ -174,6 +178,7 @@ internal data class GameMenuCallbacks(
     val onOptionClick: (GameMenu.MenuOption) -> Unit,
     val onInlineToggle: (GameMenu.InlineControl.Toggle) -> Unit,
     val onSegmentClick: (GameMenu.SegmentOption) -> Unit,
+    val onEmptySuperCommandClick: () -> Unit,
     val onQuickAction: (String) -> Unit,
     val onToggleQuickEdit: () -> Unit,
     val onAddQuickAction: () -> Unit,
@@ -314,6 +319,7 @@ private fun GameMenuContent(
                 editMode = state.quickEditMode,
                 onAction = callbacks.onQuickAction,
                 onSuperOptionClick = callbacks.onOptionClick,
+                onEmptySuperCommandClick = callbacks.onEmptySuperCommandClick,
                 onToggleEdit = callbacks.onToggleQuickEdit,
                 onAdd = callbacks.onAddQuickAction,
                 onRemove = callbacks.onRemoveQuickAction,
@@ -543,6 +549,7 @@ private fun QuickActionRow(
     editMode: Boolean,
     onAction: (String) -> Unit,
     onSuperOptionClick: (GameMenu.MenuOption) -> Unit,
+    onEmptySuperCommandClick: () -> Unit,
     onToggleEdit: () -> Unit,
     onAdd: () -> Unit,
     onRemove: (String) -> Unit,
@@ -666,8 +673,12 @@ private fun QuickActionRow(
                 }
             }
             if (!editMode) {
-                superOptions.forEach { option ->
-                    SuperOptionChip(option) { onSuperOptionClick(option) }
+                if (superOptions.isEmpty()) {
+                    EmptySuperCommandChip(onClick = onEmptySuperCommandClick)
+                } else {
+                    superOptions.forEach { option ->
+                        SuperOptionChip(option) { onSuperOptionClick(option) }
+                    }
                 }
             }
         }
@@ -832,6 +843,7 @@ private fun ActionPill(
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
+    dashedBorder: Boolean = false,
     content: @Composable RowScope.() -> Unit
 ) {
     val view = LocalView.current
@@ -851,6 +863,11 @@ private fun ActionPill(
         }
         else -> Modifier.focusable()
     }
+    val borderModifier = if (dashedBorder) {
+        Modifier.dashedPillBorder(borderColor)
+    } else {
+        Modifier.border(GameMenuDimens.surfaceStroke, borderColor, GameMenuControlShape)
+    }
 
     Row(
         modifier = modifier
@@ -858,7 +875,7 @@ private fun ActionPill(
             .heightIn(min = 40.dp)
             .clip(GameMenuControlShape)
             .background(backgroundColor)
-            .border(GameMenuDimens.surfaceStroke, borderColor, GameMenuControlShape)
+            .then(borderModifier)
             .gamepadFocusOutline(GameMenuControlShape)
             .then(interactionModifier)
             .padding(horizontal = GameMenuDimens.outer),
@@ -866,6 +883,27 @@ private fun ActionPill(
         verticalAlignment = Alignment.CenterVertically,
         content = content
     )
+}
+
+private fun Modifier.dashedPillBorder(color: Color): Modifier = drawWithCache {
+    val strokeWidth = GameMenuDimens.surfaceStroke.toPx()
+    val inset = strokeWidth / 2f
+    val cornerRadius = (GameMenuControlRadius.toPx() - inset).coerceAtLeast(0f)
+    val pathEffect = PathEffect.dashPathEffect(
+        intervals = floatArrayOf(6.dp.toPx(), 4.dp.toPx())
+    )
+    onDrawBehind {
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(inset, inset),
+            size = Size(
+                width = (size.width - strokeWidth).coerceAtLeast(0f),
+                height = (size.height - strokeWidth).coerceAtLeast(0f)
+            ),
+            cornerRadius = CornerRadius(cornerRadius, cornerRadius),
+            style = Stroke(width = strokeWidth, pathEffect = pathEffect)
+        )
+    }
 }
 
 @Composable
@@ -1236,6 +1274,26 @@ private fun SuperOptionChip(
             text = compactActionLabel(option.label),
             color = colorResource(R.color.game_menu_text_primary),
             fontSize = 14.sp,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun EmptySuperCommandChip(onClick: () -> Unit) {
+    val accent = colorResource(R.color.game_menu_accent)
+    ActionPill(
+        backgroundColor = Color.Transparent,
+        borderColor = accent.copy(alpha = 0.34f),
+        dashedBorder = true,
+        onClick = onClick
+    ) {
+        ActionTextBadge("+")
+        Spacer(Modifier.width(GameMenuDimens.compact))
+        Text(
+            text = stringResource(R.string.game_menu_super_commands),
+            color = colorResource(R.color.game_menu_text_secondary),
+            fontSize = 13.sp,
             maxLines = 1
         )
     }

@@ -1301,6 +1301,7 @@ Tap again to replace it.</string>
     <string name="layout_dlg_peer_info_item_text_681b4">Traffic (Rx/Tx):</string>
     <string name="layout_game_menu_super_empty_text_a7970">No super commands yet</string>
     <string name="layout_game_menu_super_empty_text_fac9d">Create super commands in Sunshine Foundation Edition.</string>
+    <string name="game_menu_super_commands">Super Commands</string>
     <string name="layout_item_key_value_text_0952a">Section 1</string>
     <string name="layout_item_key_value_hint_dd44f">Section name, defaults to key name if empty</string>
     <string name="layout_item_page_super_menu_text_ce0e8">Edit Mode</string>

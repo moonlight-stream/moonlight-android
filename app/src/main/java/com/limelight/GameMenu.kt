@@ -598,6 +598,7 @@ class GameMenu(
             onOptionClick = { handleComposeOptionClick(it, dialog) },
             onInlineToggle = ::handleInlineToggle,
             onSegmentClick = ::handleInlineSegmentClick,
+            onEmptySuperCommandClick = ::showSuperCommandHint,
             onQuickAction = ::runComposeQuickAction,
             onToggleQuickEdit = ::toggleComposeQuickEdit,
             onAddQuickAction = ::showQuickButtonEditor,
@@ -687,6 +688,14 @@ class GameMenu(
         val action = toggle.toggleAction ?: return
         action.run()
         rebuildAndReplaceMenu()
+    }
+
+    private fun showSuperCommandHint() {
+        Toast.makeText(
+            game,
+            getString(R.string.layout_game_menu_super_empty_text_fac9d),
+            Toast.LENGTH_LONG
+        ).show()
     }
 
     private fun getAppNameDisplay(): String {

@@ -1034,6 +1034,7 @@
     <string name="layout_dlg_peer_info_item_text_681b4">流量 (收/发):</string>
     <string name="layout_game_menu_super_empty_text_a7970">还没有炒鸡指令哦</string>
     <string name="layout_game_menu_super_empty_text_fac9d">快去用 Sunshine 基地版 为应用添加超级指令吧~ (๑•̀ㅂ•́)و✧</string>
+    <string name="game_menu_super_commands">超级指令</string>
     <string name="layout_item_key_value_text_0952a">分区 1</string>
     <string name="layout_item_key_value_hint_dd44f">分区名称，为空时为键值名</string>
     <string name="layout_item_page_super_menu_text_ce0e8">编辑模式</string>

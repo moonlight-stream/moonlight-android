@@ -13,6 +13,7 @@ class PanZoomHandler(
     context: Context,
     private val game: Game,
     private val streamView: View,
+    private val cursorOverlay: View,
     private val prefConfig: PreferenceConfiguration
 ) {
     private val scaleGestureDetector: ScaleGestureDetector
@@ -33,6 +34,8 @@ class PanZoomHandler(
         // Everything gets easier with 0,0 as the pivot point
         streamView.pivotX = 0f
         streamView.pivotY = 0f
+        cursorOverlay.pivotX = 0f
+        cursorOverlay.pivotY = 0f
     }
 
     fun handleTouchEvent(motionEvent: MotionEvent) {
@@ -64,8 +67,19 @@ class PanZoomHandler(
             childY = maxOf(boundaryY, minOf(childY, 0f))
         }
 
+        applyTransform()
+    }
+
+    private fun applyTransform() {
+        streamView.scaleX = scaleFactor
+        streamView.scaleY = scaleFactor
         streamView.x = childX
         streamView.y = childY
+
+        cursorOverlay.scaleX = scaleFactor
+        cursorOverlay.scaleY = scaleFactor
+        cursorOverlay.x = childX
+        cursorOverlay.y = childY
     }
 
     fun handleSurfaceChange() {
@@ -94,9 +108,6 @@ class PanZoomHandler(
         childX = dPivotX2 + parentWidth / 2
         childY = dPivotY2 + parentHeight / 2
 
-        streamView.x = childX
-        streamView.y = childY
-
         constrainToBounds()
     }
 
@@ -117,12 +128,6 @@ class PanZoomHandler(
 
             scaleFactor = newScaleFactor
 
-            streamView.scaleX = scaleFactor
-            streamView.scaleY = scaleFactor
-
-            streamView.x = childX
-            streamView.y = childY
-
             constrainToBounds()
             return true
         }
@@ -141,9 +146,6 @@ class PanZoomHandler(
         ): Boolean {
             childX = streamView.x - distanceX
             childY = streamView.y - distanceY
-
-            streamView.x = childX
-            streamView.y = childY
 
             constrainToBounds()
             return true

@@ -116,6 +116,10 @@ class CursorServiceManager(
             cursorOverlay.layoutParams = params
         }
 
+        cursorOverlay.pivotX = streamView.pivotX
+        cursorOverlay.pivotY = streamView.pivotY
+        cursorOverlay.scaleX = streamView.scaleX
+        cursorOverlay.scaleY = streamView.scaleY
         cursorOverlay.x = x
         cursorOverlay.y = y
 

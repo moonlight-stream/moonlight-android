@@ -20,7 +20,7 @@
             android:scaleType="centerCrop" />
 
         <!-- 中间完整图片 -->
-        <ImageView
+        <com.limelight.utils.AcrylicImageView
             android:id="@+id/appBackgroundImageClear"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -165,6 +165,18 @@
                     android:layout_height="wrap_content"
                     android:minHeight="32dp"
                     android:text="@string/appview_background_mode_artwork"
+                    android:textColor="@color/appview_text_secondary"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-light"
+                    android:buttonTint="@color/appview_text_primary"
+                    android:paddingEnd="@dimen/appview_edge_margin" />
+
+                <RadioButton
+                    android:id="@+id/appBackgroundModeAcrylic"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="32dp"
+                    android:text="@string/appview_background_mode_acrylic"
                     android:textColor="@color/appview_text_secondary"
                     android:textSize="12sp"
                     android:fontFamily="sans-serif-light"

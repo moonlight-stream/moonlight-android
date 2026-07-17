@@ -962,6 +962,7 @@
     <!-- AppView Top Panel -->
     <string name="appview_background_mode_title">背景</string>
     <string name="appview_background_mode_artwork">应用封面</string>
+    <string name="appview_background_mode_acrylic">亚克力</string>
     <string name="appview_background_mode_soft_color">柔和纯色</string>
     <string name="appview_display_selection_title">显示器选择</string>
     <string name="appview_display_selection_clear">清空选择</string>

@@ -59,6 +59,7 @@ import com.limelight.ui.ScreenCombinationModePickerView
 import com.limelight.ui.SelectionIndicatorAnimator
 import com.limelight.utils.AppSettingsManager
 import com.limelight.utils.AppActionSheet
+import com.limelight.utils.AppBackgroundMode
 import com.limelight.utils.BackgroundImageManager
 import com.limelight.utils.CacheHelper
 import com.limelight.utils.Dialog
@@ -116,8 +117,6 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         private const val DISPLAY_CHECK_DELAY_MS = 800L
         private const val NOT_PAIRED_EXIT_CONFIRMATION_UPDATES = 2
         private const val VIRTUAL_DISPLAY_ID = 212333
-        private const val APPVIEW_PREFS_NAME = "AppView"
-        private const val KEY_APP_BACKGROUND_MODE = "app_background_mode"
         private const val SCREEN_COMBINATION_MODE_PREF_KEY = "list_screen_combination_mode"
     }
 
@@ -404,12 +403,12 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         // 竖屏：仅保留模糊层铺满屏幕（blur 图本身经 RenderEffect / StackBlur 处理后已是装饰性背景）
         // 横屏：保留双层（模糊+清晰）原视觉
         val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-        backgroundImageManager = if (isPortrait) {
-            appBackgroundImageClear.visibility = View.GONE
-            BackgroundImageManager(this, null, appBackgroundImageBlur!!, blurOnly = true)
-        } else {
-            BackgroundImageManager(this, appBackgroundImageBlur, appBackgroundImageClear)
-        }
+        backgroundImageManager = BackgroundImageManager(
+            this,
+            appBackgroundImageBlur!!,
+            appBackgroundImageClear,
+            artworkBlurOnly = isPortrait
+        )
 
         // Initialize app settings manager and UI components
         appSettingsManager = AppSettingsManager(this)
@@ -638,6 +637,16 @@ class AppView : Activity(), AdapterFragmentCallbacks {
                     runOnUiThread {
                         if (requestId == backgroundRequestSerial) {
                             manager.setBackgroundSmoothly(bitmap)
+                        }
+                    }
+                }
+            }
+            AppBackgroundMode.Acrylic -> {
+                val loader = appGridAdapter?.getLoader() ?: return
+                loader.loadFullBitmap(appObject.app) { bitmap ->
+                    runOnUiThread {
+                        if (requestId == backgroundRequestSerial) {
+                            manager.setAcrylicBackgroundSmoothly(bitmap)
                         }
                     }
                 }
@@ -913,21 +922,20 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         appBackgroundModeGroup.check(
             when (appBackgroundMode) {
                 AppBackgroundMode.Artwork -> R.id.appBackgroundModeArtwork
+                AppBackgroundMode.Acrylic -> R.id.appBackgroundModeAcrylic
                 AppBackgroundMode.SoftColor -> R.id.appBackgroundModeSoftColor
             }
         )
         appBackgroundModeGroup.setOnCheckedChangeListener { _, checkedId ->
             val newMode = when (checkedId) {
+                R.id.appBackgroundModeAcrylic -> AppBackgroundMode.Acrylic
                 R.id.appBackgroundModeSoftColor -> AppBackgroundMode.SoftColor
                 else -> AppBackgroundMode.Artwork
             }
             if (newMode == appBackgroundMode) return@setOnCheckedChangeListener
 
             appBackgroundMode = newMode
-            getSharedPreferences(APPVIEW_PREFS_NAME, MODE_PRIVATE)
-                .edit()
-                .putString(KEY_APP_BACKGROUND_MODE, newMode.prefValue)
-                .apply()
+            AppBackgroundMode.write(this, newMode)
             resolveCurrentBackgroundCandidate()?.let {
                 requestAppBackground(it, debounce = false, force = true)
             }
@@ -935,9 +943,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
     }
 
     private fun readAppBackgroundMode(): AppBackgroundMode {
-        val value = getSharedPreferences(APPVIEW_PREFS_NAME, MODE_PRIVATE)
-            .getString(KEY_APP_BACKGROUND_MODE, null)
-        return AppBackgroundMode.fromPrefValue(value)
+        return AppBackgroundMode.read(this)
     }
 
     private fun scheduleDisplayCheck() {
@@ -2067,16 +2073,6 @@ class AppView : Activity(), AdapterFragmentCallbacks {
     }
 
     // ==================== 内部类 ====================
-
-    private enum class AppBackgroundMode(val prefValue: String) {
-        Artwork("artwork"),
-        SoftColor("soft_color");
-
-        companion object {
-            fun fromPrefValue(value: String?): AppBackgroundMode =
-                values().firstOrNull { it.prefValue == value } ?: Artwork
-        }
-    }
 
     class AppObject(val app: NvApp) {
         var isRunning = false

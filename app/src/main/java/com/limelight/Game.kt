@@ -2186,7 +2186,19 @@ class Game : Activity(), SurfaceHolder.Callback,
             }
             BackKeyMenuMode.NO_MENU_LOCKED -> {}
             BackKeyMenuMode.GAME_MENU -> {
-                activeGameMenu = GameMenu(this, app, conn!!, device)
+                val existingMenu = activeGameMenu
+                if (existingMenu?.isShowing() == true) {
+                    return
+                }
+                existingMenu?.dismiss()
+                activeGameMenu = null
+
+                val menu = GameMenu(this, app, conn!!, device) { dismissedMenu ->
+                    if (activeGameMenu === dismissedMenu) {
+                        activeGameMenu = null
+                    }
+                }
+                activeGameMenu = menu
             }
         }
     }

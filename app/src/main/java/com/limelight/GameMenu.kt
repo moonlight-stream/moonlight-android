@@ -52,7 +52,8 @@ class GameMenu(
     private val game: Game,
     private val app: NvApp,
     private val conn: NvConnection,
-    private val device: GameInputDevice?
+    private val device: GameInputDevice?,
+    private val onDismiss: (GameMenu) -> Unit = {}
 ) {
     // 当前激活的对话框（如果有）
     private var activeDialog: ComponentDialog? = null
@@ -71,6 +72,10 @@ class GameMenu(
 
     fun dismiss() {
         activeDialog?.dismiss()
+    }
+
+    fun isShowing(): Boolean {
+        return activeDialog?.isShowing == true
     }
 
     /**
@@ -649,6 +654,7 @@ class GameMenu(
             bitrateCardController.dispose()
             gyroCardController.dispose()
             menuStack.clear()
+            onDismiss(this)
         }
 
         dialog.show()

@@ -423,8 +423,11 @@ class Game : Activity(), SurfaceHolder.Callback,
         MoonBridge.setBassEnergyListener { intensity, lowFreqRatio ->
             audioVibrationService?.handleBassEnergy(intensity, lowFreqRatio)
         }
-        MoonBridge.setBassEnergyEnabled(prefConfig.enableAudioVibration)
+        MoonBridge.setAudioHapticsSessionHandle(
+            audioVibrationService?.nativeSessionHandle ?: 0L
+        )
         MoonBridge.setBassEnergySceneMode(prefConfig.audioVibrationScene)
+        updateAudioHapticsRuntimeEnabled(true)
 
         val inputManager = getSystemService(INPUT_SERVICE) as InputManager
         inputManager.registerInputDeviceListener(keyboardInputHandler.keyboardTranslator, null)
@@ -919,6 +922,9 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     override fun onResume() {
         super.onResume()
+        if (audioVibrationService != null) {
+            updateAudioHapticsRuntimeEnabled(true)
+        }
         KeyboardAccessibilityService.setIntercepting(true)
         val service = KeyboardAccessibilityService.instance
         if (service != null) {
@@ -1179,6 +1185,14 @@ class Game : Activity(), SurfaceHolder.Callback,
             floatBallHandler.release()
         }
 
+        if (audioVibrationService != null) {
+            updateAudioHapticsRuntimeEnabled(false)
+            MoonBridge.setAudioHapticsSessionHandle(0L)
+            audioVibrationService?.release()
+            audioVibrationService = null
+            MoonBridge.setBassEnergyListener(null)
+        }
+
         super.onDestroy()
 
         if (conn != null && connected) {
@@ -1187,12 +1201,6 @@ class Game : Activity(), SurfaceHolder.Callback,
 
         if (::controllerHandler.isInitialized) {
             controllerHandler.destroy()
-        }
-
-        if (audioVibrationService != null) {
-            audioVibrationService?.stop()
-            MoonBridge.setBassEnergyEnabled(false)
-            MoonBridge.setBassEnergyListener(null)
         }
 
         if (::keyboardInputHandler.isInitialized) {
@@ -1217,6 +1225,8 @@ class Game : Activity(), SurfaceHolder.Callback,
     }
 
     override fun onPause() {
+        updateAudioHapticsRuntimeEnabled(false)
+        audioVibrationService?.stop()
         if (::floatBallHandler.isInitialized) {
             floatBallHandler.hide()
         }
@@ -1232,6 +1242,16 @@ class Game : Activity(), SurfaceHolder.Callback,
             }
         }
         super.onPause()
+    }
+
+    private fun updateAudioHapticsRuntimeEnabled(foreground: Boolean) {
+        val featureEnabled = foreground && prefConfig.enableAudioVibration
+        val useAudioHapticsOutput = featureEnabled && BuildConfig.AUDIO_HAPTICS_OUTPUT
+        MoonBridge.setBassEnergyEnabled(featureEnabled && !useAudioHapticsOutput)
+        MoonBridge.setAudioHapticsShadowEnabled(
+            foreground && BuildConfig.AUDIO_HAPTICS_SHADOW
+        )
+        MoonBridge.setAudioHapticsOutputEnabled(useAudioHapticsOutput)
     }
 
     fun changeResolution() {
@@ -1883,7 +1903,25 @@ class Game : Activity(), SurfaceHolder.Callback,
             attemptedConnection = true
             UiHelper.notifyStreamConnecting(this)
 
-            this.audioRenderer = com.limelight.binding.audio.SmartAudioRenderer(this, prefConfig.enableAudioFx, prefConfig.enableSpatializer, prefConfig.audioPassthroughBufferBytes)
+            val enableSystemAudioHaptics =
+                audioVibrationService?.wantsSystemAudioCoupledDeviceHaptics() == true
+            this.audioRenderer = com.limelight.binding.audio.SmartAudioRenderer(
+                context = this,
+                enableAudioFx = prefConfig.enableAudioFx,
+                enableSpatializer = prefConfig.enableSpatializer,
+                passthroughBufferBytes = prefConfig.audioPassthroughBufferBytes,
+                enableSystemAudioHaptics = enableSystemAudioHaptics,
+                onSystemAudioHapticsActiveChanged = { active ->
+                    audioVibrationService?.setSystemAudioCoupledDeviceActive(active)
+                },
+                onAudioPresentationClock = { framePosition, systemNanoTime, sampleRate ->
+                    audioVibrationService?.updateAudioPresentationClock(
+                        framePosition,
+                        systemNanoTime,
+                        sampleRate
+                    )
+                }
+            )
             conn?.start(this.audioRenderer!!, decoderRenderer!!, this)
 
             streamView.post { cursorServiceManager.syncCursorWithStream() }

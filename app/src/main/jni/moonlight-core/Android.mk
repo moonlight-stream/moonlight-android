@@ -3,15 +3,21 @@ MY_LOCAL_PATH := $(call my-dir)
 
 include $(call all-subdir-makefiles)
 
+AUDIO_HAPTICS_SHADOW ?= 0
+AUDIO_HAPTICS_OUTPUT ?= 0
+ifneq ($(filter 1,$(AUDIO_HAPTICS_SHADOW) $(AUDIO_HAPTICS_OUTPUT)),)
+ifeq ($(strip $(AUDIO_HAPTICS_SDK_DIR)),)
+$(error AUDIO_HAPTICS_SDK_DIR is required when audio haptics is enabled)
+endif
+endif
+ifeq ($(AUDIO_HAPTICS_SHADOW),1)
+include $(AUDIO_HAPTICS_SDK_DIR)/Android.mk
+endif
+
 LOCAL_PATH := $(MY_LOCAL_PATH)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE    := moonlight-core
-
-MOONLIGHT_CORE_RS_WRAPPER_SRC := moonlight-common-c/src/rswrapper.c
-ifneq (,$(filter x86 x86_64,$(TARGET_ARCH_ABI)))
-MOONLIGHT_CORE_RS_WRAPPER_SRC := rswrapper_android_default.c
-endif
 
 LOCAL_SRC_FILES := moonlight-common-c/src/AudioStream.c \
                    moonlight-common-c/src/ByteBuffer.c \
@@ -34,7 +40,9 @@ LOCAL_SRC_FILES := moonlight-common-c/src/AudioStream.c \
                    moonlight-common-c/src/VideoDepacketizer.c \
                    moonlight-common-c/src/VideoStream.c \
                    moonlight-common-c/src/MicrophoneStream.c \
-                   $(MOONLIGHT_CORE_RS_WRAPPER_SRC) \
+                   moonlight-common-c/nanors/rs.c \
+                   moonlight-common-c/nanors/deps/obl/oblas_common.c \
+                   moonlight-common-c/nanors/deps/obl/oblas_lite.c \
                    moonlight-common-c/enet/callbacks.c \
                    moonlight-common-c/enet/compress.c \
                    moonlight-common-c/enet/host.c \
@@ -49,6 +57,8 @@ LOCAL_SRC_FILES := moonlight-common-c/src/AudioStream.c \
                    minisdl.c \
                    OpusEncoder.c \
                    bass_energy_bridge.cpp \
+                   audio_haptics_shadow_bridge.cpp \
+                   audio_haptics_android_adapter_bridge.cpp \
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/moonlight-common-c/enet/include \
                     $(LOCAL_PATH)/moonlight-common-c/nanors \
@@ -56,15 +66,24 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/moonlight-common-c/enet/include \
                     $(LOCAL_PATH)/moonlight-common-c/nanors/deps \
                     $(LOCAL_PATH)/moonlight-common-c/src \
 
-LOCAL_CFLAGS := -DHAS_SOCKLEN_T=1 -DLC_ANDROID -DHAVE_CLOCK_GETTIME=1
+LOCAL_CFLAGS := -DHAS_SOCKLEN_T=1 -DLC_ANDROID -DHAVE_CLOCK_GETTIME=1 \
+                 -DMOONLIGHT_AUDIO_HAPTICS_SHADOW=$(AUDIO_HAPTICS_SHADOW) \
+                 -DMOONLIGHT_AUDIO_HAPTICS_OUTPUT=$(AUDIO_HAPTICS_OUTPUT)
+
+ifeq ($(AUDIO_HAPTICS_OUTPUT),1)
+LOCAL_C_INCLUDES += $(AUDIO_HAPTICS_SDK_DIR)/platform/android/src/main/cpp/include
+endif
 
 ifeq ($(NDK_DEBUG),1)
 LOCAL_CFLAGS += -DLC_DEBUG
 endif
 
-LOCAL_LDLIBS := -llog -landroid
+LOCAL_LDLIBS := -llog -landroid -ldl
 
 LOCAL_STATIC_LIBRARIES := libopus libssl libcrypto cpufeatures
+ifeq ($(AUDIO_HAPTICS_SHADOW),1)
+LOCAL_STATIC_LIBRARIES += moonlight_haptics_core
+endif
 LOCAL_LDFLAGS += -Wl,--exclude-libs,ALL
 
 LOCAL_BRANCH_PROTECTION := standard

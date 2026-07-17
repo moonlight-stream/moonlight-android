@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
+import android.media.AudioTimestamp
 import android.media.AudioTrack
 import android.media.Spatializer
 import android.media.audiofx.AudioEffect
@@ -17,11 +18,19 @@ import com.limelight.nvstream.jni.MoonBridge
 class AndroidAudioRenderer(
     private val context: Context,
     private val enableAudioFx: Boolean,
-    private val enableSpatializer: Boolean
+    private val enableSpatializer: Boolean,
+    enableSystemAudioHaptics: Boolean = false,
+    onSystemAudioHapticsActiveChanged: (Boolean) -> Unit = {},
+    private val onAudioPresentationClock: (framePosition: Long, systemNanoTime: Long, sampleRate: Int) -> Unit = { _, _, _ -> }
 ) : AudioRenderer {
 
     private var track: AudioTrack? = null
     private var spatializer: Spatializer? = null
+    private val audioTimestamp = AudioTimestamp()
+    private val systemAudioHaptics = SystemAudioHapticsSession(
+        enableSystemAudioHaptics,
+        onSystemAudioHapticsActiveChanged
+    )
 
     // 保存当前的静音状态
     private var isMuted = false
@@ -35,10 +44,14 @@ class AndroidAudioRenderer(
     private var savedAudioConfig: MoonBridge.AudioConfiguration? = null
     private var savedSampleRate = 0
     private var savedSamplesPerFrame = 0
+    private var savedChannelCount = 0
+    private var decodedStreamFramePosition = 0L
+    private var trackStreamFrameOffset = 0L
 
     private fun createAudioTrack(channelConfig: Int, sampleRate: Int, bufferSize: Int, lowLatency: Boolean): AudioTrack {
         val attributesBuilder = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME)
+        systemAudioHaptics.configureAudioAttributes(attributesBuilder)
 
         // Enable spatialization attribute if supported and requested
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && enableSpatializer) {
@@ -88,6 +101,9 @@ class AndroidAudioRenderer(
         sampleRate: Int,
         samplesPerFrame: Int
     ): Int {
+        // AudioTrack frame positions restart from zero whenever the track is
+        // rebuilt. Keep them in the native IR stream's cumulative time origin.
+        trackStreamFrameOffset = decodedStreamFramePosition
         val channelConfig: Int
         val bytesPerFrame: Int
 
@@ -142,6 +158,7 @@ class AndroidAudioRenderer(
 
             try {
                 track = createAudioTrack(channelConfig, sampleRate, bufferSize, lowLatency)
+                systemAudioHaptics.attach(track!!)
                 track!!.play()
 
                 // Successfully created working AudioTrack. We're done here.
@@ -149,6 +166,7 @@ class AndroidAudioRenderer(
                 break
             } catch (e: Exception) {
                 e.printStackTrace()
+                systemAudioHaptics.detach()
                 try {
                     track?.release()
                     track = null
@@ -193,6 +211,7 @@ class AndroidAudioRenderer(
     }
 
     override fun setup(audioConfiguration: MoonBridge.AudioConfiguration, sampleRate: Int, samplesPerFrame: Int, codec: Int, bitrate: Int): Int {
+        clearAudioPresentationClock()
         // This renderer only handles Opus PCM output. Non-Opus codecs (AC3 / E-AC3)
         // are routed through a dedicated passthrough renderer; refuse setup so the
         // caller can fall back appropriately.
@@ -204,6 +223,9 @@ class AndroidAudioRenderer(
         this.savedAudioConfig = audioConfiguration
         this.savedSampleRate = sampleRate
         this.savedSamplesPerFrame = samplesPerFrame
+        this.savedChannelCount = audioConfiguration.channelCount
+        decodedStreamFramePosition = 0L
+        trackStreamFrameOffset = 0L
 
         return initializeAudioTrackInternal(audioConfiguration, sampleRate, samplesPerFrame)
     }
@@ -212,6 +234,7 @@ class AndroidAudioRenderer(
     fun pauseProcessing() {
         LimeLog.info("Audio: Pausing processing (releasing AudioTrack)")
         isProcessingPaused = true
+        clearAudioPresentationClock()
 
         // 释放 Spatializer
         spatializer = null
@@ -228,6 +251,7 @@ class AndroidAudioRenderer(
                     context.sendBroadcast(i)
                 }
 
+                systemAudioHaptics.detach()
                 currentTrack.pause()
                 currentTrack.flush()
                 currentTrack.release()
@@ -247,6 +271,7 @@ class AndroidAudioRenderer(
         }
 
         LimeLog.info("Audio: Resuming processing...")
+        clearAudioPresentationClock()
 
         // 1. 重建 AudioTrack
         val res = initializeAudioTrackInternal(config, savedSampleRate, savedSamplesPerFrame)
@@ -291,17 +316,33 @@ class AndroidAudioRenderer(
     }
 
     override fun playDecodedAudio(audioData: ShortArray) {
+        val frameCount = if (savedChannelCount > 0) {
+            audioData.size.toLong() / savedChannelCount
+        } else {
+            0L
+        }
         if (isProcessingPaused) {
+            decodedStreamFramePosition += frameCount
             return // 丢弃数据
         }
 
-        val currentTrack = track ?: return
-
-        if (MoonBridge.getPendingAudioDuration() < 40) {
-            currentTrack.write(audioData, 0, audioData.size)
-        } else {
-            LimeLog.info("Too much pending audio data: " + MoonBridge.getPendingAudioDuration() + " ms")
+        val currentTrack = track
+        if (currentTrack == null) {
+            decodedStreamFramePosition += frameCount
+            return
         }
+
+        // Backlog shedding happens in the native decode callback before bass/haptic
+        // analysis, so every PCM frame reaching this method must also reach AudioTrack.
+        val writtenSamples = currentTrack.write(audioData, 0, audioData.size)
+        if (writtenSamples > 0 && savedSampleRate > 0 && currentTrack.getTimestamp(audioTimestamp)) {
+            onAudioPresentationClock(
+                trackStreamFrameOffset + audioTimestamp.framePosition,
+                audioTimestamp.nanoTime,
+                savedSampleRate
+            )
+        }
+        decodedStreamFramePosition += frameCount
     }
 
     override fun start() {
@@ -316,6 +357,8 @@ class AndroidAudioRenderer(
     }
 
     override fun stop() {
+        clearAudioPresentationClock()
+        systemAudioHaptics.detach()
         val currentTrack = track
         if (currentTrack != null && enableAudioFx) {
             val i = Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION)
@@ -326,6 +369,8 @@ class AndroidAudioRenderer(
     }
 
     override fun cleanup() {
+        clearAudioPresentationClock()
+        systemAudioHaptics.close()
         spatializer = null
         track?.let {
             it.pause()
@@ -333,6 +378,10 @@ class AndroidAudioRenderer(
             it.release()
         }
         track = null
+    }
+
+    private fun clearAudioPresentationClock() {
+        onAudioPresentationClock(-1L, -1L, 0)
     }
 
     /**

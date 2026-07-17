@@ -19,5 +19,30 @@ dependencyResolutionManagement {
     }
 }
 
+def localProperties = new Properties()
+def localPropertiesFile = file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { stream ->
+        localProperties.load(stream)
+    }
+}
+def audioHapticsSdkDir = (
+        gradle.startParameter.projectProperties['audioHapticsSdkDir']
+                ?: localProperties.getProperty('audioHapticsSdkDir')
+                ?: System.getenv('AUDIO_HAPTICS_SDK_DIR')
+                ?: ''
+).toString().trim()
+if (audioHapticsSdkDir.isEmpty()) {
+    throw new GradleException(
+            'audioHapticsSdkDir is required; point it at the Apache-2.0 audio-haptics-sdk checkout'
+    )
+}
+def audioHapticsAndroidDir = file("${audioHapticsSdkDir}/platform/android")
+if (!audioHapticsAndroidDir.isDirectory()) {
+    throw new GradleException("Android haptics SDK module not found: ${audioHapticsAndroidDir}")
+}
+
 include ':app'
 include ':framegen'
+include ':moonlight-haptics-android'
+project(':moonlight-haptics-android').projectDir = audioHapticsAndroidDir

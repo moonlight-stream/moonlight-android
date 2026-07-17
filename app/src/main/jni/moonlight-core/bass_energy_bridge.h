@@ -29,6 +29,9 @@ void bass_energy_init(int sampleRate, int channelCount);
  */
 void bass_energy_set_enabled(int enabled);
 
+/** Keep reference analysis active for shadow comparison without Java output. */
+void bass_energy_set_shadow_enabled(int enabled);
+
 /**
  * Set analysis sensitivity (0.1 - 3.0, default 1.0).
  */
@@ -55,7 +58,12 @@ void bass_energy_set_scene_mode(int mode);
  * @param outLowFreqRatio Output low-freq energy ratio (0-100), for low/high motor allocation
  * @return 1 if intensity should be reported (throttle-controlled), 0 otherwise
  */
-int bass_energy_process_frame(const int16_t* pcmData, int sampleCount, int* outIntensity, int* outLowFreqRatio);
+int bass_energy_process_frame(
+    const int16_t* pcmData,
+    int sampleCount,
+    int* outIntensity,
+    int* outLowFreqRatio,
+    int* outReferenceEvent);
 
 #ifdef __cplusplus
 }

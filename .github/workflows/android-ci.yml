@@ -28,6 +28,9 @@ jobs:
     timeout-minutes: 60
     env:
       GITHUB_OAUTH_CLIENT_ID: ${{ vars.OAUTH_CLIENT_ID || secrets.OAUTH_CLIENT_ID }}
+      AUDIO_HAPTICS_SDK_REF: e243a6ce65d6dec35976ca0eace3c5aff0d82cc4 # v0.5.14
+      AUDIO_HAPTICS_SDK_DIR: ${{ github.workspace }}/.deps/moonlight-audio-haptics
+      ENABLE_AUDIO_HAPTICS_OUTPUT: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,6 +38,13 @@ jobs:
           submodules: recursive
           fetch-depth: 0
           fetch-tags: true
+
+      - name: Checkout audio haptics SDK
+        uses: actions/checkout@v4
+        with:
+          repository: AlkaidLab/moonlight-audio-haptics
+          ref: ${{ env.AUDIO_HAPTICS_SDK_REF }}
+          path: .deps/moonlight-audio-haptics
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4

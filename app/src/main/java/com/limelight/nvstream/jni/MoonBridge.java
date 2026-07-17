@@ -598,6 +598,9 @@ public class MoonBridge {
     public static native void setBassEnergyEnabled(boolean enabled);
     public static native void setBassEnergySensitivity(float sensitivity);
     public static native void setBassEnergySceneMode(int mode);
+    public static native void setAudioHapticsShadowEnabled(boolean enabled);
+    public static native void setAudioHapticsOutputEnabled(boolean enabled);
+    public static native void setAudioHapticsSessionHandle(long handle);
 
     // Surface DataSpace control for HDR color space
     // Uses ANativeWindow_setBuffersDataSpace() via JNI (API 28+)

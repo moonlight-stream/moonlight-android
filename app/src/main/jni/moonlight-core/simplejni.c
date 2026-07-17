@@ -435,6 +435,8 @@ Java_com_limelight_nvstream_jni_MoonBridge_isMicrophoneEncryptionEnabled(JNIEnv 
 // ==================== Bass Energy Analyzer Control ====================
 
 #include "bass_energy_bridge.h"
+#include "audio_haptics_shadow_bridge.h"
+#include "audio_haptics_android_adapter_bridge.h"
 
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_setBassEnergyEnabled(JNIEnv *env, jclass clazz, jboolean enabled) {
@@ -449,6 +451,30 @@ Java_com_limelight_nvstream_jni_MoonBridge_setBassEnergySensitivity(JNIEnv *env,
 JNIEXPORT void JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_setBassEnergySceneMode(JNIEnv *env, jclass clazz, jint mode) {
     bass_energy_set_scene_mode(mode);
+    audio_haptics_shadow_set_scene_mode(mode);
+    audio_haptics_android_adapter_set_scene_mode(mode);
+}
+
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_setAudioHapticsShadowEnabled(JNIEnv *env, jclass clazz, jboolean enabled) {
+    (void)env;
+    (void)clazz;
+    bass_energy_set_shadow_enabled(enabled ? 1 : 0);
+    audio_haptics_shadow_set_enabled(enabled ? 1 : 0);
+}
+
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_setAudioHapticsOutputEnabled(JNIEnv *env, jclass clazz, jboolean enabled) {
+    (void)env;
+    (void)clazz;
+    audio_haptics_android_adapter_set_enabled(enabled ? 1 : 0);
+}
+
+JNIEXPORT void JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_setAudioHapticsSessionHandle(JNIEnv *env, jclass clazz, jlong handle) {
+    (void)env;
+    (void)clazz;
+    audio_haptics_android_adapter_set_session_handle((uint64_t)handle);
 }
 
 // ==================== Surface DataSpace Control ====================

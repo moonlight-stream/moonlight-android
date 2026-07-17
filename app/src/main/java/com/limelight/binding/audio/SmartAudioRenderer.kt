@@ -18,7 +18,10 @@ class SmartAudioRenderer(
     private val context: Context,
     private val enableAudioFx: Boolean,
     private val enableSpatializer: Boolean,
-    private val passthroughBufferBytes: Int = 16 * 1024
+    private val passthroughBufferBytes: Int = 16 * 1024,
+    private val enableSystemAudioHaptics: Boolean = false,
+    private val onSystemAudioHapticsActiveChanged: (Boolean) -> Unit = {},
+    private val onAudioPresentationClock: (framePosition: Long, systemNanoTime: Long, sampleRate: Int) -> Unit = { _, _, _ -> }
 ) : AudioRenderer {
 
     private var delegate: AudioRenderer? = null
@@ -30,6 +33,7 @@ class SmartAudioRenderer(
         codec: Int,
         bitrate: Int
     ): Int {
+        onAudioPresentationClock(-1L, -1L, 0)
         // Route by negotiated codec:
         //   PCM_S16  -> PcmPassthroughRenderer (raw LPCM, lowest latency)
         //   AC3/EAC3 -> Ac3PassthroughRenderer (encoded bitstream to AVR)
@@ -39,7 +43,12 @@ class SmartAudioRenderer(
         // in Game.setupAudio by forcing audioCodec=OPUS when disabled, so
         // we don't need to reinspect that preference here.
         if (codec == MoonBridge.AUDIO_CODEC_PCM_S16) {
-            val pcmThru = PcmPassthroughRenderer(context, passthroughBufferBytes)
+            val pcmThru = PcmPassthroughRenderer(
+                context,
+                passthroughBufferBytes,
+                enableSystemAudioHaptics,
+                onSystemAudioHapticsActiveChanged
+            )
             val res = pcmThru.setup(audioConfiguration, sampleRate, samplesPerFrame, codec, bitrate)
             if (res == 0) {
                 LimeLog.info("SmartAudioRenderer: using PcmPassthroughRenderer")
@@ -64,7 +73,14 @@ class SmartAudioRenderer(
             return res
         }
 
-        val pcm = AndroidAudioRenderer(context, enableAudioFx, enableSpatializer)
+        val pcm = AndroidAudioRenderer(
+            context,
+            enableAudioFx,
+            enableSpatializer,
+            enableSystemAudioHaptics,
+            onSystemAudioHapticsActiveChanged,
+            onAudioPresentationClock
+        )
         val res = pcm.setup(audioConfiguration, sampleRate, samplesPerFrame, codec, bitrate)
         if (res == 0) {
             delegate = pcm
@@ -77,6 +93,7 @@ class SmartAudioRenderer(
     }
 
     override fun stop() {
+        onAudioPresentationClock(-1L, -1L, 0)
         delegate?.stop()
     }
 
@@ -89,6 +106,7 @@ class SmartAudioRenderer(
     }
 
     override fun cleanup() {
+        onAudioPresentationClock(-1L, -1L, 0)
         delegate?.cleanup()
         delegate = null
     }

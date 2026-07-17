@@ -2,6 +2,9 @@ package com.limelight.binding.audio
 
 import android.content.Context
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.os.VibrationAttributes
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -10,8 +13,12 @@ import android.view.InputDevice
 
 import androidx.annotation.RequiresApi
 
+import com.limelight.BuildConfig
 import com.limelight.LimeLog
 import com.limelight.binding.input.ControllerHandler
+import com.moonlight.haptics.HapticFrame
+import com.moonlight.haptics.android.AndroidHapticRenderer
+import com.moonlight.haptics.android.NativeHapticsSession
 
 /**
  * Audio-driven vibration service for Android.
@@ -35,7 +42,7 @@ import com.limelight.binding.input.ControllerHandler
 class AudioVibrationService(context: Context) {
 
     private var enabled = false
-    private var strength = 100       // 0-100
+    private var strength = 100       // 0-200; values above 100 are boost headroom
     private var vibrationMode = MODE_AUTO
     private var sceneMode = SCENE_GAME
 
@@ -43,19 +50,55 @@ class AudioVibrationService(context: Context) {
     private var lastIntensity = 0
     private var lastLowFreqRatio = 50
     private var isDeviceVibrating = false
+    @Volatile
+    private var isSdkDeviceActive = false
+    @Volatile
+    private var isSystemAudioCoupledDeviceActive = false
     private var isGamepadRumbling = false
 
     // Debounce: tightened intervals matching HarmonyOS
     private var lastVibrationTime: Long = 0
+    private var lastHapticTimestampUs: Long = -1
+    private var rhythmStatsStartMs: Long = SystemClock.elapsedRealtime()
+    private var rhythmTransientCount = 0
+    private var rhythmPredictedCount = 0
+    private var rhythmDiagnosticCount = 0
+    private var rhythmActivationSum = 0f
+    private var rhythmLowSupportSum = 0f
+    private var lastMusicGrooveBedAmplitude = 0f
+    private var lastHapticGamepadTime: Long = 0
+    private val gamepadStopHandler = Handler(Looper.getMainLooper())
+    private val gamepadStopRunnable = Runnable {
+        if (isGamepadRumbling) {
+            stopGamepadRumble()
+        }
+    }
 
     // Android vibrator & capability
     private val deviceVibrator: Vibrator?
     private val hapticLevel: Int
+    private val sdkDeviceRenderer: AndroidHapticRenderer
+    private val nativeSession: NativeHapticsSession?
+
+    val nativeSessionHandle: Long
+        get() = nativeSession?.nativeHandle ?: 0L
 
     // Gamepad rumble handler (optional, set externally)
     var controllerHandler: ControllerHandler? = null
 
     init {
+        nativeSession = if (BuildConfig.AUDIO_HAPTICS_OUTPUT) {
+            NativeHapticsSession(
+                listener = { frame -> handleHapticFrame(frame) },
+                initialScene = sceneMode
+            )
+        } else {
+            null
+        }
+        sdkDeviceRenderer = AndroidHapticRenderer(
+            context.applicationContext,
+            workerLooper = nativeSession?.deliveryLooper
+        )
         deviceVibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
             vm?.defaultVibrator
@@ -64,7 +107,10 @@ class AudioVibrationService(context: Context) {
             context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
         }
         hapticLevel = detectHapticCapability()
-        LimeLog.info("AudioVibration: haptic level = " + hapticLevelName())
+        LimeLog.info(
+            "AudioVibration: haptic level = ${hapticLevelName()}, " +
+                "deviceProfile=${sdkDeviceRenderer.deviceProfileId}"
+        )
     }
 
     private fun detectHapticCapability(): Int {
@@ -111,9 +157,20 @@ class AudioVibrationService(context: Context) {
 
     fun setSettings(enabled: Boolean, strength: Int, vibrationMode: String, sceneMode: Int) {
         this.enabled = enabled
-        this.strength = strength.coerceIn(0, 100)
+        this.strength = strength.coerceIn(0, MAX_STRENGTH)
         this.vibrationMode = vibrationMode
         this.sceneMode = sceneMode
+        val onsetSensitivity = if (this.sceneMode == SCENE_MUSIC) {
+            MUSIC_ONSET_SENSITIVITY
+        } else {
+            DEFAULT_ONSET_SENSITIVITY
+        }
+        nativeSession?.setSensitivity(onsetSensitivity)
+        nativeSession?.setScene(this.sceneMode)
+        LimeLog.info(
+            "AudioVibration: scene=${this.sceneMode}, sensitivity=$onsetSensitivity, " +
+                "strength=${this.strength}"
+        )
 
         if (!enabled) {
             stopAll()
@@ -139,7 +196,7 @@ class AudioVibrationService(context: Context) {
             return
         }
 
-        val effectiveIntensity = intensity * strength / 100
+        val effectiveIntensity = (intensity * strength / 100).coerceIn(0, 100)
         if (effectiveIntensity < 5) {
             if (isDeviceVibrating || isGamepadRumbling) {
                 stopAll()
@@ -170,7 +227,7 @@ class AudioVibrationService(context: Context) {
         val shouldDevice = shouldVibrateDevice()
         val shouldGamepad = shouldVibrateGamepad()
 
-        if (shouldDevice) {
+        if (shouldDevice && !isSystemAudioCoupledDeviceActive) {
             triggerDeviceVibration(effectiveIntensity)
         } else if (isDeviceVibrating) {
             stopDeviceVibration()
@@ -183,8 +240,193 @@ class AudioVibrationService(context: Context) {
         }
     }
 
+    /**
+     * Render a platform-independent HapticFrame produced by moonlight-haptics-core.
+     * This is mutually exclusive with handleBassEnergy() at the Game integration layer.
+     */
+    private fun handleHapticFrame(frame: HapticFrame) {
+        if (!enabled || frame.timestampUs < lastHapticTimestampUs) return
+        lastHapticTimestampUs = frame.timestampUs
+
+        if (frame.activeScene in SCENE_GAME..SCENE_AUTO) {
+            sceneMode = frame.activeScene
+        }
+
+        val hasTransient = frame.hasFlag(HapticFrame.FLAG_TRANSIENT)
+        val continuousChanged = frame.hasFlag(HapticFrame.FLAG_CONTINUOUS_CHANGED)
+        val shouldStop = frame.hasFlag(HapticFrame.FLAG_STOP)
+        val isMusic = sceneMode == SCENE_MUSIC
+        if (shouldStop) {
+            stopSdkOutput()
+            if (!hasTransient) return
+        }
+        if (!hasTransient && !continuousChanged) return
+
+        val isMusicTransient = hasTransient && isMusic
+        val isRhythmPredicted = isMusicTransient &&
+            frame.hasFlag(HapticFrame.FLAG_RHYTHM_PREDICTED)
+        if (isMusicTransient) {
+            rhythmTransientCount++
+            if (isRhythmPredicted) rhythmPredictedCount++
+        }
+        if (isMusic) {
+            rhythmDiagnosticCount++
+            rhythmActivationSum += frame.rhythmActivation
+            rhythmLowSupportSum += frame.rhythmLowFrequencySupport
+        }
+        val rhythmStatsNowMs = SystemClock.elapsedRealtime()
+        if (isMusic && rhythmStatsNowMs - rhythmStatsStartMs >= RHYTHM_STATS_INTERVAL_MS) {
+            val diagnosticDivisor = rhythmDiagnosticCount.coerceAtLeast(1).toFloat()
+            val latency = sdkDeviceRenderer.takeLatencySnapshot()
+            LimeLog.info(
+                "AudioHaptics rhythm: candidate=${frame.rhythmTempoBpm.toInt()} " +
+                    "locked=${frame.rhythmLocked} " +
+                    "coasting=${frame.rhythmCoasting} " +
+                    "confidence=${(frame.rhythmConfidence * 100f).toInt()}% " +
+                    "activation=${(rhythmActivationSum * 100f / diagnosticDivisor).toInt()}% " +
+                    "lowSupport=${(rhythmLowSupportSum * 100f / diagnosticDivisor).toInt()}% " +
+                    "grooveBed=${(lastMusicGrooveBedAmplitude * 100f).toInt()}% " +
+                    "transients=$rhythmTransientCount predicted=$rhythmPredictedCount " +
+                    "rendered=${latency.renderedCount} " +
+                    "dispatchUs=${latency.dispatchP50Us}/${latency.dispatchP95Us}/${latency.dispatchP99Us} " +
+                    "audioSkewUs=${latency.audioSkewP50Us}/${latency.audioSkewP95Us}/${latency.audioSkewP99Us} " +
+                    "stale=${latency.staleTransientDrops} " +
+                    "superseded=${latency.supersededTransientDrops} " +
+                    "scheduled=${latency.scheduledFrames} " +
+                    "clock=${latency.clockAcceptedDecisions}/${latency.clockRejectedDecisions} " +
+                    "clockAgeUs=${latency.latestClockAgeUs} " +
+                    "streamDeltaUs=${latency.latestStreamClockDeltaUs} " +
+                    "targetDeltaUs=${latency.latestRawTargetDeltaUs}"
+            )
+            rhythmStatsStartMs = rhythmStatsNowMs
+            rhythmTransientCount = 0
+            rhythmPredictedCount = 0
+            rhythmDiagnosticCount = 0
+            rhythmActivationSum = 0f
+            rhythmLowSupportSum = 0f
+        }
+        // Core owns scene authoring. The host applies only the user's global
+        // strength; the SDK renderer maps portable intent to actuator limits.
+        val continuous = (
+            frame.continuousAmplitude.coerceIn(0f, 1f) * strength / 100f
+        ).coerceIn(0f, 1f)
+        val transient = (
+            frame.transientAmplitude.coerceIn(0f, 1f) * strength / 100f
+        ).coerceIn(0f, 1f)
+        val transientDurationMs = frame.transientDurationMs
+        val musicGrooveBedActive = isMusic && continuous >= MIN_IR_AMPLITUDE
+        val rendererFlags = frame.flags
+        val selectedAmplitude = if (hasTransient) {
+            maxOf(transient, continuous)
+        } else {
+            continuous
+        }
+        // Transient device floors are applied inside the SDK renderer. Do not
+        // discard a valid portable transient before it reaches that policy.
+        if (!hasTransient && selectedAmplitude < MIN_IR_AMPLITUDE) {
+            if (continuousChanged) stopSdkOutput()
+            return
+        }
+
+        lastIntensity = (selectedAmplitude * 100f).toInt().coerceIn(0, 100)
+        lastLowFreqRatio = (frame.lowBandRatio.coerceIn(0f, 1f) * 100f).toInt()
+
+        if (shouldVibrateDevice() && !isSystemAudioCoupledDeviceActive) {
+            val accepted = sdkDeviceRenderer.submit(
+                frame.timestampUs,
+                rendererFlags,
+                continuous,
+                transient,
+                transientDurationMs,
+                frame.sharpness,
+                frame.lowBandRatio,
+                frame.stereoPan,
+                frame.confidence,
+                frame.activeScene,
+                frame.producerTimeUs
+            )
+            if (accepted) {
+                isSdkDeviceActive = true
+                if (isMusic) {
+                    lastMusicGrooveBedAmplitude = if (musicGrooveBedActive) continuous else 0f
+                }
+            }
+        } else if (isSdkDeviceActive) {
+            sdkDeviceRenderer.stop()
+            isSdkDeviceActive = false
+            lastMusicGrooveBedAmplitude = 0f
+        }
+
+        if (shouldVibrateGamepad()) {
+            val now = SystemClock.elapsedRealtime()
+            val minimumInterval = if (hasTransient) {
+                MIN_INTERVAL_IR_TRANSIENT_MS
+            } else {
+                MIN_INTERVAL_IR_CONTINUOUS_MS
+            }
+            if (now - lastHapticGamepadTime >= minimumInterval) {
+                lastHapticGamepadTime = now
+                triggerGamepadRumble(lastIntensity, lastLowFreqRatio)
+                gamepadStopHandler.removeCallbacks(gamepadStopRunnable)
+                if (hasTransient && continuous < MIN_IR_AMPLITUDE) {
+                    gamepadStopHandler.postDelayed(
+                        gamepadStopRunnable,
+                        transientDurationMs.toLong().coerceIn(20L, 120L)
+                    )
+                }
+            }
+        } else if (isGamepadRumbling) {
+            stopGamepadRumble()
+        }
+
+    }
+
     fun stop() {
+        nativeSession?.stop()
+        sdkDeviceRenderer.clearAudioPresentationClock()
         stopAll()
+    }
+
+    /** True when Android's system audio-coupled backend should own the phone motor. */
+    fun wantsSystemAudioCoupledDeviceHaptics(): Boolean {
+        return shouldRequestSystemAudioCoupledHaptics(
+            enabled,
+            sceneMode,
+            vibrationMode,
+            hasConnectedGamepad()
+        )
+    }
+
+    /** Called by the AudioTrack owner after HapticGenerator attach/detach. */
+    fun setSystemAudioCoupledDeviceActive(active: Boolean) {
+        if (isSystemAudioCoupledDeviceActive == active) return
+        isSystemAudioCoupledDeviceActive = active
+        if (active && isSdkDeviceActive) {
+            sdkDeviceRenderer.stop()
+            isSdkDeviceActive = false
+            lastMusicGrooveBedAmplitude = 0f
+        }
+        LimeLog.info("AudioHaptics: system audio-coupled device active=$active")
+    }
+
+    /** Updates the SDK renderer's mapping from stream samples to audible presentation time. */
+    fun updateAudioPresentationClock(
+        framePosition: Long,
+        systemNanoTime: Long,
+        sampleRate: Int
+    ) {
+        sdkDeviceRenderer.updateAudioPresentationClock(
+            framePosition,
+            systemNanoTime,
+            sampleRate
+        )
+    }
+
+    fun release() {
+        stopAll()
+        isSystemAudioCoupledDeviceActive = false
+        sdkDeviceRenderer.close()
+        nativeSession?.close()
     }
 
     // ==================== Scene detection ====================
@@ -420,6 +662,7 @@ class AudioVibrationService(context: Context) {
     }
 
     private fun stopGamepadRumble() {
+        gamepadStopHandler.removeCallbacks(gamepadStopRunnable)
         controllerHandler?.handleRumble(0.toShort(), 0.toShort(), 0.toShort())
         isGamepadRumbling = false
     }
@@ -427,6 +670,8 @@ class AudioVibrationService(context: Context) {
     // ==================== Stop ====================
 
     private fun stopAll() {
+        sdkDeviceRenderer.stop()
+        isSdkDeviceActive = false
         if (isDeviceVibrating) {
             stopDeviceVibration()
         }
@@ -434,6 +679,23 @@ class AudioVibrationService(context: Context) {
             stopGamepadRumble()
         }
         lastIntensity = 0
+        lastHapticTimestampUs = -1
+        lastHapticGamepadTime = 0L
+        rhythmStatsStartMs = SystemClock.elapsedRealtime()
+        rhythmTransientCount = 0
+        rhythmPredictedCount = 0
+        rhythmDiagnosticCount = 0
+        rhythmActivationSum = 0f
+        rhythmLowSupportSum = 0f
+        lastMusicGrooveBedAmplitude = 0f
+    }
+
+    private fun stopSdkOutput() {
+        sdkDeviceRenderer.stop()
+        isSdkDeviceActive = false
+        lastMusicGrooveBedAmplitude = 0f
+        if (isGamepadRumbling) stopGamepadRumble()
+        lastHapticGamepadTime = 0L
     }
 
     private fun stopDeviceVibration() {
@@ -461,5 +723,27 @@ class AudioVibrationService(context: Context) {
 
         private const val MIN_INTERVAL_GAME_MS: Long = 25
         private const val MIN_INTERVAL_MUSIC_MS: Long = 15
+        private const val MIN_INTERVAL_IR_TRANSIENT_MS: Long = 12
+        private const val MIN_INTERVAL_IR_CONTINUOUS_MS: Long = 100
+        private const val MIN_IR_AMPLITUDE = 0.05f
+        private const val MAX_STRENGTH = 200
+        private const val DEFAULT_ONSET_SENSITIVITY = 1.0f
+        private const val MUSIC_ONSET_SENSITIVITY = 2.5f
+
+        private const val RHYTHM_STATS_INTERVAL_MS = 5_000L
+
+        internal fun shouldRequestSystemAudioCoupledHaptics(
+            enabled: Boolean,
+            sceneMode: Int,
+            vibrationMode: String,
+            hasGamepad: Boolean
+        ): Boolean {
+            if (!enabled || sceneMode != SCENE_MUSIC) return false
+            return when (vibrationMode) {
+                MODE_GAMEPAD_ONLY -> false
+                MODE_DEVICE_ONLY, MODE_BOTH -> true
+                else -> !hasGamepad
+            }
+        }
     }
 }

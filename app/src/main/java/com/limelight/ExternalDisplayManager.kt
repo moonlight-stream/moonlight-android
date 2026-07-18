@@ -6,7 +6,6 @@ import android.app.Activity
 import android.app.Presentation
 import android.content.Context
 import android.hardware.display.DisplayManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -18,8 +17,6 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
-import com.limelight.binding.video.MediaCodecDecoderRenderer
-import com.limelight.nvstream.NvConnection
 import com.limelight.preferences.PreferenceConfiguration
 import com.limelight.ui.StreamView
 import com.limelight.utils.UiHelper
@@ -31,16 +28,13 @@ import com.limelight.utils.UiHelper
 class ExternalDisplayManager(
     private val activity: Activity,
     private val prefConfig: PreferenceConfiguration,
-    private val conn: NvConnection?,
-    private val decoderRenderer: MediaCodecDecoderRenderer?,
-    private val pcName: String?,
-    private val appName: String?
+    private val targetDisplayResolver: TargetDisplayResolver
 ) {
-    private var displayManager: DisplayManager? = null
-    private var externalDisplay: Display? = null
-    private var useExternalDisplay = false
+    private val displayManager =
+        activity.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
     private var displayListener: DisplayManager.DisplayListener? = null
     private var externalPresentation: ExternalDisplayPresentation? = null
+    private var displayModeSelection: DisplayModeManager.DisplayModeSelection? = null
 
     interface ExternalDisplayCallback {
         fun onExternalDisplayConnected(display: Display)
@@ -50,13 +44,14 @@ class ExternalDisplayManager(
 
     var callback: ExternalDisplayCallback? = null
 
-    fun initialize() {
-        displayManager = activity.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+    fun initialize(initialDisplayMode: DisplayModeManager.DisplayModeSelection? = null) {
+        displayModeSelection = initialDisplayMode
+        targetDisplayResolver.resolve(prefConfig.useExternalDisplay)
 
         setupDisplayListener()
         checkForExternalDisplay()
 
-        if (useExternalDisplay) {
+        if (isUsingExternalDisplay()) {
             val window = activity.window
             if (window != null) {
                 val layoutParams = window.attributes
@@ -68,34 +63,40 @@ class ExternalDisplayManager(
     }
 
     fun cleanup() {
-        if (externalPresentation != null) {
-            externalPresentation?.dismiss()
-            externalPresentation = null
-        }
+        dismissExternalPresentation()
 
-        if (displayListener != null && displayManager != null) {
-            displayManager?.unregisterDisplayListener(displayListener)
+        displayListener?.let {
+            displayManager.unregisterDisplayListener(it)
             displayListener = null
         }
     }
 
     fun getTargetDisplay(): Display {
-        if (useExternalDisplay && externalDisplay != null) {
-            return externalDisplay!!
-        }
-        @Suppress("DEPRECATION")
-        return activity.windowManager.defaultDisplay
+        return targetDisplayResolver.currentDisplay()
     }
 
-    fun isUsingExternalDisplay(): Boolean = useExternalDisplay && externalDisplay != null
+    fun isUsingExternalDisplay(): Boolean = targetDisplayResolver.isExternalDisplaySelected()
+
+    /**
+     * Stores the mode selected for a specific display and applies it to the Presentation when
+     * that display is rendered. The display id prevents a stale mode id from being used after a
+     * hotplug event changes the target display.
+     */
+    fun updateDisplayMode(selection: DisplayModeManager.DisplayModeSelection) {
+        displayModeSelection = selection
+
+        if (externalPresentation?.isForDisplay(selection.displayId) == true) {
+            externalPresentation?.window?.let { DisplayModeWindowApplier.apply(it, selection) }
+        }
+    }
 
     private fun setupDisplayListener() {
-        displayListener = object : DisplayManager.DisplayListener {
+        val listener = object : DisplayManager.DisplayListener {
             override fun onDisplayAdded(displayId: Int) {
                 LimeLog.info("Display added: $displayId")
                 if (prefConfig.useExternalDisplay && displayId != Display.DEFAULT_DISPLAY) {
                     checkForExternalDisplay()
-                    if (useExternalDisplay) {
+                    if (isUsingExternalDisplay()) {
                         startExternalDisplayPresentation()
                     }
                 }
@@ -103,13 +104,10 @@ class ExternalDisplayManager(
 
             override fun onDisplayRemoved(displayId: Int) {
                 LimeLog.info("Display removed: $displayId")
-                if (externalDisplay != null && displayId == externalDisplay?.displayId) {
-                    if (externalPresentation != null) {
-                        externalPresentation?.dismiss()
-                        externalPresentation = null
-                    }
-                    externalDisplay = null
-                    useExternalDisplay = false
+                val wasTargetDisplay = displayId != Display.DEFAULT_DISPLAY &&
+                    targetDisplayResolver.onDisplayRemoved(displayId)
+                if (wasTargetDisplay) {
+                    dismissExternalPresentation()
 
                     val surfaceView = activity.findViewById<View>(R.id.surfaceView)
                     surfaceView?.visibility = View.VISIBLE
@@ -124,37 +122,37 @@ class ExternalDisplayManager(
             }
         }
 
-        displayManager?.registerDisplayListener(displayListener, null)
+        displayListener = listener
+        displayManager.registerDisplayListener(listener, null)
+    }
+
+    private fun dismissExternalPresentation() {
+        externalPresentation?.dismiss()
+        externalPresentation = null
     }
 
     private fun checkForExternalDisplay() {
         if (!prefConfig.useExternalDisplay) {
             LimeLog.info("External display disabled by user preference")
+            targetDisplayResolver.resolve(false)
             return
         }
 
-        val displays = displayManager?.displays
-
-        for (display in (displays ?: emptyArray<Display>())) {
-            if (display.displayId != Display.DEFAULT_DISPLAY) {
-                externalDisplay = display
-                useExternalDisplay = true
-                LimeLog.info("Found external display: ${display.name} (ID: ${display.displayId})")
-
-                callback?.onExternalDisplayConnected(display)
-                break
-            }
-        }
-
-        if (!useExternalDisplay) {
+        val display = targetDisplayResolver.resolve(true)
+        if (display.displayId == Display.DEFAULT_DISPLAY) {
             LimeLog.info("No external display found, using default display")
+            return
         }
+
+        LimeLog.info("Found external display: ${display.name} (ID: ${display.displayId})")
+        callback?.onExternalDisplayConnected(display)
     }
 
     private inner class ExternalDisplayPresentation(
         outerContext: Context,
         display: Display
     ) : Presentation(outerContext, display) {
+        private val presentationDisplayId = display.displayId
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
@@ -165,6 +163,11 @@ class ExternalDisplayManager(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                         View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+
+            val selection = displayModeSelection
+            if (selection != null && selection.displayId == presentationDisplayId) {
+                window?.let { DisplayModeWindowApplier.apply(it, selection) }
+            }
 
             setContentView(R.layout.activity_game)
 
@@ -178,15 +181,17 @@ class ExternalDisplayManager(
             super.onDisplayRemoved()
             activity.finish()
         }
+
+        fun isForDisplay(displayId: Int): Boolean = presentationDisplayId == displayId
     }
 
     @SuppressLint("ResourceAsColor", "SetTextI18n")
     private fun startExternalDisplayPresentation() {
-        if (!(useExternalDisplay && externalDisplay != null && externalPresentation == null)) {
+        if (!isUsingExternalDisplay() || externalPresentation != null) {
             return
         }
 
-        externalPresentation = ExternalDisplayPresentation(activity, externalDisplay!!)
+        externalPresentation = ExternalDisplayPresentation(activity, targetDisplayResolver.currentDisplay())
         externalPresentation?.show()
 
         val surfaceView = activity.findViewById<View>(R.id.surfaceView)

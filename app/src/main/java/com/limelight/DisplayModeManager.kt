@@ -14,7 +14,9 @@ import kotlin.math.roundToInt
  */
 object DisplayModeManager {
 
-    class DisplayModeResult(
+    /** Immutable display mode choice bound to the display whose mode ids it references. */
+    data class DisplayModeSelection(
+        val displayId: Int,
         val refreshRate: Float,
         val preferredModeId: Int,
         val useSetFrameRate: Boolean,
@@ -35,8 +37,13 @@ object DisplayModeManager {
                 (prefConfig.framePacing == PreferenceConfiguration.FRAME_PACING_BALANCED && prefConfig.reduceRefreshRate)
     }
 
-    fun shouldIgnoreInsetsForResolution(display: Display, width: Int, height: Int): Boolean {
-        if (!PreferenceConfiguration.isNativeResolution(width, height)) {
+    fun shouldIgnoreInsetsForResolution(
+        display: Display,
+        width: Int,
+        height: Int,
+        isNativeResolution: Boolean = PreferenceConfiguration.isNativeResolution(width, height)
+    ): Boolean {
+        if (!isNativeResolution) {
             return false
         }
 
@@ -53,7 +60,7 @@ object DisplayModeManager {
         return false
     }
 
-    fun selectBestDisplayMode(display: Display, prefConfig: PreferenceConfiguration): DisplayModeResult {
+    fun selectBestDisplayMode(display: Display, prefConfig: PreferenceConfiguration): DisplayModeSelection {
         val displayRefreshRate: Float
         var preferredModeId = -1
         var useSetFrameRate = false
@@ -61,7 +68,7 @@ object DisplayModeManager {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             var bestMode = display.mode
-            val isNativeResolutionStream = PreferenceConfiguration.isNativeResolution(prefConfig.width, prefConfig.height)
+            val isNativeResolutionStream = prefConfig.usesNativeDisplayMode
             var refreshRateIsGood = isRefreshRateGoodMatch(bestMode.refreshRate, prefConfig.fps)
             var refreshRateIsEqual = isRefreshRateEqualMatch(bestMode.refreshRate, prefConfig.fps)
 
@@ -170,6 +177,12 @@ object DisplayModeManager {
             }
         }
 
-        return DisplayModeResult(displayRefreshRate, preferredModeId, useSetFrameRate, aspectRatioMatch)
+        return DisplayModeSelection(
+            displayId = display.displayId,
+            refreshRate = displayRefreshRate,
+            preferredModeId = preferredModeId,
+            useSetFrameRate = useSetFrameRate,
+            aspectRatioMatch = aspectRatioMatch
+        )
     }
 }

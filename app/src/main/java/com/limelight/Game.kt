@@ -170,6 +170,7 @@ class Game : Activity(), SurfaceHolder.Callback,
     var appName: String? = null
     lateinit var app: NvApp
     private var desiredRefreshRate = 0f
+    private var selectedDisplayMode: DisplayModeManager.DisplayModeSelection? = null
     var appSettingsManager: AppSettingsManager? = null
     var computerUuid: String? = null
 
@@ -245,6 +246,7 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     var usbDriverServiceManager: UsbDriverServiceManager? = null
     var externalDisplayManager: ExternalDisplayManager? = null
+    private lateinit var targetDisplayResolver: TargetDisplayResolver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -270,7 +272,11 @@ class Game : Activity(), SurfaceHolder.Callback,
         setContentView(R.layout.activity_game)
         window.decorView.findViewById<View>(android.R.id.content).isFocusable = true
 
-        prefConfig = PreferenceConfiguration.readPreferences(this)
+        targetDisplayResolver = TargetDisplayResolver(this)
+        val initialTargetDisplay = targetDisplayResolver.resolve(
+            PreferenceConfiguration.isExternalDisplayEnabled(this)
+        )
+        prefConfig = PreferenceConfiguration.readPreferences(this, initialTargetDisplay)
         orientationManager = OrientationManager(
             this,
             prefConfig.width,
@@ -305,7 +311,10 @@ class Game : Activity(), SurfaceHolder.Callback,
         orientationManager.setPreferredOrientation()
 
         if (prefConfig.stretchVideo || DisplayModeManager.shouldIgnoreInsetsForResolution(
-                windowManager.defaultDisplay, prefConfig.width, prefConfig.height
+                currentTargetDisplay,
+                prefConfig.width,
+                prefConfig.height,
+                prefConfig.usesNativeDisplayMode
             )
         ) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -523,7 +532,7 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     /** Resolve the display currently used for rendering (external or built-in). */
     val currentTargetDisplay: Display
-        get() = externalDisplayManager?.getTargetDisplay() ?: windowManager.defaultDisplay
+        get() = targetDisplayResolver.currentDisplay()
 
     /** Resolve the StreamView coordinate space for motion callbacks that don't pass a view. */
     private fun getMotionEventTargetView(): StreamView = activeStreamView ?: streamView
@@ -677,9 +686,14 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     /** Create or re-create ExternalDisplayManager with the standard callback. */
     private fun setupExternalDisplay() {
-        externalDisplayManager = ExternalDisplayManager(this, prefConfig, conn!!, decoderRenderer!!, pcName ?: "", appName ?: "")
-        externalDisplayManager?.callback = createExternalDisplayCallback()
-        externalDisplayManager?.initialize()
+        val manager = ExternalDisplayManager(
+            this,
+            prefConfig,
+            targetDisplayResolver
+        )
+        externalDisplayManager = manager
+        manager.callback = createExternalDisplayCallback()
+        manager.initialize(initialDisplayMode = selectedDisplayMode)
     }
 
     /** Bind or re-bind the USB driver service with the current controllerHandler. */
@@ -1121,22 +1135,18 @@ class Game : Activity(), SurfaceHolder.Callback,
             LimeLog.info("Framegen display target FPS: ${prefConfig.fps} -> ${displayConfig.fps}")
         }
 
-        val result = DisplayModeManager.selectBestDisplayMode(display, displayConfig)
+        val selection = DisplayModeManager.selectBestDisplayMode(display, displayConfig)
+        selectedDisplayMode = selection
 
-        val windowLayoutParams = window.attributes
-        if (result.preferredModeId >= 0) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                windowLayoutParams.preferredDisplayModeId = result.preferredModeId
-            }
-            window.attributes = windowLayoutParams
-        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            windowLayoutParams.preferredRefreshRate = result.refreshRate
-            window.attributes = windowLayoutParams
+        if (!targetDisplayResolver.isExternalDisplaySelected()) {
+            DisplayModeWindowApplier.apply(window, selection)
+        } else {
+            externalDisplayManager?.updateDisplayMode(selection)
         }
 
-        updateStreamViewSize(prefConfig.width, prefConfig.height, result.aspectRatioMatch)
-        desiredRefreshRate = result.refreshRate
-        return result.refreshRate
+        updateStreamViewSize(prefConfig.width, prefConfig.height, selection.aspectRatioMatch)
+        desiredRefreshRate = selection.refreshRate
+        return selection.refreshRate
     }
 
     @SuppressLint("InlinedApi")

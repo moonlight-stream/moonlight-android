@@ -70,6 +70,7 @@ import com.limelight.LimeLog
 import com.limelight.PcView
 import com.limelight.R
 import com.limelight.ExternalDisplayManager
+import com.limelight.TargetDisplayResolver
 import com.limelight.binding.input.advance_setting.config.PageConfigController
 import com.limelight.binding.input.advance_setting.share.CrownProfileShareManager
 import com.limelight.binding.input.advance_setting.share.GitHubCrownProfileStorePublisher
@@ -188,7 +189,11 @@ class StreamSettings : AppCompatActivity() {
 
         // 初始化外接显示器管理器
         if (previousPrefs.useExternalDisplay) {
-            externalDisplayManager = ExternalDisplayManager(this, previousPrefs, null, null, null, null)
+            externalDisplayManager = ExternalDisplayManager(
+                this,
+                previousPrefs,
+                TargetDisplayResolver(this)
+            )
             externalDisplayManager?.initialize()
         }
 

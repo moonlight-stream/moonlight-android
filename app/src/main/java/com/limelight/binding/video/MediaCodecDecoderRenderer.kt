@@ -24,8 +24,7 @@ import org.jcodec.codecs.h264.io.model.SeqParameterSet
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -62,9 +61,9 @@ class MediaCodecDecoderRenderer(
         private const val FRAMEGEN_SURFACE_SWITCH_MAX_RETRIES = 20
         private const val FRAMEGEN_SURFACE_SWITCH_RETRY_DELAY_MS = 50L
 
-        private const val PTS_TRACKING_MAX_AGE_MS = 5000L
-        private const val PTS_TRACKING_MAX_AGE_US = PTS_TRACKING_MAX_AGE_MS * 1000L
-        private const val PTS_TRACKING_CLEANUP_INTERVAL_MS = 1000L
+        // Vendor codecs expose far fewer input buffers in practice. The generous fixed capacity
+        // keeps the steady-state queue allocation-free without risking normal callback loss.
+        private const val ASYNC_INPUT_BUFFER_QUEUE_CAPACITY = 256
     }
 
     // Used on versions < 5.0
@@ -159,25 +158,22 @@ class MediaCodecDecoderRenderer(
     private var lastFrameNumber = 0
     private var refreshRate = 0
 
-    // Map to track enqueue time for each timestamp
-    // Key: timestamp in microseconds (from enqueueTimeUs)
-    // Value: enqueue time in milliseconds (from SystemClock.uptimeMillis())
-    private val timestampToEnqueueTime: MutableMap<Long, Long> = ConcurrentHashMap()
+    // Fixed primitive ring: local codec PTS -> enqueue time and host cadence PTS.
+    // This metadata is bounded by codec in-flight buffers and accessed across input/output threads.
+    private val frameTimestampTracker = FrameTimestampTracker()
 
-    // Map: 本地单调 timestampUs(送入 MediaCodec 的 PTS) -> host 节奏 PTS(presentationTimeUs, 微秒)
+    // 本地单调 timestampUs(送入 MediaCodec 的 PTS) -> host 节奏 PTS(presentationTimeUs, 微秒)
     // host PTS 源自主机捕获时刻(见 common-c RtpVideoQueue.c: packet->timestamp * 1000 / PTS_DIVISOR)，
     // 是三端同源的呈现节奏基准。之前在 JNI 边界被丢弃，现打通供 host-cadence pacing 使用。
-    private val timestampToHostPts: MutableMap<Long, Long> = ConcurrentHashMap()
-    private var lastPtsTrackingCleanupMs = 0L
-
     // ---- host-cadence 去抖呈现时钟(alpha-beta / PI 时钟恢复，移植自鸿蒙 native_render，已离线仿真验证) ----
     // 默认关闭：置 true 前，全部走原有 pacing，行为零变化。开启后在偏平滑档用 host PTS 复现主机出帧节奏，
     // 消除"本地 vsync 网格 vs 主机节奏"错拍造成的微判抖；代价是自适应缓冲延迟(净 LAN≈1ms，抖动网络更大)。
     // TODO(on-device): 接入设置项/按网络自适应开启，并在真机上标定 Kp/Ki/cushion。
     private val useHostCadencePacing = false
-    // host PTS 旁路映射是否需要维护：直渲染档(useHostCadencePacing) 或 PRECISE_SYNC 两步呈现激活时都需要。
+    // host PTS 仅由异步输出回调消费；直渲染档或 PRECISE_SYNC 两步呈现激活时维护旁路映射。
     private val needsHostPtsMapping: Boolean
-        get() = useHostCadencePacing || framePacingController.isHostCadencePreciseSyncActive()
+        get() = asyncModeEnabled &&
+            (useHostCadencePacing || framePacingController.isHostCadencePreciseSyncActive())
     // 直渲染档(MAX_SMOOTHNESS/CAP_FPS)无 vsync snap 兜底：一帧迟到即可见 hitch，故用较大 cushion
     // (3×MAD, floor 1ms)覆盖抖动分布。PRECISE_SYNC 路径(有 snap)将另建低 cushion 实例。
     private val hostCadenceClock =
@@ -192,7 +188,7 @@ class MediaCodecDecoderRenderer(
 
     // Async codec mode (API 30+): eliminates polling overhead for input/output buffers
     private var asyncModeEnabled = false
-    private var availableInputBuffers: LinkedBlockingQueue<Int>? = null
+    private var availableInputBuffers: ArrayBlockingQueue<Int>? = null
     private var codecCallbackThread: HandlerThread? = null
     private var codecCallbackHandler: Handler? = null
 
@@ -672,7 +668,7 @@ class MediaCodecDecoderRenderer(
 
         // 重新创建异步回调线程（如果需要）
         if (asyncModeEnabled && codecCallbackThread == null) {
-            availableInputBuffers = LinkedBlockingQueue()
+            availableInputBuffers = ArrayBlockingQueue(ASYNC_INPUT_BUFFER_QUEUE_CAPACITY)
             codecCallbackThread = HandlerThread("Video - Codec", Process.THREAD_PRIORITY_DISPLAY)
             codecCallbackThread!!.start()
             codecCallbackHandler = Handler(codecCallbackThread!!.looper)
@@ -1050,7 +1046,7 @@ class MediaCodecDecoderRenderer(
         // Async codec mode (API 30+)
         this.asyncModeEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
         if (asyncModeEnabled) {
-            availableInputBuffers = LinkedBlockingQueue()
+            availableInputBuffers = ArrayBlockingQueue(ASYNC_INPUT_BUFFER_QUEUE_CAPACITY)
             codecCallbackThread = HandlerThread("Video - Codec", Process.THREAD_PRIORITY_DISPLAY)
             codecCallbackThread!!.start()
             codecCallbackHandler = Handler(codecCallbackThread!!.looper)
@@ -1380,7 +1376,10 @@ class MediaCodecDecoderRenderer(
         videoDecoder!!.setCallback(object : MediaCodec.Callback() {
             override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {
                 if (!stopping) {
-                    availableInputBuffers!!.offer(index)
+                    if (!availableInputBuffers!!.offer(index)) {
+                        LimeLog.warning("Async input buffer queue overflow; flushing decoder")
+                        codecRecoveryType.compareAndSet(CR_RECOVERY_TYPE_NONE, CR_RECOVERY_TYPE_FLUSH)
+                    }
                 }
             }
 
@@ -1391,8 +1390,11 @@ class MediaCodecDecoderRenderer(
 
                 // Deliver to frame pacing. Remove the host PTS before decoder-time tracking,
                 // because calculateDecoderTime() removes the paired enqueue entry.
-                val hostPtsUs = if (needsHostPtsMapping)
-                    (timestampToHostPts.remove(info.presentationTimeUs) ?: -1L) else -1L
+                val hostPtsUs = if (needsHostPtsMapping) {
+                    frameTimestampTracker.takeHostPresentationTime(info.presentationTimeUs, -1L)
+                } else {
+                    -1L
+                }
 
                 // Calculate decoder time
                 val delta = calculateDecoderTime(info.presentationTimeUs)
@@ -1736,12 +1738,16 @@ class MediaCodecDecoderRenderer(
         }
     }
 
-    private fun queueNextInputBuffer(timestampUs: Long, codecFlags: Int): Boolean {
+    private fun queueNextInputBuffer(
+        timestampUs: Long,
+        codecFlags: Int,
+        hostPresentationTimeUs: Long = -1L,
+    ): Boolean {
         val codecRecovered: Boolean
 
         try {
             // Record the enqueue time for this timestamp
-            recordQueuedTimestamp(timestampUs)
+            recordQueuedTimestamp(timestampUs, codecFlags, hostPresentationTimeUs)
 
             if (linearBlockEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 // Modern QueueRequest API with LinearBlock for potential copy-free path
@@ -1816,35 +1822,24 @@ class MediaCodecDecoderRenderer(
         return fetchNextInputBuffer()
     }
 
-    private fun recordQueuedTimestamp(timestampUs: Long) {
-        val nowMs = SystemClock.uptimeMillis()
-        timestampToEnqueueTime[timestampUs] = nowMs
+    private fun recordQueuedTimestamp(
+        timestampUs: Long,
+        codecFlags: Int,
+        hostPresentationTimeUs: Long,
+    ) {
+        if ((codecFlags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) return
 
-        if (nowMs - lastPtsTrackingCleanupMs < PTS_TRACKING_CLEANUP_INTERVAL_MS) return
-        lastPtsTrackingCleanupMs = nowMs
-        val oldestValidTimestampUs = timestampUs - PTS_TRACKING_MAX_AGE_US
-
-        for ((timestampUs, enqueueTimeMs) in timestampToEnqueueTime) {
-            if (nowMs - enqueueTimeMs > PTS_TRACKING_MAX_AGE_MS ||
-                timestampUs < oldestValidTimestampUs
-            ) {
-                if (timestampToEnqueueTime.remove(timestampUs, enqueueTimeMs)) {
-                    timestampToHostPts.remove(timestampUs)
-                }
-            }
-        }
-
-        for (timestampUs in timestampToHostPts.keys) {
-            if (timestampUs < oldestValidTimestampUs) {
-                timestampToHostPts.remove(timestampUs)
-            }
-        }
+        val trackHostPresentationTime = needsHostPtsMapping && hostPresentationTimeUs >= 0
+        frameTimestampTracker.recordFrame(
+            timestampUs,
+            SystemClock.uptimeMillis(),
+            hostPresentationTimeUs,
+            trackHostPresentationTime,
+        )
     }
 
     private fun clearTimestampTracking() {
-        timestampToEnqueueTime.clear()
-        timestampToHostPts.clear()
-        lastPtsTrackingCleanupMs = 0L
+        frameTimestampTracker.clear()
     }
 
     @Suppress("deprecation")
@@ -2099,12 +2094,6 @@ class MediaCodecDecoderRenderer(
         }
         lastTimestampUs = timestampUs
 
-        // 记录本地 codec PTS -> host 节奏 PTS 的映射，供输出侧 host-cadence pacing 还原(仅在开启时消费)。
-        // 用本地 timestampUs 作 MediaCodec 的 PTS(保持既有延迟统计/去重逻辑不变)，host PTS 另存旁路。
-        if (needsHostPtsMapping) {
-            timestampToHostPts[timestampUs] = hostPresentationTimeUs
-        }
-
         numFramesIn++
 
         if (decodeUnitLength > nextInputBuffer!!.limit() - nextInputBuffer!!.position()) {
@@ -2121,7 +2110,7 @@ class MediaCodecDecoderRenderer(
         // Copy data from our buffer list into the input buffer
         nextInputBuffer!!.put(decodeUnitData, 0, decodeUnitLength)
 
-        if (!queueNextInputBuffer(timestampUs, codecFlags)) {
+        if (!queueNextInputBuffer(timestampUs, codecFlags, hostPresentationTimeUs)) {
             return MoonBridge.DR_NEED_IDR
         }
 
@@ -2231,8 +2220,8 @@ class MediaCodecDecoderRenderer(
     // Returns: decoder time in milliseconds
     private fun calculateDecoderTime(presentationTimeUs: Long): Long {
         // Look up the enqueue time for this timestamp (stored in milliseconds)
-        val enqueueTimeMs = timestampToEnqueueTime.remove(presentationTimeUs)
-        if (enqueueTimeMs != null) {
+        val enqueueTimeMs = frameTimestampTracker.takeEnqueueTime(presentationTimeUs, -1L)
+        if (enqueueTimeMs >= 0) {
             val delta = SystemClock.uptimeMillis() - enqueueTimeMs
             return if (delta > 0 && delta < 1000) delta else 0
         }

@@ -1391,7 +1391,9 @@ class GameMenu(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 return ICON_MAP.getOrDefault(iconKey, R.drawable.ic_menu_item_default)
             }
-            return -1
+            // Compose's painterResource() rejects negative resource IDs. Older
+            // Android versions intentionally hide these vector menu icons.
+            return 0
         }
     }
 }

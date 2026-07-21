@@ -977,6 +977,8 @@ private fun MenuOptionRow(
             .padding(horizontal = GameMenuDimens.section),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // A missing/unsupported icon must not be passed to painterResource().
+        // This matters on pre-N devices, where menu icons are disabled.
         if (option.isShowIcon && iconRes != 0) {
             Icon(
                 painter = painterResource(iconRes),

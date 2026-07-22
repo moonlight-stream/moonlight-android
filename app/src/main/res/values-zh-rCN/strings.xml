@@ -502,6 +502,8 @@
     <string name="about_dialog_star">Star 项目</string>
     <string name="about_dialog_qq">加入QQ群</string>
     <string name="about_dialog_close">关闭</string>
+    <string name="about_dialog_no_browser">未找到可用的外部浏览器</string>
+    <string name="about_dialog_choose_browser">选择浏览器打开</string>
     <string name="check_for_updates">检查更新</string>
     <string name="summary_check_for_updates">检查是否有新版本可用。</string>
     <string name="category_help">帮助</string>

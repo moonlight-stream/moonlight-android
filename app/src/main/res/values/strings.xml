@@ -602,6 +602,8 @@
     <string name="about_dialog_star">Star Project</string>
     <string name="about_dialog_qq">Join QQ Group</string>
     <string name="about_dialog_close">Close</string>
+    <string name="about_dialog_no_browser">No external browser is available</string>
+    <string name="about_dialog_choose_browser">Open with browser</string>
     <string name="check_for_updates">Check for updates</string>
     <string name="summary_check_for_updates">Check if there is a new version available</string>
 

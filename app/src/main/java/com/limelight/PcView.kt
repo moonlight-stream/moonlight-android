@@ -75,6 +75,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityManager
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
@@ -178,6 +179,9 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         private const val MORE_ACTIONS_ID = 17
 
         private const val OFFICIAL_SITE_URL = "https://www.alkaidlab.com/"
+        private const val GITHUB_URL = "https://github.com/qiin2333/moonlight-vplus"
+        private const val QQ_GROUP_KEY = "LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM"
+        private const val BROWSER_PROBE_URL = "https://example.com/"
     }
 
     // UI Components
@@ -2815,17 +2819,14 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         val dialog = AlertDialog.Builder(this, dialogTheme)
                 .setView(dialogView)
                 .setPositiveButton(R.string.about_dialog_official_site) { _, _ ->
-                    startActivity(
-                        SunshineWebUiActivity.createIntent(
-                            this,
-                            OFFICIAL_SITE_URL,
-                            getString(R.string.about_dialog_official_site),
-                            null
-                        )
-                    )
+                    openExternalBrowser(OFFICIAL_SITE_URL)
                 }
-                .setNeutralButton(R.string.about_dialog_github) { _, _ -> openUrl("https://github.com/qiin2333/moonlight-vplus") }
-                .setNegativeButton(R.string.about_dialog_qq) { _, _ -> joinQQGroup("LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM") }
+                .setNeutralButton(R.string.about_dialog_github) { _, _ ->
+                    openExternalBrowser(GITHUB_URL)
+                }
+                .setNegativeButton(R.string.about_dialog_qq) { _, _ ->
+                    joinQQGroup(QQ_GROUP_KEY)
+                }
                 .create()
         dialog.show()
         AppDialogStyler.applyAboutDialog(dialog, this)
@@ -2852,23 +2853,124 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         return "Moonlight V+"
     }
 
-    private fun openUrl(url: String) {
+    private fun openExternalBrowser(url: String) {
+        val uri = url.toUri()
+        if (!uri.scheme.equals("https", ignoreCase = true) || uri.host.isNullOrBlank()) {
+            LimeLog.warning("Refusing to open non-HTTPS public link: ${uri.scheme}")
+            showToast(getString(R.string.about_dialog_no_browser))
+            return
+        }
+
+        val browseIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+        }
+
+        val resolvedBrowserIntent = try {
+            createResolvedBrowserIntent(browseIntent)
+        } catch (e: RuntimeException) {
+            LimeLog.warning(
+                "Browser discovery failed for host ${uri.host}: " +
+                    "${e.javaClass.simpleName}: ${e.message}"
+            )
+            null
+        }
+
+        if (resolvedBrowserIntent != null) {
+            try {
+                startActivity(resolvedBrowserIntent)
+                return
+            } catch (e: RuntimeException) {
+                LimeLog.warning(
+                    "Resolved browser launch failed for host ${uri.host}: " +
+                        "${e.javaClass.simpleName}: ${e.message}"
+                )
+            }
+        }
+
+        // Direct activity launches do not depend on Android 11 package visibility.
+        // The browser selector is the safe fallback when PackageManager discovery is filtered.
+        val browserSelector = Intent.makeMainSelectorActivity(
+            Intent.ACTION_MAIN,
+            Intent.CATEGORY_APP_BROWSER
+        ).apply {
+            data = uri
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
         try {
-            val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
-        } catch (ignored: Exception) {
+            startActivity(browserSelector)
+        } catch (e: ActivityNotFoundException) {
+            reportBrowserLaunchFailure(uri, e)
+        } catch (e: SecurityException) {
+            reportBrowserLaunchFailure(uri, e)
+        } catch (e: RuntimeException) {
+            reportBrowserLaunchFailure(uri, e)
         }
     }
 
-    fun joinQQGroup(key: String) {
-        try {
-            val intent = Intent()
-            intent.data =
-                "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D$key".toUri()
-            startActivity(intent)
-        } catch (ignored: Exception) {
+    private fun createResolvedBrowserIntent(browseIntent: Intent): Intent? {
+        // A neutral host identifies apps that handle general web URLs instead of
+        // domain-specific deep links such as GitHub or QQ.
+        val browserProbe = Intent(Intent.ACTION_VIEW, BROWSER_PROBE_URL.toUri()).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
         }
+        val browserPackages = packageManager
+            .queryIntentActivities(browserProbe, PackageManager.MATCH_DEFAULT_ONLY)
+            .mapNotNull { it.activityInfo?.packageName }
+            .filterNot { it == packageName }
+            .distinct()
+
+        if (browserPackages.isEmpty()) {
+            return null
+        }
+
+        val defaultPackage = packageManager
+            .resolveActivity(browserProbe, PackageManager.MATCH_DEFAULT_ONLY)
+            ?.activityInfo
+            ?.packageName
+            ?.takeIf(browserPackages::contains)
+
+        val explicitBrowserIntents = browserPackages.map { browserPackage ->
+            Intent(browseIntent).setPackage(browserPackage)
+        }
+        return defaultPackage?.let { browserPackage ->
+            Intent(browseIntent).setPackage(browserPackage)
+        } ?: if (explicitBrowserIntents.size == 1) {
+            explicitBrowserIntents.first()
+        } else {
+            Intent.createChooser(
+                explicitBrowserIntents.first(),
+                getString(R.string.about_dialog_choose_browser)
+            ).apply {
+                putExtra(
+                    Intent.EXTRA_INITIAL_INTENTS,
+                    explicitBrowserIntents.drop(1).toTypedArray()
+                )
+            }
+        }
+    }
+
+    private fun reportBrowserLaunchFailure(uri: Uri, error: RuntimeException) {
+        LimeLog.warning(
+            "Failed to launch external browser for host ${uri.host}: " +
+                "${error.javaClass.simpleName}: ${error.message}"
+        )
+        showToast(getString(R.string.about_dialog_no_browser))
+    }
+
+    private fun joinQQGroup(key: String) {
+        val url = Uri.Builder()
+            .scheme("https")
+            .authority("qm.qq.com")
+            .appendPath("cgi-bin")
+            .appendPath("qm")
+            .appendPath("qr")
+            .appendQueryParameter("from", "app")
+            .appendQueryParameter("p", "android")
+            .appendQueryParameter("jump_from", "webapi")
+            .appendQueryParameter("k", key)
+            .build()
+        openExternalBrowser(url.toString())
     }
 
     // VPN Permission

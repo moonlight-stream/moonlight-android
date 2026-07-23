@@ -16,7 +16,7 @@
 
     <!-- GameMenu 颜色 -->
     <color name="game_menu_accent">#FF6B9D</color>
-    <color name="game_menu_card_background">#F7FFFFFF</color>
+    <color name="game_menu_card_background">#FFFFFFFF</color>
     <color name="game_menu_text_primary">#333333</color>
     <color name="game_menu_text_secondary">#666666</color>
     <color name="game_menu_button_pressed">#FFFFF1F5</color>
@@ -26,9 +26,9 @@
     <color name="game_menu_list_item_focused">#F8F8F8</color>
     <color name="game_menu_list_item_border">#0D1D1B20</color>
     <color name="game_menu_list_item_border_pressed">@color/game_menu_accent</color>
-    <color name="game_menu_dialog_background">#D9FFF8F8</color>
+    <color name="game_menu_dialog_background">#FFFFF8F8</color>
     <color name="game_menu_dialog_border">#12FFFFFF</color>
-    <color name="game_menu_list_item_normal">#EEFFFFFF</color>
+    <color name="game_menu_list_item_normal">#FFFFFFFF</color>
     <color name="game_menu_danger_text">#D13B3B</color>
     <color name="custom_key_editor_scrim">#66050A14</color>
 

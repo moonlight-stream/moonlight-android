@@ -88,6 +88,9 @@ jobs:
       - name: Run lint and unit tests
         run: ./gradlew :app:lintNonRootDebug :app:testNonRootDebugUnitTest --no-daemon --stacktrace
 
+      - name: Compile instrumentation tests
+        run: ./gradlew :app:compileNonRootDebugAndroidTestKotlin --no-daemon --stacktrace
+
       - name: Get version from tag
         if: startsWith(github.ref, 'refs/tags/')
         run: |

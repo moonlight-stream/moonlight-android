@@ -26,7 +26,7 @@
 
     <!-- Game menu palette for system dark theme. -->
     <color name="game_menu_accent">#FFFF8FA3</color>
-    <color name="game_menu_card_background">#F52A2C34</color>
+    <color name="game_menu_card_background">#FF2A2C34</color>
     <color name="game_menu_text_primary">#EBF0F3</color>
     <color name="game_menu_text_secondary">#B6C1C9</color>
     <color name="game_menu_button_pressed">#FF33363F</color>
@@ -36,9 +36,9 @@
     <color name="game_menu_list_item_focused">#FF373A44</color>
     <color name="game_menu_list_item_border">#0CFFFFFF</color>
     <color name="game_menu_list_item_border_pressed">@color/game_menu_accent</color>
-    <color name="game_menu_dialog_background">#E01C1E24</color>
+    <color name="game_menu_dialog_background">#FF1C1E24</color>
     <color name="game_menu_dialog_border">#12FFFFFF</color>
-    <color name="game_menu_list_item_normal">#F026282F</color>
+    <color name="game_menu_list_item_normal">#FF26282F</color>
     <color name="game_menu_danger_text">#FFFF8A8A</color>
 
     <color name="game_menu_super_card_background">#00000000</color>

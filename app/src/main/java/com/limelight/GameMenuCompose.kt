@@ -62,6 +62,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.CornerRadius
@@ -74,7 +76,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -1340,23 +1341,25 @@ private fun GameMenuCards(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun GameMenuCard(
+internal fun GameMenuCard(
     title: String,
     status: String? = null,
     titleAccessory: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val view = LocalView.current
     val longClickModifier = if (onLongClick != null) {
-        Modifier.combinedClickable(
-            onClick = {},
-            onLongClick = {
-                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                onLongClick()
-            }
-        )
+        Modifier
+            .combinedClickable(
+                onClick = {},
+                onLongClick = {
+                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                    onLongClick()
+                }
+            )
     } else {
         Modifier
     }
@@ -1364,8 +1367,11 @@ private fun GameMenuCard(
         color = colorResource(R.color.game_menu_card_background),
         shape = GameMenuCardShape,
         border = BorderStroke(GameMenuDimens.surfaceStroke, colorResource(R.color.game_menu_button_border)),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            // Keep long-press configuration on the card without making the whole
+            // card consume a controller focus slot before its child controls.
+            .focusProperties { canFocus = false }
             .then(longClickModifier)
     ) {
         Column(
@@ -1453,6 +1459,7 @@ private fun BitrateCard(
             onValueChangeFinished = callbacks.onBitrateApply,
             valueRange = 0f..BitrateCardController.MAX_PROGRESS.toFloat(),
             modifier = Modifier
+                .focusProperties { canFocus = true }
                 .fillMaxWidth()
                 .gamepadFocusOutline(GameMenuControlShape)
                 .handleSliderDpad(
@@ -1490,6 +1497,7 @@ private fun BitrateHelpButton(
         modifier = Modifier
             .size(24.dp)
             .clip(CircleShape)
+            .focusProperties { canFocus = true }
             .gamepadFocusOutline(CircleShape)
             .semantics { contentDescription = helpDescription }
             .combinedClickable(
@@ -1556,7 +1564,9 @@ private fun GyroCard(
             Switch(
                 checked = state.enabled,
                 onCheckedChange = callbacks.onGyroEnabled,
-                modifier = Modifier.gamepadFocusOutline(RoundedCornerShape(18.dp))
+                modifier = Modifier
+                    .focusProperties { canFocus = true }
+                    .gamepadFocusOutline(RoundedCornerShape(18.dp))
             )
         },
         onLongClick = onConfigure
@@ -1592,6 +1602,7 @@ private fun GyroCard(
                 onValueChangeFinished = callbacks.onGyroSensitivityFinished,
                 valueRange = 0.5f..10.0f,
                 modifier = Modifier
+                    .focusProperties { canFocus = true }
                     .fillMaxWidth()
                     .gamepadFocusOutline(GameMenuControlShape)
                     .handleSliderDpad(
@@ -1686,7 +1697,9 @@ private fun SettingSwitchRow(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            modifier = Modifier.gamepadFocusOutline(RoundedCornerShape(18.dp))
+            modifier = Modifier
+                .focusProperties { canFocus = true }
+                .gamepadFocusOutline(RoundedCornerShape(18.dp))
         )
     }
 }
@@ -1696,6 +1709,7 @@ private fun SettingValueRow(label: String, value: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .focusProperties { canFocus = true }
             .clip(GameMenuControlShape)
             .gamepadFocusOutline(GameMenuControlShape)
             .clickable(onClick = onClick)
@@ -1728,6 +1742,7 @@ private fun ShortcutCard(
                 fontSize = 11.sp,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .focusProperties { canFocus = true }
                     .clip(GameMenuControlShape)
                     .gamepadFocusOutline(GameMenuControlShape)
                     .clickable {

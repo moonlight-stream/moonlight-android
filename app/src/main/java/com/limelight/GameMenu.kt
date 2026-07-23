@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -631,6 +632,7 @@ class GameMenu(
         }
         dialog = ComponentDialog(game, R.style.GameMenuDialogStyle).apply {
             setContentView(composeView)
+            setCanceledOnTouchOutside(true)
         }
         this.activeDialog = dialog
 
@@ -929,10 +931,11 @@ class GameMenu(
             val layoutParams = window.attributes
             layoutParams.alpha = DIALOG_ALPHA
             layoutParams.dimAmount = DIALOG_DIM_AMOUNT
-            layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
+            layoutParams.width = resolveDialogWidth()
             layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT
             layoutParams.gravity = android.view.Gravity.BOTTOM
             window.attributes = layoutParams
+            window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             window.setBackgroundDrawable(
                 android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
             )
@@ -941,9 +944,28 @@ class GameMenu(
 
     private fun applyDialogSize(dialog: ComponentDialog) {
         dialog.window?.setLayout(
-            WindowManager.LayoutParams.MATCH_PARENT,
+            resolveDialogWidth(),
             WindowManager.LayoutParams.WRAP_CONTENT
         )
+    }
+
+    private fun resolveDialogWidth(): Int {
+        val widthFraction = if (
+            game.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        ) {
+            DIALOG_LANDSCAPE_WIDTH_FRACTION
+        } else {
+            DIALOG_PORTRAIT_WIDTH_FRACTION
+        }
+        val windowWidth = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            game.windowManager.currentWindowMetrics.bounds.width()
+        } else {
+            game.window.decorView.width
+        }.takeIf { it > 0 } ?: game.resources.displayMetrics.widthPixels
+
+        return (windowWidth * widthFraction)
+            .toInt()
+            .coerceAtLeast(1)
     }
 
     /**
@@ -1359,8 +1381,11 @@ class GameMenu(
 
     companion object {
         private const val TEST_GAME_FOCUS_DELAY = 10L
-        private const val DIALOG_ALPHA = 1.0f
-        private const val DIALOG_DIM_AMOUNT = 0.5f
+        // Keep Compose surfaces opaque and blend the dialog once at the window level.
+        private const val DIALOG_ALPHA = 0.7f
+        private const val DIALOG_DIM_AMOUNT = 0.0f
+        private const val DIALOG_LANDSCAPE_WIDTH_FRACTION = 0.88f
+        private const val DIALOG_PORTRAIT_WIDTH_FRACTION = 0.95f
         private const val PREF_NAME = "custom_special_keys"
         private const val KEY_NAME = "data"
 

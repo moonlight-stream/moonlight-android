@@ -65,6 +65,7 @@ android {
     defaultConfig {
         minSdk 22
         targetSdk 35
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         versionName "12.10.4-audio-haptics-0.5.14"
         versionCode = 393
@@ -296,4 +297,9 @@ dependencies {
 
     testImplementation libs.junit
     testImplementation libs.json
+    androidTestImplementation platform(libs.androidx.compose.bom)
+    androidTestImplementation libs.androidx.compose.ui.test.junit4
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.runner
+    debugImplementation libs.androidx.compose.ui.test.manifest
 }

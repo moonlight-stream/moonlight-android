@@ -157,6 +157,7 @@ internal data class GameMenuComposeUiState(
     val superOptions: List<GameMenu.MenuOption>,
     val appName: String,
     val crownToggleText: String,
+    val deviceQuickOptions: List<GameMenu.MenuOption>,
     val quickActions: List<GameMenuQuickAction>,
     val visibleCards: GameMenuVisibleCards,
     val bitrate: BitrateCardState,
@@ -311,7 +312,7 @@ private fun GameMenuContent(
             .padding(GameMenuDimens.outer),
         verticalArrangement = Arrangement.spacedBy(GameMenuDimens.section)
     ) {
-        GameMenuHeader(state, callbacks.onBack, callbacks.onCrownToggle)
+        GameMenuHeader(state, callbacks)
 
         if (!state.isSubmenu) {
             QuickActionRow(
@@ -474,8 +475,7 @@ private fun currentWindowContentHeightPx(
 @Composable
 private fun GameMenuHeader(
     state: GameMenuComposeUiState,
-    onBack: () -> Unit,
-    onCrownToggle: () -> Unit
+    callbacks: GameMenuCallbacks
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -490,7 +490,7 @@ private fun GameMenuHeader(
                     .size(36.dp)
                     .clip(CircleShape)
                     .gamepadFocusOutline(CircleShape)
-                    .clickable(onClick = onBack)
+                    .clickable(onClick = callbacks.onBack)
                     .padding(8.dp)
             )
             Spacer(Modifier.width(GameMenuDimens.tight))
@@ -505,6 +505,14 @@ private fun GameMenuHeader(
             modifier = Modifier.weight(1f)
         )
         if (!state.isSubmenu) {
+            state.deviceQuickOptions.forEach { option ->
+                HeaderDeviceQuickAction(
+                    option = option,
+                    iconRes = callbacks.iconForOption(option.iconKey),
+                    onToggle = callbacks.onInlineToggle
+                )
+                Spacer(Modifier.width(GameMenuDimens.tight))
+            }
             val crownShape = CircleShape
             Icon(
                 painter = painterResource(R.drawable.ic_super_crown),
@@ -520,8 +528,62 @@ private fun GameMenuHeader(
                         crownShape
                     )
                     .gamepadFocusOutline(crownShape)
-                    .clickable(onClick = onCrownToggle)
+                    .clickable(onClick = callbacks.onCrownToggle)
                     .padding(7.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun HeaderDeviceQuickAction(
+    option: GameMenu.MenuOption,
+    @DrawableRes iconRes: Int,
+    onToggle: (GameMenu.InlineControl.Toggle) -> Unit
+) {
+    val toggle = option.inlineControl as? GameMenu.InlineControl.Toggle ?: return
+    val view = LocalView.current
+    val shape = CircleShape
+    val accent = colorResource(R.color.game_menu_accent)
+    val stateDescription = stringResource(
+        if (toggle.checked) R.string.game_menu_on else R.string.game_menu_off
+    )
+
+    Box(
+        modifier = Modifier
+            .size(36.dp)
+            .semantics { contentDescription = "${option.label}, $stateDescription" }
+            .clip(shape)
+            .background(accent.copy(alpha = if (toggle.checked) 0.18f else 0.06f))
+            .border(
+                GameMenuDimens.surfaceStroke,
+                accent.copy(alpha = if (toggle.checked) 0.52f else 0.18f),
+                shape
+            )
+            .gamepadFocusOutline(shape)
+            .toggleable(
+                value = toggle.checked,
+                role = Role.Switch,
+                onValueChange = {
+                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                    onToggle(toggle)
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        if (iconRes != 0) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.size(20.dp)
+            )
+        } else {
+            Text(
+                text = firstActionCharacter(option.label),
+                color = colorResource(R.color.game_menu_text_primary),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }

@@ -86,18 +86,21 @@ open class GenericControllerContext(
         }
     }
 
-    override fun getGameMenuOptions(): List<GameMenu.MenuOption> {
-        val options = mutableListOf<GameMenu.MenuOption>()
-        options.add(
+    override fun getGameMenuQuickOptions(): List<GameMenu.MenuOption> {
+        return listOf(
             GameMenu.MenuOption(
-                handler.activityContext.getString(
-                    if (mouseEmulationActive) R.string.game_menu_toggle_mouse_off
-                    else R.string.game_menu_toggle_mouse_on
-                ),
-                true, { toggleMouseEmulation() }, "game_menu_mouse_emulation", true
+                label = handler.activityContext.getString(R.string.game_menu_controller_mouse),
+                isWithGameFocus = false,
+                runnable = null,
+                iconKey = "game_menu_mouse_emulation",
+                isShowIcon = true,
+                isKeepDialog = true,
+                inlineControl = GameMenu.InlineControl.Toggle(
+                    checked = mouseEmulationActive,
+                    toggleAction = Runnable(::toggleMouseEmulation)
+                )
             )
         )
-        return options
     }
 
     fun toggleMouseEmulation() {
@@ -373,6 +376,10 @@ class InputDeviceContext(handler: ControllerHandler) : GenericControllerContext(
         }
         this.gyroReportRateHz = oldContext.gyroReportRateHz
         this.accelReportRateHz = oldContext.accelReportRateHz
+        this.lowFreqMotor = oldContext.lowFreqMotor
+        this.highFreqMotor = oldContext.highFreqMotor
+        this.leftTriggerMotor = oldContext.leftTriggerMotor
+        this.rightTriggerMotor = oldContext.rightTriggerMotor
 
         // Don't release the controller number, because we will carry it over if it is present.
         // We also want to make sure the change is invisible to the host PC to avoid an add/remove

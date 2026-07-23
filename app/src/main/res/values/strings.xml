@@ -186,6 +186,7 @@
     <string name="game_menu_toggle_all_keyboard">Toggle PC Keyboard</string>
     <string name="game_menu_toggle_mouse_on">Enable Controller Mouse Emulation</string>
     <string name="game_menu_toggle_mouse_off">Disable Controller Mouse Emulation</string>
+    <string name="game_menu_controller_mouse">Controller Mouse</string>
     <string name="game_menu_disconnect">Disconnect</string>
     <string name="game_menu_disconnect_and_quit">Quit Game and Disconnect</string>
     <string name="game_menu_cancel">Cancel</string>

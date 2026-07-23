@@ -40,6 +40,7 @@ object QuickActionRegistry {
         if (enableHdr) add("toggle_hdr")
         if (enableMic) add("toggle_mic")
         if (enableVirtualController) add("toggle_controller")
+        add("quit")
     }
 
     fun loadConfig(context: Context): MutableList<String> {

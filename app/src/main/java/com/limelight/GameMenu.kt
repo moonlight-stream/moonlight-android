@@ -372,6 +372,7 @@ class GameMenu(
             state.value = state.value.copy(
                 title = getString(R.string.game_menu_title),
                 options = normalOptions,
+                deviceQuickOptions = device?.getGameMenuQuickOptions().orEmpty(),
                 crownToggleText = getCrownToggleText(),
                 isSubmenu = false
             )
@@ -484,13 +485,13 @@ class GameMenu(
             val on: Short = 0xFFFF.toShort()
             val off: Short = 0
             for (n in 0.toShort()..3.toShort()) {
-                ch.handleRumble(n.toShort(), on, on)
+                ch.handleTestRumble(n.toShort(), on, on)
             }
 
             handler.postDelayed({
                 try {
                     for (n in 0.toShort()..3.toShort()) {
-                        ch.handleRumble(n.toShort(), off, off)
+                        ch.handleTestRumble(n.toShort(), off, off)
                     }
                 } catch (_: Exception) {}
             }, 1000)
@@ -582,6 +583,7 @@ class GameMenu(
                 superOptions = superOptions.toList(),
                 appName = getAppNameDisplay(),
                 crownToggleText = getCrownToggleText(),
+                deviceQuickOptions = device?.getGameMenuQuickOptions().orEmpty(),
                 quickActions = buildComposeQuickActions(),
                 visibleCards = readVisibleCards(),
                 bitrate = bitrateCardController.snapshot(),
@@ -1275,10 +1277,6 @@ class GameMenu(
                 toggleAction = Runnable { setCrownFeatureEnabled(!game.isCrownFeatureEnabled) }
             )
         ))
-
-        if (device != null) {
-            normalOptions.addAll(device.getGameMenuOptions())
-        }
 
         // 性能显示
         normalOptions.add(MenuOption(

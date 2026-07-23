@@ -118,7 +118,7 @@
     <string name="applist_quit_confirmation">您确定要退出当前游戏？所有未保存的数据将丢失。</string>
     <string name="applist_details_id">App ID：</string>
     <!-- In Game menu -->
-    <string name="game_menu_title">🍥🍬 V+ 游戏菜单</string>
+    <string name="game_menu_title">🍥🍬 V+ Game Menu</string>
     <string name="game_menu_server_version">%1$s  服务端 %2$s</string>
     <string name="game_menu_toggle_keyboard"> 屏幕键盘 </string>
     <string name="game_menu_toggle_performance_overlay"> 性能监控图层 </string>
@@ -129,6 +129,7 @@
     <string name="game_menu_toggle_host_keyboard"> 主机键盘 </string>
     <string name="game_menu_toggle_mouse_on"> 手柄模拟鼠标-打开 </string>
     <string name="game_menu_toggle_mouse_off"> 手柄模拟鼠标-关闭 </string>
+    <string name="game_menu_controller_mouse">手柄鼠标</string>
     <string name="game_menu_disconnect"> 断开连接 </string>
     <string name="game_menu_disconnect_and_quit"> 断开并退出串流 </string>
     <string name="game_menu_cancel"> 取消 </string>

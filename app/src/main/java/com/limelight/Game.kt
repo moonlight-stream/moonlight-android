@@ -655,6 +655,10 @@ class Game : Activity(), SurfaceHolder.Callback,
      */
     private fun createConnectionAndHandler() {
         framegenEnabledToastShown = false
+        if (::controllerHandler.isInitialized) {
+            audioVibrationService?.controllerHandler = null
+            controllerHandler.destroy()
+        }
         val host = intent.getStringExtra(EXTRA_HOST) ?: ""
         val port = intent.getIntExtra(EXTRA_PORT, NvHTTP.DEFAULT_HTTP_PORT)
         val httpsPort = intent.getIntExtra(EXTRA_HTTPS_PORT, 0)

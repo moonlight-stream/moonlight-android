@@ -21,7 +21,8 @@ class QuickActionRegistryTest {
                 "send_win",
                 "send_alt_tab",
                 "toggle_keyboard",
-                "toggle_perf"
+                "toggle_perf",
+                "quit"
             ),
             QuickActionRegistry.defaultIdsFor(
                 enableHdr = false,
@@ -42,7 +43,8 @@ class QuickActionRegistryTest {
                 "toggle_perf",
                 "toggle_hdr",
                 "toggle_mic",
-                "toggle_controller"
+                "toggle_controller",
+                "quit"
             ),
             QuickActionRegistry.defaultIdsFor(
                 enableHdr = true,

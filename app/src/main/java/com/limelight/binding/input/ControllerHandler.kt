@@ -24,6 +24,7 @@ import com.limelight.LimeLog
 import com.limelight.binding.input.driver.AbstractController
 import com.limelight.binding.input.driver.UsbDriverListener
 import com.limelight.binding.input.driver.UsbDriverService
+import com.limelight.binding.input.haptics.ControllerHapticsCoordinator
 import com.limelight.nvstream.NvConnection
 import com.limelight.nvstream.input.ControllerPacket
 import com.limelight.nvstream.input.MouseButtonPacket
@@ -54,7 +55,7 @@ class ControllerHandler(
         private const val EMULATING_SELECT = 0x2
         private const val EMULATING_TOUCHPAD = 0x4
 
-        private const val MAX_GAMEPADS: Short = 16 // Limited by bits in activeGamepadMask
+        internal const val MAX_GAMEPADS: Short = 16 // Limited by bits in activeGamepadMask
 
         const val BATTERY_RECHECK_INTERVAL_MS = 120 * 1000
 
@@ -312,6 +313,7 @@ class ControllerHandler(
     // --- Managers ---
     internal val gyroManager = ControllerGyroManager(this)
     internal val rumbleManager = ControllerRumbleManager(this)
+    private val hapticsCoordinator = ControllerHapticsCoordinator(this)
 
     private val REMAP_IGNORE = -1
     private val REMAP_CONSUME = -2
@@ -394,12 +396,39 @@ class ControllerHandler(
 
         // Register ourselves for input device notifications
         inputManager.registerInputDeviceListener(this, null)
+        for (deviceId in InputDevice.getDeviceIds()) {
+            registerRumbleContextIfNeeded(deviceId)
+        }
+        hapticsCoordinator.refreshPrimaryController()
     }
 
     // ========== InputDeviceListener callbacks ==========
 
     override fun onInputDeviceAdded(deviceId: Int) {
-        // Nothing happening here yet
+        registerRumbleContextIfNeeded(deviceId)
+        hapticsCoordinator.refreshPrimaryController()
+    }
+
+    private fun registerRumbleContextIfNeeded(deviceId: Int) {
+        if (inputDeviceContexts.get(deviceId) != null) return
+        val device = InputDevice.getDevice(deviceId) ?: return
+        if (!isExternal(device)) return
+        if ((device.sources and InputDevice.SOURCE_GAMEPAD) == 0 &&
+            (device.sources and InputDevice.SOURCE_JOYSTICK) == 0
+        ) {
+            return
+        }
+        if (getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_X) == null ||
+            getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_Y) == null
+        ) {
+            return
+        }
+
+        val context = createInputDeviceContextForDevice(device)
+        if (hapticsCoordinator.hasRumbleCapability(context)) {
+            inputDeviceContexts.put(deviceId, context)
+            hapticsCoordinator.onSinkChanged(context.controllerNumber)
+        }
     }
 
     override fun onInputDeviceRemoved(deviceId: Int) {
@@ -409,6 +438,8 @@ class ControllerHandler(
             releaseControllerNumber(context)
             context.destroy()
             inputDeviceContexts.remove(deviceId)
+            hapticsCoordinator.refreshPrimaryController()
+            hapticsCoordinator.clearControllerIfUnavailable(context.controllerNumber)
 
             // 如果陀螺仪鼠标模式开着，手柄断开后重新在 defaultContext 上注册手机传感器
             if (prefConfig.gyroToMouse) {
@@ -431,6 +462,9 @@ class ControllerHandler(
         val newContext = createInputDeviceContextForDevice(device)
         newContext.migrateContext(existingContext)
         inputDeviceContexts.put(deviceId, newContext)
+        hapticsCoordinator.refreshPrimaryController()
+        hapticsCoordinator.onSinkChanged(newContext.controllerNumber)
+        hapticsCoordinator.clearControllerIfUnavailable(existingContext.controllerNumber)
     }
 
     // ========== Lifecycle ==========
@@ -439,6 +473,9 @@ class ControllerHandler(
         if (stopped) {
             return
         }
+
+        // Flush rumble while device contexts and HOST fallback paths are still available.
+        hapticsCoordinator.stop()
 
         // Stop new device contexts from being created or used
         stopped = true
@@ -467,7 +504,7 @@ class ControllerHandler(
         }
 
         sceManager.stop()
-        backgroundHandlerThread.quit()
+        backgroundHandlerThread.quitSafely()
     }
 
     fun disableSensors() {
@@ -638,6 +675,8 @@ class ControllerHandler(
 
         LimeLog.info("Assigned as controller " + context.controllerNumber)
         context.assignedControllerNumber = true
+        hapticsCoordinator.refreshPrimaryController()
+        hapticsCoordinator.onSinkChanged(context.controllerNumber)
 
         // Report attributes of this new controller to the host
         context.sendControllerArrival()
@@ -1084,6 +1123,7 @@ class ControllerHandler(
 
     internal fun sendControllerInputPacket(originalContext: GenericControllerContext) {
         assignControllerNumberIfNeeded(originalContext)
+        hapticsCoordinator.noteControllerInput(originalContext)
 
         // Take the context's controller number and fuse all inputs with the same number
         val controllerNumber = originalContext.controllerNumber
@@ -2209,9 +2249,12 @@ class ControllerHandler(
         val context = usbDeviceContexts.get(controller.getControllerId())
         if (context != null) {
             LimeLog.info("Removed controller: " + controller.getControllerId())
+            rumbleManager.forgetUsbDevice(controller)
             releaseControllerNumber(context)
             context.destroy()
             usbDeviceContexts.remove(controller.getControllerId())
+            hapticsCoordinator.refreshPrimaryController()
+            hapticsCoordinator.clearControllerIfUnavailable(context.controllerNumber)
         }
     }
 
@@ -2222,6 +2265,8 @@ class ControllerHandler(
 
         val context = createUsbDeviceContextForDevice(controller)
         usbDeviceContexts.put(controller.getControllerId(), context)
+        hapticsCoordinator.refreshPrimaryController()
+        hapticsCoordinator.onSinkChanged(context.controllerNumber)
     }
 
     override fun reportControllerMotion(controllerId: Int, motionType: Byte, x: Float, y: Float, z: Float) {
@@ -2327,11 +2372,56 @@ class ControllerHandler(
     fun hasAnyController(): Boolean =
         gyroManager.hasAnyController()
 
+    fun hasRumbleCapableController(): Boolean =
+        hapticsCoordinator.hasRumbleCapableController()
+
     fun handleRumble(controllerNumber: Short, lowFreqMotor: Short, highFreqMotor: Short) =
-        rumbleManager.handleRumble(controllerNumber, lowFreqMotor, highFreqMotor)
+        hapticsCoordinator.submitHost(controllerNumber, lowFreqMotor, highFreqMotor)
+
+    fun handleTestRumble(controllerNumber: Short, lowFreqMotor: Short, highFreqMotor: Short) =
+        hapticsCoordinator.submitTest(controllerNumber, lowFreqMotor, highFreqMotor)
+
+    fun submitAudioHaptics(
+        continuousLow: Float,
+        continuousHigh: Float,
+        transientLow: Float,
+        transientHigh: Float,
+        transientDurationMs: Int,
+        hasTransient: Boolean,
+        continuousChanged: Boolean
+    ) = hapticsCoordinator.submitAudio(
+        continuousLow,
+        continuousHigh,
+        transientLow,
+        transientHigh,
+        transientDurationMs,
+        hasTransient,
+        continuousChanged
+    )
+
+    fun submitAudioRumble(
+        lowFrequency: Float,
+        highFrequency: Float,
+        durationMs: Int,
+        continuous: Boolean
+    ) = hapticsCoordinator.submitLegacyAudio(
+        lowFrequency,
+        highFrequency,
+        durationMs,
+        continuous
+    )
+
+    fun stopAudioRumble() =
+        hapticsCoordinator.stopAudio()
+
+    fun claimDeviceVibratorForAudio() =
+        rumbleManager.releaseDeviceFallbackOwnership()
+
+    fun refreshAudioRumbleWatchdog() =
+        hapticsCoordinator.refreshAudioWatchdog()
 
     fun handleRumbleTriggers(controllerNumber: Short, leftTrigger: Short, rightTrigger: Short) =
-        rumbleManager.handleRumbleTriggers(controllerNumber, leftTrigger, rightTrigger)
+        hapticsCoordinator.submitHostTriggers(controllerNumber, leftTrigger, rightTrigger)
 
     @TargetApi(31)
     fun handleSetControllerLED(controllerNumber: Short, r: Byte, g: Byte, b: Byte) =

@@ -2,12 +2,6 @@
 
 #include "audio_haptics_android_adapter_bridge.h"
 
-#ifndef MOONLIGHT_AUDIO_HAPTICS_OUTPUT
-#define MOONLIGHT_AUDIO_HAPTICS_OUTPUT 0
-#endif
-
-#if MOONLIGHT_AUDIO_HAPTICS_OUTPUT
-
 #include "moonlight_haptics/android_adapter.h"
 
 #include <android/log.h>
@@ -182,30 +176,4 @@ void audio_haptics_android_adapter_cleanup(void) {
     g_channelCount.store(0, std::memory_order_release);
 }
 
-int audio_haptics_android_adapter_is_compiled(void) { return 1; }
-
 } // extern "C"
-
-#else
-
-extern "C" {
-
-void audio_haptics_android_adapter_set_session_handle(uint64_t handle) { (void)handle; }
-void audio_haptics_android_adapter_set_enabled(int enabled) { (void)enabled; }
-void audio_haptics_android_adapter_set_scene_mode(int mode) { (void)mode; }
-void audio_haptics_android_adapter_init(int sample_rate, int channel_count) {
-    (void)sample_rate;
-    (void)channel_count;
-}
-int audio_haptics_android_adapter_process_frame(const int16_t* pcm_data, int frame_count) {
-    (void)pcm_data;
-    (void)frame_count;
-    return 0;
-}
-void audio_haptics_android_adapter_notify(void) {}
-void audio_haptics_android_adapter_cleanup(void) {}
-int audio_haptics_android_adapter_is_compiled(void) { return 0; }
-
-} // extern "C"
-
-#endif

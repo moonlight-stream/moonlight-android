@@ -174,18 +174,6 @@ public class MoonBridge {
     private static AudioRenderer audioRenderer;
     private static VideoDecoderRenderer videoRenderer;
     private static NvConnectionListener connectionListener;
-    private static BassEnergyListener bassEnergyListener;
-
-    /**
-     * Listener for bass energy callbacks from native audio processing.
-     */
-    public interface BassEnergyListener {
-        void onBassEnergy(int intensity, int lowFreqRatio);
-    }
-
-    public static void setBassEnergyListener(BassEnergyListener listener) {
-        bassEnergyListener = listener;
-    }
 
     static {
         System.loadLibrary("moonlight-core");
@@ -332,19 +320,6 @@ public class MoonBridge {
         }
     }
 
-    /**
-     * Called from native layer (callbacks.c) when bass energy analysis
-     * produces a reportable intensity value.
-     *
-     * @param intensity Vibration intensity (0-100)
-     * @param lowFreqRatio Low-frequency energy ratio (0-100), for low/high motor allocation
-     */
-    public static void bridgeBassEnergy(int intensity, int lowFreqRatio) {
-        if (bassEnergyListener != null) {
-            bassEnergyListener.onBassEnergy(intensity, lowFreqRatio);
-        }
-    }
-
     public static void bridgeClStageStarting(int stage) {
         if (connectionListener != null) {
             connectionListener.stageStarting(getStageName(stage));
@@ -476,7 +451,6 @@ public class MoonBridge {
         MoonBridge.videoRenderer = null;
         MoonBridge.audioRenderer = null;
         MoonBridge.connectionListener = null;
-        MoonBridge.bassEnergyListener = null;
         MoonBridge.clipboardListener = null;
     }
 
@@ -594,11 +568,8 @@ public class MoonBridge {
     
     public static native boolean isMicrophoneEncryptionEnabled();
 
-    // Bass energy analyzer control (audio-driven vibration)
-    public static native void setBassEnergyEnabled(boolean enabled);
-    public static native void setBassEnergySensitivity(float sensitivity);
-    public static native void setBassEnergySceneMode(int mode);
-    public static native void setAudioHapticsShadowEnabled(boolean enabled);
+    // Project-owned audio haptics SDK control
+    public static native void setAudioHapticsSceneMode(int mode);
     public static native void setAudioHapticsOutputEnabled(boolean enabled);
     public static native void setAudioHapticsSessionHandle(long handle);
 

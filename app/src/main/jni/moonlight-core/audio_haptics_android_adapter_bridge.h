@@ -18,7 +18,6 @@ int audio_haptics_android_adapter_process_frame(
     int frame_count);
 void audio_haptics_android_adapter_notify(void);
 void audio_haptics_android_adapter_cleanup(void);
-int audio_haptics_android_adapter_is_compiled(void);
 
 #ifdef __cplusplus
 }

@@ -440,13 +440,10 @@ class Game : Activity(), SurfaceHolder.Callback,
             mode = prefConfig.audioVibrationMode,
             scene = prefConfig.audioVibrationScene
         )
-        MoonBridge.setBassEnergyListener { intensity, lowFreqRatio ->
-            audioVibrationService?.handleBassEnergy(intensity, lowFreqRatio)
-        }
         MoonBridge.setAudioHapticsSessionHandle(
             audioVibrationService?.nativeSessionHandle ?: 0L
         )
-        MoonBridge.setBassEnergySceneMode(prefConfig.audioVibrationScene)
+        MoonBridge.setAudioHapticsSceneMode(prefConfig.audioVibrationScene)
         updateAudioHapticsRuntimeEnabled(true)
 
         val inputManager = getSystemService(INPUT_SERVICE) as InputManager
@@ -1214,7 +1211,6 @@ class Game : Activity(), SurfaceHolder.Callback,
             MoonBridge.setAudioHapticsSessionHandle(0L)
             audioVibrationService?.release()
             audioVibrationService = null
-            MoonBridge.setBassEnergyListener(null)
         }
 
         super.onDestroy()
@@ -1270,12 +1266,7 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     private fun updateAudioHapticsRuntimeEnabled(foreground: Boolean) {
         val featureEnabled = foreground && prefConfig.enableAudioVibration
-        val useAudioHapticsOutput = featureEnabled && BuildConfig.AUDIO_HAPTICS_OUTPUT
-        MoonBridge.setBassEnergyEnabled(featureEnabled && !useAudioHapticsOutput)
-        MoonBridge.setAudioHapticsShadowEnabled(
-            foreground && BuildConfig.AUDIO_HAPTICS_SHADOW
-        )
-        MoonBridge.setAudioHapticsOutputEnabled(useAudioHapticsOutput)
+        MoonBridge.setAudioHapticsOutputEnabled(featureEnabled)
     }
 
     /**
@@ -1302,7 +1293,7 @@ class Game : Activity(), SurfaceHolder.Callback,
             settings.scene
         )
         appliedAudioHapticsSettings = settings
-        MoonBridge.setBassEnergySceneMode(settings.scene)
+        MoonBridge.setAudioHapticsSceneMode(settings.scene)
         updateAudioHapticsRuntimeEnabled(true)
         return true
     }

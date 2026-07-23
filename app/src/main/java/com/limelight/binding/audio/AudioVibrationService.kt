@@ -1,16 +1,8 @@
 package com.limelight.binding.audio
 
 import android.content.Context
-import android.os.Build
 import android.os.SystemClock
-import android.os.VibrationAttributes
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 
-import androidx.annotation.RequiresApi
-
-import com.limelight.BuildConfig
 import com.limelight.LimeLog
 import com.limelight.binding.input.ControllerHandler
 import com.moonlight.haptics.HapticFrame
@@ -20,21 +12,9 @@ import com.moonlight.haptics.android.NativeHapticsSession
 /**
  * Audio-driven vibration service for Android.
  *
- * Receives bass energy intensity (0-100) and low-frequency ratio (0-100) from the
- * native BassEnergyAnalyzer (via JNI callback) and routes vibration to:
- *   - Device vibrator with tiered haptic API support
- *   - Gamepad rumble with dynamic low/high motor allocation
- *
- * Haptic capability tiers (auto-detected):
- *   - ENVELOPE (API 36+): BasicEnvelopeBuilder — intensity + sharpness + duration envelope
- *   - COMPOSITION (API 31+): Primitives — THUD/CLICK with scale control
- *   - ONE_SHOT (API 26+): createOneShot — duration + amplitude
- *   - LEGACY (pre-26): simple vibrate(ms)
- *
- * Scene modes:
- *   - Game/Movie (0): Continuous low-freq vibration for explosions/gunfire/engines
- *   - Music/Rhythm (1): Short pulse vibration for beats/onsets
- *   - Auto (2): C++ layer auto-detects content type
+ * Moonlight Audio Haptics SDK produces portable haptic intent. This service
+ * applies user routing and strength, then sends it to the SDK's Android renderer
+ * and the controller rumble mixer.
  */
 class AudioVibrationService(context: Context) {
 
@@ -54,17 +34,12 @@ class AudioVibrationService(context: Context) {
     )
 
     // State
-    private var lastIntensity = 0
-    private var lastLowFreqRatio = 50
-    private var isDeviceVibrating = false
     @Volatile
     private var isSdkDeviceActive = false
     @Volatile
     private var isSystemAudioCoupledDeviceActive = false
     private var isGamepadRumbling = false
 
-    // Debounce: tightened intervals matching HarmonyOS
-    private var lastVibrationTime: Long = 0
     private var lastHapticTimestampUs: Long = -1
     private var rhythmStatsStartMs: Long = SystemClock.elapsedRealtime()
     private var rhythmTransientCount = 0
@@ -74,14 +49,11 @@ class AudioVibrationService(context: Context) {
     private var rhythmLowSupportSum = 0f
     private var lastMusicGrooveBedAmplitude = 0f
     private var lastControllerWatchdogRefreshMs = 0L
-    // Android vibrator & capability
-    private val deviceVibrator: Vibrator?
-    private val hapticLevel: Int
     private val sdkDeviceRenderer: AndroidHapticRenderer
-    private val nativeSession: NativeHapticsSession?
+    private val nativeSession: NativeHapticsSession
 
     val nativeSessionHandle: Long
-        get() = nativeSession?.nativeHandle ?: 0L
+        get() = nativeSession.nativeHandle
 
     val systemAudioCoupledDeviceActive: Boolean
         get() = isSystemAudioCoupledDeviceActive
@@ -95,72 +67,15 @@ class AudioVibrationService(context: Context) {
         }
 
     init {
-        nativeSession = if (BuildConfig.AUDIO_HAPTICS_OUTPUT) {
-            NativeHapticsSession(
-                listener = { frame -> handleHapticFrame(frame) },
-                initialScene = runtimeSettings.sceneMode
-            )
-        } else {
-            null
-        }
+        nativeSession = NativeHapticsSession(
+            listener = { frame -> handleHapticFrame(frame) },
+            initialScene = runtimeSettings.sceneMode
+        )
         sdkDeviceRenderer = AndroidHapticRenderer(
             context.applicationContext,
-            workerLooper = nativeSession?.deliveryLooper
+            workerLooper = nativeSession.deliveryLooper
         )
-        deviceVibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
-            vm?.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-        }
-        hapticLevel = detectHapticCapability()
-        LimeLog.info(
-            "AudioVibration: haptic level = ${hapticLevelName()}, " +
-                "deviceProfile=${sdkDeviceRenderer.deviceProfileId}"
-        )
-    }
-
-    private fun detectHapticCapability(): Int {
-        if (deviceVibrator == null || !deviceVibrator.hasVibrator()) {
-            return HAPTIC_LEGACY
-        }
-
-        // Tier 3: API 36+ BasicEnvelopeBuilder
-        if (Build.VERSION.SDK_INT >= 36) {
-            try {
-                if (deviceVibrator.areEnvelopeEffectsSupported()) {
-                    return HAPTIC_ENVELOPE
-                }
-            } catch (_: Exception) {}
-        }
-
-        // Tier 2: API 31+ Composition with THUD & CLICK primitives
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            try {
-                val supported = deviceVibrator.arePrimitivesSupported(
-                    VibrationEffect.Composition.PRIMITIVE_THUD,
-                    VibrationEffect.Composition.PRIMITIVE_CLICK
-                )
-                if (supported[0] && supported[1]) {
-                    return HAPTIC_COMPOSITION
-                }
-            } catch (_: Exception) {}
-        }
-
-        // Tier 1: API 26+ createOneShot with amplitude control
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && deviceVibrator.hasAmplitudeControl()) {
-            return HAPTIC_ONE_SHOT
-        }
-
-        return HAPTIC_LEGACY
-    }
-
-    private fun hapticLevelName(): String = when (hapticLevel) {
-        HAPTIC_ENVELOPE -> "ENVELOPE (API 36+)"
-        HAPTIC_COMPOSITION -> "COMPOSITION (API 31+)"
-        HAPTIC_ONE_SHOT -> "ONE_SHOT (API 26+)"
-        else -> "LEGACY"
+        LimeLog.info("AudioHaptics: deviceProfile=${sdkDeviceRenderer.deviceProfileId}")
     }
 
     fun setSettings(enabled: Boolean, strength: Int, vibrationMode: String, sceneMode: Int) {
@@ -177,8 +92,8 @@ class AudioVibrationService(context: Context) {
             } else {
                 DEFAULT_ONSET_SENSITIVITY
             }
-            nativeSession?.setSensitivity(onsetSensitivity)
-            nativeSession?.setScene(updated.sceneMode)
+            nativeSession.setSensitivity(onsetSensitivity)
+            nativeSession.setScene(updated.sceneMode)
         }
         runtimeSettings = updated
         if (updated.enabled != previous.enabled ||
@@ -199,70 +114,7 @@ class AudioVibrationService(context: Context) {
         get() = runtimeSettings.sceneMode
 
     /**
-     * Handle bass energy from native layer.
-     *
-     * @param intensity Bass energy intensity (0-100)
-     * @param lowFreqRatio Low-frequency energy ratio (0-100), for motor allocation
-     */
-    fun handleBassEnergy(intensity: Int, lowFreqRatio: Int) {
-        val settings = runtimeSettings
-        if (!settings.enabled) return
-
-        if (intensity == 0) {
-            if (isDeviceVibrating || isGamepadRumbling) {
-                stopAll()
-            }
-            return
-        }
-
-        val effectiveIntensity = (intensity * settings.strength / 100).coerceIn(0, 100)
-        if (effectiveIntensity < 5) {
-            if (isDeviceVibrating || isGamepadRumbling) {
-                stopAll()
-            }
-            return
-        }
-
-        // Debounce
-        val now = System.currentTimeMillis()
-        val isMusic = isMusicScene(settings.sceneMode)
-        val minInterval = if (isMusic) MIN_INTERVAL_MUSIC_MS else MIN_INTERVAL_GAME_MS
-        if (now - lastVibrationTime < minInterval) {
-            return
-        }
-
-        // Skip if change too small
-        val changeTolerance = if (isMusic) 3 else 8
-        if ((isDeviceVibrating || isGamepadRumbling) &&
-            Math.abs(effectiveIntensity - lastIntensity) < changeTolerance
-        ) {
-            return
-        }
-
-        lastIntensity = effectiveIntensity
-        lastLowFreqRatio = lowFreqRatio
-        lastVibrationTime = now
-
-        // Route vibration
-        val shouldDevice = shouldVibrateDevice(settings.vibrationMode)
-        val shouldGamepad = shouldVibrateGamepad(settings.vibrationMode)
-
-        if (shouldDevice && !isSystemAudioCoupledDeviceActive) {
-            triggerDeviceVibration(effectiveIntensity, isMusic)
-        } else if (isDeviceVibrating) {
-            stopDeviceVibration()
-        }
-
-        if (shouldGamepad) {
-            triggerGamepadRumble(effectiveIntensity, lowFreqRatio, isMusic)
-        } else if (isGamepadRumbling) {
-            stopGamepadRumble()
-        }
-    }
-
-    /**
      * Render a platform-independent HapticFrame produced by moonlight-haptics-core.
-     * This is mutually exclusive with handleBassEnergy() at the Game integration layer.
      */
     private fun handleHapticFrame(frame: HapticFrame) {
         val settings = runtimeSettings
@@ -348,9 +200,6 @@ class AudioVibrationService(context: Context) {
             return
         }
 
-        lastIntensity = (selectedAmplitude * 100f).toInt().coerceIn(0, 100)
-        lastLowFreqRatio = (frame.lowBandRatio.coerceIn(0f, 1f) * 100f).toInt()
-
         if (shouldVibrateDevice(settings.vibrationMode) && !isSystemAudioCoupledDeviceActive) {
             val accepted = sdkDeviceRenderer.submit(
                 frame.timestampUs,
@@ -404,7 +253,7 @@ class AudioVibrationService(context: Context) {
     }
 
     fun stop() {
-        nativeSession?.stop()
+        nativeSession.stop()
         sdkDeviceRenderer.clearAudioPresentationClock()
         stopAll()
     }
@@ -459,13 +308,7 @@ class AudioVibrationService(context: Context) {
         stopAll()
         isSystemAudioCoupledDeviceActive = false
         sdkDeviceRenderer.close()
-        nativeSession?.close()
-    }
-
-    // ==================== Scene detection ====================
-
-    private fun isMusicScene(sceneMode: Int): Boolean {
-        return sceneMode == SCENE_MUSIC || sceneMode == SCENE_AUTO
+        nativeSession.close()
     }
 
     // ==================== Routing ====================
@@ -479,217 +322,6 @@ class AudioVibrationService(context: Context) {
     private fun hasConnectedGamepad(): Boolean =
         controllerHandler?.hasRumbleCapableController() == true
 
-    // ==================== Device Vibration ====================
-
-    private fun triggerDeviceVibration(intensity: Int, isMusic: Boolean) {
-        if (deviceVibrator == null || !deviceVibrator.hasVibrator()) {
-            return
-        }
-
-        if (isDeviceVibrating) {
-            deviceVibrator.cancel()
-        }
-
-        try {
-            if (isMusic) {
-                triggerMusicVibration(intensity)
-            } else {
-                triggerGameVibration(intensity)
-            }
-            controllerHandler?.claimDeviceVibratorForAudio()
-            isDeviceVibrating = true
-        } catch (e: Exception) {
-            LimeLog.warning("AudioVibration: " + e.message)
-        }
-    }
-
-    // ==================== Game mode vibration (tiered) ====================
-
-    private fun triggerGameVibration(intensity: Int) {
-        when (hapticLevel) {
-            HAPTIC_ENVELOPE -> if (Build.VERSION.SDK_INT >= 36) {
-                triggerGameEnvelope(intensity)
-            }
-            HAPTIC_COMPOSITION -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                triggerGameComposition(intensity)
-            }
-            HAPTIC_ONE_SHOT -> triggerGameOneShot(intensity)
-            else -> vibrateSimple(50 + intensity * 250 / 100)
-        }
-    }
-
-    /**
-     * Game envelope: deep sustained rumble (≈300ms).
-     * Sharpness 0.1-0.3 → low frequency, equivalent to HarmonyOS HD Haptic 30-50Hz.
-     */
-    @RequiresApi(36)
-    private fun triggerGameEnvelope(intensity: Int) {
-        val amp = intensity / 100f
-        val sharpness = 0.1f + amp * 0.2f // 0.1-0.3: deep rumble
-        try {
-            val effect = VibrationEffect.BasicEnvelopeBuilder()
-                .setInitialSharpness(sharpness)
-                .addControlPoint(amp, sharpness, 20)          // attack: 20ms ramp up
-                .addControlPoint(amp * 0.6f, sharpness, 200)  // sustain+decay: 200ms
-                .addControlPoint(0f, sharpness, 80)           // release: 80ms fade out
-                .build()
-            vibrateWithAttributes(effect)
-        } catch (_: Exception) {
-            triggerGameOneShot(intensity)
-        }
-    }
-
-    /**
-     * Game composition: PRIMITIVE_THUD for heavy impact feel.
-     */
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun triggerGameComposition(intensity: Int) {
-        val scale = (intensity / 100f).coerceAtLeast(0.1f)
-        try {
-            val effect = VibrationEffect.startComposition()
-                .addPrimitive(VibrationEffect.Composition.PRIMITIVE_THUD, scale)
-                .compose()
-            vibrateWithAttributes(effect)
-        } catch (_: Exception) {
-            triggerGameOneShot(intensity)
-        }
-    }
-
-    /**
-     * Game one-shot: 50-300ms with amplitude control.
-     */
-    private fun triggerGameOneShot(intensity: Int) {
-        val duration = 50 + intensity * 250 / 100
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val amplitude = (intensity * 255 / 100).coerceAtLeast(1)
-            val effect = VibrationEffect.createOneShot(duration.toLong(), amplitude)
-            vibrateWithAttributes(effect)
-        } else {
-            vibrateSimple(duration)
-        }
-    }
-
-    // ==================== Music mode vibration (tiered) ====================
-
-    private fun triggerMusicVibration(intensity: Int) {
-        when (hapticLevel) {
-            HAPTIC_ENVELOPE -> if (Build.VERSION.SDK_INT >= 36) {
-                triggerMusicEnvelope(intensity)
-            }
-            HAPTIC_COMPOSITION -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                triggerMusicComposition(intensity)
-            }
-            HAPTIC_ONE_SHOT -> triggerMusicOneShot(intensity)
-            else -> vibrateSimple(30 + intensity / 2)
-        }
-    }
-
-    /**
-     * Music envelope: sharp transient pulse (≈60ms).
-     * Sharpness 0.4-0.7 → crisp/snappy, equivalent to HarmonyOS HD Haptic 40-60Hz.
-     */
-    @RequiresApi(36)
-    private fun triggerMusicEnvelope(intensity: Int) {
-        val amp = intensity / 100f
-        val sharpness = 0.4f + amp * 0.3f // 0.4-0.7: crisp beat
-        try {
-            val effect = VibrationEffect.BasicEnvelopeBuilder()
-                .setInitialSharpness(sharpness)
-                .addControlPoint(amp, sharpness, 5)    // instant attack: 5ms
-                .addControlPoint(0f, sharpness, 55)    // quick decay: 55ms
-                .build()
-            vibrateWithAttributes(effect)
-        } catch (_: Exception) {
-            triggerMusicOneShot(intensity)
-        }
-    }
-
-    /**
-     * Music composition: PRIMITIVE_CLICK for crisp beat.
-     */
-    @RequiresApi(Build.VERSION_CODES.R)
-    private fun triggerMusicComposition(intensity: Int) {
-        val scale = (intensity / 100f).coerceAtLeast(0.1f)
-        try {
-            val effect = VibrationEffect.startComposition()
-                .addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, scale)
-                .compose()
-            vibrateWithAttributes(effect)
-        } catch (_: Exception) {
-            triggerMusicOneShot(intensity)
-        }
-    }
-
-    /**
-     * Music one-shot: 30-80ms with amplitude control.
-     */
-    private fun triggerMusicOneShot(intensity: Int) {
-        val duration = 30 + intensity / 2
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val amplitude = (intensity * 255 / 100).coerceAtLeast(1)
-            val effect = VibrationEffect.createOneShot(duration.toLong(), amplitude)
-            vibrateWithAttributes(effect)
-        } else {
-            vibrateSimple(duration)
-        }
-    }
-
-    // ==================== Vibration helpers ====================
-
-    private fun vibrateWithAttributes(effect: VibrationEffect) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val attrs = VibrationAttributes.Builder()
-                .setUsage(VibrationAttributes.USAGE_MEDIA)
-                .build()
-            deviceVibrator!!.vibrate(effect, attrs)
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            deviceVibrator!!.vibrate(effect)
-        }
-    }
-
-    @Suppress("DEPRECATION")
-    private fun vibrateSimple(durationMs: Int) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            deviceVibrator!!.vibrate(VibrationEffect.createOneShot(durationMs.toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            deviceVibrator!!.vibrate(durationMs.toLong())
-        }
-    }
-
-    // ==================== Gamepad Rumble ====================
-
-    /**
-     * Gamepad rumble with dynamic low/high motor allocation.
-     * lowFreqRatio from C++ reflects actual audio frequency content:
-     * - High ratio → explosion/bass → low-freq motor dominant
-     * - Low ratio → crisp/high-pitched → high-freq motor dominant
-     */
-    private fun triggerGamepadRumble(
-        intensity: Int,
-        lowFreqRatio: Int,
-        isMusic: Boolean
-    ) {
-        val handler = controllerHandler ?: return
-        val amplitude = (intensity / 100f).coerceIn(0f, 1f)
-        val lowSupport = (lowFreqRatio / 100f).coerceIn(0f, 1f)
-        val lowFrequency = amplitude * (0.35f + 0.65f * lowSupport)
-        val highFrequency = amplitude * (0.35f + 0.65f * (1f - lowSupport))
-        val continuous = !isMusic
-        val durationMs = if (continuous) {
-            50 + intensity * 250 / 100
-        } else {
-            30 + intensity / 2
-        }
-
-        handler.submitAudioRumble(
-            lowFrequency,
-            highFrequency,
-            durationMs,
-            continuous
-        )
-        isGamepadRumbling = true
-    }
-
     private fun stopGamepadRumble() {
         controllerHandler?.stopAudioRumble()
         isGamepadRumbling = false
@@ -700,13 +332,9 @@ class AudioVibrationService(context: Context) {
     private fun stopAll() {
         sdkDeviceRenderer.stop()
         isSdkDeviceActive = false
-        if (isDeviceVibrating) {
-            stopDeviceVibration()
-        }
         if (isGamepadRumbling) {
             stopGamepadRumble()
         }
-        lastIntensity = 0
         lastHapticTimestampUs = -1
         lastControllerWatchdogRefreshMs = 0L
         rhythmStatsStartMs = SystemClock.elapsedRealtime()
@@ -726,13 +354,8 @@ class AudioVibrationService(context: Context) {
         if (isGamepadRumbling) stopGamepadRumble()
     }
 
-    private fun stopDeviceVibration() {
-        deviceVibrator?.cancel()
-        isDeviceVibrating = false
-    }
-
     companion object {
-        // Scene modes (must match BassEnergyAnalyzer SCENE_* constants)
+        // Scene modes defined by the public Moonlight Audio Haptics SDK ABI.
         const val SCENE_GAME = 0
         const val SCENE_MUSIC = 1
         const val SCENE_AUTO = 2
@@ -743,14 +366,6 @@ class AudioVibrationService(context: Context) {
         const val MODE_GAMEPAD_ONLY = "gamepad"
         const val MODE_BOTH = "both"
 
-        // Haptic capability levels
-        private const val HAPTIC_LEGACY = 0
-        private const val HAPTIC_ONE_SHOT = 1
-        private const val HAPTIC_COMPOSITION = 2
-        private const val HAPTIC_ENVELOPE = 3
-
-        private const val MIN_INTERVAL_GAME_MS: Long = 25
-        private const val MIN_INTERVAL_MUSIC_MS: Long = 15
         private const val MIN_IR_AMPLITUDE = 0.05f
         const val MAX_STRENGTH = 200
         private const val DEFAULT_ONSET_SENSITIVITY = 1.0f

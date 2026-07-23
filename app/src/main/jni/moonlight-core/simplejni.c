@@ -432,35 +432,15 @@ Java_com_limelight_nvstream_jni_MoonBridge_isMicrophoneEncryptionEnabled(JNIEnv 
     return isMicrophoneEncryptionEnabled() ? JNI_TRUE : JNI_FALSE;
 }
 
-// ==================== Bass Energy Analyzer Control ====================
+// ==================== Audio Haptics SDK Control ====================
 
-#include "bass_energy_bridge.h"
-#include "audio_haptics_shadow_bridge.h"
 #include "audio_haptics_android_adapter_bridge.h"
 
 JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_setBassEnergyEnabled(JNIEnv *env, jclass clazz, jboolean enabled) {
-    bass_energy_set_enabled(enabled ? 1 : 0);
-}
-
-JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_setBassEnergySensitivity(JNIEnv *env, jclass clazz, jfloat sensitivity) {
-    bass_energy_set_sensitivity(sensitivity);
-}
-
-JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_setBassEnergySceneMode(JNIEnv *env, jclass clazz, jint mode) {
-    bass_energy_set_scene_mode(mode);
-    audio_haptics_shadow_set_scene_mode(mode);
-    audio_haptics_android_adapter_set_scene_mode(mode);
-}
-
-JNIEXPORT void JNICALL
-Java_com_limelight_nvstream_jni_MoonBridge_setAudioHapticsShadowEnabled(JNIEnv *env, jclass clazz, jboolean enabled) {
+Java_com_limelight_nvstream_jni_MoonBridge_setAudioHapticsSceneMode(JNIEnv *env, jclass clazz, jint mode) {
     (void)env;
     (void)clazz;
-    bass_energy_set_shadow_enabled(enabled ? 1 : 0);
-    audio_haptics_shadow_set_enabled(enabled ? 1 : 0);
+    audio_haptics_android_adapter_set_scene_mode(mode);
 }
 
 JNIEXPORT void JNICALL

@@ -22,16 +22,6 @@ def escapeBuildConfigString = { value ->
     value.replace("\\", "\\\\").replace("\"", "\\\"")
 }
 def enableX86TestAbi = (project.findProperty("enableX86TestAbi") ?: "false").toString().toBoolean()
-def enableAudioHapticsShadow = (
-        project.findProperty("enableAudioHapticsShadow")
-                ?: System.getenv("ENABLE_AUDIO_HAPTICS_SHADOW")
-                ?: "false"
-).toString().toBoolean()
-def enableAudioHapticsOutput = (
-        project.findProperty("enableAudioHapticsOutput")
-                ?: System.getenv("ENABLE_AUDIO_HAPTICS_OUTPUT")
-                ?: "false"
-).toString().toBoolean()
 def audioHapticsAppLabel = "Moonlight V+"
 def audioHapticsSdkDir = (
         project.findProperty("audioHapticsSdkDir")
@@ -39,9 +29,9 @@ def audioHapticsSdkDir = (
                 ?: System.getenv("AUDIO_HAPTICS_SDK_DIR")
                 ?: ""
 ).toString().trim()
-if ((enableAudioHapticsShadow || enableAudioHapticsOutput) && audioHapticsSdkDir.isEmpty()) {
+if (audioHapticsSdkDir.isEmpty()) {
     throw new GradleException(
-            "audioHapticsSdkDir is required when audio haptics shadow or output is enabled"
+            "audioHapticsSdkDir is required; point it at the Apache-2.0 audio-haptics-sdk checkout"
     )
 }
 
@@ -74,16 +64,10 @@ android {
         // then set githubOAuthClientId in local.properties, pass -PgithubOAuthClientId=...,
         // or set GITHUB_OAUTH_CLIENT_ID in the environment.
         buildConfigField "String", "GITHUB_OAUTH_CLIENT_ID", "\"${escapeBuildConfigString(githubOAuthClientId)}\""
-        buildConfigField "boolean", "AUDIO_HAPTICS_SHADOW", enableAudioHapticsShadow.toString()
-        buildConfigField "boolean", "AUDIO_HAPTICS_OUTPUT", enableAudioHapticsOutput.toString()
 
         externalNativeBuild {
             ndkBuild {
-                arguments "AUDIO_HAPTICS_SHADOW=${enableAudioHapticsShadow ? 1 : 0}"
-                arguments "AUDIO_HAPTICS_OUTPUT=${enableAudioHapticsOutput ? 1 : 0}"
-                if (enableAudioHapticsShadow || enableAudioHapticsOutput) {
-                    arguments "AUDIO_HAPTICS_SDK_DIR=${file(audioHapticsSdkDir).absolutePath.replace('\\', '/')}"
-                }
+                arguments "AUDIO_HAPTICS_SDK_DIR=${file(audioHapticsSdkDir).absolutePath.replace('\\', '/')}"
             }
         }
 

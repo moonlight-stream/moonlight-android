@@ -10,8 +10,6 @@
 
 #include <cpu-features.h>
 
-#include "bass_energy_bridge.h"
-#include "audio_haptics_shadow_bridge.h"
 #include "audio_haptics_android_adapter_bridge.h"
 
 #define AUDIO_BACKLOG_DROP_THRESHOLD_MS 40
@@ -47,7 +45,6 @@ static jmethodID BridgeClSetMotionEventStateMethod;
 static jmethodID BridgeClSetControllerLEDMethod;
 static jmethodID BridgeClResolutionChangedMethod;
 static jmethodID BridgeClClipboardDataMethod;
-static jmethodID BridgeBassEnergyMethod;
 static jbyteArray DecodedFrameBuffer;
 static jshortArray DecodedAudioBuffer;
 // Pre-allocated byte buffer for AC3/E-AC3 raw frame passthrough.
@@ -122,7 +119,6 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jclass clazz) {
     BridgeClSetControllerLEDMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClSetControllerLED", "(SBBB)V");
     BridgeClResolutionChangedMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClResolutionChanged", "(II)V");
     BridgeClClipboardDataMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClClipboardData", "([B)V");
-    BridgeBassEnergyMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeBassEnergy", "(II)V");
 }
 
 int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
@@ -256,9 +252,6 @@ int BridgeArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusCon
             // We know ahead of time what the buffer size will be for decoded audio, so pre-allocate it
             DecodedAudioBuffer = (*env)->NewGlobalRef(env, (*env)->NewShortArray(env, opusConfig->channelCount * opusConfig->samplesPerFrame));
 
-            // Initialize bass energy analyzer for audio-driven vibration
-            bass_energy_init(opusConfig->sampleRate, opusConfig->channelCount);
-            audio_haptics_shadow_init(opusConfig->sampleRate, opusConfig->channelCount);
             audio_haptics_android_adapter_init(
                 opusConfig->sampleRate, opusConfig->channelCount);
         } else {
@@ -289,7 +282,6 @@ void BridgeArStop(void) {
 void BridgeArCleanup() {
     JNIEnv* env = GetThreadEnv();
 
-    audio_haptics_shadow_cleanup();
     audio_haptics_android_adapter_cleanup();
 
     if (Decoder != NULL) {
@@ -340,8 +332,8 @@ void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
                                             OpusConfig.samplesPerFrame,
                                             0);
     if (decodeLen > 0) {
-        // Decide whether to retain this PCM frame before any audio-derived analysis.
-        // Keeping the backlog gate here guarantees that the bass/haptics pipelines
+        // Decide whether to retain this PCM frame before audio-derived analysis.
+        // Keeping the backlog gate here guarantees that the haptics pipeline
         // observe exactly the same frames that are handed to AudioTrack. Previously
         // AndroidAudioRenderer dropped the frame after haptics had already processed
         // it, which made vibration drift from the sound during network bursts.
@@ -357,21 +349,8 @@ void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
             return;
         }
 
-        // Bass energy analysis: process PCM data BEFORE releasing the critical section.
-        // This is pure C++ computation with no JNI calls, safe in critical region.
-        int bassIntensity = 0;
-        int bassLowFreqRatio = 50;
-        int bassReferenceReady = 0;
-        int bassReady = bass_energy_process_frame(
-            (const int16_t*)decodedData,
-            decodeLen,
-            &bassIntensity,
-            &bassLowFreqRatio,
-            &bassReferenceReady);
-        audio_haptics_shadow_process_frame(
-            (const int16_t*)decodedData,
-            decodeLen,
-            bassReferenceReady);
+        // Feed retained PCM directly into the project-owned audio haptics SDK.
+        // The adapter performs no JNI calls while the critical array is held.
         audio_haptics_android_adapter_process_frame(
             (const int16_t*)decodedData,
             decodeLen);
@@ -380,21 +359,11 @@ void BridgeArDecodeAndPlaySample(char* sampleData, int sampleLength) {
         (*env)->ReleasePrimitiveArrayCritical(env, DecodedAudioBuffer, decodedData, 0);
 
         (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeArPlaySampleMethod, DecodedAudioBuffer);
-        audio_haptics_shadow_maybe_log();
         audio_haptics_android_adapter_notify();
         if ((*env)->ExceptionCheck(env)) {
             // We will crash here
             (*JVM)->DetachCurrentThread(JVM);
         }
-
-        // Report bass energy to Java (outside critical section)
-        if (bassReady && BridgeBassEnergyMethod != NULL) {
-            (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeBassEnergyMethod, bassIntensity, bassLowFreqRatio);
-            if ((*env)->ExceptionCheck(env)) {
-                (*env)->ExceptionClear(env);
-            }
-        }
-
     }
     else {
         // We can abort here to avoid the copy back since no data was modified

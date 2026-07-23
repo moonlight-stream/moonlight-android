@@ -127,6 +127,7 @@ class Game : Activity(), SurfaceHolder.Callback,
     var virtualController: VirtualController? = null
     lateinit var panZoomHandler: PanZoomHandler
     private var audioVibrationService: AudioVibrationService? = null
+    private var appliedAudioHapticsSettings: AudioHapticsSettings? = null
 
     interface PerformanceInfoDisplay {
         fun display(performanceAttrs: Map<String, String>)
@@ -429,6 +430,12 @@ class Game : Activity(), SurfaceHolder.Callback,
             prefConfig.audioVibrationStrength,
             prefConfig.audioVibrationMode,
             prefConfig.audioVibrationScene
+        )
+        appliedAudioHapticsSettings = AudioHapticsSettings(
+            enabled = prefConfig.enableAudioVibration,
+            strength = prefConfig.audioVibrationStrength,
+            mode = prefConfig.audioVibrationMode,
+            scene = prefConfig.audioVibrationScene
         )
         MoonBridge.setBassEnergyListener { intensity, lowFreqRatio ->
             audioVibrationService?.handleBassEnergy(intensity, lowFreqRatio)
@@ -1266,6 +1273,60 @@ class Game : Activity(), SurfaceHolder.Callback,
             foreground && BuildConfig.AUDIO_HAPTICS_SHADOW
         )
         MoonBridge.setAudioHapticsOutputEnabled(useAudioHapticsOutput)
+    }
+
+    /**
+     * Applies Game Menu audio-haptics changes to the active stream.
+     *
+     * Android's system audio-coupled generator owns the device motor for the
+     * lifetime of its AudioTrack. Reconfiguring it in place would leave the UI
+     * and actual route out of sync, so those uncommon changes are persisted for
+     * the next stream instead.
+     */
+    internal fun applyAudioHapticsSettings(settings: AudioHapticsSettings): Boolean {
+        val service = audioVibrationService ?: return false
+        val canApply = AudioHapticsRuntimePolicy.canApplyImmediately(
+            systemAudioCoupledActive = service.systemAudioCoupledDeviceActive,
+            applied = currentAudioHapticsSettings(),
+            desired = settings
+        )
+        if (!canApply) return false
+
+        service.setSettings(
+            settings.enabled,
+            settings.strength,
+            settings.mode,
+            settings.scene
+        )
+        appliedAudioHapticsSettings = settings
+        MoonBridge.setBassEnergySceneMode(settings.scene)
+        updateAudioHapticsRuntimeEnabled(true)
+        return true
+    }
+
+    internal fun currentAudioHapticsSettings(): AudioHapticsSettings {
+        return appliedAudioHapticsSettings ?: AudioHapticsSettings(
+            enabled = prefConfig.enableAudioVibration,
+            strength = prefConfig.audioVibrationStrength,
+            mode = prefConfig.audioVibrationMode,
+            scene = prefConfig.audioVibrationScene
+        )
+    }
+
+    internal fun applyAudioHapticsStrength(strength: Int): Boolean {
+        val service = audioVibrationService ?: return false
+        if (service.systemAudioCoupledDeviceActive) return false
+
+        val bounded = strength.coerceIn(0, AudioVibrationService.MAX_STRENGTH)
+        val settings = currentAudioHapticsSettings().copy(strength = bounded)
+        service.setSettings(
+            settings.enabled,
+            settings.strength,
+            settings.mode,
+            settings.scene
+        )
+        appliedAudioHapticsSettings = settings
+        return true
     }
 
     fun changeResolution() {

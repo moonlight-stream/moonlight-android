@@ -21,6 +21,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
@@ -44,10 +45,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -92,6 +94,7 @@ import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.Role
@@ -99,6 +102,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -107,6 +111,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.limelight.binding.audio.AudioVibrationService
 import java.util.Locale
 
 private val GameMenuDialogShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
@@ -131,6 +136,14 @@ private object GameMenuFabricSpec {
     val spacing = 6.dp
     val strokeWidth = 0.30.dp
     const val SHADOW_OFFSET_FRACTION = 0.36f
+}
+
+private object GameMenuSliderSpec {
+    val height = 36.dp
+    val thumbSize = DpSize(width = 3.dp, height = 34.dp)
+    val trackHeight = 12.dp
+    val thumbTrackGap = 4.dp
+    val trackInsideCorner = 1.5.dp
 }
 
 private data class GameMenuPalette(
@@ -161,6 +174,7 @@ internal data class GameMenuComposeUiState(
     val quickActions: List<GameMenuQuickAction>,
     val visibleCards: GameMenuVisibleCards,
     val bitrate: BitrateCardState,
+    val audioHaptics: AudioHapticsCardState,
     val gyro: GyroCardState,
     val customKeys: List<CustomKeyData>,
     val quickEditMode: Boolean = false,
@@ -169,6 +183,7 @@ internal data class GameMenuComposeUiState(
 
 internal data class GameMenuVisibleCards(
     val bitrate: Boolean,
+    val audioHaptics: Boolean,
     val gyro: Boolean,
     val shortcuts: Boolean
 )
@@ -190,6 +205,12 @@ internal data class GameMenuCallbacks(
     val onBitrateProgress: (Float) -> Boolean,
     val onBitrateApply: () -> Unit,
     val onBitrateHapticMode: () -> Unit,
+    val onAudioHapticsEnabled: (Boolean) -> Unit,
+    val onAudioHapticsStrength: (Float) -> Boolean,
+    val onAudioHapticsStrengthFinished: () -> Unit,
+    val onAudioHapticsMode: (String) -> Unit,
+    val onAudioHapticsScene: (Int) -> Unit,
+    val onAudioHapticsReset: () -> Unit,
     val onGyroEnabled: (Boolean) -> Unit,
     val onGyroMouseMode: (Boolean) -> Unit,
     val onGyroActivationKey: () -> Unit,
@@ -1392,6 +1413,14 @@ private fun GameMenuCards(
         if (state.visibleCards.bitrate) {
             BitrateCard(state.bitrate, callbacks, onSliderGesture, callbacks.onEditCards)
         }
+        if (state.visibleCards.audioHaptics) {
+            AudioHapticsCard(
+                state.audioHaptics,
+                callbacks,
+                onSliderGesture,
+                callbacks.onEditCards
+            )
+        }
         if (state.visibleCards.gyro) {
             GyroCard(state.gyro, callbacks, onSliderGesture, callbacks.onEditCards)
         }
@@ -1472,6 +1501,44 @@ internal fun GameMenuCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CompactGameMenuSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    onValueChangeFinished: () -> Unit,
+    valueRange: ClosedFloatingPointRange<Float>,
+    modifier: Modifier = Modifier
+) {
+    val colors = SliderDefaults.colors()
+    val interactionSource = remember { MutableInteractionSource() }
+    Slider(
+        value = value,
+        onValueChange = onValueChange,
+        onValueChangeFinished = onValueChangeFinished,
+        valueRange = valueRange,
+        colors = colors,
+        interactionSource = interactionSource,
+        thumb = {
+            SliderDefaults.Thumb(
+                interactionSource = interactionSource,
+                colors = colors,
+                thumbSize = GameMenuSliderSpec.thumbSize
+            )
+        },
+        track = { sliderState ->
+            SliderDefaults.Track(
+                sliderState = sliderState,
+                modifier = Modifier.height(GameMenuSliderSpec.trackHeight),
+                colors = colors,
+                thumbTrackGapSize = GameMenuSliderSpec.thumbTrackGap,
+                trackInsideCornerSize = GameMenuSliderSpec.trackInsideCorner
+            )
+        },
+        modifier = modifier
+    )
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BitrateCard(
@@ -1511,7 +1578,7 @@ private fun BitrateCard(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
-        Slider(
+        CompactGameMenuSlider(
             value = state.progress,
             onValueChange = { value ->
                 if (callbacks.onBitrateProgress(value)) {
@@ -1523,6 +1590,7 @@ private fun BitrateCard(
             modifier = Modifier
                 .focusProperties { canFocus = true }
                 .fillMaxWidth()
+                .height(GameMenuSliderSpec.height)
                 .gamepadFocusOutline(GameMenuControlShape)
                 .handleSliderDpad(
                     value = state.progress,
@@ -1606,6 +1674,230 @@ private fun BitrateHelpButton(
     }
 }
 
+private data class AudioHapticsChoice(
+    val value: String,
+    val label: String,
+    val selected: Boolean
+)
+
+@Composable
+private fun AudioHapticsCard(
+    state: AudioHapticsCardState,
+    callbacks: GameMenuCallbacks,
+    onSliderGesture: (Boolean) -> Unit,
+    onConfigure: () -> Unit
+) {
+    val view = LocalView.current
+    val title = stringResource(R.string.game_menu_tab_audio_haptics)
+    val modeNames = stringArrayResource(R.array.audio_vibration_mode_names)
+    val modeValues = stringArrayResource(R.array.audio_vibration_mode_values)
+    val sceneNames = stringArrayResource(R.array.audio_vibration_scene_names)
+    val sceneValues = stringArrayResource(R.array.audio_vibration_scene_values)
+    val modeChoices = modeValues.mapIndexed { index, value ->
+        AudioHapticsChoice(
+            value = value,
+            label = when (value) {
+                AudioVibrationService.MODE_DEVICE_ONLY ->
+                    stringResource(R.string.game_menu_audio_haptics_route_device_short)
+                AudioVibrationService.MODE_GAMEPAD_ONLY ->
+                    stringResource(R.string.game_menu_audio_haptics_route_gamepad_short)
+                AudioVibrationService.MODE_BOTH ->
+                    stringResource(R.string.game_menu_audio_haptics_route_both_short)
+                else -> modeNames.getOrElse(index) { value }
+            },
+            selected = value == state.mode
+        )
+    }
+    val sceneChoices = sceneValues.mapIndexed { index, value ->
+        AudioHapticsChoice(
+            value = value,
+            label = compactSegmentLabel(sceneNames.getOrElse(index) { value }),
+            selected = value.toIntOrNull() == state.scene
+        )
+    }
+
+    GameMenuCard(
+        title = title,
+        trailing = {
+            AudioHapticsResetButton(callbacks.onAudioHapticsReset)
+            Spacer(Modifier.width(GameMenuDimens.tight))
+            InlineToggle(
+                checked = state.enabled,
+                contentDescription = title,
+                onToggle = {
+                    callbacks.onAudioHapticsEnabled(!state.enabled)
+                }
+            )
+        },
+        onLongClick = onConfigure
+    ) {
+        if (state.enabled) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.title_seekbar_audio_vibration_strength),
+                    color = colorResource(R.color.game_menu_text_secondary),
+                    fontSize = 10.sp,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = stringResource(
+                        R.string.game_menu_audio_haptics_strength_value,
+                        state.strength
+                    ),
+                    color = colorResource(R.color.game_menu_accent),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            CompactGameMenuSlider(
+                value = state.strength.toFloat(),
+                onValueChange = { value ->
+                    if (callbacks.onAudioHapticsStrength(value)) {
+                        view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                    }
+                },
+                onValueChangeFinished = callbacks.onAudioHapticsStrengthFinished,
+                valueRange = 0f..AudioVibrationService.MAX_STRENGTH.toFloat(),
+                modifier = Modifier
+                    .focusProperties { canFocus = true }
+                    .fillMaxWidth()
+                    .height(GameMenuSliderSpec.height)
+                    .gamepadFocusOutline(GameMenuControlShape)
+                    .handleSliderDpad(
+                        value = state.strength.toFloat(),
+                        step = AudioHapticsCardController.HAPTIC_STEP.toFloat(),
+                        valueRange = 0f..AudioVibrationService.MAX_STRENGTH.toFloat(),
+                        onValueChange = { value ->
+                            if (callbacks.onAudioHapticsStrength(value)) {
+                                view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                            }
+                        },
+                        onValueChangeFinished = callbacks.onAudioHapticsStrengthFinished
+                    )
+                    .lockParentScrollDuringGesture(onSliderGesture)
+            )
+            AudioHapticsChoiceRow(
+                label = stringResource(R.string.title_list_audio_vibration_mode),
+                choices = modeChoices,
+                onChoice = callbacks.onAudioHapticsMode
+            )
+            AudioHapticsChoiceRow(
+                label = stringResource(R.string.title_list_audio_vibration_scene),
+                choices = sceneChoices,
+                onChoice = { value ->
+                    value.toIntOrNull()?.let(callbacks.onAudioHapticsScene)
+                }
+            )
+        }
+        if (state.pendingRestart) {
+            Text(
+                text = stringResource(R.string.game_menu_audio_haptics_pending_restart),
+                color = colorResource(R.color.game_menu_accent),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+private fun AudioHapticsResetButton(onReset: () -> Unit) {
+    val view = LocalView.current
+    val description = stringResource(R.string.game_menu_audio_haptics_reset)
+    val shape = CircleShape
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(shape)
+            .focusProperties { canFocus = true }
+            .gamepadFocusOutline(shape)
+            .semantics { contentDescription = description }
+            .clickable {
+                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                onReset()
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.phc_action_reset),
+            contentDescription = null,
+            tint = colorResource(R.color.game_menu_text_secondary),
+            modifier = Modifier.size(16.dp)
+        )
+    }
+}
+
+@Composable
+private fun AudioHapticsChoiceRow(
+    label: String,
+    choices: List<AudioHapticsChoice>,
+    onChoice: (String) -> Unit
+) {
+    val view = LocalView.current
+    val accent = colorResource(R.color.game_menu_accent)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(36.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            color = colorResource(R.color.game_menu_text_secondary),
+            fontSize = 10.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(0.28f)
+        )
+        Row(
+            modifier = Modifier
+                .weight(0.72f)
+                .fillMaxHeight()
+                .selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            choices.forEach { choice ->
+                val shape = RoundedCornerShape(7.dp)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(shape)
+                        .background(
+                            if (choice.selected) accent.copy(alpha = 0.12f)
+                            else Color.Transparent
+                        )
+                        .focusProperties { canFocus = true }
+                        .gamepadFocusOutline(shape)
+                        .selectable(
+                            selected = choice.selected,
+                            role = Role.RadioButton,
+                            onClick = {
+                                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                                onChoice(choice.value)
+                            }
+                        )
+                        .padding(horizontal = 2.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = choice.label,
+                        color = if (choice.selected) {
+                            accent
+                        } else {
+                            colorResource(R.color.game_menu_text_secondary)
+                        },
+                        fontSize = 10.sp,
+                        fontWeight = if (choice.selected) FontWeight.Medium else FontWeight.Normal,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun GyroCard(
     state: GyroCardState,
@@ -1613,8 +1905,9 @@ private fun GyroCard(
     onSliderGesture: (Boolean) -> Unit,
     onConfigure: () -> Unit
 ) {
+    val title = stringResource(R.string.game_menu_tab_gyro)
     GameMenuCard(
-        title = stringResource(R.string.game_menu_tab_gyro),
+        title = title,
         trailing = {
             Text(
                 text = if (state.enabled) "ON" else "OFF",
@@ -1623,12 +1916,12 @@ private fun GyroCard(
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.width(GameMenuDimens.section))
-            Switch(
+            InlineToggle(
                 checked = state.enabled,
-                onCheckedChange = callbacks.onGyroEnabled,
-                modifier = Modifier
-                    .focusProperties { canFocus = true }
-                    .gamepadFocusOutline(RoundedCornerShape(18.dp))
+                contentDescription = title,
+                onToggle = {
+                    callbacks.onGyroEnabled(!state.enabled)
+                }
             )
         },
         onLongClick = onConfigure
@@ -1756,12 +2049,12 @@ private fun SettingSwitchRow(
             fontSize = 12.sp,
             modifier = Modifier.weight(1f)
         )
-        Switch(
+        InlineToggle(
             checked = checked,
-            onCheckedChange = onCheckedChange,
-            modifier = Modifier
-                .focusProperties { canFocus = true }
-                .gamepadFocusOutline(RoundedCornerShape(18.dp))
+            contentDescription = label,
+            onToggle = {
+                onCheckedChange(!checked)
+            }
         )
     }
 }

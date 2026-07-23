@@ -191,6 +191,7 @@ class PreferenceConfiguration {
     var gyroInvertYAxis = false
     // Card visibility
     var showBitrateCard = false
+    var showAudioHapticsCard = false
     var showGyroCard = false
     var showQuickKeyCard = false
 
@@ -283,8 +284,13 @@ class PreferenceConfiguration {
                 .putBoolean(REVERSE_RESOLUTION_PREF_STRING, reverseResolution)
                 .putBoolean(ROTABLE_SCREEN_PREF_STRING, rotableScreen)
                 .putBoolean(SHOW_BITRATE_CARD_PREF_STRING, showBitrateCard)
+                .putBoolean(SHOW_AUDIO_HAPTICS_CARD_PREF_STRING, showAudioHapticsCard)
                 .putBoolean(SHOW_GYRO_CARD_PREF_STRING, showGyroCard)
                 .putBoolean(SHOW_QuickKeyCard, showQuickKeyCard)
+                .putBoolean(AUDIO_VIBRATION_ENABLE_PREF_STRING, enableAudioVibration)
+                .putInt(AUDIO_VIBRATION_STRENGTH_PREF_STRING, audioVibrationStrength)
+                .putString(AUDIO_VIBRATION_MODE_PREF_STRING, audioVibrationMode)
+                .putString(AUDIO_VIBRATION_SCENE_PREF_STRING, audioVibrationScene.toString())
                 .putString(SCREEN_POSITION_PREF_STRING, positionString)
                 .putInt(SCREEN_OFFSET_X_PREF_STRING, screenOffsetX)
                 .putInt(SCREEN_OFFSET_Y_PREF_STRING, screenOffsetY)
@@ -419,7 +425,12 @@ class PreferenceConfiguration {
         copy.gyroActivationKeyCode = this.gyroActivationKeyCode
         copy.gyroInvertXAxis = this.gyroInvertXAxis
         copy.gyroInvertYAxis = this.gyroInvertYAxis
+        copy.enableAudioVibration = this.enableAudioVibration
+        copy.audioVibrationStrength = this.audioVibrationStrength
+        copy.audioVibrationMode = this.audioVibrationMode
+        copy.audioVibrationScene = this.audioVibrationScene
         copy.showBitrateCard = this.showBitrateCard
+        copy.showAudioHapticsCard = this.showAudioHapticsCard
         copy.showGyroCard = this.showGyroCard
         copy.showQuickKeyCard = this.showQuickKeyCard
         return copy
@@ -492,6 +503,7 @@ class PreferenceConfiguration {
         private const val ABSOLUTE_MOUSE_MODE_PREF_STRING = "checkbox_absolute_mouse_mode"
         // Card visibility preferences
         private const val SHOW_BITRATE_CARD_PREF_STRING = "checkbox_show_bitrate_card"
+        private const val SHOW_AUDIO_HAPTICS_CARD_PREF_STRING = "checkbox_show_audio_haptics_card"
         private const val SHOW_GYRO_CARD_PREF_STRING = "checkbox_show_gyro_card"
         @Suppress("ConstPropertyName")
         private const val SHOW_QuickKeyCard = "checkbox_show_QuickKeyCard"
@@ -676,9 +688,9 @@ class PreferenceConfiguration {
         private const val DEFAULT_AUDIO_VIBRATION = false
         private const val DEFAULT_CLIPBOARD_SYNC_TEXT = false
         private const val DEFAULT_CLIPBOARD_SYNC_IMAGE = false
-        private const val DEFAULT_AUDIO_VIBRATION_STRENGTH = 80
-        private const val DEFAULT_AUDIO_VIBRATION_MODE = "auto"
-        private const val DEFAULT_AUDIO_VIBRATION_SCENE = 0 // Game/Movie
+        const val DEFAULT_AUDIO_VIBRATION_STRENGTH = 80
+        const val DEFAULT_AUDIO_VIBRATION_MODE = "auto"
+        const val DEFAULT_AUDIO_VIBRATION_SCENE = 0 // Game/Movie
         private const val DEFAULT_FLIP_FACE_BUTTONS = false
         private const val DEFAULT_TOUCHSCREEN_TRACKPAD = true
         private const val DEFAULT_AUDIO_CONFIG = "2" // Stereo
@@ -1336,6 +1348,10 @@ class PreferenceConfiguration {
 
             // Cards visibility (defaults to true)
             config.showBitrateCard = prefs.getBoolean(SHOW_BITRATE_CARD_PREF_STRING, true)
+            config.showAudioHapticsCard = prefs.getBoolean(
+                SHOW_AUDIO_HAPTICS_CARD_PREF_STRING,
+                config.enableAudioVibration
+            )
             config.showGyroCard = prefs.getBoolean(SHOW_GYRO_CARD_PREF_STRING, true)
             // 横屏时快捷卡片默认不开启
             val defaultQuickKeyCard = config.width <= config.height

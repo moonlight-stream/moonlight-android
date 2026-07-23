@@ -66,6 +66,7 @@ class GameMenu(
     private val handler = Handler(Looper.getMainLooper())
     private val actionExecutor = StreamActionExecutor(game, { conn }, handler)
     private val bitrateCardController = BitrateCardController(game, conn)
+    private val audioHapticsCardController = AudioHapticsCardController(game)
     private val gyroCardController = GyroCardController(game)
     init {
         showMenu()
@@ -587,6 +588,7 @@ class GameMenu(
                 quickActions = buildComposeQuickActions(),
                 visibleCards = readVisibleCards(),
                 bitrate = bitrateCardController.snapshot(),
+                audioHaptics = audioHapticsCardController.snapshot(),
                 gyro = gyroCardController.snapshot(),
                 customKeys = getSavedCustomKeys()
             )
@@ -594,6 +596,9 @@ class GameMenu(
         composeUiState = state
         bitrateCardController.start { bitrate ->
             composeUiState?.let { it.value = it.value.copy(bitrate = bitrate) }
+        }
+        audioHapticsCardController.start { audioHaptics ->
+            composeUiState?.let { it.value = it.value.copy(audioHaptics = audioHaptics) }
         }
         gyroCardController.start { gyro ->
             composeUiState?.let { it.value = it.value.copy(gyro = gyro) }
@@ -616,6 +621,12 @@ class GameMenu(
             onBitrateProgress = bitrateCardController::previewProgress,
             onBitrateApply = bitrateCardController::applySelectedBitrate,
             onBitrateHapticMode = bitrateCardController::cycleHapticMode,
+            onAudioHapticsEnabled = audioHapticsCardController::setEnabled,
+            onAudioHapticsStrength = audioHapticsCardController::previewStrength,
+            onAudioHapticsStrengthFinished = audioHapticsCardController::persistStrength,
+            onAudioHapticsMode = audioHapticsCardController::setMode,
+            onAudioHapticsScene = audioHapticsCardController::setScene,
+            onAudioHapticsReset = audioHapticsCardController::resetTuning,
             onGyroEnabled = gyroCardController::setEnabled,
             onGyroMouseMode = gyroCardController::setMouseMode,
             onGyroActivationKey = gyroCardController::showActivationKeyDialog,
@@ -656,6 +667,7 @@ class GameMenu(
             if (this.activeDialog == dialog) this.activeDialog = null
             this.composeUiState = null
             bitrateCardController.dispose()
+            audioHapticsCardController.dispose()
             gyroCardController.dispose()
             menuStack.clear()
             onDismiss(this)
@@ -724,6 +736,7 @@ class GameMenu(
     private fun readVisibleCards(): GameMenuVisibleCards {
         return GameMenuVisibleCards(
             bitrate = game.prefConfig.showBitrateCard,
+            audioHaptics = game.prefConfig.showAudioHapticsCard,
             gyro = game.prefConfig.showGyroCard,
             shortcuts = game.prefConfig.showQuickKeyCard
         )
@@ -732,14 +745,16 @@ class GameMenu(
     private fun showCardEditorDialog() {
         val items = arrayOf(
             getString(R.string.game_menu_tab_bitrate),
+            getString(R.string.game_menu_tab_audio_haptics),
             getString(R.string.game_menu_tab_gyro),
             getString(R.string.game_menu_tab_shortcuts)
         )
 
         val selected = setOfNotNull(
             0.takeIf { game.prefConfig.showBitrateCard },
-            1.takeIf { game.prefConfig.showGyroCard },
-            2.takeIf { game.prefConfig.showQuickKeyCard }
+            1.takeIf { game.prefConfig.showAudioHapticsCard },
+            2.takeIf { game.prefConfig.showGyroCard },
+            3.takeIf { game.prefConfig.showQuickKeyCard }
         )
         AppActionSheet.showMultiSelect(
             context = game,
@@ -752,8 +767,9 @@ class GameMenu(
             minimumSelectionCount = 1,
             onConfirm = { selectedIds ->
                 game.prefConfig.showBitrateCard = 0 in selectedIds
-                game.prefConfig.showGyroCard = 1 in selectedIds
-                game.prefConfig.showQuickKeyCard = 2 in selectedIds
+                game.prefConfig.showAudioHapticsCard = 1 in selectedIds
+                game.prefConfig.showGyroCard = 2 in selectedIds
+                game.prefConfig.showQuickKeyCard = 3 in selectedIds
                 game.prefConfig.writePreferences(game)
                 composeUiState?.let { state ->
                     state.value = state.value.copy(
@@ -1380,7 +1396,7 @@ class GameMenu(
     companion object {
         private const val TEST_GAME_FOCUS_DELAY = 10L
         // Keep Compose surfaces opaque and blend the dialog once at the window level.
-        private const val DIALOG_ALPHA = 0.7f
+        private const val DIALOG_ALPHA = 0.85f
         private const val DIALOG_DIM_AMOUNT = 0.0f
         private const val DIALOG_LANDSCAPE_WIDTH_FRACTION = 0.88f
         private const val DIALOG_PORTRAIT_WIDTH_FRACTION = 0.95f

@@ -821,6 +821,7 @@
     <string name="setting_native_mouse_enabled">原生鼠标：开启</string>
     <string name="setting_gyro_sensitivity">陀螺仪：%1$.1fx</string>
     <string name="setting_bitrate_card_enabled">码率卡片：开启</string>
+    <string name="setting_audio_haptics_card_enabled">音频振动卡片：开启</string>
     <string name="setting_gyro_card_enabled">陀螺仪卡片：开启</string>
     <string name="setting_QuickKey_card_enabled">特殊按键卡片：开启</string>
 
@@ -1268,8 +1269,15 @@
     <string name="toast_vibration_test_failed">震动测试失败: %s</string>
     <string name="toast_adjusting_bitrate">正在调整码率...</string>
     <string name="game_menu_tab_bitrate">码率调整 Bitrate</string>
+    <string name="game_menu_tab_audio_haptics">音频振动 Audio Haptics</string>
     <string name="game_menu_tab_gyro">体感助手 Gyro</string>
     <string name="game_menu_tab_shortcuts">特殊按键 Shortcuts</string>
+    <string name="game_menu_audio_haptics_reset">恢复音频振动默认调节</string>
+    <string name="game_menu_audio_haptics_pending_restart">已保存 · 下次串流生效</string>
+    <string name="game_menu_audio_haptics_strength_value">%1$d%%</string>
+    <string name="game_menu_audio_haptics_route_device_short">设备</string>
+    <string name="game_menu_audio_haptics_route_gamepad_short">手柄</string>
+    <string name="game_menu_audio_haptics_route_both_short">两者</string>
     <string name="game_menu_card_config_title">卡片配置</string>
     <string name="toast_enable_mic_redirect">请在设置中开启麦克风重定向</string>
     <string name="game_menu_enable_pan_zoom">平移与缩放</string>

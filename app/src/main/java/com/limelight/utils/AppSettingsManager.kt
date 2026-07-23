@@ -160,6 +160,9 @@ class AppSettingsManager(private val context: Context) {
         if (settings.showBitrateCard) {
             summary.append(" | ").append(context.getString(R.string.setting_bitrate_card_enabled))
         }
+        if (settings.showAudioHapticsCard) {
+            summary.append(" | ").append(context.getString(R.string.setting_audio_haptics_card_enabled))
+        }
         if (settings.showGyroCard) {
             summary.append(" | ").append(context.getString(R.string.setting_gyro_card_enabled))
         }
@@ -227,6 +230,7 @@ class AppSettingsManager(private val context: Context) {
             put("gyroInvertYAxis", settings.gyroInvertYAxis)
             put("gyroActivationKeyCode", settings.gyroActivationKeyCode)
             put("showBitrateCard", settings.showBitrateCard)
+            put("showAudioHapticsCard", settings.showAudioHapticsCard)
             put("showGyroCard", settings.showGyroCard)
             put("showQuickKeyCard", settings.showQuickKeyCard)
             put("timestamp", System.currentTimeMillis())
@@ -246,6 +250,7 @@ class AppSettingsManager(private val context: Context) {
         settings.reverseResolution = false
         settings.rotableScreen = false
         settings.showBitrateCard = false
+        settings.showAudioHapticsCard = false
         settings.showGyroCard = false
         settings.showQuickKeyCard = false
 
@@ -275,6 +280,7 @@ class AppSettingsManager(private val context: Context) {
         settings.gyroInvertYAxis = settingsJson.optBoolean("gyroInvertYAxis", false)
         settings.gyroActivationKeyCode = settingsJson.optInt("gyroActivationKeyCode", KeyEvent.KEYCODE_BUTTON_L2)
         settings.showBitrateCard = settingsJson.optBoolean("showBitrateCard", true)
+        settings.showAudioHapticsCard = settingsJson.optBoolean("showAudioHapticsCard", false)
         settings.showGyroCard = settingsJson.optBoolean("showGyroCard", true)
         settings.showQuickKeyCard = settingsJson.optBoolean("showQuickKeyCard", true)
 
@@ -343,6 +349,7 @@ class AppSettingsManager(private val context: Context) {
             prefConfig.gyroInvertYAxis = intent.getBooleanExtra(INTENT_LAST_SETTINGS_GYRO_INVERT_Y, prefConfig.gyroInvertYAxis)
             prefConfig.gyroActivationKeyCode = intent.getIntExtra(INTENT_LAST_SETTINGS_GYRO_ACTIVATION_KEY, prefConfig.gyroActivationKeyCode)
             prefConfig.showBitrateCard = intent.getBooleanExtra(INTENT_LAST_SETTINGS_SHOW_BITRATE_CARD, prefConfig.showBitrateCard)
+            prefConfig.showAudioHapticsCard = intent.getBooleanExtra(INTENT_LAST_SETTINGS_SHOW_AUDIO_HAPTICS_CARD, prefConfig.showAudioHapticsCard)
             prefConfig.showGyroCard = intent.getBooleanExtra(INTENT_LAST_SETTINGS_SHOW_GYRO_CARD, prefConfig.showGyroCard)
             prefConfig.showQuickKeyCard = intent.getBooleanExtra(INTENT_LAST_SETTINGS_SHOW_QuickKeyCard, prefConfig.showQuickKeyCard)
 
@@ -389,6 +396,7 @@ class AppSettingsManager(private val context: Context) {
         private const val INTENT_LAST_SETTINGS_GYRO_INVERT_Y = "LastSettingsGyroInvertY"
         private const val INTENT_LAST_SETTINGS_GYRO_ACTIVATION_KEY = "LastSettingsGyroActivationKey"
         private const val INTENT_LAST_SETTINGS_SHOW_BITRATE_CARD = "LastSettingsShowBitrateCard"
+        private const val INTENT_LAST_SETTINGS_SHOW_AUDIO_HAPTICS_CARD = "LastSettingsShowAudioHapticsCard"
         private const val INTENT_LAST_SETTINGS_SHOW_GYRO_CARD = "LastSettingsShowGyroCard"
         private const val INTENT_LAST_SETTINGS_SHOW_QuickKeyCard = "LastSettingsshowQuickKeyCard"
 
@@ -415,6 +423,7 @@ class AppSettingsManager(private val context: Context) {
             intent.putExtra(INTENT_LAST_SETTINGS_GYRO_INVERT_Y, lastSettings.gyroInvertYAxis)
             intent.putExtra(INTENT_LAST_SETTINGS_GYRO_ACTIVATION_KEY, lastSettings.gyroActivationKeyCode)
             intent.putExtra(INTENT_LAST_SETTINGS_SHOW_BITRATE_CARD, lastSettings.showBitrateCard)
+            intent.putExtra(INTENT_LAST_SETTINGS_SHOW_AUDIO_HAPTICS_CARD, lastSettings.showAudioHapticsCard)
             intent.putExtra(INTENT_LAST_SETTINGS_SHOW_GYRO_CARD, lastSettings.showGyroCard)
             intent.putExtra(INTENT_LAST_SETTINGS_SHOW_QuickKeyCard, lastSettings.showQuickKeyCard)
         }

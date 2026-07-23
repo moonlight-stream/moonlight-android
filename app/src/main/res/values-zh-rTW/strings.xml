@@ -397,4 +397,12 @@
     <string name="wheel_alignment_title">對齊方式</string>
     <string name="wheel_alignment_center">分區中線朝上</string>
     <string name="wheel_alignment_edge">分區邊線朝上</string>
+    <string name="setting_audio_haptics_card_enabled">音訊振動卡片：開啟</string>
+    <string name="game_menu_tab_audio_haptics">音訊振動 Audio Haptics</string>
+    <string name="game_menu_audio_haptics_reset">恢復音訊振動預設調節</string>
+    <string name="game_menu_audio_haptics_pending_restart">已儲存 · 下次串流生效</string>
+    <string name="game_menu_audio_haptics_strength_value">%1$d%%</string>
+    <string name="game_menu_audio_haptics_route_device_short">裝置</string>
+    <string name="game_menu_audio_haptics_route_gamepad_short">手把</string>
+    <string name="game_menu_audio_haptics_route_both_short">兩者</string>
 </resources>

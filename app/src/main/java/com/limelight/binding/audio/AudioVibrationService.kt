@@ -38,10 +38,20 @@ import com.moonlight.haptics.android.NativeHapticsSession
  */
 class AudioVibrationService(context: Context) {
 
-    private var enabled = false
-    private var strength = 100       // 0-200; values above 100 are boost headroom
-    private var vibrationMode = MODE_AUTO
-    private var sceneMode = SCENE_GAME
+    private data class RuntimeSettings(
+        val enabled: Boolean,
+        val strength: Int,
+        val vibrationMode: String,
+        val sceneMode: Int
+    )
+
+    @Volatile
+    private var runtimeSettings = RuntimeSettings(
+        enabled = false,
+        strength = 100, // 0-200; values above 100 are boost headroom
+        vibrationMode = MODE_AUTO,
+        sceneMode = SCENE_GAME
+    )
 
     // State
     private var lastIntensity = 0
@@ -73,6 +83,9 @@ class AudioVibrationService(context: Context) {
     val nativeSessionHandle: Long
         get() = nativeSession?.nativeHandle ?: 0L
 
+    val systemAudioCoupledDeviceActive: Boolean
+        get() = isSystemAudioCoupledDeviceActive
+
     // Gamepad rumble handler (optional, set externally)
     var controllerHandler: ControllerHandler? = null
         set(value) {
@@ -85,7 +98,7 @@ class AudioVibrationService(context: Context) {
         nativeSession = if (BuildConfig.AUDIO_HAPTICS_OUTPUT) {
             NativeHapticsSession(
                 listener = { frame -> handleHapticFrame(frame) },
-                initialScene = sceneMode
+                initialScene = runtimeSettings.sceneMode
             )
         } else {
             null
@@ -151,29 +164,39 @@ class AudioVibrationService(context: Context) {
     }
 
     fun setSettings(enabled: Boolean, strength: Int, vibrationMode: String, sceneMode: Int) {
-        this.enabled = enabled
-        this.strength = strength.coerceIn(0, MAX_STRENGTH)
-        this.vibrationMode = vibrationMode
-        this.sceneMode = sceneMode
-        val onsetSensitivity = if (this.sceneMode == SCENE_MUSIC) {
-            MUSIC_ONSET_SENSITIVITY
-        } else {
-            DEFAULT_ONSET_SENSITIVITY
-        }
-        nativeSession?.setSensitivity(onsetSensitivity)
-        nativeSession?.setScene(this.sceneMode)
-        LimeLog.info(
-            "AudioVibration: scene=${this.sceneMode}, sensitivity=$onsetSensitivity, " +
-                "strength=${this.strength}"
+        val previous = runtimeSettings
+        val updated = RuntimeSettings(
+            enabled = enabled,
+            strength = strength.coerceIn(0, MAX_STRENGTH),
+            vibrationMode = vibrationMode,
+            sceneMode = sceneMode
         )
+        if (updated.sceneMode != previous.sceneMode) {
+            val onsetSensitivity = if (updated.sceneMode == SCENE_MUSIC) {
+                MUSIC_ONSET_SENSITIVITY
+            } else {
+                DEFAULT_ONSET_SENSITIVITY
+            }
+            nativeSession?.setSensitivity(onsetSensitivity)
+            nativeSession?.setScene(updated.sceneMode)
+        }
+        runtimeSettings = updated
+        if (updated.enabled != previous.enabled ||
+            updated.vibrationMode != previous.vibrationMode ||
+            updated.sceneMode != previous.sceneMode
+        ) {
+            LimeLog.info(
+                "AudioVibration: scene=${updated.sceneMode}, strength=${updated.strength}"
+            )
+        }
 
-        if (!enabled) {
+        if (!updated.enabled) {
             stopAll()
         }
     }
 
     val sceneModeInt: Int
-        get() = sceneMode
+        get() = runtimeSettings.sceneMode
 
     /**
      * Handle bass energy from native layer.
@@ -182,7 +205,8 @@ class AudioVibrationService(context: Context) {
      * @param lowFreqRatio Low-frequency energy ratio (0-100), for motor allocation
      */
     fun handleBassEnergy(intensity: Int, lowFreqRatio: Int) {
-        if (!enabled) return
+        val settings = runtimeSettings
+        if (!settings.enabled) return
 
         if (intensity == 0) {
             if (isDeviceVibrating || isGamepadRumbling) {
@@ -191,7 +215,7 @@ class AudioVibrationService(context: Context) {
             return
         }
 
-        val effectiveIntensity = (intensity * strength / 100).coerceIn(0, 100)
+        val effectiveIntensity = (intensity * settings.strength / 100).coerceIn(0, 100)
         if (effectiveIntensity < 5) {
             if (isDeviceVibrating || isGamepadRumbling) {
                 stopAll()
@@ -201,13 +225,14 @@ class AudioVibrationService(context: Context) {
 
         // Debounce
         val now = System.currentTimeMillis()
-        val minInterval = if (isMusicScene()) MIN_INTERVAL_MUSIC_MS else MIN_INTERVAL_GAME_MS
+        val isMusic = isMusicScene(settings.sceneMode)
+        val minInterval = if (isMusic) MIN_INTERVAL_MUSIC_MS else MIN_INTERVAL_GAME_MS
         if (now - lastVibrationTime < minInterval) {
             return
         }
 
         // Skip if change too small
-        val changeTolerance = if (isMusicScene()) 3 else 8
+        val changeTolerance = if (isMusic) 3 else 8
         if ((isDeviceVibrating || isGamepadRumbling) &&
             Math.abs(effectiveIntensity - lastIntensity) < changeTolerance
         ) {
@@ -219,17 +244,17 @@ class AudioVibrationService(context: Context) {
         lastVibrationTime = now
 
         // Route vibration
-        val shouldDevice = shouldVibrateDevice()
-        val shouldGamepad = shouldVibrateGamepad()
+        val shouldDevice = shouldVibrateDevice(settings.vibrationMode)
+        val shouldGamepad = shouldVibrateGamepad(settings.vibrationMode)
 
         if (shouldDevice && !isSystemAudioCoupledDeviceActive) {
-            triggerDeviceVibration(effectiveIntensity)
+            triggerDeviceVibration(effectiveIntensity, isMusic)
         } else if (isDeviceVibrating) {
             stopDeviceVibration()
         }
 
         if (shouldGamepad) {
-            triggerGamepadRumble(effectiveIntensity, lowFreqRatio)
+            triggerGamepadRumble(effectiveIntensity, lowFreqRatio, isMusic)
         } else if (isGamepadRumbling) {
             stopGamepadRumble()
         }
@@ -240,17 +265,17 @@ class AudioVibrationService(context: Context) {
      * This is mutually exclusive with handleBassEnergy() at the Game integration layer.
      */
     private fun handleHapticFrame(frame: HapticFrame) {
-        if (!enabled || frame.timestampUs < lastHapticTimestampUs) return
+        val settings = runtimeSettings
+        if (!settings.enabled || frame.timestampUs < lastHapticTimestampUs) return
         lastHapticTimestampUs = frame.timestampUs
 
-        if (frame.activeScene in SCENE_GAME..SCENE_AUTO) {
-            sceneMode = frame.activeScene
-        }
+        val activeScene = frame.activeScene.takeIf { it in SCENE_GAME..SCENE_AUTO }
+            ?: settings.sceneMode
 
         val hasTransient = frame.hasFlag(HapticFrame.FLAG_TRANSIENT)
         val continuousChanged = frame.hasFlag(HapticFrame.FLAG_CONTINUOUS_CHANGED)
         val shouldStop = frame.hasFlag(HapticFrame.FLAG_STOP)
-        val isMusic = sceneMode == SCENE_MUSIC
+        val isMusic = activeScene == SCENE_MUSIC
         if (shouldStop) {
             stopSdkOutput()
             if (!hasTransient) return
@@ -303,10 +328,10 @@ class AudioVibrationService(context: Context) {
         // Core owns scene authoring. The host applies only the user's global
         // strength; the SDK renderer maps portable intent to actuator limits.
         val continuous = (
-            frame.continuousAmplitude.coerceIn(0f, 1f) * strength / 100f
+            frame.continuousAmplitude.coerceIn(0f, 1f) * settings.strength / 100f
         ).coerceIn(0f, 1f)
         val transient = (
-            frame.transientAmplitude.coerceIn(0f, 1f) * strength / 100f
+            frame.transientAmplitude.coerceIn(0f, 1f) * settings.strength / 100f
         ).coerceIn(0f, 1f)
         val transientDurationMs = frame.transientDurationMs
         val musicGrooveBedActive = isMusic && continuous >= MIN_IR_AMPLITUDE
@@ -326,7 +351,7 @@ class AudioVibrationService(context: Context) {
         lastIntensity = (selectedAmplitude * 100f).toInt().coerceIn(0, 100)
         lastLowFreqRatio = (frame.lowBandRatio.coerceIn(0f, 1f) * 100f).toInt()
 
-        if (shouldVibrateDevice() && !isSystemAudioCoupledDeviceActive) {
+        if (shouldVibrateDevice(settings.vibrationMode) && !isSystemAudioCoupledDeviceActive) {
             val accepted = sdkDeviceRenderer.submit(
                 frame.timestampUs,
                 rendererFlags,
@@ -353,7 +378,7 @@ class AudioVibrationService(context: Context) {
             lastMusicGrooveBedAmplitude = 0f
         }
 
-        if (shouldVibrateGamepad()) {
+        if (shouldVibrateGamepad(settings.vibrationMode)) {
             val lowBandRatio = frame.lowBandRatio.coerceIn(0f, 1f)
             val sharpness = frame.sharpness.coerceIn(0f, 1f)
             val continuousLow = continuous * (0.55f + 0.45f * lowBandRatio)
@@ -386,10 +411,11 @@ class AudioVibrationService(context: Context) {
 
     /** True when Android's system audio-coupled backend should own the phone motor. */
     fun wantsSystemAudioCoupledDeviceHaptics(): Boolean {
+        val settings = runtimeSettings
         return shouldRequestSystemAudioCoupledHaptics(
-            enabled,
-            sceneMode,
-            vibrationMode,
+            settings.enabled,
+            settings.sceneMode,
+            settings.vibrationMode,
             hasConnectedGamepad()
         )
     }
@@ -438,16 +464,16 @@ class AudioVibrationService(context: Context) {
 
     // ==================== Scene detection ====================
 
-    private fun isMusicScene(): Boolean {
+    private fun isMusicScene(sceneMode: Int): Boolean {
         return sceneMode == SCENE_MUSIC || sceneMode == SCENE_AUTO
     }
 
     // ==================== Routing ====================
 
-    private fun shouldVibrateDevice(): Boolean =
+    private fun shouldVibrateDevice(vibrationMode: String): Boolean =
         shouldRouteAudioToDevice(vibrationMode, hasConnectedGamepad())
 
-    private fun shouldVibrateGamepad(): Boolean =
+    private fun shouldVibrateGamepad(vibrationMode: String): Boolean =
         shouldRouteAudioToGamepad(vibrationMode, hasConnectedGamepad())
 
     private fun hasConnectedGamepad(): Boolean =
@@ -455,7 +481,7 @@ class AudioVibrationService(context: Context) {
 
     // ==================== Device Vibration ====================
 
-    private fun triggerDeviceVibration(intensity: Int) {
+    private fun triggerDeviceVibration(intensity: Int, isMusic: Boolean) {
         if (deviceVibrator == null || !deviceVibrator.hasVibrator()) {
             return
         }
@@ -465,7 +491,7 @@ class AudioVibrationService(context: Context) {
         }
 
         try {
-            if (isMusicScene()) {
+            if (isMusic) {
                 triggerMusicVibration(intensity)
             } else {
                 triggerGameVibration(intensity)
@@ -638,13 +664,17 @@ class AudioVibrationService(context: Context) {
      * - High ratio → explosion/bass → low-freq motor dominant
      * - Low ratio → crisp/high-pitched → high-freq motor dominant
      */
-    private fun triggerGamepadRumble(intensity: Int, lowFreqRatio: Int) {
+    private fun triggerGamepadRumble(
+        intensity: Int,
+        lowFreqRatio: Int,
+        isMusic: Boolean
+    ) {
         val handler = controllerHandler ?: return
         val amplitude = (intensity / 100f).coerceIn(0f, 1f)
         val lowSupport = (lowFreqRatio / 100f).coerceIn(0f, 1f)
         val lowFrequency = amplitude * (0.35f + 0.65f * lowSupport)
         val highFrequency = amplitude * (0.35f + 0.65f * (1f - lowSupport))
-        val continuous = !isMusicScene()
+        val continuous = !isMusic
         val durationMs = if (continuous) {
             50 + intensity * 250 / 100
         } else {
@@ -722,7 +752,7 @@ class AudioVibrationService(context: Context) {
         private const val MIN_INTERVAL_GAME_MS: Long = 25
         private const val MIN_INTERVAL_MUSIC_MS: Long = 15
         private const val MIN_IR_AMPLITUDE = 0.05f
-        private const val MAX_STRENGTH = 200
+        const val MAX_STRENGTH = 200
         private const val DEFAULT_ONSET_SENSITIVITY = 1.0f
         private const val MUSIC_ONSET_SENSITIVITY = 2.5f
 

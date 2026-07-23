@@ -1029,6 +1029,7 @@
     <string name="setting_native_mouse_enabled">Native Mouse: Enabled</string>
     <string name="setting_gyro_sensitivity">Gyroscope: %1$.1fx</string>
     <string name="setting_bitrate_card_enabled">Bitrate Card: Enabled</string>
+    <string name="setting_audio_haptics_card_enabled">Audio Haptics Card: Enabled</string>
     <string name="setting_gyro_card_enabled">Gyro Card: Enabled</string>
     <string name="setting_QuickKey_card_enabled">Special key card: Activate</string>
 
@@ -1519,8 +1520,15 @@ Tap again to replace it.</string>
     <string name="dialog_button_start">Start</string>
     <string name="dialog_button_stop">Stop</string>
     <string name="game_menu_tab_bitrate">Bitrate</string>
+    <string name="game_menu_tab_audio_haptics">Audio Haptics</string>
     <string name="game_menu_tab_gyro">Gyro</string>
     <string name="game_menu_tab_shortcuts">Shortcuts</string>
+    <string name="game_menu_audio_haptics_reset">Reset audio haptics tuning</string>
+    <string name="game_menu_audio_haptics_pending_restart">Saved · applies next stream</string>
+    <string name="game_menu_audio_haptics_strength_value">%1$d%%</string>
+    <string name="game_menu_audio_haptics_route_device_short">Device</string>
+    <string name="game_menu_audio_haptics_route_gamepad_short">Gamepad</string>
+    <string name="game_menu_audio_haptics_route_both_short">Both</string>
     <string name="game_menu_card_config_title">Visible Cards</string>
     <string name="toast_enable_mic_redirect">Enable microphone redirection in Settings first</string>
     <string name="game_menu_enable_pan_zoom">Pan and Zoom</string>

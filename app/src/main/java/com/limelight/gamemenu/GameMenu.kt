@@ -1,4 +1,4 @@
-package com.limelight
+package com.limelight.gamemenu
 
 import android.app.Activity
 import android.app.AlertDialog
@@ -19,12 +19,20 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.ComponentDialog
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.activity.ComponentDialog
+import androidx.core.content.edit
 import com.google.gson.JsonArray
+import com.limelight.CustomKeyData
+import com.limelight.CustomKeyRepository
+import com.limelight.Game
+import com.limelight.LimeLog
+import com.limelight.QuickActionRegistry
+import com.limelight.R
+import com.limelight.StreamActionExecutor
 import com.limelight.binding.input.GameInputDevice
 import com.limelight.binding.input.KeyboardTranslator
 import com.limelight.binding.input.advance_setting.config.PageConfigController
@@ -40,7 +48,6 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.util.ArrayDeque
-import androidx.core.content.edit
 
 /** Int → Short 快捷转换 */
 private fun Int.s(): Short = this.toShort()

@@ -15,7 +15,7 @@ import android.view.InputDevice
 import android.view.MotionEvent
 import android.widget.Toast
 
-import com.limelight.GameMenu
+import com.limelight.gamemenu.GameMenu
 import com.limelight.R
 import com.limelight.binding.input.driver.AbstractController
 import com.limelight.nvstream.input.ControllerPacket

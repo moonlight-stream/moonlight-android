@@ -1,4 +1,4 @@
-package com.limelight
+package com.limelight.gamemenu
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

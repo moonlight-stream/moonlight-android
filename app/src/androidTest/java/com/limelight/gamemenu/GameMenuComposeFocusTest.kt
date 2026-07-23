@@ -1,4 +1,4 @@
-package com.limelight
+package com.limelight.gamemenu
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -27,6 +27,7 @@ import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.limelight.R
 import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Assert.assertFalse
 import org.junit.Rule

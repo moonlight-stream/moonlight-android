@@ -1,8 +1,10 @@
-package com.limelight
+package com.limelight.gamemenu
 
 import android.app.AlertDialog
 import android.view.KeyEvent
 import android.widget.Toast
+import com.limelight.Game
+import com.limelight.R
 import com.limelight.binding.input.ControllerHandler
 import com.limelight.utils.AppDialogStyler
 

@@ -1,4 +1,4 @@
-package com.limelight
+package com.limelight.binding.audio
 
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

@@ -1,14 +1,9 @@
-package com.limelight
+package com.limelight.gamemenu
 
+import com.limelight.Game
+import com.limelight.binding.audio.AudioHapticsSettings
 import com.limelight.binding.audio.AudioVibrationService
 import com.limelight.preferences.PreferenceConfiguration
-
-internal data class AudioHapticsSettings(
-    val enabled: Boolean,
-    val strength: Int,
-    val mode: String,
-    val scene: Int
-)
 
 internal data class AudioHapticsCardState(
     val enabled: Boolean,
@@ -17,16 +12,6 @@ internal data class AudioHapticsCardState(
     val scene: Int,
     val pendingRestart: Boolean
 )
-
-internal object AudioHapticsRuntimePolicy {
-    fun canApplyImmediately(
-        systemAudioCoupledActive: Boolean,
-        applied: AudioHapticsSettings,
-        desired: AudioHapticsSettings
-    ): Boolean {
-        return !systemAudioCoupledActive || applied == desired
-    }
-}
 
 /**
  * Owns the Game Menu audio-haptics state.

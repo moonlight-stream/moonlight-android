@@ -86,28 +86,6 @@
     <issue
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
-        errorLine1="                String.format(&quot;%.1f Mbps&quot;, kbps / 1000.0)"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/limelight/BitrateCardController.kt"
-            line="93"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
-        errorLine1="                String.format(&quot;%d Mbps&quot;, kbps / 1000)"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/limelight/BitrateCardController.kt"
-            line="95"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
         errorLine1="            card.keyValue(tr(R.string.diag_refresh_rate), String.format(&quot;%.1f Hz&quot;, rr))"
         errorLine2="                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location

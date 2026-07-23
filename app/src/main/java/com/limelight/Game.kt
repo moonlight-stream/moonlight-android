@@ -4,6 +4,8 @@ package com.limelight
 import com.limelight.binding.PlatformBinding
 import com.limelight.binding.audio.AndroidAudioRenderer
 import com.limelight.binding.audio.AudioDiagnostics
+import com.limelight.binding.audio.AudioHapticsRuntimePolicy
+import com.limelight.binding.audio.AudioHapticsSettings
 import com.limelight.binding.audio.AudioVibrationService
 import com.limelight.binding.audio.MicrophoneManager
 import com.limelight.binding.input.ControllerHandler
@@ -27,6 +29,7 @@ import com.limelight.framegen.FramegenInterceptor
 import com.limelight.framegen.FramegenPerformanceEnricher
 import com.limelight.framegen.FramegenRuntimeConfig
 import com.limelight.framegen.FramegenRuntimePlanner
+import com.limelight.gamemenu.GameMenu
 import com.limelight.binding.video.MediaCodecHelper
 import com.limelight.binding.video.PerfOverlayListener
 import com.limelight.binding.video.PerformanceInfo

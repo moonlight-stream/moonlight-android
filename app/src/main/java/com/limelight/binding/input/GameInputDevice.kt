@@ -1,6 +1,6 @@
 package com.limelight.binding.input
 
-import com.limelight.GameMenu
+import com.limelight.gamemenu.GameMenu
 
 /**
  * Generic Input Device

@@ -1,9 +1,12 @@
-package com.limelight
+package com.limelight.gamemenu
 
 import android.content.Context
 import android.widget.Toast
 import androidx.core.content.edit
+import com.limelight.Game
+import com.limelight.R
 import com.limelight.nvstream.NvConnection
+import java.util.Locale
 import kotlin.math.roundToInt
 
 internal data class BitrateCardState(
@@ -75,9 +78,9 @@ internal class BitrateCardController(
 
         fun formatBitrateMbps(kbps: Int): String {
             return if (kbps % 1000 != 0) {
-                String.format("%.1f Mbps", kbps / 1000.0)
+                String.format(Locale.US, "%.1f Mbps", kbps / 1000.0)
             } else {
-                String.format("%d Mbps", kbps / 1000)
+                String.format(Locale.US, "%d Mbps", kbps / 1000)
             }
         }
     }

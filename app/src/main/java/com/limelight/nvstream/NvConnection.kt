@@ -417,7 +417,14 @@ open class NvConnection(
                 context.connListener.stageComplete(appName)
             } catch (e: HostHttpResponseException) {
                 e.printStackTrace()
-                context.connListener.displayMessage(e.message)
+                val hostMessage = when (e.getSunshineErrorCode()) {
+                    "VDD_NOT_SUPPORTED" ->
+                        appContext.getString(R.string.error_vdd_unsupported)
+                    "VDD_DRIVER_MISSING", "VDD_DRIVER_UNREACHABLE" ->
+                        appContext.getString(R.string.error_vdd_unavailable)
+                    else -> e.message
+                }
+                context.connListener.displayMessage(hostMessage)
                 context.connListener.stageFailed(appName, 0, e.getErrorCode())
                 return@Thread
             } catch (e: XmlPullParserException) {

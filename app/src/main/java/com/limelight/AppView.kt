@@ -991,11 +991,14 @@ class AppView : Activity(), AdapterFragmentCallbacks {
 
         uiScope.launch {
             try {
-                val displays = withContext(Dispatchers.IO) {
-                    getHostHttpClient()?.getDisplays() ?: emptyList()
+                val catalog = withContext(Dispatchers.IO) {
+                    getHostHttpClient()?.getDisplays()
                 }
-                if (displays.isNotEmpty()) {
-                    updateDisplaySelectionUI(displays)
+                val supportsVdd =
+                    (computer?.vddCapabilityVersion ?: 0) > 0 &&
+                        (catalog?.vddCapabilityVersion ?: 0) > 0
+                if (catalog != null && (catalog.displays.isNotEmpty() || supportsVdd)) {
+                    updateDisplaySelectionUI(catalog, supportsVdd)
                 } else {
                     displaySelectionInfo.visibility = View.GONE
                     constrainTopPanelHeight()
@@ -1013,7 +1016,11 @@ class AppView : Activity(), AdapterFragmentCallbacks {
      *
      * @param displays 显示器列表
      */
-    private fun updateDisplaySelectionUI(displays: List<DisplayInfo>) {
+    private fun updateDisplaySelectionUI(
+        catalog: NvHTTP.DisplayCatalog,
+        supportsVdd: Boolean
+    ) {
+        val displays = catalog.displays
         availableDisplays = displays
         displayRadioGroup.removeAllViews()
 
@@ -1028,9 +1035,24 @@ class AppView : Activity(), AdapterFragmentCallbacks {
             displayRadioGroup.addView(createDisplayRadioButton(i, displayName))
         }
 
-        displayRadioGroup.addView(createDisplayRadioButton(
-                VIRTUAL_DISPLAY_ID,
-                resources.getString(R.string.applist_menu_start_with_vdd)))
+        if (supportsVdd) {
+            val vddReady = catalog.vddState == NvHTTP.VddState.READY
+            val vddLabel = if (vddReady) {
+                resources.getString(R.string.applist_menu_start_with_vdd)
+            } else {
+                resources.getString(
+                    R.string.applist_vdd_unavailable,
+                    resources.getString(R.string.applist_menu_start_with_vdd).trim()
+                )
+            }
+            displayRadioGroup.addView(
+                createDisplayRadioButton(
+                    VIRTUAL_DISPLAY_ID,
+                    vddLabel,
+                    enabled = vddReady
+                )
+            )
+        }
 
         displaySelectionInfo.visibility = View.VISIBLE
         displayRadioGroup.clearCheck()
@@ -1045,7 +1067,11 @@ class AppView : Activity(), AdapterFragmentCallbacks {
      * @param text 按钮文本
      * @return 配置好的单选按钮
      */
-    private fun createDisplayRadioButton(id: Int, text: String): RadioButton {
+    private fun createDisplayRadioButton(
+        id: Int,
+        text: String,
+        enabled: Boolean = true
+    ): RadioButton {
         val radioButton = RadioButton(this)
         radioButton.id = id
         radioButton.layoutParams = RadioGroup.LayoutParams(
@@ -1058,6 +1084,8 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         radioButton.typeface = android.graphics.Typeface.create("sans-serif-light", android.graphics.Typeface.NORMAL)
         radioButton.buttonTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt())
         radioButton.setPadding(0, 0, 20, 0)
+        radioButton.isEnabled = enabled
+        radioButton.alpha = if (enabled) 1f else 0.55f
         return radioButton
     }
 

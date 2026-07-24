@@ -70,6 +70,10 @@
             <category android:name="android.intent.category.BROWSABLE" />
             <data android:scheme="https" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.APP_BROWSER" />
+        </intent>
     </queries>
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -217,6 +221,17 @@
             android:enableOnBackInvokedCallback="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:label="@string/pcview_menu_open_webui">
+            <meta-data android:name="WindowManagerPreference:FreeformWindowSize" android:value="system-default" />
+            <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
+        </activity>
+        <activity
+            android:name=".handbook.HandbookActivity"
+            android:exported="false"
+            android:theme="@style/SettingsThemeCompat"
+            android:resizeableActivity="true"
+            android:enableOnBackInvokedCallback="true"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
+            android:label="@string/title_document_handbook">
             <meta-data android:name="WindowManagerPreference:FreeformWindowSize" android:value="system-default" />
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
         </activity>

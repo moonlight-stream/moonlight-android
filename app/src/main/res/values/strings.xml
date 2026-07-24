@@ -1796,4 +1796,19 @@ Tap again to replace it.</string>
 
     <string name="iperf_output_title">Test output</string>
     <string name="iperf_output_empty_hint">Test results and detailed logs will appear here.</string>
+
+    <!-- Secure document handbook -->
+    <string name="title_document_handbook">Document</string>
+    <string name="summary_document_handbook">View related documents</string>
+    <string name="handbook_back">Back</string>
+    <string name="handbook_exit">Exit handbook</string>
+    <string name="handbook_previous_page">Previous page</string>
+    <string name="handbook_next_page">Next page</string>
+    <string name="handbook_document_center_title">Document</string>
+    <string name="handbook_loading">Loading handbook…</string>
+    <string name="handbook_error_network">The network is unavailable. Please try again later.</string>
+    <string name="handbook_error_timeout">The handbook took too long to respond. Please try again.</string>
+    <string name="handbook_error_unavailable">The handbook is temporarily unavailable. Please try again later.</string>
+    <string name="handbook_retry">Tap to retry</string>
+    <string name="title_about_us">About Us</string>
 </resources>

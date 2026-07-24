@@ -294,4 +294,7 @@
     <string name="screen_mode_exclusive_streaming_desc">Usa solo il display selezionato e disattiva gli altri display.</string>
     <string name="screen_combination_mode_label">Modalità: %1$s</string>
     <string name="title_config_sync_backup_password">Password di crittografia del backup</string>
+    <string name="title_document_handbook">Documentazione</string>
+    <string name="summary_document_handbook">Visualizza la documentazione correlata</string>
+    <string name="title_about_us">Chi siamo</string>
 </resources>

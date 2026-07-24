@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/handbook_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/advance_setting_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:background="@color/crown_panel_background"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingEnd="8dp">
+
+            <ImageButton
+                android:id="@+id/handbook_exit_button"
+                android:layout_width="56dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/handbook_exit"
+                android:padding="16dp"
+                android:src="@drawable/phc_action_exit"
+                app:tint="@color/crown_text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center_vertical"
+                android:text="@string/title_document_handbook"
+                android:textColor="@color/crown_text_primary"
+                android:textSize="19sp" />
+
+            <ImageButton
+                android:id="@+id/handbook_previous_button"
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:alpha="0.35"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/handbook_previous_page"
+                android:enabled="false"
+                android:padding="14dp"
+                android:rotation="180"
+                android:src="@drawable/ic_chevron_right"
+                app:tint="@color/crown_text_primary" />
+
+            <ImageButton
+                android:id="@+id/handbook_next_button"
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:alpha="0.35"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/handbook_next_page"
+                android:enabled="false"
+                android:padding="14dp"
+                android:src="@drawable/ic_chevron_right"
+                app:tint="@color/crown_text_primary" />
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <FrameLayout
+                android:id="@+id/handbook_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="invisible" />
+
+            <LinearLayout
+                android:id="@+id/handbook_loading"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/advance_setting_background"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ProgressBar
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:indeterminateTint="@color/crown_accent" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/handbook_loading"
+                    android:textColor="@color/crown_text_secondary"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/handbook_error"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/advance_setting_background"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingStart="28dp"
+                android:paddingEnd="28dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/handbook_error_message"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/crown_text_primary"
+                    android:textSize="15sp" />
+
+                <Button
+                    android:id="@+id/handbook_retry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="18dp"
+                    android:backgroundTint="@color/crown_accent"
+                    android:minWidth="132dp"
+                    android:text="@string/handbook_retry"
+                    android:textColor="@color/crown_panel_background" />
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

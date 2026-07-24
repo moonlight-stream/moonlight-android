@@ -942,6 +942,13 @@
             android:summary="@string/summary_troubleshooting"
             url="https://github.com/moonlight-stream/moonlight-docs/wiki/Troubleshooting"/> -->
         <Preference
+            android:key="documentation_handbook"
+            android:title="@string/title_document_handbook"
+            android:summary="@string/summary_document_handbook" />
+        <Preference
+            android:key="about_us"
+            android:title="@string/title_about_us" />
+        <Preference
             android:key="check_for_updates"
             android:title="@string/check_for_updates"
             android:summary="@string/summary_check_for_updates" />

@@ -9,6 +9,7 @@ import android.text.style.LeadingMarginSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.text.style.URLSpan
+import android.view.View
 import java.net.URI
 
 /**
@@ -24,7 +25,8 @@ object SimpleMarkdownRenderer {
         markdown: String?,
         accentColor: Int,
         baseUrl: String? = null,
-        linksEnabled: Boolean = true
+        linksEnabled: Boolean = true,
+        onLink: ((String) -> Unit)? = null
     ): CharSequence {
         if (markdown.isNullOrEmpty()) return ""
 
@@ -49,24 +51,75 @@ object SimpleMarkdownRenderer {
                 line.startsWith("###") -> {
                     if (hadContent) appendDivider(builder, accentColor)
                     val header = line.replaceFirst("^#{1,6}\\s*".toRegex(), "")
-                    appendHeader(builder, processInlineStyles(header, accentColor, baseUrl, linksEnabled), 1.0f, accentColor)
+                    appendHeader(
+                        builder,
+                        processInlineStyles(
+                            header,
+                            accentColor,
+                            baseUrl,
+                            linksEnabled,
+                            onLink
+                        ),
+                        1.0f,
+                        accentColor
+                    )
                 }
                 line.startsWith("##") -> {
                     if (hadContent) appendDivider(builder, accentColor)
                     val header = line.replaceFirst("^#{1,6}\\s*".toRegex(), "")
-                    appendHeader(builder, processInlineStyles(header, accentColor, baseUrl, linksEnabled), 1.1f, accentColor)
+                    appendHeader(
+                        builder,
+                        processInlineStyles(
+                            header,
+                            accentColor,
+                            baseUrl,
+                            linksEnabled,
+                            onLink
+                        ),
+                        1.1f,
+                        accentColor
+                    )
                 }
                 line.startsWith("#") -> {
                     if (hadContent) appendDivider(builder, accentColor)
                     val header = line.replaceFirst("^#{1,6}\\s*".toRegex(), "")
-                    appendHeader(builder, processInlineStyles(header, accentColor, baseUrl, linksEnabled), 1.2f, accentColor)
+                    appendHeader(
+                        builder,
+                        processInlineStyles(
+                            header,
+                            accentColor,
+                            baseUrl,
+                            linksEnabled,
+                            onLink
+                        ),
+                        1.2f,
+                        accentColor
+                    )
                 }
                 line.startsWith("- ") || line.startsWith("* ") -> {
-                    appendBullet(builder, processInlineStyles(line.substring(2).trim(), accentColor, baseUrl, linksEnabled), accentColor)
+                    appendBullet(
+                        builder,
+                        processInlineStyles(
+                            line.substring(2).trim(),
+                            accentColor,
+                            baseUrl,
+                            linksEnabled,
+                            onLink
+                        ),
+                        accentColor
+                    )
                 }
                 else -> {
                     if (builder.isNotEmpty()) builder.append("\n")
-                    builder.append(processInlineStyles(line, accentColor, baseUrl, linksEnabled))
+                    builder.append(
+                        processInlineStyles(
+                            line,
+                            accentColor,
+                            baseUrl,
+                            linksEnabled,
+                            onLink
+                        )
+                    )
                 }
             }
             hadContent = true
@@ -80,7 +133,12 @@ object SimpleMarkdownRenderer {
         return builder
     }
 
-    private fun appendHeader(builder: SpannableStringBuilder, text: CharSequence, sizeMultiplier: Float, color: Int) {
+    private fun appendHeader(
+        builder: SpannableStringBuilder,
+        text: CharSequence,
+        sizeMultiplier: Float,
+        color: Int
+    ) {
         if (builder.isNotEmpty()) builder.append("\n")
 
         val start = builder.length
@@ -89,10 +147,30 @@ object SimpleMarkdownRenderer {
         builder.append(text)
         val end = builder.length
 
-        builder.setSpan(ForegroundColorSpan(color), start, start + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        builder.setSpan(StyleSpan(Typeface.BOLD), textStart, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        builder.setSpan(RelativeSizeSpan(sizeMultiplier), textStart, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        builder.setSpan(ForegroundColorSpan(color), textStart, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        builder.setSpan(
+            ForegroundColorSpan(color),
+            start,
+            start + 1,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        builder.setSpan(
+            StyleSpan(Typeface.BOLD),
+            textStart,
+            end,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        builder.setSpan(
+            RelativeSizeSpan(sizeMultiplier),
+            textStart,
+            end,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        builder.setSpan(
+            ForegroundColorSpan(color),
+            textStart,
+            end,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
         builder.append("\n")
     }
 
@@ -103,12 +181,26 @@ object SimpleMarkdownRenderer {
         val start = builder.length
         builder.append(SECTION_DIVIDER)
         val end = builder.length
-        builder.setSpan(ForegroundColorSpan(color and 0x55FFFFFF or 0x55000000), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        builder.setSpan(RelativeSizeSpan(0.8f), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        builder.setSpan(
+            ForegroundColorSpan(color and 0x55FFFFFF or 0x55000000),
+            start,
+            end,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        builder.setSpan(
+            RelativeSizeSpan(0.8f),
+            start,
+            end,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
         builder.append("\n")
     }
 
-    private fun appendBullet(builder: SpannableStringBuilder, text: CharSequence, accentColor: Int) {
+    private fun appendBullet(
+        builder: SpannableStringBuilder,
+        text: CharSequence,
+        accentColor: Int
+    ) {
         if (builder.isNotEmpty() && builder[builder.length - 1] != '\n') {
             builder.append("\n")
         }
@@ -117,12 +209,22 @@ object SimpleMarkdownRenderer {
         val symbolStart = builder.length
         builder.append(BULLET_SYMBOL)
         val symbolEnd = builder.length
-        builder.setSpan(ForegroundColorSpan(accentColor), symbolStart, symbolEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        builder.setSpan(
+            ForegroundColorSpan(accentColor),
+            symbolStart,
+            symbolEnd,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
 
         builder.append(text)
         builder.append("\n")
         val end = builder.length
-        builder.setSpan(LeadingMarginSpan.Standard(16, 32), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        builder.setSpan(
+            LeadingMarginSpan.Standard(16, 32),
+            start,
+            end,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
     }
 
     /**
@@ -136,10 +238,11 @@ object SimpleMarkdownRenderer {
         text: String,
         linkColor: Int,
         baseUrl: String?,
-        linksEnabled: Boolean
+        linksEnabled: Boolean,
+        onLink: ((String) -> Unit)?
     ): CharSequence {
         val result = SpannableStringBuilder()
-        appendInlineContent(result, text, linkColor, baseUrl, linksEnabled)
+        appendInlineContent(result, text, linkColor, baseUrl, linksEnabled, onLink)
         return result
     }
 
@@ -148,15 +251,27 @@ object SimpleMarkdownRenderer {
         text: String,
         linkColor: Int,
         baseUrl: String?,
-        linksEnabled: Boolean
+        linksEnabled: Boolean,
+        onLink: ((String) -> Unit)?
     ) {
         var i = 0
         while (i < text.length) {
-            val markdownLink = if (linksEnabled) parseMarkdownLinkAt(text, i, baseUrl) else null
+            val markdownLink = if (linksEnabled) {
+                parseMarkdownLinkAt(text, i, baseUrl)
+            } else {
+                null
+            }
             if (markdownLink != null) {
                 val linkStart = result.length
                 result.append(markdownLink.label)
-                addLinkSpans(result, linkStart, result.length, markdownLink.url, linkColor)
+                addLinkSpans(
+                    result,
+                    linkStart,
+                    result.length,
+                    markdownLink.url,
+                    linkColor,
+                    onLink
+                )
                 i = markdownLink.endIndex
                 continue
             }
@@ -175,9 +290,15 @@ object SimpleMarkdownRenderer {
                     text.substring(i + 2, boldEnd),
                     linkColor,
                     baseUrl,
-                    linksEnabled
+                    linksEnabled,
+                    onLink
                 )
-                result.setSpan(StyleSpan(Typeface.BOLD), spanStart, result.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                result.setSpan(
+                    StyleSpan(Typeface.BOLD),
+                    spanStart,
+                    result.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
                 i = boldEnd + 2
                 continue
             }
@@ -186,7 +307,14 @@ object SimpleMarkdownRenderer {
             if (bareUrlEnd != null) {
                 val linkStart = result.length
                 result.append(text, i, bareUrlEnd)
-                addLinkSpans(result, linkStart, result.length, text.substring(i, bareUrlEnd), linkColor)
+                addLinkSpans(
+                    result,
+                    linkStart,
+                    result.length,
+                    text.substring(i, bareUrlEnd),
+                    linkColor,
+                    onLink
+                )
                 i = bareUrlEnd
                 continue
             }
@@ -201,17 +329,39 @@ object SimpleMarkdownRenderer {
         start: Int,
         end: Int,
         url: String,
-        linkColor: Int
+        linkColor: Int,
+        onLink: ((String) -> Unit)?
     ) {
-        result.setSpan(URLSpan(url), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        result.setSpan(ForegroundColorSpan(linkColor), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        val urlSpan = if (onLink == null) {
+            URLSpan(url)
+        } else {
+            object : URLSpan(url) {
+                override fun onClick(widget: View) {
+                    onLink(url)
+                }
+            }
+        }
+        result.setSpan(urlSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        result.setSpan(
+            ForegroundColorSpan(linkColor),
+            start,
+            end,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
     }
 
-    private fun parseMarkdownLinkAt(text: String, start: Int, baseUrl: String?): MarkdownLink? {
+    private fun parseMarkdownLinkAt(
+        text: String,
+        start: Int,
+        baseUrl: String?
+    ): MarkdownLink? {
         if (start >= text.length || text[start] != '[') return null
 
         val labelEnd = text.indexOf(']', start + 1)
-        if (labelEnd <= start + 1 || labelEnd + 1 >= text.length || text[labelEnd + 1] != '(') {
+        if (labelEnd <= start + 1 ||
+            labelEnd + 1 >= text.length ||
+            text[labelEnd + 1] != '('
+        ) {
             return null
         }
 
@@ -238,18 +388,29 @@ object SimpleMarkdownRenderer {
         }
 
         val resolvedUrl = resolveHttpUrl(destination, baseUrl) ?: return null
-        return MarkdownLink(text.substring(start + 1, labelEnd), resolvedUrl, cursor + 1)
+        return MarkdownLink(
+            text.substring(start + 1, labelEnd),
+            resolvedUrl,
+            cursor + 1
+        )
     }
 
     private fun findBareUrlEnd(text: String, start: Int): Int? {
-        if (!text.startsWith("https://", start) && !text.startsWith("http://", start)) return null
+        if (!text.startsWith("https://", start) &&
+            !text.startsWith("http://", start)
+        ) {
+            return null
+        }
 
         var end = start
-        while (end < text.length && !text[end].isWhitespace() && text[end] !in "<[]>\"'") {
+        while (end < text.length &&
+            !text[end].isWhitespace() &&
+            text[end] !in "<[]>\"'"
+        ) {
             end++
         }
 
-        while (end > start && text[end - 1] in ".,!?;:" ) end--
+        while (end > start && text[end - 1] in ".,!?;:") end--
         if (end > start && text[end - 1] == ')') {
             val candidate = text.substring(start, end)
             if (candidate.count { it == '(' } < candidate.count { it == ')' }) {
@@ -272,7 +433,10 @@ object SimpleMarkdownRenderer {
 
             // Uri.parse accepts the relative destinations used by GitHub notes;
             // encode only characters that java.net.URI.resolve rejects.
-            val normalizedDestination = Uri.encode(value, "/?#@&=+$,;:-._~!()'[]%")
+            val normalizedDestination = Uri.encode(
+                value,
+                "/?#@&=+$,;:-._~!()'[]%"
+            )
             val resolved = URI(baseUrl).resolve(normalizedDestination)
             val resolvedUri = Uri.parse(resolved.toString())
             resolved.toString().takeIf { isHttpUrl(resolvedUri) }
@@ -282,7 +446,8 @@ object SimpleMarkdownRenderer {
     }
 
     private fun isHttpUrl(uri: Uri): Boolean {
-        return (uri.scheme.equals("http", ignoreCase = true) || uri.scheme.equals("https", ignoreCase = true)) &&
+        return (uri.scheme.equals("http", ignoreCase = true) ||
+            uri.scheme.equals("https", ignoreCase = true)) &&
             !uri.host.isNullOrBlank()
     }
 

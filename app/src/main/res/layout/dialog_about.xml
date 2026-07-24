@@ -87,6 +87,20 @@
             android:gravity="center"
             android:lineSpacingExtra="2dp" />
 
+        <Button
+            android:id="@+id/about_handbook_button"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="12dp"
+            android:minWidth="160dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:text="@string/title_document_handbook"
+            android:textColor="@color/app_dialog_accent_color"
+            android:textSize="14sp" />
+
     </LinearLayout>
 
 </ScrollView>

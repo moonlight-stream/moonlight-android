@@ -697,4 +697,7 @@
     <string name="menu">Menu</string>
     <string name="title_settings">Configurações</string>
     <string name="title_config_sync_backup_password">Palavra-passe de encriptação da cópia de segurança</string>
+    <string name="title_document_handbook">Documentação</string>
+    <string name="summary_document_handbook">Ver documentação relacionada</string>
+    <string name="title_about_us">Sobre nós</string>
 </resources>

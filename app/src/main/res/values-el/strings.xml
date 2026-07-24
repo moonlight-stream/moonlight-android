@@ -211,4 +211,8 @@
     <string name="pcview_menu_eol">Λήξη Υποστήριξης NVIDA GameStream</string>
     <string name="pair_pairing_help">Εάν ο υπολογιστής οικοδεσπότης χρησιμοποιεί το Sunshine, πλοηγηθείτε στην διαδικτυακή διεπαφή χρήστη του Sunshine για να εισάγετε το PIN.</string>
     <string name="title_config_sync_backup_password">Κωδικός κρυπτογράφησης αντιγράφου ασφαλείας</string>
+    <string name="category_help">Βοήθεια</string>
+    <string name="title_document_handbook">Τεκμηρίωση</string>
+    <string name="summary_document_handbook">Προβολή σχετικής τεκμηρίωσης</string>
+    <string name="title_about_us">Σχετικά με εμάς</string>
 </resources>

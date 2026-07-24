@@ -76,6 +76,8 @@ import com.limelight.binding.input.advance_setting.share.CrownProfileShareManage
 import com.limelight.binding.input.advance_setting.share.GitHubCrownProfileStorePublisher
 import com.limelight.binding.input.advance_setting.sqlite.SuperConfigDatabaseHelper
 import com.limelight.binding.video.MediaCodecHelper
+import com.limelight.handbook.HandbookLauncher
+import com.limelight.utils.AboutDialogLauncher
 import com.limelight.utils.AspectRatioConverter
 import com.limelight.utils.ConfigurationSyncManager
 import com.limelight.utils.ConfigurationSyncScheduler
@@ -3371,6 +3373,18 @@ class StreamSettings : AppCompatActivity() {
                     }
 
             addCustomResolutionsEntries()
+
+            findPreference<Preference>("documentation_handbook")!!.onPreferenceClickListener =
+                    Preference.OnPreferenceClickListener {
+                        HandbookLauncher.openIndex(requireActivity())
+                        true
+                    }
+
+            findPreference<Preference>("about_us")!!.onPreferenceClickListener =
+                    Preference.OnPreferenceClickListener {
+                        AboutDialogLauncher.show(requireActivity())
+                        true
+                    }
 
             // 添加检查更新选项的点击事件
             findPreference<Preference>("check_for_updates")!!.onPreferenceClickListener =

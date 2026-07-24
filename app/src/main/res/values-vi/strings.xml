@@ -232,4 +232,8 @@
     <string name="summary_checkbox_enable_audiofx">Cho phép hiệu ứng âm thanh hoạt động khi stream, nhưng có thể tăng độ trễ âm thanh</string>
     <string name="resolution_prefix_native_portrait">(Dọc)</string>
     <string name="title_config_sync_backup_password">Mật khẩu mã hóa bản sao lưu</string>
+    <string name="category_help">Trợ giúp</string>
+    <string name="title_document_handbook">Tài liệu</string>
+    <string name="summary_document_handbook">Xem tài liệu liên quan</string>
+    <string name="title_about_us">Về chúng tôi</string>
 </resources>

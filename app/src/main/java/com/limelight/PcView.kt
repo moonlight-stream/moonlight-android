@@ -36,6 +36,7 @@ import com.limelight.preferences.StreamSettings
 import com.limelight.services.KeyboardAccessibilityService
 import com.limelight.ui.AdapterFragment
 import com.limelight.ui.AdapterFragmentCallbacks
+import com.limelight.utils.AboutDialogLauncher
 import com.limelight.utils.AnalyticsManager
 import com.limelight.utils.AppDialogStyler
 import com.limelight.utils.AppActionSheet
@@ -75,7 +76,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityManager
 import android.app.AlertDialog
-import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
@@ -83,7 +83,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -111,7 +110,6 @@ import android.provider.Settings
 import android.util.LruCache
 import android.view.GestureDetector
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -137,7 +135,6 @@ import jp.wasabeef.glide.transformations.BlurTransformation
 import jp.wasabeef.glide.transformations.ColorFilterTransformation
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
-import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -178,10 +175,6 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         private const val OPEN_WEBUI_ID = 16
         private const val MORE_ACTIONS_ID = 17
 
-        private const val OFFICIAL_SITE_URL = "https://www.alkaidlab.com/"
-        private const val GITHUB_URL = "https://github.com/qiin2333/moonlight-vplus"
-        private const val QQ_GROUP_KEY = "LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM"
-        private const val BROWSER_PROBE_URL = "https://example.com/"
     }
 
     // UI Components
@@ -516,7 +509,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
 
         settingsButton.setOnClickListener { startActivity(Intent(this, StreamSettings::class.java)) }
 
-        aboutButton?.setOnClickListener { showAboutDialog() }
+        aboutButton?.setOnClickListener { AboutDialogLauncher.show(this) }
         easyTierButton?.setOnClickListener { showEasyTierControlDialog() }
         toolbarMenuButton?.setOnClickListener { showPcToolbarMenu(it) }
     }
@@ -2804,179 +2797,6 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
 
     private fun showEasyTierControlDialog() {
         easyTierController?.showControlDialog()
-    }
-
-    private fun showAboutDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_about, null)
-
-        val versionText = dialogView.findViewById<TextView>(R.id.text_version)
-        versionText.text = getVersionInfo()
-
-        val appNameText = dialogView.findViewById<TextView>(R.id.text_app_name)
-        appNameText.text = getAppName()
-
-        val descriptionText = dialogView.findViewById<TextView>(R.id.text_description)
-        descriptionText.setText(R.string.about_dialog_description)
-
-        // PcView 继承自 Activity 而非 AppCompatActivity，在 Android 6 等设备上使用
-        // R.style.AppDialogStyle（父主题为 Theme.AppCompat.Light.Dialog.Alert）会触发
-        // "You need to use a Theme.AppCompat theme" 类崩溃，故此处使用系统 Material 对话框主题。
-        val dialogTheme = android.R.style.Theme_Material_Light_Dialog_Alert
-        val dialog = AlertDialog.Builder(this, dialogTheme)
-                .setView(dialogView)
-                .setPositiveButton(R.string.about_dialog_official_site) { _, _ ->
-                    openExternalBrowser(OFFICIAL_SITE_URL)
-                }
-                .setNeutralButton(R.string.about_dialog_github) { _, _ ->
-                    openExternalBrowser(GITHUB_URL)
-                }
-                .setNegativeButton(R.string.about_dialog_qq) { _, _ ->
-                    joinQQGroup(QQ_GROUP_KEY)
-                }
-                .create()
-        dialog.show()
-        AppDialogStyler.applyAboutDialog(dialog, this)
-    }
-
-    @SuppressLint("DefaultLocale")
-    private fun getVersionInfo(): String {
-        try {
-            val info = packageManager.getPackageInfo(packageName, 0)
-            return String.format("Version %s (Build %d)", info.versionName, PackageInfoCompat.getLongVersionCode(info))
-        } catch (e: PackageManager.NameNotFoundException) {
-            return "Version Unknown"
-        }
-    }
-
-    private fun getAppName(): String {
-        try {
-            val info = packageManager.getPackageInfo(packageName, 0)
-            if (info.applicationInfo != null) {
-                return info.applicationInfo?.loadLabel(packageManager).toString()
-            }
-        } catch (ignored: PackageManager.NameNotFoundException) {
-        }
-        return "Moonlight V+"
-    }
-
-    private fun openExternalBrowser(url: String) {
-        val uri = url.toUri()
-        if (!uri.scheme.equals("https", ignoreCase = true) || uri.host.isNullOrBlank()) {
-            LimeLog.warning("Refusing to open non-HTTPS public link: ${uri.scheme}")
-            showToast(getString(R.string.about_dialog_no_browser))
-            return
-        }
-
-        val browseIntent = Intent(Intent.ACTION_VIEW, uri).apply {
-            addCategory(Intent.CATEGORY_BROWSABLE)
-        }
-
-        val resolvedBrowserIntent = try {
-            createResolvedBrowserIntent(browseIntent)
-        } catch (e: RuntimeException) {
-            LimeLog.warning(
-                "Browser discovery failed for host ${uri.host}: " +
-                    "${e.javaClass.simpleName}: ${e.message}"
-            )
-            null
-        }
-
-        if (resolvedBrowserIntent != null) {
-            try {
-                startActivity(resolvedBrowserIntent)
-                return
-            } catch (e: RuntimeException) {
-                LimeLog.warning(
-                    "Resolved browser launch failed for host ${uri.host}: " +
-                        "${e.javaClass.simpleName}: ${e.message}"
-                )
-            }
-        }
-
-        // Direct activity launches do not depend on Android 11 package visibility.
-        // The browser selector is the safe fallback when PackageManager discovery is filtered.
-        val browserSelector = Intent.makeMainSelectorActivity(
-            Intent.ACTION_MAIN,
-            Intent.CATEGORY_APP_BROWSER
-        ).apply {
-            data = uri
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-
-        try {
-            startActivity(browserSelector)
-        } catch (e: ActivityNotFoundException) {
-            reportBrowserLaunchFailure(uri, e)
-        } catch (e: SecurityException) {
-            reportBrowserLaunchFailure(uri, e)
-        } catch (e: RuntimeException) {
-            reportBrowserLaunchFailure(uri, e)
-        }
-    }
-
-    private fun createResolvedBrowserIntent(browseIntent: Intent): Intent? {
-        // A neutral host identifies apps that handle general web URLs instead of
-        // domain-specific deep links such as GitHub or QQ.
-        val browserProbe = Intent(Intent.ACTION_VIEW, BROWSER_PROBE_URL.toUri()).apply {
-            addCategory(Intent.CATEGORY_BROWSABLE)
-        }
-        val browserPackages = packageManager
-            .queryIntentActivities(browserProbe, PackageManager.MATCH_DEFAULT_ONLY)
-            .mapNotNull { it.activityInfo?.packageName }
-            .filterNot { it == packageName }
-            .distinct()
-
-        if (browserPackages.isEmpty()) {
-            return null
-        }
-
-        val defaultPackage = packageManager
-            .resolveActivity(browserProbe, PackageManager.MATCH_DEFAULT_ONLY)
-            ?.activityInfo
-            ?.packageName
-            ?.takeIf(browserPackages::contains)
-
-        val explicitBrowserIntents = browserPackages.map { browserPackage ->
-            Intent(browseIntent).setPackage(browserPackage)
-        }
-        return defaultPackage?.let { browserPackage ->
-            Intent(browseIntent).setPackage(browserPackage)
-        } ?: if (explicitBrowserIntents.size == 1) {
-            explicitBrowserIntents.first()
-        } else {
-            Intent.createChooser(
-                explicitBrowserIntents.first(),
-                getString(R.string.about_dialog_choose_browser)
-            ).apply {
-                putExtra(
-                    Intent.EXTRA_INITIAL_INTENTS,
-                    explicitBrowserIntents.drop(1).toTypedArray()
-                )
-            }
-        }
-    }
-
-    private fun reportBrowserLaunchFailure(uri: Uri, error: RuntimeException) {
-        LimeLog.warning(
-            "Failed to launch external browser for host ${uri.host}: " +
-                "${error.javaClass.simpleName}: ${error.message}"
-        )
-        showToast(getString(R.string.about_dialog_no_browser))
-    }
-
-    private fun joinQQGroup(key: String) {
-        val url = Uri.Builder()
-            .scheme("https")
-            .authority("qm.qq.com")
-            .appendPath("cgi-bin")
-            .appendPath("qm")
-            .appendPath("qr")
-            .appendQueryParameter("from", "app")
-            .appendQueryParameter("p", "android")
-            .appendQueryParameter("jump_from", "webapi")
-            .appendQueryParameter("k", key)
-            .build()
-        openExternalBrowser(url.toString())
     }
 
     // VPN Permission

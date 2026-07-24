@@ -258,4 +258,7 @@
     <string name="perf_overlay_hostprocessinglatency">Host feldolgozási késleltetés min/max/átlag: %1$.1f/%2$.1f/%3$.1f ms</string>
     <string name="pacing_latency">A legalacsonyabb késleltetés előnyben részesítése</string>
     <string name="title_config_sync_backup_password">Biztonsági mentés titkosítási jelszava</string>
+    <string name="title_document_handbook">Dokumentáció</string>
+    <string name="summary_document_handbook">Kapcsolódó dokumentáció megtekintése</string>
+    <string name="title_about_us">Rólunk</string>
 </resources>

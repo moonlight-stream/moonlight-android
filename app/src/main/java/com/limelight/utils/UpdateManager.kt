@@ -30,6 +30,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 
 import com.limelight.R
+import com.limelight.handbook.HandbookLauncher
 
 import org.json.JSONObject
 
@@ -366,7 +367,14 @@ object UpdateManager {
                 val notesScroll = view.findViewById<ScrollView>(R.id.update_notes_scroll)
                 notesScroll.visibility = View.VISIBLE
                 val notes = view.findViewById<TextView>(R.id.update_notes)
-                notes.text = SimpleMarkdownRenderer.render(releaseNotes, accentColor, releasePageUrl)
+                notes.text = SimpleMarkdownRenderer.render(
+                    releaseNotes,
+                    accentColor,
+                    releasePageUrl,
+                    onLink = { url ->
+                        openReleaseNoteLink(context, url)
+                    }
+                )
                 configureUpdateNotesLinks(notes, accentColor)
                 constrainUpdateNotesScroll(context, notesScroll, releaseNotes)
             }
@@ -399,7 +407,10 @@ object UpdateManager {
                 notesView.text = SimpleMarkdownRenderer.render(
                     updateInfo.releaseNotes,
                     accentColor,
-                    updateInfo.releasePageUrl
+                    updateInfo.releasePageUrl,
+                    onLink = { url ->
+                        openReleaseNoteLink(context, url)
+                    }
                 )
                 configureUpdateNotesLinks(notesView, accentColor)
                 constrainUpdateNotesScroll(context, notesScroll, updateInfo.releaseNotes)
@@ -1165,6 +1176,12 @@ object UpdateManager {
         notesView.setLinkTextColor(linkColor)
         notesView.movementMethod = LinkMovementMethod.getInstance()
         notesView.linksClickable = true
+    }
+
+    private fun openReleaseNoteLink(context: Context, url: String) {
+        if (!HandbookLauncher.openUrl(context, url)) {
+            BrowserOnlyLauncher.open(context, url)
+        }
     }
 
     private fun constrainUpdateNotesScroll(context: Context, notesScroll: ScrollView, rawNotes: String) {

@@ -177,4 +177,8 @@
     <string name="audioconf_71surround">Sunet Surround 7.1</string>
     <string name="videoformat_hevcalways">Folosește HEVC mereu (se poate bloca)</string>
     <string name="title_config_sync_backup_password">Parolă de criptare a copiei de rezervă</string>
+    <string name="category_help">Ajutor</string>
+    <string name="title_document_handbook">Documentație</string>
+    <string name="summary_document_handbook">Vezi documentația asociată</string>
+    <string name="title_about_us">Despre noi</string>
 </resources>

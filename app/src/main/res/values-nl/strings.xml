@@ -222,4 +222,8 @@
     <!-- Array strings -->
     <string name="videoformat_hevcalways">Gebruik HEVC altijd (mogelijkheid tot crashes)</string>
     <string name="title_config_sync_backup_password">Wachtwoord voor back-upversleuteling</string>
+    <string name="category_help">Help</string>
+    <string name="title_document_handbook">Documentatie</string>
+    <string name="summary_document_handbook">Gerelateerde documentatie bekijken</string>
+    <string name="title_about_us">Over ons</string>
 </resources>

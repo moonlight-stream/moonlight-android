@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="title_config_sync_backup_password">وشەی نهێنیی کۆدکردنی پاڵپشت</string>
+    <string name="category_help">یارمەتی</string>
+    <string name="title_document_handbook">بەڵگەنامەکان</string>
+    <string name="summary_document_handbook">بەڵگەنامە پەیوەندیدارەکان ببینە</string>
+    <string name="title_about_us">دەربارەی ئێمە</string>
 </resources>

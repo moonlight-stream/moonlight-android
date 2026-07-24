@@ -206,4 +206,8 @@
     <string name="perf_overlay_netlatency">Gjennomsnittlig nettverksforsinkelse: %1$d ms (variasjon: %2$d ms)</string>
     <string name="perf_overlay_streamdetails">Videostrøm: %1$s %2$.2f BPS</string>
     <string name="title_config_sync_backup_password">Passord for sikkerhetskopikryptering</string>
+    <string name="category_help">Hjelp</string>
+    <string name="title_document_handbook">Dokumentasjon</string>
+    <string name="summary_document_handbook">Vis relatert dokumentasjon</string>
+    <string name="title_about_us">Om oss</string>
 </resources>

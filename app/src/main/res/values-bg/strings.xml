@@ -157,4 +157,8 @@
     <string name="screen_mode_exclusive_streaming_desc">Използва само избрания дисплей и изключва другите дисплеи.</string>
     <string name="screen_combination_mode_label">Режим: %1$s</string>
     <string name="title_config_sync_backup_password">Парола за шифроване на резервно копие</string>
+    <string name="category_help">Помощ</string>
+    <string name="title_document_handbook">Документация</string>
+    <string name="summary_document_handbook">Преглед на свързаната документация</string>
+    <string name="title_about_us">За нас</string>
 </resources>

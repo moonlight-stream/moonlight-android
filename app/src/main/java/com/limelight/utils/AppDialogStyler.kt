@@ -105,32 +105,41 @@ object AppDialogStyler {
         val buttonPanelId = context.resources.getIdentifier("buttonPanel", "id", "android")
         val buttonPanel = dialog.findViewById<ViewGroup>(buttonPanelId) ?: return
 
-        buttonPanel.post {
-            val actionHeight = dpToPx(context, 48)
-            (buttonPanel.layoutParams as? ViewGroup.MarginLayoutParams)?.let { layoutParams ->
-                layoutParams.bottomMargin = 0
-                buttonPanel.layoutParams = layoutParams
-            }
-
-            val buttons = listOf(
-                DialogInterface.BUTTON_POSITIVE,
-                DialogInterface.BUTTON_NEGATIVE,
-                DialogInterface.BUTTON_NEUTRAL
-            ).mapNotNull { buttonId -> findButton(dialog, buttonId) }
-
-            (buttons.firstOrNull()?.parent as? ViewGroup)?.apply {
-                setPaddingRelative(paddingStart, 0, paddingEnd, 0)
-            }
-            buttons.forEach { button ->
-                button.apply {
-                    minHeight = actionHeight
-                    minimumHeight = actionHeight
-                    setPaddingRelative(paddingStart, 0, paddingEnd, 0)
-                }
-            }
-
-            buttonPanel.requestLayout()
+        // Apply width changes before ButtonBarLayout's first measure. Once the
+        // platform stacks the buttons, some versions keep that state until the
+        // available width changes.
+        val actionHeight = dpToPx(context, 48)
+        val actionHorizontalPadding = dpToPx(context, 8)
+        (buttonPanel.layoutParams as? ViewGroup.MarginLayoutParams)?.let { layoutParams ->
+            layoutParams.bottomMargin = 0
+            buttonPanel.layoutParams = layoutParams
         }
+
+        val buttons = listOf(
+            DialogInterface.BUTTON_POSITIVE,
+            DialogInterface.BUTTON_NEGATIVE,
+            DialogInterface.BUTTON_NEUTRAL
+        ).mapNotNull { buttonId -> findButton(dialog, buttonId) }
+
+        (buttons.firstOrNull()?.parent as? ViewGroup)?.apply {
+            setPaddingRelative(actionHorizontalPadding, 0, actionHorizontalPadding, 0)
+        }
+        buttons.forEach { button ->
+            button.apply {
+                minHeight = actionHeight
+                minimumHeight = actionHeight
+                minWidth = 0
+                minimumWidth = 0
+                setPaddingRelative(
+                    actionHorizontalPadding,
+                    0,
+                    actionHorizontalPadding,
+                    0
+                )
+            }
+        }
+
+        buttonPanel.requestLayout()
     }
 
     fun styleChoiceListContainer(listView: ListView?, context: Context) {

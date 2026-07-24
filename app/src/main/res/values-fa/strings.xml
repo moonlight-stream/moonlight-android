@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="title_config_sync_backup_password">گذرواژهٔ رمزگذاری پشتیبان</string>
+    <string name="category_help">راهنما</string>
+    <string name="title_document_handbook">مستندات</string>
+    <string name="summary_document_handbook">مشاهده مستندات مرتبط</string>
+    <string name="title_about_us">درباره ما</string>
 </resources>

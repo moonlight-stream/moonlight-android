@@ -10,9 +10,11 @@ import android.net.Uri
 import android.preference.Preference
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.TextView
 
 import com.limelight.R
+import com.limelight.handbook.HandbookLauncher
 import com.limelight.utils.AppDialogStyler
 
 class AboutDialogPreference : Preference {
@@ -65,6 +67,10 @@ class AboutDialogPreference : Preference {
         }
 
         val dialog = builder.create()
+        dialogView.findViewById<View>(R.id.about_handbook_button).setOnClickListener {
+            dialog.dismiss()
+            HandbookLauncher.openIndex(context)
+        }
         dialog.show()
         AppDialogStyler.applyAboutDialog(dialog, context)
     }

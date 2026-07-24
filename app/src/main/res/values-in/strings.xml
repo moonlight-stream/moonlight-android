@@ -212,4 +212,8 @@
     <string name="summary_language_list">Bahasa yang digunakan untuk Moonlight</string>
     <string name="summary_checkbox_enable_sops">Izinkan GFE mengubah setelan game untuk streaming yang optimal</string>
     <string name="title_config_sync_backup_password">Kata sandi enkripsi cadangan</string>
+    <string name="category_help">Bantuan</string>
+    <string name="title_document_handbook">Dokumentasi</string>
+    <string name="summary_document_handbook">Lihat dokumentasi terkait</string>
+    <string name="title_about_us">Tentang Kami</string>
 </resources>

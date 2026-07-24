@@ -304,4 +304,7 @@
     <string name="screen_mode_exclusive_streaming_desc">선택한 디스플레이만 사용하고 다른 디스플레이를 비활성화합니다.</string>
     <string name="screen_combination_mode_label">모드: %1$s</string>
     <string name="title_config_sync_backup_password">백업 암호화 비밀번호</string>
+    <string name="title_document_handbook">문서</string>
+    <string name="summary_document_handbook">관련 문서 보기</string>
+    <string name="title_about_us">앱 정보</string>
 </resources>

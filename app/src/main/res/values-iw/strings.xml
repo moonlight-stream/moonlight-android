@@ -153,4 +153,8 @@
     <string name="category_input_settings">הגדרות קלט</string>
     <string name="title_checkbox_touchscreen_trackpad">השתמש במסך מגע כמשטח מגע</string>
     <string name="title_config_sync_backup_password">סיסמת הצפנת גיבוי</string>
+    <string name="category_help">עזרה</string>
+    <string name="title_document_handbook">תיעוד</string>
+    <string name="summary_document_handbook">הצגת תיעוד קשור</string>
+    <string name="title_about_us">אודותינו</string>
 </resources>

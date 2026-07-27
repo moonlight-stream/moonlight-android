@@ -87,6 +87,10 @@ jobs:
       - name: Run lint and unit tests
         run: ./gradlew :app:lintNonRootDebug :app:testNonRootDebugUnitTest --no-daemon --stacktrace
 
+      - name: Test release versioning
+        shell: bash
+        run: bash .github/release/version-code_test.sh
+
       - name: Compile instrumentation tests
         run: ./gradlew :app:compileNonRootDebugAndroidTestKotlin --no-daemon --stacktrace
 
@@ -100,24 +104,36 @@ jobs:
 
       - name: Update version in build.gradle
         if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
+          set -e
+          TAG=${GITHUB_REF#refs/tags/}
           # 移除版本号前缀 'v' 如果存在
-          VERSION=${VERSION#v}
+          VERSION=${TAG#v}
           echo "Updating version to: $VERSION"
-          
-          # 读取当前 versionCode 并递增
-          CURRENT_VERSION_CODE=$(grep -o 'versionCode = [0-9]*' app/build.gradle | grep -o '[0-9]*')
-          NEW_VERSION_CODE=$((CURRENT_VERSION_CODE + 1))
-          
+
+          # 每个 MAJOR.MINOR.PATCH 基础版本有 999 个发布槽位，按 tag 创建时间分配。
+          # 这样同一基础版本下的稳定版、hotfix 和不同功能预览 tag 也不会撞号。
+          # PATCH 可省略；历史 tag、前导零、Android 上限和回退基准都由脚本统一校验。
+          VERSION_INFO=$(bash .github/release/version-code.sh "$TAG" app/build.gradle)
+          IFS=$'\t' read -r NEW_VERSION_CODE FLOOR FLOOR_SRC <<< "$VERSION_INFO"
+          echo "Version floor: $FLOOR (from $FLOOR_SRC)"
+
+          # 允许相等（同一个 tag 重跑 CI 应当产出同样的包），只拒绝变小。
+          if [ "$NEW_VERSION_CODE" -lt "$FLOOR" ]; then
+            echo "ERROR: 推导出的 versionCode $NEW_VERSION_CODE 小于已发布的 $FLOOR（来自 $FLOOR_SRC）"
+            echo "Android 不允许 versionCode 倒退，请检查 tag '$TAG' 是否打错。"
+            exit 1
+          fi
+
           # 更新 versionName
           sed -i "s/versionName \".*\"/versionName \"$VERSION\"/" app/build.gradle
-          
+
           # 更新 versionCode
           sed -i "s/versionCode = [0-9]*/versionCode = $NEW_VERSION_CODE/" app/build.gradle
-          
+
           echo "Updated versionName to: $VERSION"
-          echo "Updated versionCode from $CURRENT_VERSION_CODE to $NEW_VERSION_CODE"
+          echo "Updated versionCode: $NEW_VERSION_CODE (floor was $FLOOR from $FLOOR_SRC)"
 
       - name: Build NonRoot Debug APK
         run: ./gradlew :app:assembleNonRootDebug --no-daemon --stacktrace
@@ -177,7 +193,10 @@ jobs:
           DATE=$(date +'%Y-%m-%d')
           V="${VERSION_NAME:-${GITHUB_REF#refs/tags/}}"; V="${V#v}"
           CUR_TAG="${GITHUB_REF#refs/tags/}"
-          PREV_TAG=$(git tag --sort=-creatordate | sed -n '2p' || true)
+          # 只在发版 tag（v*）里找上一个版本，并显式排除当前 tag。
+          # 直接取 `git tag | sed -n 2p` 会选中 issue-*-test-* 这类临时 tag，changelog 区间就错了。
+          PREV_TAG=$(git tag --list 'v*' --sort=-creatordate | grep -Fxv "$CUR_TAG" | head -n 1 || true)
+          echo "Previous release tag: ${PREV_TAG:-<none>}"
           APK_SHA256=$(sha256sum "$REL_APK" | awk '{print $1}')
           CUSTOM_NOTES="RELEASE_NOTES_V${V}_ZH.md"
 

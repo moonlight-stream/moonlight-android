@@ -57,8 +57,10 @@ android {
         targetSdk 35
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        versionName "12.10.4-audio-haptics-0.5.14"
-        versionCode = 393
+        // 记录最近一次发布的版本。发版时由 CI 依据 tag 和发布历史覆写
+        // （见 .github/release/version-code.sh）。
+        versionName "12.11.0"
+        versionCode = 121100006
 
         // Optional GitHub OAuth App client ID. Enable Device Flow on the OAuth app,
         // then set githubOAuthClientId in local.properties, pass -PgithubOAuthClientId=...,

@@ -89,7 +89,7 @@ jobs:
 
       - name: Test release versioning
         shell: bash
-        run: bash .github/release/version-code_test.sh
+        run: bash .github/release/test.sh
 
       - name: Compile instrumentation tests
         run: ./gradlew :app:compileNonRootDebugAndroidTestKotlin --no-daemon --stacktrace
@@ -126,14 +126,12 @@ jobs:
             exit 1
           fi
 
-          # 更新 versionName
-          sed -i "s/versionName \".*\"/versionName \"$VERSION\"/" app/build.gradle
-
-          # 更新 versionCode
-          sed -i "s/versionCode = [0-9]*/versionCode = $NEW_VERSION_CODE/" app/build.gradle
-
-          echo "Updated versionName to: $VERSION"
-          echo "Updated versionCode: $NEW_VERSION_CODE (floor was $FLOOR from $FLOOR_SRC)"
+          bash .github/release/gradle-version.sh write \
+            app/build.gradle \
+            "$VERSION" \
+            "$NEW_VERSION_CODE"
+          echo "VERSION_CODE=$NEW_VERSION_CODE" >> "$GITHUB_ENV"
+          echo "Updated release version (floor was $FLOOR from $FLOOR_SRC)"
 
       - name: Build NonRoot Debug APK
         run: ./gradlew :app:assembleNonRootDebug --no-daemon --stacktrace
@@ -322,4 +320,15 @@ jobs:
           path: |
             app/build/outputs/apk/nonRoot/release/Moonlight.V+.*.apk
             app/build/outputs/mapping/nonRootRelease/mapping.txt
+
+      - name: Sync released version to master
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          bash .github/release/sync-released-version.sh \
+            "$VERSION_NAME" \
+            "$VERSION_CODE" \
+            origin \
+            master \
+            app/build.gradle
 

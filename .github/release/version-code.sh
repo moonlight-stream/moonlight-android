@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-# Android accepts versionCode values up to 2,100,000,000. Each semantic
+# Each semantic
 # MAJOR.MINOR.PATCH base gets 999 release slots (ordinals 1-999), assigned in
 # tag creation order. This keeps feature previews, hotfixes, and stable tags
 # for the same base unique without trying to interpret their free-form suffixes.
-readonly ANDROID_VERSION_CODE_MAX=2100000000
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=gradle-version.sh
+source "$SCRIPT_DIR/gradle-version.sh"
+
 readonly RELEASE_SLOTS_PER_BASE=1000
 
+# Converts a supported release tag prefix into its numeric semantic base.
 parse_version_base() {
   local tag=${1-}
   local version=${tag#v}
@@ -31,11 +35,12 @@ parse_version_base() {
   printf '%d\n' "$((major * 10000 + minor * 100 + patch))"
 }
 
+# Derives the target tag's versionCode and the highest published floor.
 calculate_release_version() {
   local target_tag=${1-}
   local gradle_file=${2-}
   local target_base parse_rc
-  local gradle_floor_raw gradle_floor
+  local gradle_version gradle_floor
   local tag base ordinal code
   local target_code=
   local floor floor_source
@@ -56,22 +61,8 @@ calculate_release_version() {
     return 1
   fi
 
-  if [ ! -f "$gradle_file" ]; then
-    echo "ERROR: Gradle file '$gradle_file' does not exist" >&2
-    return 1
-  fi
-  gradle_floor_raw=$(sed -nE \
-    's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*([0-9]+).*$/\1/p' \
-    "$gradle_file" | head -n 1)
-  if [ -z "$gradle_floor_raw" ]; then
-    echo "ERROR: no numeric versionCode assignment found in '$gradle_file'" >&2
-    return 1
-  fi
-  gradle_floor=$((10#$gradle_floor_raw))
-  if [ "$gradle_floor" -gt "$ANDROID_VERSION_CODE_MAX" ]; then
-    echo "ERROR: Gradle versionCode $gradle_floor exceeds Android's maximum" >&2
-    return 1
-  fi
+  gradle_version=$(read_gradle_version "$gradle_file") || return
+  gradle_floor=${gradle_version##*$'\t'}
 
   floor=$gradle_floor
   floor_source=$gradle_file
@@ -124,6 +115,7 @@ calculate_release_version() {
   printf '%s\t%s\t%s\n' "$target_code" "$floor" "$floor_source"
 }
 
+# Validates CLI arguments and prints the calculated release version data.
 main() {
   if [ "$#" -ne 2 ]; then
     echo "Usage: $0 <tag> <build.gradle>" >&2

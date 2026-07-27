@@ -29,10 +29,10 @@ public class NetworkAssetLoader {
         } catch (IOException ignored) {}
 
         if (in != null) {
-            LimeLog.info("Network asset load complete: " + tuple);
+            LimeLog.info("Network asset load complete");
         }
         else {
-            LimeLog.info("Network asset load failed: " + tuple);
+            LimeLog.info("Network asset load failed");
         }
 
         return in;

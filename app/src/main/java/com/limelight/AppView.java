@@ -343,7 +343,7 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
             LimeLog.info("Loaded applist from cache");
         } catch (IOException | XmlPullParserException e) {
             if (lastRawApplist != null) {
-                LimeLog.warning("Saved applist corrupted: "+lastRawApplist);
+                LimeLog.warning("Saved applist is corrupted");
                 e.printStackTrace();
             }
             LimeLog.info("Loading applist from the network");

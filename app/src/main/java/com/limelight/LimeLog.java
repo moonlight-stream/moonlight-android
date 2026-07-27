@@ -8,7 +8,11 @@ public class LimeLog {
     private static final Logger LOGGER = Logger.getLogger(LimeLog.class.getName());
 
     public static void info(String msg) {
-        LOGGER.info(msg);
+        // Informational diagnostics can reveal device capabilities and other
+        // environment details, so keep them out of release logcat output.
+        if (BuildConfig.DEBUG) {
+            LOGGER.info(msg);
+        }
     }
     
     public static void warning(String msg) {

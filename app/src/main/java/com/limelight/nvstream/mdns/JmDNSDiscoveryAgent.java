@@ -157,7 +157,7 @@ public class JmDNSDiscoveryAgent extends MdnsDiscoveryAgent implements ServiceLi
             handleServiceInfo(info);
         } catch (UnsupportedEncodingException e) {
             // Invalid DNS response
-            LimeLog.info("mDNS: Invalid response for machine: "+info.getName());
+            LimeLog.info("mDNS: Invalid response for machine");
             return;
         }
     }
@@ -196,7 +196,7 @@ public class JmDNSDiscoveryAgent extends MdnsDiscoveryAgent implements ServiceLi
                             pendingNames = new ArrayList<String>(pendingResolution);
                         }
                         for (String name : pendingNames) {
-                            LimeLog.info("mDNS: Retrying service resolution for machine: "+name);
+                            LimeLog.info("mDNS: Retrying service resolution for machine");
                             ServiceInfo[] infos = resolver.getServiceInfos(SERVICE_TYPE, name, 500);
                             if (infos != null && infos.length != 0) {
                                 LimeLog.info("mDNS: Resolved (retry) with "+infos.length+" service entries");
@@ -242,7 +242,7 @@ public class JmDNSDiscoveryAgent extends MdnsDiscoveryAgent implements ServiceLi
 
     @Override
     public void serviceAdded(ServiceEvent event) {
-        LimeLog.info("mDNS: Machine appeared: "+event.getInfo().getName());
+        LimeLog.info("mDNS: Machine appeared");
 
         ServiceInfo info = event.getDNS().getServiceInfo(SERVICE_TYPE, event.getInfo().getName(), 500);
         if (info == null) {
@@ -259,7 +259,7 @@ public class JmDNSDiscoveryAgent extends MdnsDiscoveryAgent implements ServiceLi
 
     @Override
     public void serviceRemoved(ServiceEvent event) {
-        LimeLog.info("mDNS: Machine disappeared: "+event.getInfo().getName());
+        LimeLog.info("mDNS: Machine disappeared");
     }
 
     @Override

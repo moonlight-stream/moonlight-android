@@ -30,7 +30,7 @@ public class NvApp {
             this.appId = Integer.parseInt(appId);
             this.initialized = true;
         } catch (NumberFormatException e) {
-            LimeLog.warning("Malformed app ID: "+appId);
+            LimeLog.warning("Host returned a malformed app ID");
         }
     }
     

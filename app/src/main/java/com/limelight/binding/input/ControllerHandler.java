@@ -746,7 +746,6 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         LimeLog.info("Creating controller context for device: "+devName);
         LimeLog.info("Vendor ID: " + dev.getVendorId());
         LimeLog.info("Product ID: "+dev.getProductId());
-        LimeLog.info(dev.toString());
 
         context.inputDevice = dev;
         context.name = devName;

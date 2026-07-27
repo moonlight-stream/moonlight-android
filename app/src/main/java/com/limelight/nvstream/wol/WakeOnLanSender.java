@@ -120,7 +120,7 @@ public class WakeOnLanSender {
                 try {
                     macBytes[i] = (byte) Integer.parseInt(scan.next(), 16);
                 } catch (NumberFormatException e) {
-                    LimeLog.warning("Malformed MAC address: " + macAddress + " (index: " + i + ")");
+                    LimeLog.warning("Malformed MAC address component at index " + i);
                     break;
                 }
             }

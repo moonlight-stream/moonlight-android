@@ -443,7 +443,9 @@ public class NvHTTP {
         }
         
         if (response.code() == 404) {
-            throw new FileNotFoundException(completeUrl.toString());
+            // Do not include the complete URL here. Query parameters can contain
+            // pairing material and per-session encryption keys.
+            throw new FileNotFoundException(path);
         }
         else {
             throw new HostHttpResponseException(response.code(), response.message());
@@ -461,14 +463,14 @@ public class NvHTTP {
             resp.close();
 
             if (verbose && !path.equals("serverinfo")) {
-                LimeLog.info(getCompleteUrl(baseUrl, path, query)+" -> "+respString);
+                LimeLog.info("HTTP request succeeded: " + path);
             }
 
             return respString;
         } catch (IOException e) {
             if (verbose && !path.equals("serverinfo")) {
-                LimeLog.warning(getCompleteUrl(baseUrl, path, query)+" -> "+e.getMessage());
-                e.printStackTrace();
+                LimeLog.warning("HTTP request failed: " + path +
+                        " (" + e.getClass().getSimpleName() + ")");
             }
             
             throw e;
@@ -679,7 +681,7 @@ public class NvHTTP {
             
             // Remove uninitialized apps
             if (!app.isInitialized()) {
-                LimeLog.warning("GFE returned incomplete app: "+app.getAppId()+" "+app.getAppName());
+                LimeLog.warning("Host returned an incomplete app entry");
                 i.remove();
             }
         }

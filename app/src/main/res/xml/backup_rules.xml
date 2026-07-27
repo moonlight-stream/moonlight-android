@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <!-- Don't sync preferences because it often contains device-specific data -->
+    <!--
+      Iris stores a long-lived client key, host addresses, device identifiers,
+      and pairing state locally. None of that data is safe to restore onto a
+      different device.
+    -->
+    <exclude domain="root" path="."/>
+    <exclude domain="file" path="."/>
+    <exclude domain="database" path="."/>
     <exclude domain="sharedpref" path="."/>
+    <exclude domain="external" path="."/>
 </full-backup-content>

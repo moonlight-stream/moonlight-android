@@ -23,7 +23,7 @@ public class IdentityManager {
             uniqueId = generateNewUniqueId(c);
         }
 
-        LimeLog.info("UID is now: "+uniqueId);
+        LimeLog.info("Device UID initialized");
     }
 
     public String getUniqueId() {

@@ -37,7 +37,7 @@ public class MemoryAssetLoader {
 
         ScaledBitmap bmp = memoryCache.get(key);
         if (bmp != null) {
-            LimeLog.info("LRU cache hit for tuple: "+tuple);
+            LimeLog.info("LRU asset cache hit");
             return bmp;
         }
 
@@ -45,7 +45,7 @@ public class MemoryAssetLoader {
         if (bmpRef != null) {
             bmp = bmpRef.get();
             if (bmp != null) {
-                LimeLog.info("Eviction cache hit for tuple: "+tuple);
+                LimeLog.info("Eviction asset cache hit");
 
                 // Put this entry back into the LRU cache
                 evictionCache.remove(key);

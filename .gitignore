@@ -19,6 +19,24 @@ gen/
 # Local configuration file (sdk path, etc)
 local.properties
 
+# Local secrets and signing material
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+*.der
+*.mobileprovision
+google-services.json
+credentials*.json
+service-account*.json
+secrets.properties
+signing.properties
+
 # Windows thumbnail db
 Thumbs.db
 
@@ -28,6 +46,11 @@ Thumbs.db
 # Eclipse project files
 .classpath
 .project
+.metadata/
+
+# Local JVM crash and heap diagnostics
+hs_err_pid*.log
+*.hprof
 
 # Android Studio
 .idea

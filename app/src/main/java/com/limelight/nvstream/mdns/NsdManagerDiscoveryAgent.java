@@ -97,7 +97,7 @@ public class NsdManagerDiscoveryAgent extends MdnsDiscoveryAgent {
                         return;
                     }
 
-                    LimeLog.info("NSD: Machine appeared: " + nsdServiceInfo.getServiceName());
+                    LimeLog.info("NSD: Machine appeared");
 
                     NsdManager.ServiceInfoCallback serviceInfoCallback = new NsdManager.ServiceInfoCallback() {
                         @Override
@@ -108,7 +108,7 @@ public class NsdManagerDiscoveryAgent extends MdnsDiscoveryAgent {
 
                         @Override
                         public void onServiceUpdated(NsdServiceInfo nsdServiceInfo) {
-                            LimeLog.info("NSD: Machine resolved: " + nsdServiceInfo.getServiceName());
+                            LimeLog.info("NSD: Machine resolved");
                             reportNewComputer(nsdServiceInfo.getServiceName(), nsdServiceInfo.getPort(),
                                     getV4Addrs(nsdServiceInfo.getHostAddresses()),
                                     getV6Addrs(nsdServiceInfo.getHostAddresses()));
@@ -137,7 +137,7 @@ public class NsdManagerDiscoveryAgent extends MdnsDiscoveryAgent {
                         return;
                     }
 
-                    LimeLog.info("NSD: Machine lost: " + nsdServiceInfo.getServiceName());
+                    LimeLog.info("NSD: Machine lost");
 
                     NsdManager.ServiceInfoCallback serviceInfoCallback = serviceCallbacks.remove(nsdServiceInfo.getServiceName());
                     if (serviceInfoCallback != null) {

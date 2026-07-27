@@ -68,7 +68,7 @@ public class DiskAssetLoader {
 
         // Make sure the cached asset doesn't exceed the maximum size
         if (file.length() > MAX_ASSET_SIZE) {
-            LimeLog.warning("Removing cached tuple exceeding size threshold: "+tuple);
+            LimeLog.warning("Removing cached asset exceeding size threshold");
             file.delete();
             return null;
         }
@@ -86,7 +86,7 @@ public class DiskAssetLoader {
                 return null;
             }
 
-            LimeLog.info("Tuple "+tuple+" has cached art of size: "+decodeOnlyOptions.outWidth+"x"+decodeOnlyOptions.outHeight);
+            LimeLog.info("Cached art size: "+decodeOnlyOptions.outWidth+"x"+decodeOnlyOptions.outHeight);
 
             // Load the image scaled to the appropriate size
             BitmapFactory.Options options = new BitmapFactory.Options();
@@ -103,7 +103,7 @@ public class DiskAssetLoader {
 
             bmp = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
             if (bmp != null) {
-                LimeLog.info("Tuple "+tuple+" decoded from disk cache with sample size: "+options.inSampleSize);
+                LimeLog.info("Asset decoded from disk cache with sample size: "+options.inSampleSize);
                 return new ScaledBitmap(decodeOnlyOptions.outWidth, decodeOnlyOptions.outHeight, bmp);
             }
         }
@@ -158,7 +158,7 @@ public class DiskAssetLoader {
             e.printStackTrace();
         } finally {
             if (!success) {
-                LimeLog.warning("Unable to populate cache with tuple: "+tuple);
+                LimeLog.warning("Unable to populate asset cache");
                 CacheHelper.deleteCacheFile(cacheDir, "boxart", tuple.computer.uuid, tuple.app.getAppId() + ".png");
             }
         }

@@ -1,5 +1,7 @@
 # Iris
 
+[![Build Iris](https://github.com/atgehrhardt/iris/actions/workflows/build.yml/badge.svg)](https://github.com/atgehrhardt/iris/actions/workflows/build.yml)
+
 Iris is a controller-focused fork of
 [Moonlight Android](https://github.com/moonlight-stream/moonlight-android) for
 streaming from Prism. It retains Moonlight's controller gyro, handheld motion
@@ -39,7 +41,11 @@ git submodule update --init --recursive
 
 Release builds can be signed by setting `IRIS_KEYSTORE_FILE`,
 `IRIS_KEYSTORE_PASSWORD`, `IRIS_KEY_ALIAS`, and `IRIS_KEY_PASSWORD`. GitHub tag
-builds are published as APK release assets and can be followed by Obtainium.
+builds use repository secrets with the same password and alias names, plus an
+`IRIS_KEYSTORE_BASE64` secret containing the base64-encoded keystore. The
+workflow's `signed_release` manual option builds and verifies the signed assets
+without publishing them. Version-matched tag builds are published as APK
+release assets and can be followed by Obtainium.
 
 ## Upstream project
 

@@ -133,6 +133,11 @@
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
         </activity>
         <activity
+            android:name=".preferences.RearButtonCalibration"
+            android:resizeableActivity="true"
+            android:enableOnBackInvokedCallback="true"
+            android:label="@string/title_rear_button_calibration" />
+        <activity
             android:name=".preferences.AddComputerManually"
             android:resizeableActivity="true"
             android:windowSoftInputMode="stateVisible"

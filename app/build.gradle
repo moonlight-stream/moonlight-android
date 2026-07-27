@@ -11,8 +11,8 @@ android {
         minSdk 21
         targetSdk 34
 
-        versionName "12.1"
-        versionCode = 314
+        versionName "0.1.0"
+        versionCode = 1
 
         // Generate native debug symbols to allow Google Play to symbolicate our native crashes
         ndk.debugSymbolLevel = 'FULL'
@@ -36,7 +36,7 @@ android {
                 }
             }
 
-            applicationId "com.limelight.root"
+            applicationId "dev.prism.iris.root"
             dimension "root"
             buildConfigField "boolean", "ROOT_BUILD", "true"
         }
@@ -48,7 +48,7 @@ android {
                 }
             }
 
-            applicationId "com.limelight"
+            applicationId "dev.prism.iris"
             dimension "root"
             buildConfigField "boolean", "ROOT_BUILD", "false"
         }
@@ -82,49 +82,27 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
-            resValue "string", "app_label", "Moonlight (Debug)"
-            resValue "string", "app_label_root", "Moonlight (Root Debug)"
+            resValue "string", "app_label", "Iris (Debug)"
+            resValue "string", "app_label_root", "Iris (Root Debug)"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
-            // To whomever is releasing/using an APK in release mode with
-            // Moonlight's official application ID, please stop. I see every
-            // single one of your crashes in my Play Console and it makes
-            // Moonlight's reliability look worse and makes it more difficult
-            // to distinguish real crashes from your crashy VR app. Seriously,
-            // 44 of the *same* native crash in 72 hours and a few each of
-            // several other crashes.
-            //
-            // This is technically not your fault. I would have hoped Google
-            // would validate the signature of the APK before attributing
-            // the crash to it. I asked their Play Store support about this
-            // and they said they don't and don't have plans to, so that sucks.
-            //
-            // In any case, it's bad form to release an APK using someone
-            // else's application ID. There is no legitimate reason, that
-            // anyone would need to comment out the following line, except me
-            // when I release an official signed Moonlight build. If you feel
-            // like doing so would solve something, I can tell you it will not.
-            // You can't upgrade an app while retaining data without having the
-            // same signature as the official version. Nor can you post it on
-            // the Play Store, since that application ID is already taken.
-            // Reputable APK hosting websites similarly validate the signature
-            // is consistent with the Play Store and won't allow an APK that
-            // isn't signed the same as the original.
-            //
-            // I wish any and all people using Moonlight as the basis of other
-            // cool projects the best of luck with their efforts. All I ask
-            // is to please change the applicationId before you publish.
-            //
-            // TL;DR: Leave the following line alone!
-            applicationIdSuffix ".unofficial"
-            resValue "string", "app_label", "Moonlight"
-            resValue "string", "app_label_root", "Moonlight (Root)"
+            resValue "string", "app_label", "Iris"
+            resValue "string", "app_label_root", "Iris (Root)"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            if (System.getenv("IRIS_KEYSTORE_FILE")) {
+                signingConfig signingConfigs.create("irisRelease") {
+                    storeFile file(System.getenv("IRIS_KEYSTORE_FILE"))
+                    storePassword System.getenv("IRIS_KEYSTORE_PASSWORD")
+                    keyAlias System.getenv("IRIS_KEY_ALIAS")
+                    keyPassword System.getenv("IRIS_KEY_PASSWORD")
+                }
+            }
         }
     }
 
@@ -142,4 +120,5 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'org.jmdns:jmdns:3.5.9'
     implementation 'com.github.cgutman:ShieldControllerExtensions:1.0.1'
+    testImplementation 'junit:junit:4.13.2'
 }

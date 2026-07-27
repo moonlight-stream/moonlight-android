@@ -1,0 +1,75 @@
+name: Build Iris
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Iris
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Run unit tests and build debug APK
+        run: ./gradlew testNonRootDebugUnitTest assembleNonRootDebug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: iris-debug
+          path: app/build/outputs/apk/nonRoot/debug/*.apk
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: android
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out Iris
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Decode release keystore
+        env:
+          IRIS_KEYSTORE_BASE64: ${{ secrets.IRIS_KEYSTORE_BASE64 }}
+        run: echo "$IRIS_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/iris-release.jks"
+
+      - name: Build signed release APK
+        env:
+          IRIS_KEYSTORE_FILE: ${{ runner.temp }}/iris-release.jks
+          IRIS_KEYSTORE_PASSWORD: ${{ secrets.IRIS_KEYSTORE_PASSWORD }}
+          IRIS_KEY_ALIAS: ${{ secrets.IRIS_KEY_ALIAS }}
+          IRIS_KEY_PASSWORD: ${{ secrets.IRIS_KEY_PASSWORD }}
+        run: ./gradlew testNonRootReleaseUnitTest assembleNonRootRelease
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" app/build/outputs/apk/nonRoot/release/*.apk --generate-notes

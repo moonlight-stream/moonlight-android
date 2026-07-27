@@ -107,7 +107,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_FULL_RANGE = false;
     private static final boolean DEFAULT_GAMEPAD_TOUCHPAD_AS_MOUSE = false;
     private static final boolean DEFAULT_GAMEPAD_MOTION_SENSORS = true;
-    private static final boolean DEFAULT_GAMEPAD_MOTION_FALLBACK = false;
+    private static final boolean DEFAULT_GAMEPAD_MOTION_FALLBACK = true;
 
     public static final int FRAME_PACING_MIN_LATENCY = 0;
     public static final int FRAME_PACING_BALANCED = 1;

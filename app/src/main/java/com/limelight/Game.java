@@ -1307,8 +1307,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyDown(KeyEvent event) {
+        boolean profiledRearButton = controllerHandler.isProfiledRearButton(event);
+
         // Pass-through virtual navigation keys
-        if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
+        if (!profiledRearButton && (event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return false;
         }
 
@@ -1334,7 +1336,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         boolean handled = false;
 
-        if (ControllerHandler.isGameControllerDevice(event.getDevice())) {
+        if (profiledRearButton ||
+                ControllerHandler.isGameControllerDevice(event.getDevice())) {
             // Always try the controller handler first, unless it's an alphanumeric keyboard device.
             // Otherwise, controller handler will eat keyboard d-pad events.
             handled = controllerHandler.handleButtonDown(event);
@@ -1389,8 +1392,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyUp(KeyEvent event) {
+        boolean profiledRearButton = controllerHandler.isProfiledRearButton(event);
+
         // Pass-through virtual navigation keys
-        if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
+        if (!profiledRearButton && (event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return false;
         }
 
@@ -1414,7 +1419,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         boolean handled = false;
-        if (ControllerHandler.isGameControllerDevice(event.getDevice())) {
+        if (profiledRearButton ||
+                ControllerHandler.isGameControllerDevice(event.getDevice())) {
             // Always try the controller handler first, unless it's an alphanumeric keyboard device.
             // Otherwise, controller handler will eat keyboard d-pad events.
             handled = controllerHandler.handleButtonUp(event);
@@ -2395,6 +2401,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 connected = true;
                 connecting = false;
                 updatePipAutoEnter();
+                controllerHandler.announceProfiledControllers();
 
                 // Hide the mouse cursor now after a short delay.
                 // Doing it before dismissing the spinner seems to be undone

@@ -125,7 +125,11 @@
             android:key="checkbox_gamepad_motion_fallback"
             android:title="@string/title_checkbox_gamepad_motion_fallback"
             android:summary="@string/summary_checkbox_gamepad_motion_fallback"
-            android:defaultValue="false" />
+            android:defaultValue="true" />
+        <Preference
+            android:key="rear_button_calibration"
+            android:title="@string/title_rear_button_calibration"
+            android:summary="@string/summary_rear_button_calibration" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_input_settings"
         android:key="category_input_settings">

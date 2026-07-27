@@ -276,6 +276,10 @@ public class StreamSettings extends Activity {
 
             addPreferencesFromResource(R.xml.preferences);
             PreferenceScreen screen = getPreferenceScreen();
+            findPreference("rear_button_calibration").setOnPreferenceClickListener(preference -> {
+                startActivity(new Intent(getActivity(), RearButtonCalibration.class));
+                return true;
+            });
 
             // hide on-screen controls category on non touch screen devices
             if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {

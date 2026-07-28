@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.media.MediaCodecInfo;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,16 +18,21 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.util.DisplayMetrics;
 import android.util.Range;
 import android.view.Display;
 import android.view.DisplayCutout;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 
 import com.limelight.LimeLog;
 import com.limelight.PcView;
@@ -35,11 +42,39 @@ import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class StreamSettings extends Activity {
+    private static final String ARG_CATEGORY = "category";
+    private static final String[] CATEGORY_KEYS = {
+            "category_basic_settings",
+            "category_audio_settings",
+            "category_gamepad_settings",
+            "category_input_settings",
+            "category_onscreen_controls",
+            "category_host_settings",
+            "category_ui_settings",
+            "category_advanced_settings"
+    };
+    private static final int[] CATEGORY_TITLES = {
+            R.string.category_basic_settings,
+            R.string.category_audio_settings,
+            R.string.category_gamepad_settings,
+            R.string.category_input_settings,
+            R.string.category_on_screen_controls_settings,
+            R.string.category_host_settings,
+            R.string.category_ui_settings,
+            R.string.category_advanced_settings
+    };
+
     private PreferenceConfiguration previousPrefs;
     private int previousDisplayPixelCount;
+    private String selectedCategory = CATEGORY_KEYS[0];
+    private final List<Button> categoryButtons = new ArrayList<>();
+    private final List<String> categoryButtonKeys = new ArrayList<>();
+    private ListView settingsList;
 
     // HACK for Android 9
     static DisplayCutout displayCutoutP;
@@ -49,8 +84,12 @@ public class StreamSettings extends Activity {
             Display.Mode mode = getWindowManager().getDefaultDisplay().getMode();
             previousDisplayPixelCount = mode.getPhysicalWidth() * mode.getPhysicalHeight();
         }
+        SettingsFragment fragment = new SettingsFragment();
+        Bundle arguments = new Bundle();
+        arguments.putString(ARG_CATEGORY, selectedCategory);
+        fragment.setArguments(arguments);
         getFragmentManager().beginTransaction().replace(
-                R.id.stream_settings, new SettingsFragment()
+                R.id.stream_settings, fragment
         ).commitAllowingStateLoss();
     }
 
@@ -63,8 +102,126 @@ public class StreamSettings extends Activity {
         UiHelper.setLocale(this);
 
         setContentView(R.layout.activity_stream_settings);
+        setupCategoryRail();
 
         UiHelper.notifyNewRootView(this);
+    }
+
+    private void setupCategoryRail() {
+        LinearLayout rail = findViewById(R.id.settings_category_rail);
+        categoryButtons.clear();
+        categoryButtonKeys.clear();
+        float density = getResources().getDisplayMetrics().density;
+        for (int index = 0; index < CATEGORY_KEYS.length; index++) {
+            if (CATEGORY_KEYS[index].equals("category_onscreen_controls") &&
+                    !getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
+                continue;
+            }
+            Button button = new Button(this);
+            button.setAllCaps(false);
+            button.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
+            button.setText(CATEGORY_TITLES[index]);
+            button.setTextColor(getResources().getColor(R.color.iris_text_primary));
+            button.setTextSize(15);
+            button.setBackgroundResource(R.drawable.iris_button_selector);
+            button.setPadding((int) (16 * density), 0, (int) (10 * density), 0);
+            button.setMinHeight((int) (52 * density));
+            button.setFocusableInTouchMode(true);
+            String categoryKey = CATEGORY_KEYS[index];
+            button.setOnClickListener(view -> {
+                selectedCategory = categoryKey;
+                updateSelectedCategory();
+                reloadSettings();
+            });
+            button.setOnKeyListener((view, keyCode, event) -> {
+                if (event.getAction() == KeyEvent.ACTION_DOWN &&
+                        keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                    return focusSettingsPane();
+                }
+                return false;
+            });
+            LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
+                    rail.getOrientation() == LinearLayout.HORIZONTAL ?
+                            LinearLayout.LayoutParams.WRAP_CONTENT :
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT);
+            if (rail.getOrientation() == LinearLayout.HORIZONTAL) {
+                buttonParams.setMarginEnd((int) (8 * density));
+            }
+            else {
+                buttonParams.bottomMargin = (int) (8 * density);
+                buttonParams.setMarginEnd((int) (8 * density));
+            }
+            rail.addView(button, buttonParams);
+            categoryButtons.add(button);
+            categoryButtonKeys.add(categoryKey);
+        }
+        if (!categoryButtonKeys.contains(selectedCategory)) {
+            selectedCategory = CATEGORY_KEYS[0];
+        }
+        updateSelectedCategory();
+        if (getCurrentFocus() == null) {
+            int selectedIndex = categoryButtonKeys.indexOf(selectedCategory);
+            if (selectedIndex >= 0) {
+                categoryButtons.get(selectedIndex).requestFocus();
+            }
+        }
+    }
+
+    private boolean focusSettingsPane() {
+        ListView list = settingsList;
+        if (list == null || list.getAdapter() == null || list.getCount() == 0) {
+            return false;
+        }
+
+        int firstEnabledPosition = 0;
+        while (firstEnabledPosition < list.getCount() &&
+                !list.getAdapter().isEnabled(firstEnabledPosition)) {
+            firstEnabledPosition++;
+        }
+        if (firstEnabledPosition >= list.getCount()) {
+            return false;
+        }
+
+        list.requestFocus();
+        list.setSelection(firstEnabledPosition);
+        return true;
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN &&
+                settingsList != null && settingsList.hasFocus()) {
+            int keyCode = event.getKeyCode();
+            int selectedPosition = settingsList.getSelectedItemPosition();
+
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN &&
+                    selectedPosition >= settingsList.getCount() - 1) {
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP &&
+                    (selectedPosition <= 0 || !settingsList.canScrollVertically(-1))) {
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                int selectedIndex = categoryButtonKeys.indexOf(selectedCategory);
+                if (selectedIndex >= 0) {
+                    categoryButtons.get(selectedIndex).requestFocus();
+                    return true;
+                }
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                return true;
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private void updateSelectedCategory() {
+        for (int index = 0; index < categoryButtons.size(); index++) {
+            categoryButtons.get(index).setSelected(
+                    categoryButtonKeys.get(index).equals(selectedCategory));
+        }
     }
 
     @Override
@@ -88,19 +245,10 @@ public class StreamSettings extends Activity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Display.Mode mode = getWindowManager().getDefaultDisplay().getMode();
-
-            // If the display's physical pixel count has changed, we consider that it's a new display
-            // and we should reload our settings (which include display-dependent values).
-            //
-            // NB: We aren't using displayId here because that stays the same (DEFAULT_DISPLAY) when
-            // switching between screens on a foldable device.
-            if (mode.getPhysicalWidth() * mode.getPhysicalHeight() != previousDisplayPixelCount) {
-                reloadSettings();
-            }
-        }
+        setContentView(R.layout.activity_stream_settings);
+        setupCategoryRail();
+        UiHelper.notifyNewRootView(this);
+        reloadSettings();
     }
 
     @Override
@@ -266,8 +414,68 @@ public class StreamSettings extends Activity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View view = super.onCreateView(inflater, container, savedInstanceState);
+            view.setBackgroundColor(Color.TRANSPARENT);
+            configureSettingsList(view.findViewById(android.R.id.list));
             UiHelper.applyStatusBarPadding(view);
             return view;
+        }
+
+        @Override
+        public void onActivityCreated(Bundle savedInstanceState) {
+            super.onActivityCreated(savedInstanceState);
+            View view = getView();
+            if (view != null) {
+                configureSettingsList(view.findViewById(android.R.id.list));
+            }
+        }
+
+        private void configureSettingsList(ListView list) {
+            if (list == null) {
+                return;
+            }
+
+            float density = getResources().getDisplayMetrics().density;
+            int outerPadding = (int) (8 * density);
+            list.setBackgroundColor(Color.TRANSPARENT);
+            list.setDivider(new ColorDrawable(Color.TRANSPARENT));
+            list.setDividerHeight((int) (10 * density));
+            list.setSelector(R.drawable.iris_preference_list_selector);
+            list.setDrawSelectorOnTop(true);
+            list.setPadding(outerPadding, outerPadding, outerPadding, outerPadding);
+            list.setClipToPadding(false);
+            list.setFocusableInTouchMode(true);
+            Activity activity = getActivity();
+            if (activity instanceof StreamSettings) {
+                ((StreamSettings) activity).settingsList = list;
+            }
+            list.setOnKeyListener((listView, keyCode, event) -> {
+                if (event.getAction() != KeyEvent.ACTION_DOWN) {
+                    return false;
+                }
+
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN &&
+                        (list.getSelectedItemPosition() >= list.getCount() - 1 ||
+                                !list.canScrollVertically(1))) {
+                    return true;
+                }
+                if (keyCode == KeyEvent.KEYCODE_DPAD_UP &&
+                        !list.canScrollVertically(-1)) {
+                    return true;
+                }
+                if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                    Activity hostActivity = getActivity();
+                    if (hostActivity instanceof StreamSettings) {
+                        StreamSettings settings = (StreamSettings) hostActivity;
+                        int selectedIndex = settings.categoryButtonKeys.indexOf(
+                                settings.selectedCategory);
+                        if (selectedIndex >= 0) {
+                            settings.categoryButtons.get(selectedIndex).requestFocus();
+                            return true;
+                        }
+                    }
+                }
+                return keyCode == KeyEvent.KEYCODE_DPAD_RIGHT;
+            });
         }
 
         @Override
@@ -671,6 +879,34 @@ public class StreamSettings extends Activity {
                     return true;
                 }
             });
+
+            String selectedCategory = getArguments() != null ?
+                    getArguments().getString(ARG_CATEGORY, CATEGORY_KEYS[0]) : CATEGORY_KEYS[0];
+            for (String categoryKey : CATEGORY_KEYS) {
+                if (!categoryKey.equals(selectedCategory)) {
+                    Preference category = findPreference(categoryKey);
+                    if (category != null) {
+                        screen.removePreference(category);
+                    }
+                }
+            }
+            applyConsolePreferenceLayouts(screen);
+        }
+
+        private void applyConsolePreferenceLayouts(PreferenceGroup group) {
+            for (int index = 0; index < group.getPreferenceCount(); index++) {
+                Preference preference = group.getPreference(index);
+                if (preference instanceof PreferenceCategory) {
+                    preference.setLayoutResource(R.layout.console_preference_category);
+                }
+                else {
+                    preference.setLayoutResource(R.layout.console_preference_row);
+                }
+
+                if (preference instanceof PreferenceGroup) {
+                    applyConsolePreferenceLayouts((PreferenceGroup) preference);
+                }
+            }
         }
     }
 }

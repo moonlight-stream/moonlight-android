@@ -6,6 +6,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.widget.Button;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.limelight.R;
 
@@ -96,6 +98,14 @@ public class Dialog implements Runnable {
 
             @Override
             public void onShow(DialogInterface dialog) {
+                Window window = alert.getWindow();
+                if (window != null) {
+                    window.setBackgroundDrawableResource(R.drawable.iris_glass_panel);
+                    WindowManager.LayoutParams params = window.getAttributes();
+                    params.dimAmount = 0.72f;
+                    window.setAttributes(params);
+                    window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+                }
                 // Set focus to the OK button by default
                 Button button = alert.getButton(AlertDialog.BUTTON_POSITIVE);
                 button.setFocusable(true);

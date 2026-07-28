@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/ic_launcher_background"/>
-    <item android:drawable="@drawable/ic_lime_layer"
+    <item android:drawable="@drawable/iris_icon_foreground"
           android:bottom="10dp"
           android:left="10dp"
           android:right="10dp"

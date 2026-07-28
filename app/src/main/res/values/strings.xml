@@ -124,6 +124,8 @@
     <string name="applist_menu_scut">Create Shortcut</string>
     <string name="applist_menu_tv_channel">Add to Channel</string>
     <string name="applist_menu_hide_app">Hide App</string>
+    <string name="applist_menu_favorite">Add to Favorites</string>
+    <string name="applist_menu_unfavorite">Remove from Favorites</string>
     <string name="applist_refresh_title">App List</string>
     <string name="applist_refresh_msg">Refreshing apps…</string>
     <string name="applist_refresh_error_title">Error</string>
@@ -133,6 +135,32 @@
     <string name="applist_quit_fail">Failed to quit</string>
     <string name="applist_quit_confirmation">Are you sure you want to quit the running app? All unsaved data will be lost.</string>
     <string name="applist_details_id">App ID:</string>
+
+    <!-- Iris console shell -->
+    <string name="console_hosts">Hosts</string>
+    <string name="console_library">Game Library</string>
+    <string name="console_continue_playing">Continue Playing</string>
+    <string name="console_currently_playing">Currently Playing</string>
+    <string name="console_running_page_hint">Down  •  All Games</string>
+    <string name="console_favorites">Favorites</string>
+    <string name="console_all_games">All Games</string>
+    <string name="console_play">Play</string>
+    <string name="console_resume">Resume</string>
+    <string name="console_select_hint">Select  •  Hold for options  •  Back</string>
+    <string name="console_host_online">Online and ready</string>
+    <string name="console_host_offline">Offline • Open options to wake</string>
+    <string name="console_host_refreshing">Checking host status…</string>
+    <string name="console_host_unpaired">Online • Select to pair</string>
+    <string name="console_host_open">Select to open game library</string>
+    <string name="console_host_running">Session in progress</string>
+    <string name="console_searching_title">Looking for your hosts</string>
+    <string name="console_searching_body">Keep Sunshine running on your PC. Iris will add discovered hosts here automatically.</string>
+    <string name="console_add_host">Add host</string>
+    <string name="console_add_host_body">Enter a hostname or IP address. You can include a custom port if your host requires one.</string>
+    <string name="console_hidden">Hidden</string>
+    <string name="console_running">Running</string>
+    <string name="console_favorite_badge">Favorite</string>
+    <string name="console_settings">Settings</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>
@@ -236,13 +264,21 @@
     <string name="dialog_title_osc_opacity">Change opacity</string>
     <string name="suffix_osc_opacity">%</string>
 
-    <string name="category_ui_settings">UI Settings</string>
+    <string name="category_ui_settings">Interface</string>
     <string name="title_checkbox_enable_pip">Enable Picture-in-Picture observer mode</string>
     <string name="summary_checkbox_enable_pip">Allows the stream to be viewed (but not controlled) while multitasking</string>
     <string name="title_language_list">Language</string>
     <string name="summary_language_list">Language to use for Moonlight</string>
-    <string name="title_checkbox_small_icon_mode">Use small box art</string>
-    <string name="summary_checkbox_small_icon_mode">Smaller box art in the app grid allows more apps to be visible on screen</string>
+    <string name="title_checkbox_small_icon_mode">Compact library shelves</string>
+    <string name="summary_checkbox_small_icon_mode">Use smaller game covers so more of each shelf is visible</string>
+    <string name="title_interface_sounds">Interface sounds</string>
+    <string name="summary_interface_sounds">Play subtle sounds while navigating and confirming launcher actions</string>
+    <string name="title_navigation_haptics">Navigation haptics</string>
+    <string name="summary_navigation_haptics">Use supported device vibration for focus and confirmation feedback</string>
+    <string name="title_reduced_motion">Reduced motion</string>
+    <string name="summary_reduced_motion">Disable ambient movement, card scaling, and long transitions</string>
+    <string name="title_dynamic_backgrounds">Dynamic game backgrounds</string>
+    <string name="summary_dynamic_backgrounds">Use the selected game’s artwork behind the library</string>
 
     <string name="category_host_settings">Host Settings</string>
     <string name="title_checkbox_enable_sops">Optimize game settings</string>

@@ -4,44 +4,53 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.view.Gravity;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
-public class SpinnerDialog implements Runnable,OnCancelListener {
+import com.limelight.R;
+
+public class SpinnerDialog implements Runnable, OnCancelListener {
     private final String title;
     private final String message;
     private final Activity activity;
-    private ProgressDialog progress;
+    private Dialog progress;
+    private TextView messageView;
     private final boolean finish;
 
     private static final ArrayList<SpinnerDialog> rundownDialogs = new ArrayList<>();
 
-    private SpinnerDialog(Activity activity, String title, String message, boolean finish)
-    {
+    private SpinnerDialog(Activity activity, String title, String message, boolean finish) {
         this.activity = activity;
         this.title = title;
         this.message = message;
-        this.progress = null;
         this.finish = finish;
     }
 
-    public static SpinnerDialog displayDialog(Activity activity, String title, String message, boolean finish)
-    {
+    public static SpinnerDialog displayDialog(Activity activity, String title,
+                                               String message, boolean finish) {
         SpinnerDialog spinner = new SpinnerDialog(activity, title, message, finish);
         activity.runOnUiThread(spinner);
         return spinner;
     }
 
-    public static void closeDialogs(Activity activity)
-    {
+    public static void closeDialogs(Activity activity) {
         synchronized (rundownDialogs) {
-            Iterator<SpinnerDialog> i = rundownDialogs.iterator();
-            while (i.hasNext()) {
-                SpinnerDialog dialog = i.next();
+            Iterator<SpinnerDialog> iterator = rundownDialogs.iterator();
+            while (iterator.hasNext()) {
+                SpinnerDialog dialog = iterator.next();
                 if (dialog.activity == activity) {
-                    i.remove();
-                    if (dialog.progress.isShowing()) {
+                    iterator.remove();
+                    if (dialog.progress != null && dialog.progress.isShowing()) {
                         dialog.progress.dismiss();
                     }
                 }
@@ -49,57 +58,74 @@ public class SpinnerDialog implements Runnable,OnCancelListener {
         }
     }
 
-    public void dismiss()
-    {
-        // Running again with progress != null will destroy it
+    public void dismiss() {
         activity.runOnUiThread(this);
     }
 
-    public void setMessage(final String message)
-    {
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progress.setMessage(message);
+    public void setMessage(final String message) {
+        activity.runOnUiThread(() -> {
+            if (messageView != null) {
+                messageView.setText(message);
             }
         });
     }
 
     @Override
     public void run() {
-
-        // If we're dying, don't bother doing anything
         if (activity.isFinishing()) {
             return;
         }
 
-        if (progress == null)
-        {
-            progress = new ProgressDialog(activity);
+        if (progress == null) {
+            progress = new Dialog(activity);
+            LinearLayout panel = new LinearLayout(activity);
+            panel.setOrientation(LinearLayout.VERTICAL);
+            panel.setGravity(Gravity.CENTER_HORIZONTAL);
+            panel.setPadding(dp(30), dp(26), dp(30), dp(26));
+            panel.setBackgroundResource(R.drawable.iris_glass_panel);
 
-            progress.setTitle(title);
-            progress.setMessage(message);
-            progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            ProgressBar spinner = new ProgressBar(activity);
+            spinner.setIndeterminateTintList(ColorStateList.valueOf(
+                    activity.getResources().getColor(R.color.iris_cyan)));
+            panel.addView(spinner, new LinearLayout.LayoutParams(dp(52), dp(52)));
+
+            TextView titleView = new TextView(activity);
+            titleView.setText(title);
+            titleView.setTextSize(22);
+            titleView.setTextColor(activity.getResources().getColor(R.color.iris_text_primary));
+            titleView.setGravity(Gravity.CENTER);
+            titleView.setPadding(0, dp(16), 0, dp(6));
+            panel.addView(titleView);
+
+            messageView = new TextView(activity);
+            messageView.setText(message);
+            messageView.setTextSize(16);
+            messageView.setTextColor(activity.getResources().getColor(R.color.iris_text_secondary));
+            messageView.setGravity(Gravity.CENTER);
+            panel.addView(messageView);
+
+            progress.setContentView(panel);
             progress.setOnCancelListener(this);
+            progress.setCancelable(finish);
+            progress.setCanceledOnTouchOutside(false);
+            progress.show();
 
-            // If we want to finish the activity when this is killed, make it cancellable
-            if (finish)
-            {
-                progress.setCancelable(true);
-                progress.setCanceledOnTouchOutside(false);
-            }
-            else
-            {
-                progress.setCancelable(false);
+            Window window = progress.getWindow();
+            if (window != null) {
+                window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+                WindowManager.LayoutParams params = window.getAttributes();
+                params.width = Math.min(dp(480),
+                        activity.getResources().getDisplayMetrics().widthPixels - dp(36));
+                params.dimAmount = 0.72f;
+                window.setAttributes(params);
             }
 
             synchronized (rundownDialogs) {
                 rundownDialogs.add(this);
-                progress.show();
             }
         }
-        else
-        {
+        else {
             synchronized (rundownDialogs) {
                 if (rundownDialogs.remove(this) && progress.isShowing()) {
                     progress.dismiss();
@@ -113,8 +139,10 @@ public class SpinnerDialog implements Runnable,OnCancelListener {
         synchronized (rundownDialogs) {
             rundownDialogs.remove(this);
         }
-
-        // This will only be called if finish was true, so we don't need to check again
         activity.finish();
+    }
+
+    private int dp(int value) {
+        return (int) (value * activity.getResources().getDisplayMetrics().density + 0.5f);
     }
 }

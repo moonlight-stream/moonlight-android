@@ -1,10 +1,15 @@
 package com.limelight.grid;
 
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.limelight.PcView;
 import com.limelight.R;
@@ -12,22 +17,35 @@ import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.PairingManager;
 import com.limelight.preferences.PreferenceConfiguration;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
-public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
-
-    public PcGridAdapter(Context context, PreferenceConfiguration prefs) {
-        super(context, getLayoutIdForPreferences(prefs));
+public final class PcGridAdapter extends RecyclerView.Adapter<PcGridAdapter.HostViewHolder> {
+    public interface Listener {
+        void onHostClicked(PcView.ComputerObject computer, View view);
+        void onHostLongClicked(PcView.ComputerObject computer, View view);
+        void onHostFocused(PcView.ComputerObject computer, View view);
     }
 
-    private static int getLayoutIdForPreferences(PreferenceConfiguration prefs) {
-        return R.layout.pc_grid_item;
+    private final Context context;
+    private final LayoutInflater inflater;
+    private final List<PcView.ComputerObject> itemList = new ArrayList<>();
+    private Listener listener;
+
+    public PcGridAdapter(Context context, PreferenceConfiguration prefs) {
+        this.context = context;
+        inflater = LayoutInflater.from(context);
+        setHasStableIds(true);
+    }
+
+    public void setListener(Listener listener) {
+        this.listener = listener;
     }
 
     public void updateLayoutWithPreferences(Context context, PreferenceConfiguration prefs) {
-        // This will trigger the view to reload with the new layout
-        setLayoutId(getLayoutIdForPreferences(prefs));
+        notifyDataSetChanged();
     }
 
     public void addComputer(PcView.ComputerObject computer) {
@@ -38,8 +56,8 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
     private void sortList() {
         Collections.sort(itemList, new Comparator<PcView.ComputerObject>() {
             @Override
-            public int compare(PcView.ComputerObject lhs, PcView.ComputerObject rhs) {
-                return lhs.details.name.toLowerCase().compareTo(rhs.details.name.toLowerCase());
+            public int compare(PcView.ComputerObject left, PcView.ComputerObject right) {
+                return left.details.name.compareToIgnoreCase(right.details.name);
             }
         });
     }
@@ -48,46 +66,111 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
         return itemList.remove(computer);
     }
 
+    public int getCount() {
+        return itemList.size();
+    }
+
+    public PcView.ComputerObject getItem(int index) {
+        return itemList.get(index);
+    }
+
+    public int indexOfUuid(String uuid) {
+        if (uuid != null) {
+            for (int index = 0; index < itemList.size(); index++) {
+                if (uuid.equals(itemList.get(index).details.uuid)) {
+                    return index;
+                }
+            }
+        }
+        return itemList.isEmpty() ? -1 : 0;
+    }
+
     @Override
-    public void populateView(View parentView, ImageView imgView, ProgressBar prgView, TextView txtView, ImageView overlayView, PcView.ComputerObject obj) {
-        imgView.setImageResource(R.drawable.ic_computer);
-        if (obj.details.state == ComputerDetails.State.ONLINE) {
-            imgView.setAlpha(1.0f);
-        }
-        else {
-            imgView.setAlpha(0.4f);
+    public long getItemId(int position) {
+        String uuid = itemList.get(position).details.uuid;
+        return uuid == null ? position : uuid.hashCode();
+    }
+
+    @NonNull
+    @Override
+    public HostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new HostViewHolder(inflater.inflate(R.layout.pc_grid_item, parent, false));
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull HostViewHolder holder, int position) {
+        PcView.ComputerObject computer = itemList.get(position);
+        ComputerDetails details = computer.details;
+        holder.itemView.setTag(computer);
+        holder.name.setText(details.name);
+        holder.icon.setAlpha(details.state == ComputerDetails.State.ONLINE ? 1f : 0.45f);
+
+        if (details.state == ComputerDetails.State.ONLINE) {
+            if (details.pairState != PairingManager.PairState.PAIRED) {
+                holder.status.setText(R.string.console_host_unpaired);
+                holder.overlay.setImageResource(R.drawable.ic_lock);
+                holder.overlay.setVisibility(View.VISIBLE);
+            } else if (details.runningGameId != 0) {
+                holder.status.setText(R.string.console_host_running);
+                holder.overlay.setImageResource(R.drawable.ic_play);
+                holder.overlay.setVisibility(View.VISIBLE);
+            } else {
+                holder.status.setText(R.string.console_host_online);
+                holder.overlay.setVisibility(View.GONE);
+            }
+            holder.name.setAlpha(1f);
+            holder.spinner.setVisibility(View.GONE);
+        } else if (details.state == ComputerDetails.State.OFFLINE) {
+            holder.status.setText(R.string.console_host_offline);
+            holder.name.setAlpha(0.62f);
+            holder.overlay.setImageResource(R.drawable.ic_pc_offline);
+            holder.overlay.setVisibility(View.VISIBLE);
+            holder.spinner.setVisibility(View.GONE);
+        } else {
+            holder.status.setText(R.string.console_host_refreshing);
+            holder.name.setAlpha(0.72f);
+            holder.overlay.setVisibility(View.GONE);
+            holder.spinner.setVisibility(View.VISIBLE);
         }
 
-        if (obj.details.state == ComputerDetails.State.UNKNOWN) {
-            prgView.setVisibility(View.VISIBLE);
-        }
-        else {
-            prgView.setVisibility(View.INVISIBLE);
-        }
+        holder.itemView.setContentDescription(details.name + ". " + holder.status.getText());
+        holder.itemView.setOnClickListener(view -> {
+            if (listener != null) {
+                listener.onHostClicked(computer, view);
+            }
+        });
+        holder.itemView.setOnLongClickListener(view -> {
+            if (listener != null) {
+                listener.onHostLongClicked(computer, view);
+            }
+            return true;
+        });
+        holder.itemView.setOnFocusChangeListener((view, hasFocus) -> {
+            if (hasFocus && listener != null) {
+                listener.onHostFocused(computer, view);
+            }
+        });
+    }
 
-        txtView.setText(obj.details.name);
-        if (obj.details.state == ComputerDetails.State.ONLINE) {
-            txtView.setAlpha(1.0f);
-        }
-        else {
-            txtView.setAlpha(0.4f);
-        }
+    @Override
+    public int getItemCount() {
+        return itemList.size();
+    }
 
-        if (obj.details.state == ComputerDetails.State.OFFLINE) {
-            overlayView.setImageResource(R.drawable.ic_pc_offline);
-            overlayView.setAlpha(0.4f);
-            overlayView.setVisibility(View.VISIBLE);
-        }
-        // We must check if the status is exactly online and unpaired
-        // to avoid colliding with the loading spinner when status is unknown
-        else if (obj.details.state == ComputerDetails.State.ONLINE &&
-                obj.details.pairState == PairingManager.PairState.NOT_PAIRED) {
-            overlayView.setImageResource(R.drawable.ic_lock);
-            overlayView.setAlpha(1.0f);
-            overlayView.setVisibility(View.VISIBLE);
-        }
-        else {
-            overlayView.setVisibility(View.GONE);
+    static final class HostViewHolder extends RecyclerView.ViewHolder {
+        final ImageView icon;
+        final ImageView overlay;
+        final ProgressBar spinner;
+        final TextView name;
+        final TextView status;
+
+        HostViewHolder(View itemView) {
+            super(itemView);
+            icon = itemView.findViewById(R.id.grid_image);
+            overlay = itemView.findViewById(R.id.grid_overlay);
+            spinner = itemView.findViewById(R.id.grid_spinner);
+            name = itemView.findViewById(R.id.grid_text);
+            status = itemView.findViewById(R.id.grid_status);
         }
     }
 }

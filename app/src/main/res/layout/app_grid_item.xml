@@ -1,29 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="150dp"
-    android:layout_height="200dp"
-    android:padding="10dp">
+<com.limelight.ui.console.ConsoleCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/console_cover_width"
+    android:layout_height="@dimen/console_cover_height"
+    android:layout_marginEnd="@dimen/console_card_gap"
+    android:layout_marginBottom="@dimen/console_card_gap">
+
     <ImageView
         android:id="@+id/grid_image"
-        android:cropToPadding="false"
-        android:scaleType="fitXY"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </ImageView>
-    <ImageView
-        android:id="@+id/grid_overlay"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
-        android:layout_width="50dp"
-        android:layout_height="50dp">
-    </ImageView>
-    <TextView
-        android:id="@+id/grid_text"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/grid_overlay"
-        android:layout_margin="5dp"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/grid_text"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/grid_focus_title"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/grid_overlay"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="10dp"
+        android:background="@drawable/iris_glass_panel"
+        android:importantForAccessibility="no"
+        android:padding="7dp"
+        android:src="@drawable/ic_play"
+        android:tint="@color/iris_success"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/grid_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="28dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="10dp"
+        android:background="@drawable/iris_glass_panel"
         android:gravity="center"
-        android:textSize="18sp">
-    </TextView>
-</RelativeLayout>
+        android:minWidth="28dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:textColor="@color/iris_cyan"
+        android:textSize="13sp"
+        android:visibility="gone" />
+</com.limelight.ui.console.ConsoleCardView>

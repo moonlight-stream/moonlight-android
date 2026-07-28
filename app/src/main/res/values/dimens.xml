@@ -5,5 +5,14 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="tv_channel_logo_width">80dp</dimen>
     <dimen name="tv_channel_logo_height">80dp</dimen>
+    <dimen name="console_screen_padding">28dp</dimen>
+    <dimen name="console_screen_padding_compact">18dp</dimen>
+    <dimen name="console_panel_radius">22dp</dimen>
+    <dimen name="console_card_radius">18dp</dimen>
+    <dimen name="console_card_gap">18dp</dimen>
+    <dimen name="console_cover_width">150dp</dimen>
+    <dimen name="console_cover_height">210dp</dimen>
+    <dimen name="console_host_width">280dp</dimen>
+    <dimen name="console_host_height">158dp</dimen>
 
 </resources>

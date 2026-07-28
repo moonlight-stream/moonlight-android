@@ -8,7 +8,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.limelight.AppView;
@@ -40,43 +39,12 @@ public final class GameShelfAdapter extends RecyclerView.Adapter<GameShelfAdapte
     }
 
     public void submitList(List<AppView.AppObject> newApps) {
-        List<Integer> oldIds = new ArrayList<>(apps.size());
-        for (AppView.AppObject app : apps) {
-            oldIds.add(app.app.getAppId());
-        }
-        List<Integer> newIds = new ArrayList<>(newApps.size());
-        for (AppView.AppObject app : newApps) {
-            newIds.add(app.app.getAppId());
-        }
-        DiffUtil.DiffResult diff = DiffUtil.calculateDiff(new DiffUtil.Callback() {
-            @Override
-            public int getOldListSize() {
-                return oldIds.size();
-            }
-
-            @Override
-            public int getNewListSize() {
-                return newIds.size();
-            }
-
-            @Override
-            public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-                return oldIds.get(oldItemPosition).equals(newIds.get(newItemPosition));
-            }
-
-            @Override
-            public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-                return true;
-            }
-        }, true);
         apps.clear();
         apps.addAll(newApps);
-        diff.dispatchUpdatesTo(this);
-        if (!apps.isEmpty()) {
-            // AppObject state is mutable, so rebind retained IDs after dispatching the
-            // structural diff without sacrificing stable-ID focus restoration.
-            notifyItemRangeChanged(0, apps.size());
-        }
+        // RecyclerView uses our stable app IDs to preserve retained cards. A single
+        // atomic refresh is safer than chaining structural and range notifications
+        // when the removed card currently owns focus.
+        notifyDataSetChanged();
     }
 
     public AppView.AppObject getItem(int position) {

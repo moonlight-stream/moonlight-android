@@ -488,11 +488,16 @@ public class AppView extends Activity {
             return;
         }
         if (!visibleApps.isEmpty()) {
-            gridFocusedAppId = visibleApps.get(0).app.getAppId();
+            int fallbackPosition = Math.min(lastGridFocusPosition,
+                    visibleApps.size() - 1);
+            AppObject fallback = visibleApps.get(Math.max(0, fallbackPosition));
+            gridFocusedAppId = fallback.app.getAppId();
             focusedAppId = gridFocusedAppId;
-            lastGridFocusPosition = 0;
-            updateGameHero(visibleApps.get(0));
-            requestFirstGridFocus();
+            lastGridFocusPosition = Math.max(0, fallbackPosition);
+            updateGameHero(fallback);
+            if (!allGamesGrid.isInTouchMode()) {
+                restoreGridFocus();
+            }
         }
     }
 
@@ -503,17 +508,6 @@ public class AppView extends Activity {
             }
         }
         return null;
-    }
-
-    private void requestFirstGridFocus() {
-        allGamesGrid.post(() -> {
-            RecyclerView.ViewHolder holder =
-                    allGamesGrid.findViewHolderForAdapterPosition(0);
-            if (holder != null && !allGamesGrid.isInTouchMode() &&
-                    !showingRunningPage) {
-                holder.itemView.requestFocus();
-            }
-        });
     }
 
     private void activateGame(AppObject app, View view) {

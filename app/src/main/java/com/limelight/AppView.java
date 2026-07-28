@@ -48,6 +48,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.ContextMenu;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.KeyEvent;
@@ -621,7 +622,7 @@ public class AppView extends Activity {
                         !allGamesGrid.canScrollVertically(-1) &&
                         showRunningGamePage(false));
 
-        View.OnTouchListener runningPageTouchListener = (view, event) -> {
+        runningGamePage.setOnTouchListener((view, event) -> {
             if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
                 runningTouchStartY = event.getY();
                 return true;
@@ -631,16 +632,56 @@ public class AppView extends Activity {
                 if (travel < -swipeThreshold) {
                     return showGameGridPage(false);
                 }
-                if (view == runningGameCard &&
-                        Math.abs(travel) < swipeThreshold / 3) {
-                    view.performClick();
-                }
                 return true;
             }
             return true;
-        };
-        runningGamePage.setOnTouchListener(runningPageTouchListener);
-        runningGameCard.setOnTouchListener(runningPageTouchListener);
+        });
+
+        GestureDetector runningCardGestures = new GestureDetector(this,
+                new GestureDetector.SimpleOnGestureListener() {
+                    private boolean pageChanged;
+
+                    @Override
+                    public boolean onDown(MotionEvent event) {
+                        pageChanged = false;
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onScroll(MotionEvent firstEvent, MotionEvent currentEvent,
+                                            float distanceX, float distanceY) {
+                        if (!pageChanged && firstEvent != null &&
+                                currentEvent.getY() - firstEvent.getY() < -swipeThreshold) {
+                            pageChanged = showGameGridPage(false);
+                        }
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onSingleTapUp(MotionEvent event) {
+                        if (!pageChanged) {
+                            runningGameCard.performClick();
+                        }
+                        return true;
+                    }
+
+                    @Override
+                    public void onLongPress(MotionEvent event) {
+                        if (!pageChanged) {
+                            runningGameCard.performLongClick();
+                        }
+                    }
+                });
+        runningGameCard.setOnTouchListener((view, event) -> {
+            if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                view.setPressed(true);
+            }
+            else if (event.getActionMasked() == MotionEvent.ACTION_UP ||
+                    event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+                view.setPressed(false);
+            }
+            return runningCardGestures.onTouchEvent(event);
+        });
         runningGamePage.setOnGenericMotionListener((view, event) ->
                 event.getAction() == MotionEvent.ACTION_SCROLL &&
                         event.getAxisValue(MotionEvent.AXIS_VSCROLL) < 0 &&

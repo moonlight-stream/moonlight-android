@@ -148,7 +148,6 @@ public class PcView extends Activity {
         // Setup the list view
         View settingsButton = findViewById(R.id.settingsButton);
         View addComputerButton = findViewById(R.id.manuallyAddPc);
-        View helpButton = findViewById(R.id.helpButton);
         hostShelf = findViewById(R.id.hostShelf);
         hostHeroTitle = findViewById(R.id.hostHeroTitle);
         hostHeroStatus = findViewById(R.id.hostHeroStatus);
@@ -169,20 +168,6 @@ public class PcView extends Activity {
                 startActivity(i);
             }
         });
-        helpButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                uiFeedback.confirm(v);
-                HelpLauncher.launchSetupGuide(PcView.this);
-            }
-        });
-
-        // Amazon review didn't like the help button because the wiki was not entirely
-        // navigable via the Fire TV remote (though the relevant parts were). Let's hide
-        // it on Fire TV.
-        if (getPackageManager().hasSystemFeature("amazon.hardware.fire_tv")) {
-            helpButton.setVisibility(View.GONE);
-        }
 
         hostShelf.setAdapter(pcGridAdapter);
         pcGridAdapter.setListener(new PcGridAdapter.Listener() {

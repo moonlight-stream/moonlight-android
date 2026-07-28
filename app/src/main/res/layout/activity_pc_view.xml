@@ -51,22 +51,6 @@
                 android:textSize="14sp" />
 
             <Button
-                android:id="@+id/helpButton"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/iris_button_selector"
-                android:contentDescription="@string/help"
-                android:fontFamily="sans-serif-medium"
-                android:minWidth="0dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/help"
-                android:textAllCaps="false"
-                android:textColor="@color/iris_text_primary"
-                android:textSize="14sp" />
-
-            <Button
                 android:id="@+id/manuallyAddPc"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"

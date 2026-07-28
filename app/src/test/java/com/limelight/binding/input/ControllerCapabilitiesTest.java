@@ -1,7 +1,10 @@
 package com.limelight.binding.input;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import com.limelight.nvstream.jni.MoonBridge;
 
 import org.junit.Test;
 
@@ -62,5 +65,50 @@ public class ControllerCapabilitiesTest {
     public void rejectsIneligibleConnectionAnnouncements() {
         assertFalse(ControllerCapabilities.shouldAnnounceOnConnection(false, true));
         assertFalse(ControllerCapabilities.shouldAnnounceOnConnection(true, false));
+    }
+
+    /**
+     * Verifies automatic handheld gyro for a calibrated DualSense Edge.
+     */
+    @Test
+    public void usesDeviceMotionForCalibratedDualSenseEdge() {
+        assertTrue(ControllerCapabilities.shouldUseDeviceMotion(
+                false, true, true, true, false));
+    }
+
+    /**
+     * Verifies that motion fallback respects controller and player constraints.
+     */
+    @Test
+    public void rejectsIneligibleDeviceMotionFallback() {
+        assertFalse(ControllerCapabilities.shouldUseDeviceMotion(
+                false, true, false, true, false));
+        assertFalse(ControllerCapabilities.shouldUseDeviceMotion(
+                true, false, true, false, false));
+        assertFalse(ControllerCapabilities.shouldUseDeviceMotion(
+                true, false, true, true, true));
+    }
+
+    /**
+     * Verifies that calibrated rear controls report the PlayStation family.
+     */
+    @Test
+    public void reportsCalibratedControllerAsPlayStation() {
+        assertEquals(MoonBridge.LI_CTYPE_PS,
+                ControllerCapabilities.resolveReportedType(
+                        MoonBridge.LI_CTYPE_XBOX, true, true));
+    }
+
+    /**
+     * Verifies automatic family selection for other motion-emulated controllers.
+     */
+    @Test
+    public void preservesAutomaticMotionFamilySelection() {
+        assertEquals(MoonBridge.LI_CTYPE_UNKNOWN,
+                ControllerCapabilities.resolveReportedType(
+                        MoonBridge.LI_CTYPE_XBOX, false, true));
+        assertEquals(MoonBridge.LI_CTYPE_XBOX,
+                ControllerCapabilities.resolveReportedType(
+                        MoonBridge.LI_CTYPE_XBOX, false, false));
     }
 }

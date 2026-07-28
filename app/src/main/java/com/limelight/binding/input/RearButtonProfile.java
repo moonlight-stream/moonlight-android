@@ -69,15 +69,20 @@ public final class RearButtonProfile {
     /**
      * Finds the Moonlight rear-button slot for an Android input event.
      *
+     * The first two calibrated controls use Moonlight slots three and four,
+     * which Prism exposes as the DualSense Edge left and right paddles. Optional
+     * third and fourth controls use slots one and two, exposed as Fn1 and Fn2.
+     *
      * @param sourceDescriptor descriptor of the device that emitted the event
      * @param keyCode Android key code
      * @param scanCode Linux scan code exposed by Android
-     * @return one-based rear-button slot, or zero when the event is not mapped
+     * @return one-based Moonlight rear-button slot, or zero when the event is not mapped
      */
     public int findSlot(String sourceDescriptor, int keyCode, int scanCode) {
+        final int[] moonlightSlots = {3, 4, 1, 2};
         for (int i = 0; i < bindings.size(); i++) {
             if (bindings.get(i).matches(sourceDescriptor, keyCode, scanCode)) {
-                return i + 1;
+                return moonlightSlots[i];
             }
         }
         return 0;

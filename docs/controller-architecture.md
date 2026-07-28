@@ -8,10 +8,16 @@ protocol. No protocol fork is required:
 - Prism sends rumble, trigger-rumble, and LED feedback through Moonlight's
   existing feedback messages.
 - Iris advertises and sends `PADDLE1` through `PADDLE4` after a saved physical
-  event is matched.
+  event is matched. Calibration orders physical controls as left paddle, right
+  paddle, Fn1, and Fn2, then selects the matching protocol bits expected by
+  Prism.
 - Prism selects a DualSense Edge virtual device when any paddle is advertised.
   Inputtino writes the four bits into the Edge input report as Fn1, Fn2, left
   paddle, and right paddle.
+- A calibrated target reports the PlayStation controller family even when the
+  Android firmware identifies its built-in input device as Xbox. Iris also uses
+  the handheld accelerometer and gyroscope for that Edge when controller-local
+  sensors are unavailable and gamepad motion is enabled.
 
 The calibration profile stores Android device descriptors plus key and scan
 codes. Calibration explicitly selects one to four controls and defaults to two.
@@ -41,6 +47,7 @@ Each target handheld should be checked for:
 
 1. stable input descriptors across reboots;
 2. distinct down/up events for all rear controls;
-3. controller-first motion with handheld gyro fallback;
+3. controller-first motion with automatic handheld gyro fallback for a
+   calibrated DualSense Edge;
 4. rumble reaching the intended physical controller;
 5. every configured Edge control appearing independently in Steam Input.

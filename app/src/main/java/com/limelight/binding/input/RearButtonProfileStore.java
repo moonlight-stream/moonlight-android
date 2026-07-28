@@ -165,7 +165,7 @@ public final class RearButtonProfileStore {
     public static final class ResolvedBinding {
         /** Descriptor of the controller that receives the event. */
         public final String targetDescriptor;
-        /** One-based Moonlight rear-button slot. */
+        /** One-based Moonlight rear-button slot, ordered as Edge paddles followed by Fn buttons. */
         public final int slot;
 
         /**

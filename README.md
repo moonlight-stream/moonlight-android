@@ -14,8 +14,11 @@ each control in the order it should be exposed. One to four controls are
 supported, and calibration defaults to the common two-button layout. A control
 may originate from the primary controller or a separate Android input device.
 Iris sends the results through Moonlight's existing four-paddle protocol fields.
-Prism automatically creates a virtual DualSense Edge, where Linux and Steam see
-those slots as Fn1, Fn2, left paddle, and right paddle.
+Prism automatically creates a virtual DualSense Edge. The common two-control
+layout maps directly to its left and right paddles; optional third and fourth
+controls map to Fn1 and Fn2. A calibrated profile reports the PlayStation
+controller family and uses the handheld motion sensors when the controller
+does not expose its own, even if Android labels the built-in pad as Xbox.
 
 For handhelds whose built-in controls do not expose their own Android vibrator,
 enable **Emulate rumble support with vibration** in Gamepad Settings. Iris then

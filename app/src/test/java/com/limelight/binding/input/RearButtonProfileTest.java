@@ -26,10 +26,10 @@ public class RearButtonProfileTest {
                         new RearButtonProfile.ButtonBinding("aux", "Auxiliary", 102, 702),
                         new RearButtonProfile.ButtonBinding("primary", "Primary", 103, 703)));
 
-        assertEquals(1, profile.findSlot("primary", 100, 700));
-        assertEquals(2, profile.findSlot("aux", 101, 701));
-        assertEquals(3, profile.findSlot("aux", 102, 702));
-        assertEquals(4, profile.findSlot("primary", 103, 703));
+        assertEquals(3, profile.findSlot("primary", 100, 700));
+        assertEquals(4, profile.findSlot("aux", 101, 701));
+        assertEquals(1, profile.findSlot("aux", 102, 702));
+        assertEquals(2, profile.findSlot("primary", 103, 703));
         assertEquals(0, profile.findSlot("aux", 103, 703));
     }
 
@@ -72,6 +72,7 @@ public class RearButtonProfileTest {
      */
     @Test
     public void acceptsEverySelectableButtonCount() {
+        int[] expectedLastSlots = {3, 4, 1, 2};
         for (int count = 1; count <= 4; count++) {
             RearButtonProfile.ButtonBinding[] bindings =
                     new RearButtonProfile.ButtonBinding[count];
@@ -83,8 +84,23 @@ public class RearButtonProfileTest {
                     "primary", "Primary", Arrays.asList(bindings));
 
             assertEquals(count, profile.getBindings().size());
-            assertEquals(count, profile.findSlot("source", count, count));
+            assertEquals(expectedLastSlots[count - 1],
+                    profile.findSlot("source", count, count));
         }
+    }
+
+    /**
+     * Verifies that the common two-button layout targets the Edge paddles.
+     */
+    @Test
+    public void mapsTwoButtonProfileToDualSenseEdgePaddles() {
+        RearButtonProfile profile = new RearButtonProfile(
+                "primary",
+                "Primary",
+                Arrays.asList(binding(1), binding(2)));
+
+        assertEquals(3, profile.findSlot("source", 1, 1));
+        assertEquals(4, profile.findSlot("source", 2, 2));
     }
 
     /**

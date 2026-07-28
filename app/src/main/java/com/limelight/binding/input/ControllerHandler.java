@@ -556,8 +556,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 context.controllerNumber = 0;
             }
 
-            // If the gamepad doesn't have motion sensors, use the on-device sensors as a fallback for player 1
-            if (prefConfig.gamepadMotionSensorsFallbackToDevice && context.controllerNumber == 0 && devContext.sensorManager == null) {
+            // A calibrated rear-button profile explicitly requests DualSense Edge
+            // emulation. Supply the handheld sensors for that virtual controller
+            // even when the general Xbox motion fallback option is disabled.
+            if (ControllerCapabilities.shouldUseDeviceMotion(
+                    prefConfig.gamepadMotionSensorsFallbackToDevice,
+                    devContext.emulateDualSenseEdge,
+                    prefConfig.gamepadMotionSensors,
+                    context.controllerNumber == 0,
+                    devContext.sensorManager != null)) {
                 devContext.sensorManager = deviceSensorManager;
             }
         }
@@ -757,8 +764,11 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         // These aren't always present in the Android key layout files, so they won't show up
         // in our normal InputDevice.hasKeys() probing.
-        context.hasPaddles = MoonBridge.guessControllerHasPaddles(context.vendorId, context.productId) ||
+        context.emulateDualSenseEdge =
                 rearButtonProfiles.hasProfileForTarget(dev.getDescriptor());
+        context.hasPaddles =
+                MoonBridge.guessControllerHasPaddles(context.vendorId, context.productId) ||
+                context.emulateDualSenseEdge;
         context.hasShare = MoonBridge.guessControllerHasShareButton(context.vendorId, context.productId);
 
         // Try to use the InputDevice's associated vibrators first
@@ -3129,6 +3139,8 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         public boolean hasSelect;
         public boolean hasMode;
         public boolean hasPaddles;
+        /** Whether a calibrated profile requires DualSense Edge host emulation. */
+        public boolean emulateDualSenseEdge;
         public boolean hasShare;
         public boolean needsClickpadEmulation;
 
@@ -3290,18 +3302,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 capabilities |= MoonBridge.LI_CCAP_GYRO;
             }
 
-            byte reportedType;
-            if (type != MoonBridge.LI_CTYPE_PS && sensorManager != null) {
+            byte reportedType = ControllerCapabilities.resolveReportedType(
+                    type, emulateDualSenseEdge, sensorManager != null);
+            if (!emulateDualSenseEdge &&
+                    type != MoonBridge.LI_CTYPE_PS &&
+                    reportedType == MoonBridge.LI_CTYPE_UNKNOWN) {
                 // Override the detected controller type if we're emulating motion sensors on an Xbox controller
                 Toast.makeText(activityContext, activityContext.getResources().getText(R.string.toast_controller_type_changed), Toast.LENGTH_LONG).show();
-                reportedType = MoonBridge.LI_CTYPE_UNKNOWN;
 
                 // Remember that we should enable the clickpad emulation combo (Select+LB) for this device
                 needsClickpadEmulation = true;
-            }
-            else {
-                // Report the true type to the host PC if we're not emulating motion sensors
-                reportedType = type;
             }
 
             // We can perform basic rumble with any vibrator

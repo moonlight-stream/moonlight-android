@@ -9,22 +9,17 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.limelight.Game
 import com.limelight.LimeLog
 import com.limelight.R
-import androidx.core.content.edit
 
 class StreamNotificationService : Service() {
 
     private var wakeLock: PowerManager.WakeLock? = null
-    private var keepAliveHandler: Handler? = null
-    private var heartbeatRunnable: Runnable? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -33,19 +28,20 @@ class StreamNotificationService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        var pcName = "Unknown"
-        var appName = "Desktop"
-        if (intent != null) {
-            pcName = intent.getStringExtra(EXTRA_PC_NAME) ?: "Unknown"
-            appName = intent.getStringExtra(EXTRA_APP_NAME) ?: "Desktop"
+        if (intent == null || ACTION_STOP == intent.action) {
+            @Suppress("DEPRECATION")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+            } else {
+                stopForeground(true)
+            }
+            releaseWakeLock()
+            stopSelf()
+            return START_NOT_STICKY
         }
 
-        getSharedPreferences("StreamState", MODE_PRIVATE)
-            .edit {
-                putString("last_pc_name", pcName)
-                    .putString("last_app_name", appName)
-            }
-
+        val pcName = intent.getStringExtra(EXTRA_PC_NAME) ?: "Unknown"
+        val appName = intent.getStringExtra(EXTRA_APP_NAME) ?: "Desktop"
         val notification = buildNotification(pcName, appName)
 
         try {
@@ -60,25 +56,6 @@ class StreamNotificationService : Service() {
             return START_NOT_STICKY
         }
 
-        if (intent != null && ACTION_STOP == intent.action) {
-            @Suppress("DEPRECATION")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                stopForeground(STOP_FOREGROUND_REMOVE)
-            } else {
-                stopForeground(true)
-            }
-            releaseWakeLock()
-            stopSelf()
-            return START_NOT_STICKY
-        }
-
-        if (intent == null) {
-            releaseWakeLock()
-            stopSelf()
-            return START_NOT_STICKY
-        }
-
-        startHeartbeat()
         return START_STICKY
     }
 
@@ -86,7 +63,6 @@ class StreamNotificationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        stopHeartbeat()
         releaseWakeLock()
     }
 
@@ -96,7 +72,7 @@ class StreamNotificationService : Service() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.notification_channel_name),
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = getString(R.string.notification_channel_desc)
                 setShowBadge(false)
@@ -105,7 +81,7 @@ class StreamNotificationService : Service() {
                 enableLights(false)
             }
             manager.createNotificationChannel(channel)
-            LimeLog.info("StreamNotificationService: Notification channel created with HIGH importance")
+            LimeLog.info("StreamNotificationService: Notification channel created with LOW importance")
         }
     }
 
@@ -132,8 +108,9 @@ class StreamNotificationService : Service() {
             .setContentTitle(title)
             .setContentText(content)
             .setStyle(NotificationCompat.BigTextStyle().bigText(content))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
             .setContentIntent(contentIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setShowWhen(true)
@@ -168,51 +145,11 @@ class StreamNotificationService : Service() {
         }
     }
 
-    private fun startHeartbeat() {
-        val handler = keepAliveHandler ?: Handler(Looper.getMainLooper()).also { keepAliveHandler = it }
-        handler.removeCallbacksAndMessages(null)
-
-        heartbeatRunnable = object : Runnable {
-            override fun run() {
-                try {
-                    val wl = wakeLock
-                    if (wl != null && !wl.isHeld) {
-                        wl.acquire(24 * 60 * 60 * 1000L)
-                        LimeLog.info("StreamNotificationService: Re-acquired WakeLock during heartbeat")
-                    }
-
-                    val nm = getSystemService(NOTIFICATION_SERVICE) as? NotificationManager
-                    if (nm != null) {
-                        val prefs = getSharedPreferences("StreamState", MODE_PRIVATE)
-                        val pc = prefs.getString("last_pc_name", "Unknown")
-                        val app = prefs.getString("last_app_name", "Desktop")
-                        nm.notify(NOTIFICATION_ID, buildNotification(pc, app))
-                    }
-
-                    LimeLog.warning("StreamNotificationService: Heartbeat pulse")
-                } catch (e: Exception) {
-                    LimeLog.warning("Heartbeat error: ${e.message}")
-                }
-
-                keepAliveHandler?.postDelayed(this, HEART_BEAT_INTERVAL_MS)
-            }
-        }
-
-        handler.postDelayed(heartbeatRunnable!!, HEART_BEAT_INTERVAL_MS)
-        LimeLog.info("StreamNotificationService: Heartbeat started with 8s interval")
-    }
-
-    private fun stopHeartbeat() {
-        keepAliveHandler?.removeCallbacksAndMessages(null)
-        LimeLog.info("StreamNotificationService: Heartbeat stopped")
-    }
-
     companion object {
         private const val CHANNEL_ID = "stream_keep_alive"
         private const val NOTIFICATION_ID = 1001
         private const val EXTRA_PC_NAME = "extra_pc_name"
         private const val EXTRA_APP_NAME = "extra_app_name"
-        private const val HEART_BEAT_INTERVAL_MS = 8000L
         private const val ACTION_STOP = "ACTION_STOP"
 
         fun start(context: Context, pcName: String?, appName: String?) {

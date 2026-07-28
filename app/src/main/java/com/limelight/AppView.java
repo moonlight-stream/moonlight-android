@@ -5,8 +5,10 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.limelight.computers.ComputerManagerListener;
@@ -1099,27 +1101,23 @@ public class AppView extends Activity {
             @Override
             public void run() {
                 boolean updated = false;
+                Map<Integer, AppObject> existingApps = new HashMap<>();
+                for (AppObject existingApp : appGridAdapter.getAllApps()) {
+                    existingApps.put(existingApp.app.getAppId(), existingApp);
+                }
+                Set<Integer> refreshedAppIds = new HashSet<>();
 
                 // First handle app updates and additions
                 for (NvApp app : appList) {
-                    boolean foundExistingApp = false;
-
-                    // Try to update an existing app in the list first
-                    for (int i = 0; i < appGridAdapter.getCount(); i++) {
-                        AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
-                        if (existingApp.app.getAppId() == app.getAppId()) {
-                            // Found the app; update its properties
-                            if (!existingApp.app.getAppName().equals(app.getAppName())) {
-                                existingApp.app.setAppName(app.getAppName());
-                                updated = true;
-                            }
-
-                            foundExistingApp = true;
-                            break;
+                    refreshedAppIds.add(app.getAppId());
+                    AppObject existingApp = existingApps.get(app.getAppId());
+                    if (existingApp != null) {
+                        if (!existingApp.app.getAppName().equals(app.getAppName())) {
+                            existingApp.app.setAppName(app.getAppName());
+                            updated = true;
                         }
                     }
-
-                    if (!foundExistingApp) {
+                    else {
                         // This app must be new
                         appGridAdapter.addApp(new AppObject(app));
 
@@ -1133,32 +1131,12 @@ public class AppView extends Activity {
                 }
 
                 // Next handle app removals
-                int i = 0;
-                while (i < appGridAdapter.getCount()) {
-                    boolean foundExistingApp = false;
-                    AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
-
-                    // Check if this app is in the latest list
-                    for (NvApp app : appList) {
-                        if (existingApp.app.getAppId() == app.getAppId()) {
-                            foundExistingApp = true;
-                            break;
-                        }
-                    }
-
-                    // This app was removed in the latest app list
-                    if (!foundExistingApp) {
+                for (AppObject existingApp : existingApps.values()) {
+                    if (!refreshedAppIds.contains(existingApp.app.getAppId())) {
                         shortcutHelper.disableAppShortcut(computer, existingApp.app, "App removed from PC");
                         appGridAdapter.removeApp(existingApp);
                         updated = true;
-
-                        // Check this same index again because the item at i+1 is now at i after
-                        // the removal
-                        continue;
                     }
-
-                    // Move on to the next item
-                    i++;
                 }
 
                 if (updated) {

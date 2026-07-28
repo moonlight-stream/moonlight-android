@@ -17,9 +17,41 @@
 
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
-        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/iris_canvas</item>
+        <item name="android:colorAccent">@color/iris_indigo</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:textColorPrimary">@color/iris_text_primary</item>
+        <item name="android:textColorSecondary">@color/iris_text_secondary</item>
+        <item name="android:windowAnimationStyle">@style/IrisWindowAnimation</item>
+    </style>
+
+    <style name="IrisWindowAnimation">
+        <item name="android:activityOpenEnterAnimation">@anim/screen_fade_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/screen_fade_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/screen_fade_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/screen_fade_out</item>
+    </style>
+
+    <style name="IrisHeaderText">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/iris_text_primary</item>
+        <item name="android:textSize">28sp</item>
+    </style>
+
+    <style name="IrisHeroTitle">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/iris_text_primary</item>
+        <item name="android:textSize">42sp</item>
+    </style>
+
+    <style name="IrisEyebrowText">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/iris_cyan</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.12</item>
     </style>
 
     <style name="StreamBaseTheme" parent="AppBaseTheme">

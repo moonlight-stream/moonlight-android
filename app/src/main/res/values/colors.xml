@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="iris_canvas">#070914</color>
+    <color name="iris_canvas_raised">#0B1020</color>
+    <color name="iris_glass">#1FFFFFFF</color>
+    <color name="iris_glass_strong">#2BFFFFFF</color>
+    <color name="iris_glass_border">#2EFFFFFF</color>
+    <color name="iris_indigo">#6F7BFF</color>
+    <color name="iris_cyan">#79E7FF</color>
+    <color name="iris_text_primary">#F7FAFF</color>
+    <color name="iris_text_secondary">#AAB3CE</color>
+    <color name="iris_success">#63E6BE</color>
+    <color name="iris_warning">#FFCE73</color>
+    <color name="iris_error">#FF6B86</color>
+    <color name="iris_scrim">#B8070914</color>
+</resources>

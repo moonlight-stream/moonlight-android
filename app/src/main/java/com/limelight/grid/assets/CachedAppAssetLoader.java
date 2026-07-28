@@ -23,6 +23,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class CachedAppAssetLoader {
+    public interface ArtworkLoadListener {
+        void onArtworkLoaded(int appId, Bitmap bitmap, boolean placeholder);
+    }
     private static final int MAX_CONCURRENT_DISK_LOADS = 3;
     private static final int MAX_CONCURRENT_NETWORK_LOADS = 3;
     private static final int MAX_CONCURRENT_CACHE_LOADS = 1;
@@ -56,6 +59,7 @@ public class CachedAppAssetLoader {
     private final DiskAssetLoader diskLoader;
     private final Bitmap placeholderBitmap;
     private final Bitmap noAppImageBitmap;
+    private ArtworkLoadListener artworkLoadListener;
 
     public CachedAppAssetLoader(ComputerDetails computer, double scalingDivider,
                                 NetworkAssetLoader networkLoader, MemoryAssetLoader memoryLoader,
@@ -90,6 +94,18 @@ public class CachedAppAssetLoader {
 
     public void freeCacheMemory() {
         memoryLoader.clearCache();
+    }
+
+    public void setArtworkLoadListener(ArtworkLoadListener listener) {
+        artworkLoadListener = listener;
+    }
+
+    private void notifyArtworkLoaded(LoaderTuple tuple, ScaledBitmap bitmap) {
+        ArtworkLoadListener listener = artworkLoadListener;
+        if (listener != null && tuple != null && bitmap != null) {
+            listener.onArtworkLoaded(tuple.app.getAppId(), bitmap.bitmap,
+                    isBitmapPlaceholder(bitmap));
+        }
     }
 
     private ScaledBitmap doNetworkAssetLoad(LoaderTuple tuple, LoaderTask task) {
@@ -249,6 +265,7 @@ public class CachedAppAssetLoader {
                     }
                 }
             }
+            notifyArtworkLoaded(tuple, bitmap);
         }
     }
 
@@ -353,6 +370,7 @@ public class CachedAppAssetLoader {
 
             // Show the text if it's a placeholder bitmap
             textView.setVisibility(isBitmapPlaceholder(bmp) ? View.VISIBLE : View.GONE);
+            notifyArtworkLoaded(tuple, bmp);
             return true;
         }
 

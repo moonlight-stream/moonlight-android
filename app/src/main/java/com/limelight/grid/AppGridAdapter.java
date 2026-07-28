@@ -2,9 +2,7 @@ package com.limelight.grid;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
-import android.view.View;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.limelight.AppView;
@@ -24,8 +22,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@SuppressWarnings("unchecked")
-public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
+public class AppGridAdapter {
+    public interface ChangeListener {
+        void onAppsChanged();
+    }
     private static final int ART_WIDTH_PX = 300;
     private static final int SMALL_WIDTH_DP = 100;
     private static final int LARGE_WIDTH_DP = 150;
@@ -33,14 +33,17 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     private final ComputerDetails computer;
     private final String uniqueId;
     private final boolean showHiddenApps;
+    private final Context context;
 
     private CachedAppAssetLoader loader;
     private Set<Integer> hiddenAppIds = new HashSet<>();
     private ArrayList<AppView.AppObject> allApps = new ArrayList<>();
+    private final ArrayList<AppView.AppObject> itemList = new ArrayList<>();
+    private ChangeListener changeListener;
+    private CachedAppAssetLoader.ArtworkLoadListener artworkLoadListener;
 
     public AppGridAdapter(Context context, PreferenceConfiguration prefs, ComputerDetails computer, String uniqueId, boolean showHiddenApps) {
-        super(context, getLayoutIdForPreferences(prefs));
-
+        this.context = context;
         this.computer = computer;
         this.uniqueId = uniqueId;
         this.showHiddenApps = showHiddenApps;
@@ -73,15 +76,6 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         notifyDataSetChanged();
     }
 
-    private static int getLayoutIdForPreferences(PreferenceConfiguration prefs) {
-        if (prefs.smallIconMode) {
-            return R.layout.app_grid_item_small;
-        }
-        else {
-            return R.layout.app_grid_item;
-        }
-    }
-
     public void updateLayoutWithPreferences(Context context, PreferenceConfiguration prefs) {
         int dpi = context.getResources().getDisplayMetrics().densityDpi;
         int dp;
@@ -110,15 +104,46 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
                 new MemoryAssetLoader(),
                 new DiskAssetLoader(context),
                 BitmapFactory.decodeResource(context.getResources(), R.drawable.no_app_image));
+        loader.setArtworkLoadListener(artworkLoadListener);
 
-        // This will trigger the view to reload with the new layout
-        setLayoutId(getLayoutIdForPreferences(prefs));
+        notifyDataSetChanged();
     }
 
     public void cancelQueuedOperations() {
         loader.cancelForegroundLoads();
         loader.cancelBackgroundLoads();
         loader.freeCacheMemory();
+    }
+
+    public void setArtworkLoadListener(CachedAppAssetLoader.ArtworkLoadListener listener) {
+        artworkLoadListener = listener;
+        loader.setArtworkLoadListener(listener);
+    }
+
+    public void setChangeListener(ChangeListener listener) {
+        changeListener = listener;
+    }
+
+    public int getCount() {
+        return itemList.size();
+    }
+
+    public AppView.AppObject getItem(int position) {
+        return itemList.get(position);
+    }
+
+    public List<AppView.AppObject> getVisibleApps() {
+        return new ArrayList<>(itemList);
+    }
+
+    public List<AppView.AppObject> getAllApps() {
+        return new ArrayList<>(allApps);
+    }
+
+    public void notifyDataSetChanged() {
+        if (changeListener != null) {
+            changeListener.onAppsChanged();
+        }
     }
 
     private static void sortList(List<AppView.AppObject> list) {
@@ -154,31 +179,12 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         allApps.remove(app);
     }
 
-    @Override
     public void clear() {
-        super.clear();
+        itemList.clear();
         allApps.clear();
     }
 
-    @Override
-    public void populateView(View parentView, ImageView imgView, ProgressBar prgView, TextView txtView, ImageView overlayView, AppView.AppObject obj) {
-        // Let the cached asset loader handle it
-        loader.populateImageView(obj.app, imgView, txtView);
-
-        if (obj.isRunning) {
-            // Show the play button overlay
-            overlayView.setImageResource(R.drawable.ic_play);
-            overlayView.setVisibility(View.VISIBLE);
-        }
-        else {
-            overlayView.setVisibility(View.GONE);
-        }
-
-        if (obj.isHidden) {
-            parentView.setAlpha(0.40f);
-        }
-        else {
-            parentView.setAlpha(1.0f);
-        }
+    public void populateArtwork(AppView.AppObject obj, ImageView imageView, TextView textView) {
+        loader.populateImageView(obj.app, imageView, textView);
     }
 }

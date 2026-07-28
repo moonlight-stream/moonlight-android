@@ -22,6 +22,7 @@ import com.limelight.utils.Dialog;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
+import com.limelight.ui.console.UiFeedbackManager;
 
 import android.app.Activity;
 import android.app.Service;
@@ -40,6 +41,7 @@ import android.widget.Toast;
 
 public class AddComputerManually extends Activity {
     private TextView hostText;
+    private UiFeedbackManager uiFeedback;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private final LinkedBlockingQueue<String> computersToAdd = new LinkedBlockingQueue<>();
     private Thread addThread;
@@ -262,6 +264,9 @@ public class AddComputerManually extends Activity {
             joinAddThread();
             unbindService(serviceConnection);
         }
+        if (uiFeedback != null) {
+            uiFeedback.release();
+        }
     }
 
     @Override
@@ -269,6 +274,7 @@ public class AddComputerManually extends Activity {
         super.onCreate(savedInstanceState);
 
         UiHelper.setLocale(this);
+        uiFeedback = new UiFeedbackManager(this);
 
         setContentView(R.layout.activity_add_computer_manually);
 
@@ -299,6 +305,7 @@ public class AddComputerManually extends Activity {
         findViewById(R.id.addPcButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                uiFeedback.confirm(view);
                 handleDoneEvent();
             }
         });
@@ -313,6 +320,7 @@ public class AddComputerManually extends Activity {
         String hostAddress = hostText.getText().toString().trim();
 
         if (hostAddress.length() == 0) {
+            uiFeedback.error(hostText);
             Toast.makeText(AddComputerManually.this, getResources().getString(R.string.addpc_enter_ip), Toast.LENGTH_LONG).show();
             return true;
         }

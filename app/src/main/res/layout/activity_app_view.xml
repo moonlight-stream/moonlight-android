@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:clipChildren="false">
 
     <com.limelight.ui.console.AmbientBackgroundView
         android:id="@+id/ambientBackground"
@@ -30,15 +31,45 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipChildren="false"
         android:orientation="vertical"
-        android:padding="@dimen/console_screen_padding"
+        android:paddingStart="@dimen/console_screen_padding"
+        android:paddingEnd="@dimen/console_screen_padding"
         android:paddingBottom="0dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/allGamesGrid"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingStart="10dp"
+            android:paddingTop="@dimen/console_app_grid_padding_top"
+            android:paddingEnd="10dp"
+            android:paddingBottom="16dp"
+            android:scrollbars="none" />
+
+        <include layout="@layout/console_hint_bar" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/console_app_header_height"
+        android:layout_gravity="top"
+        android:background="@drawable/iris_app_header_scrim"
+        android:clickable="false"
+        android:elevation="24dp"
+        android:focusable="false">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="54dp"
+            android:layout_height="match_parent"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/console_screen_padding"
+            android:paddingEnd="@dimen/console_screen_padding">
 
             <ImageView
                 android:layout_width="36dp"
@@ -46,16 +77,10 @@
                 android:contentDescription="@string/app_label"
                 android:src="@drawable/iris_logo" />
 
-            <TextView
-                android:id="@+id/appListText"
+            <Space
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="@color/iris_text_secondary"
-                android:textSize="18sp" />
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
             <TextClock
                 android:layout_width="wrap_content"
@@ -79,32 +104,15 @@
         <TextView
             android:id="@+id/selectedGameTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="6dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="84dp"
+            android:layout_marginEnd="138dp"
             android:ellipsize="end"
             android:fontFamily="sans-serif-medium"
+            android:gravity="center"
             android:maxLines="1"
             android:text="@string/console_all_games"
             android:textColor="@color/iris_text_primary"
-            android:textSize="24sp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/allGamesGrid"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:overScrollMode="never"
-            android:paddingStart="10dp"
-            android:paddingTop="6dp"
-            android:paddingEnd="10dp"
-            android:paddingBottom="16dp"
-            android:scrollbars="none" />
-
-        <include layout="@layout/console_hint_bar" />
-    </LinearLayout>
+            android:textSize="20sp" />
+    </FrameLayout>
 </FrameLayout>

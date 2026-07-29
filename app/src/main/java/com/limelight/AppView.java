@@ -318,7 +318,6 @@ public class AppView extends Activity {
 
         String computerName = getIntent().getStringExtra(NAME_EXTRA);
 
-        TextView label = findViewById(R.id.appListText);
         allGamesGrid = findViewById(R.id.allGamesGrid);
         batteryText = findViewById(R.id.batteryText);
         selectedGameTitle = findViewById(R.id.selectedGameTitle);
@@ -341,7 +340,6 @@ public class AppView extends Activity {
         backdropController = new LauncherBackdropController(this,
                 findViewById(R.id.backdropFirst), findViewById(R.id.backdropSecond));
         setTitle(computerName);
-        label.setText(computerName);
         ConsoleStatusBar.enterImmersiveMode(this);
 
         // Bind to the computer manager service

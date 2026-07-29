@@ -1,0 +1,23 @@
+---
+description: Обязательный Serena protocol и tracked project memories
+alwaysApply: true
+---
+
+# Serena + Memories
+
+`AGENTS.md` — источник истины. Перед coding-задачей:
+
+1. Вызвать Serena `initial_instructions`, если ещё не вызвано в сессии.
+2. Активировать проект `moonlight-android-sbs`.
+3. Прочитать `mem:core`, затем релевантные memories по ссылкам.
+4. Если memory устарела относительно кода/AGENTS, обновить до правок.
+
+Код изучать сначала символически: overview, declaration, references,
+implementations и diagnostics. Не читать огромные Java/C файлы целиком без
+необходимости. Перед изменением boundary/API обязательно проверить callers и
+implementations.
+
+После правок оценить изменения boundaries, protocol/API, workflow, commands,
+lifecycle invariants, limitations и tests. Durable изменение записать в memory;
+one-off детали, line numbers, generic Android knowledge и планы без факта не
+записывать. Если knowledge не изменилось, явно сказать об этом в финале.

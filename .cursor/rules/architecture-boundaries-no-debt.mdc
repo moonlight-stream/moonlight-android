@@ -1,0 +1,40 @@
+---
+description: Жёсткие Android/render/connection границы и запрет на долг в новых фичах
+alwaysApply: true
+---
+
+# Архитектурные границы / анти-долг
+
+Проект не одноразовый прототип. Фича должна расширяться и чиниться точечно, не
+ломая совместимость с upstream Moonlight.
+
+## Владение
+
+1. `Game` оркестрирует Activity и lifecycle, но не становится владельцем GL,
+   decoder internals или protocol state.
+2. `MediaCodecDecoderRenderer` владеет codec/pacing/recovery; `SbsRenderer` —
+   EGL/OES/SurfaceTexture/SBS composition; `NvConnection` — connection lifecycle.
+3. Preferences описывают local presentation. SBS state не протекает в wire
+   `StreamConfiguration`, Sunshine или `moonlight-common-c`.
+4. Ресурс освобождает его владелец. Producer должен остановиться раньше
+   consumer Surface/SurfaceTexture/EGL teardown.
+5. Normal direct-Surface path остаётся отдельным zero-extra-pass default path.
+
+## Запахи = стоп
+
+- GL-вызов с UI/codec/network thread.
+- Передача ownership через голый флаг без явного lifecycle-контракта.
+- `sleep()`/retry для маскировки Surface или connection race.
+- Изменение protocol/core ради локального headset presentation.
+- Новая feature logic внутри `Game`, если её можно вынести владельцу.
+- Схлопывание initializing / connected / stopping / stopped / failed в один
+  `bool`, когда вызывающему важно различие.
+
+## Перед реализацией
+
+Кратко зафиксировать владельца состояния, boundary methods, thread/Surface
+инварианты и focused checks. Для нового render boundary отдельно проверить
+normal mode, stale generation, early stop, decoder failure и exactly-once release.
+
+Большие существующие файлы не являются оправданием для дальнейшего раздувания.
+Новая самостоятельная логика по умолчанию получает отдельный класс/модуль.

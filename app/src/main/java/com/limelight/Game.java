@@ -17,6 +17,7 @@ import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
 import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.binding.video.PerfOverlayListener;
+import com.limelight.binding.video.SbsRenderer;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
@@ -124,6 +125,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean autoEnterPip = false;
     private boolean surfaceCreated = false;
     private boolean attemptedConnection = false;
+    private boolean connectionStartIssued = false;
+    private int surfaceGeneration = 0;
+    private int sbsInitializationGeneration = -1;
+    private int sbsOutputWidth;
+    private int sbsOutputHeight;
     private int suppressPipRefCount = 0;
     private String pcName;
     private String appName;
@@ -148,6 +154,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private TextView performanceOverlayView;
 
     private MediaCodecDecoderRenderer decoderRenderer;
+    private SbsRenderer sbsRenderer;
     private boolean reportedCrash;
 
     private WifiManager.WifiLock highPerfWifiLock;
@@ -222,7 +229,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Enter landscape unless we're on a square screen
         setPreferredOrientationForCurrentDisplay();
 
-        if (prefConfig.stretchVideo || shouldIgnoreInsetsForResolution(prefConfig.width, prefConfig.height)) {
+        if (prefConfig.enableSbs || prefConfig.stretchVideo || shouldIgnoreInsetsForResolution(prefConfig.width, prefConfig.height)) {
             // Allow the activity to layout under notches if the fill-screen option
             // was turned on by the user or it's a full-screen native resolution
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -341,7 +348,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Check if the user has enabled HDR
         boolean willStreamHdr = false;
-        if (prefConfig.enableHdr) {
+        if (prefConfig.enableHdr && prefConfig.enableSbs) {
+            Toast.makeText(this, R.string.sbs_hdr_unavailable, Toast.LENGTH_LONG).show();
+        }
+        else if (prefConfig.enableHdr) {
             // Start our HDR checklist
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 Display display = getWindowManager().getDefaultDisplay();
@@ -494,7 +504,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Initialize touch contexts
         for (int i = 0; i < touchContextMap.length; i++) {
-            if (!prefConfig.touchscreenTrackpad) {
+            if (!prefConfig.touchscreenTrackpad && !prefConfig.enableSbs) {
                 touchContextMap[i] = new AbsoluteTouchContext(conn, i, streamView);
             }
             else {
@@ -943,7 +953,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
         }
 
-        if (prefConfig.stretchVideo || aspectRatioMatch) {
+        if (prefConfig.enableSbs) {
+            // The GLES compositor handles aspect ratio and letterboxing independently for each eye.
+            streamView.setDesiredAspectRatio(0);
+        }
+        else if (prefConfig.stretchVideo || aspectRatioMatch) {
             // Set the surface to the size of the video
             streamView.getHolder().setFixedSize(prefConfig.width, prefConfig.height);
         }
@@ -1867,11 +1881,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         }
                     }
                 }
-                else if (view != null && trySendPenEvent(view, event)) {
+                else if (view != null && !prefConfig.enableSbs && trySendPenEvent(view, event)) {
                     // If our host supports pen events, send it directly
                     return true;
                 }
-                else if (view != null) {
+                else if (view != null && !prefConfig.enableSbs) {
                     // Otherwise send absolute position based on the view for SOURCE_CLASS_POINTER
                     updateMousePosition(view, event);
                 }
@@ -2223,10 +2237,99 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // during the process of stopping this one.
             new Thread() {
                 public void run() {
-                    conn.stop();
+                    try {
+                        conn.stop();
+                    } finally {
+                        if (sbsRenderer != null) {
+                            sbsRenderer.stop();
+                        }
+                    }
                 }
             }.start();
         }
+    }
+
+    private void startConnection(Surface renderTarget) {
+        if (!surfaceCreated || isFinishing()) {
+            return;
+        }
+
+        UiHelper.notifyStreamConnecting(Game.this);
+        decoderRenderer.setRenderTarget(renderTarget);
+        connectionStartIssued = true;
+        connecting = true;
+        conn.start(new AndroidAudioRenderer(Game.this, prefConfig.enableAudioFx),
+                decoderRenderer, Game.this);
+    }
+
+    private void initializeSbsRenderer(Surface outputSurface, int width, int height, int generation) {
+        sbsInitializationGeneration = generation;
+        new Thread(() -> {
+            try {
+                SbsRenderer renderer = new SbsRenderer(outputSurface, width, height,
+                        prefConfig.width, prefConfig.height,
+                        prefConfig.sbsScalePercentage,
+                        prefConfig.sbsSeparationPercentage,
+                        prefConfig.sbsVerticalPositionPercentage,
+                        exception -> runOnUiThread(() -> {
+                            if (connecting || connected) {
+                                decoderRenderer.prepareForStop();
+                                stopConnection();
+                            }
+                            displayTransientMessage(getString(R.string.sbs_renderer_failed));
+                        }));
+                runOnUiThread(() -> {
+                    if (!surfaceCreated || isFinishing()) {
+                        new Thread(renderer::stop).start();
+                        return;
+                    }
+
+                    if (generation != surfaceGeneration) {
+                        if (sbsInitializationGeneration == generation) {
+                            new Thread(() -> {
+                                renderer.stop();
+                                runOnUiThread(() -> {
+                                    if (surfaceCreated && !isFinishing() &&
+                                            sbsInitializationGeneration == generation) {
+                                        initializeSbsRenderer(streamView.getHolder().getSurface(),
+                                                sbsOutputWidth, sbsOutputHeight, surfaceGeneration);
+                                    }
+                                });
+                            }).start();
+                        }
+                        else {
+                            new Thread(renderer::stop).start();
+                        }
+                        return;
+                    }
+
+                    renderer.updateOutputSize(sbsOutputWidth, sbsOutputHeight);
+                    sbsInitializationGeneration = -1;
+                    sbsRenderer = renderer;
+                    startConnection(renderer.getDecoderSurface());
+                });
+            } catch (Exception e) {
+                LimeLog.severe("Unable to initialize SBS renderer: " + e);
+                runOnUiThread(() -> {
+                    if (!surfaceCreated || isFinishing()) {
+                        return;
+                    }
+                    if (generation != surfaceGeneration) {
+                        if (sbsInitializationGeneration == generation) {
+                            initializeSbsRenderer(streamView.getHolder().getSurface(),
+                                    sbsOutputWidth, sbsOutputHeight, surfaceGeneration);
+                        }
+                        return;
+                    }
+                    if (spinner != null) {
+                        spinner.dismiss();
+                        spinner = null;
+                    }
+                    Dialog.displayDialog(this, getString(R.string.conn_error_title),
+                            getString(R.string.sbs_renderer_init_failed), true);
+                });
+            }
+        }, "Video - SBS Initialization").start();
     }
 
     @Override
@@ -2238,6 +2341,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (!surfaceCreated || !connecting || isFinishing()) {
+                    if (connecting) {
+                        stopConnection();
+                    }
+                    return;
+                }
+
                 if (spinner != null) {
                     spinner.dismiss();
                     spinner = null;
@@ -2387,6 +2497,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (!surfaceCreated || !connecting || isFinishing()) {
+                    if (connecting) {
+                        stopConnection();
+                    }
+                    return;
+                }
+
                 if (spinner != null) {
                     spinner.dismiss();
                     spinner = null;
@@ -2405,7 +2522,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 h.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        setInputGrabState(true);
+                        if (connected && surfaceCreated && !isFinishing()) {
+                            setInputGrabState(true);
+                        }
                     }
                 }, 500);
 
@@ -2489,15 +2608,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             throw new IllegalStateException("Surface changed before creation!");
         }
 
+        if (sbsRenderer != null) {
+            sbsRenderer.updateOutputSize(width, height);
+        }
+        sbsOutputWidth = width;
+        sbsOutputHeight = height;
+
         if (!attemptedConnection) {
             attemptedConnection = true;
 
-            // Update GameManager state to indicate we're "loading" while connecting
-            UiHelper.notifyStreamConnecting(Game.this);
-
-            decoderRenderer.setRenderTarget(holder);
-            conn.start(new AndroidAudioRenderer(Game.this, prefConfig.enableAudioFx),
-                    decoderRenderer, Game.this);
+            if (prefConfig.enableSbs) {
+                initializeSbsRenderer(holder.getSurface(), width, height, surfaceGeneration);
+            }
+            else {
+                startConnection(holder.getSurface());
+            }
         }
     }
 
@@ -2506,6 +2631,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         float desiredFrameRate;
 
         surfaceCreated = true;
+        surfaceGeneration++;
 
         // Android will pick the lowest matching refresh rate for a given frame rate value, so we want
         // to report the true FPS value if refresh rate reduction is enabled. We also report the true
@@ -2543,11 +2669,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             throw new IllegalStateException("Surface destroyed before creation!");
         }
 
-        if (attemptedConnection) {
+        surfaceCreated = false;
+
+        if (connectionStartIssued) {
             // Let the decoder know immediately that the surface is gone
             decoderRenderer.prepareForStop();
 
-            if (connected) {
+            if (sbsRenderer != null) {
+                sbsRenderer.pauseOutput();
+            }
+
+            if (connecting || connected) {
                 stopConnection();
             }
         }

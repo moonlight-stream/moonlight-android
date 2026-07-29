@@ -1,0 +1,117 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "AGENTS.md",
+    ".cursor/rules/*.mdc"
+  ],
+  "snapshot": true,
+  "subagent_depth": 1,
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "tail_turns": 8
+  },
+  "permission": {
+    "serena_*": "allow",
+    "context7_*": "allow",
+    "doom_loop": "ask",
+    "bash": {
+      "*": "allow",
+      "./gradlew": "ask",
+      "./gradlew *": "ask",
+      "gradle": "ask",
+      "gradle *": "ask",
+      "adb install": "ask",
+      "adb install *": "ask",
+      "adb uninstall": "ask",
+      "adb uninstall *": "ask",
+      "git commit": "ask",
+      "git commit *": "ask",
+      "git push": "ask",
+      "git push *": "ask",
+      "git reset": "deny",
+      "git reset *": "deny",
+      "git clean": "deny",
+      "git clean *": "deny",
+      "rm -rf *": "deny"
+    }
+  },
+  "agent": {
+    "plan": {
+      "permission": {
+        "bash": "ask",
+        "task": {
+          "*": "deny",
+          "explore": "allow",
+          "plan-research": "allow"
+        },
+        "serena_*": "deny",
+        "serena_initial_instructions": "allow",
+        "serena_activate_project": "allow",
+        "serena_get_current_config": "allow",
+        "serena_get_symbols_overview": "allow",
+        "serena_find_declaration": "allow",
+        "serena_find_implementations": "allow",
+        "serena_find_referencing_symbols": "allow",
+        "serena_find_symbol": "allow",
+        "serena_get_diagnostics_for_file": "allow",
+        "serena_list_memories": "allow",
+        "serena_read_memory": "allow",
+        "serena_search_for_pattern": "allow"
+      }
+    },
+    "explore": {
+      "permission": {
+        "edit": "deny",
+        "bash": "deny",
+        "task": "deny",
+        "serena_*": "deny",
+        "serena_initial_instructions": "allow",
+        "serena_activate_project": "allow",
+        "serena_get_current_config": "allow",
+        "serena_get_symbols_overview": "allow",
+        "serena_find_declaration": "allow",
+        "serena_find_implementations": "allow",
+        "serena_find_referencing_symbols": "allow",
+        "serena_find_symbol": "allow",
+        "serena_get_diagnostics_for_file": "allow",
+        "serena_list_memories": "allow",
+        "serena_read_memory": "allow",
+        "serena_search_for_pattern": "allow"
+      }
+    }
+  },
+  "mcp": {
+    "serena": {
+      "type": "local",
+      "command": [
+        "serena",
+        "start-mcp-server",
+        "--project-from-cwd",
+        "--context=codex",
+        "--enable-web-dashboard",
+        "false",
+        "--open-web-dashboard",
+        "false"
+      ],
+      "environment": {
+        "JAVA_HOME": "{env:HOME}/.local/share/moonlight-android-toolchain/jdk",
+        "ANDROID_HOME": "{env:HOME}/.local/share/moonlight-android-toolchain/sdk",
+        "ANDROID_SDK_ROOT": "{env:HOME}/.local/share/moonlight-android-toolchain/sdk",
+        "PATH": "{env:HOME}/.local/share/moonlight-android-toolchain/jdk/bin:{env:HOME}/.local/share/moonlight-android-toolchain/sdk/platform-tools:{env:PATH}"
+      },
+      "enabled": true,
+      "timeout": 30000
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true,
+      "oauth": {},
+      "timeout": 30000
+    }
+  },
+  "experimental": {
+    "mcp_timeout": 60000
+  }
+}

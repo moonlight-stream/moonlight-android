@@ -31,7 +31,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="@dimen/console_screen_padding">
+        android:padding="@dimen/console_screen_padding"
+        android:paddingBottom="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -56,12 +57,23 @@
                 android:textColor="@color/iris_text_secondary"
                 android:textSize="18sp" />
 
-            <TextView
+            <TextClock
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/console_select_hint"
+                android:format12Hour="h:mm"
+                android:format24Hour="HH:mm"
+                android:importantForAccessibility="no"
                 android:textColor="@color/iris_text_secondary"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/batteryText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:importantForAccessibility="no"
+                android:textColor="@color/iris_text_secondary"
+                android:textSize="14sp" />
         </LinearLayout>
 
         <TextView
@@ -79,77 +91,20 @@
             android:textColor="@color/iris_text_primary"
             android:textSize="24sp" />
 
-        <FrameLayout
-            android:id="@+id/libraryPager"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/allGamesGrid"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:clipChildren="false"
-            android:clipToPadding="false">
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingStart="10dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="16dp"
+            android:scrollbars="none" />
 
-            <LinearLayout
-                android:id="@+id/gameGridPage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/allGamesGrid"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:overScrollMode="never"
-                    android:paddingStart="10dp"
-                    android:paddingTop="12dp"
-                    android:paddingEnd="10dp"
-                    android:paddingBottom="28dp" />
-            </LinearLayout>
-
-            <FrameLayout
-                android:id="@+id/runningGamePage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:visibility="gone">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingBottom="18dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="18dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="@string/console_currently_playing"
-                        android:textAllCaps="true"
-                        android:textColor="@color/iris_cyan"
-                        android:textSize="15sp" />
-
-                    <include
-                        android:id="@+id/runningGameCard"
-                        layout="@layout/app_grid_item"
-                        android:layout_width="@dimen/console_cover_width"
-                        android:layout_height="@dimen/console_cover_height"
-                        android:layout_marginEnd="0dp"
-                        android:layout_marginBottom="0dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
-                        android:text="@string/console_running_page_hint"
-                        android:textColor="@color/iris_text_secondary"
-                        android:textSize="14sp" />
-                </LinearLayout>
-            </FrameLayout>
-        </FrameLayout>
+        <include layout="@layout/console_hint_bar" />
     </LinearLayout>
 </FrameLayout>

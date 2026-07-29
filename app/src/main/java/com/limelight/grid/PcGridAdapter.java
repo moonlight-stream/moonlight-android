@@ -1,6 +1,7 @@
 package com.limelight.grid;
 
 import android.content.Context;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -149,6 +150,14 @@ public final class PcGridAdapter extends RecyclerView.Adapter<PcGridAdapter.Host
             if (hasFocus && listener != null) {
                 listener.onHostFocused(computer, view);
             }
+        });
+        holder.itemView.setOnKeyListener((view, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN &&
+                    keyCode == KeyEvent.KEYCODE_BUTTON_Y && listener != null) {
+                listener.onHostLongClicked(computer, view);
+                return true;
+            }
+            return false;
         });
     }
 

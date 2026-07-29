@@ -44,7 +44,9 @@ import org.xmlpull.v1.XmlPullParserException;
 
 public class ComputerManagerService extends Service {
     private static final int SERVERINFO_POLLING_PERIOD_MS = 1500;
-    private static final int APPLIST_POLLING_PERIOD_MS = 30000;
+    // AppView owns this poller only while the library is in the foreground. Keep the
+    // interval short so host-side additions and removals appear without reopening it.
+    private static final int APPLIST_POLLING_PERIOD_MS = 3000;
     private static final int APPLIST_FAILED_POLLING_RETRY_MS = 2000;
     private static final int MDNS_QUERY_PERIOD_MS = 1000;
     private static final int OFFLINE_POLL_TRIES = 3;

@@ -25,6 +25,15 @@
         <item name="android:textColorPrimary">@color/iris_text_primary</item>
         <item name="android:textColorSecondary">@color/iris_text_secondary</item>
         <item name="android:windowAnimationStyle">@style/IrisWindowAnimation</item>
+        <item name="android:alertDialogTheme">@style/IrisAlertDialog</item>
+    </style>
+
+    <style name="IrisAlertDialog" parent="android:Theme.Material.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/iris_glass_dark_panel</item>
+        <item name="android:colorAccent">@color/iris_cyan</item>
+        <item name="android:textColorPrimary">@color/iris_text_primary</item>
+        <item name="android:textColorSecondary">@color/iris_text_secondary</item>
+        <item name="android:backgroundDimAmount">0.72</item>
     </style>
 
     <style name="IrisWindowAnimation">

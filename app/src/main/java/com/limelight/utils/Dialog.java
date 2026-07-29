@@ -100,7 +100,7 @@ public class Dialog implements Runnable {
             public void onShow(DialogInterface dialog) {
                 Window window = alert.getWindow();
                 if (window != null) {
-                    window.setBackgroundDrawableResource(R.drawable.iris_glass_panel);
+                    window.setBackgroundDrawableResource(R.drawable.iris_glass_dark_panel);
                     WindowManager.LayoutParams params = window.getAttributes();
                     params.dimAmount = 0.72f;
                     window.setAttributes(params);

@@ -3,14 +3,12 @@ package com.limelight.preferences;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,35 +33,31 @@ public final class RearButtonCalibration extends Activity {
 
     private RearButtonProfileStore profileStore;
     private Spinner targetSpinner;
+    private Spinner buttonCountSpinner;
     private TextView statusText;
     private Button saveButton;
+    private Button captureToggleButton;
     private int targetButtonCount = DEFAULT_BUTTON_COUNT;
+    private boolean capturing;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         profileStore = new RearButtonProfileStore(this);
         setTitle(R.string.title_rear_button_calibration);
+        setContentView(R.layout.activity_rear_button_calibration);
+        com.limelight.ui.console.ConsoleStatusBar.enterImmersiveMode(this);
 
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(32, 32, 32, 32);
+        targetSpinner = findViewById(R.id.rearTargetSpinner);
+        buttonCountSpinner = findViewById(R.id.rearCountSpinner);
+        statusText = findViewById(R.id.rearStatusText);
+        saveButton = findViewById(R.id.rearSaveButton);
+        captureToggleButton = findViewById(R.id.rearRestartButton);
+        Button clearButton = findViewById(R.id.rearClearButton);
+        Button cancelButton = findViewById(R.id.rearCancelButton);
 
-        TextView instructions = new TextView(this);
-        instructions.setText(R.string.rear_button_calibration_instructions);
-        instructions.setTextSize(18);
-        root.addView(instructions);
-
-        targetSpinner = new Spinner(this);
-        root.addView(targetSpinner);
         populateTargetDevices();
 
-        TextView buttonCountLabel = new TextView(this);
-        buttonCountLabel.setText(R.string.rear_button_count_label);
-        buttonCountLabel.setPadding(0, 32, 0, 0);
-        root.addView(buttonCountLabel);
-
-        Spinner buttonCountSpinner = new Spinner(this);
         List<String> buttonCounts = new ArrayList<>();
         for (int count = MIN_BUTTON_COUNT; count <= MAX_BUTTON_COUNT; count++) {
             buttonCounts.add(Integer.toString(count));
@@ -71,37 +65,19 @@ public final class RearButtonCalibration extends Activity {
         buttonCountSpinner.setAdapter(new ArrayAdapter<>(
                 this, android.R.layout.simple_spinner_dropdown_item, buttonCounts));
         buttonCountSpinner.setSelection(DEFAULT_BUTTON_COUNT - MIN_BUTTON_COUNT);
-        root.addView(buttonCountSpinner);
 
-        statusText = new TextView(this);
-        statusText.setPadding(0, 32, 0, 32);
-        statusText.setGravity(Gravity.CENTER_HORIZONTAL);
-        statusText.setTextSize(20);
-        root.addView(statusText);
-
-        saveButton = new Button(this);
-        saveButton.setText(R.string.action_save_rear_buttons);
-        saveButton.setEnabled(false);
         saveButton.setOnClickListener(view -> saveProfile());
-        root.addView(saveButton);
-
-        Button restartButton = new Button(this);
-        restartButton.setText(R.string.action_restart_rear_button_capture);
-        restartButton.setOnClickListener(view -> {
-            capturedBindings.clear();
+        captureToggleButton.setOnClickListener(view -> {
+            if (capturing) {
+                capturing = false;
+            } else {
+                capturedBindings.clear();
+                capturing = true;
+            }
             updateStatus();
         });
-        root.addView(restartButton);
-
-        Button clearButton = new Button(this);
-        clearButton.setText(R.string.action_clear_rear_button_profiles);
         clearButton.setOnClickListener(view -> confirmClearProfiles());
-        root.addView(clearButton);
-
-        Button cancelButton = new Button(this);
-        cancelButton.setText(android.R.string.cancel);
         cancelButton.setOnClickListener(view -> finish());
-        root.addView(cancelButton);
 
         buttonCountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -110,6 +86,7 @@ public final class RearButtonCalibration extends Activity {
                 if (selectedCount != targetButtonCount) {
                     targetButtonCount = selectedCount;
                     capturedBindings.clear();
+                    capturing = false;
                     updateStatus();
                 }
             }
@@ -120,7 +97,6 @@ public final class RearButtonCalibration extends Activity {
             }
         });
 
-        setContentView(root);
         updateStatus();
     }
 
@@ -132,7 +108,8 @@ public final class RearButtonCalibration extends Activity {
      */
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0 &&
+        if (capturing && event.getAction() == KeyEvent.ACTION_DOWN &&
+                event.getRepeatCount() == 0 &&
                 capturedBindings.size() < targetButtonCount && captureBinding(event)) {
             return true;
         }
@@ -147,6 +124,19 @@ public final class RearButtonCalibration extends Activity {
             }
         }
         return super.dispatchKeyEvent(event);
+    }
+
+    /**
+     * Stops an active capture instead of leaving the screen on the first back press.
+     */
+    @Override
+    public void onBackPressed() {
+        if (capturing) {
+            capturing = false;
+            updateStatus();
+            return;
+        }
+        super.onBackPressed();
     }
 
     /**
@@ -182,7 +172,8 @@ public final class RearButtonCalibration extends Activity {
      */
     private boolean captureBinding(KeyEvent event) {
         InputDevice source = event.getDevice();
-        if (source == null || event.getKeyCode() == KeyEvent.KEYCODE_HOME ||
+        if (source == null || event.getKeyCode() == KeyEvent.KEYCODE_BACK ||
+                event.getKeyCode() == KeyEvent.KEYCODE_HOME ||
                 event.getKeyCode() == KeyEvent.KEYCODE_POWER ||
                 event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP ||
                 event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN) {
@@ -207,17 +198,25 @@ public final class RearButtonCalibration extends Activity {
      * Refreshes capture progress and save availability.
      */
     private void updateStatus() {
-        if (capturedBindings.size() < targetButtonCount) {
+        if (capturedBindings.size() >= targetButtonCount) {
+            capturing = false;
+            statusText.setText(getString(
+                    R.string.rear_button_capture_complete,
+                    targetButtonCount));
+        } else if (capturing) {
             statusText.setText(getString(
                     R.string.rear_button_capture_progress,
                     capturedBindings.size() + 1,
                     targetButtonCount,
                     capturedBindings.size()));
         } else {
-            statusText.setText(getString(
-                    R.string.rear_button_capture_complete,
-                    targetButtonCount));
+            statusText.setText(R.string.rear_button_capture_idle);
         }
+        captureToggleButton.setText(capturing ?
+                R.string.action_stop_rear_button_capture :
+                (capturedBindings.isEmpty() ?
+                        R.string.action_start_rear_button_capture :
+                        R.string.action_restart_rear_button_capture));
         saveButton.setEnabled(
                 !targetDevices.isEmpty() && capturedBindings.size() == targetButtonCount);
     }

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="start|center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="10dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="10dp">
+
+    <TextView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="@drawable/iris_hint_chip"
+        android:gravity="center"
+        android:importantForAccessibility="no"
+        android:text="A"
+        android:textColor="@color/iris_text_primary"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="7dp"
+        android:text="@string/console_hint_select"
+        android:textColor="@color/iris_text_secondary"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="18dp"
+        android:background="@drawable/iris_hint_chip"
+        android:gravity="center"
+        android:importantForAccessibility="no"
+        android:text="Y"
+        android:textColor="@color/iris_text_primary"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="7dp"
+        android:text="@string/console_hint_options"
+        android:textColor="@color/iris_text_secondary"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="18dp"
+        android:background="@drawable/iris_hint_chip"
+        android:gravity="center"
+        android:importantForAccessibility="no"
+        android:text="B"
+        android:textColor="@color/iris_text_primary"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="7dp"
+        android:text="@string/console_hint_back"
+        android:textColor="@color/iris_text_secondary"
+        android:textSize="13sp" />
+</LinearLayout>

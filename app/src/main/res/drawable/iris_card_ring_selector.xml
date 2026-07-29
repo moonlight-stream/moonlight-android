@@ -2,5 +2,5 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true" android:drawable="@drawable/iris_glass_focused" />
     <item android:state_focused="true" android:drawable="@drawable/iris_glass_focused" />
-    <item android:drawable="@drawable/iris_glass_panel" />
+    <item android:drawable="@android:color/transparent" />
 </selector>

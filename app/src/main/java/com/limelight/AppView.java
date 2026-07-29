@@ -5,8 +5,10 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.limelight.computers.ComputerManagerListener;
@@ -21,6 +23,7 @@ import com.limelight.nvstream.http.PairingManager;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.console.AmbientBackgroundView;
 import com.limelight.ui.console.ConsoleActionPanel;
+import com.limelight.ui.console.ConsoleStatusBar;
 import com.limelight.ui.console.LauncherBackdropController;
 import com.limelight.ui.console.LauncherLibraryStore;
 import com.limelight.ui.console.LauncherUiPreferences;
@@ -48,8 +51,6 @@ import android.os.IBinder;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -68,19 +69,10 @@ public class AppView extends Activity {
     private GameShelfAdapter allGamesAdapter;
     private RecyclerView allGamesGrid;
     private GridLayoutManager gameGridLayoutManager;
-    private View gameGridPage;
-    private View runningGamePage;
-    private View runningGameCard;
-    private ImageView runningGameImage;
-    private TextView runningGameFallbackTitle;
-    private TextView runningGameFocusTitle;
+    private TextView batteryText;
     private TextView selectedGameTitle;
-    private AppObject runningApp;
     private int gridFocusedAppId;
     private int lastGridFocusPosition;
-    private boolean showingRunningPage;
-    private boolean pageTransitioning;
-    private float runningTouchStartY;
     private AmbientBackgroundView ambientBackground;
     private LauncherBackdropController backdropController;
     private LauncherLibraryStore libraryStore;
@@ -328,27 +320,29 @@ public class AppView extends Activity {
 
         TextView label = findViewById(R.id.appListText);
         allGamesGrid = findViewById(R.id.allGamesGrid);
-        gameGridPage = findViewById(R.id.gameGridPage);
-        runningGamePage = findViewById(R.id.runningGamePage);
-        runningGameCard = findViewById(R.id.runningGameCard);
-        runningGameImage = runningGameCard.findViewById(R.id.grid_image);
-        runningGameFallbackTitle = runningGameCard.findViewById(R.id.grid_text);
-        runningGameFocusTitle = runningGameCard.findViewById(R.id.grid_focus_title);
+        batteryText = findViewById(R.id.batteryText);
         selectedGameTitle = findViewById(R.id.selectedGameTitle);
         gameGridLayoutManager = new GridLayoutManager(this, 4);
+        gameGridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return allGamesAdapter != null && allGamesAdapter.isHeader(position) ?
+                        gameGridLayoutManager.getSpanCount() : 1;
+            }
+        });
         allGamesGrid.setLayoutManager(gameGridLayoutManager);
         allGamesGrid.setHasFixedSize(false);
         allGamesGrid.setItemAnimator(null);
         allGamesGrid.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
         allGamesGrid.addOnLayoutChangeListener((view, left, top, right, bottom,
-                                                 oldLeft, oldTop, oldRight, oldBottom) ->
+                                                  oldLeft, oldTop, oldRight, oldBottom) ->
                 updateGameGridSpanCount());
-        configureLibraryPageGestures();
         ambientBackground = findViewById(R.id.ambientBackground);
         backdropController = new LauncherBackdropController(this,
                 findViewById(R.id.backdropFirst), findViewById(R.id.backdropSecond));
         setTitle(computerName);
         label.setText(computerName);
+        ConsoleStatusBar.enterImmersiveMode(this);
 
         // Bind to the computer manager service
         bindService(new Intent(this, ComputerManagerService.class), serviceConnection,
@@ -382,41 +376,9 @@ public class AppView extends Activity {
                     gridFocusedAppId = app.app.getAppId();
                 }
             }
-
-            @Override
-            public boolean onNavigateVertical(AppObject app, View view, int direction) {
-                int position = allGamesGrid.getChildAdapterPosition(view);
-                return direction == KeyEvent.KEYCODE_DPAD_UP &&
-                        position != RecyclerView.NO_POSITION &&
-                        position < gameGridLayoutManager.getSpanCount() &&
-                        runningApp != null &&
-                        showRunningGamePage(true);
-            }
         };
         allGamesAdapter.setListener(listener);
         allGamesGrid.setAdapter(allGamesAdapter);
-        runningGameCard.setOnClickListener(view -> {
-            if (runningApp != null) {
-                activateGame(runningApp, view);
-            }
-        });
-        runningGameCard.setOnLongClickListener(view -> {
-            if (runningApp != null) {
-                uiFeedback.confirm(view);
-                showAppContextMenu(runningApp, view);
-            }
-            return true;
-        });
-        runningGameCard.setOnFocusChangeListener((view, hasFocus) -> {
-            runningGameFocusTitle.setVisibility(View.GONE);
-            if (hasFocus && runningApp != null) {
-                focusGame(runningApp, view);
-            }
-        });
-        runningGameCard.setOnKeyListener((view, keyCode, event) ->
-                event.getAction() == KeyEvent.ACTION_DOWN &&
-                        keyCode == KeyEvent.KEYCODE_DPAD_DOWN &&
-                        showGameGridPage(true));
         appGridAdapter.setChangeListener(this::refreshShelves);
         appGridAdapter.setArtworkLoadListener(new CachedAppAssetLoader.ArtworkLoadListener() {
             @Override
@@ -456,28 +418,10 @@ public class AppView extends Activity {
                 value -> value.isRunning,
                 value -> value.isHidden,
                 showHiddenApps,
-                favorites,
-                libraryStore.getRecentAppIds(uuidString));
+                favorites);
         List<AppObject> visibleApps = projection.allGames;
 
-        allGamesAdapter.submitList(visibleApps);
-        runningApp = null;
-        for (AppObject app : visibleApps) {
-            if (app.isRunning) {
-                runningApp = app;
-                break;
-            }
-        }
-        bindRunningGamePage();
-
-        if (runningApp == null && showingRunningPage) {
-            showGameGridPage(false);
-        }
-        if (showingRunningPage && runningApp != null) {
-            focusedAppId = runningApp.app.getAppId();
-            updateGameHero(runningApp);
-            return;
-        }
+        allGamesAdapter.submitList(projection.continuePlaying, visibleApps);
 
         AppObject focused = findAppById(visibleApps, gridFocusedAppId);
         if (focused != null) {
@@ -486,11 +430,16 @@ public class AppView extends Activity {
             return;
         }
         if (!visibleApps.isEmpty()) {
-            gridFocusedAppId = visibleApps.get(0).app.getAppId();
+            int fallbackPosition = Math.min(lastGridFocusPosition,
+                    visibleApps.size() - 1);
+            AppObject fallback = visibleApps.get(Math.max(0, fallbackPosition));
+            gridFocusedAppId = fallback.app.getAppId();
             focusedAppId = gridFocusedAppId;
-            lastGridFocusPosition = 0;
-            updateGameHero(visibleApps.get(0));
-            requestFirstGridFocus();
+            lastGridFocusPosition = Math.max(0, fallbackPosition);
+            updateGameHero(fallback);
+            if (!allGamesGrid.isInTouchMode()) {
+                restoreGridFocus();
+            }
         }
     }
 
@@ -501,17 +450,6 @@ public class AppView extends Activity {
             }
         }
         return null;
-    }
-
-    private void requestFirstGridFocus() {
-        allGamesGrid.post(() -> {
-            RecyclerView.ViewHolder holder =
-                    allGamesGrid.findViewHolderForAdapterPosition(0);
-            if (holder != null && !allGamesGrid.isInTouchMode() &&
-                    !showingRunningPage) {
-                holder.itemView.requestFocus();
-            }
-        });
     }
 
     private void activateGame(AppObject app, View view) {
@@ -544,38 +482,6 @@ public class AppView extends Activity {
         }
     }
 
-    private void bindRunningGamePage() {
-        if (runningApp == null) {
-            if (!showingRunningPage) {
-                runningGamePage.setVisibility(View.GONE);
-            }
-            return;
-        }
-
-        String appName = runningApp.app.getAppName();
-        runningGameFallbackTitle.setText(appName);
-        runningGameFocusTitle.setText(appName);
-        runningGameFocusTitle.setVisibility(View.GONE);
-        runningGameCard.<ImageView>findViewById(R.id.grid_overlay)
-                .setVisibility(View.VISIBLE);
-        TextView badge = runningGameCard.findViewById(R.id.grid_badge);
-        if (runningApp.isHidden) {
-            badge.setText(R.string.console_hidden);
-            badge.setVisibility(View.VISIBLE);
-        }
-        else if (runningApp.isFavorite) {
-            badge.setText("★");
-            badge.setVisibility(View.VISIBLE);
-        }
-        else {
-            badge.setVisibility(View.GONE);
-        }
-        runningGameCard.setContentDescription(appName + ". " +
-                getString(R.string.console_running));
-        appGridAdapter.populateArtwork(runningApp, runningGameImage,
-                runningGameFallbackTitle);
-    }
-
     private void updateGameGridSpanCount() {
         if (allGamesGrid == null || gameGridLayoutManager == null ||
                 allGamesGrid.getWidth() == 0) {
@@ -595,164 +501,22 @@ public class AppView extends Activity {
         }
     }
 
-    private void configureLibraryPageGestures() {
-        final float swipeThreshold = 64 *
-                getResources().getDisplayMetrics().density;
-        allGamesGrid.addOnItemTouchListener(
-                new RecyclerView.SimpleOnItemTouchListener() {
-                    private float touchStartY;
-                    private boolean trackingTop;
-
-                    @Override
-                    public boolean onInterceptTouchEvent(RecyclerView recyclerView,
-                                                         MotionEvent event) {
-                        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                            touchStartY = event.getY();
-                            trackingTop = !recyclerView.canScrollVertically(-1);
-                        }
-                        else if (event.getActionMasked() == MotionEvent.ACTION_MOVE &&
-                                trackingTop && runningApp != null &&
-                                event.getY() - touchStartY > swipeThreshold) {
-                            showRunningGamePage(false);
-                            return true;
-                        }
-                        return false;
-                    }
-                });
-        allGamesGrid.setOnGenericMotionListener((view, event) ->
-                event.getAction() == MotionEvent.ACTION_SCROLL &&
-                        event.getAxisValue(MotionEvent.AXIS_VSCROLL) > 0 &&
-                        !allGamesGrid.canScrollVertically(-1) &&
-                        showRunningGamePage(false));
-
-        View.OnTouchListener runningPageTouchListener = (view, event) -> {
-            if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                runningTouchStartY = event.getY();
-                return true;
-            }
-            if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-                float travel = event.getY() - runningTouchStartY;
-                if (travel < -swipeThreshold) {
-                    return showGameGridPage(false);
-                }
-                if (view == runningGameCard &&
-                        Math.abs(travel) < swipeThreshold / 3) {
-                    view.performClick();
-                }
-                return true;
-            }
-            return true;
-        };
-        runningGamePage.setOnTouchListener(runningPageTouchListener);
-        runningGameCard.setOnTouchListener(runningPageTouchListener);
-        runningGamePage.setOnGenericMotionListener((view, event) ->
-                event.getAction() == MotionEvent.ACTION_SCROLL &&
-                        event.getAxisValue(MotionEvent.AXIS_VSCROLL) < 0 &&
-                        showGameGridPage(false));
-    }
-
-    private boolean showRunningGamePage(boolean requestFocus) {
-        if (runningApp == null || showingRunningPage || pageTransitioning) {
-            return runningApp != null;
-        }
-
-        View focused = allGamesGrid.getFocusedChild();
-        if (focused != null) {
-            int position = allGamesGrid.getChildAdapterPosition(focused);
-            if (position != RecyclerView.NO_POSITION) {
-                lastGridFocusPosition = position;
-            }
-        }
-        showingRunningPage = true;
-        focusedAppId = runningApp.app.getAppId();
-        updateGameHero(runningApp);
-        bindRunningGamePage();
-        showBackdropFromCard(runningGameCard);
-        animatePageChange(gameGridPage, runningGamePage, true, () -> {
-            if (requestFocus) {
-                runningGameCard.requestFocus();
-            }
-        });
-        return true;
-    }
-
-    private boolean showGameGridPage(boolean requestFocus) {
-        if (!showingRunningPage || pageTransitioning) {
-            return !showingRunningPage;
-        }
-
-        showingRunningPage = false;
-        AppObject gridApp = findAppByIdFromAdapter(gridFocusedAppId);
-        if (gridApp != null) {
-            focusedAppId = gridApp.app.getAppId();
-            updateGameHero(gridApp);
-        }
-        animatePageChange(runningGamePage, gameGridPage, false, () -> {
-            if (requestFocus) {
-                restoreGridFocus();
-            }
-        });
-        return true;
-    }
-
-    private void animatePageChange(View outgoing, View incoming, boolean incomingAbove,
-                                   Runnable onComplete) {
-        pageTransitioning = true;
-        boolean reducedMotion = LauncherUiPreferences.read(this).reducedMotion;
-        long duration = reducedMotion ? 100 : 260;
-        int travel = Math.max(1, findViewById(R.id.libraryPager).getHeight());
-        outgoing.animate().cancel();
-        incoming.animate().cancel();
-        incoming.setVisibility(View.VISIBLE);
-        incoming.setAlpha(reducedMotion ? 0f : 1f);
-        incoming.setTranslationY(reducedMotion ? 0 :
-                (incomingAbove ? -travel : travel));
-
-        incoming.animate().alpha(1f).translationY(0).setDuration(duration).start();
-        outgoing.animate()
-                .alpha(reducedMotion ? 0f : 1f)
-                .translationY(reducedMotion ? 0 :
-                        (incomingAbove ? travel : -travel))
-                .setDuration(duration)
-                .withEndAction(() -> {
-                    outgoing.setVisibility(View.GONE);
-                    outgoing.setAlpha(1f);
-                    outgoing.setTranslationY(0);
-                    pageTransitioning = false;
-                    onComplete.run();
-                })
-                .start();
-    }
-
-    private AppObject findAppByIdFromAdapter(int appId) {
-        if (allGamesAdapter == null) {
-            return null;
-        }
-        for (int index = 0; index < allGamesAdapter.getItemCount(); index++) {
-            AppObject app = allGamesAdapter.getItem(index);
-            if (app.app.getAppId() == appId) {
-                return app;
-            }
-        }
-        return null;
-    }
-
     private void restoreGridFocus() {
         if (allGamesAdapter == null || allGamesAdapter.getItemCount() == 0) {
             return;
         }
-        int position = -1;
-        for (int index = 0; index < allGamesAdapter.getItemCount(); index++) {
-            if (allGamesAdapter.getItem(index).app.getAppId() == gridFocusedAppId) {
-                position = index;
-                break;
-            }
-        }
+        int position = allGamesAdapter.findAppPosition(gridFocusedAppId);
         if (position < 0) {
             position = Math.min(lastGridFocusPosition,
                     allGamesAdapter.getItemCount() - 1);
+            if (position >= 0 && allGamesAdapter.isHeader(position)) {
+                position = allGamesAdapter.firstCardPosition();
+            }
         }
-        final int targetPosition = Math.max(0, position);
+        if (position < 0) {
+            return;
+        }
+        final int targetPosition = position;
         allGamesGrid.scrollToPosition(targetPosition);
         allGamesGrid.post(() -> {
             RecyclerView.ViewHolder holder =
@@ -764,9 +528,12 @@ public class AppView extends Activity {
     }
 
     private void updateGameHero(AppObject app) {
-        selectedGameTitle.setText(app.app.getAppName());
         LauncherUiPreferences preferences = LauncherUiPreferences.read(this);
         long duration = preferences.reducedMotion ? 90 : 180;
+        selectedGameTitle.animate().cancel();
+        selectedGameTitle.setText(app.app.getAppName());
+        selectedGameTitle.setAlpha(0.72f);
+        selectedGameTitle.animate().alpha(1f).setDuration(duration).start();
         if (!preferences.dynamicBackgrounds) {
             backdropController.clear(duration != 0);
         }
@@ -884,6 +651,8 @@ public class AppView extends Activity {
         UiHelper.showDecoderCrashDialog(this);
 
         inForeground = true;
+        ConsoleStatusBar.enterImmersiveMode(this);
+        ConsoleStatusBar.updateBattery(this, batteryText);
         if (ambientBackground != null) {
             ambientBackground.resume();
         }
@@ -1089,6 +858,7 @@ public class AppView extends Activity {
 
                 if (updated) {
                     appGridAdapter.notifyDataSetChanged();
+                    refreshShelves();
                 }
             }
         });
@@ -1099,27 +869,23 @@ public class AppView extends Activity {
             @Override
             public void run() {
                 boolean updated = false;
+                Map<Integer, AppObject> existingApps = new HashMap<>();
+                for (AppObject existingApp : appGridAdapter.getAllApps()) {
+                    existingApps.put(existingApp.app.getAppId(), existingApp);
+                }
+                Set<Integer> refreshedAppIds = new HashSet<>();
 
                 // First handle app updates and additions
                 for (NvApp app : appList) {
-                    boolean foundExistingApp = false;
-
-                    // Try to update an existing app in the list first
-                    for (int i = 0; i < appGridAdapter.getCount(); i++) {
-                        AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
-                        if (existingApp.app.getAppId() == app.getAppId()) {
-                            // Found the app; update its properties
-                            if (!existingApp.app.getAppName().equals(app.getAppName())) {
-                                existingApp.app.setAppName(app.getAppName());
-                                updated = true;
-                            }
-
-                            foundExistingApp = true;
-                            break;
+                    refreshedAppIds.add(app.getAppId());
+                    AppObject existingApp = existingApps.get(app.getAppId());
+                    if (existingApp != null) {
+                        if (!existingApp.app.getAppName().equals(app.getAppName())) {
+                            existingApp.app.setAppName(app.getAppName());
+                            updated = true;
                         }
                     }
-
-                    if (!foundExistingApp) {
+                    else {
                         // This app must be new
                         appGridAdapter.addApp(new AppObject(app));
 
@@ -1133,32 +899,12 @@ public class AppView extends Activity {
                 }
 
                 // Next handle app removals
-                int i = 0;
-                while (i < appGridAdapter.getCount()) {
-                    boolean foundExistingApp = false;
-                    AppObject existingApp = (AppObject) appGridAdapter.getItem(i);
-
-                    // Check if this app is in the latest list
-                    for (NvApp app : appList) {
-                        if (existingApp.app.getAppId() == app.getAppId()) {
-                            foundExistingApp = true;
-                            break;
-                        }
-                    }
-
-                    // This app was removed in the latest app list
-                    if (!foundExistingApp) {
+                for (AppObject existingApp : existingApps.values()) {
+                    if (!refreshedAppIds.contains(existingApp.app.getAppId())) {
                         shortcutHelper.disableAppShortcut(computer, existingApp.app, "App removed from PC");
                         appGridAdapter.removeApp(existingApp);
                         updated = true;
-
-                        // Check this same index again because the item at i+1 is now at i after
-                        // the removal
-                        continue;
                     }
-
-                    // Move on to the next item
-                    i++;
                 }
 
                 if (updated) {

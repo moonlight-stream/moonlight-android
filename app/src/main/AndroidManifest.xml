@@ -46,10 +46,9 @@
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/backup_rules_s"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:isGame="true"
         android:banner="@drawable/atv_banner"
-        android:appCategory="game"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:installLocation="auto"
         android:gwpAsanMode="always"
         android:localeConfig="@xml/locales_config"
@@ -135,7 +134,7 @@
         <activity
             android:name=".preferences.RearButtonCalibration"
             android:resizeableActivity="true"
-            android:enableOnBackInvokedCallback="true"
+            android:enableOnBackInvokedCallback="false"
             android:label="@string/title_rear_button_calibration" />
         <activity
             android:name=".preferences.AddComputerManually"

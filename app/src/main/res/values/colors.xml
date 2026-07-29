@@ -3,6 +3,8 @@
     <color name="iris_canvas">#070914</color>
     <color name="iris_canvas_raised">#0B1020</color>
     <color name="iris_glass">#1FFFFFFF</color>
+    <color name="iris_glass_dark">#E60D1424</color>
+    <color name="iris_glass_dark_border">#38FFFFFF</color>
     <color name="iris_glass_strong">#2BFFFFFF</color>
     <color name="iris_glass_border">#2EFFFFFF</color>
     <color name="iris_indigo">#6F7BFF</color>

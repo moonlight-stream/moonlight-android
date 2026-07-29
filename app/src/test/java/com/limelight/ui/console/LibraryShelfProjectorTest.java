@@ -24,13 +24,22 @@ public class LibraryShelfProjectorTest {
     }
 
     @Test
-    public void runningAppLeadsRecentsWithoutDuplicates() {
+    public void onlyRunningAppPopulatesContinuePlaying() {
         App alpha = new App(1, "Alpha", false, false);
         App beta = new App(2, "Beta", true, false);
         LibraryShelfProjector.Result<App> result = project(
-                Arrays.asList(alpha, beta), Collections.emptySet(), Arrays.asList(1, 2));
+                Arrays.asList(alpha, beta), Collections.emptySet());
 
-        assertEquals(Arrays.asList(beta, alpha), result.continuePlaying);
+        assertEquals(Collections.singletonList(beta), result.continuePlaying);
+    }
+
+    @Test
+    public void continuePlayingIsEmptyWhenNothingRuns() {
+        App alpha = new App(1, "Alpha", false, false);
+        LibraryShelfProjector.Result<App> result = project(
+                Collections.singletonList(alpha), Collections.emptySet());
+
+        assertEquals(Collections.emptyList(), result.continuePlaying);
     }
 
     @Test
@@ -38,8 +47,7 @@ public class LibraryShelfProjectorTest {
         App zulu = new App(1, "Zulu", false, false);
         App alpha = new App(2, "Alpha", false, false);
         LibraryShelfProjector.Result<App> result = project(
-                Arrays.asList(zulu, alpha), new HashSet<>(Arrays.asList(1, 2)),
-                Collections.emptyList());
+                Arrays.asList(zulu, alpha), new HashSet<>(Arrays.asList(1, 2)));
 
         assertEquals(Arrays.asList(alpha, zulu), result.favorites);
         assertEquals(Arrays.asList(alpha, zulu), result.allGames);
@@ -51,22 +59,20 @@ public class LibraryShelfProjectorTest {
         App hidden = new App(2, "Hidden", false, true);
 
         assertEquals(Collections.singletonList(visible),
-                project(Arrays.asList(hidden, visible), Collections.emptySet(),
-                        Collections.emptyList()).allGames);
+                project(Arrays.asList(hidden, visible), Collections.emptySet()).allGames);
 
         LibraryShelfProjector.Result<App> full = LibraryShelfProjector.project(
                 Arrays.asList(hidden, visible), value -> value.id, value -> value.name,
                 value -> value.running, value -> value.hidden, true,
-                Collections.emptySet(), Collections.emptyList());
+                Collections.emptySet());
         assertEquals(Arrays.asList(hidden, visible), full.allGames);
     }
 
     private LibraryShelfProjector.Result<App> project(
-            java.util.List<App> apps, java.util.Set<Integer> favorites,
-            java.util.List<Integer> recents) {
+            java.util.List<App> apps, java.util.Set<Integer> favorites) {
         return LibraryShelfProjector.project(
                 apps, value -> value.id, value -> value.name,
                 value -> value.running, value -> value.hidden, false,
-                favorites, recents);
+                favorites);
     }
 }

@@ -34,6 +34,25 @@
                 android:text="@string/console_hosts"
                 style="@style/IrisHeaderText" />
 
+            <TextClock
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:format12Hour="h:mm"
+                android:format24Hour="HH:mm"
+                android:importantForAccessibility="no"
+                android:textColor="@color/iris_text_secondary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/batteryText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:importantForAccessibility="no"
+                android:textColor="@color/iris_text_secondary"
+                android:textSize="14sp" />
+
             <Button
                 android:id="@+id/settingsButton"
                 android:layout_width="wrap_content"
@@ -76,13 +95,6 @@
             android:orientation="vertical"
             android:paddingStart="12dp"
             android:paddingEnd="12dp">
-
-            <TextView
-                android:id="@+id/hostHeroEyebrow"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/console_hosts"
-                style="@style/IrisEyebrowText" />
 
             <TextView
                 android:id="@+id/hostHeroTitle"
@@ -143,5 +155,7 @@
                     android:textSize="18sp" />
             </LinearLayout>
         </RelativeLayout>
+
+        <include layout="@layout/console_hint_bar" />
     </LinearLayout>
 </FrameLayout>

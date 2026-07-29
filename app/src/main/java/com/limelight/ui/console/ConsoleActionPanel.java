@@ -48,7 +48,7 @@ public final class ConsoleActionPanel {
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setPadding(dp(activity, 24), dp(activity, 22),
                 dp(activity, 24), dp(activity, 22));
-        panel.setBackgroundResource(R.drawable.iris_glass_panel);
+        panel.setBackgroundResource(R.drawable.iris_glass_dark_panel);
 
         TextView heading = new TextView(activity);
         heading.setText(title);

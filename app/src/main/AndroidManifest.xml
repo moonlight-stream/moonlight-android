@@ -134,7 +134,7 @@
         <activity
             android:name=".preferences.RearButtonCalibration"
             android:resizeableActivity="true"
-            android:enableOnBackInvokedCallback="true"
+            android:enableOnBackInvokedCallback="false"
             android:label="@string/title_rear_button_calibration" />
         <activity
             android:name=".preferences.AddComputerManually"

@@ -25,6 +25,7 @@ import com.limelight.preferences.StreamSettings;
 import com.limelight.ui.console.AmbientBackgroundView;
 import com.limelight.ui.console.ConsoleActionPanel;
 import com.limelight.ui.console.ConsoleShelfView;
+import com.limelight.ui.console.ConsoleStatusBar;
 import com.limelight.ui.console.LauncherLibraryStore;
 import com.limelight.ui.console.UiFeedbackManager;
 import com.limelight.utils.Dialog;
@@ -67,6 +68,7 @@ public class PcView extends Activity {
     private ConsoleShelfView hostShelf;
     private TextView hostHeroTitle;
     private TextView hostHeroStatus;
+    private TextView batteryText;
     private AmbientBackgroundView ambientBackground;
     private UiFeedbackManager uiFeedback;
     private ComputerObject contextComputer;
@@ -151,7 +153,10 @@ public class PcView extends Activity {
         hostShelf = findViewById(R.id.hostShelf);
         hostHeroTitle = findViewById(R.id.hostHeroTitle);
         hostHeroStatus = findViewById(R.id.hostHeroStatus);
+        batteryText = findViewById(R.id.batteryText);
         ambientBackground = findViewById(R.id.ambientBackground);
+        ConsoleStatusBar.enterImmersiveMode(this);
+        ConsoleStatusBar.updateBattery(this, batteryText);
 
         settingsButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -344,6 +349,8 @@ public class PcView extends Activity {
         UiHelper.showDecoderCrashDialog(this);
 
         inForeground = true;
+        ConsoleStatusBar.enterImmersiveMode(this);
+        ConsoleStatusBar.updateBattery(this, batteryText);
         if (ambientBackground != null) {
             ambientBackground.resume();
         }

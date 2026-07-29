@@ -17,16 +17,19 @@ import com.limelight.preferences.PreferenceConfiguration;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class GameShelfAdapter extends RecyclerView.Adapter<GameShelfAdapter.GameViewHolder> {
+public final class GameShelfAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public interface Listener {
         void onGameClicked(AppView.AppObject app, View view);
         void onGameLongClicked(AppView.AppObject app, View view);
         void onGameFocused(AppView.AppObject app, View view);
-        boolean onNavigateVertical(AppView.AppObject app, View view, int direction);
     }
 
+    private static final int TYPE_HEADER = 0;
+    private static final int TYPE_CARD = 1;
+
     private final AppGridAdapter artworkSource;
-    private final List<AppView.AppObject> apps = new ArrayList<>();
+    private final List<Object> items = new ArrayList<>();
+    private int continueSectionEnd;
     private Listener listener;
 
     public GameShelfAdapter(AppGridAdapter artworkSource) {
@@ -38,29 +41,76 @@ public final class GameShelfAdapter extends RecyclerView.Adapter<GameShelfAdapte
         this.listener = listener;
     }
 
-    public void submitList(List<AppView.AppObject> newApps) {
-        apps.clear();
-        apps.addAll(newApps);
-        // RecyclerView uses our stable app IDs to preserve retained cards. A single
-        // atomic refresh is safer than chaining structural and range notifications
-        // when the removed card currently owns focus.
+    public void submitList(List<AppView.AppObject> continuePlaying,
+                           List<AppView.AppObject> allGames) {
+        items.clear();
+        if (!continuePlaying.isEmpty()) {
+            items.add(Header.CONTINUE_PLAYING);
+            items.addAll(continuePlaying);
+            items.add(Header.ALL_GAMES);
+            continueSectionEnd = 1 + continuePlaying.size();
+        }
+        else {
+            continueSectionEnd = 0;
+        }
+        items.addAll(allGames);
         notifyDataSetChanged();
     }
 
-    public AppView.AppObject getItem(int position) {
-        return apps.get(position);
+    public AppView.AppObject getAppAt(int position) {
+        Object item = items.get(position);
+        return item instanceof AppView.AppObject ? (AppView.AppObject) item : null;
+    }
+
+    public int findAppPosition(int appId) {
+        for (int index = 0; index < items.size(); index++) {
+            AppView.AppObject app = getAppAt(index);
+            if (app != null && app.app.getAppId() == appId) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    public int firstCardPosition() {
+        for (int index = 0; index < items.size(); index++) {
+            if (getAppAt(index) != null) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    public boolean isHeader(int position) {
+        return getItemViewType(position) == TYPE_HEADER;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return items.get(position) instanceof Header ? TYPE_HEADER : TYPE_CARD;
     }
 
     @Override
     public long getItemId(int position) {
-        return apps.get(position).app.getAppId();
+        Object item = items.get(position);
+        if (item instanceof Header) {
+            return item == Header.CONTINUE_PLAYING ? -1 : -2;
+        }
+        int appId = ((AppView.AppObject) item).app.getAppId();
+        // Continue-playing cards duplicate entries from the all-games section,
+        // so they need distinct stable IDs.
+        return position < continueSectionEnd ? -3L - appId : appId;
     }
 
     @NonNull
     @Override
-    public GameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.app_grid_item, parent, false);
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        if (viewType == TYPE_HEADER) {
+            return new HeaderViewHolder(
+                    inflater.inflate(R.layout.shelf_header_item, parent, false));
+        }
+        View view = inflater.inflate(R.layout.app_grid_item, parent, false);
         if (PreferenceConfiguration.readPreferences(parent.getContext()).smallIconMode) {
             float density = parent.getResources().getDisplayMetrics().density;
             ViewGroup.LayoutParams params = view.getLayoutParams();
@@ -72,54 +122,62 @@ public final class GameShelfAdapter extends RecyclerView.Adapter<GameShelfAdapte
     }
 
     @Override
-    public void onBindViewHolder(@NonNull GameViewHolder holder, int position) {
-        AppView.AppObject app = apps.get(position);
-        holder.itemView.setTag(app);
-        holder.title.setText(app.app.getAppName());
-        holder.focusTitle.setText(app.app.getAppName());
-        artworkSource.populateArtwork(app, holder.artwork, holder.title);
-        holder.focusTitle.setVisibility(View.GONE);
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof HeaderViewHolder) {
+            Header header = (Header) items.get(position);
+            ((HeaderViewHolder) holder).title.setText(header == Header.CONTINUE_PLAYING ?
+                    R.string.console_continue_playing : R.string.console_all_games);
+            return;
+        }
 
-        holder.running.setVisibility(app.isRunning ? View.VISIBLE : View.GONE);
+        GameViewHolder gameHolder = (GameViewHolder) holder;
+        AppView.AppObject app = (AppView.AppObject) items.get(position);
+        gameHolder.itemView.setTag(app);
+        gameHolder.title.setText(app.app.getAppName());
+        gameHolder.focusTitle.setText(app.app.getAppName());
+        artworkSource.populateArtwork(app, gameHolder.artwork, gameHolder.title);
+        gameHolder.focusTitle.setVisibility(View.GONE);
+
+        gameHolder.running.setVisibility(app.isRunning ? View.VISIBLE : View.GONE);
         if (app.isHidden) {
-            holder.badge.setText(R.string.console_hidden);
-            holder.badge.setVisibility(View.VISIBLE);
-            holder.itemView.setAlpha(0.48f);
+            gameHolder.badge.setText(R.string.console_hidden);
+            gameHolder.badge.setVisibility(View.VISIBLE);
+            gameHolder.itemView.setAlpha(0.48f);
         }
         else if (app.isFavorite) {
-            holder.badge.setText("★");
-            holder.badge.setVisibility(View.VISIBLE);
-            holder.itemView.setAlpha(1f);
+            gameHolder.badge.setText("★");
+            gameHolder.badge.setVisibility(View.VISIBLE);
+            gameHolder.itemView.setAlpha(1f);
         }
         else {
-            holder.badge.setVisibility(View.GONE);
-            holder.itemView.setAlpha(1f);
+            gameHolder.badge.setVisibility(View.GONE);
+            gameHolder.itemView.setAlpha(1f);
         }
 
         String state = app.isRunning ? ". " +
-                holder.itemView.getContext().getString(R.string.console_running) : "";
-        holder.itemView.setContentDescription(app.app.getAppName() + state);
-        holder.itemView.setOnClickListener(view -> {
+                gameHolder.itemView.getContext().getString(R.string.console_running) : "";
+        gameHolder.itemView.setContentDescription(app.app.getAppName() + state);
+        gameHolder.itemView.setOnClickListener(view -> {
             if (listener != null) {
                 listener.onGameClicked(app, view);
             }
         });
-        holder.itemView.setOnLongClickListener(view -> {
+        gameHolder.itemView.setOnLongClickListener(view -> {
             if (listener != null) {
                 listener.onGameLongClicked(app, view);
             }
             return true;
         });
-        holder.itemView.setOnFocusChangeListener((view, hasFocus) -> {
+        gameHolder.itemView.setOnFocusChangeListener((view, hasFocus) -> {
             if (hasFocus && listener != null) {
                 listener.onGameFocused(app, view);
             }
         });
-        holder.itemView.setOnKeyListener((view, keyCode, event) -> {
-            if (event.getAction() == KeyEvent.ACTION_DOWN && listener != null &&
-                    (keyCode == KeyEvent.KEYCODE_DPAD_UP ||
-                            keyCode == KeyEvent.KEYCODE_DPAD_DOWN)) {
-                return listener.onNavigateVertical(app, view, keyCode);
+        gameHolder.itemView.setOnKeyListener((view, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN &&
+                    keyCode == KeyEvent.KEYCODE_BUTTON_Y && listener != null) {
+                listener.onGameLongClicked(app, view);
+                return true;
             }
             return false;
         });
@@ -127,7 +185,21 @@ public final class GameShelfAdapter extends RecyclerView.Adapter<GameShelfAdapte
 
     @Override
     public int getItemCount() {
-        return apps.size();
+        return items.size();
+    }
+
+    private enum Header {
+        CONTINUE_PLAYING,
+        ALL_GAMES
+    }
+
+    static final class HeaderViewHolder extends RecyclerView.ViewHolder {
+        final TextView title;
+
+        HeaderViewHolder(View itemView) {
+            super(itemView);
+            title = (TextView) itemView;
+        }
     }
 
     static final class GameViewHolder extends RecyclerView.ViewHolder {

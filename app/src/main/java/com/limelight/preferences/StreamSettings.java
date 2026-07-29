@@ -104,6 +104,7 @@ public class StreamSettings extends Activity {
         setContentView(R.layout.activity_stream_settings);
         setupCategoryRail();
 
+        com.limelight.ui.console.ConsoleStatusBar.enterImmersiveMode(this);
         UiHelper.notifyNewRootView(this);
     }
 
@@ -132,6 +133,13 @@ public class StreamSettings extends Activity {
                 selectedCategory = categoryKey;
                 updateSelectedCategory();
                 reloadSettings();
+            });
+            button.setOnFocusChangeListener((view, hasFocus) -> {
+                if (hasFocus && !selectedCategory.equals(categoryKey)) {
+                    selectedCategory = categoryKey;
+                    updateSelectedCategory();
+                    reloadSettings();
+                }
             });
             button.setOnKeyListener((view, keyCode, event) -> {
                 if (event.getAction() == KeyEvent.ACTION_DOWN &&
@@ -199,8 +207,7 @@ public class StreamSettings extends Activity {
                     selectedPosition >= settingsList.getCount() - 1) {
                 return true;
             }
-            if (keyCode == KeyEvent.KEYCODE_DPAD_UP &&
-                    (selectedPosition <= 0 || !settingsList.canScrollVertically(-1))) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP && selectedPosition <= 0) {
                 return true;
             }
             if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
@@ -453,13 +460,23 @@ public class StreamSettings extends Activity {
                     return false;
                 }
 
+                int firstEnabledPosition = 0;
+                while (firstEnabledPosition < list.getCount() &&
+                        !list.getAdapter().isEnabled(firstEnabledPosition)) {
+                    firstEnabledPosition++;
+                }
+                int lastEnabledPosition = list.getCount() - 1;
+                while (lastEnabledPosition > 0 &&
+                        !list.getAdapter().isEnabled(lastEnabledPosition)) {
+                    lastEnabledPosition--;
+                }
+
                 if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN &&
-                        (list.getSelectedItemPosition() >= list.getCount() - 1 ||
-                                !list.canScrollVertically(1))) {
+                        list.getSelectedItemPosition() >= lastEnabledPosition) {
                     return true;
                 }
                 if (keyCode == KeyEvent.KEYCODE_DPAD_UP &&
-                        !list.canScrollVertically(-1)) {
+                        list.getSelectedItemPosition() <= firstEnabledPosition) {
                     return true;
                 }
                 if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {

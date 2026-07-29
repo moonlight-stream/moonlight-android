@@ -21,6 +21,8 @@ public class ConsoleShelfView extends RecyclerView {
         setItemAnimator(null);
         setDescendantFocusability(FOCUS_AFTER_DESCENDANTS);
         setOverScrollMode(OVER_SCROLL_NEVER);
+        setVerticalScrollBarEnabled(false);
+        setHorizontalScrollBarEnabled(false);
     }
 
     public void centerFocusedChild(View child) {
